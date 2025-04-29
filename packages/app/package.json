@@ -16,7 +16,7 @@
     "build": "pnpm codegen && tsc",
     "migration:generate": "squid-typeorm-migration generate",
     "migration:apply": "squid-typeorm-migration apply",
-    "start": "pnpm migration:generate && pnpm migration:apply && node lib/main.js"
+    "start": "pnpm migration:generate || pnpm migration:apply || node lib/main.js"
   },
   "dependencies": {
     "@chillwhales/chill-shop-contracts": "^0.6.1",
