@@ -4,10 +4,10 @@ FROM node:22-alpine AS base
 ARG NODE_AUTH_TOKEN
 RUN export NODE_AUTH_TOKEN=$NODE_AUTH_TOKEN
 
-# Install dependencies only when needed
+# Install dependencies 
 RUN apk add --no-cache git
 
-# Get the monorepo
+WORKDIR /app
 COPY . .
 
 # Build the packages
