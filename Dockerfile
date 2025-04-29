@@ -16,9 +16,4 @@ COPY . .
 RUN corepack enable pnpm && pnpm install
 RUN pnpm build
 
-
-# Setup the database
-RUN pnpm migration:generate
-RUN pnpm migration:apply
-
-CMD ["pnpm", "start"]
+CMD [ "pnpm", "start" ]
