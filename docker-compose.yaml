@@ -92,3 +92,7 @@ services:
 
 networks:
   sqd_indexer_network:
+
+volumes:
+  postgres_volume:
+  pgadmin_volume:
