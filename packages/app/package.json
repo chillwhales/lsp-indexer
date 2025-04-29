@@ -13,7 +13,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf lib",
-    "start": "bash scripts/start.sh"
+    "start": "./scripts/start.sh"
   },
   "dependencies": {
     "@chillwhales/sqd-indexer-abi": "workspace:*",
