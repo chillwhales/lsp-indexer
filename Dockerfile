@@ -16,4 +16,4 @@ COPY . .
 RUN corepack enable pnpm && pnpm install
 RUN pnpm build
 
-CMD ["pnpm", "start:docker"]
+CMD ["pnpm", "start"]
