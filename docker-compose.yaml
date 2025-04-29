@@ -7,6 +7,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      sqd_indexer_network:
     environment:
       - NODE_AUTH_TOKEN
       - DB_URL
@@ -22,8 +24,7 @@ services:
     volumes:
       - postgres_volume:/var/lib/postgresql/data
     networks:
-      shop:
-      admin:
+      sqd_indexer_network:
     ports:
       - ${POSTGRES_PORT}:5432
     environment:
@@ -39,7 +40,7 @@ services:
     volumes:
       - pgadmin_volume:/var/lib/pgadmin
     networks:
-      admin:
+      sqd_indexer_network:
     ports:
       - ${PGADMIN_PORT}:80
     environment:
@@ -51,6 +52,8 @@ services:
     ports:
       - ${GRAPHQL_PORT}:8080
     restart: always
+    networks:
+      sqd_indexer_network:
     environment:
       ## postgres database to store Hasura metadata
       - HASURA_GRAPHQL_METADATA_DATABASE_URL=${DB_URL}
@@ -86,3 +89,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
+
+networks:
+  sqd_indexer_network:
