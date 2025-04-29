@@ -3,8 +3,6 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-      args:
-        - NODE_AUTH_TOKEN
     restart: unless-stopped
     depends_on:
       postgres:
@@ -14,6 +12,7 @@ services:
     environment:
       - NODE_AUTH_TOKEN
       - DB_URL
+      - RPC_URL
 
   postgres:
     image: postgres:17-alpine
