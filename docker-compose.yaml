@@ -4,6 +4,7 @@ services:
       context: ./
       dockerfile: Dockerfile
       args:
+        - DB_URL
         - NODE_AUTH_TOKEN
     restart: unless-stopped
     depends_on:
@@ -12,7 +13,6 @@ services:
     networks:
       sqd_indexer_network:
     environment:
-      - DB_URL
       - RPC_URL
 
   postgres:
