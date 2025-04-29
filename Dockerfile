@@ -1,8 +1,10 @@
 FROM node:22-alpine AS base
 
-# needed because @chillwhales/chill-shop-contracts is privaye
+# `NODE_AUTH_TOKEN` needed because @chillwhales/chill-shop-contracts is private
+ARG DB_URL
 ARG NODE_AUTH_TOKEN
-RUN export NODE_AUTH_TOKEN=$NODE_AUTH_TOKEN
+ENV DB_URL=$DB_URL
+ENV NODE_AUTH_TOKEN=$NODE_AUTH_TOKEN
 
 # Install dependencies 
 RUN apk add --no-cache git
@@ -14,8 +16,6 @@ COPY . .
 RUN corepack enable pnpm && pnpm install
 RUN pnpm build
 
-ARG DB_URL
-RUN export DB_URL=$DB_URL
 
 # Setup the database
 RUN pnpm migration:generate
