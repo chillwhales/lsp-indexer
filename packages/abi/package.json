@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@chillwhales/chill-shop-contracts": "^0.6.1",
+    "@subsquid/evm-abi": "^0.3.1",
     "@subsquid/evm-codec": "^0.3.0"
   },
   "devDependencies": {
