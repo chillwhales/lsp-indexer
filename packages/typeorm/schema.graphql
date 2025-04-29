@@ -1,0 +1,6 @@
+type Transfer @entity {
+  id: ID!
+  from: String! @index
+  to: String! @index
+  amount: BigInt!
+}

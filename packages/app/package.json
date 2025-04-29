@@ -1,0 +1,29 @@
+{
+  "name": "@chillwhales/sqd-indexer-app",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "author": "b00ste",
+  "license": "MIT",
+  "packageManager": "pnpm@10.10.0",
+  "main": "/lib/main.js",
+  "files": [
+    "/lib"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf lib",
+    "start": "node lib/main.js"
+  },
+  "dependencies": {
+    "@chillwhales/sqd-indexer-abi": "workspace:*",
+    "@chillwhales/sqd-indexer-typeorm": "workspace:*",
+    "@chillwhales/chill-shop-contracts": "^0.6.1",
+    "@subsquid/evm-processor": "^1.27.1",
+    "@subsquid/typeorm-store": "^1.5.1",
+    "dotenv": "^16.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
