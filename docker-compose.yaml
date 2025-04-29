@@ -3,6 +3,8 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
+      args:
+        - NODE_AUTH_TOKEN
     restart: unless-stopped
     depends_on:
       postgres:
@@ -36,7 +38,8 @@ services:
     image: dpage/pgadmin4
     restart: unless-stopped
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - pgadmin_volume:/var/lib/pgadmin
     networks:
@@ -70,6 +73,8 @@ services:
       # HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
       - HASURA_GRAPHQL_METADATA_DEFAULTS='{"backend_configs":{"dataconnector":{"athena":{"uri":"http://data-connector-agent:${DATA_CONNECTOR_AGENT_PORT}/api/v1/athena"},"mariadb":{"uri":"http://data-connector-agent:${DATA_CONNECTOR_AGENT_PORT}/api/v1/mariadb"},"mysql8":{"uri":"http://data-connector-agent:${DATA_CONNECTOR_AGENT_PORT}/api/v1/mysql"},"oracle":{"uri":"http://data-connector-agent:${DATA_CONNECTOR_AGENT_PORT}/api/v1/oracle"},"snowflake":{"uri":"http://data-connector-agent:${DATA_CONNECTOR_AGENT_PORT}/api/v1/snowflake"}}}}'
     depends_on:
+      postgres:
+        condition: service_healthy
       data-connector-agent:
         condition: service_healthy
 
