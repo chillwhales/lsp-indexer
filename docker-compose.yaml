@@ -27,8 +27,6 @@ services:
       - postgres_volume:/var/lib/postgresql/data
     networks:
       indexer_network:
-    ports:
-      - ${POSTGRES_PORT}:5432
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD

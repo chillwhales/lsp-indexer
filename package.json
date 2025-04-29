@@ -12,7 +12,7 @@
     "migration:generate": "pnpm --filter=@chillwhales/sqd-indexer-typeorm migration:generate",
     "migration:apply": "pnpm --filter=@chillwhales/sqd-indexer-typeorm migration:apply",
     "start:app": "pnpm --filter=@chillwhales/sqd-indexer-app start",
-    "start:docker": "pnpm migration:generate && pnpm migration:apply && pnpm start:app"
+    "start:docker": "pnpm migration:generate || pnpm migration:apply && pnpm start:app"
   },
   "dependencies": {
     "@chillwhales/chill-shop-contracts": "^0.6.1",
