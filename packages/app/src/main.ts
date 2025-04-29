@@ -13,7 +13,7 @@ const processor = new EvmBatchProcessor()
   })
   .setFinalityConfirmation(75) // 15 mins to finality
   .addLog({
-    address: ["0xdAC17F958D2ee523a2206206994597C13D831ec7"],
+    address: ["0x5B8B0E44D4719F8A328470DcCD3746BFc73d6B14"],
     topic0: [ModularToken.events.Transfer.topic],
   });
 
