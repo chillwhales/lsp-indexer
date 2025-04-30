@@ -9,11 +9,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      graphql:
+        condition: service_healthy
     networks:
       indexer_network:
     environment:
       - DB_URL
       - RPC_URL
+      - HASURA_GRAPHQL_ENDPOINT
+      - HASURA_GRAPHQL_ADMIN_SECRET
 
   postgres:
     image: postgres:17-alpine
@@ -52,28 +56,33 @@ services:
     image: hasura/graphql-engine:v2.46.0
     ports:
       - ${HASURA_GRAPHQL_PORT}:8080
-    restart: always
+    restart: unless-stopped
     networks:
       indexer_network:
     environment:
       - PG_DATABASE_URL
+      - HASURA_GRAPHQL_DATABASE_URL
       - HASURA_GRAPHQL_METADATA_DATABASE_URL
+      - HASURA_GRAPHQL_ADMIN_SECRET
       - HASURA_GRAPHQL_ENABLE_CONSOLE
       - HASURA_GRAPHQL_DEV_MODE
       - HASURA_GRAPHQL_ENABLED_LOG_TYPES
-      - HASURA_GRAPHQL_ADMIN_SECRET
       - HASURA_GRAPHQL_METADATA_DEFAULTS
     depends_on:
       postgres:
         condition: service_healthy
       data-connector-agent:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
 
   data-connector-agent:
     image: hasura/graphql-data-connector:v2.46.0
-    restart: always
-    ports:
-      - ${DATA_CONNECTOR_AGENT_PORT}:8081
+    restart: unless-stopped
     environment:
       QUARKUS_LOG_LEVEL: ERROR
       QUARKUS_OPENTELEMETRY_ENABLED: "false"
