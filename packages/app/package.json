@@ -17,8 +17,8 @@
   },
   "dependencies": {
     "@chillwhales/chill-shop-contracts": "^0.6.1",
-    "@chillwhales/sqd-indexer-abi": "workspace:*",
-    "@chillwhales/sqd-indexer-typeorm": "workspace:*",
+    "@chillwhales/sqd-indexer-abi": "workspace:^",
+    "@chillwhales/sqd-indexer-typeorm": "workspace:^",
     "@subsquid/evm-processor": "^1.27.1",
     "@subsquid/typeorm-store": "^1.5.1"
   },
