@@ -1,7 +1,7 @@
 import { EvmBatchProcessor } from "@subsquid/evm-processor";
 import { TypeormDatabase } from "@subsquid/typeorm-store";
 import { ModularToken } from "@chillwhales/sqd-indexer-abi";
-import { Transfer } from "./model";
+import { Transfer } from "@chillwhales/sqd-indexer-typeorm";
 
 const db = new TypeormDatabase();
 
