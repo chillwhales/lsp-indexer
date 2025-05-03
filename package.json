@@ -1,5 +1,5 @@
 {
-  "name": "@chillwhales/sqd-indexer",
+  "name": "@chillwhales/sqd-monorepo",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
@@ -9,10 +9,15 @@
   "scripts": {
     "build": "pnpm -r build",
     "clean": "pnpm -r clean",
-    "hasura:generate": "pnpm --filter=@chillwhales/sqd-indexer-typeorm hasura:generate",
-    "hasura:apply": "pnpm --filter=@chillwhales/sqd-indexer-typeorm hasura:apply",
-    "migration:generate": "pnpm --filter=@chillwhales/sqd-indexer-typeorm migration:generate",
-    "migration:apply": "pnpm --filter=@chillwhales/sqd-indexer-typeorm migration:apply",
-    "start": "pnpm migration:apply && pnpm hasura:apply && pnpm --filter=@chillwhales/sqd-indexer-app start"
+    "format": "prettier --write .",
+    "hasura:generate": "pnpm --filter=@chillwhales/sqd-typeorm hasura:generate",
+    "hasura:apply": "pnpm --filter=@chillwhales/sqd-typeorm hasura:apply",
+    "migration:generate": "pnpm --filter=@chillwhales/sqd-typeorm migration:generate",
+    "migration:apply": "pnpm --filter=@chillwhales/sqd-typeorm migration:apply",
+    "start": "bash scripts/pre-start.sh && pnpm --filter=@chillwhales/sqd-indexer start"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "prettier-plugin-organize-imports": "^4.1.0"
   }
 }
