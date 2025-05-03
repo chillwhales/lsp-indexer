@@ -1,3 +1,5 @@
+#!/bin/sh
+
 squid-evm-typegen \
     src/abi \
     node_modules/@chillwhales/chill-shop-contracts/artifacts/* \

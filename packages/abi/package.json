@@ -12,7 +12,7 @@
     "lib"
   ],
   "scripts": {
-    "codegen": "bash scripts/codegen.sh",
+    "codegen": "sh scripts/codegen.sh",
     "build": "pnpm codegen && tsc",
     "clean": "rm -rf lib && rm -rf src"
   },
