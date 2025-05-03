@@ -14,7 +14,7 @@
   "scripts": {
     "codegen": "squid-typeorm-codegen",
     "build": "pnpm codegen && tsc",
-    "clean": "rm -rf lib && rm -rf src && rm -rf db",
+    "clean": "rm -rf lib && rm -rf src && rm -rf db && rm hasura_metadata.json",
     "hasura:generate": "squid-hasura-configuration regenerate --force",
     "hasura:apply": "squid-hasura-configuration apply",
     "migration:generate": "squid-typeorm-migration generate",
