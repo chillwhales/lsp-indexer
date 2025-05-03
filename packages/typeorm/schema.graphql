@@ -1,6 +1,274 @@
+enum LSP4TokenTypeEnum {
+  TOKEN
+  NFT
+  COLLECTION
+}
+
+enum LSP8TokenIdFormatEnum {
+  NUMBER
+  STRING
+  ADDRESS
+  BYTES32
+}
+
+enum OperationType {
+  CALL
+  CREATE
+  CREATE2
+  STATICCALL
+  DELEGATECALL
+}
+
+type Executed @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  universalProfile: UniversalProfile! @index
+  operationType: OperationType! @index
+  value: BigInt! @index
+  target: String! @index
+  selector: String! @index
+}
+
+type UniversalReceiver @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  universalProfile: UniversalProfile! @index
+  from: String! @index
+  value: BigInt! @index
+  typeId: String! @index
+  receivedData: String!
+  returnedValue: String!
+}
+
+type DataChanged @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  universalProfile: UniversalProfile @index
+  digitalAsset: DigitalAsset @index
+  dataKey: String! @index
+  dataValue: String!
+}
+
+type TokenIdDataChanged @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  digitalAsset: DigitalAsset! @index
+  tokenId: String! @index
+  dataKey: String! @index
+  dataValue: String!
+}
+
 type Transfer @entity {
   id: ID!
+  timestamp: DateTime! @index
+  digitalAsset: DigitalAsset! @index
   from: String! @index
   to: String! @index
-  amount: BigInt!
+  amount: BigInt! @index
+  tokenId: String @index
 }
+
+type UniversalProfile @entity {
+  address: ID!
+  lsp3Profile: [LSP3Profile!]! @derivedFrom(field: "universalProfile")
+  lsp3ProfileUrl: [LSP3ProfileUrl!]! @derivedFrom(field: "universalProfile")
+  ownedAssets: [OwnedAsset!]! @derivedFrom(field: "universalProfile")
+  tokens: [Token!]! @derivedFrom(field: "universalProfile")
+}
+
+type DigitalAsset @entity {
+  address: ID!
+  totalSupply: Int!
+  lsp4TokenName: [LSP4TokenName!]! @derivedFrom(field: "digitalAsset")
+  lsp4TokenSymbol: [LSP4TokenSymbol!]! @derivedFrom(field: "digitalAsset")
+  lsp4Metadata: [LSP4Metadata!]! @derivedFrom(field: "digitalAsset")
+  lsp4MetadataUrl: [LSP4MetadataUrl!]! @derivedFrom(field: "digitalAsset")
+  lsp4TokenType: [LSP4TokenType!]! @derivedFrom(field: "digitalAsset")
+  # LSP7 properties
+  decimals: Int!
+  # LSP8 properties
+  lsp8TokenIdFormat: [LSP8TokenIdFormat!]! @derivedFrom(field: "digitalAsset")
+  lsp8ReferenceContract: [LSP8ReferenceContract!]! @derivedFrom(field: "digitalAsset")
+  tokenIds: [Token!]! @derivedFrom(field: "digitalAsset")
+}
+
+type OwnedAsset @entity @index(fields: ["universalProfile", "digitalAsset"]) {
+  id: ID!
+  universalProfile: UniversalProfile! @index
+  digitalAsset: DigitalAsset! @index
+  balance: BigInt! @index
+  # LSP8 properties
+  tokenIds: [Token!] @derivedFrom(field: "ownedAsset")
+  # CHILL properties
+  claimedBalance: BigInt
+}
+
+type Token @entity @index(fields: ["tokenId", "digitalAsset"]) {
+  id: ID!
+  tokenId: String!
+  digitalAsset: DigitalAsset! @index
+  universalProfile: UniversalProfile! @index
+  ownedAsset: OwnedAsset! @index
+  lsp4Metadata: [LSP4Metadata!]! @derivedFrom(field: "token")
+  lsp4MetadataUrl: [LSP4MetadataUrl!]! @derivedFrom(field: "token")
+  # chillwhales properties
+  chillClaimed: Boolean @index
+  orbsClaimed: Boolean @index
+  # ORBS properties
+  level: Int @index
+  cooldownExpiry: Int @index
+  faction: String @index
+}
+
+type LSP4TokenName @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  digitalAsset: DigitalAsset! @index
+  value: String @index
+}
+
+type LSP4TokenSymbol @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  digitalAsset: DigitalAsset! @index
+  value: String @index
+}
+
+type LSP4TokenType @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  digitalAsset: DigitalAsset! @index
+  value: LSP4TokenTypeEnum @index
+}
+
+type LSP8TokenIdFormat @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  digitalAsset: DigitalAsset! @index
+  value: LSP8TokenIdFormatEnum @index
+}
+
+type LSP8ReferenceContract @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  digitalAsset: DigitalAsset! @index
+  value: String @index
+}
+
+type LSP3ProfileUrl @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  universalProfile: UniversalProfile! @index
+  value: String
+  rawBytes: String
+  decodeError: String
+}
+
+type LSP3Profile @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  universalProfile: UniversalProfile! @index
+  name: String! @index
+  description: String!
+  links: [Link!]!
+  tags: [String!]!
+  avatar: [Asset!]!
+  profileImage: [Image!]!
+  backgroundImage: [Image!]!
+}
+
+type LSP4MetadataUrl @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  digitalAsset: DigitalAsset! @index
+  token: Token @index
+  value: String
+  rawBytes: String
+  decodeError: String
+}
+
+type LSP4Metadata @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  digitalAsset: DigitalAsset! @index
+  token: Token @index
+  name: String! @index
+  description: String!
+  links: [Link!]!
+  icon: [Image!]!
+  images: [Image!]!
+  assets: [Asset!]!
+  attributes: [Attribute!]!
+}
+
+type Attribute {
+  key: String!
+  value: String!
+  type: String!
+}
+
+type Link {
+  title: String!
+  url: String!
+}
+
+####################
+### Verfifcation ###
+####################
+
+enum VerfirfactionMethod {
+  ECDSA
+  KECCACK256_BYTES
+}
+
+type ECDSAVerfication {
+  method: VerfirfactionMethod!
+  data: String!
+  source: String!
+}
+
+type HashVerification {
+  method: VerfirfactionMethod!
+  data: String!
+}
+
+union Verification = ECDSAVerfication | HashVerification
+
+####################
+###### Image #######
+####################
+
+type UrlImage {
+  width: Int!
+  height: Int!
+  url: String!
+  verification: Verification!
+}
+
+type NFTImage {
+  address: String!
+  tokenId: String!
+}
+
+union Image = UrlImage | NFTImage
+
+####################
+###### Asset #######
+####################
+
+type UrlAsset {
+  url: String!
+  fileType: String!
+  verification: Verification!
+}
+
+type NFTAsset {
+  address: String!
+  tokenId: String!
+}
+
+union Asset = UrlAsset | NFTAsset
+
+####################
+####### END ########
+####################

@@ -1,23 +1,27 @@
 {
-  "name": "@chillwhales/sqd-indexer-abi",
+  "name": "@chillwhales/sqd-abi",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
   "author": "b00ste",
   "license": "MIT",
   "packageManager": "pnpm@10.10.0",
-  "main": "lib/main.js",
-  "types": "lib/main.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "files": [
-    "/lib"
+    "lib"
   ],
   "scripts": {
-    "codegen": "squid-evm-typegen src/abi node_modules/@chillwhales/chill-shop-contracts/artifacts/*",
+    "codegen": "bash scripts/codegen.sh",
     "build": "pnpm codegen && tsc",
-    "clean": "rm -rf lib && rm -rf src/abi"
+    "clean": "rm -rf lib && rm -rf src"
   },
   "dependencies": {
-    "@chillwhales/chill-shop-contracts": "^0.6.1",
+    "@chillwhales/chill-shop-contracts": "0.6.0",
+    "@erc725/smart-contracts": "^8.0.1",
+    "@lukso/lsp0-contracts": "0.15.0",
+    "@lukso/lsp7-contracts": "0.16.3",
+    "@lukso/lsp8-contracts": "0.16.2",
     "@subsquid/evm-abi": "^0.3.1",
     "@subsquid/evm-codec": "^0.3.0"
   },

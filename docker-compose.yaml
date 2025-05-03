@@ -23,7 +23,7 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -74,7 +74,7 @@ services:
       data-connector-agent:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:8080/healthz']
       interval: 5s
       timeout: 10s
       retries: 5
@@ -85,9 +85,9 @@ services:
     restart: unless-stopped
     environment:
       QUARKUS_LOG_LEVEL: ERROR
-      QUARKUS_OPENTELEMETRY_ENABLED: "false"
+      QUARKUS_OPENTELEMETRY_ENABLED: 'false'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/api/v1/athena/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:8081/api/v1/athena/health']
       interval: 5s
       timeout: 10s
       retries: 5

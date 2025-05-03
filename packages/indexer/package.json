@@ -1,0 +1,37 @@
+{
+  "name": "@chillwhales/sqd-indexer",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "author": "b00ste",
+  "license": "MIT",
+  "packageManager": "pnpm@10.10.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf lib",
+    "start": "node lib/index.js"
+  },
+  "dependencies": {
+    "@chillwhales/chill-shop-contracts": "^0.6.1",
+    "@chillwhales/sqd-abi": "workspace:^",
+    "@chillwhales/sqd-typeorm": "workspace:^",
+    "@erc725/erc725.js": "^0.27.2",
+    "@lukso/lsp0-contracts": "0.15.0",
+    "@lukso/lsp3-contracts": "0.16.2",
+    "@lukso/lsp4-contracts": "0.16.2",
+    "@lukso/lsp7-contracts": "0.16.3",
+    "@lukso/lsp8-contracts": "0.16.2",
+    "@subsquid/evm-processor": "^1.27.1",
+    "@subsquid/typeorm-store": "^1.5.1",
+    "uuid": "^11.1.0",
+    "viem": "^2.28.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
