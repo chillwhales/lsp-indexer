@@ -15,10 +15,10 @@
     "codegen": "squid-typeorm-codegen",
     "build": "pnpm codegen && tsc",
     "clean": "rm -rf lib && rm -rf src && rm -rf db",
+    "hasura:generate": "squid-hasura-configuration regenerate --force",
     "hasura:apply": "squid-hasura-configuration apply",
-    "hasura:generate": "squid-hasura-configuration regenerate",
-    "migration:apply": "squid-typeorm-migration apply",
-    "migration:generate": "squid-typeorm-migration generate"
+    "migration:generate": "squid-typeorm-migration generate",
+    "migration:apply": "squid-typeorm-migration apply"
   },
   "dependencies": {
     "@subsquid/hasura-configuration": "^2.0.0",
