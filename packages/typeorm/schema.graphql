@@ -22,102 +22,172 @@ enum OperationType {
 type Executed @entity {
   id: ID!
   timestamp: DateTime! @index
-  universalProfile: UniversalProfile! @index
-  operationType: OperationType! @index
+  blockNumber: Int! @index
+  logIndex: Int! @index
+  address: String! @index
+  decodedOperationType: OperationType! @index
+  operationType: BigInt! @index
   value: BigInt! @index
   target: String! @index
   selector: String! @index
+  universalProfile: UniversalProfile! @index
 }
 
 type UniversalReceiver @entity {
   id: ID!
   timestamp: DateTime! @index
-  universalProfile: UniversalProfile! @index
+  blockNumber: Int! @index
+  logIndex: Int! @index
+  address: String! @index
   from: String! @index
   value: BigInt! @index
   typeId: String! @index
   receivedData: String!
   returnedValue: String!
+  universalProfile: UniversalProfile! @index
 }
 
 type DataChanged @entity {
   id: ID!
   timestamp: DateTime! @index
-  universalProfile: UniversalProfile @index
-  digitalAsset: DigitalAsset @index
+  blockNumber: Int! @index
+  logIndex: Int! @index
+  address: String! @index
   dataKey: String! @index
   dataValue: String!
+  universalProfile: UniversalProfile @index
+  digitalAsset: DigitalAsset @index
 }
 
 type TokenIdDataChanged @entity {
   id: ID!
   timestamp: DateTime! @index
-  digitalAsset: DigitalAsset! @index
+  blockNumber: Int! @index
+  logIndex: Int! @index
   tokenId: String! @index
+  address: String! @index
   dataKey: String! @index
   dataValue: String!
+  digitalAsset: DigitalAsset! @index
+  nft: NFT! @index
 }
 
 type Transfer @entity {
   id: ID!
   timestamp: DateTime! @index
-  digitalAsset: DigitalAsset! @index
+  blockNumber: Int! @index
+  logIndex: Int! @index
+  address: String! @index
+  operator: String! @index
   from: String! @index
   to: String! @index
   amount: BigInt! @index
   tokenId: String @index
+  force: Boolean! @index
+  data: String!
+  digitalAsset: DigitalAsset! @index
+  nft: NFT @index
+}
+
+type EOA @entity {
+  address: ID! @index
+  ownedAssets: [OwnedAsset!]! @derivedFrom(field: "eoa")
+  ownedTokens: [OwnedToken!]! @derivedFrom(field: "eoa")
 }
 
 type UniversalProfile @entity {
-  address: ID!
+  address: ID! @index
   lsp3Profile: [LSP3Profile!]! @derivedFrom(field: "universalProfile")
   lsp3ProfileUrl: [LSP3ProfileUrl!]! @derivedFrom(field: "universalProfile")
   ownedAssets: [OwnedAsset!]! @derivedFrom(field: "universalProfile")
-  tokens: [Token!]! @derivedFrom(field: "universalProfile")
+  ownedTokens: [OwnedToken!]! @derivedFrom(field: "universalProfile")
+
+  # Events
+  executed: [Executed!]! @derivedFrom(field: "universalProfile")
+  universalReceiver: [UniversalReceiver!]! @derivedFrom(field: "universalProfile")
+  dataChanged: [DataChanged!]! @derivedFrom(field: "universalProfile")
 }
 
 type DigitalAsset @entity {
-  address: ID!
-  totalSupply: Int!
+  address: ID! @index
+  totalSupply: [TotalSupply!]! @derivedFrom(field: "digitalAsset")
   lsp4TokenName: [LSP4TokenName!]! @derivedFrom(field: "digitalAsset")
   lsp4TokenSymbol: [LSP4TokenSymbol!]! @derivedFrom(field: "digitalAsset")
   lsp4Metadata: [LSP4Metadata!]! @derivedFrom(field: "digitalAsset")
   lsp4MetadataUrl: [LSP4MetadataUrl!]! @derivedFrom(field: "digitalAsset")
   lsp4TokenType: [LSP4TokenType!]! @derivedFrom(field: "digitalAsset")
+
   # LSP7 properties
-  decimals: Int!
+  decimals: [Decimals!]! @derivedFrom(field: "digitalAsset")
+
   # LSP8 properties
   lsp8TokenIdFormat: [LSP8TokenIdFormat!]! @derivedFrom(field: "digitalAsset")
   lsp8ReferenceContract: [LSP8ReferenceContract!]! @derivedFrom(field: "digitalAsset")
-  tokenIds: [Token!]! @derivedFrom(field: "digitalAsset")
+  nfts: [NFT!]! @derivedFrom(field: "digitalAsset")
+
+  # Events
+  dataChanged: [DataChanged!]! @derivedFrom(field: "digitalAsset")
+  tokenIdDataChanged: [TokenIdDataChanged!]! @derivedFrom(field: "digitalAsset")
+  transfer: [Transfer!]! @derivedFrom(field: "digitalAsset")
 }
 
-type OwnedAsset @entity @index(fields: ["universalProfile", "digitalAsset"]) {
+type TotalSupply @entity {
   id: ID!
-  universalProfile: UniversalProfile! @index
+  timestamp: DateTime! @index
   digitalAsset: DigitalAsset! @index
-  balance: BigInt! @index
-  # LSP8 properties
-  tokenIds: [Token!] @derivedFrom(field: "ownedAsset")
-  # CHILL properties
-  claimedBalance: BigInt
+  value: Int! @index
 }
 
-type Token @entity @index(fields: ["tokenId", "digitalAsset"]) {
+type Decimals @entity {
+  id: ID!
+  timestamp: DateTime! @index
+  digitalAsset: DigitalAsset! @index
+  value: Int! @index
+}
+
+type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
   id: ID!
   tokenId: String!
   digitalAsset: DigitalAsset! @index
-  universalProfile: UniversalProfile! @index
-  ownedAsset: OwnedAsset! @index
-  lsp4Metadata: [LSP4Metadata!]! @derivedFrom(field: "token")
-  lsp4MetadataUrl: [LSP4MetadataUrl!]! @derivedFrom(field: "token")
+  lsp4Metadata: [LSP4Metadata!]! @derivedFrom(field: "nft")
+  lsp4MetadataUrl: [LSP4MetadataUrl!]! @derivedFrom(field: "nft")
+  isBurned: Boolean! @index
+
   # chillwhales properties
   chillClaimed: Boolean @index
   orbsClaimed: Boolean @index
+
   # ORBS properties
   level: Int @index
   cooldownExpiry: Int @index
   faction: String @index
+
+  # Events
+  tokenIdDataChanged: [TokenIdDataChanged!]! @derivedFrom(field: "nft")
+  transfer: [Transfer!]! @derivedFrom(field: "nft")
+}
+
+type OwnedAsset @entity @index(fields: ["digitalAsset", "ownerAddress"]) {
+  id: ID!
+  balance: BigInt! @index
+  digitalAsset: DigitalAsset! @index
+  ownerAddress: String! @index
+  eoa: EOA! @index
+  universalProfile: UniversalProfile! @index
+  # LSP8 properties
+  tokenIds: [OwnedToken!] @derivedFrom(field: "ownedAsset")
+  # CHILL properties
+  claimedBalance: BigInt
+}
+
+type OwnedToken @entity @index(fields: ["nft", "digitalAsset", "ownerAddress"]) {
+  id: ID!
+  nft: NFT! @index
+  digitalAsset: DigitalAsset! @index
+  ownerAddress: String! @index
+  eoa: EOA! @index
+  universalProfile: UniversalProfile! @index
+  ownedAsset: OwnedAsset! @index
 }
 
 type LSP4TokenName @entity {
@@ -181,7 +251,7 @@ type LSP4MetadataUrl @entity {
   id: ID!
   timestamp: DateTime! @index
   digitalAsset: DigitalAsset! @index
-  token: Token @index
+  nft: NFT @index
   value: String
   rawBytes: String
   decodeError: String
@@ -191,7 +261,7 @@ type LSP4Metadata @entity {
   id: ID!
   timestamp: DateTime! @index
   digitalAsset: DigitalAsset! @index
-  token: Token @index
+  nft: NFT @index
   name: String! @index
   description: String!
   links: [Link!]!

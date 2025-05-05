@@ -81,6 +81,9 @@ importers:
       '@subsquid/typeorm-store':
         specifier: ^1.5.1
         version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2))
+      typeorm:
+        specifier: ^0.3.22
+        version: 0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)
       uuid:
         specifier: ^11.1.0
         version: 11.1.0

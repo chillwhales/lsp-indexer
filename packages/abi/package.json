@@ -14,7 +14,7 @@
   "scripts": {
     "codegen": "sh scripts/codegen.sh",
     "build": "pnpm codegen && tsc",
-    "clean": "rm -rf lib && rm -rf src"
+    "clean": "rm -Rf lib/ src/"
   },
   "dependencies": {
     "@chillwhales/chill-shop-contracts": "0.6.0",

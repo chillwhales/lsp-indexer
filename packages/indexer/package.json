@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf lib",
+    "clean": "rm -Rf lib/",
     "start": "node lib/index.js"
   },
   "dependencies": {
@@ -28,6 +28,7 @@
     "@lukso/lsp8-contracts": "0.16.2",
     "@subsquid/evm-processor": "^1.27.1",
     "@subsquid/typeorm-store": "^1.5.1",
+    "typeorm": "^0.3.22",
     "uuid": "^11.1.0",
     "viem": "^2.28.3"
   },
