@@ -26,3 +26,16 @@ export function extractTokenIdDataChanged({ block, log }: ExtractParams): TokenI
     }),
   });
 }
+
+export function extractTokenIdDataChangedNft({ log }: ExtractParams): NFT {
+  const { address } = log;
+  const { tokenId } = LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.decode(log);
+
+  return new NFT({
+    id: generateTokenId({ address, tokenId }),
+    tokenId,
+    digitalAsset: new DigitalAsset({ address }),
+    isMinted: false,
+    isBurned: false,
+  });
+}

@@ -151,6 +151,7 @@ type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
   digitalAsset: DigitalAsset! @index
   lsp4Metadata: [LSP4Metadata!]! @derivedFrom(field: "nft")
   lsp4MetadataUrl: [LSP4MetadataUrl!]! @derivedFrom(field: "nft")
+  isMinted: Boolean! @index
   isBurned: Boolean! @index
 
   # chillwhales properties

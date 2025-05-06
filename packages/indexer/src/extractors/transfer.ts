@@ -53,7 +53,7 @@ export function extractLsp8Transfer({ block, log }: ExtractParams): Transfer {
   });
 }
 
-export function extractNft({ log }: ExtractParams): NFT | null {
+export function extractTransferNft({ log }: ExtractParams): NFT | null {
   const { address } = log;
   const { from, to, tokenId } = LSP8IdentifiableDigitalAsset.events.Transfer.decode(log);
 
@@ -62,6 +62,7 @@ export function extractNft({ log }: ExtractParams): NFT | null {
       id: generateTokenId({ address, tokenId }),
       tokenId,
       digitalAsset: new DigitalAsset({ address }),
+      isMinted: true,
       isBurned: false,
     });
 
@@ -70,6 +71,7 @@ export function extractNft({ log }: ExtractParams): NFT | null {
       id: generateTokenId({ address, tokenId }),
       tokenId,
       digitalAsset: new DigitalAsset({ address }),
+      isMinted: false,
       isBurned: true,
     });
 

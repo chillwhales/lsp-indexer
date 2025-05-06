@@ -37,11 +37,13 @@ import {
   extractLsp8ReferenceContract,
   extractLsp8TokenIdFormat,
   extractLsp8Transfer,
-  extractNft,
   extractTokenIdDataChanged,
+  extractTokenIdDataChangedNft,
+  extractTransferNft,
   extractUniversalReceiver,
 } from './extractors';
 import { extractDigitalAssets } from './extractors/digitalAsset';
+import { extractNfts } from './extractors/nft';
 import { extractUniversalProfiles } from './extractors/universalProfile';
 import { processor } from './processor';
 
@@ -144,7 +146,7 @@ processor.run(new TypeormDatabase(), async (context) => {
           digitalAssets.add(log.address);
           transferEvents.push(extractLsp8Transfer(extractParams));
 
-          const nft = extractNft(extractParams);
+          const nft = extractTransferNft(extractParams);
           if (nft !== null) nfts.set(nft.id, nft);
 
           break;
@@ -153,6 +155,10 @@ processor.run(new TypeormDatabase(), async (context) => {
         case LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.topic: {
           digitalAssets.add(log.address);
           tokenIdDataChangedEvents.push(extractTokenIdDataChanged(extractParams));
+
+          const nft = extractTokenIdDataChangedNft(extractParams);
+          if (!nfts.has(nft.id)) nfts.set(nft.id, nft);
+
           break;
         }
       }
@@ -163,7 +169,7 @@ processor.run(new TypeormDatabase(), async (context) => {
     await extractUniversalProfiles({ context, addressSet: universalProfiles }),
   );
   await context.store.upsert(await extractDigitalAssets({ context, addressSet: digitalAssets }));
-  await context.store.upsert([...nfts.values()]);
+  await context.store.upsert(await extractNfts({ context, nfts }));
 
   // Save tracked events
   await context.store.insert(executedEvents);
