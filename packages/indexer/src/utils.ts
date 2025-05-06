@@ -1,8 +1,9 @@
 import { Multicall3 } from '@chillwhales/sqd-abi';
 import { LSP4TokenTypeEnum, LSP8TokenIdFormatEnum, OperationType } from '@chillwhales/sqd-typeorm';
+import ERC725 from '@erc725/erc725.js';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
-import { hexToNumber } from 'viem';
+import { hexToNumber, isHex } from 'viem';
 import { MULTICALL_ADDRESS } from './constants';
 
 export function generateTokenId({ address, tokenId }: { address: string; tokenId: string }) {
@@ -43,6 +44,43 @@ export function decodeTokenIdFormat(tokenIdFormat: number) {
         : [3, 4, 103, 104].includes(tokenIdFormat)
           ? LSP8TokenIdFormatEnum.BYTES32
           : null;
+}
+
+export function decodeVerifiableUri(dataValue: string): {
+  value: string | null;
+  decodeError: string | null;
+} {
+  const erc725 = new ERC725([]);
+
+  if (!isHex(dataValue) || dataValue === '0x' || hexToNumber(dataValue) === 0)
+    return { value: null, decodeError: null };
+
+  try {
+    const decodedMetadataUrl = erc725.decodeValueContent('VerifiableURI', dataValue);
+
+    const url =
+      decodedMetadataUrl === null
+        ? null
+        : typeof decodedMetadataUrl === 'object'
+          ? decodedMetadataUrl.url
+          : null;
+
+    if (url.match(/[^\x20-\x7E]+/g) !== null)
+      return {
+        value: null,
+        decodeError: 'Url contains invalid characters',
+      };
+
+    return {
+      value: url,
+      decodeError: null,
+    };
+  } catch (error) {
+    return {
+      value: null,
+      decodeError: error.toString(),
+    };
+  }
 }
 
 export async function getLatestBlockNumber({

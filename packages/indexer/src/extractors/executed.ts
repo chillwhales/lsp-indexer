@@ -19,6 +19,6 @@ export function extractExecuted({ block, log }: ExtractParams): Executed {
     value,
     target,
     selector,
-    universalProfile: new UniversalProfile({ address }),
+    universalProfile: new UniversalProfile({ id: address, address }),
   });
 }

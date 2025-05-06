@@ -26,21 +26,11 @@ import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
 import type { ExtractParams } from './extractors';
 import {
-  extractDataChanged,
-  extractExecuted,
-  extractLsp3ProfileUrl,
-  extractLsp4MetadataUrl,
-  extractLsp4TokenName,
-  extractLsp4TokenSymbol,
-  extractLsp4TokenType,
-  extractLsp7Transfer,
-  extractLsp8ReferenceContract,
-  extractLsp8TokenIdFormat,
-  extractLsp8Transfer,
-  extractTokenIdDataChanged,
-  extractTokenIdDataChangedNft,
-  extractTransferNft,
-  extractUniversalReceiver,
+  DataChangedExtractors,
+  ExecutedExtractors,
+  TokenIdDataChangedExtractors,
+  TransferExtractors,
+  UniversalReceiverExtractors,
 } from './extractors';
 import { extractDigitalAssets } from './extractors/digitalAsset';
 import { extractNfts } from './extractors/nft';
@@ -75,50 +65,53 @@ processor.run(new TypeormDatabase(), async (context) => {
       switch (log.topics[0]) {
         case ERC725X.events.Executed.topic: {
           universalProfiles.add(log.address);
-          executedEvents.push(extractExecuted(extractParams));
+          executedEvents.push(ExecutedExtractors.extractExecuted(extractParams));
           break;
         }
 
         case ERC725Y.events.DataChanged.topic: {
           universalProfiles.add(log.address);
           digitalAssets.add(log.address);
+          dataChangedEvents.push(DataChangedExtractors.extractDataChanged(extractParams));
+
           const { dataKey } = ERC725Y.events.DataChanged.decode(log);
-
-          dataChangedEvents.push(extractDataChanged(extractParams));
-
           switch (dataKey) {
             case LSP3DataKeys.LSP3Profile: {
-              lsp3ProfileUrls.push(extractLsp3ProfileUrl(extractParams));
+              lsp3ProfileUrls.push(DataChangedExtractors.extractLsp3ProfileUrl(extractParams));
               break;
             }
 
             case LSP4DataKeys.LSP4TokenName: {
-              lsp4TokenNames.push(extractLsp4TokenName(extractParams));
+              lsp4TokenNames.push(DataChangedExtractors.extractLsp4TokenName(extractParams));
               break;
             }
 
             case LSP4DataKeys.LSP4TokenSymbol: {
-              lsp4TokenSymbols.push(extractLsp4TokenSymbol(extractParams));
+              lsp4TokenSymbols.push(DataChangedExtractors.extractLsp4TokenSymbol(extractParams));
               break;
             }
 
             case LSP4DataKeys.LSP4TokenType: {
-              lsp4TokenTypes.push(extractLsp4TokenType(extractParams));
+              lsp4TokenTypes.push(DataChangedExtractors.extractLsp4TokenType(extractParams));
               break;
             }
 
             case LSP4DataKeys.LSP4Metadata: {
-              lsp4MetadataUrls.push(extractLsp4MetadataUrl(extractParams));
+              lsp4MetadataUrls.push(DataChangedExtractors.extractLsp4MetadataUrl(extractParams));
               break;
             }
 
             case LSP8DataKeys.LSP8ReferenceContract: {
-              lsp8ReferenceContracts.push(extractLsp8ReferenceContract(extractParams));
+              lsp8ReferenceContracts.push(
+                DataChangedExtractors.extractLsp8ReferenceContract(extractParams),
+              );
               break;
             }
 
             case LSP8DataKeys.LSP8TokenIdFormat: {
-              lsp8TokenIdFormats.push(extractLsp8TokenIdFormat(extractParams));
+              lsp8TokenIdFormats.push(
+                DataChangedExtractors.extractLsp8TokenIdFormat(extractParams),
+              );
               break;
             }
 
@@ -132,21 +125,23 @@ processor.run(new TypeormDatabase(), async (context) => {
 
         case LSP0ERC725Account.events.UniversalReceiver.topic: {
           universalProfiles.add(log.address);
-          universalReceiverEvents.push(extractUniversalReceiver(extractParams));
+          universalReceiverEvents.push(
+            UniversalReceiverExtractors.extractUniversalReceiver(extractParams),
+          );
           break;
         }
 
         case LSP7DigitalAsset.events.Transfer.topic: {
           digitalAssets.add(log.address);
-          transferEvents.push(extractLsp7Transfer(extractParams));
+          transferEvents.push(TransferExtractors.extractLsp7Transfer(extractParams));
           break;
         }
 
         case LSP8IdentifiableDigitalAsset.events.Transfer.topic: {
           digitalAssets.add(log.address);
-          transferEvents.push(extractLsp8Transfer(extractParams));
+          transferEvents.push(TransferExtractors.extractLsp8Transfer(extractParams));
 
-          const nft = extractTransferNft(extractParams);
+          const nft = TransferExtractors.extractNft(extractParams);
           if (nft !== null) nfts.set(nft.id, nft);
 
           break;
@@ -154,16 +149,35 @@ processor.run(new TypeormDatabase(), async (context) => {
 
         case LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.topic: {
           digitalAssets.add(log.address);
-          tokenIdDataChangedEvents.push(extractTokenIdDataChanged(extractParams));
+          tokenIdDataChangedEvents.push(
+            TokenIdDataChangedExtractors.extractTokenIdDataChanged(extractParams),
+          );
 
-          const nft = extractTokenIdDataChangedNft(extractParams);
+          const nft = TokenIdDataChangedExtractors.extractNft(extractParams);
           if (!nfts.has(nft.id)) nfts.set(nft.id, nft);
+
+          const { dataKey } = LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.decode(log);
+          switch (dataKey) {
+            case LSP4DataKeys.LSP4Metadata: {
+              lsp4MetadataUrls.push(
+                TokenIdDataChangedExtractors.extractLsp4MetadataUrl(extractParams),
+              );
+              break;
+            }
+          }
 
           break;
         }
       }
     }
   }
+
+  // TODO
+  // Investigate: https://www.reddit.com/r/node/comments/11e5hyj/executing_1000_http_requests_at_once/
+  // RunQueue: https://www.npmjs.com/package/run-queue
+  // if (context.isHead) {
+  //   context.store.findBy(UniversalProfile, { lsp3ProfileUrl: {} });
+  // }
 
   await context.store.upsert(
     await extractUniversalProfiles({ context, addressSet: universalProfiles }),

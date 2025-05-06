@@ -11,10 +11,9 @@ import {
   LSP8TokenIdFormat,
   UniversalProfile,
 } from '@chillwhales/sqd-typeorm';
-import ERC725 from '@erc725/erc725.js';
 import { v4 as uuidv4 } from 'uuid';
 import { hexToNumber, hexToString, isHex } from 'viem';
-import { decodeTokenIdFormat, decodeTokenType } from '../utils';
+import { decodeTokenIdFormat, decodeTokenType, decodeVerifiableUri } from '../utils';
 import { ExtractParams } from './types';
 
 export function extractDataChanged({ block, log }: ExtractParams): DataChanged {
@@ -30,8 +29,8 @@ export function extractDataChanged({ block, log }: ExtractParams): DataChanged {
     address,
     dataKey,
     dataValue,
-    universalProfile: new UniversalProfile({ address }),
-    digitalAsset: new DigitalAsset({ address }),
+    universalProfile: new UniversalProfile({ id: address, address }),
+    digitalAsset: new DigitalAsset({ id: address, address }),
   });
 }
 
@@ -39,54 +38,16 @@ export function extractLsp3ProfileUrl({ block, log }: ExtractParams): LSP3Profil
   const { timestamp } = block.header;
   const { address } = log;
   const { dataValue } = ERC725Y.events.DataChanged.decode(log);
-  const erc725 = new ERC725([]);
+  const { value, decodeError } = decodeVerifiableUri(dataValue);
 
-  if (!isHex(dataValue) || dataValue === '0x' || hexToNumber(dataValue) === 0)
-    return new LSP3ProfileUrl({
-      id: uuidv4(),
-      timestamp: new Date(timestamp),
-      universalProfile: new UniversalProfile({ address }),
-      value: null,
-      rawBytes: dataValue,
-    });
-
-  try {
-    const decodedMetadataUrl = erc725.decodeValueContent('VerifiableURI', dataValue);
-
-    const url =
-      decodedMetadataUrl === null
-        ? null
-        : typeof decodedMetadataUrl === 'object'
-          ? decodedMetadataUrl.url
-          : null;
-
-    if (url.match(/[^\x20-\x7E]+/g) !== null)
-      return new LSP3ProfileUrl({
-        id: uuidv4(),
-        timestamp: new Date(timestamp),
-        universalProfile: new UniversalProfile({ address }),
-        value: null,
-        rawBytes: dataValue,
-        decodeError: 'Url contains invalid characters',
-      });
-
-    return new LSP3ProfileUrl({
-      id: uuidv4(),
-      timestamp: new Date(timestamp),
-      universalProfile: new UniversalProfile({ address }),
-      value: url,
-      rawBytes: dataValue,
-    });
-  } catch (error) {
-    return new LSP3ProfileUrl({
-      id: uuidv4(),
-      timestamp: new Date(timestamp),
-      universalProfile: new UniversalProfile({ address }),
-      value: null,
-      rawBytes: dataValue,
-      decodeError: error.toString(),
-    });
-  }
+  return new LSP3ProfileUrl({
+    id: uuidv4(),
+    timestamp: new Date(timestamp),
+    universalProfile: new UniversalProfile({ id: address, address }),
+    rawBytes: dataValue,
+    value,
+    decodeError,
+  });
 }
 
 export function extractLsp4TokenName({ block, log }: ExtractParams): LSP4TokenName {
@@ -97,7 +58,7 @@ export function extractLsp4TokenName({ block, log }: ExtractParams): LSP4TokenNa
   return new LSP4TokenName({
     id: uuidv4(),
     timestamp: new Date(timestamp),
-    digitalAsset: new DigitalAsset({ address }),
+    digitalAsset: new DigitalAsset({ id: address, address }),
     value: !isHex(dataValue) || dataValue === '0x' ? null : hexToString(dataValue),
   });
 }
@@ -110,7 +71,7 @@ export function extractLsp4TokenSymbol({ block, log }: ExtractParams): LSP4Token
   return new LSP4TokenSymbol({
     id: uuidv4(),
     timestamp: new Date(timestamp),
-    digitalAsset: new DigitalAsset({ address }),
+    digitalAsset: new DigitalAsset({ id: address, address }),
     value: !isHex(dataValue) || dataValue === '0x' ? null : hexToString(dataValue),
   });
 }
@@ -123,7 +84,7 @@ export function extractLsp4TokenType({ block, log }: ExtractParams): LSP4TokenTy
   return new LSP4TokenType({
     id: uuidv4(),
     timestamp: new Date(timestamp),
-    digitalAsset: new DigitalAsset({ address }),
+    digitalAsset: new DigitalAsset({ id: address, address }),
     value: !isHex(dataValue) || dataValue === '0x' ? null : decodeTokenType(hexToNumber(dataValue)),
   });
 }
@@ -132,54 +93,16 @@ export function extractLsp4MetadataUrl({ block, log }: ExtractParams): LSP4Metad
   const { timestamp } = block.header;
   const { address } = log;
   const { dataValue } = ERC725Y.events.DataChanged.decode(log);
-  const erc725 = new ERC725([]);
+  const { value, decodeError } = decodeVerifiableUri(dataValue);
 
-  if (!isHex(dataValue) || dataValue === '0x' || hexToNumber(dataValue) === 0)
-    return new LSP4MetadataUrl({
-      id: uuidv4(),
-      timestamp: new Date(timestamp),
-      digitalAsset: new DigitalAsset({ address }),
-      value: null,
-      rawBytes: dataValue,
-    });
-
-  try {
-    const decodedMetadataUrl = erc725.decodeValueContent('VerifiableURI', dataValue);
-
-    const url =
-      decodedMetadataUrl === null
-        ? null
-        : typeof decodedMetadataUrl === 'object'
-          ? decodedMetadataUrl.url
-          : null;
-
-    if (url.match(/[^\x20-\x7E]+/g) !== null)
-      return new LSP4MetadataUrl({
-        id: uuidv4(),
-        timestamp: new Date(timestamp),
-        digitalAsset: new DigitalAsset({ address }),
-        value: null,
-        rawBytes: dataValue,
-        decodeError: 'Url contains invalid characters',
-      });
-
-    return new LSP4MetadataUrl({
-      id: uuidv4(),
-      timestamp: new Date(timestamp),
-      digitalAsset: new DigitalAsset({ address }),
-      value: url,
-      rawBytes: dataValue,
-    });
-  } catch (error) {
-    return new LSP4MetadataUrl({
-      id: uuidv4(),
-      timestamp: new Date(timestamp),
-      digitalAsset: new DigitalAsset({ address }),
-      value: null,
-      rawBytes: dataValue,
-      decodeError: error.toString(),
-    });
-  }
+  return new LSP4MetadataUrl({
+    id: uuidv4(),
+    timestamp: new Date(timestamp),
+    digitalAsset: new DigitalAsset({ id: address, address }),
+    rawBytes: dataValue,
+    value,
+    decodeError,
+  });
 }
 
 export function extractLsp8ReferenceContract({ block, log }: ExtractParams): LSP8ReferenceContract {
@@ -190,7 +113,7 @@ export function extractLsp8ReferenceContract({ block, log }: ExtractParams): LSP
   return new LSP8ReferenceContract({
     id: uuidv4(),
     timestamp: new Date(timestamp),
-    digitalAsset: new DigitalAsset({ address }),
+    digitalAsset: new DigitalAsset({ id: address, address }),
     value: !isHex(dataValue) || dataValue === '0x' ? null : dataValue,
   });
 }
@@ -203,7 +126,7 @@ export function extractLsp8TokenIdFormat({ block, log }: ExtractParams): LSP8Tok
   return new LSP8TokenIdFormat({
     id: uuidv4(),
     timestamp: new Date(timestamp),
-    digitalAsset: new DigitalAsset({ address }),
+    digitalAsset: new DigitalAsset({ id: address, address }),
     value:
       !isHex(dataValue) || dataValue === '0x' ? null : decodeTokenIdFormat(hexToNumber(dataValue)),
   });

@@ -19,6 +19,6 @@ export function extractUniversalReceiver({ block, log }: ExtractParams): Univers
     typeId,
     receivedData,
     returnedValue,
-    universalProfile: new UniversalProfile({ address }),
+    universalProfile: new UniversalProfile({ id: address, address }),
   });
 }
