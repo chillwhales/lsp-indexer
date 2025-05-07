@@ -1,3 +1,4 @@
+import { FINALITY_CONFIRMATION, GATEWAY, RPC_ENDPOINT } from '@/constants';
 import {
   ERC725X,
   ERC725Y,
@@ -6,7 +7,6 @@ import {
   LSP8IdentifiableDigitalAsset,
 } from '@chillwhales/sqd-abi';
 import { EvmBatchProcessor } from '@subsquid/evm-processor';
-import { FINALITY_CONFIRMATION, GATEWAY, RPC_ENDPOINT } from './constants';
 
 export const processor = new EvmBatchProcessor()
   .setGateway(GATEWAY)

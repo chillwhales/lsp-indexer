@@ -6,15 +6,8 @@
   "author": "b00ste",
   "license": "MIT",
   "packageManager": "pnpm@10.10.0",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "files": [
-    "lib"
-  ],
   "scripts": {
-    "build": "tsc",
-    "clean": "rm -Rf lib/",
-    "start": "node lib/index.js"
+    "start": "ts-node src/index.ts"
   },
   "dependencies": {
     "@chillwhales/chill-shop-contracts": "^0.6.1",
@@ -33,6 +26,7 @@
     "viem": "^2.28.3"
   },
   "devDependencies": {
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3"
   }
 }

@@ -1,3 +1,4 @@
+import { getLatestBlockNumber, Multicall3Utils } from '@/utils';
 import { LSP7DigitalAsset } from '@chillwhales/sqd-abi';
 import { DigitalAsset } from '@chillwhales/sqd-typeorm';
 import { INTERFACE_ID_LSP7, INTERFACE_ID_LSP7_PREVIOUS } from '@lukso/lsp7-contracts';
@@ -6,7 +7,6 @@ import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { hexToBool, isHex } from 'viem';
-import { aggregate3Static, getLatestBlockNumber } from '../utils';
 
 interface CustomParams {
   context: DataHandlerContext<Store, {}>;
@@ -34,16 +34,20 @@ const calldatasByInterfaceId = [
   }),
 ];
 
-export async function extractDigitalAssets({
-  context,
-  addressSet,
-}: CustomParams): Promise<DigitalAsset[]> {
+export async function verify({ context, addressSet }: CustomParams): Promise<{
+  verifiedDigitalAssets: Map<string, DigitalAsset>;
+  unverifiedDigitalAssets: Map<string, DigitalAsset>;
+}> {
   const addressArray = [...addressSet];
   const knownDigitalAssets: Map<string, DigitalAsset> = await context.store
     .findBy(DigitalAsset, { id: In(addressArray) })
     .then((ts) => new Map(ts.map((t) => [t.id, t])));
 
-  if (addressArray.length === knownDigitalAssets.size) return [];
+  if (addressArray.length === knownDigitalAssets.size)
+    return {
+      verifiedDigitalAssets: new Map(),
+      unverifiedDigitalAssets: new Map(),
+    };
 
   const block = {
     height: await getLatestBlockNumber({ context }),
@@ -55,7 +59,7 @@ export async function extractDigitalAssets({
   for (const callData of calldatasByInterfaceId) {
     if (unverifiedDigitalAssets.length === 0) continue;
 
-    const result = await aggregate3Static({
+    const result = await Multicall3Utils.aggregate3Static({
       context,
       block,
       calls: unverifiedDigitalAssets.map((target) => ({
@@ -79,5 +83,14 @@ export async function extractDigitalAssets({
     );
   }
 
-  return [...verifiedDigitalAssets.values()];
+  return {
+    verifiedDigitalAssets,
+    unverifiedDigitalAssets: new Map(
+      addressArray
+        .filter(
+          (address) => !knownDigitalAssets.has(address) && !verifiedDigitalAssets.has(address),
+        )
+        .map((address) => [address, new DigitalAsset({ id: address, address })]),
+    ),
+  };
 }

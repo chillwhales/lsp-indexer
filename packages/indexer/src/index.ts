@@ -1,3 +1,15 @@
+import { processor } from '@/processor';
+import type { ExtractParams } from '@/types';
+import {
+  DataChangedUtils,
+  DigitalAssetUtils,
+  ExecutedUtils,
+  NFTUtils,
+  TokenIdDataChangedUtils,
+  TransferUtils,
+  UniversalProfileUtils,
+  UniversalReceiverUtils,
+} from '@/utils';
 import {
   ERC725X,
   ERC725Y,
@@ -24,18 +36,6 @@ import { LSP3DataKeys } from '@lukso/lsp3-contracts';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
-import type { ExtractParams } from './extractors';
-import {
-  DataChangedExtractors,
-  ExecutedExtractors,
-  TokenIdDataChangedExtractors,
-  TransferExtractors,
-  UniversalReceiverExtractors,
-} from './extractors';
-import { extractDigitalAssets } from './extractors/digitalAsset';
-import { extractNfts } from './extractors/nft';
-import { extractUniversalProfiles } from './extractors/universalProfile';
-import { processor } from './processor';
 
 processor.run(new TypeormDatabase(), async (context) => {
   const executedEvents: Executed[] = [];
@@ -65,53 +65,51 @@ processor.run(new TypeormDatabase(), async (context) => {
       switch (log.topics[0]) {
         case ERC725X.events.Executed.topic: {
           universalProfiles.add(log.address);
-          executedEvents.push(ExecutedExtractors.extractExecuted(extractParams));
+          executedEvents.push(ExecutedUtils.extract(extractParams));
           break;
         }
 
         case ERC725Y.events.DataChanged.topic: {
           universalProfiles.add(log.address);
           digitalAssets.add(log.address);
-          dataChangedEvents.push(DataChangedExtractors.extractDataChanged(extractParams));
+          dataChangedEvents.push(DataChangedUtils.extract(extractParams));
 
           const { dataKey } = ERC725Y.events.DataChanged.decode(log);
           switch (dataKey) {
             case LSP3DataKeys.LSP3Profile: {
-              lsp3ProfileUrls.push(DataChangedExtractors.extractLsp3ProfileUrl(extractParams));
-              break;
-            }
-
-            case LSP4DataKeys.LSP4TokenName: {
-              lsp4TokenNames.push(DataChangedExtractors.extractLsp4TokenName(extractParams));
-              break;
-            }
-
-            case LSP4DataKeys.LSP4TokenSymbol: {
-              lsp4TokenSymbols.push(DataChangedExtractors.extractLsp4TokenSymbol(extractParams));
-              break;
-            }
-
-            case LSP4DataKeys.LSP4TokenType: {
-              lsp4TokenTypes.push(DataChangedExtractors.extractLsp4TokenType(extractParams));
+              lsp3ProfileUrls.push(DataChangedUtils.LSP3ProfileUrl.extract(extractParams));
               break;
             }
 
             case LSP4DataKeys.LSP4Metadata: {
-              lsp4MetadataUrls.push(DataChangedExtractors.extractLsp4MetadataUrl(extractParams));
+              lsp4MetadataUrls.push(DataChangedUtils.LSP4MetadataUrl.extract(extractParams));
+              break;
+            }
+
+            case LSP4DataKeys.LSP4TokenName: {
+              lsp4TokenNames.push(DataChangedUtils.LSP4TokenName.extract(extractParams));
+              break;
+            }
+
+            case LSP4DataKeys.LSP4TokenSymbol: {
+              lsp4TokenSymbols.push(DataChangedUtils.LSP4TokenSymbol.extract(extractParams));
+              break;
+            }
+
+            case LSP4DataKeys.LSP4TokenType: {
+              lsp4TokenTypes.push(DataChangedUtils.LSP4TokenType.extract(extractParams));
               break;
             }
 
             case LSP8DataKeys.LSP8ReferenceContract: {
               lsp8ReferenceContracts.push(
-                DataChangedExtractors.extractLsp8ReferenceContract(extractParams),
+                DataChangedUtils.LSP8ReferenceContract.extract(extractParams),
               );
               break;
             }
 
             case LSP8DataKeys.LSP8TokenIdFormat: {
-              lsp8TokenIdFormats.push(
-                DataChangedExtractors.extractLsp8TokenIdFormat(extractParams),
-              );
+              lsp8TokenIdFormats.push(DataChangedUtils.LSP8TokenIdFormat.extract(extractParams));
               break;
             }
 
@@ -125,23 +123,21 @@ processor.run(new TypeormDatabase(), async (context) => {
 
         case LSP0ERC725Account.events.UniversalReceiver.topic: {
           universalProfiles.add(log.address);
-          universalReceiverEvents.push(
-            UniversalReceiverExtractors.extractUniversalReceiver(extractParams),
-          );
+          universalReceiverEvents.push(UniversalReceiverUtils.extract(extractParams));
           break;
         }
 
         case LSP7DigitalAsset.events.Transfer.topic: {
           digitalAssets.add(log.address);
-          transferEvents.push(TransferExtractors.extractLsp7Transfer(extractParams));
+          transferEvents.push(TransferUtils.extract(extractParams));
           break;
         }
 
         case LSP8IdentifiableDigitalAsset.events.Transfer.topic: {
           digitalAssets.add(log.address);
-          transferEvents.push(TransferExtractors.extractLsp8Transfer(extractParams));
+          transferEvents.push(TransferUtils.extract(extractParams));
 
-          const nft = TransferExtractors.extractNft(extractParams);
+          const nft = TransferUtils.NFT.extract(extractParams);
           if (nft !== null) nfts.set(nft.id, nft);
 
           break;
@@ -149,19 +145,15 @@ processor.run(new TypeormDatabase(), async (context) => {
 
         case LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.topic: {
           digitalAssets.add(log.address);
-          tokenIdDataChangedEvents.push(
-            TokenIdDataChangedExtractors.extractTokenIdDataChanged(extractParams),
-          );
+          tokenIdDataChangedEvents.push(TokenIdDataChangedUtils.extract(extractParams));
 
-          const nft = TokenIdDataChangedExtractors.extractNft(extractParams);
+          const nft = TokenIdDataChangedUtils.NFT.extract(extractParams);
           if (!nfts.has(nft.id)) nfts.set(nft.id, nft);
 
           const { dataKey } = LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.decode(log);
           switch (dataKey) {
             case LSP4DataKeys.LSP4Metadata: {
-              lsp4MetadataUrls.push(
-                TokenIdDataChangedExtractors.extractLsp4MetadataUrl(extractParams),
-              );
+              lsp4MetadataUrls.push(TokenIdDataChangedUtils.LSP4MetadataUrl.extract(extractParams));
               break;
             }
           }
@@ -179,24 +171,103 @@ processor.run(new TypeormDatabase(), async (context) => {
   //   context.store.findBy(UniversalProfile, { lsp3ProfileUrl: {} });
   // }
 
+  const { verifiedUniversalProfiles, unverifiedUniversalProfiles } =
+    await UniversalProfileUtils.verify({ context, addressSet: universalProfiles });
+  await context.store.upsert([...verifiedUniversalProfiles.values()]);
+
+  const { verifiedDigitalAssets, unverifiedDigitalAssets } = await DigitalAssetUtils.verify({
+    context,
+    addressSet: digitalAssets,
+  });
+  await context.store.upsert([...verifiedDigitalAssets.values()]);
+
+  const verifiedNfts = await NFTUtils.verify({ context, nfts });
   await context.store.upsert(
-    await extractUniversalProfiles({ context, addressSet: universalProfiles }),
+    NFTUtils.populate({ entities: verifiedNfts, unverifiedDigitalAssets }),
   );
-  await context.store.upsert(await extractDigitalAssets({ context, addressSet: digitalAssets }));
-  await context.store.upsert(await extractNfts({ context, nfts }));
 
   // Save tracked events
-  await context.store.insert(executedEvents);
-  await context.store.insert(dataChangedEvents);
-  await context.store.insert(universalReceiverEvents);
-  await context.store.insert(transferEvents);
-  await context.store.insert(tokenIdDataChangedEvents);
+  await context.store.insert(
+    ExecutedUtils.populate({ entities: executedEvents, unverifiedUniversalProfiles }),
+  );
 
-  // Save starndardized DataKeys updates
-  await context.store.insert(lsp3ProfileUrls);
-  await context.store.insert(lsp4TokenNames);
-  await context.store.insert(lsp4TokenSymbols);
-  await context.store.insert(lsp4TokenTypes);
-  await context.store.insert(lsp4MetadataUrls);
-  await context.store.insert(lsp8TokenIdFormats);
+  await context.store.insert(
+    DataChangedUtils.populate({
+      entities: dataChangedEvents,
+      unverifiedUniversalProfiles,
+      unverifiedDigitalAssets,
+    }),
+  );
+
+  await context.store.insert(
+    UniversalReceiverUtils.populate({
+      entities: universalReceiverEvents,
+      unverifiedUniversalProfiles,
+    }),
+  );
+
+  await context.store.insert(
+    TransferUtils.populate({ entities: transferEvents, unverifiedDigitalAssets }),
+  );
+
+  await context.store.insert(
+    TokenIdDataChangedUtils.populate({
+      entities: tokenIdDataChangedEvents,
+      unverifiedDigitalAssets,
+    }),
+  );
+
+  // Save starndardized DataKeys update
+  await context.store.insert(
+    DataChangedUtils.LSP3ProfileUrl.populate({
+      entities: lsp3ProfileUrls,
+      unverifiedUniversalProfiles,
+    }),
+  );
+
+  await context.store.insert([
+    ...DataChangedUtils.LSP4MetadataUrl.populate({
+      entities: lsp4MetadataUrls.filter(({ nft }) => nft === null),
+      unverifiedDigitalAssets,
+    }),
+    ...TokenIdDataChangedUtils.LSP4MetadataUrl.populate({
+      entities: lsp4MetadataUrls.filter(({ nft }) => nft !== null),
+      unverifiedDigitalAssets,
+    }),
+  ]);
+
+  await context.store.insert(
+    DataChangedUtils.LSP4TokenName.populate({
+      entities: lsp4TokenNames,
+      unverifiedDigitalAssets,
+    }),
+  );
+
+  await context.store.insert(
+    DataChangedUtils.LSP4TokenSymbol.populate({
+      entities: lsp4TokenSymbols,
+      unverifiedDigitalAssets,
+    }),
+  );
+
+  await context.store.insert(
+    DataChangedUtils.LSP4TokenType.populate({
+      entities: lsp4TokenTypes,
+      unverifiedDigitalAssets,
+    }),
+  );
+
+  await context.store.insert(
+    DataChangedUtils.LSP8ReferenceContract.populate({
+      entities: lsp8ReferenceContracts,
+      unverifiedDigitalAssets,
+    }),
+  );
+
+  await context.store.insert(
+    DataChangedUtils.LSP8TokenIdFormat.populate({
+      entities: lsp8TokenIdFormats,
+      unverifiedDigitalAssets,
+    }),
+  );
 });

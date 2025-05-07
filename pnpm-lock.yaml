@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@22.15.3)(typescript@5.8.3)
     devDependencies:
       prettier:
         specifier: ^3.5.3
@@ -80,10 +84,10 @@ importers:
         version: 1.27.1
       '@subsquid/typeorm-store':
         specifier: ^1.5.1
-        version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2))
+        version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))
       typeorm:
         specifier: ^0.3.22
-        version: 0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)
+        version: 0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -91,6 +95,9 @@ importers:
         specifier: ^2.28.3
         version: 2.28.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.3)
     devDependencies:
+      tsconfig-paths:
+        specifier: ^4.2.0
+        version: 4.2.0
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -99,13 +106,13 @@ importers:
     dependencies:
       '@subsquid/hasura-configuration':
         specifier: ^2.0.0
-        version: 2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)
+        version: 2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))
       '@subsquid/typeorm-migration':
         specifier: ^1.3.0
-        version: 1.3.0(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2))
+        version: 1.3.0(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))
       '@subsquid/typeorm-store':
         specifier: ^1.5.1
-        version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2))
+        version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))
     devDependencies:
       '@subsquid/typeorm-codegen':
         specifier: ^2.0.2
@@ -286,6 +293,10 @@ packages:
   '@chillwhales/chill-shop-contracts@0.6.1':
     resolution: {integrity: sha512-HOamJYoeGRwAMhmNtyiyg+uCs6N3TsSIGk0l4i3ZVGYK7M3HjbZ4K7q9kY43n0wnCRuLBZi7fYxzerReV7Zp7Q==, tarball: https://npm.pkg.github.com/download/@chillwhales/chill-shop-contracts/0.6.1/81af1ec5f1f2bd1dec559a519c8518191b2e487e}
     engines: {yarn: 1.22.22}
+
+  '@cspotcode/source-map-support@0.8.1':
+    resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
+    engines: {node: '>=12'}
 
   '@erc725/erc725.js@0.27.2':
     resolution: {integrity: sha512-gg7IB7ZRYcguZvZL9+zuEQbYANJEhgHHTV+QsmcWbdTM2Z1mlgVDI2+XEw0TyMGlWk+mwR9WMMkd3s9fAf1ATA==}
@@ -538,6 +549,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
+
+  '@jridgewell/trace-mapping@0.3.9':
+    resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
   '@lukso/lsp0-contracts@0.15.0':
     resolution: {integrity: sha512-dKQu9juDJNxKdJMHkF3wOfjC/VZZW+RonQ5hSw9kBhLAhyFd6SVYU3VSUOYG3G3bLDAE9We+DeONc0N/j4zjIQ==}
@@ -865,6 +879,18 @@ packages:
     engines: {node: ^16.20 || ^18.16 || >=20}
     deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
+  '@tsconfig/node10@1.0.11':
+    resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
+
+  '@tsconfig/node12@1.0.11':
+    resolution: {integrity: sha512-cqefuRsh12pWyGsIoBKJA9luFu3mRxCA+ORZvA4ktLSzIuCUtWVxGIuXigEwO5/ywWFMZ2QEGKWvkZG1zDMTag==}
+
+  '@tsconfig/node14@1.0.3':
+    resolution: {integrity: sha512-ysT8mhdixWK6Hw3i1V2AeRqZ5WfXg1G43mqoYlM2nc6388Fq5jcXyr5mRsqViLx/GJYdoL0bfXD8nmF+Zn/Iow==}
+
+  '@tsconfig/node16@1.0.4':
+    resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
+
   '@types/accepts@1.3.7':
     resolution: {integrity: sha512-Pay9fq2lM2wXPWbteBsRAGiWH2hig4ZE2asK+mm7kUzlxRTfL961rj89I6zV/E3PcIkDqyuBEcMxFT7rccugeQ==}
 
@@ -1006,6 +1032,15 @@ packages:
     resolution: {integrity: sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==}
     engines: {node: '>= 0.6'}
 
+  acorn-walk@8.3.4:
+    resolution: {integrity: sha512-ueEepnujpqee2o5aIYnvHU6C0A42MNdsIDeqy5BydrkuC5R1ZuUFnm27EeFJGoEHJQgn3uleRvmTXaJgfXbt4g==}
+    engines: {node: '>=0.4.0'}
+
+  acorn@8.14.1:
+    resolution: {integrity: sha512-OvQ/2pUDKmgfCg++xsTX1wGxfTaszcHVcTctW4UJB4hibJx2HXxxO5UmVgyjMa+ZDsiaf5wWLXYpRWMmBI0QHg==}
+    engines: {node: '>=0.4.0'}
+    hasBin: true
+
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
 
@@ -1086,6 +1121,9 @@ packages:
   app-root-path@3.1.0:
     resolution: {integrity: sha512-biN3PwB2gUtjaYy/isrU3aNWI5w+fAfvHkSvCKeQGxhmYpwKFUxudR3Yya+KqVRHBmEDYh+/lTozYCFbmzX4nA==}
     engines: {node: '>= 6.0.0'}
+
+  arg@4.1.3:
+    resolution: {integrity: sha512-58S9QDqG0Xx27YwPSt9fJxivjYl432YCwfDMfZ+71RAqUrZef7LrKQZ3LHLOwCS4FLNBplP533Zx895SeOCHvA==}
 
   array-buffer-byte-length@1.0.2:
     resolution: {integrity: sha512-LHE+8BuR7RYGDKvnrmcuSq3tDcKv9OFEXQt/HpbZhY7V6h0zlUXutnAD82GiFx9rdieCMjkvtcsPqBwgUl1Iiw==}
@@ -1383,6 +1421,9 @@ packages:
   create-hmac@1.1.7:
     resolution: {integrity: sha512-MJG9liiZ+ogc4TzUwuvbER1JRdgvUFSB5+VR/g5h82fGaIRWMWddtKBHi7/sVhfjQZ6SehlyhvQYrcYkaUIpLg==}
 
+  create-require@1.1.1:
+    resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
+
   cross-fetch@2.2.6:
     resolution: {integrity: sha512-9JZz+vXCmfKUZ68zAptS7k4Nu8e2qcibe7WVZYps7sAgk5R8GYTc+T1WR0v1rlP9HxgARmOX1UTIJZFytajpNA==}
 
@@ -1478,6 +1519,10 @@ packages:
   destroy@1.2.0:
     resolution: {integrity: sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==}
     engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
+
+  diff@4.0.2:
+    resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
+    engines: {node: '>=0.3.1'}
 
   dom-walk@0.1.2:
     resolution: {integrity: sha512-6QvTW9mrGeIegrFXdtQi9pk7O/nSK6lSdXW2eqUspN5LWD7UTji2Fqw5V2YLjBpHEoU9Xl/eUWNpDeZvoyOv2w==}
@@ -2229,6 +2274,9 @@ packages:
   ltgt@2.2.1:
     resolution: {integrity: sha512-AI2r85+4MquTw9ZYqabu4nMwy9Oftlfa/e/52t9IjtfG+mGBbTNdAoZ3RQKLHR6r0wQnwZnPIEh/Ya6XTWAKNA==}
 
+  make-error@1.3.6:
+    resolution: {integrity: sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==}
+
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
@@ -2894,6 +2942,10 @@ packages:
     resolution: {integrity: sha512-iq6eVVI64nQQTRYq2KtEg2d2uU7LElhTJwsH4YzIHZshxlgZms/wIc4VoDQTlG/IvVIrBKG06CrZnp0qv7hkcQ==}
     engines: {node: '>=12'}
 
+  strip-bom@3.0.0:
+    resolution: {integrity: sha512-vavAMRXOgBVNF6nyEEmL3DBK19iRpDcoIwW+swQ+CbGiu7lju6t+JklA1MHweoWtadgt4ISVUsXLyDq34ddcwA==}
+    engines: {node: '>=4'}
+
   strip-hex-prefix@1.0.0:
     resolution: {integrity: sha512-q8d4ue7JGEiVcypji1bALTos+0pWtyGlivAWyPuTkHzuTCJqrK9sWxYQZUq6Nq3cuyv3bm734IhHvHtGGURU6A==}
     engines: {node: '>=6.5.0', npm: '>=3'}
@@ -2938,6 +2990,24 @@ packages:
 
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
+
+  ts-node@10.9.2:
+    resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
+    hasBin: true
+    peerDependencies:
+      '@swc/core': '>=1.2.50'
+      '@swc/wasm': '>=1.2.50'
+      '@types/node': '*'
+      typescript: '>=2.7'
+    peerDependenciesMeta:
+      '@swc/core':
+        optional: true
+      '@swc/wasm':
+        optional: true
+
+  tsconfig-paths@4.2.0:
+    resolution: {integrity: sha512-NoZ4roiN7LnbKn9QqE1amc9DJfzvZXxF4xDavcOWt1BPkdx+m+0gJuPM+S0vCe7zTJMYUP0R8pO2XMr+Y8oLIg==}
+    engines: {node: '>=6'}
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
@@ -3098,6 +3168,9 @@ packages:
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
+
+  v8-compile-cache-lib@3.0.1:
+    resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
 
   value-or-promise@1.0.11:
     resolution: {integrity: sha512-41BrgH+dIbCFXClcSapVs5M6GkENd3gQOJpEfPDNa71LsUGMXDL0jMWpI/Rh7WhX+Aalfz2TTS3Zt5pUsbnhLg==}
@@ -3423,6 +3496,10 @@ packages:
     resolution: {integrity: sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==}
     engines: {node: '>=12'}
 
+  yn@3.1.1:
+    resolution: {integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==}
+    engines: {node: '>=6'}
+
   yoctocolors-cjs@2.1.2:
     resolution: {integrity: sha512-cYVsTjKl8b+FrnidjibDWskAv7UKOfcwaVZdp/it9n1s9fU3IkgDbhdIRKCW4JDsAlECJY0ytoVPT3sK6kideA==}
     engines: {node: '>=18'}
@@ -3693,6 +3770,10 @@ snapshots:
       - encoding
       - supports-color
       - utf-8-validate
+
+  '@cspotcode/source-map-support@0.8.1':
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.9
 
   '@erc725/erc725.js@0.27.2(@types/node@22.15.3)(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.3)':
     dependencies:
@@ -4107,6 +4188,11 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
+  '@jridgewell/trace-mapping@0.3.9':
+    dependencies:
+      '@jridgewell/resolve-uri': 3.1.2
+      '@jridgewell/sourcemap-codec': 1.5.0
+
   '@lukso/lsp0-contracts@0.15.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -4426,9 +4512,9 @@ snapshots:
 
   '@subsquid/graphiql-console@0.3.0': {}
 
-  '@subsquid/hasura-configuration@2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)':
+  '@subsquid/hasura-configuration@2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))':
     dependencies:
-      '@subsquid/typeorm-store': 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2))
+      '@subsquid/typeorm-store': 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))
       '@subsquid/util-internal': 3.2.0
       '@subsquid/util-internal-ts-node': 0.0.0
       '@subsquid/util-naming': 1.3.0
@@ -4436,7 +4522,7 @@ snapshots:
       commander: 12.1.0
       dotenv: 16.5.0
       inquirer: 10.2.2
-      typeorm: 0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)
+      typeorm: 0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))
     transitivePeerDependencies:
       - '@google-cloud/spanner'
       - '@sap/hana-client'
@@ -4529,30 +4615,30 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@subsquid/typeorm-config@4.1.1(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2))':
+  '@subsquid/typeorm-config@4.1.1(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))':
     dependencies:
       '@subsquid/logger': 1.4.0
       '@subsquid/util-internal-ts-node': 0.0.0
       '@subsquid/util-naming': 1.3.0
     optionalDependencies:
-      typeorm: 0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)
+      typeorm: 0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))
 
-  '@subsquid/typeorm-migration@1.3.0(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2))':
+  '@subsquid/typeorm-migration@1.3.0(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))':
     dependencies:
-      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2))
+      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))
       '@subsquid/util-internal': 3.2.0
       '@subsquid/util-internal-code-printer': 1.2.2
       '@subsquid/util-internal-ts-node': 0.0.0
       commander: 11.1.0
       dotenv: 16.5.0
-      typeorm: 0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)
+      typeorm: 0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))
 
-  '@subsquid/typeorm-store@1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2))':
+  '@subsquid/typeorm-store@1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))':
     dependencies:
       '@subsquid/big-decimal': 1.0.0
-      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2))
+      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))
       '@subsquid/util-internal': 3.2.0
-      typeorm: 0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)
+      typeorm: 0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))
 
   '@subsquid/util-internal-archive-client@0.1.2(@subsquid/http-client@1.6.0)(@subsquid/logger@1.4.0)':
     dependencies:
@@ -4664,6 +4750,14 @@ snapshots:
       ethereum-cryptography: 1.1.2
       keccak: 3.0.2
       secp256k1: 4.0.3
+
+  '@tsconfig/node10@1.0.11': {}
+
+  '@tsconfig/node12@1.0.11': {}
+
+  '@tsconfig/node14@1.0.3': {}
+
+  '@tsconfig/node16@1.0.4': {}
 
   '@types/accepts@1.3.7':
     dependencies:
@@ -4816,6 +4910,12 @@ snapshots:
       mime-types: 2.1.35
       negotiator: 0.6.3
 
+  acorn-walk@8.3.4:
+    dependencies:
+      acorn: 8.14.1
+
+  acorn@8.14.1: {}
+
   ajv@6.12.6:
     dependencies:
       fast-deep-equal: 3.1.3
@@ -4926,6 +5026,8 @@ snapshots:
       - encoding
 
   app-root-path@3.1.0: {}
+
+  arg@4.1.3: {}
 
   array-buffer-byte-length@1.0.2:
     dependencies:
@@ -5249,6 +5351,8 @@ snapshots:
       safe-buffer: 5.2.1
       sha.js: 2.4.11
 
+  create-require@1.1.1: {}
+
   cross-fetch@2.2.6:
     dependencies:
       node-fetch: 2.7.0
@@ -5355,6 +5459,8 @@ snapshots:
   depd@2.0.0: {}
 
   destroy@1.2.0: {}
+
+  diff@4.0.2: {}
 
   dom-walk@0.1.2: {}
 
@@ -6295,6 +6401,8 @@ snapshots:
 
   ltgt@2.2.1: {}
 
+  make-error@1.3.6: {}
+
   math-intrinsics@1.1.0: {}
 
   md5.js@1.3.5:
@@ -6998,6 +7106,8 @@ snapshots:
     dependencies:
       ansi-regex: 6.1.0
 
+  strip-bom@3.0.0: {}
+
   strip-hex-prefix@1.0.0:
     dependencies:
       is-hex-prefixed: 1.0.0
@@ -7062,6 +7172,30 @@ snapshots:
 
   tr46@0.0.3: {}
 
+  ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3):
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.11
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 22.15.3
+      acorn: 8.14.1
+      acorn-walk: 8.3.4
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.8.3
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+
+  tsconfig-paths@4.2.0:
+    dependencies:
+      json5: 2.2.3
+      minimist: 1.2.8
+      strip-bom: 3.0.0
+
   tslib@2.8.1: {}
 
   tunnel-agent@0.6.0:
@@ -7089,7 +7223,7 @@ snapshots:
     dependencies:
       is-typedarray: 1.0.0
 
-  typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2):
+  typeorm@0.3.22(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)):
     dependencies:
       '@sqltools/formatter': 1.2.5
       ansis: 3.17.0
@@ -7107,6 +7241,7 @@ snapshots:
       yargs: 17.7.2
     optionalDependencies:
       pg: 8.15.6
+      ts-node: 10.9.2(@types/node@22.15.3)(typescript@5.8.3)
     transitivePeerDependencies:
       - supports-color
 
@@ -7162,6 +7297,8 @@ snapshots:
   uuid@3.4.0: {}
 
   uuid@9.0.1: {}
+
+  v8-compile-cache-lib@3.0.1: {}
 
   value-or-promise@1.0.11: {}
 
@@ -7801,6 +7938,8 @@ snapshots:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 21.1.1
+
+  yn@3.1.1: {}
 
   yoctocolors-cjs@2.1.2: {}
 

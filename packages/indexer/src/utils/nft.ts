@@ -1,4 +1,4 @@
-import { NFT } from '@chillwhales/sqd-typeorm';
+import { DigitalAsset, NFT } from '@chillwhales/sqd-typeorm';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
@@ -8,7 +8,7 @@ interface CustomParams {
   nfts: Map<string, NFT>;
 }
 
-export async function extractNfts({ context, nfts }: CustomParams): Promise<NFT[]> {
+export async function verify({ context, nfts }: CustomParams): Promise<NFT[]> {
   const nftsArray = [...nfts.values()];
 
   const transferNfts = nftsArray.filter(({ isBurned, isMinted }) => isBurned || isMinted);
@@ -21,4 +21,22 @@ export async function extractNfts({ context, nfts }: CustomParams): Promise<NFT[
     .then((ts) => new Map(ts.map((t) => [t.id, t])));
 
   return [...transferNfts, ...dataChangedNfts.filter(({ id }) => !knownNfts.has(id))];
+}
+
+export function populate({
+  entities,
+  unverifiedDigitalAssets,
+}: {
+  entities: NFT[];
+  unverifiedDigitalAssets: Map<string, DigitalAsset>;
+}) {
+  return entities.map(
+    (entity) =>
+      new NFT({
+        ...entity,
+        digitalAsset: !unverifiedDigitalAssets.has(entity.address)
+          ? new DigitalAsset({ id: entity.address })
+          : null,
+      }),
+  );
 }

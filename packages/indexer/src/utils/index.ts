@@ -1,10 +1,8 @@
-import { Multicall3 } from '@chillwhales/sqd-abi';
 import { LSP4TokenTypeEnum, LSP8TokenIdFormatEnum, OperationType } from '@chillwhales/sqd-typeorm';
 import ERC725 from '@erc725/erc725.js';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import { hexToNumber, isHex } from 'viem';
-import { MULTICALL_ADDRESS } from './constants';
 
 export function generateTokenId({ address, tokenId }: { address: string; tokenId: string }) {
   return `${address} - ${tokenId}`;
@@ -91,21 +89,12 @@ export async function getLatestBlockNumber({
   return hexToNumber(await context._chain.client.call('eth_blockNumber', []));
 }
 
-export async function aggregate3Static({
-  context,
-  calls,
-  block,
-}: {
-  context: DataHandlerContext<Store, {}>;
-  block?: { height: number };
-} & Multicall3.Aggregate3StaticParams): Promise<Multicall3.Aggregate3StaticReturn> {
-  if (!block)
-    block = {
-      height: await getLatestBlockNumber({ context }),
-    };
-
-  const contract = new Multicall3.Contract(context, block, MULTICALL_ADDRESS);
-  const result = await contract.aggregate3Static(calls);
-
-  return result;
-}
+export * as DataChangedUtils from './dataChanged';
+export * as DigitalAssetUtils from './digitalAsset';
+export * as ExecutedUtils from './executed';
+export * as Multicall3Utils from './multicall3';
+export * as NFTUtils from './nft';
+export * as TokenIdDataChangedUtils from './tokenIdDataChanged';
+export * as TransferUtils from './transfer';
+export * as UniversalProfileUtils from './universalProfile';
+export * as UniversalReceiverUtils from './universalReceiver';

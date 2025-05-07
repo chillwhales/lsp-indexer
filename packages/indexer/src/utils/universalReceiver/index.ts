@@ -1,8 +1,8 @@
+import { ExtractParams } from '@/types';
 import { LSP0ERC725Account } from '@chillwhales/sqd-abi';
 import { UniversalProfile, UniversalReceiver } from '@chillwhales/sqd-typeorm';
-import { ExtractParams } from './types';
 
-export function extractUniversalReceiver({ block, log }: ExtractParams): UniversalReceiver {
+export function extract({ block, log }: ExtractParams): UniversalReceiver {
   const { timestamp, height } = block.header;
   const { address, logIndex } = log;
   const { from, value, typeId, receivedData, returnedValue } =
@@ -19,6 +19,23 @@ export function extractUniversalReceiver({ block, log }: ExtractParams): Univers
     typeId,
     receivedData,
     returnedValue,
-    universalProfile: new UniversalProfile({ id: address, address }),
   });
+}
+
+export function populate({
+  entities,
+  unverifiedUniversalProfiles,
+}: {
+  entities: UniversalReceiver[];
+  unverifiedUniversalProfiles: Map<string, UniversalProfile>;
+}) {
+  return entities.map(
+    (entity) =>
+      new UniversalReceiver({
+        ...entity,
+        universalProfile: !unverifiedUniversalProfiles.has(entity.address)
+          ? new UniversalProfile({ id: entity.address })
+          : null,
+      }),
+  );
 }
