@@ -128,24 +128,24 @@ export const isLsp3Profile = (obj: object): obj is LSP3ProfileMetadataJSON =>
   typeof obj.LSP3Profile.description === 'string';
 
 export const isLsp4Metadata = (obj: object): obj is LSP4DigitalAssetMetadataJSON =>
-  'LSP3Profile' in obj &&
-  typeof obj.LSP3Profile === 'object' &&
-  'name' in obj.LSP3Profile &&
-  typeof obj.LSP3Profile.name === 'string' &&
-  'description' in obj.LSP3Profile &&
-  typeof obj.LSP3Profile.description === 'string' &&
-  'links' in obj.LSP3Profile &&
-  Array.isArray(obj.LSP3Profile.links) &&
-  obj.LSP3Profile.links.every(isLinkMetadata) &&
-  'images' in obj.LSP3Profile &&
-  Array.isArray(obj.LSP3Profile.images) &&
-  obj.LSP3Profile.images.every(isImageMetadata) &&
-  'assets' in obj.LSP3Profile &&
-  Array.isArray(obj.LSP3Profile.assets) &&
-  obj.LSP3Profile.images.every(isAssetMetadata) &&
-  'icon' in obj.LSP3Profile &&
-  Array.isArray(obj.LSP3Profile.icon) &&
-  obj.LSP3Profile.images.every(isImageMetadata);
+  'LSP4Metadata' in obj &&
+  typeof obj.LSP4Metadata === 'object' &&
+  'name' in obj.LSP4Metadata &&
+  typeof obj.LSP4Metadata.name === 'string' &&
+  'description' in obj.LSP4Metadata &&
+  typeof obj.LSP4Metadata.description === 'string' &&
+  'links' in obj.LSP4Metadata &&
+  Array.isArray(obj.LSP4Metadata.links) &&
+  obj.LSP4Metadata.links.every(isLinkMetadata) &&
+  'images' in obj.LSP4Metadata &&
+  Array.isArray(obj.LSP4Metadata.images) &&
+  obj.LSP4Metadata.images.every(isImageMetadata) &&
+  'assets' in obj.LSP4Metadata &&
+  Array.isArray(obj.LSP4Metadata.assets) &&
+  obj.LSP4Metadata.images.every(isAssetMetadata) &&
+  'icon' in obj.LSP4Metadata &&
+  Array.isArray(obj.LSP4Metadata.icon) &&
+  obj.LSP4Metadata.images.every(isImageMetadata);
 
 export function decodeVerifiableUri(dataValue: string): {
   value: string | null;
