@@ -93,6 +93,12 @@ export function decodeTokenIdFormat(tokenIdFormat: number) {
 
 export const isLinkMetadata = (obj: object): obj is LinkMetadata => 'title' in obj && 'url' in obj;
 
+export const isVerification = (obj: object): obj is Verification =>
+  'method' in obj &&
+  typeof obj.method === 'string' &&
+  'data' in obj &&
+  typeof obj.data === 'string';
+
 export const isFileAsset = (obj: object): obj is FileAsset => 'url' in obj;
 
 export const isContractAsset = (obj: object): obj is ContractAsset => 'address' in obj;
@@ -207,7 +213,7 @@ export function createLsp3ProfilePromise(lsp3ProfileUrl: LSP3ProfileUrl) {
           avatar: lsp3Profile.avatar
             ? lsp3Profile.avatar.map((avatar) => {
                 if (isFileAsset(avatar))
-                  if (avatar.verification)
+                  if (isVerification(avatar.verification))
                     return new FileAsset({
                       ...avatar,
                       verification: new Verification(avatar.verification),
@@ -220,7 +226,7 @@ export function createLsp3ProfilePromise(lsp3ProfileUrl: LSP3ProfileUrl) {
           profileImage: lsp3Profile.profileImage
             ? lsp3Profile.profileImage.map((image) => {
                 if (isFileImage(image))
-                  if (image.verification)
+                  if (isVerification(image.verification))
                     return new FileImage({
                       ...image,
                       verification: new Verification(image.verification),
@@ -233,7 +239,7 @@ export function createLsp3ProfilePromise(lsp3ProfileUrl: LSP3ProfileUrl) {
           backgroundImage: lsp3Profile.backgroundImage
             ? lsp3Profile.backgroundImage.map((image) => {
                 if (isFileImage(image))
-                  if (image.verification)
+                  if (isVerification(image.verification))
                     return new FileImage({
                       ...image,
                       verification: new Verification(image.verification),
@@ -297,7 +303,7 @@ export function createLsp4MetadataPromise(lsp4MetadataUrl: LSP4MetadataUrl) {
           images: lsp4Metadata.icon
             ? lsp4Metadata.icon.map((image) => {
                 if (isFileImage(image))
-                  if (image.verification)
+                  if (isVerification(image.verification))
                     return new FileImage({
                       ...image,
                       verification: new Verification(image.verification),
@@ -311,7 +317,7 @@ export function createLsp4MetadataPromise(lsp4MetadataUrl: LSP4MetadataUrl) {
             ? lsp4Metadata.images.flatMap((images) =>
                 images.map((image) => {
                   if (isFileImage(image))
-                    if (image.verification)
+                    if (isVerification(image.verification))
                       return new FileImage({
                         ...image,
                         verification: new Verification(image.verification),
@@ -325,7 +331,7 @@ export function createLsp4MetadataPromise(lsp4MetadataUrl: LSP4MetadataUrl) {
           assets: lsp4Metadata.assets
             ? lsp4Metadata.assets.map((avatar) => {
                 if (isFileAsset(avatar))
-                  if (avatar.verification)
+                  if (isVerification(avatar.verification))
                     return new FileAsset({
                       ...avatar,
                       verification: new Verification(avatar.verification),

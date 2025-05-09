@@ -119,11 +119,4 @@ processor.run(new TypeormDatabase(), async (context) => {
       Utils.createLsp4MetadataPromise(lsp4MetadataUrl),
     ),
   ).then((lsp4Metadatas) => context.store.insert(lsp4Metadatas));
-
-  // TODO
-  // Investigate: https://www.reddit.com/r/node/comments/11e5hyj/executing_1000_http_requests_at_once/
-  // RunQueue: https://www.npmjs.com/package/run-queue
-  // if (context.isHead) {
-  //   context.store.findBy(UniversalProfile, { lsp3ProfileUrlLatest: Not(null) });
-  // }
 });
