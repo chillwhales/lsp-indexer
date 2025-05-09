@@ -27,20 +27,20 @@ export function extract({ block, log }: ExtractParams): LSP4MetadataUrl {
 }
 
 export function populate({
-  entities,
-  unverifiedDigitalAssets,
+  lsp4MetadataUrls,
+  validDigitalAssets,
 }: {
-  entities: LSP4MetadataUrl[];
-  unverifiedDigitalAssets: Map<string, DigitalAsset>;
+  lsp4MetadataUrls: LSP4MetadataUrl[];
+  validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return entities.map(
+  return lsp4MetadataUrls.map(
     (entity) =>
       new LSP4MetadataUrl({
         ...entity,
-        digitalAsset: !unverifiedDigitalAssets.has(entity.address)
+        digitalAsset: validDigitalAssets.has(entity.address)
           ? new DigitalAsset({ id: entity.address })
           : null,
-        nft: !unverifiedDigitalAssets.has(entity.address)
+        nft: validDigitalAssets.has(entity.address)
           ? new NFT({
               ...entity.nft,
               digitalAsset: new DigitalAsset({ id: entity.address }),

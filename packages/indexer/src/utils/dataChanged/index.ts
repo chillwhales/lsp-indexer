@@ -19,22 +19,22 @@ export function extract({ block, log }: ExtractParams): DataChanged {
 }
 
 export function populate({
-  entities,
-  unverifiedUniversalProfiles,
-  unverifiedDigitalAssets,
+  dataChangedEvents,
+  validUniversalProfiles,
+  validDigitalAssets,
 }: {
-  entities: DataChanged[];
-  unverifiedUniversalProfiles: Map<string, UniversalProfile>;
-  unverifiedDigitalAssets: Map<string, DigitalAsset>;
+  dataChangedEvents: DataChanged[];
+  validUniversalProfiles: Map<string, UniversalProfile>;
+  validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return entities.map(
+  return dataChangedEvents.map(
     (entity) =>
       new DataChanged({
         ...entity,
-        universalProfile: !unverifiedUniversalProfiles.has(entity.address)
+        universalProfile: validUniversalProfiles.has(entity.address)
           ? new UniversalProfile({ id: entity.address })
           : null,
-        digitalAsset: !unverifiedDigitalAssets.has(entity.address)
+        digitalAsset: validDigitalAssets.has(entity.address)
           ? new DigitalAsset({ id: entity.address })
           : null,
       }),

@@ -21,17 +21,17 @@ export function extract({ block, log }: ExtractParams): LSP3ProfileUrl {
 }
 
 export function populate({
-  entities,
-  unverifiedUniversalProfiles,
+  lsp3ProfileUrls,
+  validUniversalProfiles,
 }: {
-  entities: LSP3ProfileUrl[];
-  unverifiedUniversalProfiles: Map<string, UniversalProfile>;
+  lsp3ProfileUrls: LSP3ProfileUrl[];
+  validUniversalProfiles: Map<string, UniversalProfile>;
 }) {
-  return entities.map(
+  return lsp3ProfileUrls.map(
     (entity) =>
       new LSP3ProfileUrl({
         ...entity,
-        universalProfile: !unverifiedUniversalProfiles.has(entity.address)
+        universalProfile: validUniversalProfiles.has(entity.address)
           ? new UniversalProfile({ id: entity.address })
           : null,
       }),

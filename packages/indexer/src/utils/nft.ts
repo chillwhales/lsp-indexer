@@ -3,12 +3,12 @@ import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 
-interface CustomParams {
+interface VerifyParams {
   context: DataHandlerContext<Store, {}>;
   nfts: Map<string, NFT>;
 }
 
-export async function verify({ context, nfts }: CustomParams): Promise<NFT[]> {
+export async function verify({ context, nfts }: VerifyParams): Promise<NFT[]> {
   const nftsArray = [...nfts.values()];
 
   const transferNfts = nftsArray.filter(({ isBurned, isMinted }) => isBurned || isMinted);
@@ -23,18 +23,17 @@ export async function verify({ context, nfts }: CustomParams): Promise<NFT[]> {
   return [...transferNfts, ...dataChangedNfts.filter(({ id }) => !knownNfts.has(id))];
 }
 
-export function populate({
-  entities,
-  unverifiedDigitalAssets,
-}: {
+interface PopulateParams {
   entities: NFT[];
-  unverifiedDigitalAssets: Map<string, DigitalAsset>;
-}) {
+  validDigitalAssets: Map<string, DigitalAsset>;
+}
+
+export function populate({ entities, validDigitalAssets }: PopulateParams) {
   return entities.map(
     (entity) =>
       new NFT({
         ...entity,
-        digitalAsset: !unverifiedDigitalAssets.has(entity.address)
+        digitalAsset: validDigitalAssets.has(entity.address)
           ? new DigitalAsset({ id: entity.address })
           : null,
       }),

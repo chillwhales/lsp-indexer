@@ -1,4 +1,4 @@
-import { getLatestBlockNumber, Multicall3Utils } from '@/utils';
+import * as Utils from '@/utils';
 import { LSP0ERC725Account } from '@chillwhales/sqd-abi';
 import { UniversalProfile } from '@chillwhales/sqd-typeorm';
 import { INTERFACE_ID_LSP0 } from '@lukso/lsp0-contracts';
@@ -7,47 +7,44 @@ import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { hexToBool, isHex } from 'viem';
 
-interface CustomParams {
-  context: DataHandlerContext<Store, {}>;
-  addressSet: Set<string>;
-}
-
 const calldatasByInterfaceId = [
   LSP0ERC725Account.functions.supportsInterface.encode({
     interfaceId: INTERFACE_ID_LSP0,
   }),
 ];
 
-export async function verify({ context, addressSet }: CustomParams): Promise<{
-  verifiedUniversalProfiles: Map<string, UniversalProfile>;
-  unverifiedUniversalProfiles: Map<string, UniversalProfile>;
+interface VerifyParams {
+  context: DataHandlerContext<Store, {}>;
+  universalProfiles: Set<string>;
+}
+
+export async function verify({ context, universalProfiles }: VerifyParams): Promise<{
+  newUniversalProfiles: Map<string, UniversalProfile>;
+  validUniversalProfiles: Map<string, UniversalProfile>;
+  invalidUniversalProfiles: Map<string, UniversalProfile>;
 }> {
-  const addressArray = [...addressSet];
+  const addressArray = [...universalProfiles];
   const knownUniversalProfiles: Map<string, UniversalProfile> = await context.store
     .findBy(UniversalProfile, { id: In(addressArray) })
     .then((ts) => new Map(ts.map((t) => [t.id, t])));
 
   if (addressArray.length === knownUniversalProfiles.size)
     return {
-      verifiedUniversalProfiles: new Map(),
-      unverifiedUniversalProfiles: new Map(),
+      newUniversalProfiles: new Map(),
+      validUniversalProfiles: knownUniversalProfiles,
+      invalidUniversalProfiles: new Map(),
     };
-
-  const block = {
-    height: await getLatestBlockNumber({ context }),
-  };
 
   let unverifiedUniversalProfiles = addressArray.filter(
     (address) => !knownUniversalProfiles.has(address),
   );
-  const verifiedUniversalProfiles = new Map<string, UniversalProfile>();
+  const newUniversalProfiles = new Map<string, UniversalProfile>();
 
   for (const callData of calldatasByInterfaceId) {
     if (unverifiedUniversalProfiles.length === 0) continue;
 
-    const result = await Multicall3Utils.aggregate3Static({
+    const result = await Utils.Multicall3.aggregate3StaticLatest({
       context,
-      block,
       calls: unverifiedUniversalProfiles.map((target) => ({
         target,
         allowFailure: true,
@@ -61,21 +58,27 @@ export async function verify({ context, addressSet }: CustomParams): Promise<{
         isHex(result[index].returnData) &&
         hexToBool(result[index].returnData)
       )
-        verifiedUniversalProfiles.set(address, new UniversalProfile({ id: address, address }));
+        newUniversalProfiles.set(address, new UniversalProfile({ id: address, address }));
     });
 
     unverifiedUniversalProfiles = unverifiedUniversalProfiles.filter(
-      (address) => !verifiedUniversalProfiles.has(address),
+      (address) => !newUniversalProfiles.has(address),
     );
   }
 
   return {
-    verifiedUniversalProfiles,
-    unverifiedUniversalProfiles: new Map(
+    newUniversalProfiles,
+    validUniversalProfiles: new Map(
       addressArray
         .filter(
-          (address) =>
-            !knownUniversalProfiles.has(address) && !verifiedUniversalProfiles.has(address),
+          (address) => knownUniversalProfiles.has(address) || newUniversalProfiles.has(address),
+        )
+        .map((address) => [address, new UniversalProfile({ id: address, address })]),
+    ),
+    invalidUniversalProfiles: new Map(
+      addressArray
+        .filter(
+          (address) => !knownUniversalProfiles.has(address) && !newUniversalProfiles.has(address),
         )
         .map((address) => [address, new UniversalProfile({ id: address, address })]),
     ),

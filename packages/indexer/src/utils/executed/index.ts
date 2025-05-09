@@ -22,18 +22,17 @@ export function extract({ block, log }: ExtractParams): Executed {
   });
 }
 
-export function populate({
-  entities,
-  unverifiedUniversalProfiles,
-}: {
-  entities: Executed[];
-  unverifiedUniversalProfiles: Map<string, UniversalProfile>;
-}) {
-  return entities.map(
+interface PopulateParams {
+  executedEvents: Executed[];
+  validUniversalProfiles: Map<string, UniversalProfile>;
+}
+
+export function populate({ executedEvents, validUniversalProfiles }: PopulateParams) {
+  return executedEvents.map(
     (entity) =>
       new Executed({
         ...entity,
-        universalProfile: !unverifiedUniversalProfiles.has(entity.address)
+        universalProfile: validUniversalProfiles.has(entity.address)
           ? new UniversalProfile({ id: entity.address })
           : null,
       }),

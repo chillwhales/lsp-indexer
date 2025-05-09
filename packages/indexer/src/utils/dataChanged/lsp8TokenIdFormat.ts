@@ -20,17 +20,17 @@ export function extract({ block, log }: ExtractParams): LSP8TokenIdFormat {
 }
 
 export function populate({
-  entities,
-  unverifiedDigitalAssets,
+  lsp8TokenIdFormats,
+  validDigitalAssets,
 }: {
-  entities: LSP8TokenIdFormat[];
-  unverifiedDigitalAssets: Map<string, DigitalAsset>;
+  lsp8TokenIdFormats: LSP8TokenIdFormat[];
+  validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return entities.map(
+  return lsp8TokenIdFormats.map(
     (event) =>
       new LSP8TokenIdFormat({
         ...event,
-        digitalAsset: !unverifiedDigitalAssets.has(event.address)
+        digitalAsset: validDigitalAssets.has(event.address)
           ? new DigitalAsset({ id: event.address })
           : null,
       }),

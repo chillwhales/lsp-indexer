@@ -26,20 +26,20 @@ export function extract({ block, log }: ExtractParams): TokenIdDataChanged {
 }
 
 export function populate({
-  entities,
-  unverifiedDigitalAssets,
+  tokenIdDataChangedEvents,
+  validDigitalAssets,
 }: {
-  entities: TokenIdDataChanged[];
-  unverifiedDigitalAssets: Map<string, DigitalAsset>;
+  tokenIdDataChangedEvents: TokenIdDataChanged[];
+  validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return entities.map(
+  return tokenIdDataChangedEvents.map(
     (entity) =>
       new TokenIdDataChanged({
         ...entity,
-        digitalAsset: !unverifiedDigitalAssets.has(entity.address)
+        digitalAsset: validDigitalAssets.has(entity.address)
           ? new DigitalAsset({ id: entity.address })
           : null,
-        nft: !unverifiedDigitalAssets.has(entity.address)
+        nft: validDigitalAssets.has(entity.address)
           ? new NFT({
               ...entity.nft,
               digitalAsset: new DigitalAsset({ id: entity.address }),

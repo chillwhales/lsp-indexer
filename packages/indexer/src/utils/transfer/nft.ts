@@ -33,16 +33,16 @@ export function extract({ log }: ExtractParams): NFT | null {
 
 export function populate({
   entities,
-  unverifiedDigitalAssets,
+  validDigitalAssets,
 }: {
   entities: NFT[];
-  unverifiedDigitalAssets: Map<string, DigitalAsset>;
+  validDigitalAssets: Map<string, DigitalAsset>;
 }) {
   return entities.map(
     (entity) =>
       new NFT({
         ...entity,
-        digitalAsset: !unverifiedDigitalAssets.has(entity.address)
+        digitalAsset: validDigitalAssets.has(entity.address)
           ? new DigitalAsset({ id: entity.address })
           : null,
       }),

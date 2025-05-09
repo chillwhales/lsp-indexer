@@ -23,17 +23,17 @@ export function extract({ block, log }: ExtractParams): UniversalReceiver {
 }
 
 export function populate({
-  entities,
-  unverifiedUniversalProfiles,
+  universalReceiverEvents,
+  validUniversalProfiles,
 }: {
-  entities: UniversalReceiver[];
-  unverifiedUniversalProfiles: Map<string, UniversalProfile>;
+  universalReceiverEvents: UniversalReceiver[];
+  validUniversalProfiles: Map<string, UniversalProfile>;
 }) {
-  return entities.map(
+  return universalReceiverEvents.map(
     (entity) =>
       new UniversalReceiver({
         ...entity,
-        universalProfile: !unverifiedUniversalProfiles.has(entity.address)
+        universalProfile: validUniversalProfiles.has(entity.address)
           ? new UniversalProfile({ id: entity.address })
           : null,
       }),

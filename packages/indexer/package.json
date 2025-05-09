@@ -7,7 +7,7 @@
   "license": "MIT",
   "packageManager": "pnpm@10.10.0",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "start": "ts-node src/app/index.ts"
   },
   "dependencies": {
     "@chillwhales/chill-shop-contracts": "^0.6.1",

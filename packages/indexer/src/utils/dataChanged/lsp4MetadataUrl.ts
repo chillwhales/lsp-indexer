@@ -21,17 +21,17 @@ export function extract({ block, log }: ExtractParams): LSP4MetadataUrl {
 }
 
 export function populate({
-  entities,
-  unverifiedDigitalAssets,
+  lsp4MetadataUrls,
+  validDigitalAssets,
 }: {
-  entities: LSP4MetadataUrl[];
-  unverifiedDigitalAssets: Map<string, DigitalAsset>;
+  lsp4MetadataUrls: LSP4MetadataUrl[];
+  validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return entities.map(
+  return lsp4MetadataUrls.map(
     (event) =>
       new LSP4MetadataUrl({
         ...event,
-        digitalAsset: !unverifiedDigitalAssets.has(event.address)
+        digitalAsset: validDigitalAssets.has(event.address)
           ? new DigitalAsset({ id: event.address })
           : null,
       }),

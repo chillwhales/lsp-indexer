@@ -58,21 +58,21 @@ export function extract({ block, log }: ExtractParams): Transfer {
 }
 
 export function populate({
-  entities,
-  unverifiedDigitalAssets,
+  transferEvents,
+  validDigitalAssets,
 }: {
-  entities: Transfer[];
-  unverifiedDigitalAssets: Map<string, DigitalAsset>;
+  transferEvents: Transfer[];
+  validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return entities.map(
+  return transferEvents.map(
     (entity) =>
       new Transfer({
         ...entity,
-        digitalAsset: !unverifiedDigitalAssets.has(entity.address)
+        digitalAsset: validDigitalAssets.has(entity.address)
           ? new DigitalAsset({ id: entity.address })
           : null,
         nft: entity.nft
-          ? !unverifiedDigitalAssets.has(entity.address)
+          ? validDigitalAssets.has(entity.address)
             ? new NFT({
                 ...entity.nft,
                 digitalAsset: new DigitalAsset({ id: entity.address }),

@@ -113,9 +113,9 @@ type DigitalAsset @entity {
   totalSupply: [TotalSupply!]! @derivedFrom(field: "digitalAsset")
   lsp4TokenName: [LSP4TokenName!]! @derivedFrom(field: "digitalAsset")
   lsp4TokenSymbol: [LSP4TokenSymbol!]! @derivedFrom(field: "digitalAsset")
+  lsp4TokenType: [LSP4TokenType!]! @derivedFrom(field: "digitalAsset")
   lsp4Metadata: [LSP4Metadata!]! @derivedFrom(field: "digitalAsset")
   lsp4MetadataUrl: [LSP4MetadataUrl!]! @derivedFrom(field: "digitalAsset")
-  lsp4TokenType: [LSP4TokenType!]! @derivedFrom(field: "digitalAsset")
 
   # LSP7 properties
   decimals: [Decimals!]! @derivedFrom(field: "digitalAsset")
@@ -255,9 +255,11 @@ type LSP3Profile @entity {
   description: String!
   links: [Link!]!
   tags: [String!]!
-  avatar: [Asset!]!
-  profileImage: [Image!]!
-  backgroundImage: [Image!]!
+  avatar: [AssetMetadata!]!
+  profileImage: [ImageMetadata!]!
+  backgroundImage: [ImageMetadata!]!
+  rawBytes: String
+  decodeError: String
 }
 
 type LSP4MetadataUrl @entity {
@@ -282,10 +284,12 @@ type LSP4Metadata @entity {
   name: String! @index
   description: String!
   links: [Link!]!
-  icon: [Image!]!
-  images: [Image!]!
-  assets: [Asset!]!
+  icon: [ImageMetadata!]!
+  images: [ImageMetadata!]!
+  assets: [AssetMetadata!]!
   attributes: [Attribute!]!
+  rawBytes: String
+  decodeError: String
 }
 
 type Attribute {
@@ -299,63 +303,35 @@ type Link {
   url: String!
 }
 
-####################
-### Verfifcation ###
-####################
-
-enum VerfirfactionMethod {
-  ECDSA
-  KECCACK256_BYTES
-}
-
-type ECDSAVerfication {
-  method: VerfirfactionMethod!
+type Verification {
+  method: String!
   data: String!
-  source: String!
+  source: String
 }
 
-type HashVerification {
-  method: VerfirfactionMethod!
-  data: String!
-}
-
-union Verification = ECDSAVerfication | HashVerification
-
-####################
-###### Image #######
-####################
-
-type UrlImage {
+type FileImage {
   width: Int!
   height: Int!
   url: String!
-  verification: Verification!
+  verification: Verification
 }
 
-type NFTImage {
+type ContractImage {
   address: String!
-  tokenId: String!
+  tokenId: String
 }
 
-union Image = UrlImage | NFTImage
+union ImageMetadata = FileImage | ContractImage
 
-####################
-###### Asset #######
-####################
-
-type UrlAsset {
+type FileAsset {
   url: String!
-  fileType: String!
-  verification: Verification!
+  fileType: String
+  verification: Verification
 }
 
-type NFTAsset {
+type ContractAsset {
   address: String!
-  tokenId: String!
+  tokenId: String
 }
 
-union Asset = UrlAsset | NFTAsset
-
-####################
-####### END ########
-####################
+union AssetMetadata = FileAsset | ContractAsset

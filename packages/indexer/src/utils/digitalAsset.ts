@@ -1,4 +1,4 @@
-import { getLatestBlockNumber, Multicall3Utils } from '@/utils';
+import * as Utils from '@/utils';
 import { LSP7DigitalAsset } from '@chillwhales/sqd-abi';
 import { DigitalAsset } from '@chillwhales/sqd-typeorm';
 import { INTERFACE_ID_LSP7, INTERFACE_ID_LSP7_PREVIOUS } from '@lukso/lsp7-contracts';
@@ -7,11 +7,6 @@ import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { hexToBool, isHex } from 'viem';
-
-interface CustomParams {
-  context: DataHandlerContext<Store, {}>;
-  addressSet: Set<string>;
-}
 
 const calldatasByInterfaceId = [
   LSP7DigitalAsset.functions.supportsInterface.encode({
@@ -34,34 +29,36 @@ const calldatasByInterfaceId = [
   }),
 ];
 
-export async function verify({ context, addressSet }: CustomParams): Promise<{
-  verifiedDigitalAssets: Map<string, DigitalAsset>;
-  unverifiedDigitalAssets: Map<string, DigitalAsset>;
+interface VerifyParams {
+  context: DataHandlerContext<Store, {}>;
+  digitalAssets: Set<string>;
+}
+
+export async function verify({ context, digitalAssets }: VerifyParams): Promise<{
+  newDigitalAssets: Map<string, DigitalAsset>;
+  validDigitalAssets: Map<string, DigitalAsset>;
+  invalidDigitalAssets: Map<string, DigitalAsset>;
 }> {
-  const addressArray = [...addressSet];
+  const addressArray = [...digitalAssets];
   const knownDigitalAssets: Map<string, DigitalAsset> = await context.store
     .findBy(DigitalAsset, { id: In(addressArray) })
     .then((ts) => new Map(ts.map((t) => [t.id, t])));
 
   if (addressArray.length === knownDigitalAssets.size)
     return {
-      verifiedDigitalAssets: new Map(),
-      unverifiedDigitalAssets: new Map(),
+      newDigitalAssets: new Map(),
+      validDigitalAssets: knownDigitalAssets,
+      invalidDigitalAssets: new Map(),
     };
 
-  const block = {
-    height: await getLatestBlockNumber({ context }),
-  };
-
   let unverifiedDigitalAssets = addressArray.filter((address) => !knownDigitalAssets.has(address));
-  const verifiedDigitalAssets = new Map<string, DigitalAsset>();
+  const newDigitalAssets = new Map<string, DigitalAsset>();
 
   for (const callData of calldatasByInterfaceId) {
     if (unverifiedDigitalAssets.length === 0) continue;
 
-    const result = await Multicall3Utils.aggregate3Static({
+    const result = await Utils.Multicall3.aggregate3StaticLatest({
       context,
-      block,
       calls: unverifiedDigitalAssets.map((target) => ({
         target,
         allowFailure: true,
@@ -75,21 +72,24 @@ export async function verify({ context, addressSet }: CustomParams): Promise<{
         isHex(result[index].returnData) &&
         hexToBool(result[index].returnData)
       )
-        verifiedDigitalAssets.set(address, new DigitalAsset({ id: address, address }));
+        newDigitalAssets.set(address, new DigitalAsset({ id: address, address }));
     });
 
     unverifiedDigitalAssets = unverifiedDigitalAssets.filter(
-      (address) => !verifiedDigitalAssets.has(address),
+      (address) => !newDigitalAssets.has(address),
     );
   }
 
   return {
-    verifiedDigitalAssets,
-    unverifiedDigitalAssets: new Map(
+    newDigitalAssets,
+    validDigitalAssets: new Map(
       addressArray
-        .filter(
-          (address) => !knownDigitalAssets.has(address) && !verifiedDigitalAssets.has(address),
-        )
+        .filter((address) => knownDigitalAssets.has(address) || newDigitalAssets.has(address))
+        .map((address) => [address, new DigitalAsset({ id: address, address })]),
+    ),
+    invalidDigitalAssets: new Map(
+      addressArray
+        .filter((address) => !knownDigitalAssets.has(address) && !newDigitalAssets.has(address))
         .map((address) => [address, new DigitalAsset({ id: address, address })]),
     ),
   };

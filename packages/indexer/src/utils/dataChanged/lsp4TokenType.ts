@@ -19,17 +19,17 @@ export function extract({ block, log }: ExtractParams): LSP4TokenType {
 }
 
 export function populate({
-  entities,
-  unverifiedDigitalAssets,
+  lsp4TokenTypes,
+  validDigitalAssets,
 }: {
-  entities: LSP4TokenType[];
-  unverifiedDigitalAssets: Map<string, DigitalAsset>;
+  lsp4TokenTypes: LSP4TokenType[];
+  validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return entities.map(
+  return lsp4TokenTypes.map(
     (event) =>
       new LSP4TokenType({
         ...event,
-        digitalAsset: !unverifiedDigitalAssets.has(event.address)
+        digitalAsset: validDigitalAssets.has(event.address)
           ? new DigitalAsset({ id: event.address })
           : null,
       }),

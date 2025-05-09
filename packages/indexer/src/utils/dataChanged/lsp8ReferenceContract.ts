@@ -18,17 +18,17 @@ export function extract({ block, log }: ExtractParams): LSP8ReferenceContract {
 }
 
 export function populate({
-  entities,
-  unverifiedDigitalAssets,
+  lsp8ReferenceContracts,
+  validDigitalAssets,
 }: {
-  entities: LSP8ReferenceContract[];
-  unverifiedDigitalAssets: Map<string, DigitalAsset>;
+  lsp8ReferenceContracts: LSP8ReferenceContract[];
+  validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return entities.map(
+  return lsp8ReferenceContracts.map(
     (event) =>
       new LSP8ReferenceContract({
         ...event,
-        digitalAsset: !unverifiedDigitalAssets.has(event.address)
+        digitalAsset: validDigitalAssets.has(event.address)
           ? new DigitalAsset({ id: event.address })
           : null,
       }),
