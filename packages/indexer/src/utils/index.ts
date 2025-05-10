@@ -1,4 +1,4 @@
-import { RPC_ENDPOINT } from '@/constants';
+import { IPFS_GATEWAY } from '@/constants';
 import {
   Attribute,
   ContractAsset,
@@ -29,8 +29,6 @@ import {
   Verification,
 } from '@chillwhales/sqd-typeorm';
 import ERC725 from '@erc725/erc725.js';
-import LSP3Schema from '@erc725/erc725.js/schemas/LSP3ProfileMetadata.json';
-import LSP4Schema from '@erc725/erc725.js/schemas/LSP4DigitalAsset.json';
 import {
   AssetMetadata,
   ImageMetadata,
@@ -184,21 +182,24 @@ export function decodeVerifiableUri(dataValue: string): {
   }
 }
 
+export function parseIpfsUrl(url: string) {
+  if (url.startsWith('ipfs://')) {
+    return url.replace('ipfs://', IPFS_GATEWAY);
+  }
+
+  return url;
+}
+
 export function createLsp3ProfilePromise(lsp3ProfileUrl: LSP3ProfileUrl) {
   return new Promise<LSP3Profile>(async (resolve) => {
     try {
-      const result = await new ERC725(LSP3Schema, lsp3ProfileUrl.address, RPC_ENDPOINT.url, {
-        ipfsGateway: 'https://api.universalprofile.cloud/ipfs',
-      }).fetchData('LSP3Profile');
+      const result = await fetch(parseIpfsUrl(lsp3ProfileUrl.value));
+      const json = await result.json();
 
-      if (
-        typeof result.value === 'string' ||
-        Array.isArray(result.value) ||
-        !isLsp3Profile(result.value)
-      )
+      if (typeof json === 'string' || Array.isArray(json) || !isLsp3Profile(json))
         throw new Error('Invalid LSP3Profile');
 
-      const lsp3Profile = result.value.LSP3Profile;
+      const lsp3Profile = json.LSP3Profile;
 
       resolve(
         new LSP3Profile({
@@ -276,18 +277,13 @@ export function createLsp3ProfilePromise(lsp3ProfileUrl: LSP3ProfileUrl) {
 export function createLsp4MetadataPromise(lsp4MetadataUrl: LSP4MetadataUrl) {
   return new Promise<LSP4Metadata>(async (resolve) => {
     try {
-      const result = await new ERC725(LSP4Schema, lsp4MetadataUrl.address, RPC_ENDPOINT.url, {
-        ipfsGateway: 'https://api.universalprofile.cloud/ipfs',
-      }).fetchData('LSP4Metadata');
+      const result = await fetch(parseIpfsUrl(lsp4MetadataUrl.value));
+      const json = await result.json();
 
-      if (
-        typeof result.value === 'string' ||
-        Array.isArray(result.value) ||
-        !isLsp4Metadata(result.value)
-      )
-        throw new Error('Invalid LSP3Profile');
+      if (typeof json === 'string' || Array.isArray(json) || !isLsp4Metadata(json))
+        throw new Error('Invalid LSP4Metadata');
 
-      const lsp4Metadata = result.value.LSP4Metadata;
+      const lsp4Metadata = json.LSP4Metadata;
 
       resolve(
         new LSP4Metadata({
