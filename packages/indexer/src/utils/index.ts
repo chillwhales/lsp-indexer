@@ -255,6 +255,7 @@ export function createLsp3ProfilePromise(lsp3ProfileUrl: LSP3ProfileUrl) {
         }),
       );
     } catch (error) {
+      const errorString = error.toString();
       resolve(
         new LSP3Profile({
           id: uuidv4(),
@@ -268,7 +269,10 @@ export function createLsp3ProfilePromise(lsp3ProfileUrl: LSP3ProfileUrl) {
           avatar: [],
           profileImage: [],
           backgroundImage: [],
-          decodeError: error.toString(),
+          decodeError:
+            errorString.match(/[^\x20-\x7E]+/g) !== null
+              ? 'LSP3Profile contians invalid characters'
+              : errorString,
           rawBytes: lsp3ProfileUrl.rawBytes,
         }),
       );
@@ -354,6 +358,7 @@ export function createLsp4MetadataPromise(lsp4MetadataUrl: LSP4MetadataUrl) {
         }),
       );
     } catch (error) {
+      const errorString = error.toString();
       resolve(
         new LSP4Metadata({
           id: uuidv4(),
@@ -369,7 +374,10 @@ export function createLsp4MetadataPromise(lsp4MetadataUrl: LSP4MetadataUrl) {
           images: [],
           assets: [],
           attributes: [],
-          decodeError: error.toString(),
+          decodeError:
+            errorString.match(/[^\x20-\x7E]+/g) !== null
+              ? 'LSP4Metadata contians invalid characters'
+              : errorString,
           rawBytes: lsp4MetadataUrl.rawBytes,
         }),
       );
