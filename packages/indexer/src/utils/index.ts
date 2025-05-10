@@ -250,6 +250,8 @@ export function createLsp3ProfilePromise(lsp3ProfileUrl: LSP3ProfileUrl) {
                 if (isContractImage(image)) return new ContractImage(image);
               })
             : [],
+          decodeError: null,
+          rawBytes: lsp3ProfileUrl.rawBytes,
         }),
       );
     } catch (error) {
@@ -266,7 +268,7 @@ export function createLsp3ProfilePromise(lsp3ProfileUrl: LSP3ProfileUrl) {
           avatar: [],
           profileImage: [],
           backgroundImage: [],
-          decodeError: JSON.stringify(error),
+          decodeError: error.toString(),
           rawBytes: lsp3ProfileUrl.rawBytes,
         }),
       );
@@ -347,6 +349,8 @@ export function createLsp4MetadataPromise(lsp4MetadataUrl: LSP4MetadataUrl) {
                   }),
               )
             : [],
+          decodeError: null,
+          rawBytes: lsp4MetadataUrl.rawBytes,
         }),
       );
     } catch (error) {
@@ -365,7 +369,7 @@ export function createLsp4MetadataPromise(lsp4MetadataUrl: LSP4MetadataUrl) {
           images: [],
           assets: [],
           attributes: [],
-          decodeError: JSON.stringify(error),
+          decodeError: error.toString(),
           rawBytes: lsp4MetadataUrl.rawBytes,
         }),
       );

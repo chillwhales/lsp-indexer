@@ -8,4 +8,4 @@ export const RPC_ENDPOINT = {
 };
 export const FINALITY_CONFIRMATION = 75; // 15 mins to finality
 export const MULTICALL_ADDRESS = '0x144f4290051C2Ad2aCc9D7b6E8cC0dBe36644869';
-export const IPFS_GATEWAY = 'https://api.universalprofile.cloud/ipfs';
+export const IPFS_GATEWAY = 'https://api.universalprofile.cloud/ipfs/';
