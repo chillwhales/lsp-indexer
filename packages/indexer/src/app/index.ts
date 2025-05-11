@@ -109,14 +109,30 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.insert(populatedLsp8TokenIdFormats),
   ]);
 
-  await Promise.all(
+  const lsp3Profiles = await Promise.all(
     populatedLsp3ProfileUrls.map((lsp3ProfileUrl) =>
       Utils.createLsp3ProfilePromise(lsp3ProfileUrl),
     ),
-  ).then((lsp3Profiles) => context.store.insert(lsp3Profiles));
-  await Promise.all(
+  );
+  await context.store.insert(lsp3Profiles.map(({ lsp3Profile }) => lsp3Profile));
+  await Promise.all([
+    context.store.insert(lsp3Profiles.flatMap(({ lsp3Links }) => lsp3Links)),
+    context.store.insert(lsp3Profiles.flatMap(({ lsp3Assets }) => lsp3Assets)),
+    context.store.insert(lsp3Profiles.flatMap(({ lsp3ProfileImages }) => lsp3ProfileImages)),
+    context.store.insert(lsp3Profiles.flatMap(({ lsp3BackgroundImages }) => lsp3BackgroundImages)),
+  ]);
+
+  const lsp4Metadatas = await Promise.all(
     populatedLsp4MetadataUrls.map((lsp4MetadataUrl) =>
       Utils.createLsp4MetadataPromise(lsp4MetadataUrl),
     ),
-  ).then((lsp4Metadatas) => context.store.insert(lsp4Metadatas));
+  );
+  await context.store.insert(lsp4Metadatas.map(({ lsp4Metadata }) => lsp4Metadata));
+  await Promise.all([
+    context.store.insert(lsp4Metadatas.flatMap(({ lsp4Links }) => lsp4Links)),
+    context.store.insert(lsp4Metadatas.flatMap(({ lsp4Assets }) => lsp4Assets)),
+    context.store.insert(lsp4Metadatas.flatMap(({ lsp4Icons }) => lsp4Icons)),
+    context.store.insert(lsp4Metadatas.flatMap(({ lsp4Images }) => lsp4Images)),
+    context.store.insert(lsp4Metadatas.flatMap(({ lsp4Attributes }) => lsp4Attributes)),
+  ]);
 });

@@ -251,15 +251,54 @@ type LSP3Profile @entity {
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
-  name: String! @index
-  description: String!
-  links: [Link!]!
-  tags: [String!]!
-  avatar: [AssetMetadata!]!
-  profileImage: [ImageMetadata!]!
-  backgroundImage: [ImageMetadata!]!
+  name: String @index
+  description: String
+  tags: [String!]! @derivedFrom(field: "lsp3Profile")
+  links: [LSP3Link!]! @derivedFrom(field: "lsp3Profile")
+  avatar: [LSP3Asset!]! @derivedFrom(field: "lsp3Profile")
+  profileImage: [LSP3ProfileImage!]! @derivedFrom(field: "lsp3Profile")
+  backgroundImage: [LSP3BackgroundImage!]! @derivedFrom(field: "lsp3Profile")
   rawBytes: String
   decodeError: String
+}
+
+type LSP3Link @entity {
+  id: ID!
+  lsp3Profile: LSP3Profile! @index
+  title: String! @index
+  url: String! @index
+}
+
+type LSP3Asset @entity {
+  id: ID!
+  lsp3Profile: LSP3Profile! @index
+  url: String!
+  fileType: String @index
+  verificationMethod: String!
+  verificationData: String!
+  verificationSource: String
+}
+
+type LSP3ProfileImage @entity {
+  id: ID!
+  lsp3Profile: LSP3Profile! @index
+  width: Int! @index
+  height: Int! @index
+  url: String!
+  verificationMethod: String
+  verificationData: String
+  verificationSource: String
+}
+
+type LSP3BackgroundImage @entity {
+  id: ID!
+  lsp3Profile: LSP3Profile! @index
+  width: Int! @index
+  height: Int! @index
+  url: String!
+  verificationMethod: String
+  verificationData: String
+  verificationSource: String
 }
 
 type LSP4MetadataUrl @entity {
@@ -281,57 +320,60 @@ type LSP4Metadata @entity {
   digitalAsset: DigitalAsset! @index
   tokenId: String @index
   nft: NFT @index
-  name: String! @index
-  description: String!
-  links: [Link!]!
-  icon: [ImageMetadata!]!
-  images: [ImageMetadata!]!
-  assets: [AssetMetadata!]!
-  attributes: [Attribute!]!
+  name: String @index
+  description: String
+  links: [LSP4Link!]! @derivedFrom(field: "lsp4Metadata")
+  icon: [LSP4Icon!]! @derivedFrom(field: "lsp4Metadata")
+  images: [LSP4Image!]! @derivedFrom(field: "lsp4Metadata")
+  assets: [LSP4Asset!]! @derivedFrom(field: "lsp4Metadata")
+  attributes: [LSP4Attribute!]! @derivedFrom(field: "lsp4Metadata")
   rawBytes: String
   decodeError: String
 }
 
-type Attribute {
-  key: String!
-  value: String!
-  type: String!
+type LSP4Link @entity {
+  id: ID!
+  lsp4Metadata: LSP4Metadata! @index
+  title: String! @index
+  url: String! @index
 }
 
-type Link {
-  title: String!
+type LSP4Icon @entity {
+  id: ID!
+  lsp4Metadata: LSP4Metadata! @index
+  width: Int! @index
+  height: Int! @index
   url: String!
+  verificationMethod: String
+  verificationData: String
+  verificationSource: String
 }
 
-type Verification {
-  method: String!
-  data: String!
-  source: String
-}
-
-type FileImage {
-  width: Int!
-  height: Int!
+type LSP4Image @entity {
+  id: ID!
+  lsp4Metadata: LSP4Metadata! @index
+  width: Int! @index
+  height: Int! @index
   url: String!
-  verification: Verification
+  verificationMethod: String
+  verificationData: String
+  verificationSource: String
 }
 
-type ContractImage {
-  address: String!
-  tokenId: String
-}
-
-union ImageMetadata = FileImage | ContractImage
-
-type FileAsset {
+type LSP4Asset @entity {
+  id: ID!
+  lsp4Metadata: LSP4Metadata! @index
   url: String!
-  fileType: String
-  verification: Verification
+  fileType: String @index
+  verificationMethod: String!
+  verificationData: String!
+  verificationSource: String
 }
 
-type ContractAsset {
-  address: String!
-  tokenId: String
+type LSP4Attribute @entity {
+  id: ID!
+  lsp4Metadata: LSP4Metadata! @index
+  key: String! @index
+  value: String! @index
+  type: String! @index
 }
-
-union AssetMetadata = FileAsset | ContractAsset
