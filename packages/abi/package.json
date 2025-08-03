@@ -17,16 +17,15 @@
     "clean": "rm -Rf lib/ src/"
   },
   "dependencies": {
-    "@chillwhales/chill-shop-contracts": "0.6.0",
     "@erc725/smart-contracts": "^8.0.1",
-    "@lukso/lsp0-contracts": "0.15.0",
-    "@lukso/lsp7-contracts": "0.16.3",
-    "@lukso/lsp8-contracts": "0.16.2",
+    "@lukso/lsp0-contracts": "0.15.5",
+    "@lukso/lsp7-contracts": "0.16.8",
+    "@lukso/lsp8-contracts": "0.16.7",
     "@subsquid/evm-abi": "^0.3.1",
     "@subsquid/evm-codec": "^0.3.0"
   },
   "devDependencies": {
     "@subsquid/evm-typegen": "^4.4.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   }
 }

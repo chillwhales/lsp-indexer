@@ -3,7 +3,6 @@
 squid-evm-typegen \
     src/abi \
     custom/* \
-    node_modules/@chillwhales/chill-shop-contracts/artifacts/* \
     node_modules/@erc725/smart-contracts/artifacts/* \
     node_modules/@lukso/lsp0-contracts/artifacts/* \
     node_modules/@lukso/lsp7-contracts/artifacts/* \

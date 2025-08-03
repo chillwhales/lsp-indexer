@@ -1,7 +1,7 @@
 import { processor } from '@/app/processor';
 import * as Utils from '@/utils';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
-import { scanLogs } from './scanner';
+import { scanLogs, scanTransactions } from './scanner';
 
 processor.run(new TypeormDatabase(), async (context) => {
   const {
@@ -24,6 +24,8 @@ processor.run(new TypeormDatabase(), async (context) => {
       lsp8ReferenceContracts,
     },
   } = scanLogs(context);
+
+  scanTransactions(context);
 
   const {
     universalProfiles: { newUniversalProfiles, validUniversalProfiles },

@@ -1,4 +1,4 @@
-import { FINALITY_CONFIRMATION, GATEWAY, RPC_ENDPOINT } from '@/constants';
+import { CHILL_ADDRESS, FINALITY_CONFIRMATION, GATEWAY, RPC_ENDPOINT } from '@/constants';
 import {
   ERC725X,
   ERC725Y,
@@ -7,6 +7,7 @@ import {
   LSP8IdentifiableDigitalAsset,
 } from '@chillwhales/sqd-abi';
 import { EvmBatchProcessor } from '@subsquid/evm-processor';
+import { toFunctionSelector } from 'viem';
 
 export const processor = new EvmBatchProcessor()
   .setGateway(GATEWAY)
@@ -21,6 +22,18 @@ export const processor = new EvmBatchProcessor()
   //   type: ['create'],
   //   transaction: true,
   // })
+  .addTransaction({
+    to: [CHILL_ADDRESS],
+    sighash: [
+      toFunctionSelector('function claimChill(bytes32 tokenId, bytes memory data)'),
+      toFunctionSelector('function claimChillBatch(bytes memory data)'),
+    ],
+  })
+  .setFields({
+    transaction: {
+      input: true,
+    },
+  })
   .addLog({
     topic0: [
       ERC725X.events.Executed.topic,

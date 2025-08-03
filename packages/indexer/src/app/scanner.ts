@@ -178,3 +178,13 @@ export function scanLogs(context: DataHandlerContext<Store, {}>) {
     },
   };
 }
+
+export function scanTransactions(context: DataHandlerContext<Store, {}>) {
+  for (const block of context.blocks) {
+    const { transactions } = block;
+
+    for (const transaction of transactions) {
+      console.log(transaction);
+    }
+  }
+}

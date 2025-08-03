@@ -3,8 +3,6 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-      args:
-        - NODE_AUTH_TOKEN
     restart: unless-stopped
     depends_on:
       postgres:
