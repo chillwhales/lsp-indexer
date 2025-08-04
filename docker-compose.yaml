@@ -99,6 +99,7 @@ services:
       - TS_EXTRA_ARGS
       - TS_STATE_DIR
       - TS_USERSPACE
+      - TS_HOSTNAME
     volumes:
       - tailscale_volume:/var/lib/tailscale
     devices:

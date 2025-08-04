@@ -635,6 +635,10 @@ export function populateAll({
   };
 }
 
+export function timeout(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export * as DataChanged from './dataChanged';
 export * as DigitalAsset from './digitalAsset';
 export * as Executed from './executed';

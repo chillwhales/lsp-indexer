@@ -1,5 +1,6 @@
 import * as Utils from '@/utils';
 import { LSP7DigitalAsset } from '@chillwhales/sqd-abi';
+import { Aggregate3StaticReturn } from '@chillwhales/sqd-abi/lib/abi/Multicall3';
 import { DigitalAsset } from '@chillwhales/sqd-typeorm';
 import { INTERFACE_ID_LSP7, INTERFACE_ID_LSP7_PREVIOUS } from '@lukso/lsp7-contracts';
 import { INTERFACE_ID_LSP8, INTERFACE_ID_LSP8_PREVIOUS } from '@lukso/lsp8-contracts';
@@ -57,14 +58,26 @@ export async function verify({ context, digitalAssets }: VerifyParams): Promise<
   for (const callData of calldatasByInterfaceId) {
     if (unverifiedDigitalAssets.length === 0) continue;
 
-    const result = await Utils.Multicall3.aggregate3StaticLatest({
-      context,
-      calls: unverifiedDigitalAssets.map((target) => ({
-        target,
-        allowFailure: true,
-        callData,
-      })),
-    });
+    const result: Aggregate3StaticReturn = [];
+    let index = 0;
+    const itemsPerBatch = 100;
+    while (index * itemsPerBatch < unverifiedDigitalAssets.length) {
+      const from = index * itemsPerBatch;
+      const to = from + itemsPerBatch;
+
+      result.push(
+        ...(await Utils.Multicall3.aggregate3StaticLatest({
+          context,
+          calls: unverifiedDigitalAssets.slice(from, to).map((target) => ({
+            target,
+            allowFailure: true,
+            callData,
+          })),
+        })),
+      );
+
+      await Utils.timeout(1000);
+    }
 
     unverifiedDigitalAssets.forEach((address, index) => {
       if (

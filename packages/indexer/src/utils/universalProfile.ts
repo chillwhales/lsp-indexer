@@ -1,5 +1,6 @@
 import * as Utils from '@/utils';
 import { LSP0ERC725Account } from '@chillwhales/sqd-abi';
+import { Aggregate3StaticReturn } from '@chillwhales/sqd-abi/lib/abi/Multicall3';
 import { UniversalProfile } from '@chillwhales/sqd-typeorm';
 import { INTERFACE_ID_LSP0 } from '@lukso/lsp0-contracts';
 import { DataHandlerContext } from '@subsquid/evm-processor';
@@ -43,14 +44,26 @@ export async function verify({ context, universalProfiles }: VerifyParams): Prom
   for (const callData of calldatasByInterfaceId) {
     if (unverifiedUniversalProfiles.length === 0) continue;
 
-    const result = await Utils.Multicall3.aggregate3StaticLatest({
-      context,
-      calls: unverifiedUniversalProfiles.map((target) => ({
-        target,
-        allowFailure: true,
-        callData,
-      })),
-    });
+    const result: Aggregate3StaticReturn = [];
+    let index = 0;
+    const itemsPerBatch = 100;
+    while (index * itemsPerBatch < unverifiedUniversalProfiles.length) {
+      const from = index * itemsPerBatch;
+      const to = from + itemsPerBatch;
+
+      result.push(
+        ...(await Utils.Multicall3.aggregate3StaticLatest({
+          context,
+          calls: unverifiedUniversalProfiles.slice(from, to).map((target) => ({
+            target,
+            allowFailure: true,
+            callData,
+          })),
+        })),
+      );
+
+      await Utils.timeout(1000);
+    }
 
     unverifiedUniversalProfiles.forEach((address, index) => {
       if (
