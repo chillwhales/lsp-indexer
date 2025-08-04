@@ -4,13 +4,12 @@ services:
       context: ./
       dockerfile: Dockerfile
     restart: unless-stopped
+    network_mode: service:tailscale
     depends_on:
       postgres:
         condition: service_healthy
       graphql:
         condition: service_healthy
-    networks:
-      indexer_network:
     environment:
       - DB_URL
       - RPC_URL
@@ -28,7 +27,8 @@ services:
     volumes:
       - postgres_volume:/var/lib/postgresql/data
     networks:
-      indexer_network:
+      sqd_network:
+        ipv4_address: ${POSTGRES_STATIC_IP} # E.g. 172.50.0.1
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
@@ -43,7 +43,7 @@ services:
     volumes:
       - pgadmin_volume:/var/lib/pgadmin
     networks:
-      indexer_network:
+      sqd_network:
     ports:
       - ${PGADMIN_PORT}:80
     environment:
@@ -56,7 +56,8 @@ services:
       - ${HASURA_GRAPHQL_PORT}:8080
     restart: unless-stopped
     networks:
-      indexer_network:
+      sqd_network:
+        ipv4_address: ${GRAPHQL_STATIC_IP} # E.g. 172.50.0.2
     environment:
       - PG_DATABASE_URL
       - HASURA_GRAPHQL_DATABASE_URL
@@ -94,21 +95,28 @@ services:
   tailscale:
     image: tailscale/tailscale:latest
     restart: unless-stopped
+    networks:
+      sqd_network:
     environment:
       - TS_AUTHKEY
       - TS_EXTRA_ARGS
       - TS_STATE_DIR
       - TS_USERSPACE
       - TS_HOSTNAME
+      - TS_ACCEPT_DNS
     volumes:
       - tailscale_volume:/var/lib/tailscale
-    devices:
       - /dev/net/tun:/dev/net/tun
     cap_add:
-      - net_admin
+      - NET_ADMIN
+      - SYS_MODULE
 
 networks:
-  indexer_network:
+  sqd_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: ${DOCKER_SUBNET}
 
 volumes:
   postgres_volume:
