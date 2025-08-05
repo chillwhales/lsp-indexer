@@ -25,7 +25,7 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - postgres_volume:/var/lib/postgresql/data
+      - /mnt/sqd-indexer/postgres:/var/lib/postgresql/data
     networks:
       sqd_network:
         ipv4_address: ${POSTGRES_STATIC_IP} # E.g. 172.50.0.1
@@ -41,7 +41,7 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - pgadmin_volume:/var/lib/pgadmin
+      - /mnt/sqd-indexer/pgadmin:/var/lib/pgadmin
     networks:
       sqd_network:
     ports:
@@ -105,7 +105,7 @@ services:
       - TS_HOSTNAME
       - TS_ACCEPT_DNS
     volumes:
-      - tailscale_volume:/var/lib/tailscale
+      - /mnt/sqd-indexer/tailscale:/var/lib/tailscale
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
@@ -117,8 +117,3 @@ networks:
       driver: default
       config:
         - subnet: ${DOCKER_SUBNET}
-
-volumes:
-  postgres_volume:
-  pgadmin_volume:
-  tailscale_volume:
