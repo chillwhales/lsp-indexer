@@ -265,26 +265,26 @@ type LSP3Profile @entity {
 type LSP3Link @entity {
   id: ID!
   lsp3Profile: LSP3Profile! @index
-  title: String! @index
-  url: String! @index
+  title: String @index
+  url: String @index
 }
 
 type LSP3Asset @entity {
   id: ID!
   lsp3Profile: LSP3Profile! @index
-  url: String!
+  url: String
   fileType: String @index
-  verificationMethod: String!
-  verificationData: String!
+  verificationMethod: String
+  verificationData: String
   verificationSource: String
 }
 
 type LSP3ProfileImage @entity {
   id: ID!
   lsp3Profile: LSP3Profile! @index
-  width: Int! @index
-  height: Int! @index
-  url: String!
+  width: Int @index
+  height: Int @index
+  url: String
   verificationMethod: String
   verificationData: String
   verificationSource: String
@@ -293,9 +293,9 @@ type LSP3ProfileImage @entity {
 type LSP3BackgroundImage @entity {
   id: ID!
   lsp3Profile: LSP3Profile! @index
-  width: Int! @index
-  height: Int! @index
-  url: String!
+  width: Int @index
+  height: Int @index
+  url: String
   verificationMethod: String
   verificationData: String
   verificationSource: String
@@ -334,16 +334,16 @@ type LSP4Metadata @entity {
 type LSP4Link @entity {
   id: ID!
   lsp4Metadata: LSP4Metadata! @index
-  title: String! @index
-  url: String! @index
+  title: String @index
+  url: String @index
 }
 
 type LSP4Icon @entity {
   id: ID!
   lsp4Metadata: LSP4Metadata! @index
-  width: Int! @index
-  height: Int! @index
-  url: String!
+  width: Int @index
+  height: Int @index
+  url: String
   verificationMethod: String
   verificationData: String
   verificationSource: String
@@ -352,9 +352,9 @@ type LSP4Icon @entity {
 type LSP4Image @entity {
   id: ID!
   lsp4Metadata: LSP4Metadata! @index
-  width: Int! @index
-  height: Int! @index
-  url: String!
+  width: Int @index
+  height: Int @index
+  url: String
   verificationMethod: String
   verificationData: String
   verificationSource: String
@@ -363,19 +363,19 @@ type LSP4Image @entity {
 type LSP4Asset @entity {
   id: ID!
   lsp4Metadata: LSP4Metadata! @index
-  url: String!
+  url: String
   fileType: String @index
-  verificationMethod: String!
-  verificationData: String!
+  verificationMethod: String
+  verificationData: String
   verificationSource: String
 }
 
 type LSP4Attribute @entity {
   id: ID!
   lsp4Metadata: LSP4Metadata! @index
-  key: String! @index
-  value: String! @index
-  type: String! @index
+  key: String @index
+  value: String @index
+  type: String @index
 }
 
 type ChillClaimed @entity {

@@ -27,6 +27,9 @@ importers:
       '@lukso/lsp0-contracts':
         specifier: 0.15.5
         version: 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp26-contracts':
+        specifier: ^0.1.7
+        version: 0.1.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp6-contracts':
         specifier: 0.15.5
         version: 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -522,6 +525,9 @@ packages:
 
   '@lukso/lsp25-contracts@0.15.5':
     resolution: {integrity: sha512-pCQ5GmiMuDgPnkNWM5iT97C+zHQ8qAI7xyoUVOJ8Qf2BMQg5XFrqOE0u7j+lBt2HNp9MiZ5waWKvqysTv1pgEw==}
+
+  '@lukso/lsp26-contracts@0.1.7':
+    resolution: {integrity: sha512-sfBYNu3kC/hT4z/ELHkBpLeCS/K5MTUgDj345pEV4ZaP0phazLBOlruq2IvEapqj61Da0bE4OQVhDNbZTYaorg==}
 
   '@lukso/lsp3-contracts@0.16.6':
     resolution: {integrity: sha512-63fMWrPkNs4wAehv1nz3cOjN8WzbixL/eOBgxAKqIOHQiQ8vly/q9kjZY2CPjOTwNayh3HONA2kKcCijGl7Kbg==}
@@ -3950,6 +3956,18 @@ snapshots:
   '@lukso/lsp25-contracts@0.15.5':
     dependencies:
       '@openzeppelin/contracts': 4.9.6
+
+  '@lukso/lsp26-contracts@0.1.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@lukso/lsp0-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp1-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@openzeppelin/contracts': 4.9.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
 
   '@lukso/lsp3-contracts@0.16.6(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:

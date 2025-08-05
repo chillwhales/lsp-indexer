@@ -7,7 +7,8 @@ squid-evm-typegen \
     node_modules/@lukso/lsp0-contracts/artifacts/* \
     node_modules/@lukso/lsp6-contracts/artifacts/* \
     node_modules/@lukso/lsp7-contracts/artifacts/* \
-    node_modules/@lukso/lsp8-contracts/artifacts/*
+    node_modules/@lukso/lsp8-contracts/artifacts/* \
+    node_modules/@lukso/lsp26-contracts/artifacts/*
 
 output="src/index.ts"
 echo "" > $output
