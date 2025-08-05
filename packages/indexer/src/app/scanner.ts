@@ -30,6 +30,16 @@ import { Store } from '@subsquid/typeorm-store';
 import { FieldSelection } from './processor';
 
 export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
+  context.log.info(
+    JSON.stringify({
+      message: 'Scanning block range',
+      blockRange: {
+        start: context.blocks[0].header.height,
+        end: context.blocks[context.blocks.length - 1].header.height,
+      },
+    }),
+  );
+
   const universalProfiles = new Set<string>();
   const digitalAssets = new Set<string>();
   const nfts = new Map<string, NFT>();
@@ -49,7 +59,18 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
   const lsp8ReferenceContracts: LSP8ReferenceContract[] = [];
 
   for (const block of context.blocks) {
-    const { logs } = block;
+    const {
+      logs,
+      header: { height },
+    } = block;
+
+    context.log.info(
+      JSON.stringify({
+        message: 'Scanning block',
+        block: height,
+        logsFound: logs.length,
+      }),
+    );
 
     for (const log of logs) {
       const extractParams: ExtractParams = { context, block, log };
@@ -159,6 +180,35 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
       }
     }
   }
+
+  context.log.info(
+    JSON.stringify({
+      message: 'Block range scan ended.',
+      blockRange: {
+        start: context.blocks[0].header.height,
+        end: context.blocks[context.blocks.length - 1].header.height,
+      },
+      universalProfilesCount: universalProfiles.size,
+      digitalAssetsCount: digitalAssets.size,
+      nftsCount: nfts.size,
+      events: {
+        executedEventsCount: executedEvents.length,
+        dataChangedEventsCount: dataChangedEvents.length,
+        universalReceiverEventsCount: universalReceiverEvents.length,
+        transferEventsCount: transferEvents.length,
+        tokenIdDataChangedEventsCount: tokenIdDataChangedEvents.length,
+      },
+      dataKeys: {
+        lsp3ProfileUrlsCount: lsp3ProfileUrls.length,
+        lsp4TokenNamesCount: lsp4TokenNames.length,
+        lsp4TokenSymbolsCount: lsp4TokenSymbols.length,
+        lsp4TokenTypesCount: lsp4TokenTypes.length,
+        lsp4MetadataUrlsCount: lsp4MetadataUrls.length,
+        lsp8TokenIdFormatsCount: lsp8TokenIdFormats.length,
+        lsp8ReferenceContractsCount: lsp8ReferenceContracts.length,
+      },
+    }),
+  );
 
   return {
     universalProfiles,

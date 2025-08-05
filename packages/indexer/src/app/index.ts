@@ -43,6 +43,15 @@ processor.run(new TypeormDatabase(), async (context) => {
       chillClaimedEntities.push(...(await Utils.ChillClaimed.extract(context)));
     }
 
+    if (chillClaimedEntities.length > 0) {
+      context.log.info(
+        JSON.stringify({
+          message: 'CHILL claim events found.',
+          chillClaimedEntitiesCount: chillClaimedEntities.length,
+        }),
+      );
+    }
+
     if (
       (await context.store.find(OrbsClaimed)).length === 0 ||
       transferEvents.filter(
@@ -53,11 +62,20 @@ processor.run(new TypeormDatabase(), async (context) => {
     ) {
       orbsClaimedEntities.push(...(await Utils.OrbsClaimed.extract(context)));
     }
+
+    if (orbsClaimedEntities.length > 0) {
+      context.log.info(
+        JSON.stringify({
+          message: 'ORBS claim events found.',
+          orbsClaimedEntitiesCount: orbsClaimedEntities.length,
+        }),
+      );
+    }
   }
 
   const {
-    universalProfiles: { newUniversalProfiles, validUniversalProfiles },
-    digitalAssets: { newDigitalAssets, validDigitalAssets },
+    universalProfiles: { newUniversalProfiles, validUniversalProfiles, invalidUniversalProfiles },
+    digitalAssets: { newDigitalAssets, validDigitalAssets, invalidDigitalAssets },
     verifiedNfts,
   } = await Utils.verifyAll({
     context,
@@ -65,6 +83,32 @@ processor.run(new TypeormDatabase(), async (context) => {
     digitalAssets,
     nfts,
   });
+
+  context.log.info(
+    JSON.stringify({
+      message: 'Validating Universal Profiles.',
+      universalProfilesCount: universalProfiles.size,
+      newUniversalProfilesCount: newUniversalProfiles.size,
+      validUniversalProfilesCount: validUniversalProfiles.size,
+      invalidUniversalProfilesCount: invalidUniversalProfiles.size,
+    }),
+  );
+  context.log.info(
+    JSON.stringify({
+      message: 'Validating Digital Assets.',
+      digitalAssetsCount: digitalAssets.size,
+      newDigitalAssetsCount: newDigitalAssets.size,
+      validDigitalAssetsCount: validDigitalAssets.size,
+      invalidDigitalAssetsCount: invalidDigitalAssets.size,
+    }),
+  );
+  context.log.info(
+    JSON.stringify({
+      message: 'Validating NFTs.',
+      nftsCount: nfts.size,
+      verifiedNftsCount: verifiedNfts.length,
+    }),
+  );
 
   const {
     populatedNfts,
@@ -102,11 +146,53 @@ processor.run(new TypeormDatabase(), async (context) => {
     lsp8TokenIdFormats,
   });
 
+  context.log.info(
+    JSON.stringify({
+      message: 'Updating Universal Profiles.',
+      universalProfilesCount: newUniversalProfiles.size,
+    }),
+  );
+  context.log.info(
+    JSON.stringify({
+      message: 'Updating Digital Assets.',
+      digitalAssetsCount: newDigitalAssets.size,
+    }),
+  );
+  context.log.info(
+    JSON.stringify({
+      message: 'Updating NFTs.',
+      nftsCount: populatedNfts.length,
+    }),
+  );
+
   await Promise.all([
     context.store.upsert([...newUniversalProfiles.values()]),
     context.store.upsert([...newDigitalAssets.values()]),
     context.store.upsert(populatedNfts),
   ]);
+
+  context.log.info(
+    JSON.stringify({
+      message: 'Inserting new Events.',
+      populatedExecutesCount: populatedExecutes.length,
+      populatedDataChangedsCount: populatedDataChangeds.length,
+      populatedUniversalReceiversCount: populatedUniversalReceivers.length,
+      populatedTransfersCount: populatedTransfers.length,
+      populatedTokenIdDataChangedsCount: populatedTokenIdDataChangeds.length,
+    }),
+  );
+  context.log.info(
+    JSON.stringify({
+      message: 'Inserting new ERC725 Data Keys.',
+      populatedLsp3ProfileUrlsCount: populatedLsp3ProfileUrls.length,
+      populatedLsp4MetadataUrlsCount: populatedLsp4MetadataUrls.length,
+      populatedLsp4TokenNamesCount: populatedLsp4TokenNames.length,
+      populatedLsp4TokenSymbolsCount: populatedLsp4TokenSymbols.length,
+      populatedLsp4TokenTypesCount: populatedLsp4TokenTypes.length,
+      populatedLsp8ReferenceContractsCount: populatedLsp8ReferenceContracts.length,
+      populatedLsp8TokenIdFormatsCount: populatedLsp8TokenIdFormats.length,
+    }),
+  );
 
   await Promise.all([
     // Save tracked events
@@ -148,25 +234,65 @@ processor.run(new TypeormDatabase(), async (context) => {
       Utils.createLsp3ProfilePromise(lsp3ProfileUrl),
     ),
   );
-  await context.store.insert(lsp3Profiles.map(({ lsp3Profile }) => lsp3Profile));
-  await Promise.all([
-    context.store.insert(lsp3Profiles.flatMap(({ lsp3Links }) => lsp3Links)),
-    context.store.insert(lsp3Profiles.flatMap(({ lsp3Assets }) => lsp3Assets)),
-    context.store.insert(lsp3Profiles.flatMap(({ lsp3ProfileImages }) => lsp3ProfileImages)),
-    context.store.insert(lsp3Profiles.flatMap(({ lsp3BackgroundImages }) => lsp3BackgroundImages)),
-  ]);
+
+  if (lsp3Profiles.length > 0) {
+    const lsp3Links = lsp3Profiles.flatMap(({ lsp3Links }) => lsp3Links);
+    const lsp3Assets = lsp3Profiles.flatMap(({ lsp3Assets }) => lsp3Assets);
+    const lsp3ProfileImages = lsp3Profiles.flatMap(({ lsp3ProfileImages }) => lsp3ProfileImages);
+    const lsp3BackgroundImages = lsp3Profiles.flatMap(
+      ({ lsp3BackgroundImages }) => lsp3BackgroundImages,
+    );
+
+    context.log.info(
+      JSON.stringify({
+        message: 'Saving new LSP3Profile objects.',
+        lsp3ProfilesCount: lsp3Profiles.length,
+        lsp3LinksCount: lsp3Links.length,
+        lsp3AssetsCount: lsp3Assets.length,
+        lsp3ProfileImagesCount: lsp3ProfileImages.length,
+        lsp3BackgroundImagesCount: lsp3BackgroundImages.length,
+      }),
+    );
+    await context.store.insert(lsp3Profiles.map(({ lsp3Profile }) => lsp3Profile));
+    await Promise.all([
+      context.store.insert(lsp3Links),
+      context.store.insert(lsp3Assets),
+      context.store.insert(lsp3ProfileImages),
+      context.store.insert(lsp3BackgroundImages),
+    ]);
+  }
 
   const lsp4Metadatas = await Promise.all(
     populatedLsp4MetadataUrls.map((lsp4MetadataUrl) =>
       Utils.createLsp4MetadataPromise(lsp4MetadataUrl),
     ),
   );
-  await context.store.insert(lsp4Metadatas.map(({ lsp4Metadata }) => lsp4Metadata));
-  await Promise.all([
-    context.store.insert(lsp4Metadatas.flatMap(({ lsp4Links }) => lsp4Links)),
-    context.store.insert(lsp4Metadatas.flatMap(({ lsp4Assets }) => lsp4Assets)),
-    context.store.insert(lsp4Metadatas.flatMap(({ lsp4Icons }) => lsp4Icons)),
-    context.store.insert(lsp4Metadatas.flatMap(({ lsp4Images }) => lsp4Images)),
-    context.store.insert(lsp4Metadatas.flatMap(({ lsp4Attributes }) => lsp4Attributes)),
-  ]);
+
+  if (lsp3Profiles.length > 0) {
+    const lsp4Links = lsp4Metadatas.flatMap(({ lsp4Links }) => lsp4Links);
+    const lsp4Assets = lsp4Metadatas.flatMap(({ lsp4Assets }) => lsp4Assets);
+    const lsp4Icons = lsp4Metadatas.flatMap(({ lsp4Icons }) => lsp4Icons);
+    const lsp4Images = lsp4Metadatas.flatMap(({ lsp4Images }) => lsp4Images);
+    const lsp4Attributes = lsp4Metadatas.flatMap(({ lsp4Attributes }) => lsp4Attributes);
+
+    context.log.info(
+      JSON.stringify({
+        message: 'Saving new LSP4Metadata objects.',
+        lsp4MetadatasCount: lsp4Metadatas.length,
+        lsp4LinksCount: lsp4Links.length,
+        lsp4AssetsCount: lsp4Assets.length,
+        lsp4IconsCount: lsp4Icons.length,
+        lsp4ImagesCount: lsp4Images.length,
+        lsp4AttributesCount: lsp4Attributes.length,
+      }),
+    );
+    await context.store.insert(lsp4Metadatas.map(({ lsp4Metadata }) => lsp4Metadata));
+    await Promise.all([
+      context.store.insert(lsp4Links),
+      context.store.insert(lsp4Assets),
+      context.store.insert(lsp4Icons),
+      context.store.insert(lsp4Images),
+      context.store.insert(lsp4Attributes),
+    ]);
+  }
 });
