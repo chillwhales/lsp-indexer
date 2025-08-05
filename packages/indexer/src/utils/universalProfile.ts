@@ -45,23 +45,36 @@ export async function verify({ context, universalProfiles }: VerifyParams): Prom
     if (unverifiedUniversalProfiles.length === 0) continue;
 
     const result: Aggregate3StaticReturn = [];
-    let index = 0;
-    const itemsPerBatch = 100;
-    while (index * itemsPerBatch < unverifiedUniversalProfiles.length) {
-      const from = index * itemsPerBatch;
-      const to = from + itemsPerBatch;
+    let batchIndex = 0;
+    const batchSize = 500;
+    while (batchIndex * batchSize < unverifiedUniversalProfiles.length) {
+      const verifiedCount = batchIndex * batchSize;
+      const unverifiedCount = unverifiedUniversalProfiles.length - verifiedCount;
+      const progress = {
+        message: 'Verifing supported standards for Universal Profiles',
+        ...LSP0ERC725Account.functions.supportsInterface.decode(callData),
+        batchIndex,
+        batchSize: Math.min(unverifiedCount, batchSize),
+        verifiedCount,
+        unverifiedCount,
+        totalCount: unverifiedUniversalProfiles.length,
+      };
 
+      context.log.info(JSON.stringify(progress));
       result.push(
         ...(await Utils.Multicall3.aggregate3StaticLatest({
           context,
-          calls: unverifiedUniversalProfiles.slice(from, to).map((target) => ({
-            target,
-            allowFailure: true,
-            callData,
-          })),
+          calls: unverifiedUniversalProfiles
+            .slice(verifiedCount, verifiedCount + progress.batchSize)
+            .map((target) => ({
+              target,
+              allowFailure: true,
+              callData,
+            })),
         })),
       );
 
+      batchIndex++;
       await Utils.timeout(1000);
     }
 

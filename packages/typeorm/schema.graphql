@@ -158,13 +158,13 @@ type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
   isBurned: Boolean! @index
 
   # chillwhales properties
-  chillClaimed: Boolean @index
-  orbsClaimed: Boolean @index
+  chillClaimed: ChillClaimed @derivedFrom(field: "nft")
+  orbsClaimed: OrbsClaimed @derivedFrom(field: "nft")
 
   # ORBS properties
-  level: Int @index
-  cooldownExpiry: Int @index
-  faction: String @index
+  # level: Int @index
+  # cooldownExpiry: Int @index
+  # faction: String @index
 
   # Events
   tokenIdDataChanged: [TokenIdDataChanged!]! @derivedFrom(field: "nft")
@@ -376,4 +376,22 @@ type LSP4Attribute @entity {
   key: String! @index
   value: String! @index
   type: String! @index
+}
+
+type ChillClaimed @entity {
+  id: ID!
+  address: String! @index
+  digitalAsset: DigitalAsset! @index
+  tokenId: String! @index @unique
+  nft: NFT! @index @unique
+  amount: BigInt!
+}
+
+type OrbsClaimed @entity {
+  id: ID!
+  address: String! @index
+  digitalAsset: DigitalAsset! @index
+  tokenId: String! @index @unique
+  nft: NFT! @index @unique
+  amount: BigInt!
 }

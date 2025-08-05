@@ -5,6 +5,7 @@ squid-evm-typegen \
     custom/* \
     node_modules/@erc725/smart-contracts/artifacts/* \
     node_modules/@lukso/lsp0-contracts/artifacts/* \
+    node_modules/@lukso/lsp6-contracts/artifacts/* \
     node_modules/@lukso/lsp7-contracts/artifacts/* \
     node_modules/@lukso/lsp8-contracts/artifacts/*
 

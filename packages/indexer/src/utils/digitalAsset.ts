@@ -59,23 +59,36 @@ export async function verify({ context, digitalAssets }: VerifyParams): Promise<
     if (unverifiedDigitalAssets.length === 0) continue;
 
     const result: Aggregate3StaticReturn = [];
-    let index = 0;
-    const itemsPerBatch = 100;
-    while (index * itemsPerBatch < unverifiedDigitalAssets.length) {
-      const from = index * itemsPerBatch;
-      const to = from + itemsPerBatch;
+    let batchIndex = 0;
+    const batchSize = 500;
+    while (batchIndex * batchSize < unverifiedDigitalAssets.length) {
+      const verifiedCount = batchIndex * batchSize;
+      const unverifiedCount = unverifiedDigitalAssets.length - verifiedCount;
+      const progress = {
+        message: 'Verifing supported standards for Digital Assets',
+        ...LSP7DigitalAsset.functions.supportsInterface.decode(callData),
+        batchIndex,
+        batchSize: Math.min(unverifiedCount, batchSize),
+        verifiedCount,
+        unverifiedCount,
+        totalCount: unverifiedDigitalAssets.length,
+      };
 
+      context.log.info(JSON.stringify(progress));
       result.push(
         ...(await Utils.Multicall3.aggregate3StaticLatest({
           context,
-          calls: unverifiedDigitalAssets.slice(from, to).map((target) => ({
-            target,
-            allowFailure: true,
-            callData,
-          })),
+          calls: unverifiedDigitalAssets
+            .slice(verifiedCount, verifiedCount + progress.batchSize)
+            .map((target) => ({
+              target,
+              allowFailure: true,
+              callData,
+            })),
         })),
       );
 
+      batchIndex++;
       await Utils.timeout(1000);
     }
 

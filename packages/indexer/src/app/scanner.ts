@@ -27,8 +27,9 @@ import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
+import { FieldSelection } from './processor';
 
-export function scanLogs(context: DataHandlerContext<Store, {}>) {
+export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
   const universalProfiles = new Set<string>();
   const digitalAssets = new Set<string>();
   const nfts = new Map<string, NFT>();
@@ -120,7 +121,9 @@ export function scanLogs(context: DataHandlerContext<Store, {}>) {
 
         case LSP7DigitalAsset.events.Transfer.topic: {
           digitalAssets.add(log.address);
-          transferEvents.push(Utils.Transfer.extract(extractParams));
+          const transferEvent = Utils.Transfer.extract(extractParams);
+          transferEvents.push(transferEvent);
+
           break;
         }
 
@@ -179,12 +182,22 @@ export function scanLogs(context: DataHandlerContext<Store, {}>) {
   };
 }
 
-export function scanTransactions(context: DataHandlerContext<Store, {}>) {
+export function scanTransactions(context: DataHandlerContext<Store, FieldSelection>) {
   for (const block of context.blocks) {
     const { transactions } = block;
 
     for (const transaction of transactions) {
-      console.log(transaction);
+      context.log.info(JSON.stringify({ transaction }));
+    }
+  }
+}
+
+export function scanTraces(context: DataHandlerContext<Store, FieldSelection>) {
+  for (const block of context.blocks) {
+    const { traces } = block;
+
+    for (const trace of traces) {
+      context.log.info(JSON.stringify({ trace }));
     }
   }
 }

@@ -10,7 +10,7 @@ importers:
     dependencies:
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@types/node@22.15.3)(typescript@5.9.2)
+        version: 10.9.2(@types/node@24.2.0)(typescript@5.9.2)
     devDependencies:
       prettier:
         specifier: ^3.5.3
@@ -25,14 +25,17 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1
       '@lukso/lsp0-contracts':
-        specifier: 0.15.0
-        version: 0.15.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        specifier: 0.15.5
+        version: 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp6-contracts':
+        specifier: 0.15.5
+        version: 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp7-contracts':
-        specifier: 0.16.3
-        version: 0.16.3(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        specifier: 0.16.8
+        version: 0.16.8(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp8-contracts':
-        specifier: 0.16.2
-        version: 0.16.2(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        specifier: 0.16.7
+        version: 0.16.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@subsquid/evm-abi':
         specifier: ^0.3.1
         version: 0.3.1
@@ -44,8 +47,8 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0
       typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
+        specifier: ^5.9.2
+        version: 5.9.2
 
   packages/indexer:
     dependencies:
@@ -81,10 +84,10 @@ importers:
         version: 1.27.2
       '@subsquid/typeorm-store':
         specifier: ^1.5.1
-        version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.9.2)))
+        version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))
       typeorm:
         specifier: ^0.3.25
-        version: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.9.2))
+        version: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -103,23 +106,23 @@ importers:
     dependencies:
       '@subsquid/hasura-configuration':
         specifier: ^2.0.0
-        version: 2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))
+        version: 2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))
       '@subsquid/typeorm-migration':
         specifier: ^1.3.0
-        version: 1.3.0(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))
+        version: 1.3.0(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))
       '@subsquid/typeorm-store':
         specifier: ^1.5.1
-        version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))
+        version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))
     devDependencies:
       '@subsquid/typeorm-codegen':
         specifier: ^2.0.2
         version: 2.0.2(@subsquid/big-decimal@1.0.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@types/node':
-        specifier: ^22.15.3
-        version: 22.15.3
+        specifier: ^24.1.0
+        version: 24.2.0
       typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
+        specifier: ^5.9.2
+        version: 5.9.2
 
 packages:
 
@@ -496,9 +499,6 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-  '@lukso/lsp0-contracts@0.15.0':
-    resolution: {integrity: sha512-dKQu9juDJNxKdJMHkF3wOfjC/VZZW+RonQ5hSw9kBhLAhyFd6SVYU3VSUOYG3G3bLDAE9We+DeONc0N/j4zjIQ==}
-
   '@lukso/lsp0-contracts@0.15.5':
     resolution: {integrity: sha512-LCT6JUJlUO/9PkwJb6IoJCYfflRM+GEd0m/fmNPfKJQcWGop5nsV7UxIs9n8aF4YqnGjQtn++I0cyiu1+CnZTw==}
 
@@ -514,32 +514,26 @@ packages:
   '@lukso/lsp17contractextension-contracts@0.16.3':
     resolution: {integrity: sha512-R/ePe/rXIxpsAunI7EcgpObLfVrmm/J8JnvTfgdxIzSLwuSFHgVDiG9l70lKrE3QCpBp5Cpt+7bX4EqX8c7EXw==}
 
-  '@lukso/lsp2-contracts@0.15.1':
-    resolution: {integrity: sha512-UoHo5o8lPd0QfeIYEqRAhYSi7zgDXOQ/VMtk7CnY41cp85quC9D/ILElKK6Kh1DsP4cFpZZoLA7rfARlp2sDoQ==}
-
   '@lukso/lsp2-contracts@0.15.4':
     resolution: {integrity: sha512-gYdy5QyN9VOWHLbA2DdFQpliv1IzBp4hUiw9uJoym7ltZSmMSZfEO34z70jqQiRfW3H4CZlbKI2YGbeh/rwUNw==}
 
   '@lukso/lsp20-contracts@0.15.1':
     resolution: {integrity: sha512-WcQgejskn2PXL1W0OhK8EjNQIM2qCBq7HlAMATvuU4qtHpmVL+J+BMM3KTNiwFyhwtn3RdLRlCn7uZoObr0ttw==}
 
+  '@lukso/lsp25-contracts@0.15.5':
+    resolution: {integrity: sha512-pCQ5GmiMuDgPnkNWM5iT97C+zHQ8qAI7xyoUVOJ8Qf2BMQg5XFrqOE0u7j+lBt2HNp9MiZ5waWKvqysTv1pgEw==}
+
   '@lukso/lsp3-contracts@0.16.6':
     resolution: {integrity: sha512-63fMWrPkNs4wAehv1nz3cOjN8WzbixL/eOBgxAKqIOHQiQ8vly/q9kjZY2CPjOTwNayh3HONA2kKcCijGl7Kbg==}
-
-  '@lukso/lsp4-contracts@0.16.2':
-    resolution: {integrity: sha512-LRGzAFjfePDVQK6InsoxhrcYM913N0o5pwstZlsKG0N/A3k7XpuamewEmAB/+EUwlnRA5/tXuOhSXma1WDkMIQ==}
 
   '@lukso/lsp4-contracts@0.16.7':
     resolution: {integrity: sha512-UL8mjKVftTRGTAYIH98YABW2P9CABaqBdkTwWQn1cIFE+iycRzv7zwg33xuKysxjWfaG4jincSasKIRMVY6aqQ==}
 
-  '@lukso/lsp7-contracts@0.16.3':
-    resolution: {integrity: sha512-Si4mAhRbRUPQ9umzrXhGxgTFWLhIrCChUNCLDyk4CK4nNm8wvDmFj+Expal+aTvl+ylqMcaPKgcXshle3MQRow==}
+  '@lukso/lsp6-contracts@0.15.5':
+    resolution: {integrity: sha512-nD6Fs62XBYvtoGVDDGZoUPL32+my2ErjGhrw2+jSl/O9IC96E/hgtP70CcBYUMUu7HCivQQR+ORlBcSSqyauZA==}
 
   '@lukso/lsp7-contracts@0.16.8':
     resolution: {integrity: sha512-LH6AJCeR3Bl1H8yDcJBtGkohPeO6Jj3bX7A3+NQylRk3OEIF+8U40+poa72ehMNBIjgA0JB1iFoO7/S9xRzldA==}
-
-  '@lukso/lsp8-contracts@0.16.2':
-    resolution: {integrity: sha512-dE1qy6nxiTQwyb+6x/Vc1v87GOiuBREco4oCPSMbCjjjOGXDP3swVqf3FI06Q0dh/ogtLys0GzJSEPnmdDHExw==}
 
   '@lukso/lsp8-contracts@0.16.7':
     resolution: {integrity: sha512-fSNQOdTcVhIbbG2agvqU/nUvIgBlZJzyf27v1iQt3+fwYsrK4K7qIHp/eY94HdBs/60R2bfVM6iPGZTHHb+opQ==}
@@ -862,6 +856,9 @@ packages:
 
   '@types/node@22.15.3':
     resolution: {integrity: sha512-lX7HFZeHf4QG/J7tBZqrCAXwz9J5RD56Y6MpP0eJkka8p+K0RY/yBTW7CYFJ4VGCclxqOLKmiGP5juQc6MKgcw==}
+
+  '@types/node@24.2.0':
+    resolution: {integrity: sha512-3xyG3pMCq3oYCNg7/ZP+E1ooTaGB4cG8JWRsqqOYQdbWNY4zbaV0Ennrd7stjiJEFZCaybcIgpTjJWHRfBSIDw==}
 
   '@types/pbkdf2@3.1.2':
     resolution: {integrity: sha512-uRwJqmiXmh9++aSu1VNEn3iIxWOhd8AHXNSdlaLfdAAdSTY9jYVeGWnzejM3dvrkbqE3/hyQkQQ29IFATEGlew==}
@@ -2944,11 +2941,6 @@ packages:
       typeorm-aurora-data-api-driver:
         optional: true
 
-  typescript@5.8.3:
-    resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
-    engines: {node: '>=14.17'}
-    hasBin: true
-
   typescript@5.9.2:
     resolution: {integrity: sha512-CWBzXQrc/qOkhidw1OzBTQuYRbfyxDXJMVJ1XNwUHGROVmuaeiEm3OslpZ1RV96d7SKKjZKrSJu3+t/xlw3R9A==}
     engines: {node: '>=14.17'}
@@ -2959,6 +2951,9 @@ packages:
 
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+
+  undici-types@7.10.0:
+    resolution: {integrity: sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag==}
 
   universalify@0.1.2:
     resolution: {integrity: sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==}
@@ -3886,22 +3881,6 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@lukso/lsp0-contracts@0.15.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp1-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp14-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp17contractextension-contracts': 0.15.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp2-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp20-contracts': 0.15.1
-      '@openzeppelin/contracts': 4.9.6
-    transitivePeerDependencies:
-      - '@babel/core'
-      - bufferutil
-      - encoding
-      - supports-color
-      - utf-8-validate
-
   '@lukso/lsp0-contracts@0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -3955,17 +3934,6 @@ snapshots:
     dependencies:
       '@openzeppelin/contracts': 4.9.6
 
-  '@lukso/lsp2-contracts@0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@openzeppelin/contracts': 4.9.6
-    transitivePeerDependencies:
-      - '@babel/core'
-      - bufferutil
-      - encoding
-      - supports-color
-      - utf-8-validate
-
   '@lukso/lsp2-contracts@0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -3979,19 +3947,12 @@ snapshots:
 
   '@lukso/lsp20-contracts@0.15.1': {}
 
+  '@lukso/lsp25-contracts@0.15.5':
+    dependencies:
+      '@openzeppelin/contracts': 4.9.6
+
   '@lukso/lsp3-contracts@0.16.6(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
-      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-    transitivePeerDependencies:
-      - '@babel/core'
-      - bufferutil
-      - encoding
-      - supports-color
-      - utf-8-validate
-
-  '@lukso/lsp4-contracts@0.16.2(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@erc725/smart-contracts-v8': '@erc725/smart-contracts@8.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)'
       '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - '@babel/core'
@@ -4011,12 +3972,15 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@lukso/lsp7-contracts@0.16.3(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@lukso/lsp6-contracts@0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
+      '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp1-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp17contractextension-contracts': 0.16.3
-      '@lukso/lsp2-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp4-contracts': 0.16.2(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp14-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp17contractextension-contracts': 0.15.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp20-contracts': 0.15.1
+      '@lukso/lsp25-contracts': 0.15.5
       '@openzeppelin/contracts': 4.9.6
     transitivePeerDependencies:
       - '@babel/core'
@@ -4031,20 +3995,6 @@ snapshots:
       '@lukso/lsp17contractextension-contracts': 0.16.3
       '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp4-contracts': 0.16.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@openzeppelin/contracts': 4.9.6
-    transitivePeerDependencies:
-      - '@babel/core'
-      - bufferutil
-      - encoding
-      - supports-color
-      - utf-8-validate
-
-  '@lukso/lsp8-contracts@0.16.2(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@lukso/lsp1-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp17contractextension-contracts': 0.16.3
-      '@lukso/lsp2-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp4-contracts': 0.16.2(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@openzeppelin/contracts': 4.9.6
     transitivePeerDependencies:
       - '@babel/core'
@@ -4191,9 +4141,9 @@ snapshots:
 
   '@subsquid/graphiql-console@0.3.0': {}
 
-  '@subsquid/hasura-configuration@2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))':
+  '@subsquid/hasura-configuration@2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))':
     dependencies:
-      '@subsquid/typeorm-store': 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))
+      '@subsquid/typeorm-store': 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))
       '@subsquid/util-internal': 3.2.0
       '@subsquid/util-internal-ts-node': 0.0.0
       '@subsquid/util-naming': 1.3.0
@@ -4201,7 +4151,7 @@ snapshots:
       commander: 12.1.0
       dotenv: 16.5.0
       inquirer: 10.2.2
-      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))
+      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))
     transitivePeerDependencies:
       - '@google-cloud/spanner'
       - '@sap/hana-client'
@@ -4295,45 +4245,30 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@subsquid/typeorm-config@4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))':
+  '@subsquid/typeorm-config@4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))':
     dependencies:
       '@subsquid/logger': 1.4.0
       '@subsquid/util-internal-ts-node': 0.0.0
       '@subsquid/util-naming': 1.3.0
     optionalDependencies:
-      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))
+      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))
 
-  '@subsquid/typeorm-config@4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.9.2)))':
+  '@subsquid/typeorm-migration@1.3.0(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))':
     dependencies:
-      '@subsquid/logger': 1.4.0
-      '@subsquid/util-internal-ts-node': 0.0.0
-      '@subsquid/util-naming': 1.3.0
-    optionalDependencies:
-      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.9.2))
-
-  '@subsquid/typeorm-migration@1.3.0(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))':
-    dependencies:
-      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))
+      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))
       '@subsquid/util-internal': 3.2.0
       '@subsquid/util-internal-code-printer': 1.2.2
       '@subsquid/util-internal-ts-node': 0.0.0
       commander: 11.1.0
       dotenv: 16.5.0
-      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))
+      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))
 
-  '@subsquid/typeorm-store@1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))':
+  '@subsquid/typeorm-store@1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))':
     dependencies:
       '@subsquid/big-decimal': 1.0.0
-      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)))
+      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))
       '@subsquid/util-internal': 3.2.0
-      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3))
-
-  '@subsquid/typeorm-store@1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.9.2)))':
-    dependencies:
-      '@subsquid/big-decimal': 1.0.0
-      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.9.2)))
-      '@subsquid/util-internal': 3.2.0
-      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.9.2))
+      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))
 
   '@subsquid/util-internal-archive-client@0.1.2(@subsquid/http-client@1.6.0)(@subsquid/logger@1.4.0)':
     dependencies:
@@ -4456,31 +4391,31 @@ snapshots:
 
   '@types/accepts@1.3.7':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
 
   '@types/bn.js@4.11.6':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
 
   '@types/bn.js@5.1.6':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
 
   '@types/body-parser@1.19.2':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
 
   '@types/cacheable-request@6.0.3':
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       '@types/keyv': 3.1.4
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
       '@types/responselike': 1.0.3
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
 
   '@types/cors@2.8.12': {}
 
@@ -4490,7 +4425,7 @@ snapshots:
 
   '@types/express-serve-static-core@4.17.31':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
       '@types/qs': 6.9.18
       '@types/range-parser': 1.2.7
 
@@ -4507,7 +4442,7 @@ snapshots:
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
 
   '@types/long@4.0.2': {}
 
@@ -4515,7 +4450,7 @@ snapshots:
 
   '@types/mute-stream@0.0.4':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
 
   '@types/node@10.17.60': {}
 
@@ -4525,9 +4460,13 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/node@24.2.0':
+    dependencies:
+      undici-types: 7.10.0
+
   '@types/pbkdf2@3.1.2':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
 
   '@types/qs@6.9.18': {}
 
@@ -4535,21 +4474,21 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
 
   '@types/secp256k1@4.0.6':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
 
   '@types/send@0.17.4':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
 
   '@types/serve-static@1.15.7':
     dependencies:
       '@types/http-errors': 2.0.4
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
       '@types/send': 0.17.4
 
   '@types/underscore@1.13.0': {}
@@ -6791,33 +6730,14 @@ snapshots:
 
   tr46@0.0.3: {}
 
-  ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3):
+  ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.11
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 22.15.3
-      acorn: 8.14.1
-      acorn-walk: 8.3.4
-      arg: 4.1.3
-      create-require: 1.1.1
-      diff: 4.0.2
-      make-error: 1.3.6
-      typescript: 5.8.3
-      v8-compile-cache-lib: 3.0.1
-      yn: 3.1.1
-    optional: true
-
-  ts-node@10.9.2(@types/node@22.15.3)(typescript@5.9.2):
-    dependencies:
-      '@cspotcode/source-map-support': 0.8.1
-      '@tsconfig/node10': 1.0.11
-      '@tsconfig/node12': 1.0.11
-      '@tsconfig/node14': 1.0.3
-      '@tsconfig/node16': 1.0.4
-      '@types/node': 22.15.3
+      '@types/node': 24.2.0
       acorn: 8.14.1
       acorn-walk: 8.3.4
       arg: 4.1.3
@@ -6859,7 +6779,7 @@ snapshots:
     dependencies:
       is-typedarray: 1.0.0
 
-  typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.8.3)):
+  typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)):
     dependencies:
       '@sqltools/formatter': 1.2.5
       ansis: 3.17.0
@@ -6878,42 +6798,18 @@ snapshots:
       yargs: 17.7.2
     optionalDependencies:
       pg: 8.15.6
-      ts-node: 10.9.2(@types/node@22.15.3)(typescript@5.8.3)
+      ts-node: 10.9.2(@types/node@24.2.0)(typescript@5.9.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
-
-  typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.15.3)(typescript@5.9.2)):
-    dependencies:
-      '@sqltools/formatter': 1.2.5
-      ansis: 3.17.0
-      app-root-path: 3.1.0
-      buffer: 6.0.3
-      dayjs: 1.11.13
-      debug: 4.4.0
-      dedent: 1.6.0
-      dotenv: 16.5.0
-      glob: 10.4.5
-      reflect-metadata: 0.2.2
-      sha.js: 2.4.11
-      sql-highlight: 6.0.0
-      tslib: 2.8.1
-      uuid: 11.1.0
-      yargs: 17.7.2
-    optionalDependencies:
-      pg: 8.15.6
-      ts-node: 10.9.2(@types/node@22.15.3)(typescript@5.9.2)
-    transitivePeerDependencies:
-      - babel-plugin-macros
-      - supports-color
-
-  typescript@5.8.3: {}
 
   typescript@5.9.2: {}
 
   ultron@1.1.1: {}
 
   undici-types@6.21.0: {}
+
+  undici-types@7.10.0: {}
 
   universalify@0.1.2: {}
 

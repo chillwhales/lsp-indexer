@@ -6,3 +6,12 @@ export interface ExtractParams {
   block: BlockData;
   log: Log;
 }
+
+export interface ChillMintTransfer {
+  timestamp: number;
+  address: string;
+  from: string;
+  to: string;
+  amount: bigint;
+  transactionHash?: string;
+}

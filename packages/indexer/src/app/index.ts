@@ -1,7 +1,10 @@
 import { processor } from '@/app/processor';
+import { CHILL_ADDRESS, ORBS_ADDRESS } from '@/constants';
 import * as Utils from '@/utils';
+import { ChillClaimed, OrbsClaimed } from '@chillwhales/sqd-typeorm';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
-import { scanLogs, scanTransactions } from './scanner';
+import { getAddress, isAddressEqual, zeroAddress } from 'viem';
+import { scanLogs } from './scanner';
 
 processor.run(new TypeormDatabase(), async (context) => {
   const {
@@ -25,7 +28,32 @@ processor.run(new TypeormDatabase(), async (context) => {
     },
   } = scanLogs(context);
 
-  scanTransactions(context);
+  // scanTransactions(context);
+  const chillClaimedEntities: ChillClaimed[] = [];
+  const orbsClaimedEntities: OrbsClaimed[] = [];
+  if (context.isHead) {
+    if (
+      (await context.store.find(ChillClaimed)).length === 0 ||
+      transferEvents.filter(
+        (event) =>
+          isAddressEqual(CHILL_ADDRESS, getAddress(event.address)) &&
+          isAddressEqual(zeroAddress, getAddress(event.from)),
+      )
+    ) {
+      chillClaimedEntities.push(...(await Utils.ChillClaimed.extract(context)));
+    }
+
+    if (
+      (await context.store.find(OrbsClaimed)).length === 0 ||
+      transferEvents.filter(
+        (event) =>
+          isAddressEqual(ORBS_ADDRESS, getAddress(event.address)) &&
+          isAddressEqual(zeroAddress, getAddress(event.from)),
+      )
+    ) {
+      orbsClaimedEntities.push(...(await Utils.OrbsClaimed.extract(context)));
+    }
+  }
 
   const {
     universalProfiles: { newUniversalProfiles, validUniversalProfiles },
@@ -109,6 +137,10 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.insert(populatedLsp8ReferenceContracts),
     /// LSP8TokenIdFormat
     context.store.insert(populatedLsp8TokenIdFormats),
+
+    // Save chillwhales specific events
+    context.store.insert(chillClaimedEntities),
+    context.store.insert(orbsClaimedEntities),
   ]);
 
   const lsp3Profiles = await Promise.all(

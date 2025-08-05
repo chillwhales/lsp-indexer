@@ -639,11 +639,13 @@ export function timeout(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export * as ChillClaimed from './chillClaimed';
 export * as DataChanged from './dataChanged';
 export * as DigitalAsset from './digitalAsset';
 export * as Executed from './executed';
 export * as Multicall3 from './multicall3';
 export * as NFT from './nft';
+export * as OrbsClaimed from './orbsClaimed';
 export * as TokenIdDataChanged from './tokenIdDataChanged';
 export * as Transfer from './transfer';
 export * as UniversalProfile from './universalProfile';
