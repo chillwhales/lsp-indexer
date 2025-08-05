@@ -32,15 +32,18 @@ processor.run(new TypeormDatabase(), async (context) => {
   const chillClaimedEntities: ChillClaimed[] = [];
   const orbsClaimedEntities: OrbsClaimed[] = [];
   if (context.isHead) {
+    const existingChillClaimedEntities = await context.store.find(ChillClaimed);
     if (
-      (await context.store.find(ChillClaimed)).length === 0 ||
+      existingChillClaimedEntities.length === 0 ||
       transferEvents.filter(
         (event) =>
           isAddressEqual(CHILL_ADDRESS, getAddress(event.address)) &&
           isAddressEqual(zeroAddress, getAddress(event.from)),
       )
     ) {
-      chillClaimedEntities.push(...(await Utils.ChillClaimed.extract(context)));
+      chillClaimedEntities.push(
+        ...(await Utils.ChillClaimed.extract(context, existingChillClaimedEntities)),
+      );
     }
 
     if (chillClaimedEntities.length > 0) {
@@ -52,15 +55,18 @@ processor.run(new TypeormDatabase(), async (context) => {
       );
     }
 
+    const existingOrbsClaimedEntities = await context.store.find(OrbsClaimed);
     if (
-      (await context.store.find(OrbsClaimed)).length === 0 ||
+      existingOrbsClaimedEntities.length === 0 ||
       transferEvents.filter(
         (event) =>
           isAddressEqual(ORBS_ADDRESS, getAddress(event.address)) &&
           isAddressEqual(zeroAddress, getAddress(event.from)),
       )
     ) {
-      orbsClaimedEntities.push(...(await Utils.OrbsClaimed.extract(context)));
+      orbsClaimedEntities.push(
+        ...(await Utils.OrbsClaimed.extract(context, existingOrbsClaimedEntities)),
+      );
     }
 
     if (orbsClaimedEntities.length > 0) {
@@ -230,9 +236,7 @@ processor.run(new TypeormDatabase(), async (context) => {
   ]);
 
   const lsp3Profiles = await Promise.all(
-    populatedLsp3ProfileUrls.map((lsp3ProfileUrl) =>
-      Utils.createLsp3ProfilePromise(lsp3ProfileUrl),
-    ),
+    populatedLsp3ProfileUrls.map((lsp3ProfileUrl) => Utils.createLsp3Profile(lsp3ProfileUrl)),
   );
 
   if (lsp3Profiles.length > 0) {
@@ -263,9 +267,7 @@ processor.run(new TypeormDatabase(), async (context) => {
   }
 
   const lsp4Metadatas = await Promise.all(
-    populatedLsp4MetadataUrls.map((lsp4MetadataUrl) =>
-      Utils.createLsp4MetadataPromise(lsp4MetadataUrl),
-    ),
+    populatedLsp4MetadataUrls.map((lsp4MetadataUrl) => Utils.createLsp4Metadata(lsp4MetadataUrl)),
   );
 
   if (lsp3Profiles.length > 0) {

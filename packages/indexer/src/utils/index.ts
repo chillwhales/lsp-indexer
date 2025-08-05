@@ -195,270 +195,255 @@ export function parseIpfsUrl(url: string) {
   return url;
 }
 
-export function createLsp3ProfilePromise(lsp3ProfileUrl: LSP3ProfileUrl) {
-  return new Promise<{
-    lsp3Profile: LSP3Profile;
-    lsp3Links: LSP3Link[];
-    lsp3Assets: LSP3Asset[];
-    lsp3ProfileImages: LSP3ProfileImage[];
-    lsp3BackgroundImages: LSP3BackgroundImage[];
-  }>(async (resolve) => {
-    try {
-      const result = await fetch(parseIpfsUrl(lsp3ProfileUrl.value));
-      const json = await result.json();
+export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
+  try {
+    const result = await fetch(parseIpfsUrl(lsp3ProfileUrl.value));
+    const json = await result.json();
 
-      if (typeof json === 'string' || Array.isArray(json) || !isLsp3Profile(json))
-        throw new Error('Invalid LSP3Profile');
+    if (typeof json === 'string' || Array.isArray(json) || !isLsp3Profile(json))
+      throw new Error('Invalid LSP3Profile');
 
-      const lsp3Profile = new LSP3Profile({
+    const lsp3Profile = new LSP3Profile({
+      id: uuidv4(),
+      timestamp: lsp3ProfileUrl.timestamp,
+      address: lsp3ProfileUrl.address,
+      universalProfile: lsp3ProfileUrl.universalProfile,
+      name: json.LSP3Profile.name,
+      description: json.LSP3Profile.description,
+      tags: json.LSP3Profile.tags ? json.LSP3Profile.tags : [],
+      decodeError: null,
+      value: lsp3ProfileUrl.value,
+      rawBytes: lsp3ProfileUrl.rawBytes,
+    });
+
+    const lsp3Links = json.LSP3Profile.links
+      ? json.LSP3Profile.links.map(
+          ({ title, url }) =>
+            new LSP3Link({
+              id: uuidv4(),
+              lsp3Profile,
+              title,
+              url,
+            }),
+        )
+      : [];
+
+    const lsp3Assets = json.LSP3Profile.avatar
+      ? json.LSP3Profile.avatar.filter(isFileAsset).map(
+          ({ url, fileType, verification }) =>
+            new LSP3Asset({
+              id: uuidv4(),
+              lsp3Profile,
+              url: url,
+              fileType: fileType,
+              ...(isVerification(verification) && {
+                verificationMethod: verification.method,
+                verificationData: verification.data,
+                verificationSource: verification.source,
+              }),
+            }),
+        )
+      : [];
+
+    const lsp3ProfileImages = json.LSP3Profile.profileImage
+      ? json.LSP3Profile.profileImage.filter(isFileImage).map(
+          ({ url, width, height, verification }) =>
+            new LSP3ProfileImage({
+              id: uuidv4(),
+              lsp3Profile,
+              url: url,
+              width: width,
+              height: height,
+              ...(isVerification(verification) && {
+                verificationMethod: verification.method,
+                verificationData: verification.data,
+                verificationSource: verification.source,
+              }),
+            }),
+        )
+      : [];
+
+    const lsp3BackgroundImages = json.LSP3Profile.backgroundImage
+      ? json.LSP3Profile.backgroundImage.map(
+          ({ url, width, height, verification }) =>
+            new LSP3BackgroundImage({
+              id: uuidv4(),
+              lsp3Profile,
+              url: url,
+              width: width,
+              height: height,
+              ...(isVerification(verification) && {
+                verificationMethod: verification.method,
+                verificationData: verification.data,
+                verificationSource: verification.source,
+              }),
+            }),
+        )
+      : [];
+
+    return {
+      lsp3Profile,
+      lsp3Links,
+      lsp3Assets,
+      lsp3ProfileImages,
+      lsp3BackgroundImages,
+    };
+  } catch (error) {
+    const errorString = error.toString();
+    return {
+      lsp3Profile: new LSP3Profile({
         id: uuidv4(),
         timestamp: lsp3ProfileUrl.timestamp,
         address: lsp3ProfileUrl.address,
         universalProfile: lsp3ProfileUrl.universalProfile,
-        name: json.LSP3Profile.name,
-        description: json.LSP3Profile.description,
-        tags: json.LSP3Profile.tags ? json.LSP3Profile.tags : [],
-        decodeError: null,
+        tags: [],
+        decodeError:
+          errorString.match(/[^\x20-\x7E]+/g) !== null
+            ? 'LSP3Profile contians invalid characters'
+            : errorString,
         rawBytes: lsp3ProfileUrl.rawBytes,
-      });
-
-      const lsp3Links = json.LSP3Profile.links
-        ? json.LSP3Profile.links.map(
-            ({ title, url }) =>
-              new LSP3Link({
-                id: uuidv4(),
-                lsp3Profile,
-                title,
-                url,
-              }),
-          )
-        : [];
-
-      const lsp3Assets = json.LSP3Profile.avatar
-        ? json.LSP3Profile.avatar.filter(isFileAsset).map(
-            ({ url, fileType, verification }) =>
-              new LSP3Asset({
-                id: uuidv4(),
-                lsp3Profile,
-                url: url,
-                fileType: fileType,
-                ...(isVerification(verification) && {
-                  verificationMethod: verification.method,
-                  verificationData: verification.data,
-                  verificationSource: verification.source,
-                }),
-              }),
-          )
-        : [];
-
-      const lsp3ProfileImages = json.LSP3Profile.profileImage
-        ? json.LSP3Profile.profileImage.filter(isFileImage).map(
-            ({ url, width, height, verification }) =>
-              new LSP3ProfileImage({
-                id: uuidv4(),
-                lsp3Profile,
-                url: url,
-                width: width,
-                height: height,
-                ...(isVerification(verification) && {
-                  verificationMethod: verification.method,
-                  verificationData: verification.data,
-                  verificationSource: verification.source,
-                }),
-              }),
-          )
-        : [];
-
-      const lsp3BackgroundImages = json.LSP3Profile.backgroundImage
-        ? json.LSP3Profile.backgroundImage.map(
-            ({ url, width, height, verification }) =>
-              new LSP3BackgroundImage({
-                id: uuidv4(),
-                lsp3Profile,
-                url: url,
-                width: width,
-                height: height,
-                ...(isVerification(verification) && {
-                  verificationMethod: verification.method,
-                  verificationData: verification.data,
-                  verificationSource: verification.source,
-                }),
-              }),
-          )
-        : [];
-
-      resolve({
-        lsp3Profile,
-        lsp3Links,
-        lsp3Assets,
-        lsp3ProfileImages,
-        lsp3BackgroundImages,
-      });
-    } catch (error) {
-      const errorString = error.toString();
-      resolve({
-        lsp3Profile: new LSP3Profile({
-          id: uuidv4(),
-          timestamp: lsp3ProfileUrl.timestamp,
-          address: lsp3ProfileUrl.address,
-          universalProfile: lsp3ProfileUrl.universalProfile,
-          tags: [],
-          decodeError:
-            errorString.match(/[^\x20-\x7E]+/g) !== null
-              ? 'LSP3Profile contians invalid characters'
-              : errorString,
-          rawBytes: lsp3ProfileUrl.rawBytes,
-        }),
-        lsp3Links: [],
-        lsp3Assets: [],
-        lsp3ProfileImages: [],
-        lsp3BackgroundImages: [],
-      });
-    }
-  });
+      }),
+      lsp3Links: [],
+      lsp3Assets: [],
+      lsp3ProfileImages: [],
+      lsp3BackgroundImages: [],
+    };
+  }
 }
 
-export function createLsp4MetadataPromise(lsp4MetadataUrl: LSP4MetadataUrl) {
-  return new Promise<{
-    lsp4Metadata: LSP4Metadata;
-    lsp4Links: LSP4Link[];
-    lsp4Assets: LSP4Asset[];
-    lsp4Images: LSP4Image[];
-    lsp4Icons: LSP4Icon[];
-    lsp4Attributes: LSP4Attribute[];
-  }>(async (resolve) => {
-    try {
-      const result = await fetch(parseIpfsUrl(lsp4MetadataUrl.value));
-      const json = await result.json();
+export async function createLsp4Metadata(lsp4MetadataUrl: LSP4MetadataUrl) {
+  try {
+    const result = await fetch(parseIpfsUrl(lsp4MetadataUrl.value));
+    const json = await result.json();
 
-      if (typeof json === 'string' || Array.isArray(json) || !isLsp4Metadata(json))
-        throw new Error('Invalid LSP4Metadata');
+    if (typeof json === 'string' || Array.isArray(json) || !isLsp4Metadata(json))
+      throw new Error('Invalid LSP4Metadata');
 
-      const lsp4Metadata = new LSP4Metadata({
+    const lsp4Metadata = new LSP4Metadata({
+      id: uuidv4(),
+      timestamp: lsp4MetadataUrl.timestamp,
+      address: lsp4MetadataUrl.address,
+      digitalAsset: lsp4MetadataUrl.digitalAsset,
+      nft: lsp4MetadataUrl.nft,
+      name: json.LSP4Metadata.name,
+      description: json.LSP4Metadata.description,
+      decodeError: null,
+      value: lsp4MetadataUrl.value,
+      rawBytes: lsp4MetadataUrl.rawBytes,
+    });
+
+    const lsp4Links = json.LSP4Metadata.links
+      ? json.LSP4Metadata.links.map(
+          ({ title, url }) =>
+            new LSP4Link({
+              id: uuidv4(),
+              lsp4Metadata,
+              title,
+              url,
+            }),
+        )
+      : [];
+
+    const lsp4Assets = json.LSP4Metadata.assets
+      ? json.LSP4Metadata.assets.filter(isFileAsset).map(
+          ({ url, fileType, verification }) =>
+            new LSP4Asset({
+              id: uuidv4(),
+              lsp4Metadata,
+              url: url,
+              fileType: fileType,
+              ...(isVerification(verification) && {
+                verificationMethod: verification.method,
+                verificationData: verification.data,
+                verificationSource: verification.source,
+              }),
+            }),
+        )
+      : [];
+
+    const lsp4Images = json.LSP4Metadata.images
+      ? json.LSP4Metadata.images.flatMap((images) =>
+          images.filter(isFileImage).map(
+            ({ url, width, height, verification }) =>
+              new LSP4Image({
+                id: uuidv4(),
+                lsp4Metadata,
+                url: url,
+                width: width,
+                height: height,
+                ...(isVerification(verification) && {
+                  verificationMethod: verification.method,
+                  verificationData: verification.data,
+                  verificationSource: verification.source,
+                }),
+              }),
+          ),
+        )
+      : [];
+
+    const lsp4Icons = json.LSP4Metadata.icon
+      ? json.LSP4Metadata.icon.map(
+          ({ url, width, height, verification }) =>
+            new LSP4Icon({
+              id: uuidv4(),
+              lsp4Metadata,
+              url: url,
+              width: width,
+              height: height,
+              ...(isVerification(verification) && {
+                verificationMethod: verification.method,
+                verificationData: verification.data,
+                verificationSource: verification.source,
+              }),
+            }),
+        )
+      : [];
+
+    const lsp4Attributes = json.LSP4Metadata.attributes
+      ? json.LSP4Metadata.attributes.map(
+          ({ key, value, type }) =>
+            new LSP4Attribute({
+              id: uuidv4(),
+              lsp4Metadata,
+              key,
+              value,
+              type: typeof type,
+            }),
+        )
+      : [];
+
+    return {
+      lsp4Metadata,
+      lsp4Links,
+      lsp4Assets,
+      lsp4Images,
+      lsp4Icons,
+      lsp4Attributes,
+    };
+  } catch (error) {
+    const errorString = error.toString();
+    return {
+      lsp4Metadata: new LSP4Metadata({
         id: uuidv4(),
         timestamp: lsp4MetadataUrl.timestamp,
         address: lsp4MetadataUrl.address,
+        tokenId: lsp4MetadataUrl.tokenId,
         digitalAsset: lsp4MetadataUrl.digitalAsset,
         nft: lsp4MetadataUrl.nft,
-        name: json.LSP4Metadata.name,
-        description: json.LSP4Metadata.description,
-        decodeError: null,
+        decodeError:
+          errorString.match(/[^\x20-\x7E]+/g) !== null
+            ? 'LSP4Metadata contians invalid characters'
+            : errorString,
         rawBytes: lsp4MetadataUrl.rawBytes,
-      });
+      }),
 
-      const lsp4Links = json.LSP4Metadata.links
-        ? json.LSP4Metadata.links.map(
-            ({ title, url }) =>
-              new LSP4Link({
-                id: uuidv4(),
-                lsp4Metadata,
-                title,
-                url,
-              }),
-          )
-        : [];
-
-      const lsp4Assets = json.LSP4Metadata.assets
-        ? json.LSP4Metadata.assets.filter(isFileAsset).map(
-            ({ url, fileType, verification }) =>
-              new LSP4Asset({
-                id: uuidv4(),
-                lsp4Metadata,
-                url: url,
-                fileType: fileType,
-                ...(isVerification(verification) && {
-                  verificationMethod: verification.method,
-                  verificationData: verification.data,
-                  verificationSource: verification.source,
-                }),
-              }),
-          )
-        : [];
-
-      const lsp4Images = json.LSP4Metadata.images
-        ? json.LSP4Metadata.images.flatMap((images) =>
-            images.filter(isFileImage).map(
-              ({ url, width, height, verification }) =>
-                new LSP4Image({
-                  id: uuidv4(),
-                  lsp4Metadata,
-                  url: url,
-                  width: width,
-                  height: height,
-                  ...(isVerification(verification) && {
-                    verificationMethod: verification.method,
-                    verificationData: verification.data,
-                    verificationSource: verification.source,
-                  }),
-                }),
-            ),
-          )
-        : [];
-
-      const lsp4Icons = json.LSP4Metadata.icon
-        ? json.LSP4Metadata.icon.map(
-            ({ url, width, height, verification }) =>
-              new LSP4Icon({
-                id: uuidv4(),
-                lsp4Metadata,
-                url: url,
-                width: width,
-                height: height,
-                ...(isVerification(verification) && {
-                  verificationMethod: verification.method,
-                  verificationData: verification.data,
-                  verificationSource: verification.source,
-                }),
-              }),
-          )
-        : [];
-
-      const lsp4Attributes = json.LSP4Metadata.attributes
-        ? json.LSP4Metadata.attributes.map(
-            ({ key, value, type }) =>
-              new LSP4Attribute({
-                id: uuidv4(),
-                lsp4Metadata,
-                key,
-                value,
-                type: typeof type,
-              }),
-          )
-        : [];
-
-      resolve({
-        lsp4Metadata,
-        lsp4Links,
-        lsp4Assets,
-        lsp4Images,
-        lsp4Icons,
-        lsp4Attributes,
-      });
-    } catch (error) {
-      const errorString = error.toString();
-      resolve({
-        lsp4Metadata: new LSP4Metadata({
-          id: uuidv4(),
-          timestamp: lsp4MetadataUrl.timestamp,
-          address: lsp4MetadataUrl.address,
-          tokenId: lsp4MetadataUrl.tokenId,
-          digitalAsset: lsp4MetadataUrl.digitalAsset,
-          nft: lsp4MetadataUrl.nft,
-          decodeError:
-            errorString.match(/[^\x20-\x7E]+/g) !== null
-              ? 'LSP4Metadata contians invalid characters'
-              : errorString,
-          rawBytes: lsp4MetadataUrl.rawBytes,
-        }),
-
-        lsp4Links: [],
-        lsp4Assets: [],
-        lsp4Images: [],
-        lsp4Icons: [],
-        lsp4Attributes: [],
-      });
-    }
-  });
+      lsp4Links: [],
+      lsp4Assets: [],
+      lsp4Images: [],
+      lsp4Icons: [],
+      lsp4Attributes: [],
+    };
+  }
 }
 
 export async function getLatestBlockNumber({

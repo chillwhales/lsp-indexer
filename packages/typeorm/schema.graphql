@@ -258,6 +258,7 @@ type LSP3Profile @entity {
   avatar: [LSP3Asset!]! @derivedFrom(field: "lsp3Profile")
   profileImage: [LSP3ProfileImage!]! @derivedFrom(field: "lsp3Profile")
   backgroundImage: [LSP3BackgroundImage!]! @derivedFrom(field: "lsp3Profile")
+  value: String
   rawBytes: String
   decodeError: String
 }
@@ -327,6 +328,7 @@ type LSP4Metadata @entity {
   images: [LSP4Image!]! @derivedFrom(field: "lsp4Metadata")
   assets: [LSP4Asset!]! @derivedFrom(field: "lsp4Metadata")
   attributes: [LSP4Attribute!]! @derivedFrom(field: "lsp4Metadata")
+  value: String
   rawBytes: String
   decodeError: String
 }
@@ -384,7 +386,6 @@ type ChillClaimed @entity {
   digitalAsset: DigitalAsset! @index
   tokenId: String! @index @unique
   nft: NFT! @index @unique
-  amount: BigInt!
 }
 
 type OrbsClaimed @entity {
@@ -393,5 +394,4 @@ type OrbsClaimed @entity {
   digitalAsset: DigitalAsset! @index
   tokenId: String! @index @unique
   nft: NFT! @index @unique
-  amount: BigInt!
 }

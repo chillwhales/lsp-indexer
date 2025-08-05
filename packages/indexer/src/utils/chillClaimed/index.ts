@@ -6,16 +6,17 @@ import { Aggregate3StaticReturn } from '@chillwhales/sqd-abi/lib/abi/Multicall3'
 import { ChillClaimed, DigitalAsset, NFT } from '@chillwhales/sqd-typeorm';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
-import { ILike, IsNull } from 'typeorm';
+import { ILike, In, Not } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { hexToBool, isHex } from 'viem';
 
 export async function extract(
   context: DataHandlerContext<Store, FieldSelection>,
+  existingChillClaimedEntities: ChillClaimed[],
 ): Promise<ChillClaimed[]> {
   const nftsWithUnclaimedChill = await context.store.findBy(NFT, {
     address: ILike(CHILLWHALES_ADDRESS),
-    chillClaimed: IsNull(),
+    tokenId: Not(In(existingChillClaimedEntities.map((entity) => entity.tokenId))),
   });
 
   const result: Aggregate3StaticReturn = [];
@@ -67,7 +68,6 @@ export async function extract(
           nft: new NFT({
             id: Utils.generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId: nft.tokenId }),
           }),
-          amount: BigInt('472547254725472547'),
         }),
       );
   });
