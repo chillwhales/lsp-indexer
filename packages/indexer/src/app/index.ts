@@ -235,9 +235,11 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.insert(orbsClaimedEntities),
   ]);
 
-  const lsp3Profiles = await Promise.all(
-    populatedLsp3ProfileUrls.map((lsp3ProfileUrl) => Utils.createLsp3Profile(lsp3ProfileUrl)),
-  );
+  const lsp3ProfilesPromises: ReturnType<typeof Utils.createLsp3Profile>[] = [];
+  for (const lsp3ProfileUrl of populatedLsp3ProfileUrls) {
+    lsp3ProfilesPromises.push(Utils.createLsp3Profile(lsp3ProfileUrl));
+  }
+  const lsp3Profiles = await Promise.all(lsp3ProfilesPromises);
 
   if (lsp3Profiles.length > 0) {
     const lsp3Links = lsp3Profiles.flatMap(({ lsp3Links }) => lsp3Links);
@@ -266,11 +268,13 @@ processor.run(new TypeormDatabase(), async (context) => {
     ]);
   }
 
-  const lsp4Metadatas = await Promise.all(
-    populatedLsp4MetadataUrls.map((lsp4MetadataUrl) => Utils.createLsp4Metadata(lsp4MetadataUrl)),
-  );
+  const lsp4MetadatasPromises: ReturnType<typeof Utils.createLsp4Metadata>[] = [];
+  for (const lsp4MetadataUrl of populatedLsp4MetadataUrls) {
+    lsp4MetadatasPromises.push(Utils.createLsp4Metadata(lsp4MetadataUrl));
+  }
+  const lsp4Metadatas = await Promise.all(lsp4MetadatasPromises);
 
-  if (lsp3Profiles.length > 0) {
+  if (lsp4Metadatas.length > 0) {
     const lsp4Links = lsp4Metadatas.flatMap(({ lsp4Links }) => lsp4Links);
     const lsp4Assets = lsp4Metadatas.flatMap(({ lsp4Assets }) => lsp4Assets);
     const lsp4Icons = lsp4Metadatas.flatMap(({ lsp4Icons }) => lsp4Icons);

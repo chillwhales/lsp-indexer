@@ -198,10 +198,9 @@ export function parseIpfsUrl(url: string) {
 export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
   try {
     const result = await fetch(parseIpfsUrl(lsp3ProfileUrl.value));
-    const json = await result.json();
+    const json: LSP3ProfileMetadataJSON = await result.json();
 
-    if (typeof json === 'string' || Array.isArray(json) || !isLsp3Profile(json))
-      throw new Error('Invalid LSP3Profile');
+    if (!json.LSP3Profile) throw new Error('Invalid LSP3Profile');
 
     const lsp3Profile = new LSP3Profile({
       id: uuidv4(),
@@ -211,9 +210,9 @@ export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
       name: json.LSP3Profile.name,
       description: json.LSP3Profile.description,
       tags: json.LSP3Profile.tags ? json.LSP3Profile.tags : [],
-      decodeError: null,
-      value: lsp3ProfileUrl.value,
+      url: lsp3ProfileUrl,
       rawBytes: lsp3ProfileUrl.rawBytes,
+      decodeError: null,
     });
 
     const lsp3Links = json.LSP3Profile.links
@@ -246,7 +245,7 @@ export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
       : [];
 
     const lsp3ProfileImages = json.LSP3Profile.profileImage
-      ? json.LSP3Profile.profileImage.filter(isFileImage).map(
+      ? json.LSP3Profile.profileImage.map(
           ({ url, width, height, verification }) =>
             new LSP3ProfileImage({
               id: uuidv4(),
@@ -297,11 +296,12 @@ export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
         address: lsp3ProfileUrl.address,
         universalProfile: lsp3ProfileUrl.universalProfile,
         tags: [],
+        url: lsp3ProfileUrl,
+        rawBytes: lsp3ProfileUrl.rawBytes,
         decodeError:
           errorString.match(/[^\x20-\x7E]+/g) !== null
             ? 'LSP3Profile contians invalid characters'
             : errorString,
-        rawBytes: lsp3ProfileUrl.rawBytes,
       }),
       lsp3Links: [],
       lsp3Assets: [],
@@ -314,10 +314,9 @@ export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
 export async function createLsp4Metadata(lsp4MetadataUrl: LSP4MetadataUrl) {
   try {
     const result = await fetch(parseIpfsUrl(lsp4MetadataUrl.value));
-    const json = await result.json();
+    const json: LSP4DigitalAssetMetadataJSON = await result.json();
 
-    if (typeof json === 'string' || Array.isArray(json) || !isLsp4Metadata(json))
-      throw new Error('Invalid LSP4Metadata');
+    if (!json.LSP4Metadata) throw new Error('Invalid LSP4Metadata');
 
     const lsp4Metadata = new LSP4Metadata({
       id: uuidv4(),
@@ -327,9 +326,9 @@ export async function createLsp4Metadata(lsp4MetadataUrl: LSP4MetadataUrl) {
       nft: lsp4MetadataUrl.nft,
       name: json.LSP4Metadata.name,
       description: json.LSP4Metadata.description,
-      decodeError: null,
-      value: lsp4MetadataUrl.value,
+      url: lsp4MetadataUrl,
       rawBytes: lsp4MetadataUrl.rawBytes,
+      decodeError: null,
     });
 
     const lsp4Links = json.LSP4Metadata.links
@@ -430,11 +429,12 @@ export async function createLsp4Metadata(lsp4MetadataUrl: LSP4MetadataUrl) {
         tokenId: lsp4MetadataUrl.tokenId,
         digitalAsset: lsp4MetadataUrl.digitalAsset,
         nft: lsp4MetadataUrl.nft,
+        url: lsp4MetadataUrl,
+        rawBytes: lsp4MetadataUrl.rawBytes,
         decodeError:
           errorString.match(/[^\x20-\x7E]+/g) !== null
             ? 'LSP4Metadata contians invalid characters'
             : errorString,
-        rawBytes: lsp4MetadataUrl.rawBytes,
       }),
 
       lsp4Links: [],

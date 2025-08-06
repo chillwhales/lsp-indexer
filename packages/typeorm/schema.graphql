@@ -20,7 +20,7 @@ enum OperationType {
 }
 
 type Executed @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
   logIndex: Int! @index
@@ -34,7 +34,7 @@ type Executed @entity {
 }
 
 type UniversalReceiver @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
   logIndex: Int! @index
@@ -48,7 +48,7 @@ type UniversalReceiver @entity {
 }
 
 type DataChanged @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
   logIndex: Int! @index
@@ -60,7 +60,7 @@ type DataChanged @entity {
 }
 
 type TokenIdDataChanged @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
   logIndex: Int! @index
@@ -73,7 +73,7 @@ type TokenIdDataChanged @entity {
 }
 
 type Transfer @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
   logIndex: Int! @index
@@ -132,7 +132,7 @@ type DigitalAsset @entity {
 }
 
 type TotalSupply @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -140,7 +140,7 @@ type TotalSupply @entity {
 }
 
 type Decimals @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -148,7 +148,7 @@ type Decimals @entity {
 }
 
 type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
-  id: ID!
+  id: ID! @unique
   tokenId: String! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -172,7 +172,7 @@ type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
 }
 
 type OwnedAsset @entity @index(fields: ["digitalAsset", "ownerAddress"]) {
-  id: ID!
+  id: ID! @unique
   address: String! @index
   balance: BigInt! @index
   digitalAsset: DigitalAsset! @index
@@ -186,7 +186,7 @@ type OwnedAsset @entity @index(fields: ["digitalAsset", "ownerAddress"]) {
 }
 
 type OwnedToken @entity @index(fields: ["nft", "digitalAsset", "ownerAddress"]) {
-  id: ID!
+  id: ID! @unique
   nft: NFT! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -197,7 +197,7 @@ type OwnedToken @entity @index(fields: ["nft", "digitalAsset", "ownerAddress"]) 
 }
 
 type LSP4TokenName @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -205,7 +205,7 @@ type LSP4TokenName @entity {
 }
 
 type LSP4TokenSymbol @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -213,7 +213,7 @@ type LSP4TokenSymbol @entity {
 }
 
 type LSP4TokenType @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -221,7 +221,7 @@ type LSP4TokenType @entity {
 }
 
 type LSP8TokenIdFormat @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -229,7 +229,7 @@ type LSP8TokenIdFormat @entity {
 }
 
 type LSP8ReferenceContract @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -237,7 +237,7 @@ type LSP8ReferenceContract @entity {
 }
 
 type LSP3ProfileUrl @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
@@ -247,7 +247,7 @@ type LSP3ProfileUrl @entity {
 }
 
 type LSP3Profile @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
@@ -258,20 +258,20 @@ type LSP3Profile @entity {
   avatar: [LSP3Asset!]! @derivedFrom(field: "lsp3Profile")
   profileImage: [LSP3ProfileImage!]! @derivedFrom(field: "lsp3Profile")
   backgroundImage: [LSP3BackgroundImage!]! @derivedFrom(field: "lsp3Profile")
-  value: String
+  url: LSP3ProfileUrl!
   rawBytes: String
   decodeError: String
 }
 
 type LSP3Link @entity {
-  id: ID!
+  id: ID! @unique
   lsp3Profile: LSP3Profile! @index
   title: String @index
   url: String @index
 }
 
 type LSP3Asset @entity {
-  id: ID!
+  id: ID! @unique
   lsp3Profile: LSP3Profile! @index
   url: String
   fileType: String @index
@@ -281,7 +281,7 @@ type LSP3Asset @entity {
 }
 
 type LSP3ProfileImage @entity {
-  id: ID!
+  id: ID! @unique
   lsp3Profile: LSP3Profile! @index
   width: Int @index
   height: Int @index
@@ -292,7 +292,7 @@ type LSP3ProfileImage @entity {
 }
 
 type LSP3BackgroundImage @entity {
-  id: ID!
+  id: ID! @unique
   lsp3Profile: LSP3Profile! @index
   width: Int @index
   height: Int @index
@@ -303,7 +303,7 @@ type LSP3BackgroundImage @entity {
 }
 
 type LSP4MetadataUrl @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -315,7 +315,7 @@ type LSP4MetadataUrl @entity {
 }
 
 type LSP4Metadata @entity {
-  id: ID!
+  id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -328,20 +328,20 @@ type LSP4Metadata @entity {
   images: [LSP4Image!]! @derivedFrom(field: "lsp4Metadata")
   assets: [LSP4Asset!]! @derivedFrom(field: "lsp4Metadata")
   attributes: [LSP4Attribute!]! @derivedFrom(field: "lsp4Metadata")
-  value: String
+  url: LSP4MetadataUrl!
   rawBytes: String
   decodeError: String
 }
 
 type LSP4Link @entity {
-  id: ID!
+  id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index
   title: String @index
   url: String @index
 }
 
 type LSP4Icon @entity {
-  id: ID!
+  id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index
   width: Int @index
   height: Int @index
@@ -352,7 +352,7 @@ type LSP4Icon @entity {
 }
 
 type LSP4Image @entity {
-  id: ID!
+  id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index
   width: Int @index
   height: Int @index
@@ -363,7 +363,7 @@ type LSP4Image @entity {
 }
 
 type LSP4Asset @entity {
-  id: ID!
+  id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index
   url: String
   fileType: String @index
@@ -373,7 +373,7 @@ type LSP4Asset @entity {
 }
 
 type LSP4Attribute @entity {
-  id: ID!
+  id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index
   key: String @index
   value: String @index
@@ -381,7 +381,7 @@ type LSP4Attribute @entity {
 }
 
 type ChillClaimed @entity {
-  id: ID!
+  id: ID! @unique
   address: String! @index
   digitalAsset: DigitalAsset! @index
   tokenId: String! @index @unique
@@ -389,7 +389,7 @@ type ChillClaimed @entity {
 }
 
 type OrbsClaimed @entity {
-  id: ID!
+  id: ID! @unique
   address: String! @index
   digitalAsset: DigitalAsset! @index
   tokenId: String! @index @unique
