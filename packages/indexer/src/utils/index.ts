@@ -43,6 +43,7 @@ import {
 import { LSP4DigitalAssetMetadataJSON } from '@lukso/lsp4-contracts';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
+import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { hexToNumber, isHex } from 'viem';
 import * as DataChangedUtils from './dataChanged';
@@ -197,8 +198,8 @@ export function parseIpfsUrl(url: string) {
 
 export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
   try {
-    const result = await fetch(parseIpfsUrl(lsp3ProfileUrl.value));
-    const json: LSP3ProfileMetadataJSON = await result.json();
+    const result = await axios.get(parseIpfsUrl(lsp3ProfileUrl.value));
+    const json: LSP3ProfileMetadataJSON = result.data;
 
     if (!json.LSP3Profile) throw new Error('Invalid LSP3Profile');
 
@@ -313,8 +314,8 @@ export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
 
 export async function createLsp4Metadata(lsp4MetadataUrl: LSP4MetadataUrl) {
   try {
-    const result = await fetch(parseIpfsUrl(lsp4MetadataUrl.value));
-    const json: LSP4DigitalAssetMetadataJSON = await result.json();
+    const result = await axios.get(parseIpfsUrl(lsp4MetadataUrl.value));
+    const json: LSP4DigitalAssetMetadataJSON = result.data;
 
     if (!json.LSP4Metadata) throw new Error('Invalid LSP4Metadata');
 
