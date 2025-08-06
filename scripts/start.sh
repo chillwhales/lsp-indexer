@@ -4,3 +4,5 @@ pnpm migration:generate
 pnpm migration:apply
 pnpm hasura:generate
 pnpm hasura:apply
+
+pnpm start

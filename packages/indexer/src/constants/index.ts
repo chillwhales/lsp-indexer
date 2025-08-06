@@ -1,3 +1,7 @@
+import { config as dotenvSetup } from 'dotenv';
+
+dotenvSetup();
+
 const { RPC_URL } = process.env;
 if (!RPC_URL) throw new Error('Missing `RPC_URL`');
 

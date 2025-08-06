@@ -10,7 +10,7 @@ importers:
     dependencies:
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@types/node@24.2.0)(typescript@5.9.2)
+        version: 10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)
     devDependencies:
       prettier:
         specifier: ^3.5.3
@@ -87,10 +87,16 @@ importers:
         version: 1.27.2
       '@subsquid/typeorm-store':
         specifier: ^1.5.1
-        version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))
+        version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)))
+      dotenv:
+        specifier: ^17.2.1
+        version: 17.2.1
+      node-fetch:
+        specifier: ^3.3.2
+        version: 3.3.2
       typeorm:
         specifier: ^0.3.25
-        version: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))
+        version: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2))
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -109,13 +115,13 @@ importers:
     dependencies:
       '@subsquid/hasura-configuration':
         specifier: ^2.0.0
-        version: 2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))
+        version: 2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2))
       '@subsquid/typeorm-migration':
         specifier: ^1.3.0
-        version: 1.3.0(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))
+        version: 1.3.0(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)))
       '@subsquid/typeorm-store':
         specifier: ^1.5.1
-        version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))
+        version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)))
     devDependencies:
       '@subsquid/typeorm-codegen':
         specifier: ^2.0.2
@@ -776,6 +782,81 @@ packages:
   '@subsquid/util-timeout@2.3.2':
     resolution: {integrity: sha512-DVUnuiWAX7/4ZvbzuHENUShEEV4G0M38mQ/+R8DpHxwpCSrtEaSRaUMwdyUSn/WVqR7wo9+jkLCxFjE5feCURQ==}
 
+  '@swc/core-darwin-arm64@1.13.3':
+    resolution: {integrity: sha512-ux0Ws4pSpBTqbDS9GlVP354MekB1DwYlbxXU3VhnDr4GBcCOimpocx62x7cFJkSpEBF8bmX8+/TTCGKh4PbyXw==}
+    engines: {node: '>=10'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@swc/core-darwin-x64@1.13.3':
+    resolution: {integrity: sha512-p0X6yhxmNUOMZrbeZ3ZNsPige8lSlSe1llllXvpCLkKKxN/k5vZt1sULoq6Nj4eQ7KeHQVm81/+AwKZyf/e0TA==}
+    engines: {node: '>=10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@swc/core-linux-arm-gnueabihf@1.13.3':
+    resolution: {integrity: sha512-OmDoiexL2fVWvQTCtoh0xHMyEkZweQAlh4dRyvl8ugqIPEVARSYtaj55TBMUJIP44mSUOJ5tytjzhn2KFxFcBA==}
+    engines: {node: '>=10'}
+    cpu: [arm]
+    os: [linux]
+
+  '@swc/core-linux-arm64-gnu@1.13.3':
+    resolution: {integrity: sha512-STfKku3QfnuUj6k3g9ld4vwhtgCGYIFQmsGPPgT9MK/dI3Lwnpe5Gs5t1inoUIoGNP8sIOLlBB4HV4MmBjQuhw==}
+    engines: {node: '>=10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@swc/core-linux-arm64-musl@1.13.3':
+    resolution: {integrity: sha512-bc+CXYlFc1t8pv9yZJGus372ldzOVscBl7encUBlU1m/Sig0+NDJLz6cXXRcFyl6ABNOApWeR4Yl7iUWx6C8og==}
+    engines: {node: '>=10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@swc/core-linux-x64-gnu@1.13.3':
+    resolution: {integrity: sha512-dFXoa0TEhohrKcxn/54YKs1iwNeW6tUkHJgXW33H381SvjKFUV53WR231jh1sWVJETjA3vsAwxKwR23s7UCmUA==}
+    engines: {node: '>=10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@swc/core-linux-x64-musl@1.13.3':
+    resolution: {integrity: sha512-ieyjisLB+ldexiE/yD8uomaZuZIbTc8tjquYln9Quh5ykOBY7LpJJYBWvWtm1g3pHv6AXlBI8Jay7Fffb6aLfA==}
+    engines: {node: '>=10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@swc/core-win32-arm64-msvc@1.13.3':
+    resolution: {integrity: sha512-elTQpnaX5vESSbhCEgcwXjpMsnUbqqHfEpB7ewpkAsLzKEXZaK67ihSRYAuAx6ewRQTo7DS5iTT6X5aQD3MzMw==}
+    engines: {node: '>=10'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@swc/core-win32-ia32-msvc@1.13.3':
+    resolution: {integrity: sha512-nvehQVEOdI1BleJpuUgPLrclJ0TzbEMc+MarXDmmiRFwEUGqj+pnfkTSb7RZyS1puU74IXdK/YhTirHurtbI9w==}
+    engines: {node: '>=10'}
+    cpu: [ia32]
+    os: [win32]
+
+  '@swc/core-win32-x64-msvc@1.13.3':
+    resolution: {integrity: sha512-A+JSKGkRbPLVV2Kwx8TaDAV0yXIXm/gc8m98hSkVDGlPBBmydgzNdWy3X7HTUBM7IDk7YlWE7w2+RUGjdgpTmg==}
+    engines: {node: '>=10'}
+    cpu: [x64]
+    os: [win32]
+
+  '@swc/core@1.13.3':
+    resolution: {integrity: sha512-ZaDETVWnm6FE0fc+c2UE8MHYVS3Fe91o5vkmGfgwGXFbxYvAjKSqxM/j4cRc9T7VZNSJjriXq58XkfCp3Y6f+w==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      '@swc/helpers': '>=0.5.17'
+    peerDependenciesMeta:
+      '@swc/helpers':
+        optional: true
+
+  '@swc/counter@0.1.3':
+    resolution: {integrity: sha512-e2BR4lsJkkRlKZ/qCHPw9ZaSxc0MVUd7gtbtaB7aMvHeJVYe8sOB8DBZkP2DtISHGSku9sCK6T6cnY0CtXrOCQ==}
+
+  '@swc/types@0.1.24':
+    resolution: {integrity: sha512-tjTMh3V4vAORHtdTprLlfoMptu1WfTZG9Rsca6yOKyNYsRr+MUXutKmliB17orgSZk5DpnDxs8GUdd/qwYxOng==}
+
   '@szmarczak/http-timer@4.0.6':
     resolution: {integrity: sha512-4BAffykYOgO+5nzBWYwE3W90sBgLJoUPRWWcL8wlyiM8IB8ipJz3UMJ9KXQd1RKQXpKp8Tutn80HZtWsu2u76w==}
     engines: {node: '>=10'}
@@ -1430,6 +1511,10 @@ packages:
 
   dotenv@16.5.0:
     resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
+    engines: {node: '>=12'}
+
+  dotenv@17.2.1:
+    resolution: {integrity: sha512-kQhDYKZecqnM0fCnzI5eIv5L4cAe/iRI+HqMbO/hbRdTAeXDG+M9FjipUxNfbARuEg4iHIbhnhs78BCHNbSxEQ==}
     engines: {node: '>=12'}
 
   dset@3.1.4:
@@ -4159,9 +4244,9 @@ snapshots:
 
   '@subsquid/graphiql-console@0.3.0': {}
 
-  '@subsquid/hasura-configuration@2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))':
+  '@subsquid/hasura-configuration@2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2))':
     dependencies:
-      '@subsquid/typeorm-store': 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))
+      '@subsquid/typeorm-store': 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)))
       '@subsquid/util-internal': 3.2.0
       '@subsquid/util-internal-ts-node': 0.0.0
       '@subsquid/util-naming': 1.3.0
@@ -4169,7 +4254,7 @@ snapshots:
       commander: 12.1.0
       dotenv: 16.5.0
       inquirer: 10.2.2
-      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))
+      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2))
     transitivePeerDependencies:
       - '@google-cloud/spanner'
       - '@sap/hana-client'
@@ -4263,30 +4348,30 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@subsquid/typeorm-config@4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))':
+  '@subsquid/typeorm-config@4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)))':
     dependencies:
       '@subsquid/logger': 1.4.0
       '@subsquid/util-internal-ts-node': 0.0.0
       '@subsquid/util-naming': 1.3.0
     optionalDependencies:
-      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))
+      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2))
 
-  '@subsquid/typeorm-migration@1.3.0(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))':
+  '@subsquid/typeorm-migration@1.3.0(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)))':
     dependencies:
-      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))
+      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)))
       '@subsquid/util-internal': 3.2.0
       '@subsquid/util-internal-code-printer': 1.2.2
       '@subsquid/util-internal-ts-node': 0.0.0
       commander: 11.1.0
       dotenv: 16.5.0
-      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))
+      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2))
 
-  '@subsquid/typeorm-store@1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))':
+  '@subsquid/typeorm-store@1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)))':
     dependencies:
       '@subsquid/big-decimal': 1.0.0
-      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)))
+      '@subsquid/typeorm-config': 4.1.1(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)))
       '@subsquid/util-internal': 3.2.0
-      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2))
+      typeorm: 0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2))
 
   '@subsquid/util-internal-archive-client@0.1.2(@subsquid/http-client@1.6.0)(@subsquid/logger@1.4.0)':
     dependencies:
@@ -4363,6 +4448,61 @@ snapshots:
       inflected: 2.1.0
 
   '@subsquid/util-timeout@2.3.2': {}
+
+  '@swc/core-darwin-arm64@1.13.3':
+    optional: true
+
+  '@swc/core-darwin-x64@1.13.3':
+    optional: true
+
+  '@swc/core-linux-arm-gnueabihf@1.13.3':
+    optional: true
+
+  '@swc/core-linux-arm64-gnu@1.13.3':
+    optional: true
+
+  '@swc/core-linux-arm64-musl@1.13.3':
+    optional: true
+
+  '@swc/core-linux-x64-gnu@1.13.3':
+    optional: true
+
+  '@swc/core-linux-x64-musl@1.13.3':
+    optional: true
+
+  '@swc/core-win32-arm64-msvc@1.13.3':
+    optional: true
+
+  '@swc/core-win32-ia32-msvc@1.13.3':
+    optional: true
+
+  '@swc/core-win32-x64-msvc@1.13.3':
+    optional: true
+
+  '@swc/core@1.13.3':
+    dependencies:
+      '@swc/counter': 0.1.3
+      '@swc/types': 0.1.24
+    optionalDependencies:
+      '@swc/core-darwin-arm64': 1.13.3
+      '@swc/core-darwin-x64': 1.13.3
+      '@swc/core-linux-arm-gnueabihf': 1.13.3
+      '@swc/core-linux-arm64-gnu': 1.13.3
+      '@swc/core-linux-arm64-musl': 1.13.3
+      '@swc/core-linux-x64-gnu': 1.13.3
+      '@swc/core-linux-x64-musl': 1.13.3
+      '@swc/core-win32-arm64-msvc': 1.13.3
+      '@swc/core-win32-ia32-msvc': 1.13.3
+      '@swc/core-win32-x64-msvc': 1.13.3
+    optional: true
+
+  '@swc/counter@0.1.3':
+    optional: true
+
+  '@swc/types@0.1.24':
+    dependencies:
+      '@swc/counter': 0.1.3
+    optional: true
 
   '@szmarczak/http-timer@4.0.6':
     dependencies:
@@ -5101,6 +5241,8 @@ snapshots:
   dom-walk@0.1.2: {}
 
   dotenv@16.5.0: {}
+
+  dotenv@17.2.1: {}
 
   dset@3.1.4: {}
 
@@ -6748,7 +6890,7 @@ snapshots:
 
   tr46@0.0.3: {}
 
-  ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2):
+  ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.11
@@ -6765,6 +6907,8 @@ snapshots:
       typescript: 5.9.2
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+    optionalDependencies:
+      '@swc/core': 1.13.3
 
   tsconfig-paths@4.2.0:
     dependencies:
@@ -6797,7 +6941,7 @@ snapshots:
     dependencies:
       is-typedarray: 1.0.0
 
-  typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@24.2.0)(typescript@5.9.2)):
+  typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)):
     dependencies:
       '@sqltools/formatter': 1.2.5
       ansis: 3.17.0
@@ -6816,7 +6960,7 @@ snapshots:
       yargs: 17.7.2
     optionalDependencies:
       pg: 8.15.6
-      ts-node: 10.9.2(@types/node@24.2.0)(typescript@5.9.2)
+      ts-node: 10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
