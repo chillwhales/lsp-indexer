@@ -17,6 +17,7 @@ import {
   LSP4TokenType,
   LSP8ReferenceContract,
   LSP8TokenIdFormat,
+  LSP8TokenMetadataBaseURI,
   NFT,
   TokenIdDataChanged,
   Transfer,
@@ -57,6 +58,7 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
   const lsp4MetadataUrls: LSP4MetadataUrl[] = [];
   const lsp8TokenIdFormats: LSP8TokenIdFormat[] = [];
   const lsp8ReferenceContracts: LSP8ReferenceContract[] = [];
+  const lsp8TokenMetadataBaseUris: LSP8TokenMetadataBaseURI[] = [];
 
   for (const block of context.blocks) {
     const {
@@ -127,6 +129,9 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
             }
 
             case LSP8DataKeys.LSP8TokenMetadataBaseURI: {
+              lsp8TokenMetadataBaseUris.push(
+                Utils.DataChanged.LSP8TokenMetadataBaseURI.extract(extractParams),
+              );
               break;
             }
           }
@@ -206,6 +211,7 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
         lsp4MetadataUrlsCount: lsp4MetadataUrls.length,
         lsp8TokenIdFormatsCount: lsp8TokenIdFormats.length,
         lsp8ReferenceContractsCount: lsp8ReferenceContracts.length,
+        lsp8TokenMetadataBaseUrisCount: lsp8TokenMetadataBaseUris.length,
       },
     }),
   );
@@ -228,6 +234,7 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
       lsp4MetadataUrls,
       lsp8TokenIdFormats,
       lsp8ReferenceContracts,
+      lsp8TokenMetadataBaseUris,
     },
   };
 }

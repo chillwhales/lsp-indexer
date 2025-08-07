@@ -41,10 +41,13 @@ export function populate({
   );
 }
 
+export * as LSP3Profile from './lsp3Profile';
 export * as LSP3ProfileUrl from './lsp3ProfileUrl';
+export * as LSP4Metadata from './lsp4Metadata';
 export * as LSP4MetadataUrl from './lsp4MetadataUrl';
 export * as LSP4TokenName from './lsp4TokenName';
 export * as LSP4TokenSymbol from './lsp4TokenSymbol';
 export * as LSP4TokenType from './lsp4TokenType';
 export * as LSP8ReferenceContract from './lsp8ReferenceContract';
 export * as LSP8TokenIdFormat from './lsp8TokenIdFormat';
+export * as LSP8TokenMetadataBaseURI from './lsp8TokenMetadataBaseUri';

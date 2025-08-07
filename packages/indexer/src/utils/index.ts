@@ -23,6 +23,7 @@ import {
   LSP8ReferenceContract,
   LSP8TokenIdFormat,
   LSP8TokenIdFormatEnum,
+  LSP8TokenMetadataBaseURI,
   NFT,
   OperationType,
   TokenIdDataChanged,
@@ -45,7 +46,7 @@ import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { hexToNumber, isHex } from 'viem';
+import { decodeAbiParameters, Hex, hexToNumber, hexToString, isHex } from 'viem';
 import * as DataChangedUtils from './dataChanged';
 import * as DigitalAssetUtils from './digitalAsset';
 import * as ExecutedUtils from './executed';
@@ -312,23 +313,42 @@ export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
   }
 }
 
-export async function createLsp4Metadata(lsp4MetadataUrl: LSP4MetadataUrl) {
+export async function createLsp4Metadata({
+  url,
+  timestamp,
+  address,
+  digitalAsset,
+  tokenId,
+  nft,
+  rawBytes,
+  lsp4MetadataUrl,
+}: {
+  url: string;
+  timestamp: Date;
+  address: string;
+  digitalAsset: DigitalAsset;
+  tokenId: string;
+  nft: NFT;
+  rawBytes?: string;
+  lsp4MetadataUrl?: LSP4MetadataUrl;
+}) {
   try {
-    const result = await axios.get(parseIpfsUrl(lsp4MetadataUrl.value));
+    const result = await axios.get(parseIpfsUrl(url));
     const json: LSP4DigitalAssetMetadataJSON = result.data;
 
     if (!json.LSP4Metadata) throw new Error('Invalid LSP4Metadata');
 
     const lsp4Metadata = new LSP4Metadata({
       id: uuidv4(),
-      timestamp: lsp4MetadataUrl.timestamp,
-      address: lsp4MetadataUrl.address,
-      digitalAsset: lsp4MetadataUrl.digitalAsset,
-      nft: lsp4MetadataUrl.nft,
+      timestamp,
+      address,
+      digitalAsset,
+      tokenId,
+      nft,
       name: json.LSP4Metadata.name,
       description: json.LSP4Metadata.description,
       url: lsp4MetadataUrl,
-      rawBytes: lsp4MetadataUrl.rawBytes,
+      rawBytes,
       decodeError: null,
     });
 
@@ -425,13 +445,13 @@ export async function createLsp4Metadata(lsp4MetadataUrl: LSP4MetadataUrl) {
     return {
       lsp4Metadata: new LSP4Metadata({
         id: uuidv4(),
-        timestamp: lsp4MetadataUrl.timestamp,
-        address: lsp4MetadataUrl.address,
-        tokenId: lsp4MetadataUrl.tokenId,
-        digitalAsset: lsp4MetadataUrl.digitalAsset,
-        nft: lsp4MetadataUrl.nft,
+        timestamp,
+        address,
+        tokenId,
+        digitalAsset,
+        nft,
         url: lsp4MetadataUrl,
-        rawBytes: lsp4MetadataUrl.rawBytes,
+        rawBytes,
         decodeError:
           errorString.match(/[^\x20-\x7E]+/g) !== null
             ? 'LSP4Metadata contians invalid characters'
@@ -507,6 +527,7 @@ interface PopulateAllParams {
   lsp4TokenTypes: LSP4TokenType[];
   lsp8ReferenceContracts: LSP8ReferenceContract[];
   lsp8TokenIdFormats: LSP8TokenIdFormat[];
+  lsp8TokenMetadataBaseUris: LSP8TokenMetadataBaseURI[];
 }
 
 export function populateAll({
@@ -525,6 +546,7 @@ export function populateAll({
   lsp4TokenTypes,
   lsp8ReferenceContracts,
   lsp8TokenIdFormats,
+  lsp8TokenMetadataBaseUris,
 }: PopulateAllParams) {
   const populatedNfts = NFTUtils.populate({ entities: verifiedNfts, validDigitalAssets });
 
@@ -600,6 +622,11 @@ export function populateAll({
     validDigitalAssets,
   });
 
+  const populatedLsp8TokenMetadataBaseUris = DataChangedUtils.LSP8TokenMetadataBaseURI.populate({
+    lsp8TokenMetadataBaseUris,
+    validDigitalAssets,
+  });
+
   return {
     populatedNfts,
     events: {
@@ -617,12 +644,32 @@ export function populateAll({
       populatedLsp4TokenTypes,
       populatedLsp8ReferenceContracts,
       populatedLsp8TokenIdFormats,
+      populatedLsp8TokenMetadataBaseUris,
     },
   };
 }
 
 export function timeout(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function formatTokenId({
+  tokenId,
+  lsp8TokenIdFormat,
+}: {
+  tokenId: Hex;
+  lsp8TokenIdFormat: LSP8TokenIdFormatEnum;
+}) {
+  switch (lsp8TokenIdFormat) {
+    case LSP8TokenIdFormatEnum.NUMBER:
+      return hexToNumber(tokenId).toString();
+    case LSP8TokenIdFormatEnum.STRING:
+      return hexToString(tokenId);
+    case LSP8TokenIdFormatEnum.ADDRESS:
+      return decodeAbiParameters([{ type: 'address' }], tokenId)[0];
+    case LSP8TokenIdFormatEnum.BYTES32:
+      return tokenId;
+  }
 }
 
 export * as ChillClaimed from './chillClaimed';

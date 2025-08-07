@@ -1,8 +1,8 @@
 import { ExtractParams } from '@/types';
 import { LSP8IdentifiableDigitalAsset } from '@chillwhales/sqd-abi';
-import { DigitalAsset, NFT } from '@chillwhales/sqd-typeorm';
-import { zeroAddress } from 'viem';
-import { generateTokenId } from '..';
+import { DigitalAsset, LSP8TokenIdFormatEnum, NFT } from '@chillwhales/sqd-typeorm';
+import { isHex, zeroAddress } from 'viem';
+import { formatTokenId, generateTokenId } from '..';
 
 export function extract({ log }: ExtractParams): NFT | null {
   const { address } = log;
@@ -38,13 +38,22 @@ export function populate({
   entities: NFT[];
   validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return entities.map(
-    (entity) =>
-      new NFT({
-        ...entity,
-        digitalAsset: validDigitalAssets.has(entity.address)
-          ? new DigitalAsset({ id: entity.address })
-          : null,
-      }),
-  );
+  return entities.map((entity) => {
+    const digitalAsset = validDigitalAssets.get(entity.address);
+
+    const lsp8TokenIdFormat =
+      digitalAsset.lsp8TokenIdFormat.length > 0
+        ? digitalAsset.lsp8TokenIdFormat.sort(
+            (a, b) => b.timestamp.valueOf() - a.timestamp.valueOf(),
+          )[0].value || LSP8TokenIdFormatEnum.NUMBER
+        : LSP8TokenIdFormatEnum.NUMBER;
+
+    return new NFT({
+      ...entity,
+      formattedTokenId: isHex(entity.tokenId)
+        ? formatTokenId({ tokenId: entity.tokenId, lsp8TokenIdFormat })
+        : null,
+      digitalAsset: digitalAsset ? new DigitalAsset({ id: entity.address }) : null,
+    });
+  });
 }

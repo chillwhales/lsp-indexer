@@ -68,6 +68,7 @@ export async function extract(
           nft: new NFT({
             id: Utils.generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId: nft.tokenId }),
           }),
+          value: true,
         }),
       );
   });

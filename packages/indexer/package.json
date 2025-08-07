@@ -8,6 +8,7 @@
   "packageManager": "pnpm@10.10.0",
   "scripts": {
     "build": "tsc",
+    "clean": "rm -Rf lib/",
     "start": "ts-node --project ./tsconfig.json -r tsconfig-paths/register lib/app/index.js"
   },
   "dependencies": {

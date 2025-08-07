@@ -25,6 +25,7 @@ processor.run(new TypeormDatabase(), async (context) => {
       lsp4MetadataUrls,
       lsp8TokenIdFormats,
       lsp8ReferenceContracts,
+      lsp8TokenMetadataBaseUris,
     },
   } = scanLogs(context);
 
@@ -133,6 +134,7 @@ processor.run(new TypeormDatabase(), async (context) => {
       populatedLsp4TokenTypes,
       populatedLsp8ReferenceContracts,
       populatedLsp8TokenIdFormats,
+      populatedLsp8TokenMetadataBaseUris,
     },
   } = Utils.populateAll({
     validUniversalProfiles,
@@ -150,6 +152,7 @@ processor.run(new TypeormDatabase(), async (context) => {
     lsp4TokenTypes,
     lsp8ReferenceContracts,
     lsp8TokenIdFormats,
+    lsp8TokenMetadataBaseUris,
   });
 
   context.log.info(
@@ -197,6 +200,7 @@ processor.run(new TypeormDatabase(), async (context) => {
       populatedLsp4TokenTypesCount: populatedLsp4TokenTypes.length,
       populatedLsp8ReferenceContractsCount: populatedLsp8ReferenceContracts.length,
       populatedLsp8TokenIdFormatsCount: populatedLsp8TokenIdFormats.length,
+      populatedLsp8TokenMetadataBaseUrisCount: populatedLsp8TokenMetadataBaseUris.length,
     }),
   );
 
@@ -229,37 +233,19 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.insert(populatedLsp8ReferenceContracts),
     /// LSP8TokenIdFormat
     context.store.insert(populatedLsp8TokenIdFormats),
+    /// LSP8TokenMetadataBaseURI
+    context.store.insert(populatedLsp8TokenMetadataBaseUris),
 
     // Save chillwhales specific events
     context.store.insert(chillClaimedEntities),
     context.store.insert(orbsClaimedEntities),
   ]);
 
-  const lsp3ProfilesPromises: ReturnType<typeof Utils.createLsp3Profile>[] = [];
-  for (const lsp3ProfileUrl of populatedLsp3ProfileUrls) {
-    lsp3ProfilesPromises.push(Utils.createLsp3Profile(lsp3ProfileUrl));
-  }
-  const lsp3Profiles = await Promise.all(lsp3ProfilesPromises);
+  if (populatedLsp3ProfileUrls.length > 0) {
+    const { lsp3Profiles, lsp3Links, lsp3Assets, lsp3ProfileImages, lsp3BackgroundImages } =
+      await Utils.DataChanged.LSP3Profile.extractFromUrl({ context, populatedLsp3ProfileUrls });
 
-  if (lsp3Profiles.length > 0) {
-    const lsp3Links = lsp3Profiles.flatMap(({ lsp3Links }) => lsp3Links);
-    const lsp3Assets = lsp3Profiles.flatMap(({ lsp3Assets }) => lsp3Assets);
-    const lsp3ProfileImages = lsp3Profiles.flatMap(({ lsp3ProfileImages }) => lsp3ProfileImages);
-    const lsp3BackgroundImages = lsp3Profiles.flatMap(
-      ({ lsp3BackgroundImages }) => lsp3BackgroundImages,
-    );
-
-    context.log.info(
-      JSON.stringify({
-        message: 'Saving new LSP3Profile objects.',
-        lsp3ProfilesCount: lsp3Profiles.length,
-        lsp3LinksCount: lsp3Links.length,
-        lsp3AssetsCount: lsp3Assets.length,
-        lsp3ProfileImagesCount: lsp3ProfileImages.length,
-        lsp3BackgroundImagesCount: lsp3BackgroundImages.length,
-      }),
-    );
-    await context.store.insert(lsp3Profiles.map(({ lsp3Profile }) => lsp3Profile));
+    await context.store.insert(lsp3Profiles);
     await Promise.all([
       context.store.insert(lsp3Links),
       context.store.insert(lsp3Assets),
@@ -268,31 +254,28 @@ processor.run(new TypeormDatabase(), async (context) => {
     ]);
   }
 
-  const lsp4MetadatasPromises: ReturnType<typeof Utils.createLsp4Metadata>[] = [];
-  for (const lsp4MetadataUrl of populatedLsp4MetadataUrls) {
-    lsp4MetadatasPromises.push(Utils.createLsp4Metadata(lsp4MetadataUrl));
+  if (populatedLsp4MetadataUrls.length > 0) {
+    const { lsp4Metadatas, lsp4Links, lsp4Assets, lsp4Icons, lsp4Images, lsp4Attributes } =
+      await Utils.DataChanged.LSP4Metadata.extractFromUrl({ context, populatedLsp4MetadataUrls });
+
+    await context.store.insert(lsp4Metadatas);
+    await Promise.all([
+      context.store.insert(lsp4Links),
+      context.store.insert(lsp4Assets),
+      context.store.insert(lsp4Icons),
+      context.store.insert(lsp4Images),
+      context.store.insert(lsp4Attributes),
+    ]);
   }
-  const lsp4Metadatas = await Promise.all(lsp4MetadatasPromises);
 
-  if (lsp4Metadatas.length > 0) {
-    const lsp4Links = lsp4Metadatas.flatMap(({ lsp4Links }) => lsp4Links);
-    const lsp4Assets = lsp4Metadatas.flatMap(({ lsp4Assets }) => lsp4Assets);
-    const lsp4Icons = lsp4Metadatas.flatMap(({ lsp4Icons }) => lsp4Icons);
-    const lsp4Images = lsp4Metadatas.flatMap(({ lsp4Images }) => lsp4Images);
-    const lsp4Attributes = lsp4Metadatas.flatMap(({ lsp4Attributes }) => lsp4Attributes);
+  if (populatedLsp8TokenMetadataBaseUris.length > 0) {
+    const { lsp4Metadatas, lsp4Links, lsp4Assets, lsp4Icons, lsp4Images, lsp4Attributes } =
+      await Utils.DataChanged.LSP4Metadata.extractFromBaseUri({
+        context,
+        populatedLsp8TokenMetadataBaseUris,
+      });
 
-    context.log.info(
-      JSON.stringify({
-        message: 'Saving new LSP4Metadata objects.',
-        lsp4MetadatasCount: lsp4Metadatas.length,
-        lsp4LinksCount: lsp4Links.length,
-        lsp4AssetsCount: lsp4Assets.length,
-        lsp4IconsCount: lsp4Icons.length,
-        lsp4ImagesCount: lsp4Images.length,
-        lsp4AttributesCount: lsp4Attributes.length,
-      }),
-    );
-    await context.store.insert(lsp4Metadatas.map(({ lsp4Metadata }) => lsp4Metadata));
+    await context.store.insert(lsp4Metadatas);
     await Promise.all([
       context.store.insert(lsp4Links),
       context.store.insert(lsp4Assets),

@@ -123,6 +123,7 @@ type DigitalAsset @entity {
   # LSP8 properties
   lsp8TokenIdFormat: [LSP8TokenIdFormat!]! @derivedFrom(field: "digitalAsset")
   lsp8ReferenceContract: [LSP8ReferenceContract!]! @derivedFrom(field: "digitalAsset")
+  lsp8TokenMetadataBaseUri: [LSP8TokenMetadataBaseURI!]! @derivedFrom(field: "digitalAsset")
   nfts: [NFT!]! @derivedFrom(field: "digitalAsset")
 
   # Events
@@ -150,6 +151,7 @@ type Decimals @entity {
 type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
   id: ID! @unique
   tokenId: String! @index
+  formattedTokenId: String @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
   lsp4Metadata: [LSP4Metadata!]! @derivedFrom(field: "nft")
@@ -229,6 +231,14 @@ type LSP8TokenIdFormat @entity {
 }
 
 type LSP8ReferenceContract @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  digitalAsset: DigitalAsset! @index
+  value: String @index
+}
+
+type LSP8TokenMetadataBaseURI @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
@@ -328,7 +338,7 @@ type LSP4Metadata @entity {
   images: [LSP4Image!]! @derivedFrom(field: "lsp4Metadata")
   assets: [LSP4Asset!]! @derivedFrom(field: "lsp4Metadata")
   attributes: [LSP4Attribute!]! @derivedFrom(field: "lsp4Metadata")
-  url: LSP4MetadataUrl!
+  url: LSP4MetadataUrl
   rawBytes: String
   decodeError: String
 }
@@ -384,14 +394,16 @@ type ChillClaimed @entity {
   id: ID! @unique
   address: String! @index
   digitalAsset: DigitalAsset! @index
-  tokenId: String! @index @unique
+  tokenId: String! @index
   nft: NFT! @index @unique
+  value: Boolean!
 }
 
 type OrbsClaimed @entity {
   id: ID! @unique
   address: String! @index
   digitalAsset: DigitalAsset! @index
-  tokenId: String! @index @unique
+  tokenId: String! @index
   nft: NFT! @index @unique
+  value: Boolean!
 }
