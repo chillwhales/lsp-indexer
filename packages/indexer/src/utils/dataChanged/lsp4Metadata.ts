@@ -91,9 +91,11 @@ export async function extractFromBaseUri({
 
       extractedEntitesPromise.push(
         Utils.createLsp4Metadata({
-          url: lsp8TokenMetadataBaseUri.value.endsWith('/')
-            ? `${lsp8TokenMetadataBaseUri.value}${formattedTokenId}`
-            : `${lsp8TokenMetadataBaseUri.value}/${formattedTokenId}`,
+          url: lsp8TokenMetadataBaseUri.value
+            ? lsp8TokenMetadataBaseUri.value.endsWith('/')
+              ? `${lsp8TokenMetadataBaseUri.value}${formattedTokenId}`
+              : `${lsp8TokenMetadataBaseUri.value}/${formattedTokenId}`
+            : null,
           timestamp: lsp8TokenMetadataBaseUri.timestamp,
           address,
           digitalAsset,
@@ -157,14 +159,17 @@ export async function extractFromTransfers({
   for (const transfer of transfers) {
     const digitalAsset = digitalAssets.get(transfer.address);
 
-    if (!digitalAsset) continue;
+    if (
+      !digitalAsset ||
+      !digitalAsset.lsp8TokenMetadataBaseUri ||
+      digitalAsset.lsp8TokenMetadataBaseUri.length === 0
+    )
+      continue;
 
     const lsp8TokenMetadataBaseUri =
-      digitalAsset.lsp8TokenMetadataBaseUri.length > 0
-        ? digitalAsset.lsp8TokenMetadataBaseUri.sort(
-            (a, b) => b.timestamp.valueOf() - a.timestamp.valueOf(),
-          )[0].value || null
-        : null;
+      digitalAsset.lsp8TokenMetadataBaseUri.sort(
+        (a, b) => b.timestamp.valueOf() - a.timestamp.valueOf(),
+      )[0].value || null;
 
     if (!lsp8TokenMetadataBaseUri) continue;
 

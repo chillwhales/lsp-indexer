@@ -323,7 +323,7 @@ export async function createLsp4Metadata({
   rawValue,
   lsp4MetadataUrl,
 }: {
-  url: string;
+  url: string | null;
   timestamp: Date;
   address: string;
   digitalAsset: DigitalAsset;
@@ -332,6 +332,27 @@ export async function createLsp4Metadata({
   rawValue?: string;
   lsp4MetadataUrl?: LSP4MetadataUrl;
 }) {
+  if (!url) {
+    return {
+      lsp4Metadata: new LSP4Metadata({
+        id: uuidv4(),
+        timestamp,
+        address,
+        tokenId,
+        digitalAsset,
+        nft,
+        url: lsp4MetadataUrl,
+        rawValue,
+      }),
+
+      lsp4Links: [],
+      lsp4Assets: [],
+      lsp4Images: [],
+      lsp4Icons: [],
+      lsp4Attributes: [],
+    };
+  }
+
   try {
     const result = await axios.get(parseIpfsUrl(url));
     const json: LSP4DigitalAssetMetadataJSON = result.data;

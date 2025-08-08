@@ -255,6 +255,10 @@ processor.run(new TypeormDatabase(), async (context) => {
   }
 
   if (populatedLsp4MetadataUrls.length > 0) {
+    context.log.info(
+      JSON.stringify({ message: 'Extracting LSP4Metadata from LSP4Metadata data key' }),
+    );
+
     const { lsp4Metadatas, lsp4Links, lsp4Assets, lsp4Icons, lsp4Images, lsp4Attributes } =
       await Utils.DataChanged.LSP4Metadata.extractFromUrl({ context, populatedLsp4MetadataUrls });
 
@@ -269,6 +273,10 @@ processor.run(new TypeormDatabase(), async (context) => {
   }
 
   if (populatedLsp8TokenMetadataBaseUris.length > 0) {
+    context.log.info(
+      JSON.stringify({ message: 'Extracting LSP4Metadata from LSP8TokenMetadataBaseURI data key' }),
+    );
+
     const { lsp4Metadatas, lsp4Links, lsp4Assets, lsp4Icons, lsp4Images, lsp4Attributes } =
       await Utils.DataChanged.LSP4Metadata.extractFromBaseUri({
         context,
@@ -289,6 +297,13 @@ processor.run(new TypeormDatabase(), async (context) => {
         isAddressEqual(getAddress(transferEvent.from), zeroAddress) && transferEvent.tokenId,
     ).length > 0
   ) {
+    context.log.info(
+      JSON.stringify({
+        message:
+          'Extracting LSP4Metadata from minted NFTs of a Digital Asset that has a valid LSP8TokenMetadataBaseURI',
+      }),
+    );
+
     const { lsp4Metadatas, lsp4Links, lsp4Assets, lsp4Icons, lsp4Images, lsp4Attributes } =
       await Utils.DataChanged.LSP4Metadata.extractFromTransfers({
         context,
