@@ -8,6 +8,7 @@ COPY . .
 
 # Build the packages
 RUN corepack enable pnpm && pnpm install
+RUN pnpm build
 RUN chmod 755 scripts/start.sh
 
 # CMD ["/bin/bash", "scripts/start.sh"]

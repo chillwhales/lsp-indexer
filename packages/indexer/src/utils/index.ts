@@ -213,7 +213,7 @@ export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
       description: json.LSP3Profile.description,
       tags: json.LSP3Profile.tags ? json.LSP3Profile.tags : [],
       url: lsp3ProfileUrl,
-      rawBytes: lsp3ProfileUrl.rawBytes,
+      rawValue: lsp3ProfileUrl.rawValue,
       decodeError: null,
     });
 
@@ -299,7 +299,7 @@ export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
         universalProfile: lsp3ProfileUrl.universalProfile,
         tags: [],
         url: lsp3ProfileUrl,
-        rawBytes: lsp3ProfileUrl.rawBytes,
+        rawValue: lsp3ProfileUrl.rawValue,
         decodeError:
           errorString.match(/[^\x20-\x7E]+/g) !== null
             ? 'LSP3Profile contians invalid characters'
@@ -320,7 +320,7 @@ export async function createLsp4Metadata({
   digitalAsset,
   tokenId,
   nft,
-  rawBytes,
+  rawValue,
   lsp4MetadataUrl,
 }: {
   url: string;
@@ -329,7 +329,7 @@ export async function createLsp4Metadata({
   digitalAsset: DigitalAsset;
   tokenId: string;
   nft: NFT;
-  rawBytes?: string;
+  rawValue?: string;
   lsp4MetadataUrl?: LSP4MetadataUrl;
 }) {
   try {
@@ -348,7 +348,7 @@ export async function createLsp4Metadata({
       name: json.LSP4Metadata.name,
       description: json.LSP4Metadata.description,
       url: lsp4MetadataUrl,
-      rawBytes,
+      rawValue,
       decodeError: null,
     });
 
@@ -451,7 +451,7 @@ export async function createLsp4Metadata({
         digitalAsset,
         nft,
         url: lsp4MetadataUrl,
-        rawBytes,
+        rawValue,
         decodeError:
           errorString.match(/[^\x20-\x7E]+/g) !== null
             ? 'LSP4Metadata contians invalid characters'

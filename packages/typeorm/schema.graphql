@@ -204,6 +204,7 @@ type LSP4TokenName @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index
   value: String @index
+  rawValue: String @index
 }
 
 type LSP4TokenSymbol @entity {
@@ -212,6 +213,7 @@ type LSP4TokenSymbol @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index
   value: String @index
+  rawValue: String @index
 }
 
 type LSP4TokenType @entity {
@@ -220,6 +222,7 @@ type LSP4TokenType @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index
   value: LSP4TokenTypeEnum @index
+  rawValue: String @index
 }
 
 type LSP8TokenIdFormat @entity {
@@ -228,6 +231,7 @@ type LSP8TokenIdFormat @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index
   value: LSP8TokenIdFormatEnum @index
+  rawValue: String @index
 }
 
 type LSP8ReferenceContract @entity {
@@ -236,6 +240,7 @@ type LSP8ReferenceContract @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index
   value: String @index
+  rawValue: String @index
 }
 
 type LSP8TokenMetadataBaseURI @entity {
@@ -244,6 +249,7 @@ type LSP8TokenMetadataBaseURI @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index
   value: String @index
+  rawValue: String @index
 }
 
 type LSP3ProfileUrl @entity {
@@ -252,7 +258,7 @@ type LSP3ProfileUrl @entity {
   address: String! @index
   universalProfile: UniversalProfile! @index
   value: String
-  rawBytes: String
+  rawValue: String
   decodeError: String
 }
 
@@ -269,7 +275,7 @@ type LSP3Profile @entity {
   profileImage: [LSP3ProfileImage!]! @derivedFrom(field: "lsp3Profile")
   backgroundImage: [LSP3BackgroundImage!]! @derivedFrom(field: "lsp3Profile")
   url: LSP3ProfileUrl!
-  rawBytes: String
+  rawValue: String
   decodeError: String
 }
 
@@ -320,7 +326,7 @@ type LSP4MetadataUrl @entity {
   tokenId: String @index
   nft: NFT @index
   value: String
-  rawBytes: String
+  rawValue: String
   decodeError: String
 }
 
@@ -339,7 +345,7 @@ type LSP4Metadata @entity {
   assets: [LSP4Asset!]! @derivedFrom(field: "lsp4Metadata")
   attributes: [LSP4Attribute!]! @derivedFrom(field: "lsp4Metadata")
   url: LSP4MetadataUrl
-  rawBytes: String
+  rawValue: String
   decodeError: String
 }
 

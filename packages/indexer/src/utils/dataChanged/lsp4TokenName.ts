@@ -14,6 +14,7 @@ export function extract({ block, log }: ExtractParams): LSP4TokenName {
     timestamp: new Date(timestamp),
     address,
     value: !isHex(dataValue) || dataValue === '0x' ? null : hexToString(dataValue),
+    rawValue: dataValue,
   });
 }
 

@@ -283,5 +283,25 @@ processor.run(new TypeormDatabase(), async (context) => {
       context.store.insert(lsp4Images),
       context.store.insert(lsp4Attributes),
     ]);
+  } else if (
+    transferEvents.filter(
+      (transferEvent) =>
+        isAddressEqual(getAddress(transferEvent.from), zeroAddress) && transferEvent.tokenId,
+    ).length > 0
+  ) {
+    const { lsp4Metadatas, lsp4Links, lsp4Assets, lsp4Icons, lsp4Images, lsp4Attributes } =
+      await Utils.DataChanged.LSP4Metadata.extractFromTransfers({
+        context,
+        transfers: transferEvents,
+      });
+
+    await context.store.insert(lsp4Metadatas);
+    await Promise.all([
+      context.store.insert(lsp4Links),
+      context.store.insert(lsp4Assets),
+      context.store.insert(lsp4Icons),
+      context.store.insert(lsp4Images),
+      context.store.insert(lsp4Attributes),
+    ]);
   }
 });

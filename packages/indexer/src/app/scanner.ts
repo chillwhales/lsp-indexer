@@ -61,18 +61,7 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
   const lsp8TokenMetadataBaseUris: LSP8TokenMetadataBaseURI[] = [];
 
   for (const block of context.blocks) {
-    const {
-      logs,
-      header: { height },
-    } = block;
-
-    context.log.info(
-      JSON.stringify({
-        message: 'Scanning block',
-        block: height,
-        logsFound: logs.length,
-      }),
-    );
+    const { logs } = block;
 
     for (const log of logs) {
       const extractParams: ExtractParams = { context, block, log };

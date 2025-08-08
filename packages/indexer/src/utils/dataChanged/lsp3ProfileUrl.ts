@@ -14,7 +14,7 @@ export function extract({ block, log }: ExtractParams): LSP3ProfileUrl {
     id: uuidv4(),
     timestamp: new Date(timestamp),
     address,
-    rawBytes: dataValue,
+    rawValue: dataValue,
     value,
     decodeError,
   });

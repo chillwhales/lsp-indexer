@@ -14,6 +14,7 @@ export function extract({ block, log }: ExtractParams): LSP8ReferenceContract {
     timestamp: new Date(timestamp),
     address,
     value: !isHex(dataValue) || dataValue === '0x' ? null : dataValue,
+    rawValue: dataValue,
   });
 }
 

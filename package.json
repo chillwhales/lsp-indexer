@@ -14,7 +14,6 @@
     "hasura:apply": "pnpm --filter=@chillwhales/sqd-typeorm hasura:apply",
     "migration:generate": "pnpm --filter=@chillwhales/sqd-typeorm migration:generate",
     "migration:apply": "pnpm --filter=@chillwhales/sqd-typeorm migration:apply",
-    "prestart": "pnpm run build",
     "start": "pnpm --filter=@chillwhales/sqd-indexer start"
   },
   "devDependencies": {

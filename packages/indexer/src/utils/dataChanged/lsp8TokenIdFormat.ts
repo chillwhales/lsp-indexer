@@ -16,6 +16,7 @@ export function extract({ block, log }: ExtractParams): LSP8TokenIdFormat {
     address,
     value:
       !isHex(dataValue) || dataValue === '0x' ? null : decodeTokenIdFormat(hexToNumber(dataValue)),
+    rawValue: dataValue,
   });
 }
 

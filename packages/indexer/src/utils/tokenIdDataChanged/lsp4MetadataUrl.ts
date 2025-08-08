@@ -20,7 +20,7 @@ export function extract({ block, log }: ExtractParams): LSP4MetadataUrl {
       tokenId,
       address,
     }),
-    rawBytes: dataValue,
+    rawValue: dataValue,
     value,
     decodeError,
   });
