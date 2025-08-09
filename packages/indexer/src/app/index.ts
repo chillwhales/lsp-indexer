@@ -29,57 +29,6 @@ processor.run(new TypeormDatabase(), async (context) => {
     },
   } = scanLogs(context);
 
-  // scanTransactions(context);
-  const chillClaimedEntities: ChillClaimed[] = [];
-  const orbsClaimedEntities: OrbsClaimed[] = [];
-  if (context.isHead) {
-    const existingChillClaimedEntities = await context.store.find(ChillClaimed);
-    if (
-      existingChillClaimedEntities.length === 0 ||
-      transferEvents.filter(
-        (event) =>
-          isAddressEqual(CHILL_ADDRESS, getAddress(event.address)) &&
-          isAddressEqual(zeroAddress, getAddress(event.from)),
-      )
-    ) {
-      chillClaimedEntities.push(
-        ...(await Utils.ChillClaimed.extract(context, existingChillClaimedEntities)),
-      );
-    }
-
-    if (chillClaimedEntities.length > 0) {
-      context.log.info(
-        JSON.stringify({
-          message: 'CHILL claim events found.',
-          chillClaimedEntitiesCount: chillClaimedEntities.length,
-        }),
-      );
-    }
-
-    const existingOrbsClaimedEntities = await context.store.find(OrbsClaimed);
-    if (
-      existingOrbsClaimedEntities.length === 0 ||
-      transferEvents.filter(
-        (event) =>
-          isAddressEqual(ORBS_ADDRESS, getAddress(event.address)) &&
-          isAddressEqual(zeroAddress, getAddress(event.from)),
-      )
-    ) {
-      orbsClaimedEntities.push(
-        ...(await Utils.OrbsClaimed.extract(context, existingOrbsClaimedEntities)),
-      );
-    }
-
-    if (orbsClaimedEntities.length > 0) {
-      context.log.info(
-        JSON.stringify({
-          message: 'ORBS claim events found.',
-          orbsClaimedEntitiesCount: orbsClaimedEntities.length,
-        }),
-      );
-    }
-  }
-
   const {
     universalProfiles: { newUniversalProfiles, validUniversalProfiles, invalidUniversalProfiles },
     digitalAssets: { newDigitalAssets, validDigitalAssets, invalidDigitalAssets },
@@ -235,13 +184,13 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.insert(populatedLsp8TokenIdFormats),
     /// LSP8TokenMetadataBaseURI
     context.store.insert(populatedLsp8TokenMetadataBaseUris),
-
-    // Save chillwhales specific events
-    context.store.insert(chillClaimedEntities),
-    context.store.insert(orbsClaimedEntities),
   ]);
 
   if (populatedLsp3ProfileUrls.length > 0) {
+    context.log.info(
+      JSON.stringify({ message: 'Extracting LSP3Profile from LSP3Profile data key' }),
+    );
+
     const { lsp3Profiles, lsp3Links, lsp3Assets, lsp3ProfileImages, lsp3BackgroundImages } =
       await Utils.DataChanged.LSP3Profile.extractFromUrl({ context, populatedLsp3ProfileUrls });
 
@@ -318,5 +267,52 @@ processor.run(new TypeormDatabase(), async (context) => {
       context.store.insert(lsp4Images),
       context.store.insert(lsp4Attributes),
     ]);
+  }
+
+  if (context.isHead) {
+    const existingChillClaimedEntities = await context.store.find(ChillClaimed);
+    const chillMintTransfers = transferEvents.filter(
+      (event) =>
+        isAddressEqual(CHILL_ADDRESS, getAddress(event.address)) &&
+        isAddressEqual(zeroAddress, getAddress(event.from)),
+    );
+
+    if (existingChillClaimedEntities.length === 0 || chillMintTransfers.length > 0) {
+      const chillClaimedEntities = await Utils.ChillClaimed.extract(
+        context,
+        existingChillClaimedEntities,
+      );
+
+      context.log.info(
+        JSON.stringify({
+          message: 'CHILL claim events found.',
+          chillClaimedEntitiesCount: chillClaimedEntities.length,
+        }),
+      );
+
+      await context.store.insert(chillClaimedEntities);
+    }
+
+    const existingOrbsClaimedEntities = await context.store.find(OrbsClaimed);
+    const orbsMintTransfers = transferEvents.filter(
+      (event) =>
+        isAddressEqual(ORBS_ADDRESS, getAddress(event.address)) &&
+        isAddressEqual(zeroAddress, getAddress(event.from)),
+    );
+    if (existingOrbsClaimedEntities.length === 0 || orbsMintTransfers.length > 0) {
+      const orbsClaimedEntities = await Utils.OrbsClaimed.extract(
+        context,
+        existingOrbsClaimedEntities,
+      );
+
+      context.log.info(
+        JSON.stringify({
+          message: 'ORBS claim events found.',
+          orbsClaimedEntitiesCount: orbsClaimedEntities.length,
+        }),
+      );
+
+      await context.store.insert(orbsClaimedEntities);
+    }
   }
 });

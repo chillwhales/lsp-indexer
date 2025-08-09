@@ -41,12 +41,20 @@ export function populate({
   return entities.map((entity) => {
     const digitalAsset = validDigitalAssets.get(entity.address);
 
-    const lsp8TokenIdFormat =
+    let lsp8TokenIdFormat = LSP8TokenIdFormatEnum.NUMBER;
+    if (
+      digitalAsset &&
+      digitalAsset.lsp8TokenIdFormat &&
       digitalAsset.lsp8TokenIdFormat.length > 0
-        ? digitalAsset.lsp8TokenIdFormat.sort(
-            (a, b) => b.timestamp.valueOf() - a.timestamp.valueOf(),
-          )[0].value || LSP8TokenIdFormatEnum.NUMBER
-        : LSP8TokenIdFormatEnum.NUMBER;
+    ) {
+      const latestLsp8TokenIdFormat = digitalAsset.lsp8TokenIdFormat.sort(
+        (a, b) => b.timestamp.valueOf() - a.timestamp.valueOf(),
+      )[0];
+
+      if (latestLsp8TokenIdFormat.value) {
+        lsp8TokenIdFormat = latestLsp8TokenIdFormat.value;
+      }
+    }
 
     return new NFT({
       ...entity,
