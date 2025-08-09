@@ -1,9 +1,10 @@
 import { processor } from '@/app/processor';
 import { CHILL_ADDRESS, ORBS_ADDRESS } from '@/constants';
 import * as Utils from '@/utils';
-import { ChillClaimed, OrbsClaimed } from '@chillwhales/sqd-typeorm';
+import { ChillClaimed, DigitalAsset, NFT, OrbsClaimed } from '@chillwhales/sqd-typeorm';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
-import { getAddress, isAddressEqual, zeroAddress } from 'viem';
+import { In } from 'typeorm';
+import { getAddress, isAddressEqual, isHex, zeroAddress } from 'viem';
 import { scanLogs } from './scanner';
 
 processor.run(new TypeormDatabase(), async (context) => {
@@ -266,6 +267,55 @@ processor.run(new TypeormDatabase(), async (context) => {
       context.store.insert(lsp4Icons),
       context.store.insert(lsp4Images),
       context.store.insert(lsp4Attributes),
+    ]);
+  }
+
+  if (populatedLsp8TokenIdFormats.length > 0) {
+    context.log.info(
+      JSON.stringify({
+        message: 'Found new LSP8TokenIdFormat data keys. Updating old `formattedTokenId` for NFTs.',
+      }),
+    );
+
+    const digitalAssets = await context.store
+      .findBy(DigitalAsset, {
+        address: In([...new Set(populatedLsp8TokenIdFormats.map(({ address }) => address))]),
+      })
+      .then(
+        (result) => new Map(result.map((digitalAsset) => [digitalAsset.address, digitalAsset])),
+      );
+
+    const updatedNfts: NFT[] = [];
+    for (const lsp8TokenIdFormat of populatedLsp8TokenIdFormats) {
+      const digitalAsset = digitalAssets.get(lsp8TokenIdFormat.address);
+      const { nfts } = digitalAsset;
+
+      for (const nft of nfts) {
+        const { tokenId } = nft;
+
+        updatedNfts.push(
+          new NFT({
+            ...nft,
+            formattedTokenId: isHex(tokenId)
+              ? Utils.formatTokenId({
+                  tokenId,
+                  lsp8TokenIdFormat: lsp8TokenIdFormat.value,
+                })
+              : null,
+          }),
+        );
+      }
+    }
+
+    const { lsp3Profiles, lsp3Links, lsp3Assets, lsp3ProfileImages, lsp3BackgroundImages } =
+      await Utils.DataChanged.LSP3Profile.extractFromUrl({ context, populatedLsp3ProfileUrls });
+
+    await context.store.insert(lsp3Profiles);
+    await Promise.all([
+      context.store.insert(lsp3Links),
+      context.store.insert(lsp3Assets),
+      context.store.insert(lsp3ProfileImages),
+      context.store.insert(lsp3BackgroundImages),
     ]);
   }
 
