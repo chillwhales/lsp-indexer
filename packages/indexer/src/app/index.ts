@@ -1,7 +1,7 @@
 import { processor } from '@/app/processor';
 import { CHILL_ADDRESS, ORBS_ADDRESS } from '@/constants';
 import * as Utils from '@/utils';
-import { ChillClaimed, DigitalAsset, NFT, OrbsClaimed } from '@chillwhales/sqd-typeorm';
+import { ChillClaimed, LSP8TokenIdFormat, NFT, OrbsClaimed } from '@chillwhales/sqd-typeorm';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { getAddress, isAddressEqual, isHex, zeroAddress } from 'viem';
@@ -105,6 +105,89 @@ processor.run(new TypeormDatabase(), async (context) => {
     lsp8TokenMetadataBaseUris,
   });
 
+  const mintTransferEvents = populatedTransfers.filter(
+    (event) => isAddressEqual(zeroAddress, getAddress(event.from)) && event.tokenId,
+  );
+  if (mintTransferEvents.length > 0) {
+    context.log.info(
+      JSON.stringify({
+        message: 'Found new NFTs. Updating `formattedTokenId` for NFTs.',
+      }),
+    );
+
+    const lsp8TokenIdFormats = await context.store.findBy(LSP8TokenIdFormat, {
+      address: In([...new Set(mintTransferEvents.map(({ address }) => address))]),
+    });
+
+    for (const mintTransferEvent of mintTransferEvents) {
+      const { address, tokenId } = mintTransferEvent;
+
+      const latestLsp8TokenIdFormat = lsp8TokenIdFormats
+        .filter((lsp8TokenIdFormat) => lsp8TokenIdFormat.address === address)
+        .sort((a, b) => b.timestamp.valueOf() - a.timestamp.valueOf())[0];
+
+      const lsp8TokenIdFormat = latestLsp8TokenIdFormat?.value || null;
+
+      const nft = populatedNfts.get(Utils.generateTokenId({ address, tokenId }));
+
+      populatedNfts.set(
+        nft.id,
+        new NFT({
+          ...nft,
+          formattedTokenId: isHex(tokenId)
+            ? Utils.formatTokenId({ tokenId, lsp8TokenIdFormat })
+            : null,
+        }),
+      );
+    }
+  }
+
+  if (populatedLsp8TokenIdFormats.length > 0) {
+    context.log.info(
+      JSON.stringify({
+        message: 'Found new LSP8TokenIdFormat data keys. Updating old `formattedTokenId` for NFTs.',
+      }),
+    );
+
+    const nfts = await context.store.findBy(NFT, {
+      address: In([...new Set(populatedLsp8TokenIdFormats.map(({ address }) => address))]),
+    });
+
+    for (const lsp8TokenIdFormat of populatedLsp8TokenIdFormats) {
+      for (const nft of nfts.filter((nft) => nft.address === lsp8TokenIdFormat.address)) {
+        const { tokenId } = nft;
+
+        if (!populatedNfts.has(nft.id)) {
+          populatedNfts.set(
+            nft.id,
+            new NFT({
+              ...populatedNfts.get(nft.id),
+              formattedTokenId: isHex(tokenId)
+                ? Utils.formatTokenId({
+                    tokenId,
+                    lsp8TokenIdFormat: lsp8TokenIdFormat.value,
+                  })
+                : null,
+            }),
+          );
+        } else {
+          populatedNfts.set(
+            nft.id,
+            new NFT({
+              ...nft,
+              formattedTokenId: isHex(tokenId)
+                ? Utils.formatTokenId({
+                    tokenId,
+                    lsp8TokenIdFormat: lsp8TokenIdFormat.value,
+                  })
+                : null,
+            }),
+          );
+        }
+      }
+    }
+  }
+
   context.log.info(
     JSON.stringify({
       message: 'Updating Universal Profiles.',
@@ -120,14 +203,14 @@ processor.run(new TypeormDatabase(), async (context) => {
   context.log.info(
     JSON.stringify({
       message: 'Updating NFTs.',
-      nftsCount: populatedNfts.length,
+      nftsCount: populatedNfts.size,
     }),
   );
 
   await Promise.all([
     context.store.upsert([...newUniversalProfiles.values()]),
     context.store.upsert([...newDigitalAssets.values()]),
-    context.store.upsert(populatedNfts),
+    context.store.upsert([...populatedNfts.values()]),
   ]);
 
   context.log.info(
@@ -267,55 +350,6 @@ processor.run(new TypeormDatabase(), async (context) => {
       context.store.insert(lsp4Icons),
       context.store.insert(lsp4Images),
       context.store.insert(lsp4Attributes),
-    ]);
-  }
-
-  if (populatedLsp8TokenIdFormats.length > 0) {
-    context.log.info(
-      JSON.stringify({
-        message: 'Found new LSP8TokenIdFormat data keys. Updating old `formattedTokenId` for NFTs.',
-      }),
-    );
-
-    const digitalAssets = await context.store
-      .findBy(DigitalAsset, {
-        address: In([...new Set(populatedLsp8TokenIdFormats.map(({ address }) => address))]),
-      })
-      .then(
-        (result) => new Map(result.map((digitalAsset) => [digitalAsset.address, digitalAsset])),
-      );
-
-    const updatedNfts: NFT[] = [];
-    for (const lsp8TokenIdFormat of populatedLsp8TokenIdFormats) {
-      const digitalAsset = digitalAssets.get(lsp8TokenIdFormat.address);
-      const { nfts } = digitalAsset;
-
-      for (const nft of nfts) {
-        const { tokenId } = nft;
-
-        updatedNfts.push(
-          new NFT({
-            ...nft,
-            formattedTokenId: isHex(tokenId)
-              ? Utils.formatTokenId({
-                  tokenId,
-                  lsp8TokenIdFormat: lsp8TokenIdFormat.value,
-                })
-              : null,
-          }),
-        );
-      }
-    }
-
-    const { lsp3Profiles, lsp3Links, lsp3Assets, lsp3ProfileImages, lsp3BackgroundImages } =
-      await Utils.DataChanged.LSP3Profile.extractFromUrl({ context, populatedLsp3ProfileUrls });
-
-    await context.store.insert(lsp3Profiles);
-    await Promise.all([
-      context.store.insert(lsp3Links),
-      context.store.insert(lsp3Assets),
-      context.store.insert(lsp3ProfileImages),
-      context.store.insert(lsp3BackgroundImages),
     ]);
   }
 

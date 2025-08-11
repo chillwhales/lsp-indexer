@@ -1,11 +1,6 @@
 import { FieldSelection } from '@/app/processor';
 import * as Utils from '@/utils';
-import {
-  DigitalAsset,
-  LSP4MetadataUrl,
-  LSP8TokenMetadataBaseURI,
-  Transfer,
-} from '@chillwhales/sqd-typeorm';
+import { LSP4MetadataUrl, LSP8TokenMetadataBaseURI, NFT, Transfer } from '@chillwhales/sqd-typeorm';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
@@ -73,21 +68,13 @@ export async function extractFromBaseUri({
 }) {
   const extractedEntitesPromise: ReturnType<typeof Utils.createLsp4Metadata>[] = [];
 
-  const digitalAssets = await context.store
-    .findBy(DigitalAsset, {
-      address: In(populatedLsp8TokenMetadataBaseUris.map(({ address }) => address)),
-    })
-    .then((result) => new Map(result.map((digitalAsset) => [digitalAsset.address, digitalAsset])));
+  const nfts = await context.store.findBy(NFT, {
+    address: In(populatedLsp8TokenMetadataBaseUris.map(({ address }) => address)),
+  });
 
   for (const lsp8TokenMetadataBaseUri of populatedLsp8TokenMetadataBaseUris) {
-    const digitalAsset = digitalAssets.get(lsp8TokenMetadataBaseUri.address);
-
-    if (!digitalAsset || !Array.isArray(digitalAsset.nfts)) continue;
-
-    const { address, nfts } = digitalAsset;
-
-    for (const nft of nfts) {
-      const { tokenId, formattedTokenId } = nft;
+    for (const nft of nfts.filter((nft) => nft.address === lsp8TokenMetadataBaseUri.address)) {
+      const { address, tokenId, formattedTokenId, digitalAsset } = nft;
 
       extractedEntitesPromise.push(
         Utils.createLsp4Metadata({
@@ -148,33 +135,22 @@ export async function extractFromTransfers({
     (transferEvent) =>
       isAddressEqual(getAddress(transferEvent.from), zeroAddress) && transferEvent.tokenId,
   );
-  const digitalAssets = await context.store
-    .findBy(DigitalAsset, {
-      address: In([...new Set(mintedNfts.map(({ address }) => address))]),
-    })
-    .then((result) => new Map(result.map((digitalAsset) => [digitalAsset.address, digitalAsset])));
+  const lsp8TokenMetadataBaseUris = await context.store.findBy(LSP8TokenMetadataBaseURI, {
+    address: In([...new Set(transfers.map(({ address }) => address))]),
+  });
 
   const extractedEntitesPromise: ReturnType<typeof Utils.createLsp4Metadata>[] = [];
 
-  for (const transfer of transfers) {
-    const digitalAsset = digitalAssets.get(transfer.address);
+  for (const transfer of mintedNfts) {
+    const { address, tokenId, nft, digitalAsset } = transfer;
 
-    if (
-      !digitalAsset ||
-      !digitalAsset.lsp8TokenMetadataBaseUri ||
-      digitalAsset.lsp8TokenMetadataBaseUri.length === 0
-    )
-      continue;
+    const latestLsp8TokenIdFormat = lsp8TokenMetadataBaseUris
+      .filter((lsp8TokenIdFormat) => lsp8TokenIdFormat.address === address)
+      .sort((a, b) => b.timestamp.valueOf() - a.timestamp.valueOf())[0];
 
-    const lsp8TokenMetadataBaseUri =
-      digitalAsset.lsp8TokenMetadataBaseUri.sort(
-        (a, b) => b.timestamp.valueOf() - a.timestamp.valueOf(),
-      )[0].value || null;
+    const lsp8TokenMetadataBaseUri = latestLsp8TokenIdFormat?.value || null;
 
     if (!lsp8TokenMetadataBaseUri) continue;
-
-    const { address } = digitalAsset;
-    const { tokenId, nft } = transfer;
 
     extractedEntitesPromise.push(
       Utils.createLsp4Metadata({

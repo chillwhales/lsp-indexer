@@ -2,7 +2,7 @@ import { ExtractParams } from '@/types';
 import { ERC725Y } from '@chillwhales/sqd-abi';
 import { DigitalAsset, LSP8TokenMetadataBaseURI } from '@chillwhales/sqd-typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { hexToString, isHex, sliceHex, toHex } from 'viem';
+import { concat, hexToString, isHex, keccak256, sliceHex, toHex } from 'viem';
 
 export function extract({ block, log }: ExtractParams): LSP8TokenMetadataBaseURI {
   const { timestamp } = block.header;
@@ -14,7 +14,16 @@ export function extract({ block, log }: ExtractParams): LSP8TokenMetadataBaseURI
     timestamp: new Date(timestamp),
     address,
     value:
-      !isHex(dataValue) || dataValue === '0x' || !dataValue.startsWith(toHex(0, { size: 8 }))
+      !isHex(dataValue) ||
+      dataValue === '0x' ||
+      (!dataValue.startsWith(toHex(0, { size: 8 })) &&
+        !dataValue.startsWith(
+          concat([
+            toHex(0, { size: 2 }),
+            sliceHex(keccak256(toHex('keccak256(bytes)')), 0, 4),
+            toHex(0, { size: 2 }),
+          ]),
+        ))
         ? null
         : hexToString(sliceHex(dataValue, 8)),
     rawValue: dataValue,

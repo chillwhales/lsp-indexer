@@ -46,7 +46,7 @@ import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { decodeAbiParameters, Hex, hexToNumber, hexToString, isHex } from 'viem';
+import { bytesToHex, Hex, hexToBytes, hexToNumber, hexToString, isHex, sliceHex } from 'viem';
 import * as DataChangedUtils from './dataChanged';
 import * as DigitalAssetUtils from './digitalAsset';
 import * as ExecutedUtils from './executed';
@@ -679,16 +679,19 @@ export function formatTokenId({
   lsp8TokenIdFormat,
 }: {
   tokenId: Hex;
-  lsp8TokenIdFormat: LSP8TokenIdFormatEnum;
+  lsp8TokenIdFormat?: LSP8TokenIdFormatEnum;
 }) {
   switch (lsp8TokenIdFormat) {
     case LSP8TokenIdFormatEnum.NUMBER:
       return hexToNumber(tokenId).toString();
     case LSP8TokenIdFormatEnum.STRING:
-      return hexToString(tokenId);
+      return hexToString(bytesToHex(hexToBytes(tokenId).filter((byte) => byte !== 0)));
     case LSP8TokenIdFormatEnum.ADDRESS:
-      return decodeAbiParameters([{ type: 'address' }], tokenId)[0];
+      return sliceHex(tokenId, 12);
     case LSP8TokenIdFormatEnum.BYTES32:
+      return tokenId;
+
+    default:
       return tokenId;
   }
 }

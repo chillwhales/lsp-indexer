@@ -92,14 +92,13 @@ export async function verify({ context, digitalAssets }: VerifyParams): Promise<
       await Utils.timeout(1000);
     }
 
-    unverifiedDigitalAssets.forEach((address, index) => {
-      if (
-        result[index].success &&
-        isHex(result[index].returnData) &&
-        hexToBool(result[index].returnData)
-      )
-        newDigitalAssets.set(address, new DigitalAsset({ id: address, address }));
-    });
+    unverifiedDigitalAssets.forEach((address, index) =>
+      result[index].success &&
+      isHex(result[index].returnData) &&
+      hexToBool(result[index].returnData)
+        ? newDigitalAssets.set(address, new DigitalAsset({ id: address, address }))
+        : null,
+    );
 
     unverifiedDigitalAssets = unverifiedDigitalAssets.filter(
       (address) => !newDigitalAssets.has(address),
