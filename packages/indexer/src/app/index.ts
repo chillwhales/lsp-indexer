@@ -30,6 +30,25 @@ processor.run(new TypeormDatabase(), async (context) => {
     },
   } = scanLogs(context);
 
+  context.log.info(
+    JSON.stringify({
+      message: 'Validating Universal Profiles.',
+      universalProfilesCount: universalProfiles.size,
+    }),
+  );
+  context.log.info(
+    JSON.stringify({
+      message: 'Validating Digital Assets.',
+      digitalAssetsCount: digitalAssets.size,
+    }),
+  );
+  context.log.info(
+    JSON.stringify({
+      message: 'Validating NFTs.',
+      nftsCount: nfts.size,
+    }),
+  );
+
   const {
     universalProfiles: { newUniversalProfiles, validUniversalProfiles, invalidUniversalProfiles },
     digitalAssets: { newDigitalAssets, validDigitalAssets, invalidDigitalAssets },
@@ -43,8 +62,7 @@ processor.run(new TypeormDatabase(), async (context) => {
 
   context.log.info(
     JSON.stringify({
-      message: 'Validating Universal Profiles.',
-      universalProfilesCount: universalProfiles.size,
+      message: 'Populating Universal Profiles.',
       newUniversalProfilesCount: newUniversalProfiles.size,
       validUniversalProfilesCount: validUniversalProfiles.size,
       invalidUniversalProfilesCount: invalidUniversalProfiles.size,
@@ -52,8 +70,7 @@ processor.run(new TypeormDatabase(), async (context) => {
   );
   context.log.info(
     JSON.stringify({
-      message: 'Validating Digital Assets.',
-      digitalAssetsCount: digitalAssets.size,
+      message: 'Populating Digital Assets.',
       newDigitalAssetsCount: newDigitalAssets.size,
       validDigitalAssetsCount: validDigitalAssets.size,
       invalidDigitalAssetsCount: invalidDigitalAssets.size,
@@ -61,8 +78,7 @@ processor.run(new TypeormDatabase(), async (context) => {
   );
   context.log.info(
     JSON.stringify({
-      message: 'Validating NFTs.',
-      nftsCount: nfts.size,
+      message: 'Populating NFTs.',
       verifiedNftsCount: verifiedNfts.length,
     }),
   );
@@ -105,37 +121,38 @@ processor.run(new TypeormDatabase(), async (context) => {
     lsp8TokenMetadataBaseUris,
   });
 
-  const mintTransferEvents = populatedTransfers.filter(
-    (event) => isAddressEqual(zeroAddress, getAddress(event.from)) && event.tokenId,
+  const populatedNftsWithoutFormattedTokenId = [...populatedNfts.values()].filter(
+    (nft) => !nft.formattedTokenId,
   );
-  if (mintTransferEvents.length > 0) {
+  if (populatedNftsWithoutFormattedTokenId.length > 0) {
     context.log.info(
       JSON.stringify({
-        message: 'Found new NFTs. Updating `formattedTokenId` for NFTs.',
+        message: 'Updating `formattedTokenId` for NFTs.',
       }),
     );
 
-    const lsp8TokenIdFormats = await context.store.findBy(LSP8TokenIdFormat, {
-      address: In([...new Set(mintTransferEvents.map(({ address }) => address))]),
-    });
+    const lsp8TokenIdFormats = [
+      ...(await context.store.findBy(LSP8TokenIdFormat, {
+        address: In([
+          ...new Set(populatedNftsWithoutFormattedTokenId.map(({ address }) => address)),
+        ]),
+      })),
+      ...populatedLsp8TokenIdFormats,
+    ];
 
-    for (const mintTransferEvent of mintTransferEvents) {
-      const { address, tokenId } = mintTransferEvent;
-
+    for (const nft of populatedNftsWithoutFormattedTokenId) {
       const latestLsp8TokenIdFormat = lsp8TokenIdFormats
-        .filter((lsp8TokenIdFormat) => lsp8TokenIdFormat.address === address)
+        .filter((lsp8TokenIdFormat) => lsp8TokenIdFormat.address === nft.address)
         .sort((a, b) => b.timestamp.valueOf() - a.timestamp.valueOf())[0];
 
       const lsp8TokenIdFormat = latestLsp8TokenIdFormat?.value || null;
-
-      const nft = populatedNfts.get(Utils.generateTokenId({ address, tokenId }));
 
       populatedNfts.set(
         nft.id,
         new NFT({
           ...nft,
-          formattedTokenId: isHex(tokenId)
-            ? Utils.formatTokenId({ tokenId, lsp8TokenIdFormat })
+          formattedTokenId: isHex(nft.tokenId)
+            ? Utils.formatTokenId({ tokenId: nft.tokenId, lsp8TokenIdFormat })
             : null,
         }),
       );
@@ -153,56 +170,49 @@ processor.run(new TypeormDatabase(), async (context) => {
       address: In([...new Set(populatedLsp8TokenIdFormats.map(({ address }) => address))]),
     });
 
-    for (const lsp8TokenIdFormat of populatedLsp8TokenIdFormats) {
-      for (const nft of nfts.filter((nft) => nft.address === lsp8TokenIdFormat.address)) {
-        const { tokenId } = nft;
+    for (const nft of nfts) {
+      if (!populatedNfts.has(nft.id)) {
+        populatedNfts.set(nft.id, nft);
+      }
+    }
 
-        if (!populatedNfts.has(nft.id)) {
-          populatedNfts.set(
-            nft.id,
-            new NFT({
-              ...populatedNfts.get(nft.id),
-              formattedTokenId: isHex(tokenId)
-                ? Utils.formatTokenId({
-                    tokenId,
-                    lsp8TokenIdFormat: lsp8TokenIdFormat.value,
-                  })
-                : null,
-            }),
-          );
-        } else {
-          populatedNfts.set(
-            nft.id,
-            new NFT({
-              ...nft,
-              formattedTokenId: isHex(tokenId)
-                ? Utils.formatTokenId({
-                    tokenId,
-                    lsp8TokenIdFormat: lsp8TokenIdFormat.value,
-                  })
-                : null,
-            }),
-          );
-        }
+    for (const lsp8TokenIdFormat of populatedLsp8TokenIdFormats) {
+      const nftsToUpdate = [...populatedNfts.values()].filter(
+        (nft) => nft.address === lsp8TokenIdFormat.address,
+      );
+
+      for (const nft of nftsToUpdate) {
+        populatedNfts.set(
+          nft.id,
+          new NFT({
+            ...nft,
+            formattedTokenId: isHex(nft.tokenId)
+              ? Utils.formatTokenId({
+                  tokenId: nft.tokenId,
+                  lsp8TokenIdFormat: lsp8TokenIdFormat.value,
+                })
+              : null,
+          }),
+        );
       }
     }
   }
 
   context.log.info(
     JSON.stringify({
-      message: 'Updating Universal Profiles.',
+      message: 'Saving Universal Profiles.',
       universalProfilesCount: newUniversalProfiles.size,
     }),
   );
   context.log.info(
     JSON.stringify({
-      message: 'Updating Digital Assets.',
+      message: 'Saving Digital Assets.',
       digitalAssetsCount: newDigitalAssets.size,
     }),
   );
   context.log.info(
     JSON.stringify({
-      message: 'Updating NFTs.',
+      message: 'Saving NFTs.',
       nftsCount: populatedNfts.size,
     }),
   );
