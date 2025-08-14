@@ -89,12 +89,6 @@ type Transfer @entity {
   nft: NFT @index
 }
 
-type EOA @entity {
-  address: ID! @index
-  ownedAssets: [OwnedAsset!]! @derivedFrom(field: "eoa")
-  ownedTokens: [OwnedToken!]! @derivedFrom(field: "eoa")
-}
-
 type UniversalProfile @entity {
   address: ID! @index
   lsp3Profile: [LSP3Profile!]! @derivedFrom(field: "universalProfile")
@@ -173,29 +167,34 @@ type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
   transfer: [Transfer!]! @derivedFrom(field: "nft")
 }
 
-type OwnedAsset @entity @index(fields: ["digitalAsset", "ownerAddress"]) {
+type OwnedAsset @entity @index(fields: ["address", "owner"]) {
   id: ID! @unique
-  address: String! @index
+  block: Int! @index
+  timestamp: DateTime! @index
   balance: BigInt! @index
-  digitalAsset: DigitalAsset! @index
-  ownerAddress: String! @index
-  eoa: EOA! @index
-  universalProfile: UniversalProfile! @index
+  address: String! @index
+  owner: String! @index
+
+  digitalAsset: DigitalAsset @index
+  universalProfile: UniversalProfile @index
+
   # LSP8 properties
   tokenIds: [OwnedToken!] @derivedFrom(field: "ownedAsset")
-  # CHILL properties
-  claimedBalance: BigInt
 }
 
-type OwnedToken @entity @index(fields: ["nft", "digitalAsset", "ownerAddress"]) {
+type OwnedToken @entity @index(fields: ["address", "tokenId", "owner"]) {
   id: ID! @unique
-  nft: NFT! @index
+  block: Int! @index
+  timestamp: DateTime! @index
+  tokenId: String! @index
   address: String! @index
-  digitalAsset: DigitalAsset! @index
-  ownerAddress: String! @index
-  eoa: EOA! @index
-  universalProfile: UniversalProfile! @index
-  ownedAsset: OwnedAsset! @index
+  owner: String! @index
+
+  nft: NFT @index
+  digitalAsset: DigitalAsset @index
+  universalProfile: UniversalProfile @index
+
+  ownedAsset: OwnedAsset @index
 }
 
 type LSP4TokenName @entity {

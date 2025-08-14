@@ -33,14 +33,7 @@ import {
 } from '@chillwhales/sqd-typeorm';
 import ERC725 from '@erc725/erc725.js';
 import { Verification } from '@lukso/lsp2-contracts';
-import {
-  AssetMetadata,
-  ContractAsset,
-  FileAsset,
-  ImageMetadata,
-  LinkMetadata,
-  LSP3ProfileMetadataJSON,
-} from '@lukso/lsp3-contracts';
+import { FileAsset, ImageMetadata, LSP3ProfileMetadataJSON } from '@lukso/lsp3-contracts';
 import { LSP4DigitalAssetMetadataJSON } from '@lukso/lsp4-contracts';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
@@ -58,6 +51,22 @@ import * as UniversalReceiverUtils from './universalReceiver';
 
 export function generateTokenId({ address, tokenId }: { address: string; tokenId: string }) {
   return `${address} - ${tokenId}`;
+}
+
+export function generateOwnedAssetId({ owner, address }: { owner: string; address: string }) {
+  return `${owner} - ${address}`;
+}
+
+export function generateOwnedTokenId({
+  owner,
+  address,
+  tokenId,
+}: {
+  owner: string;
+  address: string;
+  tokenId: string;
+}) {
+  return `${owner} - ${address} - ${tokenId}`;
 }
 
 export function decodeOperationType(operationType: bigint) {
@@ -96,8 +105,6 @@ export function decodeTokenIdFormat(tokenIdFormat: number) {
           : null;
 }
 
-export const isLinkMetadata = (obj: object): obj is LinkMetadata => 'title' in obj && 'url' in obj;
-
 export const isVerification = (obj: object): obj is Verification =>
   'method' in obj &&
   typeof obj.method === 'string' &&
@@ -106,11 +113,6 @@ export const isVerification = (obj: object): obj is Verification =>
 
 export const isFileAsset = (obj: object): obj is FileAsset => 'url' in obj;
 
-export const isContractAsset = (obj: object): obj is ContractAsset => 'address' in obj;
-
-export const isAssetMetadata = (obj: object): obj is AssetMetadata =>
-  isFileAsset(obj) || isContractAsset(obj);
-
 export const isFileImage = (obj: object): obj is ImageMetadata =>
   'url' in obj &&
   typeof obj.url === 'string' &&
@@ -118,39 +120,6 @@ export const isFileImage = (obj: object): obj is ImageMetadata =>
   typeof obj.width === 'number' &&
   'height' in obj &&
   typeof obj.height === 'number';
-
-export const isContractImage = (obj: object): obj is ContractAsset => 'address' in obj;
-
-export const isImageMetadata = (obj: object): obj is ImageMetadata | ContractAsset =>
-  isFileImage(obj) || isContractImage(obj);
-
-export const isLsp3Profile = (obj: object): obj is LSP3ProfileMetadataJSON =>
-  'LSP3Profile' in obj &&
-  typeof obj.LSP3Profile === 'object' &&
-  'name' in obj.LSP3Profile &&
-  typeof obj.LSP3Profile.name === 'string' &&
-  'description' in obj.LSP3Profile &&
-  typeof obj.LSP3Profile.description === 'string';
-
-export const isLsp4Metadata = (obj: object): obj is LSP4DigitalAssetMetadataJSON =>
-  'LSP4Metadata' in obj &&
-  typeof obj.LSP4Metadata === 'object' &&
-  'name' in obj.LSP4Metadata &&
-  typeof obj.LSP4Metadata.name === 'string' &&
-  'description' in obj.LSP4Metadata &&
-  typeof obj.LSP4Metadata.description === 'string' &&
-  'links' in obj.LSP4Metadata &&
-  Array.isArray(obj.LSP4Metadata.links) &&
-  obj.LSP4Metadata.links.every(isLinkMetadata) &&
-  'images' in obj.LSP4Metadata &&
-  Array.isArray(obj.LSP4Metadata.images) &&
-  obj.LSP4Metadata.images.every(isImageMetadata) &&
-  'assets' in obj.LSP4Metadata &&
-  Array.isArray(obj.LSP4Metadata.assets) &&
-  obj.LSP4Metadata.images.every(isAssetMetadata) &&
-  'icon' in obj.LSP4Metadata &&
-  Array.isArray(obj.LSP4Metadata.icon) &&
-  obj.LSP4Metadata.images.every(isImageMetadata);
 
 export function decodeVerifiableUri(dataValue: string): {
   value: string | null;

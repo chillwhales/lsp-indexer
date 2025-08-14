@@ -95,6 +95,7 @@ export async function verify({ context, digitalAssets }: VerifyParams): Promise<
     unverifiedDigitalAssets.forEach((address, index) =>
       result[index].success &&
       isHex(result[index].returnData) &&
+      result[index].returnData !== '0x' &&
       hexToBool(result[index].returnData)
         ? newDigitalAssets.set(address, new DigitalAsset({ id: address, address }))
         : null,

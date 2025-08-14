@@ -135,19 +135,26 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
         }
 
         case LSP7DigitalAsset.events.Transfer.topic: {
-          digitalAssets.add(log.address);
           const transferEvent = Utils.Transfer.extract(extractParams);
           transferEvents.push(transferEvent);
+
+          digitalAssets.add(transferEvent.address);
+          universalProfiles.add(transferEvent.from);
+          universalProfiles.add(transferEvent.to);
 
           break;
         }
 
         case LSP8IdentifiableDigitalAsset.events.Transfer.topic: {
-          digitalAssets.add(log.address);
-          transferEvents.push(Utils.Transfer.extract(extractParams));
+          const transferEvent = Utils.Transfer.extract(extractParams);
+          transferEvents.push(transferEvent);
 
           const nft = Utils.Transfer.NFT.extract(extractParams);
           if (nft !== null) nfts.set(nft.id, nft);
+
+          digitalAssets.add(transferEvent.address);
+          universalProfiles.add(transferEvent.from);
+          universalProfiles.add(transferEvent.to);
 
           break;
         }

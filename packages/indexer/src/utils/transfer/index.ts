@@ -84,3 +84,5 @@ export function populate({
 }
 
 export * as NFT from './nft';
+export * as OwnedAsset from './ownedAsset';
+export * as OwnedToken from './ownedToken';

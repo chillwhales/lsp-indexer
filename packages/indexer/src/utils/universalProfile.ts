@@ -78,14 +78,14 @@ export async function verify({ context, universalProfiles }: VerifyParams): Prom
       await Utils.timeout(1000);
     }
 
-    unverifiedUniversalProfiles.forEach((address, index) => {
-      if (
-        result[index].success &&
-        isHex(result[index].returnData) &&
-        hexToBool(result[index].returnData)
-      )
-        newUniversalProfiles.set(address, new UniversalProfile({ id: address, address }));
-    });
+    unverifiedUniversalProfiles.forEach((address, index) =>
+      result[index].success &&
+      isHex(result[index].returnData) &&
+      result[index].returnData !== '0x' &&
+      hexToBool(result[index].returnData)
+        ? newUniversalProfiles.set(address, new UniversalProfile({ id: address, address }))
+        : null,
+    );
 
     unverifiedUniversalProfiles = unverifiedUniversalProfiles.filter(
       (address) => !newUniversalProfiles.has(address),
