@@ -67,6 +67,7 @@ services:
       - HASURA_GRAPHQL_DEV_MODE
       - HASURA_GRAPHQL_ENABLED_LOG_TYPES
       - HASURA_GRAPHQL_METADATA_DEFAULTS
+      - HASURA_GRAPHQL_UNAUTHORIZED_ROLE
     depends_on:
       postgres:
         condition: service_healthy
