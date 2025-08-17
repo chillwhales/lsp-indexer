@@ -2,18 +2,20 @@ import { ExtractParams } from '@/types';
 import { generateTokenId } from '@/utils';
 import { LSP8IdentifiableDigitalAsset } from '@chillwhales/sqd-abi';
 import { DigitalAsset, NFT, TokenIdDataChanged } from '@chillwhales/sqd-typeorm';
+import { v4 as uuidv4 } from 'uuid';
 
 export function extract({ block, log }: ExtractParams): TokenIdDataChanged {
   const { timestamp, height } = block.header;
-  const { address, logIndex } = log;
+  const { address, logIndex, transactionIndex } = log;
   const { tokenId, dataKey, dataValue } =
     LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.decode(log);
 
   return new TokenIdDataChanged({
-    id: log.id,
+    id: uuidv4(),
     timestamp: new Date(timestamp),
     blockNumber: height,
     logIndex,
+    transactionIndex,
     address,
     tokenId,
     dataKey,

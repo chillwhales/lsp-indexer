@@ -3,6 +3,7 @@ import {
   DataChanged,
   DigitalAsset,
   Executed,
+  Follow,
   LSP3Asset,
   LSP3BackgroundImage,
   LSP3Link,
@@ -28,6 +29,7 @@ import {
   OperationType,
   TokenIdDataChanged,
   Transfer,
+  Unfollow,
   UniversalProfile,
   UniversalReceiver,
 } from '@chillwhales/sqd-typeorm';
@@ -43,9 +45,11 @@ import { bytesToHex, Hex, hexToBytes, hexToNumber, hexToString, isHex, sliceHex 
 import * as DataChangedUtils from './dataChanged';
 import * as DigitalAssetUtils from './digitalAsset';
 import * as ExecutedUtils from './executed';
+import * as FollowUtils from './follow';
 import * as NFTUtils from './nft';
 import * as TokenIdDataChangedUtils from './tokenIdDataChanged';
 import * as TransferUtils from './transfer';
+import * as UnfollowUtils from './unfollow';
 import * as UniversalProfileUtils from './universalProfile';
 import * as UniversalReceiverUtils from './universalReceiver';
 
@@ -67,6 +71,16 @@ export function generateOwnedTokenId({
   tokenId: string;
 }) {
   return `${owner} - ${address} - ${tokenId}`;
+}
+
+export function generateFollowId({
+  followerAddress,
+  followedAddress,
+}: {
+  followerAddress: string;
+  followedAddress: string;
+}) {
+  return `${followerAddress} - ${followedAddress}`;
 }
 
 export function decodeOperationType(operationType: bigint) {
@@ -510,6 +524,8 @@ interface PopulateAllParams {
   universalReceiverEvents: UniversalReceiver[];
   transferEvents: Transfer[];
   tokenIdDataChangedEvents: TokenIdDataChanged[];
+  followEvents: Follow[];
+  unfollowEvents: Unfollow[];
   lsp3ProfileUrls: LSP3ProfileUrl[];
   lsp4MetadataUrls: LSP4MetadataUrl[];
   lsp4TokenNames: LSP4TokenName[];
@@ -529,6 +545,8 @@ export function populateAll({
   universalReceiverEvents,
   transferEvents,
   tokenIdDataChangedEvents,
+  followEvents,
+  unfollowEvents,
   lsp3ProfileUrls,
   lsp4MetadataUrls,
   lsp4TokenNames,
@@ -565,6 +583,10 @@ export function populateAll({
     tokenIdDataChangedEvents,
     validDigitalAssets,
   });
+  /// event Follow(address,address);
+  const populatedFollows = FollowUtils.populate({ followEvents, validUniversalProfiles });
+  /// event Unfollow(address,address);
+  const populatedUnfollows = UnfollowUtils.populate({ unfollowEvents, validUniversalProfiles });
 
   // DataKeys
   /// LSP3ProfileUrl
@@ -625,6 +647,8 @@ export function populateAll({
       populatedUniversalReceivers,
       populatedTransfers,
       populatedTokenIdDataChangeds,
+      populatedFollows,
+      populatedUnfollows,
     },
     dataKeys: {
       populatedLsp3ProfileUrls,
@@ -669,10 +693,12 @@ export * as ChillClaimed from './chillClaimed';
 export * as DataChanged from './dataChanged';
 export * as DigitalAsset from './digitalAsset';
 export * as Executed from './executed';
+export * as Follow from './follow';
 export * as Multicall3 from './multicall3';
 export * as NFT from './nft';
 export * as OrbsClaimed from './orbsClaimed';
 export * as TokenIdDataChanged from './tokenIdDataChanged';
 export * as Transfer from './transfer';
+export * as Unfollow from './unfollow';
 export * as UniversalProfile from './universalProfile';
 export * as UniversalReceiver from './universalReceiver';

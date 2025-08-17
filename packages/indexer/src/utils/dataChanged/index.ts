@@ -1,17 +1,19 @@
 import { ExtractParams } from '@/types';
 import { ERC725Y } from '@chillwhales/sqd-abi';
 import { DataChanged, DigitalAsset, UniversalProfile } from '@chillwhales/sqd-typeorm';
+import { v4 as uuidv4 } from 'uuid';
 
 export function extract({ block, log }: ExtractParams): DataChanged {
   const { timestamp, height } = block.header;
-  const { address, logIndex } = log;
+  const { address, logIndex, transactionIndex } = log;
   const { dataKey, dataValue } = ERC725Y.events.DataChanged.decode(log);
 
   return new DataChanged({
-    id: log.id,
+    id: uuidv4(),
     timestamp: new Date(timestamp),
     blockNumber: height,
     logIndex,
+    transactionIndex,
     address,
     dataKey,
     dataValue,

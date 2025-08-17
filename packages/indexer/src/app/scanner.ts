@@ -4,12 +4,14 @@ import {
   ERC725X,
   ERC725Y,
   LSP0ERC725Account,
+  LSP26FollowerSystem,
   LSP7DigitalAsset,
   LSP8IdentifiableDigitalAsset,
 } from '@chillwhales/sqd-abi';
 import {
   DataChanged,
   Executed,
+  Follow,
   LSP3ProfileUrl,
   LSP4MetadataUrl,
   LSP4TokenName,
@@ -21,6 +23,7 @@ import {
   NFT,
   TokenIdDataChanged,
   Transfer,
+  Unfollow,
   UniversalReceiver,
 } from '@chillwhales/sqd-typeorm';
 import { LSP3DataKeys } from '@lukso/lsp3-contracts';
@@ -50,6 +53,8 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
   const universalReceiverEvents: UniversalReceiver[] = [];
   const transferEvents: Transfer[] = [];
   const tokenIdDataChangedEvents: TokenIdDataChanged[] = [];
+  const followEvents: Follow[] = [];
+  const unfollowEvents: Unfollow[] = [];
 
   const lsp3ProfileUrls: LSP3ProfileUrl[] = [];
   const lsp4TokenNames: LSP4TokenName[] = [];
@@ -178,6 +183,16 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
 
           break;
         }
+
+        case LSP26FollowerSystem.events.Follow.topic: {
+          followEvents.push(Utils.Follow.extract(extractParams));
+          break;
+        }
+
+        case LSP26FollowerSystem.events.Unfollow.topic: {
+          unfollowEvents.push(Utils.Unfollow.extract(extractParams));
+          break;
+        }
       }
     }
   }
@@ -221,6 +236,8 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
       universalReceiverEvents,
       transferEvents,
       tokenIdDataChangedEvents,
+      followEvents,
+      unfollowEvents,
     },
     dataKeys: {
       lsp3ProfileUrls,

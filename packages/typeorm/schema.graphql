@@ -24,6 +24,7 @@ type Executed @entity {
   timestamp: DateTime! @index
   blockNumber: Int! @index
   logIndex: Int! @index
+  transactionIndex: Int! @index
   address: String! @index
   decodedOperationType: OperationType! @index
   operationType: BigInt! @index
@@ -38,6 +39,7 @@ type UniversalReceiver @entity {
   timestamp: DateTime! @index
   blockNumber: Int! @index
   logIndex: Int! @index
+  transactionIndex: Int! @index
   address: String! @index
   from: String! @index
   value: BigInt! @index
@@ -47,11 +49,38 @@ type UniversalReceiver @entity {
   universalProfile: UniversalProfile! @index
 }
 
+type Follow @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  blockNumber: Int! @index
+  logIndex: Int! @index
+  transactionIndex: Int! @index
+  address: String! @index
+  followerAddress: String! @index
+  followedAddress: String! @index
+  followerUniversalProfile: UniversalProfile! @index
+  followedUniversalProfile: UniversalProfile! @index
+}
+
+type Unfollow @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  blockNumber: Int! @index
+  logIndex: Int! @index
+  transactionIndex: Int! @index
+  address: String! @index
+  followerAddress: String! @index
+  unfollowedAddress: String! @index
+  followerUniversalProfile: UniversalProfile! @index
+  unfollowedUniversalProfile: UniversalProfile! @index
+}
+
 type DataChanged @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
   logIndex: Int! @index
+  transactionIndex: Int! @index
   address: String! @index
   dataKey: String! @index
   dataValue: String!
@@ -64,6 +93,7 @@ type TokenIdDataChanged @entity {
   timestamp: DateTime! @index
   blockNumber: Int! @index
   logIndex: Int! @index
+  transactionIndex: Int! @index
   tokenId: String! @index
   address: String! @index
   dataKey: String! @index
@@ -77,6 +107,7 @@ type Transfer @entity {
   timestamp: DateTime! @index
   blockNumber: Int! @index
   logIndex: Int! @index
+  transactionIndex: Int! @index
   address: String! @index
   operator: String! @index
   from: String! @index

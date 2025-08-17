@@ -2,17 +2,19 @@ import { ExtractParams } from '@/types';
 import { decodeOperationType } from '@/utils';
 import { ERC725X } from '@chillwhales/sqd-abi';
 import { Executed, UniversalProfile } from '@chillwhales/sqd-typeorm';
+import { v4 as uuidv4 } from 'uuid';
 
 export function extract({ block, log }: ExtractParams): Executed {
   const { timestamp, height } = block.header;
-  const { address, logIndex } = log;
+  const { address, logIndex, transactionIndex } = log;
   const { operationType, value, target, selector } = ERC725X.events.Executed.decode(log);
 
   return new Executed({
-    id: log.id,
+    id: uuidv4(),
     timestamp: new Date(timestamp),
     blockNumber: height,
     logIndex,
+    transactionIndex,
     address,
     decodedOperationType: decodeOperationType(operationType),
     operationType,

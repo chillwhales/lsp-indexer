@@ -3,11 +3,13 @@ import { CHILL_ADDRESS, ORBS_ADDRESS } from '@/constants';
 import * as Utils from '@/utils';
 import {
   ChillClaimed,
+  Follow,
   LSP8TokenIdFormat,
   NFT,
   OrbsClaimed,
   OwnedAsset,
   OwnedToken,
+  Unfollow,
 } from '@chillwhales/sqd-typeorm';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
@@ -24,6 +26,8 @@ processor.run(new TypeormDatabase(), async (context) => {
       universalReceiverEvents,
       transferEvents,
       tokenIdDataChangedEvents,
+      followEvents,
+      unfollowEvents,
     },
     dataKeys: {
       lsp3ProfileUrls,
@@ -98,6 +102,8 @@ processor.run(new TypeormDatabase(), async (context) => {
       populatedUniversalReceivers,
       populatedTransfers,
       populatedTokenIdDataChangeds,
+      populatedFollows,
+      populatedUnfollows,
     },
     dataKeys: {
       populatedLsp3ProfileUrls,
@@ -118,6 +124,8 @@ processor.run(new TypeormDatabase(), async (context) => {
     universalReceiverEvents,
     transferEvents,
     tokenIdDataChangedEvents,
+    followEvents,
+    unfollowEvents,
     lsp3ProfileUrls,
     lsp4MetadataUrls,
     lsp4TokenNames,
@@ -233,24 +241,26 @@ processor.run(new TypeormDatabase(), async (context) => {
   context.log.info(
     JSON.stringify({
       message: 'Inserting new Events.',
-      populatedExecutesCount: populatedExecutes.length,
-      populatedDataChangedsCount: populatedDataChangeds.length,
-      populatedUniversalReceiversCount: populatedUniversalReceivers.length,
-      populatedTransfersCount: populatedTransfers.length,
-      populatedTokenIdDataChangedsCount: populatedTokenIdDataChangeds.length,
+      ExecuteCount: populatedExecutes.length,
+      DataChangedCount: populatedDataChangeds.length,
+      UniversalReceiverCount: populatedUniversalReceivers.length,
+      TransferCount: populatedTransfers.length,
+      TokenIdDataChangedCount: populatedTokenIdDataChangeds.length,
+      FollowCount: populatedFollows.length,
+      UnfollowCount: populatedUnfollows.length,
     }),
   );
   context.log.info(
     JSON.stringify({
       message: 'Inserting new ERC725 Data Keys.',
-      populatedLsp3ProfileUrlsCount: populatedLsp3ProfileUrls.length,
-      populatedLsp4MetadataUrlsCount: populatedLsp4MetadataUrls.length,
-      populatedLsp4TokenNamesCount: populatedLsp4TokenNames.length,
-      populatedLsp4TokenSymbolsCount: populatedLsp4TokenSymbols.length,
-      populatedLsp4TokenTypesCount: populatedLsp4TokenTypes.length,
-      populatedLsp8ReferenceContractsCount: populatedLsp8ReferenceContracts.length,
-      populatedLsp8TokenIdFormatsCount: populatedLsp8TokenIdFormats.length,
-      populatedLsp8TokenMetadataBaseUrisCount: populatedLsp8TokenMetadataBaseUris.length,
+      LSP3ProfileUrlCount: populatedLsp3ProfileUrls.length,
+      LSP4MetadataUrlCount: populatedLsp4MetadataUrls.length,
+      LSP4TokenNameCount: populatedLsp4TokenNames.length,
+      LSP4TokenSymbolCount: populatedLsp4TokenSymbols.length,
+      LSP4TokenTypeCount: populatedLsp4TokenTypes.length,
+      LSP8ReferenceContractCount: populatedLsp8ReferenceContracts.length,
+      LSP8TokenIdFormatCount: populatedLsp8TokenIdFormats.length,
+      LSP8TokenMetadataBaseURICount: populatedLsp8TokenMetadataBaseUris.length,
     }),
   );
 
@@ -267,6 +277,10 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.insert(populatedTransfers),
     /// event TokenIdDataChanged(bytes32,bytes32,bytes);
     context.store.insert(populatedTokenIdDataChangeds),
+    /// event Follow(address,address);
+    context.store.insert(populatedFollows),
+    /// event Unfollow(address,address);
+    context.store.insert(populatedUnfollows),
 
     // Save tracked starndardized DataKeys
     /// LSP3ProfileUrl
@@ -470,6 +484,58 @@ processor.run(new TypeormDatabase(), async (context) => {
 
     await context.store.remove(ownedTokensToDelete);
     await context.store.remove(ownedAssetsToDelete);
+  }
+
+  if (populatedFollows.length > 0) {
+    context.log.info(
+      JSON.stringify({
+        message: 'Follow events found. Adding new identifiable Follow entities.',
+        unfollowsCount: populatedUnfollows.length,
+      }),
+    );
+
+    const identifiableFollowsMap = new Map(
+      populatedFollows.map((follow) => {
+        const id = Utils.generateFollowId({
+          followerAddress: follow.followerAddress,
+          followedAddress: follow.followedAddress,
+        });
+        return [
+          id,
+          new Follow({
+            ...follow,
+            id,
+          }),
+        ];
+      }),
+    );
+    await context.store.upsert([...identifiableFollowsMap.values()]);
+  }
+
+  if (populatedUnfollows.length > 0) {
+    context.log.info(
+      JSON.stringify({
+        message: 'Unfollow events found. Removing identifiable Follow entities.',
+        unfollowsCount: populatedUnfollows.length,
+      }),
+    );
+
+    const identifiableUnfollowsMap = new Map(
+      populatedUnfollows.map((unfollow) => {
+        const id = Utils.generateFollowId({
+          followerAddress: unfollow.followerAddress,
+          followedAddress: unfollow.unfollowedAddress,
+        });
+        return [
+          id,
+          new Unfollow({
+            ...unfollow,
+            id,
+          }),
+        ];
+      }),
+    );
+    await context.store.remove([...identifiableUnfollowsMap.values()]);
   }
 
   if (context.isHead) {

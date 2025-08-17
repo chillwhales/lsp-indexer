@@ -1,11 +1,12 @@
 import { ExtractParams } from '@/types';
 import { LSP7DigitalAsset, LSP8IdentifiableDigitalAsset } from '@chillwhales/sqd-abi';
 import { DigitalAsset, NFT, Transfer } from '@chillwhales/sqd-typeorm';
+import { v4 as uuidv4 } from 'uuid';
 import { generateTokenId } from '..';
 
 export function extract({ block, log }: ExtractParams): Transfer {
   const { timestamp, height } = block.header;
-  const { address, logIndex } = log;
+  const { address, logIndex, transactionIndex } = log;
 
   switch (log.topics[0]) {
     case LSP7DigitalAsset.events.Transfer.topic: {
@@ -13,10 +14,11 @@ export function extract({ block, log }: ExtractParams): Transfer {
         LSP7DigitalAsset.events.Transfer.decode(log);
 
       return new Transfer({
-        id: log.id,
+        id: uuidv4(),
         timestamp: new Date(timestamp),
         blockNumber: height,
         logIndex,
+        transactionIndex,
         address,
         operator,
         from,
@@ -32,10 +34,11 @@ export function extract({ block, log }: ExtractParams): Transfer {
         LSP8IdentifiableDigitalAsset.events.Transfer.decode(log);
 
       return new Transfer({
-        id: log.id,
+        id: uuidv4(),
         timestamp: new Date(timestamp),
         blockNumber: height,
         logIndex,
+        transactionIndex,
         address,
         operator,
         from,
