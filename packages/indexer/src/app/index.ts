@@ -480,17 +480,16 @@ processor.run(new TypeormDatabase(), async (context) => {
     );
 
     await context.store.upsert(ownedAssetsToSave);
-    await context.store.upsert(ownedTokensToSave);
-
     await context.store.remove(ownedTokensToDelete);
     await context.store.remove(ownedAssetsToDelete);
+    await context.store.upsert(ownedTokensToSave);
   }
 
   if (populatedFollows.length > 0) {
     context.log.info(
       JSON.stringify({
         message: 'Follow events found. Adding new identifiable Follow entities.',
-        unfollowsCount: populatedUnfollows.length,
+        followsCount: populatedFollows.length,
       }),
     );
 

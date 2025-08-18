@@ -141,6 +141,8 @@ type DigitalAsset @entity {
   lsp4TokenType: [LSP4TokenType!]! @derivedFrom(field: "digitalAsset")
   lsp4Metadata: [LSP4Metadata!]! @derivedFrom(field: "digitalAsset")
   lsp4MetadataUrl: [LSP4MetadataUrl!]! @derivedFrom(field: "digitalAsset")
+  ownedAssets: [OwnedAsset!]! @derivedFrom(field: "digitalAsset")
+  ownedTokens: [OwnedToken!]! @derivedFrom(field: "digitalAsset")
 
   # LSP7 properties
   decimals: [Decimals!]! @derivedFrom(field: "digitalAsset")
@@ -183,6 +185,7 @@ type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
   lsp4MetadataUrl: [LSP4MetadataUrl!]! @derivedFrom(field: "nft")
   isMinted: Boolean! @index
   isBurned: Boolean! @index
+  ownedToken: OwnedToken @derivedFrom(field: "nft")
 
   # chillwhales properties
   chillClaimed: ChillClaimed @derivedFrom(field: "nft")
@@ -221,7 +224,7 @@ type OwnedToken @entity @index(fields: ["address", "tokenId", "owner"]) {
   address: String! @index
   owner: String! @index
 
-  nft: NFT @index
+  nft: NFT @index @unique
   digitalAsset: DigitalAsset @index
   universalProfile: UniversalProfile @index
 

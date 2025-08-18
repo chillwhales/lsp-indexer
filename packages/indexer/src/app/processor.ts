@@ -3,6 +3,7 @@ import {
   ERC725X,
   ERC725Y,
   LSP0ERC725Account,
+  LSP26FollowerSystem,
   LSP7DigitalAsset,
   LSP8IdentifiableDigitalAsset,
 } from '@chillwhales/sqd-abi';
@@ -38,5 +39,7 @@ export const processor: Processor = new EvmBatchProcessor()
       LSP7DigitalAsset.events.Transfer.topic,
       LSP8IdentifiableDigitalAsset.events.Transfer.topic,
       LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.topic,
+      LSP26FollowerSystem.events.Follow.topic,
+      LSP26FollowerSystem.events.Unfollow.topic,
     ],
   });

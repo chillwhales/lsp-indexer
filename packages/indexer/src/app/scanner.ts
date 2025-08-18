@@ -185,12 +185,20 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
         }
 
         case LSP26FollowerSystem.events.Follow.topic: {
-          followEvents.push(Utils.Follow.extract(extractParams));
+          const followEvent = Utils.Follow.extract(extractParams);
+          followEvents.push(followEvent);
+
+          universalProfiles.add(followEvent.followerAddress);
+          universalProfiles.add(followEvent.followedAddress);
           break;
         }
 
         case LSP26FollowerSystem.events.Unfollow.topic: {
-          unfollowEvents.push(Utils.Unfollow.extract(extractParams));
+          const unfollowEvent = Utils.Unfollow.extract(extractParams);
+          unfollowEvents.push(unfollowEvent);
+
+          universalProfiles.add(unfollowEvent.followerAddress);
+          universalProfiles.add(unfollowEvent.unfollowedAddress);
           break;
         }
       }
