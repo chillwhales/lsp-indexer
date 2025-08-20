@@ -3,7 +3,7 @@ import { LSP26FollowerSystem } from '@chillwhales/sqd-abi';
 import { Follow, UniversalProfile } from '@chillwhales/sqd-typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
-export function extract({ block, log }: ExtractParams): Follow {
+export function extract({ block, log, context }: ExtractParams): Follow {
   const { timestamp, height } = block.header;
   const { address, logIndex, transactionIndex } = log;
   const { addr, follower } = LSP26FollowerSystem.events.Follow.decode(log);

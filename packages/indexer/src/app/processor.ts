@@ -39,7 +39,10 @@ export const processor: Processor = new EvmBatchProcessor()
       LSP7DigitalAsset.events.Transfer.topic,
       LSP8IdentifiableDigitalAsset.events.Transfer.topic,
       LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.topic,
-      LSP26FollowerSystem.events.Follow.topic,
-      LSP26FollowerSystem.events.Unfollow.topic,
     ],
+  })
+  .addLog({
+    address: ['0xf01103E5a9909Fc0DBe8166dA7085e0285daDDcA'],
+    range: { from: 3179471 },
+    topic0: [LSP26FollowerSystem.events.Follow.topic, LSP26FollowerSystem.events.Unfollow.topic],
   });

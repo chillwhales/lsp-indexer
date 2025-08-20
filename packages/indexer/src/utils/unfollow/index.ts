@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 export function extract({ block, log }: ExtractParams): Unfollow {
   const { timestamp, height } = block.header;
   const { address, logIndex, transactionIndex } = log;
-  const { addr, follower } = LSP26FollowerSystem.events.Follow.decode(log);
+  const { addr, unfollower } = LSP26FollowerSystem.events.Unfollow.decode(log);
 
   return new Unfollow({
     id: uuidv4(),
@@ -15,7 +15,7 @@ export function extract({ block, log }: ExtractParams): Unfollow {
     logIndex,
     transactionIndex,
     address,
-    followerAddress: follower,
+    followerAddress: unfollower,
     unfollowedAddress: addr,
   });
 }
