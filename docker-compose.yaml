@@ -4,11 +4,10 @@ services:
       context: ./
       dockerfile: Dockerfile
     restart: unless-stopped
-    network_mode: service:tailscale
     depends_on:
       postgres:
         condition: service_healthy
-      graphql:
+      hasura:
         condition: service_healthy
     environment:
       - DB_URL
@@ -26,38 +25,16 @@ services:
       retries: 5
     volumes:
       - /mnt/sqd-indexer/postgres:/var/lib/postgresql/data
-    networks:
-      sqd_network:
-        ipv4_address: ${POSTGRES_STATIC_IP} # E.g. 172.50.0.1
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - POSTGRES_DB
 
-  pgadmin:
-    image: dpage/pgadmin4
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - /mnt/sqd-indexer/pgadmin:/var/lib/pgadmin
-    networks:
-      sqd_network:
-    ports:
-      - ${PGADMIN_PORT}:80
-    environment:
-      - PGADMIN_DEFAULT_EMAIL
-      - PGADMIN_DEFAULT_PASSWORD
-
-  graphql:
+  hasura:
     image: hasura/graphql-engine:v2.46.0
     ports:
       - ${HASURA_GRAPHQL_PORT}:8080
     restart: unless-stopped
-    networks:
-      sqd_network:
-        ipv4_address: ${GRAPHQL_STATIC_IP} # E.g. 172.50.0.2
     environment:
       - PG_DATABASE_URL
       - HASURA_GRAPHQL_DATABASE_URL
@@ -92,29 +69,3 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
-
-  tailscale:
-    image: tailscale/tailscale:latest
-    restart: unless-stopped
-    networks:
-      sqd_network:
-    environment:
-      - TS_AUTHKEY
-      - TS_EXTRA_ARGS
-      - TS_STATE_DIR
-      - TS_USERSPACE
-      - TS_HOSTNAME
-      - TS_ACCEPT_DNS
-    volumes:
-      - /mnt/sqd-indexer/tailscale:/var/lib/tailscale
-      - /dev/net/tun:/dev/net/tun
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-
-networks:
-  sqd_network:
-    ipam:
-      driver: default
-      config:
-        - subnet: ${DOCKER_SUBNET}
