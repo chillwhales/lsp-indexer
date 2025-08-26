@@ -60,7 +60,7 @@ export async function verify({ context, digitalAssets }: VerifyParams): Promise<
 
     const result: Aggregate3StaticReturn = [];
     let batchIndex = 0;
-    const batchSize = 500;
+    const batchSize = 100;
     while (batchIndex * batchSize < unverifiedDigitalAssets.length) {
       const verifiedCount = batchIndex * batchSize;
       const unverifiedCount = unverifiedDigitalAssets.length - verifiedCount;

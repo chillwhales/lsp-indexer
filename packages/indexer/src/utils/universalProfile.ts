@@ -46,7 +46,7 @@ export async function verify({ context, universalProfiles }: VerifyParams): Prom
 
     const result: Aggregate3StaticReturn = [];
     let batchIndex = 0;
-    const batchSize = 500;
+    const batchSize = 100;
     while (batchIndex * batchSize < unverifiedUniversalProfiles.length) {
       const verifiedCount = batchIndex * batchSize;
       const unverifiedCount = unverifiedUniversalProfiles.length - verifiedCount;
