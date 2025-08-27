@@ -36,7 +36,7 @@ import {
 import ERC725 from '@erc725/erc725.js';
 import { Verification } from '@lukso/lsp2-contracts';
 import { FileAsset, ImageMetadata, LSP3ProfileMetadataJSON } from '@lukso/lsp3-contracts';
-import { LSP4DigitalAssetMetadataJSON } from '@lukso/lsp4-contracts';
+import { AttributeMetadata, LSP4DigitalAssetMetadataJSON } from '@lukso/lsp4-contracts';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import axios from 'axios';
@@ -424,14 +424,21 @@ export async function createLsp4Metadata({
       : [];
 
     const lsp4Attributes = json.LSP4Metadata.attributes
-      ? json.LSP4Metadata.attributes.map(
-          ({ key, value, type }) =>
+      ? (
+          json.LSP4Metadata.attributes as (AttributeMetadata & {
+            score?: number;
+            rarity?: number;
+          })[]
+        ).map(
+          ({ key, value, type, score, rarity }) =>
             new LSP4Attribute({
               id: uuidv4(),
               lsp4Metadata,
               key,
               value,
-              type: typeof type,
+              type: type.toString(),
+              score,
+              rarity,
             }),
         )
       : [];
@@ -495,7 +502,7 @@ export async function verifyAll({
   const [
     { newUniversalProfiles, validUniversalProfiles, invalidUniversalProfiles },
     { newDigitalAssets, validDigitalAssets, invalidDigitalAssets },
-    verifiedNfts,
+    { newNfts, validNfts },
   ] = await Promise.all([
     UniversalProfileUtils.verify({
       context,
@@ -511,14 +518,14 @@ export async function verifyAll({
   return {
     universalProfiles: { newUniversalProfiles, validUniversalProfiles, invalidUniversalProfiles },
     digitalAssets: { newDigitalAssets, validDigitalAssets, invalidDigitalAssets },
-    verifiedNfts,
+    nfts: { newNfts, validNfts },
   };
 }
 
 interface PopulateAllParams {
   validUniversalProfiles: Map<string, UniversalProfile>;
   validDigitalAssets: Map<string, DigitalAsset>;
-  verifiedNfts: NFT[];
+  newNfts: Map<string, NFT>;
   executedEvents: Executed[];
   dataChangedEvents: DataChanged[];
   universalReceiverEvents: UniversalReceiver[];
@@ -539,7 +546,7 @@ interface PopulateAllParams {
 export function populateAll({
   validUniversalProfiles,
   validDigitalAssets,
-  verifiedNfts,
+  newNfts,
   executedEvents,
   dataChangedEvents,
   universalReceiverEvents,
@@ -556,7 +563,7 @@ export function populateAll({
   lsp8TokenIdFormats,
   lsp8TokenMetadataBaseUris,
 }: PopulateAllParams) {
-  const populatedNfts = NFTUtils.populate({ entities: verifiedNfts, validDigitalAssets });
+  const populatedNfts = NFTUtils.populate({ entities: [...newNfts.values()], validDigitalAssets });
 
   // Events
   /// event Executed(uint256,address,uint256,bytes4);

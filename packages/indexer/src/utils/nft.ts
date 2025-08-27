@@ -8,19 +8,40 @@ interface VerifyParams {
   nfts: Map<string, NFT>;
 }
 
-export async function verify({ context, nfts }: VerifyParams): Promise<NFT[]> {
+export async function verify({ context, nfts }: VerifyParams): Promise<{
+  newNfts: Map<string, NFT>;
+  validNfts: Map<string, NFT>;
+}> {
   const nftsArray = [...nfts.values()];
 
   const transferNfts = nftsArray.filter(({ isBurned, isMinted }) => isBurned || isMinted);
   const dataChangedNfts = nftsArray.filter(({ isBurned, isMinted }) => !isBurned && !isMinted);
 
-  if (dataChangedNfts.length === 0) return transferNfts;
+  if (dataChangedNfts.length === 0)
+    return {
+      newNfts: new Map(transferNfts.map((nft) => [nft.id, nft])),
+      validNfts: new Map(transferNfts.map((nft) => [nft.id, nft])),
+    };
 
   const knownNfts: Map<string, NFT> = await context.store
     .findBy(NFT, { id: In(dataChangedNfts) })
-    .then((ts) => new Map(ts.map((t) => [t.id, t])));
+    .then((nfts) => new Map(nfts.map((nft) => [nft.id, nft])));
 
-  return [...transferNfts, ...dataChangedNfts.filter(({ id }) => !knownNfts.has(id))];
+  return {
+    newNfts: new Map(
+      [...transferNfts, ...dataChangedNfts.filter(({ id }) => !knownNfts.has(id))].map((nft) => [
+        nft.id,
+        nft,
+      ]),
+    ),
+    validNfts: new Map(
+      [
+        ...transferNfts,
+        ...dataChangedNfts.filter(({ id }) => !knownNfts.has(id)),
+        ...knownNfts.values(),
+      ].map((nft) => [nft.id, nft]),
+    ),
+  };
 }
 
 export function populate({

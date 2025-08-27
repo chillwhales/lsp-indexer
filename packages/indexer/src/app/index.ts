@@ -3,13 +3,17 @@ import { CHILL_ADDRESS, ORBS_ADDRESS } from '@/constants';
 import * as Utils from '@/utils';
 import {
   ChillClaimed,
+  DigitalAsset,
   Follow,
+  LSP3Profile,
+  LSP4Metadata,
   LSP8TokenIdFormat,
   NFT,
   OrbsClaimed,
   OwnedAsset,
   OwnedToken,
   Unfollow,
+  UniversalProfile,
 } from '@chillwhales/sqd-typeorm';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
@@ -63,7 +67,7 @@ processor.run(new TypeormDatabase(), async (context) => {
   const {
     universalProfiles: { newUniversalProfiles, validUniversalProfiles, invalidUniversalProfiles },
     digitalAssets: { newDigitalAssets, validDigitalAssets, invalidDigitalAssets },
-    verifiedNfts,
+    nfts: { newNfts, validNfts },
   } = await Utils.verifyAll({
     context,
     universalProfiles,
@@ -90,7 +94,8 @@ processor.run(new TypeormDatabase(), async (context) => {
   context.log.info(
     JSON.stringify({
       message: 'Populating NFTs.',
-      verifiedNftsCount: verifiedNfts.length,
+      newNftsCount: newNfts.size,
+      validNftsCount: validNfts.size,
     }),
   );
 
@@ -118,7 +123,7 @@ processor.run(new TypeormDatabase(), async (context) => {
   } = Utils.populateAll({
     validUniversalProfiles,
     validDigitalAssets,
-    verifiedNfts,
+    newNfts,
     executedEvents,
     dataChangedEvents,
     universalReceiverEvents,
@@ -315,6 +320,19 @@ processor.run(new TypeormDatabase(), async (context) => {
       context.store.insert(lsp3Assets),
       context.store.insert(lsp3ProfileImages),
       context.store.insert(lsp3BackgroundImages),
+      context.store.upsert([
+        ...new Map(
+          lsp3Profiles
+            .filter(({ universalProfile }) => universalProfile)
+            .map(({ id, universalProfile }) => [
+              universalProfile.id,
+              new UniversalProfile({
+                ...validUniversalProfiles.get(universalProfile.id)!,
+                lsp3Profile: new LSP3Profile({ id }),
+              }),
+            ]),
+        ).values(),
+      ]),
     ]);
   }
 
@@ -326,6 +344,10 @@ processor.run(new TypeormDatabase(), async (context) => {
     const { lsp4Metadatas, lsp4Links, lsp4Assets, lsp4Icons, lsp4Images, lsp4Attributes } =
       await Utils.DataChanged.LSP4Metadata.extractFromUrl({ context, populatedLsp4MetadataUrls });
 
+    const knownNfts: Map<string, NFT> = await context.store
+      .findBy(NFT, { id: In(lsp4Metadatas.filter(({ nft }) => nft).map(({ nft }) => nft)) })
+      .then((nfts) => new Map(nfts.map((nft) => [nft.id, nft])));
+
     await context.store.insert(lsp4Metadatas);
     await Promise.all([
       context.store.insert(lsp4Links),
@@ -333,6 +355,47 @@ processor.run(new TypeormDatabase(), async (context) => {
       context.store.insert(lsp4Icons),
       context.store.insert(lsp4Images),
       context.store.insert(lsp4Attributes),
+      context.store.upsert([
+        ...new Map(
+          lsp4Metadatas
+            .filter(({ digitalAsset, nft }) => digitalAsset && !nft)
+            .map(({ id, digitalAsset }) => [
+              digitalAsset.id,
+              new DigitalAsset({
+                ...validDigitalAssets.get(digitalAsset.id)!,
+                lsp4Metadata: new LSP4Metadata({ id }),
+              }),
+            ]),
+        ).values(),
+      ]),
+      context.store.upsert([
+        ...new Map(
+          lsp4Metadatas
+            .filter(({ digitalAsset, nft }) => digitalAsset && nft)
+            .filter(({ nft }) => knownNfts.has(nft.id))
+            .map(({ id, nft }) => {
+              const attributes = lsp4Attributes.filter(
+                ({ lsp4Metadata }) => lsp4Metadata.id === id,
+              );
+              const scoreAttribute = attributes.find(({ key }) => key === 'Score');
+              const rankAttribute = attributes.find(({ key }) => key === 'Rank');
+
+              return [
+                nft.id,
+                new NFT({
+                  ...knownNfts.get(nft.id),
+                  lsp4Metadata: new LSP4Metadata({ id }),
+                  ...(scoreAttribute && {
+                    score: parseInt(scoreAttribute.value),
+                  }),
+                  ...(rankAttribute && {
+                    rank: parseInt(rankAttribute.value),
+                  }),
+                }),
+              ];
+            }),
+        ).values(),
+      ]),
     ]);
   }
 
@@ -347,6 +410,10 @@ processor.run(new TypeormDatabase(), async (context) => {
         populatedLsp8TokenMetadataBaseUris,
       });
 
+    const knownNfts: Map<string, NFT> = await context.store
+      .findBy(NFT, { id: In(lsp4Metadatas.filter(({ nft }) => nft).map(({ nft }) => nft)) })
+      .then((nfts) => new Map(nfts.map((nft) => [nft.id, nft])));
+
     await context.store.insert(lsp4Metadatas);
     await Promise.all([
       context.store.insert(lsp4Links),
@@ -354,6 +421,47 @@ processor.run(new TypeormDatabase(), async (context) => {
       context.store.insert(lsp4Icons),
       context.store.insert(lsp4Images),
       context.store.insert(lsp4Attributes),
+      context.store.upsert([
+        ...new Map(
+          lsp4Metadatas
+            .filter(({ digitalAsset, nft }) => digitalAsset && !nft)
+            .map(({ id, digitalAsset }) => [
+              digitalAsset.id,
+              new DigitalAsset({
+                ...validDigitalAssets.get(digitalAsset.id)!,
+                lsp4Metadata: new LSP4Metadata({ id }),
+              }),
+            ]),
+        ).values(),
+      ]),
+      context.store.upsert([
+        ...new Map(
+          lsp4Metadatas
+            .filter(({ digitalAsset, nft }) => digitalAsset && nft)
+            .filter(({ nft }) => knownNfts.has(nft.id))
+            .map(({ id, nft }) => {
+              const attributes = lsp4Attributes.filter(
+                ({ lsp4Metadata }) => lsp4Metadata.id === id,
+              );
+              const scoreAttribute = attributes.find(({ key }) => key === 'Score');
+              const rankAttribute = attributes.find(({ key }) => key === 'Rank');
+
+              return [
+                nft.id,
+                new NFT({
+                  ...knownNfts.get(nft.id),
+                  lsp4Metadata: new LSP4Metadata({ id }),
+                  ...(scoreAttribute && {
+                    score: parseInt(scoreAttribute.value),
+                  }),
+                  ...(rankAttribute && {
+                    rank: parseInt(rankAttribute.value),
+                  }),
+                }),
+              ];
+            }),
+        ).values(),
+      ]),
     ]);
   } else if (
     transferEvents.filter(
@@ -374,6 +482,10 @@ processor.run(new TypeormDatabase(), async (context) => {
         transfers: transferEvents,
       });
 
+    const knownNfts: Map<string, NFT> = await context.store
+      .findBy(NFT, { id: In(lsp4Metadatas.filter(({ nft }) => nft).map(({ nft }) => nft)) })
+      .then((nfts) => new Map(nfts.map((nft) => [nft.id, nft])));
+
     await context.store.insert(lsp4Metadatas);
     await Promise.all([
       context.store.insert(lsp4Links),
@@ -381,6 +493,47 @@ processor.run(new TypeormDatabase(), async (context) => {
       context.store.insert(lsp4Icons),
       context.store.insert(lsp4Images),
       context.store.insert(lsp4Attributes),
+      context.store.upsert([
+        ...new Map(
+          lsp4Metadatas
+            .filter(({ digitalAsset, nft }) => digitalAsset && !nft)
+            .map(({ id, digitalAsset }) => [
+              digitalAsset.id,
+              new DigitalAsset({
+                ...validDigitalAssets.get(digitalAsset.id)!,
+                lsp4Metadata: new LSP4Metadata({ id }),
+              }),
+            ]),
+        ).values(),
+      ]),
+      context.store.upsert([
+        ...new Map(
+          lsp4Metadatas
+            .filter(({ digitalAsset, nft }) => digitalAsset && nft)
+            .filter(({ nft }) => knownNfts.has(nft.id))
+            .map(({ id, nft }) => {
+              const attributes = lsp4Attributes.filter(
+                ({ lsp4Metadata }) => lsp4Metadata.id === id,
+              );
+              const scoreAttribute = attributes.find(({ key }) => key === 'Score');
+              const rankAttribute = attributes.find(({ key }) => key === 'Rank');
+
+              return [
+                nft.id,
+                new NFT({
+                  ...knownNfts.get(nft.id),
+                  lsp4Metadata: new LSP4Metadata({ id }),
+                  ...(scoreAttribute && {
+                    score: parseInt(scoreAttribute.value),
+                  }),
+                  ...(rankAttribute && {
+                    rank: parseInt(rankAttribute.value),
+                  }),
+                }),
+              ];
+            }),
+        ).values(),
+      ]),
     ]);
   }
 
