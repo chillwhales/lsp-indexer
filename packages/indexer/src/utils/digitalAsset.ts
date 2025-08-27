@@ -9,25 +9,43 @@ import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { hexToBool, isHex } from 'viem';
 
-const calldatasByInterfaceId = [
-  LSP7DigitalAsset.functions.supportsInterface.encode({
+const versions = [
+  {
     interfaceId: INTERFACE_ID_LSP7,
-  }),
-  LSP7DigitalAsset.functions.supportsInterface.encode({
+    callData: LSP7DigitalAsset.functions.supportsInterface.encode({
+      interfaceId: INTERFACE_ID_LSP7,
+    }),
+  },
+  {
     interfaceId: INTERFACE_ID_LSP8,
-  }),
-  LSP7DigitalAsset.functions.supportsInterface.encode({
+    callData: LSP7DigitalAsset.functions.supportsInterface.encode({
+      interfaceId: INTERFACE_ID_LSP8,
+    }),
+  },
+  {
     interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.14.0'],
-  }),
-  LSP7DigitalAsset.functions.supportsInterface.encode({
+    callData: LSP7DigitalAsset.functions.supportsInterface.encode({
+      interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.14.0'],
+    }),
+  },
+  {
     interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.14.0'],
-  }),
-  LSP7DigitalAsset.functions.supportsInterface.encode({
+    callData: LSP7DigitalAsset.functions.supportsInterface.encode({
+      interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.14.0'],
+    }),
+  },
+  {
     interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.12.0'],
-  }),
-  LSP7DigitalAsset.functions.supportsInterface.encode({
+    callData: LSP7DigitalAsset.functions.supportsInterface.encode({
+      interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.12.0'],
+    }),
+  },
+  {
     interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.12.0'],
-  }),
+    callData: LSP7DigitalAsset.functions.supportsInterface.encode({
+      interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.12.0'],
+    }),
+  },
 ];
 
 interface VerifyParams {
@@ -55,42 +73,42 @@ export async function verify({ context, digitalAssets }: VerifyParams): Promise<
   let unverifiedDigitalAssets = addressArray.filter((address) => !knownDigitalAssets.has(address));
   const newDigitalAssets = new Map<string, DigitalAsset>();
 
-  for (const callData of calldatasByInterfaceId) {
+  for (const { interfaceId, callData } of versions) {
     if (unverifiedDigitalAssets.length === 0) continue;
 
-    const result: Aggregate3StaticReturn = [];
+    const promises: Promise<Aggregate3StaticReturn>[] = [];
     let batchIndex = 0;
     const batchSize = 100;
     while (batchIndex * batchSize < unverifiedDigitalAssets.length) {
       const verifiedCount = batchIndex * batchSize;
       const unverifiedCount = unverifiedDigitalAssets.length - verifiedCount;
-      const progress = {
-        message: 'Verifing supported standards for Digital Assets',
-        ...LSP7DigitalAsset.functions.supportsInterface.decode(callData),
-        batchIndex,
-        batchSize: Math.min(unverifiedCount, batchSize),
-        verifiedCount,
-        unverifiedCount,
-        totalCount: unverifiedDigitalAssets.length,
-      };
+      const currentBatchSize = Math.min(unverifiedCount, batchSize);
 
-      context.log.info(JSON.stringify(progress));
-      result.push(
-        ...(await Utils.Multicall3.aggregate3StaticLatest({
+      promises.push(
+        Utils.Multicall3.aggregate3StaticLatest({
           context,
           calls: unverifiedDigitalAssets
-            .slice(verifiedCount, verifiedCount + progress.batchSize)
+            .slice(verifiedCount, verifiedCount + currentBatchSize)
             .map((target) => ({
               target,
               allowFailure: true,
               callData,
             })),
-        })),
+        }),
       );
 
       batchIndex++;
-      await Utils.timeout(1000);
     }
+
+    context.log.info(
+      JSON.stringify({
+        message: 'Verifing supported standards for Digital Assets',
+        interfaceId,
+        unverifiedDigitalAssetsCount: unverifiedDigitalAssets.length,
+        newDigitalAssetsCount: newDigitalAssets.size,
+      }),
+    );
+    const result = (await Promise.all(promises)).flatMap((array) => array);
 
     unverifiedDigitalAssets.forEach((address, index) =>
       result[index].success &&
