@@ -12,8 +12,8 @@ import {
   DataChanged,
   Executed,
   Follow,
-  LSP3ProfileUrl,
-  LSP4MetadataUrl,
+  LSP3Profile,
+  LSP4Metadata,
   LSP4TokenName,
   LSP4TokenSymbol,
   LSP4TokenType,
@@ -56,11 +56,11 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
   const followEvents: Follow[] = [];
   const unfollowEvents: Unfollow[] = [];
 
-  const lsp3ProfileUrls: LSP3ProfileUrl[] = [];
+  const lsp3Profiles: LSP3Profile[] = [];
   const lsp4TokenNames: LSP4TokenName[] = [];
   const lsp4TokenSymbols: LSP4TokenSymbol[] = [];
   const lsp4TokenTypes: LSP4TokenType[] = [];
-  const lsp4MetadataUrls: LSP4MetadataUrl[] = [];
+  const lsp4Metadatas: LSP4Metadata[] = [];
   const lsp8TokenIdFormats: LSP8TokenIdFormat[] = [];
   const lsp8ReferenceContracts: LSP8ReferenceContract[] = [];
   const lsp8TokenMetadataBaseUris: LSP8TokenMetadataBaseURI[] = [];
@@ -86,12 +86,12 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
           const { dataKey } = ERC725Y.events.DataChanged.decode(log);
           switch (dataKey) {
             case LSP3DataKeys.LSP3Profile: {
-              lsp3ProfileUrls.push(Utils.DataChanged.LSP3ProfileUrl.extract(extractParams));
+              lsp3Profiles.push(Utils.DataChanged.LSP3Profile.extract(extractParams));
               break;
             }
 
             case LSP4DataKeys.LSP4Metadata: {
-              lsp4MetadataUrls.push(Utils.DataChanged.LSP4MetadataUrl.extract(extractParams));
+              lsp4Metadatas.push(Utils.DataChanged.LSP4Metadata.extract(extractParams));
               break;
             }
 
@@ -174,9 +174,7 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
           const { dataKey } = LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.decode(log);
           switch (dataKey) {
             case LSP4DataKeys.LSP4Metadata: {
-              lsp4MetadataUrls.push(
-                Utils.TokenIdDataChanged.LSP4MetadataUrl.extract(extractParams),
-              );
+              lsp4Metadatas.push(Utils.TokenIdDataChanged.LSP4Metadata.extract(extractParams));
               break;
             }
           }
@@ -223,11 +221,11 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
         tokenIdDataChangedEventsCount: tokenIdDataChangedEvents.length,
       },
       dataKeys: {
-        lsp3ProfileUrlsCount: lsp3ProfileUrls.length,
+        lsp3ProfilesCount: lsp3Profiles.length,
         lsp4TokenNamesCount: lsp4TokenNames.length,
         lsp4TokenSymbolsCount: lsp4TokenSymbols.length,
         lsp4TokenTypesCount: lsp4TokenTypes.length,
-        lsp4MetadataUrlsCount: lsp4MetadataUrls.length,
+        lsp4MetadatasCount: lsp4Metadatas.length,
         lsp8TokenIdFormatsCount: lsp8TokenIdFormats.length,
         lsp8ReferenceContractsCount: lsp8ReferenceContracts.length,
         lsp8TokenMetadataBaseUrisCount: lsp8TokenMetadataBaseUris.length,
@@ -248,11 +246,11 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
       unfollowEvents,
     },
     dataKeys: {
-      lsp3ProfileUrls,
+      lsp3Profiles,
       lsp4TokenNames,
       lsp4TokenSymbols,
       lsp4TokenTypes,
-      lsp4MetadataUrls,
+      lsp4Metadatas,
       lsp8TokenIdFormats,
       lsp8ReferenceContracts,
       lsp8TokenMetadataBaseUris,

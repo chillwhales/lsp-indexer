@@ -140,7 +140,6 @@ type DigitalAsset @entity {
   lsp4TokenNames: [LSP4TokenName!]! @derivedFrom(field: "digitalAsset")
   lsp4TokenSymbols: [LSP4TokenSymbol!]! @derivedFrom(field: "digitalAsset")
   lsp4TokenTypes: [LSP4TokenType!]! @derivedFrom(field: "digitalAsset")
-  lsp4MetadataUrls: [LSP4MetadataUrl!]! @derivedFrom(field: "digitalAsset")
   lsp4Metadatas: [LSP4Metadata!]! @derivedFrom(field: "digitalAsset")
   lsp4Metadata: LSP4Metadata @index
   ownedAssets: [OwnedAsset!]! @derivedFrom(field: "digitalAsset")
@@ -183,13 +182,10 @@ type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
   formattedTokenId: String @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
-  lsp4MetadataUrls: [LSP4MetadataUrl!]! @derivedFrom(field: "nft")
   lsp4Metadatas: [LSP4Metadata!]! @derivedFrom(field: "nft")
   lsp4Metadata: LSP4Metadata @index
   isMinted: Boolean! @index
   isBurned: Boolean! @index
-  score: Int @index
-  rank: Int @index
   ownedToken: OwnedToken @derivedFrom(field: "nft")
 
   # chillwhales properties
@@ -305,26 +301,45 @@ type LSP3Profile @entity {
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
-  name: String @index
-  description: String
-  tags: [String!]! @derivedFrom(field: "lsp3Profile")
-  links: [LSP3Link!]! @derivedFrom(field: "lsp3Profile")
-  avatar: [LSP3Asset!]! @derivedFrom(field: "lsp3Profile")
+  name: LSP3ProfileName @derivedFrom(field: "lsp3Profile")
+  description: LSP3ProfileDescription @derivedFrom(field: "lsp3Profile")
+  tags: [LSP3ProfileTag!]! @derivedFrom(field: "lsp3Profile")
+  links: [LSP3ProfileLink!]! @derivedFrom(field: "lsp3Profile")
+  avatar: [LSP3ProfileAsset!]! @derivedFrom(field: "lsp3Profile")
   profileImage: [LSP3ProfileImage!]! @derivedFrom(field: "lsp3Profile")
-  backgroundImage: [LSP3BackgroundImage!]! @derivedFrom(field: "lsp3Profile")
-  url: LSP3ProfileUrl!
+  backgroundImage: [LSP3ProfileBackgroundImage!]! @derivedFrom(field: "lsp3Profile")
+  url: String
   rawValue: String
   decodeError: String
+  fetchError: String
+  dataFetched: Boolean!
 }
 
-type LSP3Link @entity {
+type LSP3ProfileName @entity {
+  id: ID! @unique
+  lsp3Profile: LSP3Profile! @index @unique
+  value: String @index
+}
+
+type LSP3ProfileDescription @entity {
+  id: ID! @unique
+  lsp3Profile: LSP3Profile! @index @unique
+  value: String @index
+}
+type LSP3ProfileTag @entity {
+  id: ID! @unique
+  lsp3Profile: LSP3Profile! @index
+  value: String @index
+}
+
+type LSP3ProfileLink @entity {
   id: ID! @unique
   lsp3Profile: LSP3Profile! @index
   title: String @index
   url: String @index
 }
 
-type LSP3Asset @entity {
+type LSP3ProfileAsset @entity {
   id: ID! @unique
   lsp3Profile: LSP3Profile! @index
   url: String
@@ -345,7 +360,7 @@ type LSP3ProfileImage @entity {
   verificationSource: String
 }
 
-type LSP3BackgroundImage @entity {
+type LSP3ProfileBackgroundImage @entity {
   id: ID! @unique
   lsp3Profile: LSP3Profile! @index
   width: Int @index
@@ -356,18 +371,6 @@ type LSP3BackgroundImage @entity {
   verificationSource: String
 }
 
-type LSP4MetadataUrl @entity {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  address: String! @index
-  digitalAsset: DigitalAsset! @index
-  tokenId: String @index
-  nft: NFT @index
-  value: String
-  rawValue: String
-  decodeError: String
-}
-
 type LSP4Metadata @entity {
   id: ID! @unique
   timestamp: DateTime! @index
@@ -375,26 +378,54 @@ type LSP4Metadata @entity {
   digitalAsset: DigitalAsset! @index
   tokenId: String @index
   nft: NFT @index
-  name: String @index
-  description: String
-  links: [LSP4Link!]! @derivedFrom(field: "lsp4Metadata")
-  icon: [LSP4Icon!]! @derivedFrom(field: "lsp4Metadata")
-  images: [LSP4Image!]! @derivedFrom(field: "lsp4Metadata")
-  assets: [LSP4Asset!]! @derivedFrom(field: "lsp4Metadata")
-  attributes: [LSP4Attribute!]! @derivedFrom(field: "lsp4Metadata")
-  url: LSP4MetadataUrl
+  name: LSP4MetadataName @derivedFrom(field: "lsp4Metadata")
+  description: LSP4MetadataDescription @derivedFrom(field: "lsp4Metadata")
+  score: LSP4MetadataScore @derivedFrom(field: "lsp4Metadata")
+  rank: LSP4MetadataRank @derivedFrom(field: "lsp4Metadata")
+  links: [LSP4MetadataLink!]! @derivedFrom(field: "lsp4Metadata")
+  icon: [LSP4MetadataIcon!]! @derivedFrom(field: "lsp4Metadata")
+  images: [LSP4MetadataImage!]! @derivedFrom(field: "lsp4Metadata")
+  assets: [LSP4MetadataAsset!]! @derivedFrom(field: "lsp4Metadata")
+  attributes: [LSP4MetadataAttribute!]! @derivedFrom(field: "lsp4Metadata")
+  url: String
   rawValue: String
   decodeError: String
+  fetchError: String
+  dataFetched: Boolean!
 }
 
-type LSP4Link @entity {
+type LSP4MetadataName @entity {
+  id: ID! @unique
+  lsp4Metadata: LSP4Metadata! @index @unique
+  value: String @index
+}
+
+type LSP4MetadataDescription @entity {
+  id: ID! @unique
+  lsp4Metadata: LSP4Metadata! @index @unique
+  value: String @index
+}
+
+type LSP4MetadataScore @entity {
+  id: ID! @unique
+  lsp4Metadata: LSP4Metadata! @index @unique
+  value: Int @index
+}
+
+type LSP4MetadataRank @entity {
+  id: ID! @unique
+  lsp4Metadata: LSP4Metadata! @index @unique
+  value: Int @index
+}
+
+type LSP4MetadataLink @entity {
   id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index
   title: String @index
   url: String @index
 }
 
-type LSP4Icon @entity {
+type LSP4MetadataIcon @entity {
   id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index
   width: Int @index
@@ -405,7 +436,7 @@ type LSP4Icon @entity {
   verificationSource: String
 }
 
-type LSP4Image @entity {
+type LSP4MetadataImage @entity {
   id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index
   width: Int @index
@@ -416,7 +447,7 @@ type LSP4Image @entity {
   verificationSource: String
 }
 
-type LSP4Asset @entity {
+type LSP4MetadataAsset @entity {
   id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index
   url: String
@@ -426,7 +457,7 @@ type LSP4Asset @entity {
   verificationSource: String
 }
 
-type LSP4Attribute @entity {
+type LSP4MetadataAttribute @entity {
   id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index
   key: String @index

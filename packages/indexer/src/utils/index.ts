@@ -4,19 +4,22 @@ import {
   DigitalAsset,
   Executed,
   Follow,
-  LSP3Asset,
-  LSP3BackgroundImage,
-  LSP3Link,
   LSP3Profile,
+  LSP3ProfileAsset,
+  LSP3ProfileBackgroundImage,
+  LSP3ProfileDescription,
   LSP3ProfileImage,
-  LSP3ProfileUrl,
-  LSP4Asset,
-  LSP4Attribute,
-  LSP4Icon,
-  LSP4Image,
-  LSP4Link,
+  LSP3ProfileLink,
+  LSP3ProfileName,
+  LSP3ProfileTag,
   LSP4Metadata,
-  LSP4MetadataUrl,
+  LSP4MetadataAsset,
+  LSP4MetadataAttribute,
+  LSP4MetadataDescription,
+  LSP4MetadataIcon,
+  LSP4MetadataImage,
+  LSP4MetadataLink,
+  LSP4MetadataName,
   LSP4TokenName,
   LSP4TokenSymbol,
   LSP4TokenType,
@@ -172,6 +175,14 @@ export function decodeVerifiableUri(dataValue: string): {
   }
 }
 
+export function isNumeric(value: string) {
+  if (typeof value != 'string') return false; // we only process strings!
+  return (
+    !isNaN(value as any) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+    !isNaN(parseFloat(value))
+  ); // ...and ensure strings of whitespace fail
+}
+
 export function parseIpfsUrl(url: string) {
   if (url.startsWith('ipfs://')) {
     return url.replace('ipfs://', IPFS_GATEWAY);
@@ -180,30 +191,47 @@ export function parseIpfsUrl(url: string) {
   return url;
 }
 
-export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
+export async function createLsp3Profile(lsp3Profile: LSP3Profile) {
+  if (!lsp3Profile.url) {
+    return {
+      fetchError: 'Error: Missing URL',
+      dataFetched: false,
+    };
+  }
+
   try {
-    const result = await axios.get(parseIpfsUrl(lsp3ProfileUrl.value));
+    const result = await axios.get(parseIpfsUrl(lsp3Profile.url));
     const json: LSP3ProfileMetadataJSON = result.data;
 
     if (!json.LSP3Profile) throw new Error('Invalid LSP3Profile');
 
-    const lsp3Profile = new LSP3Profile({
+    const lsp3ProfileName = new LSP3ProfileName({
       id: uuidv4(),
-      timestamp: lsp3ProfileUrl.timestamp,
-      address: lsp3ProfileUrl.address,
-      universalProfile: lsp3ProfileUrl.universalProfile,
-      name: json.LSP3Profile.name,
-      description: json.LSP3Profile.description,
-      tags: json.LSP3Profile.tags ? json.LSP3Profile.tags : [],
-      url: lsp3ProfileUrl,
-      rawValue: lsp3ProfileUrl.rawValue,
-      decodeError: null,
+      lsp3Profile,
+      value: json.LSP3Profile.name,
     });
 
-    const lsp3Links = json.LSP3Profile.links
+    const lsp3ProfileDescription = new LSP3ProfileDescription({
+      id: uuidv4(),
+      lsp3Profile,
+      value: json.LSP3Profile.description,
+    });
+
+    const lsp3ProfileTags = json.LSP3Profile.tags
+      ? json.LSP3Profile.tags.map(
+          (tag) =>
+            new LSP3ProfileTag({
+              id: uuidv4(),
+              lsp3Profile,
+              value: tag,
+            }),
+        )
+      : [];
+
+    const lsp3ProfileLinks = json.LSP3Profile.links
       ? json.LSP3Profile.links.map(
           ({ title, url }) =>
-            new LSP3Link({
+            new LSP3ProfileLink({
               id: uuidv4(),
               lsp3Profile,
               title,
@@ -212,10 +240,10 @@ export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
         )
       : [];
 
-    const lsp3Assets = json.LSP3Profile.avatar
+    const lsp3ProfileAssets = json.LSP3Profile.avatar
       ? json.LSP3Profile.avatar.filter(isFileAsset).map(
           ({ url, fileType, verification }) =>
-            new LSP3Asset({
+            new LSP3ProfileAsset({
               id: uuidv4(),
               lsp3Profile,
               url: url,
@@ -247,10 +275,10 @@ export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
         )
       : [];
 
-    const lsp3BackgroundImages = json.LSP3Profile.backgroundImage
+    const lsp3ProfileBackgroundImages = json.LSP3Profile.backgroundImage
       ? json.LSP3Profile.backgroundImage.map(
           ({ url, width, height, verification }) =>
-            new LSP3BackgroundImage({
+            new LSP3ProfileBackgroundImage({
               id: uuidv4(),
               lsp3Profile,
               url: url,
@@ -266,100 +294,53 @@ export async function createLsp3Profile(lsp3ProfileUrl: LSP3ProfileUrl) {
       : [];
 
     return {
-      lsp3Profile,
-      lsp3Links,
-      lsp3Assets,
+      lsp3ProfileName,
+      lsp3ProfileDescription,
+      lsp3ProfileTags,
+      lsp3ProfileLinks,
+      lsp3ProfileAssets,
       lsp3ProfileImages,
-      lsp3BackgroundImages,
+      lsp3ProfileBackgroundImages,
     };
   } catch (error) {
     const errorString = error.toString();
     return {
-      lsp3Profile: new LSP3Profile({
-        id: uuidv4(),
-        timestamp: lsp3ProfileUrl.timestamp,
-        address: lsp3ProfileUrl.address,
-        universalProfile: lsp3ProfileUrl.universalProfile,
-        tags: [],
-        url: lsp3ProfileUrl,
-        rawValue: lsp3ProfileUrl.rawValue,
-        decodeError:
-          errorString.match(/[^\x20-\x7E]+/g) !== null
-            ? 'LSP3Profile contians invalid characters'
-            : errorString,
-      }),
-      lsp3Links: [],
-      lsp3Assets: [],
-      lsp3ProfileImages: [],
-      lsp3BackgroundImages: [],
+      fetchError: errorString,
+      dataFetched: false,
     };
   }
 }
 
-export async function createLsp4Metadata({
-  url,
-  timestamp,
-  address,
-  digitalAsset,
-  tokenId,
-  nft,
-  rawValue,
-  lsp4MetadataUrl,
-}: {
-  url: string | null;
-  timestamp: Date;
-  address: string;
-  digitalAsset: DigitalAsset;
-  tokenId: string;
-  nft: NFT;
-  rawValue?: string;
-  lsp4MetadataUrl?: LSP4MetadataUrl;
-}) {
-  if (!url) {
+export async function createLsp4Metadata(lsp4Metadata: LSP4Metadata) {
+  if (!lsp4Metadata.url) {
     return {
-      lsp4Metadata: new LSP4Metadata({
-        id: uuidv4(),
-        timestamp,
-        address,
-        tokenId,
-        digitalAsset,
-        nft,
-        url: lsp4MetadataUrl,
-        rawValue,
-      }),
-
-      lsp4Links: [],
-      lsp4Assets: [],
-      lsp4Images: [],
-      lsp4Icons: [],
-      lsp4Attributes: [],
+      fetchError: 'Error: Missing URL',
+      dataFetched: false,
     };
   }
 
   try {
-    const result = await axios.get(parseIpfsUrl(url));
+    const result = await axios.get(parseIpfsUrl(lsp4Metadata.url));
     const json: LSP4DigitalAssetMetadataJSON = result.data;
 
     if (!json.LSP4Metadata) throw new Error('Invalid LSP4Metadata');
 
-    const lsp4Metadata = new LSP4Metadata({
+    const lsp4MetadataName = new LSP4MetadataName({
       id: uuidv4(),
-      timestamp,
-      address,
-      digitalAsset,
-      tokenId,
-      nft,
-      name: json.LSP4Metadata.name,
-      description: json.LSP4Metadata.description,
-      url: lsp4MetadataUrl,
-      rawValue,
-      decodeError: null,
+      lsp4Metadata,
+      value: json.LSP4Metadata.name,
     });
 
-    const lsp4Links = json.LSP4Metadata.links
+    const lsp4MetadataDescription = new LSP4MetadataDescription({
+      id: uuidv4(),
+      lsp4Metadata,
+      value: json.LSP4Metadata.description,
+    });
+
+    const lsp4MetadataLinks = json.LSP4Metadata.links
       ? json.LSP4Metadata.links.map(
           ({ title, url }) =>
-            new LSP4Link({
+            new LSP4MetadataLink({
               id: uuidv4(),
               lsp4Metadata,
               title,
@@ -368,28 +349,11 @@ export async function createLsp4Metadata({
         )
       : [];
 
-    const lsp4Assets = json.LSP4Metadata.assets
-      ? json.LSP4Metadata.assets.filter(isFileAsset).map(
-          ({ url, fileType, verification }) =>
-            new LSP4Asset({
-              id: uuidv4(),
-              lsp4Metadata,
-              url: url,
-              fileType: fileType,
-              ...(isVerification(verification) && {
-                verificationMethod: verification.method,
-                verificationData: verification.data,
-                verificationSource: verification.source,
-              }),
-            }),
-        )
-      : [];
-
-    const lsp4Images = json.LSP4Metadata.images
+    const lsp4MetadataImages = json.LSP4Metadata.images
       ? json.LSP4Metadata.images.flatMap((images) =>
           images.filter(isFileImage).map(
             ({ url, width, height, verification }) =>
-              new LSP4Image({
+              new LSP4MetadataImage({
                 id: uuidv4(),
                 lsp4Metadata,
                 url: url,
@@ -405,10 +369,10 @@ export async function createLsp4Metadata({
         )
       : [];
 
-    const lsp4Icons = json.LSP4Metadata.icon
+    const lsp4MetadataIcons = json.LSP4Metadata.icon
       ? json.LSP4Metadata.icon.map(
           ({ url, width, height, verification }) =>
-            new LSP4Icon({
+            new LSP4MetadataIcon({
               id: uuidv4(),
               lsp4Metadata,
               url: url,
@@ -423,7 +387,24 @@ export async function createLsp4Metadata({
         )
       : [];
 
-    const lsp4Attributes = json.LSP4Metadata.attributes
+    const lsp4MetadataAssets = json.LSP4Metadata.assets
+      ? json.LSP4Metadata.assets.filter(isFileAsset).map(
+          ({ url, fileType, verification }) =>
+            new LSP4MetadataAsset({
+              id: uuidv4(),
+              lsp4Metadata,
+              url: url,
+              fileType: fileType,
+              ...(isVerification(verification) && {
+                verificationMethod: verification.method,
+                verificationData: verification.data,
+                verificationSource: verification.source,
+              }),
+            }),
+        )
+      : [];
+
+    const lsp4MetadataAttributes = json.LSP4Metadata.attributes
       ? (
           json.LSP4Metadata.attributes as (AttributeMetadata & {
             score?: number;
@@ -431,7 +412,7 @@ export async function createLsp4Metadata({
           })[]
         ).map(
           ({ key, value, type, score, rarity }) =>
-            new LSP4Attribute({
+            new LSP4MetadataAttribute({
               id: uuidv4(),
               lsp4Metadata,
               key,
@@ -444,36 +425,19 @@ export async function createLsp4Metadata({
       : [];
 
     return {
-      lsp4Metadata,
-      lsp4Links,
-      lsp4Assets,
-      lsp4Images,
-      lsp4Icons,
-      lsp4Attributes,
+      lsp4MetadataName,
+      lsp4MetadataDescription,
+      lsp4MetadataLinks,
+      lsp4MetadataImages,
+      lsp4MetadataIcons,
+      lsp4MetadataAssets,
+      lsp4MetadataAttributes,
     };
   } catch (error) {
     const errorString = error.toString();
     return {
-      lsp4Metadata: new LSP4Metadata({
-        id: uuidv4(),
-        timestamp,
-        address,
-        tokenId,
-        digitalAsset,
-        nft,
-        url: lsp4MetadataUrl,
-        rawValue,
-        decodeError:
-          errorString.match(/[^\x20-\x7E]+/g) !== null
-            ? 'LSP4Metadata contians invalid characters'
-            : errorString,
-      }),
-
-      lsp4Links: [],
-      lsp4Assets: [],
-      lsp4Images: [],
-      lsp4Icons: [],
-      lsp4Attributes: [],
+      fetchError: errorString,
+      dataFetched: false,
     };
   }
 }
@@ -533,8 +497,8 @@ interface PopulateAllParams {
   tokenIdDataChangedEvents: TokenIdDataChanged[];
   followEvents: Follow[];
   unfollowEvents: Unfollow[];
-  lsp3ProfileUrls: LSP3ProfileUrl[];
-  lsp4MetadataUrls: LSP4MetadataUrl[];
+  lsp3Profiles: LSP3Profile[];
+  lsp4Metadatas: LSP4Metadata[];
   lsp4TokenNames: LSP4TokenName[];
   lsp4TokenSymbols: LSP4TokenSymbol[];
   lsp4TokenTypes: LSP4TokenType[];
@@ -554,8 +518,8 @@ export function populateAll({
   tokenIdDataChangedEvents,
   followEvents,
   unfollowEvents,
-  lsp3ProfileUrls,
-  lsp4MetadataUrls,
+  lsp3Profiles,
+  lsp4Metadatas,
   lsp4TokenNames,
   lsp4TokenSymbols,
   lsp4TokenTypes,
@@ -597,23 +561,22 @@ export function populateAll({
 
   // DataKeys
   /// LSP3ProfileUrl
-  const populatedLsp3ProfileUrls = DataChangedUtils.LSP3ProfileUrl.populate({
-    lsp3ProfileUrls,
+  const populatedLsp3Profiles = DataChangedUtils.LSP3Profile.populate({
+    lsp3Profiles,
     validUniversalProfiles,
   });
-  /// LSP4MetadataUrl
-  const populatedLsp4MetadataUrls_DataChanged = DataChangedUtils.LSP4MetadataUrl.populate({
-    lsp4MetadataUrls: lsp4MetadataUrls.filter(({ nft }) => nft === null),
+  /// LSP4Metadata
+  const populatedLsp4Metadatas_DataChanged = DataChangedUtils.LSP4Metadata.populate({
+    lsp4Metadatas: lsp4Metadatas.filter(({ nft }) => nft === null),
     validDigitalAssets,
   });
-  const populatedLsp4MetadataUrls_TokenIdDataChanged =
-    TokenIdDataChangedUtils.LSP4MetadataUrl.populate({
-      lsp4MetadataUrls: lsp4MetadataUrls.filter(({ nft }) => nft !== null),
-      validDigitalAssets,
-    });
-  const populatedLsp4MetadataUrls = [
-    ...populatedLsp4MetadataUrls_DataChanged,
-    ...populatedLsp4MetadataUrls_TokenIdDataChanged,
+  const populatedLsp4Metadatas_TokenIdDataChanged = TokenIdDataChangedUtils.LSP4Metadata.populate({
+    lsp4Metadatas: lsp4Metadatas.filter(({ nft }) => nft !== null),
+    validDigitalAssets,
+  });
+  const populatedLsp4Metadatas = [
+    ...populatedLsp4Metadatas_DataChanged,
+    ...populatedLsp4Metadatas_TokenIdDataChanged,
   ];
   /// LSP4TokenName
   const populatedLsp4TokenNames = DataChangedUtils.LSP4TokenName.populate({
@@ -658,8 +621,8 @@ export function populateAll({
       populatedUnfollows,
     },
     dataKeys: {
-      populatedLsp3ProfileUrls,
-      populatedLsp4MetadataUrls,
+      populatedLsp3Profiles,
+      populatedLsp4Metadatas,
       populatedLsp4TokenNames,
       populatedLsp4TokenSymbols,
       populatedLsp4TokenTypes,

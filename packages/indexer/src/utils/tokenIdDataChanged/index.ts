@@ -51,5 +51,5 @@ export function populate({
   );
 }
 
-export * as LSP4MetadataUrl from './lsp4MetadataUrl';
+export * as LSP4Metadata from './lsp4Metadata';
 export * as NFT from './nft';

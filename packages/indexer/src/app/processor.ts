@@ -1,4 +1,4 @@
-import { FINALITY_CONFIRMATION, GATEWAY, RPC_ENDPOINT } from '@/constants';
+import { FINALITY_CONFIRMATION, RPC_ENDPOINT, SQD_GATEWAY } from '@/constants';
 import {
   ERC725X,
   ERC725Y,
@@ -14,7 +14,7 @@ export interface FieldSelection {}
 export type Processor = EvmBatchProcessor<FieldSelection>;
 
 export const processor: Processor = new EvmBatchProcessor()
-  .setGateway(GATEWAY)
+  .setGateway(SQD_GATEWAY)
   .setRpcEndpoint(RPC_ENDPOINT)
   .setFinalityConfirmation(FINALITY_CONFIRMATION)
   // .addTrace({

@@ -6,7 +6,23 @@ import {
   DigitalAsset,
   Follow,
   LSP3Profile,
+  LSP3ProfileAsset,
+  LSP3ProfileBackgroundImage,
+  LSP3ProfileDescription,
+  LSP3ProfileImage,
+  LSP3ProfileLink,
+  LSP3ProfileName,
+  LSP3ProfileTag,
   LSP4Metadata,
+  LSP4MetadataAsset,
+  LSP4MetadataAttribute,
+  LSP4MetadataDescription,
+  LSP4MetadataIcon,
+  LSP4MetadataImage,
+  LSP4MetadataLink,
+  LSP4MetadataName,
+  LSP4MetadataRank,
+  LSP4MetadataScore,
   LSP8TokenIdFormat,
   NFT,
   OrbsClaimed,
@@ -16,7 +32,8 @@ import {
   UniversalProfile,
 } from '@chillwhales/sqd-typeorm';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
-import { In } from 'typeorm';
+import { In, IsNull, Not } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 import { getAddress, isAddressEqual, isHex, zeroAddress } from 'viem';
 import { scanLogs } from './scanner';
 
@@ -34,11 +51,11 @@ processor.run(new TypeormDatabase(), async (context) => {
       unfollowEvents,
     },
     dataKeys: {
-      lsp3ProfileUrls,
+      lsp3Profiles,
       lsp4TokenNames,
       lsp4TokenSymbols,
       lsp4TokenTypes,
-      lsp4MetadataUrls,
+      lsp4Metadatas,
       lsp8TokenIdFormats,
       lsp8ReferenceContracts,
       lsp8TokenMetadataBaseUris,
@@ -111,8 +128,8 @@ processor.run(new TypeormDatabase(), async (context) => {
       populatedUnfollows,
     },
     dataKeys: {
-      populatedLsp3ProfileUrls,
-      populatedLsp4MetadataUrls,
+      populatedLsp3Profiles,
+      populatedLsp4Metadatas,
       populatedLsp4TokenNames,
       populatedLsp4TokenSymbols,
       populatedLsp4TokenTypes,
@@ -131,8 +148,8 @@ processor.run(new TypeormDatabase(), async (context) => {
     tokenIdDataChangedEvents,
     followEvents,
     unfollowEvents,
-    lsp3ProfileUrls,
-    lsp4MetadataUrls,
+    lsp3Profiles,
+    lsp4Metadatas,
     lsp4TokenNames,
     lsp4TokenSymbols,
     lsp4TokenTypes,
@@ -182,12 +199,14 @@ processor.run(new TypeormDatabase(), async (context) => {
   if (populatedLsp8TokenIdFormats.length > 0) {
     context.log.info(
       JSON.stringify({
-        message: 'Found new LSP8TokenIdFormat data keys. Updating old `formattedTokenId` for NFTs.',
+        message:
+          "Found new LSP8TokenIdFormat data keys. Updating old `formattedTokenId` for 'NFT' entities.",
       }),
     );
 
     const nfts = await context.store.findBy(NFT, {
       address: In([...new Set(populatedLsp8TokenIdFormats.map(({ address }) => address))]),
+      id: Not(In([...populatedNfts.values()].map(({ id }) => id))),
     });
 
     for (const nft of nfts) {
@@ -220,19 +239,19 @@ processor.run(new TypeormDatabase(), async (context) => {
 
   context.log.info(
     JSON.stringify({
-      message: 'Saving Universal Profiles.',
+      message: "Saving 'UniversalProfile' entities.",
       universalProfilesCount: newUniversalProfiles.size,
     }),
   );
   context.log.info(
     JSON.stringify({
-      message: 'Saving Digital Assets.',
+      message: "Saving 'DigitalAsset' entities.",
       digitalAssetsCount: newDigitalAssets.size,
     }),
   );
   context.log.info(
     JSON.stringify({
-      message: 'Saving NFTs.',
+      message: "Saving 'NFT' entities.",
       nftsCount: populatedNfts.size,
     }),
   );
@@ -258,8 +277,8 @@ processor.run(new TypeormDatabase(), async (context) => {
   context.log.info(
     JSON.stringify({
       message: 'Inserting new ERC725 Data Keys.',
-      LSP3ProfileUrlCount: populatedLsp3ProfileUrls.length,
-      LSP4MetadataUrlCount: populatedLsp4MetadataUrls.length,
+      LSP3ProfileCount: populatedLsp3Profiles.length,
+      LSP4MetadataCount: populatedLsp4Metadatas.length,
       LSP4TokenNameCount: populatedLsp4TokenNames.length,
       LSP4TokenSymbolCount: populatedLsp4TokenSymbols.length,
       LSP4TokenTypeCount: populatedLsp4TokenTypes.length,
@@ -288,10 +307,10 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.insert(populatedUnfollows),
 
     // Save tracked starndardized DataKeys
-    /// LSP3ProfileUrl
-    context.store.insert(populatedLsp3ProfileUrls),
-    /// LSP4MetadataUrl
-    context.store.insert(populatedLsp4MetadataUrls),
+    /// LSP3Profile
+    context.store.insert(populatedLsp3Profiles),
+    /// LSP4Metadata
+    context.store.insert(populatedLsp4Metadatas),
     /// LSP4TokenName
     context.store.insert(populatedLsp4TokenNames),
     /// LSP4TokenSymbol
@@ -306,163 +325,43 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.insert(populatedLsp8TokenMetadataBaseUris),
   ]);
 
-  if (populatedLsp3ProfileUrls.length > 0) {
+  const universalProfilesToUpdate = new Map(
+    populatedLsp3Profiles
+      .filter(({ universalProfile }) => universalProfile)
+      .map(({ id, universalProfile }) => [
+        universalProfile.id,
+        new UniversalProfile({
+          ...validUniversalProfiles.get(universalProfile.id)!,
+          lsp3Profile: new LSP3Profile({ id }),
+        }),
+      ]),
+  );
+  if (universalProfilesToUpdate.size) {
     context.log.info(
-      JSON.stringify({ message: 'Extracting LSP3Profile from LSP3Profile data key' }),
+      JSON.stringify({
+        message:
+          "Inserting populated 'UniversalProfile' entities with found 'LSP3Profile' entities",
+        universalProfilesToUpdateCount: universalProfilesToUpdate.size,
+      }),
     );
 
-    const { lsp3Profiles, lsp3Links, lsp3Assets, lsp3ProfileImages, lsp3BackgroundImages } =
-      await Utils.DataChanged.LSP3Profile.extractFromUrl({ context, populatedLsp3ProfileUrls });
-
-    await context.store.insert(lsp3Profiles);
-    await Promise.all([
-      context.store.insert(lsp3Links),
-      context.store.insert(lsp3Assets),
-      context.store.insert(lsp3ProfileImages),
-      context.store.insert(lsp3BackgroundImages),
-      context.store.upsert([
-        ...new Map(
-          lsp3Profiles
-            .filter(({ universalProfile }) => universalProfile)
-            .map(({ id, universalProfile }) => [
-              universalProfile.id,
-              new UniversalProfile({
-                ...validUniversalProfiles.get(universalProfile.id)!,
-                lsp3Profile: new LSP3Profile({ id }),
-              }),
-            ]),
-        ).values(),
-      ]),
-    ]);
+    await context.store.upsert([...universalProfilesToUpdate.values()]);
   }
 
-  if (populatedLsp4MetadataUrls.length > 0) {
-    context.log.info(
-      JSON.stringify({ message: 'Extracting LSP4Metadata from LSP4Metadata data key' }),
-    );
-
-    const { lsp4Metadatas, lsp4Links, lsp4Assets, lsp4Icons, lsp4Images, lsp4Attributes } =
-      await Utils.DataChanged.LSP4Metadata.extractFromUrl({ context, populatedLsp4MetadataUrls });
-
-    const knownNfts: Map<string, NFT> = await context.store
-      .findBy(NFT, { id: In(lsp4Metadatas.filter(({ nft }) => nft).map(({ nft }) => nft)) })
-      .then((nfts) => new Map(nfts.map((nft) => [nft.id, nft])));
-
-    await context.store.insert(lsp4Metadatas);
-    await Promise.all([
-      context.store.insert(lsp4Links),
-      context.store.insert(lsp4Assets),
-      context.store.insert(lsp4Icons),
-      context.store.insert(lsp4Images),
-      context.store.insert(lsp4Attributes),
-      context.store.upsert([
-        ...new Map(
-          lsp4Metadatas
-            .filter(({ digitalAsset, nft }) => digitalAsset && !nft)
-            .map(({ id, digitalAsset }) => [
-              digitalAsset.id,
-              new DigitalAsset({
-                ...validDigitalAssets.get(digitalAsset.id)!,
-                lsp4Metadata: new LSP4Metadata({ id }),
-              }),
-            ]),
-        ).values(),
-      ]),
-      context.store.upsert([
-        ...new Map(
-          lsp4Metadatas
-            .filter(({ digitalAsset, nft }) => digitalAsset && nft)
-            .filter(({ nft }) => knownNfts.has(nft.id))
-            .map(({ id, nft }) => {
-              const attributes = lsp4Attributes.filter(
-                ({ lsp4Metadata }) => lsp4Metadata.id === id,
-              );
-              const scoreAttribute = attributes.find(({ key }) => key === 'Score');
-              const rankAttribute = attributes.find(({ key }) => key === 'Rank');
-
-              return [
-                nft.id,
-                new NFT({
-                  ...knownNfts.get(nft.id),
-                  lsp4Metadata: new LSP4Metadata({ id }),
-                  ...(scoreAttribute && {
-                    score: parseInt(scoreAttribute.value),
-                  }),
-                  ...(rankAttribute && {
-                    rank: parseInt(rankAttribute.value),
-                  }),
-                }),
-              ];
-            }),
-        ).values(),
-      ]),
-    ]);
-  }
-
+  const baseUriLsp4Metadatas: LSP4Metadata[] = [];
   if (populatedLsp8TokenMetadataBaseUris.length > 0) {
     context.log.info(
-      JSON.stringify({ message: 'Extracting LSP4Metadata from LSP8TokenMetadataBaseURI data key' }),
+      JSON.stringify({
+        message: "Extracting 'LSP4Metadata' entities from 'LSP8TokenMetadataBaseURI' data key",
+      }),
     );
 
-    const { lsp4Metadatas, lsp4Links, lsp4Assets, lsp4Icons, lsp4Images, lsp4Attributes } =
-      await Utils.DataChanged.LSP4Metadata.extractFromBaseUri({
-        context,
-        populatedLsp8TokenMetadataBaseUris,
-      });
+    const extractedLsp4Metadatas = await Utils.DataChanged.LSP4Metadata.extractFromBaseUri({
+      context,
+      populatedLsp8TokenMetadataBaseUris,
+    });
 
-    const knownNfts: Map<string, NFT> = await context.store
-      .findBy(NFT, { id: In(lsp4Metadatas.filter(({ nft }) => nft).map(({ nft }) => nft)) })
-      .then((nfts) => new Map(nfts.map((nft) => [nft.id, nft])));
-
-    await context.store.insert(lsp4Metadatas);
-    await Promise.all([
-      context.store.insert(lsp4Links),
-      context.store.insert(lsp4Assets),
-      context.store.insert(lsp4Icons),
-      context.store.insert(lsp4Images),
-      context.store.insert(lsp4Attributes),
-      context.store.upsert([
-        ...new Map(
-          lsp4Metadatas
-            .filter(({ digitalAsset, nft }) => digitalAsset && !nft)
-            .map(({ id, digitalAsset }) => [
-              digitalAsset.id,
-              new DigitalAsset({
-                ...validDigitalAssets.get(digitalAsset.id)!,
-                lsp4Metadata: new LSP4Metadata({ id }),
-              }),
-            ]),
-        ).values(),
-      ]),
-      context.store.upsert([
-        ...new Map(
-          lsp4Metadatas
-            .filter(({ digitalAsset, nft }) => digitalAsset && nft)
-            .filter(({ nft }) => knownNfts.has(nft.id))
-            .map(({ id, nft }) => {
-              const attributes = lsp4Attributes.filter(
-                ({ lsp4Metadata }) => lsp4Metadata.id === id,
-              );
-              const scoreAttribute = attributes.find(({ key }) => key === 'Score');
-              const rankAttribute = attributes.find(({ key }) => key === 'Rank');
-
-              return [
-                nft.id,
-                new NFT({
-                  ...knownNfts.get(nft.id),
-                  lsp4Metadata: new LSP4Metadata({ id }),
-                  ...(scoreAttribute && {
-                    score: parseInt(scoreAttribute.value),
-                  }),
-                  ...(rankAttribute && {
-                    rank: parseInt(rankAttribute.value),
-                  }),
-                }),
-              ];
-            }),
-        ).values(),
-      ]),
-    ]);
+    baseUriLsp4Metadatas.push(...extractedLsp4Metadatas);
   } else if (
     transferEvents.filter(
       (transferEvent) =>
@@ -472,68 +371,77 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.log.info(
       JSON.stringify({
         message:
-          'Extracting LSP4Metadata from minted NFTs of a Digital Asset that has a valid LSP8TokenMetadataBaseURI',
+          "Extracting 'LSP4Metadata' entities from minted NFTs of a Digital Asset that has a valid 'LSP8TokenMetadataBaseURI'",
       }),
     );
 
-    const { lsp4Metadatas, lsp4Links, lsp4Assets, lsp4Icons, lsp4Images, lsp4Attributes } =
-      await Utils.DataChanged.LSP4Metadata.extractFromTransfers({
-        context,
-        transfers: transferEvents,
-      });
+    const extractedLsp4Metadatas = await Utils.DataChanged.LSP4Metadata.extractFromMints({
+      context,
+      transfers: transferEvents,
+    });
+
+    baseUriLsp4Metadatas.push(...extractedLsp4Metadatas);
+  }
+
+  if (baseUriLsp4Metadatas.length > 0) {
+    context.log.info(
+      JSON.stringify({
+        message: "Inserting found 'LSP4Metadata' entities from 'LSP8TokenMetadataBaseURI'",
+        extractedLsp4MetadatasCount: baseUriLsp4Metadatas.length,
+      }),
+    );
+
+    await context.store.insert(baseUriLsp4Metadatas);
+  }
+
+  const allNewLsp4Metadatas = [...populatedLsp4Metadatas, ...baseUriLsp4Metadatas];
+  const digitalAssetsToUpdate = new Map(
+    allNewLsp4Metadatas
+      .filter(({ digitalAsset, nft }) => digitalAsset && !nft)
+      .map(({ id, digitalAsset }) => [
+        digitalAsset.id,
+        new DigitalAsset({
+          ...validDigitalAssets.get(digitalAsset.id)!,
+          lsp4Metadata: new LSP4Metadata({ id }),
+        }),
+      ]),
+  );
+  if (digitalAssetsToUpdate.size) {
+    context.log.info(
+      JSON.stringify({
+        message: "Inserting populated 'DigitalAsset' entities with found 'LSP4Metadata'",
+        digitalAssetsToUpdateCount: digitalAssetsToUpdate.size,
+      }),
+    );
+
+    await context.store.upsert([...digitalAssetsToUpdate.values()]);
+  }
+
+  const nftsToUpdate = allNewLsp4Metadatas.filter(({ nft }) => nft).map(({ nft }) => nft);
+  if (nftsToUpdate.length) {
+    context.log.info(
+      JSON.stringify({
+        message: "Inserting populated 'NFT' entities with found 'LSP4Metadata'",
+        nftsToUpdateCount: nftsToUpdate.length,
+      }),
+    );
 
     const knownNfts: Map<string, NFT> = await context.store
-      .findBy(NFT, { id: In(lsp4Metadatas.filter(({ nft }) => nft).map(({ nft }) => nft)) })
+      .findBy(NFT, { address: In([...new Set(nftsToUpdate.map(({ address }) => address))]) })
       .then((nfts) => new Map(nfts.map((nft) => [nft.id, nft])));
 
-    await context.store.insert(lsp4Metadatas);
-    await Promise.all([
-      context.store.insert(lsp4Links),
-      context.store.insert(lsp4Assets),
-      context.store.insert(lsp4Icons),
-      context.store.insert(lsp4Images),
-      context.store.insert(lsp4Attributes),
-      context.store.upsert([
-        ...new Map(
-          lsp4Metadatas
-            .filter(({ digitalAsset, nft }) => digitalAsset && !nft)
-            .map(({ id, digitalAsset }) => [
-              digitalAsset.id,
-              new DigitalAsset({
-                ...validDigitalAssets.get(digitalAsset.id)!,
-                lsp4Metadata: new LSP4Metadata({ id }),
-              }),
-            ]),
-        ).values(),
-      ]),
-      context.store.upsert([
-        ...new Map(
-          lsp4Metadatas
-            .filter(({ digitalAsset, nft }) => digitalAsset && nft)
-            .filter(({ nft }) => knownNfts.has(nft.id))
-            .map(({ id, nft }) => {
-              const attributes = lsp4Attributes.filter(
-                ({ lsp4Metadata }) => lsp4Metadata.id === id,
-              );
-              const scoreAttribute = attributes.find(({ key }) => key === 'Score');
-              const rankAttribute = attributes.find(({ key }) => key === 'Rank');
-
-              return [
-                nft.id,
-                new NFT({
-                  ...knownNfts.get(nft.id),
-                  lsp4Metadata: new LSP4Metadata({ id }),
-                  ...(scoreAttribute && {
-                    score: parseInt(scoreAttribute.value),
-                  }),
-                  ...(rankAttribute && {
-                    rank: parseInt(rankAttribute.value),
-                  }),
-                }),
-              ];
+    await context.store.upsert([
+      ...new Map(
+        allNewLsp4Metadatas
+          .filter(({ nft }) => nft && knownNfts.has(nft.id))
+          .map(({ id, nft }) => [
+            nft.id,
+            new NFT({
+              ...knownNfts.get(nft.id),
+              lsp4Metadata: new LSP4Metadata({ id }),
             }),
-        ).values(),
-      ]),
+          ]),
+      ).values(),
     ]);
   }
 
@@ -573,7 +481,8 @@ processor.run(new TypeormDatabase(), async (context) => {
 
     context.log.info(
       JSON.stringify({
-        message: 'Extracting updated OwnedAssets and OwnedTokens from Transfers',
+        message:
+          "Extracting updated 'OwnedAsset' entities and 'OwnedToken' entities from 'Transfer' events",
         transfersCount: populatedTransfers.length,
       }),
     );
@@ -624,7 +533,7 @@ processor.run(new TypeormDatabase(), async (context) => {
 
     context.log.info(
       JSON.stringify({
-        message: 'Updating and removing extracted OwnedAssets and OwnedTokens',
+        message: "Updating and removing extracted 'OwnedAsset' entities and 'OwnedToken' entities",
         ownedAssetsToSaveCount: ownedAssetsToSave.length,
         ownedAssetsToDeleteCount: ownedAssetsToDelete.length,
         ownedTokensToSaveCount: ownedTokensToSave.length,
@@ -641,7 +550,7 @@ processor.run(new TypeormDatabase(), async (context) => {
   if (populatedFollows.length > 0) {
     context.log.info(
       JSON.stringify({
-        message: 'Follow events found. Adding new identifiable Follow entities.',
+        message: "Follow events found. Adding new identifiable 'Follow' entities.",
         followsCount: populatedFollows.length,
       }),
     );
@@ -667,7 +576,7 @@ processor.run(new TypeormDatabase(), async (context) => {
   if (populatedUnfollows.length > 0) {
     context.log.info(
       JSON.stringify({
-        message: 'Unfollow events found. Removing identifiable Follow entities.',
+        message: "Unfollow events found. Removing identifiable 'Follow' entities.",
         unfollowsCount: populatedUnfollows.length,
       }),
     );
@@ -706,7 +615,7 @@ processor.run(new TypeormDatabase(), async (context) => {
 
       context.log.info(
         JSON.stringify({
-          message: 'CHILL claim events found.',
+          message: "'ChillClaimed' entities found.",
           chillClaimedEntitiesCount: chillClaimedEntities.length,
         }),
       );
@@ -728,12 +637,238 @@ processor.run(new TypeormDatabase(), async (context) => {
 
       context.log.info(
         JSON.stringify({
-          message: 'ORBS claim events found.',
+          message: "'OrbsClaimed' entities found.",
           orbsClaimedEntitiesCount: orbsClaimedEntities.length,
         }),
       );
 
       await context.store.insert(orbsClaimedEntities);
+    }
+
+    const unfetchedLsp3Profiles = await context.store.findBy(LSP3Profile, {
+      dataFetched: Not(true),
+      url: Not(IsNull()),
+    });
+    if (unfetchedLsp3Profiles.length > 0) {
+      context.log.info(
+        JSON.stringify({
+          message: "'LSP3Profile' entities found with unfetched data",
+          unfetchedLsp3ProfilesCount: unfetchedLsp3Profiles.length,
+        }),
+      );
+
+      const updatedLsp3Profiles: LSP3Profile[] = [];
+
+      const lsp3ProfileNames: LSP3ProfileName[] = [];
+      const lsp3ProfileDescriptions: LSP3ProfileDescription[] = [];
+      const lsp3ProfileTags: LSP3ProfileTag[] = [];
+      const lsp3ProfileLinks: LSP3ProfileLink[] = [];
+      const lsp3ProfileAssets: LSP3ProfileAsset[] = [];
+      const lsp3ProfileImages: LSP3ProfileImage[] = [];
+      const lsp3ProfileBackgroundImages: LSP3ProfileBackgroundImage[] = [];
+
+      const BATCH_SIZE = 10_000;
+      const batchesCount =
+        unfetchedLsp3Profiles.length % BATCH_SIZE
+          ? Math.floor(unfetchedLsp3Profiles.length / BATCH_SIZE) + 1
+          : unfetchedLsp3Profiles.length / BATCH_SIZE;
+
+      for (let index = 0; index < batchesCount; index++) {
+        const currentBatch = unfetchedLsp3Profiles.slice(
+          index * BATCH_SIZE,
+          (index + 1) * BATCH_SIZE,
+        );
+        context.log.info(
+          JSON.stringify({
+            message: `Processing batch ${index + 1}/${batchesCount} of 'LSP3Profile' entities with unfetched data`,
+          }),
+        );
+
+        for (const lsp3Profile of currentBatch) {
+          Utils.createLsp3Profile(lsp3Profile).then((result) => {
+            if (result.fetchError) {
+              updatedLsp3Profiles.push(
+                new LSP3Profile({
+                  ...lsp3Profile,
+                  fetchError: result.fetchError,
+                  dataFetched: true,
+                }),
+              );
+            } else {
+              updatedLsp3Profiles.push(
+                new LSP3Profile({
+                  ...lsp3Profile,
+                  dataFetched: true,
+                }),
+              );
+
+              lsp3ProfileNames.push(result.lsp3ProfileName);
+              lsp3ProfileDescriptions.push(result.lsp3ProfileDescription);
+              lsp3ProfileTags.push(...result.lsp3ProfileTags);
+              lsp3ProfileLinks.push(...result.lsp3ProfileLinks);
+              lsp3ProfileAssets.push(...result.lsp3ProfileAssets);
+              lsp3ProfileImages.push(...result.lsp3ProfileImages);
+              lsp3ProfileBackgroundImages.push(...result.lsp3ProfileBackgroundImages);
+            }
+          });
+        }
+
+        while (
+          updatedLsp3Profiles.length <
+          (index + 1 === batchesCount ? unfetchedLsp3Profiles.length : (index + 1) * BATCH_SIZE)
+        ) {
+          await Utils.timeout(1000);
+        }
+      }
+
+      context.log.info(
+        JSON.stringify({
+          message: "Saving fetched 'LSP3Profile' related entities",
+          lsp3ProfileNamesCount: lsp3ProfileNames.length,
+          lsp3ProfileDescriptionsCount: lsp3ProfileDescriptions.length,
+          lsp3ProfileTagsCount: lsp3ProfileTags.length,
+          lsp3ProfileLinksCount: lsp3ProfileLinks.length,
+          lsp3ProfileAssetsCount: lsp3ProfileAssets.length,
+          lsp3ProfileImagesCount: lsp3ProfileImages.length,
+          lsp3ProfileBackgroundImagesCount: lsp3ProfileBackgroundImages.length,
+        }),
+      );
+
+      await Promise.all([
+        context.store.upsert(updatedLsp3Profiles),
+        context.store.insert(lsp3ProfileNames),
+        context.store.insert(lsp3ProfileDescriptions),
+        context.store.insert(lsp3ProfileTags),
+        context.store.insert(lsp3ProfileLinks),
+        context.store.insert(lsp3ProfileAssets),
+        context.store.insert(lsp3ProfileImages),
+        context.store.insert(lsp3ProfileBackgroundImages),
+      ]);
+    }
+
+    const unfetchedLsp4Metadatas = await context.store.findBy(LSP4Metadata, {
+      dataFetched: Not(true),
+      url: Not(IsNull()),
+    });
+    if (unfetchedLsp4Metadatas.length > 0) {
+      context.log.info(
+        JSON.stringify({
+          message: "'LSP4Metadata' entities found with unfetched data",
+          unfetchedLsp4MetadatasCount: unfetchedLsp4Metadatas.length,
+        }),
+      );
+
+      const updatedLsp4Metadatas: LSP4Metadata[] = [];
+
+      const lsp4MetadataName: LSP4MetadataName[] = [];
+      const lsp4MetadataDescription: LSP4MetadataDescription[] = [];
+      const lsp4MetadataLinks: LSP4MetadataLink[] = [];
+      const lsp4MetadataImages: LSP4MetadataImage[] = [];
+      const lsp4MetadataIcons: LSP4MetadataIcon[] = [];
+      const lsp4MetadataAssets: LSP4MetadataAsset[] = [];
+      const lsp4MetadataAttributes: LSP4MetadataAttribute[] = [];
+
+      const BATCH_SIZE = 10_000;
+      const batchesCount =
+        unfetchedLsp4Metadatas.length % BATCH_SIZE
+          ? Math.floor(unfetchedLsp4Metadatas.length / BATCH_SIZE) + 1
+          : unfetchedLsp4Metadatas.length / BATCH_SIZE;
+
+      for (let index = 0; index < batchesCount; index++) {
+        const currentBatch = unfetchedLsp4Metadatas.slice(
+          index * BATCH_SIZE,
+          (index + 1) * BATCH_SIZE,
+        );
+        context.log.info(
+          JSON.stringify({
+            message: `Processing batch ${index + 1}/${batchesCount} of 'LSP4Metadata' entities with unfetched data`,
+          }),
+        );
+
+        for (const lsp4Metadata of currentBatch) {
+          Utils.createLsp4Metadata(lsp4Metadata).then((result) => {
+            if (result.fetchError) {
+              updatedLsp4Metadatas.push(
+                new LSP4Metadata({
+                  ...lsp4Metadata,
+                  fetchError: result.fetchError,
+                  dataFetched: true,
+                }),
+              );
+            } else {
+              updatedLsp4Metadatas.push(
+                new LSP4Metadata({
+                  ...lsp4Metadata,
+                  dataFetched: true,
+                }),
+              );
+
+              lsp4MetadataName.push(result.lsp4MetadataName);
+              lsp4MetadataDescription.push(result.lsp4MetadataDescription);
+              lsp4MetadataLinks.push(...result.lsp4MetadataLinks);
+              lsp4MetadataImages.push(...result.lsp4MetadataImages);
+              lsp4MetadataIcons.push(...result.lsp4MetadataIcons);
+              lsp4MetadataAssets.push(...result.lsp4MetadataAssets);
+              lsp4MetadataAttributes.push(...result.lsp4MetadataAttributes);
+            }
+          });
+        }
+
+        while (
+          updatedLsp4Metadatas.length <
+          (index + 1 === batchesCount ? unfetchedLsp4Metadatas.length : (index + 1) * BATCH_SIZE)
+        ) {
+          await Utils.timeout(1000);
+        }
+      }
+
+      context.log.info(
+        JSON.stringify({
+          message: "Saving fetched 'LSP4Metadata' related entities",
+          lsp4MetadataNameCount: lsp4MetadataName.length,
+          lsp4MetadataDescriptionCount: lsp4MetadataDescription.length,
+          lsp4MetadataLinksCount: lsp4MetadataLinks.length,
+          lsp4MetadataImagesCount: lsp4MetadataImages.length,
+          lsp4MetadataIconsCount: lsp4MetadataIcons.length,
+          lsp4MetadataAssetsCount: lsp4MetadataAssets.length,
+          lsp4MetadataAttributesCount: lsp4MetadataAttributes.length,
+        }),
+      );
+
+      await Promise.all([
+        context.store.upsert(updatedLsp4Metadatas),
+        context.store.insert(lsp4MetadataName),
+        context.store.insert(lsp4MetadataDescription),
+        context.store.insert(lsp4MetadataLinks),
+        context.store.insert(lsp4MetadataImages),
+        context.store.insert(lsp4MetadataIcons),
+        context.store.insert(lsp4MetadataAssets),
+        context.store.insert(lsp4MetadataAttributes),
+        context.store.insert(
+          lsp4MetadataAttributes
+            .filter(({ key, value }) => key === 'Score' && Utils.isNumeric(value))
+            .map(
+              ({ value, lsp4Metadata }) =>
+                new LSP4MetadataScore({
+                  id: uuidv4(),
+                  lsp4Metadata,
+                  value: parseInt(value),
+                }),
+            ),
+        ),
+        context.store.insert(
+          lsp4MetadataAttributes
+            .filter(({ key, value }) => key === 'Rank' && Utils.isNumeric(value))
+            .map(
+              ({ value, lsp4Metadata }) =>
+                new LSP4MetadataRank({
+                  id: uuidv4(),
+                  lsp4Metadata,
+                  value: parseInt(value),
+                }),
+            ),
+        ),
+      ]);
     }
   }
 });

@@ -1,62 +1,53 @@
 import { FieldSelection } from '@/app/processor';
+import { ExtractParams } from '@/types';
 import * as Utils from '@/utils';
-import { LSP4MetadataUrl, LSP8TokenMetadataBaseURI, NFT, Transfer } from '@chillwhales/sqd-typeorm';
+import { LSP8IdentifiableDigitalAsset } from '@chillwhales/sqd-abi';
+import {
+  DigitalAsset,
+  LSP4Metadata,
+  LSP8TokenMetadataBaseURI,
+  NFT,
+  Transfer,
+} from '@chillwhales/sqd-typeorm';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 
-export async function extractFromUrl({
-  context,
-  populatedLsp4MetadataUrls,
+export function extract({ block, log }: ExtractParams): LSP4Metadata {
+  const { timestamp } = block.header;
+  const { address } = log;
+  const { dataValue } = LSP8IdentifiableDigitalAsset.events.DataChanged.decode(log);
+  const { value, decodeError } = Utils.decodeVerifiableUri(dataValue);
+
+  return new LSP4Metadata({
+    id: uuidv4(),
+    timestamp: new Date(timestamp),
+    address,
+    url: value,
+    rawValue: dataValue,
+    decodeError,
+    dataFetched: false,
+  });
+}
+
+export function populate({
+  lsp4Metadatas,
+  validDigitalAssets,
 }: {
-  context: DataHandlerContext<Store, FieldSelection>;
-  populatedLsp4MetadataUrls: LSP4MetadataUrl[];
+  lsp4Metadatas: LSP4Metadata[];
+  validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  const extractedEntitesPromise: ReturnType<typeof Utils.createLsp4Metadata>[] = [];
-  for (const lsp4MetadataUrl of populatedLsp4MetadataUrls) {
-    extractedEntitesPromise.push(
-      Utils.createLsp4Metadata({
-        url: lsp4MetadataUrl.value,
-        timestamp: lsp4MetadataUrl.timestamp,
-        address: lsp4MetadataUrl.address,
-        digitalAsset: lsp4MetadataUrl.digitalAsset,
-        tokenId: lsp4MetadataUrl.tokenId,
-        nft: lsp4MetadataUrl.nft,
-        rawValue: lsp4MetadataUrl.rawValue,
-        lsp4MetadataUrl,
+  return lsp4Metadatas.map(
+    (event) =>
+      new LSP4Metadata({
+        ...event,
+        digitalAsset: validDigitalAssets.has(event.address)
+          ? new DigitalAsset({ id: event.address })
+          : null,
       }),
-    );
-  }
-  const extractedEntites = await Promise.all(extractedEntitesPromise);
-
-  const lsp4Metadatas = extractedEntites.map(({ lsp4Metadata }) => lsp4Metadata);
-  const lsp4Links = extractedEntites.flatMap(({ lsp4Links }) => lsp4Links);
-  const lsp4Assets = extractedEntites.flatMap(({ lsp4Assets }) => lsp4Assets);
-  const lsp4Icons = extractedEntites.flatMap(({ lsp4Icons }) => lsp4Icons);
-  const lsp4Images = extractedEntites.flatMap(({ lsp4Images }) => lsp4Images);
-  const lsp4Attributes = extractedEntites.flatMap(({ lsp4Attributes }) => lsp4Attributes);
-
-  context.log.info(
-    JSON.stringify({
-      message: 'Saving new LSP4Metadata objects.',
-      lsp4MetadatasCount: lsp4Metadatas.length,
-      lsp4LinksCount: lsp4Links.length,
-      lsp4AssetsCount: lsp4Assets.length,
-      lsp4IconsCount: lsp4Icons.length,
-      lsp4ImagesCount: lsp4Images.length,
-      lsp4AttributesCount: lsp4Attributes.length,
-    }),
   );
-
-  return {
-    lsp4Metadatas,
-    lsp4Links,
-    lsp4Assets,
-    lsp4Icons,
-    lsp4Images,
-    lsp4Attributes,
-  };
 }
 
 export async function extractFromBaseUri({
@@ -66,65 +57,43 @@ export async function extractFromBaseUri({
   context: DataHandlerContext<Store, FieldSelection>;
   populatedLsp8TokenMetadataBaseUris: LSP8TokenMetadataBaseURI[];
 }) {
-  const extractedEntitesPromise: ReturnType<typeof Utils.createLsp4Metadata>[] = [];
-
   const nfts = await context.store.findBy(NFT, {
     address: In(populatedLsp8TokenMetadataBaseUris.map(({ address }) => address)),
   });
 
-  for (const lsp8TokenMetadataBaseUri of populatedLsp8TokenMetadataBaseUris) {
-    for (const nft of nfts.filter((nft) => nft.address === lsp8TokenMetadataBaseUri.address)) {
-      const { address, tokenId, formattedTokenId, digitalAsset } = nft;
+  const lsp4Metadatas: LSP4Metadata[] = [];
 
-      extractedEntitesPromise.push(
-        Utils.createLsp4Metadata({
-          url: lsp8TokenMetadataBaseUri.value
-            ? lsp8TokenMetadataBaseUri.value.endsWith('/')
-              ? `${lsp8TokenMetadataBaseUri.value}${formattedTokenId}`
-              : `${lsp8TokenMetadataBaseUri.value}/${formattedTokenId}`
-            : null,
-          timestamp: lsp8TokenMetadataBaseUri.timestamp,
+  for (const lsp8TokenMetadataBaseUri of populatedLsp8TokenMetadataBaseUris) {
+    const { address, value, rawValue, timestamp } = lsp8TokenMetadataBaseUri;
+    const filteredNfts = nfts.filter((nft) => nft.address === address);
+
+    for (const nft of filteredNfts) {
+      const { tokenId, formattedTokenId, digitalAsset } = nft;
+
+      lsp4Metadatas.push(
+        new LSP4Metadata({
+          id: uuidv4(),
+          timestamp: new Date(timestamp),
           address,
           digitalAsset,
           tokenId,
           nft,
+          url: value
+            ? value.endsWith('/')
+              ? `${value}${formattedTokenId}`
+              : `${value}/${formattedTokenId}`
+            : null,
+          rawValue,
+          dataFetched: false,
         }),
       );
     }
   }
 
-  const extractedEntites = await Promise.all(extractedEntitesPromise);
-
-  const lsp4Metadatas = extractedEntites.map(({ lsp4Metadata }) => lsp4Metadata);
-  const lsp4Links = extractedEntites.flatMap(({ lsp4Links }) => lsp4Links);
-  const lsp4Assets = extractedEntites.flatMap(({ lsp4Assets }) => lsp4Assets);
-  const lsp4Icons = extractedEntites.flatMap(({ lsp4Icons }) => lsp4Icons);
-  const lsp4Images = extractedEntites.flatMap(({ lsp4Images }) => lsp4Images);
-  const lsp4Attributes = extractedEntites.flatMap(({ lsp4Attributes }) => lsp4Attributes);
-
-  context.log.info(
-    JSON.stringify({
-      message: 'Saving new LSP4Metadata objects.',
-      lsp4MetadatasCount: lsp4Metadatas.length,
-      lsp4LinksCount: lsp4Links.length,
-      lsp4AssetsCount: lsp4Assets.length,
-      lsp4IconsCount: lsp4Icons.length,
-      lsp4ImagesCount: lsp4Images.length,
-      lsp4AttributesCount: lsp4Attributes.length,
-    }),
-  );
-
-  return {
-    lsp4Metadatas,
-    lsp4Links,
-    lsp4Assets,
-    lsp4Icons,
-    lsp4Images,
-    lsp4Attributes,
-  };
+  return lsp4Metadatas;
 }
 
-export async function extractFromTransfers({
+export async function extractFromMints({
   context,
   transfers,
 }: {
@@ -139,60 +108,37 @@ export async function extractFromTransfers({
     address: In([...new Set(transfers.map(({ address }) => address))]),
   });
 
-  const extractedEntitesPromise: ReturnType<typeof Utils.createLsp4Metadata>[] = [];
+  const lsp4Metadatas: LSP4Metadata[] = [];
 
   for (const transfer of mintedNfts) {
     const { address, tokenId, nft, digitalAsset } = transfer;
 
-    const latestLsp8TokenIdFormat = lsp8TokenMetadataBaseUris
-      .filter((lsp8TokenIdFormat) => lsp8TokenIdFormat.address === address)
+    const latestLsp8TokenMetadataBaseUri = lsp8TokenMetadataBaseUris
+      .filter((lsp8TokenMetadataBaseUri) => lsp8TokenMetadataBaseUri.address === address)
       .sort((a, b) => b.timestamp.valueOf() - a.timestamp.valueOf())[0];
 
-    const lsp8TokenMetadataBaseUri = latestLsp8TokenIdFormat?.value || null;
+    if (!latestLsp8TokenMetadataBaseUri) continue;
 
-    if (!lsp8TokenMetadataBaseUri) continue;
+    const { value, rawValue, timestamp } = latestLsp8TokenMetadataBaseUri;
 
-    extractedEntitesPromise.push(
-      Utils.createLsp4Metadata({
-        url: lsp8TokenMetadataBaseUri.endsWith('/')
-          ? `${lsp8TokenMetadataBaseUri}${nft.formattedTokenId}`
-          : `${lsp8TokenMetadataBaseUri}/${nft.formattedTokenId}`,
-        timestamp: transfer.timestamp,
+    lsp4Metadatas.push(
+      new LSP4Metadata({
+        id: uuidv4(),
+        timestamp: new Date(timestamp),
         address,
         digitalAsset,
         tokenId,
         nft,
+        url: value
+          ? value.endsWith('/')
+            ? `${value}${nft.formattedTokenId}`
+            : `${value}/${nft.formattedTokenId}`
+          : null,
+        rawValue,
+        dataFetched: false,
       }),
     );
   }
 
-  const extractedEntites = await Promise.all(extractedEntitesPromise);
-
-  const lsp4Metadatas = extractedEntites.map(({ lsp4Metadata }) => lsp4Metadata);
-  const lsp4Links = extractedEntites.flatMap(({ lsp4Links }) => lsp4Links);
-  const lsp4Assets = extractedEntites.flatMap(({ lsp4Assets }) => lsp4Assets);
-  const lsp4Icons = extractedEntites.flatMap(({ lsp4Icons }) => lsp4Icons);
-  const lsp4Images = extractedEntites.flatMap(({ lsp4Images }) => lsp4Images);
-  const lsp4Attributes = extractedEntites.flatMap(({ lsp4Attributes }) => lsp4Attributes);
-
-  context.log.info(
-    JSON.stringify({
-      message: 'Saving new LSP4Metadata objects.',
-      lsp4MetadatasCount: lsp4Metadatas.length,
-      lsp4LinksCount: lsp4Links.length,
-      lsp4AssetsCount: lsp4Assets.length,
-      lsp4IconsCount: lsp4Icons.length,
-      lsp4ImagesCount: lsp4Images.length,
-      lsp4AttributesCount: lsp4Attributes.length,
-    }),
-  );
-
-  return {
-    lsp4Metadatas,
-    lsp4Links,
-    lsp4Assets,
-    lsp4Icons,
-    lsp4Images,
-    lsp4Attributes,
-  };
+  return lsp4Metadatas;
 }
