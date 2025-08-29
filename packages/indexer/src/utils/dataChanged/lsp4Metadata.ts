@@ -16,19 +16,21 @@ import { v4 as uuidv4 } from 'uuid';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 
 export function extract({ block, log }: ExtractParams): LSP4Metadata {
-  const { timestamp } = block.header;
+  const timestamp = new Date(block.header.timestamp);
   const { address } = log;
   const { dataValue } = LSP8IdentifiableDigitalAsset.events.DataChanged.decode(log);
-  const { value, decodeError } = Utils.decodeVerifiableUri(dataValue);
+  const { value: url, decodeError } = Utils.decodeVerifiableUri(dataValue);
 
   return new LSP4Metadata({
     id: uuidv4(),
-    timestamp: new Date(timestamp),
+    timestamp,
     address,
-    url: value,
+    url,
     rawValue: dataValue,
     decodeError,
-    dataFetched: false,
+    isDataFetched: false,
+    isRetryable: false,
+    retryCount: 0,
   });
 }
 
@@ -52,20 +54,30 @@ export function populate({
 
 export async function extractFromBaseUri({
   context,
+  populatedNfts,
   populatedLsp8TokenMetadataBaseUris,
 }: {
   context: DataHandlerContext<Store, FieldSelection>;
+  populatedNfts: Map<string, NFT>;
   populatedLsp8TokenMetadataBaseUris: LSP8TokenMetadataBaseURI[];
 }) {
-  const nfts = await context.store.findBy(NFT, {
-    address: In(populatedLsp8TokenMetadataBaseUris.map(({ address }) => address)),
-  });
+  const nfts = await context.store
+    .findBy(NFT, {
+      address: In(populatedLsp8TokenMetadataBaseUris.map(({ address }) => address)),
+    })
+    .then((nfts) => new Map(nfts.map((nft) => [nft.id, nft])));
+
+  for (const nft of nfts.values()) {
+    if (populatedNfts.has(nft.id)) {
+      nfts.set(nft.id, populatedNfts.get(nft.id));
+    }
+  }
 
   const lsp4Metadatas: LSP4Metadata[] = [];
 
   for (const lsp8TokenMetadataBaseUri of populatedLsp8TokenMetadataBaseUris) {
     const { address, value, rawValue, timestamp } = lsp8TokenMetadataBaseUri;
-    const filteredNfts = nfts.filter((nft) => nft.address === address);
+    const filteredNfts = [...nfts.values()].filter((nft) => nft.address === address);
 
     for (const nft of filteredNfts) {
       const { tokenId, formattedTokenId, digitalAsset } = nft;
@@ -84,7 +96,9 @@ export async function extractFromBaseUri({
               : `${value}/${formattedTokenId}`
             : null,
           rawValue,
-          dataFetched: false,
+          isDataFetched: false,
+          isRetryable: false,
+          retryCount: 0,
         }),
       );
     }
@@ -95,23 +109,33 @@ export async function extractFromBaseUri({
 
 export async function extractFromMints({
   context,
-  transfers,
+  populatedTransfers,
+  populatedNfts,
+  populatedLsp8TokenMetadataBaseUris,
 }: {
   context: DataHandlerContext<Store, FieldSelection>;
-  transfers: Transfer[];
+  populatedTransfers: Transfer[];
+  populatedNfts: Map<string, NFT>;
+  populatedLsp8TokenMetadataBaseUris: LSP8TokenMetadataBaseURI[];
 }) {
-  const mintedNfts = transfers.filter(
+  const mintedNfts = populatedTransfers.filter(
     (transferEvent) =>
       isAddressEqual(getAddress(transferEvent.from), zeroAddress) && transferEvent.tokenId,
   );
-  const lsp8TokenMetadataBaseUris = await context.store.findBy(LSP8TokenMetadataBaseURI, {
-    address: In([...new Set(transfers.map(({ address }) => address))]),
-  });
+  const lsp8TokenMetadataBaseUris = [
+    ...(await context.store.findBy(LSP8TokenMetadataBaseURI, {
+      address: In([...new Set(populatedTransfers.map(({ address }) => address))]),
+    })),
+    ...populatedLsp8TokenMetadataBaseUris,
+  ];
 
   const lsp4Metadatas: LSP4Metadata[] = [];
 
   for (const transfer of mintedNfts) {
-    const { address, tokenId, nft, digitalAsset } = transfer;
+    const { address, tokenId, digitalAsset } = transfer;
+    const nft = populatedNfts.has(transfer.nft.id)
+      ? populatedNfts.get(transfer.nft.id)
+      : transfer.nft;
 
     const latestLsp8TokenMetadataBaseUri = lsp8TokenMetadataBaseUris
       .filter((lsp8TokenMetadataBaseUri) => lsp8TokenMetadataBaseUri.address === address)
@@ -135,7 +159,9 @@ export async function extractFromMints({
             : `${value}/${nft.formattedTokenId}`
           : null,
         rawValue,
-        dataFetched: false,
+        isDataFetched: false,
+        isRetryable: false,
+        retryCount: 0,
       }),
     );
   }

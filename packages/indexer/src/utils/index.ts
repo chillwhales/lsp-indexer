@@ -39,10 +39,11 @@ import {
 import ERC725 from '@erc725/erc725.js';
 import { Verification } from '@lukso/lsp2-contracts';
 import { FileAsset, ImageMetadata, LSP3ProfileMetadataJSON } from '@lukso/lsp3-contracts';
-import { AttributeMetadata, LSP4DigitalAssetMetadataJSON } from '@lukso/lsp4-contracts';
+import { LSP4DigitalAssetMetadataJSON } from '@lukso/lsp4-contracts';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import parseDataURL from 'data-urls';
 import { v4 as uuidv4 } from 'uuid';
 import { bytesToHex, Hex, hexToBytes, hexToNumber, hexToString, isHex, sliceHex } from 'viem';
 import * as DataChangedUtils from './dataChanged';
@@ -123,14 +124,19 @@ export function decodeTokenIdFormat(tokenIdFormat: number) {
 }
 
 export const isVerification = (obj: object): obj is Verification =>
+  obj &&
+  typeof obj === 'object' &&
   'method' in obj &&
   typeof obj.method === 'string' &&
   'data' in obj &&
   typeof obj.data === 'string';
 
-export const isFileAsset = (obj: object): obj is FileAsset => 'url' in obj;
+export const isFileAsset = (obj: object): obj is FileAsset =>
+  obj && typeof obj === 'object' && 'url' in obj;
 
 export const isFileImage = (obj: object): obj is ImageMetadata =>
+  obj &&
+  typeof obj === 'object' &&
   'url' in obj &&
   typeof obj.url === 'string' &&
   'width' in obj &&
@@ -170,7 +176,7 @@ export function decodeVerifiableUri(dataValue: string): {
   } catch (error) {
     return {
       value: null,
-      decodeError: error.toString(),
+      decodeError: error?.toString(),
     };
   }
 }
@@ -191,34 +197,116 @@ export function parseIpfsUrl(url: string) {
   return url;
 }
 
+export function isRetryableError(error: AxiosError | string) {
+  let retryable = false;
+
+  if (typeof error === 'string') {
+    const errorMessage = error.toLowerCase();
+    retryable =
+      errorMessage.includes('econnreset') ||
+      errorMessage.includes('etimedout') ||
+      errorMessage.includes('getaddrinfo enotfound') ||
+      errorMessage.includes('socket hang up') ||
+      errorMessage.includes('aborted') ||
+      errorMessage.includes('client network socket disconnected') ||
+      errorMessage.includes('tlsv1 alert internal error');
+  } else if (error.response) {
+    // The request made it to the server, but the server returned an error
+    retryable = [500, 502, 503, 504, 429].includes(error.response.status);
+  } else if (error.request) {
+    // The request was made, but no response was received
+    const errorMessage = error.message.toLowerCase();
+    retryable =
+      errorMessage.includes('econnreset') ||
+      errorMessage.includes('etimedout') ||
+      errorMessage.includes('getaddrinfo enotfound') ||
+      errorMessage.includes('socket hang up') ||
+      errorMessage.includes('aborted') ||
+      errorMessage.includes('client network socket disconnected') ||
+      errorMessage.includes('tlsv1 alert internal error');
+  }
+  // else if (error instanceof AggregateError) {
+  //     //Handle AggregateErrors - usually a promise race/all
+  //     retryable = true;
+  // }
+
+  return retryable;
+}
+
+export async function getDataFromURL<FetchedDataType>(url: string) {
+  if (url.startsWith('data:')) {
+    const result = parseDataURL(url);
+    const mimeType = result.mimeType.toString();
+
+    if (mimeType.startsWith('application/json')) {
+      return {
+        fetchError: `Error: Invalid mime type. Expected 'application/json'. Got: '${mimeType}'`,
+        isRetryable: false,
+      };
+    }
+
+    try {
+      return JSON.parse(Buffer.from(result.body).toString()) as FetchedDataType;
+    } catch (error) {
+      return {
+        fetchError: error.toString(),
+        isRetryable: false,
+      };
+    }
+  } else {
+    try {
+      const result = await axios.get<FetchedDataType>(parseIpfsUrl(url));
+      return result.data;
+    } catch (error) {
+      const isAxiosError = axios.isAxiosError(error);
+      return {
+        fetchError: isAxiosError ? error.message : error.toString(),
+        isRetryable: isRetryableError(isAxiosError ? error : error.toString()),
+      };
+    }
+  }
+}
+
 export async function createLsp3Profile(lsp3Profile: LSP3Profile) {
   if (!lsp3Profile.url) {
     return {
       fetchError: 'Error: Missing URL',
-      dataFetched: false,
+      isRetryable: false,
     };
   }
 
-  try {
-    const result = await axios.get(parseIpfsUrl(lsp3Profile.url));
-    const json: LSP3ProfileMetadataJSON = result.data;
+  const data = await getDataFromURL<LSP3ProfileMetadataJSON>(lsp3Profile.url);
 
-    if (!json.LSP3Profile) throw new Error('Invalid LSP3Profile');
+  if (typeof data !== 'object')
+    return {
+      fetchError: 'Error: Invalid data',
+      isRetryable: false,
+    };
+  if ('fetchError' in data) return data;
+  if (!data.LSP3Profile)
+    return {
+      fetchError: 'Error: Invalid LSP3Profile',
+      isRetryable: false,
+    };
 
-    const lsp3ProfileName = new LSP3ProfileName({
-      id: uuidv4(),
-      lsp3Profile,
-      value: json.LSP3Profile.name,
-    });
+  const { name, description, tags, links, avatar, profileImage, backgroundImage } =
+    data.LSP3Profile;
 
-    const lsp3ProfileDescription = new LSP3ProfileDescription({
-      id: uuidv4(),
-      lsp3Profile,
-      value: json.LSP3Profile.description,
-    });
+  const lsp3ProfileName = new LSP3ProfileName({
+    id: uuidv4(),
+    lsp3Profile,
+    value: name,
+  });
 
-    const lsp3ProfileTags = json.LSP3Profile.tags
-      ? json.LSP3Profile.tags.map(
+  const lsp3ProfileDescription = new LSP3ProfileDescription({
+    id: uuidv4(),
+    lsp3Profile,
+    value: description,
+  });
+
+  const lsp3ProfileTags =
+    tags && Array.isArray(tags)
+      ? tags.map(
           (tag) =>
             new LSP3ProfileTag({
               id: uuidv4(),
@@ -228,8 +316,9 @@ export async function createLsp3Profile(lsp3Profile: LSP3Profile) {
         )
       : [];
 
-    const lsp3ProfileLinks = json.LSP3Profile.links
-      ? json.LSP3Profile.links.map(
+  const lsp3ProfileLinks =
+    links && Array.isArray(links)
+      ? links.map(
           ({ title, url }) =>
             new LSP3ProfileLink({
               id: uuidv4(),
@@ -240,8 +329,9 @@ export async function createLsp3Profile(lsp3Profile: LSP3Profile) {
         )
       : [];
 
-    const lsp3ProfileAssets = json.LSP3Profile.avatar
-      ? json.LSP3Profile.avatar.filter(isFileAsset).map(
+  const lsp3ProfileAssets =
+    avatar && Array.isArray(avatar)
+      ? avatar.filter(isFileAsset).map(
           ({ url, fileType, verification }) =>
             new LSP3ProfileAsset({
               id: uuidv4(),
@@ -257,8 +347,9 @@ export async function createLsp3Profile(lsp3Profile: LSP3Profile) {
         )
       : [];
 
-    const lsp3ProfileImages = json.LSP3Profile.profileImage
-      ? json.LSP3Profile.profileImage.map(
+  const lsp3ProfileImages =
+    profileImage && Array.isArray(profileImage)
+      ? profileImage.map(
           ({ url, width, height, verification }) =>
             new LSP3ProfileImage({
               id: uuidv4(),
@@ -275,8 +366,9 @@ export async function createLsp3Profile(lsp3Profile: LSP3Profile) {
         )
       : [];
 
-    const lsp3ProfileBackgroundImages = json.LSP3Profile.backgroundImage
-      ? json.LSP3Profile.backgroundImage.map(
+  const lsp3ProfileBackgroundImages =
+    backgroundImage && Array.isArray(backgroundImage)
+      ? backgroundImage.map(
           ({ url, width, height, verification }) =>
             new LSP3ProfileBackgroundImage({
               id: uuidv4(),
@@ -293,52 +385,56 @@ export async function createLsp3Profile(lsp3Profile: LSP3Profile) {
         )
       : [];
 
-    return {
-      lsp3ProfileName,
-      lsp3ProfileDescription,
-      lsp3ProfileTags,
-      lsp3ProfileLinks,
-      lsp3ProfileAssets,
-      lsp3ProfileImages,
-      lsp3ProfileBackgroundImages,
-    };
-  } catch (error) {
-    const errorString = error.toString();
-    return {
-      fetchError: errorString,
-      dataFetched: false,
-    };
-  }
+  return {
+    lsp3ProfileName,
+    lsp3ProfileDescription,
+    lsp3ProfileTags,
+    lsp3ProfileLinks,
+    lsp3ProfileAssets,
+    lsp3ProfileImages,
+    lsp3ProfileBackgroundImages,
+  };
 }
 
 export async function createLsp4Metadata(lsp4Metadata: LSP4Metadata) {
   if (!lsp4Metadata.url) {
     return {
       fetchError: 'Error: Missing URL',
-      dataFetched: false,
+      isRetryable: false,
     };
   }
 
-  try {
-    const result = await axios.get(parseIpfsUrl(lsp4Metadata.url));
-    const json: LSP4DigitalAssetMetadataJSON = result.data;
+  const data = await getDataFromURL<LSP4DigitalAssetMetadataJSON>(lsp4Metadata.url);
 
-    if (!json.LSP4Metadata) throw new Error('Invalid LSP4Metadata');
+  if (typeof data !== 'object')
+    return {
+      fetchError: 'Error: Invalid data',
+      isRetryable: false,
+    };
+  if ('fetchError' in data) return data;
+  if (!data.LSP4Metadata)
+    return {
+      fetchError: 'Error: Invalid LSP4Metadata',
+      isRetryable: false,
+    };
 
-    const lsp4MetadataName = new LSP4MetadataName({
-      id: uuidv4(),
-      lsp4Metadata,
-      value: json.LSP4Metadata.name,
-    });
+  const { name, description, links, images, icon, assets, attributes } = data.LSP4Metadata;
 
-    const lsp4MetadataDescription = new LSP4MetadataDescription({
-      id: uuidv4(),
-      lsp4Metadata,
-      value: json.LSP4Metadata.description,
-    });
+  const lsp4MetadataName = new LSP4MetadataName({
+    id: uuidv4(),
+    lsp4Metadata,
+    value: name,
+  });
 
-    const lsp4MetadataLinks = json.LSP4Metadata.links
-      ? json.LSP4Metadata.links.map(
+  const lsp4MetadataDescription = new LSP4MetadataDescription({
+    id: uuidv4(),
+    lsp4Metadata,
+    value: description,
+  });
+
+  const lsp4MetadataLinks =
+    links && Array.isArray(links)
+      ? links.map(
           ({ title, url }) =>
             new LSP4MetadataLink({
               id: uuidv4(),
@@ -349,28 +445,32 @@ export async function createLsp4Metadata(lsp4Metadata: LSP4Metadata) {
         )
       : [];
 
-    const lsp4MetadataImages = json.LSP4Metadata.images
-      ? json.LSP4Metadata.images.flatMap((images) =>
-          images.filter(isFileImage).map(
-            ({ url, width, height, verification }) =>
-              new LSP4MetadataImage({
-                id: uuidv4(),
-                lsp4Metadata,
-                url: url,
-                width: width,
-                height: height,
-                ...(isVerification(verification) && {
-                  verificationMethod: verification.method,
-                  verificationData: verification.data,
-                  verificationSource: verification.source,
+  const lsp4MetadataImages =
+    images && Array.isArray(images)
+      ? images
+          .filter((images) => Array.isArray(images))
+          .flatMap((images) =>
+            images.filter(isFileImage).map(
+              ({ url, width, height, verification }) =>
+                new LSP4MetadataImage({
+                  id: uuidv4(),
+                  lsp4Metadata,
+                  url: url,
+                  width: width,
+                  height: height,
+                  ...(isVerification(verification) && {
+                    verificationMethod: verification.method,
+                    verificationData: verification.data,
+                    verificationSource: verification.source,
+                  }),
                 }),
-              }),
-          ),
-        )
+            ),
+          )
       : [];
 
-    const lsp4MetadataIcons = json.LSP4Metadata.icon
-      ? json.LSP4Metadata.icon.map(
+  const lsp4MetadataIcons =
+    icon && Array.isArray(icon)
+      ? icon.map(
           ({ url, width, height, verification }) =>
             new LSP4MetadataIcon({
               id: uuidv4(),
@@ -387,8 +487,9 @@ export async function createLsp4Metadata(lsp4Metadata: LSP4Metadata) {
         )
       : [];
 
-    const lsp4MetadataAssets = json.LSP4Metadata.assets
-      ? json.LSP4Metadata.assets.filter(isFileAsset).map(
+  const lsp4MetadataAssets =
+    assets && Array.isArray(assets)
+      ? assets.filter(isFileAsset).map(
           ({ url, fileType, verification }) =>
             new LSP4MetadataAsset({
               id: uuidv4(),
@@ -404,42 +505,54 @@ export async function createLsp4Metadata(lsp4Metadata: LSP4Metadata) {
         )
       : [];
 
-    const lsp4MetadataAttributes = json.LSP4Metadata.attributes
-      ? (
-          json.LSP4Metadata.attributes as (AttributeMetadata & {
-            score?: number;
-            rarity?: number;
-          })[]
-        ).map(
-          ({ key, value, type, score, rarity }) =>
-            new LSP4MetadataAttribute({
-              id: uuidv4(),
-              lsp4Metadata,
-              key,
-              value,
-              type: type.toString(),
-              score,
-              rarity,
-            }),
-        )
+  const lsp4MetadataAttributes =
+    attributes && Array.isArray(attributes)
+      ? attributes.map((attribute) => {
+          const { key, value, type } = attribute;
+
+          const score =
+            'score' in attribute
+              ? typeof attribute.score === 'string'
+                ? isNumeric(attribute.score)
+                  ? parseInt(attribute.score)
+                  : null
+                : typeof attribute.score === 'number'
+                  ? attribute.score
+                  : null
+              : null;
+
+          const rarity =
+            'rarity' in attribute
+              ? typeof attribute.rarity === 'string'
+                ? isNumeric(attribute.rarity)
+                  ? parseFloat(attribute.rarity)
+                  : null
+                : typeof attribute.rarity === 'number'
+                  ? attribute.rarity
+                  : null
+              : null;
+
+          return new LSP4MetadataAttribute({
+            id: uuidv4(),
+            lsp4Metadata,
+            key,
+            value,
+            type: type?.toString(),
+            score,
+            rarity,
+          });
+        })
       : [];
 
-    return {
-      lsp4MetadataName,
-      lsp4MetadataDescription,
-      lsp4MetadataLinks,
-      lsp4MetadataImages,
-      lsp4MetadataIcons,
-      lsp4MetadataAssets,
-      lsp4MetadataAttributes,
-    };
-  } catch (error) {
-    const errorString = error.toString();
-    return {
-      fetchError: errorString,
-      dataFetched: false,
-    };
-  }
+  return {
+    lsp4MetadataName,
+    lsp4MetadataDescription,
+    lsp4MetadataLinks,
+    lsp4MetadataImages,
+    lsp4MetadataIcons,
+    lsp4MetadataAssets,
+    lsp4MetadataAttributes,
+  };
 }
 
 export async function getLatestBlockNumber({

@@ -5,19 +5,21 @@ import { LSP3Profile, UniversalProfile } from '@chillwhales/sqd-typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 export function extract({ block, log }: ExtractParams): LSP3Profile {
-  const { timestamp } = block.header;
+  const timestamp = new Date(block.header.timestamp);
   const { address } = log;
   const { dataValue } = ERC725Y.events.DataChanged.decode(log);
-  const { value, decodeError } = decodeVerifiableUri(dataValue);
+  const { value: url, decodeError } = decodeVerifiableUri(dataValue);
 
   return new LSP3Profile({
     id: uuidv4(),
-    timestamp: new Date(timestamp),
+    timestamp,
     address,
-    url: value,
+    url,
     rawValue: dataValue,
     decodeError,
-    dataFetched: false,
+    isDataFetched: false,
+    isRetryable: false,
+    retryCount: 0,
   });
 }
 

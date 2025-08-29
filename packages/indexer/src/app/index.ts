@@ -1,5 +1,5 @@
 import { processor } from '@/app/processor';
-import { CHILL_ADDRESS, ORBS_ADDRESS } from '@/constants';
+import { CHILL_ADDRESS, FETCH_RETRY_COUNT, ORBS_ADDRESS } from '@/constants';
 import * as Utils from '@/utils';
 import {
   ChillClaimed,
@@ -32,7 +32,7 @@ import {
   UniversalProfile,
 } from '@chillwhales/sqd-typeorm';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
-import { In, IsNull, Not } from 'typeorm';
+import { In, IsNull, LessThan, Not } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { getAddress, isAddressEqual, isHex, zeroAddress } from 'viem';
 import { scanLogs } from './scanner';
@@ -358,12 +358,13 @@ processor.run(new TypeormDatabase(), async (context) => {
 
     const extractedLsp4Metadatas = await Utils.DataChanged.LSP4Metadata.extractFromBaseUri({
       context,
+      populatedNfts,
       populatedLsp8TokenMetadataBaseUris,
     });
 
     baseUriLsp4Metadatas.push(...extractedLsp4Metadatas);
   } else if (
-    transferEvents.filter(
+    populatedTransfers.filter(
       (transferEvent) =>
         isAddressEqual(getAddress(transferEvent.from), zeroAddress) && transferEvent.tokenId,
     ).length > 0
@@ -377,7 +378,9 @@ processor.run(new TypeormDatabase(), async (context) => {
 
     const extractedLsp4Metadatas = await Utils.DataChanged.LSP4Metadata.extractFromMints({
       context,
-      transfers: transferEvents,
+      populatedTransfers,
+      populatedNfts,
+      populatedLsp8TokenMetadataBaseUris,
     });
 
     baseUriLsp4Metadatas.push(...extractedLsp4Metadatas);
@@ -644,11 +647,18 @@ processor.run(new TypeormDatabase(), async (context) => {
 
       await context.store.insert(orbsClaimedEntities);
     }
-
-    const unfetchedLsp3Profiles = await context.store.findBy(LSP3Profile, {
-      dataFetched: Not(true),
-      url: Not(IsNull()),
-    });
+    const unfetchedLsp3Profiles = [
+      ...(await context.store.findBy(LSP3Profile, {
+        url: Not(IsNull()),
+        isDataFetched: Not(true),
+      })),
+      ...(await context.store.findBy(LSP3Profile, {
+        url: Not(IsNull()),
+        isDataFetched: true,
+        isRetryable: true,
+        retryCount: LessThan(FETCH_RETRY_COUNT),
+      })),
+    ];
     if (unfetchedLsp3Profiles.length > 0) {
       context.log.info(
         JSON.stringify({
@@ -686,19 +696,24 @@ processor.run(new TypeormDatabase(), async (context) => {
 
         for (const lsp3Profile of currentBatch) {
           Utils.createLsp3Profile(lsp3Profile).then((result) => {
-            if (result.fetchError) {
+            if ('fetchError' in result) {
+              const { fetchError, isRetryable } = result;
               updatedLsp3Profiles.push(
                 new LSP3Profile({
                   ...lsp3Profile,
-                  fetchError: result.fetchError,
-                  dataFetched: true,
+                  fetchError,
+                  isDataFetched: true,
+                  isRetryable,
+                  retryCount: isRetryable ? lsp3Profile.retryCount + 1 : 0,
                 }),
               );
             } else {
               updatedLsp3Profiles.push(
                 new LSP3Profile({
                   ...lsp3Profile,
-                  dataFetched: true,
+                  isDataFetched: true,
+                  isRetryable: false,
+                  retryCount: 0,
                 }),
               );
 
@@ -746,10 +761,18 @@ processor.run(new TypeormDatabase(), async (context) => {
       ]);
     }
 
-    const unfetchedLsp4Metadatas = await context.store.findBy(LSP4Metadata, {
-      dataFetched: Not(true),
-      url: Not(IsNull()),
-    });
+    const unfetchedLsp4Metadatas = [
+      ...(await context.store.findBy(LSP4Metadata, {
+        url: Not(IsNull()),
+        isDataFetched: Not(true),
+      })),
+      ...(await context.store.findBy(LSP4Metadata, {
+        url: Not(IsNull()),
+        isDataFetched: true,
+        isRetryable: true,
+        retryCount: LessThan(FETCH_RETRY_COUNT),
+      })),
+    ];
     if (unfetchedLsp4Metadatas.length > 0) {
       context.log.info(
         JSON.stringify({
@@ -787,19 +810,25 @@ processor.run(new TypeormDatabase(), async (context) => {
 
         for (const lsp4Metadata of currentBatch) {
           Utils.createLsp4Metadata(lsp4Metadata).then((result) => {
-            if (result.fetchError) {
+            if ('fetchError' in result) {
+              const { fetchError, isRetryable } = result;
+
               updatedLsp4Metadatas.push(
                 new LSP4Metadata({
                   ...lsp4Metadata,
-                  fetchError: result.fetchError,
-                  dataFetched: true,
+                  fetchError,
+                  isDataFetched: true,
+                  isRetryable,
+                  retryCount: isRetryable ? lsp4Metadata.retryCount + 1 : 0,
                 }),
               );
             } else {
               updatedLsp4Metadatas.push(
                 new LSP4Metadata({
                   ...lsp4Metadata,
-                  dataFetched: true,
+                  isDataFetched: true,
+                  isRetryable: false,
+                  retryCount: 0,
                 }),
               );
 

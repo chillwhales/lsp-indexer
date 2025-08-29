@@ -312,7 +312,9 @@ type LSP3Profile @entity {
   rawValue: String
   decodeError: String
   fetchError: String
-  dataFetched: Boolean!
+  isDataFetched: Boolean!
+  isRetryable: Boolean!
+  retryCount: Int
 }
 
 type LSP3ProfileName @entity {
@@ -324,7 +326,7 @@ type LSP3ProfileName @entity {
 type LSP3ProfileDescription @entity {
   id: ID! @unique
   lsp3Profile: LSP3Profile! @index @unique
-  value: String @index
+  value: String
 }
 type LSP3ProfileTag @entity {
   id: ID! @unique
@@ -391,7 +393,9 @@ type LSP4Metadata @entity {
   rawValue: String
   decodeError: String
   fetchError: String
-  dataFetched: Boolean!
+  isDataFetched: Boolean!
+  isRetryable: Boolean!
+  retryCount: Int
 }
 
 type LSP4MetadataName @entity {
@@ -403,7 +407,7 @@ type LSP4MetadataName @entity {
 type LSP4MetadataDescription @entity {
   id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index @unique
-  value: String @index
+  value: String
 }
 
 type LSP4MetadataScore @entity {
