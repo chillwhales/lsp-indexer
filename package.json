@@ -12,9 +12,9 @@
     "format": "prettier --write .",
     "hasura:generate": "pnpm --filter=@chillwhales/sqd-typeorm hasura:generate",
     "hasura:apply": "pnpm --filter=@chillwhales/sqd-typeorm hasura:apply",
-    "migration:generate": "pnpm --filter=@chillwhales/sqd-typeorm migration:generate",
-    "migration:apply": "pnpm --filter=@chillwhales/sqd-typeorm migration:apply",
-    "start": "pnpm --filter=@chillwhales/sqd-indexer start"
+    "migration:generate": ". ./env.sh && pnpm --filter=@chillwhales/sqd-typeorm migration:generate",
+    "migration:apply": ". ./env.sh && pnpm --filter=@chillwhales/sqd-typeorm migration:apply",
+    "start": ". ./env.sh && pnpm --filter=@chillwhales/sqd-indexer start"
   },
   "devDependencies": {
     "prettier": "^3.5.3",
