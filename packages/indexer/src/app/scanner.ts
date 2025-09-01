@@ -34,36 +34,26 @@ import { Store } from '@subsquid/typeorm-store';
 import { FieldSelection } from './processor';
 
 export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
-  context.log.info(
-    JSON.stringify({
-      message: 'Scanning block range',
-      blockRange: {
-        start: context.blocks[0].header.height,
-        end: context.blocks[context.blocks.length - 1].header.height,
-      },
-    }),
-  );
-
   const universalProfiles = new Set<string>();
   const digitalAssets = new Set<string>();
   const nfts = new Map<string, NFT>();
 
-  const executedEvents: Executed[] = [];
-  const dataChangedEvents: DataChanged[] = [];
-  const universalReceiverEvents: UniversalReceiver[] = [];
-  const transferEvents: Transfer[] = [];
-  const tokenIdDataChangedEvents: TokenIdDataChanged[] = [];
-  const followEvents: Follow[] = [];
-  const unfollowEvents: Unfollow[] = [];
+  const executedEntities: Executed[] = [];
+  const dataChangedEntities: DataChanged[] = [];
+  const universalReceiverEntities: UniversalReceiver[] = [];
+  const transferEntities: Transfer[] = [];
+  const tokenIdDataChangedEntities: TokenIdDataChanged[] = [];
+  const followEntities: Follow[] = [];
+  const unfollowEntities: Unfollow[] = [];
 
-  const lsp3Profiles: LSP3Profile[] = [];
-  const lsp4TokenNames: LSP4TokenName[] = [];
-  const lsp4TokenSymbols: LSP4TokenSymbol[] = [];
-  const lsp4TokenTypes: LSP4TokenType[] = [];
-  const lsp4Metadatas: LSP4Metadata[] = [];
-  const lsp8TokenIdFormats: LSP8TokenIdFormat[] = [];
-  const lsp8ReferenceContracts: LSP8ReferenceContract[] = [];
-  const lsp8TokenMetadataBaseUris: LSP8TokenMetadataBaseURI[] = [];
+  const lsp3ProfileEntities = new Map<string, LSP3Profile>();
+  const lsp4TokenNameEntities = new Map<string, LSP4TokenName>();
+  const lsp4TokenSymbolEntities = new Map<string, LSP4TokenSymbol>();
+  const lsp4TokenTypeEntities = new Map<string, LSP4TokenType>();
+  const lsp4MetadataEntities = new Map<string, LSP4Metadata>();
+  const lsp8TokenIdFormatEntities = new Map<string, LSP8TokenIdFormat>();
+  const lsp8ReferenceContractEntities = new Map<string, LSP8ReferenceContract>();
+  const lsp8TokenMetadataBaseUriEntities = new Map<string, LSP8TokenMetadataBaseURI>();
 
   for (const block of context.blocks) {
     const { logs } = block;
@@ -74,57 +64,66 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
       switch (log.topics[0]) {
         case ERC725X.events.Executed.topic: {
           universalProfiles.add(log.address);
-          executedEvents.push(Utils.Executed.extract(extractParams));
+          executedEntities.push(Utils.Executed.extract(extractParams));
           break;
         }
 
         case ERC725Y.events.DataChanged.topic: {
           universalProfiles.add(log.address);
           digitalAssets.add(log.address);
-          dataChangedEvents.push(Utils.DataChanged.extract(extractParams));
+          dataChangedEntities.push(Utils.DataChanged.extract(extractParams));
 
           const { dataKey } = ERC725Y.events.DataChanged.decode(log);
           switch (dataKey) {
             case LSP3DataKeys.LSP3Profile: {
-              lsp3Profiles.push(Utils.DataChanged.LSP3Profile.extract(extractParams));
+              const lsp3Profile = Utils.DataChanged.LSP3Profile.extract(extractParams);
+              lsp3ProfileEntities.set(lsp3Profile.id, lsp3Profile);
               break;
             }
 
             case LSP4DataKeys.LSP4Metadata: {
-              lsp4Metadatas.push(Utils.DataChanged.LSP4Metadata.extract(extractParams));
+              const lsp4Metadata = Utils.DataChanged.LSP4Metadata.extract(extractParams);
+              lsp4MetadataEntities.set(lsp4Metadata.id, lsp4Metadata);
               break;
             }
 
             case LSP4DataKeys.LSP4TokenName: {
-              lsp4TokenNames.push(Utils.DataChanged.LSP4TokenName.extract(extractParams));
+              const lsp4TokenName = Utils.DataChanged.LSP4TokenName.extract(extractParams);
+              lsp4TokenNameEntities.set(lsp4TokenName.id, lsp4TokenName);
               break;
             }
 
             case LSP4DataKeys.LSP4TokenSymbol: {
-              lsp4TokenSymbols.push(Utils.DataChanged.LSP4TokenSymbol.extract(extractParams));
+              const lsp4TokenSymbol = Utils.DataChanged.LSP4TokenSymbol.extract(extractParams);
+              lsp4TokenSymbolEntities.set(lsp4TokenSymbol.id, lsp4TokenSymbol);
               break;
             }
 
             case LSP4DataKeys.LSP4TokenType: {
-              lsp4TokenTypes.push(Utils.DataChanged.LSP4TokenType.extract(extractParams));
+              const lsp4TokenType = Utils.DataChanged.LSP4TokenType.extract(extractParams);
+              lsp4TokenTypeEntities.set(lsp4TokenType.id, lsp4TokenType);
               break;
             }
 
             case LSP8DataKeys.LSP8ReferenceContract: {
-              lsp8ReferenceContracts.push(
-                Utils.DataChanged.LSP8ReferenceContract.extract(extractParams),
-              );
+              const lsp8ReferenceContract =
+                Utils.DataChanged.LSP8ReferenceContract.extract(extractParams);
+              lsp8ReferenceContractEntities.set(lsp8ReferenceContract.id, lsp8ReferenceContract);
               break;
             }
 
             case LSP8DataKeys.LSP8TokenIdFormat: {
-              lsp8TokenIdFormats.push(Utils.DataChanged.LSP8TokenIdFormat.extract(extractParams));
+              const lsp8TokenIdFormat = Utils.DataChanged.LSP8TokenIdFormat.extract(extractParams);
+              lsp8TokenIdFormatEntities.set(lsp8TokenIdFormat.id, lsp8TokenIdFormat);
               break;
             }
 
             case LSP8DataKeys.LSP8TokenMetadataBaseURI: {
-              lsp8TokenMetadataBaseUris.push(
-                Utils.DataChanged.LSP8TokenMetadataBaseURI.extract(extractParams),
+              const lsp8TokenMetadataBaseUri =
+                Utils.DataChanged.LSP8TokenMetadataBaseURI.extract(extractParams);
+              lsp8TokenMetadataBaseUriEntities.set(
+                lsp8TokenMetadataBaseUri.id,
+                lsp8TokenMetadataBaseUri,
               );
               break;
             }
@@ -135,13 +134,13 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
 
         case LSP0ERC725Account.events.UniversalReceiver.topic: {
           universalProfiles.add(log.address);
-          universalReceiverEvents.push(Utils.UniversalReceiver.extract(extractParams));
+          universalReceiverEntities.push(Utils.UniversalReceiver.extract(extractParams));
           break;
         }
 
         case LSP7DigitalAsset.events.Transfer.topic: {
           const transferEvent = Utils.Transfer.extract(extractParams);
-          transferEvents.push(transferEvent);
+          transferEntities.push(transferEvent);
 
           digitalAssets.add(transferEvent.address);
           universalProfiles.add(transferEvent.from);
@@ -152,7 +151,7 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
 
         case LSP8IdentifiableDigitalAsset.events.Transfer.topic: {
           const transferEvent = Utils.Transfer.extract(extractParams);
-          transferEvents.push(transferEvent);
+          transferEntities.push(transferEvent);
 
           const nft = Utils.Transfer.NFT.extract(extractParams);
           if (nft !== null) nfts.set(nft.id, nft);
@@ -166,7 +165,7 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
 
         case LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.topic: {
           digitalAssets.add(log.address);
-          tokenIdDataChangedEvents.push(Utils.TokenIdDataChanged.extract(extractParams));
+          tokenIdDataChangedEntities.push(Utils.TokenIdDataChanged.extract(extractParams));
 
           const nft = Utils.TokenIdDataChanged.NFT.extract(extractParams);
           if (!nfts.has(nft.id)) nfts.set(nft.id, nft);
@@ -174,7 +173,8 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
           const { dataKey } = LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.decode(log);
           switch (dataKey) {
             case LSP4DataKeys.LSP4Metadata: {
-              lsp4Metadatas.push(Utils.TokenIdDataChanged.LSP4Metadata.extract(extractParams));
+              const lsp4Metadata = Utils.TokenIdDataChanged.LSP4Metadata.extract(extractParams);
+              lsp4MetadataEntities.set(lsp4Metadata.id, lsp4Metadata);
               break;
             }
           }
@@ -184,7 +184,7 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
 
         case LSP26FollowerSystem.events.Follow.topic: {
           const followEvent = Utils.Follow.extract(extractParams);
-          followEvents.push(followEvent);
+          followEntities.push(followEvent);
 
           universalProfiles.add(followEvent.followerAddress);
           universalProfiles.add(followEvent.followedAddress);
@@ -193,7 +193,7 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
 
         case LSP26FollowerSystem.events.Unfollow.topic: {
           const unfollowEvent = Utils.Unfollow.extract(extractParams);
-          unfollowEvents.push(unfollowEvent);
+          unfollowEntities.push(unfollowEvent);
 
           universalProfiles.add(unfollowEvent.followerAddress);
           universalProfiles.add(unfollowEvent.unfollowedAddress);
@@ -203,57 +203,27 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
     }
   }
 
-  context.log.info(
-    JSON.stringify({
-      message: 'Block range scan ended.',
-      blockRange: {
-        start: context.blocks[0].header.height,
-        end: context.blocks[context.blocks.length - 1].header.height,
-      },
-      universalProfilesCount: universalProfiles.size,
-      digitalAssetsCount: digitalAssets.size,
-      nftsCount: nfts.size,
-      events: {
-        executedEventsCount: executedEvents.length,
-        dataChangedEventsCount: dataChangedEvents.length,
-        universalReceiverEventsCount: universalReceiverEvents.length,
-        transferEventsCount: transferEvents.length,
-        tokenIdDataChangedEventsCount: tokenIdDataChangedEvents.length,
-      },
-      dataKeys: {
-        lsp3ProfilesCount: lsp3Profiles.length,
-        lsp4TokenNamesCount: lsp4TokenNames.length,
-        lsp4TokenSymbolsCount: lsp4TokenSymbols.length,
-        lsp4TokenTypesCount: lsp4TokenTypes.length,
-        lsp4MetadatasCount: lsp4Metadatas.length,
-        lsp8TokenIdFormatsCount: lsp8TokenIdFormats.length,
-        lsp8ReferenceContractsCount: lsp8ReferenceContracts.length,
-        lsp8TokenMetadataBaseUrisCount: lsp8TokenMetadataBaseUris.length,
-      },
-    }),
-  );
-
   return {
     universalProfiles,
     assets: { digitalAssets, nfts },
     events: {
-      executedEvents,
-      dataChangedEvents,
-      universalReceiverEvents,
-      transferEvents,
-      tokenIdDataChangedEvents,
-      followEvents,
-      unfollowEvents,
+      executedEntities,
+      dataChangedEntities,
+      universalReceiverEntities,
+      transferEntities,
+      tokenIdDataChangedEntities,
+      followEntities,
+      unfollowEntities,
     },
     dataKeys: {
-      lsp3Profiles,
-      lsp4TokenNames,
-      lsp4TokenSymbols,
-      lsp4TokenTypes,
-      lsp4Metadatas,
-      lsp8TokenIdFormats,
-      lsp8ReferenceContracts,
-      lsp8TokenMetadataBaseUris,
+      lsp3ProfileEntities,
+      lsp4TokenNameEntities,
+      lsp4TokenSymbolEntities,
+      lsp4TokenTypeEntities,
+      lsp4MetadataEntities,
+      lsp8TokenIdFormatEntities,
+      lsp8ReferenceContractEntities,
+      lsp8TokenMetadataBaseUriEntities,
     },
   };
 }

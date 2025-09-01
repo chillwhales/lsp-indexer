@@ -61,13 +61,13 @@ export function extract({ block, log }: ExtractParams): Transfer {
 }
 
 export function populate({
-  transferEvents,
+  transferEntities,
   validDigitalAssets,
 }: {
-  transferEvents: Transfer[];
+  transferEntities: Transfer[];
   validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return transferEvents.map(
+  return transferEntities.map(
     (entity) =>
       new Transfer({
         ...entity,

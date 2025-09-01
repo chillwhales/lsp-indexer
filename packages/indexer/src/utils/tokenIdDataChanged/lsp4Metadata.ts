@@ -2,7 +2,6 @@ import { ExtractParams } from '@/types';
 import { decodeVerifiableUri, generateTokenId } from '@/utils';
 import { LSP8IdentifiableDigitalAsset } from '@chillwhales/sqd-abi';
 import { DigitalAsset, LSP4Metadata, NFT } from '@chillwhales/sqd-typeorm';
-import { v4 as uuidv4 } from 'uuid';
 
 export function extract({ block, log }: ExtractParams): LSP4Metadata {
   const timestamp = new Date(block.header.timestamp);
@@ -11,7 +10,7 @@ export function extract({ block, log }: ExtractParams): LSP4Metadata {
   const { value: url, decodeError } = decodeVerifiableUri(dataValue);
 
   return new LSP4Metadata({
-    id: uuidv4(),
+    id: generateTokenId({ address, tokenId }),
     timestamp,
     address,
     tokenId,
@@ -30,13 +29,13 @@ export function extract({ block, log }: ExtractParams): LSP4Metadata {
 }
 
 export function populate({
-  lsp4Metadatas,
+  lsp4MetadataEntities,
   validDigitalAssets,
 }: {
-  lsp4Metadatas: LSP4Metadata[];
+  lsp4MetadataEntities: LSP4Metadata[];
   validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return lsp4Metadatas.map(
+  return lsp4MetadataEntities.map(
     (entity) =>
       new LSP4Metadata({
         ...entity,

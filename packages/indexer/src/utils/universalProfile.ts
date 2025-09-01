@@ -86,7 +86,13 @@ export async function verify({ context, universalProfiles }: VerifyParams): Prom
       isHex(result[index].returnData) &&
       result[index].returnData !== '0x' &&
       hexToBool(result[index].returnData)
-        ? newUniversalProfiles.set(address, new UniversalProfile({ id: address, address }))
+        ? newUniversalProfiles.set(
+            address,
+            new UniversalProfile({
+              id: address,
+              address,
+            }),
+          )
         : null,
     );
 
@@ -102,7 +108,10 @@ export async function verify({ context, universalProfiles }: VerifyParams): Prom
         .filter(
           (address) => knownUniversalProfiles.has(address) || newUniversalProfiles.has(address),
         )
-        .map((address) => [address, new UniversalProfile({ id: address, address })]),
+        .map((address) => [
+          address,
+          knownUniversalProfiles.get(address) || newUniversalProfiles.get(address),
+        ]),
     ),
     invalidUniversalProfiles: new Map(
       addressArray

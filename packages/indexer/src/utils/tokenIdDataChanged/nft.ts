@@ -11,6 +11,7 @@ export function extract({ log }: ExtractParams): NFT {
     id: generateTokenId({ address, tokenId }),
     tokenId,
     address,
+    digitalAsset: new DigitalAsset({ id: address, address }),
     isMinted: false,
     isBurned: false,
   });

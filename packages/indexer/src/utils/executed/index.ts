@@ -25,12 +25,12 @@ export function extract({ block, log }: ExtractParams): Executed {
 }
 
 interface PopulateParams {
-  executedEvents: Executed[];
+  executedEntities: Executed[];
   validUniversalProfiles: Map<string, UniversalProfile>;
 }
 
-export function populate({ executedEvents, validUniversalProfiles }: PopulateParams) {
-  return executedEvents.map(
+export function populate({ executedEntities, validUniversalProfiles }: PopulateParams) {
+  return executedEntities.map(
     (entity) =>
       new Executed({
         ...entity,

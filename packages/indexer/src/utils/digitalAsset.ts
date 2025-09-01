@@ -115,7 +115,13 @@ export async function verify({ context, digitalAssets }: VerifyParams): Promise<
       isHex(result[index].returnData) &&
       result[index].returnData !== '0x' &&
       hexToBool(result[index].returnData)
-        ? newDigitalAssets.set(address, new DigitalAsset({ id: address, address }))
+        ? newDigitalAssets.set(
+            address,
+            new DigitalAsset({
+              id: address,
+              address,
+            }),
+          )
         : null,
     );
 
@@ -129,7 +135,10 @@ export async function verify({ context, digitalAssets }: VerifyParams): Promise<
     validDigitalAssets: new Map(
       addressArray
         .filter((address) => knownDigitalAssets.has(address) || newDigitalAssets.has(address))
-        .map((address) => [address, new DigitalAsset({ id: address, address })]),
+        .map((address) => [
+          address,
+          knownDigitalAssets.get(address) || newDigitalAssets.get(address),
+        ]),
     ),
     invalidDigitalAssets: new Map(
       addressArray

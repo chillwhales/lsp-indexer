@@ -21,15 +21,15 @@ export function extract({ block, log }: ExtractParams): DataChanged {
 }
 
 export function populate({
-  dataChangedEvents,
+  dataChangedEntities,
   validUniversalProfiles,
   validDigitalAssets,
 }: {
-  dataChangedEvents: DataChanged[];
+  dataChangedEntities: DataChanged[];
   validUniversalProfiles: Map<string, UniversalProfile>;
   validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return dataChangedEvents.map(
+  return dataChangedEntities.map(
     (entity) =>
       new DataChanged({
         ...entity,

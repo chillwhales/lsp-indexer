@@ -25,13 +25,13 @@ export function extract({ block, log }: ExtractParams): UniversalReceiver {
 }
 
 export function populate({
-  universalReceiverEvents,
+  universalReceiverEntities,
   validUniversalProfiles,
 }: {
-  universalReceiverEvents: UniversalReceiver[];
+  universalReceiverEntities: UniversalReceiver[];
   validUniversalProfiles: Map<string, UniversalProfile>;
 }) {
-  return universalReceiverEvents.map(
+  return universalReceiverEntities.map(
     (entity) =>
       new UniversalReceiver({
         ...entity,

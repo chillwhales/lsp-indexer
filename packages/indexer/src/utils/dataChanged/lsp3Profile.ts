@@ -2,7 +2,6 @@ import { ExtractParams } from '@/types';
 import { decodeVerifiableUri } from '@/utils';
 import { ERC725Y } from '@chillwhales/sqd-abi';
 import { LSP3Profile, UniversalProfile } from '@chillwhales/sqd-typeorm';
-import { v4 as uuidv4 } from 'uuid';
 
 export function extract({ block, log }: ExtractParams): LSP3Profile {
   const timestamp = new Date(block.header.timestamp);
@@ -11,9 +10,9 @@ export function extract({ block, log }: ExtractParams): LSP3Profile {
   const { value: url, decodeError } = decodeVerifiableUri(dataValue);
 
   return new LSP3Profile({
-    id: uuidv4(),
-    timestamp,
+    id: address,
     address,
+    timestamp,
     url,
     rawValue: dataValue,
     decodeError,
@@ -24,13 +23,13 @@ export function extract({ block, log }: ExtractParams): LSP3Profile {
 }
 
 export function populate({
-  lsp3Profiles,
+  lsp3ProfileEntities,
   validUniversalProfiles,
 }: {
-  lsp3Profiles: LSP3Profile[];
+  lsp3ProfileEntities: LSP3Profile[];
   validUniversalProfiles: Map<string, UniversalProfile>;
 }) {
-  return lsp3Profiles.map(
+  return lsp3ProfileEntities.map(
     (entity) =>
       new LSP3Profile({
         ...entity,

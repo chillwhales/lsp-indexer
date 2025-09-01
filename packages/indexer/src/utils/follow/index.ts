@@ -21,12 +21,12 @@ export function extract({ block, log, context }: ExtractParams): Follow {
 }
 
 interface PopulateParams {
-  followEvents: Follow[];
+  followEntities: Follow[];
   validUniversalProfiles: Map<string, UniversalProfile>;
 }
 
-export function populate({ followEvents, validUniversalProfiles }: PopulateParams) {
-  return followEvents.map(
+export function populate({ followEntities, validUniversalProfiles }: PopulateParams) {
+  return followEntities.map(
     (entity) =>
       new Follow({
         ...entity,

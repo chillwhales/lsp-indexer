@@ -1,7 +1,6 @@
 import { ExtractParams } from '@/types';
 import { ERC725Y } from '@chillwhales/sqd-abi';
 import { DigitalAsset, LSP8ReferenceContract } from '@chillwhales/sqd-typeorm';
-import { v4 as uuidv4 } from 'uuid';
 import { isHex } from 'viem';
 
 export function extract({ block, log }: ExtractParams): LSP8ReferenceContract {
@@ -10,7 +9,7 @@ export function extract({ block, log }: ExtractParams): LSP8ReferenceContract {
   const { dataValue } = ERC725Y.events.DataChanged.decode(log);
 
   return new LSP8ReferenceContract({
-    id: uuidv4(),
+    id: address,
     timestamp: new Date(timestamp),
     address,
     value: !isHex(dataValue) || dataValue === '0x' ? null : dataValue,
@@ -19,13 +18,13 @@ export function extract({ block, log }: ExtractParams): LSP8ReferenceContract {
 }
 
 export function populate({
-  lsp8ReferenceContracts,
+  lsp8ReferenceContractEntities,
   validDigitalAssets,
 }: {
-  lsp8ReferenceContracts: LSP8ReferenceContract[];
+  lsp8ReferenceContractEntities: LSP8ReferenceContract[];
   validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return lsp8ReferenceContracts.map(
+  return lsp8ReferenceContractEntities.map(
     (event) =>
       new LSP8ReferenceContract({
         ...event,

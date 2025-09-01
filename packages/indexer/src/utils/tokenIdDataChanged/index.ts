@@ -28,13 +28,13 @@ export function extract({ block, log }: ExtractParams): TokenIdDataChanged {
 }
 
 export function populate({
-  tokenIdDataChangedEvents,
+  tokenIdDataChangedEntities,
   validDigitalAssets,
 }: {
-  tokenIdDataChangedEvents: TokenIdDataChanged[];
+  tokenIdDataChangedEntities: TokenIdDataChanged[];
   validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return tokenIdDataChangedEvents.map(
+  return tokenIdDataChangedEntities.map(
     (entity) =>
       new TokenIdDataChanged({
         ...entity,

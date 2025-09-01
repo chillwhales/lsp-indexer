@@ -44,6 +44,7 @@ import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import axios, { AxiosError } from 'axios';
 import parseDataURL from 'data-urls';
+import { In } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { bytesToHex, Hex, hexToBytes, hexToNumber, hexToString, isHex, sliceHex } from 'viem';
 import * as DataChangedUtils from './dataChanged';
@@ -56,6 +57,26 @@ import * as TransferUtils from './transfer';
 import * as UnfollowUtils from './unfollow';
 import * as UniversalProfileUtils from './universalProfile';
 import * as UniversalReceiverUtils from './universalReceiver';
+
+export function timeout(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function isNumeric(value: string) {
+  if (typeof value != 'string') return false; // we only process strings!
+  return (
+    !isNaN(value as any) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+    !isNaN(parseFloat(value))
+  ); // ...and ensure strings of whitespace fail
+}
+
+export function parseIpfsUrl(url: string) {
+  if (url.startsWith('ipfs://')) {
+    return url.replace('ipfs://', IPFS_GATEWAY);
+  }
+
+  return url;
+}
 
 export function generateTokenId({ address, tokenId }: { address: string; tokenId: string }) {
   return `${address} - ${tokenId}`;
@@ -85,6 +106,28 @@ export function generateFollowId({
   followedAddress: string;
 }) {
   return `${followerAddress} - ${followedAddress}`;
+}
+
+export function formatTokenId({
+  tokenId,
+  lsp8TokenIdFormat,
+}: {
+  tokenId: Hex;
+  lsp8TokenIdFormat?: LSP8TokenIdFormatEnum;
+}) {
+  switch (lsp8TokenIdFormat) {
+    case LSP8TokenIdFormatEnum.NUMBER:
+      return hexToNumber(tokenId).toString();
+    case LSP8TokenIdFormatEnum.STRING:
+      return hexToString(bytesToHex(hexToBytes(tokenId).filter((byte) => byte !== 0)));
+    case LSP8TokenIdFormatEnum.ADDRESS:
+      return sliceHex(tokenId, 12);
+    case LSP8TokenIdFormatEnum.BYTES32:
+      return tokenId;
+
+    default:
+      return tokenId;
+  }
 }
 
 export function decodeOperationType(operationType: bigint) {
@@ -181,24 +224,10 @@ export function decodeVerifiableUri(dataValue: string): {
   }
 }
 
-export function isNumeric(value: string) {
-  if (typeof value != 'string') return false; // we only process strings!
-  return (
-    !isNaN(value as any) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
-    !isNaN(parseFloat(value))
-  ); // ...and ensure strings of whitespace fail
-}
-
-export function parseIpfsUrl(url: string) {
-  if (url.startsWith('ipfs://')) {
-    return url.replace('ipfs://', IPFS_GATEWAY);
-  }
-
-  return url;
-}
-
 export function isRetryableError(error: AxiosError | string) {
   let retryable = false;
+
+  if (!error) return true;
 
   if (typeof error === 'string') {
     const errorMessage = error.toLowerCase();
@@ -209,7 +238,8 @@ export function isRetryableError(error: AxiosError | string) {
       errorMessage.includes('socket hang up') ||
       errorMessage.includes('aborted') ||
       errorMessage.includes('client network socket disconnected') ||
-      errorMessage.includes('tlsv1 alert internal error');
+      errorMessage.includes('tlsv1 alert internal error') ||
+      errorMessage.includes('aggregateerror');
   } else if (error.response) {
     // The request made it to the server, but the server returned an error
     retryable = [500, 502, 503, 504, 429].includes(error.response.status);
@@ -223,12 +253,9 @@ export function isRetryableError(error: AxiosError | string) {
       errorMessage.includes('socket hang up') ||
       errorMessage.includes('aborted') ||
       errorMessage.includes('client network socket disconnected') ||
-      errorMessage.includes('tlsv1 alert internal error');
+      errorMessage.includes('tlsv1 alert internal error') ||
+      errorMessage.includes('aggregateerror');
   }
-  // else if (error instanceof AggregateError) {
-  //     //Handle AggregateErrors - usually a promise race/all
-  //     retryable = true;
-  // }
 
   return retryable;
 }
@@ -238,7 +265,7 @@ export async function getDataFromURL<FetchedDataType>(url: string) {
     const result = parseDataURL(url);
     const mimeType = result.mimeType.toString();
 
-    if (mimeType.startsWith('application/json')) {
+    if (!mimeType.startsWith('application/json')) {
       return {
         fetchError: `Error: Invalid mime type. Expected 'application/json'. Got: '${mimeType}'`,
         isRetryable: false,
@@ -258,10 +285,9 @@ export async function getDataFromURL<FetchedDataType>(url: string) {
       const result = await axios.get<FetchedDataType>(parseIpfsUrl(url));
       return result.data;
     } catch (error) {
-      const isAxiosError = axios.isAxiosError(error);
       return {
-        fetchError: isAxiosError ? error.message : error.toString(),
-        isRetryable: isRetryableError(isAxiosError ? error : error.toString()),
+        fetchError: axios.isAxiosError(error) ? JSON.stringify(error) : error.toString(),
+        isRetryable: false,
       };
     }
   }
@@ -563,19 +589,17 @@ export async function getLatestBlockNumber({
   return hexToNumber(await context._chain.client.call('eth_blockNumber', []));
 }
 
-interface VerifyAllParams {
-  context: DataHandlerContext<Store, {}>;
-  universalProfiles: Set<string>;
-  digitalAssets: Set<string>;
-  nfts: Map<string, NFT>;
-}
-
 export async function verifyAll({
   context,
   universalProfiles,
   digitalAssets,
   nfts,
-}: VerifyAllParams) {
+}: {
+  context: DataHandlerContext<Store, {}>;
+  universalProfiles: Set<string>;
+  digitalAssets: Set<string>;
+  nfts: Map<string, NFT>;
+}) {
   const [
     { newUniversalProfiles, validUniversalProfiles, invalidUniversalProfiles },
     { newDigitalAssets, validDigitalAssets, invalidDigitalAssets },
@@ -599,177 +623,238 @@ export async function verifyAll({
   };
 }
 
-interface PopulateAllParams {
-  validUniversalProfiles: Map<string, UniversalProfile>;
-  validDigitalAssets: Map<string, DigitalAsset>;
-  newNfts: Map<string, NFT>;
-  executedEvents: Executed[];
-  dataChangedEvents: DataChanged[];
-  universalReceiverEvents: UniversalReceiver[];
-  transferEvents: Transfer[];
-  tokenIdDataChangedEvents: TokenIdDataChanged[];
-  followEvents: Follow[];
-  unfollowEvents: Unfollow[];
-  lsp3Profiles: LSP3Profile[];
-  lsp4Metadatas: LSP4Metadata[];
-  lsp4TokenNames: LSP4TokenName[];
-  lsp4TokenSymbols: LSP4TokenSymbol[];
-  lsp4TokenTypes: LSP4TokenType[];
-  lsp8ReferenceContracts: LSP8ReferenceContract[];
-  lsp8TokenIdFormats: LSP8TokenIdFormat[];
-  lsp8TokenMetadataBaseUris: LSP8TokenMetadataBaseURI[];
-}
-
 export function populateAll({
   validUniversalProfiles,
   validDigitalAssets,
   newNfts,
-  executedEvents,
-  dataChangedEvents,
-  universalReceiverEvents,
-  transferEvents,
-  tokenIdDataChangedEvents,
-  followEvents,
-  unfollowEvents,
-  lsp3Profiles,
-  lsp4Metadatas,
-  lsp4TokenNames,
-  lsp4TokenSymbols,
-  lsp4TokenTypes,
-  lsp8ReferenceContracts,
-  lsp8TokenIdFormats,
-  lsp8TokenMetadataBaseUris,
-}: PopulateAllParams) {
+  executedEntities,
+  dataChangedEntities,
+  universalReceiverEntities,
+  transferEntities,
+  tokenIdDataChangedEntities,
+  followEntities,
+  unfollowEntities,
+  lsp3ProfileEntities,
+  lsp4MetadataEntities,
+  lsp4TokenNameEntities,
+  lsp4TokenSymbolEntities,
+  lsp4TokenTypeEntities,
+  lsp8ReferenceContractEntities,
+  lsp8TokenIdFormatEntities,
+  lsp8TokenMetadataBaseUriEntities,
+}: {
+  validUniversalProfiles: Map<string, UniversalProfile>;
+  validDigitalAssets: Map<string, DigitalAsset>;
+  newNfts: Map<string, NFT>;
+  executedEntities: Executed[];
+  dataChangedEntities: DataChanged[];
+  universalReceiverEntities: UniversalReceiver[];
+  transferEntities: Transfer[];
+  tokenIdDataChangedEntities: TokenIdDataChanged[];
+  followEntities: Follow[];
+  unfollowEntities: Unfollow[];
+  lsp3ProfileEntities: Map<string, LSP3Profile>;
+  lsp4MetadataEntities: Map<string, LSP4Metadata>;
+  lsp4TokenNameEntities: Map<string, LSP4TokenName>;
+  lsp4TokenSymbolEntities: Map<string, LSP4TokenSymbol>;
+  lsp4TokenTypeEntities: Map<string, LSP4TokenType>;
+  lsp8ReferenceContractEntities: Map<string, LSP8ReferenceContract>;
+  lsp8TokenIdFormatEntities: Map<string, LSP8TokenIdFormat>;
+  lsp8TokenMetadataBaseUriEntities: Map<string, LSP8TokenMetadataBaseURI>;
+}) {
   const populatedNfts = NFTUtils.populate({ entities: [...newNfts.values()], validDigitalAssets });
 
   // Events
   /// event Executed(uint256,address,uint256,bytes4);
-  const populatedExecutes = ExecutedUtils.populate({
-    executedEvents,
+  const populatedExecuteEntities = ExecutedUtils.populate({
+    executedEntities,
     validUniversalProfiles,
   });
   /// event DataChanged(bytes32,bytes);
-  const populatedDataChangeds = DataChangedUtils.populate({
-    dataChangedEvents,
+  const populatedDataChangedEntities = DataChangedUtils.populate({
+    dataChangedEntities,
     validUniversalProfiles,
     validDigitalAssets,
   });
   /// event UniversalReceiver(address,uint256,bytes32,bytes,bytes);
-  const populatedUniversalReceivers = UniversalReceiverUtils.populate({
-    universalReceiverEvents,
+  const populatedUniversalReceiverEntities = UniversalReceiverUtils.populate({
+    universalReceiverEntities,
     validUniversalProfiles,
   });
   /// event Transfer(address,address,address,uint256,bool,bytes);
   /// event Transfer(address,address,address,bytes32,bool,bytes);
-  const populatedTransfers = TransferUtils.populate({ transferEvents, validDigitalAssets });
+  const populatedTransferEntities = TransferUtils.populate({
+    transferEntities,
+    validDigitalAssets,
+  });
   /// event TokenIdDataChanged(bytes32,bytes32,bytes);
-  const populatedTokenIdDataChangeds = TokenIdDataChangedUtils.populate({
-    tokenIdDataChangedEvents,
+  const populatedTokenIdDataChangedEntities = TokenIdDataChangedUtils.populate({
+    tokenIdDataChangedEntities,
     validDigitalAssets,
   });
   /// event Follow(address,address);
-  const populatedFollows = FollowUtils.populate({ followEvents, validUniversalProfiles });
+  const populatedFollowEntities = FollowUtils.populate({ followEntities, validUniversalProfiles });
   /// event Unfollow(address,address);
-  const populatedUnfollows = UnfollowUtils.populate({ unfollowEvents, validUniversalProfiles });
+  const populatedUnfollowEntities = UnfollowUtils.populate({
+    unfollowEntities,
+    validUniversalProfiles,
+  });
 
   // DataKeys
   /// LSP3ProfileUrl
-  const populatedLsp3Profiles = DataChangedUtils.LSP3Profile.populate({
-    lsp3Profiles,
+  const populatedLsp3ProfileEntities = DataChangedUtils.LSP3Profile.populate({
+    lsp3ProfileEntities: [...lsp3ProfileEntities.values()],
     validUniversalProfiles,
   });
   /// LSP4Metadata
   const populatedLsp4Metadatas_DataChanged = DataChangedUtils.LSP4Metadata.populate({
-    lsp4Metadatas: lsp4Metadatas.filter(({ nft }) => nft === null),
+    lsp4MetadataEntities: [...lsp4MetadataEntities.values()].filter(({ nft }) => nft === null),
     validDigitalAssets,
   });
   const populatedLsp4Metadatas_TokenIdDataChanged = TokenIdDataChangedUtils.LSP4Metadata.populate({
-    lsp4Metadatas: lsp4Metadatas.filter(({ nft }) => nft !== null),
+    lsp4MetadataEntities: [...lsp4MetadataEntities.values()].filter(({ nft }) => nft !== null),
     validDigitalAssets,
   });
-  const populatedLsp4Metadatas = [
+  const populatedLsp4MetadataEntities = [
     ...populatedLsp4Metadatas_DataChanged,
     ...populatedLsp4Metadatas_TokenIdDataChanged,
   ];
   /// LSP4TokenName
-  const populatedLsp4TokenNames = DataChangedUtils.LSP4TokenName.populate({
-    lsp4TokenNames,
+  const populatedLsp4TokenNameEntities = DataChangedUtils.LSP4TokenName.populate({
+    lsp4TokenNameEntities: [...lsp4TokenNameEntities.values()],
     validDigitalAssets,
   });
   /// LSP4TokenSymbol
-  const populatedLsp4TokenSymbols = DataChangedUtils.LSP4TokenSymbol.populate({
-    lsp4TokenSymbols,
+  const populatedLsp4TokenSymbolEntities = DataChangedUtils.LSP4TokenSymbol.populate({
+    lsp4TokenSymbolEntities: [...lsp4TokenSymbolEntities.values()],
     validDigitalAssets,
   });
   /// LSP4TokenType
-  const populatedLsp4TokenTypes = DataChangedUtils.LSP4TokenType.populate({
-    lsp4TokenTypes,
+  const populatedLsp4TokenTypeEntities = DataChangedUtils.LSP4TokenType.populate({
+    lsp4TokenTypeEntities: [...lsp4TokenTypeEntities.values()],
     validDigitalAssets,
   });
   /// LSP8ReferenceContract
-  const populatedLsp8ReferenceContracts = DataChangedUtils.LSP8ReferenceContract.populate({
-    lsp8ReferenceContracts,
+  const populatedLsp8ReferenceContractEntities = DataChangedUtils.LSP8ReferenceContract.populate({
+    lsp8ReferenceContractEntities: [...lsp8ReferenceContractEntities.values()],
     validDigitalAssets,
   });
   /// LSP8TokenIdFormat
-  const populatedLsp8TokenIdFormats = DataChangedUtils.LSP8TokenIdFormat.populate({
-    lsp8TokenIdFormats,
+  const populatedLsp8TokenIdFormatEntities = DataChangedUtils.LSP8TokenIdFormat.populate({
+    lsp8TokenIdFormatEntities: [...lsp8TokenIdFormatEntities.values()],
     validDigitalAssets,
   });
 
-  const populatedLsp8TokenMetadataBaseUris = DataChangedUtils.LSP8TokenMetadataBaseURI.populate({
-    lsp8TokenMetadataBaseUris,
-    validDigitalAssets,
-  });
+  const populatedLsp8TokenMetadataBaseUriEntities =
+    DataChangedUtils.LSP8TokenMetadataBaseURI.populate({
+      lsp8TokenMetadataBaseUriEntities: [...lsp8TokenMetadataBaseUriEntities.values()],
+      validDigitalAssets,
+    });
 
   return {
     populatedNfts,
     events: {
-      populatedExecutes,
-      populatedDataChangeds,
-      populatedUniversalReceivers,
-      populatedTransfers,
-      populatedTokenIdDataChangeds,
-      populatedFollows,
-      populatedUnfollows,
+      populatedExecuteEntities,
+      populatedDataChangedEntities,
+      populatedUniversalReceiverEntities,
+      populatedTransferEntities,
+      populatedTokenIdDataChangedEntities,
+      populatedFollowEntities,
+      populatedUnfollowEntities,
     },
     dataKeys: {
-      populatedLsp3Profiles,
-      populatedLsp4Metadatas,
-      populatedLsp4TokenNames,
-      populatedLsp4TokenSymbols,
-      populatedLsp4TokenTypes,
-      populatedLsp8ReferenceContracts,
-      populatedLsp8TokenIdFormats,
-      populatedLsp8TokenMetadataBaseUris,
+      populatedLsp3ProfileEntities,
+      populatedLsp4MetadataEntities,
+      populatedLsp4TokenNameEntities,
+      populatedLsp4TokenSymbolEntities,
+      populatedLsp4TokenTypeEntities,
+      populatedLsp8ReferenceContractEntities,
+      populatedLsp8TokenIdFormatEntities,
+      populatedLsp8TokenMetadataBaseUriEntities,
     },
   };
 }
 
-export function timeout(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+export async function clearLsp3ProfileEntities({
+  context,
+  lsp3ProfileEntites,
+}: {
+  context: DataHandlerContext<Store, {}>;
+  lsp3ProfileEntites: LSP3Profile[];
+}) {
+  const entitiesFilter = {
+    lsp3Profile: {
+      id: In(lsp3ProfileEntites.map(({ id }) => id)),
+    },
+  };
+  const [
+    existingLsp3ProfileAsset,
+    existingLsp3ProfileBackgroundImage,
+    existingLsp3ProfileDescription,
+    existingLsp3ProfileImage,
+    existingLsp3ProfileLink,
+    existingLsp3ProfileName,
+    existingLsp3ProfileTag,
+  ] = await Promise.all([
+    context.store.findBy(LSP3ProfileAsset, entitiesFilter),
+    context.store.findBy(LSP3ProfileBackgroundImage, entitiesFilter),
+    context.store.findBy(LSP3ProfileDescription, entitiesFilter),
+    context.store.findBy(LSP3ProfileImage, entitiesFilter),
+    context.store.findBy(LSP3ProfileLink, entitiesFilter),
+    context.store.findBy(LSP3ProfileName, entitiesFilter),
+    context.store.findBy(LSP3ProfileTag, entitiesFilter),
+  ]);
+
+  await Promise.all([
+    context.store.remove(existingLsp3ProfileAsset),
+    context.store.remove(existingLsp3ProfileBackgroundImage),
+    context.store.remove(existingLsp3ProfileDescription),
+    context.store.remove(existingLsp3ProfileImage),
+    context.store.remove(existingLsp3ProfileLink),
+    context.store.remove(existingLsp3ProfileName),
+    context.store.remove(existingLsp3ProfileTag),
+  ]);
 }
 
-export function formatTokenId({
-  tokenId,
-  lsp8TokenIdFormat,
+export async function clearLsp4MetadataEntities({
+  context,
+  lsp4MetadataEntites,
 }: {
-  tokenId: Hex;
-  lsp8TokenIdFormat?: LSP8TokenIdFormatEnum;
+  context: DataHandlerContext<Store, {}>;
+  lsp4MetadataEntites: LSP4Metadata[];
 }) {
-  switch (lsp8TokenIdFormat) {
-    case LSP8TokenIdFormatEnum.NUMBER:
-      return hexToNumber(tokenId).toString();
-    case LSP8TokenIdFormatEnum.STRING:
-      return hexToString(bytesToHex(hexToBytes(tokenId).filter((byte) => byte !== 0)));
-    case LSP8TokenIdFormatEnum.ADDRESS:
-      return sliceHex(tokenId, 12);
-    case LSP8TokenIdFormatEnum.BYTES32:
-      return tokenId;
+  const entitiesFilter = {
+    lsp4Metadata: {
+      id: In(lsp4MetadataEntites.map(({ id }) => id)),
+    },
+  };
+  const [
+    existingLsp4MetadataAssets,
+    existingLsp4MetadataAttributes,
+    existingLsp4MetadataDescriptions,
+    existingLsp4MetadataIcons,
+    existingLsp4MetadataImages,
+    existingLsp4MetadataLinks,
+    existingLsp4MetadataNames,
+  ] = await Promise.all([
+    context.store.findBy(LSP4MetadataAsset, entitiesFilter),
+    context.store.findBy(LSP4MetadataAttribute, entitiesFilter),
+    context.store.findBy(LSP4MetadataDescription, entitiesFilter),
+    context.store.findBy(LSP4MetadataIcon, entitiesFilter),
+    context.store.findBy(LSP4MetadataImage, entitiesFilter),
+    context.store.findBy(LSP4MetadataLink, entitiesFilter),
+    context.store.findBy(LSP4MetadataName, entitiesFilter),
+  ]);
 
-    default:
-      return tokenId;
-  }
+  await Promise.all([
+    context.store.remove(existingLsp4MetadataAssets),
+    context.store.remove(existingLsp4MetadataAttributes),
+    context.store.remove(existingLsp4MetadataDescriptions),
+    context.store.remove(existingLsp4MetadataIcons),
+    context.store.remove(existingLsp4MetadataImages),
+    context.store.remove(existingLsp4MetadataLinks),
+    context.store.remove(existingLsp4MetadataNames),
+  ]);
 }
 
 export * as ChillClaimed from './chillClaimed';
@@ -777,6 +862,7 @@ export * as DataChanged from './dataChanged';
 export * as DigitalAsset from './digitalAsset';
 export * as Executed from './executed';
 export * as Follow from './follow';
+export * as LSP4MetadataBaseURI from './lsp4MetadataBaseUri';
 export * as Multicall3 from './multicall3';
 export * as NFT from './nft';
 export * as OrbsClaimed from './orbsClaimed';

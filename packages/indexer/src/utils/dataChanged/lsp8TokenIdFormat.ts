@@ -2,7 +2,6 @@ import { ExtractParams } from '@/types';
 import { decodeTokenIdFormat } from '@/utils';
 import { ERC725Y } from '@chillwhales/sqd-abi';
 import { DigitalAsset, LSP8TokenIdFormat } from '@chillwhales/sqd-typeorm';
-import { v4 as uuidv4 } from 'uuid';
 import { hexToNumber, isHex } from 'viem';
 
 export function extract({ block, log }: ExtractParams): LSP8TokenIdFormat {
@@ -11,7 +10,7 @@ export function extract({ block, log }: ExtractParams): LSP8TokenIdFormat {
   const { dataValue } = ERC725Y.events.DataChanged.decode(log);
 
   return new LSP8TokenIdFormat({
-    id: uuidv4(),
+    id: address,
     timestamp: new Date(timestamp),
     address,
     value:
@@ -21,13 +20,13 @@ export function extract({ block, log }: ExtractParams): LSP8TokenIdFormat {
 }
 
 export function populate({
-  lsp8TokenIdFormats,
+  lsp8TokenIdFormatEntities,
   validDigitalAssets,
 }: {
-  lsp8TokenIdFormats: LSP8TokenIdFormat[];
+  lsp8TokenIdFormatEntities: LSP8TokenIdFormat[];
   validDigitalAssets: Map<string, DigitalAsset>;
 }) {
-  return lsp8TokenIdFormats.map(
+  return lsp8TokenIdFormatEntities.map(
     (event) =>
       new LSP8TokenIdFormat({
         ...event,

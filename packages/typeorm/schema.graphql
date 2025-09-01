@@ -121,9 +121,8 @@ type Transfer @entity {
 }
 
 type UniversalProfile @entity {
-  address: ID! @index
-  lsp3ProfileUrls: [LSP3ProfileUrl!]! @derivedFrom(field: "universalProfile")
-  lsp3Profiles: [LSP3Profile!]! @derivedFrom(field: "universalProfile")
+  id: ID! @unique
+  address: String! @index
   lsp3Profile: LSP3Profile @index
   ownedAssets: [OwnedAsset!]! @derivedFrom(field: "universalProfile")
   ownedTokens: [OwnedToken!]! @derivedFrom(field: "universalProfile")
@@ -135,23 +134,25 @@ type UniversalProfile @entity {
 }
 
 type DigitalAsset @entity {
-  address: ID! @index
-  totalSupply: [TotalSupply!]! @derivedFrom(field: "digitalAsset")
-  lsp4TokenNames: [LSP4TokenName!]! @derivedFrom(field: "digitalAsset")
-  lsp4TokenSymbols: [LSP4TokenSymbol!]! @derivedFrom(field: "digitalAsset")
-  lsp4TokenTypes: [LSP4TokenType!]! @derivedFrom(field: "digitalAsset")
-  lsp4Metadatas: [LSP4Metadata!]! @derivedFrom(field: "digitalAsset")
-  lsp4Metadata: LSP4Metadata @index
+  id: ID! @unique
+  address: String! @index
+  totalSupply: TotalSupply @derivedFrom(field: "digitalAsset")
   ownedAssets: [OwnedAsset!]! @derivedFrom(field: "digitalAsset")
   ownedTokens: [OwnedToken!]! @derivedFrom(field: "digitalAsset")
 
+  # LSP4 properties
+  lsp4TokenName: LSP4TokenName @derivedFrom(field: "digitalAsset")
+  lsp4TokenSymbol: LSP4TokenSymbol @derivedFrom(field: "digitalAsset")
+  lsp4TokenType: LSP4TokenType @derivedFrom(field: "digitalAsset")
+  lsp4Metadata: LSP4Metadata @index
+
   # LSP7 properties
-  decimals: [Decimals!]! @derivedFrom(field: "digitalAsset")
+  decimals: Decimals @derivedFrom(field: "digitalAsset")
 
   # LSP8 properties
-  lsp8TokenIdFormat: [LSP8TokenIdFormat!]! @derivedFrom(field: "digitalAsset")
-  lsp8ReferenceContract: [LSP8ReferenceContract!]! @derivedFrom(field: "digitalAsset")
-  lsp8TokenMetadataBaseUri: [LSP8TokenMetadataBaseURI!]! @derivedFrom(field: "digitalAsset")
+  lsp8TokenIdFormat: LSP8TokenIdFormat @derivedFrom(field: "digitalAsset")
+  lsp8ReferenceContract: LSP8ReferenceContract @derivedFrom(field: "digitalAsset")
+  lsp8TokenMetadataBaseUri: LSP8TokenMetadataBaseURI @derivedFrom(field: "digitalAsset")
   nfts: [NFT!]! @derivedFrom(field: "digitalAsset")
 
   # Events
@@ -164,7 +165,7 @@ type TotalSupply @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
-  digitalAsset: DigitalAsset! @index
+  digitalAsset: DigitalAsset! @index @unique
   value: Int! @index
 }
 
@@ -172,7 +173,7 @@ type Decimals @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
-  digitalAsset: DigitalAsset! @index
+  digitalAsset: DigitalAsset! @index @unique
   value: Int! @index
 }
 
@@ -181,9 +182,9 @@ type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
   tokenId: String! @index
   formattedTokenId: String @index
   address: String! @index
-  digitalAsset: DigitalAsset! @index
-  lsp4Metadatas: [LSP4Metadata!]! @derivedFrom(field: "nft")
+  digitalAsset: DigitalAsset @index
   lsp4Metadata: LSP4Metadata @index
+  lsp4MetadataBaseUri: LSP4Metadata @index
   isMinted: Boolean! @index
   isBurned: Boolean! @index
   ownedToken: OwnedToken @derivedFrom(field: "nft")
@@ -236,7 +237,7 @@ type LSP4TokenName @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
-  digitalAsset: DigitalAsset! @index
+  digitalAsset: DigitalAsset! @index @unique
   value: String @index
   rawValue: String @index
 }
@@ -245,7 +246,7 @@ type LSP4TokenSymbol @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
-  digitalAsset: DigitalAsset! @index
+  digitalAsset: DigitalAsset! @index @unique
   value: String @index
   rawValue: String @index
 }
@@ -254,7 +255,7 @@ type LSP4TokenType @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
-  digitalAsset: DigitalAsset! @index
+  digitalAsset: DigitalAsset! @index @unique
   value: LSP4TokenTypeEnum @index
   rawValue: String @index
 }
@@ -263,7 +264,7 @@ type LSP8TokenIdFormat @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
-  digitalAsset: DigitalAsset! @index
+  digitalAsset: DigitalAsset! @index @unique
   value: LSP8TokenIdFormatEnum @index
   rawValue: String @index
 }
@@ -272,7 +273,7 @@ type LSP8ReferenceContract @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
-  digitalAsset: DigitalAsset! @index
+  digitalAsset: DigitalAsset! @index @unique
   value: String @index
   rawValue: String @index
 }
@@ -281,19 +282,9 @@ type LSP8TokenMetadataBaseURI @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
-  digitalAsset: DigitalAsset! @index
+  digitalAsset: DigitalAsset! @index @unique
   value: String @index
   rawValue: String @index
-}
-
-type LSP3ProfileUrl @entity {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  address: String! @index
-  universalProfile: UniversalProfile! @index
-  value: String
-  rawValue: String
-  decodeError: String
 }
 
 type LSP3Profile @entity {
