@@ -17,7 +17,6 @@ export function extract({ block, log }: ExtractParams): LSP3Profile {
     rawValue: dataValue,
     decodeError,
     isDataFetched: false,
-    isRetryable: false,
     retryCount: 0,
   });
 }

@@ -302,9 +302,10 @@ type LSP3Profile @entity {
   url: String
   rawValue: String
   decodeError: String
-  fetchError: String
   isDataFetched: Boolean!
-  isRetryable: Boolean!
+  fetchErrorMessage: String
+  fetchErrorCode: String
+  fetchErrorStatus: Int
   retryCount: Int
 }
 
@@ -383,9 +384,10 @@ type LSP4Metadata @entity {
   url: String
   rawValue: String
   decodeError: String
-  fetchError: String
   isDataFetched: Boolean!
-  isRetryable: Boolean!
+  fetchErrorMessage: String
+  fetchErrorCode: String
+  fetchErrorStatus: Int
   retryCount: Int
 }
 

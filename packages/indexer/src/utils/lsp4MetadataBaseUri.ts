@@ -109,7 +109,6 @@ export async function extractFromBaseUri({
             : null,
           rawValue,
           isDataFetched: false,
-          isRetryable: false,
           retryCount: 0,
         }),
       );
@@ -172,7 +171,6 @@ export async function extractFromMints({
           : null,
         rawValue,
         isDataFetched: false,
-        isRetryable: false,
         retryCount: 0,
       }),
     );

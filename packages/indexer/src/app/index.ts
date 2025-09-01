@@ -38,7 +38,7 @@ import {
   UniversalProfile,
 } from '@chillwhales/sqd-typeorm';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
-import { In, IsNull, LessThan, Not } from 'typeorm';
+import { In, IsNull, LessThan, Like, Not } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { getAddress, isAddressEqual, isHex, zeroAddress } from 'viem';
 import { scanLogs } from './scanner';
@@ -428,8 +428,7 @@ processor.run(new TypeormDatabase(), async (context) => {
   if (universalProfilesToUpdate.size) {
     context.log.info(
       JSON.stringify({
-        message:
-          "Inserting populated 'UniversalProfile' entities with found 'LSP3Profile' entities",
+        message: "Saving populated 'UniversalProfile' entities with found 'LSP3Profile' entities",
         universalProfilesToUpdateCount: universalProfilesToUpdate.size,
       }),
     );
@@ -451,7 +450,7 @@ processor.run(new TypeormDatabase(), async (context) => {
   if (digitalAssetsToUpdate.size) {
     context.log.info(
       JSON.stringify({
-        message: "Inserting populated 'DigitalAsset' entities with found 'LSP4Metadata' entities",
+        message: "Saving populated 'DigitalAsset' entities with found 'LSP4Metadata' entities",
         digitalAssetsToUpdateCount: digitalAssetsToUpdate.size,
       }),
     );
@@ -502,12 +501,60 @@ processor.run(new TypeormDatabase(), async (context) => {
 
     context.log.info(
       JSON.stringify({
-        message: "Inserting populated 'NFT' entities with found 'LSP4Metadata' entities",
+        message: "Saving populated 'NFT' entities with found 'LSP4Metadata' entities",
         nftsToUpdateCount: nftsToUpdate.size,
       }),
     );
 
     await context.store.upsert([...nftsToUpdate.values()]);
+  }
+
+  const lsp4MetadataEntitesWithInvalidUrl = await context.store.findBy(LSP4Metadata, {
+    url: Like('%undefined%'),
+    nft: { formattedTokenId: Not(IsNull()) },
+  });
+  if (lsp4MetadataEntitesWithInvalidUrl.length) {
+    context.log.info({
+      message: "Fixing 'LSP4Metadata' entities with invalid URLs, ending in 'undefined'",
+      lsp4MetadataEntitesCount: lsp4MetadataEntitesWithInvalidUrl.length,
+    });
+
+    const updatedLsp4MetadataEntities: LSP4Metadata[] = [];
+
+    const nfts = new Map(
+      await context.store
+        .findBy(NFT, {
+          id: In(
+            lsp4MetadataEntitesWithInvalidUrl.map(({ address, tokenId }) =>
+              Utils.generateTokenId({ address, tokenId }),
+            ),
+          ),
+        })
+        .then((nfts) => nfts.map((nft) => [nft.id, nft])),
+    );
+
+    for (const lsp4Metadata of lsp4MetadataEntitesWithInvalidUrl) {
+      const { address, tokenId, url } = lsp4Metadata;
+
+      if (url.endsWith('undefined')) {
+        updatedLsp4MetadataEntities.push(
+          new LSP4Metadata({
+            ...lsp4Metadata,
+            url: url.replace(
+              'undefined',
+              nfts.get(Utils.generateTokenId({ address, tokenId })).formattedTokenId,
+            ),
+            isDataFetched: false,
+            fetchErrorMessage: null,
+            fetchErrorCode: null,
+            fetchErrorStatus: null,
+            retryCount: 0,
+          }),
+        );
+      }
+    }
+
+    await context.store.upsert(updatedLsp4MetadataEntities);
   }
 
   if (populatedTransferEntities.length > 0) {
@@ -716,7 +763,10 @@ processor.run(new TypeormDatabase(), async (context) => {
         take: FETCH_LIMIT,
         where: {
           url: Not(IsNull()),
-          isDataFetched: Not(true),
+          isDataFetched: false,
+          fetchErrorCode: IsNull(),
+          fetchErrorMessage: IsNull(),
+          fetchErrorStatus: IsNull(),
         },
       })),
     );
@@ -725,8 +775,19 @@ processor.run(new TypeormDatabase(), async (context) => {
         take: FETCH_LIMIT - unfetchedLsp3Profiles.length,
         where: {
           url: Not(IsNull()),
-          isDataFetched: true,
-          isRetryable: true,
+          isDataFetched: false,
+          fetchErrorStatus: In([408, 429, 500, 502, 503, 504]),
+          retryCount: LessThan(FETCH_RETRY_COUNT),
+        },
+      })),
+    );
+    unfetchedLsp3Profiles.push(
+      ...(await context.store.find(LSP3Profile, {
+        take: FETCH_LIMIT - unfetchedLsp3Profiles.length,
+        where: {
+          url: Not(IsNull()),
+          isDataFetched: false,
+          fetchErrorCode: In(['ETIMEDOUT', 'EPROTO']),
           retryCount: LessThan(FETCH_RETRY_COUNT),
         },
       })),
@@ -767,15 +828,15 @@ processor.run(new TypeormDatabase(), async (context) => {
 
         for (const lsp3Profile of currentBatch) {
           Utils.createLsp3Profile(lsp3Profile).then((result) => {
-            if ('fetchError' in result) {
-              const { fetchError, isRetryable } = result;
+            if ('fetchErrorMessage' in result) {
+              const { fetchErrorMessage, fetchErrorCode, fetchErrorStatus } = result;
               updatedLsp3Profiles.push(
                 new LSP3Profile({
                   ...lsp3Profile,
-                  fetchError,
-                  isDataFetched: true,
-                  isRetryable,
-                  retryCount: isRetryable ? lsp3Profile.retryCount + 1 : 0,
+                  fetchErrorMessage,
+                  fetchErrorCode,
+                  fetchErrorStatus,
+                  retryCount: lsp3Profile.retryCount + 1,
                 }),
               );
             } else {
@@ -783,8 +844,10 @@ processor.run(new TypeormDatabase(), async (context) => {
                 new LSP3Profile({
                   ...lsp3Profile,
                   isDataFetched: true,
-                  isRetryable: false,
-                  retryCount: 0,
+                  fetchErrorMessage: null,
+                  fetchErrorCode: null,
+                  fetchErrorStatus: null,
+                  retryCount: null,
                 }),
               );
 
@@ -840,7 +903,10 @@ processor.run(new TypeormDatabase(), async (context) => {
         take: FETCH_LIMIT,
         where: {
           url: Not(IsNull()),
-          isDataFetched: Not(true),
+          isDataFetched: false,
+          fetchErrorCode: IsNull(),
+          fetchErrorMessage: IsNull(),
+          fetchErrorStatus: IsNull(),
         },
       })),
     );
@@ -849,8 +915,19 @@ processor.run(new TypeormDatabase(), async (context) => {
         take: FETCH_LIMIT - unfetchedLsp4Metadatas.length,
         where: {
           url: Not(IsNull()),
-          isDataFetched: true,
-          isRetryable: true,
+          isDataFetched: false,
+          fetchErrorStatus: In([408, 429, 500, 502, 503, 504]),
+          retryCount: LessThan(FETCH_RETRY_COUNT),
+        },
+      })),
+    );
+    unfetchedLsp4Metadatas.push(
+      ...(await context.store.find(LSP4Metadata, {
+        take: FETCH_LIMIT - unfetchedLsp4Metadatas.length,
+        where: {
+          url: Not(IsNull()),
+          isDataFetched: false,
+          fetchErrorCode: In(['ETIMEDOUT', 'EPROTO']),
           retryCount: LessThan(FETCH_RETRY_COUNT),
         },
       })),
@@ -891,16 +968,16 @@ processor.run(new TypeormDatabase(), async (context) => {
 
         for (const lsp4Metadata of currentBatch) {
           Utils.createLsp4Metadata(lsp4Metadata).then((result) => {
-            if ('fetchError' in result) {
-              const { fetchError, isRetryable } = result;
+            if ('fetchErrorMessage' in result) {
+              const { fetchErrorMessage, fetchErrorCode, fetchErrorStatus } = result;
 
               updatedLsp4Metadatas.push(
                 new LSP4Metadata({
                   ...lsp4Metadata,
-                  fetchError,
-                  isDataFetched: true,
-                  isRetryable,
-                  retryCount: isRetryable ? lsp4Metadata.retryCount + 1 : 0,
+                  fetchErrorMessage,
+                  fetchErrorCode,
+                  fetchErrorStatus,
+                  retryCount: lsp4Metadata.retryCount + 1,
                 }),
               );
             } else {
@@ -908,8 +985,10 @@ processor.run(new TypeormDatabase(), async (context) => {
                 new LSP4Metadata({
                   ...lsp4Metadata,
                   isDataFetched: true,
-                  isRetryable: false,
-                  retryCount: 0,
+                  fetchErrorMessage: null,
+                  fetchErrorCode: null,
+                  fetchErrorStatus: null,
+                  retryCount: null,
                 }),
               );
 

@@ -229,23 +229,13 @@ export function isRetryableError(error: AxiosError | string) {
 
   if (!error) return true;
 
-  if (typeof error === 'string') {
-    const errorMessage = error.toLowerCase();
-    retryable =
-      errorMessage.includes('econnreset') ||
-      errorMessage.includes('etimedout') ||
-      errorMessage.includes('getaddrinfo enotfound') ||
-      errorMessage.includes('socket hang up') ||
-      errorMessage.includes('aborted') ||
-      errorMessage.includes('client network socket disconnected') ||
-      errorMessage.includes('tlsv1 alert internal error') ||
-      errorMessage.includes('aggregateerror');
-  } else if (error.response) {
+  if (typeof error !== 'string' && error.status) {
     // The request made it to the server, but the server returned an error
-    retryable = [500, 502, 503, 504, 429].includes(error.response.status);
-  } else if (error.request) {
+    retryable = [408, 429, 500, 502, 503, 504].includes(error.status);
+  } else {
     // The request was made, but no response was received
-    const errorMessage = error.message.toLowerCase();
+    const errorMessage =
+      typeof error === 'string' ? error.toLowerCase() : error.message.toLowerCase();
     retryable =
       errorMessage.includes('econnreset') ||
       errorMessage.includes('etimedout') ||
@@ -267,8 +257,9 @@ export async function getDataFromURL<FetchedDataType>(url: string) {
 
     if (!mimeType.startsWith('application/json')) {
       return {
-        fetchError: `Error: Invalid mime type. Expected 'application/json'. Got: '${mimeType}'`,
-        isRetryable: false,
+        fetchErrorMessage: `Error: Invalid mime type. Expected 'application/json'. Got: '${mimeType}'`,
+        fetchErrorCode: null,
+        fetchErrorStatus: null,
       };
     }
 
@@ -276,8 +267,9 @@ export async function getDataFromURL<FetchedDataType>(url: string) {
       return JSON.parse(Buffer.from(result.body).toString()) as FetchedDataType;
     } catch (error) {
       return {
-        fetchError: error.toString(),
-        isRetryable: false,
+        fetchErrorMessage: error.toString(),
+        fetchErrorCode: null,
+        fetchErrorStatus: null,
       };
     }
   } else {
@@ -285,34 +277,43 @@ export async function getDataFromURL<FetchedDataType>(url: string) {
       const result = await axios.get<FetchedDataType>(parseIpfsUrl(url));
       return result.data;
     } catch (error) {
-      return {
-        fetchError: axios.isAxiosError(error) ? JSON.stringify(error) : error.toString(),
-        isRetryable: false,
-      };
+      return axios.isAxiosError(error)
+        ? {
+            fetchErrorMessage: error.message,
+            fetchErrorCode: error.code,
+            fetchErrorStatus: error.status,
+          }
+        : {
+            fetchErrorMessage: JSON.stringify(error),
+            fetchErrorCode: null,
+            fetchErrorStatus: null,
+          };
     }
   }
 }
 
 export async function createLsp3Profile(lsp3Profile: LSP3Profile) {
-  if (!lsp3Profile.url) {
+  if (!lsp3Profile.url)
     return {
-      fetchError: 'Error: Missing URL',
-      isRetryable: false,
+      fetchErrorMessage: 'Error: Missing URL',
+      fetchErrorCode: null,
+      fetchErrorStatus: null,
     };
-  }
 
   const data = await getDataFromURL<LSP3ProfileMetadataJSON>(lsp3Profile.url);
 
   if (typeof data !== 'object')
     return {
-      fetchError: 'Error: Invalid data',
-      isRetryable: false,
+      fetchErrorMessage: 'Error: Invalid data',
+      fetchErrorCode: null,
+      fetchErrorStatus: null,
     };
-  if ('fetchError' in data) return data;
+  if ('fetchErrorMessage' in data) return data;
   if (!data.LSP3Profile)
     return {
-      fetchError: 'Error: Invalid LSP3Profile',
-      isRetryable: false,
+      fetchErrorMessage: 'Error: Invalid LSP3Profile',
+      fetchErrorCode: null,
+      fetchErrorStatus: null,
     };
 
   const { name, description, tags, links, avatar, profileImage, backgroundImage } =
@@ -423,25 +424,27 @@ export async function createLsp3Profile(lsp3Profile: LSP3Profile) {
 }
 
 export async function createLsp4Metadata(lsp4Metadata: LSP4Metadata) {
-  if (!lsp4Metadata.url) {
+  if (!lsp4Metadata.url)
     return {
-      fetchError: 'Error: Missing URL',
-      isRetryable: false,
+      fetchErrorMessage: 'Error: Missing URL',
+      fetchErrorCode: null,
+      fetchErrorStatus: null,
     };
-  }
 
   const data = await getDataFromURL<LSP4DigitalAssetMetadataJSON>(lsp4Metadata.url);
 
   if (typeof data !== 'object')
     return {
-      fetchError: 'Error: Invalid data',
-      isRetryable: false,
+      fetchErrorMessage: 'Error: Invalid data',
+      fetchErrorCode: null,
+      fetchErrorStatus: null,
     };
-  if ('fetchError' in data) return data;
+  if ('fetchErrorMessage' in data) return data;
   if (!data.LSP4Metadata)
     return {
-      fetchError: 'Error: Invalid LSP4Metadata',
-      isRetryable: false,
+      fetchErrorMessage: 'Error: Invalid LSP4Metadata',
+      fetchErrorCode: null,
+      fetchErrorStatus: null,
     };
 
   const { name, description, links, images, icon, assets, attributes } = data.LSP4Metadata;
@@ -871,3 +874,29 @@ export * as Transfer from './transfer';
 export * as Unfollow from './unfollow';
 export * as UniversalProfile from './universalProfile';
 export * as UniversalReceiver from './universalReceiver';
+
+const a = {
+  message: 'Request failed with status code 502',
+  code: 'ERR_BAD_RESPONSE',
+  status: 502,
+  config: {
+    transitional: { silentJSONParsing: true, forcedJSONParsing: true, clarifyTimeoutError: false },
+    adapter: ['xhr', 'http', 'fetch'],
+    transformRequest: [null],
+    transformResponse: [null],
+    timeout: 0,
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN',
+    maxContentLength: -1,
+    maxBodyLength: -1,
+    env: {},
+    headers: {
+      Accept: 'application/json, text/plain, */*',
+      'User-Agent': 'axios/1.11.0',
+      'Accept-Encoding': 'gzip, compress, deflate, br',
+    },
+    method: 'get',
+    url: 'https://api.platties.net/metadata/3207',
+    allowAbsoluteUrls: true,
+  },
+};
