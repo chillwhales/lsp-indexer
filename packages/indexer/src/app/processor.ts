@@ -6,7 +6,7 @@ import {
   LSP26FollowerSystem,
   LSP7DigitalAsset,
   LSP8IdentifiableDigitalAsset,
-} from '@chillwhales/sqd-abi';
+} from '@chillwhales/abi';
 import { EvmBatchProcessor } from '@subsquid/evm-processor';
 
 export interface FieldSelection {}

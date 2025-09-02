@@ -1,6 +1,6 @@
 import { ExtractParams } from '@/types';
-import { LSP7DigitalAsset, LSP8IdentifiableDigitalAsset } from '@chillwhales/sqd-abi';
-import { DigitalAsset, NFT, Transfer } from '@chillwhales/sqd-typeorm';
+import { LSP7DigitalAsset, LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
+import { DigitalAsset, NFT, Transfer } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { generateTokenId } from '..';
 

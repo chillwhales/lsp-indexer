@@ -1,5 +1,5 @@
 {
-  "name": "@chillwhales/sqd-indexer",
+  "name": "@chillwhales/indexer",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
@@ -12,8 +12,8 @@
     "start": "ts-node --project ./tsconfig.json -r tsconfig-paths/register lib/app/index.js"
   },
   "dependencies": {
-    "@chillwhales/sqd-abi": "workspace:^",
-    "@chillwhales/sqd-typeorm": "workspace:^",
+    "@chillwhales/abi": "workspace:^",
+    "@chillwhales/typeorm": "workspace:^",
     "@erc725/erc725.js": "^0.28.1",
     "@lukso/lsp0-contracts": "0.15.5",
     "@lukso/lsp2-contracts": "^0.15.4",

@@ -1,6 +1,6 @@
 import { ExtractParams } from '@/types';
-import { LSP8IdentifiableDigitalAsset } from '@chillwhales/sqd-abi';
-import { DigitalAsset, NFT } from '@chillwhales/sqd-typeorm';
+import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
+import { DigitalAsset, NFT } from '@chillwhales/typeorm';
 import { zeroAddress } from 'viem';
 import { generateTokenId } from '..';
 

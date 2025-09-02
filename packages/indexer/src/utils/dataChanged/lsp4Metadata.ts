@@ -1,7 +1,7 @@
 import { ExtractParams } from '@/types';
 import * as Utils from '@/utils';
-import { LSP8IdentifiableDigitalAsset } from '@chillwhales/sqd-abi';
-import { DigitalAsset, LSP4Metadata } from '@chillwhales/sqd-typeorm';
+import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
+import { DigitalAsset, LSP4Metadata } from '@chillwhales/typeorm';
 
 export function extract({ block, log }: ExtractParams): LSP4Metadata {
   const timestamp = new Date(block.header.timestamp);

@@ -7,7 +7,7 @@ import {
   LSP26FollowerSystem,
   LSP7DigitalAsset,
   LSP8IdentifiableDigitalAsset,
-} from '@chillwhales/sqd-abi';
+} from '@chillwhales/abi';
 import {
   DataChanged,
   Executed,
@@ -25,7 +25,7 @@ import {
   Transfer,
   Unfollow,
   UniversalReceiver,
-} from '@chillwhales/sqd-typeorm';
+} from '@chillwhales/typeorm';
 import { LSP3DataKeys } from '@lukso/lsp3-contracts';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';

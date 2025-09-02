@@ -1,7 +1,7 @@
 import { ExtractParams } from '@/types';
 import { decodeVerifiableUri } from '@/utils';
-import { ERC725Y } from '@chillwhales/sqd-abi';
-import { LSP3Profile, UniversalProfile } from '@chillwhales/sqd-typeorm';
+import { ERC725Y } from '@chillwhales/abi';
+import { LSP3Profile, UniversalProfile } from '@chillwhales/typeorm';
 
 export function extract({ block, log }: ExtractParams): LSP3Profile {
   const timestamp = new Date(block.header.timestamp);

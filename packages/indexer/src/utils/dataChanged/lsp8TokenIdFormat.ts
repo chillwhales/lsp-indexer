@@ -1,7 +1,7 @@
 import { ExtractParams } from '@/types';
 import { decodeTokenIdFormat } from '@/utils';
-import { ERC725Y } from '@chillwhales/sqd-abi';
-import { DigitalAsset, LSP8TokenIdFormat } from '@chillwhales/sqd-typeorm';
+import { ERC725Y } from '@chillwhales/abi';
+import { DigitalAsset, LSP8TokenIdFormat } from '@chillwhales/typeorm';
 import { hexToNumber, isHex } from 'viem';
 
 export function extract({ block, log }: ExtractParams): LSP8TokenIdFormat {

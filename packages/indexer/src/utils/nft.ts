@@ -1,4 +1,4 @@
-import { DigitalAsset, NFT } from '@chillwhales/sqd-typeorm';
+import { DigitalAsset, NFT } from '@chillwhales/typeorm';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';

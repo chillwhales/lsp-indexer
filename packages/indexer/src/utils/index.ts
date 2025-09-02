@@ -35,7 +35,7 @@ import {
   Unfollow,
   UniversalProfile,
   UniversalReceiver,
-} from '@chillwhales/sqd-typeorm';
+} from '@chillwhales/typeorm';
 import ERC725 from '@erc725/erc725.js';
 import { Verification } from '@lukso/lsp2-contracts';
 import { FileAsset, ImageMetadata, LSP3ProfileMetadataJSON } from '@lukso/lsp3-contracts';

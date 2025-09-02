@@ -1,9 +1,9 @@
 import { FieldSelection } from '@/app/processor';
 import { CHILLWHALES_ADDRESS, ORBS_ADDRESS } from '@/constants';
 import * as Utils from '@/utils';
-import { ORBS } from '@chillwhales/sqd-abi';
-import { Aggregate3StaticReturn } from '@chillwhales/sqd-abi/lib/abi/Multicall3';
-import { DigitalAsset, NFT, OrbsClaimed } from '@chillwhales/sqd-typeorm';
+import { ORBS } from '@chillwhales/abi';
+import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
+import { DigitalAsset, NFT, OrbsClaimed } from '@chillwhales/typeorm';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import { ILike, In, Not } from 'typeorm';

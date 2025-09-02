@@ -1,7 +1,7 @@
 import * as Utils from '@/utils';
-import { LSP0ERC725Account } from '@chillwhales/sqd-abi';
-import { Aggregate3StaticReturn } from '@chillwhales/sqd-abi/lib/abi/Multicall3';
-import { UniversalProfile } from '@chillwhales/sqd-typeorm';
+import { LSP0ERC725Account } from '@chillwhales/abi';
+import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
+import { UniversalProfile } from '@chillwhales/typeorm';
 import { INTERFACE_ID_LSP0 } from '@lukso/lsp0-contracts';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';

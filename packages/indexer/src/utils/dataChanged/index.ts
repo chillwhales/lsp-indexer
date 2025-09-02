@@ -1,6 +1,6 @@
 import { ExtractParams } from '@/types';
-import { ERC725Y } from '@chillwhales/sqd-abi';
-import { DataChanged, DigitalAsset, UniversalProfile } from '@chillwhales/sqd-typeorm';
+import { ERC725Y } from '@chillwhales/abi';
+import { DataChanged, DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 export function extract({ block, log }: ExtractParams): DataChanged {

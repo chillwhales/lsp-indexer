@@ -1,1 +1,1 @@
-export * from '@chillwhales/sqd-typeorm';
+export * from '@chillwhales/typeorm';

@@ -1,6 +1,6 @@
 import { ExtractParams } from '@/types';
-import { ERC725Y } from '@chillwhales/sqd-abi';
-import { DigitalAsset, LSP4TokenSymbol } from '@chillwhales/sqd-typeorm';
+import { ERC725Y } from '@chillwhales/abi';
+import { DigitalAsset, LSP4TokenSymbol } from '@chillwhales/typeorm';
 import { hexToString, isHex } from 'viem';
 
 export function extract({ block, log }: ExtractParams): LSP4TokenSymbol {

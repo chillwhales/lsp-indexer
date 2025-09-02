@@ -1,5 +1,5 @@
 services:
-  sqd-indexer:
+  lsp-indexer:
     build:
       context: ./
       dockerfile: Dockerfile
@@ -24,7 +24,7 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - /mnt/sqd-indexer/postgres:/var/lib/postgresql/data
+      - /mnt/lsp-indexer/postgres:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD

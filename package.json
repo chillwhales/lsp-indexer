@@ -1,5 +1,5 @@
 {
-  "name": "@chillwhales/sqd-monorepo",
+  "name": "@chillwhales/lsp-indexer",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
@@ -10,11 +10,11 @@
     "build": "pnpm -r build",
     "clean": "pnpm -r clean",
     "format": "prettier --write .",
-    "hasura:generate": "pnpm --filter=@chillwhales/sqd-typeorm hasura:generate",
-    "hasura:apply": "pnpm --filter=@chillwhales/sqd-typeorm hasura:apply",
-    "migration:generate": ". ./env.sh && pnpm --filter=@chillwhales/sqd-typeorm migration:generate",
-    "migration:apply": ". ./env.sh && pnpm --filter=@chillwhales/sqd-typeorm migration:apply",
-    "start": ". ./env.sh && pnpm --filter=@chillwhales/sqd-indexer start"
+    "hasura:generate": "pnpm --filter=@chillwhales/typeorm hasura:generate",
+    "hasura:apply": "pnpm --filter=@chillwhales/typeorm hasura:apply",
+    "migration:generate": ". ./env.sh && pnpm --filter=@chillwhales/typeorm migration:generate",
+    "migration:apply": ". ./env.sh && pnpm --filter=@chillwhales/typeorm migration:apply",
+    "start": ". ./env.sh && pnpm --filter=@chillwhales/indexer start"
   },
   "devDependencies": {
     "prettier": "^3.5.3",

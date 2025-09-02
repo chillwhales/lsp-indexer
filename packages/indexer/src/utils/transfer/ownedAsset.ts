@@ -1,5 +1,5 @@
 import { FieldSelection } from '@/app/processor';
-import { DigitalAsset, OwnedAsset, UniversalProfile } from '@chillwhales/sqd-typeorm';
+import { DigitalAsset, OwnedAsset, UniversalProfile } from '@chillwhales/typeorm';
 import { BlockData } from '@subsquid/evm-processor';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 import { generateOwnedAssetId } from '..';

@@ -1,7 +1,7 @@
 import { ExtractParams } from '@/types';
 import { decodeVerifiableUri, generateTokenId } from '@/utils';
-import { LSP8IdentifiableDigitalAsset } from '@chillwhales/sqd-abi';
-import { DigitalAsset, LSP4Metadata, NFT } from '@chillwhales/sqd-typeorm';
+import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
+import { DigitalAsset, LSP4Metadata, NFT } from '@chillwhales/typeorm';
 
 export function extract({ block, log }: ExtractParams): LSP4Metadata {
   const timestamp = new Date(block.header.timestamp);

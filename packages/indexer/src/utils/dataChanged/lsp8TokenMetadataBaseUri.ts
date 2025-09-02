@@ -1,6 +1,6 @@
 import { ExtractParams } from '@/types';
-import { ERC725Y } from '@chillwhales/sqd-abi';
-import { DigitalAsset, LSP8TokenMetadataBaseURI } from '@chillwhales/sqd-typeorm';
+import { ERC725Y } from '@chillwhales/abi';
+import { DigitalAsset, LSP8TokenMetadataBaseURI } from '@chillwhales/typeorm';
 import { concat, hexToString, isHex, keccak256, sliceHex, toHex } from 'viem';
 
 export function extract({ block, log }: ExtractParams): LSP8TokenMetadataBaseURI {

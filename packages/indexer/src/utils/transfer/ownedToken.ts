@@ -1,11 +1,5 @@
 import { FieldSelection } from '@/app/processor';
-import {
-  DigitalAsset,
-  NFT,
-  OwnedAsset,
-  OwnedToken,
-  UniversalProfile,
-} from '@chillwhales/sqd-typeorm';
+import { DigitalAsset, NFT, OwnedAsset, OwnedToken, UniversalProfile } from '@chillwhales/typeorm';
 import { BlockData } from '@subsquid/evm-processor';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 import { generateOwnedAssetId, generateOwnedTokenId } from '..';

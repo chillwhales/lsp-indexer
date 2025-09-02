@@ -28,8 +28,8 @@ To get started with the LSP Indexer, follow these steps:
 1. Clone the repository:
 
    ```
-   git clone https://github.com/chillwhales/sqd-indexer.git
-   cd sqd-indexer
+   git clone https://github.com/chillwhales/lsp-indexer.git
+   cd lsp-indexer
    ```
 
 2. Install dependencies:

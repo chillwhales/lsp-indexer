@@ -1,7 +1,7 @@
 import { ExtractParams } from '@/types';
 import { decodeOperationType } from '@/utils';
-import { ERC725X } from '@chillwhales/sqd-abi';
-import { Executed, UniversalProfile } from '@chillwhales/sqd-typeorm';
+import { ERC725X } from '@chillwhales/abi';
+import { Executed, UniversalProfile } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 export function extract({ block, log }: ExtractParams): Executed {

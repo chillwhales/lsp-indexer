@@ -1,7 +1,7 @@
 import { ExtractParams } from '@/types';
 import { generateTokenId } from '@/utils';
-import { LSP8IdentifiableDigitalAsset } from '@chillwhales/sqd-abi';
-import { DigitalAsset, NFT, TokenIdDataChanged } from '@chillwhales/sqd-typeorm';
+import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
+import { DigitalAsset, NFT, TokenIdDataChanged } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 export function extract({ block, log }: ExtractParams): TokenIdDataChanged {

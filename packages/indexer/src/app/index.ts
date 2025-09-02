@@ -36,7 +36,7 @@ import {
   OwnedToken,
   Unfollow,
   UniversalProfile,
-} from '@chillwhales/sqd-typeorm';
+} from '@chillwhales/typeorm';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
 import { In, IsNull, LessThan, Like, Not } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';

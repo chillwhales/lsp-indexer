@@ -7,8 +7,8 @@ Thank you for considering contributing to the LSP Indexer! We welcome all types 
 1. Clone the repository:
 
    ```
-   git clone https://github.com/chillwhales/sqd-indexer.git
-   cd sqd-indexer
+   git clone https://github.com/chillwhales/lsp-indexer.git
+   cd lsp-indexer
    ```
 
 2. Install dependencies:
@@ -73,7 +73,7 @@ pnpm start
 
 ## Reporting Issues
 
-Please report all issues on the [GitHub issue tracker](https://github.com/chillwhales/sqd-indexer/issues). When reporting bugs, please include:
+Please report all issues on the [GitHub issue tracker](https://github.com/chillwhales/lsp-indexer/issues). When reporting bugs, please include:
 
 - A clear and descriptive title
 - Steps to reproduce the bug

@@ -1,5 +1,5 @@
 import { MULTICALL_ADDRESS } from '@/constants';
-import { Multicall3 } from '@chillwhales/sqd-abi';
+import { Multicall3 } from '@chillwhales/abi';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 

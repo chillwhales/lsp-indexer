@@ -1,6 +1,6 @@
 import { ExtractParams } from '@/types';
-import { ERC725Y } from '@chillwhales/sqd-abi';
-import { DigitalAsset, LSP8ReferenceContract } from '@chillwhales/sqd-typeorm';
+import { ERC725Y } from '@chillwhales/abi';
+import { DigitalAsset, LSP8ReferenceContract } from '@chillwhales/typeorm';
 import { isHex } from 'viem';
 
 export function extract({ block, log }: ExtractParams): LSP8ReferenceContract {

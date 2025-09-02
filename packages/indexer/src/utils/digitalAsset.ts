@@ -1,7 +1,7 @@
 import * as Utils from '@/utils';
-import { LSP7DigitalAsset } from '@chillwhales/sqd-abi';
-import { Aggregate3StaticReturn } from '@chillwhales/sqd-abi/lib/abi/Multicall3';
-import { DigitalAsset } from '@chillwhales/sqd-typeorm';
+import { LSP7DigitalAsset } from '@chillwhales/abi';
+import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
+import { DigitalAsset } from '@chillwhales/typeorm';
 import { INTERFACE_ID_LSP7, INTERFACE_ID_LSP7_PREVIOUS } from '@lukso/lsp7-contracts';
 import { INTERFACE_ID_LSP8, INTERFACE_ID_LSP8_PREVIOUS } from '@lukso/lsp8-contracts';
 import { DataHandlerContext } from '@subsquid/evm-processor';

@@ -1,6 +1,6 @@
 import { ExtractParams } from '@/types';
-import { LSP26FollowerSystem } from '@chillwhales/sqd-abi';
-import { Follow, UniversalProfile } from '@chillwhales/sqd-typeorm';
+import { LSP26FollowerSystem } from '@chillwhales/abi';
+import { Follow, UniversalProfile } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 export function extract({ block, log, context }: ExtractParams): Follow {
