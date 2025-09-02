@@ -2,6 +2,16 @@
 
 The LSP Indexer is an open-source project designed to listen for important events on the LUKSO blockchain and extract valuable information from them. This indexer focuses on events like `DataChanged`, `Executed`, `UniversalReceiver`, `TokenIdDataChanged`, LSP7 & LSP8 `Transfer`, `Follow`, `Unfollow`, and decodes information such as `LSP3Profile`, `LSP4Metadata`, and more.
 
+## Project Architecture
+
+The project is organized into several packages that handle different aspects of the indexer's functionality:
+
+- **abi**: Contains ABI definitions for various smart contracts used in the LUKSO ecosystem.
+- **indexer**: The core package that listens to blockchain events, processes them, and indexes the data.
+- **typeorm**: Handles database migrations and schema management using TypeORM.
+
+Each package has its own `package.json` file with dependencies and scripts specific to its functionality. The project uses a monorepo structure managed by pnpm workspaces.
+
 ## What It Does
 
 - Listens to important blockchain events
@@ -66,6 +76,18 @@ This will start the indexer, which will begin listening for events on the LUKSO 
 ## Contributing
 
 We welcome contributions! Please see our [Contribution Guidelines](CONTRIBUTING.md) for more details.
+
+## Troubleshooting
+
+If you encounter issues while setting up or running the indexer, here are some common problems and their solutions:
+
+1. **Missing environment variables**: Make sure all required environment variables in `.env` are set correctly. You can copy the example file using `cp .env.example .env`.
+
+2. **Dependency issues**: If you have trouble installing dependencies, try deleting the `node_modules` directory and the lock files (`pnpm-lock.yaml`), then run `pnpm install` again.
+
+3. **Database connection problems**: Ensure that your database is running and accessible at the URL specified in your environment variables.
+
+4. **Migration errors**: If migrations fail, check the error message for clues. You might need to manually inspect or modify the generated migration files.
 
 ## License
 

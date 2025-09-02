@@ -5,3 +5,5 @@ packages/typeorm/src/
 packages/typeorm/db/
 packages/typeorm/hasura_metadata.json
 .env
+
+memory-bank/
