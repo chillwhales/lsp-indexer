@@ -57,7 +57,8 @@ graph TD
 
     subgraph abi_
         B1[package.json]
-        B2[ABI JSON files]
+        B2[custom/]
+        B3[scripts/codegen.sh]
     end
 
     subgraph indexer_
@@ -68,7 +69,7 @@ graph TD
     end
 
     subgraph typeorm_
-        D1[db/]
+        D1[package.json]
         D2[schema.graphql]
     end
 ```
@@ -79,8 +80,8 @@ Contains ABI (Application Binary Interface) definitions for smart contracts. The
 
 - **Key Files**:
   - `package.json`
-  - TypeScript configuration
-  - ABI JSON files
+  - `custom/` - Custom ABI files that need to be tarnsformed.
+  - `scripts/codegen.sh` - Script used to transform the the JSON ABI to TypeScript ABI.
 
 ### `packages/indexer/`
 
@@ -111,8 +112,8 @@ flowchart TD
 1. The **Event Listener** detects relevant events on the blockchain.
 2. It passes these raw events to the **Data Processor**.
 3. The **Data Processor** extracts valuable information, such as:
-   - LSP3Profile data from DataChanged events
-   - Metadata from UniversalReceiver events
+   - LSP3Profile & LSP4Metadata data from `DataChanged` events
+   - Asset and token holders from `Transfer` events
 4. The processed data is then stored in the database via the **Storage** component.
 5. Users can query this processed data for analysis and insights.
 
