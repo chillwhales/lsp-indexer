@@ -1,6 +1,7 @@
 import { processor } from '@/app/processor';
 import {
   CHILL_ADDRESS,
+  CHILLWHALES_ADDRESS,
   FETCH_BATCH_SIZE,
   FETCH_LIMIT,
   FETCH_RETRY_COUNT,
@@ -711,9 +712,47 @@ processor.run(new TypeormDatabase(), async (context) => {
     await context.store.remove([...identifiableUnfollowsMap.values()]);
   }
 
+  const chillwhalesMintedTransferEntities = populatedTransferEntities.filter(
+    (event) =>
+      isAddressEqual(CHILLWHALES_ADDRESS, getAddress(event.address)) &&
+      isAddressEqual(zeroAddress, getAddress(event.from)),
+  );
+  if (chillwhalesMintedTransferEntities.length) {
+    await context.store.insert(
+      chillwhalesMintedTransferEntities.map(
+        ({ tokenId }) =>
+          new ChillClaimed({
+            id: Utils.generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId }),
+            address: CHILLWHALES_ADDRESS,
+            digitalAsset: new DigitalAsset({ id: CHILLWHALES_ADDRESS }),
+            tokenId,
+            nft: new NFT({
+              id: Utils.generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId }),
+            }),
+            value: false,
+          }),
+      ),
+    );
+    await context.store.insert(
+      chillwhalesMintedTransferEntities.map(
+        ({ tokenId }) =>
+          new OrbsClaimed({
+            id: Utils.generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId }),
+            address: CHILLWHALES_ADDRESS,
+            digitalAsset: new DigitalAsset({ id: CHILLWHALES_ADDRESS }),
+            tokenId,
+            nft: new NFT({
+              id: Utils.generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId }),
+            }),
+            value: false,
+          }),
+      ),
+    );
+  }
+
   if (context.isHead) {
-    const existingChillClaimedEntities = await context.store.find(ChillClaimed);
-    const chillMintTransfers = transferEntities.filter(
+    const existingChillClaimedEntities = await context.store.findBy(ChillClaimed, { value: true });
+    const chillMintTransfers = populatedTransferEntities.filter(
       (event) =>
         isAddressEqual(CHILL_ADDRESS, getAddress(event.address)) &&
         isAddressEqual(zeroAddress, getAddress(event.from)),
@@ -732,11 +771,11 @@ processor.run(new TypeormDatabase(), async (context) => {
         }),
       );
 
-      await context.store.insert(chillClaimedEntities);
+      await context.store.upsert(chillClaimedEntities);
     }
 
-    const existingOrbsClaimedEntities = await context.store.find(OrbsClaimed);
-    const orbsMintTransfers = transferEntities.filter(
+    const existingOrbsClaimedEntities = await context.store.findBy(OrbsClaimed, { value: true });
+    const orbsMintTransfers = populatedTransferEntities.filter(
       (event) =>
         isAddressEqual(ORBS_ADDRESS, getAddress(event.address)) &&
         isAddressEqual(zeroAddress, getAddress(event.from)),
@@ -754,7 +793,7 @@ processor.run(new TypeormDatabase(), async (context) => {
         }),
       );
 
-      await context.store.insert(orbsClaimedEntities);
+      await context.store.upsert(orbsClaimedEntities);
     }
 
     const unfetchedLsp3Profiles: LSP3Profile[] = [];

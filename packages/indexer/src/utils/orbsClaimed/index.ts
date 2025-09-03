@@ -7,7 +7,6 @@ import { DigitalAsset, NFT, OrbsClaimed } from '@chillwhales/typeorm';
 import { DataHandlerContext } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 import { ILike, In, Not } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
 import { hexToBool, isHex } from 'viem';
 
 export async function extract(
@@ -61,7 +60,7 @@ export async function extract(
     )
       newOrbsClaimedEntities.push(
         new OrbsClaimed({
-          id: uuidv4(),
+          id: Utils.generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId: nft.tokenId }),
           address: CHILLWHALES_ADDRESS,
           digitalAsset: new DigitalAsset({ id: CHILLWHALES_ADDRESS }),
           tokenId: nft.tokenId,

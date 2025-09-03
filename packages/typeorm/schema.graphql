@@ -131,6 +131,10 @@ type UniversalProfile @entity {
   executed: [Executed!]! @derivedFrom(field: "universalProfile")
   universalReceiver: [UniversalReceiver!]! @derivedFrom(field: "universalProfile")
   dataChanged: [DataChanged!]! @derivedFrom(field: "universalProfile")
+  followed: [Follow!]! @derivedFrom(field: "followerUniversalProfile")
+  followedBy: [Follow!]! @derivedFrom(field: "followedUniversalProfile")
+  unfollowed: [Unfollow!]! @derivedFrom(field: "followerUniversalProfile")
+  unfollowedBy: [Unfollow!]! @derivedFrom(field: "unfollowedUniversalProfile")
 }
 
 type DigitalAsset @entity {
