@@ -50,6 +50,22 @@ To get started with the LSP Indexer, follow these steps:
 
 3. Set up environment variables by copying `.env.example` to `.env` and filling in the required values.
 
+## Environment Variables
+
+The following table lists the environment variables that can be configured for this project, along with their default values:
+
+| Variable Name           | Description                                     | Default Value                                           |
+| ----------------------- | ----------------------------------------------- | ------------------------------------------------------- |
+| `DB_URL`                | The PostgreSQL database URL                     | `postgresql://postgres:postgres@postgres:5432/postgres` |
+| `SQD_GATEWAY`           | The Subsquid Gateway URL                        | `https://v2.archive.subsquid.io/network/lukso-mainnet`  |
+| `RPC_URL`               | The RPC URL for EVM blockchain                  | `https://rpc.lukso.sigmacore.io`                        |
+| `RPC_RATE_LIMIT`        | Rate limit for RPC calls (requests per seconds) | 10                                                      |
+| `FINALITY_CONFIRMATION` | Confirmation threshold for finality (blocks)    | 75 (approximately 15 minutes to finality)               |
+| `IPFS_GATEWAY`          | The IPFS Gateway URL                            | `https://api.universalprofile.cloud/ipfs/`              |
+| `FETCH_LIMIT`           | Maximum number of items to fetch at once        | 10,000                                                  |
+| `FETCH_BATCH_SIZE`      | Number of items per fetch batch                 | 1,000                                                   |
+| `FETCH_RETRY_COUNT`     | Maximum retry attempts for fetching data        | 5                                                       |
+
 ## Usage
 
 Before running the indexer, you need to build the project:

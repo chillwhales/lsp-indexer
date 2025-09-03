@@ -1,4 +1,4 @@
-import { FINALITY_CONFIRMATION, RPC_ENDPOINT, SQD_GATEWAY } from '@/constants';
+import { FINALITY_CONFIRMATION, RPC_RATE_LIMIT, RPC_URL, SQD_GATEWAY } from '@/constants';
 import {
   ERC725X,
   ERC725Y,
@@ -15,7 +15,10 @@ export type Processor = EvmBatchProcessor<FieldSelection>;
 
 export const processor: Processor = new EvmBatchProcessor()
   .setGateway(SQD_GATEWAY)
-  .setRpcEndpoint(RPC_ENDPOINT)
+  .setRpcEndpoint({
+    url: RPC_URL,
+    rateLimit: RPC_RATE_LIMIT,
+  })
   .setFinalityConfirmation(FINALITY_CONFIRMATION)
   // .addTrace({
   //   type: ['create', 'call'],
