@@ -1,6 +1,5 @@
-import { FieldSelection } from '@/app/processor';
+import { Block } from '@/types';
 import { DigitalAsset, OwnedAsset, UniversalProfile } from '@chillwhales/typeorm';
-import { BlockData } from '@subsquid/evm-processor';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 import { generateOwnedAssetId } from '..';
 
@@ -20,7 +19,7 @@ export function getOwnedAsset({
   to: string;
   amount: bigint;
   digitalAsset: DigitalAsset;
-  block: BlockData<FieldSelection>;
+  block: Block;
   updatedOwnedAssetsMap: Map<string, OwnedAsset>;
   existingOwnedAssetsMap: Map<string, OwnedAsset>;
   validUniversalProfiles: Map<string, UniversalProfile>;

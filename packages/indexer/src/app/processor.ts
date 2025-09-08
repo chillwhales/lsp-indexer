@@ -1,4 +1,5 @@
 import { FINALITY_CONFIRMATION, RPC_RATE_LIMIT, RPC_URL, SQD_GATEWAY } from '@/constants';
+import { Processor } from '@/types';
 import {
   ERC725X,
   ERC725Y,
@@ -8,10 +9,6 @@ import {
   LSP8IdentifiableDigitalAsset,
 } from '@chillwhales/abi';
 import { EvmBatchProcessor } from '@subsquid/evm-processor';
-
-export interface FieldSelection {}
-
-export type Processor = EvmBatchProcessor<FieldSelection>;
 
 export const processor: Processor = new EvmBatchProcessor()
   .setGateway(SQD_GATEWAY)

@@ -1,4 +1,4 @@
-import { ExtractParams } from '@/types';
+import { Context, ExtractParams } from '@/types';
 import * as Utils from '@/utils';
 import {
   ERC725X,
@@ -29,11 +29,8 @@ import {
 import { LSP3DataKeys } from '@lukso/lsp3-contracts';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
-import { DataHandlerContext } from '@subsquid/evm-processor';
-import { Store } from '@subsquid/typeorm-store';
-import { FieldSelection } from './processor';
 
-export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
+export function scanLogs(context: Context) {
   const universalProfiles = new Set<string>();
   const digitalAssets = new Set<string>();
   const nfts = new Map<string, NFT>();
@@ -228,7 +225,7 @@ export function scanLogs(context: DataHandlerContext<Store, FieldSelection>) {
   };
 }
 
-export function scanTransactions(context: DataHandlerContext<Store, FieldSelection>) {
+export function scanTransactions(context: Context) {
   for (const block of context.blocks) {
     const { transactions } = block;
 
@@ -238,7 +235,7 @@ export function scanTransactions(context: DataHandlerContext<Store, FieldSelecti
   }
 }
 
-export function scanTraces(context: DataHandlerContext<Store, FieldSelection>) {
+export function scanTraces(context: Context) {
   for (const block of context.blocks) {
     const { traces } = block;
 

@@ -198,9 +198,9 @@ type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
   orbsClaimed: OrbsClaimed @derivedFrom(field: "nft")
 
   # ORBS properties
-  # level: Int @index
-  # cooldownExpiry: Int @index
-  # faction: String @index
+  level: OrbLevel @derivedFrom(field: "nft")
+  cooldownExpiry: OrbCooldownExpiry @derivedFrom(field: "nft")
+  faction: OrbFaction @derivedFrom(field: "nft")
 
   # Events
   tokenIdDataChanged: [TokenIdDataChanged!]! @derivedFrom(field: "nft")
@@ -484,4 +484,31 @@ type OrbsClaimed @entity {
   tokenId: String! @index
   nft: NFT! @index @unique
   value: Boolean!
+}
+
+type OrbLevel @entity {
+  id: ID! @unique
+  address: String! @index
+  digitalAsset: DigitalAsset! @index
+  tokenId: String! @index
+  nft: NFT! @index @unique
+  value: Int!
+}
+
+type OrbCooldownExpiry @entity {
+  id: ID! @unique
+  address: String! @index
+  digitalAsset: DigitalAsset! @index
+  tokenId: String! @index
+  nft: NFT! @index @unique
+  value: Int!
+}
+
+type OrbFaction @entity {
+  id: ID! @unique
+  address: String! @index
+  digitalAsset: DigitalAsset! @index
+  tokenId: String! @index
+  nft: NFT! @index @unique
+  value: String!
 }

@@ -1,16 +1,14 @@
-import { FieldSelection } from '@/app/processor';
 import { CHILLWHALES_ADDRESS, ORBS_ADDRESS } from '@/constants';
+import { Context } from '@/types';
 import * as Utils from '@/utils';
 import { ORBS } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { DigitalAsset, NFT, OrbsClaimed } from '@chillwhales/typeorm';
-import { DataHandlerContext } from '@subsquid/evm-processor';
-import { Store } from '@subsquid/typeorm-store';
 import { ILike, In, Not } from 'typeorm';
 import { hexToBool, isHex } from 'viem';
 
 export async function extract(
-  context: DataHandlerContext<Store, FieldSelection>,
+  context: Context,
   existingOrbsClaimedEntities: OrbsClaimed[],
 ): Promise<OrbsClaimed[]> {
   const nftsWithUnclaimedOrbs = await context.store.findBy(NFT, {

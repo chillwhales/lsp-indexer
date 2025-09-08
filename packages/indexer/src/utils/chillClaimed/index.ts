@@ -1,16 +1,14 @@
-import { FieldSelection } from '@/app/processor';
 import { CHILL_ADDRESS, CHILLWHALES_ADDRESS } from '@/constants';
+import { Context } from '@/types';
 import * as Utils from '@/utils';
 import { CHILL } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { ChillClaimed, DigitalAsset, NFT } from '@chillwhales/typeorm';
-import { DataHandlerContext } from '@subsquid/evm-processor';
-import { Store } from '@subsquid/typeorm-store';
 import { ILike, In, Not } from 'typeorm';
 import { hexToBool, isHex } from 'viem';
 
 export async function extract(
-  context: DataHandlerContext<Store, FieldSelection>,
+  context: Context,
   existingChillClaimedEntities: ChillClaimed[],
 ): Promise<ChillClaimed[]> {
   const nftsWithUnclaimedChill = await context.store.findBy(NFT, {

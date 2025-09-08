@@ -1,8 +1,6 @@
-import { FieldSelection } from '@/app/processor';
+import { Context } from '@/types';
 import * as Utils from '@/utils';
 import { LSP4Metadata, LSP8TokenMetadataBaseURI, NFT, Transfer } from '@chillwhales/typeorm';
-import { DataHandlerContext } from '@subsquid/evm-processor';
-import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 
@@ -12,7 +10,7 @@ export async function extract({
   populatedLsp8TokenMetadataBaseUriEntities,
   populatedNfts,
 }: {
-  context: DataHandlerContext<Store, FieldSelection>;
+  context: Context;
   populatedTransferEntities: Transfer[];
   populatedLsp8TokenMetadataBaseUriEntities: LSP8TokenMetadataBaseURI[];
   populatedNfts: Map<string, NFT>;
@@ -69,7 +67,7 @@ export async function extractFromBaseUri({
   populatedNfts,
   populatedLsp8TokenMetadataBaseUriEntities,
 }: {
-  context: DataHandlerContext<Store, FieldSelection>;
+  context: Context;
   populatedNfts: Map<string, NFT>;
   populatedLsp8TokenMetadataBaseUriEntities: LSP8TokenMetadataBaseURI[];
 }) {
@@ -124,7 +122,7 @@ export async function extractFromMints({
   populatedNfts,
   populatedLsp8TokenMetadataBaseUriEntities,
 }: {
-  context: DataHandlerContext<Store, FieldSelection>;
+  context: Context;
   populatedTransferEntities: Transfer[];
   populatedNfts: Map<string, NFT>;
   populatedLsp8TokenMetadataBaseUriEntities: LSP8TokenMetadataBaseURI[];

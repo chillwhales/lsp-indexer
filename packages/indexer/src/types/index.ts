@@ -1,9 +1,17 @@
-import { BlockData, DataHandlerContext, Log } from '@subsquid/evm-processor';
+import { BlockData, DataHandlerContext, EvmBatchProcessor, Log } from '@subsquid/evm-processor';
 import { Store } from '@subsquid/typeorm-store';
 
+export interface FieldSelection {}
+
+export type Processor = EvmBatchProcessor<FieldSelection>;
+
+export type Block = BlockData<FieldSelection>;
+
+export type Context = DataHandlerContext<Store, FieldSelection>;
+
 export interface ExtractParams {
-  context: DataHandlerContext<Store, {}>;
-  block: BlockData;
+  context: Context;
+  block: Block;
   log: Log;
 }
 

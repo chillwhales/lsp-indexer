@@ -1,6 +1,5 @@
-import { FieldSelection } from '@/app/processor';
+import { Block } from '@/types';
 import { DigitalAsset, NFT, OwnedAsset, OwnedToken, UniversalProfile } from '@chillwhales/typeorm';
-import { BlockData } from '@subsquid/evm-processor';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 import { generateOwnedAssetId, generateOwnedTokenId } from '..';
 
@@ -22,7 +21,7 @@ export function getOwnedToken({
   tokenId: string;
   digitalAsset: DigitalAsset;
   nft: NFT;
-  block: BlockData<FieldSelection>;
+  block: Block;
   updatedOwnedTokensMap: Map<string, OwnedToken>;
   existingOwnedTokensMap: Map<string, OwnedToken>;
   validUniversalProfiles: Map<string, UniversalProfile>;
