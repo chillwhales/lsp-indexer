@@ -3,8 +3,6 @@ import { ORB_FACTION_KEY, ORB_LEVEL_KEY } from '@/constants/chillwhales';
 import { Context } from '@/types';
 import * as Utils from '@/utils';
 import {
-  DigitalAsset,
-  NFT,
   OrbCooldownExpiry,
   OrbFaction,
   OrbLevel,
@@ -31,113 +29,123 @@ export async function orbsLevelHandler({
   populatedTransferEntities: Transfer[];
   populatedTokenIdDataChangedEntities: TokenIdDataChanged[];
 }) {
+  const newOrbLevelEntities = new Map<string, OrbLevel>();
+  const newOrbCooldownExpiryEntities = new Map<string, OrbCooldownExpiry>();
+  const newOrbFactionEntities = new Map<string, OrbFaction>();
+
   const orbsMintedTransferEntities = populatedTransferEntities.filter(
-    (event) =>
-      isAddressEqual(ORBS_ADDRESS, getAddress(event.address)) &&
-      isAddressEqual(zeroAddress, getAddress(event.from)),
+    (entity) =>
+      isAddressEqual(ORBS_ADDRESS, getAddress(entity.address)) &&
+      isAddressEqual(zeroAddress, getAddress(entity.from)),
   );
   if (orbsMintedTransferEntities.length) {
-    await context.store.insert(
-      orbsMintedTransferEntities.map(
-        ({ tokenId }) =>
-          new OrbLevel({
-            id: Utils.generateTokenId({ address: ORBS_ADDRESS, tokenId }),
-            address: ORBS_ADDRESS,
-            digitalAsset: new DigitalAsset({ id: ORBS_ADDRESS }),
-            tokenId,
-            nft: new NFT({
-              id: Utils.generateTokenId({ address: ORBS_ADDRESS, tokenId }),
-            }),
-            value: 0,
-          }),
-      ),
-    );
-    await context.store.insert(
-      orbsMintedTransferEntities.map(
-        ({ tokenId }) =>
-          new OrbCooldownExpiry({
-            id: Utils.generateTokenId({ address: ORBS_ADDRESS, tokenId }),
-            address: ORBS_ADDRESS,
-            digitalAsset: new DigitalAsset({ id: ORBS_ADDRESS }),
-            tokenId,
-            nft: new NFT({
-              id: Utils.generateTokenId({ address: ORBS_ADDRESS, tokenId }),
-            }),
-            value: 0,
-          }),
-      ),
-    );
-    await context.store.insert(
-      orbsMintedTransferEntities.map(
-        ({ tokenId }) =>
-          new OrbFaction({
-            id: Utils.generateTokenId({ address: ORBS_ADDRESS, tokenId }),
-            address: ORBS_ADDRESS,
-            digitalAsset: new DigitalAsset({ id: ORBS_ADDRESS }),
-            tokenId,
-            nft: new NFT({
-              id: Utils.generateTokenId({ address: ORBS_ADDRESS, tokenId }),
-            }),
-            value: 'Neutral',
-          }),
-      ),
-    );
+    orbsMintedTransferEntities.forEach(({ address, digitalAsset, tokenId, nft }) => {
+      const id = Utils.generateTokenId({ address, tokenId });
+      newOrbLevelEntities.set(
+        id,
+        new OrbLevel({
+          id,
+          address,
+          digitalAsset,
+          tokenId,
+          nft,
+          value: 0,
+        }),
+      );
+    });
+
+    orbsMintedTransferEntities.forEach(({ address, digitalAsset, tokenId, nft }) => {
+      const id = Utils.generateTokenId({ address, tokenId });
+      newOrbCooldownExpiryEntities.set(
+        id,
+        new OrbCooldownExpiry({
+          id,
+          address,
+          digitalAsset,
+          tokenId,
+          nft,
+          value: 0,
+        }),
+      );
+    });
+
+    orbsMintedTransferEntities.forEach(({ address, digitalAsset, tokenId, nft }) => {
+      const id = Utils.generateTokenId({ address, tokenId });
+      newOrbFactionEntities.set(
+        id,
+        new OrbFaction({
+          id,
+          address,
+          digitalAsset,
+          tokenId,
+          nft,
+          value: 'Neutral',
+        }),
+      );
+    });
   }
 
   const orbLevelTokenIdDataChangedEntities = populatedTokenIdDataChangedEntities.filter(
-    (entity) => entity.address === ORBS_ADDRESS && entity.dataKey === ORB_LEVEL_KEY,
+    (entity) =>
+      isAddressEqual(ORBS_ADDRESS, getAddress(entity.address)) && entity.dataKey === ORB_LEVEL_KEY,
   );
   if (orbLevelTokenIdDataChangedEntities.length) {
-    await context.store.upsert(
-      orbLevelTokenIdDataChangedEntities.map(
-        ({ tokenId, dataValue }) =>
-          new OrbLevel({
-            id: Utils.generateTokenId({ address: ORBS_ADDRESS, tokenId }),
-            address: ORBS_ADDRESS,
-            digitalAsset: new DigitalAsset({ id: ORBS_ADDRESS }),
-            tokenId,
-            nft: new NFT({
-              id: Utils.generateTokenId({ address: ORBS_ADDRESS, tokenId }),
-            }),
-            value: bytesToNumber(sliceBytes(hexToBytes(dataValue as Hex), 0, 4)),
-          }),
-      ),
-    );
-    await context.store.upsert(
-      orbLevelTokenIdDataChangedEntities.map(
-        ({ tokenId, dataValue }) =>
-          new OrbCooldownExpiry({
-            id: Utils.generateTokenId({ address: ORBS_ADDRESS, tokenId }),
-            address: ORBS_ADDRESS,
-            digitalAsset: new DigitalAsset({ id: ORBS_ADDRESS }),
-            tokenId,
-            nft: new NFT({
-              id: Utils.generateTokenId({ address: ORBS_ADDRESS, tokenId }),
-            }),
-            value: bytesToNumber(sliceBytes(hexToBytes(dataValue as Hex), 4)),
-          }),
-      ),
-    );
+    orbLevelTokenIdDataChangedEntities.map(({ address, digitalAsset, tokenId, nft, dataValue }) => {
+      const id = Utils.generateTokenId({ address, tokenId });
+      newOrbLevelEntities.set(
+        id,
+        new OrbLevel({
+          id,
+          address,
+          digitalAsset,
+          tokenId,
+          nft,
+          value: bytesToNumber(sliceBytes(hexToBytes(dataValue as Hex), 0, 4)),
+        }),
+      );
+    });
+
+    orbLevelTokenIdDataChangedEntities.map(({ address, digitalAsset, tokenId, nft, dataValue }) => {
+      const id = Utils.generateTokenId({ address, tokenId });
+      newOrbCooldownExpiryEntities.set(
+        id,
+        new OrbCooldownExpiry({
+          id,
+          address,
+          digitalAsset,
+          tokenId,
+          nft,
+          value: bytesToNumber(sliceBytes(hexToBytes(dataValue as Hex), 4)),
+        }),
+      );
+    });
   }
 
   const orbFactionTokenIdDataChangedEntities = populatedTokenIdDataChangedEntities.filter(
-    (entity) => entity.address === ORBS_ADDRESS && entity.dataKey === ORB_FACTION_KEY,
+    (entity) =>
+      isAddressEqual(ORBS_ADDRESS, getAddress(entity.address)) &&
+      entity.dataKey === ORB_FACTION_KEY,
   );
   if (orbFactionTokenIdDataChangedEntities.length) {
-    await context.store.upsert(
-      orbFactionTokenIdDataChangedEntities.map(
-        ({ tokenId, dataValue }) =>
+    orbFactionTokenIdDataChangedEntities.map(
+      ({ address, digitalAsset, tokenId, nft, dataValue }) => {
+        const id = Utils.generateTokenId({ address, tokenId });
+        newOrbFactionEntities.set(
+          id,
           new OrbFaction({
-            id: Utils.generateTokenId({ address: ORBS_ADDRESS, tokenId }),
-            address: ORBS_ADDRESS,
-            digitalAsset: new DigitalAsset({ id: ORBS_ADDRESS }),
+            id,
+            address,
+            digitalAsset,
             tokenId,
-            nft: new NFT({
-              id: Utils.generateTokenId({ address: ORBS_ADDRESS, tokenId }),
-            }),
+            nft,
             value: hexToString(dataValue as Hex),
           }),
-      ),
+        );
+      },
     );
   }
+
+  await context.store.upsert([...newOrbLevelEntities.values()]);
+  await context.store.upsert([...newOrbCooldownExpiryEntities.values()]);
+  await context.store.upsert([...newOrbFactionEntities.values()]);
 }
