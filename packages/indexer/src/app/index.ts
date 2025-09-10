@@ -3,12 +3,14 @@ import * as Utils from '@/utils';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
 import {
   chillClaimedHandler,
+  decimalsHandler,
   followerSystemHandler,
   lsp3ProfileHandler,
   lsp4MetadataHandler,
   orbsClaimedHandler,
   orbsLevelHandler,
   ownedAssetsHandler,
+  totalSupplyHandler,
 } from './handlers';
 import { scanLogs } from './scanner';
 
@@ -348,6 +350,8 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.upsert(populatedLsp12IssuedAssetsMapEntities),
   ]);
 
+  await decimalsHandler({ context, newDigitalAssets });
+  await totalSupplyHandler({ context, populatedTransferEntities });
   await ownedAssetsHandler({ context, populatedTransferEntities, validUniversalProfiles });
   await followerSystemHandler({ context, populatedFollowEntities, populatedUnfollowEntities });
 

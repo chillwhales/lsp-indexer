@@ -123,9 +123,17 @@ type Transfer @entity {
 type UniversalProfile @entity {
   id: ID! @unique
   address: String! @index
-  lsp3Profile: LSP3Profile @index
   ownedAssets: [OwnedAsset!]! @derivedFrom(field: "universalProfile")
   ownedTokens: [OwnedToken!]! @derivedFrom(field: "universalProfile")
+
+  # ERC725 Data Keys
+  lsp3Profile: LSP3Profile @index
+  lsp5ReceivedAssetsLength: LSP5ReceivedAssetsLength @derivedFrom(field: "universalProfile")
+  lsp5ReceivedAssetsItem: [LSP5ReceivedAssetsItem!]! @derivedFrom(field: "universalProfile")
+  lsp5ReceivedAssetsMap: [LSP5ReceivedAssetsMap!]! @derivedFrom(field: "universalProfile")
+  lsp12IssuedAssetsLength: LSP12IssuedAssetsLength @derivedFrom(field: "universalProfile")
+  lsp12IssuedAssetsItem: [LSP12IssuedAssetsItem!]! @derivedFrom(field: "universalProfile")
+  lsp12IssuedAssetsMap: [LSP12IssuedAssetsMap!]! @derivedFrom(field: "universalProfile")
 
   # Events
   executed: [Executed!]! @derivedFrom(field: "universalProfile")
@@ -144,11 +152,14 @@ type DigitalAsset @entity {
   ownedAssets: [OwnedAsset!]! @derivedFrom(field: "digitalAsset")
   ownedTokens: [OwnedToken!]! @derivedFrom(field: "digitalAsset")
 
-  # LSP4 properties
+  # ERC725 Data Keys
+  lsp4Metadata: LSP4Metadata @index
   lsp4TokenName: LSP4TokenName @derivedFrom(field: "digitalAsset")
   lsp4TokenSymbol: LSP4TokenSymbol @derivedFrom(field: "digitalAsset")
   lsp4TokenType: LSP4TokenType @derivedFrom(field: "digitalAsset")
-  lsp4Metadata: LSP4Metadata @index
+  lsp4CreatorsLength: LSP4CreatorsLength @derivedFrom(field: "digitalAsset")
+  lsp4CreatorsItem: [LSP4CreatorsItem!]! @derivedFrom(field: "digitalAsset")
+  lsp4CreatorsMap: [LSP4CreatorsMap!]! @derivedFrom(field: "digitalAsset")
 
   # LSP7 properties
   decimals: Decimals @derivedFrom(field: "digitalAsset")
@@ -170,12 +181,11 @@ type TotalSupply @entity {
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
-  value: Int! @index
+  value: BigInt! @index
 }
 
 type Decimals @entity {
   id: ID! @unique
-  timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
   value: Int! @index
