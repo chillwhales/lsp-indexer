@@ -34,6 +34,15 @@ processor.run(new TypeormDatabase(), async (context) => {
       lsp8TokenIdFormatEntities,
       lsp8ReferenceContractEntities,
       lsp8TokenMetadataBaseUriEntities,
+      lsp4CreatorsLengthEntities,
+      lsp4CreatorsItemEntities,
+      lsp4CreatorsMapEntities,
+      lsp5ReceivedAssetsLengthEntities,
+      lsp5ReceivedAssetsItemEntities,
+      lsp5ReceivedAssetsMapEntities,
+      lsp12IssuedAssetsLengthEntities,
+      lsp12IssuedAssetsItemEntities,
+      lsp12IssuedAssetsMapEntities,
     },
   } = scanLogs(context);
 
@@ -68,6 +77,15 @@ processor.run(new TypeormDatabase(), async (context) => {
       populatedLsp8ReferenceContractEntities,
       populatedLsp8TokenIdFormatEntities,
       populatedLsp8TokenMetadataBaseUriEntities,
+      populatedLsp4CreatorsLengthEntities,
+      populatedLsp4CreatorsItemEntities,
+      populatedLsp4CreatorsMapEntities,
+      populatedLsp5ReceivedAssetsLengthEntities,
+      populatedLsp5ReceivedAssetsItemEntities,
+      populatedLsp5ReceivedAssetsMapEntities,
+      populatedLsp12IssuedAssetsLengthEntities,
+      populatedLsp12IssuedAssetsItemEntities,
+      populatedLsp12IssuedAssetsMapEntities,
     },
   } = await Utils.populateEntities({
     context,
@@ -89,6 +107,15 @@ processor.run(new TypeormDatabase(), async (context) => {
     lsp8ReferenceContractEntities,
     lsp8TokenIdFormatEntities,
     lsp8TokenMetadataBaseUriEntities,
+    lsp4CreatorsLengthEntities,
+    lsp4CreatorsItemEntities,
+    lsp4CreatorsMapEntities,
+    lsp5ReceivedAssetsLengthEntities,
+    lsp5ReceivedAssetsItemEntities,
+    lsp5ReceivedAssetsMapEntities,
+    lsp12IssuedAssetsLengthEntities,
+    lsp12IssuedAssetsItemEntities,
+    lsp12IssuedAssetsMapEntities,
   });
 
   if (newUniversalProfiles.size) {
@@ -195,7 +222,16 @@ processor.run(new TypeormDatabase(), async (context) => {
     populatedLsp4TokenTypeEntities.length ||
     populatedLsp8ReferenceContractEntities.length ||
     populatedLsp8TokenIdFormatEntities.length ||
-    populatedLsp8TokenMetadataBaseUriEntities.length
+    populatedLsp8TokenMetadataBaseUriEntities.length ||
+    populatedLsp4CreatorsLengthEntities.length ||
+    populatedLsp4CreatorsItemEntities.length ||
+    populatedLsp4CreatorsMapEntities.length ||
+    populatedLsp5ReceivedAssetsLengthEntities.length ||
+    populatedLsp5ReceivedAssetsItemEntities.length ||
+    populatedLsp5ReceivedAssetsMapEntities.length ||
+    populatedLsp12IssuedAssetsLengthEntities.length ||
+    populatedLsp12IssuedAssetsItemEntities.length ||
+    populatedLsp12IssuedAssetsMapEntities.length
   ) {
     context.log.info(
       JSON.stringify({
@@ -226,6 +262,34 @@ processor.run(new TypeormDatabase(), async (context) => {
         }),
         ...(populatedLsp8TokenMetadataBaseUriEntities.length && {
           LSP8TokenMetadataBaseURIEntitiesCount: populatedLsp8TokenMetadataBaseUriEntities.length,
+        }),
+
+        ...(populatedLsp4CreatorsLengthEntities.length && {
+          LSP4CreatorsLength: populatedLsp4CreatorsLengthEntities.length,
+        }),
+        ...(populatedLsp4CreatorsItemEntities.length && {
+          LSP4CreatorsItem: populatedLsp4CreatorsItemEntities.length,
+        }),
+        ...(populatedLsp4CreatorsMapEntities.length && {
+          LSP4CreatorsMap: populatedLsp4CreatorsMapEntities.length,
+        }),
+        ...(populatedLsp5ReceivedAssetsLengthEntities.length && {
+          LSP5ReceivedAssetsLength: populatedLsp5ReceivedAssetsLengthEntities.length,
+        }),
+        ...(populatedLsp5ReceivedAssetsItemEntities.length && {
+          LSP5ReceivedAssetsItem: populatedLsp5ReceivedAssetsItemEntities.length,
+        }),
+        ...(populatedLsp5ReceivedAssetsMapEntities.length && {
+          LSP5ReceivedAssetsMap: populatedLsp5ReceivedAssetsMapEntities.length,
+        }),
+        ...(populatedLsp12IssuedAssetsLengthEntities.length && {
+          LSP12IssuedAssetsLength: populatedLsp12IssuedAssetsLengthEntities.length,
+        }),
+        ...(populatedLsp12IssuedAssetsItemEntities.length && {
+          LSP12IssuedAssetsItem: populatedLsp12IssuedAssetsItemEntities.length,
+        }),
+        ...(populatedLsp12IssuedAssetsMapEntities.length && {
+          LSP12IssuedAssetsMap: populatedLsp12IssuedAssetsMapEntities.length,
         }),
       }),
     );
@@ -267,6 +331,21 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.upsert(populatedLsp8TokenIdFormatEntities),
     /// LSP8TokenMetadataBaseURI
     context.store.upsert(populatedLsp8TokenMetadataBaseUriEntities),
+    // LSP4Creators[]
+    context.store.upsert(populatedLsp4CreatorsLengthEntities),
+    context.store.upsert(populatedLsp4CreatorsItemEntities),
+    // LSP4CreatorsMap
+    context.store.upsert(populatedLsp4CreatorsMapEntities),
+    // LSP5ReceivedAssets[]
+    context.store.upsert(populatedLsp5ReceivedAssetsLengthEntities),
+    context.store.upsert(populatedLsp5ReceivedAssetsItemEntities),
+    // LSP5ReceivedAssetsMap
+    context.store.upsert(populatedLsp5ReceivedAssetsMapEntities),
+    // LSP12IssuedAssets[]
+    context.store.upsert(populatedLsp12IssuedAssetsLengthEntities),
+    context.store.upsert(populatedLsp12IssuedAssetsItemEntities),
+    // LSP12IssuedAssetsMap
+    context.store.upsert(populatedLsp12IssuedAssetsMapEntities),
   ]);
 
   await ownedAssetsHandler({ context, populatedTransferEntities, validUniversalProfiles });

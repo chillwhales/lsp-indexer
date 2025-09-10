@@ -5,11 +5,20 @@ import {
   DigitalAsset,
   Executed,
   Follow,
+  LSP12IssuedAssetsItem,
+  LSP12IssuedAssetsLength,
+  LSP12IssuedAssetsMap,
   LSP3Profile,
+  LSP4CreatorsItem,
+  LSP4CreatorsLength,
+  LSP4CreatorsMap,
   LSP4Metadata,
   LSP4TokenName,
   LSP4TokenSymbol,
   LSP4TokenType,
+  LSP5ReceivedAssetsItem,
+  LSP5ReceivedAssetsLength,
+  LSP5ReceivedAssetsMap,
   LSP8ReferenceContract,
   LSP8TokenIdFormat,
   LSP8TokenMetadataBaseURI,
@@ -43,6 +52,15 @@ export async function populateEntities({
   lsp8ReferenceContractEntities,
   lsp8TokenIdFormatEntities,
   lsp8TokenMetadataBaseUriEntities,
+  lsp4CreatorsLengthEntities,
+  lsp4CreatorsItemEntities,
+  lsp4CreatorsMapEntities,
+  lsp5ReceivedAssetsLengthEntities,
+  lsp5ReceivedAssetsItemEntities,
+  lsp5ReceivedAssetsMapEntities,
+  lsp12IssuedAssetsLengthEntities,
+  lsp12IssuedAssetsItemEntities,
+  lsp12IssuedAssetsMapEntities,
 }: {
   context: Context;
   validUniversalProfiles: Map<string, UniversalProfile>;
@@ -63,6 +81,15 @@ export async function populateEntities({
   lsp8ReferenceContractEntities: Map<string, LSP8ReferenceContract>;
   lsp8TokenIdFormatEntities: Map<string, LSP8TokenIdFormat>;
   lsp8TokenMetadataBaseUriEntities: Map<string, LSP8TokenMetadataBaseURI>;
+  lsp4CreatorsLengthEntities: Map<string, LSP4CreatorsLength>;
+  lsp4CreatorsItemEntities: Map<string, LSP4CreatorsItem>;
+  lsp4CreatorsMapEntities: Map<string, LSP4CreatorsMap>;
+  lsp5ReceivedAssetsLengthEntities: Map<string, LSP5ReceivedAssetsLength>;
+  lsp5ReceivedAssetsItemEntities: Map<string, LSP5ReceivedAssetsItem>;
+  lsp5ReceivedAssetsMapEntities: Map<string, LSP5ReceivedAssetsMap>;
+  lsp12IssuedAssetsLengthEntities: Map<string, LSP12IssuedAssetsLength>;
+  lsp12IssuedAssetsItemEntities: Map<string, LSP12IssuedAssetsItem>;
+  lsp12IssuedAssetsMapEntities: Map<string, LSP12IssuedAssetsMap>;
 }) {
   const populatedNfts = Utils.NFT.populate({ entities: [...newNfts.values()], validDigitalAssets });
 
@@ -233,6 +260,53 @@ export async function populateEntities({
     }
   }
 
+  // LSP4Creators[]]
+  const populatedLsp4CreatorsLengthEntities = Utils.DataChanged.LSP4CreatorsLength.populate({
+    lsp4CreatorsLengthEntities: [...lsp4CreatorsLengthEntities.values()],
+    validDigitalAssets,
+  });
+  const populatedLsp4CreatorsItemEntities = Utils.DataChanged.LSP4CreatorsItem.populate({
+    lsp4CreatorsItemEntities: [...lsp4CreatorsItemEntities.values()],
+    validDigitalAssets,
+  });
+  // LSP4CreatorsMap
+  const populatedLsp4CreatorsMapEntities = Utils.DataChanged.LSP4CreatorsMap.populate({
+    lsp4CreatorsMapEntities: [...lsp4CreatorsMapEntities.values()],
+    validDigitalAssets,
+  });
+  // LSP5ReceivedAssets[]]
+  const populatedLsp5ReceivedAssetsLengthEntities =
+    Utils.DataChanged.LSP5ReceivedAssetsLength.populate({
+      lsp5ReceivedAssetsLengthEntities: [...lsp5ReceivedAssetsLengthEntities.values()],
+      validUniversalProfiles,
+    });
+  const populatedLsp5ReceivedAssetsItemEntities = Utils.DataChanged.LSP5ReceivedAssetsItem.populate(
+    {
+      lsp5ReceivedAssetsItemEntities: [...lsp5ReceivedAssetsItemEntities.values()],
+      validUniversalProfiles,
+    },
+  );
+  // LSP5ReceivedAssetsMap
+  const populatedLsp5ReceivedAssetsMapEntities = Utils.DataChanged.LSP5ReceivedAssetsMap.populate({
+    lsp5ReceivedAssetsMapEntities: [...lsp5ReceivedAssetsMapEntities.values()],
+    validUniversalProfiles,
+  });
+  // LSP12IssuedAssets[]
+  const populatedLsp12IssuedAssetsLengthEntities =
+    Utils.DataChanged.LSP12IssuedAssetsLength.populate({
+      lsp12IssuedAssetsLengthEntities: [...lsp12IssuedAssetsLengthEntities.values()],
+      validUniversalProfiles,
+    });
+  const populatedLsp12IssuedAssetsItemEntities = Utils.DataChanged.LSP12IssuedAssetsItem.populate({
+    lsp12IssuedAssetsItemEntities: [...lsp12IssuedAssetsItemEntities.values()],
+    validUniversalProfiles,
+  });
+  // LSP12IssuedAssetsMap
+  const populatedLsp12IssuedAssetsMapEntities = Utils.DataChanged.LSP12IssuedAssetsMap.populate({
+    lsp12IssuedAssetsMapEntities: [...lsp12IssuedAssetsMapEntities.values()],
+    validUniversalProfiles,
+  });
+
   return {
     populatedNfts,
     events: {
@@ -253,6 +327,15 @@ export async function populateEntities({
       populatedLsp8ReferenceContractEntities,
       populatedLsp8TokenIdFormatEntities,
       populatedLsp8TokenMetadataBaseUriEntities,
+      populatedLsp4CreatorsLengthEntities,
+      populatedLsp4CreatorsItemEntities,
+      populatedLsp4CreatorsMapEntities,
+      populatedLsp5ReceivedAssetsLengthEntities,
+      populatedLsp5ReceivedAssetsItemEntities,
+      populatedLsp5ReceivedAssetsMapEntities,
+      populatedLsp12IssuedAssetsLengthEntities,
+      populatedLsp12IssuedAssetsItemEntities,
+      populatedLsp12IssuedAssetsMapEntities,
     },
   };
 }

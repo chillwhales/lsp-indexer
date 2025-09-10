@@ -243,7 +243,7 @@ type LSP4TokenName @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
   value: String @index
-  rawValue: String @index
+  rawValue: String!
 }
 
 type LSP4TokenSymbol @entity {
@@ -252,7 +252,7 @@ type LSP4TokenSymbol @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
   value: String @index
-  rawValue: String @index
+  rawValue: String!
 }
 
 type LSP4TokenType @entity {
@@ -261,7 +261,97 @@ type LSP4TokenType @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
   value: LSP4TokenTypeEnum @index
-  rawValue: String @index
+  rawValue: String!
+}
+
+type LSP4CreatorsLength @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  digitalAsset: DigitalAsset! @index @unique
+  value: BigInt @index
+  rawValue: String!
+}
+
+type LSP4CreatorsItem @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  digitalAsset: DigitalAsset! @index
+  creatorAddress: String @index
+  creatorIndex: BigInt! @index
+  rawValue: String!
+}
+
+type LSP4CreatorsMap @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  digitalAsset: DigitalAsset! @index
+  creatorAddress: String! @index
+  creatorInterfaceId: String @index
+  creatorIndex: BigInt @index
+  rawValue: String!
+}
+
+type LSP5ReceivedAssetsLength @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index @unique
+  value: BigInt @index
+  rawValue: String!
+}
+
+type LSP5ReceivedAssetsItem @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index
+  receivedAssetAddress: String @index
+  receivedAssetIndex: BigInt! @index
+  rawValue: String!
+}
+
+type LSP5ReceivedAssetsMap @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index
+  receivedAssetAddress: String! @index
+  receivedAssetInterfaceId: String @index
+  receivedAssetIndex: BigInt @index
+  rawValue: String!
+}
+
+type LSP12IssuedAssetsLength @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index @unique
+  value: BigInt @index
+  rawValue: String!
+}
+
+type LSP12IssuedAssetsItem @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index
+  issuedAssetAddress: String @index
+  issuedAssetIndex: BigInt! @index
+  rawValue: String!
+}
+
+type LSP12IssuedAssetsMap @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index
+  issuedAssetAddress: String! @index
+  issuedAssetInterfaceId: String @index
+  issuedAssetIndex: BigInt @index
+  rawValue: String!
 }
 
 type LSP8TokenIdFormat @entity {
@@ -270,7 +360,7 @@ type LSP8TokenIdFormat @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
   value: LSP8TokenIdFormatEnum @index
-  rawValue: String @index
+  rawValue: String!
 }
 
 type LSP8ReferenceContract @entity {
@@ -279,7 +369,7 @@ type LSP8ReferenceContract @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
   value: String @index
-  rawValue: String @index
+  rawValue: String!
 }
 
 type LSP8TokenMetadataBaseURI @entity {
@@ -288,7 +378,7 @@ type LSP8TokenMetadataBaseURI @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
   value: String @index
-  rawValue: String @index
+  rawValue: String!
 }
 
 type LSP3Profile @entity {
@@ -304,7 +394,7 @@ type LSP3Profile @entity {
   profileImage: [LSP3ProfileImage!]! @derivedFrom(field: "lsp3Profile")
   backgroundImage: [LSP3ProfileBackgroundImage!]! @derivedFrom(field: "lsp3Profile")
   url: String
-  rawValue: String
+  rawValue: String!
   decodeError: String
   isDataFetched: Boolean!
   fetchErrorMessage: String
@@ -386,7 +476,7 @@ type LSP4Metadata @entity {
   assets: [LSP4MetadataAsset!]! @derivedFrom(field: "lsp4Metadata")
   attributes: [LSP4MetadataAttribute!]! @derivedFrom(field: "lsp4Metadata")
   url: String
-  rawValue: String
+  rawValue: String!
   decodeError: String
   isDataFetched: Boolean!
   fetchErrorMessage: String

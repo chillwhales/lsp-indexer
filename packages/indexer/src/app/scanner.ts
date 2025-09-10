@@ -12,11 +12,20 @@ import {
   DataChanged,
   Executed,
   Follow,
+  LSP12IssuedAssetsItem,
+  LSP12IssuedAssetsLength,
+  LSP12IssuedAssetsMap,
   LSP3Profile,
+  LSP4CreatorsItem,
+  LSP4CreatorsLength,
+  LSP4CreatorsMap,
   LSP4Metadata,
   LSP4TokenName,
   LSP4TokenSymbol,
   LSP4TokenType,
+  LSP5ReceivedAssetsItem,
+  LSP5ReceivedAssetsLength,
+  LSP5ReceivedAssetsMap,
   LSP8ReferenceContract,
   LSP8TokenIdFormat,
   LSP8TokenMetadataBaseURI,
@@ -26,8 +35,10 @@ import {
   Unfollow,
   UniversalReceiver,
 } from '@chillwhales/typeorm';
+import { LSP12DataKeys } from '@lukso/lsp12-contracts';
 import { LSP3DataKeys } from '@lukso/lsp3-contracts';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
+import { LSP5DataKeys } from '@lukso/lsp5-contracts';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 
 export function scanLogs(context: Context) {
@@ -51,6 +62,16 @@ export function scanLogs(context: Context) {
   const lsp8TokenIdFormatEntities = new Map<string, LSP8TokenIdFormat>();
   const lsp8ReferenceContractEntities = new Map<string, LSP8ReferenceContract>();
   const lsp8TokenMetadataBaseUriEntities = new Map<string, LSP8TokenMetadataBaseURI>();
+
+  const lsp4CreatorsLengthEntities = new Map<string, LSP4CreatorsLength>();
+  const lsp4CreatorsItemEntities = new Map<string, LSP4CreatorsItem>();
+  const lsp4CreatorsMapEntities = new Map<string, LSP4CreatorsMap>();
+  const lsp5ReceivedAssetsLengthEntities = new Map<string, LSP5ReceivedAssetsLength>();
+  const lsp5ReceivedAssetsItemEntities = new Map<string, LSP5ReceivedAssetsItem>();
+  const lsp5ReceivedAssetsMapEntities = new Map<string, LSP5ReceivedAssetsMap>();
+  const lsp12IssuedAssetsLengthEntities = new Map<string, LSP12IssuedAssetsLength>();
+  const lsp12IssuedAssetsItemEntities = new Map<string, LSP12IssuedAssetsItem>();
+  const lsp12IssuedAssetsMapEntities = new Map<string, LSP12IssuedAssetsMap>();
 
   for (const block of context.blocks) {
     const { logs } = block;
@@ -102,6 +123,30 @@ export function scanLogs(context: Context) {
               break;
             }
 
+            case LSP4DataKeys['LSP4Creators[]'].length: {
+              const lsp4CreatorsLength =
+                Utils.DataChanged.LSP4CreatorsLength.extract(extractParams);
+              lsp4CreatorsLengthEntities.set(lsp4CreatorsLength.id, lsp4CreatorsLength);
+            }
+
+            case LSP5DataKeys['LSP5ReceivedAssets[]'].length: {
+              const lsp5ReceivedAssetsLength =
+                Utils.DataChanged.LSP5ReceivedAssetsLength.extract(extractParams);
+              lsp5ReceivedAssetsLengthEntities.set(
+                lsp5ReceivedAssetsLength.id,
+                lsp5ReceivedAssetsLength,
+              );
+            }
+
+            case LSP12DataKeys['LSP12IssuedAssets[]'].length: {
+              const lsp12IssuedAssetsLength =
+                Utils.DataChanged.LSP12IssuedAssetsLength.extract(extractParams);
+              lsp12IssuedAssetsLengthEntities.set(
+                lsp12IssuedAssetsLength.id,
+                lsp12IssuedAssetsLength,
+              );
+            }
+
             case LSP8DataKeys.LSP8ReferenceContract: {
               const lsp8ReferenceContract =
                 Utils.DataChanged.LSP8ReferenceContract.extract(extractParams);
@@ -124,6 +169,45 @@ export function scanLogs(context: Context) {
               );
               break;
             }
+
+            default:
+              if (dataKey.startsWith(LSP4DataKeys['LSP4Creators[]'].index)) {
+                const lsp4CreatorsItem = Utils.DataChanged.LSP4CreatorsItem.extract(extractParams);
+                lsp4CreatorsItemEntities.set(lsp4CreatorsItem.id, lsp4CreatorsItem);
+                break;
+              }
+              if (dataKey.startsWith(LSP4DataKeys.LSP4CreatorsMap)) {
+                const lsp4CreatorsMap = Utils.DataChanged.LSP4CreatorsMap.extract(extractParams);
+                lsp4CreatorsMapEntities.set(lsp4CreatorsMap.id, lsp4CreatorsMap);
+                break;
+              }
+              if (dataKey.startsWith(LSP5DataKeys['LSP5ReceivedAssets[]'].index)) {
+                const lsp5ReceivedAssetsItem =
+                  Utils.DataChanged.LSP5ReceivedAssetsItem.extract(extractParams);
+                lsp5ReceivedAssetsItemEntities.set(
+                  lsp5ReceivedAssetsItem.id,
+                  lsp5ReceivedAssetsItem,
+                );
+                break;
+              }
+              if (dataKey.startsWith(LSP5DataKeys.LSP5ReceivedAssetsMap)) {
+                const lsp5ReceivedAssetsMap =
+                  Utils.DataChanged.LSP5ReceivedAssetsMap.extract(extractParams);
+                lsp5ReceivedAssetsMapEntities.set(lsp5ReceivedAssetsMap.id, lsp5ReceivedAssetsMap);
+                break;
+              }
+              if (dataKey.startsWith(LSP12DataKeys['LSP12IssuedAssets[]'].index)) {
+                const lsp12IssuedAssetsItem =
+                  Utils.DataChanged.LSP12IssuedAssetsItem.extract(extractParams);
+                lsp12IssuedAssetsItemEntities.set(lsp12IssuedAssetsItem.id, lsp12IssuedAssetsItem);
+                break;
+              }
+              if (dataKey.startsWith(LSP12DataKeys.LSP12IssuedAssetsMap)) {
+                const lsp12IssuedAssetsMap =
+                  Utils.DataChanged.LSP12IssuedAssetsMap.extract(extractParams);
+                lsp12IssuedAssetsMapEntities.set(lsp12IssuedAssetsMap.id, lsp12IssuedAssetsMap);
+                break;
+              }
           }
 
           break;
@@ -221,6 +305,15 @@ export function scanLogs(context: Context) {
       lsp8TokenIdFormatEntities,
       lsp8ReferenceContractEntities,
       lsp8TokenMetadataBaseUriEntities,
+      lsp4CreatorsLengthEntities,
+      lsp4CreatorsItemEntities,
+      lsp4CreatorsMapEntities,
+      lsp5ReceivedAssetsLengthEntities,
+      lsp5ReceivedAssetsItemEntities,
+      lsp5ReceivedAssetsMapEntities,
+      lsp12IssuedAssetsLengthEntities,
+      lsp12IssuedAssetsItemEntities,
+      lsp12IssuedAssetsMapEntities,
     },
   };
 }
