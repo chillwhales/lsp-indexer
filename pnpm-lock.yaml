@@ -85,6 +85,9 @@ importers:
       '@lukso/lsp5-contracts':
         specifier: ^0.15.4
         version: 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp6-contracts':
+        specifier: 0.15.5
+        version: 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp7-contracts':
         specifier: 0.16.8
         version: 0.16.8(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)

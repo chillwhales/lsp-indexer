@@ -1,6 +1,6 @@
 {
   "name": "@chillwhales/indexer",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "",
   "keywords": [],
   "author": "b00ste",
@@ -21,6 +21,7 @@
     "@lukso/lsp3-contracts": "0.16.6",
     "@lukso/lsp4-contracts": "0.16.7",
     "@lukso/lsp5-contracts": "^0.15.4",
+    "@lukso/lsp6-contracts": "0.15.5",
     "@lukso/lsp7-contracts": "0.16.8",
     "@lukso/lsp8-contracts": "0.16.7",
     "@subsquid/evm-processor": "^1.27.2",

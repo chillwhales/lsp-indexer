@@ -189,6 +189,12 @@ type UniversalProfile @entity {
   lsp5ReceivedAssetsLength: LSP5ReceivedAssetsLength @derivedFrom(field: "universalProfile")
   lsp5ReceivedAssetsItem: [LSP5ReceivedAssetsItem!]! @derivedFrom(field: "universalProfile")
   lsp5ReceivedAssetsMap: [LSP5ReceivedAssetsMap!]! @derivedFrom(field: "universalProfile")
+  lsp6ControllersLength: LSP6ControllersLength @derivedFrom(field: "universalProfile")
+  lsp6ControllersItem: [LSP6ControllersItem!]! @derivedFrom(field: "universalProfile")
+  lsp6ControllerPermissions: [LSP6ControllerPermissions!]! @derivedFrom(field: "universalProfile")
+  lsp6ControllerAllowedCalls: [LSP6ControllerAllowedCalls!]! @derivedFrom(field: "universalProfile")
+  lsp6ControllerAllowedErc725YDataKeys: [LSP6ControllerAllowedERC725YDataKeys!]!
+    @derivedFrom(field: "universalProfile")
   lsp12IssuedAssetsLength: LSP12IssuedAssetsLength @derivedFrom(field: "universalProfile")
   lsp12IssuedAssetsItem: [LSP12IssuedAssetsItem!]! @derivedFrom(field: "universalProfile")
   lsp12IssuedAssetsMap: [LSP12IssuedAssetsMap!]! @derivedFrom(field: "universalProfile")
@@ -392,6 +398,109 @@ type LSP5ReceivedAssetsMap @entity {
   rawValue: String!
 }
 
+type LSP6ControllersLength @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index @unique
+  value: BigInt @index
+  rawValue: String!
+}
+
+type LSP6ControllersItem @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index
+  controllerAddress: String @index
+  controllerIndex: BigInt! @index
+  rawValue: String!
+}
+
+type LSP6ControllerPermissions @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index
+  controllerAddress: String! @index
+  controllerPermissions: [LSP6Permission!]! @derivedFrom(field: "lsp6ControllerPermissions")
+  rawValue: String!
+}
+
+type LSP6Permission @entity {
+  id: ID! @unique
+  permissionName: String! @index
+  permissionValue: Boolean! @index
+  lsp6ControllerPermissions: LSP6ControllerPermissions @index
+}
+
+type LSP6ControllerAllowedCalls @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index
+  controllerAddress: String! @index
+  controllerAllowedCalls: [LSP6AllowedCall!]! @derivedFrom(field: "lsp6ControllerAllowedCalls")
+  rawValue: String!
+}
+
+type LSP6AllowedCall @entity {
+  id: ID! @unique
+  # 4 bytes
+  restrictionOperations: String! @index
+  # 20 bytes
+  allowedAddress: String! @index
+  # 4 bytes
+  allowedInterfaceId: String! @index
+  # 4 bytes
+  allowedFunction: String! @index
+  lsp6ControllerAllowedCalls: LSP6ControllerAllowedCalls @index
+}
+
+type LSP6ControllerAllowedERC725YDataKeys @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index
+  controllerAddress: String! @index
+  controllerAllowedCalls: [LSP6AllowedERC725YDataKey!]!
+    @derivedFrom(field: "lsp6ControllerAllowedErc725YDataKeys")
+  rawValue: String!
+}
+
+type LSP6AllowedERC725YDataKey @entity {
+  id: ID! @unique
+  allowedDataKey: String! @index
+  lsp6ControllerAllowedErc725YDataKeys: LSP6ControllerAllowedERC725YDataKeys @index
+}
+
+type LSP8TokenIdFormat @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  digitalAsset: DigitalAsset! @index @unique
+  value: LSP8TokenIdFormatEnum @index
+  rawValue: String!
+}
+
+type LSP8ReferenceContract @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  digitalAsset: DigitalAsset! @index @unique
+  value: String @index
+  rawValue: String!
+}
+
+type LSP8TokenMetadataBaseURI @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  digitalAsset: DigitalAsset! @index @unique
+  value: String @index
+  rawValue: String!
+}
+
 type LSP12IssuedAssetsLength @entity {
   id: ID! @unique
   timestamp: DateTime! @index
@@ -419,33 +528,6 @@ type LSP12IssuedAssetsMap @entity {
   issuedAssetAddress: String! @index
   issuedAssetInterfaceId: String @index
   issuedAssetIndex: BigInt @index
-  rawValue: String!
-}
-
-type LSP8TokenIdFormat @entity {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  address: String! @index
-  digitalAsset: DigitalAsset! @index @unique
-  value: LSP8TokenIdFormatEnum @index
-  rawValue: String!
-}
-
-type LSP8ReferenceContract @entity {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  address: String! @index
-  digitalAsset: DigitalAsset! @index @unique
-  value: String @index
-  rawValue: String!
-}
-
-type LSP8TokenMetadataBaseURI @entity {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  address: String! @index
-  digitalAsset: DigitalAsset! @index @unique
-  value: String @index
   rawValue: String!
 }
 

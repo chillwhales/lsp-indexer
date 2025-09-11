@@ -29,6 +29,14 @@ import {
   LSP5ReceivedAssetsItem,
   LSP5ReceivedAssetsLength,
   LSP5ReceivedAssetsMap,
+  LSP6AllowedCall,
+  LSP6AllowedERC725YDataKey,
+  LSP6ControllerAllowedCalls,
+  LSP6ControllerAllowedERC725YDataKeys,
+  LSP6ControllerPermissions,
+  LSP6ControllersItem,
+  LSP6ControllersLength,
+  LSP6Permission,
   LSP8ReferenceContract,
   LSP8TokenIdFormat,
   LSP8TokenMetadataBaseURI,
@@ -46,6 +54,7 @@ import { LSP12DataKeys } from '@lukso/lsp12-contracts';
 import { LSP3DataKeys } from '@lukso/lsp3-contracts';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { LSP5DataKeys } from '@lukso/lsp5-contracts';
+import { LSP6DataKeys } from '@lukso/lsp6-contracts';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -65,20 +74,35 @@ export function scanLogs(context: Context) {
   const deployedERC1167ProxiesEntities: DeployedERC1167Proxies[] = [];
 
   const lsp3ProfileEntities = new Map<string, LSP3Profile>();
+
   const lsp4TokenNameEntities = new Map<string, LSP4TokenName>();
   const lsp4TokenSymbolEntities = new Map<string, LSP4TokenSymbol>();
   const lsp4TokenTypeEntities = new Map<string, LSP4TokenType>();
   const lsp4MetadataEntities = new Map<string, LSP4Metadata>();
+  const lsp4CreatorsLengthEntities = new Map<string, LSP4CreatorsLength>();
+  const lsp4CreatorsItemEntities = new Map<string, LSP4CreatorsItem>();
+  const lsp4CreatorsMapEntities = new Map<string, LSP4CreatorsMap>();
+
+  const lsp5ReceivedAssetsLengthEntities = new Map<string, LSP5ReceivedAssetsLength>();
+  const lsp5ReceivedAssetsItemEntities = new Map<string, LSP5ReceivedAssetsItem>();
+  const lsp5ReceivedAssetsMapEntities = new Map<string, LSP5ReceivedAssetsMap>();
+
+  const lsp6ControllersLengthEntities = new Map<string, LSP6ControllersLength>();
+  const lsp6ControllersItemEntities = new Map<string, LSP6ControllersItem>();
+  const lsp6ControllerPermissionsEntities = new Map<string, LSP6ControllerPermissions>();
+  const lsp6PermissionEntities = new Map<string, LSP6Permission>();
+  const lsp6ControllerAllowedCallsEntities = new Map<string, LSP6ControllerAllowedCalls>();
+  const lsp6AllowedCallEntities = new Map<string, LSP6AllowedCall>();
+  const lsp6ControllerAllowedErc725YDataKeysEntities = new Map<
+    string,
+    LSP6ControllerAllowedERC725YDataKeys
+  >();
+  const lsp6AllowedErc725YDataKeyEntities = new Map<string, LSP6AllowedERC725YDataKey>();
+
   const lsp8TokenIdFormatEntities = new Map<string, LSP8TokenIdFormat>();
   const lsp8ReferenceContractEntities = new Map<string, LSP8ReferenceContract>();
   const lsp8TokenMetadataBaseUriEntities = new Map<string, LSP8TokenMetadataBaseURI>();
 
-  const lsp4CreatorsLengthEntities = new Map<string, LSP4CreatorsLength>();
-  const lsp4CreatorsItemEntities = new Map<string, LSP4CreatorsItem>();
-  const lsp4CreatorsMapEntities = new Map<string, LSP4CreatorsMap>();
-  const lsp5ReceivedAssetsLengthEntities = new Map<string, LSP5ReceivedAssetsLength>();
-  const lsp5ReceivedAssetsItemEntities = new Map<string, LSP5ReceivedAssetsItem>();
-  const lsp5ReceivedAssetsMapEntities = new Map<string, LSP5ReceivedAssetsMap>();
   const lsp12IssuedAssetsLengthEntities = new Map<string, LSP12IssuedAssetsLength>();
   const lsp12IssuedAssetsItemEntities = new Map<string, LSP12IssuedAssetsItem>();
   const lsp12IssuedAssetsMapEntities = new Map<string, LSP12IssuedAssetsMap>();
@@ -148,13 +172,10 @@ export function scanLogs(context: Context) {
               );
             }
 
-            case LSP12DataKeys['LSP12IssuedAssets[]'].length: {
-              const lsp12IssuedAssetsLength =
-                Utils.DataChanged.LSP12IssuedAssetsLength.extract(extractParams);
-              lsp12IssuedAssetsLengthEntities.set(
-                lsp12IssuedAssetsLength.id,
-                lsp12IssuedAssetsLength,
-              );
+            case LSP6DataKeys['AddressPermissions[]'].length: {
+              const lsp6ControllersLength =
+                Utils.DataChanged.LSP6ControllersLength.extract(extractParams);
+              lsp6ControllersLengthEntities.set(lsp6ControllersLength.id, lsp6ControllersLength);
             }
 
             case LSP8DataKeys.LSP8ReferenceContract: {
@@ -180,17 +201,28 @@ export function scanLogs(context: Context) {
               break;
             }
 
+            case LSP12DataKeys['LSP12IssuedAssets[]'].length: {
+              const lsp12IssuedAssetsLength =
+                Utils.DataChanged.LSP12IssuedAssetsLength.extract(extractParams);
+              lsp12IssuedAssetsLengthEntities.set(
+                lsp12IssuedAssetsLength.id,
+                lsp12IssuedAssetsLength,
+              );
+            }
+
             default:
               if (dataKey.startsWith(LSP4DataKeys['LSP4Creators[]'].index)) {
                 const lsp4CreatorsItem = Utils.DataChanged.LSP4CreatorsItem.extract(extractParams);
                 lsp4CreatorsItemEntities.set(lsp4CreatorsItem.id, lsp4CreatorsItem);
                 break;
               }
+
               if (dataKey.startsWith(LSP4DataKeys.LSP4CreatorsMap)) {
                 const lsp4CreatorsMap = Utils.DataChanged.LSP4CreatorsMap.extract(extractParams);
                 lsp4CreatorsMapEntities.set(lsp4CreatorsMap.id, lsp4CreatorsMap);
                 break;
               }
+
               if (dataKey.startsWith(LSP5DataKeys['LSP5ReceivedAssets[]'].index)) {
                 const lsp5ReceivedAssetsItem =
                   Utils.DataChanged.LSP5ReceivedAssetsItem.extract(extractParams);
@@ -200,18 +232,94 @@ export function scanLogs(context: Context) {
                 );
                 break;
               }
+
               if (dataKey.startsWith(LSP5DataKeys.LSP5ReceivedAssetsMap)) {
                 const lsp5ReceivedAssetsMap =
                   Utils.DataChanged.LSP5ReceivedAssetsMap.extract(extractParams);
                 lsp5ReceivedAssetsMapEntities.set(lsp5ReceivedAssetsMap.id, lsp5ReceivedAssetsMap);
                 break;
               }
+
+              if (dataKey.startsWith(LSP6DataKeys['AddressPermissions[]'].index)) {
+                const lsp6ControllersItem =
+                  Utils.DataChanged.LSP6ControllersItem.extract(extractParams);
+                lsp6ControllersItemEntities.set(lsp6ControllersItem.id, lsp6ControllersItem);
+                break;
+              }
+
+              if (dataKey.startsWith(LSP6DataKeys['AddressPermissions:Permissions'])) {
+                const result = Utils.DataChanged.LSP6ControllerPermissions.extract(extractParams);
+                lsp6ControllerPermissionsEntities.set(
+                  result.lsp6ControllerPermissions.id,
+                  result.lsp6ControllerPermissions,
+                );
+                result.lsp6PermissionEntities.map((lsp6Permission) =>
+                  lsp6PermissionEntities.set(lsp6Permission.id, lsp6Permission),
+                );
+                break;
+              }
+
+              if (dataKey.startsWith(LSP6DataKeys['AddressPermissions:AllowedCalls'])) {
+                const result = Utils.DataChanged.LSP6ControllerAllowedCalls.extract(extractParams);
+                lsp6ControllerAllowedCallsEntities.set(
+                  result.lsp6ControllerAllowedCalls.id,
+                  result.lsp6ControllerAllowedCalls,
+                );
+
+                const lsp6AllowedCallEntitiesToRemove = [
+                  ...lsp6AllowedCallEntities.values(),
+                ].filter(
+                  (lsp6AllowedCall) =>
+                    lsp6AllowedCall.lsp6ControllerAllowedCalls.id ===
+                    result.lsp6ControllerAllowedCalls.id,
+                );
+                lsp6AllowedCallEntitiesToRemove.forEach(({ id }) =>
+                  lsp6AllowedCallEntities.delete(id),
+                );
+
+                result.lsp6AllowedCallEntities.map((lsp6AllowedCall) =>
+                  lsp6AllowedCallEntities.set(lsp6AllowedCall.id, lsp6AllowedCall),
+                );
+
+                break;
+              }
+
+              if (dataKey.startsWith(LSP6DataKeys['AddressPermissions:AllowedERC725YDataKeys'])) {
+                const result =
+                  Utils.DataChanged.LSP6ControllerAllowedERC725YDataKeys.extract(extractParams);
+                lsp6ControllerAllowedErc725YDataKeysEntities.set(
+                  result.lsp6ControllerAllowedErc725YDataKeys.id,
+                  result.lsp6ControllerAllowedErc725YDataKeys,
+                );
+
+                const lsp6AllowedErc725YDataKeyEntitiesToRemove = [
+                  ...lsp6AllowedErc725YDataKeyEntities.values(),
+                ].filter(
+                  (lsp6AllowedErc725YDataKey) =>
+                    lsp6AllowedErc725YDataKey.lsp6ControllerAllowedErc725YDataKeys.id ===
+                    result.lsp6ControllerAllowedErc725YDataKeys.id,
+                );
+                lsp6AllowedErc725YDataKeyEntitiesToRemove.forEach(({ id }) =>
+                  lsp6AllowedErc725YDataKeyEntities.delete(id),
+                );
+
+                result.lsp6AllowedErc725YDataKeysEntities.map((lsp6AllowedErc725YDataKey) =>
+                  lsp6AllowedErc725YDataKeyEntities.set(
+                    lsp6AllowedErc725YDataKey.id,
+                    lsp6AllowedErc725YDataKey,
+                  ),
+                );
+
+                break;
+              }
+
               if (dataKey.startsWith(LSP12DataKeys['LSP12IssuedAssets[]'].index)) {
                 const lsp12IssuedAssetsItem =
                   Utils.DataChanged.LSP12IssuedAssetsItem.extract(extractParams);
                 lsp12IssuedAssetsItemEntities.set(lsp12IssuedAssetsItem.id, lsp12IssuedAssetsItem);
                 break;
               }
+
               if (dataKey.startsWith(LSP12DataKeys.LSP12IssuedAssetsMap)) {
                 const lsp12IssuedAssetsMap =
                   Utils.DataChanged.LSP12IssuedAssetsMap.extract(extractParams);
@@ -384,15 +492,23 @@ export function scanLogs(context: Context) {
       lsp4TokenSymbolEntities,
       lsp4TokenTypeEntities,
       lsp4MetadataEntities,
-      lsp8TokenIdFormatEntities,
-      lsp8ReferenceContractEntities,
-      lsp8TokenMetadataBaseUriEntities,
       lsp4CreatorsLengthEntities,
       lsp4CreatorsItemEntities,
       lsp4CreatorsMapEntities,
       lsp5ReceivedAssetsLengthEntities,
       lsp5ReceivedAssetsItemEntities,
       lsp5ReceivedAssetsMapEntities,
+      lsp6ControllersLengthEntities,
+      lsp6ControllersItemEntities,
+      lsp6ControllerPermissionsEntities,
+      lsp6PermissionEntities,
+      lsp6ControllerAllowedCallsEntities,
+      lsp6AllowedCallEntities,
+      lsp6ControllerAllowedErc725YDataKeysEntities,
+      lsp6AllowedErc725YDataKeyEntities,
+      lsp8TokenIdFormatEntities,
+      lsp8ReferenceContractEntities,
+      lsp8TokenMetadataBaseUriEntities,
       lsp12IssuedAssetsLengthEntities,
       lsp12IssuedAssetsItemEntities,
       lsp12IssuedAssetsMapEntities,
