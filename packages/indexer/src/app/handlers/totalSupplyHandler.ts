@@ -27,83 +27,48 @@ export async function totalSupplyHandler({
   const updatedTotalSupplyEntities = new Map<string, TotalSupply>();
 
   filteredTransferEntities.forEach(({ id, timestamp, address, digitalAsset, from, to, amount }) => {
+    const isMinting = isAddressEqual(zeroAddress, getAddress(from));
+    const isBurning = isAddressEqual(zeroAddress, getAddress(to));
+
+    if (!isMinting && !isBurning) return;
+
     if (existingTotalSupplyEntities.has(id) && !updatedTotalSupplyEntities.has(id)) {
-      const existingTotalSupplyEntity = existingTotalSupplyEntities.get(id);
+      updatedTotalSupplyEntities.set(address, existingTotalSupplyEntities.get(id));
+    } else if (!updatedTotalSupplyEntities.has(id)) {
+      updatedTotalSupplyEntities.set(
+        address,
+        new TotalSupply({
+          id: address,
+          timestamp,
+          address,
+          digitalAsset,
+          value: 0n,
+        }),
+      );
+    }
 
-      if (isAddressEqual(zeroAddress, getAddress(from))) {
-        updatedTotalSupplyEntities.set(
-          address,
-          new TotalSupply({
-            ...existingTotalSupplyEntity,
-            timestamp,
-            value: existingTotalSupplyEntity.value + amount,
-          }),
-        );
-      }
-      if (isAddressEqual(zeroAddress, getAddress(to))) {
-        updatedTotalSupplyEntities.set(
-          address,
-          new TotalSupply({
-            ...existingTotalSupplyEntity,
-            timestamp,
-            value:
-              existingTotalSupplyEntity.value > amount
-                ? existingTotalSupplyEntity.value - amount
-                : 0n,
-          }),
-        );
-      }
-    } else if (updatedTotalSupplyEntities.has(id)) {
-      const updatedTotalSupplyEntity = updatedTotalSupplyEntities.get(id);
+    const updatedTotalSupplyEntity = updatedTotalSupplyEntities.get(id);
 
-      if (isAddressEqual(zeroAddress, getAddress(from))) {
-        updatedTotalSupplyEntities.set(
-          address,
-          new TotalSupply({
-            ...updatedTotalSupplyEntity,
-            timestamp,
-            value: updatedTotalSupplyEntity.value + amount,
-          }),
-        );
-      }
-      if (isAddressEqual(zeroAddress, getAddress(to))) {
-        updatedTotalSupplyEntities.set(
-          address,
-          new TotalSupply({
-            ...updatedTotalSupplyEntity,
-            timestamp,
-            value:
-              updatedTotalSupplyEntity.value > amount
-                ? updatedTotalSupplyEntity.value - amount
-                : 0n,
-          }),
-        );
-      }
-    } else {
-      if (isAddressEqual(zeroAddress, getAddress(from))) {
-        updatedTotalSupplyEntities.set(
-          address,
-          new TotalSupply({
-            id: address,
-            timestamp,
-            address,
-            digitalAsset,
-            value: amount,
-          }),
-        );
-      }
-      if (isAddressEqual(zeroAddress, getAddress(to))) {
-        updatedTotalSupplyEntities.set(
-          address,
-          new TotalSupply({
-            id: address,
-            timestamp,
-            address,
-            digitalAsset,
-            value: 0n,
-          }),
-        );
-      }
+    if (isMinting) {
+      updatedTotalSupplyEntities.set(
+        address,
+        new TotalSupply({
+          ...updatedTotalSupplyEntity,
+          timestamp,
+          value: updatedTotalSupplyEntity.value + amount,
+        }),
+      );
+    }
+    if (isBurning) {
+      updatedTotalSupplyEntities.set(
+        address,
+        new TotalSupply({
+          ...updatedTotalSupplyEntity,
+          timestamp,
+          value:
+            updatedTotalSupplyEntity.value > amount ? updatedTotalSupplyEntity.value - amount : 0n,
+        }),
+      );
     }
   });
 
