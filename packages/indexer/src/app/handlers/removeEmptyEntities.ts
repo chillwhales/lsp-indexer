@@ -50,22 +50,22 @@ export async function removeEmptyEntities({ context }: { context: Context }) {
       JSON.stringify({
         message: 'Removing empty entities.',
         ...(lsp4CreatorsItemEntities.length && {
-          LSP4CreatorsItemEntities: lsp4CreatorsItemEntities.length,
+          LSP4CreatorsItemEntitiesCount: lsp4CreatorsItemEntities.length,
         }),
         ...(lsp4CreatorsMapEntities.length && {
-          LSP4CreatorsMapEntities: lsp4CreatorsMapEntities.length,
+          LSP4CreatorsMapEntitiesCount: lsp4CreatorsMapEntities.length,
         }),
         ...(lsp5ReceivedAssetsItemEntities.length && {
-          LSP5ReceivedAssetsItemEntities: lsp5ReceivedAssetsItemEntities.length,
+          LSP5ReceivedAssetsItemEntitiesCount: lsp5ReceivedAssetsItemEntities.length,
         }),
         ...(lsp5ReceivedAssetsMapEntities.length && {
-          LSP5ReceivedAssetsMapEntities: lsp5ReceivedAssetsMapEntities.length,
+          LSP5ReceivedAssetsMapEntitiesCount: lsp5ReceivedAssetsMapEntities.length,
         }),
         ...(lsp12IssuedAssetsItemEntities.length && {
-          LSP12IssuedAssetsItemEntities: lsp12IssuedAssetsItemEntities.length,
+          LSP12IssuedAssetsItemEntitiesCount: lsp12IssuedAssetsItemEntities.length,
         }),
         ...(lsp12IssuedAssetsMapEntities.length && {
-          LSP12IssuedAssetsMapEntities: lsp12IssuedAssetsMapEntities.length,
+          LSP12IssuedAssetsMapEntitiesCount: lsp12IssuedAssetsMapEntities.length,
         }),
       }),
     );

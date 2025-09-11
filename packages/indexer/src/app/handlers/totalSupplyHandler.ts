@@ -72,5 +72,14 @@ export async function totalSupplyHandler({
     }
   });
 
+  if (updatedTotalSupplyEntities.size) {
+    context.log.info(
+      JSON.stringify({
+        message: "Saving new & updated 'TotalSupply' entities.",
+        TotalSupplyEntitiesCount: updatedTotalSupplyEntities.size,
+      }),
+    );
+  }
+
   await context.store.upsert([...updatedTotalSupplyEntities.values()]);
 }

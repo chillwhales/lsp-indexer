@@ -49,7 +49,7 @@ export async function decimalsHandler({
   if (newDecimalEntities.length) {
     context.log.info(
       JSON.stringify({
-        message: "'Decimals' entities found.",
+        message: "Inserting new 'Decimals' entities.",
         DecimalsEntitiesCount: newDecimalEntities.length,
       }),
     );
