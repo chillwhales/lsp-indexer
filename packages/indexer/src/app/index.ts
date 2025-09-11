@@ -1,17 +1,7 @@
 import { processor } from '@/app/processor';
 import * as Utils from '@/utils';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
-import {
-  chillClaimedHandler,
-  decimalsHandler,
-  followerSystemHandler,
-  lsp3ProfileHandler,
-  lsp4MetadataHandler,
-  orbsClaimedHandler,
-  orbsLevelHandler,
-  ownedAssetsHandler,
-  totalSupplyHandler,
-} from './handlers';
+import * as Handlers from './handlers';
 import { scanLogs } from './scanner';
 
 processor.run(new TypeormDatabase(), async (context) => {
@@ -350,24 +340,34 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.upsert(populatedLsp12IssuedAssetsMapEntities),
   ]);
 
-  await decimalsHandler({ context, newDigitalAssets });
-  await totalSupplyHandler({ context, populatedTransferEntities });
-  await ownedAssetsHandler({ context, populatedTransferEntities, validUniversalProfiles });
-  await followerSystemHandler({ context, populatedFollowEntities, populatedUnfollowEntities });
+  await Handlers.removeEmptyEntities({ context });
 
-  await lsp3ProfileHandler({ context, populatedLsp3ProfileEntities, validUniversalProfiles });
-  await lsp4MetadataHandler({
+  await Handlers.decimalsHandler({ context, newDigitalAssets });
+  await Handlers.totalSupplyHandler({ context, populatedTransferEntities });
+  await Handlers.ownedAssetsHandler({ context, populatedTransferEntities, validUniversalProfiles });
+  await Handlers.followerSystemHandler({
+    context,
+    populatedFollowEntities,
+    populatedUnfollowEntities,
+  });
+
+  await Handlers.lsp3ProfileHandler({
+    context,
+    populatedLsp3ProfileEntities,
+    validUniversalProfiles,
+  });
+  await Handlers.lsp4MetadataHandler({
     context,
     populatedLsp4MetadataEntities,
     populatedLsp4MetadataBaseUriEntities,
     validDigitalAssets,
   });
 
-  await orbsLevelHandler({
+  await Handlers.orbsLevelHandler({
     context,
     populatedTransferEntities,
     populatedTokenIdDataChangedEntities,
   });
-  await orbsClaimedHandler({ context, populatedTransferEntities });
-  await chillClaimedHandler({ context, populatedTransferEntities });
+  await Handlers.orbsClaimedHandler({ context, populatedTransferEntities });
+  await Handlers.chillClaimedHandler({ context, populatedTransferEntities });
 });

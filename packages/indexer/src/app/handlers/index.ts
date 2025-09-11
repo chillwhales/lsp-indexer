@@ -6,4 +6,5 @@ export { lsp4MetadataHandler } from './lsp4MetadataHandler';
 export { orbsClaimedHandler } from './orbsClaimedHandler';
 export { orbsLevelHandler } from './orbsLevelHandler';
 export { ownedAssetsHandler } from './ownedAssetsHandler';
+export { removeEmptyEntities } from './removeEmptyEntities';
 export { totalSupplyHandler } from './totalSupplyHandler';
