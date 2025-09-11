@@ -1,4 +1,4 @@
-import { CHILLWHALES_ADDRESS, ORBS_ADDRESS } from '@/constants';
+import { CHILLWHALES_ADDRESS, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { Context } from '@/types';
 import * as Utils from '@/utils';
 import { ORBS } from '@chillwhales/abi';

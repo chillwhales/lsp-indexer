@@ -120,6 +120,64 @@ type Transfer @entity {
   nft: NFT @index
 }
 
+type DeployedContracts @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  blockNumber: Int! @index
+  logIndex: Int! @index
+  transactionIndex: Int! @index
+  address: String! @index
+  primaryContract: String!
+  secondaryContract: String!
+  primaryContractDeployment: PrimaryContractDeployment!
+  secondaryContractDeployment: SecondaryContractDeployment!
+  postDeploymentModule: String! @index
+  postDeploymentModuleCalldata: String!
+}
+
+type DeployedERC1167Proxies @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  blockNumber: Int! @index
+  logIndex: Int! @index
+  transactionIndex: Int! @index
+  address: String! @index
+  primaryContract: String!
+  secondaryContract: String!
+  primaryContractDeploymentInit: PrimaryContractDeploymentInit!
+  secondaryContractDeploymentInit: SecondaryContractDeploymentInit!
+  postDeploymentModule: String! @index
+  postDeploymentModuleCalldata: String!
+}
+
+type PrimaryContractDeployment {
+  salt: String!
+  fundingAmount: BigInt!
+  creationBytecode: String!
+}
+
+type SecondaryContractDeployment {
+  fundingAmount: BigInt!
+  creationBytecode: String!
+  addPrimaryContractAddress: Boolean!
+  extraConstructorParams: String!
+}
+
+type PrimaryContractDeploymentInit {
+  salt: String!
+  fundingAmount: BigInt!
+  implementationContract: String!
+  initializationCalldata: String!
+}
+
+type SecondaryContractDeploymentInit {
+  fundingAmount: BigInt!
+  implementationContract: String!
+  initializationCalldata: String!
+  addPrimaryContractAddress: Boolean!
+  extraInitializationParams: String!
+}
+
 type UniversalProfile @entity {
   id: ID! @unique
   address: String! @index

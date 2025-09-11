@@ -4,12 +4,15 @@ import {
   ERC725X,
   ERC725Y,
   LSP0ERC725Account,
+  LSP23LinkedContractsFactory,
   LSP26FollowerSystem,
   LSP7DigitalAsset,
   LSP8IdentifiableDigitalAsset,
 } from '@chillwhales/abi';
 import {
   DataChanged,
+  DeployedContracts,
+  DeployedERC1167Proxies,
   Executed,
   Follow,
   LSP12IssuedAssetsItem,
@@ -30,6 +33,10 @@ import {
   LSP8TokenIdFormat,
   LSP8TokenMetadataBaseURI,
   NFT,
+  PrimaryContractDeployment,
+  PrimaryContractDeploymentInit,
+  SecondaryContractDeployment,
+  SecondaryContractDeploymentInit,
   TokenIdDataChanged,
   Transfer,
   Unfollow,
@@ -40,6 +47,7 @@ import { LSP3DataKeys } from '@lukso/lsp3-contracts';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { LSP5DataKeys } from '@lukso/lsp5-contracts';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
+import { v4 as uuidv4 } from 'uuid';
 
 export function scanLogs(context: Context) {
   const universalProfiles = new Set<string>();
@@ -53,6 +61,8 @@ export function scanLogs(context: Context) {
   const tokenIdDataChangedEntities: TokenIdDataChanged[] = [];
   const followEntities: Follow[] = [];
   const unfollowEntities: Unfollow[] = [];
+  const deployedContractsEntities: DeployedContracts[] = [];
+  const deployedERC1167ProxiesEntities: DeployedERC1167Proxies[] = [];
 
   const lsp3ProfileEntities = new Map<string, LSP3Profile>();
   const lsp4TokenNameEntities = new Map<string, LSP4TokenName>();
@@ -280,6 +290,76 @@ export function scanLogs(context: Context) {
           universalProfiles.add(unfollowEvent.unfollowedAddress);
           break;
         }
+
+        case LSP23LinkedContractsFactory.events.DeployedContracts.topic: {
+          const {
+            header: { timestamp, height },
+          } = block;
+          const { logIndex, transactionIndex, address } = log;
+          const {
+            primaryContract,
+            secondaryContract,
+            primaryContractDeployment,
+            secondaryContractDeployment,
+            postDeploymentModule,
+            postDeploymentModuleCalldata,
+          } = LSP23LinkedContractsFactory.events.DeployedContracts.decode(log);
+
+          deployedContractsEntities.push(
+            new DeployedContracts({
+              id: uuidv4(),
+              timestamp: new Date(timestamp),
+              blockNumber: height,
+              logIndex,
+              transactionIndex,
+              address,
+              primaryContract,
+              secondaryContract,
+              primaryContractDeployment: new PrimaryContractDeployment(primaryContractDeployment),
+              secondaryContractDeployment: new SecondaryContractDeployment(
+                secondaryContractDeployment,
+              ),
+              postDeploymentModule,
+              postDeploymentModuleCalldata,
+            }),
+          );
+        }
+
+        case LSP23LinkedContractsFactory.events.DeployedERC1167Proxies.topic: {
+          const {
+            header: { timestamp, height },
+          } = block;
+          const { logIndex, transactionIndex, address } = log;
+          const {
+            primaryContract,
+            secondaryContract,
+            primaryContractDeploymentInit,
+            secondaryContractDeploymentInit,
+            postDeploymentModule,
+            postDeploymentModuleCalldata,
+          } = LSP23LinkedContractsFactory.events.DeployedERC1167Proxies.decode(log);
+
+          deployedERC1167ProxiesEntities.push(
+            new DeployedERC1167Proxies({
+              id: uuidv4(),
+              timestamp: new Date(timestamp),
+              blockNumber: height,
+              logIndex,
+              transactionIndex,
+              address,
+              primaryContract,
+              secondaryContract,
+              primaryContractDeploymentInit: new PrimaryContractDeploymentInit(
+                primaryContractDeploymentInit,
+              ),
+              secondaryContractDeploymentInit: new SecondaryContractDeploymentInit(
+                secondaryContractDeploymentInit,
+              ),
+              postDeploymentModule,
+              postDeploymentModuleCalldata,
+            }),
+          );
+        }
       }
     }
   }
@@ -295,6 +375,8 @@ export function scanLogs(context: Context) {
       tokenIdDataChangedEntities,
       followEntities,
       unfollowEntities,
+      deployedContractsEntities,
+      deployedERC1167ProxiesEntities,
     },
     dataKeys: {
       lsp3ProfileEntities,

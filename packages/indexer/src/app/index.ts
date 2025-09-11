@@ -16,6 +16,8 @@ processor.run(new TypeormDatabase(), async (context) => {
       tokenIdDataChangedEntities,
       followEntities,
       unfollowEntities,
+      deployedContractsEntities,
+      deployedERC1167ProxiesEntities,
     },
     dataKeys: {
       lsp3ProfileEntities,
@@ -304,6 +306,10 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.insert(populatedFollowEntities),
     /// event Unfollow(address,address);
     context.store.insert(populatedUnfollowEntities),
+    /// event DeployedContracts(address,address,[bytes32,uint256,bytes],[uint256,bytes,bool,bytes],address,bytes);
+    context.store.insert(deployedContractsEntities),
+    /// event DeployedERC1167Proxies(address,address,[bytes32,uint256,address,bytes],[uint256,address,bytes,bool,bytes],address,bytes);
+    context.store.insert(deployedERC1167ProxiesEntities),
 
     // Save tracked starndardized DataKeys
     /// LSP3Profile

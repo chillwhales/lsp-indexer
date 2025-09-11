@@ -4,10 +4,11 @@ squid-evm-typegen \
     src/abi \
     custom/* \
     node_modules/@erc725/smart-contracts/artifacts/* \
-    node_modules/@lukso/lsp0-contracts/artifacts/* \
-    node_modules/@lukso/lsp6-contracts/artifacts/* \
-    node_modules/@lukso/lsp7-contracts/artifacts/* \
-    node_modules/@lukso/lsp8-contracts/artifacts/* \
+    node_modules/@lukso/lsp0-contracts/artifacts/*   \
+    node_modules/@lukso/lsp6-contracts/artifacts/*   \
+    node_modules/@lukso/lsp7-contracts/artifacts/*   \
+    node_modules/@lukso/lsp8-contracts/artifacts/*   \
+    node_modules/@lukso/lsp23-contracts/artifacts/*  \
     node_modules/@lukso/lsp26-contracts/artifacts/*
 
 output="src/index.ts"

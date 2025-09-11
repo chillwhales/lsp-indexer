@@ -1,4 +1,4 @@
-import { CHILL_ADDRESS, CHILLWHALES_ADDRESS } from '@/constants';
+import { CHILL_ADDRESS, CHILLWHALES_ADDRESS } from '@/constants/chillwhales';
 import { Context } from '@/types';
 import * as Utils from '@/utils';
 import { ChillClaimed, DigitalAsset, NFT, Transfer } from '@chillwhales/typeorm';

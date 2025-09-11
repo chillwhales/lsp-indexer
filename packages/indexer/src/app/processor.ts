@@ -1,9 +1,17 @@
-import { FINALITY_CONFIRMATION, RPC_RATE_LIMIT, RPC_URL, SQD_GATEWAY } from '@/constants';
+import {
+  FINALITY_CONFIRMATION,
+  LSP23_ADDRESS,
+  LSP26_ADDRESS,
+  RPC_RATE_LIMIT,
+  RPC_URL,
+  SQD_GATEWAY,
+} from '@/constants';
 import { Processor } from '@/types';
 import {
   ERC725X,
   ERC725Y,
   LSP0ERC725Account,
+  LSP23LinkedContractsFactory,
   LSP26FollowerSystem,
   LSP7DigitalAsset,
   LSP8IdentifiableDigitalAsset,
@@ -42,7 +50,15 @@ export const processor: Processor = new EvmBatchProcessor()
     ],
   })
   .addLog({
-    address: ['0xf01103E5a9909Fc0DBe8166dA7085e0285daDDcA'],
+    address: [LSP26_ADDRESS],
     range: { from: 3179471 },
     topic0: [LSP26FollowerSystem.events.Follow.topic, LSP26FollowerSystem.events.Unfollow.topic],
+  })
+  .addLog({
+    address: [LSP23_ADDRESS],
+    range: { from: 0 },
+    topic0: [
+      LSP23LinkedContractsFactory.events.DeployedContracts.topic,
+      LSP23LinkedContractsFactory.events.DeployedERC1167Proxies.topic,
+    ],
   });

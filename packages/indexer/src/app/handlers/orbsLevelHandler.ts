@@ -1,5 +1,4 @@
-import { ORBS_ADDRESS } from '@/constants';
-import { ORB_FACTION_KEY, ORB_LEVEL_KEY } from '@/constants/chillwhales';
+import { ORB_FACTION_KEY, ORB_LEVEL_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { Context } from '@/types';
 import * as Utils from '@/utils';
 import {
