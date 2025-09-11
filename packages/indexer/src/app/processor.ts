@@ -56,7 +56,7 @@ export const processor: Processor = new EvmBatchProcessor()
   })
   .addLog({
     address: [LSP23_ADDRESS],
-    range: { from: 0 },
+    range: { from: 1143651 },
     topic0: [
       LSP23LinkedContractsFactory.events.DeployedContracts.topic,
       LSP23LinkedContractsFactory.events.DeployedERC1167Proxies.topic,
