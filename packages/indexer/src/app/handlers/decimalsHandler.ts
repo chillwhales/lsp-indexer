@@ -53,7 +53,7 @@ export async function decimalsHandler({
         DecimalsEntitiesCount: newDecimalEntities.length,
       }),
     );
-  }
 
-  await context.store.insert(newDecimalEntities);
+    await context.store.insert(newDecimalEntities);
+  }
 }

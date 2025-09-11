@@ -18,59 +18,53 @@ export async function totalSupplyHandler({
   const existingTotalSupplyEntities = new Map(
     await context.store
       .findBy(TotalSupply, {
-        address: In([...new Set(filteredTransferEntities.map(({ address }) => address))]),
+        id: In([...new Set(filteredTransferEntities.map(({ address }) => address))]),
       })
-      .then((totalSupplyEntities) =>
-        totalSupplyEntities.map((totalSupplyEntity) => [totalSupplyEntity.id, totalSupplyEntity]),
-      ),
+      .then((entities) => entities.map((entity) => [entity.id, entity])),
   );
   const updatedTotalSupplyEntities = new Map<string, TotalSupply>();
 
-  filteredTransferEntities.forEach(({ id, timestamp, address, digitalAsset, from, to, amount }) => {
-    const isMinting = isAddressEqual(zeroAddress, getAddress(from));
-    const isBurning = isAddressEqual(zeroAddress, getAddress(to));
+  for (const transferEntity of filteredTransferEntities) {
+    const { timestamp, address, digitalAsset, from, to, amount } = transferEntity;
+    let entityToUpdate = updatedTotalSupplyEntities.get(address);
 
-    if (!isMinting && !isBurning) return;
+    if (!entityToUpdate) {
+      const existingTotalSupplyEntity = existingTotalSupplyEntities.get(address);
 
-    if (existingTotalSupplyEntities.has(id) && !updatedTotalSupplyEntities.has(id)) {
-      updatedTotalSupplyEntities.set(address, existingTotalSupplyEntities.get(id));
-    } else if (!updatedTotalSupplyEntities.has(id)) {
-      updatedTotalSupplyEntities.set(
-        address,
-        new TotalSupply({
+      if (existingTotalSupplyEntity) {
+        entityToUpdate = existingTotalSupplyEntity;
+      } else {
+        entityToUpdate = new TotalSupply({
           id: address,
           timestamp,
           address,
           digitalAsset,
           value: 0n,
-        }),
-      );
+        });
+      }
     }
 
-    const updatedTotalSupplyEntity = updatedTotalSupplyEntities.get(id);
-
-    if (isMinting) {
+    if (isAddressEqual(zeroAddress, getAddress(from))) {
       updatedTotalSupplyEntities.set(
-        address,
+        entityToUpdate.id,
         new TotalSupply({
-          ...updatedTotalSupplyEntity,
+          ...entityToUpdate,
           timestamp,
-          value: updatedTotalSupplyEntity.value + amount,
+          value: entityToUpdate.value + amount,
         }),
       );
     }
-    if (isBurning) {
+    if (isAddressEqual(zeroAddress, getAddress(to))) {
       updatedTotalSupplyEntities.set(
-        address,
+        entityToUpdate.id,
         new TotalSupply({
-          ...updatedTotalSupplyEntity,
+          ...entityToUpdate,
           timestamp,
-          value:
-            updatedTotalSupplyEntity.value > amount ? updatedTotalSupplyEntity.value - amount : 0n,
+          value: entityToUpdate.value > amount ? entityToUpdate.value - amount : 0n,
         }),
       );
     }
-  });
+  }
 
   if (updatedTotalSupplyEntities.size) {
     context.log.info(
@@ -79,7 +73,7 @@ export async function totalSupplyHandler({
         TotalSupplyEntitiesCount: updatedTotalSupplyEntities.size,
       }),
     );
-  }
 
-  await context.store.upsert([...updatedTotalSupplyEntities.values()]);
+    await context.store.upsert([...updatedTotalSupplyEntities.values()]);
+  }
 }

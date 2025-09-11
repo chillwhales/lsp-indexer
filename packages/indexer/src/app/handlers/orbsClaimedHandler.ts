@@ -49,7 +49,7 @@ export async function orbsClaimedHandler({
 
       context.log.info(
         JSON.stringify({
-          message: "'OrbsClaimed' entities found.",
+          message: "Saving new & updated 'OrbsClaimed' entities.",
           orbsClaimedEntitiesCount: orbsClaimedEntities.length,
         }),
       );

@@ -145,7 +145,30 @@ export async function orbsLevelHandler({
     );
   }
 
-  await context.store.upsert([...newOrbLevelEntities.values()]);
-  await context.store.upsert([...newOrbCooldownExpiryEntities.values()]);
-  await context.store.upsert([...newOrbFactionEntities.values()]);
+  if (newOrbLevelEntities.size || newOrbCooldownExpiryEntities.size || newOrbFactionEntities.size) {
+    context.log.info(
+      JSON.stringify({
+        message: 'Saving new & updated ORBS level up related entities.',
+        OrbLevelEntitiesCount: newOrbLevelEntities.size,
+        OrbCooldownExpiryEntitiesCount: newOrbCooldownExpiryEntities.size,
+        OrbFactionEntitiesCount: newOrbFactionEntities.size,
+      }),
+    );
+
+    const promises: Promise<void>[] = [];
+
+    if (newOrbLevelEntities.size) {
+      promises.push(context.store.upsert([...newOrbLevelEntities.values()]));
+    }
+
+    if (newOrbCooldownExpiryEntities.size) {
+      promises.push(context.store.upsert([...newOrbCooldownExpiryEntities.values()]));
+    }
+
+    if (newOrbFactionEntities.size) {
+      promises.push(context.store.upsert([...newOrbFactionEntities.values()]));
+    }
+
+    await Promise.all(promises);
+  }
 }

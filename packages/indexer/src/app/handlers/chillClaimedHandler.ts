@@ -50,7 +50,7 @@ export async function chillClaimedHandler({
 
       context.log.info(
         JSON.stringify({
-          message: "'ChillClaimed' entities found.",
+          message: "Saving new & updated 'ChillClaimed' entities.",
           chillClaimedEntitiesCount: chillClaimedEntities.length,
         }),
       );
