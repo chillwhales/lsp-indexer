@@ -463,7 +463,7 @@ type LSP6ControllerAllowedERC725YDataKeys @entity {
   address: String! @index
   universalProfile: UniversalProfile! @index
   controllerAddress: String! @index
-  controllerAllowedCalls: [LSP6AllowedERC725YDataKey!]!
+  controllerAllowedErc725YDataKeys: [LSP6AllowedERC725YDataKey!]!
     @derivedFrom(field: "lsp6ControllerAllowedErc725YDataKeys")
   rawValue: String!
 }

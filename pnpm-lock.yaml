@@ -59,10 +59,10 @@ importers:
   packages/indexer:
     dependencies:
       '@chillwhales/abi':
-        specifier: workspace:^
+        specifier: workspace:1.0.1
         version: link:../abi
       '@chillwhales/typeorm':
-        specifier: workspace:^
+        specifier: workspace:1.0.3
         version: link:../typeorm
       '@erc725/erc725.js':
         specifier: ^0.28.1
