@@ -31,7 +31,7 @@ export async function lsp4MetadataHandler({
 }) {
   const digitalAssetsToUpdate = new Map(
     populatedLsp4MetadataEntities
-      .filter(({ digitalAsset, nft }) => digitalAsset && !nft)
+      .filter(({ id, address, digitalAsset }) => id === address && digitalAsset)
       .map(({ id, digitalAsset }) => [
         digitalAsset.id,
         new DigitalAsset({

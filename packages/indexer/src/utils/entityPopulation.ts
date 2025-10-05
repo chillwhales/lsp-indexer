@@ -152,11 +152,15 @@ export async function populateEntities({
   });
   /// LSP4Metadata
   const populatedLsp4Metadatas_DataChanged = Utils.DataChanged.LSP4Metadata.populate({
-    lsp4MetadataEntities: [...lsp4MetadataEntities.values()].filter(({ nft }) => nft === null),
+    lsp4MetadataEntities: [...lsp4MetadataEntities.values()].filter(
+      ({ id, address }) => id === address,
+    ),
     validDigitalAssets,
   });
   const populatedLsp4Metadatas_TokenIdDataChanged = Utils.TokenIdDataChanged.LSP4Metadata.populate({
-    lsp4MetadataEntities: [...lsp4MetadataEntities.values()].filter(({ nft }) => nft !== null),
+    lsp4MetadataEntities: [...lsp4MetadataEntities.values()].filter(
+      ({ id, address, tokenId }) => tokenId && id !== Utils.generateTokenId({ address, tokenId }),
+    ),
     validDigitalAssets,
   });
   const populatedLsp4MetadataEntities = [
