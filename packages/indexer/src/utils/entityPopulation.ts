@@ -159,7 +159,7 @@ export async function populateEntities({
   });
   const populatedLsp4Metadatas_TokenIdDataChanged = Utils.TokenIdDataChanged.LSP4Metadata.populate({
     lsp4MetadataEntities: [...lsp4MetadataEntities.values()].filter(
-      ({ id, address, tokenId }) => tokenId && id !== Utils.generateTokenId({ address, tokenId }),
+      ({ id, address, tokenId }) => tokenId && id === Utils.generateTokenId({ address, tokenId }),
     ),
     validDigitalAssets,
   });
