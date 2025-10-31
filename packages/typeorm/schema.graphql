@@ -620,6 +620,7 @@ type LSP4Metadata @entity {
   description: LSP4MetadataDescription @derivedFrom(field: "lsp4Metadata")
   score: LSP4MetadataScore @derivedFrom(field: "lsp4Metadata")
   rank: LSP4MetadataRank @derivedFrom(field: "lsp4Metadata")
+  category: LSP4MetadataCategory @derivedFrom(field: "lsp4Metadata")
   links: [LSP4MetadataLink!]! @derivedFrom(field: "lsp4Metadata")
   icon: [LSP4MetadataIcon!]! @derivedFrom(field: "lsp4Metadata")
   images: [LSP4MetadataImage!]! @derivedFrom(field: "lsp4Metadata")
@@ -657,6 +658,12 @@ type LSP4MetadataRank @entity {
   id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index @unique
   value: Int @index
+}
+
+type LSP4MetadataCategory @entity {
+  id: ID! @unique
+  lsp4Metadata: LSP4Metadata! @index @unique
+  value: String @index
 }
 
 type LSP4MetadataLink @entity {

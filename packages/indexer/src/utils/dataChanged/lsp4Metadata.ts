@@ -6,6 +6,7 @@ import {
   LSP4Metadata,
   LSP4MetadataAsset,
   LSP4MetadataAttribute,
+  LSP4MetadataCategory,
   LSP4MetadataDescription,
   LSP4MetadataIcon,
   LSP4MetadataImage,
@@ -60,7 +61,9 @@ export async function extractSubEntities(lsp4Metadata: LSP4Metadata) {
       fetchErrorStatus: null,
     };
 
-  const data = await Utils.getDataFromURL<LSP4DigitalAssetMetadataJSON>(lsp4Metadata.url);
+  const data = await Utils.getDataFromURL<
+    LSP4DigitalAssetMetadataJSON & { LSP4Metadata: { category?: string } }
+  >(lsp4Metadata.url);
 
   if (typeof data !== 'object')
     return {
@@ -76,7 +79,8 @@ export async function extractSubEntities(lsp4Metadata: LSP4Metadata) {
       fetchErrorStatus: null,
     };
 
-  const { name, description, links, images, icon, assets, attributes } = data.LSP4Metadata;
+  const { name, description, category, links, images, icon, assets, attributes } =
+    data.LSP4Metadata;
 
   const lsp4MetadataName = new LSP4MetadataName({
     id: uuidv4(),
@@ -88,6 +92,12 @@ export async function extractSubEntities(lsp4Metadata: LSP4Metadata) {
     id: uuidv4(),
     lsp4Metadata,
     value: description,
+  });
+
+  const lsp4MetadataCategory = new LSP4MetadataCategory({
+    id: uuidv4(),
+    lsp4Metadata,
+    value: category,
   });
 
   const lsp4MetadataLinks =
@@ -205,6 +215,7 @@ export async function extractSubEntities(lsp4Metadata: LSP4Metadata) {
   return {
     lsp4MetadataName,
     lsp4MetadataDescription,
+    lsp4MetadataCategory,
     lsp4MetadataLinks,
     lsp4MetadataImages,
     lsp4MetadataIcons,
@@ -232,6 +243,7 @@ export async function clearSubEntities({
     existingLsp4MetadataImages,
     existingLsp4MetadataLinks,
     existingLsp4MetadataNames,
+    existingLsp4MetadataCategory,
   ] = await Promise.all([
     context.store.findBy(LSP4MetadataAsset, entitiesFilter),
     context.store.findBy(LSP4MetadataAttribute, entitiesFilter),
@@ -240,6 +252,7 @@ export async function clearSubEntities({
     context.store.findBy(LSP4MetadataImage, entitiesFilter),
     context.store.findBy(LSP4MetadataLink, entitiesFilter),
     context.store.findBy(LSP4MetadataName, entitiesFilter),
+    context.store.findBy(LSP4MetadataCategory, entitiesFilter),
   ]);
 
   await Promise.all([
@@ -250,5 +263,6 @@ export async function clearSubEntities({
     context.store.remove(existingLsp4MetadataImages),
     context.store.remove(existingLsp4MetadataLinks),
     context.store.remove(existingLsp4MetadataNames),
+    context.store.remove(existingLsp4MetadataCategory),
   ]);
 }
