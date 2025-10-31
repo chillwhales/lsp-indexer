@@ -3,11 +3,12 @@ import * as Utils from '@/utils';
 import {
   ERC725X,
   ERC725Y,
-  LSP0ERC725Account,
-  LSP23LinkedContractsFactory,
-  LSP26FollowerSystem,
-  LSP7DigitalAsset,
-  LSP8IdentifiableDigitalAsset,
+  LSP0ERC725Account as LSP0,
+  LSP14Ownable2Step as LSP14,
+  LSP23LinkedContractsFactory as LSP23,
+  LSP26FollowerSystem as LSP26,
+  LSP7DigitalAsset as LSP7,
+  LSP8IdentifiableDigitalAsset as LSP8,
 } from '@chillwhales/abi';
 import {
   DataChanged,
@@ -41,6 +42,7 @@ import {
   LSP8TokenIdFormat,
   LSP8TokenMetadataBaseURI,
   NFT,
+  OwnershipTransferred,
   PrimaryContractDeployment,
   PrimaryContractDeploymentInit,
   SecondaryContractDeployment,
@@ -72,6 +74,7 @@ export function scanLogs(context: Context) {
   const unfollowEntities: Unfollow[] = [];
   const deployedContractsEntities: DeployedContracts[] = [];
   const deployedERC1167ProxiesEntities: DeployedERC1167Proxies[] = [];
+  const ownershipTransferredEntities: OwnershipTransferred[] = [];
 
   const lsp3ProfileEntities = new Map<string, LSP3Profile>();
 
@@ -331,13 +334,13 @@ export function scanLogs(context: Context) {
           break;
         }
 
-        case LSP0ERC725Account.events.UniversalReceiver.topic: {
+        case LSP0.events.UniversalReceiver.topic: {
           universalProfiles.add(log.address);
           universalReceiverEntities.push(Utils.UniversalReceiver.extract(extractParams));
           break;
         }
 
-        case LSP7DigitalAsset.events.Transfer.topic: {
+        case LSP7.events.Transfer.topic: {
           const transferEvent = Utils.Transfer.extract(extractParams);
           transferEntities.push(transferEvent);
 
@@ -348,7 +351,7 @@ export function scanLogs(context: Context) {
           break;
         }
 
-        case LSP8IdentifiableDigitalAsset.events.Transfer.topic: {
+        case LSP8.events.Transfer.topic: {
           const transferEvent = Utils.Transfer.extract(extractParams);
           transferEntities.push(transferEvent);
 
@@ -362,14 +365,14 @@ export function scanLogs(context: Context) {
           break;
         }
 
-        case LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.topic: {
+        case LSP8.events.TokenIdDataChanged.topic: {
           digitalAssets.add(log.address);
           tokenIdDataChangedEntities.push(Utils.TokenIdDataChanged.extract(extractParams));
 
           const nft = Utils.TokenIdDataChanged.NFT.extract(extractParams);
           if (!nfts.has(nft.id)) nfts.set(nft.id, nft);
 
-          const { dataKey } = LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.decode(log);
+          const { dataKey } = LSP8.events.TokenIdDataChanged.decode(log);
           switch (dataKey) {
             case LSP4DataKeys.LSP4Metadata: {
               const lsp4Metadata = Utils.TokenIdDataChanged.LSP4Metadata.extract(extractParams);
@@ -381,7 +384,7 @@ export function scanLogs(context: Context) {
           break;
         }
 
-        case LSP26FollowerSystem.events.Follow.topic: {
+        case LSP26.events.Follow.topic: {
           const followEvent = Utils.Follow.extract(extractParams);
           followEntities.push(followEvent);
 
@@ -390,7 +393,7 @@ export function scanLogs(context: Context) {
           break;
         }
 
-        case LSP26FollowerSystem.events.Unfollow.topic: {
+        case LSP26.events.Unfollow.topic: {
           const unfollowEvent = Utils.Unfollow.extract(extractParams);
           unfollowEntities.push(unfollowEvent);
 
@@ -399,7 +402,7 @@ export function scanLogs(context: Context) {
           break;
         }
 
-        case LSP23LinkedContractsFactory.events.DeployedContracts.topic: {
+        case LSP23.events.DeployedContracts.topic: {
           const {
             header: { timestamp, height },
           } = block;
@@ -411,7 +414,7 @@ export function scanLogs(context: Context) {
             secondaryContractDeployment,
             postDeploymentModule,
             postDeploymentModuleCalldata,
-          } = LSP23LinkedContractsFactory.events.DeployedContracts.decode(log);
+          } = LSP23.events.DeployedContracts.decode(log);
 
           deployedContractsEntities.push(
             new DeployedContracts({
@@ -431,9 +434,10 @@ export function scanLogs(context: Context) {
               postDeploymentModuleCalldata,
             }),
           );
+          break;
         }
 
-        case LSP23LinkedContractsFactory.events.DeployedERC1167Proxies.topic: {
+        case LSP23.events.DeployedERC1167Proxies.topic: {
           const {
             header: { timestamp, height },
           } = block;
@@ -445,7 +449,7 @@ export function scanLogs(context: Context) {
             secondaryContractDeploymentInit,
             postDeploymentModule,
             postDeploymentModuleCalldata,
-          } = LSP23LinkedContractsFactory.events.DeployedERC1167Proxies.decode(log);
+          } = LSP23.events.DeployedERC1167Proxies.decode(log);
 
           deployedERC1167ProxiesEntities.push(
             new DeployedERC1167Proxies({
@@ -467,6 +471,14 @@ export function scanLogs(context: Context) {
               postDeploymentModuleCalldata,
             }),
           );
+          break;
+        }
+
+        case LSP14.events.OwnershipTransferred.topic: {
+          universalProfiles.add(log.address);
+          digitalAssets.add(log.address);
+          ownershipTransferredEntities.push(Utils.OwnershipTransferred.extract(extractParams));
+          break;
         }
       }
     }
@@ -485,6 +497,7 @@ export function scanLogs(context: Context) {
       unfollowEntities,
       deployedContractsEntities,
       deployedERC1167ProxiesEntities,
+      ownershipTransferredEntities,
     },
     dataKeys: {
       lsp3ProfileEntities,

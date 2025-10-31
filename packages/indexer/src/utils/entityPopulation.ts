@@ -28,6 +28,7 @@ import {
   LSP8TokenIdFormat,
   LSP8TokenMetadataBaseURI,
   NFT,
+  OwnershipTransferred,
   TokenIdDataChanged,
   Transfer,
   Unfollow,
@@ -49,6 +50,7 @@ export async function populateEntities({
   tokenIdDataChangedEntities,
   followEntities,
   unfollowEntities,
+  ownershipTransferredEntities,
   lsp3ProfileEntities,
   lsp4MetadataEntities,
   lsp4TokenNameEntities,
@@ -83,6 +85,7 @@ export async function populateEntities({
   tokenIdDataChangedEntities: TokenIdDataChanged[];
   followEntities: Follow[];
   unfollowEntities: Unfollow[];
+  ownershipTransferredEntities: OwnershipTransferred[];
   lsp3ProfileEntities: Map<string, LSP3Profile>;
   lsp4MetadataEntities: Map<string, LSP4Metadata>;
   lsp4TokenNameEntities: Map<string, LSP4TokenName>;
@@ -142,6 +145,12 @@ export async function populateEntities({
   const populatedUnfollowEntities = Utils.Unfollow.populate({
     unfollowEntities,
     validUniversalProfiles,
+  });
+  /// event OwnershipTransferred(address,address);
+  const populatedOwnershipTransferredEntities = Utils.OwnershipTransferred.populate({
+    ownershipTransferredEntities,
+    validUniversalProfiles,
+    validDigitalAssets,
   });
 
   // DataKeys
@@ -368,6 +377,7 @@ export async function populateEntities({
       populatedTokenIdDataChangedEntities,
       populatedFollowEntities,
       populatedUnfollowEntities,
+      populatedOwnershipTransferredEntities,
     },
     dataKeys: {
       populatedLsp3ProfileEntities,

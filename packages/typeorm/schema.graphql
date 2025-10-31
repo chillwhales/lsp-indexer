@@ -150,6 +150,19 @@ type DeployedERC1167Proxies @entity {
   postDeploymentModuleCalldata: String!
 }
 
+type OwnershipTransferred @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  blockNumber: Int! @index
+  logIndex: Int! @index
+  transactionIndex: Int! @index
+  address: String! @index
+  previousOwner: String! @index
+  newOwner: String! @index
+  universalProfile: UniversalProfile @index
+  digitalAsset: DigitalAsset @index
+}
+
 type PrimaryContractDeployment {
   salt: String!
   fundingAmount: BigInt!
@@ -181,6 +194,7 @@ type SecondaryContractDeploymentInit {
 type UniversalProfile @entity {
   id: ID! @unique
   address: String! @index
+  owner: UniversalProfileOwner @derivedFrom(field: "universalProfile")
   ownedAssets: [OwnedAsset!]! @derivedFrom(field: "universalProfile")
   ownedTokens: [OwnedToken!]! @derivedFrom(field: "universalProfile")
 
@@ -201,8 +215,9 @@ type UniversalProfile @entity {
 
   # Events
   executed: [Executed!]! @derivedFrom(field: "universalProfile")
-  universalReceiver: [UniversalReceiver!]! @derivedFrom(field: "universalProfile")
   dataChanged: [DataChanged!]! @derivedFrom(field: "universalProfile")
+  ownershipTransferred: [OwnershipTransferred!]! @derivedFrom(field: "universalProfile")
+  universalReceiver: [UniversalReceiver!]! @derivedFrom(field: "universalProfile")
   followed: [Follow!]! @derivedFrom(field: "followerUniversalProfile")
   followedBy: [Follow!]! @derivedFrom(field: "followedUniversalProfile")
   unfollowed: [Unfollow!]! @derivedFrom(field: "followerUniversalProfile")
@@ -212,6 +227,7 @@ type UniversalProfile @entity {
 type DigitalAsset @entity {
   id: ID! @unique
   address: String! @index
+  owner: DigitalAssetOwner @derivedFrom(field: "digitalAsset")
   totalSupply: TotalSupply @derivedFrom(field: "digitalAsset")
   ownedAssets: [OwnedAsset!]! @derivedFrom(field: "digitalAsset")
   ownedTokens: [OwnedToken!]! @derivedFrom(field: "digitalAsset")
@@ -238,6 +254,7 @@ type DigitalAsset @entity {
   dataChanged: [DataChanged!]! @derivedFrom(field: "digitalAsset")
   tokenIdDataChanged: [TokenIdDataChanged!]! @derivedFrom(field: "digitalAsset")
   transfer: [Transfer!]! @derivedFrom(field: "digitalAsset")
+  ownershipTransferred: [OwnershipTransferred!]! @derivedFrom(field: "digitalAsset")
 }
 
 type TotalSupply @entity {
@@ -253,6 +270,20 @@ type Decimals @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
   value: Int! @index
+}
+
+type UniversalProfileOwner @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index @unique
+}
+
+type DigitalAssetOwner @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  digitalAsset: DigitalAsset! @index @unique
 }
 
 type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {

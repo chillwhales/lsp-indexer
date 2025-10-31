@@ -18,6 +18,7 @@ processor.run(new TypeormDatabase(), async (context) => {
       unfollowEntities,
       deployedContractsEntities,
       deployedERC1167ProxiesEntities,
+      ownershipTransferredEntities,
     },
     dataKeys: {
       lsp3ProfileEntities,
@@ -69,6 +70,7 @@ processor.run(new TypeormDatabase(), async (context) => {
       populatedTokenIdDataChangedEntities,
       populatedFollowEntities,
       populatedUnfollowEntities,
+      populatedOwnershipTransferredEntities,
     },
     dataKeys: {
       populatedLsp3ProfileEntities,
@@ -106,6 +108,7 @@ processor.run(new TypeormDatabase(), async (context) => {
     tokenIdDataChangedEntities,
     followEntities,
     unfollowEntities,
+    ownershipTransferredEntities,
     lsp3ProfileEntities,
     lsp4MetadataEntities,
     lsp4TokenNameEntities,
@@ -196,7 +199,8 @@ processor.run(new TypeormDatabase(), async (context) => {
     populatedTransferEntities.length ||
     populatedTokenIdDataChangedEntities.length ||
     populatedFollowEntities.length ||
-    populatedUnfollowEntities.length
+    populatedUnfollowEntities.length ||
+    populatedOwnershipTransferredEntities.length
   ) {
     context.log.info(
       JSON.stringify({
@@ -221,6 +225,9 @@ processor.run(new TypeormDatabase(), async (context) => {
         }),
         ...(populatedUnfollowEntities.length && {
           UnfollowEntitiesCount: populatedUnfollowEntities.length,
+        }),
+        ...(populatedOwnershipTransferredEntities.length && {
+          OwnershipTransferredEntitiesCount: populatedOwnershipTransferredEntities.length,
         }),
       }),
     );
@@ -344,6 +351,9 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.insert(populatedFollowEntities),
     /// event Unfollow(address,address);
     context.store.insert(populatedUnfollowEntities),
+    /// event OwnershipTransferred(address,address);
+    context.store.insert(populatedOwnershipTransferredEntities),
+
     /// event DeployedContracts(address,address,[bytes32,uint256,bytes],[uint256,bytes,bool,bytes],address,bytes);
     context.store.insert(deployedContractsEntities),
     /// event DeployedERC1167Proxies(address,address,[bytes32,uint256,address,bytes],[uint256,address,bytes,bool,bytes],address,bytes);
@@ -441,4 +451,5 @@ processor.run(new TypeormDatabase(), async (context) => {
   });
   await Handlers.orbsClaimedHandler({ context, populatedTransferEntities });
   await Handlers.chillClaimedHandler({ context, populatedTransferEntities });
+  await Handlers.ownershipTransferredHandler({ context, populatedOwnershipTransferredEntities });
 });

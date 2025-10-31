@@ -262,6 +262,7 @@ export * as LSP4MetadataBaseURI from './lsp4MetadataBaseUri';
 export * as Multicall3 from './multicall3';
 export * as NFT from './nft';
 export * as OrbsClaimed from './orbsClaimed';
+export * as OwnershipTransferred from './ownershipTransferred';
 export * as TokenIdDataChanged from './tokenIdDataChanged';
 export * as Transfer from './transfer';
 export * as Unfollow from './unfollow';

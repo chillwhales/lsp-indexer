@@ -10,11 +10,12 @@ import { Processor } from '@/types';
 import {
   ERC725X,
   ERC725Y,
-  LSP0ERC725Account,
-  LSP23LinkedContractsFactory,
-  LSP26FollowerSystem,
-  LSP7DigitalAsset,
-  LSP8IdentifiableDigitalAsset,
+  LSP0ERC725Account as LSP0,
+  LSP14Ownable2Step as LSP14,
+  LSP23LinkedContractsFactory as LSP23,
+  LSP26FollowerSystem as LSP26,
+  LSP7DigitalAsset as LSP7,
+  LSP8IdentifiableDigitalAsset as LSP8,
 } from '@chillwhales/abi';
 import { EvmBatchProcessor } from '@subsquid/evm-processor';
 
@@ -42,23 +43,20 @@ export const processor: Processor = new EvmBatchProcessor()
     topic0: [
       ERC725X.events.Executed.topic,
       ERC725Y.events.DataChanged.topic,
-      LSP0ERC725Account.events.UniversalReceiver.topic,
-      LSP0ERC725Account.events.OwnershipTransferred.topic,
-      LSP7DigitalAsset.events.Transfer.topic,
-      LSP8IdentifiableDigitalAsset.events.Transfer.topic,
-      LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.topic,
+      LSP0.events.UniversalReceiver.topic,
+      LSP7.events.Transfer.topic,
+      LSP8.events.Transfer.topic,
+      LSP8.events.TokenIdDataChanged.topic,
+      LSP14.events.OwnershipTransferred.topic,
     ],
   })
   .addLog({
     address: [LSP26_ADDRESS],
     range: { from: 3179471 },
-    topic0: [LSP26FollowerSystem.events.Follow.topic, LSP26FollowerSystem.events.Unfollow.topic],
+    topic0: [LSP26.events.Follow.topic, LSP26.events.Unfollow.topic],
   })
   .addLog({
     address: [LSP23_ADDRESS],
     range: { from: 1143651 },
-    topic0: [
-      LSP23LinkedContractsFactory.events.DeployedContracts.topic,
-      LSP23LinkedContractsFactory.events.DeployedERC1167Proxies.topic,
-    ],
+    topic0: [LSP23.events.DeployedContracts.topic, LSP23.events.DeployedERC1167Proxies.topic],
   });

@@ -1,6 +1,6 @@
 {
   "name": "@chillwhales/abi",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "keywords": [],
   "author": "b00ste",
@@ -19,6 +19,7 @@
   "dependencies": {
     "@erc725/smart-contracts": "^8.0.1",
     "@lukso/lsp0-contracts": "0.15.5",
+    "@lukso/lsp14-contracts": "^0.15.5",
     "@lukso/lsp23-contracts": "^0.15.5",
     "@lukso/lsp26-contracts": "^0.1.7",
     "@lukso/lsp6-contracts": "0.15.5",
