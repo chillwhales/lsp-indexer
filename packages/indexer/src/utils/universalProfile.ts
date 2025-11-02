@@ -54,17 +54,19 @@ export async function verify({ context, universalProfiles }: VerifyParams): Prom
       const verifiedCount = batchIndex * batchSize;
       const unverifiedCount = unverifiedUniversalProfiles.length - verifiedCount;
       const currentBatchSize = Math.min(unverifiedCount, batchSize);
+      const currentBatch = unverifiedUniversalProfiles.slice(
+        verifiedCount,
+        verifiedCount + currentBatchSize,
+      );
 
       promises.push(
         Utils.Multicall3.aggregate3StaticLatest({
           context,
-          calls: unverifiedUniversalProfiles
-            .slice(verifiedCount, verifiedCount + currentBatchSize)
-            .map((target) => ({
-              target,
-              allowFailure: true,
-              callData,
-            })),
+          calls: currentBatch.map((target) => ({
+            target,
+            allowFailure: true,
+            callData,
+          })),
         }),
       );
 
@@ -79,9 +81,48 @@ export async function verify({ context, universalProfiles }: VerifyParams): Prom
         newUniversalProfilesCount: newUniversalProfiles.size,
       }),
     );
-    const result = (await Promise.all(promises)).flatMap((array) => array);
+
+    const result: Aggregate3StaticReturn = [];
+
+    try {
+      result.push(...(await Promise.all(promises)).flatMap((array) => array));
+    } catch {
+      for (let index = 0; index < promises.length; index++) {
+        const promise = promises[index];
+
+        try {
+          result.push(...(await promise));
+        } catch {
+          const verifiedCount = batchIndex * batchSize;
+          const unverifiedCount = unverifiedUniversalProfiles.length - verifiedCount;
+          const currentBatchSize = Math.min(unverifiedCount, batchSize);
+          const currentBatch = unverifiedUniversalProfiles.slice(
+            verifiedCount,
+            verifiedCount + currentBatchSize,
+          );
+
+          for (const target of currentBatch) {
+            try {
+              result.push(
+                ...(await Utils.Multicall3.aggregate3StaticLatest({
+                  context,
+                  calls: [
+                    {
+                      target,
+                      allowFailure: true,
+                      callData,
+                    },
+                  ],
+                })),
+              );
+            } catch {}
+          }
+        }
+      }
+    }
 
     unverifiedUniversalProfiles.forEach((address, index) =>
+      result[index] &&
       result[index].success &&
       isHex(result[index].returnData) &&
       result[index].returnData !== '0x' &&

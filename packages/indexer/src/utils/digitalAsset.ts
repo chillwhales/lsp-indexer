@@ -83,17 +83,19 @@ export async function verify({ context, digitalAssets }: VerifyParams): Promise<
       const verifiedCount = batchIndex * batchSize;
       const unverifiedCount = unverifiedDigitalAssets.length - verifiedCount;
       const currentBatchSize = Math.min(unverifiedCount, batchSize);
+      const currentBatch = unverifiedDigitalAssets.slice(
+        verifiedCount,
+        verifiedCount + currentBatchSize,
+      );
 
       promises.push(
         Utils.Multicall3.aggregate3StaticLatest({
           context,
-          calls: unverifiedDigitalAssets
-            .slice(verifiedCount, verifiedCount + currentBatchSize)
-            .map((target) => ({
-              target,
-              allowFailure: true,
-              callData,
-            })),
+          calls: currentBatch.map((target) => ({
+            target,
+            allowFailure: true,
+            callData,
+          })),
         }),
       );
 
@@ -108,7 +110,45 @@ export async function verify({ context, digitalAssets }: VerifyParams): Promise<
         newDigitalAssetsCount: newDigitalAssets.size,
       }),
     );
-    const result = (await Promise.all(promises)).flatMap((array) => array);
+
+    const result: Aggregate3StaticReturn = [];
+
+    try {
+      result.push(...(await Promise.all(promises)).flatMap((array) => array));
+    } catch {
+      for (let index = 0; index < promises.length; index++) {
+        const promise = promises[index];
+
+        try {
+          result.push(...(await promise));
+        } catch {
+          const verifiedCount = index * batchSize;
+          const unverifiedCount = unverifiedDigitalAssets.length - verifiedCount;
+          const currentBatchSize = Math.min(unverifiedCount, batchSize);
+          const currentBatch = unverifiedDigitalAssets.slice(
+            verifiedCount,
+            verifiedCount + currentBatchSize,
+          );
+
+          for (const target of currentBatch) {
+            try {
+              result.push(
+                ...(await Utils.Multicall3.aggregate3StaticLatest({
+                  context,
+                  calls: [
+                    {
+                      target,
+                      allowFailure: true,
+                      callData,
+                    },
+                  ],
+                })),
+              );
+            } catch {}
+          }
+        }
+      }
+    }
 
     unverifiedDigitalAssets.forEach((address, index) =>
       result[index].success &&
