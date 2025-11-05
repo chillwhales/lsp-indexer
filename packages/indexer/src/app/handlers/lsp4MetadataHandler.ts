@@ -6,6 +6,7 @@ import {
   LSP4Metadata,
   LSP4MetadataAsset,
   LSP4MetadataAttribute,
+  LSP4MetadataCategory,
   LSP4MetadataDescription,
   LSP4MetadataIcon,
   LSP4MetadataImage,
@@ -198,6 +199,7 @@ export async function lsp4MetadataHandler({
 
       const lsp4MetadataName: LSP4MetadataName[] = [];
       const lsp4MetadataDescription: LSP4MetadataDescription[] = [];
+      const lsp4MetadataCategory: LSP4MetadataCategory[] = [];
       const lsp4MetadataLinks: LSP4MetadataLink[] = [];
       const lsp4MetadataImages: LSP4MetadataImage[] = [];
       const lsp4MetadataIcons: LSP4MetadataIcon[] = [];
@@ -248,6 +250,7 @@ export async function lsp4MetadataHandler({
 
               lsp4MetadataName.push(result.lsp4MetadataName);
               lsp4MetadataDescription.push(result.lsp4MetadataDescription);
+              lsp4MetadataCategory.push(result.lsp4MetadataCategory);
               lsp4MetadataLinks.push(...result.lsp4MetadataLinks);
               lsp4MetadataImages.push(...result.lsp4MetadataImages);
               lsp4MetadataIcons.push(...result.lsp4MetadataIcons);
@@ -272,6 +275,7 @@ export async function lsp4MetadataHandler({
           message: "Saving fetched 'LSP4Metadata' related entities",
           lsp4MetadataNameCount: lsp4MetadataName.length,
           lsp4MetadataDescriptionCount: lsp4MetadataDescription.length,
+          lsp4MetadataCategoryCount: lsp4MetadataCategory.length,
           lsp4MetadataLinksCount: lsp4MetadataLinks.length,
           lsp4MetadataImagesCount: lsp4MetadataImages.length,
           lsp4MetadataIconsCount: lsp4MetadataIcons.length,
@@ -284,6 +288,7 @@ export async function lsp4MetadataHandler({
         context.store.upsert(updatedLsp4Metadatas),
         context.store.insert(lsp4MetadataName),
         context.store.insert(lsp4MetadataDescription),
+        context.store.insert(lsp4MetadataCategory),
         context.store.insert(lsp4MetadataLinks),
         context.store.insert(lsp4MetadataImages),
         context.store.insert(lsp4MetadataIcons),
