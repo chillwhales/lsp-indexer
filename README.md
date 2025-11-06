@@ -1,6 +1,6 @@
 # LSP Indexer
 
-The LSP Indexer is an open-source project designed to listen for important events on the LUKSO blockchain and extract valuable information from them. This indexer focuses on events like `DataChanged`, `Executed`, `UniversalReceiver`, `TokenIdDataChanged`, LSP7 & LSP8 `Transfer`, `Follow`, `Unfollow`, and decodes information such as `LSP3Profile`, `LSP4Metadata`, and more.
+The LSP Indexer is an open-source project designed to listen for important events on the LUKSO blockchain and extract valuable information from them. This indexer focuses on events like `DataChanged`, `Executed`, `UniversalReceiver`, `OwnershipTransferred`, `TokenIdDataChanged`, LSP7 & LSP8 `Transfer`, `Follow`, `Unfollow`, and decodes information such as `LSP3Profile`, `LSP4Metadata`, `LSP6Permissions` and more.
 
 ## Project Architecture
 
@@ -25,9 +25,10 @@ The indexer listens for the following events:
 - `Executed(uint256,address,uint256,bytes4)`
 - `DataChanged(bytes32,bytes)`
 - `UniversalReceiver(address,uint256,bytes32,bytes,bytes)`
+- `OwnershipTransferred(address,address)`
+- `TokenIdDataChanged(bytes32,bytes32,bytes)`
 - `Transfer(address,address,address,uint256,bool,bytes)` (LSP7 Transfer)
 - `Transfer(address,address,address,bytes32,bool,bytes)` (LSP8 Transfer)
-- `TokenIdDataChanged(bytes32,bytes32,bytes)`
 - `Follow(address,address)`
 - `Unfollow(address,address)`
 
