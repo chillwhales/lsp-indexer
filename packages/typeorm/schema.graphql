@@ -632,9 +632,9 @@ type LSP3ProfileImage @entity {
 type LSP3ProfileBackgroundImage @entity {
   id: ID! @unique
   lsp3Profile: LSP3Profile! @index
+  url: String
   width: Int @index
   height: Int @index
-  url: String
   verificationMethod: String
   verificationData: String
   verificationSource: String
@@ -707,9 +707,9 @@ type LSP4MetadataLink @entity {
 type LSP4MetadataIcon @entity {
   id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index
+  url: String
   width: Int @index
   height: Int @index
-  url: String
   verificationMethod: String
   verificationData: String
   verificationSource: String
@@ -718,12 +718,13 @@ type LSP4MetadataIcon @entity {
 type LSP4MetadataImage @entity {
   id: ID! @unique
   lsp4Metadata: LSP4Metadata! @index
+  url: String
   width: Int @index
   height: Int @index
-  url: String
   verificationMethod: String
   verificationData: String
   verificationSource: String
+  imageIndex: Int! @index
 }
 
 type LSP4MetadataAsset @entity {

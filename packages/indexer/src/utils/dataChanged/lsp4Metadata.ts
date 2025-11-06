@@ -117,7 +117,7 @@ export async function extractSubEntities(lsp4Metadata: LSP4Metadata) {
     images && Array.isArray(images)
       ? images
           .filter((images) => Array.isArray(images))
-          .flatMap((images) =>
+          .flatMap((images, index) =>
             images.filter(Utils.isFileImage).map(
               ({ url, width, height, verification }) =>
                 new LSP4MetadataImage({
@@ -131,6 +131,7 @@ export async function extractSubEntities(lsp4Metadata: LSP4Metadata) {
                     verificationData: verification.data,
                     verificationSource: verification.source,
                   }),
+                  imageIndex: index,
                 }),
             ),
           )
