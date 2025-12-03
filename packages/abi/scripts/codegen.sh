@@ -2,15 +2,16 @@
 
 squid-evm-typegen \
     src/abi \
-    custom/* \
-    node_modules/@erc725/smart-contracts/artifacts/* \
-    node_modules/@lukso/lsp0-contracts/artifacts/*   \
-    node_modules/@lukso/lsp6-contracts/artifacts/*   \
-    node_modules/@lukso/lsp7-contracts/artifacts/*   \
-    node_modules/@lukso/lsp8-contracts/artifacts/*   \
-    node_modules/@lukso/lsp14-contracts/artifacts/*   \
-    node_modules/@lukso/lsp23-contracts/artifacts/*  \
-    node_modules/@lukso/lsp26-contracts/artifacts/*
+    custom/*.json \
+    custom/extensions/*.json \
+    node_modules/@erc725/smart-contracts/artifacts/*.json \
+    node_modules/@lukso/lsp0-contracts/artifacts/*.json \
+    node_modules/@lukso/lsp6-contracts/artifacts/*.json \
+    node_modules/@lukso/lsp7-contracts/artifacts/*.json \
+    node_modules/@lukso/lsp8-contracts/artifacts/*.json \
+    node_modules/@lukso/lsp14-contracts/artifacts/*.json \
+    node_modules/@lukso/lsp23-contracts/artifacts/*.json \
+    node_modules/@lukso/lsp26-contracts/artifacts/*.json
 
 output="src/index.ts"
 echo "" > $output
