@@ -5,3 +5,4 @@ packages/typeorm/src/
 packages/typeorm/db/
 packages/typeorm/hasura_metadata.json
 .env
+pnpm-lock.yaml

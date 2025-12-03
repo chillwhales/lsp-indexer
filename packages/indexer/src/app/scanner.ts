@@ -3,12 +3,16 @@ import * as Utils from '@/utils';
 import {
   ERC725X,
   ERC725Y,
+  ListingManager,
   LSP0ERC725Account as LSP0,
   LSP14Ownable2Step as LSP14,
   LSP23LinkedContractsFactory as LSP23,
   LSP26FollowerSystem as LSP26,
   LSP7DigitalAsset as LSP7,
   LSP8IdentifiableDigitalAsset as LSP8,
+  PlatformProceedsManager,
+  PurchaseManager,
+  SellerProceedsManager,
 } from '@chillwhales/abi';
 import {
   DataChanged,
@@ -16,6 +20,11 @@ import {
   DeployedERC1167Proxies,
   Executed,
   Follow,
+  ListingClosed,
+  ListingCreated,
+  ListingPaused,
+  ListingPriceUpdated,
+  ListingUnpaused,
   LSP12IssuedAssetsItem,
   LSP12IssuedAssetsLength,
   LSP12IssuedAssetsMap,
@@ -43,11 +52,15 @@ import {
   LSP8TokenMetadataBaseURI,
   NFT,
   OwnershipTransferred,
+  PlatformProceedsWithdrawn,
   PrimaryContractDeployment,
   PrimaryContractDeploymentInit,
+  PurchaseCompleted,
   SecondaryContractDeployment,
   SecondaryContractDeploymentInit,
+  SellerProceedsWithdrawn,
   TokenIdDataChanged,
+  TokensWithdrawn,
   Transfer,
   Unfollow,
   UniversalReceiver,
@@ -75,6 +88,17 @@ export function scanLogs(context: Context) {
   const deployedContractsEntities: DeployedContracts[] = [];
   const deployedERC1167ProxiesEntities: DeployedERC1167Proxies[] = [];
   const ownershipTransferredEntities: OwnershipTransferred[] = [];
+
+  // Marketplace extension events
+  const listingCreatedEntities: ListingCreated[] = [];
+  const listingClosedEntities: ListingClosed[] = [];
+  const listingPausedEntities: ListingPaused[] = [];
+  const listingUnpausedEntities: ListingUnpaused[] = [];
+  const listingPriceUpdatedEntities: ListingPriceUpdated[] = [];
+  const tokensWithdrawnEntities: TokensWithdrawn[] = [];
+  const purchaseCompletedEntities: PurchaseCompleted[] = [];
+  const platformProceedsWithdrawnEntities: PlatformProceedsWithdrawn[] = [];
+  const sellerProceedsWithdrawnEntities: SellerProceedsWithdrawn[] = [];
 
   const lsp3ProfileEntities = new Map<string, LSP3Profile>();
 
@@ -480,6 +504,78 @@ export function scanLogs(context: Context) {
           ownershipTransferredEntities.push(Utils.OwnershipTransferred.extract(extractParams));
           break;
         }
+
+        // Marketplace extension events
+        case ListingManager.events.ListingCreated.topic: {
+          const listingCreatedEvent = Utils.Marketplace.extractListingCreated(extractParams);
+          listingCreatedEntities.push(listingCreatedEvent);
+          // Track seller as potential UP and token as potential DigitalAsset
+          universalProfiles.add(listingCreatedEvent.seller);
+          digitalAssets.add(listingCreatedEvent.token);
+          break;
+        }
+
+        case ListingManager.events.ListingClosed.topic: {
+          listingClosedEntities.push(Utils.Marketplace.extractListingClosed(extractParams));
+          break;
+        }
+
+        case ListingManager.events.ListingPaused.topic: {
+          listingPausedEntities.push(Utils.Marketplace.extractListingPaused(extractParams));
+          break;
+        }
+
+        case ListingManager.events.ListingUnpaused.topic: {
+          listingUnpausedEntities.push(Utils.Marketplace.extractListingUnpaused(extractParams));
+          break;
+        }
+
+        case ListingManager.events.ListingPriceUpdated.topic: {
+          listingPriceUpdatedEntities.push(
+            Utils.Marketplace.extractListingPriceUpdated(extractParams),
+          );
+          break;
+        }
+
+        case ListingManager.events.TokensWithdrawn.topic: {
+          const tokensWithdrawnEvent = Utils.Marketplace.extractTokensWithdrawn(extractParams);
+          tokensWithdrawnEntities.push(tokensWithdrawnEvent);
+          // Track recipient as potential UP
+          universalProfiles.add(tokensWithdrawnEvent.recipient);
+          break;
+        }
+
+        case PurchaseManager.events.PurchaseCompleted.topic: {
+          const purchaseCompletedEvent = Utils.Marketplace.extractPurchaseCompleted(extractParams);
+          purchaseCompletedEntities.push(purchaseCompletedEvent);
+          // Track buyer/seller as potential UPs and token/paymentToken as potential DigitalAssets
+          universalProfiles.add(purchaseCompletedEvent.buyer);
+          universalProfiles.add(purchaseCompletedEvent.seller);
+          digitalAssets.add(purchaseCompletedEvent.token);
+          digitalAssets.add(purchaseCompletedEvent.paymentToken);
+          break;
+        }
+
+        case PlatformProceedsManager.events.PlatformProceedsWithdrawn.topic: {
+          const platformProceedsEvent =
+            Utils.Marketplace.extractPlatformProceedsWithdrawn(extractParams);
+          platformProceedsWithdrawnEntities.push(platformProceedsEvent);
+          // Track recipient as potential UP and paymentToken as potential DigitalAsset
+          universalProfiles.add(platformProceedsEvent.recipient);
+          digitalAssets.add(platformProceedsEvent.paymentToken);
+          break;
+        }
+
+        case SellerProceedsManager.events.SellerProceedsWithdrawn.topic: {
+          const sellerProceedsEvent =
+            Utils.Marketplace.extractSellerProceedsWithdrawn(extractParams);
+          sellerProceedsWithdrawnEntities.push(sellerProceedsEvent);
+          // Track seller/recipient as potential UPs and paymentToken as potential DigitalAsset
+          universalProfiles.add(sellerProceedsEvent.seller);
+          universalProfiles.add(sellerProceedsEvent.recipient);
+          digitalAssets.add(sellerProceedsEvent.paymentToken);
+          break;
+        }
       }
     }
   }
@@ -498,6 +594,16 @@ export function scanLogs(context: Context) {
       deployedContractsEntities,
       deployedERC1167ProxiesEntities,
       ownershipTransferredEntities,
+      // Marketplace extension events
+      listingCreatedEntities,
+      listingClosedEntities,
+      listingPausedEntities,
+      listingUnpausedEntities,
+      listingPriceUpdatedEntities,
+      tokensWithdrawnEntities,
+      purchaseCompletedEntities,
+      platformProceedsWithdrawnEntities,
+      sellerProceedsWithdrawnEntities,
     },
     dataKeys: {
       lsp3ProfileEntities,

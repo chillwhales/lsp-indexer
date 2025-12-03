@@ -259,6 +259,7 @@ export { verifyEntities } from './entityVerification';
 export * as Executed from './executed';
 export * as Follow from './follow';
 export * as LSP4MetadataBaseURI from './lsp4MetadataBaseUri';
+export * as Marketplace from './marketplace';
 export * as Multicall3 from './multicall3';
 export * as NFT from './nft';
 export * as OrbsClaimed from './orbsClaimed';

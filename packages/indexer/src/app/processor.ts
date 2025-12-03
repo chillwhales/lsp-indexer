@@ -10,12 +10,16 @@ import { Processor } from '@/types';
 import {
   ERC725X,
   ERC725Y,
+  ListingManager,
   LSP0ERC725Account as LSP0,
   LSP14Ownable2Step as LSP14,
   LSP23LinkedContractsFactory as LSP23,
   LSP26FollowerSystem as LSP26,
   LSP7DigitalAsset as LSP7,
   LSP8IdentifiableDigitalAsset as LSP8,
+  PlatformProceedsManager,
+  PurchaseManager,
+  SellerProceedsManager,
 } from '@chillwhales/abi';
 import { EvmBatchProcessor } from '@subsquid/evm-processor';
 
@@ -59,4 +63,17 @@ export const processor: Processor = new EvmBatchProcessor()
     address: [LSP23_ADDRESS],
     range: { from: 1143651 },
     topic0: [LSP23.events.DeployedContracts.topic, LSP23.events.DeployedERC1167Proxies.topic],
+  })
+  .addLog({
+    topic0: [
+      ListingManager.events.ListingCreated.topic,
+      ListingManager.events.ListingClosed.topic,
+      ListingManager.events.ListingPaused.topic,
+      ListingManager.events.ListingUnpaused.topic,
+      ListingManager.events.ListingPriceUpdated.topic,
+      ListingManager.events.TokensWithdrawn.topic,
+      PurchaseManager.events.PurchaseCompleted.topic,
+      PlatformProceedsManager.events.PlatformProceedsWithdrawn.topic,
+      SellerProceedsManager.events.SellerProceedsWithdrawn.topic,
+    ],
   });

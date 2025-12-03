@@ -19,6 +19,16 @@ processor.run(new TypeormDatabase(), async (context) => {
       deployedContractsEntities,
       deployedERC1167ProxiesEntities,
       ownershipTransferredEntities,
+      // Marketplace extension events
+      listingCreatedEntities,
+      listingClosedEntities,
+      listingPausedEntities,
+      listingUnpausedEntities,
+      listingPriceUpdatedEntities,
+      tokensWithdrawnEntities,
+      purchaseCompletedEntities,
+      platformProceedsWithdrawnEntities,
+      sellerProceedsWithdrawnEntities,
     },
     dataKeys: {
       lsp3ProfileEntities,
@@ -452,4 +462,20 @@ processor.run(new TypeormDatabase(), async (context) => {
   await Handlers.orbsClaimedHandler({ context, populatedTransferEntities });
   await Handlers.chillClaimedHandler({ context, populatedTransferEntities });
   await Handlers.ownershipTransferredHandler({ context, populatedOwnershipTransferredEntities });
+
+  // Marketplace extension handler
+  await Handlers.marketplaceHandler({
+    context,
+    listingCreatedEntities,
+    listingClosedEntities,
+    listingPausedEntities,
+    listingUnpausedEntities,
+    listingPriceUpdatedEntities,
+    tokensWithdrawnEntities,
+    purchaseCompletedEntities,
+    platformProceedsWithdrawnEntities,
+    sellerProceedsWithdrawnEntities,
+    validUniversalProfiles,
+    validDigitalAssets,
+  });
 });
