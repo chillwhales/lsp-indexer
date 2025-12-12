@@ -43,7 +43,8 @@ export function generateListingEntityId({
 export function extractListingCreated({ block, log }: ExtractParams): ListingCreated {
   const { timestamp, height } = block.header;
   const { address, logIndex, transactionIndex } = log;
-  const { listingId, seller, token, price } = ListingManager.events.ListingCreated.decode(log);
+  const { listingId, seller, token, price, marketplaceProfile, amount } =
+    ListingManager.events.ListingCreated.decode(log);
   const listingIdStr = listingId.toString();
   const listingEntityId = generateListingEntityId({ address, listingId: listingIdStr });
 
@@ -54,9 +55,11 @@ export function extractListingCreated({ block, log }: ExtractParams): ListingCre
     logIndex,
     transactionIndex,
     address,
+    marketplaceProfile,
     listingId: listingIdStr,
     seller,
     token,
+    amount,
     price,
     listingEntity: new Listing({ id: listingEntityId }),
   });
@@ -205,7 +208,7 @@ export function extractPlatformProceedsWithdrawn({
 }: ExtractParams): PlatformProceedsWithdrawn {
   const { timestamp, height } = block.header;
   const { address, logIndex, transactionIndex } = log;
-  const { recipient, paymentToken, amount } =
+  const { marketplaceProfile, paymentToken, recipient, amount } =
     PlatformProceedsManager.events.PlatformProceedsWithdrawn.decode(log);
 
   return new PlatformProceedsWithdrawn({
@@ -215,6 +218,7 @@ export function extractPlatformProceedsWithdrawn({
     logIndex,
     transactionIndex,
     address,
+    marketplaceProfile,
     recipient,
     paymentToken,
     amount,
@@ -227,7 +231,7 @@ export function extractSellerProceedsWithdrawn({
 }: ExtractParams): SellerProceedsWithdrawn {
   const { timestamp, height } = block.header;
   const { address, logIndex, transactionIndex } = log;
-  const { seller, recipient, paymentToken, amount } =
+  const { marketplaceProfile, seller, paymentToken, recipient, amount } =
     SellerProceedsManager.events.SellerProceedsWithdrawn.decode(log);
 
   return new SellerProceedsWithdrawn({
@@ -237,6 +241,7 @@ export function extractSellerProceedsWithdrawn({
     logIndex,
     transactionIndex,
     address,
+    marketplaceProfile,
     seller,
     recipient,
     paymentToken,
@@ -384,6 +389,7 @@ export function createListingFromCreatedEvent({
     id: listingCreatedEntity.listingEntity.id,
     listingId: listingCreatedEntity.listingId,
     address: listingCreatedEntity.address,
+    marketplaceProfile: listingCreatedEntity.marketplaceProfile,
     seller: listingCreatedEntity.seller,
     sellerUniversalProfile: validUniversalProfiles.has(listingCreatedEntity.seller)
       ? new UniversalProfile({ id: listingCreatedEntity.seller })
@@ -392,6 +398,7 @@ export function createListingFromCreatedEvent({
     tokenDigitalAsset: validDigitalAssets.has(listingCreatedEntity.token)
       ? new DigitalAsset({ id: listingCreatedEntity.token })
       : null,
+    amount: listingCreatedEntity.amount,
     price: listingCreatedEntity.price,
     status: ListingStatus.ACTIVE,
     createdAt: listingCreatedEntity.timestamp,

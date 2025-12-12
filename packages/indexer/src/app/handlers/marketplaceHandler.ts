@@ -96,6 +96,8 @@ export async function marketplaceHandler({
     ...listingPausedEntities.map((e) => e.listingEntity.id),
     ...listingUnpausedEntities.map((e) => e.listingEntity.id),
     ...listingPriceUpdatedEntities.map((e) => e.listingEntity.id),
+    ...tokensWithdrawnEntities.map((e) => e.listingEntity.id),
+    ...purchaseCompletedEntities.map((e) => e.listingEntity.id),
   ]);
 
   // Fetch existing listings from database
@@ -187,6 +189,35 @@ export async function marketplaceHandler({
     );
 
     await context.store.upsert([...updatedListings.values()]);
+  }
+
+  // Create a combined map of all listings for marketplaceProfile lookup
+  const allListings = new Map([...existingListings, ...updatedListings]);
+
+  // Populate marketplaceProfile from Listing for events that don't emit it directly
+  for (const entity of listingClosedEntities) {
+    const listing = allListings.get(entity.listingEntity.id);
+    entity.marketplaceProfile = listing?.marketplaceProfile ?? entity.address;
+  }
+  for (const entity of listingPausedEntities) {
+    const listing = allListings.get(entity.listingEntity.id);
+    entity.marketplaceProfile = listing?.marketplaceProfile ?? entity.address;
+  }
+  for (const entity of listingUnpausedEntities) {
+    const listing = allListings.get(entity.listingEntity.id);
+    entity.marketplaceProfile = listing?.marketplaceProfile ?? entity.address;
+  }
+  for (const entity of listingPriceUpdatedEntities) {
+    const listing = allListings.get(entity.listingEntity.id);
+    entity.marketplaceProfile = listing?.marketplaceProfile ?? entity.address;
+  }
+  for (const entity of populatedTokensWithdrawnEntities) {
+    const listing = allListings.get(entity.listingEntity.id);
+    entity.marketplaceProfile = listing?.marketplaceProfile ?? entity.address;
+  }
+  for (const entity of populatedPurchaseCompletedEntities) {
+    const listing = allListings.get(entity.listingEntity.id);
+    entity.marketplaceProfile = listing?.marketplaceProfile ?? entity.address;
   }
 
   // Save populated event entities

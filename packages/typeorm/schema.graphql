@@ -825,10 +825,12 @@ type Listing @entity {
   id: ID! @unique
   listingId: String! @index
   address: String! @index
+  marketplaceProfile: String! @index
   seller: String! @index
   sellerUniversalProfile: UniversalProfile @index
   token: String! @index
   tokenDigitalAsset: DigitalAsset @index
+  amount: BigInt! @index
   price: BigInt! @index
   status: ListingStatus! @index
   createdAt: DateTime! @index
@@ -852,11 +854,13 @@ type ListingCreated @entity {
   logIndex: Int! @index
   transactionIndex: Int! @index
   address: String! @index
+  marketplaceProfile: String! @index
   listingId: String! @index
   seller: String! @index
   sellerUniversalProfile: UniversalProfile @index
   token: String! @index
   tokenDigitalAsset: DigitalAsset @index
+  amount: BigInt! @index
   price: BigInt! @index
   listingEntity: Listing! @unique
 }
@@ -868,6 +872,7 @@ type ListingClosed @entity {
   logIndex: Int! @index
   transactionIndex: Int! @index
   address: String! @index
+  marketplaceProfile: String! @index
   listingId: String! @index
   listingEntity: Listing! @unique
 }
@@ -879,6 +884,7 @@ type ListingPaused @entity {
   logIndex: Int! @index
   transactionIndex: Int! @index
   address: String! @index
+  marketplaceProfile: String! @index
   listingId: String! @index
   listingEntity: Listing! @index
 }
@@ -890,6 +896,7 @@ type ListingUnpaused @entity {
   logIndex: Int! @index
   transactionIndex: Int! @index
   address: String! @index
+  marketplaceProfile: String! @index
   listingId: String! @index
   listingEntity: Listing! @index
 }
@@ -901,6 +908,7 @@ type ListingPriceUpdated @entity {
   logIndex: Int! @index
   transactionIndex: Int! @index
   address: String! @index
+  marketplaceProfile: String! @index
   listingId: String! @index
   oldPriceUsd: BigInt! @index
   newPriceUsd: BigInt! @index
@@ -914,6 +922,7 @@ type TokensWithdrawn @entity {
   logIndex: Int! @index
   transactionIndex: Int! @index
   address: String! @index
+  marketplaceProfile: String! @index
   listingId: String! @index
   recipient: String! @index
   recipientUniversalProfile: UniversalProfile @index
@@ -928,6 +937,7 @@ type PurchaseCompleted @entity {
   logIndex: Int! @index
   transactionIndex: Int! @index
   address: String! @index
+  marketplaceProfile: String! @index
   listingId: String! @index
   buyer: String! @index
   buyerUniversalProfile: UniversalProfile @index
@@ -951,6 +961,7 @@ type PlatformProceedsWithdrawn @entity {
   logIndex: Int! @index
   transactionIndex: Int! @index
   address: String! @index
+  marketplaceProfile: String! @index
   recipient: String! @index
   recipientUniversalProfile: UniversalProfile @index
   paymentToken: String! @index
@@ -965,6 +976,7 @@ type SellerProceedsWithdrawn @entity {
   logIndex: Int! @index
   transactionIndex: Int! @index
   address: String! @index
+  marketplaceProfile: String! @index
   seller: String! @index
   sellerUniversalProfile: UniversalProfile @index
   recipient: String! @index
