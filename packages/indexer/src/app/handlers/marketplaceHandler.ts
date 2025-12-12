@@ -191,34 +191,69 @@ export async function marketplaceHandler({
     await context.store.upsert([...updatedListings.values()]);
   }
 
-  // Create a combined map of all listings for marketplaceProfile lookup
+  // Create a combined map of all listings for marketplaceProfile lookup and validation
   const allListings = new Map([...existingListings, ...updatedListings]);
 
-  // Populate marketplaceProfile from Listing for events that don't emit it directly
-  for (const entity of listingClosedEntities) {
-    const listing = allListings.get(entity.listingEntity.id);
-    entity.marketplaceProfile = listing?.marketplaceProfile ?? entity.address;
-  }
-  for (const entity of listingPausedEntities) {
-    const listing = allListings.get(entity.listingEntity.id);
-    entity.marketplaceProfile = listing?.marketplaceProfile ?? entity.address;
-  }
-  for (const entity of listingUnpausedEntities) {
-    const listing = allListings.get(entity.listingEntity.id);
-    entity.marketplaceProfile = listing?.marketplaceProfile ?? entity.address;
-  }
-  for (const entity of listingPriceUpdatedEntities) {
-    const listing = allListings.get(entity.listingEntity.id);
-    entity.marketplaceProfile = listing?.marketplaceProfile ?? entity.address;
-  }
-  for (const entity of populatedTokensWithdrawnEntities) {
-    const listing = allListings.get(entity.listingEntity.id);
-    entity.marketplaceProfile = listing?.marketplaceProfile ?? entity.address;
-  }
-  for (const entity of populatedPurchaseCompletedEntities) {
-    const listing = allListings.get(entity.listingEntity.id);
-    entity.marketplaceProfile = listing?.marketplaceProfile ?? entity.address;
-  }
+  // Filter out events whose Listing doesn't exist (from old ABI) and populate marketplaceProfile
+  const validListingClosedEntities = listingClosedEntities
+    .filter((entity) => allListings.has(entity.listingEntity.id))
+    .map(
+      (entity) =>
+        new ListingClosed({
+          ...entity,
+          marketplaceProfile: allListings.get(entity.listingEntity.id)!.marketplaceProfile,
+        }),
+    );
+
+  const validListingPausedEntities = listingPausedEntities
+    .filter((entity) => allListings.has(entity.listingEntity.id))
+    .map(
+      (entity) =>
+        new ListingPaused({
+          ...entity,
+          marketplaceProfile: allListings.get(entity.listingEntity.id)!.marketplaceProfile,
+        }),
+    );
+
+  const validListingUnpausedEntities = listingUnpausedEntities
+    .filter((entity) => allListings.has(entity.listingEntity.id))
+    .map(
+      (entity) =>
+        new ListingUnpaused({
+          ...entity,
+          marketplaceProfile: allListings.get(entity.listingEntity.id)!.marketplaceProfile,
+        }),
+    );
+
+  const validListingPriceUpdatedEntities = listingPriceUpdatedEntities
+    .filter((entity) => allListings.has(entity.listingEntity.id))
+    .map(
+      (entity) =>
+        new ListingPriceUpdated({
+          ...entity,
+          marketplaceProfile: allListings.get(entity.listingEntity.id)!.marketplaceProfile,
+        }),
+    );
+
+  const validTokensWithdrawnEntities = populatedTokensWithdrawnEntities
+    .filter((entity) => allListings.has(entity.listingEntity.id))
+    .map(
+      (entity) =>
+        new TokensWithdrawn({
+          ...entity,
+          marketplaceProfile: allListings.get(entity.listingEntity.id)!.marketplaceProfile,
+        }),
+    );
+
+  const validPurchaseCompletedEntities = populatedPurchaseCompletedEntities
+    .filter((entity) => allListings.has(entity.listingEntity.id))
+    .map(
+      (entity) =>
+        new PurchaseCompleted({
+          ...entity,
+          marketplaceProfile: allListings.get(entity.listingEntity.id)!.marketplaceProfile,
+        }),
+    );
 
   // Save populated event entities
   const eventSavePromises = [];
@@ -233,34 +268,34 @@ export async function marketplaceHandler({
     eventSavePromises.push(context.store.upsert(populatedListingCreatedEntities));
   }
 
-  if (listingClosedEntities.length) {
-    eventSavePromises.push(context.store.upsert(listingClosedEntities));
+  if (validListingClosedEntities.length) {
+    eventSavePromises.push(context.store.upsert(validListingClosedEntities));
   }
 
-  if (listingPausedEntities.length) {
-    eventSavePromises.push(context.store.insert(listingPausedEntities));
+  if (validListingPausedEntities.length) {
+    eventSavePromises.push(context.store.insert(validListingPausedEntities));
   }
 
-  if (listingUnpausedEntities.length) {
-    eventSavePromises.push(context.store.insert(listingUnpausedEntities));
+  if (validListingUnpausedEntities.length) {
+    eventSavePromises.push(context.store.insert(validListingUnpausedEntities));
   }
 
-  if (listingPriceUpdatedEntities.length) {
-    eventSavePromises.push(context.store.insert(listingPriceUpdatedEntities));
+  if (validListingPriceUpdatedEntities.length) {
+    eventSavePromises.push(context.store.insert(validListingPriceUpdatedEntities));
   }
 
-  if (populatedTokensWithdrawnEntities.length) {
-    eventSavePromises.push(context.store.insert(populatedTokensWithdrawnEntities));
+  if (validTokensWithdrawnEntities.length) {
+    eventSavePromises.push(context.store.insert(validTokensWithdrawnEntities));
   }
 
-  if (populatedPurchaseCompletedEntities.length) {
+  if (validPurchaseCompletedEntities.length) {
     context.log.info(
       JSON.stringify({
         message: "Saving 'PurchaseCompleted' events.",
-        PurchaseCompletedEntitiesCount: populatedPurchaseCompletedEntities.length,
+        PurchaseCompletedEntitiesCount: validPurchaseCompletedEntities.length,
       }),
     );
-    eventSavePromises.push(context.store.insert(populatedPurchaseCompletedEntities));
+    eventSavePromises.push(context.store.insert(validPurchaseCompletedEntities));
   }
 
   if (populatedPlatformProceedsWithdrawnEntities.length) {
