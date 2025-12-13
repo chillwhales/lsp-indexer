@@ -1,6 +1,7 @@
 CREATE OR REPLACE VIEW public.top_selling_content_by_seller AS
 SELECT
-    CONCAT(LOWER(seller), '-', LOWER(token)) AS id,
+    CONCAT(LOWER(marketplace_profile), '-', LOWER(seller), '-', LOWER(token)) AS id,
+    LOWER(marketplace_profile) AS marketplace_profile,
     LOWER(seller) AS seller,
     LOWER(token) AS token,
 
@@ -37,5 +38,5 @@ SELECT
     SUM(total_payment) FILTER (WHERE timestamp > NOW() - INTERVAL '30 days') AS revenue_last_30_days
 
 FROM public.purchase_completed
-GROUP BY LOWER(seller), LOWER(token)
+GROUP BY LOWER(marketplace_profile), LOWER(seller), LOWER(token)
 ORDER BY total_revenue DESC;
