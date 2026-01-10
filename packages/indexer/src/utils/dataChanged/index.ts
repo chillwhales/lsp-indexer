@@ -65,3 +65,8 @@ export * as LSP6ControllersLength from './lsp6ControllersLength';
 export * as LSP8ReferenceContract from './lsp8ReferenceContract';
 export * as LSP8TokenIdFormat from './lsp8TokenIdFormat';
 export * as LSP8TokenMetadataBaseURI from './lsp8TokenMetadataBaseUri';
+export * as LSP29EncryptedAsset from './lsp29EncryptedAsset';
+export * as LSP29EncryptedAssetsLength from './lsp29EncryptedAssetsLength';
+export * as LSP29EncryptedAssetsItem from './lsp29EncryptedAssetsItem';
+export * as LSP29EncryptedAssetsMap from './lsp29EncryptedAssetsMap';
+export * as LSP29EncryptedAssetRevisionCount from './lsp29EncryptedAssetRevisionCount';

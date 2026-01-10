@@ -3,6 +3,7 @@ export { decimalsHandler } from './decimalsHandler';
 export { followerSystemHandler } from './followerSystemHandler';
 export { lsp3ProfileHandler } from './lsp3ProfileHandler';
 export { lsp4MetadataHandler } from './lsp4MetadataHandler';
+export { lsp29EncryptedAssetHandler } from './lsp29EncryptedAssetHandler';
 export { marketplaceHandler } from './marketplaceHandler';
 export { orbsClaimedHandler } from './orbsClaimedHandler';
 export { orbsLevelHandler } from './orbsLevelHandler';

@@ -8,6 +8,11 @@ import {
   LSP12IssuedAssetsItem,
   LSP12IssuedAssetsLength,
   LSP12IssuedAssetsMap,
+  LSP29EncryptedAsset,
+  LSP29EncryptedAssetRevisionCount,
+  LSP29EncryptedAssetsItem,
+  LSP29EncryptedAssetsLength,
+  LSP29EncryptedAssetsMap,
   LSP3Profile,
   LSP4CreatorsItem,
   LSP4CreatorsLength,
@@ -73,6 +78,12 @@ export async function populateEntities({
   lsp12IssuedAssetsLengthEntities,
   lsp12IssuedAssetsItemEntities,
   lsp12IssuedAssetsMapEntities,
+  // LSP29 Encrypted Assets
+  lsp29EncryptedAssetEntities,
+  lsp29EncryptedAssetsLengthEntities,
+  lsp29EncryptedAssetsItemEntities,
+  lsp29EncryptedAssetsMapEntities,
+  lsp29EncryptedAssetRevisionCountEntities,
 }: {
   context: Context;
   validUniversalProfiles: Map<string, UniversalProfile>;
@@ -108,6 +119,12 @@ export async function populateEntities({
   lsp12IssuedAssetsLengthEntities: Map<string, LSP12IssuedAssetsLength>;
   lsp12IssuedAssetsItemEntities: Map<string, LSP12IssuedAssetsItem>;
   lsp12IssuedAssetsMapEntities: Map<string, LSP12IssuedAssetsMap>;
+  // LSP29 Encrypted Assets
+  lsp29EncryptedAssetEntities: Map<string, LSP29EncryptedAsset>;
+  lsp29EncryptedAssetsLengthEntities: Map<string, LSP29EncryptedAssetsLength>;
+  lsp29EncryptedAssetsItemEntities: Map<string, LSP29EncryptedAssetsItem>;
+  lsp29EncryptedAssetsMapEntities: Map<string, LSP29EncryptedAssetsMap>;
+  lsp29EncryptedAssetRevisionCountEntities: Map<string, LSP29EncryptedAssetRevisionCount>;
 }) {
   const populatedNfts = Utils.NFT.populate({ entities: [...newNfts.values()], validDigitalAssets });
 
@@ -287,6 +304,38 @@ export async function populateEntities({
     validUniversalProfiles,
   });
 
+  // LSP29EncryptedAsset (main entity for JSON fetching)
+  const populatedLsp29EncryptedAssetEntities = Utils.DataChanged.LSP29EncryptedAsset.populate({
+    lsp29EncryptedAssetEntities: [...lsp29EncryptedAssetEntities.values()],
+    validUniversalProfiles,
+  });
+  // LSP29EncryptedAssets[]
+  const populatedLsp29EncryptedAssetsLengthEntities =
+    Utils.DataChanged.LSP29EncryptedAssetsLength.populate({
+      lsp29EncryptedAssetsLengthEntities: [...lsp29EncryptedAssetsLengthEntities.values()],
+      validUniversalProfiles,
+    });
+  // LSP29EncryptedAssets[index]
+  const populatedLsp29EncryptedAssetsItemEntities =
+    Utils.DataChanged.LSP29EncryptedAssetsItem.populate({
+      lsp29EncryptedAssetsItemEntities: [...lsp29EncryptedAssetsItemEntities.values()],
+      validUniversalProfiles,
+    });
+  // LSP29EncryptedAssetsMap
+  const populatedLsp29EncryptedAssetsMapEntities =
+    Utils.DataChanged.LSP29EncryptedAssetsMap.populate({
+      lsp29EncryptedAssetsMapEntities: [...lsp29EncryptedAssetsMapEntities.values()],
+      validUniversalProfiles,
+    });
+  // LSP29EncryptedAssetRevisionCount
+  const populatedLsp29EncryptedAssetRevisionCountEntities =
+    Utils.DataChanged.LSP29EncryptedAssetRevisionCount.populate({
+      lsp29EncryptedAssetRevisionCountEntities: [
+        ...lsp29EncryptedAssetRevisionCountEntities.values(),
+      ],
+      validUniversalProfiles,
+    });
+
   /// Populate NFTs with `formattedTokenId`
   const populatedNftsWithoutFormattedTokenId = [...populatedNfts.values()].filter(
     (nft) => !nft.formattedTokenId,
@@ -402,6 +451,12 @@ export async function populateEntities({
       populatedLsp12IssuedAssetsLengthEntities,
       populatedLsp12IssuedAssetsItemEntities,
       populatedLsp12IssuedAssetsMapEntities,
+      // LSP29 Encrypted Assets
+      populatedLsp29EncryptedAssetEntities,
+      populatedLsp29EncryptedAssetsLengthEntities,
+      populatedLsp29EncryptedAssetsItemEntities,
+      populatedLsp29EncryptedAssetsMapEntities,
+      populatedLsp29EncryptedAssetRevisionCountEntities,
     },
   };
 }

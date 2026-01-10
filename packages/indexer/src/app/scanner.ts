@@ -1,3 +1,4 @@
+import { LSP29DataKeys } from '@/constants';
 import { Context, ExtractParams } from '@/types';
 import * as Utils from '@/utils';
 import {
@@ -28,6 +29,11 @@ import {
   LSP12IssuedAssetsItem,
   LSP12IssuedAssetsLength,
   LSP12IssuedAssetsMap,
+  LSP29EncryptedAsset,
+  LSP29EncryptedAssetRevisionCount,
+  LSP29EncryptedAssetsItem,
+  LSP29EncryptedAssetsLength,
+  LSP29EncryptedAssetsMap,
   LSP3Profile,
   LSP4CreatorsItem,
   LSP4CreatorsLength,
@@ -133,6 +139,16 @@ export function scanLogs(context: Context) {
   const lsp12IssuedAssetsLengthEntities = new Map<string, LSP12IssuedAssetsLength>();
   const lsp12IssuedAssetsItemEntities = new Map<string, LSP12IssuedAssetsItem>();
   const lsp12IssuedAssetsMapEntities = new Map<string, LSP12IssuedAssetsMap>();
+
+  // LSP29 Encrypted Assets
+  const lsp29EncryptedAssetEntities = new Map<string, LSP29EncryptedAsset>();
+  const lsp29EncryptedAssetsLengthEntities = new Map<string, LSP29EncryptedAssetsLength>();
+  const lsp29EncryptedAssetsItemEntities = new Map<string, LSP29EncryptedAssetsItem>();
+  const lsp29EncryptedAssetsMapEntities = new Map<string, LSP29EncryptedAssetsMap>();
+  const lsp29EncryptedAssetRevisionCountEntities = new Map<
+    string,
+    LSP29EncryptedAssetRevisionCount
+  >();
 
   for (const block of context.blocks) {
     const { logs } = block;
@@ -351,6 +367,52 @@ export function scanLogs(context: Context) {
                 const lsp12IssuedAssetsMap =
                   Utils.DataChanged.LSP12IssuedAssetsMap.extract(extractParams);
                 lsp12IssuedAssetsMapEntities.set(lsp12IssuedAssetsMap.id, lsp12IssuedAssetsMap);
+                break;
+              }
+
+              // LSP29 Encrypted Assets
+              if (dataKey === LSP29DataKeys['LSP29EncryptedAssets[]'].length) {
+                const lsp29EncryptedAssetsLength =
+                  Utils.DataChanged.LSP29EncryptedAssetsLength.extract(extractParams);
+                lsp29EncryptedAssetsLengthEntities.set(
+                  lsp29EncryptedAssetsLength.id,
+                  lsp29EncryptedAssetsLength,
+                );
+                break;
+              }
+
+              if (dataKey.startsWith(LSP29DataKeys['LSP29EncryptedAssets[]'].index)) {
+                const lsp29EncryptedAssetsItem =
+                  Utils.DataChanged.LSP29EncryptedAssetsItem.extract(extractParams);
+                lsp29EncryptedAssetsItemEntities.set(
+                  lsp29EncryptedAssetsItem.id,
+                  lsp29EncryptedAssetsItem,
+                );
+
+                // Also extract the encrypted asset entity for JSON fetching
+                const lsp29EncryptedAsset =
+                  Utils.DataChanged.LSP29EncryptedAsset.extract(extractParams);
+                lsp29EncryptedAssetEntities.set(lsp29EncryptedAsset.id, lsp29EncryptedAsset);
+                break;
+              }
+
+              if (dataKey.startsWith(LSP29DataKeys.LSP29EncryptedAssetsMap)) {
+                const lsp29EncryptedAssetsMap =
+                  Utils.DataChanged.LSP29EncryptedAssetsMap.extract(extractParams);
+                lsp29EncryptedAssetsMapEntities.set(
+                  lsp29EncryptedAssetsMap.id,
+                  lsp29EncryptedAssetsMap,
+                );
+                break;
+              }
+
+              if (dataKey.startsWith(LSP29DataKeys.LSP29EncryptedAssetRevisionCount)) {
+                const lsp29EncryptedAssetRevisionCount =
+                  Utils.DataChanged.LSP29EncryptedAssetRevisionCount.extract(extractParams);
+                lsp29EncryptedAssetRevisionCountEntities.set(
+                  lsp29EncryptedAssetRevisionCount.id,
+                  lsp29EncryptedAssetRevisionCount,
+                );
                 break;
               }
           }
@@ -631,6 +693,12 @@ export function scanLogs(context: Context) {
       lsp12IssuedAssetsLengthEntities,
       lsp12IssuedAssetsItemEntities,
       lsp12IssuedAssetsMapEntities,
+      // LSP29 Encrypted Assets
+      lsp29EncryptedAssetEntities,
+      lsp29EncryptedAssetsLengthEntities,
+      lsp29EncryptedAssetsItemEntities,
+      lsp29EncryptedAssetsMapEntities,
+      lsp29EncryptedAssetRevisionCountEntities,
     },
   };
 }

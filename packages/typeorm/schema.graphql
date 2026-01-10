@@ -213,6 +213,14 @@ type UniversalProfile @entity {
   lsp12IssuedAssetsItem: [LSP12IssuedAssetsItem!]! @derivedFrom(field: "universalProfile")
   lsp12IssuedAssetsMap: [LSP12IssuedAssetsMap!]! @derivedFrom(field: "universalProfile")
 
+  # LSP29 Encrypted Assets
+  lsp29EncryptedAssetsLength: LSP29EncryptedAssetsLength @derivedFrom(field: "universalProfile")
+  lsp29EncryptedAssetsItem: [LSP29EncryptedAssetsItem!]! @derivedFrom(field: "universalProfile")
+  lsp29EncryptedAssetsMap: [LSP29EncryptedAssetsMap!]! @derivedFrom(field: "universalProfile")
+  lsp29EncryptedAssetRevisionCount: [LSP29EncryptedAssetRevisionCount!]!
+    @derivedFrom(field: "universalProfile")
+  lsp29EncryptedAssets: [LSP29EncryptedAsset!]! @derivedFrom(field: "universalProfile")
+
   # Events
   executed: [Executed!]! @derivedFrom(field: "universalProfile")
   dataChanged: [DataChanged!]! @derivedFrom(field: "universalProfile")
@@ -768,6 +776,148 @@ type LSP4MetadataAttribute @entity {
   type: String @index
   score: Float @index
   rarity: Float @index
+}
+
+# LSP29 Encrypted Assets - Token-gated digital assets stored on Universal Profiles
+type LSP29EncryptedAsset @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index
+
+  # Content identification
+  contentId: String @index
+  revision: Int @index
+  arrayIndex: BigInt @index
+
+  # Parsed metadata fields
+  version: String
+  title: LSP29EncryptedAssetTitle @derivedFrom(field: "lsp29EncryptedAsset")
+  description: LSP29EncryptedAssetDescription @derivedFrom(field: "lsp29EncryptedAsset")
+  createdAt: DateTime @index
+
+  # File metadata
+  file: LSP29EncryptedAssetFile @derivedFrom(field: "lsp29EncryptedAsset")
+
+  # Encryption metadata
+  encryption: LSP29EncryptedAssetEncryption @derivedFrom(field: "lsp29EncryptedAsset")
+
+  # Chunks info
+  chunks: LSP29EncryptedAssetChunks @derivedFrom(field: "lsp29EncryptedAsset")
+
+  # URL & fetch tracking (same pattern as LSP4)
+  url: String
+  rawValue: String!
+  decodeError: String
+  isDataFetched: Boolean!
+  fetchErrorMessage: String
+  fetchErrorCode: String
+  fetchErrorStatus: Int
+  retryCount: Int
+}
+
+type LSP29EncryptedAssetTitle @entity {
+  id: ID! @unique
+  lsp29EncryptedAsset: LSP29EncryptedAsset! @index @unique
+  value: String @index
+}
+
+type LSP29EncryptedAssetDescription @entity {
+  id: ID! @unique
+  lsp29EncryptedAsset: LSP29EncryptedAsset! @index @unique
+  value: String
+}
+
+type LSP29EncryptedAssetFile @entity {
+  id: ID! @unique
+  lsp29EncryptedAsset: LSP29EncryptedAsset! @index @unique
+  type: String @index
+  name: String @index
+  size: BigInt
+  lastModified: BigInt
+  hash: String @index
+}
+
+type LSP29EncryptedAssetEncryption @entity {
+  id: ID! @unique
+  lsp29EncryptedAsset: LSP29EncryptedAsset! @index @unique
+  method: String @index
+  ciphertext: String
+  dataToEncryptHash: String
+  accessControlConditions: [LSP29AccessControlCondition!]! @derivedFrom(field: "encryption")
+  decryptionCode: String
+  decryptionParams: String
+}
+
+type LSP29AccessControlCondition @entity {
+  id: ID! @unique
+  encryption: LSP29EncryptedAssetEncryption! @index
+  conditionIndex: Int! @index
+
+  # Common fields for token-gating conditions
+  contractAddress: String @index
+  chain: String @index
+  method: String @index
+
+  # For balance-based conditions (LSP7/LSP8)
+  standardContractType: String @index
+  comparator: String @index
+  value: String @index
+
+  # For specific token ID conditions (LSP8)
+  tokenId: String @index
+
+  # For follower conditions (LSP26)
+  followerAddress: String @index
+
+  # Raw condition JSON for any condition type not parsed above
+  rawCondition: String!
+}
+
+type LSP29EncryptedAssetChunks @entity {
+  id: ID! @unique
+  lsp29EncryptedAsset: LSP29EncryptedAsset! @index @unique
+  cids: [String!]
+  iv: String
+  totalSize: BigInt
+}
+
+type LSP29EncryptedAssetsLength @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index @unique
+  value: BigInt @index
+  rawValue: String!
+}
+
+type LSP29EncryptedAssetsItem @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index
+  itemIndex: BigInt! @index
+  rawValue: String!
+}
+
+type LSP29EncryptedAssetsMap @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index
+  contentIdHash: String! @index
+  arrayIndex: BigInt @index
+  rawValue: String!
+}
+
+type LSP29EncryptedAssetRevisionCount @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  address: String! @index
+  universalProfile: UniversalProfile! @index
+  contentIdHash: String! @index
+  revisionCount: BigInt @index
+  rawValue: String!
 }
 
 type ChillClaimed @entity {

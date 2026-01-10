@@ -56,6 +56,12 @@ processor.run(new TypeormDatabase(), async (context) => {
       lsp12IssuedAssetsLengthEntities,
       lsp12IssuedAssetsItemEntities,
       lsp12IssuedAssetsMapEntities,
+      // LSP29 Encrypted Assets
+      lsp29EncryptedAssetEntities,
+      lsp29EncryptedAssetsLengthEntities,
+      lsp29EncryptedAssetsItemEntities,
+      lsp29EncryptedAssetsMapEntities,
+      lsp29EncryptedAssetRevisionCountEntities,
     },
   } = scanLogs(context);
 
@@ -105,6 +111,12 @@ processor.run(new TypeormDatabase(), async (context) => {
       populatedLsp12IssuedAssetsLengthEntities,
       populatedLsp12IssuedAssetsItemEntities,
       populatedLsp12IssuedAssetsMapEntities,
+      // LSP29 Encrypted Assets
+      populatedLsp29EncryptedAssetEntities,
+      populatedLsp29EncryptedAssetsLengthEntities,
+      populatedLsp29EncryptedAssetsItemEntities,
+      populatedLsp29EncryptedAssetsMapEntities,
+      populatedLsp29EncryptedAssetRevisionCountEntities,
     },
   } = await Utils.populateEntities({
     context,
@@ -141,6 +153,12 @@ processor.run(new TypeormDatabase(), async (context) => {
     lsp12IssuedAssetsLengthEntities,
     lsp12IssuedAssetsItemEntities,
     lsp12IssuedAssetsMapEntities,
+    // LSP29 Encrypted Assets
+    lsp29EncryptedAssetEntities,
+    lsp29EncryptedAssetsLengthEntities,
+    lsp29EncryptedAssetsItemEntities,
+    lsp29EncryptedAssetsMapEntities,
+    lsp29EncryptedAssetRevisionCountEntities,
   });
 
   if (newUniversalProfiles.size) {
@@ -185,6 +203,13 @@ processor.run(new TypeormDatabase(), async (context) => {
     await Utils.DataChanged.LSP4Metadata.clearSubEntities({
       context,
       lsp4MetadataEntites: populatedLsp4MetadataEntities,
+    });
+  }
+
+  if (populatedLsp29EncryptedAssetEntities.length > 0) {
+    await Utils.DataChanged.LSP29EncryptedAsset.clearSubEntities({
+      context,
+      lsp29EncryptedAssetEntities: populatedLsp29EncryptedAssetEntities,
     });
   }
 
@@ -265,7 +290,12 @@ processor.run(new TypeormDatabase(), async (context) => {
     populatedLsp8TokenMetadataBaseUriEntities.length ||
     populatedLsp12IssuedAssetsLengthEntities.length ||
     populatedLsp12IssuedAssetsItemEntities.length ||
-    populatedLsp12IssuedAssetsMapEntities.length
+    populatedLsp12IssuedAssetsMapEntities.length ||
+    populatedLsp29EncryptedAssetEntities.length ||
+    populatedLsp29EncryptedAssetsLengthEntities.length ||
+    populatedLsp29EncryptedAssetsItemEntities.length ||
+    populatedLsp29EncryptedAssetsMapEntities.length ||
+    populatedLsp29EncryptedAssetRevisionCountEntities.length
   ) {
     context.log.info(
       JSON.stringify({
@@ -339,6 +369,22 @@ processor.run(new TypeormDatabase(), async (context) => {
         }),
         ...(populatedLsp12IssuedAssetsMapEntities.length && {
           LSP12IssuedAssetsMapCount: populatedLsp12IssuedAssetsMapEntities.length,
+        }),
+        ...(populatedLsp29EncryptedAssetEntities.length && {
+          LSP29EncryptedAssetEntitiesCount: populatedLsp29EncryptedAssetEntities.length,
+        }),
+        ...(populatedLsp29EncryptedAssetsLengthEntities.length && {
+          LSP29EncryptedAssetsLengthCount: populatedLsp29EncryptedAssetsLengthEntities.length,
+        }),
+        ...(populatedLsp29EncryptedAssetsItemEntities.length && {
+          LSP29EncryptedAssetsItemCount: populatedLsp29EncryptedAssetsItemEntities.length,
+        }),
+        ...(populatedLsp29EncryptedAssetsMapEntities.length && {
+          LSP29EncryptedAssetsMapCount: populatedLsp29EncryptedAssetsMapEntities.length,
+        }),
+        ...(populatedLsp29EncryptedAssetRevisionCountEntities.length && {
+          LSP29EncryptedAssetRevisionCountCount:
+            populatedLsp29EncryptedAssetRevisionCountEntities.length,
         }),
       }),
     );
@@ -419,6 +465,17 @@ processor.run(new TypeormDatabase(), async (context) => {
     context.store.upsert(populatedLsp12IssuedAssetsItemEntities),
     // LSP12IssuedAssetsMap
     context.store.upsert(populatedLsp12IssuedAssetsMapEntities),
+
+    // LSP29EncryptedAsset (main entity for JSON fetching)
+    context.store.upsert(populatedLsp29EncryptedAssetEntities),
+    // LSP29EncryptedAssets[]
+    context.store.upsert(populatedLsp29EncryptedAssetsLengthEntities),
+    // LSP29EncryptedAssets[index]
+    context.store.upsert(populatedLsp29EncryptedAssetsItemEntities),
+    // LSP29EncryptedAssetsMap
+    context.store.upsert(populatedLsp29EncryptedAssetsMapEntities),
+    // LSP29EncryptedAssetRevisionCount
+    context.store.upsert(populatedLsp29EncryptedAssetRevisionCountEntities),
   ]);
 
   await Handlers.permissionsUpdateHandler({
@@ -452,6 +509,10 @@ processor.run(new TypeormDatabase(), async (context) => {
     populatedLsp4MetadataEntities,
     populatedLsp4MetadataBaseUriEntities,
     validDigitalAssets,
+  });
+  await Handlers.lsp29EncryptedAssetHandler({
+    context,
+    populatedLsp29EncryptedAssetEntities,
   });
 
   await Handlers.orbsLevelHandler({
