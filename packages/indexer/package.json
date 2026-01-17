@@ -1,6 +1,6 @@
 {
   "name": "@chillwhales/indexer",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "",
   "keywords": [],
   "author": "b00ste",
@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@chillwhales/abi": "workspace:1.0.4",
-    "@chillwhales/typeorm": "workspace:1.2.0",
+    "@chillwhales/typeorm": "workspace:1.2.1",
     "@erc725/erc725.js": "^0.28.1",
     "@lukso/lsp0-contracts": "0.15.5",
     "@lukso/lsp12-contracts": "^0.15.4",
