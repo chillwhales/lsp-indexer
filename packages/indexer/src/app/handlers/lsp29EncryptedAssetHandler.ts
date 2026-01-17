@@ -8,6 +8,7 @@ import {
   LSP29EncryptedAssetDescription,
   LSP29EncryptedAssetEncryption,
   LSP29EncryptedAssetFile,
+  LSP29EncryptedAssetImage,
   LSP29EncryptedAssetTitle,
 } from '@chillwhales/typeorm';
 import { In, IsNull, LessThan, Not } from 'typeorm';
@@ -93,6 +94,7 @@ export async function lsp29EncryptedAssetHandler({
       const encryptions: LSP29EncryptedAssetEncryption[] = [];
       const accessControlConditions: LSP29AccessControlCondition[] = [];
       const chunks: LSP29EncryptedAssetChunks[] = [];
+      const images: LSP29EncryptedAssetImage[] = [];
 
       const batchesCount =
         unfetchedEntities.length % FETCH_BATCH_SIZE
@@ -159,6 +161,9 @@ export async function lsp29EncryptedAssetHandler({
               if (result.lsp29EncryptedAssetChunks) {
                 chunks.push(result.lsp29EncryptedAssetChunks);
               }
+              if (result.lsp29EncryptedAssetImages) {
+                images.push(...result.lsp29EncryptedAssetImages);
+              }
             }
           });
         }
@@ -166,9 +171,7 @@ export async function lsp29EncryptedAssetHandler({
         // Wait for batch completion
         while (
           updatedEntities.length <
-          (index + 1 === batchesCount
-            ? unfetchedEntities.length
-            : (index + 1) * FETCH_BATCH_SIZE)
+          (index + 1 === batchesCount ? unfetchedEntities.length : (index + 1) * FETCH_BATCH_SIZE)
         ) {
           await Utils.timeout(1000);
         }
@@ -183,6 +186,7 @@ export async function lsp29EncryptedAssetHandler({
           encryptionsCount: encryptions.length,
           accessControlConditionsCount: accessControlConditions.length,
           chunksCount: chunks.length,
+          imagesCount: images.length,
         }),
       );
 
@@ -194,6 +198,7 @@ export async function lsp29EncryptedAssetHandler({
         context.store.insert(encryptions),
         context.store.insert(accessControlConditions),
         context.store.insert(chunks),
+        context.store.insert(images),
       ]);
     }
   }

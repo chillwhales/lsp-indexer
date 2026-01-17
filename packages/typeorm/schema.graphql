@@ -805,6 +805,9 @@ type LSP29EncryptedAsset @entity {
   # Chunks info
   chunks: LSP29EncryptedAssetChunks @derivedFrom(field: "lsp29EncryptedAsset")
 
+  # Social feed images
+  images: [LSP29EncryptedAssetImage!]! @derivedFrom(field: "lsp29EncryptedAsset")
+
   # URL & fetch tracking (same pattern as LSP4)
   url: String
   rawValue: String!
@@ -880,6 +883,18 @@ type LSP29EncryptedAssetChunks @entity {
   cids: [String!]
   iv: String
   totalSize: BigInt
+}
+
+type LSP29EncryptedAssetImage @entity {
+  id: ID! @unique
+  lsp29EncryptedAsset: LSP29EncryptedAsset! @index
+  url: String
+  width: Int @index
+  height: Int @index
+  verificationMethod: String
+  verificationData: String
+  verificationSource: String
+  imageIndex: Int! @index
 }
 
 type LSP29EncryptedAssetsLength @entity {

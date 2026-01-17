@@ -8,6 +8,7 @@ import {
   LSP29EncryptedAssetDescription,
   LSP29EncryptedAssetEncryption,
   LSP29EncryptedAssetFile,
+  LSP29EncryptedAssetImage,
   LSP29EncryptedAssetTitle,
   UniversalProfile,
 } from '@chillwhales/typeorm';
@@ -24,6 +25,16 @@ export interface LSP29EncryptedAssetJSON {
     id?: string;
     title?: string;
     description?: string;
+    images?: {
+      url?: string;
+      width?: number;
+      height?: number;
+      verification?: {
+        method?: string;
+        data?: string;
+        source?: string;
+      };
+    }[][];
     revision?: number;
     createdAt?: string;
     file?: {
@@ -133,6 +144,7 @@ export async function extractSubEntities(lsp29EncryptedAsset: LSP29EncryptedAsse
     id: contentId,
     title,
     description,
+    images,
     revision,
     createdAt,
     file,
@@ -221,6 +233,32 @@ export async function extractSubEntities(lsp29EncryptedAsset: LSP29EncryptedAsse
       })
     : null;
 
+  // Images entities
+  const lsp29EncryptedAssetImages =
+    images && Array.isArray(images)
+      ? images
+          .filter((imageSet) => Array.isArray(imageSet))
+          .flatMap((imageSet, index) =>
+            imageSet.filter(Utils.isFileImage).map(
+              ({ url, width, height, verification }) =>
+                new LSP29EncryptedAssetImage({
+                  id: uuidv4(),
+                  lsp29EncryptedAsset,
+                  url,
+                  width,
+                  height,
+                  ...(verification &&
+                    Utils.isVerification(verification) && {
+                      verificationMethod: verification.method,
+                      verificationData: verification.data,
+                      verificationSource: verification.source,
+                    }),
+                  imageIndex: index,
+                }),
+            ),
+          )
+      : [];
+
   return {
     version,
     contentId,
@@ -232,6 +270,7 @@ export async function extractSubEntities(lsp29EncryptedAsset: LSP29EncryptedAsse
     lsp29EncryptedAssetEncryption,
     lsp29AccessControlConditions,
     lsp29EncryptedAssetChunks,
+    lsp29EncryptedAssetImages,
   };
 }
 
@@ -248,14 +287,21 @@ export async function clearSubEntities({
     },
   };
 
-  const [existingTitles, existingDescriptions, existingFiles, existingEncryptions, existingChunks] =
-    await Promise.all([
-      context.store.findBy(LSP29EncryptedAssetTitle, entitiesFilter),
-      context.store.findBy(LSP29EncryptedAssetDescription, entitiesFilter),
-      context.store.findBy(LSP29EncryptedAssetFile, entitiesFilter),
-      context.store.findBy(LSP29EncryptedAssetEncryption, entitiesFilter),
-      context.store.findBy(LSP29EncryptedAssetChunks, entitiesFilter),
-    ]);
+  const [
+    existingTitles,
+    existingDescriptions,
+    existingFiles,
+    existingEncryptions,
+    existingChunks,
+    existingImages,
+  ] = await Promise.all([
+    context.store.findBy(LSP29EncryptedAssetTitle, entitiesFilter),
+    context.store.findBy(LSP29EncryptedAssetDescription, entitiesFilter),
+    context.store.findBy(LSP29EncryptedAssetFile, entitiesFilter),
+    context.store.findBy(LSP29EncryptedAssetEncryption, entitiesFilter),
+    context.store.findBy(LSP29EncryptedAssetChunks, entitiesFilter),
+    context.store.findBy(LSP29EncryptedAssetImage, entitiesFilter),
+  ]);
 
   // Clear access control conditions for existing encryptions
   const encryptionFilter = {
@@ -275,5 +321,6 @@ export async function clearSubEntities({
     context.store.remove(existingFiles),
     context.store.remove(existingEncryptions),
     context.store.remove(existingChunks),
+    context.store.remove(existingImages),
   ]);
 }
