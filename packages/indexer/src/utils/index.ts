@@ -154,10 +154,10 @@ export function decodeVerifiableUri(dataValue: string): {
       decodedMetadataUrl === null
         ? null
         : typeof decodedMetadataUrl === 'object'
-          ? decodedMetadataUrl.url
+          ? decodedMetadataUrl.url || null
           : null;
 
-    if (url.match(/[^\x20-\x7E]+/g) !== null)
+    if (url && url.match(/[^\x20-\x7E]+/g) !== null)
       return {
         value: null,
         decodeError: 'Url contains invalid characters',
