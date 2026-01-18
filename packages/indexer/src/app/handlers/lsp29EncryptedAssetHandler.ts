@@ -113,68 +113,62 @@ export async function lsp29EncryptedAssetHandler({
           }),
         );
 
-        for (const entity of currentBatch) {
-          Utils.DataChanged.LSP29EncryptedAsset.extractSubEntities(entity).then((result) => {
-            if ('fetchErrorMessage' in result) {
-              const { fetchErrorMessage, fetchErrorCode, fetchErrorStatus } = result;
+        const batchPromises = currentBatch.map(async (entity) => {
+          const result = await Utils.DataChanged.LSP29EncryptedAsset.extractSubEntities(entity);
 
-              updatedEntities.push(
-                new LSP29EncryptedAsset({
-                  ...entity,
-                  fetchErrorMessage,
-                  fetchErrorCode,
-                  fetchErrorStatus,
-                  retryCount: (entity.retryCount || 0) + 1,
-                }),
-              );
-            } else {
-              updatedEntities.push(
-                new LSP29EncryptedAsset({
-                  ...entity,
-                  version: result.version,
-                  contentId: result.contentId,
-                  revision: result.revision,
-                  createdAt: result.createdAt,
-                  isDataFetched: true,
-                  fetchErrorMessage: null,
-                  fetchErrorCode: null,
-                  fetchErrorStatus: null,
-                  retryCount: null,
-                }),
-              );
+          if ('fetchErrorMessage' in result) {
+            const { fetchErrorMessage, fetchErrorCode, fetchErrorStatus } = result;
 
-              if (result.lsp29EncryptedAssetTitle) {
-                titles.push(result.lsp29EncryptedAssetTitle);
-              }
-              if (result.lsp29EncryptedAssetDescription) {
-                descriptions.push(result.lsp29EncryptedAssetDescription);
-              }
-              if (result.lsp29EncryptedAssetFile) {
-                files.push(result.lsp29EncryptedAssetFile);
-              }
-              if (result.lsp29EncryptedAssetEncryption) {
-                encryptions.push(result.lsp29EncryptedAssetEncryption);
-              }
-              if (result.lsp29AccessControlConditions) {
-                accessControlConditions.push(...result.lsp29AccessControlConditions);
-              }
-              if (result.lsp29EncryptedAssetChunks) {
-                chunks.push(result.lsp29EncryptedAssetChunks);
-              }
-              if (result.lsp29EncryptedAssetImages) {
-                images.push(...result.lsp29EncryptedAssetImages);
-              }
+            updatedEntities.push(
+              new LSP29EncryptedAsset({
+                ...entity,
+                fetchErrorMessage,
+                fetchErrorCode,
+                fetchErrorStatus,
+                retryCount: (entity.retryCount || 0) + 1,
+              }),
+            );
+          } else {
+            updatedEntities.push(
+              new LSP29EncryptedAsset({
+                ...entity,
+                version: result.version,
+                contentId: result.contentId,
+                revision: result.revision,
+                createdAt: result.createdAt,
+                isDataFetched: true,
+                fetchErrorMessage: null,
+                fetchErrorCode: null,
+                fetchErrorStatus: null,
+                retryCount: null,
+              }),
+            );
+
+            if (result.lsp29EncryptedAssetTitle) {
+              titles.push(result.lsp29EncryptedAssetTitle);
             }
-          });
-        }
+            if (result.lsp29EncryptedAssetDescription) {
+              descriptions.push(result.lsp29EncryptedAssetDescription);
+            }
+            if (result.lsp29EncryptedAssetFile) {
+              files.push(result.lsp29EncryptedAssetFile);
+            }
+            if (result.lsp29EncryptedAssetEncryption) {
+              encryptions.push(result.lsp29EncryptedAssetEncryption);
+            }
+            if (result.lsp29AccessControlConditions) {
+              accessControlConditions.push(...result.lsp29AccessControlConditions);
+            }
+            if (result.lsp29EncryptedAssetChunks) {
+              chunks.push(result.lsp29EncryptedAssetChunks);
+            }
+            if (result.lsp29EncryptedAssetImages) {
+              images.push(...result.lsp29EncryptedAssetImages);
+            }
+          }
+        });
 
-        // Wait for batch completion
-        while (
-          updatedEntities.length <
-          (index + 1 === batchesCount ? unfetchedEntities.length : (index + 1) * FETCH_BATCH_SIZE)
-        ) {
-          await Utils.timeout(1000);
-        }
+        await Promise.all(batchPromises);
       }
 
       context.log.info(
