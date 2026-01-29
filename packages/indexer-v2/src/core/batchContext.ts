@@ -103,7 +103,7 @@ export class BatchContext implements IBatchContext {
   getVerified(category: EntityCategory): VerificationResult {
     const result = this.verificationResults.get(category);
     if (!result) {
-      return { new: new Set(), valid: new Set(), invalid: new Set() };
+      return { new: new Set(), valid: new Set(), invalid: new Set(), newEntities: new Map() };
     }
     return result;
   }
