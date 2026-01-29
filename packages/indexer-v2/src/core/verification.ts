@@ -10,7 +10,7 @@ import { hexToBool, isHex } from 'viem';
 
 import { MULTICALL_ADDRESS } from '@/constants';
 
-import { Context, EntityCategory, IBatchContext, VerificationResult } from './types';
+import { Context, EntityCategory, VerificationResult } from './types';
 
 // ---------------------------------------------------------------------------
 // Interface version definitions per EntityCategory
@@ -256,6 +256,7 @@ async function verifyWithInterface(
   newAddresses: Set<string>;
   validAddresses: Set<string>;
   invalidAddresses: Set<string>;
+  newEntities: Map<string, { id: string }>;
 }> {
   const addressArray = [...addresses];
 
@@ -280,6 +281,7 @@ async function verifyWithInterface(
       newAddresses: new Set(),
       validAddresses: cachedValid,
       invalidAddresses: cachedInvalid,
+      newEntities: new Map(),
     };
   }
 
@@ -305,6 +307,7 @@ async function verifyWithInterface(
       newAddresses: new Set(),
       validAddresses: new Set([...cachedValid, ...knownEntities]),
       invalidAddresses: cachedInvalid,
+      newEntities: new Map(),
     };
   }
 
@@ -343,10 +346,23 @@ async function verifyWithInterface(
     cache.set(category, addr, 'invalid');
   }
 
+  // Build entity instances for newly verified addresses
+  const newEntities = new Map<string, { id: string }>();
+  if (category === EntityCategory.UniversalProfile) {
+    for (const addr of newlyVerified) {
+      newEntities.set(addr, new UniversalProfile({ id: addr, address: addr }));
+    }
+  } else if (category === EntityCategory.DigitalAsset) {
+    for (const addr of newlyVerified) {
+      newEntities.set(addr, new DigitalAsset({ id: addr, address: addr }));
+    }
+  }
+
   return {
     newAddresses: newlyVerified,
     validAddresses: new Set([...cachedValid, ...knownEntities, ...newlyVerified]),
     invalidAddresses: new Set([...cachedInvalid, ...newlyInvalid]),
+    newEntities,
   };
 }
 
@@ -385,61 +401,41 @@ export function createVerifyFn(config: VerificationConfig = {}) {
    * For NFT: NFTs are verified by their parent DA's LSP8 check, not individually.
    *          This function is a no-op for NFTs — NFT verification is handled
    *          by the NFT plugin directly via DB lookup.
+   *
+   * Newly verified entity instances are returned in `result.newEntities`
+   * for the pipeline to persist. No side-effects on the BatchContext.
    */
   return async function verifyAddresses(
     category: EntityCategory,
     addresses: Set<string>,
     store: Store,
     context: Context,
-    batchCtx?: IBatchContext,
   ): Promise<VerificationResult> {
     if (addresses.size === 0) {
-      return { new: new Set(), valid: new Set(), invalid: new Set() };
+      return { new: new Set(), valid: new Set(), invalid: new Set(), newEntities: new Map() };
     }
 
     // NFTs don't use supportsInterface — their parent DA handles verification.
     // The NFT plugin handles DB-based verification internally.
     if (category === EntityCategory.NFT) {
-      return { new: new Set(), valid: new Set(addresses), invalid: new Set() };
+      return {
+        new: new Set(),
+        valid: new Set(addresses),
+        invalid: new Set(),
+        newEntities: new Map(),
+      };
     }
 
     const versions = category === EntityCategory.UniversalProfile ? UP_VERSIONS : DA_VERSIONS;
 
-    const { newAddresses, validAddresses, invalidAddresses } = await verifyWithInterface(
-      context,
-      store,
-      addresses,
-      category,
-      versions,
-      cache,
-      batchSize,
-    );
-
-    // Store newly verified entities in the BatchContext for persistence by the pipeline
-    if (batchCtx && newAddresses.size > 0) {
-      if (category === EntityCategory.UniversalProfile) {
-        for (const addr of newAddresses) {
-          batchCtx.addEntity(
-            'CoreUniversalProfile',
-            addr,
-            new UniversalProfile({ id: addr, address: addr }),
-          );
-        }
-      } else if (category === EntityCategory.DigitalAsset) {
-        for (const addr of newAddresses) {
-          batchCtx.addEntity(
-            'CoreDigitalAsset',
-            addr,
-            new DigitalAsset({ id: addr, address: addr }),
-          );
-        }
-      }
-    }
+    const { newAddresses, validAddresses, invalidAddresses, newEntities } =
+      await verifyWithInterface(context, store, addresses, category, versions, cache, batchSize);
 
     return {
       new: newAddresses,
       valid: validAddresses,
       invalid: invalidAddresses,
+      newEntities,
     };
   };
 }
