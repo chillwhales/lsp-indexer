@@ -1,0 +1,41 @@
+{
+  "name": "@chillwhales/indexer-v2",
+  "version": "0.1.0",
+  "description": "LUKSO blockchain indexer v2 — plugin architecture",
+  "keywords": [],
+  "author": "b00ste",
+  "license": "MIT",
+  "packageManager": "pnpm@10.10.0",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -Rf lib/",
+    "start": "ts-node --project ./tsconfig.json -r tsconfig-paths/register lib/app/index.js"
+  },
+  "dependencies": {
+    "@chillwhales/abi": "workspace:1.0.4",
+    "@chillwhales/typeorm": "workspace:1.2.0",
+    "@erc725/erc725.js": "^0.28.1",
+    "@lukso/lsp0-contracts": "0.15.5",
+    "@lukso/lsp12-contracts": "^0.15.4",
+    "@lukso/lsp2-contracts": "^0.15.4",
+    "@lukso/lsp3-contracts": "0.16.6",
+    "@lukso/lsp4-contracts": "0.16.7",
+    "@lukso/lsp5-contracts": "^0.15.4",
+    "@lukso/lsp6-contracts": "0.15.5",
+    "@lukso/lsp7-contracts": "0.16.8",
+    "@lukso/lsp8-contracts": "0.16.7",
+    "@subsquid/evm-processor": "^1.27.2",
+    "@subsquid/typeorm-store": "^1.5.1",
+    "axios": "^1.11.0",
+    "data-urls": "^5.0.0",
+    "dotenv": "^17.2.1",
+    "typeorm": "^0.3.25",
+    "uuid": "^11.1.0",
+    "viem": "^2.33.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.2"
+  }
+}
