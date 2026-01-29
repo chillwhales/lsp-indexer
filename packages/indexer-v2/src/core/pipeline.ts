@@ -134,7 +134,9 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   };
 
   for (const handler of registry.getAllHandlers()) {
-    await handler.handle!(handlerCtx);
+    if (handler.handle) {
+      await handler.handle(handlerCtx);
+    }
   }
 }
 
@@ -143,60 +145,37 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
 // ---------------------------------------------------------------------------
 
 /**
- * Persist core entities (UniversalProfiles, DigitalAssets, NFTs) that were
- * newly discovered in this batch. These must be persisted before plugin
- * entities because plugins create entities with foreign key references
- * to UPs and DAs.
+ * Persist core entities that were newly discovered in this batch.
+ *
+ * These must be persisted before plugin entities because plugins create
+ * entities with foreign key references to core entities (UPs, DAs).
+ *
+ * Entity instances come from `VerificationResult.newEntities` — the
+ * verification system creates them during Phase 2. The pipeline doesn't
+ * need to know which entity types exist; it just iterates all tracked
+ * categories and upserts whatever the verification system produced.
  */
 async function persistCoreEntities(
   store: Store,
   batchCtx: IBatchContext,
   context: Context,
 ): Promise<void> {
-  const upResult = batchCtx.getVerified(EntityCategory.UniversalProfile);
-  const daResult = batchCtx.getVerified(EntityCategory.DigitalAsset);
-  const nftResult = batchCtx.getVerified(EntityCategory.NFT);
+  const allNewEntities: { id: string }[] = [];
 
-  const newUPs = upResult.new.size;
-  const newDAs = daResult.new.size;
-  const newNFTs = nftResult.new.size;
-
-  if (newUPs) {
-    context.log.info(
-      JSON.stringify({
-        message: "Saving 'UniversalProfile' entities.",
-        count: newUPs,
-      }),
-    );
-  }
-  if (newDAs) {
-    context.log.info(
-      JSON.stringify({
-        message: "Saving 'DigitalAsset' entities.",
-        count: newDAs,
-      }),
-    );
-  }
-  if (newNFTs) {
-    context.log.info(
-      JSON.stringify({
-        message: "Saving 'NFT' entities.",
-        count: newNFTs,
-      }),
-    );
+  for (const category of batchCtx.getTrackedCategories()) {
+    const result = batchCtx.getVerified(category);
+    if (result.newEntities.size > 0) {
+      context.log.info(
+        JSON.stringify({
+          message: `Saving '${category}' entities.`,
+          count: result.newEntities.size,
+        }),
+      );
+      allNewEntities.push(...result.newEntities.values());
+    }
   }
 
-  // Core entities are stored in the BatchContext by the verification system.
-  // The verifyAddresses function is responsible for creating the actual
-  // entity instances (UniversalProfile, DigitalAsset, NFT) and storing them
-  // in the BatchContext under well-known type keys.
-  const coreUPs = batchCtx.getEntities<{ id: string }>('CoreUniversalProfile');
-  const coreDAs = batchCtx.getEntities<{ id: string }>('CoreDigitalAsset');
-  const coreNFTs = batchCtx.getEntities<{ id: string }>('CoreNFT');
-
-  await Promise.all([
-    coreUPs.size > 0 ? store.upsert([...coreUPs.values()]) : Promise.resolve(),
-    coreDAs.size > 0 ? store.upsert([...coreDAs.values()]) : Promise.resolve(),
-    coreNFTs.size > 0 ? store.upsert([...coreNFTs.values()]) : Promise.resolve(),
-  ]);
+  if (allNewEntities.length > 0) {
+    await store.upsert(allNewEntities);
+  }
 }
