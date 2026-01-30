@@ -11,14 +11,19 @@
  *   2. **LSP4Creators[] index** — prefix match on `0x114bd03b3a46d48759680d81ebb2b414`.
  *      Decodes a creator address from the data value and the array index
  *      from the last 16 bytes of the data key.
- *      Entity: `LSP4CreatorsItem` (deterministic id = `"{address} - {dataKey}"`).
  *
  *   3. **LSP4CreatorsMap** — prefix match on `0x6de85eaf5d982b4e5da00000`.
- *      Decodes the mapped creator address from the data key (last 20 bytes),
+ *      Decodes the creator address from the data key (last 20 bytes),
  *      plus interface ID and index from the data value.
- *      Entity: `LSP4CreatorsMap` (deterministic id = `"{address} - {dataKey}"`).
  *
- * All three entity types are linked to a verified DigitalAsset.
+ * Index and Map events both create/update the same merged `LSP4Creator`
+ * entity keyed by `"{daAddress} - {creatorAddress}"`. Both event sources
+ * provide creatorAddress + arrayIndex; the Map additionally provides
+ * interfaceId. If both fire in the same batch (typical), the second
+ * upserts into the existing entity, filling in any missing fields.
+ *
+ * Invalid Item entries (dataValue not a valid 20-byte address) are skipped
+ * entirely — no garbage entities to clean up later.
  *
  * Port from v1:
  *   - utils/dataChanged/lsp4CreatorsLength.ts
@@ -29,7 +34,7 @@
  */
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 
-import { LSP4CreatorsItem, LSP4CreatorsLength, LSP4CreatorsMap } from '@chillwhales/typeorm';
+import { LSP4Creator, LSP4CreatorsLength } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
@@ -40,8 +45,7 @@ import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core
 // Entity type keys used in the BatchContext entity bag
 // ---------------------------------------------------------------------------
 const LENGTH_TYPE = 'LSP4CreatorsLength';
-const ITEM_TYPE = 'LSP4CreatorsItem';
-const MAP_TYPE = 'LSP4CreatorsMap';
+const CREATOR_TYPE = 'LSP4Creator';
 
 // ---------------------------------------------------------------------------
 // Data key constants
@@ -77,9 +81,9 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
     if (dataKey === LSP4_CREATORS_LENGTH_KEY) {
       extractLength(address, dataValue, timestamp, ctx);
     } else if (dataKey.startsWith(LSP4_CREATORS_INDEX_PREFIX)) {
-      extractItem(address, dataKey, dataValue, timestamp, ctx);
+      extractFromIndex(address, dataKey, dataValue, timestamp, ctx);
     } else if (dataKey.startsWith(LSP4_CREATORS_MAP_PREFIX)) {
-      extractMap(address, dataKey, dataValue, timestamp, ctx);
+      extractFromMap(address, dataKey, dataValue, timestamp, ctx);
     }
 
     // Address tracking is handled by the DataChanged meta-plugin (parent)
@@ -91,8 +95,7 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
 
   populate(ctx: IBatchContext): void {
     populateByDA<LSP4CreatorsLength>(ctx, LENGTH_TYPE);
-    populateByDA<LSP4CreatorsItem>(ctx, ITEM_TYPE);
-    populateByDA<LSP4CreatorsMap>(ctx, MAP_TYPE);
+    populateByDA<LSP4Creator>(ctx, CREATOR_TYPE);
   },
 
   // ---------------------------------------------------------------------------
@@ -102,14 +105,13 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
   async persist(store: Store, ctx: IBatchContext): Promise<void> {
     await Promise.all([
       upsertEntities(store, ctx, LENGTH_TYPE),
-      upsertEntities(store, ctx, ITEM_TYPE),
-      upsertEntities(store, ctx, MAP_TYPE),
+      upsertEntities(store, ctx, CREATOR_TYPE),
     ]);
   },
 };
 
 // ---------------------------------------------------------------------------
-// Extract helpers (one per entity type)
+// Extract helpers
 // ---------------------------------------------------------------------------
 
 /**
@@ -139,61 +141,96 @@ function extractLength(
 }
 
 /**
- * Extract LSP4CreatorsItem.
+ * Extract creator from an LSP4Creators[] index (Item) event.
  *
- * creatorAddress: decoded from dataValue if exactly 20 bytes, else null.
- * creatorIndex: last 16 bytes of dataKey converted to BigInt.
- * Deterministic id = `"{address} - {dataKey}"`.
+ * creatorAddress: decoded from dataValue (must be exactly 20 bytes).
+ * arrayIndex: last 16 bytes of dataKey converted to BigInt.
+ *
+ * If dataValue is not a valid 20-byte address, the event is skipped
+ * (no garbage entity — the Map event will provide the data).
+ *
+ * Merges into existing LSP4Creator entity if one was already created
+ * by a Map event in the same batch.
  */
-function extractItem(
+function extractFromIndex(
   address: string,
   dataKey: string,
   dataValue: string,
   timestamp: number,
   ctx: IBatchContext,
 ): void {
-  const entity = new LSP4CreatorsItem({
-    id: `${address} - ${dataKey}`,
+  // Skip if dataValue is not a valid 20-byte address
+  if (!isHex(dataValue) || hexToBytes(dataValue as Hex).length !== 20) return;
+
+  const creatorAddress = dataValue;
+  const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
+  const id = `${address} - ${creatorAddress}`;
+
+  // Check if a Map event already created this entity in the same batch
+  const existing = ctx.getEntities<LSP4Creator>(CREATOR_TYPE).get(id);
+  if (existing) {
+    // Merge: fill in arrayIndex if not already set
+    existing.arrayIndex = existing.arrayIndex ?? arrayIndex;
+    existing.timestamp = new Date(timestamp);
+    return;
+  }
+
+  const entity = new LSP4Creator({
+    id,
     address,
     timestamp: new Date(timestamp),
-    creatorAddress:
-      isHex(dataValue) && hexToBytes(dataValue as Hex).length === 20 ? dataValue : null,
-    creatorIndex: bytesToBigInt(hexToBytes(dataKey as Hex).slice(16)),
-    rawValue: dataValue,
+    creatorAddress,
+    arrayIndex,
   });
 
-  ctx.addEntity(ITEM_TYPE, entity.id, entity);
+  ctx.addEntity(CREATOR_TYPE, entity.id, entity);
 }
 
 /**
- * Extract LSP4CreatorsMap.
+ * Extract creator from an LSP4CreatorsMap event.
  *
  * creatorAddress: last 20 bytes of dataKey (bytes 12..32).
- * creatorInterfaceId: first 4 bytes of dataValue (if value is 20 bytes).
- * creatorIndex: bytes 4..20 of dataValue (if value is 20 bytes).
- * Deterministic id = `"{address} - {dataKey}"`.
+ * interfaceId: first 4 bytes of dataValue (if value is 20 bytes).
+ * arrayIndex: bytes 4..20 of dataValue (if value is 20 bytes).
+ *
+ * Merges into existing LSP4Creator entity if one was already created
+ * by an Index event in the same batch.
  */
-function extractMap(
+function extractFromMap(
   address: string,
   dataKey: string,
   dataValue: string,
   timestamp: number,
   ctx: IBatchContext,
 ): void {
+  const creatorAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
   const dataValueBytes = isHex(dataValue) ? hexToBytes(dataValue as Hex) : new Uint8Array(0);
   const isValidValue = dataValueBytes.length === 20;
 
-  const entity = new LSP4CreatorsMap({
-    id: `${address} - ${dataKey}`,
+  const interfaceId = isValidValue ? bytesToHex(dataValueBytes.slice(0, 4)) : null;
+  const arrayIndex = isValidValue ? bytesToBigInt(dataValueBytes.slice(4)) : null;
+  const id = `${address} - ${creatorAddress}`;
+
+  // Check if an Index event already created this entity in the same batch
+  const existing = ctx.getEntities<LSP4Creator>(CREATOR_TYPE).get(id);
+  if (existing) {
+    // Merge: Map provides interfaceId + potentially better arrayIndex
+    existing.interfaceId = interfaceId ?? existing.interfaceId;
+    existing.arrayIndex = arrayIndex ?? existing.arrayIndex;
+    existing.timestamp = new Date(timestamp);
+    return;
+  }
+
+  const entity = new LSP4Creator({
+    id,
     address,
     timestamp: new Date(timestamp),
-    creatorAddress: bytesToHex(hexToBytes(dataKey as Hex).slice(12)),
-    creatorInterfaceId: isValidValue ? bytesToHex(dataValueBytes.slice(0, 4)) : null,
-    creatorIndex: isValidValue ? bytesToBigInt(dataValueBytes.slice(4)) : null,
-    rawValue: dataValue,
+    creatorAddress,
+    arrayIndex,
+    interfaceId,
   });
 
-  ctx.addEntity(MAP_TYPE, entity.id, entity);
+  ctx.addEntity(CREATOR_TYPE, entity.id, entity);
 }
 
 export default LSP4CreatorsPlugin;
