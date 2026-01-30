@@ -26,8 +26,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
 import { DigitalAsset, NFT, TokenIdDataChanged } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
+import { In } from 'typeorm';
 
-import { insertEntities, populateByDA, upsertEntities } from '@/core/pluginHelpers';
+import { insertEntities, populateByDA } from '@/core/pluginHelpers';
 import {
   Block,
   EntityCategory,
@@ -143,8 +144,21 @@ export function createTokenIdDataChangedPlugin(registry: IPluginRegistry): Event
     // -------------------------------------------------------------------------
 
     async persist(store: Store, ctx: IBatchContext): Promise<void> {
-      // Upsert NFTs first (TokenIdDataChanged entities have FK to NFT)
-      await upsertEntities(store, ctx, NFT_TYPE);
+      // Only create NFTs that don't already exist in DB.
+      // TokenIdDataChanged doesn't carry meaningful NFT data — it only needs
+      // the NFT row to exist for the FK reference. A blind upsert would
+      // overwrite isMinted/isBurned values set by LSP8Transfer in prior batches.
+      const nfts = ctx.getEntities<NFT>(NFT_TYPE);
+      if (nfts.size > 0) {
+        const ids = [...nfts.keys()];
+        const existing = await store.findBy(NFT, { id: In(ids) } as any);
+        const existingIds = new Set(existing.map((e) => e.id));
+        const newNfts = [...nfts.values()].filter((n) => !existingIds.has(n.id));
+        if (newNfts.length > 0) {
+          await store.insert(newNfts);
+        }
+      }
+
       await insertEntities(store, ctx, TOKEN_ID_DATA_CHANGED_TYPE);
     },
   };
