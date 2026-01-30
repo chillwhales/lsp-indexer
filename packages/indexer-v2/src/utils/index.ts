@@ -6,11 +6,6 @@ export function isNumeric(value: string) {
 }
 
 /**
- * Map ERC725X operation type integer to the OperationType enum.
- *
- * @see https://docs.lukso.tech/standards/lsp-background/erc725/#erc725x
- */
-/**
  * Generate a deterministic NFT entity ID from contract address and tokenId.
  *
  * Format: `"{address} - {tokenId}"`
@@ -23,6 +18,21 @@ export function generateTokenId({
   tokenId: string;
 }): string {
   return `${address} - ${tokenId}`;
+}
+
+/**
+ * Generate a deterministic Follow entity ID from follower and followed addresses.
+ *
+ * Format: `"{followerAddress} - {followedAddress}"`
+ */
+export function generateFollowId({
+  followerAddress,
+  followedAddress,
+}: {
+  followerAddress: string;
+  followedAddress: string;
+}): string {
+  return `${followerAddress} - ${followedAddress}`;
 }
 
 /**
