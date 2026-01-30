@@ -13,6 +13,8 @@ export type Block = BlockData<FieldSelection>;
 
 export type Context = DataHandlerContext<Store, FieldSelection>;
 
+export type { Log };
+
 // ---------------------------------------------------------------------------
 // Entity categories for address verification
 // ---------------------------------------------------------------------------
