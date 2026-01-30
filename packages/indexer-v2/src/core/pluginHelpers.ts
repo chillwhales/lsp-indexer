@@ -131,6 +131,37 @@ export async function upsertEntities<T extends { id: string }>(
 }
 
 /**
+ * Insert entities from BatchContext that don't already exist in the store.
+ *
+ * Used when a plugin creates entities with deterministic IDs but should NOT
+ * overwrite existing records set by another plugin. Reads existing DB records
+ * first and only inserts truly new ones.
+ *
+ * Example: TokenIdDataChanged creates NFT stubs (isMinted: false, isBurned: false)
+ * for FK references, but must not overwrite isMinted/isBurned values set by
+ * LSP8Transfer in prior batches.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function insertNewEntities<T extends { id: string }>(
+  store: Store,
+  ctx: IBatchContext,
+  entityType: string,
+  EntityClass: new (...args: any[]) => T,
+): Promise<void> {
+  const entities = ctx.getEntities<T>(entityType);
+  if (entities.size === 0) return;
+
+  const ids = [...entities.keys()];
+  const existing = await store.findBy(EntityClass as any, { id: In(ids) } as any);
+  const existingIds = new Set(existing.map((e: T) => e.id));
+  const newEntities = [...entities.values()].filter((e) => !existingIds.has(e.id));
+
+  if (newEntities.length > 0) {
+    await store.insert(newEntities);
+  }
+}
+
+/**
  * Merge-upsert entities from BatchContext into the store.
  *
  * Used for merged entities (e.g. LSP4Creator, LSP5ReceivedAsset) where
