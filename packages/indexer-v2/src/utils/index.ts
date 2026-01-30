@@ -1,4 +1,52 @@
 import { OperationType } from '@chillwhales/typeorm';
+import ERC725 from '@erc725/erc725.js';
+import { hexToNumber, isHex } from 'viem';
+
+/**
+ * Decode an ERC725Y VerifiableURI-encoded data value into a plain URL.
+ *
+ * Returns `{ value, decodeError }`:
+ *   - `value` is the decoded URL string (or null if empty/invalid)
+ *   - `decodeError` is an error message (or null if no error)
+ *
+ * Port from v1: utils/index.ts decodeVerifiableUri()
+ */
+export function decodeVerifiableUri(dataValue: string): {
+  value: string | null;
+  decodeError: string | null;
+} {
+  const erc725 = new ERC725([]);
+
+  if (!isHex(dataValue) || dataValue === '0x' || hexToNumber(dataValue as `0x${string}`) === 0)
+    return { value: null, decodeError: null };
+
+  try {
+    const decodedMetadataUrl = erc725.decodeValueContent('VerifiableURI', dataValue);
+
+    const url =
+      decodedMetadataUrl === null
+        ? null
+        : typeof decodedMetadataUrl === 'object'
+          ? ((decodedMetadataUrl as { url?: string }).url ?? null)
+          : null;
+
+    if (url && url.match(/[^\x20-\x7E]+/g) !== null)
+      return {
+        value: null,
+        decodeError: 'Url contains invalid characters',
+      };
+
+    return {
+      value: url,
+      decodeError: null,
+    };
+  } catch (error) {
+    return {
+      value: null,
+      decodeError: error?.toString() ?? 'Unknown decode error',
+    };
+  }
+}
 
 export function isNumeric(value: string) {
   if (typeof value != 'string') return false;
