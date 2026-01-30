@@ -1,4 +1,4 @@
-import { LSP4TokenTypeEnum, OperationType } from '@chillwhales/typeorm';
+import { LSP4TokenTypeEnum, LSP8TokenIdFormatEnum, OperationType } from '@chillwhales/typeorm';
 import ERC725 from '@erc725/erc725.js';
 import { hexToNumber, isHex } from 'viem';
 
@@ -98,6 +98,26 @@ export function decodeTokenType(tokenType: number): LSP4TokenTypeEnum | null {
       : tokenType === 2
         ? LSP4TokenTypeEnum.COLLECTION
         : null;
+}
+
+/**
+ * Map LSP8 token ID format integer to the LSP8TokenIdFormatEnum.
+ *
+ * Standard values: 0=NUMBER, 1=STRING, 2=ADDRESS, 3/4=BYTES32.
+ * Legacy values (100+) map to the same enums.
+ *
+ * Port from v1: utils/index.ts decodeTokenIdFormat()
+ */
+export function decodeTokenIdFormat(tokenIdFormat: number): LSP8TokenIdFormatEnum | null {
+  return [0, 100].includes(tokenIdFormat)
+    ? LSP8TokenIdFormatEnum.NUMBER
+    : [1, 101].includes(tokenIdFormat)
+      ? LSP8TokenIdFormatEnum.STRING
+      : [2, 102].includes(tokenIdFormat)
+        ? LSP8TokenIdFormatEnum.ADDRESS
+        : [3, 4, 103, 104].includes(tokenIdFormat)
+          ? LSP8TokenIdFormatEnum.BYTES32
+          : null;
 }
 
 /**
