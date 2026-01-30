@@ -28,12 +28,11 @@ import {
   LSP3ProfileLink,
   LSP3ProfileName,
   LSP3ProfileTag,
-  UniversalProfile,
 } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 
-import { upsertEntities } from '@/core/pluginHelpers';
+import { populateByUP, upsertEntities } from '@/core/pluginHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 import { decodeVerifiableUri } from '@/utils';
 
@@ -87,16 +86,7 @@ const LSP3ProfilePlugin: DataKeyPlugin = {
   // ---------------------------------------------------------------------------
 
   populate(ctx: IBatchContext): void {
-    const entities = ctx.getEntities<LSP3Profile>(ENTITY_TYPE);
-
-    for (const [id, entity] of entities) {
-      if (ctx.isValid(EntityCategory.UniversalProfile, entity.address)) {
-        entity.universalProfile = new UniversalProfile({ id: entity.address });
-      } else {
-        // Not a verified UP — remove the LSP3Profile entity
-        ctx.removeEntity(ENTITY_TYPE, id);
-      }
-    }
+    populateByUP<LSP3Profile>(ctx, ENTITY_TYPE);
   },
 
   // ---------------------------------------------------------------------------
