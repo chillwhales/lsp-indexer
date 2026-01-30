@@ -161,17 +161,25 @@ const LSP6ControllersPlugin: DataKeyPlugin = {
     const controllers = ctx.getEntities<LSP6Controller>(CONTROLLER_TYPE);
     if (controllers.size === 0) return;
 
+    // Only clear sub-entity types that actually had new data in this batch.
+    // If only Permissions fired, we must not wipe AllowedCalls/AllowedDataKeys.
+    const hasPermissions = ctx.hasEntities(PERMISSION_TYPE);
+    const hasAllowedCalls = ctx.hasEntities(ALLOWED_CALL_TYPE);
+    const hasAllowedDataKeys = ctx.hasEntities(ALLOWED_DATA_KEY_TYPE);
+
+    if (!hasPermissions && !hasAllowedCalls && !hasAllowedDataKeys) return;
+
     const ids = [...controllers.keys()];
     const filter = { controller: { id: In(ids) } };
 
-    // Find all existing sub-entities for these controllers
+    // Find existing sub-entities only for the types that were touched
     const [permissions, allowedCalls, allowedDataKeys] = await Promise.all([
-      store.findBy(LSP6Permission, filter),
-      store.findBy(LSP6AllowedCall, filter),
-      store.findBy(LSP6AllowedERC725YDataKey, filter),
+      hasPermissions ? store.findBy(LSP6Permission, filter) : Promise.resolve([]),
+      hasAllowedCalls ? store.findBy(LSP6AllowedCall, filter) : Promise.resolve([]),
+      hasAllowedDataKeys ? store.findBy(LSP6AllowedERC725YDataKey, filter) : Promise.resolve([]),
     ]);
 
-    // Remove all found sub-entities
+    // Remove found sub-entities
     await Promise.all([
       store.remove(permissions),
       store.remove(allowedCalls),
@@ -256,7 +264,10 @@ function extractFromIndex(
   // Skip if dataValue is not a valid 20-byte address
   if (!isHex(dataValue) || hexToBytes(dataValue as Hex).length !== 20) return;
 
-  const controllerAddress = dataValue;
+  // Normalize to lowercase 0x-prefixed via bytesToHex to match the format
+  // used by extractPermissions/extractAllowedCalls/extractAllowedDataKeys
+  // (which derive controllerAddress from the data key, not the data value).
+  const controllerAddress = bytesToHex(hexToBytes(dataValue as Hex));
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
   const id = `${address} - ${controllerAddress}`;
 
