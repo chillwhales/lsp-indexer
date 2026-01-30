@@ -21,7 +21,7 @@ import { EntityCategory, IBatchContext } from './types';
  * Populate entities that require a verified UniversalProfile.
  *
  * Links `entity.universalProfile` for valid addresses, removes entity if invalid.
- * Used by: Executed, UniversalReceiver.
+ * Used by: Executed, UniversalReceiver, LSP5ReceivedAssets.
  */
 export function populateByUP<T extends { address: string; universalProfile?: unknown }>(
   ctx: IBatchContext,
@@ -56,6 +56,39 @@ export function populateByDA<T extends { address: string; digitalAsset?: unknown
     } else {
       ctx.removeEntity(entityType, id);
     }
+  }
+}
+
+/**
+ * Enrich entities with an optional FK linking a secondary address to a verified entity.
+ *
+ * Unlike the primary populate helpers (populateByUP/populateByDA), this does NOT
+ * remove entities when the address is unverified — it sets the FK to null instead.
+ * Should be called after the primary populate pass so only surviving entities are enriched.
+ *
+ * @param ctx          - BatchContext with entities
+ * @param entityType   - Entity type key in the BatchContext bag
+ * @param category     - Entity category to verify against (UP or DA)
+ * @param addressField - Entity field containing the address to verify (e.g. 'creatorAddress')
+ * @param fkField      - Entity field to write the FK reference to (e.g. 'creatorProfile')
+ */
+export function enrichEntityFk(
+  ctx: IBatchContext,
+  entityType: string,
+  category: EntityCategory,
+  addressField: string,
+  fkField: string,
+): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const entities = ctx.getEntities<Record<string, any>>(entityType);
+  const createRef =
+    category === EntityCategory.UniversalProfile
+      ? (addr: string) => new UniversalProfile({ id: addr })
+      : (addr: string) => new DigitalAsset({ id: addr });
+
+  for (const entity of entities.values()) {
+    const addr = entity[addressField] as string;
+    entity[fkField] = ctx.isValid(category, addr) ? createRef(addr) : null;
   }
 }
 

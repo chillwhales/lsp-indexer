@@ -219,6 +219,8 @@ type UniversalProfile @entity {
   lsp6Controllers: [LSP6Controller!]! @derivedFrom(field: "universalProfile")
   lsp12IssuedAssetsLength: LSP12IssuedAssetsLength @derivedFrom(field: "universalProfile")
   lsp12IssuedAssets: [LSP12IssuedAsset!]! @derivedFrom(field: "universalProfile")
+  lsp4CreatorOf: [LSP4Creator!]! @derivedFrom(field: "creatorProfile")
+  lsp6ControllerOf: [LSP6Controller!]! @derivedFrom(field: "controllerProfile")
 
   # LSP29 Encrypted Assets
   lsp29EncryptedAssetsLength: LSP29EncryptedAssetsLength @derivedFrom(field: "universalProfile")
@@ -266,6 +268,8 @@ type DigitalAsset @entity {
   lsp4TokenType: LSP4TokenType @derivedFrom(field: "digitalAsset")
   lsp4CreatorsLength: LSP4CreatorsLength @derivedFrom(field: "digitalAsset")
   lsp4Creators: [LSP4Creator!]! @derivedFrom(field: "digitalAsset")
+  lsp5ReceivedBy: [LSP5ReceivedAsset!]! @derivedFrom(field: "receivedAsset")
+  lsp12IssuedBy: [LSP12IssuedAsset!]! @derivedFrom(field: "issuedAsset")
 
   # LSP7 properties
   decimals: Decimals @derivedFrom(field: "digitalAsset")
@@ -420,6 +424,7 @@ type LSP4Creator @entity {
   address: String! @index
   digitalAsset: DigitalAsset! @index
   creatorAddress: String! @index
+  creatorProfile: UniversalProfile @index
   arrayIndex: BigInt @index
   interfaceId: String @index
 }
@@ -439,6 +444,7 @@ type LSP5ReceivedAsset @entity {
   address: String! @index
   universalProfile: UniversalProfile! @index
   assetAddress: String! @index
+  receivedAsset: DigitalAsset @index
   arrayIndex: BigInt @index
   interfaceId: String @index
 }
@@ -458,6 +464,7 @@ type LSP6Controller @entity {
   address: String! @index
   universalProfile: UniversalProfile! @index
   controllerAddress: String! @index
+  controllerProfile: UniversalProfile @index
   arrayIndex: BigInt @index
   permissions: [LSP6Permission!]! @derivedFrom(field: "controller")
   permissionsRawValue: String
@@ -535,6 +542,7 @@ type LSP12IssuedAsset @entity {
   address: String! @index
   universalProfile: UniversalProfile! @index
   assetAddress: String! @index
+  issuedAsset: DigitalAsset @index
   arrayIndex: BigInt @index
   interfaceId: String @index
 }

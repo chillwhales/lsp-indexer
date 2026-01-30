@@ -1,50 +1,50 @@
 /**
- * LSP4Creators data key plugin.
+ * LSP5ReceivedAssets data key plugin.
  *
- * Handles three related `LSP4Creators` data key patterns emitted via
- * `DataChanged(bytes32,bytes)` on Digital Assets:
+ * Handles three related `LSP5ReceivedAssets` data key patterns emitted via
+ * `DataChanged(bytes32,bytes)` on Universal Profiles:
  *
- *   1. **LSP4Creators[] length** — exact match on the array length key.
- *      Decodes a uint128 value representing the number of creators.
- *      Entity: `LSP4CreatorsLength` (deterministic id = address).
+ *   1. **LSP5ReceivedAssets[] length** — exact match on the array length key.
+ *      Decodes a uint128 value representing the number of received assets.
+ *      Entity: `LSP5ReceivedAssetsLength` (deterministic id = address).
  *
- *   2. **LSP4Creators[] index** — prefix match on `0x114bd03b3a46d48759680d81ebb2b414`.
- *      Decodes a creator address from the data value and the array index
+ *   2. **LSP5ReceivedAssets[] index** — prefix match on `0x6460ee3c0aac563ccbf76d6e1d07bada`.
+ *      Decodes an asset address from the data value and the array index
  *      from the last 16 bytes of the data key.
  *
- *   3. **LSP4CreatorsMap** — prefix match on `0x6de85eaf5d982b4e5da00000`.
- *      Decodes the creator address from the data key (last 20 bytes),
+ *   3. **LSP5ReceivedAssetsMap** — prefix match on `0x812c4334633eb816c80d0000`.
+ *      Decodes the asset address from the data key (last 20 bytes),
  *      plus interface ID and index from the data value.
  *
- * Index and Map events both create/update the same merged `LSP4Creator`
- * entity keyed by `"{daAddress} - {creatorAddress}"`. Both event sources
- * provide creatorAddress + arrayIndex; the Map additionally provides
+ * Index and Map events both create/update the same merged `LSP5ReceivedAsset`
+ * entity keyed by `"{upAddress} - {assetAddress}"`. Both event sources
+ * provide assetAddress + arrayIndex; the Map additionally provides
  * interfaceId. If both fire in the same batch (typical), the second
  * upserts into the existing entity, filling in any missing fields.
  *
- * creatorAddress is tracked for UniversalProfile verification so the
- * optional `creatorProfile` FK can be populated when the creator is a UP.
+ * assetAddress is tracked for DigitalAsset verification so the optional
+ * `receivedAsset` FK can be populated when the asset is a verified DA.
  *
  * Invalid Item entries (dataValue not a valid 20-byte address) are skipped
  * entirely — no garbage entities to clean up later.
  *
  * Port from v1:
- *   - utils/dataChanged/lsp4CreatorsLength.ts
- *   - utils/dataChanged/lsp4CreatorsItem.ts
- *   - utils/dataChanged/lsp4CreatorsMap.ts
- *   - app/scanner.ts L203-267 (DataChanged case → LSP4Creators routing)
- *   - app/index.ts L432-436 (upsert)
+ *   - utils/dataChanged/lsp5ReceivedAssetsLength.ts
+ *   - utils/dataChanged/lsp5ReceivedAssetsItem.ts
+ *   - utils/dataChanged/lsp5ReceivedAssetsMap.ts
+ *   - app/scanner.ts (DataChanged case → LSP5ReceivedAssets routing)
+ *   - app/index.ts (upsert)
  */
-import { LSP4DataKeys } from '@lukso/lsp4-contracts';
+import { LSP5DataKeys } from '@lukso/lsp5-contracts';
 
-import { LSP4Creator, LSP4CreatorsLength } from '@chillwhales/typeorm';
+import { LSP5ReceivedAsset, LSP5ReceivedAssetsLength } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
 import {
   enrichEntityFk,
   mergeUpsertEntities,
-  populateByDA,
+  populateByUP,
   upsertEntities,
 } from '@/core/pluginHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
@@ -52,19 +52,19 @@ import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag
 // ---------------------------------------------------------------------------
-const LENGTH_TYPE = 'LSP4CreatorsLength';
-const CREATOR_TYPE = 'LSP4Creator';
+const LENGTH_TYPE = 'LSP5ReceivedAssetsLength';
+const RECEIVED_ASSET_TYPE = 'LSP5ReceivedAsset';
 
 // ---------------------------------------------------------------------------
 // Data key constants
 // ---------------------------------------------------------------------------
-const LSP4_CREATORS_LENGTH_KEY: string = LSP4DataKeys['LSP4Creators[]'].length;
-const LSP4_CREATORS_INDEX_PREFIX: string = LSP4DataKeys['LSP4Creators[]'].index;
-const LSP4_CREATORS_MAP_PREFIX: string = LSP4DataKeys.LSP4CreatorsMap;
+const LSP5_RECEIVED_ASSETS_LENGTH_KEY: string = LSP5DataKeys['LSP5ReceivedAssets[]'].length;
+const LSP5_RECEIVED_ASSETS_INDEX_PREFIX: string = LSP5DataKeys['LSP5ReceivedAssets[]'].index;
+const LSP5_RECEIVED_ASSETS_MAP_PREFIX: string = LSP5DataKeys.LSP5ReceivedAssetsMap;
 
-const LSP4CreatorsPlugin: DataKeyPlugin = {
-  name: 'lsp4Creators',
-  requiresVerification: [EntityCategory.DigitalAsset, EntityCategory.UniversalProfile],
+const LSP5ReceivedAssetsPlugin: DataKeyPlugin = {
+  name: 'lsp5ReceivedAssets',
+  requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------
   // Matching
@@ -72,9 +72,9 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
 
   matches(dataKey: string): boolean {
     return (
-      dataKey === LSP4_CREATORS_LENGTH_KEY ||
-      dataKey.startsWith(LSP4_CREATORS_INDEX_PREFIX) ||
-      dataKey.startsWith(LSP4_CREATORS_MAP_PREFIX)
+      dataKey === LSP5_RECEIVED_ASSETS_LENGTH_KEY ||
+      dataKey.startsWith(LSP5_RECEIVED_ASSETS_INDEX_PREFIX) ||
+      dataKey.startsWith(LSP5_RECEIVED_ASSETS_MAP_PREFIX)
     );
   },
 
@@ -86,16 +86,16 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
     const { timestamp } = block.header;
     const { address } = log;
 
-    if (dataKey === LSP4_CREATORS_LENGTH_KEY) {
+    if (dataKey === LSP5_RECEIVED_ASSETS_LENGTH_KEY) {
       extractLength(address, dataValue, timestamp, ctx);
-    } else if (dataKey.startsWith(LSP4_CREATORS_INDEX_PREFIX)) {
+    } else if (dataKey.startsWith(LSP5_RECEIVED_ASSETS_INDEX_PREFIX)) {
       extractFromIndex(address, dataKey, dataValue, timestamp, ctx);
-    } else if (dataKey.startsWith(LSP4_CREATORS_MAP_PREFIX)) {
+    } else if (dataKey.startsWith(LSP5_RECEIVED_ASSETS_MAP_PREFIX)) {
       extractFromMap(address, dataKey, dataValue, timestamp, ctx);
     }
 
-    // DA address tracking is handled by the DataChanged meta-plugin (parent).
-    // Creator addresses are tracked here for UP verification (creatorProfile FK).
+    // UP address tracking is handled by the DataChanged meta-plugin (parent).
+    // Asset addresses are tracked here for DA verification (receivedAsset FK).
   },
 
   // ---------------------------------------------------------------------------
@@ -103,14 +103,14 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
   // ---------------------------------------------------------------------------
 
   populate(ctx: IBatchContext): void {
-    populateByDA<LSP4CreatorsLength>(ctx, LENGTH_TYPE);
-    populateByDA<LSP4Creator>(ctx, CREATOR_TYPE);
+    populateByUP<LSP5ReceivedAssetsLength>(ctx, LENGTH_TYPE);
+    populateByUP<LSP5ReceivedAsset>(ctx, RECEIVED_ASSET_TYPE);
     enrichEntityFk(
       ctx,
-      CREATOR_TYPE,
-      EntityCategory.UniversalProfile,
-      'creatorAddress',
-      'creatorProfile',
+      RECEIVED_ASSET_TYPE,
+      EntityCategory.DigitalAsset,
+      'assetAddress',
+      'receivedAsset',
     );
   },
 
@@ -124,10 +124,10 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
       // Merge-upsert: preserve existing non-null fields from prior batches.
       // An Index-only event in this batch should not wipe interfaceId set
       // by a Map event in a prior batch, and vice versa.
-      mergeUpsertEntities(store, ctx, CREATOR_TYPE, LSP4Creator, [
+      mergeUpsertEntities(store, ctx, RECEIVED_ASSET_TYPE, LSP5ReceivedAsset, [
         'arrayIndex',
         'interfaceId',
-        'creatorProfile',
+        'receivedAsset',
       ]),
     ]);
   },
@@ -138,10 +138,10 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
 // ---------------------------------------------------------------------------
 
 /**
- * Extract LSP4CreatorsLength.
+ * Extract LSP5ReceivedAssetsLength.
  *
  * dataValue should be 16 bytes (uint128). If not, value is stored as null.
- * Deterministic id = address (one length entity per digital asset).
+ * Deterministic id = address (one length entity per universal profile).
  */
 function extractLength(
   address: string,
@@ -149,7 +149,7 @@ function extractLength(
   timestamp: number,
   ctx: IBatchContext,
 ): void {
-  const entity = new LSP4CreatorsLength({
+  const entity = new LSP5ReceivedAssetsLength({
     id: address,
     address,
     timestamp: new Date(timestamp),
@@ -164,15 +164,15 @@ function extractLength(
 }
 
 /**
- * Extract creator from an LSP4Creators[] index (Item) event.
+ * Extract received asset from an LSP5ReceivedAssets[] index (Item) event.
  *
- * creatorAddress: decoded from dataValue (must be exactly 20 bytes).
+ * assetAddress: decoded from dataValue (must be exactly 20 bytes).
  * arrayIndex: last 16 bytes of dataKey converted to BigInt.
  *
  * If dataValue is not a valid 20-byte address, the event is skipped
  * (no garbage entity — the Map event will provide the data).
  *
- * Merges into existing LSP4Creator entity if one was already created
+ * Merges into existing LSP5ReceivedAsset entity if one was already created
  * by a Map event in the same batch.
  */
 function extractFromIndex(
@@ -185,15 +185,15 @@ function extractFromIndex(
   // Skip if dataValue is not a valid 20-byte address
   if (!isHex(dataValue) || hexToBytes(dataValue as Hex).length !== 20) return;
 
-  const creatorAddress = dataValue;
+  const assetAddress = dataValue;
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
-  const id = `${address} - ${creatorAddress}`;
+  const id = `${address} - ${assetAddress}`;
 
-  // Track creator for UP verification (creatorProfile FK)
-  ctx.trackAddress(EntityCategory.UniversalProfile, creatorAddress);
+  // Track asset for DA verification (receivedAsset FK)
+  ctx.trackAddress(EntityCategory.DigitalAsset, assetAddress);
 
   // Check if a Map event already created this entity in the same batch
-  const existing = ctx.getEntities<LSP4Creator>(CREATOR_TYPE).get(id);
+  const existing = ctx.getEntities<LSP5ReceivedAsset>(RECEIVED_ASSET_TYPE).get(id);
   if (existing) {
     // Merge: fill in arrayIndex if not already set
     existing.arrayIndex = existing.arrayIndex ?? arrayIndex;
@@ -201,25 +201,25 @@ function extractFromIndex(
     return;
   }
 
-  const entity = new LSP4Creator({
+  const entity = new LSP5ReceivedAsset({
     id,
     address,
     timestamp: new Date(timestamp),
-    creatorAddress,
+    assetAddress,
     arrayIndex,
   });
 
-  ctx.addEntity(CREATOR_TYPE, entity.id, entity);
+  ctx.addEntity(RECEIVED_ASSET_TYPE, entity.id, entity);
 }
 
 /**
- * Extract creator from an LSP4CreatorsMap event.
+ * Extract received asset from an LSP5ReceivedAssetsMap event.
  *
- * creatorAddress: last 20 bytes of dataKey (bytes 12..32).
+ * assetAddress: last 20 bytes of dataKey (bytes 12..32).
  * interfaceId: first 4 bytes of dataValue (if value is 20 bytes).
  * arrayIndex: bytes 4..20 of dataValue (if value is 20 bytes).
  *
- * Merges into existing LSP4Creator entity if one was already created
+ * Merges into existing LSP5ReceivedAsset entity if one was already created
  * by an Index event in the same batch.
  */
 function extractFromMap(
@@ -229,19 +229,19 @@ function extractFromMap(
   timestamp: number,
   ctx: IBatchContext,
 ): void {
-  const creatorAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
+  const assetAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
   const dataValueBytes = isHex(dataValue) ? hexToBytes(dataValue as Hex) : new Uint8Array(0);
   const isValidValue = dataValueBytes.length === 20;
 
   const interfaceId = isValidValue ? bytesToHex(dataValueBytes.slice(0, 4)) : null;
   const arrayIndex = isValidValue ? bytesToBigInt(dataValueBytes.slice(4)) : null;
-  const id = `${address} - ${creatorAddress}`;
+  const id = `${address} - ${assetAddress}`;
 
-  // Track creator for UP verification (creatorProfile FK)
-  ctx.trackAddress(EntityCategory.UniversalProfile, creatorAddress);
+  // Track asset for DA verification (receivedAsset FK)
+  ctx.trackAddress(EntityCategory.DigitalAsset, assetAddress);
 
   // Check if an Index event already created this entity in the same batch
-  const existing = ctx.getEntities<LSP4Creator>(CREATOR_TYPE).get(id);
+  const existing = ctx.getEntities<LSP5ReceivedAsset>(RECEIVED_ASSET_TYPE).get(id);
   if (existing) {
     // Merge: Map provides interfaceId + potentially better arrayIndex
     existing.interfaceId = interfaceId ?? existing.interfaceId;
@@ -250,16 +250,16 @@ function extractFromMap(
     return;
   }
 
-  const entity = new LSP4Creator({
+  const entity = new LSP5ReceivedAsset({
     id,
     address,
     timestamp: new Date(timestamp),
-    creatorAddress,
+    assetAddress,
     arrayIndex,
     interfaceId,
   });
 
-  ctx.addEntity(CREATOR_TYPE, entity.id, entity);
+  ctx.addEntity(RECEIVED_ASSET_TYPE, entity.id, entity);
 }
 
-export default LSP4CreatorsPlugin;
+export default LSP5ReceivedAssetsPlugin;
