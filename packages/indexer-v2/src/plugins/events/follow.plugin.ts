@@ -8,9 +8,9 @@
  * starting at block 3179471.
  *
  * Dual persistence model:
- *   1. Raw event log (UUID id) — append-only via store.insert()
- *   2. Identifiable follow state (deterministic id) — upserted via handle()
- *      so the "current follows" table stays up-to-date
+ *   1. `Follow` — Raw event log (UUID id) — append-only via store.insert()
+ *   2. `Follower` — Current follow state (deterministic id) — upserted via
+ *      handle() so the relationship table stays up-to-date
  *
  * Port from v1:
  *   - scanner.ts L473-480 (event matching)
@@ -20,7 +20,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { LSP26FollowerSystem } from '@chillwhales/abi';
-import { Follow, UniversalProfile } from '@chillwhales/typeorm';
+import { Follow, Follower, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
 import { LSP26_ADDRESS } from '@/constants';
@@ -102,15 +102,15 @@ const FollowPlugin: EventPlugin = {
   },
 
   // ---------------------------------------------------------------------------
-  // Phase 5: HANDLE — Upsert identifiable follow state
+  // Phase 5: HANDLE — Upsert current follow state
   // ---------------------------------------------------------------------------
 
   async handle(hctx: HandlerContext): Promise<void> {
     const entities = hctx.batchCtx.getEntities<Follow>(ENTITY_TYPE);
     if (entities.size === 0) return;
 
-    // Build identifiable follows with deterministic ids
-    const identifiableFollows = new Map<string, Follow>();
+    // Build Follower records with deterministic ids for current-state tracking
+    const followers = new Map<string, Follower>();
 
     for (const entity of entities.values()) {
       const id = generateFollowId({
@@ -118,16 +118,24 @@ const FollowPlugin: EventPlugin = {
         followedAddress: entity.followedAddress,
       });
 
-      identifiableFollows.set(
+      followers.set(
         id,
-        new Follow({
-          ...entity,
+        new Follower({
           id,
+          timestamp: entity.timestamp,
+          blockNumber: entity.blockNumber,
+          logIndex: entity.logIndex,
+          transactionIndex: entity.transactionIndex,
+          address: entity.address,
+          followerAddress: entity.followerAddress,
+          followedAddress: entity.followedAddress,
+          followerUniversalProfile: entity.followerUniversalProfile,
+          followedUniversalProfile: entity.followedUniversalProfile,
         }),
       );
     }
 
-    await hctx.store.upsert([...identifiableFollows.values()]);
+    await hctx.store.upsert([...followers.values()]);
   },
 };
 

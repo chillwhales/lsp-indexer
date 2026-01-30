@@ -62,6 +62,19 @@ type Follow @entity {
   followedUniversalProfile: UniversalProfile! @index
 }
 
+type Follower @entity {
+  id: ID! @unique
+  timestamp: DateTime! @index
+  blockNumber: Int! @index
+  logIndex: Int! @index
+  transactionIndex: Int! @index
+  address: String! @index
+  followerAddress: String! @index
+  followedAddress: String! @index
+  followerUniversalProfile: UniversalProfile! @index
+  followedUniversalProfile: UniversalProfile! @index
+}
+
 type Unfollow @entity {
   id: ID! @unique
   timestamp: DateTime! @index
