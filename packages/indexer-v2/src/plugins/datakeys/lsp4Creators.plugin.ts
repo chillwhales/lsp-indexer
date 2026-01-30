@@ -37,7 +37,7 @@
  */
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 
-import { LSP4Creator, LSP4CreatorsLength, UniversalProfile } from '@chillwhales/typeorm';
+import { LSP4Creator, LSP4CreatorsLength } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
@@ -99,15 +99,11 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
 
   populate(ctx: IBatchContext): void {
     populateByDA<LSP4CreatorsLength>(ctx, LENGTH_TYPE);
-    populateByDA<LSP4Creator>(ctx, CREATOR_TYPE);
-
-    // Enrich: link creatorProfile if the creator address is a verified UP
-    const creators = ctx.getEntities<LSP4Creator>(CREATOR_TYPE);
-    for (const creator of creators.values()) {
-      creator.creatorProfile = ctx.isValid(EntityCategory.UniversalProfile, creator.creatorAddress)
-        ? new UniversalProfile({ id: creator.creatorAddress })
-        : null;
-    }
+    populateByDA<LSP4Creator>(ctx, CREATOR_TYPE, {
+      category: EntityCategory.UniversalProfile,
+      addressField: 'creatorAddress',
+      fkField: 'creatorProfile',
+    });
   },
 
   // ---------------------------------------------------------------------------

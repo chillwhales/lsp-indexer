@@ -37,7 +37,7 @@
  */
 import { LSP5DataKeys } from '@lukso/lsp5-contracts';
 
-import { DigitalAsset, LSP5ReceivedAsset, LSP5ReceivedAssetsLength } from '@chillwhales/typeorm';
+import { LSP5ReceivedAsset, LSP5ReceivedAssetsLength } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
@@ -99,15 +99,11 @@ const LSP5ReceivedAssetsPlugin: DataKeyPlugin = {
 
   populate(ctx: IBatchContext): void {
     populateByUP<LSP5ReceivedAssetsLength>(ctx, LENGTH_TYPE);
-    populateByUP<LSP5ReceivedAsset>(ctx, RECEIVED_ASSET_TYPE);
-
-    // Enrich: link receivedAsset if the asset address is a verified DA
-    const assets = ctx.getEntities<LSP5ReceivedAsset>(RECEIVED_ASSET_TYPE);
-    for (const asset of assets.values()) {
-      asset.receivedAsset = ctx.isValid(EntityCategory.DigitalAsset, asset.assetAddress)
-        ? new DigitalAsset({ id: asset.assetAddress })
-        : null;
-    }
+    populateByUP<LSP5ReceivedAsset>(ctx, RECEIVED_ASSET_TYPE, {
+      category: EntityCategory.DigitalAsset,
+      addressField: 'assetAddress',
+      fkField: 'receivedAsset',
+    });
   },
 
   // ---------------------------------------------------------------------------
