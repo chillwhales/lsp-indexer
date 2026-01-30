@@ -214,22 +214,15 @@ type UniversalProfile @entity {
   # ERC725 Data Keys
   lsp3Profile: LSP3Profile @index
   lsp5ReceivedAssetsLength: LSP5ReceivedAssetsLength @derivedFrom(field: "universalProfile")
-  lsp5ReceivedAssetsItem: [LSP5ReceivedAssetsItem!]! @derivedFrom(field: "universalProfile")
-  lsp5ReceivedAssetsMap: [LSP5ReceivedAssetsMap!]! @derivedFrom(field: "universalProfile")
+  lsp5ReceivedAssets: [LSP5ReceivedAsset!]! @derivedFrom(field: "universalProfile")
   lsp6ControllersLength: LSP6ControllersLength @derivedFrom(field: "universalProfile")
-  lsp6ControllersItem: [LSP6ControllersItem!]! @derivedFrom(field: "universalProfile")
-  lsp6ControllerPermissions: [LSP6ControllerPermissions!]! @derivedFrom(field: "universalProfile")
-  lsp6ControllerAllowedCalls: [LSP6ControllerAllowedCalls!]! @derivedFrom(field: "universalProfile")
-  lsp6ControllerAllowedErc725YDataKeys: [LSP6ControllerAllowedERC725YDataKeys!]!
-    @derivedFrom(field: "universalProfile")
+  lsp6Controllers: [LSP6Controller!]! @derivedFrom(field: "universalProfile")
   lsp12IssuedAssetsLength: LSP12IssuedAssetsLength @derivedFrom(field: "universalProfile")
-  lsp12IssuedAssetsItem: [LSP12IssuedAssetsItem!]! @derivedFrom(field: "universalProfile")
-  lsp12IssuedAssetsMap: [LSP12IssuedAssetsMap!]! @derivedFrom(field: "universalProfile")
+  lsp12IssuedAssets: [LSP12IssuedAsset!]! @derivedFrom(field: "universalProfile")
 
   # LSP29 Encrypted Assets
   lsp29EncryptedAssetsLength: LSP29EncryptedAssetsLength @derivedFrom(field: "universalProfile")
-  lsp29EncryptedAssetsItem: [LSP29EncryptedAssetsItem!]! @derivedFrom(field: "universalProfile")
-  lsp29EncryptedAssetsMap: [LSP29EncryptedAssetsMap!]! @derivedFrom(field: "universalProfile")
+  lsp29EncryptedAssetEntries: [LSP29EncryptedAssetEntry!]! @derivedFrom(field: "universalProfile")
   lsp29EncryptedAssetRevisionCount: [LSP29EncryptedAssetRevisionCount!]!
     @derivedFrom(field: "universalProfile")
   lsp29EncryptedAssets: [LSP29EncryptedAsset!]! @derivedFrom(field: "universalProfile")
@@ -272,8 +265,7 @@ type DigitalAsset @entity {
   lsp4TokenSymbol: LSP4TokenSymbol @derivedFrom(field: "digitalAsset")
   lsp4TokenType: LSP4TokenType @derivedFrom(field: "digitalAsset")
   lsp4CreatorsLength: LSP4CreatorsLength @derivedFrom(field: "digitalAsset")
-  lsp4CreatorsItem: [LSP4CreatorsItem!]! @derivedFrom(field: "digitalAsset")
-  lsp4CreatorsMap: [LSP4CreatorsMap!]! @derivedFrom(field: "digitalAsset")
+  lsp4Creators: [LSP4Creator!]! @derivedFrom(field: "digitalAsset")
 
   # LSP7 properties
   decimals: Decimals @derivedFrom(field: "digitalAsset")
@@ -422,25 +414,14 @@ type LSP4CreatorsLength @entity {
   rawValue: String!
 }
 
-type LSP4CreatorsItem @entity {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  address: String! @index
-  digitalAsset: DigitalAsset! @index
-  creatorAddress: String @index
-  creatorIndex: BigInt! @index
-  rawValue: String!
-}
-
-type LSP4CreatorsMap @entity {
+type LSP4Creator @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
   creatorAddress: String! @index
-  creatorInterfaceId: String @index
-  creatorIndex: BigInt @index
-  rawValue: String!
+  arrayIndex: BigInt @index
+  interfaceId: String @index
 }
 
 type LSP5ReceivedAssetsLength @entity {
@@ -452,25 +433,14 @@ type LSP5ReceivedAssetsLength @entity {
   rawValue: String!
 }
 
-type LSP5ReceivedAssetsItem @entity {
+type LSP5ReceivedAsset @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
-  receivedAssetAddress: String @index
-  receivedAssetIndex: BigInt! @index
-  rawValue: String!
-}
-
-type LSP5ReceivedAssetsMap @entity {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  address: String! @index
-  universalProfile: UniversalProfile! @index
-  receivedAssetAddress: String! @index
-  receivedAssetInterfaceId: String @index
-  receivedAssetIndex: BigInt @index
-  rawValue: String!
+  assetAddress: String! @index
+  arrayIndex: BigInt @index
+  interfaceId: String @index
 }
 
 type LSP6ControllersLength @entity {
@@ -482,41 +452,26 @@ type LSP6ControllersLength @entity {
   rawValue: String!
 }
 
-type LSP6ControllersItem @entity {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  address: String! @index
-  universalProfile: UniversalProfile! @index
-  controllerAddress: String @index
-  controllerIndex: BigInt! @index
-  rawValue: String!
-}
-
-type LSP6ControllerPermissions @entity {
+type LSP6Controller @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
   controllerAddress: String! @index
-  controllerPermissions: [LSP6Permission!]! @derivedFrom(field: "lsp6ControllerPermissions")
-  rawValue: String!
+  arrayIndex: BigInt @index
+  permissions: [LSP6Permission!]! @derivedFrom(field: "controller")
+  permissionsRawValue: String
+  allowedCalls: [LSP6AllowedCall!]! @derivedFrom(field: "controller")
+  allowedCallsRawValue: String
+  allowedDataKeys: [LSP6AllowedERC725YDataKey!]! @derivedFrom(field: "controller")
+  allowedDataKeysRawValue: String
 }
 
 type LSP6Permission @entity {
   id: ID! @unique
   permissionName: String! @index
   permissionValue: Boolean! @index
-  lsp6ControllerPermissions: LSP6ControllerPermissions @index
-}
-
-type LSP6ControllerAllowedCalls @entity {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  address: String! @index
-  universalProfile: UniversalProfile! @index
-  controllerAddress: String! @index
-  controllerAllowedCalls: [LSP6AllowedCall!]! @derivedFrom(field: "lsp6ControllerAllowedCalls")
-  rawValue: String!
+  controller: LSP6Controller @index
 }
 
 type LSP6AllowedCall @entity {
@@ -529,24 +484,13 @@ type LSP6AllowedCall @entity {
   allowedInterfaceId: String! @index
   # 4 bytes
   allowedFunction: String! @index
-  lsp6ControllerAllowedCalls: LSP6ControllerAllowedCalls @index
-}
-
-type LSP6ControllerAllowedERC725YDataKeys @entity {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  address: String! @index
-  universalProfile: UniversalProfile! @index
-  controllerAddress: String! @index
-  controllerAllowedErc725YDataKeys: [LSP6AllowedERC725YDataKey!]!
-    @derivedFrom(field: "lsp6ControllerAllowedErc725YDataKeys")
-  rawValue: String!
+  controller: LSP6Controller @index
 }
 
 type LSP6AllowedERC725YDataKey @entity {
   id: ID! @unique
   allowedDataKey: String! @index
-  lsp6ControllerAllowedErc725YDataKeys: LSP6ControllerAllowedERC725YDataKeys @index
+  controller: LSP6Controller @index
 }
 
 type LSP8TokenIdFormat @entity {
@@ -585,25 +529,14 @@ type LSP12IssuedAssetsLength @entity {
   rawValue: String!
 }
 
-type LSP12IssuedAssetsItem @entity {
+type LSP12IssuedAsset @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
-  issuedAssetAddress: String @index
-  issuedAssetIndex: BigInt! @index
-  rawValue: String!
-}
-
-type LSP12IssuedAssetsMap @entity {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  address: String! @index
-  universalProfile: UniversalProfile! @index
-  issuedAssetAddress: String! @index
-  issuedAssetInterfaceId: String @index
-  issuedAssetIndex: BigInt @index
-  rawValue: String!
+  assetAddress: String! @index
+  arrayIndex: BigInt @index
+  interfaceId: String @index
 }
 
 type LSP3Profile @entity {
@@ -919,23 +852,13 @@ type LSP29EncryptedAssetsLength @entity {
   rawValue: String!
 }
 
-type LSP29EncryptedAssetsItem @entity {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  address: String! @index
-  universalProfile: UniversalProfile! @index
-  itemIndex: BigInt! @index
-  rawValue: String!
-}
-
-type LSP29EncryptedAssetsMap @entity {
+type LSP29EncryptedAssetEntry @entity {
   id: ID! @unique
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
   contentIdHash: String! @index
   arrayIndex: BigInt @index
-  rawValue: String!
 }
 
 type LSP29EncryptedAssetRevisionCount @entity {
