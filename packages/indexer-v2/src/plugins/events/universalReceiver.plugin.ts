@@ -15,9 +15,10 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { LSP0ERC725Account } from '@chillwhales/abi';
-import { UniversalProfile, UniversalReceiver } from '@chillwhales/typeorm';
+import { UniversalReceiver } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
+import { insertEntities, populateByUP } from '@/core/pluginHelpers';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 
 // Entity type key used in the BatchContext entity bag
@@ -63,15 +64,7 @@ const UniversalReceiverPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
 
   populate(ctx: IBatchContext): void {
-    const entities = ctx.getEntities<UniversalReceiver>(ENTITY_TYPE);
-
-    for (const [id, entity] of entities) {
-      if (ctx.isValid(EntityCategory.UniversalProfile, entity.address)) {
-        entity.universalProfile = new UniversalProfile({ id: entity.address });
-      } else {
-        ctx.removeEntity(ENTITY_TYPE, id);
-      }
-    }
+    populateByUP<UniversalReceiver>(ctx, ENTITY_TYPE);
   },
 
   // ---------------------------------------------------------------------------
@@ -79,10 +72,7 @@ const UniversalReceiverPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
 
   async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    const entities = ctx.getEntities<UniversalReceiver>(ENTITY_TYPE);
-    if (entities.size === 0) return;
-
-    await store.insert([...entities.values()]);
+    await insertEntities(store, ctx, ENTITY_TYPE);
   },
 };
 

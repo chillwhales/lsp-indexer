@@ -25,6 +25,7 @@ import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
 import { DigitalAsset, NFT, TokenIdDataChanged } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
+import { insertEntities, populateByDA, upsertEntities } from '@/core/pluginHelpers';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { generateTokenId } from '@/utils';
 
@@ -92,14 +93,13 @@ const TokenIdDataChangedPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
 
   populate(ctx: IBatchContext): void {
-    // Populate TokenIdDataChanged entities — link to verified DigitalAsset
+    // Populate TokenIdDataChanged entities — link to verified DigitalAsset + enrich NFT ref
     const entities = ctx.getEntities<TokenIdDataChanged>(TOKEN_ID_DATA_CHANGED_TYPE);
 
     for (const [id, entity] of entities) {
       if (ctx.isValid(EntityCategory.DigitalAsset, entity.address)) {
         entity.digitalAsset = new DigitalAsset({ id: entity.address });
 
-        // Enrich NFT reference with the DA relation
         if (entity.nft) {
           entity.nft = new NFT({
             ...entity.nft,
@@ -107,21 +107,12 @@ const TokenIdDataChangedPlugin: EventPlugin = {
           });
         }
       } else {
-        // Contract is not a verified DigitalAsset — remove the entity
         ctx.removeEntity(TOKEN_ID_DATA_CHANGED_TYPE, id);
       }
     }
 
     // Populate NFT entities — link to verified DigitalAsset
-    const nfts = ctx.getEntities<NFT>(NFT_TYPE);
-
-    for (const [id, entity] of nfts) {
-      if (ctx.isValid(EntityCategory.DigitalAsset, entity.address)) {
-        entity.digitalAsset = new DigitalAsset({ id: entity.address });
-      } else {
-        ctx.removeEntity(NFT_TYPE, id);
-      }
-    }
+    populateByDA<NFT>(ctx, NFT_TYPE);
   },
 
   // ---------------------------------------------------------------------------
@@ -130,16 +121,8 @@ const TokenIdDataChangedPlugin: EventPlugin = {
 
   async persist(store: Store, ctx: IBatchContext): Promise<void> {
     // Upsert NFTs first (TokenIdDataChanged entities have FK to NFT)
-    const nfts = ctx.getEntities<NFT>(NFT_TYPE);
-    if (nfts.size > 0) {
-      await store.upsert([...nfts.values()]);
-    }
-
-    // Insert TokenIdDataChanged entities (append-only event log)
-    const entities = ctx.getEntities<TokenIdDataChanged>(TOKEN_ID_DATA_CHANGED_TYPE);
-    if (entities.size > 0) {
-      await store.insert([...entities.values()]);
-    }
+    await upsertEntities(store, ctx, NFT_TYPE);
+    await insertEntities(store, ctx, TOKEN_ID_DATA_CHANGED_TYPE);
   },
 };
 

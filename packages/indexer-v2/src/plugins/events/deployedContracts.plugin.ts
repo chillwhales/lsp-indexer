@@ -26,6 +26,7 @@ import {
 import { Store } from '@subsquid/typeorm-store';
 
 import { LSP23_ADDRESS } from '@/constants';
+import { insertEntities } from '@/core/pluginHelpers';
 import { Block, EventPlugin, IBatchContext, Log } from '@/core/types';
 
 // Entity type key used in the BatchContext entity bag
@@ -84,10 +85,7 @@ const DeployedContractsPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
 
   async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    const entities = ctx.getEntities<DeployedContracts>(ENTITY_TYPE);
-    if (entities.size === 0) return;
-
-    await store.insert([...entities.values()]);
+    await insertEntities(store, ctx, ENTITY_TYPE);
   },
 };
 

@@ -19,14 +19,13 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { LSP14Ownable2Step } from '@chillwhales/abi';
 import {
-  DigitalAsset,
   DigitalAssetOwner,
   OwnershipTransferred,
-  UniversalProfile,
   UniversalProfileOwner,
 } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
+import { insertEntities, populateByUPAndDA } from '@/core/pluginHelpers';
 import {
   Block,
   EntityCategory,
@@ -76,24 +75,7 @@ const OwnershipTransferredPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
 
   populate(ctx: IBatchContext): void {
-    const entities = ctx.getEntities<OwnershipTransferred>(ENTITY_TYPE);
-
-    for (const [id, entity] of entities) {
-      const isUP = ctx.isValid(EntityCategory.UniversalProfile, entity.address);
-      const isDA = ctx.isValid(EntityCategory.DigitalAsset, entity.address);
-
-      if (isUP) {
-        entity.universalProfile = new UniversalProfile({ id: entity.address });
-      }
-      if (isDA) {
-        entity.digitalAsset = new DigitalAsset({ id: entity.address });
-      }
-
-      // If neither UP nor DA, remove the entity
-      if (!isUP && !isDA) {
-        ctx.removeEntity(ENTITY_TYPE, id);
-      }
-    }
+    populateByUPAndDA<OwnershipTransferred>(ctx, ENTITY_TYPE);
   },
 
   // ---------------------------------------------------------------------------
@@ -101,10 +83,7 @@ const OwnershipTransferredPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
 
   async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    const entities = ctx.getEntities<OwnershipTransferred>(ENTITY_TYPE);
-    if (entities.size === 0) return;
-
-    await store.insert([...entities.values()]);
+    await insertEntities(store, ctx, ENTITY_TYPE);
   },
 
   // ---------------------------------------------------------------------------

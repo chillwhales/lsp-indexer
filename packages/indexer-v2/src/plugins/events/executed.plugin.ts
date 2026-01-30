@@ -15,9 +15,10 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { ERC725X } from '@chillwhales/abi';
-import { Executed, UniversalProfile } from '@chillwhales/typeorm';
+import { Executed } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
+import { insertEntities, populateByUP } from '@/core/pluginHelpers';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { decodeOperationType } from '@/utils';
 
@@ -63,17 +64,7 @@ const ExecutedPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
 
   populate(ctx: IBatchContext): void {
-    const entities = ctx.getEntities<Executed>(ENTITY_TYPE);
-
-    for (const [id, entity] of entities) {
-      if (ctx.isValid(EntityCategory.UniversalProfile, entity.address)) {
-        // Link to the verified Universal Profile
-        entity.universalProfile = new UniversalProfile({ id: entity.address });
-      } else {
-        // Emitting address is not a verified UP — remove the entity
-        ctx.removeEntity(ENTITY_TYPE, id);
-      }
-    }
+    populateByUP<Executed>(ctx, ENTITY_TYPE);
   },
 
   // ---------------------------------------------------------------------------
@@ -81,10 +72,7 @@ const ExecutedPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
 
   async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    const entities = ctx.getEntities<Executed>(ENTITY_TYPE);
-    if (entities.size === 0) return;
-
-    await store.insert([...entities.values()]);
+    await insertEntities(store, ctx, ENTITY_TYPE);
   },
 };
 
