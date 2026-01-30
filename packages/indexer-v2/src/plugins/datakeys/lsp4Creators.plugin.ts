@@ -38,7 +38,7 @@ import { LSP4Creator, LSP4CreatorsLength } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
-import { populateByDA, upsertEntities } from '@/core/pluginHelpers';
+import { mergeUpsertEntities, populateByDA, upsertEntities } from '@/core/pluginHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 
 // ---------------------------------------------------------------------------
@@ -105,7 +105,10 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
   async persist(store: Store, ctx: IBatchContext): Promise<void> {
     await Promise.all([
       upsertEntities(store, ctx, LENGTH_TYPE),
-      upsertEntities(store, ctx, CREATOR_TYPE),
+      // Merge-upsert: preserve existing non-null fields from prior batches.
+      // An Index-only event in this batch should not wipe interfaceId set
+      // by a Map event in a prior batch, and vice versa.
+      mergeUpsertEntities(store, ctx, CREATOR_TYPE, LSP4Creator, ['arrayIndex', 'interfaceId']),
     ]);
   },
 };
