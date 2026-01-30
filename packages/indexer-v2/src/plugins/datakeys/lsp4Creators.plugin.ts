@@ -41,7 +41,12 @@ import { LSP4Creator, LSP4CreatorsLength } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
-import { mergeUpsertEntities, populateByDA, upsertEntities } from '@/core/pluginHelpers';
+import {
+  enrichEntityFk,
+  mergeUpsertEntities,
+  populateByDA,
+  upsertEntities,
+} from '@/core/pluginHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 
 // ---------------------------------------------------------------------------
@@ -99,11 +104,14 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
 
   populate(ctx: IBatchContext): void {
     populateByDA<LSP4CreatorsLength>(ctx, LENGTH_TYPE);
-    populateByDA<LSP4Creator>(ctx, CREATOR_TYPE, {
-      category: EntityCategory.UniversalProfile,
-      addressField: 'creatorAddress',
-      fkField: 'creatorProfile',
-    });
+    populateByDA<LSP4Creator>(ctx, CREATOR_TYPE);
+    enrichEntityFk(
+      ctx,
+      CREATOR_TYPE,
+      EntityCategory.UniversalProfile,
+      'creatorAddress',
+      'creatorProfile',
+    );
   },
 
   // ---------------------------------------------------------------------------

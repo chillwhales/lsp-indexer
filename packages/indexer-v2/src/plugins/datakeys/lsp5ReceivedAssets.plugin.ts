@@ -41,7 +41,12 @@ import { LSP5ReceivedAsset, LSP5ReceivedAssetsLength } from '@chillwhales/typeor
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
-import { mergeUpsertEntities, populateByUP, upsertEntities } from '@/core/pluginHelpers';
+import {
+  enrichEntityFk,
+  mergeUpsertEntities,
+  populateByUP,
+  upsertEntities,
+} from '@/core/pluginHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 
 // ---------------------------------------------------------------------------
@@ -99,11 +104,14 @@ const LSP5ReceivedAssetsPlugin: DataKeyPlugin = {
 
   populate(ctx: IBatchContext): void {
     populateByUP<LSP5ReceivedAssetsLength>(ctx, LENGTH_TYPE);
-    populateByUP<LSP5ReceivedAsset>(ctx, RECEIVED_ASSET_TYPE, {
-      category: EntityCategory.DigitalAsset,
-      addressField: 'assetAddress',
-      fkField: 'receivedAsset',
-    });
+    populateByUP<LSP5ReceivedAsset>(ctx, RECEIVED_ASSET_TYPE);
+    enrichEntityFk(
+      ctx,
+      RECEIVED_ASSET_TYPE,
+      EntityCategory.DigitalAsset,
+      'assetAddress',
+      'receivedAsset',
+    );
   },
 
   // ---------------------------------------------------------------------------

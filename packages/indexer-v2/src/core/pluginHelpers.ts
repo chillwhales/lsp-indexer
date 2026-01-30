@@ -18,56 +18,14 @@ import { EntityCategory, IBatchContext } from './types';
 // ---------------------------------------------------------------------------
 
 /**
- * Optional secondary FK configuration for populate helpers.
- *
- * When provided, links an additional FK from a secondary address field
- * to a verified entity. Unlike the primary FK, this is optional enrichment —
- * entities are NOT removed when the secondary address is unverified.
- *
- * @param category     - Entity category to verify against (UP or DA)
- * @param addressField - Entity field containing the address to verify (e.g. 'creatorAddress')
- * @param fkField      - Entity field to write the FK reference to (e.g. 'creatorProfile')
- */
-interface SecondaryFk {
-  category: EntityCategory;
-  addressField: string;
-  fkField: string;
-}
-
-/**
- * Link a secondary FK on entities that survived the primary populate pass.
- *
- * Shared logic for both populateByUP and populateByDA — runs after the
- * primary loop so only surviving (valid) entities are enriched.
- */
-function enrichSecondaryFk(ctx: IBatchContext, entityType: string, secondary: SecondaryFk): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const entities = ctx.getEntities<Record<string, any>>(entityType);
-  const createRef =
-    secondary.category === EntityCategory.UniversalProfile
-      ? (addr: string) => new UniversalProfile({ id: addr })
-      : (addr: string) => new DigitalAsset({ id: addr });
-
-  for (const entity of entities.values()) {
-    const addr = entity[secondary.addressField] as string;
-    entity[secondary.fkField] = ctx.isValid(secondary.category, addr) ? createRef(addr) : null;
-  }
-}
-
-/**
  * Populate entities that require a verified UniversalProfile.
  *
  * Links `entity.universalProfile` for valid addresses, removes entity if invalid.
- *
- * When `secondary` is provided, also links an optional FK on a different
- * address field (entity is kept regardless of secondary verification result).
- *
- * Used by: Executed, UniversalReceiver, LSP5ReceivedAssets (+ secondary DA).
+ * Used by: Executed, UniversalReceiver, LSP5ReceivedAssets.
  */
 export function populateByUP<T extends { address: string; universalProfile?: unknown }>(
   ctx: IBatchContext,
   entityType: string,
-  secondary?: SecondaryFk,
 ): void {
   const entities = ctx.getEntities<T>(entityType);
 
@@ -78,26 +36,17 @@ export function populateByUP<T extends { address: string; universalProfile?: unk
       ctx.removeEntity(entityType, id);
     }
   }
-
-  if (secondary) {
-    enrichSecondaryFk(ctx, entityType, secondary);
-  }
 }
 
 /**
  * Populate entities that require a verified DigitalAsset.
  *
  * Links `entity.digitalAsset` for valid addresses, removes entity if invalid.
- *
- * When `secondary` is provided, also links an optional FK on a different
- * address field (entity is kept regardless of secondary verification result).
- *
- * Used by: LSP7Transfer, LSP8Transfer, LSP4Creators (+ secondary UP).
+ * Used by: LSP7Transfer, and the NFT sub-loop in LSP8Transfer/TokenIdDataChanged.
  */
 export function populateByDA<T extends { address: string; digitalAsset?: unknown }>(
   ctx: IBatchContext,
   entityType: string,
-  secondary?: SecondaryFk,
 ): void {
   const entities = ctx.getEntities<T>(entityType);
 
@@ -108,9 +57,38 @@ export function populateByDA<T extends { address: string; digitalAsset?: unknown
       ctx.removeEntity(entityType, id);
     }
   }
+}
 
-  if (secondary) {
-    enrichSecondaryFk(ctx, entityType, secondary);
+/**
+ * Enrich entities with an optional FK linking a secondary address to a verified entity.
+ *
+ * Unlike the primary populate helpers (populateByUP/populateByDA), this does NOT
+ * remove entities when the address is unverified — it sets the FK to null instead.
+ * Should be called after the primary populate pass so only surviving entities are enriched.
+ *
+ * @param ctx          - BatchContext with entities
+ * @param entityType   - Entity type key in the BatchContext bag
+ * @param category     - Entity category to verify against (UP or DA)
+ * @param addressField - Entity field containing the address to verify (e.g. 'creatorAddress')
+ * @param fkField      - Entity field to write the FK reference to (e.g. 'creatorProfile')
+ */
+export function enrichEntityFk(
+  ctx: IBatchContext,
+  entityType: string,
+  category: EntityCategory,
+  addressField: string,
+  fkField: string,
+): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const entities = ctx.getEntities<Record<string, any>>(entityType);
+  const createRef =
+    category === EntityCategory.UniversalProfile
+      ? (addr: string) => new UniversalProfile({ id: addr })
+      : (addr: string) => new DigitalAsset({ id: addr });
+
+  for (const entity of entities.values()) {
+    const addr = entity[addressField] as string;
+    entity[fkField] = ctx.isValid(category, addr) ? createRef(addr) : null;
   }
 }
 
