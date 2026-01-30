@@ -1,4 +1,4 @@
-import { OperationType } from '@chillwhales/typeorm';
+import { LSP4TokenTypeEnum, OperationType } from '@chillwhales/typeorm';
 import ERC725 from '@erc725/erc725.js';
 import { hexToNumber, isHex } from 'viem';
 
@@ -81,6 +81,23 @@ export function generateFollowId({
   followedAddress: string;
 }): string {
   return `${followerAddress} - ${followedAddress}`;
+}
+
+/**
+ * Map LSP4 token type integer to the LSP4TokenTypeEnum.
+ *
+ * 0 = TOKEN, 1 = NFT, 2 = COLLECTION.
+ *
+ * Port from v1: utils/index.ts decodeTokenType()
+ */
+export function decodeTokenType(tokenType: number): LSP4TokenTypeEnum | null {
+  return tokenType === 0
+    ? LSP4TokenTypeEnum.TOKEN
+    : tokenType === 1
+      ? LSP4TokenTypeEnum.NFT
+      : tokenType === 2
+        ? LSP4TokenTypeEnum.COLLECTION
+        : null;
 }
 
 /**
