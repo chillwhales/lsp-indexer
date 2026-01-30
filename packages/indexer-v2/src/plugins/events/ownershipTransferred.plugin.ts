@@ -82,17 +82,13 @@ const OwnershipTransferredPlugin: EventPlugin = {
       const isUP = ctx.isValid(EntityCategory.UniversalProfile, entity.address);
       const isDA = ctx.isValid(EntityCategory.DigitalAsset, entity.address);
 
-      if (isUP) {
-        entity.universalProfile = new UniversalProfile({ id: entity.address });
-      }
-      if (isDA) {
-        entity.digitalAsset = new DigitalAsset({ id: entity.address });
-      }
-
-      // If neither UP nor DA, remove the entity
       if (!isUP && !isDA) {
         ctx.removeEntity(ENTITY_TYPE, id);
+        continue;
       }
+
+      entity.universalProfile = isUP ? new UniversalProfile({ id: entity.address }) : null;
+      entity.digitalAsset = isDA ? new DigitalAsset({ id: entity.address }) : null;
     }
   },
 
