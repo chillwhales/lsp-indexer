@@ -22,6 +22,9 @@
  * interfaceId. If both fire in the same batch (typical), the second
  * upserts into the existing entity, filling in any missing fields.
  *
+ * creatorAddress is tracked for UniversalProfile verification so the
+ * optional `creatorProfile` FK can be populated when the creator is a UP.
+ *
  * Invalid Item entries (dataValue not a valid 20-byte address) are skipped
  * entirely — no garbage entities to clean up later.
  *
@@ -34,7 +37,7 @@
  */
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 
-import { LSP4Creator, LSP4CreatorsLength } from '@chillwhales/typeorm';
+import { LSP4Creator, LSP4CreatorsLength, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
@@ -56,7 +59,7 @@ const LSP4_CREATORS_MAP_PREFIX: string = LSP4DataKeys.LSP4CreatorsMap;
 
 const LSP4CreatorsPlugin: DataKeyPlugin = {
   name: 'lsp4Creators',
-  requiresVerification: [EntityCategory.DigitalAsset],
+  requiresVerification: [EntityCategory.DigitalAsset, EntityCategory.UniversalProfile],
 
   // ---------------------------------------------------------------------------
   // Matching
@@ -86,7 +89,8 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
       extractFromMap(address, dataKey, dataValue, timestamp, ctx);
     }
 
-    // Address tracking is handled by the DataChanged meta-plugin (parent)
+    // DA address tracking is handled by the DataChanged meta-plugin (parent).
+    // Creator addresses are tracked here for UP verification (creatorProfile FK).
   },
 
   // ---------------------------------------------------------------------------
@@ -96,6 +100,14 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
   populate(ctx: IBatchContext): void {
     populateByDA<LSP4CreatorsLength>(ctx, LENGTH_TYPE);
     populateByDA<LSP4Creator>(ctx, CREATOR_TYPE);
+
+    // Enrich: link creatorProfile if the creator address is a verified UP
+    const creators = ctx.getEntities<LSP4Creator>(CREATOR_TYPE);
+    for (const creator of creators.values()) {
+      creator.creatorProfile = ctx.isValid(EntityCategory.UniversalProfile, creator.creatorAddress)
+        ? new UniversalProfile({ id: creator.creatorAddress })
+        : null;
+    }
   },
 
   // ---------------------------------------------------------------------------
@@ -108,7 +120,11 @@ const LSP4CreatorsPlugin: DataKeyPlugin = {
       // Merge-upsert: preserve existing non-null fields from prior batches.
       // An Index-only event in this batch should not wipe interfaceId set
       // by a Map event in a prior batch, and vice versa.
-      mergeUpsertEntities(store, ctx, CREATOR_TYPE, LSP4Creator, ['arrayIndex', 'interfaceId']),
+      mergeUpsertEntities(store, ctx, CREATOR_TYPE, LSP4Creator, [
+        'arrayIndex',
+        'interfaceId',
+        'creatorProfile',
+      ]),
     ]);
   },
 };
@@ -169,6 +185,9 @@ function extractFromIndex(
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
   const id = `${address} - ${creatorAddress}`;
 
+  // Track creator for UP verification (creatorProfile FK)
+  ctx.trackAddress(EntityCategory.UniversalProfile, creatorAddress);
+
   // Check if a Map event already created this entity in the same batch
   const existing = ctx.getEntities<LSP4Creator>(CREATOR_TYPE).get(id);
   if (existing) {
@@ -213,6 +232,9 @@ function extractFromMap(
   const interfaceId = isValidValue ? bytesToHex(dataValueBytes.slice(0, 4)) : null;
   const arrayIndex = isValidValue ? bytesToBigInt(dataValueBytes.slice(4)) : null;
   const id = `${address} - ${creatorAddress}`;
+
+  // Track creator for UP verification (creatorProfile FK)
+  ctx.trackAddress(EntityCategory.UniversalProfile, creatorAddress);
 
   // Check if an Index event already created this entity in the same batch
   const existing = ctx.getEntities<LSP4Creator>(CREATOR_TYPE).get(id);
