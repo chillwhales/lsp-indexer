@@ -31,6 +31,7 @@ import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
 import { DigitalAsset, NFT, Transfer } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
+import { insertEntities, populateByDA, upsertEntities } from '@/core/pluginHelpers';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { generateTokenId } from '@/utils';
 
@@ -115,14 +116,13 @@ const LSP8TransferPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
 
   populate(ctx: IBatchContext): void {
-    // Populate Transfer entities — link to verified DigitalAsset
+    // Populate Transfer entities — link to verified DigitalAsset + enrich NFT ref
     const transfers = ctx.getEntities<Transfer>(TRANSFER_TYPE);
 
     for (const [id, entity] of transfers) {
       if (ctx.isValid(EntityCategory.DigitalAsset, entity.address)) {
         entity.digitalAsset = new DigitalAsset({ id: entity.address });
 
-        // Enrich the Transfer's NFT reference with the DA relation
         if (entity.nft) {
           entity.nft = new NFT({
             ...entity.nft,
@@ -130,21 +130,12 @@ const LSP8TransferPlugin: EventPlugin = {
           });
         }
       } else {
-        // Contract is not a verified DigitalAsset — remove the transfer
         ctx.removeEntity(TRANSFER_TYPE, id);
       }
     }
 
     // Populate NFT entities — link to verified DigitalAsset
-    const nfts = ctx.getEntities<NFT>(NFT_TYPE);
-
-    for (const [id, entity] of nfts) {
-      if (ctx.isValid(EntityCategory.DigitalAsset, entity.address)) {
-        entity.digitalAsset = new DigitalAsset({ id: entity.address });
-      } else {
-        ctx.removeEntity(NFT_TYPE, id);
-      }
-    }
+    populateByDA<NFT>(ctx, NFT_TYPE);
   },
 
   // ---------------------------------------------------------------------------
@@ -153,16 +144,8 @@ const LSP8TransferPlugin: EventPlugin = {
 
   async persist(store: Store, ctx: IBatchContext): Promise<void> {
     // Upsert NFTs first (Transfers have FK references to NFTs)
-    const nfts = ctx.getEntities<NFT>(NFT_TYPE);
-    if (nfts.size > 0) {
-      await store.upsert([...nfts.values()]);
-    }
-
-    // Insert Transfer entities
-    const transfers = ctx.getEntities<Transfer>(TRANSFER_TYPE);
-    if (transfers.size > 0) {
-      await store.insert([...transfers.values()]);
-    }
+    await upsertEntities(store, ctx, NFT_TYPE);
+    await insertEntities(store, ctx, TRANSFER_TYPE);
   },
 };
 

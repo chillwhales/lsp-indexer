@@ -25,9 +25,10 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { ERC725Y } from '@chillwhales/abi';
-import { DataChanged, DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
+import { DataChanged } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
+import { insertEntities, populateByUPAndDA } from '@/core/pluginHelpers';
 import {
   Block,
   EntityCategory,
@@ -92,23 +93,7 @@ export function createDataChangedPlugin(registry: IPluginRegistry): EventPlugin 
     // -------------------------------------------------------------------------
 
     populate(ctx: IBatchContext): void {
-      const entities = ctx.getEntities<DataChanged>(DATA_CHANGED_TYPE);
-
-      for (const [id, entity] of entities) {
-        const isUP = ctx.isValid(EntityCategory.UniversalProfile, entity.address);
-        const isDA = ctx.isValid(EntityCategory.DigitalAsset, entity.address);
-
-        if (!isUP && !isDA) {
-          // Address is neither a verified UP nor DA — remove entity
-          ctx.removeEntity(DATA_CHANGED_TYPE, id);
-          continue;
-        }
-
-        // Link to whichever parent(s) the address verified as
-        // (an address can be both a UP and a DA, or only one)
-        entity.universalProfile = isUP ? new UniversalProfile({ id: entity.address }) : null;
-        entity.digitalAsset = isDA ? new DigitalAsset({ id: entity.address }) : null;
-      }
+      populateByUPAndDA<DataChanged>(ctx, DATA_CHANGED_TYPE);
 
       // DataKeyPlugins handle their own populate — they are called
       // by the pipeline via registry.getActivePlugins()
@@ -119,10 +104,7 @@ export function createDataChangedPlugin(registry: IPluginRegistry): EventPlugin 
     // -------------------------------------------------------------------------
 
     async persist(store: Store, ctx: IBatchContext): Promise<void> {
-      const entities = ctx.getEntities<DataChanged>(DATA_CHANGED_TYPE);
-      if (entities.size > 0) {
-        await store.insert([...entities.values()]);
-      }
+      await insertEntities(store, ctx, DATA_CHANGED_TYPE);
 
       // DataKeyPlugins handle their own persist — they are called
       // by the pipeline via registry.getActivePlugins()

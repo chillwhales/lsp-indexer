@@ -24,6 +24,7 @@ import { Follower, Unfollow, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
 import { LSP26_ADDRESS } from '@/constants';
+import { insertEntities } from '@/core/pluginHelpers';
 import {
   Block,
   EntityCategory,
@@ -95,11 +96,7 @@ const UnfollowPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
 
   async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    const entities = ctx.getEntities<Unfollow>(ENTITY_TYPE);
-    if (entities.size === 0) return;
-
-    // Raw event log — append-only with UUID ids
-    await store.insert([...entities.values()]);
+    await insertEntities(store, ctx, ENTITY_TYPE);
   },
 
   // ---------------------------------------------------------------------------

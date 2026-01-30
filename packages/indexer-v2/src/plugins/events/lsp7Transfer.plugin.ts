@@ -19,9 +19,10 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { LSP7DigitalAsset } from '@chillwhales/abi';
-import { DigitalAsset, Transfer } from '@chillwhales/typeorm';
+import { Transfer } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
+import { insertEntities, populateByDA } from '@/core/pluginHelpers';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 
 // Entity type key used in the BatchContext entity bag
@@ -71,16 +72,7 @@ const LSP7TransferPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
 
   populate(ctx: IBatchContext): void {
-    const entities = ctx.getEntities<Transfer>(ENTITY_TYPE);
-
-    for (const [id, entity] of entities) {
-      if (ctx.isValid(EntityCategory.DigitalAsset, entity.address)) {
-        entity.digitalAsset = new DigitalAsset({ id: entity.address });
-      } else {
-        // Contract is not a verified DigitalAsset — remove the transfer
-        ctx.removeEntity(ENTITY_TYPE, id);
-      }
-    }
+    populateByDA<Transfer>(ctx, ENTITY_TYPE);
   },
 
   // ---------------------------------------------------------------------------
@@ -88,10 +80,7 @@ const LSP7TransferPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
 
   async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    const entities = ctx.getEntities<Transfer>(ENTITY_TYPE);
-    if (entities.size === 0) return;
-
-    await store.insert([...entities.values()]);
+    await insertEntities(store, ctx, ENTITY_TYPE);
   },
 };
 
