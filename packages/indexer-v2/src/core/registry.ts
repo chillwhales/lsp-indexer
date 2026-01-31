@@ -160,6 +160,8 @@ export class PluginRegistry implements IPluginRegistry {
    * Scans for *.handler.js files (compiled from *.handler.ts), imports them,
    * validates they implement the EntityHandler interface, and registers them.
    *
+   * TODO: Wire this into bootstrap in Phase 6 (issue #58: Entry point & startup wiring)
+   *
    * @throws Error if duplicate handler names are found.
    */
   discoverHandlers(handlerDirs: string[]): void {

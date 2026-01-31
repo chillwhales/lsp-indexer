@@ -63,8 +63,16 @@ const DecimalsHandler: EntityHandler = {
             callData: LSP7DigitalAsset.functions.decimals.encode({}),
           })),
         );
-      } catch {
+      } catch (error) {
         // Skip this batch — some assets won't get decimals
+        context.log.warn(
+          JSON.stringify({
+            message: 'Multicall3 batch failed for decimals, skipping batch',
+            batchIndex: index,
+            batchSize: batch.length,
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        );
         continue;
       }
 
@@ -100,7 +108,7 @@ const DecimalsHandler: EntityHandler = {
       context.log.info(
         JSON.stringify({
           message: "Inserting new 'Decimals' entities.",
-          DecimalsEntitiesCount: newDecimalEntities.length,
+          decimalsEntitiesCount: newDecimalEntities.length,
         }),
       );
 

@@ -30,6 +30,14 @@ export enum EntityCategory {
 // Verification result returned per EntityCategory
 // ---------------------------------------------------------------------------
 
+/**
+ * Result of verifying a set of addresses for a given EntityCategory.
+ *
+ * The `new` set and `newEntities` map always have the same keys — both
+ * represent the addresses that were verified for the first time in this batch.
+ * `new` provides fast Set-based lookups; `newEntities` provides the actual
+ * entity instances to persist and reference in Phase 5 handlers.
+ */
 export interface VerificationResult {
   /** Addresses that are new (first seen this batch) and valid */
   new: Set<string>;
@@ -278,7 +286,9 @@ export enum EntityEvent {
  *
  * The `listensTo` × `events` fields form a Cartesian product of subscriptions.
  * For example, `listensTo: [DA, UP]` + `events: [Create]` means the handler
- * is called for both new DAs and new UPs.
+ * is called twice per batch: once when new DAs are created, and once when
+ * new UPs are created. Each invocation receives the specific category via
+ * the `triggeredBy` parameter.
  *
  * Adding a new handler = creating 1 new file implementing this interface.
  */
