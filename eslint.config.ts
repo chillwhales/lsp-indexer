@@ -33,9 +33,7 @@ export default tseslint.config(
         ...globals.node,
       },
       parserOptions: {
-        projectService: {
-          allowDefaultProject: ['eslint.config.mjs'],
-        },
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -101,13 +99,5 @@ export default tseslint.config(
       'no-duplicate-imports': 'error',
       'prefer-const': 'error',
     },
-  },
-
-  // ---- Config file overrides --------------------------------------------------
-  // eslint.config.mjs is JS, not TS — disable type-checked rules that produce
-  // false positives on unresolved types from @eslint/js, globals, etc.
-  {
-    files: ['eslint.config.mjs'],
-    ...tseslint.configs.disableTypeChecked,
   },
 );
