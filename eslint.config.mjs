@@ -97,7 +97,7 @@ export default tseslint.config(
 
       // -- General quality rules ------------------------------------------------
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
-      eqeqeq: ['error', 'always'],
+      eqeqeq: ['error', 'smart'],
       'no-duplicate-imports': 'error',
       'prefer-const': 'error',
     },
