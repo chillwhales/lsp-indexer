@@ -1,5 +1,4 @@
-import { MULTICALL_ADDRESS } from '@/constants';
-import { LSP0ERC725Account, LSP7DigitalAsset, Multicall3 } from '@chillwhales/abi';
+import { LSP0ERC725Account, LSP7DigitalAsset } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
 import { INTERFACE_ID_LSP0 } from '@lukso/lsp0-contracts';
@@ -8,6 +7,8 @@ import { INTERFACE_ID_LSP8, INTERFACE_ID_LSP8_PREVIOUS } from '@lukso/lsp8-contr
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { hexToBool, isHex } from 'viem';
+
+import { aggregate3StaticLatest } from './multicall';
 import { Context, EntityCategory, VerificationResult } from './types';
 
 // ---------------------------------------------------------------------------
@@ -138,25 +139,6 @@ export class VerificationCache {
 // ---------------------------------------------------------------------------
 
 const DEFAULT_BATCH_SIZE = 100;
-
-/**
- * Execute a Multicall3.aggregate3Static call against the latest block
- * using raw eth_call (same as v1).
- */
-async function aggregate3StaticLatest(
-  context: Context,
-  calls: Multicall3.Aggregate3StaticParams['calls'],
-): Promise<Aggregate3StaticReturn> {
-  const result = await context._chain.client.call<string>('eth_call', [
-    {
-      from: null,
-      to: MULTICALL_ADDRESS,
-      data: Multicall3.functions.aggregate3Static.encode({ calls }),
-    },
-    'latest',
-  ]);
-  return Multicall3.functions.aggregate3Static.decodeResult(result);
-}
 
 /**
  * Batch-verify a list of addresses against a single interface version

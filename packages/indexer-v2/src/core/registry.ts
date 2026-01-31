@@ -1,7 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
+
 import {
   DataKeyPlugin,
+  EntityCategory,
+  EntityHandler,
   EventPlugin,
   IBatchContext,
   IPluginRegistry,
@@ -42,6 +45,15 @@ function isDataKeyPlugin(obj: unknown): obj is DataKeyPlugin {
 }
 
 /**
+ * Type guard: does the object satisfy the EntityHandler interface?
+ */
+function isEntityHandler(obj: unknown): obj is EntityHandler {
+  if (typeof obj !== 'object' || obj === null) return false;
+  const p = obj as Record<string, unknown>;
+  return typeof p.name === 'string' && Array.isArray(p.listensTo) && typeof p.handle === 'function';
+}
+
+/**
  * Recursively find all files matching a pattern in a directory.
  */
 function findFiles(dir: string, suffix: string): string[] {
@@ -67,13 +79,17 @@ function findFiles(dir: string, suffix: string): string[] {
  * - Event plugins are indexed by topic0 for O(1) routing.
  * - Data key plugins are stored in an ordered list; matches() is called
  *   sequentially until one claims the key.
+ * - Entity handlers are indexed by EntityCategory for O(1) filtering.
  * - Plugins are auto-discovered from directories by file naming convention
  *   (*.plugin.ts in source, *.plugin.js when compiled).
+ * - Handlers are auto-discovered from directories by file naming convention
+ *   (*.handler.ts in source, *.handler.js when compiled).
  */
 export class PluginRegistry implements IPluginRegistry {
   private readonly eventPlugins = new Map<string, EventPlugin>();
   private readonly dataKeyPlugins: DataKeyPlugin[] = [];
   private readonly allPlugins: Plugin[] = [];
+  private readonly entityHandlers: EntityHandler[] = [];
 
   /**
    * Discover and register all plugins from the given directories.
@@ -125,6 +141,39 @@ export class PluginRegistry implements IPluginRegistry {
   }
 
   /**
+   * Discover and register all entity handlers from the given directories.
+   *
+   * Scans for *.handler.js files (compiled from *.handler.ts), imports them,
+   * validates they implement the EntityHandler interface, and registers them.
+   */
+  discoverHandlers(handlerDirs: string[]): void {
+    for (const dir of handlerDirs) {
+      const files = findFiles(dir, '.handler.js');
+
+      for (const file of files) {
+        // Dynamic handler loading from compiled JS files at runtime
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const loaded: unknown = require(file);
+        const moduleObj = loaded as Record<string, unknown> | null;
+        const handler: unknown = moduleObj?.default ?? moduleObj?.handler;
+
+        if (!handler) {
+          console.warn(`[Registry] No default/handler export in ${file}, skipping`);
+          continue;
+        }
+
+        if (isEntityHandler(handler)) {
+          this.entityHandlers.push(handler);
+        } else {
+          console.warn(`[Registry] Export in ${file} does not implement EntityHandler, skipping`);
+        }
+      }
+    }
+
+    console.info(`[Registry] Discovered ${this.entityHandlers.length} entity handlers`);
+  }
+
+  /**
    * Register a plugin directly (useful for testing or manual wiring).
    */
   registerEventPlugin(plugin: EventPlugin): void {
@@ -144,6 +193,13 @@ export class PluginRegistry implements IPluginRegistry {
   registerDataKeyPlugin(plugin: DataKeyPlugin): void {
     this.dataKeyPlugins.push(plugin);
     this.allPlugins.push(plugin);
+  }
+
+  /**
+   * Register an entity handler directly (useful for testing or manual wiring).
+   */
+  registerEntityHandler(handler: EntityHandler): void {
+    this.entityHandlers.push(handler);
   }
 
   // -------------------------------------------------------------------------
@@ -190,6 +246,20 @@ export class PluginRegistry implements IPluginRegistry {
    */
   getAllHandlers(): Plugin[] {
     return this.allPlugins.filter((p) => typeof p.handle === 'function');
+  }
+
+  /**
+   * Get all registered entity handlers.
+   */
+  getAllEntityHandlers(): EntityHandler[] {
+    return [...this.entityHandlers];
+  }
+
+  /**
+   * Get entity handlers that listen to a specific category.
+   */
+  getEntityHandlers(category: EntityCategory): EntityHandler[] {
+    return this.entityHandlers.filter((h) => h.listensTo.includes(category));
   }
 
   // -------------------------------------------------------------------------

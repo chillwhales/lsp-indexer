@@ -132,8 +132,19 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     workerPool,
   };
 
+  // Phase 5a: Plugin handlers (plugins with handle() methods)
   for (const handler of registry.getAllHandlers()) {
     if (handler.handle) {
+      await handler.handle(handlerCtx);
+    }
+  }
+
+  // Phase 5b: Entity handlers — triggered by new entity creation events
+  for (const category of categories) {
+    const verified = batchCtx.getVerified(category);
+    if (verified.new.size === 0) continue;
+
+    for (const handler of registry.getEntityHandlers(category)) {
       await handler.handle(handlerCtx);
     }
   }

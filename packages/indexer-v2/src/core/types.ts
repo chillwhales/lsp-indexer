@@ -244,6 +244,35 @@ export interface DataKeyPlugin {
 export type Plugin = EventPlugin | DataKeyPlugin;
 
 // ---------------------------------------------------------------------------
+// Entity handler interface (Phase 5 handlers triggered by new entity creation)
+// ---------------------------------------------------------------------------
+
+/**
+ * EntityHandler — reacts to newly created core entities (UP, DA, NFT).
+ *
+ * Unlike EventPlugin/DataKeyPlugin which process blockchain events,
+ * EntityHandlers run in Phase 5 after new entities are verified and persisted.
+ * They listen to entity creation events (e.g., "new DigitalAssets discovered")
+ * and perform post-processing (e.g., fetch decimals, update counts).
+ *
+ * Adding a new handler = creating 1 new file implementing this interface.
+ */
+export interface EntityHandler {
+  /** Unique handler name (e.g. 'decimals', 'totalSupply') */
+  readonly name: string;
+
+  /** Which entity categories this handler listens to */
+  readonly listensTo: EntityCategory[];
+
+  /**
+   * Phase 5: Called when new entities of subscribed categories are created.
+   * The handler can access newly verified entities via
+   * `hctx.batchCtx.getVerified(category).newEntities`.
+   */
+  handle(hctx: HandlerContext): Promise<void>;
+}
+
+// ---------------------------------------------------------------------------
 // Plugin registry interface (implemented in registry.ts, issue #15)
 // ---------------------------------------------------------------------------
 
@@ -268,6 +297,12 @@ export interface IPluginRegistry {
 
   /** Get all plugins with a handle() method */
   getAllHandlers(): Plugin[];
+
+  /** Get all registered entity handlers */
+  getAllEntityHandlers(): EntityHandler[];
+
+  /** Get entity handlers that listen to a specific category */
+  getEntityHandlers(category: EntityCategory): EntityHandler[];
 
   /** Get aggregated log subscriptions for processor config */
   getLogSubscriptions(): LogSubscription[];

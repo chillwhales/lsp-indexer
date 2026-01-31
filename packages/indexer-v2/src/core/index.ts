@@ -2,6 +2,7 @@
 export * from './batchContext';
 export * from './handlerHelpers';
 export * from './metadataWorkerPool';
+export * from './multicall';
 export * from './persistHelpers';
 export * from './pipeline';
 export * from './populateHelpers';
