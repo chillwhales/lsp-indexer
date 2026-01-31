@@ -205,7 +205,7 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
    * Uses round-robin distribution for even load.
    */
   private distribute(requests: FetchRequest[]): FetchRequest[][] {
-    const chunks: FetchRequest[][] = this.workers.map(() => []);
+    const chunks: FetchRequest[][] = this.workers.map((): FetchRequest[] => []);
     for (let i = 0; i < requests.length; i++) {
       chunks[i % this.workers.length].push(requests[i]);
     }

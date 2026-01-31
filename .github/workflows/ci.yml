@@ -48,11 +48,13 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Codegen must run before lint so TypeORM/ABI types are available
-      - name: Generate codegen outputs
+      # Full build of dependency packages so lib/ type declarations are
+      # available for ESLint's type-checked rules (codegen alone only
+      # produces src/ — the package entry points reference lib/).
+      - name: Build dependency packages
         run: |
-          pnpm --filter=@chillwhales/abi codegen
-          pnpm --filter=@chillwhales/typeorm codegen
+          pnpm --filter=@chillwhales/abi build
+          pnpm --filter=@chillwhales/typeorm build
 
       - run: pnpm lint
 
