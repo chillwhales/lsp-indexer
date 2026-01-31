@@ -93,7 +93,7 @@ function findFiles(dir: string, suffix: string): string[] {
  * - Event plugins are indexed by topic0 for O(1) routing.
  * - Data key plugins are stored in an ordered list; matches() is called
  *   sequentially until one claims the key.
- * - Entity handlers are stored in a list and filtered by EntityCategory.
+ * - Entity handlers are stored in a list and filtered by EntityCategory × EntityEvent.
  * - Plugins are auto-discovered from directories by file naming convention
  *   (*.plugin.ts in source, *.plugin.js when compiled).
  * - Handlers are auto-discovered from directories by file naming convention

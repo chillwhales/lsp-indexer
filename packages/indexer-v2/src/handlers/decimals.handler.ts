@@ -77,6 +77,7 @@ const DecimalsHandler: EntityHandler = {
               new Decimals({
                 id: da.id,
                 address: da.id,
+                // Cast is safe: verification.ts creates DigitalAsset instances for this category
                 digitalAsset: da as DigitalAsset,
                 value: hexToNumber(result.returnData),
               }),
