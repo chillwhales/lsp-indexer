@@ -141,3 +141,37 @@ export function decodeOperationType(operationType: bigint): OperationType | null
       return null;
   }
 }
+
+/**
+ * Generate a deterministic OwnedAsset entity ID from owner and contract address.
+ *
+ * Format: `"{owner} - {address}"`
+ * Port from v1: utils/index.ts generateOwnedAssetId()
+ */
+export function generateOwnedAssetId({
+  owner,
+  address,
+}: {
+  owner: string;
+  address: string;
+}): string {
+  return `${owner} - ${address}`;
+}
+
+/**
+ * Generate a deterministic OwnedToken entity ID from owner, contract address, and tokenId.
+ *
+ * Format: `"{owner} - {address} - {tokenId}"`
+ * Port from v1: utils/index.ts generateOwnedTokenId()
+ */
+export function generateOwnedTokenId({
+  owner,
+  address,
+  tokenId,
+}: {
+  owner: string;
+  address: string;
+  tokenId: string;
+}): string {
+  return `${owner} - ${address} - ${tokenId}`;
+}

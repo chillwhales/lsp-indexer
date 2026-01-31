@@ -16,7 +16,7 @@
  *   - scanner.ts L429-438 (event matching)
  *   - utils/transfer/index.ts (extract + populate)
  */
-import { updateTotalSupply } from '@/core/handlerHelpers';
+import { updateOwnedAssets, updateTotalSupply } from '@/core/handlerHelpers';
 import { insertEntities } from '@/core/persistHelpers';
 import { populateByDA } from '@/core/populateHelpers';
 import {
@@ -91,14 +91,18 @@ const LSP7TransferPlugin: EventPlugin = {
   },
 
   // ---------------------------------------------------------------------------
-  // Phase 5: HANDLE — Update total supply for LSP7 mints/burns
+  // Phase 5: HANDLE — Update total supply + owned assets for LSP7 transfers
   // ---------------------------------------------------------------------------
 
   async handle(hctx: HandlerContext): Promise<void> {
     const entities = hctx.batchCtx.getEntities<Transfer>(ENTITY_TYPE);
     if (entities.size === 0) return;
 
-    await updateTotalSupply(hctx.store, [...entities.values()]);
+    const transferList = [...entities.values()];
+    const validUPs = hctx.batchCtx.getVerified(EntityCategory.UniversalProfile).valid;
+
+    await updateTotalSupply(hctx.store, transferList);
+    await updateOwnedAssets(hctx.store, transferList, validUPs);
   },
 };
 
