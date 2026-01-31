@@ -133,34 +133,149 @@ Before starting work: check for existing issue (`gh issue list --search "..."`),
 
 ## Key Architecture Patterns (indexer-v2)
 
-### Plugin Structure
+### Enrichment Queue Architecture
 
-Every plugin implements `EventPlugin` or `DataKeyPlugin` interface with phases: `extract()` -> `populate()` -> `persist()` and optional `handle()`, `clearSubEntities()`.
+**Philosophy**: Store all raw blockchain data, regardless of verification. FK references to UniversalProfile, DigitalAsset, and NFT entities are resolved via an enrichment queue after verification. Invalid addresses result in null FKs rather than entity removal.
 
-### Persist Strategies
+### Pipeline (6 steps)
 
-| Helper                | When to Use                                                              |
-| --------------------- | ------------------------------------------------------------------------ |
-| `insertEntities`      | Append-only event logs (UUID ids)                                        |
-| `upsertEntities`      | Single-source deterministic entities                                     |
-| `insertNewEntities`   | FK stubs that must not overwrite other plugins' data                     |
-| `mergeUpsertEntities` | Multi-source merged entities (reads DB first, preserves non-null fields) |
+```
+1. EXTRACT           EventPlugins decode events → BatchContext, queue enrichments
+2. PERSIST RAW       Batch-persist all raw event entities from step 1
+3. HANDLE            EntityHandlers run → derived entities into BatchContext, queue enrichments
+4. PERSIST DERIVED   Batch-persist all handler entities from step 3
+5. VERIFY            Collect unique addresses from enrichment queue, batch supportsInterface()
+                     Create core entities (UP, DA, NFT) for valid addresses only
+6. ENRICH            Group enrichment requests by (entityType, entityId)
+                     Batch UPDATE FK references on already-persisted entities
+```
 
-**Critical**: `store.upsert()` does full row replacement. Multi-source entities MUST use `mergeUpsertEntities` to prevent cross-batch data loss.
+### EventPlugin Structure
 
-### Populate Helpers
+EventPlugins are **pure extractors**:
 
-All plugins must use shared helpers from `core/pluginHelpers.ts`:
+- Decode blockchain events into base entities
+- Store entities in BatchContext with **null FK references initially**
+- Queue enrichment requests via `ctx.queueEnrichment()` for FK resolution
+- The pipeline handles all persistence (no `persist()` method on plugins)
 
-- `populateByUP` — link to verified UniversalProfile
-- `populateByDA` — link to verified DigitalAsset
-- `populateByUPAndDA` — link to either/both
+```typescript
+const LSP7TransferPlugin: EventPlugin = {
+  name: 'lsp7Transfer',
+  topic0: LSP7DigitalAsset.events.Transfer.topic,
+  requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
-### Entity Type Constants
+  extract(log, block, ctx) {
+    // Decode event
+    const { from, to, amount } = LSP7DigitalAsset.events.Transfer.decode(log);
 
-Each plugin declares: `const ENTITY_TYPE = 'EntityName'` for BatchContext keys.
+    // Create base entity with null FKs
+    const entity = new Transfer({
+      id: uuidv4(),
+      address: log.address,
+      from,
+      to,
+      amount,
+      digitalAsset: null, // FK initially null
+    });
 
-### DataKeyPlugins
+    // Add to BatchContext
+    ctx.addEntity('LSP7Transfer', entity.id, entity);
 
-- Do NOT call `ctx.trackAddress()` — the parent DataChanged/TokenIdDataChanged meta-plugin handles it
-- Factory plugins (`createDataChangedPlugin(registry)`) capture registry in closure for data key routing
+    // Queue enrichment for digitalAsset FK
+    ctx.queueEnrichment({
+      category: EntityCategory.DigitalAsset,
+      address: log.address,
+      entityType: 'LSP7Transfer',
+      entityId: entity.id,
+      fkField: 'digitalAsset',
+    });
+  },
+};
+```
+
+### EntityHandler Structure
+
+EntityHandlers are **unified processors** for all derived entity creation (data keys, tallies, NFTs, metadata):
+
+```typescript
+const LSP4TokenNameHandler: EntityHandler = {
+  name: 'lsp4TokenName',
+  listensToBag: ['DataChanged'], // Subscribe to entity bag
+
+  async handle(hctx, triggeredBy) {
+    const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
+
+    for (const event of events.values()) {
+      // Filter by data key
+      if (event.dataKey !== LSP4_TOKEN_NAME_KEY) continue;
+
+      // Create derived entity
+      const entity = new LSP4TokenName({
+        id: event.address,
+        address: event.address,
+        value: hexToString(event.dataValue),
+        digitalAsset: null, // FK initially null
+      });
+
+      // Add to BatchContext (pipeline persists)
+      hctx.batchCtx.addEntity('LSP4TokenName', entity.id, entity);
+
+      // Queue enrichment for digitalAsset FK
+      hctx.batchCtx.queueEnrichment({
+        category: EntityCategory.DigitalAsset,
+        address: event.address,
+        entityType: 'LSP4TokenName',
+        entityId: entity.id,
+        fkField: 'digitalAsset',
+      });
+    }
+  },
+};
+```
+
+### Enrichment Queue
+
+Enrichment requests specify:
+
+- `category`: EntityCategory to verify (UniversalProfile, DigitalAsset) or 'NFT'
+- `address`: Address to verify
+- `tokenId?`: For NFT category only
+- `entityType`: Which entity type to enrich (e.g., 'Transfer', 'LSP4TokenName')
+- `entityId`: Which entity id to enrich
+- `fkField`: Which field on the entity to set the FK reference
+
+After verification, the pipeline batch-updates entities with valid FK references. Invalid addresses result in null FKs (entity is still stored with raw data).
+
+### File Structure
+
+```
+packages/indexer-v2/src/
+├── core/
+│   ├── types.ts              # EventPlugin, EntityHandler, EnrichmentRequest interfaces
+│   ├── batchContext.ts       # Shared entity bag + enrichment queue
+│   ├── registry.ts           # Plugin/handler discovery
+│   ├── pipeline.ts           # 6-step processBatch() orchestrator
+│   ├── verification.ts       # Batch supportsInterface() via Multicall3
+│   └── metadataWorkerPool.ts # Worker threads for IPFS/HTTP fetching
+├── plugins/
+│   └── events/               # EventPlugins (11 files)
+│       ├── lsp7Transfer.plugin.ts
+│       ├── dataChanged.plugin.ts
+│       └── ...
+├── handlers/                 # EntityHandlers (~20 files)
+│   ├── lsp4TokenName.handler.ts
+│   ├── totalSupply.handler.ts
+│   ├── nft.handler.ts
+│   └── ...
+└── utils/
+    └── index.ts              # Shared utilities
+```
+
+### Naming Conventions
+
+| Element       | Convention             | Example                    |
+| ------------- | ---------------------- | -------------------------- |
+| Plugin files  | `camelCase.plugin.ts`  | `lsp7Transfer.plugin.ts`   |
+| Handler files | `camelCase.handler.ts` | `lsp4TokenName.handler.ts` |
+| Core files    | `camelCase.ts`         | `batchContext.ts`          |
