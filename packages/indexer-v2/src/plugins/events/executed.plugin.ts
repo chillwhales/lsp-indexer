@@ -18,7 +18,8 @@ import { ERC725X } from '@chillwhales/abi';
 import { Executed } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
-import { insertEntities, populateByUP } from '@/core/pluginHelpers';
+import { insertEntities } from '@/core/persistHelpers';
+import { populateByUP } from '@/core/populateHelpers';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { decodeOperationType } from '@/utils';
 

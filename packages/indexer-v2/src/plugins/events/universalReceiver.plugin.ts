@@ -18,7 +18,8 @@ import { LSP0ERC725Account } from '@chillwhales/abi';
 import { UniversalReceiver } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
-import { insertEntities, populateByUP } from '@/core/pluginHelpers';
+import { insertEntities } from '@/core/persistHelpers';
+import { populateByUP } from '@/core/populateHelpers';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 
 // Entity type key used in the BatchContext entity bag

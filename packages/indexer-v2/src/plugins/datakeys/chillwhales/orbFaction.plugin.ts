@@ -24,7 +24,8 @@ import { Store } from '@subsquid/typeorm-store';
 import { Hex, hexToString } from 'viem';
 
 import { ORB_FACTION_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
-import { populateByDA, upsertEntities } from '@/core/pluginHelpers';
+import { upsertEntities } from '@/core/persistHelpers';
+import { populateByDA } from '@/core/populateHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 import { generateTokenId } from '@/utils';
 

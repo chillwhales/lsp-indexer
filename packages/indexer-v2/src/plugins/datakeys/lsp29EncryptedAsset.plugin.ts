@@ -59,7 +59,8 @@ import { In } from 'typeorm';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
 import { LSP29DataKeys } from '@/constants/lsp29';
-import { populateByUP, upsertEntities } from '@/core/pluginHelpers';
+import { upsertEntities } from '@/core/persistHelpers';
+import { populateByUP } from '@/core/populateHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 import { decodeVerifiableUri } from '@/utils';
 

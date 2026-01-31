@@ -14,7 +14,8 @@ import { LSP4TokenSymbol } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { hexToString, isHex } from 'viem';
 
-import { populateByDA, upsertEntities } from '@/core/pluginHelpers';
+import { upsertEntities } from '@/core/persistHelpers';
+import { populateByDA } from '@/core/populateHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 
 // Entity type key used in the BatchContext entity bag

@@ -60,13 +60,8 @@ import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
-import {
-  enrichEntityFk,
-  insertEntities,
-  mergeUpsertEntities,
-  populateByUP,
-  upsertEntities,
-} from '@/core/pluginHelpers';
+import { insertEntities, mergeUpsertEntities, upsertEntities } from '@/core/persistHelpers';
+import { enrichEntityFk, populateByUP } from '@/core/populateHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 
 // ---------------------------------------------------------------------------

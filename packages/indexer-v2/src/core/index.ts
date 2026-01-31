@@ -4,7 +4,6 @@ export * from './handlerHelpers';
 export * from './metadataWorkerPool';
 export * from './persistHelpers';
 export * from './pipeline';
-export * from './pluginHelpers';
 export * from './populateHelpers';
 export * from './registry';
 export * from './types';

@@ -26,7 +26,7 @@ import {
 import { Store } from '@subsquid/typeorm-store';
 
 import { LSP23_ADDRESS } from '@/constants';
-import { insertEntities } from '@/core/pluginHelpers';
+import { insertEntities } from '@/core/persistHelpers';
 import { Block, EventPlugin, IBatchContext, Log } from '@/core/types';
 
 // Entity type key used in the BatchContext entity bag

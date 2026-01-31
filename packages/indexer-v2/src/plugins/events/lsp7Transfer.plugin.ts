@@ -23,7 +23,8 @@ import { Transfer } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
 import { updateTotalSupply } from '@/core/handlerHelpers';
-import { insertEntities, populateByDA } from '@/core/pluginHelpers';
+import { insertEntities } from '@/core/persistHelpers';
+import { populateByDA } from '@/core/populateHelpers';
 import {
   Block,
   EntityCategory,

@@ -7,7 +7,6 @@
  * Plugins import these helpers instead of duplicating the same loops.
  */
 import { DigitalAsset, NFT, UniversalProfile } from '@chillwhales/typeorm';
-
 import { EntityCategory, IBatchContext } from './types';
 
 // ---------------------------------------------------------------------------

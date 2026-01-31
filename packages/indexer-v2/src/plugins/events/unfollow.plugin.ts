@@ -24,7 +24,7 @@ import { Follower, Unfollow, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
 import { LSP26_ADDRESS } from '@/constants';
-import { insertEntities } from '@/core/pluginHelpers';
+import { insertEntities } from '@/core/persistHelpers';
 import {
   Block,
   EntityCategory,

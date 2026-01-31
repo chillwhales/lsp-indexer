@@ -38,7 +38,7 @@ import {
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 
-import { upsertEntities } from '@/core/pluginHelpers';
+import { upsertEntities } from '@/core/persistHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 import { decodeVerifiableUri, generateTokenId } from '@/utils';
 

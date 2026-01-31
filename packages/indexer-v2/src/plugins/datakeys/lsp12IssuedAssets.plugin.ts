@@ -41,12 +41,8 @@ import { LSP12IssuedAsset, LSP12IssuedAssetsLength } from '@chillwhales/typeorm'
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
-import {
-  enrichEntityFk,
-  mergeUpsertEntities,
-  populateByUP,
-  upsertEntities,
-} from '@/core/pluginHelpers';
+import { mergeUpsertEntities, upsertEntities } from '@/core/persistHelpers';
+import { enrichEntityFk, populateByUP } from '@/core/populateHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 
 // ---------------------------------------------------------------------------

@@ -18,7 +18,8 @@ import { LSP8TokenIdFormat } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { hexToNumber, isHex } from 'viem';
 
-import { populateByDA, upsertEntities } from '@/core/pluginHelpers';
+import { upsertEntities } from '@/core/persistHelpers';
+import { populateByDA } from '@/core/populateHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 import { decodeTokenIdFormat } from '@/utils';
 

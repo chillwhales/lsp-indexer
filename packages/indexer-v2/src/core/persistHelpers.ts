@@ -8,7 +8,6 @@
  */
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
-
 import { IBatchContext } from './types';
 
 // ---------------------------------------------------------------------------

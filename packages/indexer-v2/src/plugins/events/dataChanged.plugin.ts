@@ -28,7 +28,8 @@ import { ERC725Y } from '@chillwhales/abi';
 import { DataChanged } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
-import { insertEntities, populateByUPAndDA } from '@/core/pluginHelpers';
+import { insertEntities } from '@/core/persistHelpers';
+import { populateByUPAndDA } from '@/core/populateHelpers';
 import {
   Block,
   EntityCategory,

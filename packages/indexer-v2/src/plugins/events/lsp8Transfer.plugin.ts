@@ -32,7 +32,8 @@ import { DigitalAsset, NFT, Transfer } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
 import { updateTotalSupply } from '@/core/handlerHelpers';
-import { insertEntities, populateByDA, upsertEntities } from '@/core/pluginHelpers';
+import { insertEntities, upsertEntities } from '@/core/persistHelpers';
+import { populateByDA } from '@/core/populateHelpers';
 import {
   Block,
   EntityCategory,
