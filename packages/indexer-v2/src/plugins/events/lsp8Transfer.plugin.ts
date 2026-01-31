@@ -31,12 +31,8 @@ import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
 import { DigitalAsset, NFT, Transfer } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
-import {
-  insertEntities,
-  populateByDA,
-  updateTotalSupply,
-  upsertEntities,
-} from '@/core/pluginHelpers';
+import { updateTotalSupply } from '@/core/handlerHelpers';
+import { insertEntities, populateByDA, upsertEntities } from '@/core/pluginHelpers';
 import {
   Block,
   EntityCategory,

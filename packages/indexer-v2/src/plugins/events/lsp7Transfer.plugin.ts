@@ -22,7 +22,8 @@ import { LSP7DigitalAsset } from '@chillwhales/abi';
 import { Transfer } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
-import { insertEntities, populateByDA, updateTotalSupply } from '@/core/pluginHelpers';
+import { updateTotalSupply } from '@/core/handlerHelpers';
+import { insertEntities, populateByDA } from '@/core/pluginHelpers';
 import {
   Block,
   EntityCategory,
