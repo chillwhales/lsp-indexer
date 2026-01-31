@@ -35,15 +35,13 @@
  *   - app/scanner.ts L203-267 (DataChanged case → LSP4Creators routing)
  *   - app/index.ts L432-436 (upsert)
  */
-import { LSP4DataKeys } from '@lukso/lsp4-contracts';
-
-import { LSP4Creator, LSP4CreatorsLength } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
-import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
-
 import { mergeUpsertEntities, upsertEntities } from '@/core/persistHelpers';
 import { enrichEntityFk, populateByDA } from '@/core/populateHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
+import { LSP4Creator, LSP4CreatorsLength } from '@chillwhales/typeorm';
+import { LSP4DataKeys } from '@lukso/lsp4-contracts';
+import { Store } from '@subsquid/typeorm-store';
+import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag

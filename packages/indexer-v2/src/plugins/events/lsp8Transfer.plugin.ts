@@ -24,13 +24,6 @@
  *   - utils/transfer/index.ts (extract LSP8 branch + populate)
  *   - utils/transfer/nft.ts (mint/burn NFT creation)
  */
-import { v4 as uuidv4 } from 'uuid';
-import { zeroAddress } from 'viem';
-
-import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
-import { DigitalAsset, NFT, Transfer } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
-
 import { updateTotalSupply } from '@/core/handlerHelpers';
 import { insertEntities, upsertEntities } from '@/core/persistHelpers';
 import { populateByDA } from '@/core/populateHelpers';
@@ -43,6 +36,11 @@ import {
   Log,
 } from '@/core/types';
 import { generateTokenId } from '@/utils';
+import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
+import { DigitalAsset, NFT, Transfer } from '@chillwhales/typeorm';
+import { Store } from '@subsquid/typeorm-store';
+import { v4 as uuidv4 } from 'uuid';
+import { zeroAddress } from 'viem';
 
 // Entity type keys used in the BatchContext entity bag
 const TRANSFER_TYPE = 'LSP8Transfer';

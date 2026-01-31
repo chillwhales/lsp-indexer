@@ -9,15 +9,13 @@
  *   - utils/dataChanged/lsp8ReferenceContract.ts
  *   - app/index.ts L458 (upsert)
  */
-import { LSP8DataKeys } from '@lukso/lsp8-contracts';
-
-import { LSP8ReferenceContract } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
-import { isHex } from 'viem';
-
 import { upsertEntities } from '@/core/persistHelpers';
 import { populateByDA } from '@/core/populateHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
+import { LSP8ReferenceContract } from '@chillwhales/typeorm';
+import { LSP8DataKeys } from '@lukso/lsp8-contracts';
+import { Store } from '@subsquid/typeorm-store';
+import { isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP8ReferenceContract';

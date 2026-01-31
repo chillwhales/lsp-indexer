@@ -12,11 +12,9 @@
  * await pool.shutdown();
  * ```
  */
+import { FETCH_RETRY_COUNT, IPFS_GATEWAY } from '@/constants';
 import path from 'path';
 import { Worker } from 'worker_threads';
-
-import { FETCH_RETRY_COUNT, IPFS_GATEWAY } from '@/constants';
-
 import { FetchRequest, FetchResult, IMetadataWorkerPool } from './types';
 
 // ---------------------------------------------------------------------------

@@ -17,8 +17,10 @@
  *   - utils/dataChanged/lsp3Profile.ts (extract + populate + clearSubEntities)
  *   - app/index.ts L195-200, L420 (clear + upsert)
  */
-import { LSP3DataKeys } from '@lukso/lsp3-contracts';
-
+import { upsertEntities } from '@/core/persistHelpers';
+import { populateByUP } from '@/core/populateHelpers';
+import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
+import { decodeVerifiableUri } from '@/utils';
 import {
   LSP3Profile,
   LSP3ProfileAsset,
@@ -29,13 +31,9 @@ import {
   LSP3ProfileName,
   LSP3ProfileTag,
 } from '@chillwhales/typeorm';
+import { LSP3DataKeys } from '@lukso/lsp3-contracts';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
-
-import { upsertEntities } from '@/core/persistHelpers';
-import { populateByUP } from '@/core/populateHelpers';
-import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
-import { decodeVerifiableUri } from '@/utils';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP3Profile';

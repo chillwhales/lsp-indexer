@@ -15,8 +15,9 @@
  * Port from v1:
  *   - scanner.ts L526-561 (inline extraction, no separate extract/populate)
  */
-import { v4 as uuidv4 } from 'uuid';
-
+import { LSP23_ADDRESS } from '@/constants';
+import { insertEntities } from '@/core/persistHelpers';
+import { Block, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { LSP23LinkedContractsFactory } from '@chillwhales/abi';
 import {
   DeployedERC1167Proxies,
@@ -24,10 +25,7 @@ import {
   SecondaryContractDeploymentInit,
 } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
-
-import { LSP23_ADDRESS } from '@/constants';
-import { insertEntities } from '@/core/persistHelpers';
-import { Block, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'DeployedERC1167Proxies';

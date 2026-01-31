@@ -17,12 +17,6 @@
  *   - utils/unfollow/index.ts (extract + populate)
  *   - handlers/followerSystemHandler.ts (identifiable follow removal)
  */
-import { v4 as uuidv4 } from 'uuid';
-
-import { LSP26FollowerSystem } from '@chillwhales/abi';
-import { Follower, Unfollow, UniversalProfile } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
-
 import { LSP26_ADDRESS } from '@/constants';
 import { insertEntities } from '@/core/persistHelpers';
 import {
@@ -34,6 +28,10 @@ import {
   Log,
 } from '@/core/types';
 import { generateFollowId } from '@/utils';
+import { LSP26FollowerSystem } from '@chillwhales/abi';
+import { Follower, Unfollow, UniversalProfile } from '@chillwhales/typeorm';
+import { Store } from '@subsquid/typeorm-store';
+import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'Unfollow';

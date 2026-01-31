@@ -20,8 +20,9 @@
  *   - utils/tokenIdDataChanged/lsp4Metadata.ts (extract with tokenId + nft)
  *   - app/index.ts L202-206, L423-424 (clear + upsert)
  */
-import { LSP4DataKeys } from '@lukso/lsp4-contracts';
-
+import { upsertEntities } from '@/core/persistHelpers';
+import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
+import { decodeVerifiableUri, generateTokenId } from '@/utils';
 import {
   DigitalAsset,
   LSP4Metadata,
@@ -35,12 +36,9 @@ import {
   LSP4MetadataName,
   NFT,
 } from '@chillwhales/typeorm';
+import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
-
-import { upsertEntities } from '@/core/persistHelpers';
-import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
-import { decodeVerifiableUri, generateTokenId } from '@/utils';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP4Metadata';

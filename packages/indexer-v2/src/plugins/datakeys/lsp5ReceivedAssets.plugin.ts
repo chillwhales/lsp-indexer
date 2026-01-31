@@ -35,15 +35,13 @@
  *   - app/scanner.ts (DataChanged case → LSP5ReceivedAssets routing)
  *   - app/index.ts (upsert)
  */
-import { LSP5DataKeys } from '@lukso/lsp5-contracts';
-
-import { LSP5ReceivedAsset, LSP5ReceivedAssetsLength } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
-import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
-
 import { mergeUpsertEntities, upsertEntities } from '@/core/persistHelpers';
 import { enrichEntityFk, populateByUP } from '@/core/populateHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
+import { LSP5ReceivedAsset, LSP5ReceivedAssetsLength } from '@chillwhales/typeorm';
+import { LSP5DataKeys } from '@lukso/lsp5-contracts';
+import { Store } from '@subsquid/typeorm-store';
+import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag

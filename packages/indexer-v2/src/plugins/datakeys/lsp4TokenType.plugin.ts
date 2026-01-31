@@ -9,16 +9,14 @@
  *   - utils/dataChanged/lsp4TokenType.ts (extract + populate)
  *   - app/index.ts L428 (upsert)
  */
-import { LSP4DataKeys } from '@lukso/lsp4-contracts';
-
-import { LSP4TokenType } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
-import { hexToNumber, isHex } from 'viem';
-
 import { upsertEntities } from '@/core/persistHelpers';
 import { populateByDA } from '@/core/populateHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 import { decodeTokenType } from '@/utils';
+import { LSP4TokenType } from '@chillwhales/typeorm';
+import { LSP4DataKeys } from '@lukso/lsp4-contracts';
+import { Store } from '@subsquid/typeorm-store';
+import { hexToNumber, isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP4TokenType';

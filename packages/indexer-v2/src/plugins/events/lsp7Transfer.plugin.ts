@@ -16,12 +16,6 @@
  *   - scanner.ts L429-438 (event matching)
  *   - utils/transfer/index.ts (extract + populate)
  */
-import { v4 as uuidv4 } from 'uuid';
-
-import { LSP7DigitalAsset } from '@chillwhales/abi';
-import { Transfer } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
-
 import { updateTotalSupply } from '@/core/handlerHelpers';
 import { insertEntities } from '@/core/persistHelpers';
 import { populateByDA } from '@/core/populateHelpers';
@@ -33,6 +27,10 @@ import {
   IBatchContext,
   Log,
 } from '@/core/types';
+import { LSP7DigitalAsset } from '@chillwhales/abi';
+import { Transfer } from '@chillwhales/typeorm';
+import { Store } from '@subsquid/typeorm-store';
+import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP7Transfer';

@@ -21,12 +21,6 @@
  *   - utils/tokenIdDataChanged/index.ts (extract + populate)
  *   - utils/tokenIdDataChanged/nft.ts (NFT sub-extract)
  */
-import { v4 as uuidv4 } from 'uuid';
-
-import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
-import { DigitalAsset, NFT, TokenIdDataChanged } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
-
 import { insertEntities, insertNewEntities } from '@/core/persistHelpers';
 import { populateByDA } from '@/core/populateHelpers';
 import {
@@ -38,6 +32,10 @@ import {
   Log,
 } from '@/core/types';
 import { generateTokenId } from '@/utils';
+import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
+import { DigitalAsset, NFT, TokenIdDataChanged } from '@chillwhales/typeorm';
+import { Store } from '@subsquid/typeorm-store';
+import { v4 as uuidv4 } from 'uuid';
 
 // Entity type keys used in the BatchContext entity bag
 const TOKEN_ID_DATA_CHANGED_TYPE = 'TokenIdDataChanged';

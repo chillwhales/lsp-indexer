@@ -22,12 +22,6 @@
  *   - scanner.ts L166-421 (DataChanged case block + dataKey switch/if-else)
  *   - utils/dataChanged/index.ts (extract + populate)
  */
-import { v4 as uuidv4 } from 'uuid';
-
-import { ERC725Y } from '@chillwhales/abi';
-import { DataChanged } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
-
 import { insertEntities } from '@/core/persistHelpers';
 import { populateByUPAndDA } from '@/core/populateHelpers';
 import {
@@ -38,6 +32,10 @@ import {
   IPluginRegistry,
   Log,
 } from '@/core/types';
+import { ERC725Y } from '@chillwhales/abi';
+import { DataChanged } from '@chillwhales/typeorm';
+import { Store } from '@subsquid/typeorm-store';
+import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
 const DATA_CHANGED_TYPE = 'DataChanged';

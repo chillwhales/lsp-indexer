@@ -15,16 +15,6 @@
  *   - utils/ownershipTransferred/index.ts (extract + populate)
  *   - handlers/ownershipTransferredHandler.ts (owner record upsert)
  */
-import { v4 as uuidv4 } from 'uuid';
-
-import { LSP14Ownable2Step } from '@chillwhales/abi';
-import {
-  DigitalAssetOwner,
-  OwnershipTransferred,
-  UniversalProfileOwner,
-} from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
-
 import { insertEntities } from '@/core/persistHelpers';
 import { populateByUPAndDA } from '@/core/populateHelpers';
 import {
@@ -35,6 +25,14 @@ import {
   IBatchContext,
   Log,
 } from '@/core/types';
+import { LSP14Ownable2Step } from '@chillwhales/abi';
+import {
+  DigitalAssetOwner,
+  OwnershipTransferred,
+  UniversalProfileOwner,
+} from '@chillwhales/typeorm';
+import { Store } from '@subsquid/typeorm-store';
+import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'OwnershipTransferred';

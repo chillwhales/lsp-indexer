@@ -1,5 +1,4 @@
 import { Store } from '@subsquid/typeorm-store';
-
 import { BatchContext } from './batchContext';
 import { PluginRegistry } from './registry';
 import {

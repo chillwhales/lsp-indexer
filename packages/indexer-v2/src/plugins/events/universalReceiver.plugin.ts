@@ -12,15 +12,13 @@
  *   - scanner.ts L423-427 (event matching)
  *   - utils/universalReceiver/index.ts (extract + populate)
  */
-import { v4 as uuidv4 } from 'uuid';
-
-import { LSP0ERC725Account } from '@chillwhales/abi';
-import { UniversalReceiver } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
-
 import { insertEntities } from '@/core/persistHelpers';
 import { populateByUP } from '@/core/populateHelpers';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { LSP0ERC725Account } from '@chillwhales/abi';
+import { UniversalReceiver } from '@chillwhales/typeorm';
+import { Store } from '@subsquid/typeorm-store';
+import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'UniversalReceiver';
