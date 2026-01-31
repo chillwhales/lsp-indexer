@@ -33,13 +33,14 @@ const DecimalsHandler: EntityHandler = {
   async handle(hctx: HandlerContext): Promise<void> {
     const { store, context, batchCtx } = hctx;
 
-    // Get newly verified DigitalAsset entities from this batch
+    // Get newly verified DigitalAsset entities from this batch.
+    // newEntities is typed as Map<string, { id: string }> but the verification
+    // system creates DigitalAsset instances for EntityCategory.DigitalAsset.
     const newDAs = batchCtx.getVerified(EntityCategory.DigitalAsset).newEntities;
     if (newDAs.size === 0) return;
 
-    const newDAsList = [...newDAs.values()] as DigitalAsset[];
+    const newDAsList = [...newDAs.values()];
     const newDecimalEntities: Decimals[] = [];
-    let processedDigitalAssets = 0;
 
     const batchesCount = Math.ceil(newDAsList.length / BATCH_SIZE);
 
@@ -48,28 +49,35 @@ const DecimalsHandler: EntityHandler = {
       const start = index * BATCH_SIZE;
       const batch = newDAsList.slice(start, start + BATCH_SIZE);
 
-      const results = await aggregate3StaticLatest(
-        context,
-        batch.map((digitalAsset) => ({
-          target: digitalAsset.address,
-          allowFailure: true,
-          callData: LSP7DigitalAsset.functions.decimals.encode({}),
-        })),
-      );
+      let results;
+      try {
+        results = await aggregate3StaticLatest(
+          context,
+          batch.map((da) => ({
+            target: (da as DigitalAsset).address ?? da.id,
+            allowFailure: true,
+            callData: LSP7DigitalAsset.functions.decimals.encode({}),
+          })),
+        );
+      } catch {
+        // Skip this batch — some assets won't get decimals
+        continue;
+      }
 
-      results.forEach((result) => {
+      results.forEach((result, i) => {
+        const da = batch[i];
+        const address = (da as DigitalAsset).address ?? da.id;
+
         if (result.success && isHex(result.returnData) && result.returnData !== '0x') {
           newDecimalEntities.push(
             new Decimals({
-              id: newDAsList[processedDigitalAssets].address,
-              address: newDAsList[processedDigitalAssets].address,
-              digitalAsset: newDAsList[processedDigitalAssets],
+              id: address,
+              address,
+              digitalAsset: da as DigitalAsset,
               value: hexToNumber(result.returnData),
             }),
           );
         }
-
-        processedDigitalAssets++;
       });
     }
 

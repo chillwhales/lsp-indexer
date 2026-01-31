@@ -280,6 +280,9 @@ export interface IPluginRegistry {
   /** Discover and register all plugins from directories */
   discover(pluginDirs: string[]): void;
 
+  /** Discover and register all entity handlers from directories */
+  discoverHandlers(handlerDirs: string[]): void;
+
   /** Get event plugin by topic0 */
   getEventPlugin(topic0: string): EventPlugin | undefined;
 
