@@ -108,7 +108,8 @@ function decodeBaseURI(dataValue: string): string | null {
   if (!dataValue.startsWith(ZERO_HEADER) && !dataValue.startsWith(KECCAK_HEADER)) return null;
 
   // Extract UTF-8 string after the 8-byte header
-  return hexToString(sliceHex(dataValue, 8));
+  const uri = hexToString(sliceHex(dataValue, 8));
+  return uri || null;
 }
 
 export default LSP8MetadataBaseURIPlugin;
