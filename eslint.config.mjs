@@ -9,6 +9,7 @@ export default tseslint.config(
       '**/node_modules/',
       '**/lib/',
       '**/dist/',
+      '**/.pnpm-store/',
 
       // Codegen output — not checked into git
       'packages/abi/src/',
@@ -82,6 +83,10 @@ export default tseslint.config(
 
       // Allow require() for dynamic plugin loading in registry
       '@typescript-eslint/no-require-imports': 'warn',
+
+      // Codegen enums from @chillwhales/typeorm resolve as error types in CI,
+      // causing false positives on union types like `LSP4TokenTypeEnum | null`
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
 
       // Unsafe any access — warn for now, tighten later as codebase improves
       '@typescript-eslint/no-unsafe-assignment': 'warn',
