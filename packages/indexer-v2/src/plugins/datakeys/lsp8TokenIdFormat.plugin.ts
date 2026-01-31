@@ -12,15 +12,14 @@
  *   - utils/dataChanged/lsp8TokenIdFormat.ts
  *   - app/index.ts L456 (upsert)
  */
-import { LSP8DataKeys } from '@lukso/lsp8-contracts';
-
-import { LSP8TokenIdFormat } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
-import { hexToNumber, isHex } from 'viem';
-
-import { populateByDA, upsertEntities } from '@/core/pluginHelpers';
+import { upsertEntities } from '@/core/persistHelpers';
+import { populateByDA } from '@/core/populateHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 import { decodeTokenIdFormat } from '@/utils';
+import { LSP8TokenIdFormat } from '@chillwhales/typeorm';
+import { LSP8DataKeys } from '@lukso/lsp8-contracts';
+import { Store } from '@subsquid/typeorm-store';
+import { hexToNumber, isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP8TokenIdFormat';

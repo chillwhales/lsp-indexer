@@ -41,6 +41,11 @@
  *   - app/scanner.ts (DataChanged case → LSP29 routing)
  *   - app/index.ts (upsert + clearSubEntities)
  */
+import { LSP29DataKeys } from '@/constants/lsp29';
+import { upsertEntities } from '@/core/persistHelpers';
+import { populateByUP } from '@/core/populateHelpers';
+import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
+import { decodeVerifiableUri } from '@/utils';
 import {
   LSP29AccessControlCondition,
   LSP29EncryptedAsset,
@@ -57,11 +62,6 @@ import {
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
-
-import { LSP29DataKeys } from '@/constants/lsp29';
-import { populateByUP, upsertEntities } from '@/core/pluginHelpers';
-import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
-import { decodeVerifiableUri } from '@/utils';
 
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag

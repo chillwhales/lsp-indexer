@@ -46,8 +46,9 @@
  *   - utils/dataChanged/lsp6ControllerAllowedErc725DataKey.ts
  *   - app/handlers/permissionsUpdateHandler.ts (clear + insert sub-entities)
  */
-import { LSP6DataKeys } from '@lukso/lsp6-contracts';
-
+import { insertEntities, mergeUpsertEntities, upsertEntities } from '@/core/persistHelpers';
+import { enrichEntityFk, populateByUP } from '@/core/populateHelpers';
+import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 import {
   LSP6AllowedCall,
   LSP6AllowedERC725YDataKey,
@@ -56,18 +57,10 @@ import {
   LSP6Permission,
 } from '@chillwhales/typeorm';
 import { decodePermissions, decodeValueType } from '@erc725/erc725.js';
+import { LSP6DataKeys } from '@lukso/lsp6-contracts';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
-
-import {
-  enrichEntityFk,
-  insertEntities,
-  mergeUpsertEntities,
-  populateByUP,
-  upsertEntities,
-} from '@/core/pluginHelpers';
-import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag

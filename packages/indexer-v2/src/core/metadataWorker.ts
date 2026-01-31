@@ -9,10 +9,9 @@
  *   - `ipfs://` URLs — rewritten to IPFS gateway, fetched via HTTP
  *   - `http(s)://` URLs — fetched directly
  */
-import { parentPort, workerData } from 'worker_threads';
-
 import axios from 'axios';
 import parseDataURL from 'data-urls';
+import { parentPort, workerData } from 'worker_threads';
 
 // ---------------------------------------------------------------------------
 // Configuration passed from parent via workerData
