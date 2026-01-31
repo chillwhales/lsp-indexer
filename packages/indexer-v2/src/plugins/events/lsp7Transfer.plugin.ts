@@ -22,8 +22,15 @@ import { LSP7DigitalAsset } from '@chillwhales/abi';
 import { Transfer } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 
-import { insertEntities, populateByDA } from '@/core/pluginHelpers';
-import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { insertEntities, populateByDA, updateTotalSupply } from '@/core/pluginHelpers';
+import {
+  Block,
+  EntityCategory,
+  EventPlugin,
+  HandlerContext,
+  IBatchContext,
+  Log,
+} from '@/core/types';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP7Transfer';
@@ -81,6 +88,17 @@ const LSP7TransferPlugin: EventPlugin = {
 
   async persist(store: Store, ctx: IBatchContext): Promise<void> {
     await insertEntities(store, ctx, ENTITY_TYPE);
+  },
+
+  // ---------------------------------------------------------------------------
+  // Phase 5: HANDLE — Update total supply for LSP7 mints/burns
+  // ---------------------------------------------------------------------------
+
+  async handle(hctx: HandlerContext): Promise<void> {
+    const entities = hctx.batchCtx.getEntities<Transfer>(ENTITY_TYPE);
+    if (entities.size === 0) return;
+
+    await updateTotalSupply(hctx.store, [...entities.values()]);
   },
 };
 
