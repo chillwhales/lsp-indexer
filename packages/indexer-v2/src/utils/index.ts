@@ -40,17 +40,17 @@ export function decodeVerifiableUri(dataValue: string): {
       value: url,
       decodeError: null,
     };
-  } catch (error) {
+  } catch (error: unknown) {
     return {
       value: null,
-      decodeError: error?.toString() ?? 'Unknown decode error',
+      decodeError: error instanceof Error ? error.message : 'Unknown decode error',
     };
   }
 }
 
-export function isNumeric(value: string) {
+export function isNumeric(value: string): boolean {
   if (typeof value !== 'string') return false;
-  return !isNaN(value as any) && !isNaN(parseFloat(value));
+  return !isNaN(Number(value)) && !isNaN(parseFloat(value));
 }
 
 /**
@@ -140,4 +140,38 @@ export function decodeOperationType(operationType: bigint): OperationType | null
     default:
       return null;
   }
+}
+
+/**
+ * Generate a deterministic OwnedAsset entity ID from owner and contract address.
+ *
+ * Format: `"{owner} - {address}"`
+ * Port from v1: utils/index.ts generateOwnedAssetId()
+ */
+export function generateOwnedAssetId({
+  owner,
+  address,
+}: {
+  owner: string;
+  address: string;
+}): string {
+  return `${owner} - ${address}`;
+}
+
+/**
+ * Generate a deterministic OwnedToken entity ID from owner, contract address, and tokenId.
+ *
+ * Format: `"{owner} - {address} - {tokenId}"`
+ * Port from v1: utils/index.ts generateOwnedTokenId()
+ */
+export function generateOwnedTokenId({
+  owner,
+  address,
+  tokenId,
+}: {
+  owner: string;
+  address: string;
+  tokenId: string;
+}): string {
+  return `${owner} - ${address} - ${tokenId}`;
 }

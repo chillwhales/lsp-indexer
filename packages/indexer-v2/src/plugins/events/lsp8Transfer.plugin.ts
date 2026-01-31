@@ -24,7 +24,7 @@
  *   - utils/transfer/index.ts (extract LSP8 branch + populate)
  *   - utils/transfer/nft.ts (mint/burn NFT creation)
  */
-import { updateTotalSupply } from '@/core/handlerHelpers';
+import { updateOwnedAssets, updateTotalSupply } from '@/core/handlerHelpers';
 import { insertEntities, upsertEntities } from '@/core/persistHelpers';
 import { populateByDA } from '@/core/populateHelpers';
 import {
@@ -156,14 +156,18 @@ const LSP8TransferPlugin: EventPlugin = {
   },
 
   // ---------------------------------------------------------------------------
-  // Phase 5: HANDLE — Update total supply for LSP8 mints/burns
+  // Phase 5: HANDLE — Update total supply + owned assets/tokens for LSP8 transfers
   // ---------------------------------------------------------------------------
 
   async handle(hctx: HandlerContext): Promise<void> {
     const entities = hctx.batchCtx.getEntities<Transfer>(TRANSFER_TYPE);
     if (entities.size === 0) return;
 
-    await updateTotalSupply(hctx.store, [...entities.values()]);
+    const transferList = [...entities.values()];
+    const validUPs = hctx.batchCtx.getVerified(EntityCategory.UniversalProfile).valid;
+
+    await updateTotalSupply(hctx.store, transferList);
+    await updateOwnedAssets(hctx.store, transferList, validUPs);
   },
 };
 
