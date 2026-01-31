@@ -18,25 +18,29 @@
  */
 
 import { LSP7DigitalAsset } from '@chillwhales/abi';
+import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { Decimals, DigitalAsset } from '@chillwhales/typeorm';
 import { hexToNumber, isHex } from 'viem';
 
 import { aggregate3StaticLatest } from '@/core/multicall';
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityEvent, EntityHandler, HandlerContext } from '@/core/types';
 
 const BATCH_SIZE = 100;
 
 const DecimalsHandler: EntityHandler = {
   name: 'decimals',
   listensTo: [EntityCategory.DigitalAsset],
+  events: [EntityEvent.Create],
 
-  async handle(hctx: HandlerContext): Promise<void> {
+  async handle(
+    hctx: HandlerContext,
+    triggeredBy: EntityCategory,
+    _event: EntityEvent,
+  ): Promise<void> {
     const { store, context, batchCtx } = hctx;
 
-    // Get newly verified DigitalAsset entities from this batch.
-    // newEntities is typed as Map<string, { id: string }> but the verification
-    // system creates DigitalAsset instances for EntityCategory.DigitalAsset.
-    const newDAs = batchCtx.getVerified(EntityCategory.DigitalAsset).newEntities;
+    // Get newly verified entities from the triggering category
+    const newDAs = batchCtx.getVerified(triggeredBy).newEntities;
     if (newDAs.size === 0) return;
 
     const newDAsList = [...newDAs.values()];
@@ -49,12 +53,12 @@ const DecimalsHandler: EntityHandler = {
       const start = index * BATCH_SIZE;
       const batch = newDAsList.slice(start, start + BATCH_SIZE);
 
-      let results;
+      let results: Aggregate3StaticReturn | undefined;
       try {
         results = await aggregate3StaticLatest(
           context,
           batch.map((da) => ({
-            target: (da as DigitalAsset).address ?? da.id,
+            target: da.id,
             allowFailure: true,
             callData: LSP7DigitalAsset.functions.decimals.encode({}),
           })),
@@ -66,17 +70,27 @@ const DecimalsHandler: EntityHandler = {
 
       results.forEach((result, i) => {
         const da = batch[i];
-        const address = (da as DigitalAsset).address ?? da.id;
 
         if (result.success && isHex(result.returnData) && result.returnData !== '0x') {
-          newDecimalEntities.push(
-            new Decimals({
-              id: address,
-              address,
-              digitalAsset: da as DigitalAsset,
-              value: hexToNumber(result.returnData),
-            }),
-          );
+          try {
+            newDecimalEntities.push(
+              new Decimals({
+                id: da.id,
+                address: da.id,
+                digitalAsset: da as DigitalAsset,
+                value: hexToNumber(result.returnData),
+              }),
+            );
+          } catch (error) {
+            // Skip this result if hexToNumber throws (e.g., value out of range)
+            context.log.warn(
+              JSON.stringify({
+                message: 'Failed to parse decimals value',
+                address: da.id,
+                error: error instanceof Error ? error.message : String(error),
+              }),
+            );
+          }
         }
       });
     }

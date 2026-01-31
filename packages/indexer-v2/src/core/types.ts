@@ -244,16 +244,41 @@ export interface DataKeyPlugin {
 export type Plugin = EventPlugin | DataKeyPlugin;
 
 // ---------------------------------------------------------------------------
-// Entity handler interface (Phase 5 handlers triggered by new entity creation)
+// Entity lifecycle events
 // ---------------------------------------------------------------------------
 
 /**
- * EntityHandler — reacts to newly created core entities (UP, DA, NFT).
+ * Lifecycle events emitted for core entities (UP, DA, NFT).
+ *
+ * EntityHandlers subscribe to specific events to react to entity changes.
+ * Currently only `Create` is emitted by the pipeline. `Update` and `Delete`
+ * are defined for future extension when the persist layer is enhanced to
+ * track modifications and removals.
+ */
+export enum EntityEvent {
+  /** Entity verified and persisted for the first time */
+  Create = 'create',
+  /** Existing entity data modified (not yet emitted — future extension) */
+  Update = 'update',
+  /** Entity removed (not yet emitted — future extension) */
+  Delete = 'delete',
+}
+
+// ---------------------------------------------------------------------------
+// Entity handler interface (Phase 5b handlers triggered by entity lifecycle)
+// ---------------------------------------------------------------------------
+
+/**
+ * EntityHandler — reacts to entity lifecycle events (create, update, delete).
  *
  * Unlike EventPlugin/DataKeyPlugin which process blockchain events,
- * EntityHandlers run in Phase 5 after new entities are verified and persisted.
- * They listen to entity creation events (e.g., "new DigitalAssets discovered")
- * and perform post-processing (e.g., fetch decimals, update counts).
+ * EntityHandlers run in Phase 5b after entities are verified and persisted.
+ * They subscribe to combinations of EntityCategory × EntityEvent and are
+ * invoked by the pipeline when matching events occur.
+ *
+ * The `listensTo` × `events` fields form a Cartesian product of subscriptions.
+ * For example, `listensTo: [DA, UP]` + `events: [Create]` means the handler
+ * is called for both new DAs and new UPs.
  *
  * Adding a new handler = creating 1 new file implementing this interface.
  */
@@ -264,12 +289,17 @@ export interface EntityHandler {
   /** Which entity categories this handler listens to */
   readonly listensTo: EntityCategory[];
 
+  /** Which lifecycle events this handler reacts to */
+  readonly events: EntityEvent[];
+
   /**
-   * Phase 5: Called when new entities of subscribed categories are created.
-   * The handler can access newly verified entities via
-   * `hctx.batchCtx.getVerified(category).newEntities`.
+   * Phase 5b: Called when a subscribed lifecycle event fires.
+   *
+   * @param hctx        - Handler context (store, batch context, etc.)
+   * @param triggeredBy - The EntityCategory that fired the event
+   * @param event       - The lifecycle event type (Create, Update, Delete)
    */
-  handle(hctx: HandlerContext): Promise<void>;
+  handle(hctx: HandlerContext, triggeredBy: EntityCategory, event: EntityEvent): Promise<void>;
 }
 
 // ---------------------------------------------------------------------------
@@ -304,8 +334,8 @@ export interface IPluginRegistry {
   /** Get all registered entity handlers */
   getAllEntityHandlers(): EntityHandler[];
 
-  /** Get entity handlers that listen to a specific category */
-  getEntityHandlers(category: EntityCategory): EntityHandler[];
+  /** Get entity handlers that listen to a specific category and event */
+  getEntityHandlers(category: EntityCategory, event: EntityEvent): EntityHandler[];
 
   /** Get aggregated log subscriptions for processor config */
   getLogSubscriptions(): LogSubscription[];

@@ -4,6 +4,7 @@ import * as path from 'path';
 import {
   DataKeyPlugin,
   EntityCategory,
+  EntityEvent,
   EntityHandler,
   EventPlugin,
   IBatchContext,
@@ -46,17 +47,22 @@ function isDataKeyPlugin(obj: unknown): obj is DataKeyPlugin {
 
 /**
  * Type guard: does the object satisfy the EntityHandler interface?
- * Validates that listensTo contains only valid EntityCategory values.
+ * Validates that listensTo contains only valid EntityCategory values
+ * and events contains only valid EntityEvent values.
  */
 function isEntityHandler(obj: unknown): obj is EntityHandler {
   if (typeof obj !== 'object' || obj === null) return false;
   const p = obj as Record<string, unknown>;
   const validCategories = Object.values(EntityCategory) as string[];
+  const validEvents = Object.values(EntityEvent) as string[];
   return (
     typeof p.name === 'string' &&
     Array.isArray(p.listensTo) &&
     p.listensTo.length > 0 &&
     p.listensTo.every((c: unknown) => typeof c === 'string' && validCategories.includes(c)) &&
+    Array.isArray(p.events) &&
+    p.events.length > 0 &&
+    p.events.every((e: unknown) => typeof e === 'string' && validEvents.includes(e)) &&
     typeof p.handle === 'function'
   );
 }
@@ -153,6 +159,8 @@ export class PluginRegistry implements IPluginRegistry {
    *
    * Scans for *.handler.js files (compiled from *.handler.ts), imports them,
    * validates they implement the EntityHandler interface, and registers them.
+   *
+   * @throws Error if duplicate handler names are found.
    */
   discoverHandlers(handlerDirs: string[]): void {
     for (const dir of handlerDirs) {
@@ -171,6 +179,12 @@ export class PluginRegistry implements IPluginRegistry {
         }
 
         if (isEntityHandler(handler)) {
+          const existing = this.entityHandlers.find((h) => h.name === handler.name);
+          if (existing) {
+            throw new Error(
+              `[Registry] Duplicate handler name: '${handler.name}' conflicts with existing handler`,
+            );
+          }
           this.entityHandlers.push(handler);
         } else {
           console.warn(`[Registry] Export in ${file} does not implement EntityHandler, skipping`);
@@ -205,8 +219,16 @@ export class PluginRegistry implements IPluginRegistry {
 
   /**
    * Register an entity handler directly (useful for testing or manual wiring).
+   *
+   * @throws Error if a handler with the same name already exists.
    */
   registerEntityHandler(handler: EntityHandler): void {
+    const existing = this.entityHandlers.find((h) => h.name === handler.name);
+    if (existing) {
+      throw new Error(
+        `[Registry] Duplicate handler name: '${handler.name}' conflicts with existing handler`,
+      );
+    }
     this.entityHandlers.push(handler);
   }
 
@@ -264,10 +286,12 @@ export class PluginRegistry implements IPluginRegistry {
   }
 
   /**
-   * Get entity handlers that listen to a specific category.
+   * Get entity handlers that listen to a specific category and event.
    */
-  getEntityHandlers(category: EntityCategory): EntityHandler[] {
-    return this.entityHandlers.filter((h) => h.listensTo.includes(category));
+  getEntityHandlers(category: EntityCategory, event: EntityEvent): EntityHandler[] {
+    return this.entityHandlers.filter(
+      (h) => h.listensTo.includes(category) && h.events.includes(event),
+    );
   }
 
   // -------------------------------------------------------------------------

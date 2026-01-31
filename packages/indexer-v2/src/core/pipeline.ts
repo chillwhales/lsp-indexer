@@ -4,6 +4,7 @@ import { PluginRegistry } from './registry';
 import {
   Context,
   EntityCategory,
+  EntityEvent,
   HandlerContext,
   IBatchContext,
   IMetadataWorkerPool,
@@ -41,7 +42,9 @@ export interface PipelineConfig {
  *   2. VERIFY   — Batch-verify tracked addresses via supportsInterface()
  *   3. POPULATE — Link entities to verified parents, filter invalid
  *   4. PERSIST  — Write entities to database (core entities first, then plugins)
- *   5. HANDLE   — Run post-processing handlers (metadata fetch, counts, etc.)
+ *   5. HANDLE   — Run post-processing handlers
+ *      5a. Plugin handlers (plugin.handle() methods)
+ *      5b. Entity handlers (triggered by entity lifecycle events)
  */
 export async function processBatch(context: Context, config: PipelineConfig): Promise<void> {
   const { registry, verifyAddresses, workerPool } = config;
@@ -139,14 +142,18 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     }
   }
 
-  // Phase 5b: Entity handlers — triggered by new entity creation events
+  // Phase 5b: Entity handlers — triggered by entity lifecycle events
   for (const category of categories) {
     const verified = batchCtx.getVerified(category);
-    if (verified.new.size === 0) continue;
 
-    for (const handler of registry.getEntityHandlers(category)) {
-      await handler.handle(handlerCtx);
+    // Emit Create events for newly verified entities
+    if (verified.new.size > 0) {
+      for (const handler of registry.getEntityHandlers(category, EntityEvent.Create)) {
+        await handler.handle(handlerCtx, category, EntityEvent.Create);
+      }
     }
+
+    // Future: Emit Update/Delete events when persist layer tracks modifications
   }
 }
 
