@@ -30,6 +30,14 @@ export enum EntityCategory {
 // Verification result returned per EntityCategory
 // ---------------------------------------------------------------------------
 
+/**
+ * Result of verifying a set of addresses for a given EntityCategory.
+ *
+ * The `new` set and `newEntities` map always have the same keys — both
+ * represent the addresses that were verified for the first time in this batch.
+ * `new` provides fast Set-based lookups; `newEntities` provides the actual
+ * entity instances to persist and reference in Phase 5 handlers.
+ */
 export interface VerificationResult {
   /** Addresses that are new (first seen this batch) and valid */
   new: Set<string>;
@@ -244,12 +252,76 @@ export interface DataKeyPlugin {
 export type Plugin = EventPlugin | DataKeyPlugin;
 
 // ---------------------------------------------------------------------------
+// Entity lifecycle events
+// ---------------------------------------------------------------------------
+
+/**
+ * Lifecycle events emitted for core entities (UP, DA, NFT).
+ *
+ * EntityHandlers subscribe to specific events to react to entity changes.
+ * Currently only `Create` is emitted by the pipeline. `Update` and `Delete`
+ * are defined for future extension when the persist layer is enhanced to
+ * track modifications and removals.
+ */
+export enum EntityEvent {
+  /** Entity verified and persisted for the first time */
+  Create = 'create',
+  /** Existing entity data modified (not yet emitted — future extension) */
+  Update = 'update',
+  /** Entity removed (not yet emitted — future extension) */
+  Delete = 'delete',
+}
+
+// ---------------------------------------------------------------------------
+// Entity handler interface (Phase 5b handlers triggered by entity lifecycle)
+// ---------------------------------------------------------------------------
+
+/**
+ * EntityHandler — reacts to entity lifecycle events (create, update, delete).
+ *
+ * Unlike EventPlugin/DataKeyPlugin which process blockchain events,
+ * EntityHandlers run in Phase 5b after entities are verified and persisted.
+ * They subscribe to combinations of EntityCategory × EntityEvent and are
+ * invoked by the pipeline when matching events occur.
+ *
+ * The `listensTo` × `events` fields form a Cartesian product of subscriptions.
+ * For example, `listensTo: [DA, UP]` + `events: [Create]` means the handler
+ * is called twice per batch: once when new DAs are created, and once when
+ * new UPs are created. Each invocation receives the specific category via
+ * the `triggeredBy` parameter.
+ *
+ * Adding a new handler = creating 1 new file implementing this interface.
+ */
+export interface EntityHandler {
+  /** Unique handler name (e.g. 'decimals', 'totalSupply') */
+  readonly name: string;
+
+  /** Which entity categories this handler listens to */
+  readonly listensTo: EntityCategory[];
+
+  /** Which lifecycle events this handler reacts to */
+  readonly events: EntityEvent[];
+
+  /**
+   * Phase 5b: Called when a subscribed lifecycle event fires.
+   *
+   * @param hctx        - Handler context (store, batch context, etc.)
+   * @param triggeredBy - The EntityCategory that fired the event
+   * @param event       - The lifecycle event type (Create, Update, Delete)
+   */
+  handle(hctx: HandlerContext, triggeredBy: EntityCategory, event: EntityEvent): Promise<void>;
+}
+
+// ---------------------------------------------------------------------------
 // Plugin registry interface (implemented in registry.ts, issue #15)
 // ---------------------------------------------------------------------------
 
 export interface IPluginRegistry {
   /** Discover and register all plugins from directories */
   discover(pluginDirs: string[]): void;
+
+  /** Discover and register all entity handlers from directories */
+  discoverHandlers(handlerDirs: string[]): void;
 
   /** Get event plugin by topic0 */
   getEventPlugin(topic0: string): EventPlugin | undefined;
@@ -268,6 +340,12 @@ export interface IPluginRegistry {
 
   /** Get all plugins with a handle() method */
   getAllHandlers(): Plugin[];
+
+  /** Get all registered entity handlers */
+  getAllEntityHandlers(): EntityHandler[];
+
+  /** Get entity handlers that listen to a specific category and event */
+  getEntityHandlers(category: EntityCategory, event: EntityEvent): EntityHandler[];
 
   /** Get aggregated log subscriptions for processor config */
   getLogSubscriptions(): LogSubscription[];
