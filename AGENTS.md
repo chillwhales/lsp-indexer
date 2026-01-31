@@ -49,22 +49,21 @@ There are no tests, no ESLint, and no git hooks configured. The only code qualit
 
 ## Code Style
 
-### Imports — 3 groups separated by blank lines
+### Imports — automatically sorted by Prettier
+
+Import statements are automatically organized by `prettier-plugin-organize-imports` with no blank lines between them:
 
 ```typescript
-// Group 1: Third-party packages
 import { v4 as uuidv4 } from 'uuid';
-
-// Group 2: Scoped org packages (@chillwhales, @subsquid, @lukso, viem, typeorm)
 import { LSP5DataKeys } from '@lukso/lsp5-contracts';
 import { LSP5ReceivedAsset } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToHex, Hex, hexToBytes } from 'viem';
-
-// Group 3: Internal path-aliased imports (@/...) or relative (./)
 import { mergeUpsertEntities, populateByUP } from '@/core/pluginHelpers';
 import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 ```
+
+The plugin automatically groups and sorts imports (third-party → scoped packages → internal). Do not manually add blank lines between import groups — let the plugin handle all formatting.
 
 Core files (`core/*.ts`) use relative imports for siblings (`./types`). All others use `@/` aliases.
 

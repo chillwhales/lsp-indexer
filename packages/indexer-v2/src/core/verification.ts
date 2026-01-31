@@ -7,7 +7,6 @@ import { INTERFACE_ID_LSP8, INTERFACE_ID_LSP8_PREVIOUS } from '@lukso/lsp8-contr
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { hexToBool, isHex } from 'viem';
-
 import { aggregate3StaticLatest } from './multicall';
 import { Context, EntityCategory, VerificationResult } from './types';
 

@@ -17,13 +17,12 @@
  * Port from v1: packages/indexer/src/app/handlers/decimalsHandler.ts
  */
 
+import { aggregate3StaticLatest } from '@/core/multicall';
+import { EntityCategory, EntityEvent, EntityHandler, HandlerContext } from '@/core/types';
 import { LSP7DigitalAsset } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { Decimals, DigitalAsset } from '@chillwhales/typeorm';
 import { hexToNumber, isHex } from 'viem';
-
-import { aggregate3StaticLatest } from '@/core/multicall';
-import { EntityCategory, EntityEvent, EntityHandler, HandlerContext } from '@/core/types';
 
 const BATCH_SIZE = 100;
 

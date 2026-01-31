@@ -8,7 +8,6 @@
 import { MULTICALL_ADDRESS } from '@/constants';
 import { Multicall3 } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
-
 import { Context } from './types';
 
 /**
