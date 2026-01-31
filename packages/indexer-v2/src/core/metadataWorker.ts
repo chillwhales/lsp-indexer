@@ -22,7 +22,7 @@ interface WorkerConfig {
   requestTimeoutMs: number;
 }
 
-const config: WorkerConfig = workerData ?? {
+const config: WorkerConfig = (workerData as WorkerConfig | undefined) ?? {
   ipfsGateway: 'https://api.universalprofile.cloud/ipfs/',
   requestTimeoutMs: 30_000,
 };
@@ -66,6 +66,12 @@ interface FetchResult {
   retryable: boolean;
 }
 
+/** Return type of data-urls parser (no DefinitelyTyped package available). */
+interface DataURLResult {
+  mimeType: { toString(): string };
+  body: Uint8Array;
+}
+
 // ---------------------------------------------------------------------------
 // Fetch logic
 // ---------------------------------------------------------------------------
@@ -89,7 +95,8 @@ async function fetchSingle(request: FetchRequest): Promise<FetchResult> {
   try {
     // Handle data: URLs inline (no network)
     if (url.startsWith('data:')) {
-      const parsed = parseDataURL(url);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- data-urls has no type declarations
+      const parsed = parseDataURL(url) as DataURLResult | null;
       if (!parsed) {
         return { id, entityType, success: false, error: 'Invalid data URL', retryable: false };
       }
@@ -106,7 +113,7 @@ async function fetchSingle(request: FetchRequest): Promise<FetchResult> {
       }
 
       try {
-        const data = JSON.parse(Buffer.from(parsed.body).toString());
+        const data: unknown = JSON.parse(Buffer.from(parsed.body).toString());
         return { id, entityType, success: true, data, retryable: false };
       } catch (parseError) {
         return {
@@ -121,7 +128,7 @@ async function fetchSingle(request: FetchRequest): Promise<FetchResult> {
 
     // HTTP / IPFS fetch
     const resolved = resolveUrl(url);
-    const response = await httpClient.get(resolved);
+    const response = await httpClient.get<unknown>(resolved);
     return { id, entityType, success: true, data: response.data, retryable: false };
   } catch (error) {
     const retryable = isRetryableError(error);

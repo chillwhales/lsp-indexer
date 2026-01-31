@@ -88,8 +88,11 @@ export class PluginRegistry implements IPluginRegistry {
       const files = findFiles(dir, '.plugin.js');
 
       for (const file of files) {
-        const module = require(file);
-        const plugin = module.default ?? module.plugin;
+        // Dynamic plugin loading from compiled JS files at runtime
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const loaded: unknown = require(file);
+        const moduleObj = loaded as Record<string, unknown> | null;
+        const plugin: unknown = moduleObj?.default ?? moduleObj?.plugin;
 
         if (!plugin) {
           console.warn(`[Registry] No default/plugin export in ${file}, skipping`);
@@ -116,7 +119,7 @@ export class PluginRegistry implements IPluginRegistry {
       }
     }
 
-    console.log(
+    console.info(
       `[Registry] Discovered ${this.eventPlugins.size} event plugins, ${this.dataKeyPlugins.length} data key plugins`,
     );
   }
