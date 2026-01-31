@@ -226,10 +226,7 @@ function extractLength(
     id: address,
     address,
     timestamp: new Date(timestamp),
-    value:
-      isHex(dataValue) && hexToBytes(dataValue as Hex).length === 16
-        ? hexToBigInt(dataValue as Hex)
-        : null,
+    value: isHex(dataValue) && hexToBytes(dataValue).length === 16 ? hexToBigInt(dataValue) : null,
     rawValue: dataValue,
   });
 
@@ -255,12 +252,12 @@ function extractFromIndex(
   ctx: IBatchContext,
 ): void {
   // Skip if dataValue is not a valid 20-byte address
-  if (!isHex(dataValue) || hexToBytes(dataValue as Hex).length !== 20) return;
+  if (!isHex(dataValue) || hexToBytes(dataValue).length !== 20) return;
 
   // Normalize to lowercase 0x-prefixed via bytesToHex to match the format
   // used by extractPermissions/extractAllowedCalls/extractAllowedDataKeys
   // (which derive controllerAddress from the data key, not the data value).
-  const controllerAddress = bytesToHex(hexToBytes(dataValue as Hex));
+  const controllerAddress = bytesToHex(hexToBytes(dataValue));
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
   const id = `${address} - ${controllerAddress}`;
 
@@ -314,8 +311,8 @@ function extractPermissions(
   controller.permissionsRawValue = dataValue;
 
   // Decode permissions into sub-entities if data is valid (32 bytes)
-  if (isHex(dataValue) && hexToBytes(dataValue as Hex).length === 32) {
-    const permissions = decodePermissions(dataValue as Hex);
+  if (isHex(dataValue) && hexToBytes(dataValue).length === 32) {
+    const permissions = decodePermissions(dataValue);
 
     for (const permissionName of Object.keys(permissions)) {
       const permEntity = new LSP6Permission({
@@ -364,7 +361,7 @@ function extractAllowedCalls(
     const allowedCalls: Hex[] = decodeValueType('bytes[CompactBytesArray]', dataValue);
 
     for (let i = 0; i < allowedCalls.length; i++) {
-      const callBytes = hexToBytes(allowedCalls[i] as Hex);
+      const callBytes = hexToBytes(allowedCalls[i]);
       const callEntity = new LSP6AllowedCall({
         id: `${id} - ${i}`,
         restrictionOperations: bytesToHex(callBytes.slice(0, 4)),

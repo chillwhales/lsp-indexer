@@ -17,7 +17,7 @@ export function decodeVerifiableUri(dataValue: string): {
 } {
   const erc725 = new ERC725([]);
 
-  if (!isHex(dataValue) || dataValue === '0x' || hexToNumber(dataValue as `0x${string}`) === 0)
+  if (!isHex(dataValue) || dataValue === '0x' || hexToNumber(dataValue) === 0)
     return { value: null, decodeError: null };
 
   try {
@@ -49,7 +49,7 @@ export function decodeVerifiableUri(dataValue: string): {
 }
 
 export function isNumeric(value: string) {
-  if (typeof value != 'string') return false;
+  if (typeof value !== 'string') return false;
   return !isNaN(value as any) && !isNaN(parseFloat(value));
 }
 

@@ -57,7 +57,6 @@ export async function upsertEntities<T extends { id: string }>(
  * for FK references, but must not overwrite isMinted/isBurned values set by
  * LSP8Transfer in prior batches.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function insertNewEntities<T extends { id: string }>(
   store: Store,
   ctx: IBatchContext,

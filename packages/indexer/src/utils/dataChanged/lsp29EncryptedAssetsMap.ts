@@ -14,8 +14,7 @@ export function extract({ block, log }: ExtractParams): LSP29EncryptedAssetsMap 
 
   // The value is a uint128 array index
   const dataValueBytes = hexToBytes(dataValue as Hex);
-  const arrayIndex =
-    dataValueBytes.length === 16 ? bytesToBigInt(dataValueBytes) : null;
+  const arrayIndex = dataValueBytes.length === 16 ? bytesToBigInt(dataValueBytes) : null;
 
   return new LSP29EncryptedAssetsMap({
     id: `${address} - ${dataKey}`,
