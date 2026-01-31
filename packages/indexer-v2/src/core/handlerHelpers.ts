@@ -7,6 +7,7 @@
  *
  * As more Phase 5 handlers are added (#47-#55), new helpers are added here.
  */
+import { generateOwnedAssetId, generateOwnedTokenId } from '@/utils';
 import {
   OwnedAsset,
   OwnedToken,
@@ -17,8 +18,6 @@ import {
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
-
-import { generateOwnedAssetId, generateOwnedTokenId } from '@/utils';
 
 // ---------------------------------------------------------------------------
 // Total supply
