@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main, refactor/indexer-v2]
+  pull_request:
+    branches: [main, refactor/indexer-v2]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Formatting — fast, runs first
+  # ---------------------------------------------------------------------------
+  format:
+    name: Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+
+  # ---------------------------------------------------------------------------
+  # Lint — ESLint with strict TypeScript rules
+  # ---------------------------------------------------------------------------
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Codegen must run before lint so TypeORM/ABI types are available
+      - name: Generate codegen outputs
+        run: |
+          pnpm --filter=@chillwhales/abi codegen
+          pnpm --filter=@chillwhales/typeorm codegen
+
+      - run: pnpm lint
+
+  # ---------------------------------------------------------------------------
+  # Build — active packages across Node versions
+  # (v1 indexer is legacy/read-only and excluded)
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build abi
+        run: pnpm --filter=@chillwhales/abi build
+
+      - name: Build typeorm
+        run: pnpm --filter=@chillwhales/typeorm build
+
+      - name: Build indexer-v2
+        run: pnpm --filter=@chillwhales/indexer-v2 build

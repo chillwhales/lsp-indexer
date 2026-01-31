@@ -147,10 +147,7 @@ function extractLength(
     id: address,
     address,
     timestamp: new Date(timestamp),
-    value:
-      isHex(dataValue) && hexToBytes(dataValue as Hex).length === 16
-        ? hexToBigInt(dataValue as Hex)
-        : null,
+    value: isHex(dataValue) && hexToBytes(dataValue).length === 16 ? hexToBigInt(dataValue) : null,
     rawValue: dataValue,
   });
 
@@ -177,7 +174,7 @@ function extractFromIndex(
   ctx: IBatchContext,
 ): void {
   // Skip if dataValue is not a valid 20-byte address
-  if (!isHex(dataValue) || hexToBytes(dataValue as Hex).length !== 20) return;
+  if (!isHex(dataValue) || hexToBytes(dataValue).length !== 20) return;
 
   const creatorAddress = dataValue;
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
@@ -224,7 +221,7 @@ function extractFromMap(
   ctx: IBatchContext,
 ): void {
   const creatorAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
-  const dataValueBytes = isHex(dataValue) ? hexToBytes(dataValue as Hex) : new Uint8Array(0);
+  const dataValueBytes = isHex(dataValue) ? hexToBytes(dataValue) : new Uint8Array(0);
   const isValidValue = dataValueBytes.length === 20;
 
   const interfaceId = isValidValue ? bytesToHex(dataValueBytes.slice(0, 4)) : null;

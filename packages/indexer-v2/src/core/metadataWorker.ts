@@ -153,8 +153,10 @@ async function fetchSingle(request: FetchRequest): Promise<FetchResult> {
 // ---------------------------------------------------------------------------
 
 if (parentPort) {
-  parentPort.on('message', async (requests: FetchRequest[]) => {
-    const results = await Promise.all(requests.map(fetchSingle));
-    parentPort!.postMessage(results);
+  const port = parentPort;
+  parentPort.on('message', (requests: FetchRequest[]) => {
+    void Promise.all(requests.map(fetchSingle)).then((results) => {
+      port.postMessage(results);
+    });
   });
 }

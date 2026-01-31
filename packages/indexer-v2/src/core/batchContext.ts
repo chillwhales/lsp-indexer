@@ -88,7 +88,7 @@ export class BatchContext implements IBatchContext {
 
   getTrackedCategories(): EntityCategory[] {
     return [...this.addressSets.keys()].filter(
-      (category) => this.addressSets.get(category)!.size > 0,
+      (category) => this.addressSets.get(category).size > 0,
     );
   }
 

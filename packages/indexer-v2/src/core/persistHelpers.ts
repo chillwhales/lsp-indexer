@@ -57,7 +57,7 @@ export async function upsertEntities<T extends { id: string }>(
  * for FK references, but must not overwrite isMinted/isBurned values set by
  * LSP8Transfer in prior batches.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 export async function insertNewEntities<T extends { id: string }>(
   store: Store,
   ctx: IBatchContext,
@@ -116,7 +116,7 @@ export async function mergeUpsertEntities<T extends { id: string; [key: string]:
     const prev = existingMap.get(id);
     if (prev) {
       for (const field of mergeFields) {
-        if (entity[field] == null && prev[field] != null) {
+        if (entity[field] === null && prev[field] !== null) {
           entity[field] = prev[field];
         }
       }
