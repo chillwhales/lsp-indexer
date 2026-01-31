@@ -186,19 +186,20 @@ export async function updateOwnedAssets(
     const { timestamp, blockNumber, address, from, to, amount, tokenId, digitalAsset, nft } =
       transfer;
 
-    // --- OwnedAsset: decrement sender ---
+    // --- OwnedAsset: decrement sender (floor at 0 to prevent underflow) ---
     if (!isAddressEqual(getAddress(from), zeroAddress)) {
       const fromId = generateOwnedAssetId({ owner: from, address });
       const existing = updatedOwnedAssetsMap.get(fromId) ?? existingOwnedAssetsMap.get(fromId);
 
       if (existing) {
+        const newBalance = existing.balance >= amount ? existing.balance - amount : 0n;
         updatedOwnedAssetsMap.set(
           fromId,
           new OwnedAsset({
             ...existing,
             block: blockNumber,
             timestamp,
-            balance: existing.balance - amount,
+            balance: newBalance,
           }),
         );
       }
@@ -271,7 +272,13 @@ export async function updateOwnedAssets(
           }),
         );
       } else {
-        // Create new OwnedToken for receiver
+        // Create new OwnedToken for receiver.
+        // Only set the ownedAsset FK if the parent entity exists (in this batch or in DB)
+        // to avoid referencing a non-existent row.
+        const parentAssetId = generateOwnedAssetId({ owner: to, address });
+        const parentExists =
+          updatedOwnedAssetsMap.has(parentAssetId) || existingOwnedAssetsMap.has(parentAssetId);
+
         updatedOwnedTokensMap.set(
           toId,
           new OwnedToken({
@@ -284,7 +291,7 @@ export async function updateOwnedAssets(
             nft,
             digitalAsset,
             universalProfile: validUPs.has(to) ? new UniversalProfile({ id: to }) : null,
-            ownedAsset: new OwnedAsset({ id: generateOwnedAssetId({ owner: to, address }) }),
+            ownedAsset: parentExists ? new OwnedAsset({ id: parentAssetId }) : null,
           }),
         );
       }
