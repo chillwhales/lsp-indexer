@@ -16,14 +16,21 @@
  *   - scanner.ts L429-438 (event matching)
  *   - utils/transfer/index.ts (extract + populate)
  */
-import { v4 as uuidv4 } from 'uuid';
-
+import { updateTotalSupply } from '@/core/handlerHelpers';
+import { insertEntities } from '@/core/persistHelpers';
+import { populateByDA } from '@/core/populateHelpers';
+import {
+  Block,
+  EntityCategory,
+  EventPlugin,
+  HandlerContext,
+  IBatchContext,
+  Log,
+} from '@/core/types';
 import { LSP7DigitalAsset } from '@chillwhales/abi';
 import { Transfer } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
-
-import { insertEntities, populateByDA } from '@/core/pluginHelpers';
-import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP7Transfer';
@@ -81,6 +88,17 @@ const LSP7TransferPlugin: EventPlugin = {
 
   async persist(store: Store, ctx: IBatchContext): Promise<void> {
     await insertEntities(store, ctx, ENTITY_TYPE);
+  },
+
+  // ---------------------------------------------------------------------------
+  // Phase 5: HANDLE — Update total supply for LSP7 mints/burns
+  // ---------------------------------------------------------------------------
+
+  async handle(hctx: HandlerContext): Promise<void> {
+    const entities = hctx.batchCtx.getEntities<Transfer>(ENTITY_TYPE);
+    if (entities.size === 0) return;
+
+    await updateTotalSupply(hctx.store, [...entities.values()]);
   },
 };
 

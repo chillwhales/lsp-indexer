@@ -13,14 +13,13 @@
  *   - utils/dataChanged/lsp8TokenMetadataBaseUri.ts
  *   - app/index.ts L460 (upsert)
  */
-import { LSP8DataKeys } from '@lukso/lsp8-contracts';
-
+import { upsertEntities } from '@/core/persistHelpers';
+import { populateByDA } from '@/core/populateHelpers';
+import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 import { LSP8TokenMetadataBaseURI } from '@chillwhales/typeorm';
+import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { Store } from '@subsquid/typeorm-store';
 import { concat, hexToString, isHex, keccak256, sliceHex, toHex } from 'viem';
-
-import { populateByDA, upsertEntities } from '@/core/pluginHelpers';
-import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP8TokenMetadataBaseURI';

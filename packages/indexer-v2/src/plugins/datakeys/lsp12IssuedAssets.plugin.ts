@@ -35,19 +35,13 @@
  *   - app/scanner.ts (DataChanged case → LSP12IssuedAssets routing)
  *   - app/index.ts (upsert)
  */
-import { LSP12DataKeys } from '@lukso/lsp12-contracts';
-
+import { mergeUpsertEntities, upsertEntities } from '@/core/persistHelpers';
+import { enrichEntityFk, populateByUP } from '@/core/populateHelpers';
+import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 import { LSP12IssuedAsset, LSP12IssuedAssetsLength } from '@chillwhales/typeorm';
+import { LSP12DataKeys } from '@lukso/lsp12-contracts';
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
-
-import {
-  enrichEntityFk,
-  mergeUpsertEntities,
-  populateByUP,
-  upsertEntities,
-} from '@/core/pluginHelpers';
-import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
 
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag

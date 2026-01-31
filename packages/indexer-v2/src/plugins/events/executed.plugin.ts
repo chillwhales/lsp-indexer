@@ -12,15 +12,14 @@
  *   - scanner.ts L160-163 (event matching)
  *   - utils/executed/index.ts (extract + populate)
  */
-import { v4 as uuidv4 } from 'uuid';
-
+import { insertEntities } from '@/core/persistHelpers';
+import { populateByUP } from '@/core/populateHelpers';
+import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { decodeOperationType } from '@/utils';
 import { ERC725X } from '@chillwhales/abi';
 import { Executed } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
-
-import { insertEntities, populateByUP } from '@/core/pluginHelpers';
-import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
-import { decodeOperationType } from '@/utils';
+import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'Executed';

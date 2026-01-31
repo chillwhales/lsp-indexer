@@ -1,3 +1,4 @@
+import { MULTICALL_ADDRESS } from '@/constants';
 import { LSP0ERC725Account, LSP7DigitalAsset, Multicall3 } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
@@ -7,9 +8,6 @@ import { INTERFACE_ID_LSP8, INTERFACE_ID_LSP8_PREVIOUS } from '@lukso/lsp8-contr
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { hexToBool, isHex } from 'viem';
-
-import { MULTICALL_ADDRESS } from '@/constants';
-
 import { Context, EntityCategory, VerificationResult } from './types';
 
 // ---------------------------------------------------------------------------

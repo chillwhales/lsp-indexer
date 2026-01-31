@@ -24,16 +24,23 @@
  *   - utils/transfer/index.ts (extract LSP8 branch + populate)
  *   - utils/transfer/nft.ts (mint/burn NFT creation)
  */
-import { v4 as uuidv4 } from 'uuid';
-import { zeroAddress } from 'viem';
-
+import { updateTotalSupply } from '@/core/handlerHelpers';
+import { insertEntities, upsertEntities } from '@/core/persistHelpers';
+import { populateByDA } from '@/core/populateHelpers';
+import {
+  Block,
+  EntityCategory,
+  EventPlugin,
+  HandlerContext,
+  IBatchContext,
+  Log,
+} from '@/core/types';
+import { generateTokenId } from '@/utils';
 import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
 import { DigitalAsset, NFT, Transfer } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
-
-import { insertEntities, populateByDA, upsertEntities } from '@/core/pluginHelpers';
-import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
-import { generateTokenId } from '@/utils';
+import { v4 as uuidv4 } from 'uuid';
+import { zeroAddress } from 'viem';
 
 // Entity type keys used in the BatchContext entity bag
 const TRANSFER_TYPE = 'LSP8Transfer';
@@ -146,6 +153,17 @@ const LSP8TransferPlugin: EventPlugin = {
     // Upsert NFTs first (Transfers have FK references to NFTs)
     await upsertEntities(store, ctx, NFT_TYPE);
     await insertEntities(store, ctx, TRANSFER_TYPE);
+  },
+
+  // ---------------------------------------------------------------------------
+  // Phase 5: HANDLE — Update total supply for LSP8 mints/burns
+  // ---------------------------------------------------------------------------
+
+  async handle(hctx: HandlerContext): Promise<void> {
+    const entities = hctx.batchCtx.getEntities<Transfer>(TRANSFER_TYPE);
+    if (entities.size === 0) return;
+
+    await updateTotalSupply(hctx.store, [...entities.values()]);
   },
 };
 
