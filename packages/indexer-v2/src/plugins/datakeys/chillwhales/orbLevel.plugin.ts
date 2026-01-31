@@ -28,7 +28,7 @@ import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core
 import { generateTokenId } from '@/utils';
 import { DigitalAsset, NFT, OrbCooldownExpiry, OrbLevel } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
-import { bytesToNumber, Hex, hexToBytes, isHex, sliceBytes } from 'viem';
+import { bytesToNumber, hexToBytes, isHex, sliceBytes } from 'viem';
 
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag
@@ -67,8 +67,8 @@ const OrbLevelPlugin: DataKeyPlugin = {
     const nft = new NFT({ id, tokenId, address });
 
     // Decode packed data value: [level(uint32), cooldownExpiry(uint32)]
-    if (isHex(dataValue) && hexToBytes(dataValue as Hex).length >= 8) {
-      const dataBytes = hexToBytes(dataValue as Hex);
+    if (isHex(dataValue) && hexToBytes(dataValue).length >= 8) {
+      const dataBytes = hexToBytes(dataValue);
       const level = bytesToNumber(sliceBytes(dataBytes, 0, 4));
       const cooldownExpiry = bytesToNumber(sliceBytes(dataBytes, 4));
 

@@ -5,6 +5,7 @@ import { Store } from '@subsquid/typeorm-store';
 // Subsquid re-exports (same as v1 types/index.ts)
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface FieldSelection {}
 
 export type Processor = EvmBatchProcessor<FieldSelection>;
@@ -248,7 +249,7 @@ export type Plugin = EventPlugin | DataKeyPlugin;
 
 export interface IPluginRegistry {
   /** Discover and register all plugins from directories */
-  discover(pluginDirs: string[]): Promise<void>;
+  discover(pluginDirs: string[]): void;
 
   /** Get event plugin by topic0 */
   getEventPlugin(topic0: string): EventPlugin | undefined;

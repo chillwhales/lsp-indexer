@@ -83,7 +83,7 @@ export class PluginRegistry implements IPluginRegistry {
    *
    * @throws Error if duplicate topic0 is found across event plugins.
    */
-  async discover(pluginDirs: string[]): Promise<void> {
+  discover(pluginDirs: string[]): void {
     for (const dir of pluginDirs) {
       const files = findFiles(dir, '.plugin.js');
 
@@ -98,7 +98,7 @@ export class PluginRegistry implements IPluginRegistry {
 
         if (isEventPlugin(plugin)) {
           if (this.eventPlugins.has(plugin.topic0)) {
-            const existing = this.eventPlugins.get(plugin.topic0)!;
+            const existing = this.eventPlugins.get(plugin.topic0);
             throw new Error(
               `[Registry] Duplicate topic0: '${plugin.name}' conflicts with '${existing.name}'`,
             );
@@ -126,7 +126,7 @@ export class PluginRegistry implements IPluginRegistry {
    */
   registerEventPlugin(plugin: EventPlugin): void {
     if (this.eventPlugins.has(plugin.topic0)) {
-      const existing = this.eventPlugins.get(plugin.topic0)!;
+      const existing = this.eventPlugins.get(plugin.topic0);
       throw new Error(
         `[Registry] Duplicate topic0: '${plugin.name}' conflicts with '${existing.name}'`,
       );
@@ -174,7 +174,7 @@ export class PluginRegistry implements IPluginRegistry {
    * Get plugins that have entities in the current batch.
    * Used to skip populate/persist for plugins with no work to do.
    */
-  getActivePlugins(ctx: IBatchContext): Plugin[] {
+  getActivePlugins(_ctx: IBatchContext): Plugin[] {
     // An event plugin is "active" if any entity type it could have written exists.
     // Since we can't know the type strings upfront, we return all plugins
     // and let each plugin's populate/persist check internally.

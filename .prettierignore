@@ -1,5 +1,6 @@
 lib/
 node_modules/
+.pnpm-store/
 packages/abi/src/
 packages/typeorm/src/
 packages/typeorm/db/

@@ -14,8 +14,7 @@ export function extract({ block, log }: ExtractParams): LSP29EncryptedAssetRevis
 
   // The value is a uint128 revision count
   const dataValueBytes = hexToBytes(dataValue as Hex);
-  const revisionCount =
-    dataValueBytes.length === 16 ? bytesToBigInt(dataValueBytes) : null;
+  const revisionCount = dataValueBytes.length === 16 ? bytesToBigInt(dataValueBytes) : null;
 
   return new LSP29EncryptedAssetRevisionCount({
     id: `${address} - ${dataKey}`,
