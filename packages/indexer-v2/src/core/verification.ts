@@ -125,7 +125,7 @@ export class VerificationCache {
   private evict(): void {
     while (this.cache.size > this.maxSize) {
       // Map.keys().next() returns the oldest entry
-      const oldest = this.cache.keys().next().value;
+      const oldest = this.cache.keys().next().value as string | undefined;
       if (oldest !== undefined) {
         this.cache.delete(oldest);
       }
@@ -147,7 +147,7 @@ async function aggregate3StaticLatest(
   context: Context,
   calls: Multicall3.Aggregate3StaticParams['calls'],
 ): Promise<Aggregate3StaticReturn> {
-  const result = await context._chain.client.call('eth_call', [
+  const result = await context._chain.client.call<string>('eth_call', [
     {
       from: null,
       to: MULTICALL_ADDRESS,

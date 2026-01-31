@@ -314,11 +314,11 @@ function extractPermissions(
   if (isHex(dataValue) && hexToBytes(dataValue).length === 32) {
     const permissions = decodePermissions(dataValue);
 
-    for (const permissionName of Object.keys(permissions)) {
+    for (const [permissionName, permissionValue] of Object.entries(permissions)) {
       const permEntity = new LSP6Permission({
         id: `${id} - ${permissionName}`,
         permissionName,
-        permissionValue: permissions[permissionName],
+        permissionValue,
       });
 
       ctx.addEntity(PERMISSION_TYPE, permEntity.id, permEntity);
@@ -358,7 +358,7 @@ function extractAllowedCalls(
 
   // Decode allowed calls from CompactBytesArray
   try {
-    const allowedCalls: Hex[] = decodeValueType('bytes[CompactBytesArray]', dataValue);
+    const allowedCalls = decodeValueType('bytes[CompactBytesArray]', dataValue) as Hex[];
 
     for (let i = 0; i < allowedCalls.length; i++) {
       const callBytes = hexToBytes(allowedCalls[i]);
@@ -404,7 +404,7 @@ function extractAllowedDataKeys(
 
   // Decode allowed data keys from CompactBytesArray
   try {
-    const allowedKeys: Hex[] = decodeValueType('bytes[CompactBytesArray]', dataValue);
+    const allowedKeys = decodeValueType('bytes[CompactBytesArray]', dataValue) as Hex[];
 
     for (let i = 0; i < allowedKeys.length; i++) {
       const keyEntity = new LSP6AllowedERC725YDataKey({

@@ -61,14 +61,16 @@ export async function insertNewEntities<T extends { id: string }>(
   store: Store,
   ctx: IBatchContext,
   entityType: string,
-  EntityClass: new (...args: any[]) => T,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TypeORM constructor accepts DeepPartial<T>
+  EntityCtor: new (...args: any[]) => T,
 ): Promise<void> {
   const entities = ctx.getEntities<T>(entityType);
   if (entities.size === 0) return;
 
   const ids = [...entities.keys()];
-  const existing = await store.findBy(EntityClass as any, { id: In(ids) } as any);
-  const existingIds = new Set(existing.map((e: T) => e.id));
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- TypeORM constructor vs Subsquid EntityClass mismatch
+  const existing = await store.findBy(EntityCtor as any, { id: In(ids) } as any);
+  const existingIds = new Set(existing.map((e) => e.id));
   const newEntities = [...entities.values()].filter((e) => !existingIds.has(e.id));
 
   if (newEntities.length > 0) {
@@ -94,12 +96,13 @@ export async function insertNewEntities<T extends { id: string }>(
  * @param EntityClass - TypeORM entity class (for store.findBy)
  * @param mergeFields - Field names to preserve from existing DB records
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mergeFields index access requires any
 export async function mergeUpsertEntities<T extends { id: string; [key: string]: any }>(
   store: Store,
   ctx: IBatchContext,
   entityType: string,
-  EntityClass: new (...args: any[]) => T,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TypeORM constructor accepts DeepPartial<T>
+  EntityCtor: new (...args: any[]) => T,
   mergeFields: (keyof T & string)[],
 ): Promise<void> {
   const entities = ctx.getEntities<T>(entityType);
@@ -107,8 +110,9 @@ export async function mergeUpsertEntities<T extends { id: string; [key: string]:
 
   // Read existing DB records for the IDs in this batch
   const ids = [...entities.keys()];
-  const existing = await store.findBy(EntityClass as any, { id: In(ids) } as any);
-  const existingMap = new Map(existing.map((e: T) => [e.id, e]));
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- TypeORM constructor vs Subsquid EntityClass mismatch
+  const existing = await store.findBy(EntityCtor as any, { id: In(ids) } as any);
+  const existingMap = new Map((existing as T[]).map((e) => [e.id, e]));
 
   // Merge: keep existing non-null values when the new entity has null
   for (const [id, entity] of entities) {
