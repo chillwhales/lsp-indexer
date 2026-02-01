@@ -4,6 +4,9 @@ import { EntityHandler, EventPlugin, IPluginRegistry, LogSubscription } from './
 
 /**
  * Type guard: does the object satisfy the EventPlugin interface?
+ *
+ * TODO(#102): When populate() and persist() are removed from EventPlugin,
+ * update this guard to stop checking for those methods.
  */
 function isEventPlugin(obj: unknown): obj is EventPlugin {
   if (typeof obj !== 'object' || obj === null) return false;

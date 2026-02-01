@@ -18,7 +18,7 @@
  */
 
 import { aggregate3StaticLatest } from '@/core/multicall';
-import { EntityCategory, EntityEvent, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, HandlerContext } from '@/core/types';
 import { LSP7DigitalAsset } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { Decimals, DigitalAsset } from '@chillwhales/typeorm';
@@ -26,16 +26,17 @@ import { hexToNumber, isHex } from 'viem';
 
 const BATCH_SIZE = 100;
 
-const DecimalsHandler: EntityHandler = {
+/**
+ * NOTE: This handler uses the old EntityHandler interface and will not be
+ * discovered by the registry until it is refactored in issue #105.
+ * It remains as dead code for now.
+ */
+const DecimalsHandler = {
   name: 'decimals',
   listensTo: [EntityCategory.DigitalAsset],
-  events: [EntityEvent.Create],
+  events: ['create'],
 
-  async handle(
-    hctx: HandlerContext,
-    triggeredBy: EntityCategory,
-    _event: EntityEvent,
-  ): Promise<void> {
+  async handle(hctx: HandlerContext, triggeredBy: EntityCategory, _event: string): Promise<void> {
     const { store, context, batchCtx } = hctx;
 
     // Get newly verified entities from the triggering category
