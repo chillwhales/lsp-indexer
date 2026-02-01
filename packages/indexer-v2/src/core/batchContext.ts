@@ -1,4 +1,10 @@
-import { EntityCategory, FetchRequest, IBatchContext, VerificationResult } from './types';
+import {
+  EnrichmentRequest,
+  EntityCategory,
+  FetchRequest,
+  IBatchContext,
+  VerificationResult,
+} from './types';
 
 /**
  * BatchContext is the shared entity bag for a single batch.
@@ -40,6 +46,12 @@ export class BatchContext implements IBatchContext {
    * during the handle phase.
    */
   private readonly fetchQueue: FetchRequest[] = [];
+
+  /**
+   * Queue of enrichment requests, consumed by the pipeline during
+   * the enrichment phase to populate FK references after verification.
+   */
+  private readonly enrichmentQueue: EnrichmentRequest[] = [];
 
   // -------------------------------------------------------------------------
   // Entity storage
@@ -120,7 +132,19 @@ export class BatchContext implements IBatchContext {
     this.fetchQueue.push(request);
   }
 
-  getFetchQueue(): FetchRequest[] {
+  getFetchQueue(): ReadonlyArray<FetchRequest> {
     return this.fetchQueue;
+  }
+
+  // -------------------------------------------------------------------------
+  // Enrichment queue
+  // -------------------------------------------------------------------------
+
+  queueEnrichment(request: EnrichmentRequest): void {
+    this.enrichmentQueue.push(request);
+  }
+
+  getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest> {
+    return this.enrichmentQueue;
   }
 }

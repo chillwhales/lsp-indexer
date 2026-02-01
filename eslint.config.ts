@@ -18,6 +18,9 @@ export default tseslint.config(
 
       // Legacy v1 indexer — read-only reference, not actively maintained
       'packages/indexer/',
+
+      // Config files — not source code
+      '**/vitest.config.ts',
     ],
   },
 
