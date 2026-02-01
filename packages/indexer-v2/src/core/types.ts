@@ -103,11 +103,11 @@ export interface IBatchContext {
 
   // Metadata fetch queue (consumed by worker pool)
   queueFetch(request: FetchRequest): void;
-  getFetchQueue(): FetchRequest[];
+  getFetchQueue(): ReadonlyArray<FetchRequest>;
 
   // Enrichment queue (for deferred FK resolution)
   queueEnrichment(request: EnrichmentRequest): void;
-  getEnrichmentQueue(): EnrichmentRequest[];
+  getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest>;
 }
 
 // ---------------------------------------------------------------------------
@@ -236,6 +236,10 @@ export interface EventPlugin {
  * Currently only `Create` is emitted (in pipeline.ts Phase 5b). `Update` and `Delete`
  * are defined for future extension when the persist layer is enhanced to
  * track modifications and removals.
+ *
+ * TODO(#101): Remove when pipeline is rewritten to bag-based handlers.
+ * The new pipeline (EXTRACT → PERSIST → HANDLE → VERIFY → ENRICH) uses
+ * EntityHandler.listensToBag instead of entity lifecycle events.
  */
 export enum EntityEvent {
   /** Entity verified and persisted for the first time */

@@ -132,7 +132,7 @@ export class BatchContext implements IBatchContext {
     this.fetchQueue.push(request);
   }
 
-  getFetchQueue(): FetchRequest[] {
+  getFetchQueue(): ReadonlyArray<FetchRequest> {
     return this.fetchQueue;
   }
 
@@ -144,7 +144,7 @@ export class BatchContext implements IBatchContext {
     this.enrichmentQueue.push(request);
   }
 
-  getEnrichmentQueue(): EnrichmentRequest[] {
+  getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest> {
     return this.enrichmentQueue;
   }
 }
