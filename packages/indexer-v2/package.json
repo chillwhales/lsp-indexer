@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -Rf lib/",
-    "start": "ts-node --project ./tsconfig.json -r tsconfig-paths/register lib/app/index.js"
+    "start": "ts-node --project ./tsconfig.json -r tsconfig-paths/register lib/app/index.js",
+    "test": "vitest"
   },
   "dependencies": {
     "@chillwhales/abi": "workspace:1.0.4",
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@types/node": "^24.1.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^2.1.8"
   }
 }

@@ -41,6 +41,12 @@ export class BatchContext implements IBatchContext {
    */
   private readonly fetchQueue: FetchRequest[] = [];
 
+  /**
+   * Queue of enrichment requests, consumed by the pipeline during
+   * the enrichment phase to populate FK references after verification.
+   */
+  private readonly enrichmentQueue: EnrichmentRequest[] = [];
+
   // -------------------------------------------------------------------------
   // Entity storage
   // -------------------------------------------------------------------------
@@ -122,5 +128,17 @@ export class BatchContext implements IBatchContext {
 
   getFetchQueue(): FetchRequest[] {
     return this.fetchQueue;
+  }
+
+  // -------------------------------------------------------------------------
+  // Enrichment queue
+  // -------------------------------------------------------------------------
+
+  queueEnrichment(request: EnrichmentRequest): void {
+    this.enrichmentQueue.push(request);
+  }
+
+  getEnrichmentQueue(): EnrichmentRequest[] {
+    return this.enrichmentQueue;
   }
 }

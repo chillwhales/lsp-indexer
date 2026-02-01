@@ -1,16 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  DataKeyPlugin,
-  EntityCategory,
-  EntityEvent,
-  EntityHandler,
-  EventPlugin,
-  IBatchContext,
-  IPluginRegistry,
-  LogSubscription,
-  Plugin,
-} from './types';
+import { EntityHandler, EventPlugin, IPluginRegistry, LogSubscription } from './types';
 
 /**
  * Type guard: does the object satisfy the EventPlugin interface?
@@ -29,39 +19,17 @@ function isEventPlugin(obj: unknown): obj is EventPlugin {
 }
 
 /**
- * Type guard: does the object satisfy the DataKeyPlugin interface?
- */
-function isDataKeyPlugin(obj: unknown): obj is DataKeyPlugin {
-  if (typeof obj !== 'object' || obj === null) return false;
-  const p = obj as Record<string, unknown>;
-  return (
-    typeof p.name === 'string' &&
-    typeof p.matches === 'function' &&
-    typeof p.extract === 'function' &&
-    typeof p.populate === 'function' &&
-    typeof p.persist === 'function' &&
-    Array.isArray(p.requiresVerification)
-  );
-}
-
-/**
  * Type guard: does the object satisfy the EntityHandler interface?
- * Validates that listensTo contains only valid EntityCategory values
- * and events contains only valid EntityEvent values.
+ * Validates that listensToBag is a non-empty array of strings.
  */
 function isEntityHandler(obj: unknown): obj is EntityHandler {
   if (typeof obj !== 'object' || obj === null) return false;
   const p = obj as Record<string, unknown>;
-  const validCategories = Object.values(EntityCategory) as string[];
-  const validEvents = Object.values(EntityEvent) as string[];
   return (
     typeof p.name === 'string' &&
-    Array.isArray(p.listensTo) &&
-    p.listensTo.length > 0 &&
-    p.listensTo.every((c: unknown) => typeof c === 'string' && validCategories.includes(c)) &&
-    Array.isArray(p.events) &&
-    p.events.length > 0 &&
-    p.events.every((e: unknown) => typeof e === 'string' && validEvents.includes(e)) &&
+    Array.isArray(p.listensToBag) &&
+    p.listensToBag.length > 0 &&
+    p.listensToBag.every((key: unknown) => typeof key === 'string') &&
     typeof p.handle === 'function'
   );
 }
@@ -100,15 +68,13 @@ function findFiles(dir: string, suffix: string): string[] {
  */
 export class PluginRegistry implements IPluginRegistry {
   private readonly eventPlugins = new Map<string, EventPlugin>();
-  private readonly dataKeyPlugins: DataKeyPlugin[] = [];
-  private readonly allPlugins: Plugin[] = [];
   private readonly entityHandlers: EntityHandler[] = [];
 
   /**
-   * Discover and register all plugins from the given directories.
+   * Discover and register all event plugins from the given directories.
    *
    * Scans for *.plugin.js files (compiled from *.plugin.ts), imports them,
-   * validates they implement the correct interface, and registers them.
+   * validates they implement the EventPlugin interface, and registers them.
    *
    * @throws Error if duplicate topic0 is found across event plugins.
    */
@@ -136,21 +102,13 @@ export class PluginRegistry implements IPluginRegistry {
             );
           }
           this.eventPlugins.set(plugin.topic0, plugin);
-          this.allPlugins.push(plugin);
-        } else if (isDataKeyPlugin(plugin)) {
-          this.dataKeyPlugins.push(plugin);
-          this.allPlugins.push(plugin);
         } else {
-          console.warn(
-            `[Registry] Export in ${file} does not implement EventPlugin or DataKeyPlugin, skipping`,
-          );
+          console.warn(`[Registry] Export in ${file} does not implement EventPlugin, skipping`);
         }
       }
     }
 
-    console.info(
-      `[Registry] Discovered ${this.eventPlugins.size} event plugins, ${this.dataKeyPlugins.length} data key plugins`,
-    );
+    console.info(`[Registry] Discovered ${this.eventPlugins.size} event plugins`);
   }
 
   /**
@@ -197,7 +155,7 @@ export class PluginRegistry implements IPluginRegistry {
   }
 
   /**
-   * Register a plugin directly (useful for testing or manual wiring).
+   * Register an event plugin directly (useful for testing or manual wiring).
    */
   registerEventPlugin(plugin: EventPlugin): void {
     if (this.eventPlugins.has(plugin.topic0)) {
@@ -207,15 +165,6 @@ export class PluginRegistry implements IPluginRegistry {
       );
     }
     this.eventPlugins.set(plugin.topic0, plugin);
-    this.allPlugins.push(plugin);
-  }
-
-  /**
-   * Register a data key plugin directly.
-   */
-  registerDataKeyPlugin(plugin: DataKeyPlugin): void {
-    this.dataKeyPlugins.push(plugin);
-    this.allPlugins.push(plugin);
   }
 
   /**
@@ -241,13 +190,6 @@ export class PluginRegistry implements IPluginRegistry {
     return this.eventPlugins.get(topic0);
   }
 
-  getDataKeyPlugin(dataKey: string): DataKeyPlugin | undefined {
-    for (const plugin of this.dataKeyPlugins) {
-      if (plugin.matches(dataKey)) return plugin;
-    }
-    return undefined;
-  }
-
   // -------------------------------------------------------------------------
   // Collection accessors
   // -------------------------------------------------------------------------
@@ -256,43 +198,8 @@ export class PluginRegistry implements IPluginRegistry {
     return [...this.eventPlugins.values()];
   }
 
-  getAllDataKeyPlugins(): DataKeyPlugin[] {
-    return [...this.dataKeyPlugins];
-  }
-
-  /**
-   * Get plugins that have entities in the current batch.
-   * Used to skip populate/persist for plugins with no work to do.
-   */
-  getActivePlugins(_ctx: IBatchContext): Plugin[] {
-    // An event plugin is "active" if any entity type it could have written exists.
-    // Since we can't know the type strings upfront, we return all plugins
-    // and let each plugin's populate/persist check internally.
-    // This is still far cheaper than v1's approach of threading everything.
-    return this.allPlugins;
-  }
-
-  /**
-   * Get all plugins that define a handle() method.
-   */
-  getAllHandlers(): Plugin[] {
-    return this.allPlugins.filter((p) => typeof p.handle === 'function');
-  }
-
-  /**
-   * Get all registered entity handlers.
-   */
   getAllEntityHandlers(): EntityHandler[] {
     return [...this.entityHandlers];
-  }
-
-  /**
-   * Get entity handlers that listen to a specific category and event.
-   */
-  getEntityHandlers(category: EntityCategory, event: EntityEvent): EntityHandler[] {
-    return this.entityHandlers.filter(
-      (h) => h.listensTo.includes(category) && h.events.includes(event),
-    );
   }
 
   // -------------------------------------------------------------------------
