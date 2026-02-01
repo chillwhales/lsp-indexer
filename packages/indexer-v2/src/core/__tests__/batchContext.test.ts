@@ -49,7 +49,7 @@ describe('BatchContext - Enrichment Queue', () => {
     };
 
     const request3: EnrichmentRequest = {
-      category: 'NFT',
+      category: EntityCategory.NFT,
       address: '0x9876543210fedcba9876543210fedcba98765432',
       tokenId: '42',
       entityType: 'LSP8Transfer',
@@ -73,7 +73,7 @@ describe('BatchContext - Enrichment Queue', () => {
     const ctx = new BatchContext();
 
     const requestWithTokenId: EnrichmentRequest = {
-      category: 'NFT',
+      category: EntityCategory.NFT,
       address: '0xnftaddress',
       tokenId: '123',
       entityType: 'NFTMetadata',
@@ -94,7 +94,7 @@ describe('BatchContext - Enrichment Queue', () => {
 
     const queue = ctx.getEnrichmentQueue();
 
-    expect(queue[0].category).toBe('NFT');
+    expect(queue[0].category).toBe(EntityCategory.NFT);
     expect(queue[0].address).toBe('0xnftaddress');
     expect(queue[0].tokenId).toBe('123');
     expect(queue[0].entityType).toBe('NFTMetadata');

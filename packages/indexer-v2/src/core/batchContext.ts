@@ -1,4 +1,10 @@
-import { EntityCategory, FetchRequest, IBatchContext, VerificationResult } from './types';
+import {
+  EnrichmentRequest,
+  EntityCategory,
+  FetchRequest,
+  IBatchContext,
+  VerificationResult,
+} from './types';
 
 /**
  * BatchContext is the shared entity bag for a single batch.

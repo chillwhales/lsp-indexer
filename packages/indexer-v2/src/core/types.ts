@@ -61,8 +61,8 @@ export interface VerificationResult {
  * verification completes and core entities (UP, DA, NFT) are created.
  */
 export interface EnrichmentRequest {
-  /** Category to verify (UniversalProfile, DigitalAsset) or 'NFT' */
-  category: EntityCategory | 'NFT';
+  /** Category to verify (UniversalProfile, DigitalAsset, NFT) */
+  category: EntityCategory;
 
   /** Address to verify */
   address: string;
@@ -148,7 +148,7 @@ export interface IMetadataWorkerPool {
 }
 
 // ---------------------------------------------------------------------------
-// Handler context — passed to plugin handle() methods
+// Handler context — passed to EntityHandler handle() methods
 // ---------------------------------------------------------------------------
 
 export interface HandlerContext {
@@ -232,8 +232,8 @@ export interface EventPlugin {
 /**
  * Lifecycle events emitted for core entities (UP, DA, NFT).
  *
- * EntityHandlers subscribe to specific events to react to entity changes.
- * Currently only `Create` is emitted by the pipeline. `Update` and `Delete`
+ * These events are used by the pipeline to trigger post-verification processing.
+ * Currently only `Create` is emitted (in pipeline.ts Phase 5b). `Update` and `Delete`
  * are defined for future extension when the persist layer is enhanced to
  * track modifications and removals.
  */
