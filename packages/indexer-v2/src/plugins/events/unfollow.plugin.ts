@@ -7,30 +7,22 @@
  * Contract-scoped: only processes logs from the LSP26 contract address
  * starting at block 3179471.
  *
- * Dual persistence model:
- *   1. `Unfollow` — Raw event log (UUID id) — append-only via store.insert()
- *   2. `Follower` removal — Removes the corresponding Follower record
- *      (deterministic id) created by the Follow plugin
+ * Creates the raw `Unfollow` entity for every Unfollow event (append-only event log).
+ *
+ * Both unfollower and unfollowed addresses are queued for verification as
+ * UniversalProfiles. FK resolution happens in the enrichment phase (Step 6).
+ *
+ * `Follower` current-state entity updates (removal) will be implemented as
+ * EntityHandlers in future issues (see #105: Transfer-derived entity handlers).
  *
  * Port from v1:
  *   - scanner.ts L482-489 (event matching)
  *   - utils/unfollow/index.ts (extract + populate)
- *   - handlers/followerSystemHandler.ts (identifiable follow removal)
  */
 import { LSP26_ADDRESS } from '@/constants';
-import { insertEntities } from '@/core/persistHelpers';
-import {
-  Block,
-  EntityCategory,
-  EventPlugin,
-  HandlerContext,
-  IBatchContext,
-  Log,
-} from '@/core/types';
-import { generateFollowId } from '@/utils';
+import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { LSP26FollowerSystem } from '@chillwhales/abi';
-import { Follower, Unfollow, UniversalProfile } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
+import { Unfollow } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
@@ -43,7 +35,7 @@ const UnfollowPlugin: EventPlugin = {
   requiresVerification: [EntityCategory.UniversalProfile],
 
   // ---------------------------------------------------------------------------
-  // Phase 1: EXTRACT
+  // EXTRACT
   // ---------------------------------------------------------------------------
 
   extract(log: Log, block: Block, ctx: IBatchContext): void {
@@ -60,64 +52,27 @@ const UnfollowPlugin: EventPlugin = {
       address,
       followerAddress: unfollower,
       unfollowedAddress: addr,
+      followerUniversalProfile: null,
+      unfollowedUniversalProfile: null,
     });
 
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
-    // Both unfollower and unfollowed are UP candidates
-    ctx.trackAddress(EntityCategory.UniversalProfile, unfollower);
-    ctx.trackAddress(EntityCategory.UniversalProfile, addr);
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 3: POPULATE
-  // ---------------------------------------------------------------------------
-
-  populate(ctx: IBatchContext): void {
-    const entities = ctx.getEntities<Unfollow>(ENTITY_TYPE);
-
-    for (const [, entity] of entities) {
-      if (ctx.isValid(EntityCategory.UniversalProfile, entity.followerAddress)) {
-        entity.followerUniversalProfile = new UniversalProfile({ id: entity.followerAddress });
-      }
-      if (ctx.isValid(EntityCategory.UniversalProfile, entity.unfollowedAddress)) {
-        entity.unfollowedUniversalProfile = new UniversalProfile({
-          id: entity.unfollowedAddress,
-        });
-      }
-      // Keep entity even if UPs are unverified — FK fields will be null
-    }
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 4: PERSIST
-  // ---------------------------------------------------------------------------
-
-  async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    await insertEntities(store, ctx, ENTITY_TYPE);
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 5: HANDLE — Remove corresponding Follower records
-  // ---------------------------------------------------------------------------
-
-  async handle(hctx: HandlerContext): Promise<void> {
-    const entities = hctx.batchCtx.getEntities<Unfollow>(ENTITY_TYPE);
-    if (entities.size === 0) return;
-
-    // Collect deterministic Follower IDs to remove
-    const followerIds: string[] = [];
-
-    for (const entity of entities.values()) {
-      followerIds.push(
-        generateFollowId({
-          followerAddress: entity.followerAddress,
-          followedAddress: entity.unfollowedAddress,
-        }),
-      );
-    }
-
-    await hctx.store.remove(Follower, followerIds);
+    // Queue enrichment for both followerUniversalProfile and unfollowedUniversalProfile FKs
+    ctx.queueEnrichment({
+      category: EntityCategory.UniversalProfile,
+      address: unfollower,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'followerUniversalProfile',
+    });
+    ctx.queueEnrichment({
+      category: EntityCategory.UniversalProfile,
+      address: addr,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'unfollowedUniversalProfile',
+    });
   },
 };
 

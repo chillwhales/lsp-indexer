@@ -5,151 +5,77 @@
  * LSP8 identifiable digital assets when per-token ERC725Y data is updated.
  *
  * This event fires whenever a data key is set on a specific tokenId of an
- * LSP8 contract. The plugin extracts the raw event entity, creates/upserts
- * the corresponding NFT entity, and routes data keys to DataKeyPlugins
- * via the PluginRegistry (e.g. LSP4Metadata per tokenId).
+ * LSP8 contract. The plugin extracts the raw event entity.
  *
- * Because the plugin needs access to the PluginRegistry for dataKey routing,
- * it uses a factory function (`createTokenIdDataChangedPlugin`) that captures
- * the registry in a closure — same pattern as the DataChanged meta-plugin.
+ * NFT entity creation is handled by the NFT EntityHandler (issue #104).
+ * DataKey routing to DataKeyPlugins will be implemented via EntityHandlers
+ * in future issues (see #103: DataKey handler architecture).
  *
- * Tracked addresses:
- *   - `log.address` → DigitalAsset candidate
+ * The emitting address is queued for verification as a DigitalAsset.
+ * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  *
  * Port from v1:
- *   - scanner.ts L454-471 (event matching + NFT extraction + dataKey routing)
+ *   - scanner.ts L454-471 (event matching)
  *   - utils/tokenIdDataChanged/index.ts (extract + populate)
- *   - utils/tokenIdDataChanged/nft.ts (NFT sub-extract)
  */
-import { insertEntities, insertNewEntities } from '@/core/persistHelpers';
-import { populateByDA } from '@/core/populateHelpers';
-import {
-  Block,
-  EntityCategory,
-  EventPlugin,
-  IBatchContext,
-  IPluginRegistry,
-  Log,
-} from '@/core/types';
-import { generateTokenId } from '@/utils';
+import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
-import { DigitalAsset, NFT, TokenIdDataChanged } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
+import { TokenIdDataChanged } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
-// Entity type keys used in the BatchContext entity bag
-const TOKEN_ID_DATA_CHANGED_TYPE = 'TokenIdDataChanged';
-const NFT_TYPE = 'NFT';
+// Entity type key used in the BatchContext entity bag
+const ENTITY_TYPE = 'TokenIdDataChanged';
 
-/**
- * Factory function that creates the TokenIdDataChanged event plugin.
- *
- * The registry is captured in closure so the plugin can route dataKeys
- * to DataKeyPlugins during extraction (e.g. LSP4Metadata per tokenId).
- */
-export function createTokenIdDataChangedPlugin(registry: IPluginRegistry): EventPlugin {
-  return {
-    name: 'tokenIdDataChanged',
-    topic0: LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.topic,
-    requiresVerification: [EntityCategory.DigitalAsset],
+const TokenIdDataChangedPlugin: EventPlugin = {
+  name: 'tokenIdDataChanged',
+  topic0: LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.topic,
+  requiresVerification: [EntityCategory.DigitalAsset],
 
-    // -------------------------------------------------------------------------
-    // Phase 1: EXTRACT
-    // -------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // EXTRACT
+  // ---------------------------------------------------------------------------
 
-    extract(log: Log, block: Block, ctx: IBatchContext): void {
-      const { timestamp, height } = block.header;
-      const { address, logIndex, transactionIndex } = log;
-      const { tokenId, dataKey, dataValue } =
-        LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.decode(log);
+  extract(log: Log, block: Block, ctx: IBatchContext): void {
+    const { timestamp, height } = block.header;
+    const { address, logIndex, transactionIndex } = log;
+    const { tokenId, dataKey, dataValue } =
+      LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.decode(log);
 
-      const nftId = generateTokenId({ address, tokenId });
+    const entity = new TokenIdDataChanged({
+      id: uuidv4(),
+      timestamp: new Date(timestamp),
+      blockNumber: height,
+      logIndex,
+      transactionIndex,
+      address,
+      tokenId,
+      dataKey,
+      dataValue,
+      digitalAsset: null,
+      nft: null,
+    });
 
-      // Create TokenIdDataChanged entity (append-only, UUID id)
-      const entity = new TokenIdDataChanged({
-        id: uuidv4(),
-        timestamp: new Date(timestamp),
-        blockNumber: height,
-        logIndex,
-        transactionIndex,
-        address,
-        tokenId,
-        dataKey,
-        dataValue,
-        nft: new NFT({ id: nftId, tokenId, address }),
-      });
+    ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
-      ctx.addEntity(TOKEN_ID_DATA_CHANGED_TYPE, entity.id, entity);
+    // Queue enrichment for digitalAsset FK
+    ctx.queueEnrichment({
+      category: EntityCategory.DigitalAsset,
+      address,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'digitalAsset',
+    });
 
-      // Create NFT entity (upserted during persist).
-      // Only add if not already in the batch — Transfer events take priority
-      // for setting isMinted/isBurned status.
-      if (!ctx.getEntities<NFT>(NFT_TYPE).has(nftId)) {
-        ctx.addEntity(
-          NFT_TYPE,
-          nftId,
-          new NFT({
-            id: nftId,
-            tokenId,
-            address,
-            digitalAsset: new DigitalAsset({ id: address, address }),
-            isMinted: false,
-            isBurned: false,
-          }),
-        );
-      }
+    // Queue enrichment for nft FK
+    ctx.queueEnrichment({
+      category: EntityCategory.NFT,
+      address,
+      tokenId,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'nft',
+    });
+  },
+};
 
-      // Track emitting contract as DigitalAsset candidate
-      ctx.trackAddress(EntityCategory.DigitalAsset, address);
-
-      // Route to the matching DataKeyPlugin (if any)
-      // e.g. LSP4Metadata per tokenId
-      const dataKeyPlugin = registry.getDataKeyPlugin(dataKey);
-      if (dataKeyPlugin) {
-        dataKeyPlugin.extract(log, dataKey, dataValue, block, ctx);
-      }
-    },
-
-    // -------------------------------------------------------------------------
-    // Phase 3: POPULATE
-    // -------------------------------------------------------------------------
-
-    populate(ctx: IBatchContext): void {
-      // Populate TokenIdDataChanged entities — link to verified DigitalAsset + enrich NFT ref
-      const entities = ctx.getEntities<TokenIdDataChanged>(TOKEN_ID_DATA_CHANGED_TYPE);
-
-      for (const [id, entity] of entities) {
-        if (ctx.isValid(EntityCategory.DigitalAsset, entity.address)) {
-          entity.digitalAsset = new DigitalAsset({ id: entity.address });
-
-          if (entity.nft) {
-            entity.nft = new NFT({
-              ...entity.nft,
-              digitalAsset: new DigitalAsset({ id: entity.address }),
-            });
-          }
-        } else {
-          ctx.removeEntity(TOKEN_ID_DATA_CHANGED_TYPE, id);
-        }
-      }
-
-      // Populate NFT entities — link to verified DigitalAsset
-      populateByDA<NFT>(ctx, NFT_TYPE);
-    },
-
-    // -------------------------------------------------------------------------
-    // Phase 4: PERSIST
-    // -------------------------------------------------------------------------
-
-    async persist(store: Store, ctx: IBatchContext): Promise<void> {
-      // Only create NFTs that don't already exist in DB.
-      // TokenIdDataChanged doesn't carry meaningful NFT data — it only needs
-      // the NFT row to exist for the FK reference. A blind upsert would
-      // overwrite isMinted/isBurned values set by LSP8Transfer in prior batches.
-      await insertNewEntities(store, ctx, NFT_TYPE, NFT);
-      await insertEntities(store, ctx, TOKEN_ID_DATA_CHANGED_TYPE);
-    },
-  };
-}
-
-export default createTokenIdDataChangedPlugin;
+export default TokenIdDataChangedPlugin;

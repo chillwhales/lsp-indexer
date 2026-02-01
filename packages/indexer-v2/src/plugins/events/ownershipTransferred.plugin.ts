@@ -4,34 +4,20 @@
  * Handles the `OwnershipTransferred(address,address)` event emitted by
  * Universal Profiles and Digital Assets when ownership changes.
  *
- * The emitting address is tracked as BOTH a UniversalProfile and DigitalAsset
- * candidate (either type can emit this event).
+ * The emitting address is queued for verification as both UniversalProfile
+ * and DigitalAsset (either type can emit this event).
+ * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  *
- * The `handle()` phase upserts `UniversalProfileOwner` and `DigitalAssetOwner`
- * records to track the current owner of each contract.
+ * UniversalProfileOwner and DigitalAssetOwner updates will be implemented
+ * as EntityHandlers in future issues (see #105: Transfer-derived entity handlers).
  *
  * Port from v1:
  *   - scanner.ts L563-568 (event matching)
  *   - utils/ownershipTransferred/index.ts (extract + populate)
- *   - handlers/ownershipTransferredHandler.ts (owner record upsert)
  */
-import { insertEntities } from '@/core/persistHelpers';
-import { populateByUPAndDA } from '@/core/populateHelpers';
-import {
-  Block,
-  EntityCategory,
-  EventPlugin,
-  HandlerContext,
-  IBatchContext,
-  Log,
-} from '@/core/types';
+import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { LSP14Ownable2Step } from '@chillwhales/abi';
-import {
-  DigitalAssetOwner,
-  OwnershipTransferred,
-  UniversalProfileOwner,
-} from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
+import { OwnershipTransferred } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
@@ -43,7 +29,7 @@ const OwnershipTransferredPlugin: EventPlugin = {
   requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------
-  // Phase 1: EXTRACT
+  // EXTRACT
   // ---------------------------------------------------------------------------
 
   extract(log: Log, block: Block, ctx: IBatchContext): void {
@@ -60,73 +46,28 @@ const OwnershipTransferredPlugin: EventPlugin = {
       address,
       previousOwner,
       newOwner,
+      universalProfile: null,
+      digitalAsset: null,
     });
 
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
-    // The emitting address could be either a UP or a DA
-    ctx.trackAddress(EntityCategory.UniversalProfile, address);
-    ctx.trackAddress(EntityCategory.DigitalAsset, address);
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 3: POPULATE
-  // ---------------------------------------------------------------------------
-
-  populate(ctx: IBatchContext): void {
-    populateByUPAndDA<OwnershipTransferred>(ctx, ENTITY_TYPE);
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 4: PERSIST
-  // ---------------------------------------------------------------------------
-
-  async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    await insertEntities(store, ctx, ENTITY_TYPE);
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 5: HANDLE — Update owner records
-  // ---------------------------------------------------------------------------
-
-  async handle(hctx: HandlerContext): Promise<void> {
-    const entities = hctx.batchCtx.getEntities<OwnershipTransferred>(ENTITY_TYPE);
-    if (entities.size === 0) return;
-
-    const upOwners = new Map<string, UniversalProfileOwner>();
-    const daOwners = new Map<string, DigitalAssetOwner>();
-
-    for (const entity of entities.values()) {
-      if (entity.universalProfile) {
-        upOwners.set(
-          entity.address,
-          new UniversalProfileOwner({
-            id: entity.address,
-            timestamp: entity.timestamp,
-            address: entity.newOwner,
-            universalProfile: entity.universalProfile,
-          }),
-        );
-      }
-      if (entity.digitalAsset) {
-        daOwners.set(
-          entity.address,
-          new DigitalAssetOwner({
-            id: entity.address,
-            timestamp: entity.timestamp,
-            address: entity.newOwner,
-            digitalAsset: entity.digitalAsset,
-          }),
-        );
-      }
-    }
-
-    if (upOwners.size > 0) {
-      await hctx.store.upsert([...upOwners.values()]);
-    }
-    if (daOwners.size > 0) {
-      await hctx.store.upsert([...daOwners.values()]);
-    }
+    // Queue enrichment for both universalProfile and digitalAsset FKs
+    // (either type can emit this event)
+    ctx.queueEnrichment({
+      category: EntityCategory.UniversalProfile,
+      address,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'universalProfile',
+    });
+    ctx.queueEnrichment({
+      category: EntityCategory.DigitalAsset,
+      address,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'digitalAsset',
+    });
   },
 };
 

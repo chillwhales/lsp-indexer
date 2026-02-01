@@ -8,28 +8,19 @@
  * topic0 hashes. LSP7 has `uint256 amount` (non-indexed), while LSP8 has
  * `bytes32 tokenId` (indexed). This plugin only handles the LSP7 variant.
  *
- * Tracked addresses:
- *   - `from` / `to` → UniversalProfile candidates
- *   - `log.address` → DigitalAsset candidate
+ * Emitting address and from/to are queued for verification.
+ * FK resolution happens in the enrichment phase (Step 6 of pipeline).
+ *
+ * TotalSupply and OwnedAssets updates will be implemented as EntityHandlers
+ * in future issues (see #105: Transfer-derived entity handlers).
  *
  * Port from v1:
  *   - scanner.ts L429-438 (event matching)
  *   - utils/transfer/index.ts (extract + populate)
  */
-import { updateOwnedAssets, updateTotalSupply } from '@/core/handlerHelpers';
-import { insertEntities } from '@/core/persistHelpers';
-import { populateByDA } from '@/core/populateHelpers';
-import {
-  Block,
-  EntityCategory,
-  EventPlugin,
-  HandlerContext,
-  IBatchContext,
-  Log,
-} from '@/core/types';
+import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { LSP7DigitalAsset } from '@chillwhales/abi';
 import { Transfer } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
@@ -41,7 +32,7 @@ const LSP7TransferPlugin: EventPlugin = {
   requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------
-  // Phase 1: EXTRACT
+  // EXTRACT
   // ---------------------------------------------------------------------------
 
   extract(log: Log, block: Block, ctx: IBatchContext): void {
@@ -63,46 +54,20 @@ const LSP7TransferPlugin: EventPlugin = {
       amount,
       force,
       data,
+      digitalAsset: null,
       // LSP7: no tokenId, no nft
     });
 
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
-    // Track from/to as UP candidates, contract address as DA candidate
-    ctx.trackAddress(EntityCategory.UniversalProfile, from);
-    ctx.trackAddress(EntityCategory.UniversalProfile, to);
-    ctx.trackAddress(EntityCategory.DigitalAsset, address);
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 3: POPULATE
-  // ---------------------------------------------------------------------------
-
-  populate(ctx: IBatchContext): void {
-    populateByDA<Transfer>(ctx, ENTITY_TYPE);
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 4: PERSIST
-  // ---------------------------------------------------------------------------
-
-  async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    await insertEntities(store, ctx, ENTITY_TYPE);
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 5: HANDLE — Update total supply + owned assets for LSP7 transfers
-  // ---------------------------------------------------------------------------
-
-  async handle(hctx: HandlerContext): Promise<void> {
-    const entities = hctx.batchCtx.getEntities<Transfer>(ENTITY_TYPE);
-    if (entities.size === 0) return;
-
-    const transferList = [...entities.values()];
-    const validUPs = hctx.batchCtx.getVerified(EntityCategory.UniversalProfile).valid;
-
-    await updateTotalSupply(hctx.store, transferList);
-    await updateOwnedAssets(hctx.store, transferList, validUPs);
+    // Queue enrichment for digitalAsset FK
+    ctx.queueEnrichment({
+      category: EntityCategory.DigitalAsset,
+      address,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'digitalAsset',
+    });
   },
 };
 

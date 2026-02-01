@@ -16,7 +16,6 @@
  *   - scanner.ts L526-561 (inline extraction, no separate extract/populate)
  */
 import { LSP23_ADDRESS } from '@/constants';
-import { insertEntities } from '@/core/persistHelpers';
 import { Block, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { LSP23LinkedContractsFactory } from '@chillwhales/abi';
 import {
@@ -24,7 +23,6 @@ import {
   PrimaryContractDeploymentInit,
   SecondaryContractDeploymentInit,
 } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
@@ -37,7 +35,7 @@ const DeployedProxiesPlugin: EventPlugin = {
   requiresVerification: [],
 
   // ---------------------------------------------------------------------------
-  // Phase 1: EXTRACT
+  // EXTRACT
   // ---------------------------------------------------------------------------
 
   extract(log: Log, block: Block, ctx: IBatchContext): void {
@@ -72,22 +70,6 @@ const DeployedProxiesPlugin: EventPlugin = {
     });
 
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 3: POPULATE — No-op (no verification required)
-  // ---------------------------------------------------------------------------
-
-  populate(): void {
-    // No verification or relational linking needed
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 4: PERSIST
-  // ---------------------------------------------------------------------------
-
-  async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    await insertEntities(store, ctx, ENTITY_TYPE);
   },
 };
 

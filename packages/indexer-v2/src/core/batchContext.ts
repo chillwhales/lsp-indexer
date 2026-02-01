@@ -31,15 +31,6 @@ export class BatchContext implements IBatchContext {
   private readonly entities = new Map<string, Map<string, unknown>>();
 
   /**
-   * Address sets per EntityCategory, used for batch verification.
-   *
-   * @deprecated This field supports the old trackAddress() pattern.
-   * The new pipeline (Step 5) collects addresses from the enrichment queue
-   * instead of explicit tracking. Will be removed in #102.
-   */
-  private readonly addressSets = new Map<EntityCategory, Set<string>>();
-
-  /**
    * Set of raw entity type keys sealed after Step 2 persistence.
    * After sealing, any attempt to add entities to a sealed type throws an error.
    */
@@ -106,38 +97,6 @@ export class BatchContext implements IBatchContext {
 
   sealRawEntityTypes(): void {
     this.sealedRawTypes = new Set(this.entities.keys());
-  }
-
-  // -------------------------------------------------------------------------
-  // Address tracking (deprecated — will be removed in #102)
-  // -------------------------------------------------------------------------
-
-  /**
-   * @deprecated Will be removed in #102. Use {@link queueEnrichment} instead.
-   */
-  trackAddress(category: EntityCategory, address: string): void {
-    let set = this.addressSets.get(category);
-    if (!set) {
-      set = new Set();
-      this.addressSets.set(category, set);
-    }
-    set.add(address);
-  }
-
-  /**
-   * @deprecated Will be removed in #102. Prefer {@link getEnrichmentQueue}.
-   */
-  getAddresses(category: EntityCategory): Set<string> {
-    return this.addressSets.get(category) ?? new Set();
-  }
-
-  /**
-   * @deprecated Will be removed in #102. Prefer iterating {@link getEnrichmentQueue}.
-   */
-  getTrackedCategories(): EntityCategory[] {
-    return [...this.addressSets.keys()].filter(
-      (category) => this.addressSets.get(category).size > 0,
-    );
   }
 
   // -------------------------------------------------------------------------

@@ -35,33 +35,6 @@ export interface IBatchContext {
    */
   sealRawEntityTypes(): void;
 
-  /**
-   * Register an address for batch verification in a given category.
-   *
-   * @deprecated Will be removed in #102. The new pipeline collects addresses
-   * from the enrichment queue (Step 5) instead of explicit tracking.
-   * Use {@link queueEnrichment} instead.
-   */
-  trackAddress(category: EntityCategory, address: string): void;
-
-  /**
-   * Get all tracked addresses for a category.
-   *
-   * @deprecated Will be removed in #102. The new pipeline collects addresses
-   * from the enrichment queue (Step 5) instead of explicit tracking.
-   * Prefer {@link getEnrichmentQueue} for FK-based address collection.
-   */
-  getAddresses(category: EntityCategory): Set<string>;
-
-  /**
-   * Get all categories that have tracked addresses.
-   *
-   * @deprecated Will be removed in #102. The new pipeline collects addresses
-   * from the enrichment queue (Step 5) instead of explicit tracking.
-   * Prefer iterating {@link getEnrichmentQueue} to discover categories.
-   */
-  getTrackedCategories(): EntityCategory[];
-
   // Verification results (set by pipeline after verify phase)
   setVerified(category: EntityCategory, result: VerificationResult): void;
   getVerified(category: EntityCategory): VerificationResult;
