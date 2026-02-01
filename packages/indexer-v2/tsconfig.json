@@ -3,7 +3,7 @@
     "transpileOnly": true,
     "require": ["tsconfig-paths/register"]
   },
-  "include": ["src"],
+  "include": ["src", "vitest.config.ts"],
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "lib",
