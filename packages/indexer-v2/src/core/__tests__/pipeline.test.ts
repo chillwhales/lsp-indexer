@@ -38,23 +38,37 @@ const mockLog = (topic0: string, address = '0xcontract'): Log =>
     logIndex: 0,
     transactionIndex: 0,
     block: mockBlock.header,
-    getTransaction: () => ({ id: 'tx-0' }) as any,
+    getTransaction: () => ({ id: 'tx-0' }),
   }) as Log;
 
-function createMockStore(): Store {
-  const insertCalls: unknown[][] = [];
-  const upsertCalls: unknown[][] = [];
+interface EntityRecord extends Record<string, unknown> {
+  id: string;
+}
 
-  return {
-    insert: vi.fn(async (entities: unknown[]) => {
-      insertCalls.push([...entities]);
+interface MockStore extends Store {
+  readonly insertedEntities: EntityRecord[];
+  readonly upsertedEntities: EntityRecord[];
+}
+
+function createMockStore(): MockStore {
+  const insertedEntities: EntityRecord[] = [];
+  const upsertedEntities: EntityRecord[] = [];
+
+  const baseStore: Partial<Store> = {
+    insert: vi.fn(<T extends EntityRecord>(entities: T[]) => {
+      insertedEntities.push(...entities);
+      return Promise.resolve();
     }),
-    upsert: vi.fn(async (entities: unknown[]) => {
-      upsertCalls.push([...entities]);
+    upsert: vi.fn(<T extends EntityRecord>(entities: T[]) => {
+      upsertedEntities.push(...entities);
+      return Promise.resolve();
     }),
-    _insertCalls: insertCalls,
-    _upsertCalls: upsertCalls,
-  } as unknown as Store;
+  };
+
+  return Object.assign(baseStore, {
+    insertedEntities,
+    upsertedEntities,
+  }) as MockStore;
 }
 
 function createMockContext(store: Store, blocks: Block[] = [mockBlock]): Context {
@@ -70,28 +84,30 @@ function createMockContext(store: Store, blocks: Block[] = [mockBlock]): Context
   } as unknown as Context;
 }
 
+type MockVerifyFn = ReturnType<
+  typeof vi.fn<[EntityCategory, Set<string>], Promise<VerificationResult>>
+>;
+
 function createMockVerifyFn(
   validAddresses: Set<string> = new Set(),
   newAddresses: Set<string> = new Set(),
-) {
-  return vi.fn(
-    async (category: EntityCategory, addresses: Set<string>): Promise<VerificationResult> => {
-      const valid = new Set([...addresses].filter((addr) => validAddresses.has(addr)));
-      const newSet = new Set([...addresses].filter((addr) => newAddresses.has(addr)));
-      const invalid = new Set([...addresses].filter((addr) => !validAddresses.has(addr)));
+): MockVerifyFn {
+  return vi.fn((category: EntityCategory, addresses: Set<string>): Promise<VerificationResult> => {
+    const valid = new Set([...addresses].filter((addr) => validAddresses.has(addr)));
+    const newSet = new Set([...addresses].filter((addr) => newAddresses.has(addr)));
+    const invalid = new Set([...addresses].filter((addr) => !validAddresses.has(addr)));
 
-      const newEntities = new Map<string, { id: string }>();
-      for (const addr of newSet) {
-        if (category === EntityCategory.UniversalProfile) {
-          newEntities.set(addr, new UniversalProfile({ id: addr, address: addr }));
-        } else if (category === EntityCategory.DigitalAsset) {
-          newEntities.set(addr, new DigitalAsset({ id: addr, address: addr }));
-        }
+    const newEntities = new Map<string, { id: string }>();
+    for (const addr of newSet) {
+      if (category === EntityCategory.UniversalProfile) {
+        newEntities.set(addr, new UniversalProfile({ id: addr, address: addr }));
+      } else if (category === EntityCategory.DigitalAsset) {
+        newEntities.set(addr, new DigitalAsset({ id: addr, address: addr }));
       }
+    }
 
-      return { new: newSet, valid, invalid, newEntities };
-    },
-  );
+    return Promise.resolve({ new: newSet, valid, invalid, newEntities });
+  });
 }
 
 const mockWorkerPool: IMetadataWorkerPool = {
@@ -108,22 +124,29 @@ describe('Pipeline Step 1: EXTRACT', () => {
     const topic1 = '0xtopic1';
     const topic2 = '0xtopic2';
 
+    const extractMock1 = vi.fn();
+    const populateMock1 = vi.fn();
+    const persistMock1 = vi.fn();
+    const extractMock2 = vi.fn();
+    const populateMock2 = vi.fn();
+    const persistMock2 = vi.fn();
+
     const plugin1: EventPlugin = {
       name: 'plugin1',
       topic0: topic1,
       requiresVerification: [],
-      extract: vi.fn(),
-      populate: vi.fn(),
-      persist: vi.fn(),
+      extract: extractMock1,
+      populate: populateMock1,
+      persist: persistMock1,
     };
 
     const plugin2: EventPlugin = {
       name: 'plugin2',
       topic0: topic2,
       requiresVerification: [],
-      extract: vi.fn(),
-      populate: vi.fn(),
-      persist: vi.fn(),
+      extract: extractMock2,
+      populate: populateMock2,
+      persist: persistMock2,
     };
 
     const registry = new PluginRegistry();
@@ -141,26 +164,27 @@ describe('Pipeline Step 1: EXTRACT', () => {
       workerPool: mockWorkerPool,
     });
 
-    expect(plugin1.extract).toHaveBeenCalledTimes(2);
-    expect(plugin2.extract).toHaveBeenCalledTimes(1);
+    expect(extractMock1).toHaveBeenCalledTimes(2);
+    expect(extractMock2).toHaveBeenCalledTimes(1);
 
     // Verify the new pipeline does NOT call old populate/persist methods
-    expect(plugin1.populate).not.toHaveBeenCalled();
-    expect(plugin1.persist).not.toHaveBeenCalled();
-    expect(plugin2.populate).not.toHaveBeenCalled();
-    expect(plugin2.persist).not.toHaveBeenCalled();
+    expect(populateMock1).not.toHaveBeenCalled();
+    expect(persistMock1).not.toHaveBeenCalled();
+    expect(populateMock2).not.toHaveBeenCalled();
+    expect(persistMock2).not.toHaveBeenCalled();
   });
 
   it('should respect contractFilter when routing', async () => {
     const topic = '0xtopic';
     const targetAddress = '0xtarget';
 
+    const extractMock = vi.fn();
     const plugin: EventPlugin = {
       name: 'scoped-plugin',
       topic0: topic,
       contractFilter: { address: targetAddress, fromBlock: 0 },
       requiresVerification: [],
-      extract: vi.fn(),
+      extract: extractMock,
       populate: vi.fn(),
       persist: vi.fn(),
     };
@@ -182,7 +206,7 @@ describe('Pipeline Step 1: EXTRACT', () => {
       workerPool: mockWorkerPool,
     });
 
-    expect(plugin.extract).toHaveBeenCalledTimes(1);
+    expect(extractMock).toHaveBeenCalledTimes(1);
   });
 
   it('should add entities to BatchContext during extract', async () => {
@@ -212,9 +236,9 @@ describe('Pipeline Step 1: EXTRACT', () => {
     });
 
     // Verify entity was persisted in step 2
-    expect((store as any)._insertCalls.length).toBeGreaterThan(0);
-    const inserted = (store as any)._insertCalls.flat();
-    expect(inserted).toContainEqual({ id: 'entity-1', data: 'test' });
+    const mockStore = store;
+    expect(mockStore.insertedEntities.length).toBeGreaterThan(0);
+    expect(mockStore.insertedEntities).toContainEqual({ id: 'entity-1', data: 'test' });
   });
 });
 
@@ -248,10 +272,11 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       workerPool: mockWorkerPool,
     });
 
-    expect(store.insert).toHaveBeenCalled();
-    const inserted = (store as any)._insertCalls.flat();
-    expect(inserted).toContainEqual({ id: 'e1', type: 'event1' });
-    expect(inserted).toContainEqual({ id: 'e2', type: 'event2' });
+    const mockStore = store;
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(mockStore.insert).toHaveBeenCalled();
+    expect(mockStore.insertedEntities).toContainEqual({ id: 'e1', type: 'event1' });
+    expect(mockStore.insertedEntities).toContainEqual({ id: 'e2', type: 'event2' });
   });
 
   it('should persist entities with null FK references initially, then enrich', async () => {
@@ -290,15 +315,18 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
     });
 
     // Step 2: Entity should be inserted (called once)
-    expect(store.insert).toHaveBeenCalledTimes(1);
-    const insertedTransfer = (store as any)._insertCalls.flat().find((e: any) => e.id === 't1');
+    const mockStore = store;
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(mockStore.insert).toHaveBeenCalledTimes(1);
+    const insertedTransfer = mockStore.insertedEntities.find((e) => e.id === 't1');
     expect(insertedTransfer).toBeDefined();
 
     // Step 6: Entity should be enriched and upserted
-    const upserted = (store as any)._upsertCalls.flat();
-    const enrichedTransfer = upserted.find((e: any) => e.id === 't1' && e.digitalAsset);
+    const enrichedTransfer = mockStore.upsertedEntities.find(
+      (e) => e.id === 't1' && e.digitalAsset !== undefined && e.digitalAsset !== null,
+    );
     expect(enrichedTransfer).toBeDefined();
-    expect(enrichedTransfer.digitalAsset).toMatchObject({ id: '0xda' });
+    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda' });
   });
 });
 
@@ -320,10 +348,11 @@ describe('Pipeline Step 3: HANDLE', () => {
       persist: vi.fn(),
     };
 
+    const handleMock = vi.fn();
     const handler: EntityHandler = {
       name: 'test-handler',
       listensToBag: ['Event1', 'Event2'],
-      handle: vi.fn(),
+      handle: handleMock,
     };
 
     const registry = new PluginRegistry();
@@ -339,16 +368,17 @@ describe('Pipeline Step 3: HANDLE', () => {
       workerPool: mockWorkerPool,
     });
 
-    expect(handler.handle).toHaveBeenCalledTimes(2);
-    expect(handler.handle).toHaveBeenCalledWith(expect.anything(), 'Event1');
-    expect(handler.handle).toHaveBeenCalledWith(expect.anything(), 'Event2');
+    expect(handleMock).toHaveBeenCalledTimes(2);
+    expect(handleMock).toHaveBeenCalledWith(expect.anything(), 'Event1');
+    expect(handleMock).toHaveBeenCalledWith(expect.anything(), 'Event2');
   });
 
   it('should not call handlers when bag is empty', async () => {
+    const handleMock = vi.fn();
     const handler: EntityHandler = {
       name: 'test-handler',
       listensToBag: ['NonExistentBag'],
-      handle: vi.fn(),
+      handle: handleMock,
     };
 
     const registry = new PluginRegistry();
@@ -363,7 +393,7 @@ describe('Pipeline Step 3: HANDLE', () => {
       workerPool: mockWorkerPool,
     });
 
-    expect(handler.handle).not.toHaveBeenCalled();
+    expect(handleMock).not.toHaveBeenCalled();
   });
 
   it('should allow handlers to add derived entities to BatchContext', async () => {
@@ -381,7 +411,7 @@ describe('Pipeline Step 3: HANDLE', () => {
     const handler: EntityHandler = {
       name: 'test-handler',
       listensToBag: ['Event'],
-      handle: async (hctx, triggeredBy) => {
+      handle: (hctx, triggeredBy) => {
         const events = hctx.batchCtx.getEntities<{ id: string; value: number }>(triggeredBy);
         for (const event of events.values()) {
           hctx.batchCtx.addEntity('Derived', `derived-${event.id}`, {
@@ -389,6 +419,7 @@ describe('Pipeline Step 3: HANDLE', () => {
             originalValue: event.value,
           });
         }
+        return Promise.resolve();
       },
     };
 
@@ -406,9 +437,9 @@ describe('Pipeline Step 3: HANDLE', () => {
     });
 
     // Derived entity should be persisted in step 4 via upsert
-    expect((store as any)._upsertCalls.length).toBeGreaterThan(0);
-    const upserted = (store as any)._upsertCalls.flat();
-    expect(upserted).toContainEqual({ id: 'derived-e1', originalValue: 10 });
+    const mockStore = store;
+    expect(mockStore.upsertedEntities.length).toBeGreaterThan(0);
+    expect(mockStore.upsertedEntities).toContainEqual({ id: 'derived-e1', originalValue: 10 });
   });
 
   it('should throw if handler tries to add entity to raw entity type key', async () => {
@@ -426,9 +457,10 @@ describe('Pipeline Step 3: HANDLE', () => {
     const handler: EntityHandler = {
       name: 'bad-handler',
       listensToBag: ['RawEvent'],
-      handle: async (hctx) => {
+      handle: (hctx) => {
         // Handler incorrectly tries to add to the same type key
         hctx.batchCtx.addEntity('RawEvent', 'e2', { id: 'e2' });
+        return Promise.resolve();
       },
     };
 
@@ -469,8 +501,9 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
     const handler: EntityHandler = {
       name: 'test-handler',
       listensToBag: ['RawEvent'],
-      handle: async (hctx) => {
+      handle: (hctx) => {
         hctx.batchCtx.addEntity('Derived', 'd1', { id: 'd1', computed: true });
+        return Promise.resolve();
       },
     };
 
@@ -488,12 +521,11 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
     });
 
     // Raw event should be inserted
-    const inserted = (store as any)._insertCalls.flat();
-    expect(inserted).toContainEqual({ id: 'e1' });
+    const mockStore = store;
+    expect(mockStore.insertedEntities).toContainEqual({ id: 'e1' });
 
     // Derived entity should be upserted
-    const upserted = (store as any)._upsertCalls.flat();
-    expect(upserted).toContainEqual({ id: 'd1', computed: true });
+    expect(mockStore.upsertedEntities).toContainEqual({ id: 'd1', computed: true });
   });
 
   it('should skip entity types already persisted in step 2', async () => {
@@ -521,12 +553,11 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
     });
 
     // 'Event' should only be in insertCalls (step 2), not upsertCalls (step 4)
-    const inserted = (store as any)._insertCalls.flat();
-    expect(inserted).toContainEqual({ id: 'e1' });
+    const mockStore = store;
+    expect(mockStore.insertedEntities).toContainEqual({ id: 'e1' });
 
     // Step 4 upserts should be empty (or only core entities from step 5)
-    const upserted = (store as any)._upsertCalls.flat();
-    expect(upserted.filter((e: any) => e.id === 'e1')).toHaveLength(0);
+    expect(mockStore.upsertedEntities.filter((e) => e.id === 'e1')).toHaveLength(0);
   });
 });
 
@@ -615,8 +646,10 @@ describe('Pipeline Step 5: VERIFY', () => {
     });
 
     // Core entities should be upserted in step 5
-    const upserted = (store as any)._upsertCalls.flat();
-    const upEntity = upserted.find((e: any) => e.id === '0xup1' && e.address === '0xup1');
+    const mockStore = store;
+    const upEntity = mockStore.upsertedEntities.find(
+      (e) => e.id === '0xup1' && e.address === '0xup1',
+    );
     expect(upEntity).toBeDefined();
   });
 });
@@ -662,12 +695,14 @@ describe('Pipeline Step 6: ENRICH', () => {
     });
 
     // Find the enriched entity in upsertCalls (should be called twice: step 5 for core, step 6 for enrichment)
-    const upserted = (store as any)._upsertCalls.flat();
-    const enrichedTransfer = upserted.find(
-      (e: any) => e.id === 't1' && e.digitalAsset?.id === '0xda1',
-    );
+    const mockStore = store;
+    const enrichedTransfer = mockStore.upsertedEntities.find((e) => {
+      const digitalAsset = e.digitalAsset;
+      if (typeof digitalAsset !== 'object' || digitalAsset === null) return false;
+      return e.id === 't1' && 'id' in digitalAsset && digitalAsset.id === '0xda1';
+    });
     expect(enrichedTransfer).toBeDefined();
-    expect(enrichedTransfer.digitalAsset).toMatchObject({ id: '0xda1' });
+    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda1' });
   });
 
   it('should leave FK null for invalid addresses', async () => {
@@ -706,15 +741,15 @@ describe('Pipeline Step 6: ENRICH', () => {
     });
 
     // Entity should be inserted in step 2, but NOT enriched in step 6
-    const inserted = (store as any)._insertCalls.flat();
-    expect(inserted).toContainEqual({
+    const mockStore = store;
+    expect(mockStore.insertedEntities).toContainEqual({
       id: 't1',
       address: '0xinvalid',
       digitalAsset: null,
     });
 
     // Should not appear in step 6 upserts (only step 5 might have core entities)
-    const enrichmentUpserts = (store as any)._upsertCalls.flat().filter((e: any) => e.id === 't1');
+    const enrichmentUpserts = mockStore.upsertedEntities.filter((e) => e.id === 't1');
     expect(enrichmentUpserts).toHaveLength(0);
   });
 
@@ -775,12 +810,14 @@ describe('Pipeline Step 6: ENRICH', () => {
     });
 
     // Find enriched entity
-    const upserted = (store as any)._upsertCalls.flat();
-    const enrichedTransfer = upserted.find((e: any) => e.id === 't1' && e.fromProfile);
+    const mockStore = store;
+    const enrichedTransfer = mockStore.upsertedEntities.find(
+      (e) => e.id === 't1' && e.fromProfile !== undefined && e.fromProfile !== null,
+    );
     expect(enrichedTransfer).toBeDefined();
-    expect(enrichedTransfer.fromProfile).toMatchObject({ id: '0xup1' });
-    expect(enrichedTransfer.toProfile).toMatchObject({ id: '0xup2' });
-    expect(enrichedTransfer.digitalAsset).toMatchObject({ id: '0xda1' });
+    expect(enrichedTransfer?.fromProfile).toMatchObject({ id: '0xup1' });
+    expect(enrichedTransfer?.toProfile).toMatchObject({ id: '0xup2' });
+    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda1' });
   });
 
   it('should skip enrichment and warn when FK field does not exist on entity', async () => {
@@ -820,18 +857,19 @@ describe('Pipeline Step 6: ENRICH', () => {
     });
 
     // Entity should be inserted in Step 2 (raw persistence)
-    const inserted = (store as any)._insertCalls.flat();
-    expect(inserted.find((e: any) => e.id === 't1')).toBeDefined();
+    const mockStore = store;
+    expect(mockStore.insertedEntities.find((e) => e.id === 't1')).toBeDefined();
 
     // Entity should NOT be upserted in Step 6 (enrichment) because FK field doesn't exist
-    const upserted = (store as any)._upsertCalls.flat();
-    const enrichedTransfer = upserted.find((e: any) => e.id === 't1');
+    const enrichedTransfer = mockStore.upsertedEntities.find((e) => e.id === 't1');
     expect(enrichedTransfer).toBeUndefined();
 
     // Warning should be logged
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(context.log.warn).toHaveBeenCalledWith(
       expect.stringContaining('Skipping enrichment: FK field not found on entity'),
     );
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(context.log.warn).toHaveBeenCalledWith(expect.stringContaining('digitalAsset'));
   });
 });
@@ -886,7 +924,7 @@ describe('Pipeline Integration', () => {
     const handler: EntityHandler = {
       name: 'balance-handler',
       listensToBag: ['Transfer'],
-      handle: async (hctx) => {
+      handle: (hctx) => {
         const transfers = hctx.batchCtx.getEntities<{ from: string; to: string; amount: number }>(
           'Transfer',
         );
@@ -897,6 +935,7 @@ describe('Pipeline Integration', () => {
             amount: transfer.amount,
           });
         }
+        return Promise.resolve();
       },
     };
 
@@ -917,23 +956,30 @@ describe('Pipeline Integration', () => {
     });
 
     // Step 2: Raw Transfer should be inserted
-    const inserted = (store as any)._insertCalls.flat();
-    expect(inserted.find((e: any) => e.id === 't1')).toBeDefined();
+    const mockStore = store;
+    expect(mockStore.insertedEntities.find((e) => e.id === 't1')).toBeDefined();
 
     // Step 4: Derived Balance should be upserted
-    const upserted = (store as any)._upsertCalls.flat();
-    expect(upserted.find((e: any) => e.id === 'balance-0xup2')).toBeDefined();
+    expect(mockStore.upsertedEntities.find((e) => e.id === 'balance-0xup2')).toBeDefined();
 
     // Step 5: Core entities should be created
-    expect(upserted.find((e: any) => e.id === '0xup1' && e.address === '0xup1')).toBeDefined();
-    expect(upserted.find((e: any) => e.id === '0xup2' && e.address === '0xup2')).toBeDefined();
-    expect(upserted.find((e: any) => e.id === '0xda1' && e.address === '0xda1')).toBeDefined();
+    expect(
+      mockStore.upsertedEntities.find((e) => e.id === '0xup1' && e.address === '0xup1'),
+    ).toBeDefined();
+    expect(
+      mockStore.upsertedEntities.find((e) => e.id === '0xup2' && e.address === '0xup2'),
+    ).toBeDefined();
+    expect(
+      mockStore.upsertedEntities.find((e) => e.id === '0xda1' && e.address === '0xda1'),
+    ).toBeDefined();
 
     // Step 6: Transfer should be enriched with FKs
-    const enrichedTransfer = upserted.find((e: any) => e.id === 't1' && e.fromProfile);
+    const enrichedTransfer = mockStore.upsertedEntities.find(
+      (e) => e.id === 't1' && e.fromProfile !== undefined && e.fromProfile !== null,
+    );
     expect(enrichedTransfer).toBeDefined();
-    expect(enrichedTransfer.fromProfile).toMatchObject({ id: '0xup1' });
-    expect(enrichedTransfer.toProfile).toMatchObject({ id: '0xup2' });
-    expect(enrichedTransfer.digitalAsset).toMatchObject({ id: '0xda1' });
+    expect(enrichedTransfer?.fromProfile).toMatchObject({ id: '0xup1' });
+    expect(enrichedTransfer?.toProfile).toMatchObject({ id: '0xup2' });
+    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda1' });
   });
 });
