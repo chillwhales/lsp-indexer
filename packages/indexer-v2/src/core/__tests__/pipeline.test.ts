@@ -745,6 +745,58 @@ describe('Pipeline Step 6: ENRICH', () => {
     expect(enrichedTransfer.toProfile).toMatchObject({ id: '0xup2' });
     expect(enrichedTransfer.digitalAsset).toMatchObject({ id: '0xda1' });
   });
+
+  it('should skip enrichment and warn when FK field does not exist on entity', async () => {
+    const plugin: EventPlugin = {
+      name: 'test-plugin',
+      topic0: '0xtopic',
+      requiresVerification: [EntityCategory.DigitalAsset],
+      extract: (log: Log, block: Block, ctx: IBatchContext) => {
+        // Entity created WITHOUT the FK field in constructor props
+        ctx.addEntity('Transfer', 't1', {
+          id: 't1',
+          address: '0xda1',
+          // NOTE: 'digitalAsset' field intentionally omitted
+        });
+        ctx.queueEnrichment({
+          category: EntityCategory.DigitalAsset,
+          address: '0xda1',
+          entityType: 'Transfer',
+          entityId: 't1',
+          fkField: 'digitalAsset', // This field doesn't exist on the entity instance
+        });
+      },
+      populate: vi.fn(),
+      persist: vi.fn(),
+    };
+
+    const registry = new PluginRegistry();
+    registry.registerEventPlugin(plugin);
+
+    const store = createMockStore();
+    const context = createMockContext(store, [{ ...mockBlock, logs: [mockLog('0xtopic')] }]);
+
+    await processBatch(context, {
+      registry,
+      verifyAddresses: createMockVerifyFn(new Set(['0xda1']), new Set(['0xda1'])),
+      workerPool: mockWorkerPool,
+    });
+
+    // Entity should be inserted in Step 2 (raw persistence)
+    const inserted = (store as any)._insertCalls.flat();
+    expect(inserted.find((e: any) => e.id === 't1')).toBeDefined();
+
+    // Entity should NOT be upserted in Step 6 (enrichment) because FK field doesn't exist
+    const upserted = (store as any)._upsertCalls.flat();
+    const enrichedTransfer = upserted.find((e: any) => e.id === 't1');
+    expect(enrichedTransfer).toBeUndefined();
+
+    // Warning should be logged
+    expect(context.log.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Skipping enrichment: FK field not found on entity'),
+    );
+    expect(context.log.warn).toHaveBeenCalledWith(expect.stringContaining('digitalAsset'));
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -254,12 +254,32 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       if (!entity) continue;
 
       // Set all FK fields for this entity
+      let hasValidFk = false;
       for (const request of requests) {
+        // Validate that the FK field exists on the entity before assignment.
+        // TypeORM entities use Object.assign(this, props) in the constructor,
+        // so FK fields only exist on the instance if explicitly passed (even as null).
+        if (!(request.fkField in (entity as Record<string, unknown>))) {
+          context.log.warn(
+            JSON.stringify({
+              message: 'Skipping enrichment: FK field not found on entity',
+              entityType,
+              entityId,
+              fkField: request.fkField,
+            }),
+          );
+          continue;
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (entity as any)[request.fkField] = createFkStub(request);
+        hasValidFk = true;
       }
 
-      entitiesToUpdate.push(entity);
+      // Only upsert entities that had at least one valid FK enrichment
+      if (hasValidFk) {
+        entitiesToUpdate.push(entity);
+      }
     }
 
     if (entitiesToUpdate.length > 0) {
