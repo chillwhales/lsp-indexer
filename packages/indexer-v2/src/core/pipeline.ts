@@ -194,8 +194,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   const categories = [...addressesByCategory.keys()];
   await Promise.all(
     categories.map(async (category) => {
-      const addresses = addressesByCategory.get(category)!;
-      if (addresses.size === 0) return;
+      const addresses = addressesByCategory.get(category);
+      if (!addresses || addresses.size === 0) return;
 
       const result = await verifyAddresses(category, addresses, context.store, context);
       batchCtx.setVerified(category, result);
@@ -313,7 +313,7 @@ function createFkStub(request: EnrichmentRequest): { id: string } {
       });
     default: {
       const _exhaustive: never = request.category;
-      throw new Error(`Unknown entity category: ${_exhaustive}`);
+      throw new Error(`Unknown entity category: ${String(_exhaustive)}`);
     }
   }
 }
