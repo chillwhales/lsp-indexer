@@ -5,8 +5,6 @@
  * by Universal Profiles when they execute operations via ERC725X.
  *
  * The emitting address is queued for verification as a UniversalProfile.
- * The target address is queued for verification as both UniversalProfile
- * and DigitalAsset (could be either type).
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  *
  * Port from v1:
@@ -25,7 +23,7 @@ const ENTITY_TYPE = 'Executed';
 const ExecutedPlugin: EventPlugin = {
   name: 'executed',
   topic0: ERC725X.events.Executed.topic,
-  requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
+  requiresVerification: [EntityCategory.UniversalProfile],
 
   // ---------------------------------------------------------------------------
   // EXTRACT
@@ -48,14 +46,12 @@ const ExecutedPlugin: EventPlugin = {
       value,
       target,
       selector,
-      targetProfile: null,
-      targetAsset: null,
       universalProfile: null,
     });
 
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
-    // Queue enrichment for universalProfile FK (emitting address)
+    // Queue enrichment for universalProfile FK
     ctx.queueEnrichment({
       category: EntityCategory.UniversalProfile,
       address,
@@ -63,25 +59,6 @@ const ExecutedPlugin: EventPlugin = {
       entityId: entity.id,
       fkField: 'universalProfile',
     });
-
-    // Queue enrichment for target address as both UP and DA
-    // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
-    if (!isNullAddress(target)) {
-      ctx.queueEnrichment({
-        category: EntityCategory.UniversalProfile,
-        address: target,
-        entityType: ENTITY_TYPE,
-        entityId: entity.id,
-        fkField: 'targetProfile',
-      });
-      ctx.queueEnrichment({
-        category: EntityCategory.DigitalAsset,
-        address: target,
-        entityType: ENTITY_TYPE,
-        entityId: entity.id,
-        fkField: 'targetAsset',
-      });
-    }
   },
 };
 

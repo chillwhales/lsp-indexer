@@ -54,9 +54,6 @@ const LSP7TransferPlugin: EventPlugin = {
       amount,
       force,
       data,
-      fromProfile: null,
-      toProfile: null,
-      operatorProfile: null,
       digitalAsset: null,
       // LSP7: no tokenId, no nft
     });
@@ -71,36 +68,6 @@ const LSP7TransferPlugin: EventPlugin = {
       entityId: entity.id,
       fkField: 'digitalAsset',
     });
-
-    // Queue enrichment for from/to/operator UniversalProfile FKs
-    // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
-    if (!isNullAddress(from)) {
-      ctx.queueEnrichment({
-        category: EntityCategory.UniversalProfile,
-        address: from,
-        entityType: ENTITY_TYPE,
-        entityId: entity.id,
-        fkField: 'fromProfile',
-      });
-    }
-    if (!isNullAddress(to)) {
-      ctx.queueEnrichment({
-        category: EntityCategory.UniversalProfile,
-        address: to,
-        entityType: ENTITY_TYPE,
-        entityId: entity.id,
-        fkField: 'toProfile',
-      });
-    }
-    if (!isNullAddress(operator)) {
-      ctx.queueEnrichment({
-        category: EntityCategory.UniversalProfile,
-        address: operator,
-        entityType: ENTITY_TYPE,
-        entityId: entity.id,
-        fkField: 'operatorProfile',
-      });
-    }
   },
 };
 

@@ -46,8 +46,6 @@ const OwnershipTransferredPlugin: EventPlugin = {
       address,
       previousOwner,
       newOwner,
-      previousOwnerProfile: null,
-      newOwnerProfile: null,
       universalProfile: null,
       digitalAsset: null,
     });
@@ -70,27 +68,6 @@ const OwnershipTransferredPlugin: EventPlugin = {
       entityId: entity.id,
       fkField: 'digitalAsset',
     });
-
-    // Queue enrichment for previousOwner and newOwner UniversalProfile FKs
-    // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
-    if (!isNullAddress(previousOwner)) {
-      ctx.queueEnrichment({
-        category: EntityCategory.UniversalProfile,
-        address: previousOwner,
-        entityType: ENTITY_TYPE,
-        entityId: entity.id,
-        fkField: 'previousOwnerProfile',
-      });
-    }
-    if (!isNullAddress(newOwner)) {
-      ctx.queueEnrichment({
-        category: EntityCategory.UniversalProfile,
-        address: newOwner,
-        entityType: ENTITY_TYPE,
-        entityId: entity.id,
-        fkField: 'newOwnerProfile',
-      });
-    }
   },
 };
 

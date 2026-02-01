@@ -11,11 +11,8 @@
  * and DigitalAsset (contract type cannot be determined at scan time).
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  *
- * Converted from factory function (`createDataChangedPlugin(registry)`) to
- * a plain export. The factory previously captured the PluginRegistry in a
- * closure for DataKey routing during extraction. DataKey routing is now
- * deferred to EntityHandlers (see #103: DataKey handler architecture).
- * As a plain export, this plugin is auto-discovered by PluginRegistry.discover().
+ * DataKey routing to DataKeyPlugins will be implemented via EntityHandlers
+ * in future issues (see #103: DataKey handler architecture).
  *
  * Port from v1:
  *   - scanner.ts L166-421 (DataChanged case block)

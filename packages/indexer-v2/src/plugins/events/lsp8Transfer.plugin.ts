@@ -58,9 +58,6 @@ const LSP8TransferPlugin: EventPlugin = {
       tokenId,
       force,
       data,
-      fromProfile: null,
-      toProfile: null,
-      operatorProfile: null,
       digitalAsset: null,
       nft: null,
     });
@@ -76,9 +73,7 @@ const LSP8TransferPlugin: EventPlugin = {
       fkField: 'digitalAsset',
     });
 
-    // Queue enrichment for nft FK.
-    // Depends on #104 (NFT EntityHandler) to create NFT entities in Step 3
-    // before the pipeline resolves this FK in Step 6.
+    // Queue enrichment for nft FK
     ctx.queueEnrichment({
       category: EntityCategory.NFT,
       address,
@@ -87,36 +82,6 @@ const LSP8TransferPlugin: EventPlugin = {
       entityId: entity.id,
       fkField: 'nft',
     });
-
-    // Queue enrichment for from/to/operator UniversalProfile FKs
-    // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
-    if (!isNullAddress(from)) {
-      ctx.queueEnrichment({
-        category: EntityCategory.UniversalProfile,
-        address: from,
-        entityType: ENTITY_TYPE,
-        entityId: entity.id,
-        fkField: 'fromProfile',
-      });
-    }
-    if (!isNullAddress(to)) {
-      ctx.queueEnrichment({
-        category: EntityCategory.UniversalProfile,
-        address: to,
-        entityType: ENTITY_TYPE,
-        entityId: entity.id,
-        fkField: 'toProfile',
-      });
-    }
-    if (!isNullAddress(operator)) {
-      ctx.queueEnrichment({
-        category: EntityCategory.UniversalProfile,
-        address: operator,
-        entityType: ENTITY_TYPE,
-        entityId: entity.id,
-        fkField: 'operatorProfile',
-      });
-    }
   },
 };
 

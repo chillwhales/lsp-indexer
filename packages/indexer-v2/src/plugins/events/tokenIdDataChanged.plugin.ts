@@ -7,13 +7,10 @@
  * This event fires whenever a data key is set on a specific tokenId of an
  * LSP8 contract. The plugin extracts the raw event entity.
  *
- * Converted from factory function (`createTokenIdDataChangedPlugin(registry)`)
- * to a plain export. The factory previously captured the PluginRegistry in a
- * closure for DataKey routing during extraction. DataKey routing is now
- * deferred to EntityHandlers (see #103: DataKey handler architecture).
- * As a plain export, this plugin is auto-discovered by PluginRegistry.discover().
- *
  * NFT entity creation is handled by the NFT EntityHandler (issue #104).
+ * DataKey routing to DataKeyPlugins will be implemented via EntityHandlers
+ * in future issues (see #103: DataKey handler architecture).
+ *
  * The emitting address is queued for verification as a DigitalAsset.
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  *
@@ -69,9 +66,7 @@ const TokenIdDataChangedPlugin: EventPlugin = {
       fkField: 'digitalAsset',
     });
 
-    // Queue enrichment for nft FK.
-    // Depends on #104 (NFT EntityHandler) to create NFT entities in Step 3
-    // before the pipeline resolves this FK in Step 6.
+    // Queue enrichment for nft FK
     ctx.queueEnrichment({
       category: EntityCategory.NFT,
       address,
