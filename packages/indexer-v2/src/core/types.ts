@@ -50,6 +50,37 @@ export interface VerificationResult {
 }
 
 // ---------------------------------------------------------------------------
+// Enrichment queue types (for deferred FK resolution)
+// ---------------------------------------------------------------------------
+
+/**
+ * Request to enrich an entity with FK references after verification.
+ *
+ * Entities are persisted with null FK references during the persist phase.
+ * The enrichment queue tracks which entities need FK fields populated once
+ * verification completes and core entities (UP, DA, NFT) are created.
+ */
+export interface EnrichmentRequest {
+  /** Category to verify (UniversalProfile, DigitalAsset, NFT) */
+  category: EntityCategory;
+
+  /** Address to verify */
+  address: string;
+
+  /** For NFT category only: the tokenId */
+  tokenId?: string;
+
+  /** Which entity type to enrich (e.g. 'Transfer', 'LSP4TokenName') */
+  entityType: string;
+
+  /** Which entity id to enrich */
+  entityId: string;
+
+  /** Which field on the entity to set the FK reference (e.g. 'digitalAsset', 'nft') */
+  fkField: string;
+}
+
+// ---------------------------------------------------------------------------
 // BatchContext interface (implemented in batchContext.ts, issue #14)
 // ---------------------------------------------------------------------------
 
@@ -72,7 +103,11 @@ export interface IBatchContext {
 
   // Metadata fetch queue (consumed by worker pool)
   queueFetch(request: FetchRequest): void;
-  getFetchQueue(): FetchRequest[];
+  getFetchQueue(): ReadonlyArray<FetchRequest>;
+
+  // Enrichment queue (for deferred FK resolution)
+  queueEnrichment(request: EnrichmentRequest): void;
+  getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest>;
 }
 
 // ---------------------------------------------------------------------------
@@ -113,7 +148,7 @@ export interface IMetadataWorkerPool {
 }
 
 // ---------------------------------------------------------------------------
-// Handler context — passed to plugin handle() methods
+// Handler context — passed to EntityHandler handle() methods
 // ---------------------------------------------------------------------------
 
 export interface HandlerContext {
@@ -188,68 +223,7 @@ export interface EventPlugin {
    * Called once per batch after population.
    */
   persist(store: Store, ctx: IBatchContext): Promise<void>;
-
-  /**
-   * Phase 5: Optional post-processing (e.g. update counts, fetch metadata).
-   * Only called for plugins that define it.
-   */
-  handle?(hctx: HandlerContext): Promise<void>;
 }
-
-/**
- * DataKeyPlugin — handles a specific ERC725Y data key (or prefix).
- *
- * Dispatched by the DataChanged meta-plugin when a DataChanged event's
- * dataKey matches this plugin. The `matches()` method supports both
- * exact key matching and prefix matching.
- *
- * Adding a new data key = creating 1 new file implementing this interface.
- */
-export interface DataKeyPlugin {
-  /** Unique plugin name (e.g. 'lsp3Profile', 'lsp4Creators') */
-  readonly name: string;
-
-  /** Which address categories this plugin needs verified */
-  readonly requiresVerification: EntityCategory[];
-
-  /**
-   * Return true if this plugin handles the given dataKey.
-   * Can match by exact key or by key prefix.
-   */
-  matches(dataKey: string): boolean;
-
-  /**
-   * Phase 1: Extract entities from a DataChanged log into the BatchContext.
-   * Called when matches() returns true.
-   */
-  extract(log: Log, dataKey: string, dataValue: string, block: Block, ctx: IBatchContext): void;
-
-  /**
-   * Phase 3: Link entities to verified parents, filter out invalid.
-   */
-  populate(ctx: IBatchContext): void;
-
-  /**
-   * Phase 4: Clear existing sub-entities before re-inserting.
-   * Used by plugins with sub-entity patterns (LSP3, LSP4, LSP29).
-   */
-  clearSubEntities?(store: Store, ctx: IBatchContext): Promise<void>;
-
-  /**
-   * Phase 4: Persist entities to the database.
-   */
-  persist(store: Store, ctx: IBatchContext): Promise<void>;
-
-  /**
-   * Phase 5: Optional post-processing.
-   */
-  handle?(hctx: HandlerContext): Promise<void>;
-}
-
-/**
- * Union type for any plugin (event or data key).
- */
-export type Plugin = EventPlugin | DataKeyPlugin;
 
 // ---------------------------------------------------------------------------
 // Entity lifecycle events
@@ -258,10 +232,14 @@ export type Plugin = EventPlugin | DataKeyPlugin;
 /**
  * Lifecycle events emitted for core entities (UP, DA, NFT).
  *
- * EntityHandlers subscribe to specific events to react to entity changes.
- * Currently only `Create` is emitted by the pipeline. `Update` and `Delete`
+ * These events are used by the pipeline to trigger post-verification processing.
+ * Currently only `Create` is emitted (in pipeline.ts Phase 5b). `Update` and `Delete`
  * are defined for future extension when the persist layer is enhanced to
  * track modifications and removals.
+ *
+ * TODO(#101): Remove when pipeline is rewritten to bag-based handlers.
+ * The new pipeline (EXTRACT → PERSIST → HANDLE → VERIFY → ENRICH) uses
+ * EntityHandler.listensToBag instead of entity lifecycle events.
  */
 export enum EntityEvent {
   /** Entity verified and persisted for the first time */
@@ -273,43 +251,42 @@ export enum EntityEvent {
 }
 
 // ---------------------------------------------------------------------------
-// Entity handler interface (Phase 5b handlers triggered by entity lifecycle)
+// Entity handler interface (unified handler for derived entities)
 // ---------------------------------------------------------------------------
 
 /**
- * EntityHandler — reacts to entity lifecycle events (create, update, delete).
+ * EntityHandler — unified interface for all derived entity creation.
  *
- * Unlike EventPlugin/DataKeyPlugin which process blockchain events,
- * EntityHandlers run in Phase 5b after entities are verified and persisted.
- * They subscribe to combinations of EntityCategory × EntityEvent and are
- * invoked by the pipeline when matching events occur.
+ * Handlers subscribe to BatchContext entity bag keys (e.g. 'DataChanged',
+ * 'LSP8Transfer') and are triggered when those entity types exist in the batch.
+ * They read entities from the BatchContext, create derived entities, add them
+ * back to the BatchContext, and queue enrichment requests for FK resolution.
  *
- * The `listensTo` × `events` fields form a Cartesian product of subscriptions.
- * For example, `listensTo: [DA, UP]` + `events: [Create]` means the handler
- * is called twice per batch: once when new DAs are created, and once when
- * new UPs are created. Each invocation receives the specific category via
- * the `triggeredBy` parameter.
+ * The pipeline handles all persistence — handlers only populate the BatchContext.
+ *
+ * This replaces the dual DataKeyPlugin + EntityHandler pattern with a single
+ * unified interface. All derived entity creation (data keys, tallies, NFTs,
+ * metadata) flows through this interface.
  *
  * Adding a new handler = creating 1 new file implementing this interface.
  */
 export interface EntityHandler {
-  /** Unique handler name (e.g. 'decimals', 'totalSupply') */
+  /** Unique handler name (e.g. 'lsp4TokenName', 'totalSupply', 'nft') */
   readonly name: string;
 
-  /** Which entity categories this handler listens to */
-  readonly listensTo: EntityCategory[];
-
-  /** Which lifecycle events this handler reacts to */
-  readonly events: EntityEvent[];
+  /** Subscribe to BatchContext entity bag keys (e.g. ['DataChanged', 'LSP8Transfer']) */
+  readonly listensToBag: string[];
 
   /**
-   * Phase 5b: Called when a subscribed lifecycle event fires.
+   * Called once per subscribed trigger that has entities in the batch.
+   * Handlers read entities from BatchContext, create derived entities,
+   * add them back to BatchContext, and queue enrichment requests.
+   * The pipeline handles persistence.
    *
-   * @param hctx        - Handler context (store, batch context, etc.)
-   * @param triggeredBy - The EntityCategory that fired the event
-   * @param event       - The lifecycle event type (Create, Update, Delete)
+   * @param hctx        - Handler context (store, batch context, worker pool)
+   * @param triggeredBy - The entity bag key that triggered this invocation
    */
-  handle(hctx: HandlerContext, triggeredBy: EntityCategory, event: EntityEvent): Promise<void>;
+  handle(hctx: HandlerContext, triggeredBy: string): Promise<void>;
 }
 
 // ---------------------------------------------------------------------------
@@ -317,7 +294,7 @@ export interface EntityHandler {
 // ---------------------------------------------------------------------------
 
 export interface IPluginRegistry {
-  /** Discover and register all plugins from directories */
+  /** Discover and register all event plugins from directories */
   discover(pluginDirs: string[]): void;
 
   /** Discover and register all entity handlers from directories */
@@ -326,26 +303,11 @@ export interface IPluginRegistry {
   /** Get event plugin by topic0 */
   getEventPlugin(topic0: string): EventPlugin | undefined;
 
-  /** Get data key plugin matching a specific data key */
-  getDataKeyPlugin(dataKey: string): DataKeyPlugin | undefined;
-
   /** Get all registered event plugins */
   getAllEventPlugins(): EventPlugin[];
 
-  /** Get all registered data key plugins */
-  getAllDataKeyPlugins(): DataKeyPlugin[];
-
-  /** Get all plugins that have entities in the current batch */
-  getActivePlugins(ctx: IBatchContext): Plugin[];
-
-  /** Get all plugins with a handle() method */
-  getAllHandlers(): Plugin[];
-
   /** Get all registered entity handlers */
   getAllEntityHandlers(): EntityHandler[];
-
-  /** Get entity handlers that listen to a specific category and event */
-  getEntityHandlers(category: EntityCategory, event: EntityEvent): EntityHandler[];
 
   /** Get aggregated log subscriptions for processor config */
   getLogSubscriptions(): LogSubscription[];
