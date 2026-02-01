@@ -98,6 +98,9 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     }
   }
 
+  // Seal raw entity types to prevent handlers from adding to them
+  batchCtx.sealRawEntityTypes();
+
   // ---------------------------------------------------------------------------
   // Step 3: HANDLE
   // EntityHandlers run once per subscribed entity bag key that has entities.
@@ -105,10 +108,10 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // them back to BatchContext, and queue enrichment requests. The pipeline
   // handles persistence.
   //
-  // IMPORTANT: Handlers MUST NOT add entities to entity type keys that were
-  // already used in Step 1 (rawEntityTypes). Those types are persisted via
-  // insert() in Step 2 and skipped in Step 4. Entities added to raw type
-  // keys by handlers would be silently lost.
+  // IMPORTANT: Handlers cannot add entities to entity type keys that were
+  // already used in Step 1 (rawEntityTypes). Those types are sealed after
+  // Step 2 persistence. Attempting to add to a sealed type throws an error
+  // to prevent silent data loss (Step 4 skips raw types).
   // ---------------------------------------------------------------------------
   const handlerCtx: HandlerContext = {
     store: context.store,
@@ -150,26 +153,44 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   }
 
   // ---------------------------------------------------------------------------
-  // Step 5: VERIFY
-  // Collect unique addresses from the enrichment queue and batch-verify them
-  // via supportsInterface(). Create core entities (UP, DA) for valid addresses
-  // and persist them.
+  // Step 5 & 6: VERIFY + ENRICH (single-pass optimization)
+  // In one pass over the enrichment queue:
+  //   - Collect addresses per category for verification
+  //   - Build the grouped enrichment map for FK assignment
+  // Then verify addresses, persist core entities, and assign FKs.
   // ---------------------------------------------------------------------------
   const enrichmentQueue = batchCtx.getEnrichmentQueue();
 
-  // Collect unique addresses per category from enrichment requests
+  // Single pass: collect addresses for verification AND group for enrichment
   const addressesByCategory = new Map<EntityCategory, Set<string>>();
-  for (const request of enrichmentQueue) {
-    // NFTs are validated separately (parent DA must be valid + NFT entity exists)
-    if (request.category === EntityCategory.NFT) continue;
+  const grouped = new Map<string, Map<string, EnrichmentRequest[]>>();
 
-    if (!addressesByCategory.has(request.category)) {
-      addressesByCategory.set(request.category, new Set());
+  for (const request of enrichmentQueue) {
+    // Collect addresses for non-NFT categories (NFTs always valid)
+    if (request.category !== EntityCategory.NFT) {
+      let addressSet = addressesByCategory.get(request.category);
+      if (!addressSet) {
+        addressSet = new Set();
+        addressesByCategory.set(request.category, addressSet);
+      }
+      addressSet.add(request.address);
     }
-    addressesByCategory.get(request.category)!.add(request.address);
+
+    // Group all requests by (entityType, entityId) for FK assignment
+    let entityMap = grouped.get(request.entityType);
+    if (!entityMap) {
+      entityMap = new Map();
+      grouped.set(request.entityType, entityMap);
+    }
+    let requestList = entityMap.get(request.entityId);
+    if (!requestList) {
+      requestList = [];
+      entityMap.set(request.entityId, requestList);
+    }
+    requestList.push(request);
   }
 
-  // Batch-verify UP and DA addresses in parallel
+  // Step 5: VERIFY — Batch-verify UP and DA addresses in parallel
   const categories = [...addressesByCategory.keys()];
   await Promise.all(
     categories.map(async (category) => {
@@ -209,42 +230,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     await context.store.upsert(allNewEntities);
   }
 
-  // ---------------------------------------------------------------------------
-  // Step 6: ENRICH
-  // Group enrichment requests by (entityType, entityId) and batch-update FK
-  // references on already-persisted entities. Only set FKs for valid addresses.
-  // ---------------------------------------------------------------------------
-  const grouped = new Map<string, Map<string, EnrichmentRequest[]>>();
-
-  for (const request of enrichmentQueue) {
-    // Check validity
-    let valid = false;
-    if (request.category === EntityCategory.NFT) {
-      // NFT enrichment is always valid. NFT entities are created by the NFT
-      // EntityHandler (issue #104) or exist from prior batches. The nft FK
-      // reference uses a deterministic ID (address + tokenId) that always
-      // resolves to the NFT entity row. The NFT entity's own digitalAsset FK
-      // is handled separately via EntityCategory.DigitalAsset enrichment
-      // (subject to DA verification).
-      valid = true;
-    } else {
-      valid = batchCtx.isValid(request.category, request.address);
-    }
-
-    if (!valid) continue; // FK stays null
-
-    // Group by entityType → entityId
-    if (!grouped.has(request.entityType)) {
-      grouped.set(request.entityType, new Map());
-    }
-    const entityMap = grouped.get(request.entityType)!;
-    if (!entityMap.has(request.entityId)) {
-      entityMap.set(request.entityId, []);
-    }
-    entityMap.get(request.entityId)!.push(request);
-  }
-
-  // Batch update FK fields per entity type
+  // Step 6: ENRICH — Batch update FK fields per entity type
   for (const [entityType, entityMap] of grouped) {
     const entities = batchCtx.getEntities(entityType);
     const entitiesToUpdate: unknown[] = [];
@@ -256,6 +242,14 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       // Set all FK fields for this entity
       let hasValidFk = false;
       for (const request of requests) {
+        // Check validity: NFT is always valid, others depend on verification
+        const valid =
+          request.category === EntityCategory.NFT
+            ? true
+            : batchCtx.isValid(request.category, request.address);
+
+        if (!valid) continue; // FK stays null for invalid addresses
+
         // Validate that the FK field exists on the entity before assignment.
         // TypeORM entities use Object.assign(this, props) in the constructor,
         // so FK fields only exist on the instance if explicitly passed (even as null).

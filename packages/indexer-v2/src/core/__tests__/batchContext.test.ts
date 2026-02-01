@@ -163,3 +163,84 @@ describe('BatchContext - Enrichment Queue', () => {
     expect(queue[1].fkField).toBe('to');
   });
 });
+
+describe('BatchContext - Raw Entity Type Sealing', () => {
+  it('should allow adding entities before sealing', () => {
+    const ctx = new BatchContext();
+
+    ctx.addEntity('Event', 'e1', { id: 'e1' });
+    ctx.addEntity('Event', 'e2', { id: 'e2' });
+    ctx.addEntity('Transfer', 't1', { id: 't1' });
+
+    expect(ctx.hasEntities('Event')).toBe(true);
+    expect(ctx.hasEntities('Transfer')).toBe(true);
+    expect(ctx.getEntities('Event').size).toBe(2);
+    expect(ctx.getEntities('Transfer').size).toBe(1);
+  });
+
+  it('should seal raw entity type keys', () => {
+    const ctx = new BatchContext();
+
+    ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
+    ctx.addEntity('RawTransfer', 't1', { id: 't1' });
+
+    // Seal the types
+    ctx.sealRawEntityTypes();
+
+    // Should still be able to add to new types
+    ctx.addEntity('DerivedEntity', 'd1', { id: 'd1' });
+    expect(ctx.hasEntities('DerivedEntity')).toBe(true);
+  });
+
+  it('should throw when adding to sealed type', () => {
+    const ctx = new BatchContext();
+
+    ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
+    ctx.sealRawEntityTypes();
+
+    expect(() => {
+      ctx.addEntity('RawEvent', 'e2', { id: 'e2' });
+    }).toThrow(/Handler attempted to add entity to raw type 'RawEvent'/);
+  });
+
+  it('should throw with clear error message mentioning Step 2', () => {
+    const ctx = new BatchContext();
+
+    ctx.addEntity('Transfer', 't1', { id: 't1' });
+    ctx.sealRawEntityTypes();
+
+    expect(() => {
+      ctx.addEntity('Transfer', 't2', { id: 't2' });
+    }).toThrow(/already persisted in Step 2/);
+  });
+
+  it('should not throw for new entity types after sealing', () => {
+    const ctx = new BatchContext();
+
+    ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
+    ctx.sealRawEntityTypes();
+
+    // These should all work fine (new types)
+    expect(() => {
+      ctx.addEntity('Derived1', 'd1', { id: 'd1' });
+      ctx.addEntity('Derived2', 'd2', { id: 'd2' });
+      ctx.addEntity('Metadata', 'm1', { id: 'm1' });
+    }).not.toThrow();
+
+    expect(ctx.hasEntities('Derived1')).toBe(true);
+    expect(ctx.hasEntities('Derived2')).toBe(true);
+    expect(ctx.hasEntities('Metadata')).toBe(true);
+  });
+
+  it('should allow sealing empty context', () => {
+    const ctx = new BatchContext();
+
+    expect(() => {
+      ctx.sealRawEntityTypes();
+    }).not.toThrow();
+
+    // Should be able to add after sealing empty context
+    ctx.addEntity('Event', 'e1', { id: 'e1' });
+    expect(ctx.hasEntities('Event')).toBe(true);
+  });
+});

@@ -410,6 +410,43 @@ describe('Pipeline Step 3: HANDLE', () => {
     const upserted = (store as any)._upsertCalls.flat();
     expect(upserted).toContainEqual({ id: 'derived-e1', originalValue: 10 });
   });
+
+  it('should throw if handler tries to add entity to raw entity type key', async () => {
+    const plugin: EventPlugin = {
+      name: 'test-plugin',
+      topic0: '0xtopic',
+      requiresVerification: [],
+      extract: (log: Log, block: Block, ctx: IBatchContext) => {
+        ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
+      },
+      populate: vi.fn(),
+      persist: vi.fn(),
+    };
+
+    const handler: EntityHandler = {
+      name: 'bad-handler',
+      listensToBag: ['RawEvent'],
+      handle: async (hctx) => {
+        // Handler incorrectly tries to add to the same type key
+        hctx.batchCtx.addEntity('RawEvent', 'e2', { id: 'e2' });
+      },
+    };
+
+    const registry = new PluginRegistry();
+    registry.registerEventPlugin(plugin);
+    registry.registerEntityHandler(handler);
+
+    const store = createMockStore();
+    const context = createMockContext(store, [{ ...mockBlock, logs: [mockLog('0xtopic')] }]);
+
+    await expect(
+      processBatch(context, {
+        registry,
+        verifyAddresses: createMockVerifyFn(),
+        workerPool: mockWorkerPool,
+      }),
+    ).rejects.toThrow(/Handler attempted to add entity to raw type 'RawEvent'/);
+  });
 });
 
 // ---------------------------------------------------------------------------
