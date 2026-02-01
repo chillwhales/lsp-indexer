@@ -81,6 +81,10 @@ export class BatchContext implements IBatchContext {
     return map !== undefined && map.size > 0;
   }
 
+  getEntityTypeKeys(): string[] {
+    return [...this.entities.keys()];
+  }
+
   // -------------------------------------------------------------------------
   // Address tracking
   // -------------------------------------------------------------------------

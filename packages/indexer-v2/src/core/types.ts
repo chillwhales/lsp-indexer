@@ -90,6 +90,7 @@ export interface IBatchContext {
   getEntities<T>(type: string): Map<string, T>;
   removeEntity(type: string, id: string): void;
   hasEntities(type: string): boolean;
+  getEntityTypeKeys(): string[];
 
   // Address tracking for verification
   trackAddress(category: EntityCategory, address: string): void;
@@ -223,31 +224,6 @@ export interface EventPlugin {
    * Called once per batch after population.
    */
   persist(store: Store, ctx: IBatchContext): Promise<void>;
-}
-
-// ---------------------------------------------------------------------------
-// Entity lifecycle events
-// ---------------------------------------------------------------------------
-
-/**
- * Lifecycle events emitted for core entities (UP, DA, NFT).
- *
- * These events are used by the pipeline to trigger post-verification processing.
- * Currently only `Create` is emitted (in pipeline.ts Phase 5b). `Update` and `Delete`
- * are defined for future extension when the persist layer is enhanced to
- * track modifications and removals.
- *
- * TODO(#101): Remove when pipeline is rewritten to bag-based handlers.
- * The new pipeline (EXTRACT → PERSIST → HANDLE → VERIFY → ENRICH) uses
- * EntityHandler.listensToBag instead of entity lifecycle events.
- */
-export enum EntityEvent {
-  /** Entity verified and persisted for the first time */
-  Create = 'create',
-  /** Existing entity data modified (not yet emitted — future extension) */
-  Update = 'update',
-  /** Entity removed (not yet emitted — future extension) */
-  Delete = 'delete',
 }
 
 // ---------------------------------------------------------------------------
