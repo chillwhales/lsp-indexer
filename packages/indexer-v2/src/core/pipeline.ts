@@ -46,6 +46,9 @@ export interface PipelineConfig {
  *   4. PERSIST DERIVED — Pipeline batch-persists handler entities (null FKs)
  *   5. VERIFY          — Batch supportsInterface() → create core entities for valid addresses
  *   6. ENRICH          — Batch UPDATE FK references on already-persisted entities
+ *
+ * Error handling: No try/catch — errors propagate to the Subsquid framework.
+ * A failed store operation in any step halts the pipeline for the batch.
  */
 export async function processBatch(context: Context, config: PipelineConfig): Promise<void> {
   const { registry, verifyAddresses, workerPool } = config;
@@ -101,6 +104,11 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // Handlers read entities from BatchContext, create derived entities, add
   // them back to BatchContext, and queue enrichment requests. The pipeline
   // handles persistence.
+  //
+  // IMPORTANT: Handlers MUST NOT add entities to entity type keys that were
+  // already used in Step 1 (rawEntityTypes). Those types are persisted via
+  // insert() in Step 2 and skipped in Step 4. Entities added to raw type
+  // keys by handlers would be silently lost.
   // ---------------------------------------------------------------------------
   const handlerCtx: HandlerContext = {
     store: context.store,
@@ -212,8 +220,13 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     // Check validity
     let valid = false;
     if (request.category === EntityCategory.NFT) {
-      // NFT validity: parent DA is valid + NFT entity exists in batch
-      valid = batchCtx.isValid(EntityCategory.DigitalAsset, request.address);
+      // NFT enrichment is always valid. NFT entities are created by the NFT
+      // EntityHandler (issue #104) or exist from prior batches. The nft FK
+      // reference uses a deterministic ID (address + tokenId) that always
+      // resolves to the NFT entity row. The NFT entity's own digitalAsset FK
+      // is handled separately via EntityCategory.DigitalAsset enrichment
+      // (subject to DA verification).
+      valid = true;
     } else {
       valid = batchCtx.isValid(request.category, request.address);
     }
@@ -278,8 +291,15 @@ function createFkStub(request: EnrichmentRequest): { id: string } {
     case EntityCategory.DigitalAsset:
       return new DigitalAsset({ id: request.address });
     case EntityCategory.NFT:
+      if (!request.tokenId) {
+        throw new Error(`NFT enrichment request missing tokenId for address ${request.address}`);
+      }
       return new NFT({
-        id: generateTokenId({ address: request.address, tokenId: request.tokenId! }),
+        id: generateTokenId({ address: request.address, tokenId: request.tokenId }),
       });
+    default: {
+      const _exhaustive: never = request.category;
+      throw new Error(`Unknown entity category: ${_exhaustive}`);
+    }
   }
 }

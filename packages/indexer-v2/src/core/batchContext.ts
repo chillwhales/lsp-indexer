@@ -12,10 +12,12 @@ import {
  * It replaces the 60+ destructured Maps/arrays/Sets that were manually
  * threaded through scanner → entityPopulation → index.ts in v1.
  *
- * Plugins write entities and track addresses during the extract phase.
- * The pipeline sets verification results after the verify phase.
- * Plugins read verification results during the populate phase.
- * Plugins read their entities during the persist phase.
+ * EventPlugins add entities and queue enrichment requests during Step 1 (EXTRACT).
+ * The pipeline persists raw entities in Step 2 (PERSIST RAW).
+ * EntityHandlers create derived entities in Step 3 (HANDLE).
+ * The pipeline persists derived entities in Step 4 (PERSIST DERIVED).
+ * The pipeline sets verification results after Step 5 (VERIFY).
+ * The pipeline resolves FK references in Step 6 (ENRICH).
  *
  * A new BatchContext is created for each batch — no state carries over.
  */

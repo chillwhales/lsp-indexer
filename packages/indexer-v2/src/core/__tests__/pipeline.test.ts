@@ -143,6 +143,12 @@ describe('Pipeline Step 1: EXTRACT', () => {
 
     expect(plugin1.extract).toHaveBeenCalledTimes(2);
     expect(plugin2.extract).toHaveBeenCalledTimes(1);
+
+    // Verify the new pipeline does NOT call old populate/persist methods
+    expect(plugin1.populate).not.toHaveBeenCalled();
+    expect(plugin1.persist).not.toHaveBeenCalled();
+    expect(plugin2.populate).not.toHaveBeenCalled();
+    expect(plugin2.persist).not.toHaveBeenCalled();
   });
 
   it('should respect contractFilter when routing', async () => {

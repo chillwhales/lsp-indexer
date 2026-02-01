@@ -36,7 +36,7 @@ export enum EntityCategory {
  * The `new` set and `newEntities` map always have the same keys — both
  * represent the addresses that were verified for the first time in this batch.
  * `new` provides fast Set-based lookups; `newEntities` provides the actual
- * entity instances to persist and reference in Phase 5 handlers.
+ * entity instances to persist in Step 5 (VERIFY).
  */
 export interface VerificationResult {
   /** Addresses that are new (first seen this batch) and valid */
@@ -216,12 +216,18 @@ export interface EventPlugin {
   /**
    * Phase 3: Link entities to verified parents, filter out invalid.
    * Called once per batch after verification completes.
+   *
+   * @deprecated Will be removed in #102. The new pipeline does not call
+   * populate() — FK resolution is handled by the enrichment queue (Step 6).
    */
   populate(ctx: IBatchContext): void;
 
   /**
    * Phase 4: Persist entities to the database.
    * Called once per batch after population.
+   *
+   * @deprecated Will be removed in #102. The new pipeline handles all
+   * persistence in Steps 2/4 — plugins no longer persist their own entities.
    */
   persist(store: Store, ctx: IBatchContext): Promise<void>;
 }

@@ -34,7 +34,7 @@ const BATCH_SIZE = 100;
 const DecimalsHandler = {
   name: 'decimals',
   listensTo: [EntityCategory.DigitalAsset],
-  events: ['create' as const],
+  events: ['create'],
 
   async handle(hctx: HandlerContext, triggeredBy: EntityCategory, _event: string): Promise<void> {
     const { store, context, batchCtx } = hctx;
