@@ -55,11 +55,13 @@ function createMockStore(): MockStore {
   const upsertedEntities: EntityRecord[] = [];
 
   const baseStore: Partial<Store> = {
-    insert: vi.fn(async <T extends EntityRecord>(entities: T[]) => {
+    insert: vi.fn(<T extends EntityRecord>(entities: T[]) => {
       insertedEntities.push(...entities);
+      return Promise.resolve();
     }),
-    upsert: vi.fn(async <T extends EntityRecord>(entities: T[]) => {
+    upsert: vi.fn(<T extends EntityRecord>(entities: T[]) => {
       upsertedEntities.push(...entities);
+      return Promise.resolve();
     }),
   };
 
