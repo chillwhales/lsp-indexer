@@ -82,10 +82,6 @@ export class BatchContext implements IBatchContext {
     return map as Map<string, T>;
   }
 
-  removeEntity(type: string, id: string): void {
-    this.entities.get(type)?.delete(id);
-  }
-
   hasEntities(type: string): boolean {
     const map = this.entities.get(type);
     return map !== undefined && map.size > 0;

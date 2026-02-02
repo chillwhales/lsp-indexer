@@ -50,7 +50,7 @@ type UniversalReceiver @entity {
   returnedValue: String!
   fromProfile: UniversalProfile @index
   fromAsset: DigitalAsset @index
-  universalProfile: UniversalProfile! @index
+  universalProfile: UniversalProfile @index
 }
 
 type Follow @entity {
@@ -115,8 +115,8 @@ type TokenIdDataChanged @entity {
   address: String! @index
   dataKey: String! @index
   dataValue: String!
-  digitalAsset: DigitalAsset! @index
-  nft: NFT! @index
+  digitalAsset: DigitalAsset @index
+  nft: NFT @index
 }
 
 type Transfer @entity {
@@ -136,7 +136,7 @@ type Transfer @entity {
   fromProfile: UniversalProfile @index
   toProfile: UniversalProfile @index
   operatorProfile: UniversalProfile @index
-  digitalAsset: DigitalAsset! @index
+  digitalAsset: DigitalAsset @index
   nft: NFT @index
 }
 
