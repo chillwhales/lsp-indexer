@@ -14,7 +14,7 @@
  *   - utils/executed/index.ts (extract + populate)
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
-import { decodeOperationType } from '@/utils';
+import { decodeOperationType, isNullAddress } from '@/utils';
 import { ERC725X } from '@chillwhales/abi';
 import { Executed } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';

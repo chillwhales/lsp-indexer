@@ -35,11 +35,11 @@ const LSP4MetadataHandler: EntityHandler = {
   name: 'lsp4Metadata',
   listensToBag: ['DataChanged', 'TokenIdDataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  handle(hctx: HandlerContext, triggeredBy: string): void {
     if (triggeredBy === 'DataChanged') {
-      await handleDataChanged(hctx);
+      handleDataChanged(hctx);
     } else if (triggeredBy === 'TokenIdDataChanged') {
-      await handleTokenIdDataChanged(hctx);
+      handleTokenIdDataChanged(hctx);
     }
   },
 };
@@ -48,7 +48,7 @@ const LSP4MetadataHandler: EntityHandler = {
 // Handle DataChanged events (contract-level metadata)
 // ---------------------------------------------------------------------------
 
-async function handleDataChanged(hctx: HandlerContext): Promise<void> {
+function handleDataChanged(hctx: HandlerContext): void {
   const events = hctx.batchCtx.getEntities<DataChanged>('DataChanged');
 
   for (const event of events.values()) {
@@ -89,7 +89,7 @@ async function handleDataChanged(hctx: HandlerContext): Promise<void> {
 // Handle TokenIdDataChanged events (per-token metadata)
 // ---------------------------------------------------------------------------
 
-async function handleTokenIdDataChanged(hctx: HandlerContext): Promise<void> {
+function handleTokenIdDataChanged(hctx: HandlerContext): void {
   const events = hctx.batchCtx.getEntities<TokenIdDataChanged>('TokenIdDataChanged');
 
   for (const event of events.values()) {

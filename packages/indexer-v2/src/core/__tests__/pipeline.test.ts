@@ -125,19 +125,13 @@ describe('Pipeline Step 1: EXTRACT', () => {
     const topic2 = '0xtopic2';
 
     const extractMock1 = vi.fn();
-    const populateMock1 = vi.fn();
-    const persistMock1 = vi.fn();
     const extractMock2 = vi.fn();
-    const populateMock2 = vi.fn();
-    const persistMock2 = vi.fn();
 
     const plugin1: EventPlugin = {
       name: 'plugin1',
       topic0: topic1,
       requiresVerification: [],
       extract: extractMock1,
-      populate: populateMock1,
-      persist: persistMock1,
     };
 
     const plugin2: EventPlugin = {
@@ -145,8 +139,6 @@ describe('Pipeline Step 1: EXTRACT', () => {
       topic0: topic2,
       requiresVerification: [],
       extract: extractMock2,
-      populate: populateMock2,
-      persist: persistMock2,
     };
 
     const registry = new PluginRegistry();
@@ -166,12 +158,6 @@ describe('Pipeline Step 1: EXTRACT', () => {
 
     expect(extractMock1).toHaveBeenCalledTimes(2);
     expect(extractMock2).toHaveBeenCalledTimes(1);
-
-    // Verify the new pipeline does NOT call old populate/persist methods
-    expect(populateMock1).not.toHaveBeenCalled();
-    expect(persistMock1).not.toHaveBeenCalled();
-    expect(populateMock2).not.toHaveBeenCalled();
-    expect(persistMock2).not.toHaveBeenCalled();
   });
 
   it('should respect contractFilter when routing', async () => {
@@ -185,8 +171,6 @@ describe('Pipeline Step 1: EXTRACT', () => {
       contractFilter: { address: targetAddress, fromBlock: 0 },
       requiresVerification: [],
       extract: extractMock,
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -219,8 +203,6 @@ describe('Pipeline Step 1: EXTRACT', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('TestEntity', 'entity-1', { id: 'entity-1', data: 'test' });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -256,8 +238,6 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
         ctx.addEntity('Event1', 'e1', { id: 'e1', type: 'event1' });
         ctx.addEntity('Event2', 'e2', { id: 'e2', type: 'event2' });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -298,8 +278,6 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
           fkField: 'digitalAsset',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -344,8 +322,6 @@ describe('Pipeline Step 3: HANDLE', () => {
         ctx.addEntity('Event1', 'e1', { id: 'e1' });
         ctx.addEntity('Event2', 'e2', { id: 'e2' });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const handleMock = vi.fn();
@@ -404,8 +380,6 @@ describe('Pipeline Step 3: HANDLE', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Event', 'e1', { id: 'e1', value: 10 });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const handler: EntityHandler = {
@@ -450,8 +424,6 @@ describe('Pipeline Step 3: HANDLE', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const handler: EntityHandler = {
@@ -494,8 +466,6 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const handler: EntityHandler = {
@@ -536,8 +506,6 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Event', 'e1', { id: 'e1' });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -588,8 +556,6 @@ describe('Pipeline Step 5: VERIFY', () => {
           fkField: 'anotherDA',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -629,8 +595,6 @@ describe('Pipeline Step 5: VERIFY', () => {
           fkField: 'profile',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -678,8 +642,6 @@ describe('Pipeline Step 6: ENRICH', () => {
           fkField: 'digitalAsset',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -724,8 +686,6 @@ describe('Pipeline Step 6: ENRICH', () => {
           fkField: 'digitalAsset',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -790,8 +750,6 @@ describe('Pipeline Step 6: ENRICH', () => {
           fkField: 'digitalAsset',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -840,8 +798,6 @@ describe('Pipeline Step 6: ENRICH', () => {
           fkField: 'digitalAsset', // This field doesn't exist on the entity instance
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -917,8 +873,6 @@ describe('Pipeline Integration', () => {
           fkField: 'digitalAsset',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const handler: EntityHandler = {

@@ -60,7 +60,7 @@ const LSP12IssuedAssetsHandler: EntityHandler = {
   name: 'lsp12IssuedAssets',
   listensToBag: ['DataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  handle(hctx: HandlerContext, triggeredBy: string): void {
     const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
 
     // Set persist hint for cross-batch merge behavior

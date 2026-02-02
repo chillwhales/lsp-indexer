@@ -1,8 +1,10 @@
 import {
+  ClearRequest,
   EnrichmentRequest,
   EntityCategory,
   FetchRequest,
   IBatchContext,
+  PersistHint,
   VerificationResult,
 } from './types';
 
@@ -92,6 +94,10 @@ export class BatchContext implements IBatchContext {
     const map = this.entities.get(type);
     if (!map) return new Map<string, T>();
     return map as Map<string, T>;
+  }
+
+  removeEntity(type: string, id: string): void {
+    this.entities.get(type)?.delete(id);
   }
 
   hasEntities(type: string): boolean {

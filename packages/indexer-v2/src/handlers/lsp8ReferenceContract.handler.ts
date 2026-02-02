@@ -23,7 +23,7 @@ const LSP8ReferenceContractHandler: EntityHandler = {
   name: 'lsp8ReferenceContract',
   listensToBag: ['DataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  handle(hctx: HandlerContext, triggeredBy: string): void {
     const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
 
     for (const event of events.values()) {

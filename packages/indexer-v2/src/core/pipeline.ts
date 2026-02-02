@@ -1,6 +1,7 @@
 import { generateTokenId } from '@/utils';
 import { DigitalAsset, NFT, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
+import { In } from 'typeorm';
 import { BatchContext } from './batchContext';
 import { PluginRegistry } from './registry';
 import {
@@ -124,7 +125,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   for (const handler of registry.getAllEntityHandlers()) {
     for (const bagKey of handler.listensToBag) {
       if (batchCtx.hasEntities(bagKey)) {
-        await handler.handle(handlerCtx, bagKey);
+        handler.handle(handlerCtx, bagKey);
       }
     }
   }
@@ -196,10 +197,12 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
         const prev = existingMap.get(id);
         if (prev) {
           for (const field of persistHint.mergeFields) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            if ((entity as any)[field] == null && (prev as any)[field] != null) {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-              (entity as any)[field] = (prev as any)[field];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- Dynamic field access requires any
+            const entityRecord = entity as Record<string, unknown>;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- Dynamic field access requires any
+            const prevRecord = prev as Record<string, unknown>;
+            if (entityRecord[field] == null && prevRecord[field] != null) {
+              entityRecord[field] = prevRecord[field];
             }
           }
         }

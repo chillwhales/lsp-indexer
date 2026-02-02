@@ -15,7 +15,7 @@
  *   - scanner.ts L491-524 (inline extraction, no separate extract/populate)
  */
 import { LSP23_ADDRESS } from '@/constants';
-import { Block, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { LSP23LinkedContractsFactory } from '@chillwhales/abi';
 import {
   DeployedContracts,

@@ -22,6 +22,7 @@
  *   - utils/transfer/index.ts (extract LSP8 branch + populate)
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { isNullAddress } from '@/utils';
 import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
 import { Transfer } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';

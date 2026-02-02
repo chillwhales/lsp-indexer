@@ -16,6 +16,7 @@
  *   - utils/ownershipTransferred/index.ts (extract + populate)
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { isNullAddress } from '@/utils';
 import { LSP14Ownable2Step } from '@chillwhales/abi';
 import { OwnershipTransferred } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';

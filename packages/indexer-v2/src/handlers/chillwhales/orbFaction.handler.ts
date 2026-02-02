@@ -35,7 +35,7 @@ const OrbFactionHandler: EntityHandler = {
   name: 'orbFaction',
   listensToBag: ['TokenIdDataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  handle(hctx: HandlerContext, triggeredBy: string): void {
     const events = hctx.batchCtx.getEntities<TokenIdDataChanged>(triggeredBy);
 
     for (const event of events.values()) {
