@@ -83,7 +83,7 @@ const OrbLevelHandler: EntityHandler = {
         hctx.batchCtx.addEntity(ORB_COOLDOWN_EXPIRY_TYPE, id, cooldownEntity);
 
         // Queue enrichment for digitalAsset FK (both entities)
-        hctx.batchCtx.queueEnrichment({
+        hctx.batchCtx.queueEnrichment<OrbLevel>({
           category: EntityCategory.DigitalAsset,
           address: event.address,
           entityType: ORB_LEVEL_TYPE,
@@ -91,7 +91,7 @@ const OrbLevelHandler: EntityHandler = {
           fkField: 'digitalAsset',
         });
 
-        hctx.batchCtx.queueEnrichment({
+        hctx.batchCtx.queueEnrichment<OrbCooldownExpiry>({
           category: EntityCategory.DigitalAsset,
           address: event.address,
           entityType: ORB_COOLDOWN_EXPIRY_TYPE,
@@ -100,7 +100,7 @@ const OrbLevelHandler: EntityHandler = {
         });
 
         // Queue enrichment for nft FK (both entities)
-        hctx.batchCtx.queueEnrichment({
+        hctx.batchCtx.queueEnrichment<OrbLevel>({
           category: EntityCategory.NFT,
           address: event.address,
           tokenId: event.tokenId,
@@ -109,7 +109,7 @@ const OrbLevelHandler: EntityHandler = {
           fkField: 'nft',
         });
 
-        hctx.batchCtx.queueEnrichment({
+        hctx.batchCtx.queueEnrichment<OrbCooldownExpiry>({
           category: EntityCategory.NFT,
           address: event.address,
           tokenId: event.tokenId,

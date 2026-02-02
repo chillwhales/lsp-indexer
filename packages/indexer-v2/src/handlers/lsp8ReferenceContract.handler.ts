@@ -44,7 +44,7 @@ const LSP8ReferenceContractHandler: EntityHandler = {
       hctx.batchCtx.addEntity(ENTITY_TYPE, entity.id, entity);
 
       // Queue enrichment for digitalAsset FK
-      hctx.batchCtx.queueEnrichment({
+      hctx.batchCtx.queueEnrichment<LSP8ReferenceContract>({
         category: EntityCategory.DigitalAsset,
         address: event.address,
         entityType: ENTITY_TYPE,

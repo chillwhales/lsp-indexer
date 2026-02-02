@@ -62,7 +62,7 @@ const OrbFactionHandler: EntityHandler = {
       hctx.batchCtx.addEntity(ORB_FACTION_TYPE, id, entity);
 
       // Queue enrichment for digitalAsset FK
-      hctx.batchCtx.queueEnrichment({
+      hctx.batchCtx.queueEnrichment<OrbFaction>({
         category: EntityCategory.DigitalAsset,
         address: event.address,
         entityType: ORB_FACTION_TYPE,
@@ -71,7 +71,7 @@ const OrbFactionHandler: EntityHandler = {
       });
 
       // Queue enrichment for nft FK
-      hctx.batchCtx.queueEnrichment({
+      hctx.batchCtx.queueEnrichment<OrbFaction>({
         category: EntityCategory.NFT,
         address: event.address,
         tokenId: event.tokenId,

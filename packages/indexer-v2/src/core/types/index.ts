@@ -7,6 +7,7 @@
  */
 
 export * from './batchContext';
+export * from './entity';
 export * from './handler';
 export * from './metadata';
 export * from './plugins';

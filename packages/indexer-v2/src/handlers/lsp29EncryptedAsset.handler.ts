@@ -117,7 +117,7 @@ function extractLength(
   hctx.batchCtx.addEntity(LENGTH_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP29EncryptedAssetsLength>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: LENGTH_TYPE,
@@ -164,7 +164,7 @@ function extractFromIndex(
   hctx.batchCtx.addEntity(ENCRYPTED_ASSET_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP29EncryptedAsset>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: ENCRYPTED_ASSET_TYPE,
@@ -204,7 +204,7 @@ function extractFromMap(
   hctx.batchCtx.addEntity(ENTRY_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP29EncryptedAssetEntry>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: ENTRY_TYPE,
@@ -245,7 +245,7 @@ function extractRevisionCount(
   hctx.batchCtx.addEntity(REVISION_COUNT_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP29EncryptedAssetRevisionCount>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: REVISION_COUNT_TYPE,

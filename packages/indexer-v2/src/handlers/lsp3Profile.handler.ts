@@ -57,7 +57,7 @@ const LSP3ProfileHandler: EntityHandler = {
       hctx.batchCtx.addEntity(ENTITY_TYPE, entity.id, entity);
 
       // Queue enrichment for universalProfile FK
-      hctx.batchCtx.queueEnrichment({
+      hctx.batchCtx.queueEnrichment<LSP3Profile>({
         category: EntityCategory.UniversalProfile,
         address: event.address,
         entityType: ENTITY_TYPE,

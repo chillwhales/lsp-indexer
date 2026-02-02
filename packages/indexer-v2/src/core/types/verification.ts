@@ -41,8 +41,12 @@ export interface VerificationResult {
  * Entities are persisted with null FK references during the persist phase.
  * The enrichment queue tracks which entities need FK fields populated once
  * verification completes and core entities (UP, DA, NFT) are created.
+ *
+ * Generic parameter T: The entity type being enriched.
+ * This enables compile-time validation that fkField is actually a FK field
+ * on the entity (not a primitive field like 'address' or 'timestamp').
  */
-export interface EnrichmentRequest {
+export interface EnrichmentRequest<T extends Entity> {
   /** Category to verify (UniversalProfile, DigitalAsset, NFT) */
   category: EntityCategory;
 
@@ -58,6 +62,6 @@ export interface EnrichmentRequest {
   /** Which entity id to enrich */
   entityId: string;
 
-  /** Which field on the entity to set the FK reference (e.g. 'digitalAsset', 'nft') */
-  fkField: string;
+  /** Which field on the entity to set the FK reference (must be a FK field) */
+  fkField: FKFields<T> & string;
 }

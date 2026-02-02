@@ -64,9 +64,9 @@ const LSP5ReceivedAssetsHandler: EntityHandler = {
     const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
 
     // Set persist hint for cross-batch merge behavior
-    hctx.batchCtx.setPersistHint(RECEIVED_ASSET_TYPE, {
+    hctx.batchCtx.setPersistHint<LSP5ReceivedAsset>(RECEIVED_ASSET_TYPE, {
       entityClass: LSP5ReceivedAsset,
-      mergeFields: ['arrayIndex', 'interfaceId', 'receivedAsset'],
+      mergeFields: ['arrayIndex', 'interfaceId'],
     });
 
     for (const event of events.values()) {
@@ -111,7 +111,7 @@ function extractLength(
   hctx.batchCtx.addEntity(LENGTH_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP5ReceivedAssetsLength>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: LENGTH_TYPE,
@@ -168,7 +168,7 @@ function extractFromIndex(
   hctx.batchCtx.addEntity(RECEIVED_ASSET_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK (primary entity type)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP5ReceivedAsset>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: RECEIVED_ASSET_TYPE,
@@ -177,7 +177,7 @@ function extractFromIndex(
   });
 
   // Queue enrichment for receivedAsset FK (secondary DA reference)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP5ReceivedAsset>({
     category: EntityCategory.DigitalAsset,
     address: assetAddress,
     entityType: RECEIVED_ASSET_TYPE,
@@ -235,7 +235,7 @@ function extractFromMap(
   hctx.batchCtx.addEntity(RECEIVED_ASSET_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK (primary entity type)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP5ReceivedAsset>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: RECEIVED_ASSET_TYPE,
@@ -244,7 +244,7 @@ function extractFromMap(
   });
 
   // Queue enrichment for receivedAsset FK (secondary DA reference)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP5ReceivedAsset>({
     category: EntityCategory.DigitalAsset,
     address: assetAddress,
     entityType: RECEIVED_ASSET_TYPE,

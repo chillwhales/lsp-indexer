@@ -34,6 +34,125 @@ export interface PipelineConfig {
   workerPool: IMetadataWorkerPool;
 }
 
+// ---------------------------------------------------------------------------
+// Type-safe helper functions for pipeline operations
+// ---------------------------------------------------------------------------
+
+/**
+ * Type-safe clear operation for sub-entity deletion (Step 3.5).
+ *
+ * Uses TypeORM's find() to query sub-entities by FK field and parent IDs,
+ * then removes all matches. The generic parameter T ensures the fkField
+ * is validated as an actual FK field on the entity at the handler call site.
+ *
+ * @param store - TypeORM store for database operations
+ * @param request - Clear request with entity class, FK field, and parent IDs
+ * @returns Number of entities removed
+ */
+async function clearSubEntities<T extends Entity>(
+  store: Store,
+  request: ClearRequest<T>,
+): Promise<number> {
+  const existing = await store.find(request.subEntityClass, {
+    where: {
+      [request.fkField]: In(request.parentIds),
+    } as FindOptionsWhere<T>,
+  });
+
+  if (existing.length > 0) {
+    await store.remove(existing);
+  }
+
+  return existing.length;
+}
+
+/**
+ * Type-safe merge-upsert operation for derived entities (Step 4).
+ *
+ * Reads existing database records for the entity IDs in the batch, then
+ * preserves existing non-null values in the specified mergeFields before
+ * upserting. This prevents data loss when different data key events populate
+ * different fields of the same entity across batches.
+ *
+ * The generic parameter T ensures mergeFields are validated as writable
+ * field names on the entity at the handler call site.
+ *
+ * @param store - TypeORM store for database operations
+ * @param entities - Map of entities to upsert (from BatchContext)
+ * @param persistHint - Hint with entity class and merge field names
+ * @param context - Subsquid context for logging
+ */
+async function mergeUpsertEntities<T extends Entity>(
+  store: Store,
+  entities: Map<string, unknown>,
+  persistHint: PersistHint<T>,
+  context: Context,
+): Promise<void> {
+  const ids = [...entities.keys()];
+
+  // Read existing records from DB
+  const existing = await store.findBy(persistHint.entityClass, {
+    id: In(ids),
+  } as FindOptionsWhere<T>);
+
+  const existingMap = new Map(existing.map((e) => [e.id, e]));
+
+  // Merge: preserve existing non-null values when the new entity has null.
+  // This prevents data loss when different data key events populate different
+  // fields of the same entity across batches (e.g., LSP5ReceivedAssets Index
+  // event provides arrayIndex, Map event provides interfaceId).
+  //
+  // IMPORTANT: Once a merge field is set to a non-null value, it cannot be
+  // cleared back to null through subsequent updates. This is intentional to
+  // maintain data stability across batch boundaries.
+  for (const [id, entity] of entities) {
+    const prev = existingMap.get(id);
+    if (prev) {
+      const typedEntity = entity as T;
+      for (const field of persistHint.mergeFields) {
+        if (typedEntity[field] == null && prev[field] != null) {
+          // TypeScript can't prove this assignment is safe with dynamic keys,
+          // but we know it's valid because:
+          // 1. field is validated as a writable field on T (not a FK)
+          // 2. Both prev and typedEntity are typed as T
+          // 3. We're only copying when both have the same field
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (typedEntity[field] as any) = prev[field];
+        }
+      }
+    }
+  }
+
+  await store.upsert([...entities.values()] as T[]);
+}
+
+/**
+ * Type-safe FK enrichment operation for a single entity (Step 6).
+ *
+ * Sets the FK field on the entity to point to the newly created core entity
+ * (UniversalProfile, DigitalAsset, or NFT). The generic parameter T ensures
+ * the fkField is validated as an actual FK field on the entity at the handler
+ * call site.
+ *
+ * @param entity - Entity to enrich (from BatchContext entity bag)
+ * @param request - Enrichment request with FK field name and stub
+ * @param fkStub - Core entity stub (just { id: string })
+ */
+function enrichEntity<T extends Entity>(
+  entity: unknown,
+  request: EnrichmentRequest<T>,
+  fkStub: Entity,
+): void {
+  const typedEntity = entity as T;
+  // TypeScript can't prove this assignment is safe with dynamic keys,
+  // but we know it's valid because:
+  // 1. fkField is validated as a FK field on T (not a primitive)
+  // 2. fkStub conforms to the Entity constraint
+  // 3. The field exists (checked by caller with `in` operator)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (typedEntity[request.fkField] as any) = fkStub;
+}
+
 /**
  * Process a single batch of blocks through the 6-step enrichment queue pipeline.
  *
@@ -139,24 +258,14 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   const clearQueue = batchCtx.getClearQueue();
   if (clearQueue.length > 0) {
     for (const request of clearQueue) {
-      // Use TypeORM's find() with relations to properly query FK references.
-      // The FK field contains entity references (e.g., { id: "..." }), so we need
-      // to query through the relation to match parent IDs.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument -- TypeORM constructor compatibility
-      const existing = await context.store.find(request.subEntityClass as any, {
-        where: {
-          [request.fkField]: In(request.parentIds),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
-      });
-      if (existing.length > 0) {
-        await context.store.remove(existing);
+      const removedCount = await clearSubEntities(context.store, request);
+      if (removedCount > 0) {
         context.log.info(
           JSON.stringify({
             message: 'Cleared sub-entities',
             subEntityClass: request.subEntityClass.name,
             parentCount: request.parentIds.length,
-            removedCount: existing.length,
+            removedCount,
           }),
         );
       }
@@ -181,43 +290,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     const persistHint = batchCtx.getPersistHint(type);
 
     if (persistHint) {
-      // Merge-upsert: read existing DB records, preserve non-null mergeFields
-      const ids = [...entities.keys()];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument -- TypeORM constructor compatibility
-      const existing = await context.store.findBy(
-        persistHint.entityClass as any,
-        {
-          id: In(ids),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
-      );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const existingMap = new Map(existing.map((e: any) => [e.id, e]));
-
-      // Merge: preserve existing non-null values when the new entity has null.
-      // This prevents data loss when different data key events populate different
-      // fields of the same entity across batches (e.g., LSP5ReceivedAssets Index
-      // event provides arrayIndex, Map event provides interfaceId).
-      //
-      // IMPORTANT: Once a merge field is set to a non-null value, it cannot be
-      // cleared back to null through subsequent updates. This is intentional to
-      // maintain data stability across batch boundaries.
-      for (const [id, entity] of entities) {
-        const prev = existingMap.get(id);
-        if (prev) {
-          for (const field of persistHint.mergeFields) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- Dynamic field access requires any
-            const entityRecord = entity as Record<string, unknown>;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- Dynamic field access requires any
-            const prevRecord = prev as Record<string, unknown>;
-            if (entityRecord[field] == null && prevRecord[field] != null) {
-              entityRecord[field] = prevRecord[field];
-            }
-          }
-        }
-      }
-
-      await context.store.upsert([...entities.values()] as { id: string }[]);
+      // Merge-upsert: use type-safe helper to preserve non-null merge fields
+      await mergeUpsertEntities(context.store, entities, persistHint, context);
       context.log.info(
         JSON.stringify({
           message: 'Persisted derived entities (merge-upsert)',
@@ -351,8 +425,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
           continue;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        (entity as any)[request.fkField] = createFkStub(request);
+        // Type-safe FK assignment using helper
+        enrichEntity(entity, request, createFkStub(request));
         hasValidFk = true;
       }
 

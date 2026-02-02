@@ -75,7 +75,7 @@ function handleDataChanged(hctx: HandlerContext): void {
     hctx.batchCtx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for digitalAsset FK
-    hctx.batchCtx.queueEnrichment({
+    hctx.batchCtx.queueEnrichment<LSP4Metadata>({
       category: EntityCategory.DigitalAsset,
       address: event.address,
       entityType: ENTITY_TYPE,
@@ -121,7 +121,7 @@ function handleTokenIdDataChanged(hctx: HandlerContext): void {
     hctx.batchCtx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for digitalAsset FK
-    hctx.batchCtx.queueEnrichment({
+    hctx.batchCtx.queueEnrichment<LSP4Metadata>({
       category: EntityCategory.DigitalAsset,
       address: event.address,
       entityType: ENTITY_TYPE,
@@ -130,7 +130,7 @@ function handleTokenIdDataChanged(hctx: HandlerContext): void {
     });
 
     // Queue enrichment for nft FK
-    hctx.batchCtx.queueEnrichment({
+    hctx.batchCtx.queueEnrichment<LSP4Metadata>({
       category: EntityCategory.NFT,
       address: event.address,
       tokenId: event.tokenId,

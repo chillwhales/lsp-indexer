@@ -64,9 +64,9 @@ const LSP4CreatorsHandler: EntityHandler = {
     const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
 
     // Set persist hint for cross-batch merge behavior
-    hctx.batchCtx.setPersistHint(CREATOR_TYPE, {
+    hctx.batchCtx.setPersistHint<LSP4Creator>(CREATOR_TYPE, {
       entityClass: LSP4Creator,
-      mergeFields: ['arrayIndex', 'interfaceId', 'creatorProfile'],
+      mergeFields: ['arrayIndex', 'interfaceId'],
     });
 
     for (const event of events.values()) {
@@ -111,7 +111,7 @@ function extractLength(
   hctx.batchCtx.addEntity(LENGTH_TYPE, entity.id, entity);
 
   // Queue enrichment for digitalAsset FK
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP4CreatorsLength>({
     category: EntityCategory.DigitalAsset,
     address,
     entityType: LENGTH_TYPE,
@@ -168,7 +168,7 @@ function extractFromIndex(
   hctx.batchCtx.addEntity(CREATOR_TYPE, entity.id, entity);
 
   // Queue enrichment for digitalAsset FK (primary entity type)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP4Creator>({
     category: EntityCategory.DigitalAsset,
     address,
     entityType: CREATOR_TYPE,
@@ -177,7 +177,7 @@ function extractFromIndex(
   });
 
   // Queue enrichment for creatorProfile FK (secondary UP reference)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP4Creator>({
     category: EntityCategory.UniversalProfile,
     address: creatorAddress,
     entityType: CREATOR_TYPE,
@@ -235,7 +235,7 @@ function extractFromMap(
   hctx.batchCtx.addEntity(CREATOR_TYPE, entity.id, entity);
 
   // Queue enrichment for digitalAsset FK (primary entity type)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP4Creator>({
     category: EntityCategory.DigitalAsset,
     address,
     entityType: CREATOR_TYPE,
@@ -244,7 +244,7 @@ function extractFromMap(
   });
 
   // Queue enrichment for creatorProfile FK (secondary UP reference)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP4Creator>({
     category: EntityCategory.UniversalProfile,
     address: creatorAddress,
     entityType: CREATOR_TYPE,

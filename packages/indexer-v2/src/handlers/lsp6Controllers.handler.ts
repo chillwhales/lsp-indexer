@@ -90,14 +90,13 @@ const LSP6ControllersHandler: EntityHandler = {
     const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
 
     // Set persist hint for cross-batch merge behavior
-    hctx.batchCtx.setPersistHint(CONTROLLER_TYPE, {
+    hctx.batchCtx.setPersistHint<LSP6Controller>(CONTROLLER_TYPE, {
       entityClass: LSP6Controller,
       mergeFields: [
         'arrayIndex',
         'permissionsRawValue',
         'allowedCallsRawValue',
         'allowedDataKeysRawValue',
-        'controllerProfile',
       ],
     });
 
@@ -124,7 +123,7 @@ const LSP6ControllersHandler: EntityHandler = {
     const controllerIds = [...controllers.keys()];
 
     if (hctx.batchCtx.hasEntities(PERMISSION_TYPE)) {
-      hctx.batchCtx.queueClear({
+      hctx.batchCtx.queueClear<LSP6Permission>({
         subEntityClass: LSP6Permission,
         fkField: 'controller',
         parentIds: controllerIds,
@@ -132,7 +131,7 @@ const LSP6ControllersHandler: EntityHandler = {
     }
 
     if (hctx.batchCtx.hasEntities(ALLOWED_CALL_TYPE)) {
-      hctx.batchCtx.queueClear({
+      hctx.batchCtx.queueClear<LSP6AllowedCall>({
         subEntityClass: LSP6AllowedCall,
         fkField: 'controller',
         parentIds: controllerIds,
@@ -140,7 +139,7 @@ const LSP6ControllersHandler: EntityHandler = {
     }
 
     if (hctx.batchCtx.hasEntities(ALLOWED_DATA_KEY_TYPE)) {
-      hctx.batchCtx.queueClear({
+      hctx.batchCtx.queueClear<LSP6AllowedERC725YDataKey>({
         subEntityClass: LSP6AllowedERC725YDataKey,
         fkField: 'controller',
         parentIds: controllerIds,
@@ -184,7 +183,7 @@ function extractLength(
   hctx.batchCtx.addEntity(LENGTH_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP6ControllersLength>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: LENGTH_TYPE,
@@ -242,7 +241,7 @@ function extractFromIndex(
   hctx.batchCtx.addEntity(CONTROLLER_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK (primary entity type)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP6Controller>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: CONTROLLER_TYPE,
@@ -251,7 +250,7 @@ function extractFromIndex(
   });
 
   // Queue enrichment for controllerProfile FK (secondary UP reference)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP6Controller>({
     category: EntityCategory.UniversalProfile,
     address: controllerAddress,
     entityType: CONTROLLER_TYPE,
@@ -445,7 +444,7 @@ function getOrCreateController(
   hctx.batchCtx.addEntity(CONTROLLER_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK (primary entity type)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP6Controller>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: CONTROLLER_TYPE,
@@ -454,7 +453,7 @@ function getOrCreateController(
   });
 
   // Queue enrichment for controllerProfile FK (secondary UP reference)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP6Controller>({
     category: EntityCategory.UniversalProfile,
     address: controllerAddress,
     entityType: CONTROLLER_TYPE,

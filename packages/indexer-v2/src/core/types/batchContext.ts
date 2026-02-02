@@ -1,3 +1,4 @@
+import { Entity, EntityConstructor, FKFields, WritableFields } from './entity';
 import { FetchRequest } from './metadata';
 import { EnrichmentRequest, EntityCategory, VerificationResult } from './verification';
 
@@ -8,13 +9,16 @@ import { EnrichmentRequest, EntityCategory, VerificationResult } from './verific
  * and preserves non-null values in the specified mergeFields before
  * upserting. This prevents data loss when multiple data key sources
  * populate different fields of the same entity across batches.
+ *
+ * Generic parameter T: The entity type being persisted.
+ * This enables compile-time validation that mergeFields are valid
+ * writable field names on the entity.
  */
-export interface PersistHint {
+export interface PersistHint<T extends Entity> {
   /** Entity class constructor for TypeORM operations */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  entityClass: new (...args: any[]) => any;
-  /** Field names to preserve across batches (keep existing non-null values) */
-  mergeFields: string[];
+  entityClass: EntityConstructor<T>;
+  /** Field names to preserve across batches (must be writable fields, not FKs) */
+  mergeFields: readonly (WritableFields<T> & string)[];
 }
 
 /**
@@ -23,13 +27,16 @@ export interface PersistHint {
  * Handlers queue clear requests for sub-entities that need delete-then-reinsert
  * behavior (e.g., LSP6 permissions, allowed calls). The pipeline processes
  * these in Step 3.5 before persisting derived entities.
+ *
+ * Generic parameter T: The sub-entity type being cleared.
+ * This enables compile-time validation that fkField is actually a FK field
+ * on the entity (not a primitive field).
  */
-export interface ClearRequest {
+export interface ClearRequest<T extends Entity> {
   /** Sub-entity class constructor for TypeORM findBy/remove operations */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  subEntityClass: new (...args: any[]) => any;
-  /** FK field name on sub-entity that references the parent (e.g., 'controller') */
-  fkField: string;
+  subEntityClass: EntityConstructor<T>;
+  /** FK field name on sub-entity that references the parent (must be a FK field) */
+  fkField: FKFields<T> & string;
   /** Parent entity IDs whose sub-entities should be cleared */
   parentIds: string[];
 }
@@ -78,14 +85,14 @@ export interface IBatchContext {
   getFetchQueue(): ReadonlyArray<FetchRequest>;
 
   // Enrichment queue (for deferred FK resolution)
-  queueEnrichment(request: EnrichmentRequest): void;
-  getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest>;
+  queueEnrichment<T extends Entity>(request: EnrichmentRequest<T>): void;
+  getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest<Entity>>;
 
   // Persist hints (for merge-upsert behavior)
-  setPersistHint(type: string, hint: PersistHint): void;
-  getPersistHint(type: string): PersistHint | undefined;
+  setPersistHint<T extends Entity>(type: string, hint: PersistHint<T>): void;
+  getPersistHint(type: string): PersistHint<Entity> | undefined;
 
   // Clear queue (for sub-entity deletion)
-  queueClear(request: ClearRequest): void;
-  getClearQueue(): ReadonlyArray<ClearRequest>;
+  queueClear<T extends Entity>(request: ClearRequest<T>): void;
+  getClearQueue(): ReadonlyArray<ClearRequest<Entity>>;
 }

@@ -64,9 +64,9 @@ const LSP12IssuedAssetsHandler: EntityHandler = {
     const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
 
     // Set persist hint for cross-batch merge behavior
-    hctx.batchCtx.setPersistHint(ISSUED_ASSET_TYPE, {
+    hctx.batchCtx.setPersistHint<LSP12IssuedAsset>(ISSUED_ASSET_TYPE, {
       entityClass: LSP12IssuedAsset,
-      mergeFields: ['arrayIndex', 'interfaceId', 'issuedAsset'],
+      mergeFields: ['arrayIndex', 'interfaceId'],
     });
 
     for (const event of events.values()) {
@@ -111,7 +111,7 @@ function extractLength(
   hctx.batchCtx.addEntity(LENGTH_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP12IssuedAssetsLength>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: LENGTH_TYPE,
@@ -168,7 +168,7 @@ function extractFromIndex(
   hctx.batchCtx.addEntity(ISSUED_ASSET_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK (primary entity type)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP12IssuedAsset>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: ISSUED_ASSET_TYPE,
@@ -177,7 +177,7 @@ function extractFromIndex(
   });
 
   // Queue enrichment for issuedAsset FK (secondary DA reference)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP12IssuedAsset>({
     category: EntityCategory.DigitalAsset,
     address: assetAddress,
     entityType: ISSUED_ASSET_TYPE,
@@ -235,7 +235,7 @@ function extractFromMap(
   hctx.batchCtx.addEntity(ISSUED_ASSET_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK (primary entity type)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP12IssuedAsset>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: ISSUED_ASSET_TYPE,
@@ -244,7 +244,7 @@ function extractFromMap(
   });
 
   // Queue enrichment for issuedAsset FK (secondary DA reference)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP12IssuedAsset>({
     category: EntityCategory.DigitalAsset,
     address: assetAddress,
     entityType: ISSUED_ASSET_TYPE,
