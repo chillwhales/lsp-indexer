@@ -57,11 +57,9 @@ function createMockStore(): MockStore {
   const baseStore: Partial<Store> = {
     insert: vi.fn(<T extends EntityRecord>(entities: T[]) => {
       insertedEntities.push(...entities);
-      return Promise.resolve();
     }),
     upsert: vi.fn(<T extends EntityRecord>(entities: T[]) => {
       upsertedEntities.push(...entities);
-      return Promise.resolve();
     }),
   };
 
@@ -84,9 +82,7 @@ function createMockContext(store: Store, blocks: Block[] = [mockBlock]): Context
   } as unknown as Context;
 }
 
-type MockVerifyFn = ReturnType<
-  typeof vi.fn<[EntityCategory, Set<string>], Promise<VerificationResult>>
->;
+type MockVerifyFn = ReturnType<typeof vi.fn<VerifyFn>>;
 
 function createMockVerifyFn(
   validAddresses: Set<string> = new Set(),
@@ -393,7 +389,6 @@ describe('Pipeline Step 3: HANDLE', () => {
             originalValue: event.value,
           });
         }
-        return Promise.resolve();
       },
     };
 
@@ -432,7 +427,6 @@ describe('Pipeline Step 3: HANDLE', () => {
       handle: (hctx) => {
         // Handler incorrectly tries to add to the same type key
         hctx.batchCtx.addEntity('RawEvent', 'e2', { id: 'e2' });
-        return Promise.resolve();
       },
     };
 
@@ -473,7 +467,6 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
       listensToBag: ['RawEvent'],
       handle: (hctx) => {
         hctx.batchCtx.addEntity('Derived', 'd1', { id: 'd1', computed: true });
-        return Promise.resolve();
       },
     };
 
@@ -889,7 +882,6 @@ describe('Pipeline Integration', () => {
             amount: transfer.amount,
           });
         }
-        return Promise.resolve();
       },
     };
 
