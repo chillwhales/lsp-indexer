@@ -31,6 +31,8 @@ type Executed @entity {
   value: BigInt! @index
   target: String! @index
   selector: String! @index
+  targetProfile: UniversalProfile @index
+  targetAsset: DigitalAsset @index
   universalProfile: UniversalProfile @index
 }
 
@@ -46,6 +48,8 @@ type UniversalReceiver @entity {
   typeId: String! @index
   receivedData: String!
   returnedValue: String!
+  fromProfile: UniversalProfile @index
+  fromAsset: DigitalAsset @index
   universalProfile: UniversalProfile! @index
 }
 
@@ -129,6 +133,9 @@ type Transfer @entity {
   tokenId: String @index
   force: Boolean! @index
   data: String!
+  fromProfile: UniversalProfile @index
+  toProfile: UniversalProfile @index
+  operatorProfile: UniversalProfile @index
   digitalAsset: DigitalAsset! @index
   nft: NFT @index
 }
@@ -172,6 +179,8 @@ type OwnershipTransferred @entity {
   address: String! @index
   previousOwner: String! @index
   newOwner: String! @index
+  previousOwnerProfile: UniversalProfile @index
+  newOwnerProfile: UniversalProfile @index
   universalProfile: UniversalProfile @index
   digitalAsset: DigitalAsset @index
 }
@@ -238,6 +247,15 @@ type UniversalProfile @entity {
   followedBy: [Follow!]! @derivedFrom(field: "followedUniversalProfile")
   unfollowed: [Unfollow!]! @derivedFrom(field: "followerUniversalProfile")
   unfollowedBy: [Unfollow!]! @derivedFrom(field: "unfollowedUniversalProfile")
+
+  # Events (address enrichment)
+  outgoingTransfers: [Transfer!]! @derivedFrom(field: "fromProfile")
+  incomingTransfers: [Transfer!]! @derivedFrom(field: "toProfile")
+  operatedTransfers: [Transfer!]! @derivedFrom(field: "operatorProfile")
+  transferredOwnership: [OwnershipTransferred!]! @derivedFrom(field: "previousOwnerProfile")
+  receivedOwnership: [OwnershipTransferred!]! @derivedFrom(field: "newOwnerProfile")
+  executedTarget: [Executed!]! @derivedFrom(field: "targetProfile")
+  universalReceiverFrom: [UniversalReceiver!]! @derivedFrom(field: "fromProfile")
 }
 
 type DigitalAsset @entity {
@@ -272,6 +290,8 @@ type DigitalAsset @entity {
   tokenIdDataChanged: [TokenIdDataChanged!]! @derivedFrom(field: "digitalAsset")
   transfer: [Transfer!]! @derivedFrom(field: "digitalAsset")
   ownershipTransferred: [OwnershipTransferred!]! @derivedFrom(field: "digitalAsset")
+  executedTarget: [Executed!]! @derivedFrom(field: "targetAsset")
+  universalReceiverFrom: [UniversalReceiver!]! @derivedFrom(field: "fromAsset")
 }
 
 type TotalSupply @entity {
