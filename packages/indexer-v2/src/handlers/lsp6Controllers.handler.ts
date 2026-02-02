@@ -345,8 +345,17 @@ function extractAllowedCalls(
 
       hctx.batchCtx.addEntity(ALLOWED_CALL_TYPE, callEntity.id, callEntity);
     }
-  } catch {
+  } catch (error) {
     // Invalid CompactBytesArray — raw value is preserved but no sub-entities
+    hctx.context.log.warn(
+      JSON.stringify({
+        message: 'Failed to decode LSP6 allowed calls',
+        address,
+        controllerAddress,
+        dataValue,
+        error: error instanceof Error ? error.message : 'Unknown decode error',
+      }),
+    );
   }
 }
 
@@ -385,8 +394,17 @@ function extractAllowedDataKeys(
 
       hctx.batchCtx.addEntity(ALLOWED_DATA_KEY_TYPE, keyEntity.id, keyEntity);
     }
-  } catch {
+  } catch (error) {
     // Invalid CompactBytesArray — raw value is preserved but no sub-entities
+    hctx.context.log.warn(
+      JSON.stringify({
+        message: 'Failed to decode LSP6 allowed ERC725Y data keys',
+        address,
+        controllerAddress,
+        dataValue,
+        error: error instanceof Error ? error.message : 'Unknown decode error',
+      }),
+    );
   }
 }
 
@@ -455,6 +473,15 @@ function getOrCreateController(
  * This function links sub-entities to their parent controller and removes
  * orphans whose parent doesn't exist.
  *
+ * Why orphan removal is needed despite Step 3.5 (Clear Queue):
+ * - Step 3.5 runs BEFORE this handler completes (it's triggered by queueClear calls)
+ * - Step 3.5 only clears sub-entities whose parent IDs are in the current batch
+ * - If a controller is created in this batch but then filtered out during the
+ *   extract phase (e.g., invalid data), its sub-entities were never queued for
+ *   clearing and must be removed here to prevent orphans
+ * - This is a safety net for within-batch orphans, while Step 3.5 handles
+ *   cross-batch updates where parent entities already exist in the database
+ *
  * Sub-entity IDs follow the pattern `"{upAddress} - {controllerAddress} - {suffix}"`,
  * so the controller ID is the first two segments: `"{upAddress} - {controllerAddress}"`.
  */
@@ -477,8 +504,8 @@ function linkSubEntitiesToController(
     if (controller) {
       entity.controller = new LSP6Controller({ id: controllerId });
     } else {
-      // Parent controller doesn't exist in this batch — likely removed during enrichment
-      // Remove the orphaned sub-entity from the batch
+      // Parent controller doesn't exist in this batch — likely removed during enrichment.
+      // Remove the orphaned sub-entity from the batch to prevent persistence of orphans.
       subEntities.delete(id);
     }
   }

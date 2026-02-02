@@ -139,14 +139,16 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   const clearQueue = batchCtx.getClearQueue();
   if (clearQueue.length > 0) {
     for (const request of clearQueue) {
+      // Use TypeORM's find() with relations to properly query FK references.
+      // The FK field contains entity references (e.g., { id: "..." }), so we need
+      // to query through the relation to match parent IDs.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument -- TypeORM constructor compatibility
-      const existing = await context.store.findBy(
-        request.subEntityClass as any,
-        {
-          [request.fkField]: { id: In(request.parentIds) },
+      const existing = await context.store.find(request.subEntityClass as any, {
+        where: {
+          [request.fkField]: In(request.parentIds),
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
-      );
+      });
       if (existing.length > 0) {
         await context.store.remove(existing);
         context.log.info(
@@ -192,7 +194,14 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const existingMap = new Map(existing.map((e: any) => [e.id, e]));
 
-      // Merge: keep existing non-null values when the new entity has null
+      // Merge: preserve existing non-null values when the new entity has null.
+      // This prevents data loss when different data key events populate different
+      // fields of the same entity across batches (e.g., LSP5ReceivedAssets Index
+      // event provides arrayIndex, Map event provides interfaceId).
+      //
+      // IMPORTANT: Once a merge field is set to a non-null value, it cannot be
+      // cleared back to null through subsequent updates. This is intentional to
+      // maintain data stability across batch boundaries.
       for (const [id, entity] of entities) {
         const prev = existingMap.get(id);
         if (prev) {
