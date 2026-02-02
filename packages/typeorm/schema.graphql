@@ -62,8 +62,8 @@ type Follow @entity {
   address: String! @index
   followerAddress: String! @index
   followedAddress: String! @index
-  followerUniversalProfile: UniversalProfile! @index
-  followedUniversalProfile: UniversalProfile! @index
+  followerUniversalProfile: UniversalProfile @index
+  followedUniversalProfile: UniversalProfile @index
 }
 
 type Follower @entity {
@@ -75,8 +75,8 @@ type Follower @entity {
   address: String! @index
   followerAddress: String! @index
   followedAddress: String! @index
-  followerUniversalProfile: UniversalProfile! @index
-  followedUniversalProfile: UniversalProfile! @index
+  followerUniversalProfile: UniversalProfile @index
+  followedUniversalProfile: UniversalProfile @index
 }
 
 type Unfollow @entity {
@@ -88,8 +88,8 @@ type Unfollow @entity {
   address: String! @index
   followerAddress: String! @index
   unfollowedAddress: String! @index
-  followerUniversalProfile: UniversalProfile! @index
-  unfollowedUniversalProfile: UniversalProfile! @index
+  followerUniversalProfile: UniversalProfile @index
+  unfollowedUniversalProfile: UniversalProfile @index
 }
 
 type DataChanged @entity {

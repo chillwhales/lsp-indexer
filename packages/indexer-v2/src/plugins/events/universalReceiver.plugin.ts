@@ -65,20 +65,23 @@ const UniversalReceiverPlugin: EventPlugin = {
     });
 
     // Queue enrichment for from address as both UP and DA
-    ctx.queueEnrichment({
-      category: EntityCategory.UniversalProfile,
-      address: from,
-      entityType: ENTITY_TYPE,
-      entityId: entity.id,
-      fkField: 'fromProfile',
-    });
-    ctx.queueEnrichment({
-      category: EntityCategory.DigitalAsset,
-      address: from,
-      entityType: ENTITY_TYPE,
-      entityId: entity.id,
-      fkField: 'fromAsset',
-    });
+    // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
+    if (!isNullAddress(from)) {
+      ctx.queueEnrichment({
+        category: EntityCategory.UniversalProfile,
+        address: from,
+        entityType: ENTITY_TYPE,
+        entityId: entity.id,
+        fkField: 'fromProfile',
+      });
+      ctx.queueEnrichment({
+        category: EntityCategory.DigitalAsset,
+        address: from,
+        entityType: ENTITY_TYPE,
+        entityId: entity.id,
+        fkField: 'fromAsset',
+      });
+    }
   },
 };
 

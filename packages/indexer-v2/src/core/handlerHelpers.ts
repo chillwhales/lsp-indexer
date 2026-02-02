@@ -30,6 +30,8 @@ import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 // ---------------------------------------------------------------------------
 
 /**
+ * @deprecated Dead code — will be refactored into a standalone EntityHandler in #105.
+ *
  * Update TotalSupply entities based on mint/burn transfers.
  *
  * Filters the given Transfer entities for mints (from === zeroAddress) and
@@ -117,6 +119,8 @@ export async function updateTotalSupply(store: Store, transfers: Transfer[]): Pr
 // ---------------------------------------------------------------------------
 
 /**
+ * @deprecated Dead code — will be refactored into a standalone EntityHandler in #105.
+ *
  * Update OwnedAsset and OwnedToken entities based on Transfer events.
  *
  * For each transfer:
