@@ -54,6 +54,21 @@ export function isNumeric(value: string): boolean {
 }
 
 /**
+ * Check if an address is a null-ish address (zero or dead).
+ *
+ * These addresses cannot be Universal Profiles or Digital Assets, so they
+ * should be filtered out before queueing enrichment requests to avoid
+ * wasteful supportsInterface() RPC calls.
+ *
+ * @param address - The address to check (any casing)
+ * @returns true if the address is zero or dead, false otherwise
+ */
+export function isNullAddress(address: string): boolean {
+  const lower = address.toLowerCase();
+  return lower === ZERO_ADDRESS.toLowerCase() || lower === DEAD_ADDRESS.toLowerCase();
+}
+
+/**
  * Generate a deterministic NFT entity ID from contract address and tokenId.
  *
  * Format: `"{address} - {tokenId}"`
