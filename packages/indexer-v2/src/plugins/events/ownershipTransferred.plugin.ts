@@ -46,6 +46,8 @@ const OwnershipTransferredPlugin: EventPlugin = {
       address,
       previousOwner,
       newOwner,
+      previousOwnerProfile: null,
+      newOwnerProfile: null,
       universalProfile: null,
       digitalAsset: null,
     });
@@ -67,6 +69,22 @@ const OwnershipTransferredPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
+    });
+
+    // Queue enrichment for previousOwner and newOwner UniversalProfile FKs
+    ctx.queueEnrichment({
+      category: EntityCategory.UniversalProfile,
+      address: previousOwner,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'previousOwnerProfile',
+    });
+    ctx.queueEnrichment({
+      category: EntityCategory.UniversalProfile,
+      address: newOwner,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'newOwnerProfile',
     });
   },
 };

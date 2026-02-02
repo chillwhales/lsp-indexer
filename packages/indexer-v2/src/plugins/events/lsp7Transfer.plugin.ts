@@ -54,6 +54,9 @@ const LSP7TransferPlugin: EventPlugin = {
       amount,
       force,
       data,
+      fromProfile: null,
+      toProfile: null,
+      operatorProfile: null,
       digitalAsset: null,
       // LSP7: no tokenId, no nft
     });
@@ -67,6 +70,29 @@ const LSP7TransferPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
+    });
+
+    // Queue enrichment for from/to/operator UniversalProfile FKs
+    ctx.queueEnrichment({
+      category: EntityCategory.UniversalProfile,
+      address: from,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'fromProfile',
+    });
+    ctx.queueEnrichment({
+      category: EntityCategory.UniversalProfile,
+      address: to,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'toProfile',
+    });
+    ctx.queueEnrichment({
+      category: EntityCategory.UniversalProfile,
+      address: operator,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'operatorProfile',
     });
   },
 };

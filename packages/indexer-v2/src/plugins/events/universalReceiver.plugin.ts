@@ -5,6 +5,8 @@
  * emitted by Universal Profiles when they receive assets or notifications.
  *
  * The emitting address is queued for verification as a UniversalProfile.
+ * The from address is queued for verification as both UniversalProfile
+ * and DigitalAsset (could be either type).
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  *
  * Port from v1:
@@ -22,7 +24,7 @@ const ENTITY_TYPE = 'UniversalReceiver';
 const UniversalReceiverPlugin: EventPlugin = {
   name: 'universalReceiver',
   topic0: LSP0ERC725Account.events.UniversalReceiver.topic,
-  requiresVerification: [EntityCategory.UniversalProfile],
+  requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------
   // EXTRACT
@@ -46,18 +48,36 @@ const UniversalReceiverPlugin: EventPlugin = {
       typeId,
       receivedData,
       returnedValue,
+      fromProfile: null,
+      fromAsset: null,
       universalProfile: null,
     });
 
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
-    // Queue enrichment for universalProfile FK
+    // Queue enrichment for universalProfile FK (emitting address)
     ctx.queueEnrichment({
       category: EntityCategory.UniversalProfile,
       address,
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'universalProfile',
+    });
+
+    // Queue enrichment for from address as both UP and DA
+    ctx.queueEnrichment({
+      category: EntityCategory.UniversalProfile,
+      address: from,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'fromProfile',
+    });
+    ctx.queueEnrichment({
+      category: EntityCategory.DigitalAsset,
+      address: from,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'fromAsset',
     });
   },
 };
