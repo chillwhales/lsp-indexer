@@ -130,17 +130,91 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   }
 
   // ---------------------------------------------------------------------------
+  // Step 3.5: CLEAR SUB-ENTITIES
+  // Process the clear queue before persisting derived entities. Handlers
+  // queue clear requests for sub-entities that need delete-then-reinsert
+  // behavior (e.g., LSP6 permissions, allowed calls).
+  // ---------------------------------------------------------------------------
+  const clearQueue = batchCtx.getClearQueue();
+  if (clearQueue.length > 0) {
+    for (const request of clearQueue) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument -- TypeORM constructor compatibility
+      const existing = await context.store.findBy(
+        request.subEntityClass as any,
+        {
+          [request.fkField]: { id: In(request.parentIds) },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any,
+      );
+      if (existing.length > 0) {
+        await context.store.remove(existing);
+        context.log.info(
+          JSON.stringify({
+            message: 'Cleared sub-entities',
+            subEntityClass: request.subEntityClass.name,
+            parentCount: request.parentIds.length,
+            removedCount: existing.length,
+          }),
+        );
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Step 4: PERSIST DERIVED
   // Batch-persist all handler-derived entities from step 3. These may have
-  // deterministic IDs (e.g., TotalSupply, NFT), so we use upsert. Skip entity
-  // types already persisted in step 2.
+  // deterministic IDs (e.g., TotalSupply, NFT), so we use upsert. If a persist
+  // hint is set for an entity type, use merge-upsert behavior to preserve
+  // non-null values in the specified mergeFields. Skip entity types already
+  // persisted in step 2.
   // ---------------------------------------------------------------------------
   const allEntityTypes = batchCtx.getEntityTypeKeys();
   const derivedTypes = allEntityTypes.filter((type) => !rawEntityTypes.has(type));
 
   for (const type of derivedTypes) {
     const entities = batchCtx.getEntities(type);
-    if (entities.size > 0) {
+    if (entities.size === 0) continue;
+
+    const persistHint = batchCtx.getPersistHint(type);
+
+    if (persistHint) {
+      // Merge-upsert: read existing DB records, preserve non-null mergeFields
+      const ids = [...entities.keys()];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument -- TypeORM constructor compatibility
+      const existing = await context.store.findBy(
+        persistHint.entityClass as any,
+        {
+          id: In(ids),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const existingMap = new Map(existing.map((e: any) => [e.id, e]));
+
+      // Merge: keep existing non-null values when the new entity has null
+      for (const [id, entity] of entities) {
+        const prev = existingMap.get(id);
+        if (prev) {
+          for (const field of persistHint.mergeFields) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            if ((entity as any)[field] == null && (prev as any)[field] != null) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+              (entity as any)[field] = (prev as any)[field];
+            }
+          }
+        }
+      }
+
+      await context.store.upsert([...entities.values()] as { id: string }[]);
+      context.log.info(
+        JSON.stringify({
+          message: 'Persisted derived entities (merge-upsert)',
+          entityType: type,
+          count: entities.size,
+        }),
+      );
+    } else {
+      // Simple upsert (default)
       await context.store.upsert([...entities.values()] as { id: string }[]);
       context.log.info(
         JSON.stringify({

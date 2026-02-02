@@ -2,6 +2,39 @@ import { FetchRequest } from './metadata';
 import { EnrichmentRequest, EntityCategory, VerificationResult } from './verification';
 
 /**
+ * Persist hint for derived entities requiring merge-upsert behavior.
+ *
+ * When set for an entity type, the pipeline reads existing DB records
+ * and preserves non-null values in the specified mergeFields before
+ * upserting. This prevents data loss when multiple data key sources
+ * populate different fields of the same entity across batches.
+ */
+export interface PersistHint {
+  /** Entity class constructor for TypeORM operations */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  entityClass: new (...args: any[]) => any;
+  /** Field names to preserve across batches (keep existing non-null values) */
+  mergeFields: string[];
+}
+
+/**
+ * Clear request for sub-entity deletion before re-insertion.
+ *
+ * Handlers queue clear requests for sub-entities that need delete-then-reinsert
+ * behavior (e.g., LSP6 permissions, allowed calls). The pipeline processes
+ * these in Step 3.5 before persisting derived entities.
+ */
+export interface ClearRequest {
+  /** Sub-entity class constructor for TypeORM findBy/remove operations */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  subEntityClass: new (...args: any[]) => any;
+  /** FK field name on sub-entity that references the parent (e.g., 'controller') */
+  fkField: string;
+  /** Parent entity IDs whose sub-entities should be cleared */
+  parentIds: string[];
+}
+
+/**
  * BatchContext interface — shared entity bag for a single batch.
  *
  * This replaces the 60+ destructured Maps/arrays/Sets that were manually
@@ -46,4 +79,12 @@ export interface IBatchContext {
   // Enrichment queue (for deferred FK resolution)
   queueEnrichment(request: EnrichmentRequest): void;
   getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest>;
+
+  // Persist hints (for merge-upsert behavior)
+  setPersistHint(type: string, hint: PersistHint): void;
+  getPersistHint(type: string): PersistHint | undefined;
+
+  // Clear queue (for sub-entity deletion)
+  queueClear(request: ClearRequest): void;
+  getClearQueue(): ReadonlyArray<ClearRequest>;
 }

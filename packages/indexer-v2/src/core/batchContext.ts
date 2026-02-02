@@ -54,6 +54,18 @@ export class BatchContext implements IBatchContext {
    */
   private readonly enrichmentQueue: EnrichmentRequest[] = [];
 
+  /**
+   * Persist hints per entity type, used by the pipeline to determine
+   * which entity types need merge-upsert behavior in Step 4.
+   */
+  private readonly persistHints = new Map<string, PersistHint>();
+
+  /**
+   * Queue of clear requests for sub-entity deletion, consumed by
+   * the pipeline in Step 3.5 before persisting derived entities.
+   */
+  private readonly clearQueue: ClearRequest[] = [];
+
   // -------------------------------------------------------------------------
   // Entity storage
   // -------------------------------------------------------------------------
@@ -137,5 +149,29 @@ export class BatchContext implements IBatchContext {
 
   getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest> {
     return this.enrichmentQueue;
+  }
+
+  // -------------------------------------------------------------------------
+  // Persist hints
+  // -------------------------------------------------------------------------
+
+  setPersistHint(type: string, hint: PersistHint): void {
+    this.persistHints.set(type, hint);
+  }
+
+  getPersistHint(type: string): PersistHint | undefined {
+    return this.persistHints.get(type);
+  }
+
+  // -------------------------------------------------------------------------
+  // Clear queue
+  // -------------------------------------------------------------------------
+
+  queueClear(request: ClearRequest): void {
+    this.clearQueue.push(request);
+  }
+
+  getClearQueue(): ReadonlyArray<ClearRequest> {
+    return this.clearQueue;
   }
 }
