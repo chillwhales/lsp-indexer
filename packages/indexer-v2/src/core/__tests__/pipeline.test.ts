@@ -1,7 +1,7 @@
 import { DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { describe, expect, it, vi } from 'vitest';
-import { processBatch } from '../pipeline';
+import { processBatch, VerifyFn } from '../pipeline';
 import { PluginRegistry } from '../registry';
 import {
   Block,
