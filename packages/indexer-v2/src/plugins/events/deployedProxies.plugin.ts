@@ -8,9 +8,8 @@
  * Contract-scoped: only processes logs from the LSP23 factory address
  * starting at block 1143651.
  *
- * This event does NOT trigger UP/DA verification — the deployed proxies
- * are recorded as-is. The nested struct fields (PrimaryContractDeploymentInit,
- * SecondaryContractDeploymentInit) are stored as JSONB columns.
+ * The primaryContract address is queued for verification as a UniversalProfile.
+ * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  *
  * Port from v1:
  *   - scanner.ts L526-561 (inline extraction, no separate extract/populate)
@@ -32,7 +31,7 @@ const DeployedProxiesPlugin: EventPlugin = {
   name: 'deployedProxies',
   topic0: LSP23LinkedContractsFactory.events.DeployedERC1167Proxies.topic,
   contractFilter: { address: LSP23_ADDRESS, fromBlock: 1143651 },
-  requiresVerification: [],
+  requiresVerification: [EntityCategory.UniversalProfile],
 
   // ---------------------------------------------------------------------------
   // EXTRACT
@@ -67,9 +66,19 @@ const DeployedProxiesPlugin: EventPlugin = {
       ),
       postDeploymentModule,
       postDeploymentModuleCalldata,
+      universalProfile: null,
     });
 
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
+
+    // Queue enrichment for universalProfile FK (primaryContract is the deployed UP)
+    ctx.queueEnrichment({
+      category: EntityCategory.UniversalProfile,
+      address: primaryContract,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'universalProfile',
+    });
   },
 };
 
