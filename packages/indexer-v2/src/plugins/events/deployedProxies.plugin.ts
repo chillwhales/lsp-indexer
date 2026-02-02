@@ -8,15 +8,13 @@
  * Contract-scoped: only processes logs from the LSP23 factory address
  * starting at block 1143651.
  *
- * This event does NOT trigger UP/DA verification — the deployed proxies
- * are recorded as-is. The nested struct fields (PrimaryContractDeploymentInit,
- * SecondaryContractDeploymentInit) are stored as JSONB columns.
+ * The primaryContract address is queued for verification as a UniversalProfile.
+ * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  *
  * Port from v1:
  *   - scanner.ts L526-561 (inline extraction, no separate extract/populate)
  */
 import { LSP23_ADDRESS } from '@/constants';
-import { insertEntities } from '@/core/persistHelpers';
 import { Block, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { LSP23LinkedContractsFactory } from '@chillwhales/abi';
 import {
@@ -24,7 +22,6 @@ import {
   PrimaryContractDeploymentInit,
   SecondaryContractDeploymentInit,
 } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
@@ -34,10 +31,10 @@ const DeployedProxiesPlugin: EventPlugin = {
   name: 'deployedProxies',
   topic0: LSP23LinkedContractsFactory.events.DeployedERC1167Proxies.topic,
   contractFilter: { address: LSP23_ADDRESS, fromBlock: 1143651 },
-  requiresVerification: [],
+  requiresVerification: [EntityCategory.UniversalProfile],
 
   // ---------------------------------------------------------------------------
-  // Phase 1: EXTRACT
+  // EXTRACT
   // ---------------------------------------------------------------------------
 
   extract(log: Log, block: Block, ctx: IBatchContext): void {
@@ -69,25 +66,19 @@ const DeployedProxiesPlugin: EventPlugin = {
       ),
       postDeploymentModule,
       postDeploymentModuleCalldata,
+      universalProfile: null,
     });
 
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
-  },
 
-  // ---------------------------------------------------------------------------
-  // Phase 3: POPULATE — No-op (no verification required)
-  // ---------------------------------------------------------------------------
-
-  populate(): void {
-    // No verification or relational linking needed
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 4: PERSIST
-  // ---------------------------------------------------------------------------
-
-  async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    await insertEntities(store, ctx, ENTITY_TYPE);
+    // Queue enrichment for universalProfile FK (primaryContract is the deployed UP)
+    ctx.queueEnrichment({
+      category: EntityCategory.UniversalProfile,
+      address: primaryContract,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'universalProfile',
+    });
   },
 };
 

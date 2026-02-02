@@ -1,4 +1,3 @@
-import { Store } from '@subsquid/typeorm-store';
 import { IBatchContext } from './batchContext';
 import { EntityHandler } from './handler';
 import { Block, Log } from './subsquid';
@@ -44,24 +43,6 @@ export interface EventPlugin {
    * Called once per matching log in the batch.
    */
   extract(log: Log, block: Block, ctx: IBatchContext): void;
-
-  /**
-   * Phase 3: Link entities to verified parents, filter out invalid.
-   * Called once per batch after verification completes.
-   *
-   * @deprecated Will be removed in #102. The new pipeline does not call
-   * populate() — FK resolution is handled by the enrichment queue (Step 6).
-   */
-  populate(ctx: IBatchContext): void;
-
-  /**
-   * Phase 4: Persist entities to the database.
-   * Called once per batch after population.
-   *
-   * @deprecated Will be removed in #102. The new pipeline handles all
-   * persistence in Steps 2/4 — plugins no longer persist their own entities.
-   */
-  persist(store: Store, ctx: IBatchContext): Promise<void>;
 }
 
 /**

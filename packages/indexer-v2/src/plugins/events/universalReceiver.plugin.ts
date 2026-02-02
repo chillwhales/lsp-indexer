@@ -4,20 +4,18 @@
  * Handles the `UniversalReceiver(address,uint256,bytes32,bytes,bytes)` event
  * emitted by Universal Profiles when they receive assets or notifications.
  *
- * The emitting address is tracked as a UniversalProfile candidate.
- * During populate, entities from unverified UPs are filtered out and
- * verified UPs are linked via the `universalProfile` relation.
+ * The emitting address is queued for verification as a UniversalProfile.
+ * The from address is queued for verification as both UniversalProfile
+ * and DigitalAsset (could be either type).
+ * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  *
  * Port from v1:
  *   - scanner.ts L423-427 (event matching)
  *   - utils/universalReceiver/index.ts (extract + populate)
  */
-import { insertEntities } from '@/core/persistHelpers';
-import { populateByUP } from '@/core/populateHelpers';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { LSP0ERC725Account } from '@chillwhales/abi';
 import { UniversalReceiver } from '@chillwhales/typeorm';
-import { Store } from '@subsquid/typeorm-store';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
@@ -26,10 +24,10 @@ const ENTITY_TYPE = 'UniversalReceiver';
 const UniversalReceiverPlugin: EventPlugin = {
   name: 'universalReceiver',
   topic0: LSP0ERC725Account.events.UniversalReceiver.topic,
-  requiresVerification: [EntityCategory.UniversalProfile],
+  requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------
-  // Phase 1: EXTRACT
+  // EXTRACT
   // ---------------------------------------------------------------------------
 
   extract(log: Log, block: Block, ctx: IBatchContext): void {
@@ -50,28 +48,40 @@ const UniversalReceiverPlugin: EventPlugin = {
       typeId,
       receivedData,
       returnedValue,
+      fromProfile: null,
+      fromAsset: null,
+      universalProfile: null,
     });
 
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
-    // The emitting address is a Universal Profile
-    ctx.trackAddress(EntityCategory.UniversalProfile, address);
-  },
+    // Queue enrichment for universalProfile FK (emitting address)
+    ctx.queueEnrichment({
+      category: EntityCategory.UniversalProfile,
+      address,
+      entityType: ENTITY_TYPE,
+      entityId: entity.id,
+      fkField: 'universalProfile',
+    });
 
-  // ---------------------------------------------------------------------------
-  // Phase 3: POPULATE
-  // ---------------------------------------------------------------------------
-
-  populate(ctx: IBatchContext): void {
-    populateByUP<UniversalReceiver>(ctx, ENTITY_TYPE);
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 4: PERSIST
-  // ---------------------------------------------------------------------------
-
-  async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    await insertEntities(store, ctx, ENTITY_TYPE);
+    // Queue enrichment for from address as both UP and DA
+    // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
+    if (!isNullAddress(from)) {
+      ctx.queueEnrichment({
+        category: EntityCategory.UniversalProfile,
+        address: from,
+        entityType: ENTITY_TYPE,
+        entityId: entity.id,
+        fkField: 'fromProfile',
+      });
+      ctx.queueEnrichment({
+        category: EntityCategory.DigitalAsset,
+        address: from,
+        entityType: ENTITY_TYPE,
+        entityId: entity.id,
+        fkField: 'fromAsset',
+      });
+    }
   },
 };
 

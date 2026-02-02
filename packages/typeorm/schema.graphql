@@ -31,6 +31,8 @@ type Executed @entity {
   value: BigInt! @index
   target: String! @index
   selector: String! @index
+  targetProfile: UniversalProfile @index
+  targetAsset: DigitalAsset @index
   universalProfile: UniversalProfile @index
 }
 
@@ -46,7 +48,9 @@ type UniversalReceiver @entity {
   typeId: String! @index
   receivedData: String!
   returnedValue: String!
-  universalProfile: UniversalProfile! @index
+  fromProfile: UniversalProfile @index
+  fromAsset: DigitalAsset @index
+  universalProfile: UniversalProfile @index
 }
 
 type Follow @entity {
@@ -58,8 +62,8 @@ type Follow @entity {
   address: String! @index
   followerAddress: String! @index
   followedAddress: String! @index
-  followerUniversalProfile: UniversalProfile! @index
-  followedUniversalProfile: UniversalProfile! @index
+  followerUniversalProfile: UniversalProfile @index
+  followedUniversalProfile: UniversalProfile @index
 }
 
 type Follower @entity {
@@ -71,8 +75,8 @@ type Follower @entity {
   address: String! @index
   followerAddress: String! @index
   followedAddress: String! @index
-  followerUniversalProfile: UniversalProfile! @index
-  followedUniversalProfile: UniversalProfile! @index
+  followerUniversalProfile: UniversalProfile @index
+  followedUniversalProfile: UniversalProfile @index
 }
 
 type Unfollow @entity {
@@ -84,8 +88,8 @@ type Unfollow @entity {
   address: String! @index
   followerAddress: String! @index
   unfollowedAddress: String! @index
-  followerUniversalProfile: UniversalProfile! @index
-  unfollowedUniversalProfile: UniversalProfile! @index
+  followerUniversalProfile: UniversalProfile @index
+  unfollowedUniversalProfile: UniversalProfile @index
 }
 
 type DataChanged @entity {
@@ -111,8 +115,8 @@ type TokenIdDataChanged @entity {
   address: String! @index
   dataKey: String! @index
   dataValue: String!
-  digitalAsset: DigitalAsset! @index
-  nft: NFT! @index
+  digitalAsset: DigitalAsset @index
+  nft: NFT @index
 }
 
 type Transfer @entity {
@@ -129,7 +133,10 @@ type Transfer @entity {
   tokenId: String @index
   force: Boolean! @index
   data: String!
-  digitalAsset: DigitalAsset! @index
+  fromProfile: UniversalProfile @index
+  toProfile: UniversalProfile @index
+  operatorProfile: UniversalProfile @index
+  digitalAsset: DigitalAsset @index
   nft: NFT @index
 }
 
@@ -146,6 +153,7 @@ type DeployedContracts @entity {
   secondaryContractDeployment: SecondaryContractDeployment!
   postDeploymentModule: String! @index
   postDeploymentModuleCalldata: String!
+  universalProfile: UniversalProfile @index
 }
 
 type DeployedERC1167Proxies @entity {
@@ -161,6 +169,7 @@ type DeployedERC1167Proxies @entity {
   secondaryContractDeploymentInit: SecondaryContractDeploymentInit!
   postDeploymentModule: String! @index
   postDeploymentModuleCalldata: String!
+  universalProfile: UniversalProfile @index
 }
 
 type OwnershipTransferred @entity {
@@ -172,6 +181,8 @@ type OwnershipTransferred @entity {
   address: String! @index
   previousOwner: String! @index
   newOwner: String! @index
+  previousOwnerProfile: UniversalProfile @index
+  newOwnerProfile: UniversalProfile @index
   universalProfile: UniversalProfile @index
   digitalAsset: DigitalAsset @index
 }
@@ -238,6 +249,15 @@ type UniversalProfile @entity {
   followedBy: [Follow!]! @derivedFrom(field: "followedUniversalProfile")
   unfollowed: [Unfollow!]! @derivedFrom(field: "followerUniversalProfile")
   unfollowedBy: [Unfollow!]! @derivedFrom(field: "unfollowedUniversalProfile")
+
+  # Events (address enrichment)
+  outgoingTransfers: [Transfer!]! @derivedFrom(field: "fromProfile")
+  incomingTransfers: [Transfer!]! @derivedFrom(field: "toProfile")
+  operatedTransfers: [Transfer!]! @derivedFrom(field: "operatorProfile")
+  transferredOwnership: [OwnershipTransferred!]! @derivedFrom(field: "previousOwnerProfile")
+  receivedOwnership: [OwnershipTransferred!]! @derivedFrom(field: "newOwnerProfile")
+  executedTarget: [Executed!]! @derivedFrom(field: "targetProfile")
+  universalReceiverFrom: [UniversalReceiver!]! @derivedFrom(field: "fromProfile")
 }
 
 type DigitalAsset @entity {
@@ -272,6 +292,8 @@ type DigitalAsset @entity {
   tokenIdDataChanged: [TokenIdDataChanged!]! @derivedFrom(field: "digitalAsset")
   transfer: [Transfer!]! @derivedFrom(field: "digitalAsset")
   ownershipTransferred: [OwnershipTransferred!]! @derivedFrom(field: "digitalAsset")
+  executedTarget: [Executed!]! @derivedFrom(field: "targetAsset")
+  universalReceiverFrom: [UniversalReceiver!]! @derivedFrom(field: "fromAsset")
 }
 
 type TotalSupply @entity {

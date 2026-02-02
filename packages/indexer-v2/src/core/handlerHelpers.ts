@@ -6,6 +6,12 @@
  * would otherwise be duplicated across plugins.
  *
  * As more Phase 5 handlers are added (#47-#55), new helpers are added here.
+ *
+ * TODO(#105): Dead code — will be consumed by Transfer EntityHandlers.
+ * The functions in this file are not currently imported anywhere after the
+ * removal of handle() methods from LSP7Transfer and LSP8Transfer plugins.
+ * They will be refactored into standalone EntityHandler files as part of
+ * issue #105 (Transfer-derived entity handlers).
  */
 import { generateOwnedAssetId, generateOwnedTokenId } from '@/utils';
 import {
@@ -24,6 +30,8 @@ import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 // ---------------------------------------------------------------------------
 
 /**
+ * @deprecated Dead code — will be refactored into a standalone EntityHandler in #105.
+ *
  * Update TotalSupply entities based on mint/burn transfers.
  *
  * Filters the given Transfer entities for mints (from === zeroAddress) and
@@ -111,6 +119,8 @@ export async function updateTotalSupply(store: Store, transfers: Transfer[]): Pr
 // ---------------------------------------------------------------------------
 
 /**
+ * @deprecated Dead code — will be refactored into a standalone EntityHandler in #105.
+ *
  * Update OwnedAsset and OwnedToken entities based on Transfer events.
  *
  * For each transfer:
