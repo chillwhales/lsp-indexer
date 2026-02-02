@@ -65,20 +65,23 @@ const ExecutedPlugin: EventPlugin = {
     });
 
     // Queue enrichment for target address as both UP and DA
-    ctx.queueEnrichment({
-      category: EntityCategory.UniversalProfile,
-      address: target,
-      entityType: ENTITY_TYPE,
-      entityId: entity.id,
-      fkField: 'targetProfile',
-    });
-    ctx.queueEnrichment({
-      category: EntityCategory.DigitalAsset,
-      address: target,
-      entityType: ENTITY_TYPE,
-      entityId: entity.id,
-      fkField: 'targetAsset',
-    });
+    // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
+    if (!isNullAddress(target)) {
+      ctx.queueEnrichment({
+        category: EntityCategory.UniversalProfile,
+        address: target,
+        entityType: ENTITY_TYPE,
+        entityId: entity.id,
+        fkField: 'targetProfile',
+      });
+      ctx.queueEnrichment({
+        category: EntityCategory.DigitalAsset,
+        address: target,
+        entityType: ENTITY_TYPE,
+        entityId: entity.id,
+        fkField: 'targetAsset',
+      });
+    }
   },
 };
 

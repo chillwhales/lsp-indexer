@@ -89,27 +89,34 @@ const LSP8TransferPlugin: EventPlugin = {
     });
 
     // Queue enrichment for from/to/operator UniversalProfile FKs
-    ctx.queueEnrichment({
-      category: EntityCategory.UniversalProfile,
-      address: from,
-      entityType: ENTITY_TYPE,
-      entityId: entity.id,
-      fkField: 'fromProfile',
-    });
-    ctx.queueEnrichment({
-      category: EntityCategory.UniversalProfile,
-      address: to,
-      entityType: ENTITY_TYPE,
-      entityId: entity.id,
-      fkField: 'toProfile',
-    });
-    ctx.queueEnrichment({
-      category: EntityCategory.UniversalProfile,
-      address: operator,
-      entityType: ENTITY_TYPE,
-      entityId: entity.id,
-      fkField: 'operatorProfile',
-    });
+    // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
+    if (!isNullAddress(from)) {
+      ctx.queueEnrichment({
+        category: EntityCategory.UniversalProfile,
+        address: from,
+        entityType: ENTITY_TYPE,
+        entityId: entity.id,
+        fkField: 'fromProfile',
+      });
+    }
+    if (!isNullAddress(to)) {
+      ctx.queueEnrichment({
+        category: EntityCategory.UniversalProfile,
+        address: to,
+        entityType: ENTITY_TYPE,
+        entityId: entity.id,
+        fkField: 'toProfile',
+      });
+    }
+    if (!isNullAddress(operator)) {
+      ctx.queueEnrichment({
+        category: EntityCategory.UniversalProfile,
+        address: operator,
+        entityType: ENTITY_TYPE,
+        entityId: entity.id,
+        fkField: 'operatorProfile',
+      });
+    }
   },
 };
 
