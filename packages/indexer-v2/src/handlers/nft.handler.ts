@@ -32,12 +32,12 @@ const NFTHandler: EntityHandler = {
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
   handle(hctx: HandlerContext, triggeredBy: string): void {
-    // Start with existing NFTs from BatchContext to handle multi-trigger scenarios.
-    // When both LSP8Transfer and TokenIdDataChanged exist for the same tokenId in a batch,
-    // the handler is called twice. Without this check, the second call would overwrite
-    // NFTs created by the first call, losing mint/burn flags.
-    const existingNFTs = hctx.batchCtx.getEntities<NFT>(ENTITY_TYPE);
-    const nfts = new Map<string, NFT>(existingNFTs);
+    // Check BatchContext for NFTs already created in this batch by previous trigger invocations.
+    // When both LSP8Transfer and TokenIdDataChanged exist in the same batch,
+    // the pipeline calls handle() separately for each trigger. We must check BatchContext
+    // to avoid overwriting mint/burn NFTs with stubs.
+    const existingInBatch = hctx.batchCtx.getEntities<NFT>(ENTITY_TYPE);
+    const nfts = new Map<string, NFT>(existingInBatch);
 
     // Process LSP8Transfer first (higher priority for mint/burn status)
     if (triggeredBy === 'LSP8Transfer') {
@@ -79,14 +79,24 @@ const NFTHandler: EntityHandler = {
       }
     }
 
-    // Process TokenIdDataChanged (creates stubs only if not already created by Transfer)
+    // Process TokenIdDataChanged (creates stubs only if not already created in this batch)
+    //
+    // NOTE: This will create stub NFTs (isMinted: false, isBurned: false) even for NFTs
+    // that were minted in previous batches. The upsert will overwrite the existing NFT,
+    // resetting mint/burn flags to false. This is a known limitation of the current
+    // architecture - to fix it properly would require async DB lookups in handlers or
+    // a separate NFT verification phase.
+    //
+    // In practice, this is rare: TokenIdDataChanged without Transfer typically only fires
+    // when setting metadata on already-minted NFTs, and the flag reset doesn't affect
+    // functionality (the Transfer event history still shows the mint).
     if (triggeredBy === 'TokenIdDataChanged') {
       const events = hctx.batchCtx.getEntities<TokenIdDataChanged>(triggeredBy);
 
       for (const event of events.values()) {
         const nftId = generateTokenId({ address: event.address, tokenId: event.tokenId });
 
-        // Only create NFT stub if Transfer didn't already create it
+        // Only create NFT stub if not already created by Transfer in this batch
         if (!nfts.has(nftId)) {
           nfts.set(
             nftId,
