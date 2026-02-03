@@ -7,6 +7,8 @@
  * - EnrichmentRequest: Deferred FK resolution request for verified addresses
  */
 
+import { Entity, FKFields } from './entity';
+
 /**
  * Categories of blockchain entities that require verification via supportsInterface().
  */

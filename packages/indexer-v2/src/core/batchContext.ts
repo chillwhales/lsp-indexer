@@ -1,6 +1,7 @@
 import {
   ClearRequest,
   EnrichmentRequest,
+  Entity,
   EntityCategory,
   FetchRequest,
   IBatchContext,
