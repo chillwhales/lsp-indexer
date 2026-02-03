@@ -311,7 +311,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
 
   // Single pass: collect addresses for verification AND group for enrichment
   const addressesByCategory = new Map<EntityCategory, Set<string>>();
-  const grouped = new Map<string, Map<string, EnrichmentRequest<Entity>[]>>();
+  const grouped = new Map<string, Map<string, StoredEnrichmentRequest[]>>();
 
   for (const request of enrichmentQueue) {
     // Collect addresses for non-NFT categories (NFTs always valid)
@@ -446,7 +446,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
  * These are TypeORM entity instances with only the `id` field set,
  * used as foreign key references.
  */
-function createFkStub(request: EnrichmentRequest<Entity>): { id: string } {
+function createFkStub(request: StoredEnrichmentRequest): { id: string } {
   switch (request.category) {
     case EntityCategory.UniversalProfile:
       return new UniversalProfile({ id: request.address });

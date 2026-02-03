@@ -1,3 +1,4 @@
+import { Transfer } from '@chillwhales/typeorm';
 import { describe, expect, it } from 'vitest';
 import { BatchContext } from '../batchContext';
 import { EnrichmentRequest, EntityCategory } from '../types';
