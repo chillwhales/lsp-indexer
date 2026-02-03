@@ -1,18 +1,19 @@
 /**
- * Shared handler helpers for plugin handle() methods (Phase 5).
+ * Shared handler helpers for EntityHandler handle() methods.
  *
- * These provide reusable post-processing logic called from plugin handle()
- * methods. Each helper encapsulates a DB read-modify-write pattern that
- * would otherwise be duplicated across plugins.
+ * These provide reusable patterns for handlers that need to merge entities
+ * from both the current batch (BatchContext) and the database. This ensures
+ * handlers never lose data by relying only on batch context or only on
+ * database queries.
  *
- * As more Phase 5 handlers are added (#47-#55), new helpers are added here.
- *
- * TODO(#105): Dead code — will be consumed by Transfer EntityHandlers.
- * The functions in this file are not currently imported anywhere after the
- * removal of handle() methods from LSP7Transfer and LSP8Transfer plugins.
- * They will be refactored into standalone EntityHandler files as part of
- * issue #105 (Transfer-derived entity handlers).
+ * Core pattern:
+ * 1. Load entities from BatchContext (intra-batch updates)
+ * 2. Load entities from database (cross-batch persistence)
+ * 3. Merge both sources into a single map
+ * 4. Process and update entities
+ * 5. Add back to BatchContext for pipeline persistence
  */
+import { Entity, IBatchContext } from '@/core/types';
 import { generateOwnedAssetId, generateOwnedTokenId } from '@/utils';
 import {
   OwnedAsset,
@@ -22,8 +23,67 @@ import {
   UniversalProfile,
 } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
-import { In } from 'typeorm';
+import { FindOptionsWhere, In } from 'typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
+
+// ---------------------------------------------------------------------------
+// Entity merging utilities
+// ---------------------------------------------------------------------------
+
+/**
+ * Merge entities from both BatchContext and database.
+ *
+ * This is the CORRECT pattern for handlers that need to check for existing entities.
+ * Never rely solely on BatchContext (intra-batch only) or solely on database
+ * (misses current batch updates). Always merge both sources.
+ *
+ * Usage:
+ * ```typescript
+ * const nfts = await mergeEntitiesFromBatchAndDb<NFT>(
+ *   hctx.store,
+ *   hctx.batchCtx,
+ *   'NFT',
+ *   NFT,
+ *   potentialIds
+ * );
+ * ```
+ *
+ * @param store        - Subsquid store for DB queries
+ * @param batchCtx     - BatchContext for intra-batch entities
+ * @param entityType   - Entity type key in BatchContext (e.g., 'NFT')
+ * @param entityClass  - TypeORM entity class for DB queries
+ * @param idsToCheck   - IDs to query from database (optional, queries all if not provided)
+ * @returns Map of entity ID to entity, merged from both sources
+ */
+export async function mergeEntitiesFromBatchAndDb<T extends Entity>(
+  store: Store,
+  batchCtx: IBatchContext,
+  entityType: string,
+  entityClass: new (props?: Partial<T>) => T,
+  idsToCheck?: string[],
+): Promise<Map<string, T>> {
+  // Step 1: Get entities from current batch (intra-batch updates)
+  const batchEntities = batchCtx.getEntities<T>(entityType);
+  const merged = new Map<string, T>(batchEntities);
+
+  // Step 2: Query database for entities not already in batch
+  if (idsToCheck && idsToCheck.length > 0) {
+    const idsNotInBatch = idsToCheck.filter((id) => !merged.has(id));
+
+    if (idsNotInBatch.length > 0) {
+      const dbEntities = await store.findBy(entityClass, {
+        id: In(idsNotInBatch),
+      } as FindOptionsWhere<T>);
+
+      // Step 3: Merge database entities into the map
+      for (const entity of dbEntities) {
+        merged.set(entity.id, entity);
+      }
+    }
+  }
+
+  return merged;
+}
 
 // ---------------------------------------------------------------------------
 // Total supply
