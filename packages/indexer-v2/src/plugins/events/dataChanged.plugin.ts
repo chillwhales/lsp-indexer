@@ -60,14 +60,14 @@ const DataChangedPlugin: EventPlugin = {
 
     // Queue enrichment for both universalProfile and digitalAsset FKs
     // (contract type unknown at scan time)
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<DataChanged>({
       category: EntityCategory.UniversalProfile,
       address,
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'universalProfile',
     });
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<DataChanged>({
       category: EntityCategory.DigitalAsset,
       address,
       entityType: ENTITY_TYPE,

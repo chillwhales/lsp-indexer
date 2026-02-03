@@ -1,18 +1,18 @@
 /**
- * LSP12IssuedAssets data key plugin.
+ * LSP12IssuedAssets entity handler.
  *
- * Handles three related `LSP12IssuedAssets` data key patterns emitted via
- * `DataChanged(bytes32,bytes)` on Universal Profiles:
+ * Subscribes to DataChanged events and creates two types of entities from
+ * three related LSP12IssuedAssets data key patterns:
  *
  *   1. **LSP12IssuedAssets[] length** — exact match on the array length key.
  *      Decodes a uint128 value representing the number of issued assets.
  *      Entity: `LSP12IssuedAssetsLength` (deterministic id = address).
  *
- *   2. **LSP12IssuedAssets[] index** — prefix match on `0x7c8c3416d6cda87cd42c71ea1843df28`.
+ *   2. **LSP12IssuedAssets[] index** — prefix match on the index prefix.
  *      Decodes an asset address from the data value and the array index
  *      from the last 16 bytes of the data key.
  *
- *   3. **LSP12IssuedAssetsMap** — prefix match on `0x74ac2555c10b9349e78f0000`.
+ *   3. **LSP12IssuedAssetsMap** — prefix match on the map prefix.
  *      Decodes the asset address from the data key (last 20 bytes),
  *      plus interface ID and index from the data value.
  *
@@ -20,27 +20,27 @@
  * entity keyed by `"{upAddress} - {assetAddress}"`. Both event sources
  * provide assetAddress + arrayIndex; the Map additionally provides
  * interfaceId. If both fire in the same batch (typical), the second
- * upserts into the existing entity, filling in any missing fields.
+ * merges into the existing entity, filling in any missing fields.
  *
- * assetAddress is tracked for DigitalAsset verification so the optional
+ * In-batch merge is preserved in the handler logic. Cross-batch merge uses
+ * persist hints so the pipeline preserves non-null values in the specified
+ * mergeFields when upserting.
+ *
+ * assetAddress is enriched for DigitalAsset verification so the optional
  * `issuedAsset` FK can be populated when the asset is a verified DA.
  *
  * Invalid Item entries (dataValue not a valid 20-byte address) are skipped
  * entirely — no garbage entities to clean up later.
  *
  * Port from v1:
+ *   - plugins/datakeys/lsp12IssuedAssets.plugin.ts (extract + populate + persist)
  *   - utils/dataChanged/lsp12IssuedAssetsLength.ts
  *   - utils/dataChanged/lsp12IssuedAssetsItem.ts
  *   - utils/dataChanged/lsp12IssuedAssetsMap.ts
- *   - app/scanner.ts (DataChanged case → LSP12IssuedAssets routing)
- *   - app/index.ts (upsert)
  */
-import { mergeUpsertEntities, upsertEntities } from '@/core/persistHelpers';
-import { enrichEntityFk, populateByUP } from '@/core/populateHelpers';
-import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
-import { LSP12IssuedAsset, LSP12IssuedAssetsLength } from '@chillwhales/typeorm';
+import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { DataChanged, LSP12IssuedAsset, LSP12IssuedAssetsLength } from '@chillwhales/typeorm';
 import { LSP12DataKeys } from '@lukso/lsp12-contracts';
-import { Store } from '@subsquid/typeorm-store';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
 // ---------------------------------------------------------------------------
@@ -56,74 +56,30 @@ const LSP12_ISSUED_ASSETS_LENGTH_KEY: string = LSP12DataKeys['LSP12IssuedAssets[
 const LSP12_ISSUED_ASSETS_INDEX_PREFIX: string = LSP12DataKeys['LSP12IssuedAssets[]'].index;
 const LSP12_ISSUED_ASSETS_MAP_PREFIX: string = LSP12DataKeys.LSP12IssuedAssetsMap;
 
-const LSP12IssuedAssetsPlugin: DataKeyPlugin = {
+const LSP12IssuedAssetsHandler: EntityHandler = {
   name: 'lsp12IssuedAssets',
-  requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
+  listensToBag: ['DataChanged'],
 
-  // ---------------------------------------------------------------------------
-  // Matching
-  // ---------------------------------------------------------------------------
+  handle(hctx: HandlerContext, triggeredBy: string): void {
+    const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
 
-  matches(dataKey: string): boolean {
-    return (
-      dataKey === LSP12_ISSUED_ASSETS_LENGTH_KEY ||
-      dataKey.startsWith(LSP12_ISSUED_ASSETS_INDEX_PREFIX) ||
-      dataKey.startsWith(LSP12_ISSUED_ASSETS_MAP_PREFIX)
-    );
-  },
+    // Set persist hint for cross-batch merge behavior
+    hctx.batchCtx.setPersistHint<LSP12IssuedAsset>(ISSUED_ASSET_TYPE, {
+      entityClass: LSP12IssuedAsset,
+      mergeFields: ['arrayIndex', 'interfaceId'],
+    });
 
-  // ---------------------------------------------------------------------------
-  // Phase 1: EXTRACT
-  // ---------------------------------------------------------------------------
+    for (const event of events.values()) {
+      const { dataKey, dataValue, address, timestamp } = event;
 
-  extract(log: Log, dataKey: string, dataValue: string, block: Block, ctx: IBatchContext): void {
-    const { timestamp } = block.header;
-    const { address } = log;
-
-    if (dataKey === LSP12_ISSUED_ASSETS_LENGTH_KEY) {
-      extractLength(address, dataValue, timestamp, ctx);
-    } else if (dataKey.startsWith(LSP12_ISSUED_ASSETS_INDEX_PREFIX)) {
-      extractFromIndex(address, dataKey, dataValue, timestamp, ctx);
-    } else if (dataKey.startsWith(LSP12_ISSUED_ASSETS_MAP_PREFIX)) {
-      extractFromMap(address, dataKey, dataValue, timestamp, ctx);
+      if (dataKey === LSP12_ISSUED_ASSETS_LENGTH_KEY) {
+        extractLength(address, dataValue, timestamp, hctx);
+      } else if (dataKey.startsWith(LSP12_ISSUED_ASSETS_INDEX_PREFIX)) {
+        extractFromIndex(address, dataKey, dataValue, timestamp, hctx);
+      } else if (dataKey.startsWith(LSP12_ISSUED_ASSETS_MAP_PREFIX)) {
+        extractFromMap(address, dataKey, dataValue, timestamp, hctx);
+      }
     }
-
-    // UP address tracking is handled by the DataChanged meta-plugin (parent).
-    // Asset addresses are tracked here for DA verification (issuedAsset FK).
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 3: POPULATE
-  // ---------------------------------------------------------------------------
-
-  populate(ctx: IBatchContext): void {
-    populateByUP<LSP12IssuedAssetsLength>(ctx, LENGTH_TYPE);
-    populateByUP<LSP12IssuedAsset>(ctx, ISSUED_ASSET_TYPE);
-    enrichEntityFk(
-      ctx,
-      ISSUED_ASSET_TYPE,
-      EntityCategory.DigitalAsset,
-      'assetAddress',
-      'issuedAsset',
-    );
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 4: PERSIST
-  // ---------------------------------------------------------------------------
-
-  async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    await Promise.all([
-      upsertEntities(store, ctx, LENGTH_TYPE),
-      // Merge-upsert: preserve existing non-null fields from prior batches.
-      // An Index-only event in this batch should not wipe interfaceId set
-      // by a Map event in a prior batch, and vice versa.
-      mergeUpsertEntities(store, ctx, ISSUED_ASSET_TYPE, LSP12IssuedAsset, [
-        'arrayIndex',
-        'interfaceId',
-        'issuedAsset',
-      ]),
-    ]);
   },
 };
 
@@ -140,18 +96,28 @@ const LSP12IssuedAssetsPlugin: DataKeyPlugin = {
 function extractLength(
   address: string,
   dataValue: string,
-  timestamp: number,
-  ctx: IBatchContext,
+  timestamp: Date,
+  hctx: HandlerContext,
 ): void {
   const entity = new LSP12IssuedAssetsLength({
     id: address,
     address,
-    timestamp: new Date(timestamp),
+    timestamp,
     value: isHex(dataValue) && hexToBytes(dataValue).length === 16 ? hexToBigInt(dataValue) : null,
     rawValue: dataValue,
+    universalProfile: null, // FK initially null
   });
 
-  ctx.addEntity(LENGTH_TYPE, entity.id, entity);
+  hctx.batchCtx.addEntity(LENGTH_TYPE, entity.id, entity);
+
+  // Queue enrichment for universalProfile FK
+  hctx.batchCtx.queueEnrichment<LSP12IssuedAssetsLength>({
+    category: EntityCategory.UniversalProfile,
+    address,
+    entityType: LENGTH_TYPE,
+    entityId: entity.id,
+    fkField: 'universalProfile',
+  });
 }
 
 /**
@@ -170,8 +136,8 @@ function extractFromIndex(
   address: string,
   dataKey: string,
   dataValue: string,
-  timestamp: number,
-  ctx: IBatchContext,
+  timestamp: Date,
+  hctx: HandlerContext,
 ): void {
   // Skip if dataValue is not a valid 20-byte address
   if (!isHex(dataValue) || hexToBytes(dataValue).length !== 20) return;
@@ -180,27 +146,44 @@ function extractFromIndex(
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
   const id = `${address} - ${assetAddress}`;
 
-  // Track asset for DA verification (issuedAsset FK)
-  ctx.trackAddress(EntityCategory.DigitalAsset, assetAddress);
-
   // Check if a Map event already created this entity in the same batch
-  const existing = ctx.getEntities<LSP12IssuedAsset>(ISSUED_ASSET_TYPE).get(id);
+  const existing = hctx.batchCtx.getEntities<LSP12IssuedAsset>(ISSUED_ASSET_TYPE).get(id);
   if (existing) {
     // Merge: fill in arrayIndex if not already set
     existing.arrayIndex = existing.arrayIndex ?? arrayIndex;
-    existing.timestamp = new Date(timestamp);
+    existing.timestamp = timestamp;
     return;
   }
 
   const entity = new LSP12IssuedAsset({
     id,
     address,
-    timestamp: new Date(timestamp),
+    timestamp,
     assetAddress,
     arrayIndex,
+    universalProfile: null, // FK initially null
+    issuedAsset: null, // FK initially null
   });
 
-  ctx.addEntity(ISSUED_ASSET_TYPE, entity.id, entity);
+  hctx.batchCtx.addEntity(ISSUED_ASSET_TYPE, entity.id, entity);
+
+  // Queue enrichment for universalProfile FK (primary entity type)
+  hctx.batchCtx.queueEnrichment<LSP12IssuedAsset>({
+    category: EntityCategory.UniversalProfile,
+    address,
+    entityType: ISSUED_ASSET_TYPE,
+    entityId: entity.id,
+    fkField: 'universalProfile',
+  });
+
+  // Queue enrichment for issuedAsset FK (secondary DA reference)
+  hctx.batchCtx.queueEnrichment<LSP12IssuedAsset>({
+    category: EntityCategory.DigitalAsset,
+    address: assetAddress,
+    entityType: ISSUED_ASSET_TYPE,
+    entityId: entity.id,
+    fkField: 'issuedAsset',
+  });
 }
 
 /**
@@ -217,8 +200,8 @@ function extractFromMap(
   address: string,
   dataKey: string,
   dataValue: string,
-  timestamp: number,
-  ctx: IBatchContext,
+  timestamp: Date,
+  hctx: HandlerContext,
 ): void {
   const assetAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
   const dataValueBytes = isHex(dataValue) ? hexToBytes(dataValue) : new Uint8Array(0);
@@ -228,29 +211,46 @@ function extractFromMap(
   const arrayIndex = isValidValue ? bytesToBigInt(dataValueBytes.slice(4)) : null;
   const id = `${address} - ${assetAddress}`;
 
-  // Track asset for DA verification (issuedAsset FK)
-  ctx.trackAddress(EntityCategory.DigitalAsset, assetAddress);
-
   // Check if an Index event already created this entity in the same batch
-  const existing = ctx.getEntities<LSP12IssuedAsset>(ISSUED_ASSET_TYPE).get(id);
+  const existing = hctx.batchCtx.getEntities<LSP12IssuedAsset>(ISSUED_ASSET_TYPE).get(id);
   if (existing) {
     // Merge: Map provides interfaceId + potentially better arrayIndex
     existing.interfaceId = interfaceId ?? existing.interfaceId;
     existing.arrayIndex = arrayIndex ?? existing.arrayIndex;
-    existing.timestamp = new Date(timestamp);
+    existing.timestamp = timestamp;
     return;
   }
 
   const entity = new LSP12IssuedAsset({
     id,
     address,
-    timestamp: new Date(timestamp),
+    timestamp,
     assetAddress,
     arrayIndex,
     interfaceId,
+    universalProfile: null, // FK initially null
+    issuedAsset: null, // FK initially null
   });
 
-  ctx.addEntity(ISSUED_ASSET_TYPE, entity.id, entity);
+  hctx.batchCtx.addEntity(ISSUED_ASSET_TYPE, entity.id, entity);
+
+  // Queue enrichment for universalProfile FK (primary entity type)
+  hctx.batchCtx.queueEnrichment<LSP12IssuedAsset>({
+    category: EntityCategory.UniversalProfile,
+    address,
+    entityType: ISSUED_ASSET_TYPE,
+    entityId: entity.id,
+    fkField: 'universalProfile',
+  });
+
+  // Queue enrichment for issuedAsset FK (secondary DA reference)
+  hctx.batchCtx.queueEnrichment<LSP12IssuedAsset>({
+    category: EntityCategory.DigitalAsset,
+    address: assetAddress,
+    entityType: ISSUED_ASSET_TYPE,
+    entityId: entity.id,
+    fkField: 'issuedAsset',
+  });
 }
 
-export default LSP12IssuedAssetsPlugin;
+export default LSP12IssuedAssetsHandler;

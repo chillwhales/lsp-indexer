@@ -62,5 +62,5 @@ export interface EntityHandler {
    * @param hctx        - Handler context (store, batch context, worker pool)
    * @param triggeredBy - The entity bag key that triggered this invocation
    */
-  handle(hctx: HandlerContext, triggeredBy: string): Promise<void>;
+  handle(hctx: HandlerContext, triggeredBy: string): void;
 }

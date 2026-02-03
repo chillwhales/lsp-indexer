@@ -14,6 +14,7 @@
  *   - utils/universalReceiver/index.ts (extract + populate)
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { isNullAddress } from '@/utils';
 import { LSP0ERC725Account } from '@chillwhales/abi';
 import { UniversalReceiver } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -56,7 +57,7 @@ const UniversalReceiverPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for universalProfile FK (emitting address)
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<UniversalReceiver>({
       category: EntityCategory.UniversalProfile,
       address,
       entityType: ENTITY_TYPE,
@@ -67,14 +68,14 @@ const UniversalReceiverPlugin: EventPlugin = {
     // Queue enrichment for from address as both UP and DA
     // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
     if (!isNullAddress(from)) {
-      ctx.queueEnrichment({
+      ctx.queueEnrichment<UniversalReceiver>({
         category: EntityCategory.UniversalProfile,
         address: from,
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'fromProfile',
       });
-      ctx.queueEnrichment({
+      ctx.queueEnrichment<UniversalReceiver>({
         category: EntityCategory.DigitalAsset,
         address: from,
         entityType: ENTITY_TYPE,

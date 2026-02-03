@@ -1,3 +1,4 @@
+import { DEAD_ADDRESS, ZERO_ADDRESS } from '@/constants';
 import { LSP4TokenTypeEnum, LSP8TokenIdFormatEnum, OperationType } from '@chillwhales/typeorm';
 import ERC725 from '@erc725/erc725.js';
 import { hexToNumber, isHex } from 'viem';

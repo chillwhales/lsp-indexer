@@ -1,55 +1,58 @@
 /**
- * LSP6Controllers data key plugin.
+ * LSP6Controllers entity handler.
  *
- * Handles five related `AddressPermissions` data key patterns emitted via
- * `DataChanged(bytes32,bytes)` on Universal Profiles:
+ * Subscribes to DataChanged events and creates five types of entities from
+ * five related AddressPermissions data key patterns:
  *
  *   1. **AddressPermissions[] length** — exact match on the array length key.
  *      Decodes a uint128 value representing the number of controllers.
  *      Entity: `LSP6ControllersLength` (deterministic id = address).
  *
- *   2. **AddressPermissions[] index** — prefix match on `0xdf30dba06db6a30e65354d9a64c60986`.
+ *   2. **AddressPermissions[] index** — prefix match on the index prefix.
  *      Decodes a controller address from the data value and the array index
  *      from the last 16 bytes of the data key.
  *
- *   3. **AddressPermissions:Permissions** — prefix match on `0x4b80742de2bf82acb3630000`.
+ *   3. **AddressPermissions:Permissions** — prefix match on the permissions prefix.
  *      Decodes the controller address from the data key (last 20 bytes) and
  *      the raw permissions bitmap from the data value (32 bytes).
  *      Sub-entities: `LSP6Permission` (one per decoded permission flag).
  *
- *   4. **AddressPermissions:AllowedCalls** — prefix match on `0x4b80742de2bf393a64c70000`.
+ *   4. **AddressPermissions:AllowedCalls** — prefix match on the allowed calls prefix.
  *      Decodes the controller address from the data key (last 20 bytes) and
  *      a CompactBytesArray of allowed calls from the data value.
  *      Sub-entities: `LSP6AllowedCall` (one per decoded allowed call entry).
  *
- *   5. **AddressPermissions:AllowedERC725YDataKeys** — prefix `0x4b80742de2bf866c29110000`.
+ *   5. **AddressPermissions:AllowedERC725YDataKeys** — prefix match on the allowed data keys prefix.
  *      Decodes the controller address from the data key (last 20 bytes) and
  *      a CompactBytesArray of allowed data keys from the data value.
  *      Sub-entities: `LSP6AllowedERC725YDataKey` (one per allowed key).
  *
- * Index and Map events (patterns 2-5) all create/update the same merged
- * `LSP6Controller` entity keyed by `"{upAddress} - {controllerAddress}"`.
+ * Index and Permissions/AllowedCalls/AllowedDataKeys events all create/update
+ * the same merged `LSP6Controller` entity keyed by `"{upAddress} - {controllerAddress}"`.
  * Each source populates different fields; if multiple fire in the same batch,
  * later events merge into the existing entity.
  *
- * controllerAddress is tracked for UniversalProfile verification so the
- * optional `controllerProfile` FK can be populated when the controller is a UP.
+ * In-batch merge is preserved in the handler logic. Cross-batch merge uses
+ * persist hints so the pipeline preserves non-null values in the specified
+ * mergeFields when upserting.
  *
  * Sub-entities are cleared before re-inserting (delete-then-reinsert) via
- * `clearSubEntities()` to keep them in sync with raw value changes.
+ * the clear queue to keep them in sync with raw value changes.
+ *
+ * controllerAddress is enriched for UniversalProfile verification so the
+ * optional `controllerProfile` FK can be populated when the controller is a UP.
  *
  * Port from v1:
+ *   - plugins/datakeys/lsp6Controllers.plugin.ts (extract + populate + persist + clearSubEntities)
  *   - utils/dataChanged/lsp6ControllersLength.ts
  *   - utils/dataChanged/lsp6ControllersItem.ts
  *   - utils/dataChanged/lsp6ControllerPermissions.ts
  *   - utils/dataChanged/lsp6ControllerAllowedCalls.ts
  *   - utils/dataChanged/lsp6ControllerAllowedErc725DataKey.ts
- *   - app/handlers/permissionsUpdateHandler.ts (clear + insert sub-entities)
  */
-import { insertEntities, mergeUpsertEntities, upsertEntities } from '@/core/persistHelpers';
-import { enrichEntityFk, populateByUP } from '@/core/populateHelpers';
-import { Block, DataKeyPlugin, EntityCategory, IBatchContext, Log } from '@/core/types';
+import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import {
+  DataChanged,
   LSP6AllowedCall,
   LSP6AllowedERC725YDataKey,
   LSP6Controller,
@@ -58,8 +61,6 @@ import {
 } from '@chillwhales/typeorm';
 import { decodePermissions, decodeValueType } from '@erc725/erc725.js';
 import { LSP6DataKeys } from '@lukso/lsp6-contracts';
-import { Store } from '@subsquid/typeorm-store';
-import { In } from 'typeorm';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
 // ---------------------------------------------------------------------------
@@ -81,128 +82,76 @@ const LSP6_ALLOWED_CALLS_PREFIX: string = LSP6DataKeys['AddressPermissions:Allow
 const LSP6_ALLOWED_DATA_KEYS_PREFIX: string =
   LSP6DataKeys['AddressPermissions:AllowedERC725YDataKeys'];
 
-const LSP6ControllersPlugin: DataKeyPlugin = {
+const LSP6ControllersHandler: EntityHandler = {
   name: 'lsp6Controllers',
-  requiresVerification: [EntityCategory.UniversalProfile],
+  listensToBag: ['DataChanged'],
 
-  // ---------------------------------------------------------------------------
-  // Matching
-  // ---------------------------------------------------------------------------
+  handle(hctx: HandlerContext, triggeredBy: string): void {
+    const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
 
-  matches(dataKey: string): boolean {
-    return (
-      dataKey === LSP6_LENGTH_KEY ||
-      dataKey.startsWith(LSP6_INDEX_PREFIX) ||
-      dataKey.startsWith(LSP6_PERMISSIONS_PREFIX) ||
-      dataKey.startsWith(LSP6_ALLOWED_CALLS_PREFIX) ||
-      dataKey.startsWith(LSP6_ALLOWED_DATA_KEYS_PREFIX)
-    );
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 1: EXTRACT
-  // ---------------------------------------------------------------------------
-
-  extract(log: Log, dataKey: string, dataValue: string, block: Block, ctx: IBatchContext): void {
-    const { timestamp } = block.header;
-    const { address } = log;
-
-    if (dataKey === LSP6_LENGTH_KEY) {
-      extractLength(address, dataValue, timestamp, ctx);
-    } else if (dataKey.startsWith(LSP6_INDEX_PREFIX)) {
-      extractFromIndex(address, dataKey, dataValue, timestamp, ctx);
-    } else if (dataKey.startsWith(LSP6_PERMISSIONS_PREFIX)) {
-      extractPermissions(address, dataKey, dataValue, timestamp, ctx);
-    } else if (dataKey.startsWith(LSP6_ALLOWED_CALLS_PREFIX)) {
-      extractAllowedCalls(address, dataKey, dataValue, timestamp, ctx);
-    } else if (dataKey.startsWith(LSP6_ALLOWED_DATA_KEYS_PREFIX)) {
-      extractAllowedDataKeys(address, dataKey, dataValue, timestamp, ctx);
-    }
-
-    // UP address tracking is handled by the DataChanged meta-plugin (parent).
-    // Controller addresses are tracked here for UP verification (controllerProfile FK).
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 3: POPULATE
-  // ---------------------------------------------------------------------------
-
-  populate(ctx: IBatchContext): void {
-    populateByUP<LSP6ControllersLength>(ctx, LENGTH_TYPE);
-    populateByUP<LSP6Controller>(ctx, CONTROLLER_TYPE);
-    enrichEntityFk(
-      ctx,
-      CONTROLLER_TYPE,
-      EntityCategory.UniversalProfile,
-      'controllerAddress',
-      'controllerProfile',
-    );
-
-    // Link sub-entities to their parent controller
-    linkSubEntitiesToController(ctx, PERMISSION_TYPE);
-    linkSubEntitiesToController(ctx, ALLOWED_CALL_TYPE);
-    linkSubEntitiesToController(ctx, ALLOWED_DATA_KEY_TYPE);
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 4a: CLEAR SUB-ENTITIES
-  // Delete-then-reinsert pattern: remove existing sub-entities for controllers
-  // that have new data in this batch, before re-inserting fresh decoded values.
-  // ---------------------------------------------------------------------------
-
-  async clearSubEntities(store: Store, ctx: IBatchContext): Promise<void> {
-    const controllers = ctx.getEntities<LSP6Controller>(CONTROLLER_TYPE);
-    if (controllers.size === 0) return;
-
-    // Only clear sub-entity types that actually had new data in this batch.
-    // If only Permissions fired, we must not wipe AllowedCalls/AllowedDataKeys.
-    const hasPermissions = ctx.hasEntities(PERMISSION_TYPE);
-    const hasAllowedCalls = ctx.hasEntities(ALLOWED_CALL_TYPE);
-    const hasAllowedDataKeys = ctx.hasEntities(ALLOWED_DATA_KEY_TYPE);
-
-    if (!hasPermissions && !hasAllowedCalls && !hasAllowedDataKeys) return;
-
-    const ids = [...controllers.keys()];
-    const filter = { controller: { id: In(ids) } };
-
-    // Find existing sub-entities only for the types that were touched
-    const [permissions, allowedCalls, allowedDataKeys] = await Promise.all([
-      hasPermissions ? store.findBy(LSP6Permission, filter) : Promise.resolve([]),
-      hasAllowedCalls ? store.findBy(LSP6AllowedCall, filter) : Promise.resolve([]),
-      hasAllowedDataKeys ? store.findBy(LSP6AllowedERC725YDataKey, filter) : Promise.resolve([]),
-    ]);
-
-    // Remove found sub-entities
-    await Promise.all([
-      store.remove(permissions),
-      store.remove(allowedCalls),
-      store.remove(allowedDataKeys),
-    ]);
-  },
-
-  // ---------------------------------------------------------------------------
-  // Phase 4b: PERSIST
-  // ---------------------------------------------------------------------------
-
-  async persist(store: Store, ctx: IBatchContext): Promise<void> {
-    // Persist main entities first (sub-entities reference controller FK)
-    await Promise.all([
-      upsertEntities(store, ctx, LENGTH_TYPE),
-      mergeUpsertEntities(store, ctx, CONTROLLER_TYPE, LSP6Controller, [
+    // Set persist hint for cross-batch merge behavior
+    hctx.batchCtx.setPersistHint<LSP6Controller>(CONTROLLER_TYPE, {
+      entityClass: LSP6Controller,
+      mergeFields: [
         'arrayIndex',
         'permissionsRawValue',
         'allowedCallsRawValue',
         'allowedDataKeysRawValue',
-        'controllerProfile',
-      ]),
-    ]);
+      ],
+    });
 
-    // Then persist sub-entities (append-only after clear)
-    await Promise.all([
-      insertEntities(store, ctx, PERMISSION_TYPE),
-      insertEntities(store, ctx, ALLOWED_CALL_TYPE),
-      insertEntities(store, ctx, ALLOWED_DATA_KEY_TYPE),
-    ]);
+    for (const event of events.values()) {
+      const { dataKey, dataValue, address, timestamp } = event;
+
+      if (dataKey === LSP6_LENGTH_KEY) {
+        extractLength(address, dataValue, timestamp, hctx);
+      } else if (dataKey.startsWith(LSP6_INDEX_PREFIX)) {
+        extractFromIndex(address, dataKey, dataValue, timestamp, hctx);
+      } else if (dataKey.startsWith(LSP6_PERMISSIONS_PREFIX)) {
+        extractPermissions(address, dataKey, dataValue, timestamp, hctx);
+      } else if (dataKey.startsWith(LSP6_ALLOWED_CALLS_PREFIX)) {
+        extractAllowedCalls(address, dataKey, dataValue, timestamp, hctx);
+      } else if (dataKey.startsWith(LSP6_ALLOWED_DATA_KEYS_PREFIX)) {
+        extractAllowedDataKeys(address, dataKey, dataValue, timestamp, hctx);
+      }
+    }
+
+    // Queue clear requests for sub-entity types that had new data in this batch
+    const controllers = hctx.batchCtx.getEntities<LSP6Controller>(CONTROLLER_TYPE);
+    if (controllers.size === 0) return;
+
+    const controllerIds = [...controllers.keys()];
+
+    if (hctx.batchCtx.hasEntities(PERMISSION_TYPE)) {
+      hctx.batchCtx.queueClear<LSP6Permission>({
+        subEntityClass: LSP6Permission,
+        fkField: 'controller',
+        parentIds: controllerIds,
+      });
+    }
+
+    if (hctx.batchCtx.hasEntities(ALLOWED_CALL_TYPE)) {
+      hctx.batchCtx.queueClear<LSP6AllowedCall>({
+        subEntityClass: LSP6AllowedCall,
+        fkField: 'controller',
+        parentIds: controllerIds,
+      });
+    }
+
+    if (hctx.batchCtx.hasEntities(ALLOWED_DATA_KEY_TYPE)) {
+      hctx.batchCtx.queueClear<LSP6AllowedERC725YDataKey>({
+        subEntityClass: LSP6AllowedERC725YDataKey,
+        fkField: 'controller',
+        parentIds: controllerIds,
+      });
+    }
+
+    // Link sub-entities to their parent controller
+    // Sub-entities are created without controller FK; we link them here after
+    // populate so orphans whose parent was filtered out get removed.
+    linkSubEntitiesToController(hctx, PERMISSION_TYPE, controllers);
+    linkSubEntitiesToController(hctx, ALLOWED_CALL_TYPE, controllers);
+    linkSubEntitiesToController(hctx, ALLOWED_DATA_KEY_TYPE, controllers);
   },
 };
 
@@ -219,18 +168,28 @@ const LSP6ControllersPlugin: DataKeyPlugin = {
 function extractLength(
   address: string,
   dataValue: string,
-  timestamp: number,
-  ctx: IBatchContext,
+  timestamp: Date,
+  hctx: HandlerContext,
 ): void {
   const entity = new LSP6ControllersLength({
     id: address,
     address,
-    timestamp: new Date(timestamp),
+    timestamp,
     value: isHex(dataValue) && hexToBytes(dataValue).length === 16 ? hexToBigInt(dataValue) : null,
     rawValue: dataValue,
+    universalProfile: null, // FK initially null
   });
 
-  ctx.addEntity(LENGTH_TYPE, entity.id, entity);
+  hctx.batchCtx.addEntity(LENGTH_TYPE, entity.id, entity);
+
+  // Queue enrichment for universalProfile FK
+  hctx.batchCtx.queueEnrichment<LSP6ControllersLength>({
+    category: EntityCategory.UniversalProfile,
+    address,
+    entityType: LENGTH_TYPE,
+    entityId: entity.id,
+    fkField: 'universalProfile',
+  });
 }
 
 /**
@@ -248,8 +207,8 @@ function extractFromIndex(
   address: string,
   dataKey: string,
   dataValue: string,
-  timestamp: number,
-  ctx: IBatchContext,
+  timestamp: Date,
+  hctx: HandlerContext,
 ): void {
   // Skip if dataValue is not a valid 20-byte address
   if (!isHex(dataValue) || hexToBytes(dataValue).length !== 20) return;
@@ -261,26 +220,43 @@ function extractFromIndex(
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
   const id = `${address} - ${controllerAddress}`;
 
-  // Track controller for UP verification (controllerProfile FK)
-  ctx.trackAddress(EntityCategory.UniversalProfile, controllerAddress);
-
   // Check if another event already created this entity in the same batch
-  const existing = ctx.getEntities<LSP6Controller>(CONTROLLER_TYPE).get(id);
+  const existing = hctx.batchCtx.getEntities<LSP6Controller>(CONTROLLER_TYPE).get(id);
   if (existing) {
     existing.arrayIndex = existing.arrayIndex ?? arrayIndex;
-    existing.timestamp = new Date(timestamp);
+    existing.timestamp = timestamp;
     return;
   }
 
   const entity = new LSP6Controller({
     id,
     address,
-    timestamp: new Date(timestamp),
+    timestamp,
     controllerAddress,
     arrayIndex,
+    universalProfile: null, // FK initially null
+    controllerProfile: null, // FK initially null
   });
 
-  ctx.addEntity(CONTROLLER_TYPE, entity.id, entity);
+  hctx.batchCtx.addEntity(CONTROLLER_TYPE, entity.id, entity);
+
+  // Queue enrichment for universalProfile FK (primary entity type)
+  hctx.batchCtx.queueEnrichment<LSP6Controller>({
+    category: EntityCategory.UniversalProfile,
+    address,
+    entityType: CONTROLLER_TYPE,
+    entityId: entity.id,
+    fkField: 'universalProfile',
+  });
+
+  // Queue enrichment for controllerProfile FK (secondary UP reference)
+  hctx.batchCtx.queueEnrichment<LSP6Controller>({
+    category: EntityCategory.UniversalProfile,
+    address: controllerAddress,
+    entityType: CONTROLLER_TYPE,
+    entityId: entity.id,
+    fkField: 'controllerProfile',
+  });
 }
 
 /**
@@ -297,17 +273,14 @@ function extractPermissions(
   address: string,
   dataKey: string,
   dataValue: string,
-  timestamp: number,
-  ctx: IBatchContext,
+  timestamp: Date,
+  hctx: HandlerContext,
 ): void {
   const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
   const id = `${address} - ${controllerAddress}`;
 
-  // Track controller for UP verification (controllerProfile FK)
-  ctx.trackAddress(EntityCategory.UniversalProfile, controllerAddress);
-
   // Get or create the merged controller entity
-  const controller = getOrCreateController(address, controllerAddress, timestamp, ctx);
+  const controller = getOrCreateController(address, controllerAddress, timestamp, hctx);
   controller.permissionsRawValue = dataValue;
 
   // Decode permissions into sub-entities if data is valid (32 bytes)
@@ -319,9 +292,10 @@ function extractPermissions(
         id: `${id} - ${permissionName}`,
         permissionName,
         permissionValue,
+        controller: null, // FK set later in linkSubEntitiesToController
       });
 
-      ctx.addEntity(PERMISSION_TYPE, permEntity.id, permEntity);
+      hctx.batchCtx.addEntity(PERMISSION_TYPE, permEntity.id, permEntity);
     }
   }
 }
@@ -343,17 +317,14 @@ function extractAllowedCalls(
   address: string,
   dataKey: string,
   dataValue: string,
-  timestamp: number,
-  ctx: IBatchContext,
+  timestamp: Date,
+  hctx: HandlerContext,
 ): void {
   const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
   const id = `${address} - ${controllerAddress}`;
 
-  // Track controller for UP verification (controllerProfile FK)
-  ctx.trackAddress(EntityCategory.UniversalProfile, controllerAddress);
-
   // Get or create the merged controller entity
-  const controller = getOrCreateController(address, controllerAddress, timestamp, ctx);
+  const controller = getOrCreateController(address, controllerAddress, timestamp, hctx);
   controller.allowedCallsRawValue = dataValue;
 
   // Decode allowed calls from CompactBytesArray
@@ -368,12 +339,22 @@ function extractAllowedCalls(
         allowedAddress: bytesToHex(callBytes.slice(4, 24)),
         allowedInterfaceId: bytesToHex(callBytes.slice(24, 28)),
         allowedFunction: bytesToHex(callBytes.slice(28)),
+        controller: null, // FK set later in linkSubEntitiesToController
       });
 
-      ctx.addEntity(ALLOWED_CALL_TYPE, callEntity.id, callEntity);
+      hctx.batchCtx.addEntity(ALLOWED_CALL_TYPE, callEntity.id, callEntity);
     }
-  } catch {
+  } catch (error) {
     // Invalid CompactBytesArray — raw value is preserved but no sub-entities
+    hctx.context.log.warn(
+      JSON.stringify({
+        message: 'Failed to decode LSP6 allowed calls',
+        address,
+        controllerAddress,
+        dataValue,
+        error: error instanceof Error ? error.message : 'Unknown decode error',
+      }),
+    );
   }
 }
 
@@ -389,17 +370,14 @@ function extractAllowedDataKeys(
   address: string,
   dataKey: string,
   dataValue: string,
-  timestamp: number,
-  ctx: IBatchContext,
+  timestamp: Date,
+  hctx: HandlerContext,
 ): void {
   const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
   const id = `${address} - ${controllerAddress}`;
 
-  // Track controller for UP verification (controllerProfile FK)
-  ctx.trackAddress(EntityCategory.UniversalProfile, controllerAddress);
-
   // Get or create the merged controller entity
-  const controller = getOrCreateController(address, controllerAddress, timestamp, ctx);
+  const controller = getOrCreateController(address, controllerAddress, timestamp, hctx);
   controller.allowedDataKeysRawValue = dataValue;
 
   // Decode allowed data keys from CompactBytesArray
@@ -410,12 +388,22 @@ function extractAllowedDataKeys(
       const keyEntity = new LSP6AllowedERC725YDataKey({
         id: `${id} - ${i}`,
         allowedDataKey: allowedKeys[i],
+        controller: null, // FK set later in linkSubEntitiesToController
       });
 
-      ctx.addEntity(ALLOWED_DATA_KEY_TYPE, keyEntity.id, keyEntity);
+      hctx.batchCtx.addEntity(ALLOWED_DATA_KEY_TYPE, keyEntity.id, keyEntity);
     }
-  } catch {
+  } catch (error) {
     // Invalid CompactBytesArray — raw value is preserved but no sub-entities
+    hctx.context.log.warn(
+      JSON.stringify({
+        message: 'Failed to decode LSP6 allowed ERC725Y data keys',
+        address,
+        controllerAddress,
+        dataValue,
+        error: error instanceof Error ? error.message : 'Unknown decode error',
+      }),
+    );
   }
 }
 
@@ -433,57 +421,93 @@ function extractAllowedDataKeys(
 function getOrCreateController(
   address: string,
   controllerAddress: string,
-  timestamp: number,
-  ctx: IBatchContext,
+  timestamp: Date,
+  hctx: HandlerContext,
 ): LSP6Controller {
   const id = `${address} - ${controllerAddress}`;
-  const existing = ctx.getEntities<LSP6Controller>(CONTROLLER_TYPE).get(id);
+  const existing = hctx.batchCtx.getEntities<LSP6Controller>(CONTROLLER_TYPE).get(id);
 
   if (existing) {
-    existing.timestamp = new Date(timestamp);
+    existing.timestamp = timestamp;
     return existing;
   }
 
   const entity = new LSP6Controller({
     id,
     address,
-    timestamp: new Date(timestamp),
+    timestamp,
     controllerAddress,
+    universalProfile: null, // FK initially null
+    controllerProfile: null, // FK initially null
   });
 
-  ctx.addEntity(CONTROLLER_TYPE, entity.id, entity);
+  hctx.batchCtx.addEntity(CONTROLLER_TYPE, entity.id, entity);
+
+  // Queue enrichment for universalProfile FK (primary entity type)
+  hctx.batchCtx.queueEnrichment<LSP6Controller>({
+    category: EntityCategory.UniversalProfile,
+    address,
+    entityType: CONTROLLER_TYPE,
+    entityId: entity.id,
+    fkField: 'universalProfile',
+  });
+
+  // Queue enrichment for controllerProfile FK (secondary UP reference)
+  hctx.batchCtx.queueEnrichment<LSP6Controller>({
+    category: EntityCategory.UniversalProfile,
+    address: controllerAddress,
+    entityType: CONTROLLER_TYPE,
+    entityId: entity.id,
+    fkField: 'controllerProfile',
+  });
+
   return entity;
 }
 
 /**
- * Link sub-entities to their parent LSP6Controller after populate.
+ * Link sub-entities to their parent LSP6Controller.
  *
  * Sub-entities are created during extract without a controller FK
- * (the controller may not survive populate if its UP is unverified).
- * This function links surviving sub-entities to their parent controller
- * and removes orphans whose parent was filtered out.
+ * (the controller may not survive enrichment if its UP is unverified).
+ * This function links sub-entities to their parent controller and removes
+ * orphans whose parent doesn't exist.
+ *
+ * Why orphan removal is needed despite Step 3.5 (Clear Queue):
+ * - Step 3.5 runs BEFORE this handler completes (it's triggered by queueClear calls)
+ * - Step 3.5 only clears sub-entities whose parent IDs are in the current batch
+ * - If a controller is created in this batch but then filtered out during the
+ *   extract phase (e.g., invalid data), its sub-entities were never queued for
+ *   clearing and must be removed here to prevent orphans
+ * - This is a safety net for within-batch orphans, while Step 3.5 handles
+ *   cross-batch updates where parent entities already exist in the database
  *
  * Sub-entity IDs follow the pattern `"{upAddress} - {controllerAddress} - {suffix}"`,
  * so the controller ID is the first two segments: `"{upAddress} - {controllerAddress}"`.
  */
-function linkSubEntitiesToController(ctx: IBatchContext, subEntityType: string): void {
+function linkSubEntitiesToController(
+  hctx: HandlerContext,
+  subEntityType: string,
+  controllers: Map<string, LSP6Controller>,
+): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const subEntities = ctx.getEntities<Record<string, any>>(subEntityType);
-  const controllers = ctx.getEntities<LSP6Controller>(CONTROLLER_TYPE);
+  const subEntities = hctx.batchCtx.getEntities<Record<string, any>>(subEntityType);
 
   for (const [id, entity] of subEntities) {
     // Extract controller ID from sub-entity ID: "{upAddress} - {controllerAddress} - {suffix}"
     const lastSepIdx = id.lastIndexOf(' - ');
+    if (lastSepIdx === -1) continue;
+
     const controllerId = id.substring(0, lastSepIdx);
     const controller = controllers.get(controllerId);
 
     if (controller) {
       entity.controller = new LSP6Controller({ id: controllerId });
     } else {
-      // Parent controller was removed during populate (unverified UP) — remove orphan
-      ctx.removeEntity(subEntityType, id);
+      // Parent controller doesn't exist in this batch — likely removed during enrichment.
+      // Remove the orphaned sub-entity from the batch to prevent persistence of orphans.
+      subEntities.delete(id);
     }
   }
 }
 
-export default LSP6ControllersPlugin;
+export default LSP6ControllersHandler;

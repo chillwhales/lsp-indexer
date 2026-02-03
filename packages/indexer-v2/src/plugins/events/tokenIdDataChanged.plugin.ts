@@ -61,7 +61,7 @@ const TokenIdDataChangedPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for digitalAsset FK
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<TokenIdDataChanged>({
       category: EntityCategory.DigitalAsset,
       address,
       entityType: ENTITY_TYPE,
@@ -72,7 +72,7 @@ const TokenIdDataChangedPlugin: EventPlugin = {
     // Queue enrichment for nft FK.
     // Depends on #104 (NFT EntityHandler) to create NFT entities in Step 3
     // before the pipeline resolves this FK in Step 6.
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<TokenIdDataChanged>({
       category: EntityCategory.NFT,
       address,
       tokenId,

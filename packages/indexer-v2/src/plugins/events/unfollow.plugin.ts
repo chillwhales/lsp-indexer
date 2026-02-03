@@ -59,14 +59,14 @@ const UnfollowPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for both followerUniversalProfile and unfollowedUniversalProfile FKs
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<Unfollow>({
       category: EntityCategory.UniversalProfile,
       address: unfollower,
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'followerUniversalProfile',
     });
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<Unfollow>({
       category: EntityCategory.UniversalProfile,
       address: addr,
       entityType: ENTITY_TYPE,

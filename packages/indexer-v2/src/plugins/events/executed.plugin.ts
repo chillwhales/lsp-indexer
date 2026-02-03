@@ -14,7 +14,7 @@
  *   - utils/executed/index.ts (extract + populate)
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
-import { decodeOperationType } from '@/utils';
+import { decodeOperationType, isNullAddress } from '@/utils';
 import { ERC725X } from '@chillwhales/abi';
 import { Executed } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -56,7 +56,7 @@ const ExecutedPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for universalProfile FK (emitting address)
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<Executed>({
       category: EntityCategory.UniversalProfile,
       address,
       entityType: ENTITY_TYPE,
@@ -67,14 +67,14 @@ const ExecutedPlugin: EventPlugin = {
     // Queue enrichment for target address as both UP and DA
     // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
     if (!isNullAddress(target)) {
-      ctx.queueEnrichment({
+      ctx.queueEnrichment<Executed>({
         category: EntityCategory.UniversalProfile,
         address: target,
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'targetProfile',
       });
-      ctx.queueEnrichment({
+      ctx.queueEnrichment<Executed>({
         category: EntityCategory.DigitalAsset,
         address: target,
         entityType: ENTITY_TYPE,

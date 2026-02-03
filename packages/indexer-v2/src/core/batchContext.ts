@@ -1,8 +1,14 @@
 import {
+  ClearRequest,
   EnrichmentRequest,
+  Entity,
   EntityCategory,
   FetchRequest,
   IBatchContext,
+  PersistHint,
+  StoredClearRequest,
+  StoredEnrichmentRequest,
+  StoredPersistHint,
   VerificationResult,
 } from './types';
 
@@ -51,8 +57,32 @@ export class BatchContext implements IBatchContext {
   /**
    * Queue of enrichment requests, consumed by the pipeline during
    * the enrichment phase to populate FK references after verification.
+   *
+   * Uses StoredEnrichmentRequest to allow heterogeneous storage of different
+   * entity types. Type safety is enforced at the handler call site via
+   * queueEnrichment<T>(), which validates fkField at compile time.
    */
-  private readonly enrichmentQueue: EnrichmentRequest[] = [];
+  private readonly enrichmentQueue: StoredEnrichmentRequest[] = [];
+
+  /**
+   * Persist hints per entity type, used by the pipeline to determine
+   * which entity types need merge-upsert behavior in Step 4.
+   *
+   * Uses StoredPersistHint to allow heterogeneous storage of different
+   * entity types. Type safety is enforced at the handler call site via
+   * setPersistHint<T>(), which validates mergeFields at compile time.
+   */
+  private readonly persistHints = new Map<string, StoredPersistHint>();
+
+  /**
+   * Queue of clear requests for sub-entity deletion, consumed by
+   * the pipeline in Step 3.5 before persisting derived entities.
+   *
+   * Uses StoredClearRequest to allow heterogeneous storage of different
+   * entity types. Type safety is enforced at the handler call site via
+   * queueClear<T>(), which validates fkField at compile time.
+   */
+  private readonly clearQueue: StoredClearRequest[] = [];
 
   // -------------------------------------------------------------------------
   // Entity storage
@@ -80,6 +110,10 @@ export class BatchContext implements IBatchContext {
     const map = this.entities.get(type);
     if (!map) return new Map<string, T>();
     return map as Map<string, T>;
+  }
+
+  removeEntity(type: string, id: string): void {
+    this.entities.get(type)?.delete(id);
   }
 
   hasEntities(type: string): boolean {
@@ -131,11 +165,41 @@ export class BatchContext implements IBatchContext {
   // Enrichment queue
   // -------------------------------------------------------------------------
 
-  queueEnrichment(request: EnrichmentRequest): void {
+  queueEnrichment<T extends Entity>(request: EnrichmentRequest<T>): void {
+    // The request is structurally compatible with StoredEnrichmentRequest
+    // Type safety is enforced at the handler call site via the generic parameter
     this.enrichmentQueue.push(request);
   }
 
-  getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest> {
+  getEnrichmentQueue(): ReadonlyArray<StoredEnrichmentRequest> {
     return this.enrichmentQueue;
+  }
+
+  // -------------------------------------------------------------------------
+  // Persist hints
+  // -------------------------------------------------------------------------
+
+  setPersistHint<T extends Entity>(type: string, hint: PersistHint<T>): void {
+    // The hint is structurally compatible with StoredPersistHint
+    // Type safety is enforced at the handler call site via the generic parameter
+    this.persistHints.set(type, hint);
+  }
+
+  getPersistHint(type: string): StoredPersistHint | undefined {
+    return this.persistHints.get(type);
+  }
+
+  // -------------------------------------------------------------------------
+  // Clear queue
+  // -------------------------------------------------------------------------
+
+  queueClear<T extends Entity>(request: ClearRequest<T>): void {
+    // The request is structurally compatible with StoredClearRequest
+    // Type safety is enforced at the handler call site via the generic parameter
+    this.clearQueue.push(request);
+  }
+
+  getClearQueue(): ReadonlyArray<StoredClearRequest> {
+    return this.clearQueue;
   }
 }
