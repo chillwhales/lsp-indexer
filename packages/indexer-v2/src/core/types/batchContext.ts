@@ -1,6 +1,11 @@
 import { Entity, EntityConstructor, FKFields, WritableFields } from './entity';
 import { FetchRequest } from './metadata';
-import { EnrichmentRequest, EntityCategory, VerificationResult } from './verification';
+import {
+  EnrichmentRequest,
+  EntityCategory,
+  StoredEnrichmentRequest,
+  VerificationResult,
+} from './verification';
 
 /**
  * Persist hint for derived entities requiring merge-upsert behavior.

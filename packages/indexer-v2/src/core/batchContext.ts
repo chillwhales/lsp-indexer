@@ -6,6 +6,9 @@ import {
   FetchRequest,
   IBatchContext,
   PersistHint,
+  StoredClearRequest,
+  StoredEnrichmentRequest,
+  StoredPersistHint,
   VerificationResult,
 } from './types';
 
