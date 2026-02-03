@@ -59,14 +59,14 @@ const FollowPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for both followerUniversalProfile and followedUniversalProfile FKs
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<Follow>({
       category: EntityCategory.UniversalProfile,
       address: follower,
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'followerUniversalProfile',
     });
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<Follow>({
       category: EntityCategory.UniversalProfile,
       address: addr,
       entityType: ENTITY_TYPE,

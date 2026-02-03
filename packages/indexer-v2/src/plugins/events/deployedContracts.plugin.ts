@@ -68,7 +68,7 @@ const DeployedContractsPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for universalProfile FK (primaryContract is the deployed UP)
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<DeployedContracts>({
       category: EntityCategory.UniversalProfile,
       address: primaryContract,
       entityType: ENTITY_TYPE,

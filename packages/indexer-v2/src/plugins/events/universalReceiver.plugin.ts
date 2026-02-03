@@ -57,7 +57,7 @@ const UniversalReceiverPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for universalProfile FK (emitting address)
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<UniversalReceiver>({
       category: EntityCategory.UniversalProfile,
       address,
       entityType: ENTITY_TYPE,
@@ -68,14 +68,14 @@ const UniversalReceiverPlugin: EventPlugin = {
     // Queue enrichment for from address as both UP and DA
     // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
     if (!isNullAddress(from)) {
-      ctx.queueEnrichment({
+      ctx.queueEnrichment<UniversalReceiver>({
         category: EntityCategory.UniversalProfile,
         address: from,
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'fromProfile',
       });
-      ctx.queueEnrichment({
+      ctx.queueEnrichment<UniversalReceiver>({
         category: EntityCategory.DigitalAsset,
         address: from,
         entityType: ENTITY_TYPE,

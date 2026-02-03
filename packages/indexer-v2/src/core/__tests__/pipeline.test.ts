@@ -274,7 +274,7 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
-        });
+        } as any);
       },
     };
 
@@ -542,14 +542,14 @@ describe('Pipeline Step 5: VERIFY', () => {
           entityType: 'Event',
           entityId: 'e1',
           fkField: 'digitalAsset',
-        });
+        } as any);
         ctx.queueEnrichment({
           category: EntityCategory.DigitalAsset,
           address: '0xda2',
           entityType: 'Event',
           entityId: 'e1',
           fkField: 'anotherDA',
-        });
+        } as any);
       },
     };
 
@@ -588,7 +588,7 @@ describe('Pipeline Step 5: VERIFY', () => {
           entityType: 'Event',
           entityId: 'e1',
           fkField: 'profile',
-        });
+        } as any);
       },
     };
 
@@ -635,7 +635,7 @@ describe('Pipeline Step 6: ENRICH', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
-        });
+        } as any);
       },
     };
 
@@ -679,7 +679,7 @@ describe('Pipeline Step 6: ENRICH', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
-        });
+        } as any);
       },
     };
 
@@ -729,21 +729,21 @@ describe('Pipeline Step 6: ENRICH', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'fromProfile',
-        });
+        } as any);
         ctx.queueEnrichment({
           category: EntityCategory.UniversalProfile,
           address: '0xup2',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'toProfile',
-        });
+        } as any);
         ctx.queueEnrichment({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
-        });
+        } as any);
       },
     };
 
@@ -791,7 +791,7 @@ describe('Pipeline Step 6: ENRICH', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset', // This field doesn't exist on the entity instance
-        });
+        } as any);
       },
     };
 
@@ -852,21 +852,21 @@ describe('Pipeline Integration', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'fromProfile',
-        });
+        } as any);
         ctx.queueEnrichment({
           category: EntityCategory.UniversalProfile,
           address: '0xup2',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'toProfile',
-        });
+        } as any);
         ctx.queueEnrichment({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
-        });
+        } as any);
       },
     };
 

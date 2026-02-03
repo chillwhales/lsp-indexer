@@ -165,7 +165,7 @@ export class BatchContext implements IBatchContext {
   queueEnrichment<T extends Entity>(request: EnrichmentRequest<T>): void {
     // Upcast to Entity-constrained request for storage.
     // Type safety is enforced at the handler call site via the generic parameter.
-    this.enrichmentQueue.push(request as EnrichmentRequest<Entity>);
+    this.enrichmentQueue.push(request as unknown as EnrichmentRequest<Entity>);
   }
 
   getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest<Entity>> {
@@ -179,7 +179,7 @@ export class BatchContext implements IBatchContext {
   setPersistHint<T extends Entity>(type: string, hint: PersistHint<T>): void {
     // Upcast to Entity-constrained hint for storage.
     // Type safety is enforced at the handler call site via the generic parameter.
-    this.persistHints.set(type, hint as PersistHint<Entity>);
+    this.persistHints.set(type, hint as unknown as PersistHint<Entity>);
   }
 
   getPersistHint(type: string): PersistHint<Entity> | undefined {
@@ -193,7 +193,7 @@ export class BatchContext implements IBatchContext {
   queueClear<T extends Entity>(request: ClearRequest<T>): void {
     // Upcast to Entity-constrained request for storage.
     // Type safety is enforced at the handler call site via the generic parameter.
-    this.clearQueue.push(request as ClearRequest<Entity>);
+    this.clearQueue.push(request as unknown as ClearRequest<Entity>);
   }
 
   getClearQueue(): ReadonlyArray<ClearRequest<Entity>> {

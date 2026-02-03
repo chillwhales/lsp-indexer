@@ -72,7 +72,7 @@ const DeployedProxiesPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for universalProfile FK (primaryContract is the deployed UP)
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<DeployedERC1167Proxies>({
       category: EntityCategory.UniversalProfile,
       address: primaryContract,
       entityType: ENTITY_TYPE,

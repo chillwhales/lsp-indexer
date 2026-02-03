@@ -65,7 +65,7 @@ const LSP7TransferPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for digitalAsset FK
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<Transfer>({
       category: EntityCategory.DigitalAsset,
       address,
       entityType: ENTITY_TYPE,
@@ -76,7 +76,7 @@ const LSP7TransferPlugin: EventPlugin = {
     // Queue enrichment for from/to/operator UniversalProfile FKs
     // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
     if (!isNullAddress(from)) {
-      ctx.queueEnrichment({
+      ctx.queueEnrichment<Transfer>({
         category: EntityCategory.UniversalProfile,
         address: from,
         entityType: ENTITY_TYPE,
@@ -85,7 +85,7 @@ const LSP7TransferPlugin: EventPlugin = {
       });
     }
     if (!isNullAddress(to)) {
-      ctx.queueEnrichment({
+      ctx.queueEnrichment<Transfer>({
         category: EntityCategory.UniversalProfile,
         address: to,
         entityType: ENTITY_TYPE,
@@ -94,7 +94,7 @@ const LSP7TransferPlugin: EventPlugin = {
       });
     }
     if (!isNullAddress(operator)) {
-      ctx.queueEnrichment({
+      ctx.queueEnrichment<Transfer>({
         category: EntityCategory.UniversalProfile,
         address: operator,
         entityType: ENTITY_TYPE,
