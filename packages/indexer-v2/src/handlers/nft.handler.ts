@@ -17,6 +17,7 @@
  *   - utils/tokenIdDataChanged/index.ts (NFT stub creation)
  */
 import { ZERO_ADDRESS } from '@/constants';
+import { mergeEntitiesFromBatchAndDb } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
 import { NFT, TokenIdDataChanged, Transfer } from '@chillwhales/typeorm';
@@ -31,11 +32,8 @@ const NFTHandler: EntityHandler = {
   name: 'nft',
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
-  handle(hctx: HandlerContext, triggeredBy: string): void {
-    // Check BatchContext for NFTs already created in this batch by previous trigger invocations.
-    // When both LSP8Transfer and TokenIdDataChanged exist in the same batch,
-    // the pipeline calls handle() separately for each trigger. We must check BatchContext
-    // to avoid overwriting mint/burn NFTs with stubs.
+  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+    // Start with NFTs already created in this batch (intra-batch deduplication)
     const existingInBatch = hctx.batchCtx.getEntities<NFT>(ENTITY_TYPE);
     const nfts = new Map<string, NFT>(existingInBatch);
 
@@ -79,25 +77,35 @@ const NFTHandler: EntityHandler = {
       }
     }
 
-    // Process TokenIdDataChanged (creates stubs only if not already created in this batch)
+    // Process TokenIdDataChanged (creates stubs only if not already in batch or database)
     //
-    // NOTE: This will create stub NFTs (isMinted: false, isBurned: false) even for NFTs
-    // that were minted in previous batches. The upsert will overwrite the existing NFT,
-    // resetting mint/burn flags to false. This is a known limitation of the current
-    // architecture - to fix it properly would require async DB lookups in handlers or
-    // a separate NFT verification phase.
-    //
-    // In practice, this is rare: TokenIdDataChanged without Transfer typically only fires
-    // when setting metadata on already-minted NFTs, and the flag reset doesn't affect
-    // functionality (the Transfer event history still shows the mint).
+    // CORRECT PATTERN: Use mergeEntitiesFromBatchAndDb to check BOTH sources.
+    // This ensures we never overwrite existing NFTs with stub data, preserving
+    // mint/burn flags from previous batches.
     if (triggeredBy === 'TokenIdDataChanged') {
       const events = hctx.batchCtx.getEntities<TokenIdDataChanged>(triggeredBy);
 
+      // Collect potential NFT IDs from TokenIdDataChanged events
+      const potentialNewIds: string[] = [];
+      for (const event of events.values()) {
+        const nftId = generateTokenId({ address: event.address, tokenId: event.tokenId });
+        potentialNewIds.push(nftId);
+      }
+
+      // Merge NFTs from BOTH batch and database (correct pattern)
+      const existingNFTs = await mergeEntitiesFromBatchAndDb<NFT>(
+        hctx.store,
+        hctx.batchCtx,
+        ENTITY_TYPE,
+        NFT,
+        potentialNewIds,
+      );
+
+      // Create stubs only for NFTs that don't exist in either source
       for (const event of events.values()) {
         const nftId = generateTokenId({ address: event.address, tokenId: event.tokenId });
 
-        // Only create NFT stub if not already created by Transfer in this batch
-        if (!nfts.has(nftId)) {
+        if (!existingNFTs.has(nftId)) {
           nfts.set(
             nftId,
             new NFT({

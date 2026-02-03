@@ -59,8 +59,12 @@ export interface EntityHandler {
    * add them back to BatchContext, and queue enrichment requests.
    * The pipeline handles persistence.
    *
+   * Handlers may be async to perform database lookups for proper merge logic.
+   * When merging entities across batches, handlers should query the database
+   * for existing records to avoid data loss.
+   *
    * @param hctx        - Handler context (store, batch context, worker pool)
    * @param triggeredBy - The entity bag key that triggered this invocation
    */
-  handle(hctx: HandlerContext, triggeredBy: string): void;
+  handle(hctx: HandlerContext, triggeredBy: string): void | Promise<void>;
 }
