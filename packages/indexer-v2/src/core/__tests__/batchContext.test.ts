@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BatchContext } from '../batchContext';
-import { EnrichmentRequest, EntityCategory } from '../types';
+import { EnrichmentRequest, Entity, EntityCategory } from '../types';
 
 describe('BatchContext - Enrichment Queue', () => {
   it('should start with an empty enrichment queue', () => {
@@ -14,7 +14,7 @@ describe('BatchContext - Enrichment Queue', () => {
   it('should queue a single enrichment request', () => {
     const ctx = new BatchContext();
 
-    const request: EnrichmentRequest = {
+    const request: EnrichmentRequest<Entity> = {
       category: EntityCategory.DigitalAsset,
       address: '0x1234567890abcdef1234567890abcdef12345678',
       entityType: 'Transfer',
@@ -32,7 +32,7 @@ describe('BatchContext - Enrichment Queue', () => {
   it('should queue multiple enrichment requests', () => {
     const ctx = new BatchContext();
 
-    const request1: EnrichmentRequest = {
+    const request1: EnrichmentRequest<Entity> = {
       category: EntityCategory.DigitalAsset,
       address: '0x1234567890abcdef1234567890abcdef12345678',
       entityType: 'Transfer',
@@ -40,7 +40,7 @@ describe('BatchContext - Enrichment Queue', () => {
       fkField: 'digitalAsset',
     };
 
-    const request2: EnrichmentRequest = {
+    const request2: EnrichmentRequest<Entity> = {
       category: EntityCategory.UniversalProfile,
       address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
       entityType: 'Transfer',
@@ -48,7 +48,7 @@ describe('BatchContext - Enrichment Queue', () => {
       fkField: 'from',
     };
 
-    const request3: EnrichmentRequest = {
+    const request3: EnrichmentRequest<Entity> = {
       category: EntityCategory.NFT,
       address: '0x9876543210fedcba9876543210fedcba98765432',
       tokenId: '42',
@@ -72,7 +72,7 @@ describe('BatchContext - Enrichment Queue', () => {
   it('should preserve all fields in enrichment requests', () => {
     const ctx = new BatchContext();
 
-    const requestWithTokenId: EnrichmentRequest = {
+    const requestWithTokenId: EnrichmentRequest<Entity> = {
       category: EntityCategory.NFT,
       address: '0xnftaddress',
       tokenId: '123',
@@ -81,7 +81,7 @@ describe('BatchContext - Enrichment Queue', () => {
       fkField: 'nft',
     };
 
-    const requestWithoutTokenId: EnrichmentRequest = {
+    const requestWithoutTokenId: EnrichmentRequest<Entity> = {
       category: EntityCategory.DigitalAsset,
       address: '0xdassetaddress',
       entityType: 'LSP4TokenName',
@@ -112,7 +112,7 @@ describe('BatchContext - Enrichment Queue', () => {
   it('should maintain insertion order in the queue', () => {
     const ctx = new BatchContext();
 
-    const requests: EnrichmentRequest[] = [];
+    const requests: EnrichmentRequest<Entity>[] = [];
     for (let i = 0; i < 10; i++) {
       requests.push({
         category: EntityCategory.DigitalAsset,
@@ -135,7 +135,7 @@ describe('BatchContext - Enrichment Queue', () => {
   it('should allow same entity to be enriched multiple times with different fields', () => {
     const ctx = new BatchContext();
 
-    const request1: EnrichmentRequest = {
+    const request1: EnrichmentRequest<Entity> = {
       category: EntityCategory.UniversalProfile,
       address: '0xprofile1',
       entityType: 'Transfer',
@@ -143,7 +143,7 @@ describe('BatchContext - Enrichment Queue', () => {
       fkField: 'from',
     };
 
-    const request2: EnrichmentRequest = {
+    const request2: EnrichmentRequest<Entity> = {
       category: EntityCategory.UniversalProfile,
       address: '0xprofile2',
       entityType: 'Transfer',

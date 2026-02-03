@@ -1,16 +1,19 @@
 import { generateTokenId } from '@/utils';
 import { DigitalAsset, NFT, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
-import { In } from 'typeorm';
+import { FindOptionsWhere, In } from 'typeorm';
 import { BatchContext } from './batchContext';
 import { PluginRegistry } from './registry';
 import {
+  ClearRequest,
   Context,
   EnrichmentRequest,
+  Entity,
   EntityCategory,
   HandlerContext,
   IBatchContext,
   IMetadataWorkerPool,
+  PersistHint,
   VerificationResult,
 } from './types';
 
@@ -80,13 +83,13 @@ async function clearSubEntities<T extends Entity>(
  * @param store - TypeORM store for database operations
  * @param entities - Map of entities to upsert (from BatchContext)
  * @param persistHint - Hint with entity class and merge field names
- * @param context - Subsquid context for logging
+ * @param _context - Subsquid context for logging
  */
 async function mergeUpsertEntities<T extends Entity>(
   store: Store,
   entities: Map<string, unknown>,
   persistHint: PersistHint<T>,
-  context: Context,
+  _context: Context,
 ): Promise<void> {
   const ids = [...entities.keys()];
 
@@ -323,7 +326,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
 
   // Single pass: collect addresses for verification AND group for enrichment
   const addressesByCategory = new Map<EntityCategory, Set<string>>();
-  const grouped = new Map<string, Map<string, EnrichmentRequest[]>>();
+  const grouped = new Map<string, Map<string, EnrichmentRequest<Entity>[]>>();
 
   for (const request of enrichmentQueue) {
     // Collect addresses for non-NFT categories (NFTs always valid)
@@ -458,7 +461,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
  * These are TypeORM entity instances with only the `id` field set,
  * used as foreign key references.
  */
-function createFkStub(request: EnrichmentRequest): { id: string } {
+function createFkStub(request: EnrichmentRequest<Entity>): { id: string } {
   switch (request.category) {
     case EntityCategory.UniversalProfile:
       return new UniversalProfile({ id: request.address });
