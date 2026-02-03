@@ -38,6 +38,7 @@
  *   - utils/dataChanged/lsp12IssuedAssetsItem.ts
  *   - utils/dataChanged/lsp12IssuedAssetsMap.ts
  */
+import { mergeEntitiesFromBatchAndDb } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { DataChanged, LSP12IssuedAsset, LSP12IssuedAssetsLength } from '@chillwhales/typeorm';
 import { LSP12DataKeys } from '@lukso/lsp12-contracts';
@@ -60,14 +61,39 @@ const LSP12IssuedAssetsHandler: EntityHandler = {
   name: 'lsp12IssuedAssets',
   listensToBag: ['DataChanged'],
 
-  handle(hctx: HandlerContext, triggeredBy: string): void {
+  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
     const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
 
-    // Set persist hint for cross-batch merge behavior
+    // Set persist hint for cross-batch merge behavior (safety net)
     hctx.batchCtx.setPersistHint<LSP12IssuedAsset>(ISSUED_ASSET_TYPE, {
       entityClass: LSP12IssuedAsset,
       mergeFields: ['arrayIndex', 'interfaceId'],
     });
+
+    // Collect all potential entity IDs from Index and Map events
+    const potentialIds: string[] = [];
+    for (const event of events.values()) {
+      const { dataKey, dataValue, address } = event;
+
+      if (dataKey.startsWith(LSP12_ISSUED_ASSETS_INDEX_PREFIX)) {
+        if (isHex(dataValue) && hexToBytes(dataValue).length === 20) {
+          const assetAddress = dataValue;
+          potentialIds.push(`${address} - ${assetAddress}`);
+        }
+      } else if (dataKey.startsWith(LSP12_ISSUED_ASSETS_MAP_PREFIX)) {
+        const assetAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
+        potentialIds.push(`${address} - ${assetAddress}`);
+      }
+    }
+
+    // Merge entities from BOTH BatchContext and database
+    const existingAssets = await mergeEntitiesFromBatchAndDb<LSP12IssuedAsset>(
+      hctx.store,
+      hctx.batchCtx,
+      ISSUED_ASSET_TYPE,
+      LSP12IssuedAsset,
+      potentialIds,
+    );
 
     for (const event of events.values()) {
       const { dataKey, dataValue, address, timestamp } = event;
@@ -75,9 +101,9 @@ const LSP12IssuedAssetsHandler: EntityHandler = {
       if (dataKey === LSP12_ISSUED_ASSETS_LENGTH_KEY) {
         extractLength(address, dataValue, timestamp, hctx);
       } else if (dataKey.startsWith(LSP12_ISSUED_ASSETS_INDEX_PREFIX)) {
-        extractFromIndex(address, dataKey, dataValue, timestamp, hctx);
+        extractFromIndex(address, dataKey, dataValue, timestamp, hctx, existingAssets);
       } else if (dataKey.startsWith(LSP12_ISSUED_ASSETS_MAP_PREFIX)) {
-        extractFromMap(address, dataKey, dataValue, timestamp, hctx);
+        extractFromMap(address, dataKey, dataValue, timestamp, hctx, existingAssets);
       }
     }
   },
@@ -129,8 +155,8 @@ function extractLength(
  * If dataValue is not a valid 20-byte address, the event is skipped
  * (no garbage entity — the Map event will provide the data).
  *
- * Merges into existing LSP12IssuedAsset entity if one was already created
- * by a Map event in the same batch.
+ * Merges into existing LSP12IssuedAsset entity if one exists in EITHER
+ * the current batch OR the database.
  */
 function extractFromIndex(
   address: string,
@@ -138,6 +164,7 @@ function extractFromIndex(
   dataValue: string,
   timestamp: Date,
   hctx: HandlerContext,
+  existingAssets: Map<string, LSP12IssuedAsset>,
 ): void {
   // Skip if dataValue is not a valid 20-byte address
   if (!isHex(dataValue) || hexToBytes(dataValue).length !== 20) return;
@@ -146,12 +173,14 @@ function extractFromIndex(
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
   const id = `${address} - ${assetAddress}`;
 
-  // Check if a Map event already created this entity in the same batch
-  const existing = hctx.batchCtx.getEntities<LSP12IssuedAsset>(ISSUED_ASSET_TYPE).get(id);
+  // Check if entity exists in EITHER batch OR database
+  const existing = existingAssets.get(id);
   if (existing) {
     // Merge: fill in arrayIndex if not already set
     existing.arrayIndex = existing.arrayIndex ?? arrayIndex;
     existing.timestamp = timestamp;
+    // Add to batch if coming from DB so it gets persisted
+    hctx.batchCtx.addEntity(ISSUED_ASSET_TYPE, existing.id, existing);
     return;
   }
 
@@ -166,6 +195,7 @@ function extractFromIndex(
   });
 
   hctx.batchCtx.addEntity(ISSUED_ASSET_TYPE, entity.id, entity);
+  existingAssets.set(id, entity); // Add to map for subsequent events
 
   // Queue enrichment for universalProfile FK (primary entity type)
   hctx.batchCtx.queueEnrichment<LSP12IssuedAsset>({
@@ -193,8 +223,8 @@ function extractFromIndex(
  * interfaceId: first 4 bytes of dataValue (if value is 20 bytes).
  * arrayIndex: bytes 4..20 of dataValue (if value is 20 bytes).
  *
- * Merges into existing LSP12IssuedAsset entity if one was already created
- * by an Index event in the same batch.
+ * Merges into existing LSP12IssuedAsset entity if one exists in EITHER
+ * the current batch OR the database.
  */
 function extractFromMap(
   address: string,
@@ -202,6 +232,7 @@ function extractFromMap(
   dataValue: string,
   timestamp: Date,
   hctx: HandlerContext,
+  existingAssets: Map<string, LSP12IssuedAsset>,
 ): void {
   const assetAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
   const dataValueBytes = isHex(dataValue) ? hexToBytes(dataValue) : new Uint8Array(0);
@@ -211,13 +242,15 @@ function extractFromMap(
   const arrayIndex = isValidValue ? bytesToBigInt(dataValueBytes.slice(4)) : null;
   const id = `${address} - ${assetAddress}`;
 
-  // Check if an Index event already created this entity in the same batch
-  const existing = hctx.batchCtx.getEntities<LSP12IssuedAsset>(ISSUED_ASSET_TYPE).get(id);
+  // Check if entity exists in EITHER batch OR database
+  const existing = existingAssets.get(id);
   if (existing) {
     // Merge: Map provides interfaceId + potentially better arrayIndex
     existing.interfaceId = interfaceId ?? existing.interfaceId;
     existing.arrayIndex = arrayIndex ?? existing.arrayIndex;
     existing.timestamp = timestamp;
+    // Add to batch if coming from DB so it gets persisted
+    hctx.batchCtx.addEntity(ISSUED_ASSET_TYPE, existing.id, existing);
     return;
   }
 
@@ -233,6 +266,7 @@ function extractFromMap(
   });
 
   hctx.batchCtx.addEntity(ISSUED_ASSET_TYPE, entity.id, entity);
+  existingAssets.set(id, entity); // Add to map for subsequent events
 
   // Queue enrichment for universalProfile FK (primary entity type)
   hctx.batchCtx.queueEnrichment<LSP12IssuedAsset>({

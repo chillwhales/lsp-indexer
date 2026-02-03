@@ -232,7 +232,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   for (const handler of registry.getAllEntityHandlers()) {
     for (const bagKey of handler.listensToBag) {
       if (batchCtx.hasEntities(bagKey)) {
-        handler.handle(handlerCtx, bagKey);
+        await handler.handle(handlerCtx, bagKey);
       }
     }
   }
