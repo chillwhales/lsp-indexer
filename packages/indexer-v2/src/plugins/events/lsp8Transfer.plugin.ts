@@ -22,6 +22,7 @@
  *   - utils/transfer/index.ts (extract LSP8 branch + populate)
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { isNullAddress } from '@/utils';
 import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
 import { Transfer } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -68,7 +69,7 @@ const LSP8TransferPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for digitalAsset FK
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<Transfer>({
       category: EntityCategory.DigitalAsset,
       address,
       entityType: ENTITY_TYPE,
@@ -79,7 +80,7 @@ const LSP8TransferPlugin: EventPlugin = {
     // Queue enrichment for nft FK.
     // Depends on #104 (NFT EntityHandler) to create NFT entities in Step 3
     // before the pipeline resolves this FK in Step 6.
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<Transfer>({
       category: EntityCategory.NFT,
       address,
       tokenId,
@@ -91,7 +92,7 @@ const LSP8TransferPlugin: EventPlugin = {
     // Queue enrichment for from/to/operator UniversalProfile FKs
     // Skip null-ish addresses (zero/dead) to avoid wasteful RPC calls
     if (!isNullAddress(from)) {
-      ctx.queueEnrichment({
+      ctx.queueEnrichment<Transfer>({
         category: EntityCategory.UniversalProfile,
         address: from,
         entityType: ENTITY_TYPE,
@@ -100,7 +101,7 @@ const LSP8TransferPlugin: EventPlugin = {
       });
     }
     if (!isNullAddress(to)) {
-      ctx.queueEnrichment({
+      ctx.queueEnrichment<Transfer>({
         category: EntityCategory.UniversalProfile,
         address: to,
         entityType: ENTITY_TYPE,
@@ -109,7 +110,7 @@ const LSP8TransferPlugin: EventPlugin = {
       });
     }
     if (!isNullAddress(operator)) {
-      ctx.queueEnrichment({
+      ctx.queueEnrichment<Transfer>({
         category: EntityCategory.UniversalProfile,
         address: operator,
         entityType: ENTITY_TYPE,

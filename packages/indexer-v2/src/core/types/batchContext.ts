@@ -1,5 +1,71 @@
+import { Entity, EntityConstructor, FKFields, WritableFields } from './entity';
 import { FetchRequest } from './metadata';
-import { EnrichmentRequest, EntityCategory, VerificationResult } from './verification';
+import {
+  EnrichmentRequest,
+  EntityCategory,
+  StoredEnrichmentRequest,
+  VerificationResult,
+} from './verification';
+
+/**
+ * Persist hint for derived entities requiring merge-upsert behavior.
+ *
+ * When set for an entity type, the pipeline reads existing DB records
+ * and preserves non-null values in the specified mergeFields before
+ * upserting. This prevents data loss when multiple data key sources
+ * populate different fields of the same entity across batches.
+ *
+ * Generic parameter T: The entity type being persisted.
+ * This enables compile-time validation that mergeFields are valid
+ * writable field names on the entity.
+ */
+export interface PersistHint<T extends Entity> {
+  /** Entity class constructor for TypeORM operations */
+  entityClass: EntityConstructor<T>;
+  /** Field names to preserve across batches (must be writable fields, not FKs) */
+  mergeFields: readonly (WritableFields<T> & string)[];
+}
+
+/**
+ * Internal storage type for persist hints.
+ *
+ * Structurally compatible with PersistHint<T> for any T, allowing heterogeneous
+ * storage. The mergeFields constraint is widened to string[] since we can't know
+ * at storage time which specific entity type's writable fields are valid.
+ */
+export type StoredPersistHint = Omit<PersistHint<Entity>, 'mergeFields'> & {
+  mergeFields: readonly string[];
+};
+
+/**
+ * Clear request for sub-entity deletion before re-insertion.
+ *
+ * Handlers queue clear requests for sub-entities that need delete-then-reinsert
+ * behavior (e.g., LSP6 permissions, allowed calls). The pipeline processes
+ * these in Step 3.5 before persisting derived entities.
+ *
+ * Generic parameter T: The sub-entity type being cleared.
+ * This enables compile-time validation that fkField is actually a FK field
+ * on the entity (not a primitive field).
+ */
+export interface ClearRequest<T extends Entity> {
+  /** Sub-entity class constructor for TypeORM findBy/remove operations */
+  subEntityClass: EntityConstructor<T>;
+  /** FK field name on sub-entity that references the parent (must be a FK field) */
+  fkField: FKFields<T> & string;
+  /** Parent entity IDs whose sub-entities should be cleared */
+  parentIds: string[];
+}
+
+/**
+ * Internal storage type for clear requests.
+ *
+ * Structurally compatible with ClearRequest<T> for any T, allowing heterogeneous
+ * storage. The fkField constraint is widened to string.
+ */
+export type StoredClearRequest = Omit<ClearRequest<Entity>, 'fkField'> & {
+  fkField: string;
+};
 
 /**
  * BatchContext interface — shared entity bag for a single batch.
@@ -20,6 +86,7 @@ export interface IBatchContext {
   // Entity storage
   addEntity(type: string, id: string, entity: unknown): void;
   getEntities<T>(type: string): Map<string, T>;
+  removeEntity(type: string, id: string): void;
   hasEntities(type: string): boolean;
   getEntityTypeKeys(): string[];
 
@@ -44,6 +111,14 @@ export interface IBatchContext {
   getFetchQueue(): ReadonlyArray<FetchRequest>;
 
   // Enrichment queue (for deferred FK resolution)
-  queueEnrichment(request: EnrichmentRequest): void;
-  getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest>;
+  queueEnrichment<T extends Entity>(request: EnrichmentRequest<T>): void;
+  getEnrichmentQueue(): ReadonlyArray<StoredEnrichmentRequest>;
+
+  // Persist hints (for merge-upsert behavior)
+  setPersistHint<T extends Entity>(type: string, hint: PersistHint<T>): void;
+  getPersistHint(type: string): StoredPersistHint | undefined;
+
+  // Clear queue (for sub-entity deletion)
+  queueClear<T extends Entity>(request: ClearRequest<T>): void;
+  getClearQueue(): ReadonlyArray<StoredClearRequest>;
 }

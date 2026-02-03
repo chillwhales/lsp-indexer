@@ -7,6 +7,8 @@
  * - EnrichmentRequest: Deferred FK resolution request for verified addresses
  */
 
+import { Entity, FKFields } from './entity';
+
 /**
  * Categories of blockchain entities that require verification via supportsInterface().
  */
@@ -41,8 +43,12 @@ export interface VerificationResult {
  * Entities are persisted with null FK references during the persist phase.
  * The enrichment queue tracks which entities need FK fields populated once
  * verification completes and core entities (UP, DA, NFT) are created.
+ *
+ * Generic parameter T: The entity type being enriched.
+ * This enables compile-time validation that fkField is actually a FK field
+ * on the entity (not a primitive field like 'address' or 'timestamp').
  */
-export interface EnrichmentRequest {
+export interface EnrichmentRequest<T extends Entity> {
   /** Category to verify (UniversalProfile, DigitalAsset, NFT) */
   category: EntityCategory;
 
@@ -58,6 +64,20 @@ export interface EnrichmentRequest {
   /** Which entity id to enrich */
   entityId: string;
 
-  /** Which field on the entity to set the FK reference (e.g. 'digitalAsset', 'nft') */
-  fkField: string;
+  /** Which field on the entity to set the FK reference (must be a FK field) */
+  fkField: FKFields<T> & string;
 }
+
+/**
+ * Internal storage type for enrichment requests.
+ *
+ * This is structurally compatible with EnrichmentRequest<T> for any T,
+ * allowing heterogeneous storage of different entity types in a single array.
+ * The fkField is widened to string since we can't know at storage time which
+ * specific entity type's FK fields are valid.
+ *
+ * Type safety is enforced at the call site (handlers) via the generic parameter.
+ */
+export type StoredEnrichmentRequest = Omit<EnrichmentRequest<Entity>, 'fkField'> & {
+  fkField: string;
+};

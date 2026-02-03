@@ -1,11 +1,12 @@
 import { DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { describe, expect, it, vi } from 'vitest';
-import { processBatch } from '../pipeline';
+import { processBatch, VerifyFn } from '../pipeline';
 import { PluginRegistry } from '../registry';
 import {
   Block,
   Context,
+  Entity,
   EntityCategory,
   EntityHandler,
   EventPlugin,
@@ -14,6 +15,17 @@ import {
   Log,
   VerificationResult,
 } from '../types';
+
+// ---------------------------------------------------------------------------
+// Test entity type with all FK fields used in tests
+// ---------------------------------------------------------------------------
+type TestEntity = Entity & {
+  digitalAsset?: DigitalAsset | null;
+  fromProfile?: UniversalProfile | null;
+  toProfile?: UniversalProfile | null;
+  profile?: UniversalProfile | null;
+  anotherDA?: DigitalAsset | null;
+};
 
 // ---------------------------------------------------------------------------
 // Test fixtures and mocks
@@ -84,9 +96,7 @@ function createMockContext(store: Store, blocks: Block[] = [mockBlock]): Context
   } as unknown as Context;
 }
 
-type MockVerifyFn = ReturnType<
-  typeof vi.fn<[EntityCategory, Set<string>], Promise<VerificationResult>>
->;
+type MockVerifyFn = ReturnType<typeof vi.fn<VerifyFn>>;
 
 function createMockVerifyFn(
   validAddresses: Set<string> = new Set(),
@@ -125,19 +135,13 @@ describe('Pipeline Step 1: EXTRACT', () => {
     const topic2 = '0xtopic2';
 
     const extractMock1 = vi.fn();
-    const populateMock1 = vi.fn();
-    const persistMock1 = vi.fn();
     const extractMock2 = vi.fn();
-    const populateMock2 = vi.fn();
-    const persistMock2 = vi.fn();
 
     const plugin1: EventPlugin = {
       name: 'plugin1',
       topic0: topic1,
       requiresVerification: [],
       extract: extractMock1,
-      populate: populateMock1,
-      persist: persistMock1,
     };
 
     const plugin2: EventPlugin = {
@@ -145,8 +149,6 @@ describe('Pipeline Step 1: EXTRACT', () => {
       topic0: topic2,
       requiresVerification: [],
       extract: extractMock2,
-      populate: populateMock2,
-      persist: persistMock2,
     };
 
     const registry = new PluginRegistry();
@@ -166,12 +168,6 @@ describe('Pipeline Step 1: EXTRACT', () => {
 
     expect(extractMock1).toHaveBeenCalledTimes(2);
     expect(extractMock2).toHaveBeenCalledTimes(1);
-
-    // Verify the new pipeline does NOT call old populate/persist methods
-    expect(populateMock1).not.toHaveBeenCalled();
-    expect(persistMock1).not.toHaveBeenCalled();
-    expect(populateMock2).not.toHaveBeenCalled();
-    expect(persistMock2).not.toHaveBeenCalled();
   });
 
   it('should respect contractFilter when routing', async () => {
@@ -185,8 +181,6 @@ describe('Pipeline Step 1: EXTRACT', () => {
       contractFilter: { address: targetAddress, fromBlock: 0 },
       requiresVerification: [],
       extract: extractMock,
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -219,8 +213,6 @@ describe('Pipeline Step 1: EXTRACT', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('TestEntity', 'entity-1', { id: 'entity-1', data: 'test' });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -256,8 +248,6 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
         ctx.addEntity('Event1', 'e1', { id: 'e1', type: 'event1' });
         ctx.addEntity('Event2', 'e2', { id: 'e2', type: 'event2' });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -290,7 +280,7 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
           address: '0xda',
           digitalAsset: null,
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda',
           entityType: 'Transfer',
@@ -298,8 +288,6 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
           fkField: 'digitalAsset',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -344,8 +332,6 @@ describe('Pipeline Step 3: HANDLE', () => {
         ctx.addEntity('Event1', 'e1', { id: 'e1' });
         ctx.addEntity('Event2', 'e2', { id: 'e2' });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const handleMock = vi.fn();
@@ -404,8 +390,6 @@ describe('Pipeline Step 3: HANDLE', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Event', 'e1', { id: 'e1', value: 10 });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const handler: EntityHandler = {
@@ -419,7 +403,6 @@ describe('Pipeline Step 3: HANDLE', () => {
             originalValue: event.value,
           });
         }
-        return Promise.resolve();
       },
     };
 
@@ -450,8 +433,6 @@ describe('Pipeline Step 3: HANDLE', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const handler: EntityHandler = {
@@ -460,7 +441,6 @@ describe('Pipeline Step 3: HANDLE', () => {
       handle: (hctx) => {
         // Handler incorrectly tries to add to the same type key
         hctx.batchCtx.addEntity('RawEvent', 'e2', { id: 'e2' });
-        return Promise.resolve();
       },
     };
 
@@ -494,8 +474,6 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const handler: EntityHandler = {
@@ -503,7 +481,6 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
       listensToBag: ['RawEvent'],
       handle: (hctx) => {
         hctx.batchCtx.addEntity('Derived', 'd1', { id: 'd1', computed: true });
-        return Promise.resolve();
       },
     };
 
@@ -536,8 +513,6 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Event', 'e1', { id: 'e1' });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -573,14 +548,14 @@ describe('Pipeline Step 5: VERIFY', () => {
       requiresVerification: [EntityCategory.DigitalAsset],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Event', 'e1', { id: 'e1', address: '0xda1' });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
           entityType: 'Event',
           entityId: 'e1',
           fkField: 'digitalAsset',
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda2',
           entityType: 'Event',
@@ -588,8 +563,6 @@ describe('Pipeline Step 5: VERIFY', () => {
           fkField: 'anotherDA',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -621,7 +594,7 @@ describe('Pipeline Step 5: VERIFY', () => {
       requiresVerification: [EntityCategory.UniversalProfile],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Event', 'e1', { id: 'e1' });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
           entityType: 'Event',
@@ -629,8 +602,6 @@ describe('Pipeline Step 5: VERIFY', () => {
           fkField: 'profile',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -670,7 +641,7 @@ describe('Pipeline Step 6: ENRICH', () => {
           address: '0xda1',
           digitalAsset: null,
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
           entityType: 'Transfer',
@@ -678,8 +649,6 @@ describe('Pipeline Step 6: ENRICH', () => {
           fkField: 'digitalAsset',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -716,7 +685,7 @@ describe('Pipeline Step 6: ENRICH', () => {
           address: '0xinvalid',
           digitalAsset: null,
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xinvalid',
           entityType: 'Transfer',
@@ -724,8 +693,6 @@ describe('Pipeline Step 6: ENRICH', () => {
           fkField: 'digitalAsset',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -768,21 +735,21 @@ describe('Pipeline Step 6: ENRICH', () => {
           toProfile: null,
           digitalAsset: null,
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'fromProfile',
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup2',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'toProfile',
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
           entityType: 'Transfer',
@@ -790,8 +757,6 @@ describe('Pipeline Step 6: ENRICH', () => {
           fkField: 'digitalAsset',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -832,7 +797,7 @@ describe('Pipeline Step 6: ENRICH', () => {
           address: '0xda1',
           // NOTE: 'digitalAsset' field intentionally omitted
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
           entityType: 'Transfer',
@@ -840,8 +805,6 @@ describe('Pipeline Step 6: ENRICH', () => {
           fkField: 'digitalAsset', // This field doesn't exist on the entity instance
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const registry = new PluginRegistry();
@@ -895,21 +858,21 @@ describe('Pipeline Integration', () => {
           toProfile: null,
           digitalAsset: null,
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'fromProfile',
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup2',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'toProfile',
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
           entityType: 'Transfer',
@@ -917,8 +880,6 @@ describe('Pipeline Integration', () => {
           fkField: 'digitalAsset',
         });
       },
-      populate: vi.fn(),
-      persist: vi.fn(),
     };
 
     const handler: EntityHandler = {
@@ -935,7 +896,6 @@ describe('Pipeline Integration', () => {
             amount: transfer.amount,
           });
         }
-        return Promise.resolve();
       },
     };
 

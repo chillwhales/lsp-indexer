@@ -1,15 +1,19 @@
 import { generateTokenId } from '@/utils';
 import { DigitalAsset, NFT, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
+import { FindOptionsWhere, In } from 'typeorm';
 import { BatchContext } from './batchContext';
 import { PluginRegistry } from './registry';
 import {
   Context,
-  EnrichmentRequest,
+  Entity,
   EntityCategory,
   HandlerContext,
   IBatchContext,
   IMetadataWorkerPool,
+  StoredClearRequest,
+  StoredEnrichmentRequest,
+  StoredPersistHint,
   VerificationResult,
 } from './types';
 
@@ -31,6 +35,110 @@ export interface PipelineConfig {
   registry: PluginRegistry;
   verifyAddresses: VerifyFn;
   workerPool: IMetadataWorkerPool;
+}
+
+// ---------------------------------------------------------------------------
+// Type-safe helper functions for pipeline operations
+// ---------------------------------------------------------------------------
+
+/**
+ * Type-safe clear operation for sub-entity deletion (Step 3.5).
+ *
+ * Uses TypeORM's find() to query sub-entities by FK field and parent IDs,
+ * then removes all matches. Type safety for fkField is enforced at the
+ * handler call site where queueClear<T>() validates field names at compile time.
+ *
+ * @param store - TypeORM store for database operations
+ * @param request - Clear request with entity class, FK field, and parent IDs
+ * @returns Number of entities removed
+ */
+async function clearSubEntities(store: Store, request: StoredClearRequest): Promise<number> {
+  const existing = await store.find(request.subEntityClass, {
+    where: {
+      [request.fkField]: In(request.parentIds),
+    } as FindOptionsWhere<Entity>,
+  });
+
+  if (existing.length > 0) {
+    await store.remove(existing);
+  }
+
+  return existing.length;
+}
+
+/**
+ * Type-safe merge-upsert operation for derived entities (Step 4).
+ *
+ * Reads existing database records for the entity IDs in the batch, then
+ * preserves existing non-null values in the specified mergeFields before
+ * upserting. This prevents data loss when different data key events populate
+ * different fields of the same entity across batches.
+ *
+ * Type safety for mergeFields is enforced at the handler call site where
+ * setPersistHint<T>() validates field names at compile time.
+ *
+ * @param store - TypeORM store for database operations
+ * @param entities - Map of entities to upsert (from BatchContext)
+ * @param persistHint - Hint with entity class and merge field names
+ * @param _context - Subsquid context for logging
+ */
+async function mergeUpsertEntities(
+  store: Store,
+  entities: Map<string, unknown>,
+  persistHint: StoredPersistHint,
+  _context: Context,
+): Promise<void> {
+  const ids = [...entities.keys()];
+
+  // Read existing records from DB
+  const existing = await store.findBy(persistHint.entityClass, {
+    id: In(ids),
+  } as FindOptionsWhere<Entity>);
+
+  const existingMap = new Map(existing.map((e) => [e.id, e]));
+
+  // Merge: preserve existing non-null values when the new entity has null.
+  // This prevents data loss when different data key events populate different
+  // fields of the same entity across batches (e.g., LSP5ReceivedAssets Index
+  // event provides arrayIndex, Map event provides interfaceId).
+  //
+  // IMPORTANT: Once a merge field is set to a non-null value, it cannot be
+  // cleared back to null through subsequent updates. This is intentional to
+  // maintain data stability across batch boundaries.
+  for (const [id, entity] of entities) {
+    const prev = existingMap.get(id);
+    if (prev) {
+      const typedEntity = entity as Record<string, unknown>;
+      const typedPrev = prev as Record<string, unknown>;
+      for (const field of persistHint.mergeFields) {
+        if (typedEntity[field] == null && typedPrev[field] != null) {
+          // Field names are validated at the handler call site via setPersistHint<T>()
+          typedEntity[field] = typedPrev[field];
+        }
+      }
+    }
+  }
+
+  await store.upsert([...entities.values()] as Entity[]);
+}
+
+/**
+ * Type-safe FK enrichment operation for a single entity (Step 6).
+ *
+ * Sets the FK field on the entity to point to the newly created core entity
+ * (UniversalProfile, DigitalAsset, or NFT). Type safety for fkField is enforced
+ * at the handler call site where queueEnrichment<T>() validates field names
+ * at compile time.
+ *
+ * @param entity - The entity instance to enrich
+ * @param request - Enrichment request with FK field name
+ * @param fkStub - Core entity stub (just { id: string })
+ */
+function enrichEntity(entity: unknown, request: StoredEnrichmentRequest, fkStub: Entity): void {
+  const typedEntity = entity as Record<string, unknown>;
+  // Field name is validated at the handler call site via queueEnrichment<T>()
+  // The field existence is checked by the caller with the `in` operator
+  typedEntity[request.fkField] = fkStub;
 }
 
 /**
@@ -124,7 +232,30 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   for (const handler of registry.getAllEntityHandlers()) {
     for (const bagKey of handler.listensToBag) {
       if (batchCtx.hasEntities(bagKey)) {
-        await handler.handle(handlerCtx, bagKey);
+        handler.handle(handlerCtx, bagKey);
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 3.5: CLEAR SUB-ENTITIES
+  // Process the clear queue before persisting derived entities. Handlers
+  // queue clear requests for sub-entities that need delete-then-reinsert
+  // behavior (e.g., LSP6 permissions, allowed calls).
+  // ---------------------------------------------------------------------------
+  const clearQueue = batchCtx.getClearQueue();
+  if (clearQueue.length > 0) {
+    for (const request of clearQueue) {
+      const removedCount = await clearSubEntities(context.store, request);
+      if (removedCount > 0) {
+        context.log.info(
+          JSON.stringify({
+            message: 'Cleared sub-entities',
+            subEntityClass: request.subEntityClass.name,
+            parentCount: request.parentIds.length,
+            removedCount,
+          }),
+        );
       }
     }
   }
@@ -132,15 +263,32 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // ---------------------------------------------------------------------------
   // Step 4: PERSIST DERIVED
   // Batch-persist all handler-derived entities from step 3. These may have
-  // deterministic IDs (e.g., TotalSupply, NFT), so we use upsert. Skip entity
-  // types already persisted in step 2.
+  // deterministic IDs (e.g., TotalSupply, NFT), so we use upsert. If a persist
+  // hint is set for an entity type, use merge-upsert behavior to preserve
+  // non-null values in the specified mergeFields. Skip entity types already
+  // persisted in step 2.
   // ---------------------------------------------------------------------------
   const allEntityTypes = batchCtx.getEntityTypeKeys();
   const derivedTypes = allEntityTypes.filter((type) => !rawEntityTypes.has(type));
 
   for (const type of derivedTypes) {
     const entities = batchCtx.getEntities(type);
-    if (entities.size > 0) {
+    if (entities.size === 0) continue;
+
+    const persistHint = batchCtx.getPersistHint(type);
+
+    if (persistHint) {
+      // Merge-upsert: use type-safe helper to preserve non-null merge fields
+      await mergeUpsertEntities(context.store, entities, persistHint, context);
+      context.log.info(
+        JSON.stringify({
+          message: 'Persisted derived entities (merge-upsert)',
+          entityType: type,
+          count: entities.size,
+        }),
+      );
+    } else {
+      // Simple upsert (default)
       await context.store.upsert([...entities.values()] as { id: string }[]);
       context.log.info(
         JSON.stringify({
@@ -163,7 +311,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
 
   // Single pass: collect addresses for verification AND group for enrichment
   const addressesByCategory = new Map<EntityCategory, Set<string>>();
-  const grouped = new Map<string, Map<string, EnrichmentRequest[]>>();
+  const grouped = new Map<string, Map<string, StoredEnrichmentRequest[]>>();
 
   for (const request of enrichmentQueue) {
     // Collect addresses for non-NFT categories (NFTs always valid)
@@ -265,8 +413,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
           continue;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        (entity as any)[request.fkField] = createFkStub(request);
+        // Type-safe FK assignment using helper
+        enrichEntity(entity, request, createFkStub(request));
         hasValidFk = true;
       }
 
@@ -298,7 +446,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
  * These are TypeORM entity instances with only the `id` field set,
  * used as foreign key references.
  */
-function createFkStub(request: EnrichmentRequest): { id: string } {
+function createFkStub(request: StoredEnrichmentRequest): { id: string } {
   switch (request.category) {
     case EntityCategory.UniversalProfile:
       return new UniversalProfile({ id: request.address });
