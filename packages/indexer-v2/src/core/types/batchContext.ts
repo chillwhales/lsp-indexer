@@ -22,6 +22,17 @@ export interface PersistHint<T extends Entity> {
 }
 
 /**
+ * Internal storage type for persist hints.
+ *
+ * Structurally compatible with PersistHint<T> for any T, allowing heterogeneous
+ * storage. The mergeFields constraint is widened to string[] since we can't know
+ * at storage time which specific entity type's writable fields are valid.
+ */
+export type StoredPersistHint = Omit<PersistHint<Entity>, 'mergeFields'> & {
+  mergeFields: readonly string[];
+};
+
+/**
  * Clear request for sub-entity deletion before re-insertion.
  *
  * Handlers queue clear requests for sub-entities that need delete-then-reinsert
@@ -40,6 +51,16 @@ export interface ClearRequest<T extends Entity> {
   /** Parent entity IDs whose sub-entities should be cleared */
   parentIds: string[];
 }
+
+/**
+ * Internal storage type for clear requests.
+ *
+ * Structurally compatible with ClearRequest<T> for any T, allowing heterogeneous
+ * storage. The fkField constraint is widened to string.
+ */
+export type StoredClearRequest = Omit<ClearRequest<Entity>, 'fkField'> & {
+  fkField: string;
+};
 
 /**
  * BatchContext interface — shared entity bag for a single batch.
@@ -86,13 +107,13 @@ export interface IBatchContext {
 
   // Enrichment queue (for deferred FK resolution)
   queueEnrichment<T extends Entity>(request: EnrichmentRequest<T>): void;
-  getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest<Entity>>;
+  getEnrichmentQueue(): ReadonlyArray<StoredEnrichmentRequest>;
 
   // Persist hints (for merge-upsert behavior)
   setPersistHint<T extends Entity>(type: string, hint: PersistHint<T>): void;
-  getPersistHint(type: string): PersistHint<Entity> | undefined;
+  getPersistHint(type: string): StoredPersistHint | undefined;
 
   // Clear queue (for sub-entity deletion)
   queueClear<T extends Entity>(request: ClearRequest<T>): void;
-  getClearQueue(): ReadonlyArray<ClearRequest<Entity>>;
+  getClearQueue(): ReadonlyArray<StoredClearRequest>;
 }

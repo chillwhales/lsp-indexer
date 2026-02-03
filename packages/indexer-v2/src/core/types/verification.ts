@@ -67,3 +67,17 @@ export interface EnrichmentRequest<T extends Entity> {
   /** Which field on the entity to set the FK reference (must be a FK field) */
   fkField: FKFields<T> & string;
 }
+
+/**
+ * Internal storage type for enrichment requests.
+ *
+ * This is structurally compatible with EnrichmentRequest<T> for any T,
+ * allowing heterogeneous storage of different entity types in a single array.
+ * The fkField is widened to string since we can't know at storage time which
+ * specific entity type's FK fields are valid.
+ *
+ * Type safety is enforced at the call site (handlers) via the generic parameter.
+ */
+export type StoredEnrichmentRequest = Omit<EnrichmentRequest<Entity>, 'fkField'> & {
+  fkField: string;
+};

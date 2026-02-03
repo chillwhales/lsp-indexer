@@ -6,6 +6,7 @@ import { PluginRegistry } from '../registry';
 import {
   Block,
   Context,
+  Entity,
   EntityCategory,
   EntityHandler,
   EventPlugin,
@@ -14,6 +15,17 @@ import {
   Log,
   VerificationResult,
 } from '../types';
+
+// ---------------------------------------------------------------------------
+// Test entity type with all FK fields used in tests
+// ---------------------------------------------------------------------------
+type TestEntity = Entity & {
+  digitalAsset?: DigitalAsset | null;
+  fromProfile?: UniversalProfile | null;
+  toProfile?: UniversalProfile | null;
+  profile?: UniversalProfile | null;
+  anotherDA?: DigitalAsset | null;
+};
 
 // ---------------------------------------------------------------------------
 // Test fixtures and mocks
@@ -268,13 +280,13 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
           address: '0xda',
           digitalAsset: null,
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
-        } as any);
+        });
       },
     };
 
@@ -536,20 +548,20 @@ describe('Pipeline Step 5: VERIFY', () => {
       requiresVerification: [EntityCategory.DigitalAsset],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Event', 'e1', { id: 'e1', address: '0xda1' });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
           entityType: 'Event',
           entityId: 'e1',
           fkField: 'digitalAsset',
-        } as any);
-        ctx.queueEnrichment({
+        });
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda2',
           entityType: 'Event',
           entityId: 'e1',
           fkField: 'anotherDA',
-        } as any);
+        });
       },
     };
 
@@ -582,13 +594,13 @@ describe('Pipeline Step 5: VERIFY', () => {
       requiresVerification: [EntityCategory.UniversalProfile],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Event', 'e1', { id: 'e1' });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
           entityType: 'Event',
           entityId: 'e1',
           fkField: 'profile',
-        } as any);
+        });
       },
     };
 
@@ -629,13 +641,13 @@ describe('Pipeline Step 6: ENRICH', () => {
           address: '0xda1',
           digitalAsset: null,
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
-        } as any);
+        });
       },
     };
 
@@ -673,13 +685,13 @@ describe('Pipeline Step 6: ENRICH', () => {
           address: '0xinvalid',
           digitalAsset: null,
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xinvalid',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
-        } as any);
+        });
       },
     };
 
@@ -723,27 +735,27 @@ describe('Pipeline Step 6: ENRICH', () => {
           toProfile: null,
           digitalAsset: null,
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'fromProfile',
-        } as any);
-        ctx.queueEnrichment({
+        });
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup2',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'toProfile',
-        } as any);
-        ctx.queueEnrichment({
+        });
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
-        } as any);
+        });
       },
     };
 
@@ -785,13 +797,13 @@ describe('Pipeline Step 6: ENRICH', () => {
           address: '0xda1',
           // NOTE: 'digitalAsset' field intentionally omitted
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset', // This field doesn't exist on the entity instance
-        } as any);
+        });
       },
     };
 
@@ -846,27 +858,27 @@ describe('Pipeline Integration', () => {
           toProfile: null,
           digitalAsset: null,
         });
-        ctx.queueEnrichment({
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'fromProfile',
-        } as any);
-        ctx.queueEnrichment({
+        });
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup2',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'toProfile',
-        } as any);
-        ctx.queueEnrichment({
+        });
+        ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
-        } as any);
+        });
       },
     };
 

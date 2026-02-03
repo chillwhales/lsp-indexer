@@ -55,31 +55,31 @@ export class BatchContext implements IBatchContext {
    * Queue of enrichment requests, consumed by the pipeline during
    * the enrichment phase to populate FK references after verification.
    *
-   * Stored as Entity-constrained requests for type safety. Handlers provide
-   * fully-typed requests via queueEnrichment<T>(), which validates field names
-   * at compile time before storing here.
+   * Uses StoredEnrichmentRequest to allow heterogeneous storage of different
+   * entity types. Type safety is enforced at the handler call site via
+   * queueEnrichment<T>(), which validates fkField at compile time.
    */
-  private readonly enrichmentQueue: EnrichmentRequest<Entity>[] = [];
+  private readonly enrichmentQueue: StoredEnrichmentRequest[] = [];
 
   /**
    * Persist hints per entity type, used by the pipeline to determine
    * which entity types need merge-upsert behavior in Step 4.
    *
-   * Stored as Entity-constrained hints for type safety. Handlers provide
-   * fully-typed hints via setPersistHint<T>(), which validates field names
-   * at compile time before storing here.
+   * Uses StoredPersistHint to allow heterogeneous storage of different
+   * entity types. Type safety is enforced at the handler call site via
+   * setPersistHint<T>(), which validates mergeFields at compile time.
    */
-  private readonly persistHints = new Map<string, PersistHint<Entity>>();
+  private readonly persistHints = new Map<string, StoredPersistHint>();
 
   /**
    * Queue of clear requests for sub-entity deletion, consumed by
    * the pipeline in Step 3.5 before persisting derived entities.
    *
-   * Stored as Entity-constrained requests for type safety. Handlers provide
-   * fully-typed requests via queueClear<T>(), which validates field names
-   * at compile time before storing here.
+   * Uses StoredClearRequest to allow heterogeneous storage of different
+   * entity types. Type safety is enforced at the handler call site via
+   * queueClear<T>(), which validates fkField at compile time.
    */
-  private readonly clearQueue: ClearRequest<Entity>[] = [];
+  private readonly clearQueue: StoredClearRequest[] = [];
 
   // -------------------------------------------------------------------------
   // Entity storage
@@ -163,12 +163,12 @@ export class BatchContext implements IBatchContext {
   // -------------------------------------------------------------------------
 
   queueEnrichment<T extends Entity>(request: EnrichmentRequest<T>): void {
-    // Upcast to Entity-constrained request for storage.
-    // Type safety is enforced at the handler call site via the generic parameter.
-    this.enrichmentQueue.push(request as unknown as EnrichmentRequest<Entity>);
+    // The request is structurally compatible with StoredEnrichmentRequest
+    // Type safety is enforced at the handler call site via the generic parameter
+    this.enrichmentQueue.push(request);
   }
 
-  getEnrichmentQueue(): ReadonlyArray<EnrichmentRequest<Entity>> {
+  getEnrichmentQueue(): ReadonlyArray<StoredEnrichmentRequest> {
     return this.enrichmentQueue;
   }
 
@@ -177,12 +177,12 @@ export class BatchContext implements IBatchContext {
   // -------------------------------------------------------------------------
 
   setPersistHint<T extends Entity>(type: string, hint: PersistHint<T>): void {
-    // Upcast to Entity-constrained hint for storage.
-    // Type safety is enforced at the handler call site via the generic parameter.
-    this.persistHints.set(type, hint as unknown as PersistHint<Entity>);
+    // The hint is structurally compatible with StoredPersistHint
+    // Type safety is enforced at the handler call site via the generic parameter
+    this.persistHints.set(type, hint);
   }
 
-  getPersistHint(type: string): PersistHint<Entity> | undefined {
+  getPersistHint(type: string): StoredPersistHint | undefined {
     return this.persistHints.get(type);
   }
 
@@ -191,12 +191,12 @@ export class BatchContext implements IBatchContext {
   // -------------------------------------------------------------------------
 
   queueClear<T extends Entity>(request: ClearRequest<T>): void {
-    // Upcast to Entity-constrained request for storage.
-    // Type safety is enforced at the handler call site via the generic parameter.
-    this.clearQueue.push(request as unknown as ClearRequest<Entity>);
+    // The request is structurally compatible with StoredClearRequest
+    // Type safety is enforced at the handler call site via the generic parameter
+    this.clearQueue.push(request);
   }
 
-  getClearQueue(): ReadonlyArray<ClearRequest<Entity>> {
+  getClearQueue(): ReadonlyArray<StoredClearRequest> {
     return this.clearQueue;
   }
 }

@@ -5,15 +5,15 @@ import { FindOptionsWhere, In } from 'typeorm';
 import { BatchContext } from './batchContext';
 import { PluginRegistry } from './registry';
 import {
-  ClearRequest,
   Context,
-  EnrichmentRequest,
   Entity,
   EntityCategory,
   HandlerContext,
   IBatchContext,
   IMetadataWorkerPool,
-  PersistHint,
+  StoredClearRequest,
+  StoredEnrichmentRequest,
+  StoredPersistHint,
   VerificationResult,
 } from './types';
 
@@ -45,21 +45,18 @@ export interface PipelineConfig {
  * Type-safe clear operation for sub-entity deletion (Step 3.5).
  *
  * Uses TypeORM's find() to query sub-entities by FK field and parent IDs,
- * then removes all matches. The generic parameter T ensures the fkField
- * is validated as an actual FK field on the entity at the handler call site.
+ * then removes all matches. Type safety for fkField is enforced at the
+ * handler call site where queueClear<T>() validates field names at compile time.
  *
  * @param store - TypeORM store for database operations
  * @param request - Clear request with entity class, FK field, and parent IDs
  * @returns Number of entities removed
  */
-async function clearSubEntities<T extends Entity>(
-  store: Store,
-  request: ClearRequest<T>,
-): Promise<number> {
+async function clearSubEntities(store: Store, request: StoredClearRequest): Promise<number> {
   const existing = await store.find(request.subEntityClass, {
     where: {
       [request.fkField]: In(request.parentIds),
-    } as FindOptionsWhere<T>,
+    } as FindOptionsWhere<Entity>,
   });
 
   if (existing.length > 0) {
@@ -77,18 +74,18 @@ async function clearSubEntities<T extends Entity>(
  * upserting. This prevents data loss when different data key events populate
  * different fields of the same entity across batches.
  *
- * The generic parameter T ensures mergeFields are validated as writable
- * field names on the entity at the handler call site.
+ * Type safety for mergeFields is enforced at the handler call site where
+ * setPersistHint<T>() validates field names at compile time.
  *
  * @param store - TypeORM store for database operations
  * @param entities - Map of entities to upsert (from BatchContext)
  * @param persistHint - Hint with entity class and merge field names
  * @param _context - Subsquid context for logging
  */
-async function mergeUpsertEntities<T extends Entity>(
+async function mergeUpsertEntities(
   store: Store,
   entities: Map<string, unknown>,
-  persistHint: PersistHint<T>,
+  persistHint: StoredPersistHint,
   _context: Context,
 ): Promise<void> {
   const ids = [...entities.keys()];
@@ -96,7 +93,7 @@ async function mergeUpsertEntities<T extends Entity>(
   // Read existing records from DB
   const existing = await store.findBy(persistHint.entityClass, {
     id: In(ids),
-  } as FindOptionsWhere<T>);
+  } as FindOptionsWhere<Entity>);
 
   const existingMap = new Map(existing.map((e) => [e.id, e]));
 
@@ -111,49 +108,37 @@ async function mergeUpsertEntities<T extends Entity>(
   for (const [id, entity] of entities) {
     const prev = existingMap.get(id);
     if (prev) {
-      const typedEntity = entity as T;
+      const typedEntity = entity as Record<string, unknown>;
+      const typedPrev = prev as Record<string, unknown>;
       for (const field of persistHint.mergeFields) {
-        if (typedEntity[field] == null && prev[field] != null) {
-          // TypeScript can't prove this assignment is safe with dynamic keys,
-          // but we know it's valid because:
-          // 1. field is validated as a writable field on T (not a FK)
-          // 2. Both prev and typedEntity are typed as T
-          // 3. We're only copying when both have the same field
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (typedEntity[field] as any) = prev[field];
+        if (typedEntity[field] == null && typedPrev[field] != null) {
+          // Field names are validated at the handler call site via setPersistHint<T>()
+          typedEntity[field] = typedPrev[field];
         }
       }
     }
   }
 
-  await store.upsert([...entities.values()] as T[]);
+  await store.upsert([...entities.values()] as Entity[]);
 }
 
 /**
  * Type-safe FK enrichment operation for a single entity (Step 6).
  *
  * Sets the FK field on the entity to point to the newly created core entity
- * (UniversalProfile, DigitalAsset, or NFT). The generic parameter T ensures
- * the fkField is validated as an actual FK field on the entity at the handler
- * call site.
+ * (UniversalProfile, DigitalAsset, or NFT). Type safety for fkField is enforced
+ * at the handler call site where queueEnrichment<T>() validates field names
+ * at compile time.
  *
- * @param entity - Entity to enrich (from BatchContext entity bag)
- * @param request - Enrichment request with FK field name and stub
+ * @param entity - The entity instance to enrich
+ * @param request - Enrichment request with FK field name
  * @param fkStub - Core entity stub (just { id: string })
  */
-function enrichEntity<T extends Entity>(
-  entity: unknown,
-  request: EnrichmentRequest<T>,
-  fkStub: Entity,
-): void {
-  const typedEntity = entity as T;
-  // TypeScript can't prove this assignment is safe with dynamic keys,
-  // but we know it's valid because:
-  // 1. fkField is validated as a FK field on T (not a primitive)
-  // 2. fkStub conforms to the Entity constraint
-  // 3. The field exists (checked by caller with `in` operator)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (typedEntity[request.fkField] as any) = fkStub;
+function enrichEntity(entity: unknown, request: StoredEnrichmentRequest, fkStub: Entity): void {
+  const typedEntity = entity as Record<string, unknown>;
+  // Field name is validated at the handler call site via queueEnrichment<T>()
+  // The field existence is checked by the caller with the `in` operator
+  typedEntity[request.fkField] = fkStub;
 }
 
 /**
