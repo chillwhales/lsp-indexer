@@ -24,16 +24,22 @@ import { NFT, TokenIdDataChanged, Transfer } from '@chillwhales/typeorm';
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'NFT';
 
+// Lowercase zero address once for performance
+const ZERO_ADDRESS_LOWER = ZERO_ADDRESS.toLowerCase();
+
 const NFTHandler: EntityHandler = {
   name: 'nft',
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
   handle(hctx: HandlerContext, triggeredBy: string): void {
-    const nfts = new Map<string, NFT>();
+    // Start with existing NFTs from BatchContext to handle multi-trigger scenarios.
+    // When both LSP8Transfer and TokenIdDataChanged exist for the same tokenId in a batch,
+    // the handler is called twice. Without this check, the second call would overwrite
+    // NFTs created by the first call, losing mint/burn flags.
+    const existingNFTs = hctx.batchCtx.getEntities<NFT>(ENTITY_TYPE);
+    const nfts = new Map<string, NFT>(existingNFTs);
 
-    // ---------------------------------------------------------------------------
     // Process LSP8Transfer first (higher priority for mint/burn status)
-    // ---------------------------------------------------------------------------
     if (triggeredBy === 'LSP8Transfer') {
       const transfers = hctx.batchCtx.getEntities<Transfer>(triggeredBy);
 
@@ -41,7 +47,7 @@ const NFTHandler: EntityHandler = {
         const nftId = generateTokenId({ address: transfer.address, tokenId: transfer.tokenId });
 
         // Mint event: from === zero address
-        if (transfer.from.toLowerCase() === ZERO_ADDRESS.toLowerCase()) {
+        if (transfer.from.toLowerCase() === ZERO_ADDRESS_LOWER) {
           nfts.set(
             nftId,
             new NFT({
@@ -56,7 +62,7 @@ const NFTHandler: EntityHandler = {
           );
         }
         // Burn event: to === zero address
-        else if (transfer.to.toLowerCase() === ZERO_ADDRESS.toLowerCase()) {
+        else if (transfer.to.toLowerCase() === ZERO_ADDRESS_LOWER) {
           nfts.set(
             nftId,
             new NFT({
@@ -73,9 +79,7 @@ const NFTHandler: EntityHandler = {
       }
     }
 
-    // ---------------------------------------------------------------------------
     // Process TokenIdDataChanged (creates stubs only if not already created by Transfer)
-    // ---------------------------------------------------------------------------
     if (triggeredBy === 'TokenIdDataChanged') {
       const events = hctx.batchCtx.getEntities<TokenIdDataChanged>(triggeredBy);
 
@@ -100,9 +104,10 @@ const NFTHandler: EntityHandler = {
       }
     }
 
-    // ---------------------------------------------------------------------------
+    // Early return if no NFTs were created
+    if (nfts.size === 0) return;
+
     // Queue enrichment for digitalAsset FK on all NFTs
-    // ---------------------------------------------------------------------------
     for (const nft of nfts.values()) {
       hctx.batchCtx.queueEnrichment<NFT>({
         category: EntityCategory.DigitalAsset,
