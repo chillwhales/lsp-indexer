@@ -1,5 +1,6 @@
 // Core pipeline infrastructure
 export * from './batchContext';
+export * from './handlerHelpers';
 export * from './metadataWorkerPool';
 export * from './multicall';
 export * from './pipeline';
