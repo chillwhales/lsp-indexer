@@ -9,11 +9,11 @@
 ## Current Position
 
 - **Phase:** 1 of 5 — Handler Migration
-- **Plan:** 1 of 4 in current phase
+- **Plan:** 3 of 4 in current phase
 - **Status:** In progress
-- **Last activity:** 2026-02-06 — Completed 01-01-PLAN.md
+- **Last activity:** 2026-02-06 — Completed 01-03-PLAN.md
 
-Progress: ██░░░░░░░░ 1/4 phase plans (0/21 requirements)
+Progress: ██████░░░░ 3/4 phase plans (0/21 requirements)
 
 ## Phase Overview
 
@@ -27,7 +27,7 @@ Progress: ██░░░░░░░░ 1/4 phase plans (0/21 requirements)
 
 ## Performance Metrics
 
-- **Plans completed:** 1
+- **Plans completed:** 3
 - **Plans failed:** 0
 - **Phases completed:** 0
 - **Requirements delivered:** 0/21
@@ -44,6 +44,9 @@ Progress: ██░░░░░░░░ 1/4 phase plans (0/21 requirements)
 | queueDelete() separate from removeEntity()              | Distinguish DB-level deletion from in-memory bag removal               | 01-01   |
 | postVerification as opt-in boolean flag                 | Keeps all handlers as one type, existing handlers unaffected           | 01-01   |
 | topologicalSort on every registerEntityHandler()        | Supports test scenarios with manual registration                       | 01-01   |
+| Decimals uses postVerification: true for Step 5.5       | Needs verified DA entities, must run after verification                | 01-03   |
+| FormattedTokenId mutates NFTs in-place in BatchContext  | Already in bag from NFT handler, avoids duplicate entries              | 01-03   |
+| Unknown format returns null + warning (not raw tokenId) | V2 change from V1 — explicit null signals unknown format               | 01-03   |
 
 ### Discovered Todos
 
@@ -58,17 +61,18 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-06
-- **Activity:** Executed 01-01-PLAN.md — infrastructure changes for handler migration
-- **Outcome:** Async handler support, delete queue, Step 5.5 hook, topological ordering all working
-- **Next Step:** Execute 01-02-PLAN.md (totalSupply + ownedAssets handlers)
+- **Activity:** Executed 01-03-PLAN.md — decimals + formattedTokenId handlers
+- **Outcome:** Both handlers compile, decimals uses postVerification, formattedTokenId uses dependsOn + retroactive update
+- **Next Step:** Execute 01-04-PLAN.md (legacy code cleanup + deletion)
 
 ### Context for Next Session
 
 - All planning artifacts are in `.planning/`
 - Phase 1 infrastructure complete: async handlers, delete queue, postVerification, dependsOn, topological sort
-- 01-02 depends on this plan's infrastructure for handler implementations
-- 15 existing handlers compile without changes — all new features are opt-in
+- Handlers complete: decimals (postVerification), formattedTokenId (dependsOn, retroactive update)
+- Plan 01-02 runs in parallel (totalSupply + ownedAssets) — may or may not be done
+- 01-04 depends on all handler plans completing before deleting legacy code
 
 ---
 
-_Last updated: 2026-02-06_
+_Last updated: 2026-02-06T10:19Z_
