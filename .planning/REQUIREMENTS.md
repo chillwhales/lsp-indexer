@@ -78,35 +78,35 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status  |
 | ----------- | ----- | ------- |
-| HMIG-01     | —     | Pending |
-| HMIG-02     | —     | Pending |
-| HMIG-03     | —     | Pending |
-| HMIG-04     | —     | Pending |
-| HMIG-05     | —     | Pending |
-| HNDL-01     | —     | Pending |
-| HNDL-02     | —     | Pending |
-| HNDL-03     | —     | Pending |
-| META-01     | —     | Pending |
-| META-02     | —     | Pending |
-| META-03     | —     | Pending |
-| META-04     | —     | Pending |
-| META-05     | —     | Pending |
-| INFR-01     | —     | Pending |
-| INFR-02     | —     | Pending |
-| INTG-01     | —     | Pending |
-| INTG-02     | —     | Pending |
-| INTG-03     | —     | Pending |
-| INTG-04     | —     | Pending |
-| DEPL-01     | —     | Pending |
-| DEPL-02     | —     | Pending |
+| HMIG-01     | 1     | Pending |
+| HMIG-02     | 1     | Pending |
+| HMIG-03     | 1     | Pending |
+| HMIG-04     | 1     | Pending |
+| HMIG-05     | 1     | Pending |
+| HNDL-01     | 2     | Pending |
+| HNDL-02     | 2     | Pending |
+| HNDL-03     | 2     | Pending |
+| INFR-01     | 2     | Pending |
+| INFR-02     | 2     | Pending |
+| META-01     | 3     | Pending |
+| META-02     | 3     | Pending |
+| META-03     | 3     | Pending |
+| META-04     | 3     | Pending |
+| META-05     | 3     | Pending |
+| INTG-01     | 4     | Pending |
+| INTG-02     | 4     | Pending |
+| INTG-03     | 4     | Pending |
+| INTG-04     | 4     | Pending |
+| DEPL-01     | 5     | Pending |
+| DEPL-02     | 5     | Pending |
 
 **Coverage:**
 
 - v1 requirements: 21 total
-- Mapped to phases: 0
-- Unmapped: 21
+- Mapped to phases: 21
+- Unmapped: 0 ✓
 
 ---
 
 _Requirements defined: 2026-02-06_
-_Last updated: 2026-02-06 after initial definition_
+_Last updated: 2026-02-06 after roadmap creation_
