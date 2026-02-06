@@ -87,7 +87,7 @@ export function initFileLogger(logDir: string): void {
         mkdir: true,
         extension: '.log',
       },
-    }),
+    }) as pino.DestinationStream,
   );
 }
 

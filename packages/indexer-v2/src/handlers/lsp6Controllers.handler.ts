@@ -547,8 +547,9 @@ function linkSubEntitiesToController(
   subEntityType: string,
   controllers: Map<string, LSP6Controller>,
 ): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const subEntities = hctx.batchCtx.getEntities<any>(subEntityType);
+  const subEntities = hctx.batchCtx.getEntities<{ controller: LSP6Controller | null }>(
+    subEntityType,
+  );
 
   for (const [id, entity] of subEntities) {
     // Extract controller ID from sub-entity ID: "{upAddress} - {controllerAddress} - {suffix}"

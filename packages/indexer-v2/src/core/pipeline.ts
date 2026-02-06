@@ -220,7 +220,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   for (const type of rawEntityTypes) {
     const entities = batchCtx.getEntities(type);
     if (entities.size > 0) {
-      await context.store.insert([...entities.values()] as any[]);
+      await context.store.insert([...entities.values()] as Entity[]);
       persistRawLog.info(
         { entityType: type, count: entities.size },
         'Persisted raw event entities',

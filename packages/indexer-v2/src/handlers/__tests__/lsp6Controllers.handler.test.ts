@@ -9,7 +9,12 @@
  * - Enrichment: UP enrichment queued for both universalProfile and controllerProfile FKs
  */
 import { mergeEntitiesFromBatchAndDb } from '@/core/handlerHelpers';
-import { EntityCategory, type HandlerContext } from '@/core/types';
+import {
+  EntityCategory,
+  type HandlerContext,
+  type StoredClearRequest,
+  type StoredEnrichmentRequest,
+} from '@/core/types';
 import {
   DataChanged,
   LSP6AllowedCall,
@@ -48,7 +53,20 @@ const CONTROLLER_ID = `${UP_ADDRESS} - ${CONTROLLER_ADDRESS}`;
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
-function createMockBatchCtx() {
+function createMockBatchCtx(): {
+  getEntities: ReturnType<typeof vi.fn>;
+  addEntity: ReturnType<typeof vi.fn>;
+  hasEntities: ReturnType<typeof vi.fn>;
+  queueClear: ReturnType<typeof vi.fn>;
+  queueDelete: ReturnType<typeof vi.fn>;
+  queueEnrichment: ReturnType<typeof vi.fn>;
+  setPersistHint: ReturnType<typeof vi.fn>;
+  removeEntity: ReturnType<typeof vi.fn>;
+  _entityBags: Map<string, Map<string, unknown>>;
+  _clearQueue: unknown[];
+  _enrichmentQueue: unknown[];
+  _persistHints: Map<string, unknown>;
+} {
   const entityBags = new Map<string, Map<string, unknown>>();
   const clearQueue: unknown[] = [];
   const enrichmentQueue: unknown[] = [];
@@ -79,7 +97,7 @@ function createMockBatchCtx() {
 // ---------------------------------------------------------------------------
 // Mock HandlerContext helper
 // ---------------------------------------------------------------------------
-function createMockHandlerContext(batchCtx: ReturnType<typeof createMockBatchCtx>) {
+function createMockHandlerContext(batchCtx: ReturnType<typeof createMockBatchCtx>): HandlerContext {
   return {
     store: { findBy: vi.fn(() => Promise.resolve([])) } as unknown as HandlerContext['store'],
     context: {
@@ -208,14 +226,14 @@ describe('LSP6ControllersHandler - Delete and Recreate Cycle (HNDL-03)', () => {
 
     // queueClear should have been called for LSP6Permission
     const permClearCall = batchCtx._clearQueue.find(
-      (req: any) => req.subEntityClass === LSP6Permission,
+      (req) => (req as StoredClearRequest).subEntityClass === LSP6Permission,
     );
     expect(permClearCall).toBeDefined();
     expect(permClearCall).toMatchObject({
       subEntityClass: LSP6Permission,
       fkField: 'controller',
     });
-    expect((permClearCall as any).parentIds).toContain(CONTROLLER_ID);
+    expect((permClearCall as StoredClearRequest).parentIds).toContain(CONTROLLER_ID);
   });
 
   it('queues clear for AllowedCalls sub-entities when allowed calls data changes', async () => {
@@ -228,14 +246,14 @@ describe('LSP6ControllersHandler - Delete and Recreate Cycle (HNDL-03)', () => {
     await LSP6ControllersHandler.handle(hctx, 'DataChanged');
 
     const callsClearCall = batchCtx._clearQueue.find(
-      (req: any) => req.subEntityClass === LSP6AllowedCall,
+      (req) => (req as StoredClearRequest).subEntityClass === LSP6AllowedCall,
     );
     expect(callsClearCall).toBeDefined();
     expect(callsClearCall).toMatchObject({
       subEntityClass: LSP6AllowedCall,
       fkField: 'controller',
     });
-    expect((callsClearCall as any).parentIds).toContain(CONTROLLER_ID);
+    expect((callsClearCall as StoredClearRequest).parentIds).toContain(CONTROLLER_ID);
   });
 
   it('queues clear for AllowedDataKeys sub-entities when allowed data keys change', async () => {
@@ -248,14 +266,14 @@ describe('LSP6ControllersHandler - Delete and Recreate Cycle (HNDL-03)', () => {
     await LSP6ControllersHandler.handle(hctx, 'DataChanged');
 
     const keysClearCall = batchCtx._clearQueue.find(
-      (req: any) => req.subEntityClass === LSP6AllowedERC725YDataKey,
+      (req) => (req as StoredClearRequest).subEntityClass === LSP6AllowedERC725YDataKey,
     );
     expect(keysClearCall).toBeDefined();
     expect(keysClearCall).toMatchObject({
       subEntityClass: LSP6AllowedERC725YDataKey,
       fkField: 'controller',
     });
-    expect((keysClearCall as any).parentIds).toContain(CONTROLLER_ID);
+    expect((keysClearCall as StoredClearRequest).parentIds).toContain(CONTROLLER_ID);
   });
 
   it('does NOT queue clear when no sub-entities are created (length-only event)', async () => {
@@ -415,23 +433,31 @@ describe('LSP6ControllersHandler - Enrichment', () => {
     await LSP6ControllersHandler.handle(hctx, 'DataChanged');
 
     // Should queue enrichment for universalProfile (UP_ADDRESS)
-    const upEnrichment = batchCtx._enrichmentQueue.find(
-      (req: any) =>
-        req.address === UP_ADDRESS &&
-        req.entityType === 'LSP6Controller' &&
-        req.fkField === 'universalProfile',
-    );
+    const upEnrichment = batchCtx._enrichmentQueue.find((req) => {
+      const r = req as StoredEnrichmentRequest;
+      return (
+        r.address === UP_ADDRESS &&
+        r.entityType === 'LSP6Controller' &&
+        r.fkField === 'universalProfile'
+      );
+    });
     expect(upEnrichment).toBeDefined();
-    expect((upEnrichment as any).category).toBe(EntityCategory.UniversalProfile);
+    expect((upEnrichment as StoredEnrichmentRequest).category).toBe(
+      EntityCategory.UniversalProfile,
+    );
 
     // Should queue enrichment for controllerProfile (CONTROLLER_ADDRESS)
-    const controllerEnrichment = batchCtx._enrichmentQueue.find(
-      (req: any) =>
-        req.address === CONTROLLER_ADDRESS &&
-        req.entityType === 'LSP6Controller' &&
-        req.fkField === 'controllerProfile',
-    );
+    const controllerEnrichment = batchCtx._enrichmentQueue.find((req) => {
+      const r = req as StoredEnrichmentRequest;
+      return (
+        r.address === CONTROLLER_ADDRESS &&
+        r.entityType === 'LSP6Controller' &&
+        r.fkField === 'controllerProfile'
+      );
+    });
     expect(controllerEnrichment).toBeDefined();
-    expect((controllerEnrichment as any).category).toBe(EntityCategory.UniversalProfile);
+    expect((controllerEnrichment as StoredEnrichmentRequest).category).toBe(
+      EntityCategory.UniversalProfile,
+    );
   });
 });

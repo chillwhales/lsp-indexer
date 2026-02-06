@@ -14,7 +14,19 @@ import FollowerHandler from '../follower.handler';
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
-function createMockBatchCtx() {
+function createMockBatchCtx(): {
+  getEntities: ReturnType<typeof vi.fn>;
+  addEntity: ReturnType<typeof vi.fn>;
+  hasEntities: ReturnType<typeof vi.fn>;
+  queueDelete: ReturnType<typeof vi.fn>;
+  queueEnrichment: ReturnType<typeof vi.fn>;
+  queueClear: ReturnType<typeof vi.fn>;
+  setPersistHint: ReturnType<typeof vi.fn>;
+  removeEntity: ReturnType<typeof vi.fn>;
+  _entityBags: Map<string, Map<string, unknown>>;
+  _deleteQueue: unknown[];
+  _enrichmentQueue: unknown[];
+} {
   const entityBags = new Map<string, Map<string, unknown>>();
   const deleteQueue: unknown[] = [];
   const enrichmentQueue: unknown[] = [];
@@ -43,7 +55,7 @@ function createMockBatchCtx() {
 // ---------------------------------------------------------------------------
 // Mock HandlerContext helper
 // ---------------------------------------------------------------------------
-function createMockHandlerContext(batchCtx: ReturnType<typeof createMockBatchCtx>) {
+function createMockHandlerContext(batchCtx: ReturnType<typeof createMockBatchCtx>): HandlerContext {
   return {
     store: {} as HandlerContext['store'],
     context: {

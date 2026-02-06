@@ -1,3 +1,4 @@
+import type { Logger } from '@subsquid/logger';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   _resetFileLogger,
@@ -12,11 +13,23 @@ import {
 // ---------------------------------------------------------------------------
 
 /**
+ * Mock logger shape that satisfies the Subsquid Logger interface
+ * for testing purposes (info/warn/error/debug/child methods).
+ */
+interface MockLogger {
+  info: ReturnType<typeof vi.fn>;
+  warn: ReturnType<typeof vi.fn>;
+  error: ReturnType<typeof vi.fn>;
+  debug: ReturnType<typeof vi.fn>;
+  child: ReturnType<typeof vi.fn>;
+}
+
+/**
  * Creates a mock Subsquid Logger with vi.fn() methods.
  * The `child` method returns a new mock logger (simulating Logger.child()).
  */
-function createMockLogger() {
-  const childLogger = {
+function createMockLogger(): { logger: MockLogger; childLogger: MockLogger } {
+  const childLogger: MockLogger = {
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
@@ -24,7 +37,7 @@ function createMockLogger() {
     child: vi.fn(),
   };
 
-  const logger = {
+  const logger: MockLogger = {
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
@@ -43,7 +56,7 @@ describe('createStepLogger', () => {
   it('injects step field via child()', () => {
     const { logger } = createMockLogger();
 
-    createStepLogger(logger as any, 'EXTRACT');
+    createStepLogger(logger as unknown as Logger, 'EXTRACT');
 
     expect(logger.child).toHaveBeenCalledWith({ step: 'EXTRACT' });
   });
@@ -51,7 +64,7 @@ describe('createStepLogger', () => {
   it('includes blockRange when provided', () => {
     const { logger } = createMockLogger();
 
-    createStepLogger(logger as any, 'PERSIST_RAW', { from: 100, to: 200 });
+    createStepLogger(logger as unknown as Logger, 'PERSIST_RAW', { from: 100, to: 200 });
 
     expect(logger.child).toHaveBeenCalledWith({
       step: 'PERSIST_RAW',
@@ -62,11 +75,11 @@ describe('createStepLogger', () => {
   it('omits blockRange when undefined', () => {
     const { logger } = createMockLogger();
 
-    createStepLogger(logger as any, 'HANDLE');
+    createStepLogger(logger as unknown as Logger, 'HANDLE');
 
     expect(logger.child).toHaveBeenCalledWith({ step: 'HANDLE' });
     // Verify blockRange key is NOT present
-    const callArgs = logger.child.mock.calls[0][0];
+    const callArgs = logger.child.mock.calls[0][0] as Record<string, unknown>;
     expect(callArgs).not.toHaveProperty('blockRange');
   });
 });
@@ -143,7 +156,7 @@ describe('createDualLogger', () => {
   it('calls subsquid child logger info with attributes directly', () => {
     const { logger, childLogger } = createMockLogger();
 
-    const dualLogger = createDualLogger(logger as any, 'HANDLE');
+    const dualLogger = createDualLogger(logger as unknown as Logger, 'HANDLE');
 
     dualLogger.info({ entityType: 'Follow', count: 5 }, 'Processed');
 
@@ -153,7 +166,7 @@ describe('createDualLogger', () => {
   it('calls subsquid child logger warn with attributes directly', () => {
     const { logger, childLogger } = createMockLogger();
 
-    const dualLogger = createDualLogger(logger as any, 'VERIFY');
+    const dualLogger = createDualLogger(logger as unknown as Logger, 'VERIFY');
 
     dualLogger.warn({ address: '0xabc' }, 'Verification failed');
 
@@ -163,13 +176,13 @@ describe('createDualLogger', () => {
   it('passes attributes as objects, not JSON.stringify', () => {
     const { logger, childLogger } = createMockLogger();
 
-    const dualLogger = createDualLogger(logger as any, 'PERSIST_RAW');
+    const dualLogger = createDualLogger(logger as unknown as Logger, 'PERSIST_RAW');
 
     const attrs = { entityType: 'Follow', count: 5 };
     dualLogger.info(attrs, 'Processed entities');
 
     // Verify the first argument is an object, not a string
-    const firstArg = childLogger.info.mock.calls[0][0];
+    const firstArg = childLogger.info.mock.calls[0][0] as Record<string, unknown>;
     expect(typeof firstArg).toBe('object');
     expect(firstArg).toEqual({ entityType: 'Follow', count: 5 });
   });
@@ -177,7 +190,7 @@ describe('createDualLogger', () => {
   it('supports all four severity levels', () => {
     const { logger, childLogger } = createMockLogger();
 
-    const dualLogger = createDualLogger(logger as any, 'EXTRACT');
+    const dualLogger = createDualLogger(logger as unknown as Logger, 'EXTRACT');
 
     dualLogger.debug({ detail: 'trace' }, 'Debug message');
     dualLogger.info({ detail: 'progress' }, 'Info message');

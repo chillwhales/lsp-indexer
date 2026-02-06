@@ -134,7 +134,7 @@ export class VerificationCache {
   private evict(): void {
     while (this.cache.size > this.maxSize) {
       // Map.keys().next() returns the oldest entry
-      const oldest = this.cache.keys().next().value;
+      const oldest: string | undefined = this.cache.keys().next().value as string | undefined;
       if (oldest !== undefined) {
         this.cache.delete(oldest);
       }
