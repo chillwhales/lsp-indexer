@@ -1,54 +1,50 @@
 /**
- * Decimals Entity Handler
+ * Decimals Entity Handler (V2 — postVerification).
  *
- * Reads the `decimals()` value for newly discovered Digital Assets via
- * Multicall3. When new Digital Assets are verified during the batch,
- * this handler calls `decimals()` on each one using the Multicall3 contract
- * for efficient batched RPC calls. The result is stored as a `Decimals`
- * entity linked to the Digital Asset.
+ * Reads the `decimals()` value for newly verified Digital Assets via
+ * Multicall3. Runs in Step 5.5 (post-verification) because it needs
+ * the list of newly created DigitalAsset entities from the verify phase.
  *
  * Behavior:
- *   - Listens to EntityCategory.DigitalAsset creation events
+ *   - postVerification: true — runs after Step 5 (VERIFY), not Step 3
+ *   - Listens to transfer + data-change bag keys as a scheduling hint
+ *   - Reads newly verified DAs from batchCtx.getVerified(EntityCategory.DigitalAsset)
  *   - Batches `decimals()` calls via Multicall3.aggregate3Static (100 per batch)
- *   - Creates `Decimals` entities for assets that return a valid decimals value
- *   - Inserts new Decimals entities into the store (append-only)
+ *   - Creates Decimals entities in BatchContext + queues enrichment for digitalAsset FK
  *   - Handles Multicall3 failures gracefully (some assets may not have decimals)
  *
  * Port from v1: packages/indexer/src/app/handlers/decimalsHandler.ts
  */
 
 import { aggregate3StaticLatest } from '@/core/multicall';
-import { EntityCategory, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { LSP7DigitalAsset } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
-import { Decimals, DigitalAsset } from '@chillwhales/typeorm';
+import { Decimals } from '@chillwhales/typeorm';
 import { hexToNumber, isHex } from 'viem';
 
+// Entity type key used in the BatchContext entity bag
+const ENTITY_TYPE = 'Decimals';
+
+// Match V1 batch size for Multicall3 calls
 const BATCH_SIZE = 100;
 
-/**
- * NOTE: This handler uses the old EntityHandler interface and will not be
- * discovered by the registry until it is refactored in issue #105.
- * It remains as dead code for now.
- */
-const DecimalsHandler = {
+const DecimalsHandler: EntityHandler = {
   name: 'decimals',
-  listensTo: [EntityCategory.DigitalAsset],
-  events: ['create'],
+  listensToBag: ['LSP7Transfer', 'LSP8Transfer', 'DataChanged'],
+  postVerification: true,
 
-  async handle(hctx: HandlerContext, triggeredBy: EntityCategory, _event: string): Promise<void> {
-    const { store, context, batchCtx } = hctx;
+  async handle(hctx: HandlerContext, _triggeredBy: string): Promise<void> {
+    const { context, batchCtx } = hctx;
 
-    // Get newly verified entities from the triggering category
-    const newDAs = batchCtx.getVerified(triggeredBy).newEntities;
+    // Read newly verified Digital Assets from the verification phase
+    const newDAs = batchCtx.getVerified(EntityCategory.DigitalAsset).newEntities;
     if (newDAs.size === 0) return;
 
     const newDAsList = [...newDAs.values()];
-    const newDecimalEntities: Decimals[] = [];
-
     const batchesCount = Math.ceil(newDAsList.length / BATCH_SIZE);
 
-    // Process in batches of 100 (same as v1)
+    // Process in batches of 100 (same as V1)
     for (let index = 0; index < batchesCount; index++) {
       const start = index * BATCH_SIZE;
       const batch = newDAsList.slice(start, start + BATCH_SIZE);
@@ -81,15 +77,24 @@ const DecimalsHandler = {
 
         if (result.success && isHex(result.returnData) && result.returnData !== '0x') {
           try {
-            newDecimalEntities.push(
-              new Decimals({
-                id: da.id,
-                address: da.id,
-                // Cast is safe: verification.ts creates DigitalAsset instances for this category
-                digitalAsset: da as DigitalAsset,
-                value: hexToNumber(result.returnData),
-              }),
-            );
+            const entity = new Decimals({
+              id: da.id,
+              address: da.id,
+              digitalAsset: null, // FK initially null — resolved by enrichment queue
+              value: hexToNumber(result.returnData),
+            });
+
+            // Add to BatchContext — pipeline persists in Step 5.5 persist phase
+            batchCtx.addEntity(ENTITY_TYPE, entity.id, entity);
+
+            // Queue enrichment for digitalAsset FK
+            batchCtx.queueEnrichment<Decimals>({
+              category: EntityCategory.DigitalAsset,
+              address: da.id,
+              entityType: ENTITY_TYPE,
+              entityId: entity.id,
+              fkField: 'digitalAsset',
+            });
           } catch (error) {
             // Skip this result if hexToNumber throws (e.g., value out of range)
             context.log.warn(
@@ -102,17 +107,6 @@ const DecimalsHandler = {
           }
         }
       });
-    }
-
-    if (newDecimalEntities.length > 0) {
-      context.log.info(
-        JSON.stringify({
-          message: "Inserting new 'Decimals' entities.",
-          decimalsEntitiesCount: newDecimalEntities.length,
-        }),
-      );
-
-      await store.insert(newDecimalEntities);
     }
   },
 };

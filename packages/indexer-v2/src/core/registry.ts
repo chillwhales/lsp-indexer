@@ -148,6 +148,7 @@ export class PluginRegistry implements IPluginRegistry {
     }
 
     console.info(`[Registry] Discovered ${this.entityHandlers.length} entity handlers`);
+    this.topologicalSort();
   }
 
   /**
@@ -176,6 +177,101 @@ export class PluginRegistry implements IPluginRegistry {
       );
     }
     this.entityHandlers.push(handler);
+    this.topologicalSort();
+  }
+
+  // -------------------------------------------------------------------------
+  // Topological sort
+  // -------------------------------------------------------------------------
+
+  /**
+   * Sort entityHandlers in-place by `dependsOn` declarations using Kahn's algorithm.
+   *
+   * Handlers without `dependsOn` maintain their relative insertion order (stable sort).
+   * Handlers with dependencies are placed after all their dependencies.
+   *
+   * @throws Error if a handler references an unknown dependency name
+   * @throws Error if a circular dependency is detected
+   */
+  private topologicalSort(): void {
+    const handlers = this.entityHandlers;
+    if (handlers.length <= 1) return;
+
+    // Build name → index map
+    const nameToIndex = new Map<string, number>();
+    for (let i = 0; i < handlers.length; i++) {
+      nameToIndex.set(handlers[i].name, i);
+    }
+
+    // Validate all dependsOn references exist
+    for (const handler of handlers) {
+      if (!handler.dependsOn) continue;
+      for (const dep of handler.dependsOn) {
+        if (!nameToIndex.has(dep)) {
+          throw new Error(
+            `[Registry] Handler '${handler.name}' depends on unknown handler '${dep}'`,
+          );
+        }
+      }
+    }
+
+    // Compute in-degree and adjacency list
+    const inDegree = new Array<number>(handlers.length).fill(0);
+    const adjacency = new Map<number, number[]>(); // dependency index → dependent indices
+
+    for (let i = 0; i < handlers.length; i++) {
+      const deps = handlers[i].dependsOn;
+      if (!deps) continue;
+      for (const dep of deps) {
+        const depIndex = nameToIndex.get(dep);
+        if (depIndex === undefined) continue; // validated above, defensive guard
+        let dependents = adjacency.get(depIndex);
+        if (!dependents) {
+          dependents = [];
+          adjacency.set(depIndex, dependents);
+        }
+        dependents.push(i);
+        inDegree[i]++;
+      }
+    }
+
+    // Kahn's algorithm: start with handlers that have 0 in-degree
+    const queue: number[] = [];
+    for (let i = 0; i < handlers.length; i++) {
+      if (inDegree[i] === 0) {
+        queue.push(i);
+      }
+    }
+
+    const sorted: EntityHandler[] = [];
+    let queuePos = 0;
+
+    while (queuePos < queue.length) {
+      const current = queue[queuePos++];
+      sorted.push(handlers[current]);
+
+      const dependents = adjacency.get(current);
+      if (dependents) {
+        for (const depIdx of dependents) {
+          inDegree[depIdx]--;
+          if (inDegree[depIdx] === 0) {
+            queue.push(depIdx);
+          }
+        }
+      }
+    }
+
+    // Cycle detection: if not all handlers were processed, there's a cycle
+    if (sorted.length !== handlers.length) {
+      const remaining = handlers.filter((_, i) => inDegree[i] > 0).map((h) => h.name);
+      throw new Error(
+        `[Registry] Circular handler dependency detected among: ${remaining.join(', ')}`,
+      );
+    }
+
+    // Replace in-place
+    this.entityHandlers.length = 0;
+    this.entityHandlers.push(...sorted);
   }
 
   // -------------------------------------------------------------------------
@@ -194,6 +290,13 @@ export class PluginRegistry implements IPluginRegistry {
     return [...this.eventPlugins.values()];
   }
 
+  /**
+   * Returns all entity handlers in dependency order.
+   *
+   * Handlers are topologically sorted by their `dependsOn` declarations,
+   * so dependents always appear after their dependencies. Handlers without
+   * `dependsOn` maintain their relative insertion order (stable sort).
+   */
   getAllEntityHandlers(): EntityHandler[] {
     return [...this.entityHandlers];
   }
