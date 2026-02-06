@@ -9,11 +9,11 @@ Requirements for completing the V2 rewrite. Each maps to roadmap phases.
 
 ### Handler Migration
 
-- [ ] **HMIG-01**: User can see totalSupply handler running as standalone EntityHandler with `listensToBag: ['LSP7Transfer', 'LSP8Transfer']`
-- [ ] **HMIG-02**: User can see ownedAssets handler running as standalone EntityHandler with `listensToBag: ['LSP7Transfer', 'LSP8Transfer']`
-- [ ] **HMIG-03**: User can see decimals handler adapted to new EntityHandler interface
-- [ ] **HMIG-04**: User can see FormattedTokenId handler populating `NFT.formattedTokenId` based on LSP8TokenIdFormat
-- [ ] **HMIG-05**: User can verify no legacy code remains — DataKeyPlugin interface, populate helpers, handler helpers all deleted
+- [x] **HMIG-01**: User can see totalSupply handler running as standalone EntityHandler with `listensToBag: ['LSP7Transfer', 'LSP8Transfer']`
+- [x] **HMIG-02**: User can see ownedAssets handler running as standalone EntityHandler with `listensToBag: ['LSP7Transfer', 'LSP8Transfer']`
+- [x] **HMIG-03**: User can see decimals handler adapted to new EntityHandler interface
+- [x] **HMIG-04**: User can see FormattedTokenId handler populating `NFT.formattedTokenId` based on LSP8TokenIdFormat
+- [x] **HMIG-05**: User can verify no legacy code remains — DataKeyPlugin interface, populate helpers, handler helpers all deleted
 
 ### New Handlers
 
@@ -78,11 +78,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status   |
 | ----------- | ----- | -------- |
-| HMIG-01     | 1     | Pending  |
-| HMIG-02     | 1     | Pending  |
-| HMIG-03     | 1     | Pending  |
-| HMIG-04     | 1     | Pending  |
-| HMIG-05     | 1     | Pending  |
+| HMIG-01     | 1     | Complete |
+| HMIG-02     | 1     | Complete |
+| HMIG-03     | 1     | Complete |
+| HMIG-04     | 1     | Complete |
+| HMIG-05     | 1     | Complete |
 | HNDL-01     | 2     | Complete |
 | HNDL-02     | 2     | Complete |
 | HNDL-03     | 2     | Complete |
