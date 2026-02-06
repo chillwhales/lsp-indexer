@@ -1,21 +1,40 @@
+/**
+ * Pipeline orchestrator for the V2 indexer.
+ *
+ * Processes a single batch of blocks through the 6-step enrichment queue pipeline:
+ *   1. EXTRACT         — EventPlugins decode events → BatchContext + enrichment queue
+ *   2. PERSIST RAW     — Pipeline batch-persists raw event entities (null FKs)
+ *   3. HANDLE          — EntityHandlers create derived entities → BatchContext + enrichment queue
+ *   4. PERSIST DERIVED — Pipeline batch-persists handler entities (null FKs)
+ *   5. VERIFY          — Batch supportsInterface() → create core entities for valid addresses
+ *   6. ENRICH          — Batch UPDATE FK references on already-persisted entities
+ *
+ * All logging uses structured attributes via createStepLogger from the logger module.
+ * No JSON.stringify calls — attributes are passed as native objects for jq filtering.
+ */
+
 import { generateTokenId } from '@/utils';
 import { DigitalAsset, NFT, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
-import { FindOptionsWhere, In } from 'typeorm';
+import { In } from 'typeorm';
+
 import { BatchContext } from './batchContext';
+import { createStepLogger } from './logger';
 import { PluginRegistry } from './registry';
 import {
   Context,
   Entity,
   EntityCategory,
-  HandlerContext,
-  IBatchContext,
   IMetadataWorkerPool,
   StoredClearRequest,
   StoredEnrichmentRequest,
   StoredPersistHint,
   VerificationResult,
 } from './types';
+
+// ---------------------------------------------------------------------------
+// Public types
+// ---------------------------------------------------------------------------
 
 /**
  * Function signature for address verification.
@@ -56,7 +75,7 @@ async function clearSubEntities(store: Store, request: StoredClearRequest): Prom
   const existing = await store.find(request.subEntityClass, {
     where: {
       [request.fkField]: In(request.parentIds),
-    } as FindOptionsWhere<Entity>,
+    },
   });
 
   if (existing.length > 0) {
@@ -80,21 +99,18 @@ async function clearSubEntities(store: Store, request: StoredClearRequest): Prom
  * @param store - TypeORM store for database operations
  * @param entities - Map of entities to upsert (from BatchContext)
  * @param persistHint - Hint with entity class and merge field names
- * @param _context - Subsquid context for logging
  */
 async function mergeUpsertEntities(
   store: Store,
   entities: Map<string, unknown>,
   persistHint: StoredPersistHint,
-  _context: Context,
 ): Promise<void> {
   const ids = [...entities.keys()];
 
   // Read existing records from DB
   const existing = await store.findBy(persistHint.entityClass, {
     id: In(ids),
-  } as FindOptionsWhere<Entity>);
-
+  });
   const existingMap = new Map(existing.map((e) => [e.id, e]));
 
   // Merge: preserve existing non-null values when the new entity has null.
@@ -109,7 +125,7 @@ async function mergeUpsertEntities(
     const prev = existingMap.get(id);
     if (prev) {
       const typedEntity = entity as Record<string, unknown>;
-      const typedPrev = prev as Record<string, unknown>;
+      const typedPrev = prev as unknown as Record<string, unknown>;
       for (const field of persistHint.mergeFields) {
         if (typedEntity[field] == null && typedPrev[field] != null) {
           // Field names are validated at the handler call site via setPersistHint<T>()
@@ -160,7 +176,16 @@ function enrichEntity(entity: unknown, request: StoredEnrichmentRequest, fkStub:
  */
 export async function processBatch(context: Context, config: PipelineConfig): Promise<void> {
   const { registry, verifyAddresses, workerPool } = config;
-  const batchCtx: IBatchContext = new BatchContext();
+  const batchCtx = new BatchContext();
+
+  // Compute block range for structured log context
+  const blockRange =
+    context.blocks.length > 0
+      ? {
+          from: context.blocks[0].header.height,
+          to: context.blocks[context.blocks.length - 1].header.height,
+        }
+      : undefined;
 
   // ---------------------------------------------------------------------------
   // Step 1: EXTRACT
@@ -190,18 +215,15 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // Batch-persist all raw event entities from step 1. These are inserted with
   // null FK references. FK resolution happens in step 6 after verification.
   // ---------------------------------------------------------------------------
+  const persistRawLog = createStepLogger(context.log, 'PERSIST_RAW', blockRange);
   const rawEntityTypes = new Set(batchCtx.getEntityTypeKeys());
-
   for (const type of rawEntityTypes) {
     const entities = batchCtx.getEntities(type);
     if (entities.size > 0) {
-      await context.store.insert([...entities.values()] as { id: string }[]);
-      context.log.info(
-        JSON.stringify({
-          message: 'Persisted raw event entities',
-          entityType: type,
-          count: entities.size,
-        }),
+      await context.store.insert([...entities.values()] as Entity[]);
+      persistRawLog.info(
+        { entityType: type, count: entities.size },
+        'Persisted raw event entities',
       );
     }
   }
@@ -221,7 +243,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // Step 2 persistence. Attempting to add to a sealed type throws an error
   // to prevent silent data loss (Step 4 skips raw types).
   // ---------------------------------------------------------------------------
-  const handlerCtx: HandlerContext = {
+  const handlerCtx = {
     store: context.store,
     context,
     isHead: context.isHead,
@@ -244,18 +266,19 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // queue clear requests for sub-entities that need delete-then-reinsert
   // behavior (e.g., LSP6 permissions, allowed calls).
   // ---------------------------------------------------------------------------
+  const clearLog = createStepLogger(context.log, 'CLEAR_SUB_ENTITIES', blockRange);
   const clearQueue = batchCtx.getClearQueue();
   if (clearQueue.length > 0) {
     for (const request of clearQueue) {
       const removedCount = await clearSubEntities(context.store, request);
       if (removedCount > 0) {
-        context.log.info(
-          JSON.stringify({
-            message: 'Cleared sub-entities',
+        clearLog.info(
+          {
             subEntityClass: request.subEntityClass.name,
             parentCount: request.parentIds.length,
             removedCount,
-          }),
+          },
+          'Cleared sub-entities',
         );
       }
     }
@@ -267,17 +290,15 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // removal (e.g., OwnedToken/OwnedAsset with zero balance). Deletions run
   // BEFORE upserts to handle FK ordering (delete children before parents).
   // ---------------------------------------------------------------------------
+  const deleteLog = createStepLogger(context.log, 'DELETE_ENTITIES', blockRange);
   const deleteQueue = batchCtx.getDeleteQueue();
   if (deleteQueue.length > 0) {
     for (const request of deleteQueue) {
       if (request.entities.length > 0) {
         await context.store.remove(request.entities);
-        context.log.info(
-          JSON.stringify({
-            message: 'Deleted entities',
-            entityClass: request.entityClass.name,
-            count: request.entities.length,
-          }),
+        deleteLog.info(
+          { entityClass: request.entityClass.name, count: request.entities.length },
+          'Deleted entities',
         );
       }
     }
@@ -291,6 +312,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // non-null values in the specified mergeFields. Skip entity types already
   // persisted in step 2.
   // ---------------------------------------------------------------------------
+  const persistDerivedLog = createStepLogger(context.log, 'PERSIST_DERIVED', blockRange);
   const allEntityTypes = batchCtx.getEntityTypeKeys();
   const derivedTypes = allEntityTypes.filter((type) => !rawEntityTypes.has(type));
 
@@ -299,26 +321,19 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     if (entities.size === 0) continue;
 
     const persistHint = batchCtx.getPersistHint(type);
-
     if (persistHint) {
       // Merge-upsert: use type-safe helper to preserve non-null merge fields
-      await mergeUpsertEntities(context.store, entities, persistHint, context);
-      context.log.info(
-        JSON.stringify({
-          message: 'Persisted derived entities (merge-upsert)',
-          entityType: type,
-          count: entities.size,
-        }),
+      await mergeUpsertEntities(context.store, entities, persistHint);
+      persistDerivedLog.info(
+        { entityType: type, count: entities.size, strategy: 'merge-upsert' },
+        'Persisted derived entities',
       );
     } else {
       // Simple upsert (default)
-      await context.store.upsert([...entities.values()] as { id: string }[]);
-      context.log.info(
-        JSON.stringify({
-          message: 'Persisted derived entities',
-          entityType: type,
-          count: entities.size,
-        }),
+      await context.store.upsert([...entities.values()] as Entity[]);
+      persistDerivedLog.info(
+        { entityType: type, count: entities.size },
+        'Persisted derived entities',
       );
     }
   }
@@ -341,7 +356,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     if (request.category !== EntityCategory.NFT) {
       let addressSet = addressesByCategory.get(request.category);
       if (!addressSet) {
-        addressSet = new Set();
+        addressSet = new Set<string>();
         addressesByCategory.set(request.category, addressSet);
       }
       addressSet.add(request.address);
@@ -350,7 +365,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     // Group all requests by (entityType, entityId) for FK assignment
     let entityMap = grouped.get(request.entityType);
     if (!entityMap) {
-      entityMap = new Map();
+      entityMap = new Map<string, StoredEnrichmentRequest[]>();
       grouped.set(request.entityType, entityMap);
     }
     let requestList = entityMap.get(request.entityId);
@@ -362,7 +377,9 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   }
 
   // Step 5: VERIFY — Batch-verify UP and DA addresses in parallel
+  const verifyLog = createStepLogger(context.log, 'VERIFY', blockRange);
   const categories = [...addressesByCategory.keys()];
+
   await Promise.all(
     categories.map(async (category) => {
       const addresses = addressesByCategory.get(category);
@@ -371,27 +388,26 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       const result = await verifyAddresses(category, addresses, context.store, context);
       batchCtx.setVerified(category, result);
 
-      context.log.info(
-        JSON.stringify({
-          message: `Verified '${category}' entities`,
+      verifyLog.info(
+        {
+          category: `${category}`,
           newCount: result.new.size,
           validCount: result.valid.size,
           invalidCount: result.invalid.size,
-        }),
+        },
+        `Verified '${category}' entities`,
       );
     }),
   );
 
   // Persist core entities (UP, DA) for newly verified addresses
-  const allNewEntities: { id: string }[] = [];
+  const allNewEntities: Entity[] = [];
   for (const category of categories) {
     const result = batchCtx.getVerified(category);
     if (result.newEntities.size > 0) {
-      context.log.info(
-        JSON.stringify({
-          message: `Saving '${category}' entities`,
-          count: result.newEntities.size,
-        }),
+      verifyLog.info(
+        { category: `${category}`, count: result.newEntities.size },
+        `Saving '${category}' entities`,
       );
       allNewEntities.push(...result.newEntities.values());
     }
@@ -417,23 +433,24 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   }
 
   // Persist any entities created by post-verification handlers
+  const postVerifyLog = createStepLogger(context.log, 'PERSIST_DERIVED', blockRange);
   const postVerifyTypes = batchCtx
     .getEntityTypeKeys()
     .filter((type) => !rawEntityTypes.has(type) && !derivedTypes.includes(type));
+
   for (const type of postVerifyTypes) {
     const entities = batchCtx.getEntities(type);
     if (entities.size === 0) continue;
-    await context.store.upsert([...entities.values()] as { id: string }[]);
-    context.log.info(
-      JSON.stringify({
-        message: 'Persisted post-verification entities',
-        entityType: type,
-        count: entities.size,
-      }),
+
+    await context.store.upsert([...entities.values()] as Entity[]);
+    postVerifyLog.info(
+      { entityType: type, count: entities.size, phase: 'post-verification' },
+      'Persisted post-verification entities',
     );
   }
 
   // Step 6: ENRICH — Batch update FK fields per entity type
+  const enrichLog = createStepLogger(context.log, 'ENRICH', blockRange);
   for (const [entityType, entityMap] of grouped) {
     const entities = batchCtx.getEntities(entityType);
     const entitiesToUpdate: unknown[] = [];
@@ -450,20 +467,15 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
           request.category === EntityCategory.NFT
             ? true
             : batchCtx.isValid(request.category, request.address);
-
         if (!valid) continue; // FK stays null for invalid addresses
 
         // Validate that the FK field exists on the entity before assignment.
         // TypeORM entities use Object.assign(this, props) in the constructor,
         // so FK fields only exist on the instance if explicitly passed (even as null).
-        if (!(request.fkField in (entity as Record<string, unknown>))) {
-          context.log.warn(
-            JSON.stringify({
-              message: 'Skipping enrichment: FK field not found on entity',
-              entityType,
-              entityId,
-              fkField: request.fkField,
-            }),
+        if (!(request.fkField in (entity as object))) {
+          enrichLog.warn(
+            { entityType, entityId, fkField: request.fkField },
+            'Skipping enrichment: FK field not found on entity',
           );
           continue;
         }
@@ -480,13 +492,10 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     }
 
     if (entitiesToUpdate.length > 0) {
-      await context.store.upsert(entitiesToUpdate as { id: string }[]);
-      context.log.info(
-        JSON.stringify({
-          message: 'Enriched entities with FK references',
-          entityType,
-          count: entitiesToUpdate.length,
-        }),
+      await context.store.upsert(entitiesToUpdate as Entity[]);
+      enrichLog.info(
+        { entityType, count: entitiesToUpdate.length },
+        'Enriched entities with FK references',
       );
     }
   }
@@ -501,7 +510,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
  * These are TypeORM entity instances with only the `id` field set,
  * used as foreign key references.
  */
-function createFkStub(request: StoredEnrichmentRequest): { id: string } {
+function createFkStub(request: StoredEnrichmentRequest): Entity {
   switch (request.category) {
     case EntityCategory.UniversalProfile:
       return new UniversalProfile({ id: request.address });

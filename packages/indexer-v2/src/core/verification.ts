@@ -1,22 +1,32 @@
+/**
+ * Address verification module for the V2 indexer pipeline.
+ *
+ * Verifies blockchain addresses via supportsInterface() multicalls with
+ * 3-level error fallback (parallel → per-batch → per-address). Uses an
+ * LRU cache to avoid redundant on-chain calls across batches.
+ *
+ * Categories: UniversalProfile (LSP0), DigitalAsset (LSP7/LSP8), NFT (no-op).
+ */
+
 import { LSP0ERC725Account, LSP7DigitalAsset } from '@chillwhales/abi';
-import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
 import { INTERFACE_ID_LSP0 } from '@lukso/lsp0-contracts';
 import { INTERFACE_ID_LSP7, INTERFACE_ID_LSP7_PREVIOUS } from '@lukso/lsp7-contracts';
 import { INTERFACE_ID_LSP8, INTERFACE_ID_LSP8_PREVIOUS } from '@lukso/lsp8-contracts';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
-import { hexToBool, isHex } from 'viem';
+import { type Hex, hexToBool, isHex } from 'viem';
+
 import { aggregate3StaticLatest } from './multicall';
 import { Context, EntityCategory, VerificationResult } from './types';
 
 // ---------------------------------------------------------------------------
-// Interface version definitions per EntityCategory
+// Interface version constants
 // ---------------------------------------------------------------------------
 
 interface InterfaceVersion {
   interfaceId: string;
-  callData: string;
+  callData: Hex;
 }
 
 const UP_VERSIONS: InterfaceVersion[] = [
@@ -24,7 +34,7 @@ const UP_VERSIONS: InterfaceVersion[] = [
     interfaceId: INTERFACE_ID_LSP0,
     callData: LSP0ERC725Account.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP0,
-    }),
+    }) as Hex,
   },
 ];
 
@@ -33,37 +43,37 @@ const DA_VERSIONS: InterfaceVersion[] = [
     interfaceId: INTERFACE_ID_LSP7,
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP7,
-    }),
+    }) as Hex,
   },
   {
     interfaceId: INTERFACE_ID_LSP8,
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP8,
-    }),
+    }) as Hex,
   },
   {
     interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.14.0'],
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.14.0'],
-    }),
+    }) as Hex,
   },
   {
     interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.14.0'],
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.14.0'],
-    }),
+    }) as Hex,
   },
   {
     interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.12.0'],
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.12.0'],
-    }),
+    }) as Hex,
   },
   {
     interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.12.0'],
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.12.0'],
-    }),
+    }) as Hex,
   },
 ];
 
@@ -81,11 +91,10 @@ type CachedResult = 'valid' | 'invalid';
  * Key format: `${category}:${address}` — e.g. `UniversalProfile:0xabc...`
  */
 export class VerificationCache {
-  private cache: Map<string, CachedResult>;
+  private cache = new Map<string, CachedResult>();
   readonly maxSize: number;
 
   constructor(maxSize = 50_000) {
-    this.cache = new Map();
     this.maxSize = maxSize;
   }
 
@@ -125,7 +134,7 @@ export class VerificationCache {
   private evict(): void {
     while (this.cache.size > this.maxSize) {
       // Map.keys().next() returns the oldest entry
-      const oldest = this.cache.keys().next().value as string | undefined;
+      const oldest: string | undefined = this.cache.keys().next().value as string | undefined;
       if (oldest !== undefined) {
         this.cache.delete(oldest);
       }
@@ -134,10 +143,26 @@ export class VerificationCache {
 }
 
 // ---------------------------------------------------------------------------
+// Public config type
+// ---------------------------------------------------------------------------
+
+export interface VerificationConfig {
+  /** LRU cache max size. Default: 50_000 */
+  cacheMaxSize?: number;
+  /** Multicall batch size. Default: 100 */
+  batchSize?: number;
+}
+
+// ---------------------------------------------------------------------------
 // Multicall helpers
 // ---------------------------------------------------------------------------
 
 const DEFAULT_BATCH_SIZE = 100;
+
+interface MulticallResult {
+  success: boolean;
+  returnData: string;
+}
 
 /**
  * Batch-verify a list of addresses against a single interface version
@@ -150,15 +175,14 @@ const DEFAULT_BATCH_SIZE = 100;
 async function multicallVerify(
   context: Context,
   addresses: string[],
-  callData: string,
+  callData: Hex,
   batchSize: number,
 ): Promise<boolean[]> {
   if (addresses.length === 0) return [];
 
   // Build batched multicall promises
-  const promises: Promise<Aggregate3StaticReturn>[] = [];
+  const promises: Promise<MulticallResult[]>[] = [];
   const batchCount = Math.ceil(addresses.length / batchSize);
-
   for (let i = 0; i < batchCount; i++) {
     const start = i * batchSize;
     const batch = addresses.slice(start, start + batchSize);
@@ -166,13 +190,12 @@ async function multicallVerify(
       aggregate3StaticLatest(
         context,
         batch.map((target) => ({ target, allowFailure: true, callData })),
-      ),
+      ) as Promise<MulticallResult[]>,
     );
   }
 
   // Execute with 3-level fallback (same as v1)
-  const result: Aggregate3StaticReturn = [];
-
+  const result: MulticallResult[] = [];
   try {
     // Level 1: All batches in parallel
     result.push(...(await Promise.all(promises)).flatMap((arr) => arr));
@@ -188,9 +211,9 @@ async function multicallVerify(
         for (const target of batch) {
           try {
             result.push(
-              ...(await aggregate3StaticLatest(context, [
+              ...((await aggregate3StaticLatest(context, [
                 { target, allowFailure: true, callData },
-              ])),
+              ])) as MulticallResult[]),
             );
           } catch {
             // Address verification failed entirely — treat as invalid
@@ -215,6 +238,17 @@ async function multicallVerify(
 }
 
 // ---------------------------------------------------------------------------
+// Internal verification result type (before mapping to public API)
+// ---------------------------------------------------------------------------
+
+interface InternalVerificationResult {
+  newAddresses: Set<string>;
+  validAddresses: Set<string>;
+  invalidAddresses: Set<string>;
+  newEntities: Map<string, { id: string }>;
+}
+
+// ---------------------------------------------------------------------------
 // Category-specific verification strategies
 // ---------------------------------------------------------------------------
 
@@ -231,12 +265,7 @@ async function verifyWithInterface(
   versions: InterfaceVersion[],
   cache: VerificationCache,
   batchSize: number,
-): Promise<{
-  newAddresses: Set<string>;
-  validAddresses: Set<string>;
-  invalidAddresses: Set<string>;
-  newEntities: Map<string, { id: string }>;
-}> {
+): Promise<InternalVerificationResult> {
   const addressArray = [...addresses];
 
   // Step 1: Check LRU cache
@@ -265,7 +294,7 @@ async function verifyWithInterface(
   }
 
   // Step 2: Check DB for persisted entities
-  const knownEntities: Set<string> =
+  const knownEntities =
     category === EntityCategory.UniversalProfile
       ? await store
           .findBy(UniversalProfile, { id: In(uncached) })
@@ -280,7 +309,6 @@ async function verifyWithInterface(
   }
 
   const needsOnChain = uncached.filter((addr) => !knownEntities.has(addr));
-
   if (needsOnChain.length === 0) {
     return {
       newAddresses: new Set(),
@@ -297,17 +325,16 @@ async function verifyWithInterface(
   for (const { interfaceId, callData } of versions) {
     if (unverified.length === 0) break;
 
+    // Structured logging: step=VERIFY is added inline since this is a helper
+    // module called from the pipeline's VERIFY step
     context.log.info(
-      JSON.stringify({
-        message: `Verifying supportsInterface for ${category}`,
-        interfaceId,
-        unverifiedCount: unverified.length,
-      }),
+      { step: 'VERIFY', interfaceId, unverifiedCount: unverified.length },
+      `Verifying supportsInterface for ${category}`,
     );
 
     const results = await multicallVerify(context, unverified, callData, batchSize);
-
     const stillUnverified: string[] = [];
+
     for (let i = 0; i < unverified.length; i++) {
       if (results[i]) {
         newlyVerified.add(unverified[i]);
@@ -349,13 +376,6 @@ async function verifyWithInterface(
 // Public API
 // ---------------------------------------------------------------------------
 
-export interface VerificationConfig {
-  /** LRU cache max size. Default: 50_000 */
-  cacheMaxSize?: number;
-  /** Multicall batch size. Default: 100 */
-  batchSize?: number;
-}
-
 /**
  * Creates the `verifyAddresses` function that the Pipeline Orchestrator injects.
  *
@@ -368,7 +388,14 @@ export interface VerificationConfig {
  * // Pass to PipelineConfig.verifyAddresses
  * ```
  */
-export function createVerifyFn(config: VerificationConfig = {}) {
+export function createVerifyFn(
+  config: VerificationConfig = {},
+): (
+  category: EntityCategory,
+  addresses: Set<string>,
+  store: Store,
+  context: Context,
+) => Promise<VerificationResult> {
   const cache = new VerificationCache(config.cacheMaxSize ?? 50_000);
   const batchSize = config.batchSize ?? DEFAULT_BATCH_SIZE;
 
