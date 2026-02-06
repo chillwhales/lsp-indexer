@@ -15,6 +15,7 @@
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
     "declaration": true,
+    "strict": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

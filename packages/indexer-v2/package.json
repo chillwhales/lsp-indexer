@@ -10,7 +10,8 @@
     "build": "tsc",
     "clean": "rm -Rf lib/",
     "start": "ts-node --project ./tsconfig.json -r tsconfig-paths/register lib/app/index.js",
-    "test": "vitest"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@chillwhales/abi": "workspace:1.0.4",
@@ -26,10 +27,13 @@
     "@lukso/lsp7-contracts": "0.16.8",
     "@lukso/lsp8-contracts": "0.16.7",
     "@subsquid/evm-processor": "^1.27.2",
+    "@subsquid/logger": "^1.4.0",
     "@subsquid/typeorm-store": "^1.5.1",
     "axios": "^1.11.0",
     "data-urls": "^5.0.0",
     "dotenv": "^17.2.1",
+    "pino": "^9.6.0",
+    "pino-roll": "^1.1.0",
     "typeorm": "^0.3.25",
     "uuid": "^11.1.0",
     "viem": "^2.33.2"
