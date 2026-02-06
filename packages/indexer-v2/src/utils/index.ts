@@ -1,7 +1,7 @@
 import { DEAD_ADDRESS, ZERO_ADDRESS } from '@/constants';
 import { LSP4TokenTypeEnum, LSP8TokenIdFormatEnum, OperationType } from '@chillwhales/typeorm';
 import ERC725 from '@erc725/erc725.js';
-import { hexToNumber, isHex } from 'viem';
+import { bytesToHex, Hex, hexToBytes, hexToNumber, hexToString, isHex, sliceHex } from 'viem';
 
 /**
  * Decode an ERC725Y VerifiableURI-encoded data value into a plain URL.
@@ -161,7 +161,7 @@ export function decodeOperationType(operationType: bigint): OperationType | null
 /**
  * Generate a deterministic OwnedAsset entity ID from owner and contract address.
  *
- * Format: `"{owner} - {address}"`
+ * Format: `"{owner}:{address}"`
  * Port from v1: utils/index.ts generateOwnedAssetId()
  */
 export function generateOwnedAssetId({
@@ -171,13 +171,13 @@ export function generateOwnedAssetId({
   owner: string;
   address: string;
 }): string {
-  return `${owner} - ${address}`;
+  return `${owner}:${address}`;
 }
 
 /**
  * Generate a deterministic OwnedToken entity ID from owner, contract address, and tokenId.
  *
- * Format: `"{owner} - {address} - {tokenId}"`
+ * Format: `"{owner}:{address}:{tokenId}"`
  * Port from v1: utils/index.ts generateOwnedTokenId()
  */
 export function generateOwnedTokenId({
@@ -189,5 +189,39 @@ export function generateOwnedTokenId({
   address: string;
   tokenId: string;
 }): string {
-  return `${owner} - ${address} - ${tokenId}`;
+  return `${owner}:${address}:${tokenId}`;
+}
+
+/**
+ * Format a raw LSP8 tokenId bytes32 value according to the token ID format.
+ *
+ * Used by FormattedTokenId handler to decode tokenId based on the LSP8TokenIdFormat
+ * data key for the contract.
+ *
+ * @param tokenId          - Raw bytes32 tokenId hex string
+ * @param lsp8TokenIdFormat - The decoded token ID format enum (NUMBER, STRING, ADDRESS, BYTES32)
+ * @returns Formatted tokenId string, or null if format is unknown/unsupported
+ *
+ * Port from v1: utils/index.ts formatTokenId()
+ * V2 change: returns null on unknown format instead of raw tokenId
+ */
+export function formatTokenId({
+  tokenId,
+  lsp8TokenIdFormat,
+}: {
+  tokenId: string;
+  lsp8TokenIdFormat?: LSP8TokenIdFormatEnum | null;
+}): string | null {
+  switch (lsp8TokenIdFormat) {
+    case LSP8TokenIdFormatEnum.NUMBER:
+      return hexToNumber(tokenId as Hex).toString();
+    case LSP8TokenIdFormatEnum.STRING:
+      return hexToString(bytesToHex(hexToBytes(tokenId as Hex).filter((byte) => byte !== 0)));
+    case LSP8TokenIdFormatEnum.ADDRESS:
+      return sliceHex(tokenId as Hex, 12);
+    case LSP8TokenIdFormatEnum.BYTES32:
+      return tokenId;
+    default:
+      return null;
+  }
 }

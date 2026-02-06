@@ -229,7 +229,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     workerPool,
   };
 
-  for (const handler of registry.getAllEntityHandlers()) {
+  const step3Handlers = registry.getAllEntityHandlers().filter((h) => !h.postVerification);
+  for (const handler of step3Handlers) {
     for (const bagKey of handler.listensToBag) {
       if (batchCtx.hasEntities(bagKey)) {
         await handler.handle(handlerCtx, bagKey);
@@ -261,7 +262,29 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   }
 
   // ---------------------------------------------------------------------------
-  // Step 4: PERSIST DERIVED
+  // Step 4a: DELETE ENTITIES
+  // Process the delete queue. Handlers queue entity deletions for DB-level
+  // removal (e.g., OwnedToken/OwnedAsset with zero balance). Deletions run
+  // BEFORE upserts to handle FK ordering (delete children before parents).
+  // ---------------------------------------------------------------------------
+  const deleteQueue = batchCtx.getDeleteQueue();
+  if (deleteQueue.length > 0) {
+    for (const request of deleteQueue) {
+      if (request.entities.length > 0) {
+        await context.store.remove(request.entities);
+        context.log.info(
+          JSON.stringify({
+            message: 'Deleted entities',
+            entityClass: request.entityClass.name,
+            count: request.entities.length,
+          }),
+        );
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 4b: PERSIST DERIVED
   // Batch-persist all handler-derived entities from step 3. These may have
   // deterministic IDs (e.g., TotalSupply, NFT), so we use upsert. If a persist
   // hint is set for an entity type, use merge-upsert behavior to preserve
@@ -376,6 +399,38 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
 
   if (allNewEntities.length > 0) {
     await context.store.upsert(allNewEntities);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 5.5: POST-VERIFICATION HANDLERS
+  // Handlers with postVerification=true run here, after core entities (UP, DA)
+  // are persisted. This allows handlers like decimals to read newly verified
+  // Digital Assets and make RPC calls against verified contracts.
+  // ---------------------------------------------------------------------------
+  const postVerifyHandlers = registry.getAllEntityHandlers().filter((h) => h.postVerification);
+  for (const handler of postVerifyHandlers) {
+    for (const bagKey of handler.listensToBag) {
+      if (batchCtx.hasEntities(bagKey)) {
+        await handler.handle(handlerCtx, bagKey);
+      }
+    }
+  }
+
+  // Persist any entities created by post-verification handlers
+  const postVerifyTypes = batchCtx
+    .getEntityTypeKeys()
+    .filter((type) => !rawEntityTypes.has(type) && !derivedTypes.includes(type));
+  for (const type of postVerifyTypes) {
+    const entities = batchCtx.getEntities(type);
+    if (entities.size === 0) continue;
+    await context.store.upsert([...entities.values()] as { id: string }[]);
+    context.log.info(
+      JSON.stringify({
+        message: 'Persisted post-verification entities',
+        entityType: type,
+        count: entities.size,
+      }),
+    );
   }
 
   // Step 6: ENRICH — Batch update FK fields per entity type

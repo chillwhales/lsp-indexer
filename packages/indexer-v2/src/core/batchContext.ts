@@ -1,5 +1,6 @@
 import {
   ClearRequest,
+  DeleteRequest,
   EnrichmentRequest,
   Entity,
   EntityCategory,
@@ -7,6 +8,7 @@ import {
   IBatchContext,
   PersistHint,
   StoredClearRequest,
+  StoredDeleteRequest,
   StoredEnrichmentRequest,
   StoredPersistHint,
   VerificationResult,
@@ -83,6 +85,16 @@ export class BatchContext implements IBatchContext {
    * queueClear<T>(), which validates fkField at compile time.
    */
   private readonly clearQueue: StoredClearRequest[] = [];
+
+  /**
+   * Queue of delete requests for DB-level entity removal, consumed by
+   * the pipeline in Step 4a before persisting derived entities.
+   *
+   * Uses StoredDeleteRequest to allow heterogeneous storage of different
+   * entity types. Type safety is enforced at the handler call site via
+   * queueDelete<T>(), which validates entity type at compile time.
+   */
+  private readonly deleteQueue: StoredDeleteRequest[] = [];
 
   // -------------------------------------------------------------------------
   // Entity storage
@@ -201,5 +213,19 @@ export class BatchContext implements IBatchContext {
 
   getClearQueue(): ReadonlyArray<StoredClearRequest> {
     return this.clearQueue;
+  }
+
+  // -------------------------------------------------------------------------
+  // Delete queue
+  // -------------------------------------------------------------------------
+
+  queueDelete<T extends Entity>(request: DeleteRequest<T>): void {
+    // The request is structurally compatible with StoredDeleteRequest
+    // Type safety is enforced at the handler call site via the generic parameter
+    this.deleteQueue.push(request);
+  }
+
+  getDeleteQueue(): ReadonlyArray<StoredDeleteRequest> {
+    return this.deleteQueue;
   }
 }
