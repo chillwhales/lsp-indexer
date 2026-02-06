@@ -4,23 +4,22 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Phase 2 — New Handlers & Structured Logging
+**Current Focus:** Phase 2 verified complete — next: Phase 3 (Metadata Fetch Handlers)
 
 ## Current Position
 
 - **Phase:** 2 of 5 — New Handlers & Structured Logging
-- **Plan:** Not yet planned
-- **Status:** Ready to plan
-- **Last activity:** 2026-02-06 — Phase 1 verified and complete
-
-Progress: ████████░░ 4/4 phase plans (5/21 requirements)
+- **Plan:** 4 of 4 in current phase (02-01, 02-02, 02-03, 02-04 complete)
+- **Status:** Phase complete
+- **Last activity:** 2026-02-06 — Completed 02-04-PLAN.md
+- **Progress:** █████░░░░░ 10/21 requirements complete
 
 ## Phase Overview
 
 | Phase | Name                              | Status       | Requirements |
 | ----- | --------------------------------- | ------------ | :----------: |
 | 1     | Handler Migration                 | **Complete** |     5/5      |
-| 2     | New Handlers & Structured Logging | Upcoming     |     0/5      |
+| 2     | New Handlers & Structured Logging | **Complete** |     5/5      |
 | 3     | Metadata Fetch Handlers           | Upcoming     |     0/5      |
 | 4     | Integration & Wiring              | Upcoming     |     0/4      |
 | 5     | Deployment & Validation           | Upcoming     |     0/2      |
@@ -29,31 +28,39 @@ Progress: ████████░░ 4/4 phase plans (5/21 requirements)
 
 - **Plans completed:** 4
 - **Plans failed:** 0
-- **Phases completed:** 1
-- **Requirements delivered:** 5/21
+- **Phases completed:** 2
+- **Requirements delivered:** 10/21 (HMIG-01–05, HNDL-01–03, INFR-01–02)
 
 ## Accumulated Context
 
 ### Key Decisions
 
-| Decision                                                            | Rationale                                                              | Phase   |
-| ------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------- |
-| 5-phase structure derived from requirement dependencies             | HMIG → HNDL+INFR → META → INTG → DEPL follows natural dependency chain | Roadmap |
-| Logging parallelized with new handlers in Phase 2                   | INFR has no dependency on HNDL, enables concurrent work                | Roadmap |
-| Metadata separated from simple handlers                             | External I/O + critical pitfalls (spin-wait) warrant isolation         | Roadmap |
-| queueDelete() separate from removeEntity()                          | Distinguish DB-level deletion from in-memory bag removal               | 01-01   |
-| postVerification as opt-in boolean flag                             | Keeps all handlers as one type, existing handlers unaffected           | 01-01   |
-| topologicalSort on every registerEntityHandler()                    | Supports test scenarios with manual registration                       | 01-01   |
-| Decimals uses postVerification: true for Step 5.5                   | Needs verified DA entities, must run after verification                | 01-03   |
-| FormattedTokenId mutates NFTs in-place in BatchContext              | Already in bag from NFT handler, avoids duplicate entries              | 01-03   |
-| Unknown format returns null + warning (not raw tokenId)             | V2 change from V1 — explicit null signals unknown format               | 01-03   |
-| OwnedAsset FK set directly on OwnedToken (not via enrichment queue) | OwnedAsset is handler-created, not a verified core entity (UP/DA/NFT)  | 01-02   |
-| Dual-trigger handlers read ALL bags per invocation                  | Ensures consistency regardless of trigger order                        | 01-02   |
-| JSDoc 'Port from v1' annotated with deletion note, not removed      | Preserves provenance trail for future developers                       | 01-04   |
+| Decision                                                            | Rationale                                                               | Phase   |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------- |
+| 5-phase structure derived from requirement dependencies             | HMIG → HNDL+INFR → META → INTG → DEPL follows natural dependency chain  | Roadmap |
+| Logging parallelized with new handlers in Phase 2                   | INFR has no dependency on HNDL, enables concurrent work                 | Roadmap |
+| Metadata separated from simple handlers                             | External I/O + critical pitfalls (spin-wait) warrant isolation          | Roadmap |
+| queueDelete() separate from removeEntity()                          | Distinguish DB-level deletion from in-memory bag removal                | 01-01   |
+| postVerification as opt-in boolean flag                             | Keeps all handlers as one type, existing handlers unaffected            | 01-01   |
+| topologicalSort on every registerEntityHandler()                    | Supports test scenarios with manual registration                        | 01-01   |
+| Decimals uses postVerification: true for Step 5.5                   | Needs verified DA entities, must run after verification                 | 01-03   |
+| FormattedTokenId mutates NFTs in-place in BatchContext              | Already in bag from NFT handler, avoids duplicate entries               | 01-03   |
+| Unknown format returns null + warning (not raw tokenId)             | V2 change from V1 — explicit null signals unknown format                | 01-03   |
+| OwnedAsset FK set directly on OwnedToken (not via enrichment queue) | OwnedAsset is handler-created, not a verified core entity (UP/DA/NFT)   | 01-02   |
+| Dual-trigger handlers read ALL bags per invocation                  | Ensures consistency regardless of trigger order                         | 01-02   |
+| JSDoc 'Port from v1' annotated with deletion note, not removed      | Preserves provenance trail for future developers                        | 01-04   |
+| vitest @/\* alias maps to lib/ with CJS Module hook                 | src/ directory incomplete, compiled JS in lib/ has @/\* require() calls | 02-02   |
+| Mock BatchContext pattern for handler unit tests                    | Reusable test pattern: seed entity bags, verify mock calls              | 02-02   |
+| Dual-output logging: Subsquid Logger.child() + pino                 | Subsquid controls stdout/stderr; pino adds independent file rotation    | 02-01   |
+| LOG_LEVEL env var overrides NODE_ENV default                        | Explicit control over log verbosity in any environment                  | 02-01   |
+| Type assertions for entity FK null vs undefined                     | TypeORM models type FKs without null but compiled JS sets null          | 02-03   |
+| vi.mock for mergeEntitiesFromBatchAndDb in handler tests            | Isolate handler logic from DB dependencies in unit tests                | 02-03   |
+| Step loggers created once per pipeline section                      | createStepLogger outside loops avoids per-iteration overhead            | 02-04   |
+| Handler log calls use step+handler dual fields                      | Enables filtering by pipeline step and specific handler name            | 02-04   |
 
 ### Discovered Todos
 
-_None yet — populated during implementation._
+- decimals.handler.ts and formattedTokenId.handler.ts need logging updates when Phase 1 creates their TypeScript sources (4 JSON.stringify calls in compiled JS)
 
 ### Blockers
 
@@ -64,18 +71,21 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-06
-- **Activity:** Executed 01-04-PLAN.md — deleted legacy handlerHelpers, populateHelpers, persistHelpers (593 lines removed)
-- **Outcome:** Phase 1 complete — all legacy code superseded by EntityHandler pattern + enrichment queue
-- **Next Step:** Begin Phase 2 — New Handlers & Structured Logging
+- **Activity:** Executed 02-04-PLAN.md — Replace JSON.stringify logging with structured attributes
+- **Outcome:** All 13 JSON.stringify calls in TS sources replaced; pipeline.ts and verification.ts created
+- **Next Step:** Phase 2 verified. Begin Phase 3 (Metadata Fetch Handlers) with `/gsd-discuss-phase 3`
 
 ### Context for Next Session
 
-- All planning artifacts are in `.planning/`
-- Phase 1 fully complete: EntityHandler infrastructure + 4 migrated handlers + legacy cleanup
-- Core modules remaining: batchContext, metadataWorkerPool, multicall, pipeline, registry, types, verification
-- No legacy populate/persist/handler helpers remain — enrichment queue and pipeline are the only patterns
-- Phase 2 can begin: new entity handlers + structured logging framework
+- Pipeline TS source at `packages/indexer-v2/src/core/pipeline.ts`
+- Verification TS source at `packages/indexer-v2/src/core/verification.ts`
+- Logger factory at `packages/indexer-v2/src/core/logger.ts`
+- Follower handler at `packages/indexer-v2/src/handlers/follower.handler.ts`
+- LSP6Controllers handler at `packages/indexer-v2/src/handlers/lsp6Controllers.handler.ts`
+- Follow/Unfollow EventPlugins at `packages/indexer-v2/src/plugins/events/`
+- vitest infrastructure ready at `packages/indexer-v2/vitest.config.ts` + `vitest.setup.ts`
+- Phase 2 fully complete — all 4 plans executed
 
 ---
 
-_Last updated: 2026-02-06T10:26Z_
+_Last updated: 2026-02-06_

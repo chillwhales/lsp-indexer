@@ -12,15 +12,21 @@
  * Both follower and followed addresses are queued for verification as
  * UniversalProfiles. FK resolution happens in the enrichment phase (Step 6).
  *
- * `Follower` current-state entity updates will be implemented as EntityHandlers
- * in future issues (see #105: Transfer-derived entity handlers).
+ * `Follower` current-state entity updates are implemented by the FollowerHandler
+ * EntityHandler.
  *
  * Port from v1:
  *   - scanner.ts L473-480 (event matching)
  *   - utils/follow/index.ts (extract + populate)
  */
 import { LSP26_ADDRESS } from '@/constants';
-import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import {
+  EntityCategory,
+  type Block,
+  type EventPlugin,
+  type IBatchContext,
+  type Log,
+} from '@/core/types';
 import { LSP26FollowerSystem } from '@chillwhales/abi';
 import { Follow } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -37,7 +43,6 @@ const FollowPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
   // EXTRACT
   // ---------------------------------------------------------------------------
-
   extract(log: Log, block: Block, ctx: IBatchContext): void {
     const { timestamp, height } = block.header;
     const { address, logIndex, transactionIndex } = log;

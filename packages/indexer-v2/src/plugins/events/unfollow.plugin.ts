@@ -12,15 +12,21 @@
  * Both unfollower and unfollowed addresses are queued for verification as
  * UniversalProfiles. FK resolution happens in the enrichment phase (Step 6).
  *
- * `Follower` current-state entity updates (removal) will be implemented as
- * EntityHandlers in future issues (see #105: Transfer-derived entity handlers).
+ * `Follower` current-state entity removal is implemented by the FollowerHandler
+ * EntityHandler.
  *
  * Port from v1:
  *   - scanner.ts L482-489 (event matching)
  *   - utils/unfollow/index.ts (extract + populate)
  */
 import { LSP26_ADDRESS } from '@/constants';
-import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import {
+  EntityCategory,
+  type Block,
+  type EventPlugin,
+  type IBatchContext,
+  type Log,
+} from '@/core/types';
 import { LSP26FollowerSystem } from '@chillwhales/abi';
 import { Unfollow } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -37,7 +43,6 @@ const UnfollowPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
   // EXTRACT
   // ---------------------------------------------------------------------------
-
   extract(log: Log, block: Block, ctx: IBatchContext): void {
     const { timestamp, height } = block.header;
     const { address, logIndex, transactionIndex } = log;
