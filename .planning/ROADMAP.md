@@ -68,6 +68,15 @@ Complete the V2 rewrite of the LUKSO LSP Indexer by migrating remaining handlers
 
 **Parallelization Note:** INFR-01/INFR-02 (structured logging) can be built in parallel with HNDL-01/HNDL-02/HNDL-03 (new handlers) since they have no mutual dependencies.
 
+**Plans:** 4 plans
+
+Plans:
+
+- [ ] 02-01-PLAN.md — Structured logger module (pino + createStepLogger factory)
+- [ ] 02-02-PLAN.md — Follower handler + EventPlugin TypeScript sources + unit tests
+- [ ] 02-03-PLAN.md — LSP6Controllers handler TypeScript port + verification unit tests
+- [ ] 02-04-PLAN.md — Replace all JSON.stringify logging with structured attributes
+
 ---
 
 ## Phase 3 — Metadata Fetch Handlers
