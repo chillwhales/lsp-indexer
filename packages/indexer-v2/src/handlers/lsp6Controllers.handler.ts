@@ -394,13 +394,15 @@ function extractAllowedCalls(
   } catch (error) {
     // Invalid CompactBytesArray — raw value is preserved but no sub-entities
     hctx.context.log.warn(
-      JSON.stringify({
-        message: 'Failed to decode LSP6 allowed calls',
+      {
+        step: 'HANDLE',
+        handler: 'lsp6Controllers',
         address,
         controllerAddress,
         dataValue,
         error: error instanceof Error ? error.message : 'Unknown decode error',
-      }),
+      },
+      'Failed to decode LSP6 allowed calls',
     );
   }
 }
@@ -449,13 +451,15 @@ function extractAllowedDataKeys(
   } catch (error) {
     // Invalid CompactBytesArray — raw value is preserved but no sub-entities
     hctx.context.log.warn(
-      JSON.stringify({
-        message: 'Failed to decode LSP6 allowed ERC725Y data keys',
+      {
+        step: 'HANDLE',
+        handler: 'lsp6Controllers',
         address,
         controllerAddress,
         dataValue,
         error: error instanceof Error ? error.message : 'Unknown decode error',
-      }),
+      },
+      'Failed to decode LSP6 allowed ERC725Y data keys',
     );
   }
 }
