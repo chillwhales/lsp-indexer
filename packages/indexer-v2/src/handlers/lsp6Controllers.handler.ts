@@ -51,7 +51,7 @@
  *   - utils/dataChanged/lsp6ControllerAllowedErc725DataKey.ts
  */
 import { mergeEntitiesFromBatchAndDb } from '@/core/handlerHelpers';
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory } from '@/core/types';
 import {
   DataChanged,
   LSP6AllowedCall,
@@ -62,7 +62,9 @@ import {
 } from '@chillwhales/typeorm';
 import { decodePermissions, decodeValueType } from '@erc725/erc725.js';
 import { LSP6DataKeys } from '@lukso/lsp6-contracts';
-import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
+import { bytesToBigInt, bytesToHex, hexToBigInt, hexToBytes, isHex } from 'viem';
+
+import type { EntityHandler, HandlerContext } from '@/core/types';
 
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag
@@ -76,12 +78,11 @@ const ALLOWED_DATA_KEY_TYPE = 'LSP6AllowedERC725YDataKey';
 // ---------------------------------------------------------------------------
 // Data key constants
 // ---------------------------------------------------------------------------
-const LSP6_LENGTH_KEY: string = LSP6DataKeys['AddressPermissions[]'].length;
-const LSP6_INDEX_PREFIX: string = LSP6DataKeys['AddressPermissions[]'].index;
-const LSP6_PERMISSIONS_PREFIX: string = LSP6DataKeys['AddressPermissions:Permissions'];
-const LSP6_ALLOWED_CALLS_PREFIX: string = LSP6DataKeys['AddressPermissions:AllowedCalls'];
-const LSP6_ALLOWED_DATA_KEYS_PREFIX: string =
-  LSP6DataKeys['AddressPermissions:AllowedERC725YDataKeys'];
+const LSP6_LENGTH_KEY = LSP6DataKeys['AddressPermissions[]'].length;
+const LSP6_INDEX_PREFIX = LSP6DataKeys['AddressPermissions[]'].index;
+const LSP6_PERMISSIONS_PREFIX = LSP6DataKeys['AddressPermissions:Permissions'];
+const LSP6_ALLOWED_CALLS_PREFIX = LSP6DataKeys['AddressPermissions:AllowedCalls'];
+const LSP6_ALLOWED_DATA_KEYS_PREFIX = LSP6DataKeys['AddressPermissions:AllowedERC725YDataKeys'];
 
 const LSP6ControllersHandler: EntityHandler = {
   name: 'lsp6Controllers',
@@ -91,7 +92,7 @@ const LSP6ControllersHandler: EntityHandler = {
     const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
 
     // Set persist hint for cross-batch merge behavior (safety net)
-    hctx.batchCtx.setPersistHint<LSP6Controller>(CONTROLLER_TYPE, {
+    hctx.batchCtx.setPersistHint(CONTROLLER_TYPE, {
       entityClass: LSP6Controller,
       mergeFields: [
         'arrayIndex',
@@ -105,20 +106,19 @@ const LSP6ControllersHandler: EntityHandler = {
     const potentialIds: string[] = [];
     for (const event of events.values()) {
       const { dataKey, dataValue, address } = event;
-
       if (dataKey.startsWith(LSP6_INDEX_PREFIX)) {
         if (isHex(dataValue) && hexToBytes(dataValue).length === 20) {
           const controllerAddress = bytesToHex(hexToBytes(dataValue));
           potentialIds.push(`${address} - ${controllerAddress}`);
         }
       } else if (dataKey.startsWith(LSP6_PERMISSIONS_PREFIX)) {
-        const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
+        const controllerAddress = bytesToHex(hexToBytes(dataKey).slice(12));
         potentialIds.push(`${address} - ${controllerAddress}`);
       } else if (dataKey.startsWith(LSP6_ALLOWED_CALLS_PREFIX)) {
-        const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
+        const controllerAddress = bytesToHex(hexToBytes(dataKey).slice(12));
         potentialIds.push(`${address} - ${controllerAddress}`);
       } else if (dataKey.startsWith(LSP6_ALLOWED_DATA_KEYS_PREFIX)) {
-        const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
+        const controllerAddress = bytesToHex(hexToBytes(dataKey).slice(12));
         potentialIds.push(`${address} - ${controllerAddress}`);
       }
     }
@@ -155,7 +155,7 @@ const LSP6ControllersHandler: EntityHandler = {
     const controllerIds = [...controllers.keys()];
 
     if (hctx.batchCtx.hasEntities(PERMISSION_TYPE)) {
-      hctx.batchCtx.queueClear<LSP6Permission>({
+      hctx.batchCtx.queueClear({
         subEntityClass: LSP6Permission,
         fkField: 'controller',
         parentIds: controllerIds,
@@ -163,7 +163,7 @@ const LSP6ControllersHandler: EntityHandler = {
     }
 
     if (hctx.batchCtx.hasEntities(ALLOWED_CALL_TYPE)) {
-      hctx.batchCtx.queueClear<LSP6AllowedCall>({
+      hctx.batchCtx.queueClear({
         subEntityClass: LSP6AllowedCall,
         fkField: 'controller',
         parentIds: controllerIds,
@@ -171,7 +171,7 @@ const LSP6ControllersHandler: EntityHandler = {
     }
 
     if (hctx.batchCtx.hasEntities(ALLOWED_DATA_KEY_TYPE)) {
-      hctx.batchCtx.queueClear<LSP6AllowedERC725YDataKey>({
+      hctx.batchCtx.queueClear({
         subEntityClass: LSP6AllowedERC725YDataKey,
         fkField: 'controller',
         parentIds: controllerIds,
@@ -209,13 +209,13 @@ function extractLength(
     timestamp,
     value: isHex(dataValue) && hexToBytes(dataValue).length === 16 ? hexToBigInt(dataValue) : null,
     rawValue: dataValue,
-    universalProfile: null, // FK initially null
+    universalProfile: null as unknown as undefined, // FK initially null — resolved in enrichment step
   });
 
   hctx.batchCtx.addEntity(LENGTH_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK
-  hctx.batchCtx.queueEnrichment<LSP6ControllersLength>({
+  hctx.batchCtx.queueEnrichment({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: LENGTH_TYPE,
@@ -249,8 +249,8 @@ function extractFromIndex(
   // Normalize to lowercase 0x-prefixed via bytesToHex to match the format
   // used by extractPermissions/extractAllowedCalls/extractAllowedDataKeys
   // (which derive controllerAddress from the data key, not the data value).
-  const controllerAddress = bytesToHex(hexToBytes(dataValue));
-  const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
+  const controllerAddress = bytesToHex(hexToBytes(dataValue as `0x${string}`));
+  const arrayIndex = bytesToBigInt(hexToBytes(dataKey as `0x${string}`).slice(16));
   const id = `${address} - ${controllerAddress}`;
 
   // Check if entity exists in EITHER batch OR database
@@ -269,24 +269,23 @@ function extractFromIndex(
     timestamp,
     controllerAddress,
     arrayIndex,
-    universalProfile: null, // FK initially null
-    controllerProfile: null, // FK initially null
+    universalProfile: null as unknown as undefined, // FK initially null — resolved in enrichment step
+    controllerProfile: null,
   });
 
   hctx.batchCtx.addEntity(CONTROLLER_TYPE, entity.id, entity);
   existingControllers.set(id, entity); // Add to map for subsequent events
 
   // Queue enrichment for universalProfile FK (primary entity type)
-  hctx.batchCtx.queueEnrichment<LSP6Controller>({
+  hctx.batchCtx.queueEnrichment({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
   });
-
   // Queue enrichment for controllerProfile FK (secondary UP reference)
-  hctx.batchCtx.queueEnrichment<LSP6Controller>({
+  hctx.batchCtx.queueEnrichment({
     category: EntityCategory.UniversalProfile,
     address: controllerAddress,
     entityType: CONTROLLER_TYPE,
@@ -313,7 +312,7 @@ function extractPermissions(
   hctx: HandlerContext,
   existingControllers: Map<string, LSP6Controller>,
 ): void {
-  const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
+  const controllerAddress = bytesToHex(hexToBytes(dataKey as `0x${string}`).slice(12));
   const id = `${address} - ${controllerAddress}`;
 
   // Get or create the merged controller entity
@@ -337,7 +336,6 @@ function extractPermissions(
         permissionValue,
         controller: null, // FK set later in linkSubEntitiesToController
       });
-
       hctx.batchCtx.addEntity(PERMISSION_TYPE, permEntity.id, permEntity);
     }
   }
@@ -364,7 +362,7 @@ function extractAllowedCalls(
   hctx: HandlerContext,
   existingControllers: Map<string, LSP6Controller>,
 ): void {
-  const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
+  const controllerAddress = bytesToHex(hexToBytes(dataKey as `0x${string}`).slice(12));
   const id = `${address} - ${controllerAddress}`;
 
   // Get or create the merged controller entity
@@ -379,10 +377,10 @@ function extractAllowedCalls(
 
   // Decode allowed calls from CompactBytesArray
   try {
-    const allowedCalls = decodeValueType('bytes[CompactBytesArray]', dataValue) as Hex[];
+    const allowedCalls = decodeValueType('bytes[CompactBytesArray]', dataValue) as string[];
 
     for (let i = 0; i < allowedCalls.length; i++) {
-      const callBytes = hexToBytes(allowedCalls[i]);
+      const callBytes = hexToBytes(allowedCalls[i] as `0x${string}`);
       const callEntity = new LSP6AllowedCall({
         id: `${id} - ${i}`,
         restrictionOperations: bytesToHex(callBytes.slice(0, 4)),
@@ -391,7 +389,6 @@ function extractAllowedCalls(
         allowedFunction: bytesToHex(callBytes.slice(28)),
         controller: null, // FK set later in linkSubEntitiesToController
       });
-
       hctx.batchCtx.addEntity(ALLOWED_CALL_TYPE, callEntity.id, callEntity);
     }
   } catch (error) {
@@ -424,7 +421,7 @@ function extractAllowedDataKeys(
   hctx: HandlerContext,
   existingControllers: Map<string, LSP6Controller>,
 ): void {
-  const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
+  const controllerAddress = bytesToHex(hexToBytes(dataKey as `0x${string}`).slice(12));
   const id = `${address} - ${controllerAddress}`;
 
   // Get or create the merged controller entity
@@ -439,7 +436,7 @@ function extractAllowedDataKeys(
 
   // Decode allowed data keys from CompactBytesArray
   try {
-    const allowedKeys = decodeValueType('bytes[CompactBytesArray]', dataValue) as Hex[];
+    const allowedKeys = decodeValueType('bytes[CompactBytesArray]', dataValue) as string[];
 
     for (let i = 0; i < allowedKeys.length; i++) {
       const keyEntity = new LSP6AllowedERC725YDataKey({
@@ -447,7 +444,6 @@ function extractAllowedDataKeys(
         allowedDataKey: allowedKeys[i],
         controller: null, // FK set later in linkSubEntitiesToController
       });
-
       hctx.batchCtx.addEntity(ALLOWED_DATA_KEY_TYPE, keyEntity.id, keyEntity);
     }
   } catch (error) {
@@ -497,24 +493,23 @@ function getOrCreateController(
     address,
     timestamp,
     controllerAddress,
-    universalProfile: null, // FK initially null
-    controllerProfile: null, // FK initially null
+    universalProfile: null as unknown as undefined, // FK initially null — resolved in enrichment step
+    controllerProfile: null,
   });
 
   hctx.batchCtx.addEntity(CONTROLLER_TYPE, entity.id, entity);
   existingControllers.set(id, entity); // Add to map for subsequent events
 
   // Queue enrichment for universalProfile FK (primary entity type)
-  hctx.batchCtx.queueEnrichment<LSP6Controller>({
+  hctx.batchCtx.queueEnrichment({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
   });
-
   // Queue enrichment for controllerProfile FK (secondary UP reference)
-  hctx.batchCtx.queueEnrichment<LSP6Controller>({
+  hctx.batchCtx.queueEnrichment({
     category: EntityCategory.UniversalProfile,
     address: controllerAddress,
     entityType: CONTROLLER_TYPE,
@@ -551,16 +546,15 @@ function linkSubEntitiesToController(
   controllers: Map<string, LSP6Controller>,
 ): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const subEntities = hctx.batchCtx.getEntities<Record<string, any>>(subEntityType);
+  const subEntities = hctx.batchCtx.getEntities<any>(subEntityType);
 
   for (const [id, entity] of subEntities) {
     // Extract controller ID from sub-entity ID: "{upAddress} - {controllerAddress} - {suffix}"
     const lastSepIdx = id.lastIndexOf(' - ');
     if (lastSepIdx === -1) continue;
-
     const controllerId = id.substring(0, lastSepIdx);
-    const controller = controllers.get(controllerId);
 
+    const controller = controllers.get(controllerId);
     if (controller) {
       entity.controller = new LSP6Controller({ id: controllerId });
     } else {
