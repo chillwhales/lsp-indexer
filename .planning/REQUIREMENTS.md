@@ -9,17 +9,17 @@ Requirements for completing the V2 rewrite. Each maps to roadmap phases.
 
 ### Handler Migration
 
-- [x] **HMIG-01**: User can see totalSupply handler running as standalone EntityHandler with `listensToBag: ['LSP7Transfer', 'LSP8Transfer']`
-- [x] **HMIG-02**: User can see ownedAssets handler running as standalone EntityHandler with `listensToBag: ['LSP7Transfer', 'LSP8Transfer']`
-- [x] **HMIG-03**: User can see decimals handler adapted to new EntityHandler interface
-- [x] **HMIG-04**: User can see FormattedTokenId handler populating `NFT.formattedTokenId` based on LSP8TokenIdFormat
-- [x] **HMIG-05**: User can verify no legacy code remains — DataKeyPlugin interface, populate helpers, handler helpers all deleted
+- [ ] **HMIG-01**: User can see totalSupply handler running as standalone EntityHandler with `listensToBag: ['LSP7Transfer', 'LSP8Transfer']`
+- [ ] **HMIG-02**: User can see ownedAssets handler running as standalone EntityHandler with `listensToBag: ['LSP7Transfer', 'LSP8Transfer']`
+- [ ] **HMIG-03**: User can see decimals handler adapted to new EntityHandler interface
+- [ ] **HMIG-04**: User can see FormattedTokenId handler populating `NFT.formattedTokenId` based on LSP8TokenIdFormat
+- [ ] **HMIG-05**: User can verify no legacy code remains — DataKeyPlugin interface, populate helpers, handler helpers all deleted
 
 ### New Handlers
 
-- [ ] **HNDL-01**: User can see Follow entities created with deterministic IDs when Follow events occur
-- [ ] **HNDL-02**: User can see Follow entities removed when Unfollow events occur
-- [ ] **HNDL-03**: User can see LSP6 permission sub-entities correctly deleted and re-created on data key changes
+- [x] **HNDL-01**: User can see Follow entities created with deterministic IDs when Follow events occur
+- [x] **HNDL-02**: User can see Follow entities removed when Unfollow events occur
+- [x] **HNDL-03**: User can see LSP6 permission sub-entities correctly deleted and re-created on data key changes
 
 ### Metadata Fetchers
 
@@ -31,8 +31,8 @@ Requirements for completing the V2 rewrite. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFR-01**: User can see structured JSON logs with consistent field schemas across all 6 pipeline steps
-- [ ] **INFR-02**: User can filter logs by severity level (info/warn/debug) and by pipeline step
+- [x] **INFR-01**: User can see structured JSON logs with consistent field schemas across all 6 pipeline steps
+- [x] **INFR-02**: User can filter logs by severity level (info/warn/debug) and by pipeline step
 
 ### Integration
 
@@ -78,16 +78,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status   |
 | ----------- | ----- | -------- |
-| HMIG-01     | 1     | Complete |
-| HMIG-02     | 1     | Complete |
-| HMIG-03     | 1     | Complete |
-| HMIG-04     | 1     | Complete |
-| HMIG-05     | 1     | Complete |
-| HNDL-01     | 2     | Pending  |
-| HNDL-02     | 2     | Pending  |
-| HNDL-03     | 2     | Pending  |
-| INFR-01     | 2     | Pending  |
-| INFR-02     | 2     | Pending  |
+| HMIG-01     | 1     | Pending  |
+| HMIG-02     | 1     | Pending  |
+| HMIG-03     | 1     | Pending  |
+| HMIG-04     | 1     | Pending  |
+| HMIG-05     | 1     | Pending  |
+| HNDL-01     | 2     | Complete |
+| HNDL-02     | 2     | Complete |
+| HNDL-03     | 2     | Complete |
+| INFR-01     | 2     | Complete |
+| INFR-02     | 2     | Complete |
 | META-01     | 3     | Pending  |
 | META-02     | 3     | Pending  |
 | META-03     | 3     | Pending  |
@@ -109,4 +109,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 ---
 
 _Requirements defined: 2026-02-06_
-_Last updated: 2026-02-06 — Phase 1 requirements marked Complete_
+_Last updated: 2026-02-06 after roadmap creation_
