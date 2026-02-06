@@ -34,7 +34,7 @@ const UP_VERSIONS: InterfaceVersion[] = [
     interfaceId: INTERFACE_ID_LSP0,
     callData: LSP0ERC725Account.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP0,
-    }),
+    }) as `0x${string}`,
   },
 ];
 
@@ -43,37 +43,37 @@ const DA_VERSIONS: InterfaceVersion[] = [
     interfaceId: INTERFACE_ID_LSP7,
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP7,
-    }),
+    }) as `0x${string}`,
   },
   {
     interfaceId: INTERFACE_ID_LSP8,
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP8,
-    }),
+    }) as `0x${string}`,
   },
   {
     interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.14.0'],
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.14.0'],
-    }),
+    }) as `0x${string}`,
   },
   {
     interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.14.0'],
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.14.0'],
-    }),
+    }) as `0x${string}`,
   },
   {
     interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.12.0'],
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.12.0'],
-    }),
+    }) as `0x${string}`,
   },
   {
     interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.12.0'],
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.12.0'],
-    }),
+    }) as `0x${string}`,
   },
 ];
 

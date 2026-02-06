@@ -20,12 +20,16 @@
  *   - utils/follow/index.ts (extract + populate)
  */
 import { LSP26_ADDRESS } from '@/constants';
-import { EntityCategory } from '@/core/types';
+import {
+  EntityCategory,
+  type Block,
+  type EventPlugin,
+  type IBatchContext,
+  type Log,
+} from '@/core/types';
 import { LSP26FollowerSystem } from '@chillwhales/abi';
 import { Follow } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
-
-import type { Block, EventPlugin, IBatchContext, Log } from '@/core/types';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'Follow';
@@ -60,14 +64,14 @@ const FollowPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for both followerUniversalProfile and followedUniversalProfile FKs
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<Follow>({
       category: EntityCategory.UniversalProfile,
       address: follower,
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'followerUniversalProfile',
     });
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<Follow>({
       category: EntityCategory.UniversalProfile,
       address: addr,
       entityType: ENTITY_TYPE,

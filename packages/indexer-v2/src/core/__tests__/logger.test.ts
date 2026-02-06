@@ -95,7 +95,7 @@ describe('initFileLogger', () => {
 
     const logger = getFileLogger();
     expect(logger).not.toBeNull();
-    expect(logger!.level).toBe('warn');
+    expect(logger.level).toBe('warn');
   });
 
   it('defaults to debug level in development', () => {
@@ -106,7 +106,7 @@ describe('initFileLogger', () => {
 
     const logger = getFileLogger();
     expect(logger).not.toBeNull();
-    expect(logger!.level).toBe('debug');
+    expect(logger.level).toBe('debug');
   });
 
   it('defaults to info level in production', () => {
@@ -117,7 +117,7 @@ describe('initFileLogger', () => {
 
     const logger = getFileLogger();
     expect(logger).not.toBeNull();
-    expect(logger!.level).toBe('info');
+    expect(logger.level).toBe('info');
   });
 });
 

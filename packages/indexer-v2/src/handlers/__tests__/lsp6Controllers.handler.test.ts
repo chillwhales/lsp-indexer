@@ -9,7 +9,7 @@
  * - Enrichment: UP enrichment queued for both universalProfile and controllerProfile FKs
  */
 import { mergeEntitiesFromBatchAndDb } from '@/core/handlerHelpers';
-import { EntityCategory } from '@/core/types';
+import { EntityCategory, type HandlerContext } from '@/core/types';
 import {
   DataChanged,
   LSP6AllowedCall,
@@ -20,8 +20,6 @@ import {
 import { describe, expect, it, vi } from 'vitest';
 import LSP6ControllersHandler from '../lsp6Controllers.handler';
 
-import type { HandlerContext } from '@/core/types';
-
 // ---------------------------------------------------------------------------
 // Mock mergeEntitiesFromBatchAndDb — returns empty map by default
 // ---------------------------------------------------------------------------
@@ -29,7 +27,7 @@ vi.mock('@/core/handlerHelpers', () => ({
   mergeEntitiesFromBatchAndDb: vi.fn(() => Promise.resolve(new Map())),
 }));
 
-const mockedMerge = vi.mocked(mergeEntitiesFromBatchAndDb);
+const _mockedMerge = vi.mocked(mergeEntitiesFromBatchAndDb);
 
 // ---------------------------------------------------------------------------
 // LSP6 data key constants (hardcoded from @lukso/lsp6-contracts)
@@ -62,9 +60,9 @@ function createMockBatchCtx() {
     }),
     addEntity: vi.fn((type: string, id: string, entity: unknown) => {
       if (!entityBags.has(type)) entityBags.set(type, new Map());
-      entityBags.get(type)!.set(id, entity);
+      entityBags.get(type).set(id, entity);
     }),
-    hasEntities: vi.fn((type: string) => entityBags.has(type) && entityBags.get(type)!.size > 0),
+    hasEntities: vi.fn((type: string) => entityBags.has(type) && entityBags.get(type).size > 0),
     queueClear: vi.fn((request: unknown) => clearQueue.push(request)),
     queueDelete: vi.fn(),
     queueEnrichment: vi.fn((request: unknown) => enrichmentQueue.push(request)),
@@ -297,9 +295,9 @@ describe('LSP6ControllersHandler - Controller Merge', () => {
     // Get the controller entity from the batch
     const controllers = batchCtx._entityBags.get('LSP6Controller');
     expect(controllers).toBeDefined();
-    expect(controllers!.size).toBe(1);
+    expect(controllers.size).toBe(1);
 
-    const controller = controllers!.get(CONTROLLER_ID) as LSP6Controller;
+    const controller = controllers.get(CONTROLLER_ID) as LSP6Controller;
     expect(controller).toBeDefined();
 
     // Both fields should be populated from their respective events
@@ -342,12 +340,13 @@ describe('LSP6ControllersHandler - Sub-Entity Linking', () => {
     // Check that LSP6Permission entities have controller FK set
     const permissions = batchCtx._entityBags.get('LSP6Permission');
     expect(permissions).toBeDefined();
-    expect(permissions!.size).toBeGreaterThan(0);
+    expect(permissions.size).toBeGreaterThan(0);
 
-    for (const [, perm] of permissions!) {
+    for (const [, perm] of permissions) {
       const permEntity = perm as LSP6Permission;
       expect(permEntity.controller).toBeDefined();
       expect(permEntity.controller).not.toBeNull();
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       expect((permEntity.controller as LSP6Controller).id).toBe(CONTROLLER_ID);
     }
   });
@@ -371,7 +370,7 @@ describe('LSP6ControllersHandler - Sub-Entity Linking', () => {
       permissionValue: true,
       controller: null,
     });
-    batchCtx._entityBags.get('LSP6Permission')!.set(orphanId, orphan);
+    batchCtx._entityBags.get('LSP6Permission').set(orphanId, orphan);
 
     // Re-run linkSubEntitiesToController by invoking handle again with fresh events
     // Instead, let's just verify the handler properly handles the orphan scenario
@@ -383,12 +382,12 @@ describe('LSP6ControllersHandler - Sub-Entity Linking', () => {
     // The orphan we added manually would be cleaned up if linkSubEntitiesToController
     // ran again. Let's verify the initial behavior: all handler-created permissions
     // are properly linked (no orphans from normal flow).
-    const permissions = batchCtx._entityBags.get('LSP6Permission')!;
+    const permissions = batchCtx._entityBags.get('LSP6Permission');
 
     // Count permissions that have controller set
     let linkedCount = 0;
     let orphanCount = 0;
-    for (const [id, perm] of permissions) {
+    for (const [_id, perm] of permissions) {
       if ((perm as LSP6Permission).controller) {
         linkedCount++;
       } else {

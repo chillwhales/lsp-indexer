@@ -17,11 +17,9 @@
  * Port from v1:
  *   - handlers/followerSystemHandler.ts
  */
-import { EntityCategory } from '@/core/types';
+import { EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';
 import { generateFollowId } from '@/utils';
 import { Follow, Follower, Unfollow } from '@chillwhales/typeorm';
-
-import type { EntityHandler, HandlerContext } from '@/core/types';
 
 const FOLLOWER_TYPE = 'Follower';
 
@@ -29,7 +27,7 @@ const FollowerHandler: EntityHandler = {
   name: 'follower',
   listensToBag: ['Follow', 'Unfollow'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  handle(hctx: HandlerContext, triggeredBy: string): void {
     // Handle Follow events → create Follower entities
     if (triggeredBy === 'Follow') {
       const follows = hctx.batchCtx.getEntities<Follow>('Follow');
@@ -56,14 +54,14 @@ const FollowerHandler: EntityHandler = {
         hctx.batchCtx.addEntity(FOLLOWER_TYPE, entity.id, entity);
 
         // Queue enrichment for both UP FKs on the Follower entity
-        hctx.batchCtx.queueEnrichment({
+        hctx.batchCtx.queueEnrichment<Follower>({
           category: EntityCategory.UniversalProfile,
           address: follow.followerAddress,
           entityType: FOLLOWER_TYPE,
           entityId: entity.id,
           fkField: 'followerUniversalProfile',
         });
-        hctx.batchCtx.queueEnrichment({
+        hctx.batchCtx.queueEnrichment<Follower>({
           category: EntityCategory.UniversalProfile,
           address: follow.followedAddress,
           entityType: FOLLOWER_TYPE,

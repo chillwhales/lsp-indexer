@@ -5,13 +5,11 @@
  * - HNDL-01: Follow events create Follower entities with deterministic IDs
  * - HNDL-02: Unfollow events queue deletion of Follower entities using unfollowedAddress
  */
-import { EntityCategory } from '@/core/types';
+import { EntityCategory, type HandlerContext } from '@/core/types';
 import { generateFollowId } from '@/utils';
 import { Follow, Follower, Unfollow } from '@chillwhales/typeorm';
 import { describe, expect, it, vi } from 'vitest';
 import FollowerHandler from '../follower.handler';
-
-import type { HandlerContext } from '@/core/types';
 
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper
@@ -27,9 +25,9 @@ function createMockBatchCtx() {
     }),
     addEntity: vi.fn((type: string, id: string, entity: unknown) => {
       if (!entityBags.has(type)) entityBags.set(type, new Map());
-      entityBags.get(type)!.set(id, entity);
+      entityBags.get(type).set(id, entity);
     }),
-    hasEntities: vi.fn((type: string) => entityBags.has(type) && entityBags.get(type)!.size > 0),
+    hasEntities: vi.fn((type: string) => entityBags.has(type) && entityBags.get(type).size > 0),
     queueDelete: vi.fn((request: unknown) => deleteQueue.push(request)),
     queueEnrichment: vi.fn((request: unknown) => enrichmentQueue.push(request)),
     queueClear: vi.fn(),

@@ -51,7 +51,7 @@
  *   - utils/dataChanged/lsp6ControllerAllowedErc725DataKey.ts
  */
 import { mergeEntitiesFromBatchAndDb } from '@/core/handlerHelpers';
-import { EntityCategory } from '@/core/types';
+import { EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';
 import {
   DataChanged,
   LSP6AllowedCall,
@@ -63,8 +63,6 @@ import {
 import { decodePermissions, decodeValueType } from '@erc725/erc725.js';
 import { LSP6DataKeys } from '@lukso/lsp6-contracts';
 import { bytesToBigInt, bytesToHex, hexToBigInt, hexToBytes, isHex } from 'viem';
-
-import type { EntityHandler, HandlerContext } from '@/core/types';
 
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag
@@ -112,13 +110,13 @@ const LSP6ControllersHandler: EntityHandler = {
           potentialIds.push(`${address} - ${controllerAddress}`);
         }
       } else if (dataKey.startsWith(LSP6_PERMISSIONS_PREFIX)) {
-        const controllerAddress = bytesToHex(hexToBytes(dataKey).slice(12));
+        const controllerAddress = bytesToHex(hexToBytes(dataKey as `0x${string}`).slice(12));
         potentialIds.push(`${address} - ${controllerAddress}`);
       } else if (dataKey.startsWith(LSP6_ALLOWED_CALLS_PREFIX)) {
-        const controllerAddress = bytesToHex(hexToBytes(dataKey).slice(12));
+        const controllerAddress = bytesToHex(hexToBytes(dataKey as `0x${string}`).slice(12));
         potentialIds.push(`${address} - ${controllerAddress}`);
       } else if (dataKey.startsWith(LSP6_ALLOWED_DATA_KEYS_PREFIX)) {
-        const controllerAddress = bytesToHex(hexToBytes(dataKey).slice(12));
+        const controllerAddress = bytesToHex(hexToBytes(dataKey as `0x${string}`).slice(12));
         potentialIds.push(`${address} - ${controllerAddress}`);
       }
     }
@@ -215,7 +213,7 @@ function extractLength(
   hctx.batchCtx.addEntity(LENGTH_TYPE, entity.id, entity);
 
   // Queue enrichment for universalProfile FK
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP6ControllersLength>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: LENGTH_TYPE,
@@ -249,7 +247,7 @@ function extractFromIndex(
   // Normalize to lowercase 0x-prefixed via bytesToHex to match the format
   // used by extractPermissions/extractAllowedCalls/extractAllowedDataKeys
   // (which derive controllerAddress from the data key, not the data value).
-  const controllerAddress = bytesToHex(hexToBytes(dataValue as `0x${string}`));
+  const controllerAddress = bytesToHex(hexToBytes(dataValue));
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as `0x${string}`).slice(16));
   const id = `${address} - ${controllerAddress}`;
 
@@ -277,7 +275,7 @@ function extractFromIndex(
   existingControllers.set(id, entity); // Add to map for subsequent events
 
   // Queue enrichment for universalProfile FK (primary entity type)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP6Controller>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: CONTROLLER_TYPE,
@@ -285,7 +283,7 @@ function extractFromIndex(
     fkField: 'universalProfile',
   });
   // Queue enrichment for controllerProfile FK (secondary UP reference)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP6Controller>({
     category: EntityCategory.UniversalProfile,
     address: controllerAddress,
     entityType: CONTROLLER_TYPE,
@@ -505,7 +503,7 @@ function getOrCreateController(
   existingControllers.set(id, entity); // Add to map for subsequent events
 
   // Queue enrichment for universalProfile FK (primary entity type)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP6Controller>({
     category: EntityCategory.UniversalProfile,
     address,
     entityType: CONTROLLER_TYPE,
@@ -513,7 +511,7 @@ function getOrCreateController(
     fkField: 'universalProfile',
   });
   // Queue enrichment for controllerProfile FK (secondary UP reference)
-  hctx.batchCtx.queueEnrichment({
+  hctx.batchCtx.queueEnrichment<LSP6Controller>({
     category: EntityCategory.UniversalProfile,
     address: controllerAddress,
     entityType: CONTROLLER_TYPE,

@@ -20,12 +20,16 @@
  *   - utils/unfollow/index.ts (extract + populate)
  */
 import { LSP26_ADDRESS } from '@/constants';
-import { EntityCategory } from '@/core/types';
+import {
+  EntityCategory,
+  type Block,
+  type EventPlugin,
+  type IBatchContext,
+  type Log,
+} from '@/core/types';
 import { LSP26FollowerSystem } from '@chillwhales/abi';
 import { Unfollow } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
-
-import type { Block, EventPlugin, IBatchContext, Log } from '@/core/types';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'Unfollow';
@@ -60,14 +64,14 @@ const UnfollowPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for both followerUniversalProfile and unfollowedUniversalProfile FKs
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<Unfollow>({
       category: EntityCategory.UniversalProfile,
       address: unfollower,
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'followerUniversalProfile',
     });
-    ctx.queueEnrichment({
+    ctx.queueEnrichment<Unfollow>({
       category: EntityCategory.UniversalProfile,
       address: addr,
       entityType: ENTITY_TYPE,
