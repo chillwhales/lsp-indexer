@@ -8,6 +8,38 @@ import {
 } from './verification';
 
 /**
+ * Delete request for DB-level entity removal.
+ *
+ * Handlers queue delete requests for entities that need to be removed from
+ * the database (e.g., OwnedToken/OwnedAsset with zero balance). The pipeline
+ * processes these in Step 4a before persisting derived entities.
+ *
+ * This is distinct from `removeEntity()` which only removes entities from
+ * the in-memory BatchContext bag. `queueDelete()` queues entities for
+ * actual DB-level deletion via `store.remove()`.
+ *
+ * Generic parameter T: The entity type being deleted.
+ */
+export interface DeleteRequest<T extends Entity> {
+  /** Entity class constructor for TypeORM remove operations */
+  entityClass: EntityConstructor<T>;
+  /** Entity instances to delete from the database */
+  entities: T[];
+}
+
+/**
+ * Internal storage type for delete requests.
+ *
+ * Structurally compatible with DeleteRequest<T> for any T, allowing
+ * heterogeneous storage. Type safety is enforced at the handler call site
+ * via queueDelete<T>().
+ */
+export type StoredDeleteRequest = {
+  entityClass: EntityConstructor<Entity>;
+  entities: Entity[];
+};
+
+/**
  * Persist hint for derived entities requiring merge-upsert behavior.
  *
  * When set for an entity type, the pipeline reads existing DB records
@@ -121,4 +153,8 @@ export interface IBatchContext {
   // Clear queue (for sub-entity deletion)
   queueClear<T extends Entity>(request: ClearRequest<T>): void;
   getClearQueue(): ReadonlyArray<StoredClearRequest>;
+
+  // Delete queue (for DB-level entity removal)
+  queueDelete<T extends Entity>(request: DeleteRequest<T>): void;
+  getDeleteQueue(): ReadonlyArray<StoredDeleteRequest>;
 }

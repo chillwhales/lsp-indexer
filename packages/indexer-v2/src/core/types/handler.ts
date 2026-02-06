@@ -54,14 +54,28 @@ export interface EntityHandler {
   readonly listensToBag: string[];
 
   /**
+   * If true, this handler runs after verification (Step 5.5) instead of
+   * during Step 3. Used by handlers that need verified entity data
+   * (e.g., decimals needs newly verified Digital Assets).
+   */
+  readonly postVerification?: boolean;
+
+  /**
+   * Handler names this handler must execute after. The registry
+   * topologically sorts handlers to honor these dependencies.
+   * Only applies within the same step (Step 3 or Step 5.5).
+   */
+  readonly dependsOn?: string[];
+
+  /**
    * Called once per subscribed trigger that has entities in the batch.
    * Handlers read entities from BatchContext, create derived entities,
    * add them back to BatchContext, and queue enrichment requests.
    * The pipeline handles persistence.
    *
-   * Handlers may be async to perform database lookups for proper merge logic.
-   * When merging entities across batches, handlers should query the database
-   * for existing records to avoid data loss.
+   * May be synchronous or asynchronous. The pipeline awaits the return
+   * value, so async handlers (e.g., those making RPC calls or DB lookups)
+   * complete before the pipeline proceeds to the next step.
    *
    * @param hctx        - Handler context (store, batch context, worker pool)
    * @param triggeredBy - The entity bag key that triggered this invocation
