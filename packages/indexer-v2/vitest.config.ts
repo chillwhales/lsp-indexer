@@ -6,10 +6,11 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['src/**/*.test.ts'],
+    setupFiles: ['./vitest.setup.ts'],
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'lib'),
+      '@/': path.resolve(__dirname, 'lib') + '/',
     },
   },
 });
