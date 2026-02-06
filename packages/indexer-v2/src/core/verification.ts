@@ -15,7 +15,7 @@ import { INTERFACE_ID_LSP7, INTERFACE_ID_LSP7_PREVIOUS } from '@lukso/lsp7-contr
 import { INTERFACE_ID_LSP8, INTERFACE_ID_LSP8_PREVIOUS } from '@lukso/lsp8-contracts';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
-import { hexToBool, isHex } from 'viem';
+import { type Hex, hexToBool, isHex } from 'viem';
 
 import { aggregate3StaticLatest } from './multicall';
 import { Context, EntityCategory, VerificationResult } from './types';
@@ -26,7 +26,7 @@ import { Context, EntityCategory, VerificationResult } from './types';
 
 interface InterfaceVersion {
   interfaceId: string;
-  callData: `0x${string}`;
+  callData: Hex;
 }
 
 const UP_VERSIONS: InterfaceVersion[] = [
@@ -34,7 +34,7 @@ const UP_VERSIONS: InterfaceVersion[] = [
     interfaceId: INTERFACE_ID_LSP0,
     callData: LSP0ERC725Account.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP0,
-    }) as `0x${string}`,
+    }) as Hex,
   },
 ];
 
@@ -43,37 +43,37 @@ const DA_VERSIONS: InterfaceVersion[] = [
     interfaceId: INTERFACE_ID_LSP7,
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP7,
-    }) as `0x${string}`,
+    }) as Hex,
   },
   {
     interfaceId: INTERFACE_ID_LSP8,
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP8,
-    }) as `0x${string}`,
+    }) as Hex,
   },
   {
     interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.14.0'],
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.14.0'],
-    }) as `0x${string}`,
+    }) as Hex,
   },
   {
     interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.14.0'],
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.14.0'],
-    }) as `0x${string}`,
+    }) as Hex,
   },
   {
     interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.12.0'],
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP7_PREVIOUS['v0.12.0'],
-    }) as `0x${string}`,
+    }) as Hex,
   },
   {
     interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.12.0'],
     callData: LSP7DigitalAsset.functions.supportsInterface.encode({
       interfaceId: INTERFACE_ID_LSP8_PREVIOUS['v0.12.0'],
-    }) as `0x${string}`,
+    }) as Hex,
   },
 ];
 
@@ -175,7 +175,7 @@ interface MulticallResult {
 async function multicallVerify(
   context: Context,
   addresses: string[],
-  callData: `0x${string}`,
+  callData: Hex,
   batchSize: number,
 ): Promise<boolean[]> {
   if (addresses.length === 0) return [];

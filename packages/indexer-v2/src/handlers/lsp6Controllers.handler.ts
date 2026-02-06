@@ -62,7 +62,7 @@ import {
 } from '@chillwhales/typeorm';
 import { decodePermissions, decodeValueType } from '@erc725/erc725.js';
 import { LSP6DataKeys } from '@lukso/lsp6-contracts';
-import { bytesToBigInt, bytesToHex, hexToBigInt, hexToBytes, isHex } from 'viem';
+import { type Hex, bytesToBigInt, bytesToHex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag
@@ -110,13 +110,13 @@ const LSP6ControllersHandler: EntityHandler = {
           potentialIds.push(`${address} - ${controllerAddress}`);
         }
       } else if (dataKey.startsWith(LSP6_PERMISSIONS_PREFIX)) {
-        const controllerAddress = bytesToHex(hexToBytes(dataKey as `0x${string}`).slice(12));
+        const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
         potentialIds.push(`${address} - ${controllerAddress}`);
       } else if (dataKey.startsWith(LSP6_ALLOWED_CALLS_PREFIX)) {
-        const controllerAddress = bytesToHex(hexToBytes(dataKey as `0x${string}`).slice(12));
+        const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
         potentialIds.push(`${address} - ${controllerAddress}`);
       } else if (dataKey.startsWith(LSP6_ALLOWED_DATA_KEYS_PREFIX)) {
-        const controllerAddress = bytesToHex(hexToBytes(dataKey as `0x${string}`).slice(12));
+        const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
         potentialIds.push(`${address} - ${controllerAddress}`);
       }
     }
@@ -248,7 +248,7 @@ function extractFromIndex(
   // used by extractPermissions/extractAllowedCalls/extractAllowedDataKeys
   // (which derive controllerAddress from the data key, not the data value).
   const controllerAddress = bytesToHex(hexToBytes(dataValue));
-  const arrayIndex = bytesToBigInt(hexToBytes(dataKey as `0x${string}`).slice(16));
+  const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
   const id = `${address} - ${controllerAddress}`;
 
   // Check if entity exists in EITHER batch OR database
@@ -310,7 +310,7 @@ function extractPermissions(
   hctx: HandlerContext,
   existingControllers: Map<string, LSP6Controller>,
 ): void {
-  const controllerAddress = bytesToHex(hexToBytes(dataKey as `0x${string}`).slice(12));
+  const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
   const id = `${address} - ${controllerAddress}`;
 
   // Get or create the merged controller entity
@@ -360,7 +360,7 @@ function extractAllowedCalls(
   hctx: HandlerContext,
   existingControllers: Map<string, LSP6Controller>,
 ): void {
-  const controllerAddress = bytesToHex(hexToBytes(dataKey as `0x${string}`).slice(12));
+  const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
   const id = `${address} - ${controllerAddress}`;
 
   // Get or create the merged controller entity
@@ -378,7 +378,7 @@ function extractAllowedCalls(
     const allowedCalls = decodeValueType('bytes[CompactBytesArray]', dataValue) as string[];
 
     for (let i = 0; i < allowedCalls.length; i++) {
-      const callBytes = hexToBytes(allowedCalls[i] as `0x${string}`);
+      const callBytes = hexToBytes(allowedCalls[i] as Hex);
       const callEntity = new LSP6AllowedCall({
         id: `${id} - ${i}`,
         restrictionOperations: bytesToHex(callBytes.slice(0, 4)),
@@ -421,7 +421,7 @@ function extractAllowedDataKeys(
   hctx: HandlerContext,
   existingControllers: Map<string, LSP6Controller>,
 ): void {
-  const controllerAddress = bytesToHex(hexToBytes(dataKey as `0x${string}`).slice(12));
+  const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
   const id = `${address} - ${controllerAddress}`;
 
   // Get or create the merged controller entity
