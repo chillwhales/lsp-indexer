@@ -29,7 +29,7 @@ Complete the V2 rewrite of the LUKSO LSP Indexer by migrating remaining handlers
 
 **Plans:**
 
-- [ ] **01-01** (Wave 1): Infrastructure — async handle, delete queue, Step 5.5 hook, registry ordering
+- [x] **01-01** (Wave 1): Infrastructure — async handle, delete queue, Step 5.5 hook, registry ordering
 - [ ] **01-02** (Wave 2): totalSupply + ownedAssets handlers (HMIG-01, HMIG-02)
 - [ ] **01-03** (Wave 2): decimals + formattedTokenId handlers (HMIG-03, HMIG-04)
 - [ ] **01-04** (Wave 3): Legacy code deletion (HMIG-05)
@@ -144,7 +144,7 @@ Complete the V2 rewrite of the LUKSO LSP Indexer by migrating remaining handlers
 
 | Phase | Name                              | Requirements | Status      |
 | ----- | --------------------------------- | :----------: | ----------- |
-| 1     | Handler Migration                 |      5       | Planning    |
+| 1     | Handler Migration                 |      5       | In progress |
 | 2     | New Handlers & Structured Logging |      5       | Not Started |
 | 3     | Metadata Fetch Handlers           |      5       | Not Started |
 | 4     | Integration & Wiring              |      4       | Not Started |
@@ -174,4 +174,4 @@ Phase 1 (Handler Migration)
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-02-06 (Phase 1 plans created)_
+_Last updated: 2026-02-06 (01-01 complete)_
