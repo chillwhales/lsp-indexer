@@ -3,12 +3,13 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    globals: true,
     environment: 'node',
-    exclude: ['lib/**', 'node_modules/**'],
+    include: ['src/**/*.test.ts'],
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, 'lib'),
     },
   },
 });

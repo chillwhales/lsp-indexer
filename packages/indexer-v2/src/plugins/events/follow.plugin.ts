@@ -12,18 +12,20 @@
  * Both follower and followed addresses are queued for verification as
  * UniversalProfiles. FK resolution happens in the enrichment phase (Step 6).
  *
- * `Follower` current-state entity updates will be implemented as EntityHandlers
- * in future issues (see #105: Transfer-derived entity handlers).
+ * `Follower` current-state entity updates are implemented by the FollowerHandler
+ * EntityHandler.
  *
  * Port from v1:
  *   - scanner.ts L473-480 (event matching)
  *   - utils/follow/index.ts (extract + populate)
  */
 import { LSP26_ADDRESS } from '@/constants';
-import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { EntityCategory } from '@/core/types';
 import { LSP26FollowerSystem } from '@chillwhales/abi';
 import { Follow } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
+
+import type { Block, EventPlugin, IBatchContext, Log } from '@/core/types';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'Follow';
@@ -37,7 +39,6 @@ const FollowPlugin: EventPlugin = {
   // ---------------------------------------------------------------------------
   // EXTRACT
   // ---------------------------------------------------------------------------
-
   extract(log: Log, block: Block, ctx: IBatchContext): void {
     const { timestamp, height } = block.header;
     const { address, logIndex, transactionIndex } = log;
@@ -59,14 +60,14 @@ const FollowPlugin: EventPlugin = {
     ctx.addEntity(ENTITY_TYPE, entity.id, entity);
 
     // Queue enrichment for both followerUniversalProfile and followedUniversalProfile FKs
-    ctx.queueEnrichment<Follow>({
+    ctx.queueEnrichment({
       category: EntityCategory.UniversalProfile,
       address: follower,
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'followerUniversalProfile',
     });
-    ctx.queueEnrichment<Follow>({
+    ctx.queueEnrichment({
       category: EntityCategory.UniversalProfile,
       address: addr,
       entityType: ENTITY_TYPE,
