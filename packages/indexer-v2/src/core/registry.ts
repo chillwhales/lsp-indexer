@@ -223,7 +223,8 @@ export class PluginRegistry implements IPluginRegistry {
       const deps = handlers[i].dependsOn;
       if (!deps) continue;
       for (const dep of deps) {
-        const depIndex = nameToIndex.get(dep)!;
+        const depIndex = nameToIndex.get(dep);
+        if (depIndex === undefined) continue; // validated above, defensive guard
         let dependents = adjacency.get(depIndex);
         if (!dependents) {
           dependents = [];
