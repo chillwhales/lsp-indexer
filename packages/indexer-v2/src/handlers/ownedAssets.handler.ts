@@ -21,7 +21,7 @@
  *   for OwnedToken.
  *
  * Port from v1:
- *   - core/handlerHelpers.ts → updateOwnedAssets()
+ *   - core/handlerHelpers.ts → updateOwnedAssets() (deleted in 01-04)
  *   - handlers/ownedAssetsHandler.ts
  *   - utils/transfer/ownedAsset.ts
  *   - utils/transfer/ownedToken.ts

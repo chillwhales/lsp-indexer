@@ -16,7 +16,7 @@
  * - Uses the contract address as the entity ID (one TotalSupply per contract).
  *
  * Port from v1:
- *   - core/handlerHelpers.ts → updateTotalSupply()
+ *   - core/handlerHelpers.ts → updateTotalSupply() (deleted in 01-04)
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { isNullAddress } from '@/utils';
