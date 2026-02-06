@@ -36,17 +36,19 @@ Progress: ██████░░░░ 3/4 phase plans (0/21 requirements)
 
 ### Key Decisions
 
-| Decision                                                | Rationale                                                              | Phase   |
-| ------------------------------------------------------- | ---------------------------------------------------------------------- | ------- |
-| 5-phase structure derived from requirement dependencies | HMIG → HNDL+INFR → META → INTG → DEPL follows natural dependency chain | Roadmap |
-| Logging parallelized with new handlers in Phase 2       | INFR has no dependency on HNDL, enables concurrent work                | Roadmap |
-| Metadata separated from simple handlers                 | External I/O + critical pitfalls (spin-wait) warrant isolation         | Roadmap |
-| queueDelete() separate from removeEntity()              | Distinguish DB-level deletion from in-memory bag removal               | 01-01   |
-| postVerification as opt-in boolean flag                 | Keeps all handlers as one type, existing handlers unaffected           | 01-01   |
-| topologicalSort on every registerEntityHandler()        | Supports test scenarios with manual registration                       | 01-01   |
-| Decimals uses postVerification: true for Step 5.5       | Needs verified DA entities, must run after verification                | 01-03   |
-| FormattedTokenId mutates NFTs in-place in BatchContext  | Already in bag from NFT handler, avoids duplicate entries              | 01-03   |
-| Unknown format returns null + warning (not raw tokenId) | V2 change from V1 — explicit null signals unknown format               | 01-03   |
+| Decision                                                            | Rationale                                                              | Phase   |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------- |
+| 5-phase structure derived from requirement dependencies             | HMIG → HNDL+INFR → META → INTG → DEPL follows natural dependency chain | Roadmap |
+| Logging parallelized with new handlers in Phase 2                   | INFR has no dependency on HNDL, enables concurrent work                | Roadmap |
+| Metadata separated from simple handlers                             | External I/O + critical pitfalls (spin-wait) warrant isolation         | Roadmap |
+| queueDelete() separate from removeEntity()                          | Distinguish DB-level deletion from in-memory bag removal               | 01-01   |
+| postVerification as opt-in boolean flag                             | Keeps all handlers as one type, existing handlers unaffected           | 01-01   |
+| topologicalSort on every registerEntityHandler()                    | Supports test scenarios with manual registration                       | 01-01   |
+| Decimals uses postVerification: true for Step 5.5                   | Needs verified DA entities, must run after verification                | 01-03   |
+| FormattedTokenId mutates NFTs in-place in BatchContext              | Already in bag from NFT handler, avoids duplicate entries              | 01-03   |
+| Unknown format returns null + warning (not raw tokenId)             | V2 change from V1 — explicit null signals unknown format               | 01-03   |
+| OwnedAsset FK set directly on OwnedToken (not via enrichment queue) | OwnedAsset is handler-created, not a verified core entity (UP/DA/NFT)  | 01-02   |
+| Dual-trigger handlers read ALL bags per invocation                  | Ensures consistency regardless of trigger order                        | 01-02   |
 
 ### Discovered Todos
 
@@ -61,18 +63,18 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-06
-- **Activity:** Executed 01-03-PLAN.md — decimals + formattedTokenId handlers
-- **Outcome:** Both handlers compile, decimals uses postVerification, formattedTokenId uses dependsOn + retroactive update
+- **Activity:** Executed 01-02-PLAN.md + 01-03-PLAN.md (parallel) — totalSupply, ownedAssets, decimals, formattedTokenId handlers
+- **Outcome:** All 4 handler files created, all compile, dual-trigger accumulation + enrichment queue pattern established
 - **Next Step:** Execute 01-04-PLAN.md (legacy code cleanup + deletion)
 
 ### Context for Next Session
 
 - All planning artifacts are in `.planning/`
 - Phase 1 infrastructure complete: async handlers, delete queue, postVerification, dependsOn, topological sort
-- Handlers complete: decimals (postVerification), formattedTokenId (dependsOn, retroactive update)
-- Plan 01-02 runs in parallel (totalSupply + ownedAssets) — may or may not be done
-- 01-04 depends on all handler plans completing before deleting legacy code
+- Handlers complete: totalSupply (dual-trigger), ownedAssets (dual-trigger + queueDelete), decimals (postVerification), formattedTokenId (dependsOn + retroactive)
+- Plans 01-01, 01-02, 01-03 all complete — only 01-04 (legacy cleanup) remains
+- 01-04 can now proceed: all handler migration targets are in place
 
 ---
 
-_Last updated: 2026-02-06T10:19Z_
+_Last updated: 2026-02-06T10:21Z_
