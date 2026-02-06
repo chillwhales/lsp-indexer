@@ -4,52 +4,44 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Phase 2 — New Handlers & Structured Logging
+**Current Focus:** Phase 2 — New Handlers & Structured Logging (Follower handler, LSP6 verification, structured logging)
 
 ## Current Position
 
 - **Phase:** 2 of 5 — New Handlers & Structured Logging
-- **Plan:** Not yet planned
-- **Status:** Ready to plan
-- **Last activity:** 2026-02-06 — Phase 1 verified and complete
-
-Progress: ████████░░ 4/4 phase plans (5/21 requirements)
+- **Plan:** 2 of 4 in current phase
+- **Status:** In progress
+- **Last activity:** 2026-02-06 — Completed 02-02-PLAN.md
+- **Progress:** █░░░░░░░░░ 1/4 phase plans complete
 
 ## Phase Overview
 
-| Phase | Name                              | Status       | Requirements |
-| ----- | --------------------------------- | ------------ | :----------: |
-| 1     | Handler Migration                 | **Complete** |     5/5      |
-| 2     | New Handlers & Structured Logging | Upcoming     |     0/5      |
-| 3     | Metadata Fetch Handlers           | Upcoming     |     0/5      |
-| 4     | Integration & Wiring              | Upcoming     |     0/4      |
-| 5     | Deployment & Validation           | Upcoming     |     0/2      |
+| Phase | Name                              | Status          | Requirements |
+| ----- | --------------------------------- | --------------- | :----------: |
+| 1     | Handler Migration                 | Not Started     |     0/5      |
+| 2     | New Handlers & Structured Logging | **In Progress** |     2/5      |
+| 3     | Metadata Fetch Handlers           | Upcoming        |     0/5      |
+| 4     | Integration & Wiring              | Upcoming        |     0/4      |
+| 5     | Deployment & Validation           | Upcoming        |     0/2      |
 
 ## Performance Metrics
 
-- **Plans completed:** 4
+- **Plans completed:** 1
 - **Plans failed:** 0
-- **Phases completed:** 1
-- **Requirements delivered:** 5/21
+- **Phases completed:** 0
+- **Requirements delivered:** 2/21 (HNDL-01, HNDL-02)
 
 ## Accumulated Context
 
 ### Key Decisions
 
-| Decision                                                            | Rationale                                                              | Phase   |
-| ------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------- |
-| 5-phase structure derived from requirement dependencies             | HMIG → HNDL+INFR → META → INTG → DEPL follows natural dependency chain | Roadmap |
-| Logging parallelized with new handlers in Phase 2                   | INFR has no dependency on HNDL, enables concurrent work                | Roadmap |
-| Metadata separated from simple handlers                             | External I/O + critical pitfalls (spin-wait) warrant isolation         | Roadmap |
-| queueDelete() separate from removeEntity()                          | Distinguish DB-level deletion from in-memory bag removal               | 01-01   |
-| postVerification as opt-in boolean flag                             | Keeps all handlers as one type, existing handlers unaffected           | 01-01   |
-| topologicalSort on every registerEntityHandler()                    | Supports test scenarios with manual registration                       | 01-01   |
-| Decimals uses postVerification: true for Step 5.5                   | Needs verified DA entities, must run after verification                | 01-03   |
-| FormattedTokenId mutates NFTs in-place in BatchContext              | Already in bag from NFT handler, avoids duplicate entries              | 01-03   |
-| Unknown format returns null + warning (not raw tokenId)             | V2 change from V1 — explicit null signals unknown format               | 01-03   |
-| OwnedAsset FK set directly on OwnedToken (not via enrichment queue) | OwnedAsset is handler-created, not a verified core entity (UP/DA/NFT)  | 01-02   |
-| Dual-trigger handlers read ALL bags per invocation                  | Ensures consistency regardless of trigger order                        | 01-02   |
-| JSDoc 'Port from v1' annotated with deletion note, not removed      | Preserves provenance trail for future developers                       | 01-04   |
+| Decision                                                | Rationale                                                               | Phase   |
+| ------------------------------------------------------- | ----------------------------------------------------------------------- | ------- |
+| 5-phase structure derived from requirement dependencies | HMIG → HNDL+INFR → META → INTG → DEPL follows natural dependency chain  | Roadmap |
+| Logging parallelized with new handlers in Phase 2       | INFR has no dependency on HNDL, enables concurrent work                 | Roadmap |
+| Metadata separated from simple handlers                 | External I/O + critical pitfalls (spin-wait) warrant isolation          | Roadmap |
+| vitest @/\* alias maps to lib/ with CJS Module hook     | src/ directory incomplete, compiled JS in lib/ has @/\* require() calls | 02-02   |
+| Mock BatchContext pattern for handler unit tests        | Reusable test pattern: seed entity bags, verify mock calls              | 02-02   |
 
 ### Discovered Todos
 
@@ -64,18 +56,18 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-06
-- **Activity:** Executed 01-04-PLAN.md — deleted legacy handlerHelpers, populateHelpers, persistHelpers (593 lines removed)
-- **Outcome:** Phase 1 complete — all legacy code superseded by EntityHandler pattern + enrichment queue
-- **Next Step:** Begin Phase 2 — New Handlers & Structured Logging
+- **Activity:** Executed 02-02-PLAN.md — Follower handler + EventPlugin TS sources + unit tests
+- **Outcome:** Follower EntityHandler, Follow/Unfollow EventPlugin TS sources, 8 unit tests all passing
+- **Next Step:** Execute 02-03-PLAN.md (LSP6Controllers handler TS port + verification tests)
 
 ### Context for Next Session
 
-- All planning artifacts are in `.planning/`
-- Phase 1 fully complete: EntityHandler infrastructure + 4 migrated handlers + legacy cleanup
-- Core modules remaining: batchContext, metadataWorkerPool, multicall, pipeline, registry, types, verification
-- No legacy populate/persist/handler helpers remain — enrichment queue and pipeline are the only patterns
-- Phase 2 can begin: new entity handlers + structured logging framework
+- Follower handler at `packages/indexer-v2/src/handlers/follower.handler.ts`
+- Follow/Unfollow EventPlugins at `packages/indexer-v2/src/plugins/events/`
+- vitest infrastructure ready at `packages/indexer-v2/vitest.config.ts` + `vitest.setup.ts`
+- Mock BatchContext pattern in test file reusable for LSP6 handler tests
+- Remaining plans: 02-03 (LSP6), 02-04 (structured logging replacement)
 
 ---
 
-_Last updated: 2026-02-06T10:26Z_
+_Last updated: 2026-02-06_
