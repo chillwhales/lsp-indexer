@@ -35,19 +35,28 @@
 
 ### Key Decisions
 
-| Decision                                                 | Rationale                                                               | Phase   |
-| -------------------------------------------------------- | ----------------------------------------------------------------------- | ------- |
-| 5-phase structure derived from requirement dependencies  | HMIG → HNDL+INFR → META → INTG → DEPL follows natural dependency chain  | Roadmap |
-| Logging parallelized with new handlers in Phase 2        | INFR has no dependency on HNDL, enables concurrent work                 | Roadmap |
-| Metadata separated from simple handlers                  | External I/O + critical pitfalls (spin-wait) warrant isolation          | Roadmap |
-| vitest @/\* alias maps to lib/ with CJS Module hook      | src/ directory incomplete, compiled JS in lib/ has @/\* require() calls | 02-02   |
-| Mock BatchContext pattern for handler unit tests         | Reusable test pattern: seed entity bags, verify mock calls              | 02-02   |
-| Dual-output logging: Subsquid Logger.child() + pino      | Subsquid controls stdout/stderr; pino adds independent file rotation    | 02-01   |
-| LOG_LEVEL env var overrides NODE_ENV default             | Explicit control over log verbosity in any environment                  | 02-01   |
-| Type assertions for entity FK null vs undefined          | TypeORM models type FKs without null but compiled JS sets null          | 02-03   |
-| vi.mock for mergeEntitiesFromBatchAndDb in handler tests | Isolate handler logic from DB dependencies in unit tests                | 02-03   |
-| Step loggers created once per pipeline section           | createStepLogger outside loops avoids per-iteration overhead            | 02-04   |
-| Handler log calls use step+handler dual fields           | Enables filtering by pipeline step and specific handler name            | 02-04   |
+| Decision                                                            | Rationale                                                               | Phase   |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------- |
+| 5-phase structure derived from requirement dependencies             | HMIG → HNDL+INFR → META → INTG → DEPL follows natural dependency chain  | Roadmap |
+| Logging parallelized with new handlers in Phase 2                   | INFR has no dependency on HNDL, enables concurrent work                 | Roadmap |
+| Metadata separated from simple handlers                             | External I/O + critical pitfalls (spin-wait) warrant isolation          | Roadmap |
+| queueDelete() separate from removeEntity()                          | Distinguish DB-level deletion from in-memory bag removal                | 01-01   |
+| postVerification as opt-in boolean flag                             | Keeps all handlers as one type, existing handlers unaffected            | 01-01   |
+| topologicalSort on every registerEntityHandler()                    | Supports test scenarios with manual registration                        | 01-01   |
+| Decimals uses postVerification: true for Step 5.5                   | Needs verified DA entities, must run after verification                 | 01-03   |
+| FormattedTokenId mutates NFTs in-place in BatchContext              | Already in bag from NFT handler, avoids duplicate entries               | 01-03   |
+| Unknown format returns null + warning (not raw tokenId)             | V2 change from V1 — explicit null signals unknown format                | 01-03   |
+| OwnedAsset FK set directly on OwnedToken (not via enrichment queue) | OwnedAsset is handler-created, not a verified core entity (UP/DA/NFT)   | 01-02   |
+| Dual-trigger handlers read ALL bags per invocation                  | Ensures consistency regardless of trigger order                         | 01-02   |
+| JSDoc 'Port from v1' annotated with deletion note, not removed      | Preserves provenance trail for future developers                        | 01-04   |
+| vitest @/\* alias maps to lib/ with CJS Module hook                 | src/ directory incomplete, compiled JS in lib/ has @/\* require() calls | 02-02   |
+| Mock BatchContext pattern for handler unit tests                    | Reusable test pattern: seed entity bags, verify mock calls              | 02-02   |
+| Dual-output logging: Subsquid Logger.child() + pino                 | Subsquid controls stdout/stderr; pino adds independent file rotation    | 02-01   |
+| LOG_LEVEL env var overrides NODE_ENV default                        | Explicit control over log verbosity in any environment                  | 02-01   |
+| Type assertions for entity FK null vs undefined                     | TypeORM models type FKs without null but compiled JS sets null          | 02-03   |
+| vi.mock for mergeEntitiesFromBatchAndDb in handler tests            | Isolate handler logic from DB dependencies in unit tests                | 02-03   |
+| Step loggers created once per pipeline section                      | createStepLogger outside loops avoids per-iteration overhead            | 02-04   |
+| Handler log calls use step+handler dual fields                      | Enables filtering by pipeline step and specific handler name            | 02-04   |
 
 ### Discovered Todos
 

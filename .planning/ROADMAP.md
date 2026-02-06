@@ -27,6 +27,13 @@ Complete the V2 rewrite of the LUKSO LSP Indexer by migrating remaining handlers
 | HMIG-04 | FormattedTokenId handler populating `NFT.formattedTokenId` based on LSP8TokenIdFormat                 |
 | HMIG-05 | No legacy code remains — DataKeyPlugin interface, populate helpers, handler helpers all deleted       |
 
+**Plans:**
+
+- [x] **01-01** (Wave 1): Infrastructure — async handle, delete queue, Step 5.5 hook, registry ordering
+- [x] **01-02** (Wave 2): totalSupply + ownedAssets handlers (HMIG-01, HMIG-02)
+- [x] **01-03** (Wave 2): decimals + formattedTokenId handlers (HMIG-03, HMIG-04)
+- [x] **01-04** (Wave 3): Legacy code deletion (HMIG-05)
+
 **Success Criteria:**
 
 1. User can run unit tests for totalSupply, ownedAssets, and decimals handlers and see them process events identically to their V1 counterparts
