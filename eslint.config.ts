@@ -104,4 +104,13 @@ export default tseslint.config(
       'prefer-const': 'error',
     },
   },
+
+  // ---- Test file overrides ----------------------------------------------------
+  {
+    files: ['**/__tests__/**/*.ts', '**/*.test.ts', '**/*.spec.ts'],
+    rules: {
+      // Passing mock methods to expect() triggers unbound-method false positives
+      '@typescript-eslint/unbound-method': 'off',
+    },
+  },
 );
