@@ -103,6 +103,15 @@ Plans:
 4. User can verify that during historical sync (`isHead === false`), no metadata HTTP/IPFS requests are made — fetching is deferred until chain head
 5. User can see failed metadata fetches logged with error details, retried according to backoff policy, and never causing spin-wait or infinite loops
 
+**Plans:** 4 plans
+
+Plans:
+
+- [ ] 03-01-PLAN.md — FetchResult type fix + shared metadata fetch utility + V1 type guards
+- [ ] 03-02-PLAN.md — LSP3 + LSP29 metadata fetch handlers (7 + 7 sub-entity types)
+- [ ] 03-03-PLAN.md — LSP4 metadata fetch handler (8 sub-entity types + Score/Rank)
+- [ ] 03-04-PLAN.md — Unit tests for all three metadata fetch handlers
+
 ---
 
 ## Phase 4 — Integration & Wiring
