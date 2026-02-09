@@ -47,9 +47,13 @@ function createMockBatchCtx(): {
     }),
     addEntity: vi.fn((type: string, id: string, entity: unknown) => {
       if (!entityBags.has(type)) entityBags.set(type, new Map());
-      entityBags.get(type)!.set(id, entity);
+      const bag = entityBags.get(type);
+      if (bag) bag.set(id, entity);
     }),
-    hasEntities: vi.fn((type: string) => entityBags.has(type) && entityBags.get(type)!.size > 0),
+    hasEntities: vi.fn((type: string) => {
+      const bag = entityBags.get(type);
+      return bag != null && bag.size > 0;
+    }),
     queueClear: vi.fn((request: unknown) => clearQueue.push(request)),
     queueDelete: vi.fn(),
     queueEnrichment: vi.fn((request: unknown) => enrichmentQueue.push(request)),

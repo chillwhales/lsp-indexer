@@ -52,9 +52,13 @@ function createMockBatchCtx(): {
     }),
     addEntity: vi.fn((type: string, id: string, entity: unknown) => {
       if (!entityBags.has(type)) entityBags.set(type, new Map());
-      entityBags.get(type)!.set(id, entity);
+      const bag = entityBags.get(type);
+      if (bag) bag.set(id, entity);
     }),
-    hasEntities: vi.fn((type: string) => entityBags.has(type) && entityBags.get(type)!.size > 0),
+    hasEntities: vi.fn((type: string) => {
+      const bag = entityBags.get(type);
+      return bag != null && bag.size > 0;
+    }),
     queueClear: vi.fn((request: unknown) => clearQueue.push(request)),
     queueDelete: vi.fn(),
     queueEnrichment: vi.fn((request: unknown) => enrichmentQueue.push(request)),
@@ -543,16 +547,16 @@ describe('LSP4MetadataFetchHandler - Successful fetch (META-02)', () => {
 
     const attrs = attrCalls.map((c: unknown[]) => c[2] as LSP4MetadataAttribute);
     const bgAttr = attrs.find((a) => a.key === 'Background');
-    expect(bgAttr).toBeDefined();
-    expect(bgAttr!.value).toBe('Ocean');
-    expect(bgAttr!.type).toBe('string');
-    expect(bgAttr!.score).toBe(85); // parsed from string '85'
-    expect(bgAttr!.rarity).toBe(12.5); // parsed from string '12.5'
+    if (!bgAttr) throw new Error('Expected Background attribute');
+    expect(bgAttr.value).toBe('Ocean');
+    expect(bgAttr.type).toBe('string');
+    expect(bgAttr.score).toBe(85); // parsed from string '85'
+    expect(bgAttr.rarity).toBe(12.5); // parsed from string '12.5'
 
     const traitAttr = attrs.find((a) => a.key === 'Trait');
-    expect(traitAttr).toBeDefined();
-    expect(traitAttr!.score).toBe(100); // number type
-    expect(traitAttr!.rarity).toBe(0.5); // number type
+    if (!traitAttr) throw new Error('Expected Trait attribute');
+    expect(traitAttr.score).toBe(100); // number type
+    expect(traitAttr.rarity).toBe(0.5); // number type
   });
 
   it('marks entity as isDataFetched=true on success', async () => {

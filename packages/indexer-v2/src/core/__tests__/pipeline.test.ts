@@ -263,7 +263,6 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
     });
 
     const mockStore = store;
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(mockStore.insert).toHaveBeenCalled();
     expect(mockStore.insertedEntities).toContainEqual({ id: 'e1', type: 'event1' });
     expect(mockStore.insertedEntities).toContainEqual({ id: 'e2', type: 'event2' });
@@ -304,7 +303,6 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
 
     // Step 2: Entity should be inserted (called once)
     const mockStore = store;
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(mockStore.insert).toHaveBeenCalledTimes(1);
     const insertedTransfer = mockStore.insertedEntities.find((e) => e.id === 't1');
     expect(insertedTransfer).toBeDefined();
@@ -828,11 +826,9 @@ describe('Pipeline Step 6: ENRICH', () => {
     expect(enrichedTransfer).toBeUndefined();
 
     // Warning should be logged
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(context.log.warn).toHaveBeenCalledWith(
       expect.stringContaining('Skipping enrichment: FK field not found on entity'),
     );
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(context.log.warn).toHaveBeenCalledWith(expect.stringContaining('digitalAsset'));
   });
 });
