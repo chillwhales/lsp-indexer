@@ -24,7 +24,7 @@ tech-stack:
   patterns:
     - 'End-to-end handler tests (no mocking shared utility, mock only external boundaries)'
     - 'Mock workerPool.fetchBatch + store.find pattern for fetch handler tests'
-    - 'Deterministic UUID mocking via vi.mock counter'
+    - 'Entity creation verified by count and field values (UUIDs not mocked)'
 
 key-files:
   created:
@@ -36,7 +36,7 @@ key-files:
 key-decisions:
   - 'Test through shared utility (integration-style) rather than mocking handleMetadataFetch'
   - 'Mock store.find and workerPool.fetchBatch as the external boundaries'
-  - 'vi.mock uuid with counter for deterministic IDs in assertions'
+  - 'Verify entity creation by count and field values rather than ID matching'
   - 'Type assertions for entity FK null vs undefined (matching 02-03 pattern)'
 
 patterns-established:
@@ -83,7 +83,7 @@ Each task was committed atomically:
 
 - Tested end-to-end through the shared `handleMetadataFetch()` utility rather than mocking it — validates the full flow from handler config → utility → worker pool → parsing → entity creation
 - Mocked only external boundaries (`store.find` for DB queries, `workerPool.fetchBatch` for IPFS/HTTP fetches) — everything else runs as real code
-- Used `vi.mock('uuid')` with incrementing counter for deterministic entity IDs in assertions
+- Verified entity creation by count and field values rather than asserting specific UUIDs
 - Used type assertions for entity FK fields matching the pattern established in 02-03
 
 ## Deviations from Plan
