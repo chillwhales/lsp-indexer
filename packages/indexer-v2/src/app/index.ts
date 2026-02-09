@@ -13,6 +13,7 @@ import { processor } from './processor';
 // TODO (Plan 02): Add registry discovery and log subscription wiring
 // TODO (Plan 03): Add pipeline integration with processBatch
 
+// eslint-disable-next-line @typescript-eslint/require-await -- Skeleton async handler; await will be added in Plan 03 when processBatch is wired
 processor.run(new TypeormDatabase(), async (ctx) => {
   // TODO: Wire processBatch call here in Plan 03
   if (ctx.blocks.length > 0) {
