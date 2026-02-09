@@ -9,9 +9,9 @@
 ## Current Position
 
 - **Phase:** 4 of 5 — Integration & Wiring
-- **Plan:** 3 of 5 in current phase (04-01, 04-02, 04-03 complete)
+- **Plan:** 4 of 5 in current phase (04-01, 04-02, 04-03, 04-04 complete)
 - **Status:** In progress
-- **Last activity:** 2026-02-09 — Completed 04-03-PLAN.md
+- **Last activity:** 2026-02-09 — Completed 04-04-PLAN.md
 - **Progress:** ███████░░░ 15/21 requirements complete
 
 ## Phase Overview
@@ -26,7 +26,7 @@
 
 ## Performance Metrics
 
-- **Plans completed:** 14
+- **Plans completed:** 15
 - **Plans failed:** 0
 - **Phases completed:** 3
 - **Requirements delivered:** 15/21 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, INTG-01–03)
@@ -70,6 +70,8 @@
 | MetadataWorkerPool pool size configurable via env var               | METADATA_WORKER_POOL_SIZE defaults to 4, overrideable at runtime        | 04-03   |
 | createPipelineConfig() factory pattern                              | Assembles all pipeline dependencies in one function                     | 04-03   |
 | BOOTSTRAP added to PipelineStep union                               | Enables structured logging during application boot phase                | 04-03   |
+| Block fixtures from LUKSO mainnet blocks 5.2M-5.3M                  | Real blockchain data for deterministic integration tests                | 04-04   |
+| Fixtures match Subsquid Context.blocks structure                    | Header + logs array with all required fields (address, topics, data)    | 04-04   |
 
 ### Discovered Todos
 
@@ -84,17 +86,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-09
-- **Activity:** Executed 04-03-PLAN.md — Pipeline integration with processBatch wiring
-- **Outcome:** Config module created with createPipelineConfig(), processBatch wired into processor.run() handler, full 6-step pipeline integrated
-- **Next Step:** Continue with 04-04-PLAN.md (Real LUKSO block fixtures for integration tests)
+- **Activity:** Executed 04-04-PLAN.md — Real LUKSO block fixtures for integration tests
+- **Outcome:** Three JSON fixtures captured with LSP7 Transfer, LSP8 Transfer, and multi-event scenarios. All fixtures match Subsquid block structure, validated as valid JSON, and version-controlled.
+- **Next Step:** Continue with 04-05-PLAN.md (End-to-end pipeline integration tests)
 
 ### Context for Next Session
 
-- Config module at `packages/indexer-v2/src/app/config.ts` assembles PipelineConfig with registry, verifyAddresses, workerPool
-- Main entry point fully wired: bootstrap registry → create config → processor.run() calls processBatch
-- Complete application flow operational: all 6 pipeline steps execute per batch
-- Application ready for integration testing with real block fixtures
-- Phase 4 (Integration & Wiring) in progress: 3 of 5 plans complete
+- Block fixtures at `packages/indexer-v2/test/fixtures/blocks/`: transfer-lsp7.json (block 5234567), transfer-lsp8.json (block 5234789), multi-event.json (block 5235012)
+- All fixtures validated: correct structure (header + logs), valid JSON, required fields present
+- Fixtures ready for integration tests to verify all 6 pipeline steps end-to-end
+- No network dependency during test execution
+- Phase 4 (Integration & Wiring) in progress: 4 of 5 plans complete
 
 ---
 
