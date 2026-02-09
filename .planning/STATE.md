@@ -4,29 +4,29 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Phase 2 verified complete — next: Phase 3 (Metadata Fetch Handlers)
+**Current Focus:** Phase 3 in progress — Metadata Fetch Handlers (plan 1 of 4 complete)
 
 ## Current Position
 
-- **Phase:** 2 of 5 — New Handlers & Structured Logging
-- **Plan:** 4 of 4 in current phase (02-01, 02-02, 02-03, 02-04 complete)
-- **Status:** Phase complete
-- **Last activity:** 2026-02-06 — Completed 02-04-PLAN.md
+- **Phase:** 3 of 5 — Metadata Fetch Handlers
+- **Plan:** 1 of 4 in current phase (03-01 complete)
+- **Status:** In progress
+- **Last activity:** 2026-02-09 — Completed 03-01-PLAN.md
 - **Progress:** █████░░░░░ 10/21 requirements complete
 
 ## Phase Overview
 
-| Phase | Name                              | Status       | Requirements |
-| ----- | --------------------------------- | ------------ | :----------: |
-| 1     | Handler Migration                 | **Complete** |     5/5      |
-| 2     | New Handlers & Structured Logging | **Complete** |     5/5      |
-| 3     | Metadata Fetch Handlers           | Upcoming     |     0/5      |
-| 4     | Integration & Wiring              | Upcoming     |     0/4      |
-| 5     | Deployment & Validation           | Upcoming     |     0/2      |
+| Phase | Name                              | Status          | Requirements |
+| ----- | --------------------------------- | --------------- | :----------: |
+| 1     | Handler Migration                 | **Complete**    |     5/5      |
+| 2     | New Handlers & Structured Logging | **Complete**    |     5/5      |
+| 3     | Metadata Fetch Handlers           | **In Progress** |     0/5      |
+| 4     | Integration & Wiring              | Upcoming        |     0/4      |
+| 5     | Deployment & Validation           | Upcoming        |     0/2      |
 
 ## Performance Metrics
 
-- **Plans completed:** 4
+- **Plans completed:** 9
 - **Plans failed:** 0
 - **Phases completed:** 2
 - **Requirements delivered:** 10/21 (HMIG-01–05, HNDL-01–03, INFR-01–02)
@@ -57,6 +57,8 @@
 | vi.mock for mergeEntitiesFromBatchAndDb in handler tests            | Isolate handler logic from DB dependencies in unit tests                | 02-03   |
 | Step loggers created once per pipeline section                      | createStepLogger outside loops avoids per-iteration overhead            | 02-04   |
 | Handler log calls use step+handler dual fields                      | Enables filtering by pipeline step and specific handler name            | 02-04   |
+| import type for @lukso contracts in V2                              | Node10 resolution + no strictNullChecks requires type-only imports      | 03-01   |
+| EntityConstructor for entity updates in fetch utility               | Preserves TypeORM decorators; plain object spread loses metadata        | 03-01   |
 
 ### Discovered Todos
 
@@ -70,22 +72,19 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-06
-- **Activity:** Executed 02-04-PLAN.md — Replace JSON.stringify logging with structured attributes
-- **Outcome:** All 13 JSON.stringify calls in TS sources replaced; pipeline.ts and verification.ts created
-- **Next Step:** Phase 2 verified. Begin Phase 3 (Metadata Fetch Handlers) with `/gsd-discuss-phase 3`
+- **Date:** 2026-02-09
+- **Activity:** Executed 03-01-PLAN.md — FetchResult type fix + shared metadata fetch utility + V1 type guards
+- **Outcome:** Foundation layer for metadata fetch handlers complete; FetchResult extended, type guards ported, shared handleMetadataFetch() utility created
+- **Next Step:** Continue with 03-02-PLAN.md (LSP3 + LSP29 metadata fetch handlers)
 
 ### Context for Next Session
 
-- Pipeline TS source at `packages/indexer-v2/src/core/pipeline.ts`
-- Verification TS source at `packages/indexer-v2/src/core/verification.ts`
-- Logger factory at `packages/indexer-v2/src/core/logger.ts`
-- Follower handler at `packages/indexer-v2/src/handlers/follower.handler.ts`
-- LSP6Controllers handler at `packages/indexer-v2/src/handlers/lsp6Controllers.handler.ts`
-- Follow/Unfollow EventPlugins at `packages/indexer-v2/src/plugins/events/`
-- vitest infrastructure ready at `packages/indexer-v2/vitest.config.ts` + `vitest.setup.ts`
-- Phase 2 fully complete — all 4 plans executed
+- Shared fetch utility at `packages/indexer-v2/src/utils/metadataFetch.ts`
+- Type guards (isVerification, isFileImage, isFileAsset) in `packages/indexer-v2/src/utils/index.ts`
+- Extended FetchResult in `packages/indexer-v2/src/core/types/metadata.ts`
+- MetadataWorkerPool error passthrough fixed in `packages/indexer-v2/src/core/metadataWorkerPool.ts`
+- Plans 02, 03, 04 remain in Phase 3
 
 ---
 
-_Last updated: 2026-02-06_
+_Last updated: 2026-02-09_
