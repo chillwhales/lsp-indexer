@@ -4,15 +4,15 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Phase 4 in progress — Integration & Wiring (plan 01 complete; 02-05 remaining)
+**Current Focus:** Phase 4 in progress — Integration & Wiring (plans 01-02 complete; 03-05 remaining)
 
 ## Current Position
 
 - **Phase:** 4 of 5 — Integration & Wiring
-- **Plan:** 1 of 5 in current phase (04-01 complete)
+- **Plan:** 2 of 5 in current phase (04-01, 04-02 complete)
 - **Status:** In progress
-- **Last activity:** 2026-02-09 — Completed 04-01-PLAN.md
-- **Progress:** ██████░░░░ 13/21 requirements complete
+- **Last activity:** 2026-02-09 — Completed 04-02-PLAN.md
+- **Progress:** ██████░░░░ 14/21 requirements complete
 
 ## Phase Overview
 
@@ -21,15 +21,15 @@
 | 1     | Handler Migration                 | **Complete**    |     5/5      |
 | 2     | New Handlers & Structured Logging | **Complete**    |     5/5      |
 | 3     | Metadata Fetch Handlers           | **Complete**    |     5/5      |
-| 4     | Integration & Wiring              | **In Progress** |     1/4      |
+| 4     | Integration & Wiring              | **In Progress** |     2/4      |
 | 5     | Deployment & Validation           | Upcoming        |     0/2      |
 
 ## Performance Metrics
 
-- **Plans completed:** 12
+- **Plans completed:** 13
 - **Plans failed:** 0
 - **Phases completed:** 3
-- **Requirements delivered:** 13/21 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, INTG-01)
+- **Requirements delivered:** 14/21 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, INTG-01–02)
 
 ## Accumulated Context
 
@@ -65,6 +65,8 @@
 | LSP29 entityUpdates returns version/contentId/revision/createdAt    | Parent entity fields updated on successful parse (matching V1)          | 03-02   |
 | LSP3 profile images as flat arrays                                  | Unlike LSP4 nested arrays, LSP3 JSON schema uses flat arrays            | 03-02   |
 | Processor defaults to LUKSO mainnet RPC and Subsquid archive        | Environment-based configuration for RPC_ENDPOINT and ARCHIVE_URL        | 04-01   |
+| Bootstrap module with createRegistry() function                     | Structured logging during discovery, fail-fast validation               | 04-02   |
+| Registry discovery via \_\_dirname-resolved paths                   | Enables runtime discovery of compiled .plugin.js and .handler.js files  | 04-02   |
 
 ### Discovered Todos
 
@@ -79,16 +81,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-09
-- **Activity:** Executed 04-01-PLAN.md — Processor configuration and entry point skeleton
-- **Outcome:** EvmBatchProcessor configured for LUKSO mainnet, entry point created with TODO markers for registry and pipeline wiring
-- **Next Step:** Continue with 04-02-PLAN.md (Registry discovery and log subscription wiring)
+- **Activity:** Executed 04-02-PLAN.md — Registry discovery and log subscription wiring
+- **Outcome:** Bootstrap module created with createRegistry(), main entry point bootstraps registry and configures processor with log subscriptions
+- **Next Step:** Continue with 04-03-PLAN.md (Pipeline integration with processBatch wiring)
 
 ### Context for Next Session
 
-- Processor instance at `packages/indexer-v2/src/app/processor.ts` ready for `.addLog()` configuration
-- Entry point at `packages/indexer-v2/src/app/index.ts` needs registry discovery and pipeline integration
-- TODO markers guide next integration: Plan 02 (registry) and Plan 03 (pipeline)
-- Phase 4 (Integration & Wiring) in progress: 1 of 5 plans complete
+- Bootstrap module at `packages/indexer-v2/src/app/bootstrap.ts` exports createRegistry()
+- Main entry point at `packages/indexer-v2/src/app/index.ts` calls createRegistry() and configures processor subscriptions
+- Processor configured with all EventPlugin log subscriptions via processor.addLog()
+- Registry ready for use in pipeline integration (Plan 03)
+- Phase 4 (Integration & Wiring) in progress: 2 of 5 plans complete
 
 ---
 
