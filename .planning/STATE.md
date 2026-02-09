@@ -4,15 +4,15 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Phase 3 in progress — Metadata Fetch Handlers (plans 01, 03 complete; 02, 04 remaining)
+**Current Focus:** Phase 3 in progress — Metadata Fetch Handlers (plans 01, 02, 03 complete; 04 remaining)
 
 ## Current Position
 
 - **Phase:** 3 of 5 — Metadata Fetch Handlers
-- **Plan:** 2 of 4 in current phase (03-01, 03-03 complete)
+- **Plan:** 3 of 4 in current phase (03-01, 03-02, 03-03 complete)
 - **Status:** In progress
-- **Last activity:** 2026-02-09 — Completed 03-03-PLAN.md
-- **Progress:** █████░░░░░ 10/21 requirements complete
+- **Last activity:** 2026-02-09 — Completed 03-02-PLAN.md
+- **Progress:** ██████░░░░ 12/21 requirements complete
 
 ## Phase Overview
 
@@ -26,10 +26,10 @@
 
 ## Performance Metrics
 
-- **Plans completed:** 10
+- **Plans completed:** 11
 - **Plans failed:** 0
 - **Phases completed:** 2
-- **Requirements delivered:** 10/21 (HMIG-01–05, HNDL-01–03, INFR-01–02)
+- **Requirements delivered:** 12/21 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01, META-03)
 
 ## Accumulated Context
 
@@ -61,6 +61,9 @@
 | EntityConstructor for entity updates in fetch utility               | Preserves TypeORM decorators; plain object spread loses metadata        | 03-01   |
 | LSP4 icons mapped without isFileImage filter                        | V1 maps ALL icon array items directly, V2 must match exactly            | 03-03   |
 | LSP4 Category always created even when value undefined              | V1 behavior creates entity with value: undefined                        | 03-03   |
+| LSP29 AccessControlCondition excluded from SubEntityDescriptors     | FK points to Encryption not Asset; cleared via cascade                  | 03-02   |
+| LSP29 entityUpdates returns version/contentId/revision/createdAt    | Parent entity fields updated on successful parse (matching V1)          | 03-02   |
+| LSP3 profile images as flat arrays                                  | Unlike LSP4 nested arrays, LSP3 JSON schema uses flat arrays            | 03-02   |
 
 ### Discovered Todos
 
@@ -75,16 +78,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-09
-- **Activity:** Executed 03-03-PLAN.md — LSP4 metadata fetch handler with 10 sub-entity types
-- **Outcome:** LSP4 fetch handler complete with Name, Description, Category, Link, Image, Icon, Asset, Attribute, Score, Rank sub-entities
-- **Next Step:** Continue with 03-02-PLAN.md (LSP3 + LSP29 metadata fetch handlers) or 03-04-PLAN.md (unit tests)
+- **Activity:** Executed 03-02-PLAN.md — LSP3 + LSP29 metadata fetch handlers with 14 total sub-entity types
+- **Outcome:** Both fetch handlers complete, using shared handleMetadataFetch utility, all 7+7 sub-entity types created
+- **Next Step:** Continue with 03-04-PLAN.md (metadata fetch handler unit tests)
 
 ### Context for Next Session
 
+- LSP3 fetch handler at `packages/indexer-v2/src/handlers/lsp3ProfileFetch.handler.ts`
+- LSP29 fetch handler at `packages/indexer-v2/src/handlers/lsp29EncryptedAssetFetch.handler.ts`
 - LSP4 metadata fetch handler at `packages/indexer-v2/src/handlers/lsp4MetadataFetch.handler.ts`
 - Shared fetch utility at `packages/indexer-v2/src/utils/metadataFetch.ts`
-- Type guards (isVerification, isFileImage, isFileAsset) in `packages/indexer-v2/src/utils/index.ts`
-- Plans 02, 04 remain in Phase 3
+- Plan 04 remains in Phase 3
 
 ---
 
