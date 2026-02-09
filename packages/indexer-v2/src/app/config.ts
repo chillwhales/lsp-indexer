@@ -19,8 +19,19 @@ import { createVerifyFn } from '@/core/verification';
  * @returns PipelineConfig with registry, verifyAddresses function, and worker pool
  */
 export function createPipelineConfig(registry: PluginRegistry): PipelineConfig {
-  // Read worker pool size from environment variable (default: 4)
-  const poolSize = parseInt(process.env.METADATA_WORKER_POOL_SIZE || '4', 10);
+  // Read and validate worker pool size from environment variable
+  const defaultPoolSize = 4;
+  const poolSizeRaw = process.env.METADATA_WORKER_POOL_SIZE;
+  let poolSize = parseInt(poolSizeRaw ?? `${defaultPoolSize}`, 10);
+
+  if (!Number.isInteger(poolSize) || poolSize <= 0) {
+    console.error(
+      `Invalid METADATA_WORKER_POOL_SIZE='${poolSizeRaw}'. ` +
+        `Using default value ${defaultPoolSize}.`,
+    );
+    poolSize = defaultPoolSize;
+  }
+
   const workerPool = new MetadataWorkerPool({ poolSize });
 
   // Create verification function with LRU cache
