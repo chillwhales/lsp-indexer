@@ -200,7 +200,7 @@ function parseAndAddSubEntities(
             ...(isVerification(verification) && {
               verificationMethod: verification.method,
               verificationData: verification.data,
-              verificationSource: (verification as { source?: string }).source,
+              verificationSource: verification.source,
             }),
             imageIndex: index,
           });
@@ -212,23 +212,17 @@ function parseAndAddSubEntities(
   // --- Icons (flat array — V1 maps ALL items without isFileImage filter) ---
   if (icon && Array.isArray(icon)) {
     for (const iconItem of icon) {
-      const typedItem = iconItem as {
-        url?: string;
-        width?: number;
-        height?: number;
-        verification?: unknown;
-      };
       const iconEntity = new LSP4MetadataIcon({
         id: uuidv4(),
         lsp4Metadata: parentRef,
-        url: typedItem.url,
-        width: typedItem.width,
-        height: typedItem.height,
-        ...(typedItem.verification &&
-          isVerification(typedItem.verification) && {
-            verificationMethod: typedItem.verification.method,
-            verificationData: typedItem.verification.data,
-            verificationSource: (typedItem.verification as { source?: string }).source,
+        url: iconItem.url,
+        width: iconItem.width,
+        height: iconItem.height,
+        ...(iconItem.verification &&
+          isVerification(iconItem.verification) && {
+            verificationMethod: iconItem.verification.method,
+            verificationData: iconItem.verification.data,
+            verificationSource: iconItem.verification.source,
           }),
       });
       hctx.batchCtx.addEntity('LSP4MetadataIcon', iconEntity.id, iconEntity);
@@ -247,7 +241,7 @@ function parseAndAddSubEntities(
           isVerification(asset.verification) && {
             verificationMethod: asset.verification.method,
             verificationData: asset.verification.data,
-            verificationSource: (asset.verification as { source?: string }).source,
+            verificationSource: asset.verification.source,
           }),
       });
       hctx.batchCtx.addEntity('LSP4MetadataAsset', assetEntity.id, assetEntity);

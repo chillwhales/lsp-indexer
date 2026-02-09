@@ -283,7 +283,7 @@ function parseAndAddSubEntities(
             isVerification(verification) && {
               verificationMethod: verification.method,
               verificationData: verification.data,
-              verificationSource: (verification as { source?: string }).source,
+              verificationSource: verification.source,
             }),
           imageIndex: imageSetIdx,
         });

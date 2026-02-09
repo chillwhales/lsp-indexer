@@ -122,8 +122,8 @@ function parseAndAddSubEntities(
       const linkEntity = new LSP3ProfileLink({
         id: uuidv4(),
         lsp3Profile: parentRef,
-        title: (link as { title?: string }).title,
-        url: (link as { url?: string }).url,
+        title: link.title,
+        url: link.url,
       });
       hctx.batchCtx.addEntity('LSP3ProfileLink', linkEntity.id, linkEntity);
     }
@@ -142,7 +142,7 @@ function parseAndAddSubEntities(
         ...(isVerification(verification) && {
           verificationMethod: verification.method,
           verificationData: verification.data,
-          verificationSource: (verification as { source?: string }).source,
+          verificationSource: verification.source,
         }),
       });
       hctx.batchCtx.addEntity('LSP3ProfileAsset', assetEntity.id, assetEntity);
@@ -155,15 +155,13 @@ function parseAndAddSubEntities(
       const imageEntity = new LSP3ProfileImage({
         id: uuidv4(),
         lsp3Profile: parentRef,
-        url: (img as { url?: string }).url,
-        width: (img as { width?: number }).width,
-        height: (img as { height?: number }).height,
-        ...(isVerification((img as { verification?: unknown }).verification) && {
-          verificationMethod: (img as { verification: { method: string } }).verification.method,
-          verificationData: (img as { verification: { data: string } }).verification.data,
-          verificationSource: (
-            (img as { verification: { source?: string } }).verification as { source?: string }
-          ).source,
+        url: img.url,
+        width: img.width,
+        height: img.height,
+        ...(isVerification(img.verification) && {
+          verificationMethod: img.verification.method,
+          verificationData: img.verification.data,
+          verificationSource: img.verification.source,
         }),
       });
       hctx.batchCtx.addEntity('LSP3ProfileImage', imageEntity.id, imageEntity);
@@ -176,15 +174,13 @@ function parseAndAddSubEntities(
       const bgEntity = new LSP3ProfileBackgroundImage({
         id: uuidv4(),
         lsp3Profile: parentRef,
-        url: (img as { url?: string }).url,
-        width: (img as { width?: number }).width,
-        height: (img as { height?: number }).height,
-        ...(isVerification((img as { verification?: unknown }).verification) && {
-          verificationMethod: (img as { verification: { method: string } }).verification.method,
-          verificationData: (img as { verification: { data: string } }).verification.data,
-          verificationSource: (
-            (img as { verification: { source?: string } }).verification as { source?: string }
-          ).source,
+        url: img.url,
+        width: img.width,
+        height: img.height,
+        ...(isVerification(img.verification) && {
+          verificationMethod: img.verification.method,
+          verificationData: img.verification.data,
+          verificationSource: img.verification.source,
         }),
       });
       hctx.batchCtx.addEntity('LSP3ProfileBackgroundImage', bgEntity.id, bgEntity);
