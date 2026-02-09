@@ -1,3 +1,4 @@
+import { FINALITY_CONFIRMATION, RPC_URL, SQD_GATEWAY } from '@/constants';
 import { EvmBatchProcessor } from '@subsquid/evm-processor';
 
 /**
@@ -7,18 +8,17 @@ import { EvmBatchProcessor } from '@subsquid/evm-processor';
  * Log subscriptions will be added by registry wiring in next plan.
  */
 
-const RPC_ENDPOINT = process.env.RPC_ENDPOINT || 'https://rpc.lukso.network';
-const ARCHIVE_URL =
-  process.env.ARCHIVE_URL || 'https://v2.archive.subsquid.io/network/lukso-mainnet';
-
 export const processor = new EvmBatchProcessor()
-  .setGateway(ARCHIVE_URL)
-  .setRpcEndpoint(RPC_ENDPOINT)
-  .setFinalityConfirmation(75)
+  .setGateway(SQD_GATEWAY)
+  .setRpcEndpoint(RPC_URL)
+  .setFinalityConfirmation(FINALITY_CONFIRMATION)
   .setBlockRange({ from: 0 })
   .setFields({
     log: {
+      address: true,
       topics: true,
       data: true,
+      logIndex: true,
+      transactionIndex: true,
     },
   });

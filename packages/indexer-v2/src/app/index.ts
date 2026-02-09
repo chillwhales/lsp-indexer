@@ -15,7 +15,9 @@ import { processor } from './processor';
 
 processor.run(new TypeormDatabase(), async (ctx) => {
   // TODO: Wire processBatch call here in Plan 03
-  console.log(
-    `Processing blocks ${ctx.blocks[0]?.header.height} to ${ctx.blocks[ctx.blocks.length - 1]?.header.height}`,
-  );
+  if (ctx.blocks.length > 0) {
+    const from = ctx.blocks[0].header.height;
+    const to = ctx.blocks[ctx.blocks.length - 1].header.height;
+    ctx.log.info({ step: 'RUN', from, to }, `Processing blocks ${from} to ${to}`);
+  }
 });
