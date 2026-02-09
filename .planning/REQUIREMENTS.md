@@ -23,11 +23,11 @@ Requirements for completing the V2 rewrite. Each maps to roadmap phases.
 
 ### Metadata Fetchers
 
-- [ ] **META-01**: User can see LSP3 profile metadata fetched from IPFS/HTTP and 7 sub-entity types created
-- [ ] **META-02**: User can see LSP4 digital asset metadata fetched and 8 sub-entity types plus Score/Rank created
-- [ ] **META-03**: User can see LSP29 encrypted asset metadata fetched and 7 sub-entity types created
-- [ ] **META-04**: User can verify metadata handlers only fetch at chain head (`isHead === true`)
-- [ ] **META-05**: User can verify metadata fetch failures are retried with proper error tracking
+- [x] **META-01**: User can see LSP3 profile metadata fetched from IPFS/HTTP and 7 sub-entity types created
+- [x] **META-02**: User can see LSP4 digital asset metadata fetched and 8 sub-entity types plus Score/Rank created
+- [x] **META-03**: User can see LSP29 encrypted asset metadata fetched and 7 sub-entity types created
+- [x] **META-04**: User can verify metadata handlers only fetch at chain head (`isHead === true`)
+- [x] **META-05**: User can verify metadata fetch failures are retried with proper error tracking
 
 ### Infrastructure
 
@@ -88,11 +88,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HNDL-03     | 2     | Complete |
 | INFR-01     | 2     | Complete |
 | INFR-02     | 2     | Complete |
-| META-01     | 3     | Pending  |
-| META-02     | 3     | Pending  |
-| META-03     | 3     | Pending  |
-| META-04     | 3     | Pending  |
-| META-05     | 3     | Pending  |
+| META-01     | 3     | Complete |
+| META-02     | 3     | Complete |
+| META-03     | 3     | Complete |
+| META-04     | 3     | Complete |
+| META-05     | 3     | Complete |
 | INTG-01     | 4     | Pending  |
 | INTG-02     | 4     | Pending  |
 | INTG-03     | 4     | Pending  |
@@ -109,4 +109,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 ---
 
 _Requirements defined: 2026-02-06_
-_Last updated: 2026-02-06 after roadmap creation_
+_Last updated: 2026-02-09 after Phase 3 completion_
