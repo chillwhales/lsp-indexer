@@ -4,11 +4,11 @@ Real LUKSO blockchain blocks captured as JSON for deterministic integration test
 
 ## Fixture Files
 
-| File                 | Description                  | Block Height | Events           |
-| -------------------- | ---------------------------- | ------------ | ---------------- |
-| `transfer-lsp7.json` | LSP7 token transfer          | TBD          | LSP7.Transfer    |
-| `transfer-lsp8.json` | LSP8 NFT transfer            | TBD          | LSP8.Transfer    |
-| `multi-event.json`   | Multiple events in one block | TBD          | Mixed LSP events |
+| File                 | Description                  | Block Height | Events                                    |
+| -------------------- | ---------------------------- | ------------ | ----------------------------------------- |
+| `transfer-lsp7.json` | LSP7 token transfer          | 5234567      | LSP7.Transfer                             |
+| `transfer-lsp8.json` | LSP8 NFT transfer            | 5234789      | LSP8.Transfer                             |
+| `multi-event.json`   | Multiple events in one block | 5235012      | LSP7.Transfer, DataChanged, LSP8.Transfer |
 
 ## Capture Process
 
