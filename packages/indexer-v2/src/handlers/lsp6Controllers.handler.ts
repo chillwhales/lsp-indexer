@@ -207,7 +207,7 @@ function extractLength(
     timestamp,
     value: isHex(dataValue) && hexToBytes(dataValue).length === 16 ? hexToBigInt(dataValue) : null,
     rawValue: dataValue,
-    universalProfile: null as unknown as undefined, // FK initially null — resolved in enrichment step
+    universalProfile: undefined, // FK resolved in enrichment step
   });
 
   hctx.batchCtx.addEntity(LENGTH_TYPE, entity.id, entity);
@@ -267,7 +267,7 @@ function extractFromIndex(
     timestamp,
     controllerAddress,
     arrayIndex,
-    universalProfile: null as unknown as undefined, // FK initially null — resolved in enrichment step
+    universalProfile: undefined, // FK resolved in enrichment step
     controllerProfile: null,
   });
 
@@ -495,7 +495,7 @@ function getOrCreateController(
     address,
     timestamp,
     controllerAddress,
-    universalProfile: null as unknown as undefined, // FK initially null — resolved in enrichment step
+    universalProfile: undefined, // FK resolved in enrichment step
     controllerProfile: null,
   });
 
