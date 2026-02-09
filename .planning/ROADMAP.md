@@ -174,7 +174,7 @@ Plans:
 | ----- | --------------------------------- | :----------: | ----------- |
 | 1     | Handler Migration                 |      5       | Complete    |
 | 2     | New Handlers & Structured Logging |      5       | Complete    |
-| 3     | Metadata Fetch Handlers           |      5       | Complete    |
+| 3     | Metadata Fetch Handlers           |      5       | In Progress |
 | 4     | Integration & Wiring              |      4       | Not Started |
 | 5     | Deployment & Validation           |      2       | Not Started |
 
