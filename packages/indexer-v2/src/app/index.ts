@@ -13,7 +13,7 @@ import { createRegistry } from './bootstrap';
 import { processor } from './processor';
 
 // Initialize root logger
-const logger = createLogger();
+const logger = createLogger('sqd:processor');
 
 // Bootstrap: discover and register all plugins and handlers
 const registry = createRegistry(logger);

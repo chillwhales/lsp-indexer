@@ -1,12 +1,11 @@
 /**
  * Bootstrap module for V2 indexer application.
  *
- * Handles registry creation, plugin/handler discovery, and validation.
- * All EventPlugins and EntityHandlers are auto-discovered from filesystem,
- * validated for contract compliance, and registered at startup.
+ * Handles registry creation, plugin/handler discovery, and registration.
+ * All EventPlugins and EntityHandlers are auto-discovered from filesystem
+ * and registered at startup. Invalid modules are skipped with warnings.
  */
 
-import { createStepLogger } from '@/core/logger';
 import { PluginRegistry } from '@/core/registry';
 import type { Logger } from '@subsquid/logger';
 import * as path from 'path';
@@ -16,8 +15,8 @@ import * as path from 'path';
  * and EntityHandlers from the filesystem.
  *
  * Discovery sequence:
- * 1. Scan plugins/events/ for *.plugin.js files → validate EventPlugin interface
- * 2. Scan handlers/ for *.handler.js files → validate EntityHandler interface
+ * 1. Scan plugins/events/ for *.plugin.js files
+ * 2. Scan handlers/ for *.handler.js files
  * 3. Validate dependencies and ordering (topological sort)
  * 4. Log structured boot summary with counts and dependency order
  *
@@ -26,7 +25,7 @@ import * as path from 'path';
  * @throws Error if duplicates or circular dependencies detected (fail-fast validation)
  */
 export function createRegistry(logger: Logger): PluginRegistry {
-  const bootLogger = createStepLogger(logger, 'BOOTSTRAP');
+  const bootLogger = logger.child({ step: 'BOOTSTRAP' });
 
   // Instantiate empty registry
   const registry = new PluginRegistry();
