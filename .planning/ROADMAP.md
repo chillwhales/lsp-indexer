@@ -107,7 +107,7 @@ Plans:
 
 Plans:
 
-- [ ] 03-01-PLAN.md — FetchResult type fix + shared metadata fetch utility + V1 type guards
+- [x] 03-01-PLAN.md — FetchResult type fix + shared metadata fetch utility + V1 type guards
 - [ ] 03-02-PLAN.md — LSP3 + LSP29 metadata fetch handlers (7 + 7 sub-entity types)
 - [ ] 03-03-PLAN.md — LSP4 metadata fetch handler (8 sub-entity types + Score/Rank)
 - [ ] 03-04-PLAN.md — Unit tests for all three metadata fetch handlers
@@ -164,7 +164,7 @@ Plans:
 | ----- | --------------------------------- | :----------: | ----------- |
 | 1     | Handler Migration                 |      5       | Complete    |
 | 2     | New Handlers & Structured Logging |      5       | Complete    |
-| 3     | Metadata Fetch Handlers           |      5       | Not Started |
+| 3     | Metadata Fetch Handlers           |      5       | In Progress |
 | 4     | Integration & Wiring              |      4       | Not Started |
 | 5     | Deployment & Validation           |      2       | Not Started |
 
