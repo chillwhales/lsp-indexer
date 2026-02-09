@@ -33,6 +33,10 @@ export interface FetchResult {
   data?: unknown;
   /** Error message (if failure) */
   error?: string;
+  /** Network error code (e.g. 'ETIMEDOUT', 'EPROTO') — for cross-batch retry prioritization */
+  errorCode?: string;
+  /** HTTP status code (e.g. 408, 429, 500) — for cross-batch retry prioritization */
+  errorStatus?: number;
 }
 
 /**
