@@ -175,6 +175,8 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
             entityType: result.entityType,
             success: false,
             error: result.error,
+            errorCode: result.errorCode,
+            errorStatus: result.errorStatus,
           });
         }
       }
