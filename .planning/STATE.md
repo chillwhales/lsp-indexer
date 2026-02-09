@@ -4,15 +4,15 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Phase 3 in progress — Metadata Fetch Handlers (plans 01, 02, 03 complete; 04 remaining)
+**Current Focus:** Phase 4 in progress — Integration & Wiring (plan 01 complete; 02-05 remaining)
 
 ## Current Position
 
-- **Phase:** 3 of 5 — Metadata Fetch Handlers
-- **Plan:** 3 of 4 in current phase (03-01, 03-02, 03-03 complete)
+- **Phase:** 4 of 5 — Integration & Wiring
+- **Plan:** 1 of 5 in current phase (04-01 complete)
 - **Status:** In progress
-- **Last activity:** 2026-02-09 — Completed 03-02-PLAN.md
-- **Progress:** ██████░░░░ 12/21 requirements complete
+- **Last activity:** 2026-02-09 — Completed 04-01-PLAN.md
+- **Progress:** ██████░░░░ 13/21 requirements complete
 
 ## Phase Overview
 
@@ -20,16 +20,16 @@
 | ----- | --------------------------------- | --------------- | :----------: |
 | 1     | Handler Migration                 | **Complete**    |     5/5      |
 | 2     | New Handlers & Structured Logging | **Complete**    |     5/5      |
-| 3     | Metadata Fetch Handlers           | **In Progress** |     0/5      |
-| 4     | Integration & Wiring              | Upcoming        |     0/4      |
+| 3     | Metadata Fetch Handlers           | **Complete**    |     5/5      |
+| 4     | Integration & Wiring              | **In Progress** |     1/4      |
 | 5     | Deployment & Validation           | Upcoming        |     0/2      |
 
 ## Performance Metrics
 
-- **Plans completed:** 11
+- **Plans completed:** 12
 - **Plans failed:** 0
-- **Phases completed:** 2
-- **Requirements delivered:** 12/21 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01, META-03)
+- **Phases completed:** 3
+- **Requirements delivered:** 13/21 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, INTG-01)
 
 ## Accumulated Context
 
@@ -64,6 +64,7 @@
 | LSP29 AccessControlCondition excluded from SubEntityDescriptors     | FK points to Encryption not Asset; cleared via cascade                  | 03-02   |
 | LSP29 entityUpdates returns version/contentId/revision/createdAt    | Parent entity fields updated on successful parse (matching V1)          | 03-02   |
 | LSP3 profile images as flat arrays                                  | Unlike LSP4 nested arrays, LSP3 JSON schema uses flat arrays            | 03-02   |
+| Processor defaults to LUKSO mainnet RPC and Subsquid archive        | Environment-based configuration for RPC_ENDPOINT and ARCHIVE_URL        | 04-01   |
 
 ### Discovered Todos
 
@@ -78,17 +79,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-09
-- **Activity:** Executed 03-02-PLAN.md — LSP3 + LSP29 metadata fetch handlers with 14 total sub-entity types
-- **Outcome:** Both fetch handlers complete, using shared handleMetadataFetch utility, all 7+7 sub-entity types created
-- **Next Step:** Continue with 03-04-PLAN.md (metadata fetch handler unit tests)
+- **Activity:** Executed 04-01-PLAN.md — Processor configuration and entry point skeleton
+- **Outcome:** EvmBatchProcessor configured for LUKSO mainnet, entry point created with TODO markers for registry and pipeline wiring
+- **Next Step:** Continue with 04-02-PLAN.md (Registry discovery and log subscription wiring)
 
 ### Context for Next Session
 
-- LSP3 fetch handler at `packages/indexer-v2/src/handlers/lsp3ProfileFetch.handler.ts`
-- LSP29 fetch handler at `packages/indexer-v2/src/handlers/lsp29EncryptedAssetFetch.handler.ts`
-- LSP4 metadata fetch handler at `packages/indexer-v2/src/handlers/lsp4MetadataFetch.handler.ts`
-- Shared fetch utility at `packages/indexer-v2/src/utils/metadataFetch.ts`
-- Plan 04 remains in Phase 3
+- Processor instance at `packages/indexer-v2/src/app/processor.ts` ready for `.addLog()` configuration
+- Entry point at `packages/indexer-v2/src/app/index.ts` needs registry discovery and pipeline integration
+- TODO markers guide next integration: Plan 02 (registry) and Plan 03 (pipeline)
+- Phase 4 (Integration & Wiring) in progress: 1 of 5 plans complete
 
 ---
 
