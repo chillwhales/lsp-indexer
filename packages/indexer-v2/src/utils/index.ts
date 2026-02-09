@@ -1,6 +1,8 @@
 import { DEAD_ADDRESS, ZERO_ADDRESS } from '@/constants';
 import { LSP4TokenTypeEnum, LSP8TokenIdFormatEnum, OperationType } from '@chillwhales/typeorm';
 import ERC725 from '@erc725/erc725.js';
+import type { Verification } from '@lukso/lsp2-contracts';
+import type { FileAsset, ImageMetadata } from '@lukso/lsp3-contracts';
 import { bytesToHex, Hex, hexToBytes, hexToNumber, hexToString, isHex, sliceHex } from 'viem';
 
 /**
@@ -68,6 +70,47 @@ export function isNullAddress(address: string): boolean {
   const lower = address.toLowerCase();
   return lower === ZERO_ADDRESS.toLowerCase() || lower === DEAD_ADDRESS.toLowerCase();
 }
+
+/**
+ * Type guard for LSP2 Verification objects.
+ * Checks that object has `method` (string) and `data` (string) properties.
+ *
+ * Port from v1: utils/index.ts isVerification()
+ */
+export const isVerification = (obj: unknown): obj is Verification =>
+  obj !== null &&
+  obj !== undefined &&
+  typeof obj === 'object' &&
+  'method' in obj &&
+  typeof (obj as Record<string, unknown>).method === 'string' &&
+  'data' in obj &&
+  typeof (obj as Record<string, unknown>).data === 'string';
+
+/**
+ * Type guard for LSP3 FileAsset objects.
+ * Checks that object has a `url` property.
+ *
+ * Port from v1: utils/index.ts isFileAsset()
+ */
+export const isFileAsset = (obj: unknown): obj is FileAsset =>
+  obj !== null && obj !== undefined && typeof obj === 'object' && 'url' in obj;
+
+/**
+ * Type guard for LSP3 ImageMetadata objects.
+ * Checks that object has `url` (string), `width` (number), and `height` (number).
+ *
+ * Port from v1: utils/index.ts isFileImage()
+ */
+export const isFileImage = (obj: unknown): obj is ImageMetadata =>
+  obj !== null &&
+  obj !== undefined &&
+  typeof obj === 'object' &&
+  'url' in obj &&
+  typeof (obj as Record<string, unknown>).url === 'string' &&
+  'width' in obj &&
+  typeof (obj as Record<string, unknown>).width === 'number' &&
+  'height' in obj &&
+  typeof (obj as Record<string, unknown>).height === 'number';
 
 /**
  * Generate a deterministic NFT entity ID from contract address and tokenId.
