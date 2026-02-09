@@ -16,6 +16,7 @@ import pino from 'pino';
 // ---------------------------------------------------------------------------
 
 export type PipelineStep =
+  | 'BOOTSTRAP'
   | 'EXTRACT'
   | 'PERSIST_RAW'
   | 'HANDLE'

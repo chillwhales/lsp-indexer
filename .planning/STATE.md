@@ -4,15 +4,15 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Phase 4 in progress — Integration & Wiring (plans 01-02 complete; 03-05 remaining)
+**Current Focus:** Phase 4 in progress — Integration & Wiring (plans 01-03 complete; 04-05 remaining)
 
 ## Current Position
 
 - **Phase:** 4 of 5 — Integration & Wiring
-- **Plan:** 2 of 5 in current phase (04-01, 04-02 complete)
+- **Plan:** 3 of 5 in current phase (04-01, 04-02, 04-03 complete)
 - **Status:** In progress
-- **Last activity:** 2026-02-09 — Completed 04-02-PLAN.md
-- **Progress:** ██████░░░░ 14/21 requirements complete
+- **Last activity:** 2026-02-09 — Completed 04-03-PLAN.md
+- **Progress:** ███████░░░ 15/21 requirements complete
 
 ## Phase Overview
 
@@ -26,10 +26,10 @@
 
 ## Performance Metrics
 
-- **Plans completed:** 13
+- **Plans completed:** 14
 - **Plans failed:** 0
 - **Phases completed:** 3
-- **Requirements delivered:** 14/21 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, INTG-01–02)
+- **Requirements delivered:** 15/21 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, INTG-01–03)
 
 ## Accumulated Context
 
@@ -67,6 +67,9 @@
 | Processor defaults to LUKSO mainnet RPC and Subsquid archive        | Environment-based configuration for RPC_ENDPOINT and ARCHIVE_URL        | 04-01   |
 | Bootstrap module with createRegistry() function                     | Structured logging during discovery, fail-fast validation               | 04-02   |
 | Registry discovery via \_\_dirname-resolved paths                   | Enables runtime discovery of compiled .plugin.js and .handler.js files  | 04-02   |
+| MetadataWorkerPool pool size configurable via env var               | METADATA_WORKER_POOL_SIZE defaults to 4, overrideable at runtime        | 04-03   |
+| createPipelineConfig() factory pattern                              | Assembles all pipeline dependencies in one function                     | 04-03   |
+| BOOTSTRAP added to PipelineStep union                               | Enables structured logging during application boot phase                | 04-03   |
 
 ### Discovered Todos
 
@@ -81,17 +84,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-09
-- **Activity:** Executed 04-02-PLAN.md — Registry discovery and log subscription wiring
-- **Outcome:** Bootstrap module created with createRegistry(), main entry point bootstraps registry and configures processor with log subscriptions
-- **Next Step:** Continue with 04-03-PLAN.md (Pipeline integration with processBatch wiring)
+- **Activity:** Executed 04-03-PLAN.md — Pipeline integration with processBatch wiring
+- **Outcome:** Config module created with createPipelineConfig(), processBatch wired into processor.run() handler, full 6-step pipeline integrated
+- **Next Step:** Continue with 04-04-PLAN.md (Real LUKSO block fixtures for integration tests)
 
 ### Context for Next Session
 
-- Bootstrap module at `packages/indexer-v2/src/app/bootstrap.ts` exports createRegistry()
-- Main entry point at `packages/indexer-v2/src/app/index.ts` calls createRegistry() and configures processor subscriptions
-- Processor configured with all EventPlugin log subscriptions via processor.addLog()
-- Registry ready for use in pipeline integration (Plan 03)
-- Phase 4 (Integration & Wiring) in progress: 2 of 5 plans complete
+- Config module at `packages/indexer-v2/src/app/config.ts` assembles PipelineConfig with registry, verifyAddresses, workerPool
+- Main entry point fully wired: bootstrap registry → create config → processor.run() calls processBatch
+- Complete application flow operational: all 6 pipeline steps execute per batch
+- Application ready for integration testing with real block fixtures
+- Phase 4 (Integration & Wiring) in progress: 3 of 5 plans complete
 
 ---
 

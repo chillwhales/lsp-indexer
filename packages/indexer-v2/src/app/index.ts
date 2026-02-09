@@ -7,9 +7,11 @@
  * 3. Running processBatch through the 6-step pipeline for each batch
  */
 
+import { processBatch } from '@/core/pipeline';
 import { createLogger } from '@subsquid/logger';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
 import { createRegistry } from './bootstrap';
+import { createPipelineConfig } from './config';
 import { processor } from './processor';
 
 // Initialize root logger
@@ -26,14 +28,14 @@ for (const sub of subscriptions) {
 
 logger.info('Processor configured with log subscriptions from registry');
 
-// TODO (Plan 03): Add pipeline integration with processBatch
+// Create pipeline configuration
+const pipelineConfig = createPipelineConfig(registry);
+logger.info('Pipeline configuration created');
 
-// eslint-disable-next-line @typescript-eslint/require-await -- Skeleton async handler; await will be added in Plan 03 when processBatch is wired
+// Start processor — V2 indexer ready
+logger.info('Starting processor — V2 indexer ready');
+
+// eslint-disable-next-line @typescript-eslint/require-await -- Async handler for processBatch
 processor.run(new TypeormDatabase(), async (ctx) => {
-  // TODO: Wire processBatch call here in Plan 03
-  if (ctx.blocks.length > 0) {
-    const from = ctx.blocks[0].header.height;
-    const to = ctx.blocks[ctx.blocks.length - 1].header.height;
-    ctx.log.info({ step: 'RUN', from, to }, `Processing blocks ${from} to ${to}`);
-  }
+  await processBatch(ctx, pipelineConfig);
 });
