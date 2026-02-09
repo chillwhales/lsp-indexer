@@ -136,6 +136,16 @@ Plans:
 3. User can run integration tests with real LUKSO block fixtures and see data flow through EXTRACT → PERSIST RAW → HANDLE → PERSIST DERIVED → VERIFY → ENRICH with correct output
 4. User can verify handler execution order matches V1's dependency graph (e.g., NFT before FormattedTokenId, transfers before totalSupply/ownedAssets)
 
+**Plans:** 5 plans
+
+Plans:
+
+- [ ] 04-01-PLAN.md — Processor configuration and entry point skeleton
+- [ ] 04-02-PLAN.md — Registry discovery, validation, and log subscription wiring
+- [ ] 04-03-PLAN.md — Pipeline integration with processBatch wiring
+- [ ] 04-04-PLAN.md — Real LUKSO block fixtures for integration tests
+- [ ] 04-05-PLAN.md — End-to-end pipeline integration tests
+
 ---
 
 ## Phase 5 — Deployment & Validation
@@ -164,7 +174,7 @@ Plans:
 | ----- | --------------------------------- | :----------: | ----------- |
 | 1     | Handler Migration                 |      5       | Complete    |
 | 2     | New Handlers & Structured Logging |      5       | Complete    |
-| 3     | Metadata Fetch Handlers           |      5       | In Progress |
+| 3     | Metadata Fetch Handlers           |      5       | Complete    |
 | 4     | Integration & Wiring              |      4       | Not Started |
 | 5     | Deployment & Validation           |      2       | Not Started |
 
@@ -192,4 +202,4 @@ Phase 1 (Handler Migration)
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-02-06_
+_Last updated: 2026-02-09_
