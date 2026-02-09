@@ -4,32 +4,32 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Phase 3 in progress — Metadata Fetch Handlers (plans 01, 02, 03 complete; 04 remaining)
+**Current Focus:** Phase 3 complete — Metadata Fetch Handlers done. Ready for Phase 4 (Integration & Wiring).
 
 ## Current Position
 
 - **Phase:** 3 of 5 — Metadata Fetch Handlers
-- **Plan:** 3 of 4 in current phase (03-01, 03-02, 03-03 complete)
-- **Status:** In progress
-- **Last activity:** 2026-02-09 — Completed 03-02-PLAN.md
-- **Progress:** ██████░░░░ 12/21 requirements complete
+- **Plan:** 4 of 4 in current phase (all complete)
+- **Status:** Phase complete
+- **Last activity:** 2026-02-09 — Completed 03-04-PLAN.md
+- **Progress:** ███████░░░ 15/21 requirements complete
 
 ## Phase Overview
 
-| Phase | Name                              | Status          | Requirements |
-| ----- | --------------------------------- | --------------- | :----------: |
-| 1     | Handler Migration                 | **Complete**    |     5/5      |
-| 2     | New Handlers & Structured Logging | **Complete**    |     5/5      |
-| 3     | Metadata Fetch Handlers           | **In Progress** |     0/5      |
-| 4     | Integration & Wiring              | Upcoming        |     0/4      |
-| 5     | Deployment & Validation           | Upcoming        |     0/2      |
+| Phase | Name                              | Status       | Requirements |
+| ----- | --------------------------------- | ------------ | :----------: |
+| 1     | Handler Migration                 | **Complete** |     5/5      |
+| 2     | New Handlers & Structured Logging | **Complete** |     5/5      |
+| 3     | Metadata Fetch Handlers           | **Complete** |     5/5      |
+| 4     | Integration & Wiring              | Upcoming     |     0/4      |
+| 5     | Deployment & Validation           | Upcoming     |     0/2      |
 
 ## Performance Metrics
 
-- **Plans completed:** 11
+- **Plans completed:** 12
 - **Plans failed:** 0
-- **Phases completed:** 2
-- **Requirements delivered:** 12/21 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01, META-03)
+- **Phases completed:** 3
+- **Requirements delivered:** 15/21 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05)
 
 ## Accumulated Context
 
@@ -64,6 +64,7 @@
 | LSP29 AccessControlCondition excluded from SubEntityDescriptors     | FK points to Encryption not Asset; cleared via cascade                  | 03-02   |
 | LSP29 entityUpdates returns version/contentId/revision/createdAt    | Parent entity fields updated on successful parse (matching V1)          | 03-02   |
 | LSP3 profile images as flat arrays                                  | Unlike LSP4 nested arrays, LSP3 JSON schema uses flat arrays            | 03-02   |
+| Test through shared utility (integration-style) for fetch handlers  | Validates full flow handler → utility → worker pool → parsing           | 03-04   |
 
 ### Discovered Todos
 
@@ -78,17 +79,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-09
-- **Activity:** Executed 03-02-PLAN.md — LSP3 + LSP29 metadata fetch handlers with 14 total sub-entity types
-- **Outcome:** Both fetch handlers complete, using shared handleMetadataFetch utility, all 7+7 sub-entity types created
-- **Next Step:** Continue with 03-04-PLAN.md (metadata fetch handler unit tests)
+- **Activity:** Executed 03-04-PLAN.md — Unit tests for all three metadata fetch handlers (58 tests total)
+- **Outcome:** All tests pass, build compiles, Phase 3 complete (all 5 META requirements verified)
+- **Next Step:** Phase 4 — Integration & Wiring
 
 ### Context for Next Session
 
-- LSP3 fetch handler at `packages/indexer-v2/src/handlers/lsp3ProfileFetch.handler.ts`
-- LSP29 fetch handler at `packages/indexer-v2/src/handlers/lsp29EncryptedAssetFetch.handler.ts`
-- LSP4 metadata fetch handler at `packages/indexer-v2/src/handlers/lsp4MetadataFetch.handler.ts`
-- Shared fetch utility at `packages/indexer-v2/src/utils/metadataFetch.ts`
-- Plan 04 remains in Phase 3
+- All EventPlugins exist (11 files in `packages/indexer-v2/src/plugins/events/`)
+- All EntityHandlers exist (handlers in `packages/indexer-v2/src/handlers/`)
+- Phase 4 will wire everything into the processor, configure subscriptions, and run integration tests
+- Pre-existing test failures in pipeline.test.ts (18) and batchContext.test.ts (1) remain — not caused by our changes
 
 ---
 
