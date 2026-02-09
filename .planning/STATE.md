@@ -4,14 +4,14 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Phase 3 in progress — Metadata Fetch Handlers (plan 1 of 4 complete)
+**Current Focus:** Phase 3 in progress — Metadata Fetch Handlers (plans 01, 03 complete; 02, 04 remaining)
 
 ## Current Position
 
 - **Phase:** 3 of 5 — Metadata Fetch Handlers
-- **Plan:** 1 of 4 in current phase (03-01 complete)
+- **Plan:** 2 of 4 in current phase (03-01, 03-03 complete)
 - **Status:** In progress
-- **Last activity:** 2026-02-09 — Completed 03-01-PLAN.md
+- **Last activity:** 2026-02-09 — Completed 03-03-PLAN.md
 - **Progress:** █████░░░░░ 10/21 requirements complete
 
 ## Phase Overview
@@ -26,7 +26,7 @@
 
 ## Performance Metrics
 
-- **Plans completed:** 9
+- **Plans completed:** 10
 - **Plans failed:** 0
 - **Phases completed:** 2
 - **Requirements delivered:** 10/21 (HMIG-01–05, HNDL-01–03, INFR-01–02)
@@ -59,6 +59,8 @@
 | Handler log calls use step+handler dual fields                      | Enables filtering by pipeline step and specific handler name            | 02-04   |
 | import type for @lukso contracts in V2                              | Node10 resolution + no strictNullChecks requires type-only imports      | 03-01   |
 | EntityConstructor for entity updates in fetch utility               | Preserves TypeORM decorators; plain object spread loses metadata        | 03-01   |
+| LSP4 icons mapped without isFileImage filter                        | V1 maps ALL icon array items directly, V2 must match exactly            | 03-03   |
+| LSP4 Category always created even when value undefined              | V1 behavior creates entity with value: undefined                        | 03-03   |
 
 ### Discovered Todos
 
@@ -73,17 +75,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-09
-- **Activity:** Executed 03-01-PLAN.md — FetchResult type fix + shared metadata fetch utility + V1 type guards
-- **Outcome:** Foundation layer for metadata fetch handlers complete; FetchResult extended, type guards ported, shared handleMetadataFetch() utility created
-- **Next Step:** Continue with 03-02-PLAN.md (LSP3 + LSP29 metadata fetch handlers)
+- **Activity:** Executed 03-03-PLAN.md — LSP4 metadata fetch handler with 10 sub-entity types
+- **Outcome:** LSP4 fetch handler complete with Name, Description, Category, Link, Image, Icon, Asset, Attribute, Score, Rank sub-entities
+- **Next Step:** Continue with 03-02-PLAN.md (LSP3 + LSP29 metadata fetch handlers) or 03-04-PLAN.md (unit tests)
 
 ### Context for Next Session
 
+- LSP4 metadata fetch handler at `packages/indexer-v2/src/handlers/lsp4MetadataFetch.handler.ts`
 - Shared fetch utility at `packages/indexer-v2/src/utils/metadataFetch.ts`
 - Type guards (isVerification, isFileImage, isFileAsset) in `packages/indexer-v2/src/utils/index.ts`
-- Extended FetchResult in `packages/indexer-v2/src/core/types/metadata.ts`
-- MetadataWorkerPool error passthrough fixed in `packages/indexer-v2/src/core/metadataWorkerPool.ts`
-- Plans 02, 03, 04 remain in Phase 3
+- Plans 02, 04 remain in Phase 3
 
 ---
 
