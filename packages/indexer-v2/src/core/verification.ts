@@ -17,6 +17,7 @@ import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { type Hex, hexToBool, isHex } from 'viem';
 
+import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { aggregate3StaticLatest } from './multicall';
 import { Context, EntityCategory, VerificationResult } from './types';
 
@@ -159,10 +160,7 @@ export interface VerificationConfig {
 
 const DEFAULT_BATCH_SIZE = 100;
 
-interface MulticallResult {
-  success: boolean;
-  returnData: string;
-}
+type MulticallResult = Aggregate3StaticReturn[number];
 
 /**
  * Batch-verify a list of addresses against a single interface version
@@ -181,7 +179,7 @@ async function multicallVerify(
   if (addresses.length === 0) return [];
 
   // Build batched multicall promises
-  const promises: Promise<MulticallResult[]>[] = [];
+  const promises: Promise<Aggregate3StaticReturn>[] = [];
   const batchCount = Math.ceil(addresses.length / batchSize);
   for (let i = 0; i < batchCount; i++) {
     const start = i * batchSize;
@@ -190,7 +188,7 @@ async function multicallVerify(
       aggregate3StaticLatest(
         context,
         batch.map((target) => ({ target, allowFailure: true, callData })),
-      ) as Promise<MulticallResult[]>,
+      ),
     );
   }
 
@@ -211,9 +209,9 @@ async function multicallVerify(
         for (const target of batch) {
           try {
             result.push(
-              ...((await aggregate3StaticLatest(context, [
+              ...(await aggregate3StaticLatest(context, [
                 { target, allowFailure: true, callData },
-              ])) as MulticallResult[]),
+              ])),
             );
           } catch {
             // Address verification failed entirely — treat as invalid
