@@ -7,13 +7,15 @@
  * 3. Running processBatch through the 6-step pipeline for each batch
  */
 
+import { processBatch } from '@/core/pipeline';
 import { createLogger } from '@subsquid/logger';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
 import { createRegistry } from './bootstrap';
+import { createPipelineConfig } from './config';
 import { processor } from './processor';
 
 // Initialize root logger
-const logger = createLogger();
+const logger = createLogger('sqd:processor');
 
 // Bootstrap: discover and register all plugins and handlers
 const registry = createRegistry(logger);
@@ -26,10 +28,13 @@ for (const sub of subscriptions) {
 
 logger.info('Processor configured with log subscriptions from registry');
 
-// TODO (Plan 03): Add pipeline integration with processBatch
+// Create pipeline configuration
+const pipelineConfig = createPipelineConfig(registry);
+logger.info('Pipeline configuration created');
+
+// Start processor — V2 indexer ready
+logger.info('Starting processor — V2 indexer ready');
+
 processor.run(new TypeormDatabase(), async (ctx) => {
-  // TODO: Wire processBatch call here in Plan 03
-  console.log(
-    `Processing blocks ${ctx.blocks[0]?.header.height} to ${ctx.blocks[ctx.blocks.length - 1]?.header.height}`,
-  );
+  await processBatch(ctx, pipelineConfig);
 });
