@@ -51,14 +51,15 @@ COPY --from=deps /app/packages/indexer-v2/node_modules ./packages/indexer-v2/nod
 # Copy workspace configuration
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 
-# Copy source code for all packages (required for monorepo build)
+# Copy source code for packages needed by indexer-v2
 COPY packages/abi ./packages/abi
 COPY packages/typeorm ./packages/typeorm
-COPY packages/indexer ./packages/indexer
 COPY packages/indexer-v2 ./packages/indexer-v2
 
-# Build all packages (abi → typeorm → indexer-v2)
-RUN pnpm build
+# Build only packages needed for indexer-v2 (skip indexer v1)
+RUN pnpm --filter=@chillwhales/abi build && \
+    pnpm --filter=@chillwhales/typeorm build && \
+    pnpm --filter=@chillwhales/indexer-v2 build
 
 # ==============================================================================
 # Stage 3: Runtime
