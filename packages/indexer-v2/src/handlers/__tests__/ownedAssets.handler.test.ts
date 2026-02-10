@@ -20,46 +20,46 @@ import OwnedAssetsHandler from '../ownedAssets.handler';
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
-function createMockBatchCtx(): {
-  getEntities: ReturnType<typeof vi.fn>;
-  addEntity: ReturnType<typeof vi.fn>;
-  hasEntities: ReturnType<typeof vi.fn>;
-  queueDelete: ReturnType<typeof vi.fn>;
-  queueEnrichment: ReturnType<typeof vi.fn>;
-  queueClear: ReturnType<typeof vi.fn>;
-  setPersistHint: ReturnType<typeof vi.fn>;
-  removeEntity: ReturnType<typeof vi.fn>;
-  _entityBags: Map<string, Map<string, unknown>>;
-  _deleteQueue: unknown[];
-  _enrichmentQueue: unknown[];
-} {
+function createMockBatchCtx() {
   const entityBags = new Map<string, Map<string, unknown>>();
   const deleteQueue: unknown[] = [];
   const enrichmentQueue: unknown[] = [];
 
-  return {
-    getEntities: vi.fn(<T>(type: string): Map<string, T> => {
+  const mockCtx = {
+    getEntities<T>(type: string): Map<string, T> {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
-    }) as <T>(type: string) => Map<string, T>,
-    addEntity: vi.fn((type: string, id: string, entity: unknown) => {
+    },
+    addEntity(type: string, id: string, entity: unknown) {
       if (!entityBags.has(type)) entityBags.set(type, new Map());
       const bag = entityBags.get(type);
       if (bag) bag.set(id, entity);
-    }),
-    hasEntities: vi.fn((type: string) => {
+    },
+    hasEntities(type: string) {
       const bag = entityBags.get(type);
       return entityBags.has(type) && bag !== undefined && bag.size > 0;
-    }),
-    queueDelete: vi.fn((request: unknown) => deleteQueue.push(request)),
-    queueEnrichment: vi.fn((request: unknown) => enrichmentQueue.push(request)),
-    queueClear: vi.fn(),
-    setPersistHint: vi.fn(),
-    removeEntity: vi.fn(),
+    },
+    queueDelete(request: unknown) {
+      deleteQueue.push(request);
+    },
+    queueEnrichment(request: unknown) {
+      enrichmentQueue.push(request);
+    },
+    queueClear() {
+      // no-op for tests
+    },
+    setPersistHint() {
+      // no-op for tests
+    },
+    removeEntity() {
+      // no-op for tests
+    },
     // Test accessors
     _entityBags: entityBags,
     _deleteQueue: deleteQueue,
     _enrichmentQueue: enrichmentQueue,
   };
+
+  return mockCtx;
 }
 
 // ---------------------------------------------------------------------------
@@ -120,9 +120,9 @@ function createTransfer(overrides: Partial<Transfer> = {}): Transfer {
     force: false,
     data: '0x',
     digitalAsset: null,
-    fromUniversalProfile: null,
-    toUniversalProfile: null,
-    operatorUniversalProfile: null,
+    fromProfile: null,
+    toProfile: null,
+    operatorProfile: null,
     ...overrides,
   });
 }
