@@ -10,6 +10,7 @@
     "build": "tsc",
     "clean": "rm -Rf lib/",
     "start": "ts-node --project ./tsconfig.json -r tsconfig-paths/register lib/app/index.js",
+    "pretest": "pnpm build",
     "test": "vitest run",
     "test:watch": "vitest"
   },

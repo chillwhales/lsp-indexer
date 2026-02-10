@@ -70,15 +70,34 @@ function createMockStore(): MockStore {
 }
 
 // ---------------------------------------------------------------------------
+// Mock Logger Implementation
+// ---------------------------------------------------------------------------
+
+function createMockLogger(): any {
+  const logger: any = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  };
+
+  // Logger.child() returns a new logger instance with child context
+  logger.child = vi.fn(() => createMockLogger());
+
+  return logger;
+}
+
+// ---------------------------------------------------------------------------
 // Mock Context Creation
 // ---------------------------------------------------------------------------
 
 function createMockContext(blocks: Block[]): Context {
   const store = createMockStore();
+  const log = createMockLogger();
   return {
     blocks,
     store,
-    log: console,
+    log,
     isHead: false, // Historical sync for tests
   } as Context;
 }
@@ -88,7 +107,10 @@ function createMockContext(blocks: Block[]): Context {
 // ---------------------------------------------------------------------------
 
 function createMockVerifyFn(validAddresses: Set<string>) {
-  return async (category: EntityCategory, addresses: Set<string>): Promise<VerificationResult> => {
+  const mockImpl = async (
+    category: EntityCategory,
+    addresses: Set<string>,
+  ): Promise<VerificationResult> => {
     const valid = new Set<string>();
     const invalid = new Set<string>();
     const newAddresses = new Set<string>();
@@ -117,6 +139,9 @@ function createMockVerifyFn(validAddresses: Set<string>) {
       newEntities,
     };
   };
+
+  // Wrap in vi.fn() so we can assert toHaveBeenCalled()
+  return vi.fn(mockImpl);
 }
 
 // ---------------------------------------------------------------------------
@@ -214,8 +239,8 @@ describe('Pipeline Integration', () => {
 
       // Create pipeline config with mock worker pool
       const mockWorkerPool = {
-        fetch: vi.fn(() => Promise.resolve({ success: false })),
-        terminate: vi.fn(() => Promise.resolve()),
+        fetchBatch: vi.fn(() => Promise.resolve([])),
+        shutdown: vi.fn(() => Promise.resolve()),
       };
 
       const pipelineConfig = {
@@ -250,8 +275,8 @@ describe('Pipeline Integration', () => {
       const mockVerify = createMockVerifyFn(validAddresses);
 
       const mockWorkerPool = {
-        fetch: vi.fn(() => Promise.resolve({ success: false })),
-        terminate: vi.fn(() => Promise.resolve()),
+        fetchBatch: vi.fn(() => Promise.resolve([])),
+        shutdown: vi.fn(() => Promise.resolve()),
       };
 
       const pipelineConfig = {
@@ -288,8 +313,8 @@ describe('Pipeline Integration', () => {
       const mockVerify = createMockVerifyFn(validAddresses);
 
       const mockWorkerPool = {
-        fetch: vi.fn(() => Promise.resolve({ success: false })),
-        terminate: vi.fn(() => Promise.resolve()),
+        fetchBatch: vi.fn(() => Promise.resolve([])),
+        shutdown: vi.fn(() => Promise.resolve()),
       };
 
       const pipelineConfig = {
@@ -355,8 +380,8 @@ describe('Pipeline Integration', () => {
       const mockVerify = createMockVerifyFn(validAddresses);
 
       const mockWorkerPool = {
-        fetch: vi.fn(() => Promise.resolve({ success: false })),
-        terminate: vi.fn(() => Promise.resolve()),
+        fetchBatch: vi.fn(() => Promise.resolve([])),
+        shutdown: vi.fn(() => Promise.resolve()),
       };
 
       const pipelineConfig = {
