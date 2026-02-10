@@ -50,12 +50,12 @@ docker compose -f docker-compose.yml --env-file ../../.env ps
 
 ## Files
 
-| File                    | Purpose                                |
-| ----------------------- | -------------------------------------- |
-| `Dockerfile.v2`         | Multi-stage build for indexer-v2       |
+| File                 | Purpose                                |
+| -------------------- | -------------------------------------- |
+| `Dockerfile.v2`      | Multi-stage build for indexer-v2       |
 | `docker-compose.yml` | Orchestration with postgres + indexer  |
-| `.env`                  | Environment configuration (not in git) |
-| `.env.example`          | Template with all variables documented |
+| `.env`               | Environment configuration (not in git) |
+| `.env.example`       | Template with all variables documented |
 
 ## Build Process
 
