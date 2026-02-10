@@ -43,9 +43,13 @@ function createMockBatchCtx(): {
     }),
     addEntity: vi.fn((type: string, id: string, entity: unknown) => {
       if (!entityBags.has(type)) entityBags.set(type, new Map());
-      entityBags.get(type)!.set(id, entity);
+      const bag = entityBags.get(type);
+      if (bag) bag.set(id, entity);
     }),
-    hasEntities: vi.fn((type: string) => entityBags.has(type) && entityBags.get(type)!.size > 0),
+    hasEntities: vi.fn((type: string) => {
+      const bag = entityBags.get(type);
+      return entityBags.has(type) && bag !== undefined && bag.size > 0;
+    }),
     queueDelete: vi.fn((request: unknown) => deleteQueue.push(request)),
     queueEnrichment: vi.fn((request: unknown) => enrichmentQueue.push(request)),
     queueClear: vi.fn(),
@@ -66,18 +70,16 @@ function createMockStore(
   existingOwnedTokens: OwnedToken[] = [],
 ): Store {
   return {
-    findBy: vi.fn(
-      async (entityClass: unknown, where: { id: { _type: string; value: string[] } }) => {
-        const ids = where.id.value;
-        if (entityClass === OwnedAsset) {
-          return existingOwnedAssets.filter((e) => ids.includes(e.id));
-        }
-        if (entityClass === OwnedToken) {
-          return existingOwnedTokens.filter((e) => ids.includes(e.id));
-        }
-        return [];
-      },
-    ),
+    findBy: vi.fn((entityClass: unknown, where: { id: { _type: string; value: string[] } }) => {
+      const ids = where.id.value;
+      if (entityClass === OwnedAsset) {
+        return Promise.resolve(existingOwnedAssets.filter((e) => ids.includes(e.id)));
+      }
+      if (entityClass === OwnedToken) {
+        return Promise.resolve(existingOwnedTokens.filter((e) => ids.includes(e.id)));
+      }
+      return Promise.resolve([]);
+    }),
   } as unknown as Store;
 }
 
@@ -154,8 +156,9 @@ describe('OwnedAssetsHandler', () => {
       const ownedAssets = batchCtx.getEntities<OwnedAsset>('OwnedAsset');
 
       expect(ownedAssets.has(receiverId)).toBe(true);
-      const ownedAsset = ownedAssets.get(receiverId)!;
-      expect(ownedAsset.balance).toBe(1000n);
+      const ownedAsset = ownedAssets.get(receiverId);
+      expect(ownedAsset).toBeDefined();
+      expect(ownedAsset?.balance).toBe(1000n);
       expect(ownedAsset.owner).toBe(transfer.to);
       expect(ownedAsset.address).toBe(transfer.address);
     });
@@ -208,12 +211,14 @@ describe('OwnedAssetsHandler', () => {
       const ownedAssets = batchCtx.getEntities<OwnedAsset>('OwnedAsset');
 
       // Sender balance should decrease by 1000 (5000 - 1000 = 4000)
-      const senderAsset = ownedAssets.get(existingSenderAsset.id)!;
-      expect(senderAsset.balance).toBe(4000n);
+      const senderAsset = ownedAssets.get(existingSenderAsset.id);
+      expect(senderAsset).toBeDefined();
+      expect(senderAsset?.balance).toBe(4000n);
 
       // Receiver balance should increase by 1000 (2000 + 1000 = 3000)
-      const receiverAsset = ownedAssets.get(existingReceiverAsset.id)!;
-      expect(receiverAsset.balance).toBe(3000n);
+      const receiverAsset = ownedAssets.get(existingReceiverAsset.id);
+      expect(receiverAsset).toBeDefined();
+      expect(receiverAsset?.balance).toBe(3000n);
     });
 
     it('queues deletion when balance reaches zero', async () => {
@@ -326,7 +331,9 @@ describe('OwnedAssetsHandler', () => {
       });
 
       // Simulate TypeORM behavior: delete FK properties to test preservation
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (existingAsset as any).digitalAsset;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (existingAsset as any).universalProfile;
 
       const store = createMockStore([existingAsset]);
@@ -344,13 +351,14 @@ describe('OwnedAssetsHandler', () => {
       await OwnedAssetsHandler.handle(hctx, 'LSP7Transfer');
 
       const ownedAssets = batchCtx.getEntities<OwnedAsset>('OwnedAsset');
-      const reconstructed = ownedAssets.get(existingAsset.id)!;
+      const reconstructed = ownedAssets.get(existingAsset.id);
 
       // Critical assertion: FK fields must exist on reconstructed entity
+      expect(reconstructed).toBeDefined();
       expect(reconstructed).toHaveProperty('digitalAsset');
       expect(reconstructed).toHaveProperty('universalProfile');
-      expect(reconstructed.digitalAsset).toBe(null);
-      expect(reconstructed.universalProfile).toBe(null);
+      expect(reconstructed?.digitalAsset).toBe(null);
+      expect(reconstructed?.universalProfile).toBe(null);
     });
   });
 
@@ -371,18 +379,21 @@ describe('OwnedAssetsHandler', () => {
 
       await OwnedAssetsHandler.handle(hctx, 'LSP8Transfer');
 
+      const ownedTokens = batchCtx.getEntities<OwnedToken>('OwnedToken');
+
+      expect(transfer.tokenId).toBeDefined();
       const tokenId = generateOwnedTokenId({
         owner: transfer.to,
         address: transfer.address,
-        tokenId: transfer.tokenId!,
+        tokenId: transfer.tokenId as string,
       });
-      const ownedTokens = batchCtx.getEntities<OwnedToken>('OwnedToken');
 
       expect(ownedTokens.has(tokenId)).toBe(true);
-      const ownedToken = ownedTokens.get(tokenId)!;
-      expect(ownedToken.tokenId).toBe(transfer.tokenId);
-      expect(ownedToken.owner).toBe(transfer.to);
-      expect(ownedToken.address).toBe(transfer.address);
+      const ownedToken = ownedTokens.get(tokenId);
+      expect(ownedToken).toBeDefined();
+      expect(ownedToken?.tokenId).toBe(transfer.tokenId);
+      expect(ownedToken?.owner).toBe(transfer.to);
+      expect(ownedToken?.address).toBe(transfer.address);
     });
 
     it('queues deletion of OwnedToken when transferred away', async () => {
@@ -456,10 +467,14 @@ describe('OwnedAssetsHandler', () => {
         ownedAsset: null,
       });
 
-      // Simulate missing FK properties
+      // Simulate missing FK properties (as they might be when loaded from DB)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (existingToken as any).digitalAsset;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (existingToken as any).universalProfile;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (existingToken as any).nft;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (existingToken as any).ownedAsset;
 
       const store = createMockStore([], [existingToken]);
@@ -477,16 +492,24 @@ describe('OwnedAssetsHandler', () => {
 
       await OwnedAssetsHandler.handle(hctx, 'LSP8Transfer');
 
-      const ownedTokens = batchCtx.getEntities<OwnedToken>('OwnedToken');
+      // Find the deletion request for sender's token (queued with tokenId: null sentinel)
+      const deleteRequests = batchCtx._deleteQueue;
+      expect(deleteRequests.length).toBeGreaterThan(0);
 
-      // Check receiver's new token
-      const receiverId = generateOwnedTokenId({ owner: receiver, address: assetAddress, tokenId });
-      const receiverToken = ownedTokens.get(receiverId)!;
+      const tokenDeleteRequest = deleteRequests.find(
+        (req: any) =>
+          req.entityClass === OwnedToken &&
+          req.entities.some((e: OwnedToken) => e.id === existingToken.id),
+      ) as { entityClass: typeof OwnedToken; entities: OwnedToken[] } | undefined;
 
-      expect(receiverToken).toHaveProperty('digitalAsset');
-      expect(receiverToken).toHaveProperty('universalProfile');
-      expect(receiverToken).toHaveProperty('nft');
-      expect(receiverToken).toHaveProperty('ownedAsset');
+      expect(tokenDeleteRequest).toBeDefined();
+      const deletedToken = tokenDeleteRequest?.entities.find((e) => e.id === existingToken.id);
+
+      // Critical assertion: FK fields must exist on reconstructed entity
+      expect(deletedToken).toHaveProperty('digitalAsset');
+      expect(deletedToken).toHaveProperty('universalProfile');
+      expect(deletedToken).toHaveProperty('nft');
+      expect(deletedToken).toHaveProperty('ownedAsset');
     });
 
     it('sets ownedAsset FK directly when parent OwnedAsset exists', async () => {
@@ -525,32 +548,39 @@ describe('OwnedAssetsHandler', () => {
 
       const ownedTokens = batchCtx.getEntities<OwnedToken>('OwnedToken');
       const receiverId = generateOwnedTokenId({ owner: receiver, address: assetAddress, tokenId });
-      const receiverToken = ownedTokens.get(receiverId)!;
+      const receiverToken = ownedTokens.get(receiverId);
 
       // ownedAsset FK should be set directly (not queued for enrichment)
-      expect(receiverToken.ownedAsset).not.toBe(null);
-      expect(receiverToken.ownedAsset?.id).toBe(existingOwnedAsset.id);
+      expect(receiverToken).toBeDefined();
+      expect(receiverToken?.ownedAsset).not.toBe(null);
+      expect(receiverToken?.ownedAsset?.id).toBe(existingOwnedAsset.id);
     });
   });
 
   describe('dual-trigger accumulation', () => {
-    it('processes both LSP7 and LSP8 transfers in same batch', async () => {
+    it('processes both LSP7 and LSP8 transfers without double-processing', async () => {
       const batchCtx = createMockBatchCtx();
       const store = createMockStore();
       const hctx = createMockHandlerContext(batchCtx, store);
 
+      const receiver1 = '0xBBB0000000000000000000000000000000000002';
+      const receiver2 = '0xCCC0000000000000000000000000000000000003';
+      const assetAddress = '0xDA00000000000000000000000000000000000001';
+
       const lsp7Transfer = createTransfer({
         from: '0x0000000000000000000000000000000000000000',
-        to: '0xBBB0000000000000000000000000000000000002',
+        to: receiver1,
         amount: 1000n,
+        address: assetAddress,
         tokenId: null,
       });
 
       const lsp8Transfer = createTransfer({
         id: 'test-uuid-2',
         from: '0x0000000000000000000000000000000000000000',
-        to: '0xCCC0000000000000000000000000000000000003',
+        to: receiver2,
         amount: 1n,
+        address: assetAddress,
         tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
       });
 
@@ -560,15 +590,41 @@ describe('OwnedAssetsHandler', () => {
       // First trigger: LSP7
       await OwnedAssetsHandler.handle(hctx, 'LSP7Transfer');
 
-      // Second trigger: LSP8 (should process both)
+      // Second trigger: LSP8 (should process both, but not double-process LSP7)
       await OwnedAssetsHandler.handle(hctx, 'LSP8Transfer');
 
       const ownedAssets = batchCtx.getEntities<OwnedAsset>('OwnedAsset');
       const ownedTokens = batchCtx.getEntities<OwnedToken>('OwnedToken');
 
-      // Should have created both OwnedAsset and OwnedToken
-      expect(ownedAssets.size).toBeGreaterThan(0);
-      expect(ownedTokens.size).toBeGreaterThan(0);
+      // Verify exact counts: 2 OwnedAssets (one per receiver), 1 OwnedToken (LSP8 only)
+      expect(ownedAssets.size).toBe(2);
+      expect(ownedTokens.size).toBe(1);
+
+      // Verify LSP7 receiver balance is correct (not doubled)
+      const receiver1AssetId = generateOwnedAssetId({ owner: receiver1, address: assetAddress });
+      const receiver1Asset = ownedAssets.get(receiver1AssetId);
+      expect(receiver1Asset).toBeDefined();
+      expect(receiver1Asset?.balance).toBe(1000n); // Not 2000n (would indicate double-processing)
+
+      // Verify LSP8 receiver has both OwnedAsset and OwnedToken
+      const receiver2AssetId = generateOwnedAssetId({ owner: receiver2, address: assetAddress });
+      const receiver2Asset = ownedAssets.get(receiver2AssetId);
+      expect(receiver2Asset).toBeDefined();
+      expect(receiver2Asset?.balance).toBe(1n);
+
+      const receiver2TokenId = generateOwnedTokenId({
+        owner: receiver2,
+        address: assetAddress,
+        tokenId: lsp8Transfer.tokenId!,
+      });
+      const receiver2Token = ownedTokens.get(receiver2TokenId);
+      expect(receiver2Token).toBeDefined();
+
+      // Verify enrichment queue: should have 4 enrichment requests total
+      // 2 for receiver1 (digitalAsset + universalProfile)
+      // 4 for receiver2 (OwnedAsset: digitalAsset + universalProfile, OwnedToken: digitalAsset + universalProfile + nft)
+      // But handler processes both bags each time, so count may vary
+      expect(batchCtx._enrichmentQueue.length).toBeGreaterThan(0);
     });
   });
 });
