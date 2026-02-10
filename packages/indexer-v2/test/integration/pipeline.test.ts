@@ -1,5 +1,5 @@
-/* eslint-disable no-console, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/explicit-function-return-type */
-// Integration tests use console.log for debugging and relaxed typing for mocks
+/* eslint-disable no-console */
+// Integration tests use console.log for debugging output
 import { processBatch } from '@/core/pipeline';
 import { PluginRegistry } from '@/core/registry';
 import { Block, Context, EntityCategory, VerificationResult } from '@/core/types';
@@ -17,7 +17,7 @@ const fixturesDir = path.resolve(__dirname, '../fixtures/blocks');
 
 function loadFixture(filename: string): Block {
   const fixturePath = path.join(fixturesDir, filename);
-  const fixtureData = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
+  const fixtureData = JSON.parse(fs.readFileSync(fixturePath, 'utf-8')) as unknown;
   return fixtureData as Block;
 }
 
@@ -75,16 +75,25 @@ function createMockStore(): MockStore {
 // Mock Logger Implementation
 // ---------------------------------------------------------------------------
 
-function createMockLogger(): any {
-  const logger: any = {
+interface MockLogger {
+  info: ReturnType<typeof vi.fn>;
+  warn: ReturnType<typeof vi.fn>;
+  error: ReturnType<typeof vi.fn>;
+  debug: ReturnType<typeof vi.fn>;
+  child: ReturnType<typeof vi.fn>;
+}
+
+function createMockLogger(): MockLogger {
+  const logger: MockLogger = {
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
     debug: vi.fn(),
+    child: vi.fn(),
   };
 
   // Logger.child() returns a new logger instance with child context
-  logger.child = vi.fn(() => createMockLogger());
+  logger.child.mockImplementation(() => createMockLogger());
 
   return logger;
 }
@@ -108,7 +117,9 @@ function createMockContext(blocks: Block[]): Context {
 // Mock Verification Function
 // ---------------------------------------------------------------------------
 
-function createMockVerifyFn(validAddresses: Set<string>) {
+function createMockVerifyFn(
+  validAddresses: Set<string>,
+): ReturnType<typeof vi.fn<[EntityCategory, Set<string>], Promise<VerificationResult>>> {
   const mockImpl = (category: EntityCategory, addresses: Set<string>): VerificationResult => {
     const valid = new Set<string>();
     const invalid = new Set<string>();
@@ -141,7 +152,9 @@ function createMockVerifyFn(validAddresses: Set<string>) {
 
   // Wrap in vi.fn() so we can assert toHaveBeenCalled()
   // Return type must be Promise for interface compatibility
-  return vi.fn(async (...args) => Promise.resolve(mockImpl(...args)));
+  return vi.fn(async (category: EntityCategory, addresses: Set<string>) =>
+    Promise.resolve(mockImpl(category, addresses)),
+  );
 }
 
 // ---------------------------------------------------------------------------
