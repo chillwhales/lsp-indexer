@@ -66,7 +66,6 @@ function createMockBatchCtx() {
 // ---------------------------------------------------------------------------
 // Mock Store helper
 // ---------------------------------------------------------------------------
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function createMockStore(
   existingOwnedAssets: OwnedAsset[] = [],
   existingOwnedTokens: OwnedToken[] = [],
@@ -257,10 +256,10 @@ describe('OwnedAssetsHandler', () => {
       await OwnedAssetsHandler.handle(hctx, 'LSP7Transfer');
 
       // Sender's OwnedAsset should be queued for deletion
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(batchCtx.queueDelete).toHaveBeenCalledWith(
         expect.objectContaining({
           entityClass: OwnedAsset,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           entities: expect.arrayContaining([
             expect.objectContaining({
               id: existingSenderAsset.id,
@@ -437,10 +436,10 @@ describe('OwnedAssetsHandler', () => {
       await OwnedAssetsHandler.handle(hctx, 'LSP8Transfer');
 
       // Sender's OwnedToken should be queued for deletion
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(batchCtx.queueDelete).toHaveBeenCalledWith(
         expect.objectContaining({
           entityClass: OwnedToken,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           entities: expect.arrayContaining([
             expect.objectContaining({
               id: existingToken.id,
