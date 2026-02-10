@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+// Integration tests use console.log for debugging output
 import { processBatch } from '@/core/pipeline';
 import { PluginRegistry } from '@/core/registry';
 import { Block, Context, EntityCategory, VerificationResult } from '@/core/types';
@@ -107,10 +109,7 @@ function createMockContext(blocks: Block[]): Context {
 // ---------------------------------------------------------------------------
 
 function createMockVerifyFn(validAddresses: Set<string>) {
-  const mockImpl = async (
-    category: EntityCategory,
-    addresses: Set<string>,
-  ): Promise<VerificationResult> => {
+  const mockImpl = (category: EntityCategory, addresses: Set<string>): VerificationResult => {
     const valid = new Set<string>();
     const invalid = new Set<string>();
     const newAddresses = new Set<string>();
@@ -141,7 +140,8 @@ function createMockVerifyFn(validAddresses: Set<string>) {
   };
 
   // Wrap in vi.fn() so we can assert toHaveBeenCalled()
-  return vi.fn(mockImpl);
+  // Return type must be Promise for interface compatibility
+  return vi.fn(async (...args) => Promise.resolve(mockImpl(...args)));
 }
 
 // ---------------------------------------------------------------------------
@@ -152,7 +152,7 @@ describe('Pipeline Integration', () => {
   let registry: PluginRegistry;
   let store: MockStore;
 
-  beforeAll(async () => {
+  beforeAll(() => {
     // Bootstrap registry (discover plugins and handlers)
     registry = new PluginRegistry();
     const pluginDir = path.resolve(__dirname, '../../lib/plugins/events');
