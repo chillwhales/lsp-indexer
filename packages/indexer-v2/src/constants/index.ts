@@ -1,7 +1,10 @@
 import { isNumeric } from '@/utils';
 import { config as dotenvSetup } from 'dotenv';
+import path from 'path';
 
-dotenvSetup();
+// Load .env from monorepo root (two levels up from this file's location)
+// This ensures env vars are loaded whether running from root or package directory
+dotenvSetup({ path: path.resolve(__dirname, '../../../.env') });
 
 export const SQD_GATEWAY =
   process.env.SQD_GATEWAY || 'https://v2.archive.subsquid.io/network/lukso-mainnet';
