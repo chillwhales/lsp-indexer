@@ -30,7 +30,8 @@ COPY packages/indexer/package.json ./packages/indexer/
 COPY packages/indexer-v2/package.json ./packages/indexer-v2/
 
 # Install all dependencies (production + dev for build)
-RUN pnpm install --frozen-lockfile
+# Using --no-frozen-lockfile temporarily until lockfile is updated locally
+RUN pnpm install --no-frozen-lockfile
 
 # ==============================================================================
 # Stage 2: Build
@@ -92,7 +93,8 @@ COPY --from=builder /app/packages/indexer-v2/src ./packages/indexer-v2/src
 COPY --from=builder /app/packages/indexer-v2/tsconfig.json ./packages/indexer-v2/
 
 # Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
+# Using --no-frozen-lockfile temporarily until lockfile is updated locally
+RUN pnpm install --prod --no-frozen-lockfile
 
 # Create logs directory with proper permissions
 RUN mkdir -p /app/packages/indexer-v2/logs && \
