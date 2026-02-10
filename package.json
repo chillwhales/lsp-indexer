@@ -16,7 +16,8 @@
     "hasura:apply": "pnpm --filter=@chillwhales/typeorm hasura:apply",
     "migration:generate": ". ./env.sh && pnpm --filter=@chillwhales/typeorm migration:generate",
     "migration:apply": ". ./env.sh && pnpm --filter=@chillwhales/typeorm migration:apply",
-    "start": ". ./env.sh && pnpm --filter=@chillwhales/indexer start"
+    "start": ". ./env.sh && pnpm --filter=@chillwhales/indexer start",
+    "start:v2": ". ./env.sh && pnpm --filter=@chillwhales/indexer-v2 start"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

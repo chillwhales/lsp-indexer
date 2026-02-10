@@ -401,20 +401,17 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   );
 
   // Persist core entities (UP, DA) for newly verified addresses
-  const allNewEntities: Entity[] = [];
+  // Group by category to avoid mixing entity classes in single upsert
   for (const category of categories) {
     const result = batchCtx.getVerified(category);
     if (result.newEntities.size > 0) {
+      const entities = [...result.newEntities.values()];
       verifyLog.info(
-        { category: `${category}`, count: result.newEntities.size },
+        { category: `${category}`, count: entities.length },
         `Saving '${category}' entities`,
       );
-      allNewEntities.push(...result.newEntities.values());
+      await context.store.upsert(entities);
     }
-  }
-
-  if (allNewEntities.length > 0) {
-    await context.store.upsert(allNewEntities);
   }
 
   // ---------------------------------------------------------------------------
