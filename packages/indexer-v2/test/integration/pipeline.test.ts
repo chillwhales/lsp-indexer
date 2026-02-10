@@ -132,11 +132,11 @@ function createMockContext(blocks: Block[]): MockContext {
 // Mock Verification Function
 // ---------------------------------------------------------------------------
 
-function createMockVerifyFn(
-  validAddresses: Set<string>,
-): ReturnType<
+type MockVerifyFn = ReturnType<
   typeof vi.fn<[EntityCategory, Set<string>, Store, Context], Promise<VerificationResult>>
-> {
+>;
+
+function createMockVerifyFn(validAddresses: Set<string>): MockVerifyFn {
   const mockImpl = (
     category: EntityCategory,
     addresses: Set<string>,
@@ -271,7 +271,7 @@ describe('Pipeline Integration', () => {
 
       // Mock verification: mark the LSP7 address as valid DA
       const validAddresses = new Set([lsp7TransferFixture.logs[0].address]);
-      const mockVerify = createMockVerifyFn(validAddresses);
+      const mockVerify: MockVerifyFn = createMockVerifyFn(validAddresses);
 
       // Create pipeline config with mock worker pool
       const mockWorkerPool = {
@@ -279,7 +279,7 @@ describe('Pipeline Integration', () => {
         shutdown: vi.fn(() => Promise.resolve()),
       };
 
-      const pipelineConfig = {
+      const pipelineConfig: PipelineConfig = {
         registry,
         verifyAddresses: mockVerify,
         workerPool: mockWorkerPool,
@@ -308,14 +308,14 @@ describe('Pipeline Integration', () => {
 
       // Mock verification: mark the LSP8 address as valid DA
       const validAddresses = new Set([lsp8TransferFixture.logs[0].address]);
-      const mockVerify = createMockVerifyFn(validAddresses);
+      const mockVerify: MockVerifyFn = createMockVerifyFn(validAddresses);
 
       const mockWorkerPool = {
         fetchBatch: vi.fn(() => Promise.resolve([])),
         shutdown: vi.fn(() => Promise.resolve()),
       };
 
-      const pipelineConfig = {
+      const pipelineConfig: PipelineConfig = {
         registry,
         verifyAddresses: mockVerify,
         workerPool: mockWorkerPool,
@@ -346,14 +346,14 @@ describe('Pipeline Integration', () => {
 
       // Mock verification: mark all addresses as valid
       const validAddresses = new Set(multiEventFixture.logs.map((log) => log.address));
-      const mockVerify = createMockVerifyFn(validAddresses);
+      const mockVerify: MockVerifyFn = createMockVerifyFn(validAddresses);
 
       const mockWorkerPool = {
         fetchBatch: vi.fn(() => Promise.resolve([])),
         shutdown: vi.fn(() => Promise.resolve()),
       };
 
-      const pipelineConfig = {
+      const pipelineConfig: PipelineConfig = {
         registry,
         verifyAddresses: mockVerify,
         workerPool: mockWorkerPool,
@@ -413,14 +413,14 @@ describe('Pipeline Integration', () => {
       store = ctx.store;
 
       const validAddresses = new Set([lsp7TransferFixture.logs[0].address]);
-      const mockVerify = createMockVerifyFn(validAddresses);
+      const mockVerify: MockVerifyFn = createMockVerifyFn(validAddresses);
 
       const mockWorkerPool = {
         fetchBatch: vi.fn(() => Promise.resolve([])),
         shutdown: vi.fn(() => Promise.resolve()),
       };
 
-      const pipelineConfig = {
+      const pipelineConfig: PipelineConfig = {
         registry,
         verifyAddresses: mockVerify,
         workerPool: mockWorkerPool,
