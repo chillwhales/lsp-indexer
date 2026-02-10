@@ -11,12 +11,14 @@
 # - Proper service dependencies and startup ordering
 #
 # Usage:
-#   docker compose -f docker-compose.v2.yml up -d
-#   docker compose -f docker-compose.v2.yml logs -f indexer-v2
-#   docker compose -f docker-compose.v2.yml down
+#   cd docker/v2
+#   docker compose up -d
+#   docker compose logs -f indexer-v2
+#   docker compose down
 #
 # Environment:
-#   Copy .env.example to .env and configure before running
+#   Copy ../../.env.example to ../../.env and configure before running
+#   The .env file should be in the repository root
 #
 # ==============================================================================
 
@@ -64,8 +66,8 @@ services:
   # ----------------------------------------------------------------------------
   indexer-v2:
     build:
-      context: .
-      dockerfile: Dockerfile.v2
+      context: ../../
+      dockerfile: docker/v2/Dockerfile
       # Cache build stages for faster rebuilds
       cache_from:
         - lsp-indexer-v2:latest

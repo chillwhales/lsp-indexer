@@ -2,15 +2,87 @@
 
 The LSP Indexer is an open-source project designed to listen for important events on the LUKSO blockchain and extract valuable information from them. This indexer focuses on events like `DataChanged`, `Executed`, `UniversalReceiver`, `OwnershipTransferred`, `TokenIdDataChanged`, LSP7 & LSP8 `Transfer`, `Follow`, `Unfollow`, and decodes information such as `LSP3Profile`, `LSP4Metadata`, `LSP6Permissions` and more.
 
-## Project Architecture
+## 📁 Repository Structure
+
+```
+lsp-indexer/
+├── packages/              # Monorepo packages
+│   ├── abi/               # Contract ABIs (Subsquid typegen)
+│   ├── typeorm/           # Database entities & migrations
+│   ├── indexer/           # Indexer v1 (legacy, read-only)
+│   └── indexer-v2/        # Indexer v2 (active development)
+│
+├── docs/                  # Documentation
+│   ├── ARCHITECTURE.md    # System architecture
+│   ├── CONTRIBUTING.md    # Contribution guide
+│   ├── AGENTS.md          # AI agent guidelines
+│   └── docker/            # Docker deployment docs
+│
+├── docker/                # Docker configurations
+│   ├── v1/                # Legacy setup (indexer v1)
+│   └── v2/                # Current setup (indexer v2)
+│
+├── sql/                   # SQL resources
+│   └── views/             # View definitions
+│
+├── .planning/             # GSD project planning
+├── .github/               # GitHub Actions & workflows
+├── scripts/               # Build & utility scripts
+└── .env.example           # Environment template
+```
+
+This monorepo uses **pnpm workspaces** for package management. See [docs/](./docs/) for detailed documentation.
+
+## 🚀 Quick Start
+
+### Option 1: Docker (Recommended for Production)
+
+```bash
+# Setup
+cd docker/v2
+cp ../../.env.example ../../.env
+nano ../../.env  # Set RPC_URL
+
+# Start services
+./docker-v2.sh start
+
+# Monitor logs
+./docker-v2.sh logs indexer-v2 all
+```
+
+See [docs/docker/QUICKSTART.md](./docs/docker/QUICKSTART.md) for details.
+
+### Option 2: Local Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Build all packages
+pnpm build
+
+# Setup environment
+cp .env.example .env
+nano .env  # Configure variables
+
+# Run migrations
+pnpm migration:generate
+pnpm migration:apply
+
+# Start indexer v2
+pnpm start:v2
+```
+
+## 📦 Project Architecture
 
 The project is organized into several packages that handle different aspects of the indexer's functionality:
 
-- **abi**: Contains ABI definitions for various smart contracts used in the LUKSO ecosystem.
-- **indexer**: The core package that listens to blockchain events, processes them, and indexes the data.
-- **typeorm**: Handles database migrations and schema management using TypeORM.
+- **abi** — ABI definitions for LUKSO smart contracts (LSP0-LSP8, etc.)
+- **typeorm** — Database entities generated from `schema.graphql` and migrations
+- **indexer** — Legacy indexer (v1) - read-only reference
+- **indexer-v2** — Current indexer with plugin architecture (active development)
 
-Each package has its own `package.json` file with dependencies and scripts specific to its functionality. The project uses a monorepo structure managed by pnpm workspaces.
+Each package has its own `package.json` file with dependencies and scripts. The project uses a monorepo structure managed by pnpm workspaces.
 
 ## What It Does
 
