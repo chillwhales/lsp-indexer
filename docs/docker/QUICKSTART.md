@@ -23,14 +23,18 @@ nano ../../.env
 ## 2. Start Services
 
 ```bash
-# Start indexer-v2 + postgres in background
+# Recommended: Use helper script (auto-detects Hasura from .env)
 ./docker-v2.sh start
 
-# OR using docker compose directly:
-docker compose up -d
+# OR using docker compose directly (MUST specify --env-file):
+docker compose --env-file ../../.env up -d
 
-# With Hasura enabled (if ENABLE_HASURA=true in .env):
-# Hasura will automatically start at http://localhost:8080
+# With Hasura enabled:
+# If ENABLE_HASURA=true in .env, ./docker-v2.sh start will automatically
+# start Hasura at http://localhost:8080
+#
+# Or manually with docker compose:
+docker compose --env-file ../../.env --profile hasura up -d
 ```
 
 ## 3. Monitor Logs (Real-time)
