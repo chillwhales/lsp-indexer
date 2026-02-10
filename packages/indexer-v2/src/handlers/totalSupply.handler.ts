@@ -99,6 +99,8 @@ const TotalSupplyHandler: EntityHandler = {
             ...entity,
             timestamp,
             value: entity.value + amount,
+            // Explicitly preserve FK field for enrichment
+            digitalAsset: entity.digitalAsset ?? null,
           }),
         );
       }
@@ -121,6 +123,8 @@ const TotalSupplyHandler: EntityHandler = {
             ...current,
             timestamp,
             value: current.value > amount ? current.value - amount : 0n,
+            // Explicitly preserve FK field for enrichment
+            digitalAsset: current.digitalAsset ?? null,
           }),
         );
       }
