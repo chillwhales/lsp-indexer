@@ -150,8 +150,8 @@ function createMockWorkerPool(): IMetadataWorkerPool {
 // ---------------------------------------------------------------------------
 
 function createMockVerifyFn(validAddresses: Set<string>): VerifyFn {
-  // Create async function that implements VerifyFn interface
-  const mockFn: VerifyFn = async (
+  // Create function that implements VerifyFn interface
+  const mockFn: VerifyFn = (
     category: EntityCategory,
     addresses: Set<string>,
     _store: Store,
@@ -177,13 +177,13 @@ function createMockVerifyFn(validAddresses: Set<string>): VerifyFn {
       }
     }
 
-    return {
+    return Promise.resolve({
       category,
       valid,
       invalid,
       new: newAddresses,
       newEntities,
-    };
+    });
   };
 
   // Wrap with vi.fn() for spying, but maintain proper VerifyFn type
