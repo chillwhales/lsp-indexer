@@ -5,13 +5,19 @@
 ## 1. Setup (One-time)
 
 ```bash
-# Create .env file
-cp .env.example .env
+# Navigate to docker/v2
+cd docker/v2
+
+# Create .env file (in repository root)
+cp ../../.env.example ../../.env
 
 # Edit .env — REQUIRED: Set your RPC endpoint
-nano .env
+nano ../../.env
 # Update: RPC_URL=https://your-rpc-endpoint.io
 # Everything else has sane defaults
+
+# Optional: Enable Hasura GraphQL API
+# Add to .env: ENABLE_HASURA=true
 ```
 
 ## 2. Start Services
@@ -21,7 +27,10 @@ nano .env
 ./docker-v2.sh start
 
 # OR using docker compose directly:
-docker compose -f docker-compose.v2.yml up -d
+docker compose up -d
+
+# With Hasura enabled (if ENABLE_HASURA=true in .env):
+# Hasura will automatically start at http://localhost:8080
 ```
 
 ## 3. Monitor Logs (Real-time)

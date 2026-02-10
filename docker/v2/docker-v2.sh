@@ -9,8 +9,23 @@
 
 set -e
 
-COMPOSE_FILE="docker-compose.v2.yml"
+COMPOSE_FILE="docker-compose.yml"
 PROJECT_NAME="lsp-indexer"
+
+# Check if Hasura should be enabled
+get_compose_profiles() {
+  # Source .env if it exists to get ENABLE_HASURA
+  if [ -f ../../.env ]; then
+    # shellcheck disable=SC1091
+    source ../../.env
+  fi
+  
+  if [ "${ENABLE_HASURA}" = "true" ]; then
+    echo "--profile hasura"
+  else
+    echo ""
+  fi
+}
 
 # Colors for output
 RED='\033[0;31m'
@@ -37,11 +52,11 @@ log_error() {
 }
 
 check_env() {
-  if [ ! -f .env ]; then
-    log_warning ".env file not found"
+  if [ ! -f ../../.env ]; then
+    log_warning ".env file not found in repository root"
     log_info "Creating from .env.example..."
-    cp .env.example .env
-    log_warning "Please edit .env with your configuration before starting"
+    cp ../../.env.example ../../.env
+    log_warning "Please edit ../../.env with your configuration before starting"
     exit 1
   fi
 }
@@ -49,9 +64,23 @@ check_env() {
 # Command functions
 cmd_start() {
   check_env
-  log_info "Starting services..."
-  docker compose -f "$COMPOSE_FILE" up -d
+  PROFILES=$(get_compose_profiles)
+  
+  if [ -n "$PROFILES" ]; then
+    log_info "Starting services with Hasura enabled..."
+  else
+    log_info "Starting services (Hasura disabled)..."
+  fi
+  
+  # shellcheck disable=SC2086
+  docker compose -f "$COMPOSE_FILE" $PROFILES up -d
   log_success "Services started"
+  
+  if [ -n "$PROFILES" ]; then
+    log_info "Hasura console: http://localhost:8080"
+    log_info "Hasura admin secret: check .env HASURA_GRAPHQL_ADMIN_SECRET"
+  fi
+  
   log_info "View logs: ./docker-v2.sh logs"
   log_info "Check status: ./docker-v2.sh status"
 }
@@ -214,14 +243,27 @@ cmd_health() {
     echo -e "${RED}✗${NC} PostgreSQL NOT ready"
   fi
   
+  # Hasura health (if enabled)
+  if docker ps --format '{{.Names}}' | grep -q "lsp-indexer-hasura"; then
+    if curl -sf http://localhost:8080/healthz > /dev/null 2>&1; then
+      echo -e "${GREEN}✓${NC} Hasura GraphQL responding"
+    else
+      echo -e "${RED}✗${NC} Hasura GraphQL NOT responding"
+    fi
+  fi
+  
   # Container health
   INDEXER_HEALTH=$(docker inspect lsp-indexer-v2 --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
   POSTGRES_HEALTH=$(docker inspect lsp-indexer-postgres --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+  HASURA_HEALTH=$(docker inspect lsp-indexer-hasura --format='{{.State.Health.Status}}' 2>/dev/null || echo "not running")
   
   echo
   echo "Container health status:"
   echo "  indexer-v2: $INDEXER_HEALTH"
   echo "  postgres:   $POSTGRES_HEALTH"
+  if [ "$HASURA_HEALTH" != "not running" ]; then
+    echo "  hasura:     $HASURA_HEALTH"
+  fi
 }
 
 cmd_volumes() {
@@ -270,7 +312,7 @@ Docker Management Script for Indexer V2
 Usage: ./docker-v2.sh [command] [args]
 
 Service Management:
-  start              Start all services
+  start              Start all services (checks ENABLE_HASURA in .env)
   stop               Stop all services (keeps containers)
   restart            Restart all services
   down               Stop and remove containers (keeps volumes)
@@ -298,6 +340,19 @@ System:
   stats              Show real-time resource statistics
   volumes            Show volume information
   clean              Clean up Docker resources
+
+Hasura (Optional GraphQL API):
+  To enable Hasura, add to ../../.env:
+    ENABLE_HASURA=true
+  
+  Then start services normally:
+    ./docker-v2.sh start
+  
+  Hasura console will be available at:
+    http://localhost:8080
+  
+  Default admin secret: admin_secret_change_me
+  (Change HASURA_GRAPHQL_ADMIN_SECRET in .env)
 
 Examples:
   ./docker-v2.sh start
