@@ -1,8 +1,14 @@
 /* eslint-disable no-console */
 // Integration tests use console.log for debugging output
-import { processBatch } from '@/core/pipeline';
+import { PipelineConfig, VerifyFn, processBatch } from '@/core/pipeline';
 import { PluginRegistry } from '@/core/registry';
-import { Block, Context, EntityCategory, VerificationResult } from '@/core/types';
+import {
+  Block,
+  Context,
+  EntityCategory,
+  IMetadataWorkerPool,
+  VerificationResult,
+} from '@/core/types';
 import { DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import fs from 'fs';
@@ -129,20 +135,28 @@ function createMockContext(blocks: Block[]): MockContext {
 }
 
 // ---------------------------------------------------------------------------
+// Mock Worker Pool Implementation
+// ---------------------------------------------------------------------------
+
+function createMockWorkerPool(): IMetadataWorkerPool {
+  return {
+    fetchBatch: vi.fn(() => Promise.resolve([])),
+    shutdown: vi.fn(() => Promise.resolve()),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Mock Verification Function
 // ---------------------------------------------------------------------------
 
-type MockVerifyFn = ReturnType<
-  typeof vi.fn<[EntityCategory, Set<string>, Store, Context], Promise<VerificationResult>>
->;
-
-function createMockVerifyFn(validAddresses: Set<string>): MockVerifyFn {
-  const mockImpl = (
+function createMockVerifyFn(validAddresses: Set<string>): VerifyFn {
+  // Create async function that implements VerifyFn interface
+  const mockFn: VerifyFn = async (
     category: EntityCategory,
     addresses: Set<string>,
     _store: Store,
     _context: Context,
-  ): VerificationResult => {
+  ): Promise<VerificationResult> => {
     const valid = new Set<string>();
     const invalid = new Set<string>();
     const newAddresses = new Set<string>();
@@ -172,12 +186,8 @@ function createMockVerifyFn(validAddresses: Set<string>): MockVerifyFn {
     };
   };
 
-  // Wrap in vi.fn() so we can assert toHaveBeenCalled()
-  // Return type must be Promise for interface compatibility
-  return vi.fn(
-    async (category: EntityCategory, addresses: Set<string>, store: Store, context: Context) =>
-      Promise.resolve(mockImpl(category, addresses, store, context)),
-  );
+  // Wrap with vi.fn() for spying, but maintain proper VerifyFn type
+  return vi.fn(mockFn) as VerifyFn;
 }
 
 // ---------------------------------------------------------------------------
@@ -271,13 +281,8 @@ describe('Pipeline Integration', () => {
 
       // Mock verification: mark the LSP7 address as valid DA
       const validAddresses = new Set([lsp7TransferFixture.logs[0].address]);
-      const mockVerify: MockVerifyFn = createMockVerifyFn(validAddresses);
-
-      // Create pipeline config with mock worker pool
-      const mockWorkerPool = {
-        fetchBatch: vi.fn(() => Promise.resolve([])),
-        shutdown: vi.fn(() => Promise.resolve()),
-      };
+      const mockVerify = createMockVerifyFn(validAddresses);
+      const mockWorkerPool = createMockWorkerPool();
 
       const pipelineConfig: PipelineConfig = {
         registry,
@@ -308,12 +313,8 @@ describe('Pipeline Integration', () => {
 
       // Mock verification: mark the LSP8 address as valid DA
       const validAddresses = new Set([lsp8TransferFixture.logs[0].address]);
-      const mockVerify: MockVerifyFn = createMockVerifyFn(validAddresses);
-
-      const mockWorkerPool = {
-        fetchBatch: vi.fn(() => Promise.resolve([])),
-        shutdown: vi.fn(() => Promise.resolve()),
-      };
+      const mockVerify = createMockVerifyFn(validAddresses);
+      const mockWorkerPool = createMockWorkerPool();
 
       const pipelineConfig: PipelineConfig = {
         registry,
@@ -346,12 +347,8 @@ describe('Pipeline Integration', () => {
 
       // Mock verification: mark all addresses as valid
       const validAddresses = new Set(multiEventFixture.logs.map((log) => log.address));
-      const mockVerify: MockVerifyFn = createMockVerifyFn(validAddresses);
-
-      const mockWorkerPool = {
-        fetchBatch: vi.fn(() => Promise.resolve([])),
-        shutdown: vi.fn(() => Promise.resolve()),
-      };
+      const mockVerify = createMockVerifyFn(validAddresses);
+      const mockWorkerPool = createMockWorkerPool();
 
       const pipelineConfig: PipelineConfig = {
         registry,
@@ -413,12 +410,8 @@ describe('Pipeline Integration', () => {
       store = ctx.store;
 
       const validAddresses = new Set([lsp7TransferFixture.logs[0].address]);
-      const mockVerify: MockVerifyFn = createMockVerifyFn(validAddresses);
-
-      const mockWorkerPool = {
-        fetchBatch: vi.fn(() => Promise.resolve([])),
-        shutdown: vi.fn(() => Promise.resolve()),
-      };
+      const mockVerify = createMockVerifyFn(validAddresses);
+      const mockWorkerPool = createMockWorkerPool();
 
       const pipelineConfig: PipelineConfig = {
         registry,
