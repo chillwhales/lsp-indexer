@@ -96,15 +96,20 @@ COPY --from=builder /app/packages/indexer-v2/tsconfig.json ./packages/indexer-v2
 # Using --no-frozen-lockfile temporarily until lockfile is updated locally
 RUN pnpm install --prod --no-frozen-lockfile
 
+# Copy entrypoint script for running migrations before starting indexer
+COPY docker/v2/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Create logs directory with proper permissions
 RUN mkdir -p /app/packages/indexer-v2/logs && \
-    chown -R node:node /app
+    chown -R node:node /app && \
+    chown node:node /app/entrypoint.sh
 
 # Switch to non-root user for security
 USER node
 
-# Set working directory to indexer-v2
-WORKDIR /app/packages/indexer-v2
+# Set working directory to app root (entrypoint will cd to packages)
+WORKDIR /app
 
 # Environment variables (can be overridden by docker-compose)
 ENV NODE_ENV=production \
@@ -116,6 +121,5 @@ ENV NODE_ENV=production \
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD pgrep -f "ts-node.*lib/app/index.js" || exit 1
 
-# Run indexer-v2 with ts-node
-# Uses start:simple (no tee) — Docker captures stdout/stderr
-CMD ["pnpm", "start:simple"]
+# Run migrations then start indexer
+ENTRYPOINT ["/app/entrypoint.sh"]
