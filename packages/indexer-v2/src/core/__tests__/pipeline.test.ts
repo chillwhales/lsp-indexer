@@ -84,14 +84,19 @@ function createMockStore(): MockStore {
 }
 
 function createMockContext(store: Store, blocks: Block[] = [mockBlock]): Context {
+  const mockLogger = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    child: vi.fn().mockReturnThis(),
+  };
+  // Make child() return a new logger with the same methods
+  mockLogger.child = vi.fn(() => ({ ...mockLogger }));
+
   return {
     blocks,
     store,
-    log: {
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
-    },
+    log: mockLogger,
     isHead: false,
   } as unknown as Context;
 }
@@ -621,6 +626,93 @@ describe('Pipeline Step 5: VERIFY', () => {
     );
     expect(upEntity).toBeDefined();
   });
+
+  it('should call store.upsert separately per category to avoid mixed entity classes', async () => {
+    const plugin: EventPlugin = {
+      name: 'test-plugin',
+      topic0: '0xtopic',
+      requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
+      extract: (log: Log, block: Block, ctx: IBatchContext) => {
+        ctx.addEntity('Event', 'e1', { id: 'e1' });
+        ctx.queueEnrichment<TestEntity>({
+          category: EntityCategory.UniversalProfile,
+          address: '0xup1',
+          entityType: 'Event',
+          entityId: 'e1',
+          fkField: 'fromProfile',
+        });
+        ctx.queueEnrichment<TestEntity>({
+          category: EntityCategory.DigitalAsset,
+          address: '0xda1',
+          entityType: 'Event',
+          entityId: 'e1',
+          fkField: 'digitalAsset',
+        });
+      },
+    };
+
+    const registry = new PluginRegistry();
+    registry.registerEventPlugin(plugin);
+
+    const store = createMockStore();
+    const context = createMockContext(store, [{ ...mockBlock, logs: [mockLog('0xtopic')] }]);
+
+    await processBatch(context, {
+      registry,
+      verifyAddresses: createMockVerifyFn(new Set(['0xup1', '0xda1']), new Set(['0xup1', '0xda1'])),
+      workerPool: mockWorkerPool,
+    });
+
+    // store.upsert should be called at least once per category
+    // Verify that each upsert call contains entities of only one class
+    const upsertMock = store.upsert as ReturnType<typeof vi.fn>;
+
+    // Find calls that contain ONLY core entities (UniversalProfile or DigitalAsset)
+    // These are the Step 5 verification upserts we want to test
+    const coreEntityCalls = upsertMock.mock.calls.filter((call) => {
+      const entities = call[0] as Entity[];
+      return entities.some((e) => e instanceof UniversalProfile || e instanceof DigitalAsset);
+    });
+
+    // Ensure at least one call was made for core entities
+    expect(coreEntityCalls.length).toBeGreaterThan(0);
+
+    // Critical test: Ensure no call mixes UniversalProfile and DigitalAsset entities
+    // This is the regression test for the TypeORM "mass saving allowed only for entities
+    // of the same class" error
+    for (const call of coreEntityCalls) {
+      const entities = call[0] as Entity[];
+      if (entities.length === 0) continue;
+
+      const hasUP = entities.some((e) => e instanceof UniversalProfile);
+      const hasDA = entities.some((e) => e instanceof DigitalAsset);
+
+      // Should never have both in the same call
+      if (hasUP && hasDA) {
+        throw new Error(
+          `REGRESSION: Mixed entity classes in single upsert call! ` +
+            `This causes TypeORM "mass saving allowed only for entities of the same class" error. ` +
+            `Found: ${entities.map((e) => e.constructor.name).join(', ')}`,
+        );
+      }
+    }
+
+    // Verify that both categories were processed separately
+    const upEntities = coreEntityCalls.flatMap((call) =>
+      (call[0] as Entity[]).filter((e) => e instanceof UniversalProfile),
+    );
+    const daEntities = coreEntityCalls.flatMap((call) =>
+      (call[0] as Entity[]).filter((e) => e instanceof DigitalAsset),
+    );
+
+    expect(upEntities.length).toBeGreaterThan(0);
+    expect(daEntities.length).toBeGreaterThan(0);
+
+    // Verify entities were actually created
+    const mockStore = store;
+    expect(mockStore.upsertedEntities.find((e) => e.id === '0xup1')).toBeDefined();
+    expect(mockStore.upsertedEntities.find((e) => e.id === '0xda1')).toBeDefined();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -825,11 +917,15 @@ describe('Pipeline Step 6: ENRICH', () => {
     const enrichedTransfer = mockStore.upsertedEntities.find((e) => e.id === 't1');
     expect(enrichedTransfer).toBeUndefined();
 
-    // Warning should be logged
+    // Warning should be logged (with attributes object as first param, message as second)
     expect(context.log.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Skipping enrichment: FK field not found on entity'),
+      expect.objectContaining({
+        entityId: 't1',
+        entityType: 'Transfer',
+        fkField: 'digitalAsset',
+      }),
+      'Skipping enrichment: FK field not found on entity',
     );
-    expect(context.log.warn).toHaveBeenCalledWith(expect.stringContaining('digitalAsset'));
   });
 });
 
