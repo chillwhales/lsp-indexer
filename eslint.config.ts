@@ -37,7 +37,11 @@ export default tseslint.config(
         ...globals.node,
       },
       parserOptions: {
-        projectService: true,
+        project: [
+          './tsconfig.json',
+          './packages/*/tsconfig.json',
+          './packages/indexer-v2/tsconfig.eslint.json',
+        ],
         tsconfigRootDir: import.meta.dirname,
       },
     },

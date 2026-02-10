@@ -35,7 +35,6 @@ logger.info('Pipeline configuration created');
 // Start processor — V2 indexer ready
 logger.info('Starting processor — V2 indexer ready');
 
-// eslint-disable-next-line @typescript-eslint/require-await -- Async handler for processBatch
 processor.run(new TypeormDatabase(), async (ctx) => {
   await processBatch(ctx, pipelineConfig);
 });
