@@ -40,7 +40,7 @@ function createMockBatchCtx(): {
   return {
     getEntities: vi.fn(<T>(type: string): Map<string, T> => {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
-    }),
+    }) as <T>(type: string) => Map<string, T>,
     addEntity: vi.fn((type: string, id: string, entity: unknown) => {
       if (!entityBags.has(type)) entityBags.set(type, new Map());
       const bag = entityBags.get(type);
@@ -159,8 +159,8 @@ describe('OwnedAssetsHandler', () => {
       const ownedAsset = ownedAssets.get(receiverId);
       expect(ownedAsset).toBeDefined();
       expect(ownedAsset?.balance).toBe(1000n);
-      expect(ownedAsset.owner).toBe(transfer.to);
-      expect(ownedAsset.address).toBe(transfer.address);
+      expect(ownedAsset?.owner).toBe(transfer.to);
+      expect(ownedAsset?.address).toBe(transfer.address);
     });
 
     it('updates existing OwnedAsset balance on transfer', async () => {
@@ -382,10 +382,11 @@ describe('OwnedAssetsHandler', () => {
       const ownedTokens = batchCtx.getEntities<OwnedToken>('OwnedToken');
 
       expect(transfer.tokenId).toBeDefined();
+      if (!transfer.tokenId) throw new Error('tokenId is required for this test');
       const tokenId = generateOwnedTokenId({
         owner: transfer.to,
         address: transfer.address,
-        tokenId: transfer.tokenId as string,
+        tokenId: transfer.tokenId,
       });
 
       expect(ownedTokens.has(tokenId)).toBe(true);
@@ -496,7 +497,9 @@ describe('OwnedAssetsHandler', () => {
       const deleteRequests = batchCtx._deleteQueue;
       expect(deleteRequests.length).toBeGreaterThan(0);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const tokenDeleteRequest = deleteRequests.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (req: any) =>
           req.entityClass === OwnedToken &&
           req.entities.some((e: OwnedToken) => e.id === existingToken.id),
@@ -612,10 +615,11 @@ describe('OwnedAssetsHandler', () => {
       expect(receiver2Asset).toBeDefined();
       expect(receiver2Asset?.balance).toBe(1n);
 
+      if (!lsp8Transfer.tokenId) throw new Error('tokenId is required for LSP8 transfer');
       const receiver2TokenId = generateOwnedTokenId({
         owner: receiver2,
         address: assetAddress,
-        tokenId: lsp8Transfer.tokenId!,
+        tokenId: lsp8Transfer.tokenId,
       });
       const receiver2Token = ownedTokens.get(receiver2TokenId);
       expect(receiver2Token).toBeDefined();
