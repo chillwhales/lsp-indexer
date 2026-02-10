@@ -9,8 +9,43 @@
 
 set -e
 
-COMPOSE_FILE="docker-compose.v2.yml"
+COMPOSE_FILE="docker-compose.yml"
 PROJECT_NAME="lsp-indexer"
+ENV_FILE="../../.env"
+
+# Safely read a value from .env without executing it
+read_env_value() {
+  local key="$1"
+  local default="${2:-}"
+  
+  if [ -f "$ENV_FILE" ]; then
+    # Grep for the key, take last occurrence, extract value after =
+    local value
+    value=$(grep -E "^${key}=" "$ENV_FILE" | tail -n 1 | cut -d'=' -f2-)
+    # Strip quotes and whitespace
+    value=$(echo "$value" | tr -d ' \t' | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+    echo "${value:-$default}"
+  else
+    echo "$default"
+  fi
+}
+
+# Check if Hasura should be enabled
+get_compose_profiles() {
+  local enable_hasura
+  enable_hasura=$(read_env_value "ENABLE_HASURA" "false")
+  
+  if [ "$enable_hasura" = "true" ]; then
+    echo "--profile hasura"
+  else
+    echo ""
+  fi
+}
+
+# Get common docker compose options
+get_compose_opts() {
+  echo "--env-file $ENV_FILE"
+}
 
 # Colors for output
 RED='\033[0;31m'
@@ -37,11 +72,11 @@ log_error() {
 }
 
 check_env() {
-  if [ ! -f .env ]; then
-    log_warning ".env file not found"
+  if [ ! -f "$ENV_FILE" ]; then
+    log_warning ".env file not found at $ENV_FILE"
     log_info "Creating from .env.example..."
-    cp .env.example .env
-    log_warning "Please edit .env with your configuration before starting"
+    cp ../../.env.example "$ENV_FILE"
+    log_warning "Please edit $ENV_FILE with your configuration before starting"
     exit 1
   fi
 }
@@ -49,31 +84,54 @@ check_env() {
 # Command functions
 cmd_start() {
   check_env
-  log_info "Starting services..."
-  docker compose -f "$COMPOSE_FILE" up -d
+  PROFILES=$(get_compose_profiles)
+  COMPOSE_OPTS=$(get_compose_opts)
+  
+  if [ -n "$PROFILES" ]; then
+    log_info "Starting services with Hasura enabled..."
+  else
+    log_info "Starting services (Hasura disabled)..."
+  fi
+  
+  # shellcheck disable=SC2086
+  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS $PROFILES up -d
   log_success "Services started"
+  
+  if [ -n "$PROFILES" ]; then
+    local hasura_port
+    hasura_port=$(read_env_value "HASURA_GRAPHQL_PORT" "8080")
+    log_info "Hasura console: http://localhost:${hasura_port}"
+    log_info "Hasura admin secret: check .env HASURA_GRAPHQL_ADMIN_SECRET"
+  fi
+  
   log_info "View logs: ./docker-v2.sh logs"
   log_info "Check status: ./docker-v2.sh status"
 }
 
 cmd_stop() {
+  COMPOSE_OPTS=$(get_compose_opts)
   log_info "Stopping services..."
-  docker compose -f "$COMPOSE_FILE" stop
+  # shellcheck disable=SC2086
+  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS stop
   log_success "Services stopped"
 }
 
 cmd_restart() {
+  COMPOSE_OPTS=$(get_compose_opts)
   log_info "Restarting services..."
-  docker compose -f "$COMPOSE_FILE" restart
+  # shellcheck disable=SC2086
+  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS restart
   log_success "Services restarted"
 }
 
 cmd_down() {
+  COMPOSE_OPTS=$(get_compose_opts)
   log_warning "Stopping and removing containers (volumes preserved)..."
   read -p "Continue? [y/N] " -n 1 -r
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]; then
-    docker compose -f "$COMPOSE_FILE" down
+    # shellcheck disable=SC2086
+    docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS down
     log_success "Containers removed"
   else
     log_info "Cancelled"
@@ -83,31 +141,40 @@ cmd_down() {
 cmd_logs() {
   SERVICE="${1:-indexer-v2}"
   TAIL="${2:-100}"
+  COMPOSE_OPTS=$(get_compose_opts)
   
+  # shellcheck disable=SC2086
   if [ "$TAIL" == "all" ]; then
-    docker compose -f "$COMPOSE_FILE" logs -f "$SERVICE"
+    docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS logs -f "$SERVICE"
   else
-    docker compose -f "$COMPOSE_FILE" logs -f --tail="$TAIL" "$SERVICE"
+    docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS logs -f --tail="$TAIL" "$SERVICE"
   fi
 }
 
 cmd_status() {
+  COMPOSE_OPTS=$(get_compose_opts)
   log_info "Service status:"
-  docker compose -f "$COMPOSE_FILE" ps
+  # shellcheck disable=SC2086
+  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS ps
   echo
   log_info "Resource usage:"
   docker stats --no-stream lsp-indexer-v2 lsp-indexer-postgres 2>/dev/null || log_warning "Containers not running"
 }
 
 cmd_build() {
+  COMPOSE_OPTS=$(get_compose_opts)
   log_info "Building indexer-v2 image..."
-  docker compose -f "$COMPOSE_FILE" build --no-cache indexer-v2
+  # shellcheck disable=SC2086
+  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS build --no-cache indexer-v2
   log_success "Build complete"
 }
 
 cmd_rebuild() {
+  COMPOSE_OPTS=$(get_compose_opts)
+  PROFILES=$(get_compose_profiles)
   log_info "Rebuilding and restarting..."
-  docker compose -f "$COMPOSE_FILE" up -d --build --force-recreate indexer-v2
+  # shellcheck disable=SC2086
+  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS $PROFILES up -d --build --force-recreate indexer-v2
   log_success "Rebuild complete"
 }
 
@@ -214,14 +281,30 @@ cmd_health() {
     echo -e "${RED}✗${NC} PostgreSQL NOT ready"
   fi
   
+  # Hasura health (if enabled)
+  if docker ps --format '{{.Names}}' | grep -q "lsp-indexer-hasura"; then
+    local hasura_port
+    hasura_port=$(read_env_value "HASURA_GRAPHQL_PORT" "8080")
+    
+    if curl -sf "http://localhost:${hasura_port}/healthz" > /dev/null 2>&1; then
+      echo -e "${GREEN}✓${NC} Hasura GraphQL responding"
+    else
+      echo -e "${RED}✗${NC} Hasura GraphQL NOT responding"
+    fi
+  fi
+  
   # Container health
   INDEXER_HEALTH=$(docker inspect lsp-indexer-v2 --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
   POSTGRES_HEALTH=$(docker inspect lsp-indexer-postgres --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+  HASURA_HEALTH=$(docker inspect lsp-indexer-hasura --format='{{.State.Health.Status}}' 2>/dev/null || echo "not running")
   
   echo
   echo "Container health status:"
   echo "  indexer-v2: $INDEXER_HEALTH"
   echo "  postgres:   $POSTGRES_HEALTH"
+  if [ "$HASURA_HEALTH" != "not running" ]; then
+    echo "  hasura:     $HASURA_HEALTH"
+  fi
 }
 
 cmd_volumes() {
@@ -245,6 +328,7 @@ cmd_env() {
 }
 
 cmd_clean() {
+  COMPOSE_OPTS=$(get_compose_opts)
   log_warning "This will remove:"
   echo "  - Stopped containers"
   echo "  - Unused images"
@@ -255,7 +339,8 @@ cmd_clean() {
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]; then
     log_info "Cleaning up..."
-    docker compose -f "$COMPOSE_FILE" down --remove-orphans
+    # shellcheck disable=SC2086
+    docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS down --remove-orphans
     docker system prune -f
     log_success "Cleanup complete"
   else
@@ -270,7 +355,7 @@ Docker Management Script for Indexer V2
 Usage: ./docker-v2.sh [command] [args]
 
 Service Management:
-  start              Start all services
+  start              Start all services (checks ENABLE_HASURA in .env)
   stop               Stop all services (keeps containers)
   restart            Restart all services
   down               Stop and remove containers (keeps volumes)
@@ -298,6 +383,19 @@ System:
   stats              Show real-time resource statistics
   volumes            Show volume information
   clean              Clean up Docker resources
+
+Hasura (Optional GraphQL API):
+  To enable Hasura, add to ../../.env:
+    ENABLE_HASURA=true
+  
+  Then start services normally:
+    ./docker-v2.sh start
+  
+  Hasura console will be available at:
+    http://localhost:8080
+  
+  Default admin secret: admin_secret_change_me
+  (Change HASURA_GRAPHQL_ADMIN_SECRET in .env)
 
 Examples:
   ./docker-v2.sh start

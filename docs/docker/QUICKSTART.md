@@ -5,23 +5,36 @@
 ## 1. Setup (One-time)
 
 ```bash
-# Create .env file
-cp .env.example .env
+# Navigate to docker/v2
+cd docker/v2
+
+# Create .env file (in repository root)
+cp ../../.env.example ../../.env
 
 # Edit .env — REQUIRED: Set your RPC endpoint
-nano .env
+nano ../../.env
 # Update: RPC_URL=https://your-rpc-endpoint.io
 # Everything else has sane defaults
+
+# Optional: Enable Hasura GraphQL API
+# Add to .env: ENABLE_HASURA=true
 ```
 
 ## 2. Start Services
 
 ```bash
-# Start indexer-v2 + postgres in background
+# Recommended: Use helper script (auto-detects Hasura from .env)
 ./docker-v2.sh start
 
-# OR using docker compose directly:
-docker compose -f docker-compose.v2.yml up -d
+# OR using docker compose directly (MUST specify --env-file):
+docker compose --env-file ../../.env up -d
+
+# With Hasura enabled:
+# If ENABLE_HASURA=true in .env, ./docker-v2.sh start will automatically
+# start Hasura at http://localhost:8080
+#
+# Or manually with docker compose:
+docker compose --env-file ../../.env --profile hasura up -d
 ```
 
 ## 3. Monitor Logs (Real-time)
@@ -31,7 +44,7 @@ docker compose -f docker-compose.v2.yml up -d
 ./docker-v2.sh logs indexer-v2 all
 
 # OR docker compose directly:
-docker compose -f docker-compose.v2.yml logs -f indexer-v2
+docker compose --env-file ../../.env logs -f indexer-v2
 ```
 
 ## 4. Export Complete Logs for Analysis
@@ -63,7 +76,7 @@ This gives you **three log sources**:
 ./docker-v2.sh status
 
 # OR:
-docker compose -f docker-compose.v2.yml ps
+docker compose --env-file ../../.env ps
 ```
 
 ## 6. Common Issues
@@ -95,8 +108,8 @@ docker exec lsp-indexer-postgres pg_isready -U postgres
 ./docker-v2.sh rebuild
 
 # OR:
-docker compose -f docker-compose.v2.yml build --no-cache
-docker compose -f docker-compose.v2.yml up -d --force-recreate
+docker compose --env-file ../../.env build --no-cache
+docker compose --env-file ../../.env up -d --force-recreate
 ```
 
 ## 7. Stop Services
@@ -109,7 +122,7 @@ docker compose -f docker-compose.v2.yml up -d --force-recreate
 ./docker-v2.sh down
 
 # Nuclear option: remove everything including data
-docker compose -f docker-compose.v2.yml down -v
+docker compose --env-file ../../.env down -v
 ```
 
 ## Log Locations

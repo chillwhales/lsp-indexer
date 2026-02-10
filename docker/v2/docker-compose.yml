@@ -9,16 +9,28 @@
 # - Health checks for all services
 # - Auto-restart policies
 # - Proper service dependencies and startup ordering
+# - Optional Hasura GraphQL (enabled via environment variable)
 #
 # Usage:
 #   cd docker/v2
-#   docker compose up -d
-#   docker compose logs -f indexer-v2
-#   docker compose down
+#
+#   # Recommended: Use helper script (auto-detects ENABLE_HASURA from .env)
+#   ./docker-v2.sh start
+#
+#   # Or use docker compose directly:
+#   docker compose --env-file ../../.env up -d                           # Without Hasura
+#   docker compose --env-file ../../.env --profile hasura up -d          # With Hasura
+#   docker compose --env-file ../../.env logs -f indexer-v2
+#   docker compose --env-file ../../.env down
 #
 # Environment:
 #   Copy ../../.env.example to ../../.env and configure before running
-#   The .env file should be in the repository root
+#   The .env file MUST be in the repository root (../../.env)
+#
+#   To enable Hasura, add to ../../.env:
+#     ENABLE_HASURA=true
+#
+#   Then use ./docker-v2.sh start (auto-detects and enables Hasura)
 #
 # ==============================================================================
 
@@ -134,74 +146,78 @@ services:
           memory: 1G
 
   # ----------------------------------------------------------------------------
-  # Optional: Hasura GraphQL Engine
-  # Uncomment to enable GraphQL API for indexed data
+  # Hasura GraphQL Engine (Optional)
+  # Enable by setting ENABLE_HASURA=true in .env
   # ----------------------------------------------------------------------------
-  # hasura:
-  #   image: hasura/graphql-engine:v2.46.0
-  #   container_name: lsp-indexer-hasura
-  #   restart: unless-stopped
-  #
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     data-connector-agent:
-  #       condition: service_healthy
-  #
-  #   healthcheck:
-  #     test: ['CMD', 'curl', '-f', 'http://localhost:8080/healthz']
-  #     interval: 5s
-  #     timeout: 10s
-  #     retries: 5
-  #     start_period: 5s
-  #
-  #   ports:
-  #     - "${HASURA_GRAPHQL_PORT:-8080}:8080"
-  #
-  #   environment:
-  #     PG_DATABASE_URL: ${DB_URL}
-  #     HASURA_GRAPHQL_DATABASE_URL: ${DB_URL}
-  #     HASURA_GRAPHQL_METADATA_DATABASE_URL: ${DB_URL}
-  #     HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-admin_secret_change_me}
-  #     HASURA_GRAPHQL_ENABLE_CONSOLE: ${HASURA_GRAPHQL_ENABLE_CONSOLE:-true}
-  #     HASURA_GRAPHQL_DEV_MODE: ${HASURA_GRAPHQL_DEV_MODE:-true}
-  #     HASURA_GRAPHQL_ENABLED_LOG_TYPES: ${HASURA_GRAPHQL_ENABLED_LOG_TYPES:-startup,http-log,webhook-log,websocket-log,query-log}
-  #     HASURA_GRAPHQL_METADATA_DEFAULTS: ${HASURA_GRAPHQL_METADATA_DEFAULTS}
-  #     HASURA_GRAPHQL_UNAUTHORIZED_ROLE: ${HASURA_GRAPHQL_UNAUTHORIZED_ROLE:-public}
-  #
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 1G
-  #       reservations:
-  #         memory: 256M
+  hasura:
+    image: hasura/graphql-engine:v2.46.0
+    container_name: lsp-indexer-hasura
+    restart: unless-stopped
+    profiles:
+      - hasura
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      data-connector-agent:
+        condition: service_healthy
+
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8080/healthz']
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+
+    ports:
+      - '${HASURA_GRAPHQL_PORT:-8080}:8080'
+
+    environment:
+      PG_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
+      HASURA_GRAPHQL_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-admin_secret_change_me}
+      HASURA_GRAPHQL_ENABLE_CONSOLE: ${HASURA_GRAPHQL_ENABLE_CONSOLE:-true}
+      HASURA_GRAPHQL_DEV_MODE: ${HASURA_GRAPHQL_DEV_MODE:-true}
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: ${HASURA_GRAPHQL_ENABLED_LOG_TYPES:-startup,http-log,webhook-log,websocket-log,query-log}
+      HASURA_GRAPHQL_METADATA_DEFAULTS: ${HASURA_GRAPHQL_METADATA_DEFAULTS:-{"backend_configs":{"dataconnector":{"athena":{"uri":"http://data-connector-agent:8081/api/v1/athena"},"mariadb":{"uri":"http://data-connector-agent:8081/api/v1/mariadb"},"mysql8":{"uri":"http://data-connector-agent:8081/api/v1/mysql"},"oracle":{"uri":"http://data-connector-agent:8081/api/v1/oracle"},"snowflake":{"uri":"http://data-connector-agent:8081/api/v1/snowflake"}}}}}
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: ${HASURA_GRAPHQL_UNAUTHORIZED_ROLE:-public}
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
 
   # ----------------------------------------------------------------------------
-  # Optional: Hasura Data Connector Agent
-  # Required if Hasura is enabled
+  # Hasura Data Connector Agent (Optional)
+  # Enabled automatically when Hasura is enabled
   # ----------------------------------------------------------------------------
-  # data-connector-agent:
-  #   image: hasura/graphql-data-connector:v2.46.0
-  #   container_name: lsp-indexer-data-connector
-  #   restart: unless-stopped
-  #
-  #   healthcheck:
-  #     test: ['CMD', 'curl', '-f', 'http://localhost:8081/api/v1/athena/health']
-  #     interval: 5s
-  #     timeout: 10s
-  #     retries: 5
-  #     start_period: 5s
-  #
-  #   environment:
-  #     QUARKUS_LOG_LEVEL: ERROR
-  #     QUARKUS_OPENTELEMETRY_ENABLED: 'false'
-  #
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 512M
-  #       reservations:
-  #         memory: 128M
+  data-connector-agent:
+    image: hasura/graphql-data-connector:v2.46.0
+    container_name: lsp-indexer-data-connector
+    restart: unless-stopped
+    profiles:
+      - hasura
+
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8081/api/v1/athena/health']
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+
+    environment:
+      QUARKUS_LOG_LEVEL: ERROR
+      QUARKUS_OPENTELEMETRY_ENABLED: 'false'
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
 
 # ==============================================================================
 # Persistent Volumes
