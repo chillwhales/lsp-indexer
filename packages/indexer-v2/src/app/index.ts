@@ -7,12 +7,17 @@
  * 3. Running processBatch through the 6-step pipeline for each batch
  */
 
+import { initFileLogger } from '@/core/logger';
 import { processBatch } from '@/core/pipeline';
 import { createLogger } from '@subsquid/logger';
 import { TypeormDatabase } from '@subsquid/typeorm-store';
 import { createRegistry } from './bootstrap';
 import { createPipelineConfig } from './config';
 import { processor } from './processor';
+
+// Initialize file logger (writes to ./logs/indexer-YYYY-MM-DD.log with daily rotation)
+const logDir = process.env.LOG_DIR || './logs';
+initFileLogger(logDir);
 
 // Initialize root logger
 const logger = createLogger('sqd:processor');
