@@ -6,3 +6,7 @@ packages/typeorm/db/
 packages/typeorm/hasura_metadata.json
 .env
 .vscode/
+
+# Logs
+logs/
+*.log
