@@ -82,8 +82,10 @@ COPY packages/indexer-v2/package.json ./packages/indexer-v2/
 COPY --from=builder /app/packages/abi/lib ./packages/abi/lib
 COPY --from=builder /app/packages/typeorm/lib ./packages/typeorm/lib
 COPY --from=builder /app/packages/typeorm/schema.graphql ./packages/typeorm/
-COPY --from=builder /app/packages/typeorm/db ./packages/typeorm/db
 COPY --from=builder /app/packages/indexer-v2/lib ./packages/indexer-v2/lib
+
+# Note: packages/typeorm/db is NOT copied - it's generated at runtime by TypeORM migrations
+# The db/ directory is gitignored and created automatically by @subsquid/typeorm-store
 
 # Copy runtime source files needed by ts-node
 COPY --from=builder /app/packages/indexer-v2/src ./packages/indexer-v2/src
