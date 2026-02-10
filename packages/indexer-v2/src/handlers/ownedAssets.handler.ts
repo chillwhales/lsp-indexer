@@ -112,6 +112,9 @@ const OwnedAssetsHandler: EntityHandler = {
               block: blockNumber,
               timestamp,
               balance: newBalance,
+              // Explicitly preserve FK fields for enrichment
+              digitalAsset: existing.digitalAsset ?? null,
+              universalProfile: existing.universalProfile ?? null,
             }),
           );
         }
@@ -133,6 +136,9 @@ const OwnedAssetsHandler: EntityHandler = {
               block: blockNumber,
               timestamp,
               balance: existing.balance + amount,
+              // Explicitly preserve FK fields for enrichment
+              digitalAsset: existing.digitalAsset ?? null,
+              universalProfile: existing.universalProfile ?? null,
             }),
           );
         } else {
@@ -171,6 +177,11 @@ const OwnedAssetsHandler: EntityHandler = {
               block: blockNumber,
               timestamp,
               tokenId: null as unknown as string,
+              // Explicitly preserve FK fields for enrichment
+              digitalAsset: existing.digitalAsset ?? null,
+              universalProfile: existing.universalProfile ?? null,
+              nft: existing.nft ?? null,
+              ownedAsset: existing.ownedAsset ?? null,
             }),
           );
         }
@@ -193,6 +204,11 @@ const OwnedAssetsHandler: EntityHandler = {
               block: blockNumber,
               timestamp,
               tokenId,
+              // Explicitly preserve FK fields for enrichment
+              digitalAsset: existing.digitalAsset ?? null,
+              universalProfile: existing.universalProfile ?? null,
+              nft: existing.nft ?? null,
+              ownedAsset: existing.ownedAsset ?? null,
             }),
           );
         } else {
