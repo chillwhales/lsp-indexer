@@ -20,6 +20,7 @@ import OwnedAssetsHandler from '../ownedAssets.handler';
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function createMockBatchCtx() {
   const entityBags = new Map<string, Map<string, unknown>>();
   const deleteQueue: unknown[] = [];
@@ -256,6 +257,7 @@ describe('OwnedAssetsHandler', () => {
       await OwnedAssetsHandler.handle(hctx, 'LSP7Transfer');
 
       // Sender's OwnedAsset should be queued for deletion
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(batchCtx.queueDelete).toHaveBeenCalledWith(
         expect.objectContaining({
           entityClass: OwnedAsset,
@@ -435,6 +437,7 @@ describe('OwnedAssetsHandler', () => {
       await OwnedAssetsHandler.handle(hctx, 'LSP8Transfer');
 
       // Sender's OwnedToken should be queued for deletion
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(batchCtx.queueDelete).toHaveBeenCalledWith(
         expect.objectContaining({
           entityClass: OwnedToken,
@@ -500,13 +503,14 @@ describe('OwnedAssetsHandler', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       const tokenDeleteRequest = deleteRequests.find(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         (req: any) =>
           req.entityClass === OwnedToken &&
           req.entities.some((e: OwnedToken) => e.id === existingToken.id),
       ) as { entityClass: typeof OwnedToken; entities: OwnedToken[] } | undefined;
 
       expect(tokenDeleteRequest).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
       const deletedToken = tokenDeleteRequest?.entities.find((e) => e.id === existingToken.id);
 
       // Critical assertion: FK fields must exist on reconstructed entity
