@@ -12,20 +12,20 @@ cp .env.example .env
 nano .env  # Edit DB_URL, RPC_URL, etc.
 
 # 3. Build and start services
-docker compose -f docker-compose.v2.yml up -d
+docker compose -f docker-compose.yml --env-file ../../.env up -d
 
 # 4. View logs (follow mode)
-docker compose -f docker-compose.v2.yml logs -f indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env logs -f indexer-v2
 
 # 5. Check status
-docker compose -f docker-compose.v2.yml ps
+docker compose -f docker-compose.yml --env-file ../../.env ps
 ```
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      docker-compose.v2.yml                   │
+│                      docker-compose.yml                   │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌──────────────────┐         ┌──────────────────┐         │
@@ -53,7 +53,7 @@ docker compose -f docker-compose.v2.yml ps
 | File                    | Purpose                                |
 | ----------------------- | -------------------------------------- |
 | `Dockerfile.v2`         | Multi-stage build for indexer-v2       |
-| `docker-compose.v2.yml` | Orchestration with postgres + indexer  |
+| `docker-compose.yml` | Orchestration with postgres + indexer  |
 | `.env`                  | Environment configuration (not in git) |
 | `.env.example`          | Template with all variables documented |
 
@@ -142,16 +142,16 @@ The indexer writes logs to **two destinations simultaneously**:
 
 ```bash
 # Real-time logs (all services)
-docker compose -f docker-compose.v2.yml logs -f
+docker compose -f docker-compose.yml --env-file ../../.env logs -f
 
 # Real-time logs (indexer only)
-docker compose -f docker-compose.v2.yml logs -f indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env logs -f indexer-v2
 
 # Last 100 lines
-docker compose -f docker-compose.v2.yml logs --tail=100 indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env logs --tail=100 indexer-v2
 
 # Specific time range
-docker compose -f docker-compose.v2.yml logs --since="2026-02-10T10:00" indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env logs --since="2026-02-10T10:00" indexer-v2
 
 # Copy log files from container
 docker cp lsp-indexer-v2:/app/packages/indexer-v2/logs ./local-logs
@@ -181,42 +181,42 @@ docker exec lsp-indexer-v2 find /app/packages/indexer-v2/logs -name "*.log" -mti
 
 ```bash
 # Start in detached mode
-docker compose -f docker-compose.v2.yml up -d
+docker compose -f docker-compose.yml --env-file ../../.env up -d
 
 # Start with rebuild (after code changes)
-docker compose -f docker-compose.v2.yml up -d --build
+docker compose -f docker-compose.yml --env-file ../../.env up -d --build
 
 # Start specific service
-docker compose -f docker-compose.v2.yml up -d indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env up -d indexer-v2
 ```
 
 ### Stopping Services
 
 ```bash
 # Stop all services
-docker compose -f docker-compose.v2.yml stop
+docker compose -f docker-compose.yml --env-file ../../.env stop
 
 # Stop specific service
-docker compose -f docker-compose.v2.yml stop indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env stop indexer-v2
 
 # Stop and remove containers (keeps volumes)
-docker compose -f docker-compose.v2.yml down
+docker compose -f docker-compose.yml --env-file ../../.env down
 
 # Stop and remove everything (including volumes)
-docker compose -f docker-compose.v2.yml down -v
+docker compose -f docker-compose.yml --env-file ../../.env down -v
 ```
 
 ### Restarting Services
 
 ```bash
 # Restart all
-docker compose -f docker-compose.v2.yml restart
+docker compose -f docker-compose.yml --env-file ../../.env restart
 
 # Restart specific service
-docker compose -f docker-compose.v2.yml restart indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env restart indexer-v2
 
 # Restart with rebuild
-docker compose -f docker-compose.v2.yml up -d --build --force-recreate
+docker compose -f docker-compose.yml --env-file ../../.env up -d --build --force-recreate
 ```
 
 ## Health Checks
@@ -225,7 +225,7 @@ docker compose -f docker-compose.v2.yml up -d --build --force-recreate
 
 ```bash
 # All services
-docker compose -f docker-compose.v2.yml ps
+docker compose -f docker-compose.yml --env-file ../../.env ps
 
 # Example output:
 # NAME                 STATUS              PORTS
@@ -252,10 +252,10 @@ If health checks fail:
 
 ```bash
 # 1. Check logs
-docker compose -f docker-compose.v2.yml logs --tail=50 indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env logs --tail=50 indexer-v2
 
 # 2. Check container status
-docker compose -f docker-compose.v2.yml ps
+docker compose -f docker-compose.yml --env-file ../../.env ps
 
 # 3. Inspect container
 docker inspect lsp-indexer-v2
@@ -264,7 +264,7 @@ docker inspect lsp-indexer-v2
 docker exec -it lsp-indexer-v2 sh
 
 # 5. Restart service
-docker compose -f docker-compose.v2.yml restart indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env restart indexer-v2
 ```
 
 ## Database Management
@@ -303,14 +303,14 @@ docker exec lsp-indexer-v2 pnpm --filter=@chillwhales/typeorm migration:apply
 # WARNING: Deletes all data!
 
 # 1. Stop indexer
-docker compose -f docker-compose.v2.yml stop indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env stop indexer-v2
 
 # 2. Drop and recreate database
 docker exec lsp-indexer-postgres psql -U postgres -c "DROP DATABASE postgres;"
 docker exec lsp-indexer-postgres psql -U postgres -c "CREATE DATABASE postgres;"
 
 # 3. Restart indexer (migrations run automatically)
-docker compose -f docker-compose.v2.yml start indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env start indexer-v2
 ```
 
 ## Volumes
@@ -356,7 +356,7 @@ docker run --rm -v lsp-indexer_postgres-data:/data -v $(pwd):/backup alpine \
 
 ### Resource Limits
 
-Configured in `docker-compose.v2.yml`:
+Configured in `docker-compose.yml`:
 
 - **indexer-v2**: 4GB limit, 1GB reservation
 - **postgres**: 2GB limit, 512MB reservation
@@ -375,7 +375,7 @@ docker stats lsp-indexer-v2 lsp-indexer-postgres
 
 ### Adjusting Limits
 
-Edit `docker-compose.v2.yml`:
+Edit `docker-compose.yml`:
 
 ```yaml
 deploy:
@@ -389,7 +389,7 @@ deploy:
 Then restart:
 
 ```bash
-docker compose -f docker-compose.v2.yml up -d --force-recreate
+docker compose -f docker-compose.yml --env-file ../../.env up -d --force-recreate
 ```
 
 ## Troubleshooting
@@ -398,7 +398,7 @@ docker compose -f docker-compose.v2.yml up -d --force-recreate
 
 ```bash
 # 1. Check logs
-docker compose -f docker-compose.v2.yml logs indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env logs indexer-v2
 
 # 2. Verify environment
 docker exec lsp-indexer-v2 env | grep -E "(DB_URL|RPC_URL|LOG_)"
@@ -407,16 +407,16 @@ docker exec lsp-indexer-v2 env | grep -E "(DB_URL|RPC_URL|LOG_)"
 docker exec lsp-indexer-v2 nc -zv postgres 5432
 
 # 4. Rebuild from scratch
-docker compose -f docker-compose.v2.yml down -v
-docker compose -f docker-compose.v2.yml build --no-cache
-docker compose -f docker-compose.v2.yml up -d
+docker compose -f docker-compose.yml --env-file ../../.env down -v
+docker compose -f docker-compose.yml --env-file ../../.env build --no-cache
+docker compose -f docker-compose.yml --env-file ../../.env up -d
 ```
 
 ### Database Connection Issues
 
 ```bash
 # 1. Check postgres health
-docker compose -f docker-compose.v2.yml ps postgres
+docker compose -f docker-compose.yml --env-file ../../.env ps postgres
 
 # 2. Verify postgres is accepting connections
 docker exec lsp-indexer-postgres pg_isready
@@ -439,7 +439,7 @@ docker builder prune -a
 docker rmi lsp-indexer-v2:latest
 
 # 3. Rebuild with no cache
-docker compose -f docker-compose.v2.yml build --no-cache
+docker compose -f docker-compose.yml --env-file ../../.env build --no-cache
 
 # 4. Check disk space
 docker system df
@@ -458,7 +458,7 @@ METADATA_WORKER_POOL_SIZE=2
 FETCH_BATCH_SIZE=500
 
 # 4. Restart with new settings
-docker compose -f docker-compose.v2.yml restart indexer-v2
+docker compose -f docker-compose.yml --env-file ../../.env restart indexer-v2
 ```
 
 ### Log Volume Full
@@ -501,7 +501,7 @@ docker exec lsp-indexer-v2 rm -rf /app/packages/indexer-v2/logs/*.log.gz
 #    - postgres-exporter (DB metrics)
 #    - cadvisor (container metrics)
 
-# Example: Add to docker-compose.v2.yml
+# Example: Add to docker-compose.yml
 # postgres-exporter:
 #   image: prometheuscommunity/postgres-exporter
 #   environment:
@@ -524,9 +524,9 @@ After=docker.service
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=/path/to/lsp-indexer
-ExecStart=/usr/bin/docker compose -f docker-compose.v2.yml up -d
-ExecStop=/usr/bin/docker compose -f docker-compose.v2.yml stop
-ExecReload=/usr/bin/docker compose -f docker-compose.v2.yml restart
+ExecStart=/usr/bin/docker compose -f docker-compose.yml --env-file ../../.env up -d
+ExecStop=/usr/bin/docker compose -f docker-compose.yml --env-file ../../.env stop
+ExecReload=/usr/bin/docker compose -f docker-compose.yml --env-file ../../.env restart
 
 [Install]
 WantedBy=multi-user.target
@@ -543,13 +543,13 @@ sudo systemctl status lsp-indexer
 
 ## Hasura (Optional)
 
-To enable GraphQL API, uncomment the `hasura` and `data-connector-agent` sections in `docker-compose.v2.yml`.
+To enable GraphQL API, uncomment the `hasura` and `data-connector-agent` sections in `docker-compose.yml`.
 
 ```bash
-# 1. Edit docker-compose.v2.yml (uncomment hasura services)
+# 1. Edit docker-compose.yml (uncomment hasura services)
 
 # 2. Restart stack
-docker compose -f docker-compose.v2.yml up -d
+docker compose -f docker-compose.yml --env-file ../../.env up -d
 
 # 3. Access Hasura console
 open http://localhost:8080
@@ -577,7 +577,7 @@ pnpm start:v2
 
 ```bash
 # Use Docker for stability
-docker compose -f docker-compose.v2.yml up -d
+docker compose -f docker-compose.yml --env-file ../../.env up -d
 
 # Benefits:
 # - Isolated environment
@@ -590,8 +590,8 @@ docker compose -f docker-compose.v2.yml up -d
 ## Next Steps
 
 1. **Configure `.env`** — Update RPC_URL and other settings
-2. **Start services** — `docker compose -f docker-compose.v2.yml up -d`
-3. **Monitor logs** — `docker compose -f docker-compose.v2.yml logs -f indexer-v2`
+2. **Start services** — `docker compose -f docker-compose.yml --env-file ../../.env up -d`
+3. **Monitor logs** — `docker compose -f docker-compose.yml --env-file ../../.env logs -f indexer-v2`
 4. **Check health** — Wait for "healthy" status in `docker compose ps`
 5. **Verify indexing** — Query database for indexed entities
 6. **Set up backups** — Schedule regular postgres dumps

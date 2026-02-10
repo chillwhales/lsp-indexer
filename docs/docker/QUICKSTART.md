@@ -44,7 +44,7 @@ docker compose --env-file ../../.env --profile hasura up -d
 ./docker-v2.sh logs indexer-v2 all
 
 # OR docker compose directly:
-docker compose -f docker-compose.v2.yml logs -f indexer-v2
+docker compose --env-file ../../.env logs -f indexer-v2
 ```
 
 ## 4. Export Complete Logs for Analysis
@@ -76,7 +76,7 @@ This gives you **three log sources**:
 ./docker-v2.sh status
 
 # OR:
-docker compose -f docker-compose.v2.yml ps
+docker compose --env-file ../../.env ps
 ```
 
 ## 6. Common Issues
@@ -108,8 +108,8 @@ docker exec lsp-indexer-postgres pg_isready -U postgres
 ./docker-v2.sh rebuild
 
 # OR:
-docker compose -f docker-compose.v2.yml build --no-cache
-docker compose -f docker-compose.v2.yml up -d --force-recreate
+docker compose --env-file ../../.env build --no-cache
+docker compose --env-file ../../.env up -d --force-recreate
 ```
 
 ## 7. Stop Services
@@ -122,7 +122,7 @@ docker compose -f docker-compose.v2.yml up -d --force-recreate
 ./docker-v2.sh down
 
 # Nuclear option: remove everything including data
-docker compose -f docker-compose.v2.yml down -v
+docker compose --env-file ../../.env down -v
 ```
 
 ## Log Locations
