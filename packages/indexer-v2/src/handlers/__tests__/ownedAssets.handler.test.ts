@@ -65,6 +65,7 @@ function createMockBatchCtx() {
 // ---------------------------------------------------------------------------
 // Mock Store helper
 // ---------------------------------------------------------------------------
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function createMockStore(
   existingOwnedAssets: OwnedAsset[] = [],
   existingOwnedTokens: OwnedToken[] = [],
@@ -331,9 +332,9 @@ describe('OwnedAssetsHandler', () => {
       });
 
       // Simulate TypeORM behavior: delete FK properties to test preservation
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
       delete (existingAsset as any).digitalAsset;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
       delete (existingAsset as any).universalProfile;
 
       const store = createMockStore([existingAsset]);
@@ -469,13 +470,13 @@ describe('OwnedAssetsHandler', () => {
       });
 
       // Simulate missing FK properties (as they might be when loaded from DB)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
       delete (existingToken as any).digitalAsset;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
       delete (existingToken as any).universalProfile;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
       delete (existingToken as any).nft;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
       delete (existingToken as any).ownedAsset;
 
       const store = createMockStore([], [existingToken]);
@@ -497,9 +498,9 @@ describe('OwnedAssetsHandler', () => {
       const deleteRequests = batchCtx._deleteQueue;
       expect(deleteRequests.length).toBeGreaterThan(0);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       const tokenDeleteRequest = deleteRequests.find(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         (req: any) =>
           req.entityClass === OwnedToken &&
           req.entities.some((e: OwnedToken) => e.id === existingToken.id),
