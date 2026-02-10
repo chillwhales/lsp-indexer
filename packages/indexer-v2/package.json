@@ -36,13 +36,13 @@
     "dotenv": "^17.2.1",
     "pino": "^9.6.0",
     "pino-roll": "^1.1.0",
+    "tsconfig-paths": "^4.2.0",
     "typeorm": "^0.3.25",
     "uuid": "^11.1.0",
     "viem": "^2.33.2"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
-    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.2",
     "vitest": "^2.1.8"
   }
