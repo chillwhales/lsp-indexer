@@ -7,9 +7,9 @@
 import { EntityCategory, type HandlerContext } from '@/core/types';
 import { TotalSupply, Transfer } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
-import { describe, expect, it, vi } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { zeroAddress } from 'viem';
+import { describe, expect, it, vi } from 'vitest';
 import TotalSupplyHandler from '../totalSupply.handler';
 
 // ---------------------------------------------------------------------------
@@ -91,7 +91,7 @@ function createTransfer({
 }): Transfer {
   return new Transfer({
     id: uuidv4(),
-    block: 100,
+    blockNumber: 100,
     logIndex: 1,
     transactionIndex: 1,
     timestamp,
@@ -99,13 +99,14 @@ function createTransfer({
     from,
     to,
     amount,
-    tokenId: null as unknown as string,
-    operator: null,
-    universalProfile: null,
+    tokenId: null,
+    operator: from,
+    force: false,
+    data: '0x',
+    digitalAsset: null,
     fromProfile: null,
     toProfile: null,
     operatorProfile: null,
-    digitalAsset: null,
     nft: null,
   });
 }
