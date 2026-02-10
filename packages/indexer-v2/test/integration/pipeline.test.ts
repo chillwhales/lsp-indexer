@@ -17,8 +17,10 @@ const fixturesDir = path.resolve(__dirname, '../fixtures/blocks');
 
 function loadFixture(filename: string): Block {
   const fixturePath = path.join(fixturesDir, filename);
-  const fixtureData = JSON.parse(fs.readFileSync(fixturePath, 'utf-8')) as unknown;
-  return fixtureData as Block;
+  const fixtureData = fs.readFileSync(fixturePath, 'utf-8');
+  // JSON.parse returns 'any' - cast through unknown for type safety
+  const parsed: unknown = JSON.parse(fixtureData);
+  return parsed as Block;
 }
 
 const lsp7TransferFixture = loadFixture('transfer-lsp7.json');
@@ -45,7 +47,10 @@ function createMockStore(): MockStore {
   const upsertedEntities: EntityRecord[] = [];
   const removedEntities: EntityRecord[] = [];
 
-  const mockStore: Partial<Store> = {
+  // Build mock with only methods used by pipeline
+  // Type assertion is necessary as we can't mock entire Store interface
+  const mockStore = {
+    // Store methods
     insert: vi.fn(<T extends EntityRecord>(entities: T[]) => {
       insertedEntities.push(...entities);
       return Promise.resolve();
@@ -62,13 +67,14 @@ function createMockStore(): MockStore {
     findBy: vi.fn(() => Promise.resolve([])),
     findOne: vi.fn(() => Promise.resolve(null)),
     findOneBy: vi.fn(() => Promise.resolve(null)),
-  };
 
-  return Object.assign(mockStore, {
+    // Mock tracking arrays
     insertedEntities,
     upsertedEntities,
     removedEntities,
-  }) as MockStore;
+  };
+
+  return mockStore as unknown as MockStore;
 }
 
 // ---------------------------------------------------------------------------
@@ -80,20 +86,20 @@ interface MockLogger {
   warn: ReturnType<typeof vi.fn>;
   error: ReturnType<typeof vi.fn>;
   debug: ReturnType<typeof vi.fn>;
-  child: ReturnType<typeof vi.fn>;
+  child: ReturnType<typeof vi.fn<[], MockLogger>>;
 }
 
 function createMockLogger(): MockLogger {
+  // Create child mock separately with explicit return type
+  const childMock = vi.fn<[], MockLogger>(() => createMockLogger());
+
   const logger: MockLogger = {
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
     debug: vi.fn(),
-    child: vi.fn(),
+    child: childMock,
   };
-
-  // Logger.child() returns a new logger instance with child context
-  logger.child.mockImplementation(() => createMockLogger());
 
   return logger;
 }
@@ -110,12 +116,16 @@ interface MockContext extends Context {
 function createMockContext(blocks: Block[]): MockContext {
   const store = createMockStore();
   const log = createMockLogger();
-  return {
+
+  // Build context object - type assertion needed as we can't mock entire Context
+  const context = {
     blocks,
     store,
     log,
     isHead: false, // Historical sync for tests
-  } as MockContext;
+  };
+
+  return context as unknown as MockContext;
 }
 
 // ---------------------------------------------------------------------------
