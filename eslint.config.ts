@@ -37,7 +37,9 @@ export default tseslint.config(
         ...globals.node,
       },
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: ['*.ts', '*.js'],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -111,6 +113,17 @@ export default tseslint.config(
     rules: {
       // Passing mock methods to expect() triggers unbound-method false positives
       '@typescript-eslint/unbound-method': 'off',
+    },
+  },
+
+  // ---- indexer-v2 test files use separate tsconfig with test directory --------
+  {
+    files: ['packages/indexer-v2/test/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: 'packages/indexer-v2/tsconfig.eslint.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
   },
 );
