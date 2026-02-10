@@ -102,7 +102,12 @@ function createMockLogger(): MockLogger {
 // Mock Context Creation
 // ---------------------------------------------------------------------------
 
-function createMockContext(blocks: Block[]): Context {
+interface MockContext extends Context {
+  store: MockStore;
+  log: MockLogger;
+}
+
+function createMockContext(blocks: Block[]): MockContext {
   const store = createMockStore();
   const log = createMockLogger();
   return {
@@ -110,7 +115,7 @@ function createMockContext(blocks: Block[]): Context {
     store,
     log,
     isHead: false, // Historical sync for tests
-  } as Context;
+  } as MockContext;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,8 +124,15 @@ function createMockContext(blocks: Block[]): Context {
 
 function createMockVerifyFn(
   validAddresses: Set<string>,
-): ReturnType<typeof vi.fn<[EntityCategory, Set<string>], Promise<VerificationResult>>> {
-  const mockImpl = (category: EntityCategory, addresses: Set<string>): VerificationResult => {
+): ReturnType<
+  typeof vi.fn<[EntityCategory, Set<string>, Store, Context], Promise<VerificationResult>>
+> {
+  const mockImpl = (
+    category: EntityCategory,
+    addresses: Set<string>,
+    _store: Store,
+    _context: Context,
+  ): VerificationResult => {
     const valid = new Set<string>();
     const invalid = new Set<string>();
     const newAddresses = new Set<string>();
@@ -152,8 +164,9 @@ function createMockVerifyFn(
 
   // Wrap in vi.fn() so we can assert toHaveBeenCalled()
   // Return type must be Promise for interface compatibility
-  return vi.fn(async (category: EntityCategory, addresses: Set<string>) =>
-    Promise.resolve(mockImpl(category, addresses)),
+  return vi.fn(
+    async (category: EntityCategory, addresses: Set<string>, store: Store, context: Context) =>
+      Promise.resolve(mockImpl(category, addresses, store, context)),
   );
 }
 
@@ -244,7 +257,7 @@ describe('Pipeline Integration', () => {
     it('processes LSP7 transfer through all 6 pipeline steps', async () => {
       // Create mock context from fixture
       const ctx = createMockContext([lsp7TransferFixture]);
-      store = ctx.store as MockStore;
+      store = ctx.store;
 
       // Mock verification: mark the LSP7 address as valid DA
       const validAddresses = new Set([lsp7TransferFixture.logs[0].address]);
@@ -281,7 +294,7 @@ describe('Pipeline Integration', () => {
   describe('LSP8 Transfer Processing', () => {
     it('processes LSP8 transfer and creates NFT entity', async () => {
       const ctx = createMockContext([lsp8TransferFixture]);
-      store = ctx.store as MockStore;
+      store = ctx.store;
 
       // Mock verification: mark the LSP8 address as valid DA
       const validAddresses = new Set([lsp8TransferFixture.logs[0].address]);
@@ -319,7 +332,7 @@ describe('Pipeline Integration', () => {
   describe('Multi-Event Block Processing', () => {
     it('processes multiple events in correct handler order', async () => {
       const ctx = createMockContext([multiEventFixture]);
-      store = ctx.store as MockStore;
+      store = ctx.store;
 
       // Mock verification: mark all addresses as valid
       const validAddresses = new Set(multiEventFixture.logs.map((log) => log.address));
@@ -387,7 +400,7 @@ describe('Pipeline Integration', () => {
       // 6. ENRICH - Batch UPDATE FK references
 
       const ctx = createMockContext([lsp7TransferFixture]);
-      store = ctx.store as MockStore;
+      store = ctx.store;
 
       const validAddresses = new Set([lsp7TransferFixture.logs[0].address]);
       const mockVerify = createMockVerifyFn(validAddresses);
