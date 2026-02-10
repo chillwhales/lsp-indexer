@@ -153,7 +153,7 @@ describe('Pipeline Integration', () => {
       expect(lsp8TransferFixture.header.height).toBe(5234789);
       expect(lsp8TransferFixture.logs).toHaveLength(1);
       expect(lsp8TransferFixture.logs[0].topics[0]).toBe(
-        '0xb333c813a7426223b383e5c3b9c73933703c0fc910884f2ff6bcbb0f64051a9c',
+        '0xb333c813a7426a7a11e2b190cad52c44119421594b47f6f32ace6d8c7207b2bf',
       );
 
       expect(multiEventFixture.header.height).toBe(5235012);
@@ -268,7 +268,8 @@ describe('Pipeline Integration', () => {
         (e) => e.id && typeof e.id === 'string' && e.id.includes(':'),
       );
 
-      expect(nftEntities.length).toBeGreaterThanOrEqual(0); // May be 0 if NFT creation logic requires specific conditions
+      // LSP8 Transfer must create at least one NFT entity
+      expect(nftEntities.length).toBeGreaterThan(0);
 
       console.log(
         'LSP8 Test - Total entities:',
@@ -370,11 +371,12 @@ describe('Pipeline Integration', () => {
       expect(store.insertedEntities.length).toBeGreaterThan(0);
 
       // Step 3-4: HANDLE + PERSIST DERIVED
+      // Note: upsertedEntities may be 0 if no handlers produce derived entities for this fixture
       expect(store.upsertedEntities.length).toBeGreaterThanOrEqual(0);
 
       // Step 5-6: VERIFY + ENRICH
       // Verify function was called for verification
-      expect(mockVerify).toHaveBeenCalled;
+      expect(mockVerify).toHaveBeenCalled();
 
       console.log('Pipeline steps verified:');
       console.log('  ✓ EXTRACT + PERSIST RAW:', store.insertedEntities.length, 'entities');
