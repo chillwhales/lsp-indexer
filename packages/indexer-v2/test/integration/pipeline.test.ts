@@ -1,5 +1,5 @@
-/* eslint-disable no-console */
-// Integration tests use console.log for debugging output
+/* eslint-disable no-console, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/explicit-function-return-type */
+// Integration tests use console.log for debugging and relaxed typing for mocks
 import { processBatch } from '@/core/pipeline';
 import { PluginRegistry } from '@/core/registry';
 import { Block, Context, EntityCategory, VerificationResult } from '@/core/types';
