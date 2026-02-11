@@ -19,13 +19,22 @@ export const FINALITY_CONFIRMATION = isNumeric(process.env.FINALITY_CONFIRMATION
 export const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://api.universalprofile.cloud/ipfs/';
 
 /**
- * Maximum number of unfetched entities to process per batch when isHead=true.
- * Lower values reduce memory pressure but take longer to drain metadata backlog.
- * At 100 per batch with ~12s block times, processes ~500 entities/minute.
+ * Maximum number of unfetched entities to query from DB per handler when isHead=true.
+ * These entities are then split into batches of FETCH_BATCH_SIZE for parallel processing.
+ * At 10,000 limit with 1,000 batch size, processes ~30,000 entities/minute across 3 handlers.
  */
 export const FETCH_LIMIT = isNumeric(process.env.FETCH_LIMIT)
   ? parseInt(process.env.FETCH_LIMIT)
-  : 100;
+  : 10_000;
+
+/**
+ * Number of entities to process in each worker pool batch.
+ * Balances memory usage vs throughput. Too large causes OOM, too small is inefficient.
+ * V1 uses 1,000 successfully in production.
+ */
+export const FETCH_BATCH_SIZE = isNumeric(process.env.FETCH_BATCH_SIZE)
+  ? parseInt(process.env.FETCH_BATCH_SIZE)
+  : 1_000;
 
 export const FETCH_RETRY_COUNT = isNumeric(process.env.FETCH_RETRY_COUNT)
   ? parseInt(process.env.FETCH_RETRY_COUNT)
