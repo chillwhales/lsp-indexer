@@ -27,13 +27,14 @@ export function decodeVerifiableUri(dataValue: string): {
     const decodedMetadataUrl = erc725.decodeValueContent('VerifiableURI', dataValue);
 
     const url =
-      (decodedMetadataUrl !== null &&
-        typeof decodedMetadataUrl === 'object' &&
-        'url' in decodedMetadataUrl &&
-        decodedMetadataUrl.url) ??
-      null;
+      decodedMetadataUrl !== null &&
+      typeof decodedMetadataUrl === 'object' &&
+      'url' in decodedMetadataUrl &&
+      typeof decodedMetadataUrl.url === 'string'
+        ? decodedMetadataUrl.url
+        : null;
 
-    if (url && url.match(/[^\x20-\x7E]+/g) !== null)
+    if (url !== null && url.match(/[^\x20-\x7E]+/g) !== null)
       return {
         value: null,
         decodeError: 'Url contains invalid characters',

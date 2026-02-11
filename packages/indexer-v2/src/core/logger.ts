@@ -58,8 +58,8 @@ export function createStepLogger(
 /**
  * Creates a child logger that injects a `component` field on every log call.
  *
- * This enables component-specific debug logging that can be filtered by setting
- * DEBUG_COMPONENTS environment variable (e.g., DEBUG_COMPONENTS=worker_pool,metadata_fetch).
+ * This enables component-specific tagging of log lines so they can be
+ * selectively inspected or filtered during log analysis.
  *
  * For use with Subsquid Logger (from hctx.context.log) in handlers.
  * For pino file logger in worker pool, use getFileLogger()?.child({ component }) directly.

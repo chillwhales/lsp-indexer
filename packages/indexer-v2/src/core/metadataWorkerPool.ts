@@ -184,7 +184,8 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
 
     const finalResults: FetchResult[] = [];
     let pending = requests;
-    const startTime = Date.now();
+    const debugEnabled = this.logger?.isLevelEnabled?.('debug') ?? false;
+    const startTime = debugEnabled ? Date.now() : 0;
 
     for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
       if (pending.length === 0) break;
