@@ -131,11 +131,8 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
     // When running compiled JS, __dirname points to lib/core
     // Detect by checking if current file ends with .ts
     const workerPath = __filename.endsWith('.ts')
-      ? path.resolve(__dirname, '../../lib/core/metadataWorker.js')  // Running via ts-node
-      : path.resolve(__dirname, 'metadataWorker.js');                 // Running compiled JS
-      console.log(`[MetadataWorkerPool] Using worker at: ${libWorkerPath}`);
-      // Reassign workerPath variable - need to use a different approach
-    }
+      ? path.resolve(__dirname, '../../lib/core/metadataWorker.js') // Running via ts-node
+      : path.resolve(__dirname, 'metadataWorker.js'); // Running compiled JS
 
     const workerData = { ipfsGateway, requestTimeoutMs };
 
