@@ -111,7 +111,7 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
   private readonly workers: PoolWorker[];
   private readonly maxRetries: number;
   private readonly retryBaseDelayMs: number;
-  private readonly logger: ReturnType<typeof createComponentLogger>;
+  private readonly logger: ReturnType<typeof createComponentLogger> | null;
   private isShutdown = false;
 
   constructor(config: MetadataWorkerPoolConfig = {}) {
