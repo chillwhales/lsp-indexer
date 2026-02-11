@@ -269,21 +269,34 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
     const batchEnd = Math.min(batchStart + FETCH_BATCH_SIZE, requests.length);
     const batchRequests = requests.slice(batchStart, batchEnd);
 
-    hctx.context.log.debug(
-      `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount}: Fetching ${batchRequests.length} URLs via worker pool`,
+    hctx.context.log.info(
+      `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount}: Calling worker pool with ${batchRequests.length} URLs`,
     );
+
+    // Set up timeout warning (but don't cancel the operation)
+    const fetchStartTime = Date.now();
+    const timeoutWarning = setTimeout(() => {
+      const elapsed = Date.now() - fetchStartTime;
+      hctx.context.log.warn(
+        `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount} is taking longer than ${FETCH_BATCH_TIMEOUT_MS}ms (${elapsed}ms elapsed) - still waiting for worker pool...`,
+      );
+    }, FETCH_BATCH_TIMEOUT_MS);
 
     // Fetch via worker pool with error handling
     let results: FetchResult[];
     try {
       results = await hctx.workerPool.fetchBatch(batchRequests);
-      hctx.context.log.debug(
-        `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount}: Worker pool returned ${results.length} results`,
+      clearTimeout(timeoutWarning);
+      const fetchDuration = Date.now() - fetchStartTime;
+      hctx.context.log.info(
+        `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount}: Worker pool returned ${results.length} results in ${fetchDuration}ms`,
       );
     } catch (err) {
+      clearTimeout(timeoutWarning);
       // Log error but don't crash the processor — metadata fetching is best-effort
       // Pass full error object to capture stack traces for debugging worker crashes
-      const message = `Metadata fetch batch ${batchIndex + 1}/${batchCount} failed for ${config.entityType} (${batchRequests.length} requests)`;
+      const fetchDuration = Date.now() - fetchStartTime;
+      const message = `Metadata fetch batch ${batchIndex + 1}/${batchCount} failed for ${config.entityType} (${batchRequests.length} requests, ${fetchDuration}ms elapsed)`;
       if (typeof err === 'object' && err !== null) {
         hctx.context.log.warn(err, message);
       } else {

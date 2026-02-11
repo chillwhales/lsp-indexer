@@ -41,6 +41,15 @@ export const FETCH_RETRY_COUNT = isNumeric(process.env.FETCH_RETRY_COUNT)
   ? parseInt(process.env.FETCH_RETRY_COUNT)
   : 5;
 
+/**
+ * Timeout in milliseconds for each worker pool batch fetch.
+ * If a batch takes longer than this, log a warning (but don't cancel - let it complete).
+ * Default: 5 minutes (300,000ms) - enough for 1,000 IPFS fetches with retries.
+ */
+export const FETCH_BATCH_TIMEOUT_MS = isNumeric(process.env.FETCH_BATCH_TIMEOUT_MS)
+  ? parseInt(process.env.FETCH_BATCH_TIMEOUT_MS)
+  : 300_000;
+
 export const MULTICALL_ADDRESS = '0x144f4290051C2Ad2aCc9D7b6E8cC0dBe36644869';
 
 export const LSP26_ADDRESS = '0xf01103E5a9909Fc0DBe8166dA7085e0285daDDcA';
