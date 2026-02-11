@@ -19,7 +19,7 @@ export const FINALITY_CONFIRMATION = isNumeric(process.env.FINALITY_CONFIRMATION
 export const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://api.universalprofile.cloud/ipfs/';
 export const FETCH_LIMIT = isNumeric(process.env.FETCH_LIMIT)
   ? parseInt(process.env.FETCH_LIMIT)
-  : 10_000;
+  : 100;
 export const FETCH_BATCH_SIZE = isNumeric(process.env.FETCH_BATCH_SIZE)
   ? parseInt(process.env.FETCH_BATCH_SIZE)
   : 1_000;

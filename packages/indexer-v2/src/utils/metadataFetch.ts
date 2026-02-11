@@ -222,8 +222,22 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
 
   if (requests.length === 0) return;
 
-  // Fetch via worker pool
-  const results: FetchResult[] = await hctx.workerPool.fetchBatch(requests);
+  // Fetch via worker pool with error handling
+  let results: FetchResult[];
+  try {
+    results = await hctx.workerPool.fetchBatch(requests);
+  } catch (error) {
+    // Log error but don't crash the processor — metadata fetching is best-effort
+    hctx.log.error(
+      {
+        entityType: config.entityType,
+        requestCount: requests.length,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      'Metadata fetch batch failed — skipping this batch',
+    );
+    return;
+  }
 
   // Build lookup for backlog entities by ID
   const entityById = new Map<string, TEntity>();
