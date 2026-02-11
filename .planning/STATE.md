@@ -9,9 +9,9 @@
 ## Current Position
 
 - **Phase:** 3.1 of 7 — Improve Debug Logging Strategy (INSERTED)
-- **Plan:** 3 of 3 in current phase
-- **Status:** Phase complete (all gap closures addressed)
-- **Last activity:** 2026-02-11 — Completed 03.1-03-PLAN.md (code quality & performance improvements)
+- **Plan:** 4 of 4 in current phase
+- **Status:** Phase complete (ALL gap closures addressed)
+- **Last activity:** 2026-02-11 — Completed 03.1-04-PLAN.md (final code quality fixes)
 - **Progress:** █████████░ 25/29 requirements complete (phases 1-4, 3.1 done; 3.2/5 remain)
 
 ## Phase Overview
@@ -28,7 +28,7 @@
 
 ## Performance Metrics
 
-- **Plans completed:** 19
+- **Plans completed:** 20
 - **Plans failed:** 0
 - **Phases completed:** 5 (of 7 total; 2 phases inserted 2026-02-11)
 - **Requirements delivered:** 25/29 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04)
@@ -97,6 +97,8 @@
 | createMockLogger() factory for test mocks                           | Consolidates type assertions to factory instead of per-call-site           | 03.1-03 |
 | Date.now() calculations inside debug guards                         | Zero performance overhead when LOG_LEVEL=info (production)                 | 03.1-03 |
 | If/else pattern for debug-enabled vs production paths               | Handlers duplicate minimal code to avoid debug overhead                    | 03.1-03 |
+| MockLogger interface with explicit vi.fn() types                    | Zero type assertions in test code - TypeScript validates mock structure    | 03.1-04 |
+| Check base logger level before creating component logger            | Logger only created when debug enabled (minimal variable scope)            | 03.1-04 |
 
 ### Discovered Todos
 
@@ -111,20 +113,23 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-11
-- **Activity:** Executed 03.1-03-PLAN.md — Code quality and performance improvements (gap closure)
-- **Outcome:** Eliminated type assertion anti-patterns via createMockLogger() factory (10 call-site assertions → 2 factory assertions). Moved all Date.now() calculations inside isLevelEnabled('debug') guards across 4 files for zero overhead when LOG_LEVEL=info. Phase 3.1 fully complete with all gap closures addressed (3 min execution).
+- **Activity:** Executed 03.1-04-PLAN.md — Final code quality fixes (gap closure)
+- **Outcome:** Eliminated ALL remaining type assertions via MockLogger interface with explicit vi.fn() types (zero `as unknown as` in test file). Moved logger creation inside debug blocks for all 3 fetch handlers (logger only created when debug enabled, minimal variable scope). Phase 3.1 fully complete with ALL gap closures addressed (3 min execution).
 - **Next Step:** Phase 3.2 (Queue-Based Worker Pool Optimization)
 
 ### Context for Next Session
 
-- **Phase 3.1 complete (all gap closures addressed):** Debug logging infrastructure fully functional with code quality and performance optimizations
+- **Phase 3.1 complete (ALL gap closures addressed):** Debug logging infrastructure fully functional with code quality and performance optimizations
   - Plan 01: createComponentLogger helper, worker pool instrumentation, handler debug logging
   - Plan 02: Import wiring fixes — all 5 files now correctly import createComponentLogger/getFileLogger
-  - Plan 03: Code quality improvements — eliminated type assertions, zero-overhead debug logging
+  - Plan 03: Code quality improvements — eliminated type assertions in handlers, zero-overhead debug logging
+  - Plan 04: Final fixes — zero type assertions in tests, logger minimal scope
   - User can set LOG_LEVEL=debug and see component-specific logs with zero ReferenceErrors
   - Post-hoc filtering enabled: `cat logs/*.log | jq 'select(.component == "worker_pool")'`
   - All logging uses isLevelEnabled check for zero overhead when disabled
   - Production (LOG_LEVEL=info) has no Date.now() overhead from debug instrumentation
+  - Zero type assertions anywhere (proper TypeScript interfaces used)
+  - Logger only created when debug enabled (no wasted object creation)
 - **Next phase:** Phase 3.2 (Queue-Based Worker Pool Optimization) - run `/gsd-plan-phase 3.2`
   - Refactor MetadataWorkerPool from batch-wait to queue-based architecture
   - Keep N workers busy with X requests each for ~2x throughput
