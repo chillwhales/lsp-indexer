@@ -989,11 +989,11 @@ describe('LSP4MetadataFetchHandler - Worker pool errors', () => {
     expect(metaCalls.length).toBe(0);
   });
 
-  it('processes remaining batches when one batch fails', async () => {
+  it('logs error without crashing when worker pool fails', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx, { isHead: true });
 
-    // Create 2 unfetched entities (will be processed in 1 batch given FETCH_BATCH_SIZE)
+    // Create 2 unfetched entities (both will be in same batch since FETCH_BATCH_SIZE = 1,000)
     const unfetched1 = new LSP4Metadata({
       id: 'meta-batch-1',
       url: 'ipfs://QmBatch1',
@@ -1008,19 +1008,20 @@ describe('LSP4MetadataFetchHandler - Worker pool errors', () => {
 
     (hctx.store.find as ReturnType<typeof vi.fn>).mockResolvedValueOnce([unfetched1, unfetched2]);
 
-    // First call fails, second succeeds (simulating multi-batch scenario)
-    (hctx.workerPool.fetchBatch as ReturnType<typeof vi.fn>)
-      .mockRejectedValueOnce(new Error('Batch 1 failed'))
-      .mockResolvedValueOnce([
-        { id: 'meta-batch-2', entityType: 'LSP4Metadata', success: true, data: VALID_LSP4_JSON },
-      ]);
+    // Worker pool throws error
+    (hctx.workerPool.fetchBatch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new Error('Worker pool crashed'),
+    );
 
     batchCtx._entityBags.set('LSP4Metadata', new Map());
 
-    await LSP4MetadataFetchHandler.handle(hctx, 'LSP4Metadata');
+    // Should not throw - error handling logs and continues
+    await expect(LSP4MetadataFetchHandler.handle(hctx, 'LSP4Metadata')).resolves.not.toThrow();
 
-    // Both batches were attempted (fetchBatch called once since both fit in one batch)
-    // In real scenario with more entities, this would demonstrate batch resilience
-    expect(hctx.workerPool.fetchBatch).toHaveBeenCalled();
+    // Verify error was logged
+    expect(hctx.context.log.warn).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.stringContaining('Metadata fetch batch 1/1 failed'),
+    );
   });
 });

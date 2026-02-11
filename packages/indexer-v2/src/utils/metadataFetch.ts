@@ -307,6 +307,7 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
           retryCount: (entity.retryCount ?? 0) + 1,
         });
         hctx.batchCtx.addEntity(config.entityType, config.getId(entity), updated);
+        totalFailed++;
       }
     }
   }

@@ -20,8 +20,9 @@ export const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://api.universalpr
 
 /**
  * Maximum number of unfetched entities to query from DB per handler when isHead=true.
- * These entities are then split into batches of FETCH_BATCH_SIZE for parallel processing.
- * At 10,000 limit with 1,000 batch size, processes ~30,000 entities/minute across 3 handlers.
+ * These entities are then split into batches of FETCH_BATCH_SIZE for sequential processing
+ * to limit memory usage. At 10,000 limit with 1,000 batch size, processes ~30,000 entities/minute
+ * across 3 handlers (LSP3, LSP4, LSP29).
  */
 export const FETCH_LIMIT = isNumeric(process.env.FETCH_LIMIT)
   ? parseInt(process.env.FETCH_LIMIT)
