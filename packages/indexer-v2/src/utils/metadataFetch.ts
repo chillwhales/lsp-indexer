@@ -228,9 +228,10 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
     results = await hctx.workerPool.fetchBatch(requests);
   } catch (err) {
     // Log error but don't crash the processor — metadata fetching is best-effort
-    const errorMessage = err instanceof Error ? err.message : String(err);
+    // Pass full error object to capture stack traces for debugging worker crashes
     hctx.context.log.warn(
-      `Metadata fetch batch failed for ${config.entityType} (${requests.length} requests): ${errorMessage}`,
+      err,
+      `Metadata fetch batch failed for ${config.entityType} (${requests.length} requests)`,
     );
     return;
   }

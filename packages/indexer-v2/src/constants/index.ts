@@ -20,9 +20,6 @@ export const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://api.universalpr
 export const FETCH_LIMIT = isNumeric(process.env.FETCH_LIMIT)
   ? parseInt(process.env.FETCH_LIMIT)
   : 100;
-export const FETCH_BATCH_SIZE = isNumeric(process.env.FETCH_BATCH_SIZE)
-  ? parseInt(process.env.FETCH_BATCH_SIZE)
-  : 1_000;
 export const FETCH_RETRY_COUNT = isNumeric(process.env.FETCH_RETRY_COUNT)
   ? parseInt(process.env.FETCH_RETRY_COUNT)
   : 5;
