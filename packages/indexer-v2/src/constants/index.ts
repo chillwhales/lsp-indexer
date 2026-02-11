@@ -17,9 +17,16 @@ export const FINALITY_CONFIRMATION = isNumeric(process.env.FINALITY_CONFIRMATION
   : 75;
 
 export const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://api.universalprofile.cloud/ipfs/';
+
+/**
+ * Maximum number of unfetched entities to process per batch when isHead=true.
+ * Lower values reduce memory pressure but take longer to drain metadata backlog.
+ * At 100 per batch with ~12s block times, processes ~500 entities/minute.
+ */
 export const FETCH_LIMIT = isNumeric(process.env.FETCH_LIMIT)
   ? parseInt(process.env.FETCH_LIMIT)
   : 100;
+
 export const FETCH_RETRY_COUNT = isNumeric(process.env.FETCH_RETRY_COUNT)
   ? parseInt(process.env.FETCH_RETRY_COUNT)
   : 5;
