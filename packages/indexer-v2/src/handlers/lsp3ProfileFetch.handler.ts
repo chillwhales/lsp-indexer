@@ -223,13 +223,9 @@ const LSP3ProfileFetchHandler: EntityHandler = {
         },
         'Starting LSP3 profile metadata fetch',
       );
-    }
-
-    const startTime = Date.now();
-    await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
-    const duration = Date.now() - startTime;
-
-    if (logger.isLevelEnabled('debug')) {
+      const startTime = Date.now();
+      await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+      const duration = Date.now() - startTime;
       logger.debug(
         {
           handler: 'LSP3ProfileFetchHandler',
@@ -238,6 +234,8 @@ const LSP3ProfileFetchHandler: EntityHandler = {
         },
         'LSP3 profile metadata fetch complete',
       );
+    } else {
+      await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
     }
   },
 };

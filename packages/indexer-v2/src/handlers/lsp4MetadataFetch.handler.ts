@@ -357,13 +357,9 @@ const LSP4MetadataFetchHandler: EntityHandler = {
         },
         'Starting LSP4 metadata fetch',
       );
-    }
-
-    const startTime = Date.now();
-    await handleMetadataFetch(hctx, config, triggeredBy);
-    const duration = Date.now() - startTime;
-
-    if (logger.isLevelEnabled('debug')) {
+      const startTime = Date.now();
+      await handleMetadataFetch(hctx, config, triggeredBy);
+      const duration = Date.now() - startTime;
       logger.debug(
         {
           handler: 'LSP4MetadataFetchHandler',
@@ -372,6 +368,8 @@ const LSP4MetadataFetchHandler: EntityHandler = {
         },
         'LSP4 metadata fetch complete',
       );
+    } else {
+      await handleMetadataFetch(hctx, config, triggeredBy);
     }
   },
 };

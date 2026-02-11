@@ -275,8 +275,8 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
     }
 
     // Log batch completion
-    const duration = Date.now() - startTime;
     if (this.logger?.isLevelEnabled?.('debug')) {
+      const duration = Date.now() - startTime;
       this.logger.debug(
         {
           totalResults: finalResults.length,

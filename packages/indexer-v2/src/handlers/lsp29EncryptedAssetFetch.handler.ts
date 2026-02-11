@@ -337,13 +337,9 @@ const LSP29EncryptedAssetFetchHandler: EntityHandler = {
         },
         'Starting LSP29 encrypted asset metadata fetch',
       );
-    }
-
-    const startTime = Date.now();
-    await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
-    const duration = Date.now() - startTime;
-
-    if (logger.isLevelEnabled('debug')) {
+      const startTime = Date.now();
+      await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+      const duration = Date.now() - startTime;
       logger.debug(
         {
           handler: 'LSP29EncryptedAssetFetchHandler',
@@ -352,6 +348,8 @@ const LSP29EncryptedAssetFetchHandler: EntityHandler = {
         },
         'LSP29 encrypted asset metadata fetch complete',
       );
+    } else {
+      await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
     }
   },
 };
