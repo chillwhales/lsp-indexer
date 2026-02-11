@@ -141,7 +141,7 @@ Plans:
 Plans:
 
 - [x] 03.1-01-PLAN.md — Component-specific debug logging (logger enhancement + worker pool + metadata handlers)
-- [ ] 03.1-02-PLAN.md — Fix missing imports for createComponentLogger/getFileLogger (gap closure)
+- [x] 03.1-02-PLAN.md — Fix missing imports for createComponentLogger/getFileLogger (gap closure)
 
 **Details:**
 
@@ -233,15 +233,15 @@ Plans:
 
 ## Progress
 
-| Phase | Name                              | Requirements | Status      |
-| ----- | --------------------------------- | :----------: | ----------- |
-| 1     | Handler Migration                 |      5       | Complete    |
-| 2     | New Handlers & Structured Logging |      5       | Complete    |
-| 3     | Metadata Fetch Handlers           |      5       | Complete    |
-| 3.1   | Improve Debug Logging Strategy    |      4       | Not Started |
-| 3.2   | Queue-Based Worker Pool           |      4       | Not Started |
-| 4     | Integration & Wiring              |      4       | Complete    |
-| 5     | Deployment & Validation           |      2       | Not Started |
+| Phase | Name                              | Requirements | Status   |
+| ----- | --------------------------------- | :----------: | -------- |
+| 1     | Handler Migration                 |      5       | Complete |
+| 2     | New Handlers & Structured Logging |      5       | Complete |
+| 3     | Metadata Fetch Handlers           |      5       | Complete |
+| 3.1   | Improve Debug Logging Strategy    |      4       | Complete |
+| 3.2   | Queue-Based Worker Pool           |      4       | Next     |
+| 4     | Integration & Wiring              |      4       | Complete |
+| 5     | Deployment & Validation           |      2       | Upcoming |
 
 **Total:** 29 requirements across 7 phases (5 original + 2 inserted)
 
