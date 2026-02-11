@@ -22,6 +22,7 @@
  *   - utils/dataChanged/lsp4Metadata.ts (extractSubEntities, clearSubEntities)
  *   - app/handlers/lsp4MetadataHandler.ts (DB queries, fetch flow, Score/Rank)
  */
+import { createComponentLogger } from '@/core/logger';
 import { EntityHandler, HandlerContext } from '@/core/types';
 import { isFileAsset, isFileImage, isNumeric, isVerification } from '@/utils';
 import {
