@@ -127,7 +127,15 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
     this.retryBaseDelayMs = config.retryBaseDelayMs ?? 1_000;
 
     // Worker script path: compiled JS in lib/core/metadataWorker.js
-    const workerPath = path.resolve(__dirname, 'metadataWorker.js');
+    // When running with ts-node, __dirname points to src/core, but worker must be in lib/core
+    // When running compiled JS, __dirname points to lib/core
+    // Detect by checking if current file ends with .ts
+    const workerPath = __filename.endsWith('.ts')
+      ? path.resolve(__dirname, '../../lib/core/metadataWorker.js')  // Running via ts-node
+      : path.resolve(__dirname, 'metadataWorker.js');                 // Running compiled JS
+      console.log(`[MetadataWorkerPool] Using worker at: ${libWorkerPath}`);
+      // Reassign workerPath variable - need to use a different approach
+    }
 
     const workerData = { ipfsGateway, requestTimeoutMs };
 
