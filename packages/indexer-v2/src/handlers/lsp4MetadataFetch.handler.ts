@@ -24,7 +24,16 @@
  */
 import { createComponentLogger } from '@/core/logger';
 import { EntityHandler, HandlerContext } from '@/core/types';
-import { isFileAsset, isFileImage, isNumeric, isVerification } from '@/utils';
+import {
+  getAttributeType,
+  isAttribute,
+  isFileAsset,
+  isFileImage,
+  isLink,
+  isNumeric,
+  parseAttributeRarity,
+  parseAttributeScore,
+} from '@/utils';
 import {
   handleMetadataFetch,
   MetadataFetchConfig,
@@ -129,79 +138,80 @@ interface LSP4MetadataJSON {
  */
 function parseAndAddSubEntities(
   entity: LSP4Metadata,
-  json: LSP4MetadataJSON,
+  json: unknown,
   hctx: HandlerContext,
 ): { success: true } | { success: false; fetchErrorMessage: string } {
   if (typeof json !== 'object' || json === null) {
     return { success: false, fetchErrorMessage: 'Error: Invalid data' };
   }
 
-  if (!json.LSP4Metadata) {
+  if (!('LSP4Metadata' in json) || !json.LSP4Metadata || typeof json.LSP4Metadata !== 'object') {
     return { success: false, fetchErrorMessage: 'Error: Invalid LSP4Metadata' };
   }
 
-  const { name, description, category, links, images, icon, assets, attributes } =
-    json.LSP4Metadata;
+  const { LSP4Metadata: lsp4Metadata } = json;
 
   const parentRef = new LSP4Metadata({ id: entity.id });
 
   // --- Name ---
-  const nameEntity = new LSP4MetadataName({
-    id: uuidv4(),
-    lsp4Metadata: parentRef,
-    value: name,
-  });
-  hctx.batchCtx.addEntity('LSP4MetadataName', nameEntity.id, nameEntity);
+  if ('name' in lsp4Metadata && typeof lsp4Metadata.name === 'string') {
+    const nameEntity = new LSP4MetadataName({
+      id: uuidv4(),
+      lsp4Metadata: parentRef,
+      value: lsp4Metadata.name,
+    });
+    hctx.batchCtx.addEntity('LSP4MetadataName', nameEntity.id, nameEntity);
+  }
 
   // --- Description ---
-  const descEntity = new LSP4MetadataDescription({
-    id: uuidv4(),
-    lsp4Metadata: parentRef,
-    value: description,
-  });
-  hctx.batchCtx.addEntity('LSP4MetadataDescription', descEntity.id, descEntity);
+  if ('description' in lsp4Metadata && typeof lsp4Metadata.description === 'string') {
+    const descEntity = new LSP4MetadataDescription({
+      id: uuidv4(),
+      lsp4Metadata: parentRef,
+      value: lsp4Metadata.description,
+    });
+    hctx.batchCtx.addEntity('LSP4MetadataDescription', descEntity.id, descEntity);
+  }
 
-  // --- Category (always created, even if value is undefined — matches V1) ---
-  const catEntity = new LSP4MetadataCategory({
-    id: uuidv4(),
-    lsp4Metadata: parentRef,
-    value: category,
-  });
-  hctx.batchCtx.addEntity('LSP4MetadataCategory', catEntity.id, catEntity);
+  // --- Category (only created if present — stricter than V1) ---
+  if ('category' in lsp4Metadata && typeof lsp4Metadata.category === 'string') {
+    const catEntity = new LSP4MetadataCategory({
+      id: uuidv4(),
+      lsp4Metadata: parentRef,
+      value: lsp4Metadata.category,
+    });
+    hctx.batchCtx.addEntity('LSP4MetadataCategory', catEntity.id, catEntity);
+  }
 
   // --- Links ---
-  if (links && Array.isArray(links)) {
-    for (const { title, url } of links) {
+  if ('links' in lsp4Metadata && lsp4Metadata.links && Array.isArray(lsp4Metadata.links)) {
+    for (const link of lsp4Metadata.links) {
+      if (!isLink(link)) continue;
       const linkEntity = new LSP4MetadataLink({
         id: uuidv4(),
         lsp4Metadata: parentRef,
-        title,
-        url,
+        title: link.title,
+        url: link.url,
       });
       hctx.batchCtx.addEntity('LSP4MetadataLink', linkEntity.id, linkEntity);
     }
   }
 
   // --- Images (Array<Array<ImageMetadata>> with imageIndex) ---
-  // V1 pattern: images.filter(Array.isArray).flatMap((imageSet, index) =>
-  //   imageSet.filter(isFileImage).map(...)
-  // ) with imageIndex = index
-  if (images && Array.isArray(images)) {
-    images
+  if ('images' in lsp4Metadata && lsp4Metadata.images && Array.isArray(lsp4Metadata.images)) {
+    lsp4Metadata.images
       .filter((imageSet): imageSet is Array<unknown> => Array.isArray(imageSet))
       .forEach((imageSet, index) => {
-        imageSet.filter(isFileImage).forEach(({ url, width, height, verification }) => {
+        imageSet.filter(isFileImage).forEach((img) => {
           const imgEntity = new LSP4MetadataImage({
             id: uuidv4(),
             lsp4Metadata: parentRef,
-            url,
-            width,
-            height,
-            ...(isVerification(verification) && {
-              verificationMethod: verification.method,
-              verificationData: verification.data,
-              verificationSource: verification.source,
-            }),
+            url: img.url,
+            width: img.width,
+            height: img.height,
+            verificationMethod: img.verification.method,
+            verificationData: img.verification.data,
+            verificationSource: img.verification.source,
             imageIndex: index,
           });
           hctx.batchCtx.addEntity('LSP4MetadataImage', imgEntity.id, imgEntity);
@@ -209,84 +219,61 @@ function parseAndAddSubEntities(
       });
   }
 
-  // --- Icons (flat array — V1 maps ALL items without isFileImage filter) ---
-  if (icon && Array.isArray(icon)) {
-    for (const iconItem of icon) {
+  // --- Icons (flat array — use isFileImage for validation) ---
+  if ('icon' in lsp4Metadata && lsp4Metadata.icon && Array.isArray(lsp4Metadata.icon)) {
+    for (const iconItem of lsp4Metadata.icon) {
+      if (!isFileImage(iconItem)) continue;
       const iconEntity = new LSP4MetadataIcon({
         id: uuidv4(),
         lsp4Metadata: parentRef,
         url: iconItem.url,
         width: iconItem.width,
         height: iconItem.height,
-        ...(iconItem.verification &&
-          isVerification(iconItem.verification) && {
-            verificationMethod: iconItem.verification.method,
-            verificationData: iconItem.verification.data,
-            verificationSource: iconItem.verification.source,
-          }),
+        verificationMethod: iconItem.verification.method,
+        verificationData: iconItem.verification.data,
+        verificationSource: iconItem.verification.source,
       });
       hctx.batchCtx.addEntity('LSP4MetadataIcon', iconEntity.id, iconEntity);
     }
   }
 
   // --- Assets ---
-  if (assets && Array.isArray(assets)) {
-    for (const asset of assets.filter(isFileAsset)) {
+  if ('assets' in lsp4Metadata && lsp4Metadata.assets && Array.isArray(lsp4Metadata.assets)) {
+    for (const asset of lsp4Metadata.assets) {
+      if (!isFileAsset(asset)) continue;
+      const { url, fileType, verification } = asset;
       const assetEntity = new LSP4MetadataAsset({
         id: uuidv4(),
         lsp4Metadata: parentRef,
-        url: asset.url,
-        fileType: asset.fileType,
-        ...(asset.verification &&
-          isVerification(asset.verification) && {
-            verificationMethod: asset.verification.method,
-            verificationData: asset.verification.data,
-            verificationSource: asset.verification.source,
-          }),
+        url: url,
+        fileType: fileType,
+        verificationMethod: verification.method,
+        verificationData: verification.data,
+        verificationSource: verification.source,
       });
       hctx.batchCtx.addEntity('LSP4MetadataAsset', assetEntity.id, assetEntity);
     }
   }
 
-  // --- Attributes (with score + rarity extraction matching V1 exactly) ---
+  // --- Attributes (with score + rarity extraction) ---
   const attributeEntities: LSP4MetadataAttribute[] = [];
 
-  if (attributes && Array.isArray(attributes)) {
-    for (const attribute of attributes) {
-      const { key, value, type } = attribute;
-
-      // Score field — V1 logic: check 'score' property, parse string or number
-      const score =
-        'score' in attribute
-          ? typeof attribute.score === 'string'
-            ? isNumeric(attribute.score)
-              ? parseInt(attribute.score)
-              : null
-            : typeof attribute.score === 'number'
-              ? attribute.score
-              : null
-          : null;
-
-      // Rarity field — V1 logic: check 'rarity' property, parse string or number
-      const rarity =
-        'rarity' in attribute
-          ? typeof attribute.rarity === 'string'
-            ? isNumeric(attribute.rarity)
-              ? parseFloat(attribute.rarity)
-              : null
-            : typeof attribute.rarity === 'number'
-              ? attribute.rarity
-              : null
-          : null;
+  if (
+    'attributes' in lsp4Metadata &&
+    lsp4Metadata.attributes &&
+    Array.isArray(lsp4Metadata.attributes)
+  ) {
+    for (const attribute of lsp4Metadata.attributes) {
+      if (!isAttribute(attribute)) continue;
 
       const attrEntity = new LSP4MetadataAttribute({
         id: uuidv4(),
         lsp4Metadata: parentRef,
-        key,
-        value,
-        type: type?.toString(),
-        score,
-        rarity,
+        key: attribute.key,
+        value: attribute.value,
+        type: getAttributeType(attribute),
+        score: parseAttributeScore(attribute),
+        rarity: parseAttributeRarity(attribute),
       });
       hctx.batchCtx.addEntity('LSP4MetadataAttribute', attrEntity.id, attrEntity);
       attributeEntities.push(attrEntity);
