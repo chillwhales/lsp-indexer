@@ -2,8 +2,8 @@
 
 **Created:** 2026-02-06
 **Depth:** Standard
-**Phases:** 5
-**Coverage:** 21/21 v1 requirements mapped
+**Phases:** 7 (5 original + 2 inserted)
+**Coverage:** 21/21 v1 requirements mapped + 8 urgent requirements
 
 ## Overview
 
@@ -114,6 +114,78 @@ Plans:
 
 ---
 
+## Phase 3.1 — Improve Debug Logging Strategy (INSERTED)
+
+**Goal:** Create structured debug logging infrastructure with configurable log levels and component-specific debug flags, enabling faster debugging of worker pool, metadata fetch, and pipeline issues.
+
+**Dependencies:** Phase 3 (Metadata Fetch Handlers)
+
+**Requirements:**
+
+| ID     | Requirement                                                                    |
+| ------ | ------------------------------------------------------------------------------ |
+| LOG-01 | Logger utility module with ERROR, WARN, INFO, DEBUG, TRACE levels              |
+| LOG-02 | Component-specific debug flags (DEBUG_WORKER_POOL, DEBUG_METADATA_FETCH, etc.) |
+| LOG-03 | Environment variable control (LOG_LEVEL, DEBUG_COMPONENTS)                     |
+| LOG-04 | Apply logger to worker pool, metadata fetch handlers, and pipeline             |
+
+**Success Criteria:**
+
+1. User can set `LOG_LEVEL=debug` and see debug-level logs from all components
+2. User can set `DEBUG_COMPONENTS=worker_pool,metadata_fetch` and see only those component logs
+3. User can trace worker pool operations without modifying code (no console.log debugging)
+4. User can see structured log output with consistent fields (timestamp, level, component, message, context)
+
+**Plans:** 1 plan
+
+Plans:
+
+- [ ] 03.1-01-PLAN.md — Component-specific debug logging (logger enhancement + worker pool + metadata handlers)
+
+**Details:**
+
+[To be added during planning]
+
+**Context:** Discovered during PR #152 debugging — took too long to find metadata worker pool bug because worker operations were invisible without code modifications.
+
+---
+
+## Phase 3.2 — Queue-Based Worker Pool Optimization (INSERTED)
+
+**Goal:** Refactor MetadataWorkerPool from batch-wait pattern to queue-based architecture, keeping N workers busy at all times for ~2x throughput improvement.
+
+**Dependencies:** Phase 3.1 (Improved logging will help validate queue behavior)
+
+**Requirements:**
+
+| ID      | Requirement                                                                  |
+| ------- | ---------------------------------------------------------------------------- |
+| PERF-01 | Queue-based worker pool architecture (replace batch-wait pattern)            |
+| PERF-02 | Keep N workers busy with X requests each (configurable)                      |
+| PERF-03 | Environment variables: WORKER_POOL_SIZE, WORKER_BATCH_SIZE, FETCH_LIMIT      |
+| PERF-04 | Maintain error handling, timeout protection, and entity marking from PR #152 |
+
+**Success Criteria:**
+
+1. User can see workers never idle when work is available (no wait between batches)
+2. User can configure `WORKER_POOL_SIZE=4` and `WORKER_BATCH_SIZE=250` to tune performance
+3. User can see ~2x throughput improvement (process 1,000 URLs in ~17s vs ~35s)
+4. User can verify error handling still marks entities with errors on batch failures
+
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run `/gsd-plan-phase 3.2` to break down)
+
+**Details:**
+
+[To be added during planning]
+
+**Context:** Discovered during PR #152 optimization — batch-wait pattern leaves workers idle during result processing. Queue-based approach keeps workers continuously busy.
+
+---
+
 ## Phase 4 — Integration & Wiring
 
 **Goal:** All EventPlugins and EntityHandlers are discovered, registered, and wired into a bootable application that processes blocks through all 6 pipeline steps end-to-end.
@@ -164,11 +236,13 @@ Plans:
 | ----- | --------------------------------- | :----------: | ----------- |
 | 1     | Handler Migration                 |      5       | Complete    |
 | 2     | New Handlers & Structured Logging |      5       | Complete    |
-| 3     | Metadata Fetch Handlers           |      5       | In Progress |
-| 4     | Integration & Wiring              |      4       | Not Started |
+| 3     | Metadata Fetch Handlers           |      5       | Complete    |
+| 3.1   | Improve Debug Logging Strategy    |      4       | Not Started |
+| 3.2   | Queue-Based Worker Pool           |      4       | Not Started |
+| 4     | Integration & Wiring              |      4       | Complete    |
 | 5     | Deployment & Validation           |      2       | Not Started |
 
-**Total:** 21 requirements across 5 phases
+**Total:** 29 requirements across 7 phases (5 original + 2 inserted)
 
 ---
 
@@ -178,8 +252,11 @@ Plans:
 Phase 1 (Handler Migration)
   ├──→ Phase 2 (New Handlers & Logging)
   │      ├──→ Phase 3 (Metadata Fetchers) ←── also depends on Phase 1
-  │      │      └──→ Phase 4 (Integration & Wiring) ←── depends on 1, 2, 3
-  │      │             └──→ Phase 5 (Deployment & Validation)
+  │      │      ├──→ Phase 3.1 (Debug Logging) ←── INSERTED URGENT
+  │      │      │      └──→ Phase 3.2 (Queue-Based Workers) ←── INSERTED URGENT
+  │      │      │             └──→ Phase 4 (Integration & Wiring)
+  │      │      │                    └──→ Phase 5 (Deployment & Validation)
+  │      │      └──→ Phase 4 (alternate path if 3.1/3.2 skipped)
   │      └──→ Phase 4
   └──→ Phase 3
 ```
@@ -188,8 +265,19 @@ Phase 1 (Handler Migration)
 
 - Within Phase 2: Logging (INFR-01, INFR-02) parallel with new handlers (HNDL-01–03)
 - Phase 3 can start as soon as Phase 1 completes, overlapping with Phase 2's tail — but Phase 3 benefits from logging being available
+- **Phases 3.1 and 3.2 are INSERTED urgent work discovered during Phase 3 execution (PR #152)**
+
+---
+
+## Roadmap Evolution
+
+**2026-02-11:** Inserted Phase 3.1 (Debug Logging) and Phase 3.2 (Queue-Based Workers) after Phase 3
+
+- **Reason:** Urgent improvements discovered during PR #152 debugging (indexer-v2 hung at block 6,729,432)
+- **Context:** Debug logging would have accelerated bug discovery; queue-based workers improve throughput 2x
+- **Numbering:** Decimal phases (3.1, 3.2) preserve logical sequence while accommodating urgent work
 
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-02-06_
+_Last updated: 2026-02-11_
