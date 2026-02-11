@@ -136,11 +136,12 @@ Plans:
 3. User can trace worker pool operations without modifying code (no console.log debugging)
 4. User can see structured log output with consistent fields (timestamp, level, component, message, context)
 
-**Plans:** 1 plan
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] 03.1-01-PLAN.md — Component-specific debug logging (logger enhancement + worker pool + metadata handlers)
+- [x] 03.1-01-PLAN.md — Component-specific debug logging (logger enhancement + worker pool + metadata handlers)
+- [ ] 03.1-02-PLAN.md — Fix missing imports for createComponentLogger/getFileLogger (gap closure)
 
 **Details:**
 
