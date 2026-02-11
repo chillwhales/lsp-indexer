@@ -2,6 +2,7 @@ import type { Logger } from '@subsquid/logger';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   _resetFileLogger,
+  createComponentLogger,
   createDualLogger,
   createStepLogger,
   getFileLogger,

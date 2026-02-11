@@ -15,6 +15,7 @@
 import { FETCH_RETRY_COUNT, IPFS_GATEWAY } from '@/constants';
 import path from 'path';
 import { Worker } from 'worker_threads';
+import { createComponentLogger, getFileLogger } from './logger';
 import { FetchRequest, FetchResult, IMetadataWorkerPool } from './types';
 
 // ---------------------------------------------------------------------------

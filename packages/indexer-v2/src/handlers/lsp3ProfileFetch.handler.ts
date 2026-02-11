@@ -23,6 +23,7 @@
  *     V2 delegates fetching to handleMetadataFetch() and only provides the
  *     parsing callback.
  */
+import { createComponentLogger } from '@/core/logger';
 import { EntityHandler, HandlerContext } from '@/core/types';
 import { isFileAsset, isVerification } from '@/utils';
 import {
