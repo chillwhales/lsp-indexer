@@ -305,6 +305,23 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
       } else {
         hctx.context.log.warn(message);
       }
+
+      // Mark all entities in this batch with error to prevent infinite retries
+      // Without this, queryUnfetchedEntities() will keep retrying them on every head batch
+      for (const request of batchRequests) {
+        const entity = entityById.get(request.id);
+        if (!entity) continue;
+
+        const updated = new config.entityClass({
+          ...entity,
+          fetchErrorMessage: message,
+          fetchErrorCode: 'WORKER_POOL_ERROR',
+          fetchErrorStatus: null,
+          retryCount: (entity.retryCount ?? 0) + 1,
+        });
+        hctx.batchCtx.addEntity(config.entityType, config.getId(entity), updated);
+      }
+
       totalFailed += batchRequests.length;
       continue; // Skip this batch but process remaining batches
     }
