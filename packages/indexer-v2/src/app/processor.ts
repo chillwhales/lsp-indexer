@@ -16,6 +16,7 @@ export const processor = new EvmBatchProcessor()
   })
   .setFinalityConfirmation(FINALITY_CONFIRMATION)
   .setBlockRange({ from: 0 })
+  .setMaxBatchSize(10000) // Limit batch size to prevent OOM during large syncs
   .setFields({
     log: {
       address: true,
