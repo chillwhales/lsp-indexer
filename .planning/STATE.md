@@ -9,9 +9,9 @@
 ## Current Position
 
 - **Phase:** 3.1 of 7 — Improve Debug Logging Strategy (INSERTED)
-- **Plan:** 1 of 1 in current phase
+- **Plan:** 2 of 2 in current phase
 - **Status:** Phase complete
-- **Last activity:** 2026-02-11 — Completed 03.1-01-PLAN.md
+- **Last activity:** 2026-02-11 — Completed 03.1-02-PLAN.md (gap closure)
 - **Progress:** █████████░ 25/29 requirements complete (phases 1-4, 3.1 done; 3.2/5 remain)
 
 ## Phase Overview
@@ -28,7 +28,7 @@
 
 ## Performance Metrics
 
-- **Plans completed:** 17
+- **Plans completed:** 18
 - **Plans failed:** 0
 - **Phases completed:** 5 (of 7 total; 2 phases inserted 2026-02-11)
 - **Requirements delivered:** 25/29 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04)
@@ -108,18 +108,18 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-11
-- **Activity:** Executed 03.1-01-PLAN.md — Component-specific debug logging
-- **Outcome:** Enhanced logger module with createComponentLogger, instrumented MetadataWorkerPool with 10+ debug log points, added debug logging to LSP3/LSP4/LSP29 metadata fetch handlers. All logging uses isLevelEnabled check for zero overhead. Phase 3.1 complete (6 min execution).
+- **Activity:** Executed 03.1-02-PLAN.md — Fix missing imports for debug logging (gap closure)
+- **Outcome:** Added 5 import statements across 5 files (metadataWorkerPool.ts, 3 handler files, logger.test.ts) to wire createComponentLogger/getFileLogger to consumers. Debug logging infrastructure from 03.1-01 now fully functional with zero ReferenceErrors. Phase 3.1 complete (2 min execution).
 - **Next Step:** Phase 3.2 (Queue-Based Worker Pool Optimization)
 
 ### Context for Next Session
 
-- **Phase 3.1 complete:** Component-specific debug logging infrastructure delivered
-  - createComponentLogger helper with automatic component field injection
-  - MetadataWorkerPool instrumented with batch tracing (10+ debug points)
-  - LSP3/LSP4/LSP29 handlers instrumented with entry/exit logging
+- **Phase 3.1 complete (gap closed):** Debug logging infrastructure fully functional
+  - Plan 01: createComponentLogger helper, worker pool instrumentation, handler debug logging
+  - Plan 02: Import wiring fixes — all 5 files now correctly import createComponentLogger/getFileLogger
+  - User can set LOG_LEVEL=debug and see component-specific logs with zero ReferenceErrors
+  - Post-hoc filtering enabled: `cat logs/*.log | jq 'select(.component == "worker_pool")'`
   - All logging uses isLevelEnabled check for zero overhead when disabled
-  - Component field enables post-hoc filtering: `jq 'select(.component == "worker_pool")'`
 - **Next phase:** Phase 3.2 (Queue-Based Worker Pool Optimization) - run `/gsd-plan-phase 3.2`
   - Refactor MetadataWorkerPool from batch-wait to queue-based architecture
   - Keep N workers busy with X requests each for ~2x throughput
