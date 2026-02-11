@@ -344,11 +344,10 @@ const LSP4MetadataFetchHandler: EntityHandler = {
   dependsOn: ['lsp4Metadata'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
-
     const unfetchedEntities = Array.from(hctx.batchCtx.getEntityBag(ENTITY_TYPE).values());
 
-    if (logger.isLevelEnabled('debug')) {
+    if (hctx.context.log.isLevelEnabled('debug')) {
+      const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
       logger.debug(
         {
           handler: 'LSP4MetadataFetchHandler',
