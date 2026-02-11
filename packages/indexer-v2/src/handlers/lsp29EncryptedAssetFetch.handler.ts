@@ -27,8 +27,19 @@
  *     V2 delegates fetching to handleMetadataFetch() and only provides the
  *     parsing callback.
  */
+import { createComponentLogger } from '@/core/logger';
 import { EntityHandler, HandlerContext } from '@/core/types';
-import { isFileImage, isVerification } from '@/utils';
+import {
+  extractLSP29Chunks,
+  extractLSP29Condition,
+  extractLSP29Encryption,
+  extractLSP29File,
+  isFileImage,
+  isLSP29Chunks,
+  isLSP29Condition,
+  isLSP29Encryption,
+  isLSP29File,
+} from '@/utils';
 import {
   handleMetadataFetch,
   MetadataFetchConfig,
@@ -48,65 +59,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP29EncryptedAsset';
-
-// ---------------------------------------------------------------------------
-// LSP29 Encrypted Asset JSON schema (inline — no @lukso/lsp29-contracts pkg)
-// ---------------------------------------------------------------------------
-
-interface AccessControlCondition {
-  contractAddress?: string;
-  chain?: string;
-  method?: string;
-  standardContractType?: string;
-  comparator?: string;
-  returnValueTest?: {
-    comparator?: string;
-    value?: string;
-  };
-  parameters?: string[];
-  [key: string]: unknown;
-}
-
-interface LSP29EncryptedAssetJSON {
-  LSP29EncryptedAsset: {
-    version?: string;
-    id?: string;
-    title?: string;
-    description?: string;
-    images?: {
-      url?: string;
-      width?: number;
-      height?: number;
-      verification?: {
-        method?: string;
-        data?: string;
-        source?: string;
-      };
-    }[][];
-    revision?: number;
-    createdAt?: string;
-    file?: {
-      type?: string;
-      name?: string;
-      size?: number;
-      lastModified?: number;
-      hash?: string;
-    };
-    encryption?: {
-      method?: string;
-      ciphertext?: string;
-      dataToEncryptHash?: string;
-      accessControlConditions?: AccessControlCondition[];
-      decryptionCode?: string;
-      decryptionParams?: Record<string, unknown>;
-    };
-    chunks?: {
-      cids?: string[];
-      iv?: string;
-      totalSize?: number;
-    };
-  };
-}
 
 // ---------------------------------------------------------------------------
 // Sub-entity descriptors (for queueClear operations)
@@ -147,104 +99,104 @@ const SUB_ENTITY_DESCRIPTORS: SubEntityDescriptor[] = [
  */
 function parseAndAddSubEntities(
   entity: LSP29EncryptedAsset,
-  data: unknown,
+  json: unknown,
   hctx: HandlerContext,
 ):
   | { success: true; entityUpdates?: Record<string, unknown> }
   | { success: false; fetchErrorMessage: string } {
-  if (typeof data !== 'object' || data === null) {
+  if (typeof json !== 'object' || json === null) {
     return { success: false, fetchErrorMessage: 'Error: Invalid data' };
   }
 
-  const json = data as LSP29EncryptedAssetJSON;
-  if (!json.LSP29EncryptedAsset) {
+  if (
+    !('LSP29EncryptedAsset' in json) ||
+    !json.LSP29EncryptedAsset ||
+    typeof json.LSP29EncryptedAsset !== 'object'
+  ) {
     return { success: false, fetchErrorMessage: 'Error: Invalid LSP29EncryptedAsset' };
   }
 
-  const {
-    version,
-    id: contentId,
-    title,
-    description,
-    images,
-    revision,
-    createdAt,
-    file,
-    encryption,
-    chunks,
-  } = json.LSP29EncryptedAsset;
+  const { LSP29EncryptedAsset: lsp29 } = json;
 
   const parentRef = new LSP29EncryptedAsset({ id: entity.id });
 
   // 1. LSP29EncryptedAssetTitle
-  const titleEntity = new LSP29EncryptedAssetTitle({
-    id: uuidv4(),
-    lsp29EncryptedAsset: parentRef,
-    value: title,
-  });
-  hctx.batchCtx.addEntity('LSP29EncryptedAssetTitle', titleEntity.id, titleEntity);
+  if ('title' in lsp29 && typeof lsp29.title === 'string') {
+    const titleEntity = new LSP29EncryptedAssetTitle({
+      id: uuidv4(),
+      lsp29EncryptedAsset: parentRef,
+      value: lsp29.title,
+    });
+    hctx.batchCtx.addEntity('LSP29EncryptedAssetTitle', titleEntity.id, titleEntity);
+  }
 
   // 2. LSP29EncryptedAssetDescription
-  const descEntity = new LSP29EncryptedAssetDescription({
-    id: uuidv4(),
-    lsp29EncryptedAsset: parentRef,
-    value: description,
-  });
-  hctx.batchCtx.addEntity('LSP29EncryptedAssetDescription', descEntity.id, descEntity);
+  if ('description' in lsp29 && typeof lsp29.description === 'string') {
+    const descEntity = new LSP29EncryptedAssetDescription({
+      id: uuidv4(),
+      lsp29EncryptedAsset: parentRef,
+      value: lsp29.description,
+    });
+    hctx.batchCtx.addEntity('LSP29EncryptedAssetDescription', descEntity.id, descEntity);
+  }
 
   // 3. LSP29EncryptedAssetFile
-  if (file) {
+  if ('file' in lsp29 && isLSP29File(lsp29.file)) {
+    const { type, name, size, lastModified, hash } = extractLSP29File(lsp29.file);
     const fileEntity = new LSP29EncryptedAssetFile({
       id: uuidv4(),
       lsp29EncryptedAsset: parentRef,
-      type: file.type,
-      name: file.name,
-      size: file.size !== undefined ? BigInt(file.size) : null,
-      lastModified: file.lastModified !== undefined ? BigInt(file.lastModified) : null,
-      hash: file.hash,
+      type,
+      name,
+      size,
+      lastModified,
+      hash,
     });
     hctx.batchCtx.addEntity('LSP29EncryptedAssetFile', fileEntity.id, fileEntity);
   }
 
   // 4. LSP29EncryptedAssetEncryption + 5. LSP29AccessControlCondition
-  if (encryption) {
+  if ('encryption' in lsp29 && isLSP29Encryption(lsp29.encryption)) {
+    const encryption = lsp29.encryption;
+    const { method, ciphertext, dataToEncryptHash, decryptionCode, decryptionParams } =
+      extractLSP29Encryption(encryption);
+
     const encryptionEntity = new LSP29EncryptedAssetEncryption({
       id: uuidv4(),
       lsp29EncryptedAsset: parentRef,
-      method: encryption.method,
-      ciphertext: encryption.ciphertext,
-      dataToEncryptHash: encryption.dataToEncryptHash,
-      decryptionCode: encryption.decryptionCode,
-      decryptionParams: encryption.decryptionParams
-        ? JSON.stringify(encryption.decryptionParams)
-        : null,
+      method,
+      ciphertext,
+      dataToEncryptHash,
+      decryptionCode,
+      decryptionParams,
     });
     hctx.batchCtx.addEntity('LSP29EncryptedAssetEncryption', encryptionEntity.id, encryptionEntity);
 
     // Access control conditions (FK → encryption, NOT → asset)
-    if (encryption.accessControlConditions && Array.isArray(encryption.accessControlConditions)) {
+    if (
+      'accessControlConditions' in encryption &&
+      encryption.accessControlConditions &&
+      Array.isArray(encryption.accessControlConditions)
+    ) {
       const encryptionRef = new LSP29EncryptedAssetEncryption({ id: encryptionEntity.id });
 
       for (let index = 0; index < encryption.accessControlConditions.length; index++) {
         const condition = encryption.accessControlConditions[index];
+        if (!isLSP29Condition(condition)) continue;
+
+        const extracted = extractLSP29Condition(condition);
         const conditionEntity = new LSP29AccessControlCondition({
           id: uuidv4(),
           encryption: encryptionRef,
           conditionIndex: index,
-          contractAddress: condition.contractAddress,
-          chain: condition.chain,
-          method: condition.method,
-          standardContractType: condition.standardContractType,
-          comparator: condition.comparator || condition.returnValueTest?.comparator,
-          value: condition.returnValueTest?.value,
-          tokenId:
-            condition.parameters && condition.parameters.length > 0
-              ? condition.parameters.find((p) => p.startsWith('0x') && p.length === 66) || null
-              : null,
-          followerAddress:
-            condition.method === 'isFollowing' && condition.parameters
-              ? condition.parameters[0]
-              : null,
+          contractAddress: extracted.contractAddress,
+          chain: extracted.chain,
+          method: extracted.method,
+          standardContractType: extracted.standardContractType,
+          comparator: extracted.comparator,
+          value: extracted.value,
+          tokenId: extracted.tokenId,
+          followerAddress: extracted.followerAddress,
           rawCondition: JSON.stringify(condition),
         });
         hctx.batchCtx.addEntity('LSP29AccessControlCondition', conditionEntity.id, conditionEntity);
@@ -253,38 +205,35 @@ function parseAndAddSubEntities(
   }
 
   // 6. LSP29EncryptedAssetChunks
-  if (chunks) {
+  if ('chunks' in lsp29 && isLSP29Chunks(lsp29.chunks)) {
+    const { cids, iv, totalSize } = extractLSP29Chunks(lsp29.chunks);
     const chunksEntity = new LSP29EncryptedAssetChunks({
       id: uuidv4(),
       lsp29EncryptedAsset: parentRef,
-      cids: chunks.cids || [],
-      iv: chunks.iv,
-      totalSize: chunks.totalSize !== undefined ? BigInt(chunks.totalSize) : null,
+      cids,
+      iv,
+      totalSize,
     });
     hctx.batchCtx.addEntity('LSP29EncryptedAssetChunks', chunksEntity.id, chunksEntity);
   }
 
   // 7. LSP29EncryptedAssetImage (nested arrays with imageIndex)
-  if (images && Array.isArray(images)) {
-    for (let imageSetIdx = 0; imageSetIdx < images.length; imageSetIdx++) {
-      const imageSet = images[imageSetIdx];
+  if ('images' in lsp29 && lsp29.images && Array.isArray(lsp29.images)) {
+    for (let imageSetIdx = 0; imageSetIdx < lsp29.images.length; imageSetIdx++) {
+      const imageSet = lsp29.images[imageSetIdx];
       if (!Array.isArray(imageSet)) continue;
 
       for (const img of imageSet) {
         if (!isFileImage(img)) continue;
-        const { url, width, height, verification } = img;
         const imageEntity = new LSP29EncryptedAssetImage({
           id: uuidv4(),
           lsp29EncryptedAsset: parentRef,
-          url,
-          width,
-          height,
-          ...(verification &&
-            isVerification(verification) && {
-              verificationMethod: verification.method,
-              verificationData: verification.data,
-              verificationSource: verification.source,
-            }),
+          url: img.url,
+          width: img.width,
+          height: img.height,
+          verificationMethod: img.verification.method,
+          verificationData: img.verification.data,
+          verificationSource: img.verification.source,
           imageIndex: imageSetIdx,
         });
         hctx.batchCtx.addEntity('LSP29EncryptedAssetImage', imageEntity.id, imageEntity);
@@ -293,6 +242,13 @@ function parseAndAddSubEntities(
   }
 
   // Return entity-level field updates (version, contentId, revision, createdAt)
+  const version = 'version' in lsp29 && typeof lsp29.version === 'string' ? lsp29.version : null;
+  const contentId = 'id' in lsp29 && typeof lsp29.id === 'string' ? lsp29.id : null;
+  const revision =
+    'revision' in lsp29 && typeof lsp29.revision === 'number' ? lsp29.revision : null;
+  const createdAt =
+    'createdAt' in lsp29 && typeof lsp29.createdAt === 'string' ? lsp29.createdAt : null;
+
   return {
     success: true,
     entityUpdates: {
@@ -323,8 +279,32 @@ const LSP29EncryptedAssetFetchHandler: EntityHandler = {
   dependsOn: ['lsp29EncryptedAsset'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    hctx.context.log.debug(`[LSP29EncryptedAssetFetch] Handler invoked by ${triggeredBy}`);
-    await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+    const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_TYPE).values());
+
+    if (hctx.context.log.isDebug()) {
+      const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
+      logger.debug(
+        {
+          handler: 'LSP29EncryptedAssetFetchHandler',
+          triggeredBy,
+          unfetchedCount: unfetchedEntities.length,
+        },
+        'Starting LSP29 encrypted asset metadata fetch',
+      );
+      const startTime = Date.now();
+      await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+      const duration = Date.now() - startTime;
+      logger.debug(
+        {
+          handler: 'LSP29EncryptedAssetFetchHandler',
+          durationMs: duration,
+          processedCount: unfetchedEntities.length,
+        },
+        'LSP29 encrypted asset metadata fetch complete',
+      );
+    } else {
+      await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+    }
   },
 };
 

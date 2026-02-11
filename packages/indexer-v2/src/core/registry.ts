@@ -7,12 +7,15 @@ import { EntityHandler, EventPlugin, IPluginRegistry, LogSubscription } from './
  */
 function isEventPlugin(obj: unknown): obj is EventPlugin {
   if (typeof obj !== 'object' || obj === null) return false;
-  const p = obj as Record<string, unknown>;
   return (
-    typeof p.name === 'string' &&
-    typeof p.topic0 === 'string' &&
-    typeof p.extract === 'function' &&
-    Array.isArray(p.requiresVerification)
+    'name' in obj &&
+    typeof obj.name === 'string' &&
+    'topic0' in obj &&
+    typeof obj.topic0 === 'string' &&
+    'extract' in obj &&
+    typeof obj.extract === 'function' &&
+    'requiresVerification' in obj &&
+    Array.isArray(obj.requiresVerification)
   );
 }
 
@@ -22,13 +25,15 @@ function isEventPlugin(obj: unknown): obj is EventPlugin {
  */
 function isEntityHandler(obj: unknown): obj is EntityHandler {
   if (typeof obj !== 'object' || obj === null) return false;
-  const p = obj as Record<string, unknown>;
   return (
-    typeof p.name === 'string' &&
-    Array.isArray(p.listensToBag) &&
-    p.listensToBag.length > 0 &&
-    p.listensToBag.every((key: unknown) => typeof key === 'string') &&
-    typeof p.handle === 'function'
+    'name' in obj &&
+    typeof obj.name === 'string' &&
+    'listensToBag' in obj &&
+    Array.isArray(obj.listensToBag) &&
+    obj.listensToBag.length > 0 &&
+    obj.listensToBag.every((key) => typeof key === 'string') &&
+    'handle' in obj &&
+    typeof obj.handle === 'function'
   );
 }
 
@@ -81,9 +86,13 @@ export class PluginRegistry implements IPluginRegistry {
       for (const file of files) {
         // Dynamic plugin loading from compiled JS files at runtime
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const loaded: unknown = require(file);
-        const moduleObj = loaded as Record<string, unknown> | null;
-        const plugin: unknown = moduleObj?.default ?? moduleObj?.plugin;
+        const loaded = require(file);
+        if (typeof loaded !== 'object' || loaded === null) {
+          console.warn(`[Registry] Invalid module export in ${file}, skipping`);
+          continue;
+        }
+        const plugin =
+          'default' in loaded ? loaded.default : 'plugin' in loaded ? loaded.plugin : undefined;
 
         if (!plugin) {
           console.warn(`[Registry] No default/plugin export in ${file}, skipping`);
@@ -124,9 +133,13 @@ export class PluginRegistry implements IPluginRegistry {
       for (const file of files) {
         // Dynamic handler loading from compiled JS files at runtime
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const loaded: unknown = require(file);
-        const moduleObj = loaded as Record<string, unknown> | null;
-        const handler: unknown = moduleObj?.default ?? moduleObj?.handler;
+        const loaded = require(file);
+        if (typeof loaded !== 'object' || loaded === null) {
+          console.warn(`[Registry] Invalid module export in ${file}, skipping`);
+          continue;
+        }
+        const handler =
+          'default' in loaded ? loaded.default : 'handler' in loaded ? loaded.handler : undefined;
 
         if (!handler) {
           console.warn(`[Registry] No default/handler export in ${file}, skipping`);

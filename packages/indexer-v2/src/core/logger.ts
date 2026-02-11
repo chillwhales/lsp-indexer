@@ -52,6 +52,41 @@ export function createStepLogger(
 }
 
 // ---------------------------------------------------------------------------
+// createComponentLogger — child logger with persistent component field
+// ---------------------------------------------------------------------------
+
+/**
+ * Creates a child logger that injects a `component` field on every log call.
+ *
+ * This enables component-specific tagging of log lines so they can be
+ * selectively inspected or filtered during log analysis.
+ *
+ * For use with Subsquid Logger (from hctx.context.log) in handlers.
+ * For pino file logger in worker pool, use getFileLogger()?.child({ component }) directly.
+ *
+ * Usage:
+ * ```ts
+ * if (hctx.context.log.isDebug()) {
+ *   const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
+ *   logger.debug({ ... }, 'Processing metadata');
+ * }
+ * ```
+ *
+ * The component field will appear in all log output and can be used for post-hoc
+ * filtering with jq/grep:
+ * ```bash
+ * cat logs/indexer*.log | jq 'select(.component == "metadata_fetch")'
+ * ```
+ *
+ * @param baseLogger - Subsquid Logger instance (from hctx.context.log)
+ * @param component  - Component identifier (e.g., 'metadata_fetch')
+ * @returns A child logger with component field injected
+ */
+export function createComponentLogger(baseLogger: Logger, component: string): Logger {
+  return baseLogger.child({ component });
+}
+
+// ---------------------------------------------------------------------------
 // File logger (pino) — singleton for rotating JSON file output
 // ---------------------------------------------------------------------------
 
@@ -88,7 +123,7 @@ export function initFileLogger(logDir: string): void {
         mkdir: true,
         extension: '.log',
       },
-    }) as pino.DestinationStream,
+    }),
   );
 }
 

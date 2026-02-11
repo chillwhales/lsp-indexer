@@ -23,8 +23,9 @@
  *     V2 delegates fetching to handleMetadataFetch() and only provides the
  *     parsing callback.
  */
+import { createComponentLogger } from '@/core/logger';
 import { EntityHandler, HandlerContext } from '@/core/types';
-import { isFileAsset, isVerification } from '@/utils';
+import { isFileAsset, isFileImage, isLink } from '@/utils';
 import {
   handleMetadataFetch,
   MetadataFetchConfig,
@@ -40,7 +41,6 @@ import {
   LSP3ProfileName,
   LSP3ProfileTag,
 } from '@chillwhales/typeorm';
-import type { LSP3ProfileMetadataJSON } from '@lukso/lsp3-contracts';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
@@ -71,42 +71,45 @@ const SUB_ENTITY_DESCRIPTORS: SubEntityDescriptor[] = [
  */
 function parseAndAddSubEntities(
   entity: LSP3Profile,
-  data: unknown,
+  json: unknown,
   hctx: HandlerContext,
 ): { success: true } | { success: false; fetchErrorMessage: string } {
-  if (typeof data !== 'object' || data === null) {
+  if (typeof json !== 'object' || json === null) {
     return { success: false, fetchErrorMessage: 'Error: Invalid data' };
   }
 
-  const json = data as LSP3ProfileMetadataJSON;
-  if (!json.LSP3Profile) {
+  if (!('LSP3Profile' in json) || !json.LSP3Profile || typeof json.LSP3Profile !== 'object') {
     return { success: false, fetchErrorMessage: 'Error: Invalid LSP3Profile' };
   }
 
-  const { name, description, tags, links, avatar, profileImage, backgroundImage } =
-    json.LSP3Profile;
+  const { LSP3Profile: lsp3Profile } = json;
 
   const parentRef = new LSP3Profile({ id: entity.id });
 
   // 1. LSP3ProfileName
-  const nameEntity = new LSP3ProfileName({
-    id: uuidv4(),
-    lsp3Profile: parentRef,
-    value: name,
-  });
-  hctx.batchCtx.addEntity('LSP3ProfileName', nameEntity.id, nameEntity);
+  if ('name' in lsp3Profile && typeof lsp3Profile.name === 'string') {
+    const nameEntity = new LSP3ProfileName({
+      id: uuidv4(),
+      lsp3Profile: parentRef,
+      value: lsp3Profile.name,
+    });
+    hctx.batchCtx.addEntity('LSP3ProfileName', nameEntity.id, nameEntity);
+  }
 
   // 2. LSP3ProfileDescription
-  const descEntity = new LSP3ProfileDescription({
-    id: uuidv4(),
-    lsp3Profile: parentRef,
-    value: description,
-  });
-  hctx.batchCtx.addEntity('LSP3ProfileDescription', descEntity.id, descEntity);
+  if ('description' in lsp3Profile && typeof lsp3Profile.description === 'string') {
+    const descEntity = new LSP3ProfileDescription({
+      id: uuidv4(),
+      lsp3Profile: parentRef,
+      value: lsp3Profile.description,
+    });
+    hctx.batchCtx.addEntity('LSP3ProfileDescription', descEntity.id, descEntity);
+  }
 
   // 3. LSP3ProfileTag (array)
-  if (tags && Array.isArray(tags)) {
-    for (const tag of tags) {
+  if ('tags' in lsp3Profile && lsp3Profile.tags && Array.isArray(lsp3Profile.tags)) {
+    for (const tag of lsp3Profile.tags) {
+      if (typeof tag !== 'string') continue;
       const tagEntity = new LSP3ProfileTag({
         id: uuidv4(),
         lsp3Profile: parentRef,
@@ -117,8 +120,9 @@ function parseAndAddSubEntities(
   }
 
   // 4. LSP3ProfileLink (array)
-  if (links && Array.isArray(links)) {
-    for (const link of links) {
+  if ('links' in lsp3Profile && lsp3Profile.links && Array.isArray(lsp3Profile.links)) {
+    for (const link of lsp3Profile.links) {
+      if (!isLink(link)) continue;
       const linkEntity = new LSP3ProfileLink({
         id: uuidv4(),
         lsp3Profile: parentRef,
@@ -130,8 +134,8 @@ function parseAndAddSubEntities(
   }
 
   // 5. LSP3ProfileAsset (from `avatar` array — file assets only)
-  if (avatar && Array.isArray(avatar)) {
-    for (const item of avatar) {
+  if ('avatar' in lsp3Profile && lsp3Profile.avatar && Array.isArray(lsp3Profile.avatar)) {
+    for (const item of lsp3Profile.avatar) {
       if (!isFileAsset(item)) continue;
       const { url, fileType, verification } = item;
       const assetEntity = new LSP3ProfileAsset({
@@ -139,49 +143,53 @@ function parseAndAddSubEntities(
         lsp3Profile: parentRef,
         url,
         fileType,
-        ...(isVerification(verification) && {
-          verificationMethod: verification.method,
-          verificationData: verification.data,
-          verificationSource: verification.source,
-        }),
+        verificationMethod: verification.method,
+        verificationData: verification.data,
+        verificationSource: verification.source,
       });
       hctx.batchCtx.addEntity('LSP3ProfileAsset', assetEntity.id, assetEntity);
     }
   }
 
   // 6. LSP3ProfileImage (flat array — not nested like LSP4)
-  if (profileImage && Array.isArray(profileImage)) {
-    for (const img of profileImage) {
+  if (
+    'profileImage' in lsp3Profile &&
+    lsp3Profile.profileImage &&
+    Array.isArray(lsp3Profile.profileImage)
+  ) {
+    for (const img of lsp3Profile.profileImage) {
+      if (!isFileImage(img)) continue;
       const imageEntity = new LSP3ProfileImage({
         id: uuidv4(),
         lsp3Profile: parentRef,
         url: img.url,
         width: img.width,
         height: img.height,
-        ...(isVerification(img.verification) && {
-          verificationMethod: img.verification.method,
-          verificationData: img.verification.data,
-          verificationSource: img.verification.source,
-        }),
+        verificationMethod: img.verification.method,
+        verificationData: img.verification.data,
+        verificationSource: img.verification.source,
       });
       hctx.batchCtx.addEntity('LSP3ProfileImage', imageEntity.id, imageEntity);
     }
   }
 
   // 7. LSP3ProfileBackgroundImage (flat array — same structure as profileImage)
-  if (backgroundImage && Array.isArray(backgroundImage)) {
-    for (const img of backgroundImage) {
+  if (
+    'backgroundImage' in lsp3Profile &&
+    lsp3Profile.backgroundImage &&
+    Array.isArray(lsp3Profile.backgroundImage)
+  ) {
+    for (const img of lsp3Profile.backgroundImage) {
+      if (!isFileImage(img)) continue;
       const bgEntity = new LSP3ProfileBackgroundImage({
         id: uuidv4(),
         lsp3Profile: parentRef,
         url: img.url,
         width: img.width,
         height: img.height,
-        ...(isVerification(img.verification) && {
-          verificationMethod: img.verification.method,
-          verificationData: img.verification.data,
-          verificationSource: img.verification.source,
-        }),
+        verificationMethod: img.verification.method,
+        verificationData: img.verification.data,
+        verificationSource: img.verification.source,
       });
       hctx.batchCtx.addEntity('LSP3ProfileBackgroundImage', bgEntity.id, bgEntity);
     }
@@ -209,8 +217,32 @@ const LSP3ProfileFetchHandler: EntityHandler = {
   dependsOn: ['lsp3Profile'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    hctx.context.log.debug(`[LSP3ProfileFetch] Handler invoked by ${triggeredBy}`);
-    await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+    const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_TYPE).values());
+
+    if (hctx.context.log.isDebug()) {
+      const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
+      logger.debug(
+        {
+          handler: 'LSP3ProfileFetchHandler',
+          triggeredBy,
+          unfetchedCount: unfetchedEntities.length,
+        },
+        'Starting LSP3 profile metadata fetch',
+      );
+      const startTime = Date.now();
+      await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+      const duration = Date.now() - startTime;
+      logger.debug(
+        {
+          handler: 'LSP3ProfileFetchHandler',
+          durationMs: duration,
+          processedCount: unfetchedEntities.length,
+        },
+        'LSP3 profile metadata fetch complete',
+      );
+    } else {
+      await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+    }
   },
 };
 

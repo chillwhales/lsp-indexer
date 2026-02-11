@@ -2,7 +2,7 @@ import { DEAD_ADDRESS, ZERO_ADDRESS } from '@/constants';
 import { LSP4TokenTypeEnum, LSP8TokenIdFormatEnum, OperationType } from '@chillwhales/typeorm';
 import ERC725 from '@erc725/erc725.js';
 import type { Verification } from '@lukso/lsp2-contracts';
-import type { FileAsset, ImageMetadata } from '@lukso/lsp3-contracts';
+import type { FileAsset, ImageMetadata, LinkMetadata } from '@lukso/lsp3-contracts';
 import { bytesToHex, Hex, hexToBytes, hexToNumber, hexToString, isHex, sliceHex } from 'viem';
 
 /**
@@ -27,13 +27,14 @@ export function decodeVerifiableUri(dataValue: string): {
     const decodedMetadataUrl = erc725.decodeValueContent('VerifiableURI', dataValue);
 
     const url =
-      decodedMetadataUrl === null
-        ? null
-        : typeof decodedMetadataUrl === 'object'
-          ? ((decodedMetadataUrl as { url?: string }).url ?? null)
-          : null;
+      decodedMetadataUrl !== null &&
+      typeof decodedMetadataUrl === 'object' &&
+      'url' in decodedMetadataUrl &&
+      typeof decodedMetadataUrl.url === 'string'
+        ? decodedMetadataUrl.url
+        : null;
 
-    if (url && url.match(/[^\x20-\x7E]+/g) !== null)
+    if (url !== null && url.match(/[^\x20-\x7E]+/g) !== null)
       return {
         value: null,
         decodeError: 'Url contains invalid characters',
@@ -71,6 +72,293 @@ export function isNullAddress(address: string): boolean {
   return lower === ZERO_ADDRESS.toLowerCase() || lower === DEAD_ADDRESS.toLowerCase();
 }
 
+export const isLink = (obj: unknown): obj is LinkMetadata =>
+  obj !== null &&
+  obj !== undefined &&
+  typeof obj === 'object' &&
+  'title' in obj &&
+  typeof obj.title === 'string' &&
+  'url' in obj &&
+  typeof obj.url === 'string';
+
+// ---------------------------------------------------------------------------
+// LSP4 Attribute type guard and helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * LSP4 Attribute metadata structure.
+ * All fields are optional in the JSON but we validate what we can.
+ */
+export interface AttributeMetadata {
+  key: string;
+  value: string;
+  type: string | number | null;
+  score: string | number | null;
+  rarity: string | number | null;
+}
+
+/**
+ * Type guard for LSP4 Attribute objects.
+ * Requires `key` (string) and `value` (string) at minimum.
+ * Optional: `type`, `score`, `rarity`.
+ */
+export const isAttribute = (obj: unknown): obj is AttributeMetadata =>
+  obj !== null &&
+  obj !== undefined &&
+  typeof obj === 'object' &&
+  'key' in obj &&
+  typeof obj.key === 'string' &&
+  'value' in obj &&
+  typeof obj.value === 'string';
+
+/**
+ * Parse score from attribute. Handles string or number.
+ * Returns integer or null.
+ */
+export function parseAttributeScore(attribute: AttributeMetadata): number | null {
+  if (!('score' in attribute) || attribute.score === null) return null;
+  if (typeof attribute.score === 'number') return attribute.score;
+  if (typeof attribute.score === 'string' && isNumeric(attribute.score)) {
+    return parseInt(attribute.score);
+  }
+  return null;
+}
+
+/**
+ * Parse rarity from attribute. Handles string or number.
+ * Returns float or null.
+ */
+export function parseAttributeRarity(attribute: AttributeMetadata): number | null {
+  if (!('rarity' in attribute) || attribute.rarity === null) return null;
+  if (typeof attribute.rarity === 'number') return attribute.rarity;
+  if (typeof attribute.rarity === 'string' && isNumeric(attribute.rarity)) {
+    return parseFloat(attribute.rarity);
+  }
+  return null;
+}
+
+/**
+ * Get attribute type as string. Handles string or number.
+ */
+export function getAttributeType(attribute: AttributeMetadata): string | null {
+  if (!('type' in attribute) || attribute.type === null) return null;
+  if (typeof attribute.type === 'string') return attribute.type;
+  if (typeof attribute.type === 'number') return attribute.type.toString();
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// LSP29 Encrypted Asset type guards
+// ---------------------------------------------------------------------------
+
+/**
+ * LSP29 File metadata structure.
+ */
+export interface LSP29FileMetadata {
+  type: string | null;
+  name: string | null;
+  size: number | null;
+  lastModified: number | null;
+  hash: string | null;
+}
+
+/**
+ * Type guard for LSP29 File objects.
+ * All fields are optional, but object must exist.
+ */
+export const isLSP29File = (obj: unknown): obj is LSP29FileMetadata =>
+  obj !== null && obj !== undefined && typeof obj === 'object';
+
+/**
+ * Extract LSP29 file fields with validation.
+ */
+export function extractLSP29File(file: LSP29FileMetadata): {
+  type: string | null;
+  name: string | null;
+  size: bigint | null;
+  lastModified: bigint | null;
+  hash: string | null;
+} {
+  return {
+    type: 'type' in file && typeof file.type === 'string' ? file.type : null,
+    name: 'name' in file && typeof file.name === 'string' ? file.name : null,
+    size: 'size' in file && typeof file.size === 'number' ? BigInt(file.size) : null,
+    lastModified:
+      'lastModified' in file && typeof file.lastModified === 'number'
+        ? BigInt(file.lastModified)
+        : null,
+    hash: 'hash' in file && typeof file.hash === 'string' ? file.hash : null,
+  };
+}
+
+/**
+ * LSP29 Encryption metadata structure.
+ */
+export interface LSP29EncryptionMetadata {
+  method: string | null;
+  ciphertext: string | null;
+  dataToEncryptHash: string | null;
+  decryptionCode: string | null;
+  decryptionParams: Record<string, unknown> | null;
+  accessControlConditions: unknown[] | null;
+}
+
+/**
+ * Type guard for LSP29 Encryption objects.
+ */
+export const isLSP29Encryption = (obj: unknown): obj is LSP29EncryptionMetadata =>
+  obj !== null && obj !== undefined && typeof obj === 'object';
+
+/**
+ * Extract LSP29 encryption fields with validation.
+ */
+export function extractLSP29Encryption(encryption: LSP29EncryptionMetadata): {
+  method: string | null;
+  ciphertext: string | null;
+  dataToEncryptHash: string | null;
+  decryptionCode: string | null;
+  decryptionParams: string | null;
+} {
+  return {
+    method:
+      'method' in encryption && typeof encryption.method === 'string' ? encryption.method : null,
+    ciphertext:
+      'ciphertext' in encryption && typeof encryption.ciphertext === 'string'
+        ? encryption.ciphertext
+        : null,
+    dataToEncryptHash:
+      'dataToEncryptHash' in encryption && typeof encryption.dataToEncryptHash === 'string'
+        ? encryption.dataToEncryptHash
+        : null,
+    decryptionCode:
+      'decryptionCode' in encryption && typeof encryption.decryptionCode === 'string'
+        ? encryption.decryptionCode
+        : null,
+    decryptionParams:
+      'decryptionParams' in encryption &&
+      encryption.decryptionParams &&
+      typeof encryption.decryptionParams === 'object'
+        ? JSON.stringify(encryption.decryptionParams)
+        : null,
+  };
+}
+
+/**
+ * LSP29 Access Control Condition metadata structure.
+ */
+export interface LSP29ConditionMetadata {
+  contractAddress: string | null;
+  chain: string | null;
+  method: string | null;
+  standardContractType: string | null;
+  comparator: string | null;
+  returnValueTest: { comparator?: string; value?: string } | null;
+  parameters: string[] | null;
+}
+
+/**
+ * Type guard for LSP29 Access Control Condition objects.
+ */
+export const isLSP29Condition = (obj: unknown): obj is LSP29ConditionMetadata =>
+  obj !== null && obj !== undefined && typeof obj === 'object';
+
+/**
+ * Extract LSP29 condition fields with validation.
+ */
+export function extractLSP29Condition(condition: LSP29ConditionMetadata): {
+  contractAddress: string | null;
+  chain: string | null;
+  method: string | null;
+  standardContractType: string | null;
+  comparator: string | null;
+  value: string | null;
+  tokenId: string | null;
+  followerAddress: string | null;
+} {
+  const parameters =
+    'parameters' in condition && Array.isArray(condition.parameters) ? condition.parameters : null;
+  const method =
+    'method' in condition && typeof condition.method === 'string' ? condition.method : null;
+  const returnValueTest =
+    'returnValueTest' in condition &&
+    condition.returnValueTest &&
+    typeof condition.returnValueTest === 'object'
+      ? condition.returnValueTest
+      : null;
+
+  return {
+    contractAddress:
+      'contractAddress' in condition && typeof condition.contractAddress === 'string'
+        ? condition.contractAddress
+        : null,
+    chain: 'chain' in condition && typeof condition.chain === 'string' ? condition.chain : null,
+    method,
+    standardContractType:
+      'standardContractType' in condition && typeof condition.standardContractType === 'string'
+        ? condition.standardContractType
+        : null,
+    comparator:
+      ('comparator' in condition && typeof condition.comparator === 'string'
+        ? condition.comparator
+        : null) ||
+      (returnValueTest &&
+      'comparator' in returnValueTest &&
+      typeof returnValueTest.comparator === 'string'
+        ? returnValueTest.comparator
+        : null),
+    value:
+      returnValueTest && 'value' in returnValueTest && typeof returnValueTest.value === 'string'
+        ? returnValueTest.value
+        : null,
+    tokenId:
+      parameters && parameters.length > 0
+        ? parameters.find(
+            (p): p is string => typeof p === 'string' && p.startsWith('0x') && p.length === 66,
+          ) || null
+        : null,
+    followerAddress:
+      method === 'isFollowing' && parameters && typeof parameters[0] === 'string'
+        ? parameters[0]
+        : null,
+  };
+}
+
+/**
+ * LSP29 Chunks metadata structure.
+ */
+export interface LSP29ChunksMetadata {
+  cids: string[] | null;
+  iv: string | null;
+  totalSize: number | null;
+}
+
+/**
+ * Type guard for LSP29 Chunks objects.
+ */
+export const isLSP29Chunks = (obj: unknown): obj is LSP29ChunksMetadata =>
+  obj !== null && obj !== undefined && typeof obj === 'object';
+
+/**
+ * Extract LSP29 chunks fields with validation.
+ */
+export function extractLSP29Chunks(chunks: LSP29ChunksMetadata): {
+  cids: string[];
+  iv: string | null;
+  totalSize: bigint | null;
+} {
+  return {
+    cids:
+      'cids' in chunks && Array.isArray(chunks.cids)
+        ? chunks.cids.filter((c): c is string => typeof c === 'string')
+        : [],
+    iv: 'iv' in chunks && typeof chunks.iv === 'string' ? chunks.iv : null,
+    totalSize:
+      'totalSize' in chunks && typeof chunks.totalSize === 'number'
+        ? BigInt(chunks.totalSize)
+        : null,
+  };
+}
+
 /**
  * Type guard for LSP2 Verification objects.
  * Checks that object has `method` (string) and `data` (string) properties.
@@ -82,9 +370,9 @@ export const isVerification = (obj: unknown): obj is Verification =>
   obj !== undefined &&
   typeof obj === 'object' &&
   'method' in obj &&
-  typeof (obj as Record<string, unknown>).method === 'string' &&
+  typeof obj.method === 'string' &&
   'data' in obj &&
-  typeof (obj as Record<string, unknown>).data === 'string';
+  typeof obj.data === 'string';
 
 /**
  * Type guard for LSP3 FileAsset objects.
@@ -93,7 +381,15 @@ export const isVerification = (obj: unknown): obj is Verification =>
  * Port from v1: utils/index.ts isFileAsset()
  */
 export const isFileAsset = (obj: unknown): obj is FileAsset =>
-  obj !== null && obj !== undefined && typeof obj === 'object' && 'url' in obj;
+  obj !== null &&
+  obj !== undefined &&
+  typeof obj === 'object' &&
+  'url' in obj &&
+  typeof obj.url === 'string' &&
+  'fileType' in obj &&
+  typeof obj.fileType === 'string' &&
+  'verification' in obj &&
+  isVerification(obj.verification);
 
 /**
  * Type guard for LSP3 ImageMetadata objects.
@@ -106,11 +402,13 @@ export const isFileImage = (obj: unknown): obj is ImageMetadata =>
   obj !== undefined &&
   typeof obj === 'object' &&
   'url' in obj &&
-  typeof (obj as Record<string, unknown>).url === 'string' &&
+  typeof obj.url === 'string' &&
   'width' in obj &&
-  typeof (obj as Record<string, unknown>).width === 'number' &&
+  typeof obj.width === 'number' &&
   'height' in obj &&
-  typeof (obj as Record<string, unknown>).height === 'number';
+  typeof obj.height === 'number' &&
+  'verification' in obj &&
+  isVerification(obj.verification);
 
 /**
  * Generate a deterministic NFT entity ID from contract address and tokenId.
