@@ -343,8 +343,35 @@ const LSP4MetadataFetchHandler: EntityHandler = {
   dependsOn: ['lsp4Metadata'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    hctx.context.log.debug(`[LSP4MetadataFetch] Handler invoked by ${triggeredBy}`);
+    const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
+
+    const unfetchedEntities = Array.from(hctx.batchCtx.getEntityBag(ENTITY_TYPE).values());
+
+    if (logger.isLevelEnabled('debug')) {
+      logger.debug(
+        {
+          handler: 'LSP4MetadataFetchHandler',
+          triggeredBy,
+          unfetchedCount: unfetchedEntities.length,
+        },
+        'Starting LSP4 metadata fetch',
+      );
+    }
+
+    const startTime = Date.now();
     await handleMetadataFetch(hctx, config, triggeredBy);
+    const duration = Date.now() - startTime;
+
+    if (logger.isLevelEnabled('debug')) {
+      logger.debug(
+        {
+          handler: 'LSP4MetadataFetchHandler',
+          durationMs: duration,
+          processedCount: unfetchedEntities.length,
+        },
+        'LSP4 metadata fetch complete',
+      );
+    }
   },
 };
 
