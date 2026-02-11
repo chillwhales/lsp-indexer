@@ -66,7 +66,7 @@ const TotalSupplyHandler: EntityHandler = {
     const existingEntities = new Map(
       await hctx.store
         .findBy(TotalSupply, { id: In(addresses) })
-        .then((entities) => entities.map((entity) => [entity.id, entity] as const)),
+        .then((entities) => entities.map((entity) => [entity.id, entity])),
     );
 
     // Also check what's already in the BatchContext (from a previous trigger invocation)

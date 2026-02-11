@@ -76,12 +76,12 @@ const OwnedAssetsHandler: EntityHandler = {
       ownedAssetIds.size > 0
         ? hctx.store
             .findBy(OwnedAsset, { id: In([...ownedAssetIds]) })
-            .then((entities) => new Map(entities.map((e) => [e.id, e] as const)))
+            .then((entities) => new Map(entities.map((e) => [e.id, e])))
         : Promise.resolve(new Map<string, OwnedAsset>()),
       ownedTokenIds.size > 0
         ? hctx.store
             .findBy(OwnedToken, { id: In([...ownedTokenIds]) })
-            .then((entities) => new Map(entities.map((e) => [e.id, e] as const)))
+            .then((entities) => new Map(entities.map((e) => [e.id, e])))
         : Promise.resolve(new Map<string, OwnedToken>()),
     ]);
 

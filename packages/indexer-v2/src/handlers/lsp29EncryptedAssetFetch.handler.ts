@@ -148,16 +148,15 @@ const SUB_ENTITY_DESCRIPTORS: SubEntityDescriptor[] = [
  */
 function parseAndAddSubEntities(
   entity: LSP29EncryptedAsset,
-  data: unknown,
+  json: LSP29EncryptedAssetJSON,
   hctx: HandlerContext,
 ):
   | { success: true; entityUpdates?: Record<string, unknown> }
   | { success: false; fetchErrorMessage: string } {
-  if (typeof data !== 'object' || data === null) {
+  if (typeof json !== 'object' || json === null) {
     return { success: false, fetchErrorMessage: 'Error: Invalid data' };
   }
 
-  const json = data as LSP29EncryptedAssetJSON;
   if (!json.LSP29EncryptedAsset) {
     return { success: false, fetchErrorMessage: 'Error: Invalid LSP29EncryptedAsset' };
   }
@@ -324,9 +323,9 @@ const LSP29EncryptedAssetFetchHandler: EntityHandler = {
   dependsOn: ['lsp29EncryptedAsset'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const unfetchedEntities = Array.from(hctx.batchCtx.getEntityBag(ENTITY_TYPE).values());
+    const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_TYPE).values());
 
-    if (hctx.context.log.isLevelEnabled('debug')) {
+    if (hctx.context.log.isDebug()) {
       const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
       logger.debug(
         {

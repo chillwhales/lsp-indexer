@@ -129,20 +129,19 @@ interface LSP4MetadataJSON {
  */
 function parseAndAddSubEntities(
   entity: LSP4Metadata,
-  data: unknown,
+  json: LSP4MetadataJSON,
   hctx: HandlerContext,
 ): { success: true } | { success: false; fetchErrorMessage: string } {
-  if (typeof data !== 'object' || data === null) {
+  if (typeof json !== 'object' || json === null) {
     return { success: false, fetchErrorMessage: 'Error: Invalid data' };
   }
 
-  const typed = data as LSP4MetadataJSON;
-  if (!typed.LSP4Metadata) {
+  if (!json.LSP4Metadata) {
     return { success: false, fetchErrorMessage: 'Error: Invalid LSP4Metadata' };
   }
 
   const { name, description, category, links, images, icon, assets, attributes } =
-    typed.LSP4Metadata;
+    json.LSP4Metadata;
 
   const parentRef = new LSP4Metadata({ id: entity.id });
 
@@ -344,9 +343,9 @@ const LSP4MetadataFetchHandler: EntityHandler = {
   dependsOn: ['lsp4Metadata'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const unfetchedEntities = Array.from(hctx.batchCtx.getEntityBag(ENTITY_TYPE).values());
+    const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_TYPE).values());
 
-    if (hctx.context.log.isLevelEnabled('debug')) {
+    if (hctx.context.log.isDebug()) {
       const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
       logger.debug(
         {

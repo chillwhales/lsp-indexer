@@ -1,3 +1,4 @@
+import { Logger } from '@subsquid/logger';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   _resetFileLogger,
@@ -13,48 +14,24 @@ import {
 // ---------------------------------------------------------------------------
 
 /**
- * Mock logger interface with explicit vi.fn() types.
- * Satisfies the Logger interface without type assertions.
+ * Creates a real Subsquid Logger with a mocked sink and spied methods.
+ * This ensures we're testing against the actual Logger implementation
+ * while still being able to verify method calls.
  */
-interface MockLogger {
-  info: ReturnType<typeof vi.fn>;
-  warn: ReturnType<typeof vi.fn>;
-  error: ReturnType<typeof vi.fn>;
-  debug: ReturnType<typeof vi.fn>;
-  trace: ReturnType<typeof vi.fn>;
-  fatal: ReturnType<typeof vi.fn>;
-  child: ReturnType<typeof vi.fn>;
-  isLevelEnabled: ReturnType<typeof vi.fn>;
-}
+function createMockLogger(): {
+  logger: Logger;
+  sink: ReturnType<typeof vi.fn>;
+  childSpy: ReturnType<typeof vi.spyOn>;
+  getChildLogger: () => Logger;
+} {
+  const sink = vi.fn();
+  const logger = new Logger(sink, 'test');
+  const childSpy = vi.spyOn(logger, 'child');
 
-/**
- * Creates a mock Subsquid Logger with vi.fn() methods.
- * The `child` method returns a new mock logger (simulating Logger.child()).
- */
-function createMockLogger(): { logger: MockLogger; childLogger: MockLogger } {
-  const childLogger: MockLogger = {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-    trace: vi.fn(),
-    fatal: vi.fn(),
-    child: vi.fn(),
-    isLevelEnabled: vi.fn(() => false),
-  };
+  // Get the actual child logger after child() is called
+  const getChildLogger = () => childSpy.mock.results[0]?.value as Logger;
 
-  const logger: MockLogger = {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-    trace: vi.fn(),
-    fatal: vi.fn(),
-    child: vi.fn().mockReturnValue(childLogger),
-    isLevelEnabled: vi.fn(() => false),
-  };
-
-  return { logger, childLogger };
+  return { logger, sink, childSpy, getChildLogger };
 }
 
 // ---------------------------------------------------------------------------
@@ -82,14 +59,13 @@ describe('createStepLogger', () => {
   });
 
   it('omits blockRange when undefined', () => {
-    const { logger } = createMockLogger();
+    const { logger, childSpy } = createMockLogger();
 
     createStepLogger(logger, 'HANDLE');
 
-    expect(logger.child).toHaveBeenCalledWith({ step: 'HANDLE' });
+    expect(childSpy).toHaveBeenCalledWith({ step: 'HANDLE' });
     // Verify blockRange key is NOT present
-    const callArgs = logger.child.mock.calls[0][0] as Record<string, unknown>;
-    expect(callArgs).not.toHaveProperty('blockRange');
+    expect(childSpy.mock.calls[0][0]).not.toHaveProperty('blockRange');
   });
 });
 
@@ -179,15 +155,15 @@ describe('createComponentLogger', () => {
   });
 
   it('returns child logger with component field', () => {
-    const { logger, childLogger } = createMockLogger();
+    const { logger, childSpy, getChildLogger } = createMockLogger();
 
     const componentLogger = createComponentLogger(logger, 'worker_pool');
 
     // Verify child() was called
-    expect(logger.child).toHaveBeenCalledTimes(1);
+    expect(childSpy).toHaveBeenCalledTimes(1);
 
     // Verify returned logger is the child logger
-    expect(componentLogger).toBe(childLogger);
+    expect(componentLogger).toBe(getChildLogger());
   });
 });
 
@@ -197,52 +173,63 @@ describe('createComponentLogger', () => {
 
 describe('createDualLogger', () => {
   it('calls subsquid child logger info with attributes directly', () => {
-    const { logger, childLogger } = createMockLogger();
+    const { logger, getChildLogger } = createMockLogger();
 
     const dualLogger = createDualLogger(logger, 'HANDLE');
+    const childLogger = getChildLogger();
+    const infoSpy = vi.spyOn(childLogger, 'info');
 
     dualLogger.info({ entityType: 'Follow', count: 5 }, 'Processed');
 
-    expect(childLogger.info).toHaveBeenCalledWith({ entityType: 'Follow', count: 5 }, 'Processed');
+    expect(infoSpy).toHaveBeenCalledWith({ entityType: 'Follow', count: 5 }, 'Processed');
   });
 
   it('calls subsquid child logger warn with attributes directly', () => {
-    const { logger, childLogger } = createMockLogger();
+    const { logger, getChildLogger } = createMockLogger();
 
     const dualLogger = createDualLogger(logger, 'VERIFY');
+    const childLogger = getChildLogger();
+    const warnSpy = vi.spyOn(childLogger, 'warn');
 
     dualLogger.warn({ address: '0xabc' }, 'Verification failed');
 
-    expect(childLogger.warn).toHaveBeenCalledWith({ address: '0xabc' }, 'Verification failed');
+    expect(warnSpy).toHaveBeenCalledWith({ address: '0xabc' }, 'Verification failed');
   });
 
   it('passes attributes as objects, not JSON.stringify', () => {
-    const { logger, childLogger } = createMockLogger();
+    const { logger, getChildLogger } = createMockLogger();
 
     const dualLogger = createDualLogger(logger, 'PERSIST_RAW');
+    const childLogger = getChildLogger();
+    const infoSpy = vi.spyOn(childLogger, 'info');
 
     const attrs = { entityType: 'Follow', count: 5 };
     dualLogger.info(attrs, 'Processed entities');
 
     // Verify the first argument is an object, not a string
-    const firstArg = childLogger.info.mock.calls[0][0] as Record<string, unknown>;
+    const firstArg = infoSpy.mock.calls[0][0];
     expect(typeof firstArg).toBe('object');
     expect(firstArg).toEqual({ entityType: 'Follow', count: 5 });
   });
 
   it('supports all four severity levels', () => {
-    const { logger, childLogger } = createMockLogger();
+    const { logger, getChildLogger } = createMockLogger();
 
     const dualLogger = createDualLogger(logger, 'EXTRACT');
+    const childLogger = getChildLogger();
+    const debugSpy = vi.spyOn(childLogger, 'debug');
+    const infoSpy = vi.spyOn(childLogger, 'info');
+    const warnSpy = vi.spyOn(childLogger, 'warn');
+    const errorSpy = vi.spyOn(childLogger, 'error');
 
     dualLogger.debug({ detail: 'trace' }, 'Debug message');
     dualLogger.info({ detail: 'progress' }, 'Info message');
     dualLogger.warn({ detail: 'caution' }, 'Warning message');
     dualLogger.error({ detail: 'failure' }, 'Error message');
 
-    expect(childLogger.debug).toHaveBeenCalledTimes(1);
-    expect(childLogger.info).toHaveBeenCalledTimes(1);
-    expect(childLogger.warn).toHaveBeenCalledTimes(1);
-    expect(childLogger.error).toHaveBeenCalledTimes(1);
+    expect(debugSpy).toHaveBeenCalledTimes(1);
+    expect(infoSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledTimes(1);
   });
 });

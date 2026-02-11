@@ -27,11 +27,11 @@ export function decodeVerifiableUri(dataValue: string): {
     const decodedMetadataUrl = erc725.decodeValueContent('VerifiableURI', dataValue);
 
     const url =
-      decodedMetadataUrl === null
-        ? null
-        : typeof decodedMetadataUrl === 'object'
-          ? ((decodedMetadataUrl as { url?: string }).url ?? null)
-          : null;
+      (decodedMetadataUrl !== null &&
+        typeof decodedMetadataUrl === 'object' &&
+        'url' in decodedMetadataUrl &&
+        decodedMetadataUrl.url) ??
+      null;
 
     if (url && url.match(/[^\x20-\x7E]+/g) !== null)
       return {
@@ -82,9 +82,9 @@ export const isVerification = (obj: unknown): obj is Verification =>
   obj !== undefined &&
   typeof obj === 'object' &&
   'method' in obj &&
-  typeof (obj as Record<string, unknown>).method === 'string' &&
+  typeof obj.method === 'string' &&
   'data' in obj &&
-  typeof (obj as Record<string, unknown>).data === 'string';
+  typeof obj.data === 'string';
 
 /**
  * Type guard for LSP3 FileAsset objects.
@@ -106,11 +106,11 @@ export const isFileImage = (obj: unknown): obj is ImageMetadata =>
   obj !== undefined &&
   typeof obj === 'object' &&
   'url' in obj &&
-  typeof (obj as Record<string, unknown>).url === 'string' &&
+  typeof obj.url === 'string' &&
   'width' in obj &&
-  typeof (obj as Record<string, unknown>).width === 'number' &&
+  typeof obj.width === 'number' &&
   'height' in obj &&
-  typeof (obj as Record<string, unknown>).height === 'number';
+  typeof obj.height === 'number';
 
 /**
  * Generate a deterministic NFT entity ID from contract address and tokenId.

@@ -72,14 +72,13 @@ const SUB_ENTITY_DESCRIPTORS: SubEntityDescriptor[] = [
  */
 function parseAndAddSubEntities(
   entity: LSP3Profile,
-  data: unknown,
+  json: LSP3ProfileMetadataJSON,
   hctx: HandlerContext,
 ): { success: true } | { success: false; fetchErrorMessage: string } {
-  if (typeof data !== 'object' || data === null) {
+  if (typeof json !== 'object' || json === null) {
     return { success: false, fetchErrorMessage: 'Error: Invalid data' };
   }
 
-  const json = data as LSP3ProfileMetadataJSON;
   if (!json.LSP3Profile) {
     return { success: false, fetchErrorMessage: 'Error: Invalid LSP3Profile' };
   }
@@ -210,9 +209,9 @@ const LSP3ProfileFetchHandler: EntityHandler = {
   dependsOn: ['lsp3Profile'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const unfetchedEntities = Array.from(hctx.batchCtx.getEntityBag(ENTITY_TYPE).values());
+    const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_TYPE).values());
 
-    if (hctx.context.log.isLevelEnabled('debug')) {
+    if (hctx.context.log.isDebug()) {
       const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
       logger.debug(
         {

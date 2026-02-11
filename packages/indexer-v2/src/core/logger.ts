@@ -66,8 +66,8 @@ export function createStepLogger(
  *
  * Usage:
  * ```ts
- * const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
- * if (logger.isLevelEnabled('debug')) {
+ * if (hctx.context.log.isDebug()) {
+ *   const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
  *   logger.debug({ ... }, 'Processing metadata');
  * }
  * ```
@@ -123,7 +123,7 @@ export function initFileLogger(logDir: string): void {
         mkdir: true,
         extension: '.log',
       },
-    }) as pino.DestinationStream,
+    }),
   );
 }
 
