@@ -5,32 +5,19 @@
 # Features:
 # - Multi-stage build with layer caching for fast rebuilds
 # - PostgreSQL with persistent volume
+# - Hasura GraphQL API (automatically configured on startup)
 # - Comprehensive logging (both file and stdout)
 # - Health checks for all services
 # - Auto-restart policies
 # - Proper service dependencies and startup ordering
-# - Optional Hasura GraphQL (enabled via environment variable)
 #
 # Usage:
-#   cd docker/v2
-#
-#   # Recommended: Use helper script (auto-detects ENABLE_HASURA from .env)
-#   ./docker-v2.sh start
-#
-#   # Or use docker compose directly:
-#   docker compose --env-file ../../.env up -d                           # Without Hasura
-#   docker compose --env-file ../../.env --profile hasura up -d          # With Hasura
-#   docker compose --env-file ../../.env logs -f indexer-v2
-#   docker compose --env-file ../../.env down
+#   docker compose up -d
+#   docker compose logs -f indexer-v2
+#   docker compose down
 #
 # Environment:
-#   Copy ../../.env.example to ../../.env and configure before running
-#   The .env file MUST be in the repository root (../../.env)
-#
-#   To enable Hasura, add to ../../.env:
-#     ENABLE_HASURA=true
-#
-#   Then use ./docker-v2.sh start (auto-detects and enables Hasura)
+#   Copy .env.example to .env and configure before running
 #
 # ==============================================================================
 
@@ -54,6 +41,18 @@ services:
     # Persistent volume for database data
     volumes:
       - postgres-data:/var/lib/postgresql/data
+
+    # PostgreSQL tuning for high-write workload (blockchain indexing)
+    command:
+      - postgres
+      - -c
+      - max_wal_size=2GB
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - checkpoint_timeout=15min
+      - -c
+      - work_mem=64MB
 
     # Database credentials from .env
     environment:
@@ -89,6 +88,8 @@ services:
     restart: unless-stopped
 
     # Wait for PostgreSQL to be healthy before starting
+    # Note: Hasura/data-connector start in parallel but indexer doesn't wait
+    # (entrypoint script waits for Hasura to be ready before configuring)
     depends_on:
       postgres:
         condition: service_healthy
@@ -129,6 +130,10 @@ services:
       LOG_DIR: /app/packages/indexer-v2/logs
       INDEXER_ENABLE_FILE_LOGGER: ${INDEXER_ENABLE_FILE_LOGGER:-true}
 
+      # Hasura configuration (for entrypoint script)
+      HASURA_GRAPHQL_ENDPOINT: ${HASURA_GRAPHQL_ENDPOINT:-http://hasura:8080}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set in .env}
+
     # Logging configuration for Docker
     logging:
       driver: 'json-file'
@@ -146,15 +151,13 @@ services:
           memory: 1G
 
   # ----------------------------------------------------------------------------
-  # Hasura GraphQL Engine (Optional)
-  # Enable by setting ENABLE_HASURA=true in .env
+  # Hasura GraphQL Engine
+  # Automatically configured on startup with all tables and relationships
   # ----------------------------------------------------------------------------
   hasura:
     image: hasura/graphql-engine:v2.46.0
     container_name: lsp-indexer-hasura
     restart: unless-stopped
-    profiles:
-      - hasura
 
     depends_on:
       postgres:
@@ -176,7 +179,7 @@ services:
       PG_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
       HASURA_GRAPHQL_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
       HASURA_GRAPHQL_METADATA_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-admin_secret_change_me}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set in .env}
       HASURA_GRAPHQL_ENABLE_CONSOLE: ${HASURA_GRAPHQL_ENABLE_CONSOLE:-true}
       HASURA_GRAPHQL_DEV_MODE: ${HASURA_GRAPHQL_DEV_MODE:-true}
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: ${HASURA_GRAPHQL_ENABLED_LOG_TYPES:-startup,http-log,webhook-log,websocket-log,query-log}
@@ -191,15 +194,13 @@ services:
           memory: 256M
 
   # ----------------------------------------------------------------------------
-  # Hasura Data Connector Agent (Optional)
-  # Enabled automatically when Hasura is enabled
+  # Hasura Data Connector Agent
+  # Required dependency for Hasura GraphQL Engine
   # ----------------------------------------------------------------------------
   data-connector-agent:
     image: hasura/graphql-data-connector:v2.46.0
     container_name: lsp-indexer-data-connector
     restart: unless-stopped
-    profiles:
-      - hasura
 
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:8081/api/v1/athena/health']
