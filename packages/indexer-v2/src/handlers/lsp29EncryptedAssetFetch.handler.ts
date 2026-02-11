@@ -323,8 +323,35 @@ const LSP29EncryptedAssetFetchHandler: EntityHandler = {
   dependsOn: ['lsp29EncryptedAsset'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    hctx.context.log.debug(`[LSP29EncryptedAssetFetch] Handler invoked by ${triggeredBy}`);
+    const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
+
+    const unfetchedEntities = Array.from(hctx.batchCtx.getEntityBag(ENTITY_TYPE).values());
+
+    if (logger.isLevelEnabled('debug')) {
+      logger.debug(
+        {
+          handler: 'LSP29EncryptedAssetFetchHandler',
+          triggeredBy,
+          unfetchedCount: unfetchedEntities.length,
+        },
+        'Starting LSP29 encrypted asset metadata fetch',
+      );
+    }
+
+    const startTime = Date.now();
     await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+    const duration = Date.now() - startTime;
+
+    if (logger.isLevelEnabled('debug')) {
+      logger.debug(
+        {
+          handler: 'LSP29EncryptedAssetFetchHandler',
+          durationMs: duration,
+          processedCount: unfetchedEntities.length,
+        },
+        'LSP29 encrypted asset metadata fetch complete',
+      );
+    }
   },
 };
 

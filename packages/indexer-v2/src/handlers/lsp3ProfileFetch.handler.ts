@@ -209,8 +209,35 @@ const LSP3ProfileFetchHandler: EntityHandler = {
   dependsOn: ['lsp3Profile'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    hctx.context.log.debug(`[LSP3ProfileFetch] Handler invoked by ${triggeredBy}`);
+    const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
+
+    const unfetchedEntities = Array.from(hctx.batchCtx.getEntityBag(ENTITY_TYPE).values());
+
+    if (logger.isLevelEnabled('debug')) {
+      logger.debug(
+        {
+          handler: 'LSP3ProfileFetchHandler',
+          triggeredBy,
+          unfetchedCount: unfetchedEntities.length,
+        },
+        'Starting LSP3 profile metadata fetch',
+      );
+    }
+
+    const startTime = Date.now();
     await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+    const duration = Date.now() - startTime;
+
+    if (logger.isLevelEnabled('debug')) {
+      logger.debug(
+        {
+          handler: 'LSP3ProfileFetchHandler',
+          durationMs: duration,
+          processedCount: unfetchedEntities.length,
+        },
+        'LSP3 profile metadata fetch complete',
+      );
+    }
   },
 };
 
