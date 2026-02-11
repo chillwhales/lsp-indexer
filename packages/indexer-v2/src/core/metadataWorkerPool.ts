@@ -110,6 +110,7 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
   private readonly workers: PoolWorker[];
   private readonly maxRetries: number;
   private readonly retryBaseDelayMs: number;
+  private readonly logger: ReturnType<typeof createComponentLogger>;
   private isShutdown = false;
 
   constructor(config: MetadataWorkerPoolConfig = {}) {
@@ -118,6 +119,10 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
     const requestTimeoutMs = config.requestTimeoutMs ?? 30_000;
     this.maxRetries = config.maxRetries ?? FETCH_RETRY_COUNT;
     this.retryBaseDelayMs = config.retryBaseDelayMs ?? 1_000;
+
+    // Create component logger for worker pool operations
+    const baseLogger = getFileLogger();
+    this.logger = baseLogger ? createComponentLogger(baseLogger, 'worker_pool') : null;
 
     // Worker script path: compiled JS in lib/core/metadataWorker.js
     // When running with ts-node, __dirname points to src/core, but worker must be in lib/core
@@ -133,6 +138,20 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
       { length: poolSize },
       (_, i) => new PoolWorker(workerPath, workerData, i),
     );
+
+    // Log pool initialization
+    if (this.logger?.isLevelEnabled?.('debug')) {
+      this.logger.debug(
+        {
+          poolSize,
+          ipfsGateway,
+          requestTimeoutMs,
+          maxRetries: this.maxRetries,
+          retryBaseDelayMs: this.retryBaseDelayMs,
+        },
+        'MetadataWorkerPool initialized',
+      );
+    }
   }
 
   /**
@@ -149,16 +168,59 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
     }
     if (requests.length === 0) return [];
 
+    // Log batch start
+    if (this.logger?.isLevelEnabled?.('debug')) {
+      const availableWorkers = this.workers.filter((w) => !w.busy).length;
+      this.logger.debug(
+        {
+          batchSize: requests.length,
+          availableWorkers,
+          totalWorkers: this.workers.length,
+        },
+        'Starting metadata fetch batch',
+      );
+    }
+
     const finalResults: FetchResult[] = [];
     let pending = requests;
+    const startTime = Date.now();
 
     for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
       if (pending.length === 0) break;
 
       // Distribute across workers
       const chunks = this.distribute(pending);
+
+      // Log worker assignment
+      if (this.logger?.isLevelEnabled?.('debug')) {
+        this.logger.debug(
+          {
+            attempt: attempt + 1,
+            maxAttempts: this.maxRetries + 1,
+            pendingCount: pending.length,
+            workersUsed: chunks.length,
+            chunkSizes: chunks.map((c) => c.length),
+          },
+          'Distributing batch to workers',
+        );
+      }
+
       const chunkPromises = chunks.map((chunk, i) => this.workers[i].execute(chunk));
       const workerResults = (await Promise.all(chunkPromises)).flat();
+
+      // Log worker completion
+      if (this.logger?.isLevelEnabled?.('debug')) {
+        const successCount = workerResults.filter((r) => r.success).length;
+        const failureCount = workerResults.filter((r) => !r.success).length;
+        this.logger.debug(
+          {
+            resultsCount: workerResults.length,
+            successCount,
+            failureCount,
+          },
+          'Workers completed batch processing',
+        );
+      }
 
       // Separate successes and retryable failures
       const toRetry: FetchRequest[] = [];
@@ -195,8 +257,34 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
       // Exponential backoff before retry
       if (pending.length > 0 && attempt < this.maxRetries) {
         const delay = this.retryBaseDelayMs * Math.pow(2, attempt);
+
+        if (this.logger?.isLevelEnabled?.('debug')) {
+          this.logger.debug(
+            {
+              retryCount: pending.length,
+              nextAttempt: attempt + 2,
+              backoffDelayMs: delay,
+            },
+            'Retrying failed requests after backoff',
+          );
+        }
+
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
+    }
+
+    // Log batch completion
+    const duration = Date.now() - startTime;
+    if (this.logger?.isLevelEnabled?.('debug')) {
+      this.logger.debug(
+        {
+          totalResults: finalResults.length,
+          successCount: finalResults.filter((r) => r.success).length,
+          failureCount: finalResults.filter((r) => !r.success).length,
+          durationMs: duration,
+        },
+        'Metadata fetch batch complete',
+      );
     }
 
     return finalResults;
@@ -207,8 +295,17 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
    */
   async shutdown(): Promise<void> {
     if (this.isShutdown) return;
+
+    if (this.logger?.isLevelEnabled?.('debug')) {
+      this.logger.debug({ workerCount: this.workers.length }, 'Shutting down MetadataWorkerPool');
+    }
+
     this.isShutdown = true;
     await Promise.all(this.workers.map((w) => w.terminate()));
+
+    if (this.logger?.isLevelEnabled?.('debug')) {
+      this.logger.debug({}, 'MetadataWorkerPool shutdown complete');
+    }
   }
 
   /**
