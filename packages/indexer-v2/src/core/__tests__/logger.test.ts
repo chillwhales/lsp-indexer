@@ -1,4 +1,3 @@
-import type { Logger } from '@subsquid/logger';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   _resetFileLogger,
@@ -14,11 +13,26 @@ import {
 // ---------------------------------------------------------------------------
 
 /**
- * Creates a mock Subsquid Logger with vi.fn() methods that satisfies the Logger interface.
+ * Mock logger interface with explicit vi.fn() types.
+ * Satisfies the Logger interface without type assertions.
+ */
+interface MockLogger {
+  info: ReturnType<typeof vi.fn>;
+  warn: ReturnType<typeof vi.fn>;
+  error: ReturnType<typeof vi.fn>;
+  debug: ReturnType<typeof vi.fn>;
+  trace: ReturnType<typeof vi.fn>;
+  fatal: ReturnType<typeof vi.fn>;
+  child: ReturnType<typeof vi.fn>;
+  isLevelEnabled: ReturnType<typeof vi.fn>;
+}
+
+/**
+ * Creates a mock Subsquid Logger with vi.fn() methods.
  * The `child` method returns a new mock logger (simulating Logger.child()).
  */
-function createMockLogger(): { logger: Logger; childLogger: Logger } {
-  const childLogger = {
+function createMockLogger(): { logger: MockLogger; childLogger: MockLogger } {
+  const childLogger: MockLogger = {
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
@@ -27,9 +41,9 @@ function createMockLogger(): { logger: Logger; childLogger: Logger } {
     fatal: vi.fn(),
     child: vi.fn(),
     isLevelEnabled: vi.fn(() => false),
-  } as unknown as Logger;
+  };
 
-  const logger = {
+  const logger: MockLogger = {
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
@@ -38,7 +52,7 @@ function createMockLogger(): { logger: Logger; childLogger: Logger } {
     fatal: vi.fn(),
     child: vi.fn().mockReturnValue(childLogger),
     isLevelEnabled: vi.fn(() => false),
-  } as unknown as Logger;
+  };
 
   return { logger, childLogger };
 }
