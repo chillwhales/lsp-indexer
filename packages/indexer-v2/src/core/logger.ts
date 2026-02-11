@@ -61,30 +61,28 @@ export function createStepLogger(
  * This enables component-specific debug logging that can be filtered by setting
  * DEBUG_COMPONENTS environment variable (e.g., DEBUG_COMPONENTS=worker_pool,metadata_fetch).
  *
- * Works with both Subsquid Logger and pino Logger interfaces.
+ * For use with Subsquid Logger (from hctx.context.log) in handlers.
+ * For pino file logger in worker pool, use getFileLogger()?.child({ component }) directly.
  *
  * Usage:
  * ```ts
- * const logger = createComponentLogger(baseLogger, 'worker_pool');
+ * const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
  * if (logger.isLevelEnabled('debug')) {
- *   logger.debug({ workerId, batchSize }, 'Processing batch');
+ *   logger.debug({ ... }, 'Processing metadata');
  * }
  * ```
  *
  * The component field will appear in all log output and can be used for post-hoc
  * filtering with jq/grep:
  * ```bash
- * cat logs/indexer*.log | jq 'select(.component == "worker_pool")'
+ * cat logs/indexer*.log | jq 'select(.component == "metadata_fetch")'
  * ```
  *
- * @param baseLogger - Logger instance (Subsquid Logger or pino)
- * @param component  - Component identifier (e.g., 'worker_pool', 'metadata_fetch')
+ * @param baseLogger - Subsquid Logger instance (from hctx.context.log)
+ * @param component  - Component identifier (e.g., 'metadata_fetch')
  * @returns A child logger with component field injected
  */
-export function createComponentLogger(
-  baseLogger: Logger | pino.Logger,
-  component: string,
-): Logger | pino.Logger {
+export function createComponentLogger(baseLogger: Logger, component: string): Logger {
   return baseLogger.child({ component });
 }
 

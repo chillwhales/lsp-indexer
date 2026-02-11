@@ -14,8 +14,9 @@
  */
 import { FETCH_RETRY_COUNT, IPFS_GATEWAY } from '@/constants';
 import path from 'path';
+import type pino from 'pino';
 import { Worker } from 'worker_threads';
-import { createComponentLogger, getFileLogger } from './logger';
+import { getFileLogger } from './logger';
 import { FetchRequest, FetchResult, IMetadataWorkerPool } from './types';
 
 // ---------------------------------------------------------------------------
@@ -111,7 +112,7 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
   private readonly workers: PoolWorker[];
   private readonly maxRetries: number;
   private readonly retryBaseDelayMs: number;
-  private readonly logger: ReturnType<typeof createComponentLogger> | null;
+  private readonly logger: pino.Logger | null;
   private isShutdown = false;
 
   constructor(config: MetadataWorkerPoolConfig = {}) {
@@ -122,8 +123,7 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
     this.retryBaseDelayMs = config.retryBaseDelayMs ?? 1_000;
 
     // Create component logger for worker pool operations
-    const baseLogger = getFileLogger();
-    this.logger = baseLogger ? createComponentLogger(baseLogger, 'worker_pool') : null;
+    this.logger = getFileLogger()?.child({ component: 'worker_pool' }) ?? null;
 
     // Worker script path: compiled JS in lib/core/metadataWorker.js
     // When running with ts-node, __dirname points to src/core, but worker must be in lib/core
