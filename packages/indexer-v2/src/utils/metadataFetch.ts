@@ -8,7 +8,12 @@
  * Each fetch handler configures this utility with its specific entity class,
  * parsing function, and sub-entity types.
  */
-import { FETCH_BATCH_SIZE, FETCH_LIMIT, FETCH_RETRY_COUNT } from '@/constants';
+import {
+  FETCH_BATCH_SIZE,
+  FETCH_BATCH_TIMEOUT_MS,
+  FETCH_LIMIT,
+  FETCH_RETRY_COUNT,
+} from '@/constants';
 import { Entity, EntityConstructor, FetchRequest, FetchResult, HandlerContext } from '@/core/types';
 import { Store } from '@subsquid/typeorm-store';
 import { FindOptionsWhere, In, IsNull, LessThan, Not } from 'typeorm';
