@@ -1,4 +1,4 @@
-import { FINALITY_CONFIRMATION, RPC_URL, SQD_GATEWAY } from '@/constants';
+import { FINALITY_CONFIRMATION, RPC_RATE_LIMIT, RPC_URL, SQD_GATEWAY } from '@/constants';
 import { EvmBatchProcessor } from '@subsquid/evm-processor';
 
 /**
@@ -12,8 +12,7 @@ export const processor = new EvmBatchProcessor()
   .setGateway(SQD_GATEWAY)
   .setRpcEndpoint({
     url: RPC_URL,
-    rateLimit: 10, // requests per second
-    capacity: 5, // max concurrent requests
+    rateLimit: RPC_RATE_LIMIT,
   })
   .setFinalityConfirmation(FINALITY_CONFIRMATION)
   .setBlockRange({ from: 0 })
