@@ -209,6 +209,7 @@ const LSP3ProfileFetchHandler: EntityHandler = {
   dependsOn: ['lsp3Profile'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+    hctx.context.log.debug(`[LSP3ProfileFetch] Handler invoked by ${triggeredBy}`);
     await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
   },
 };

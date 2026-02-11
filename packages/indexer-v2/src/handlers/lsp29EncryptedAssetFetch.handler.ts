@@ -323,6 +323,7 @@ const LSP29EncryptedAssetFetchHandler: EntityHandler = {
   dependsOn: ['lsp29EncryptedAsset'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+    hctx.context.log.debug(`[LSP29EncryptedAssetFetch] Handler invoked by ${triggeredBy}`);
     await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
   },
 };

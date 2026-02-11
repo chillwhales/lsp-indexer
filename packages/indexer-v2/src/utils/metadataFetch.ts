@@ -189,7 +189,16 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
   }
 
   // ----- Path 2: Head-only fetch (DB backlog drain) -----
-  if (!hctx.isHead) return;
+  hctx.context.log.debug(
+    `[${config.entityType}] isHead=${hctx.isHead}, entities in batch=${entities.size}`,
+  );
+
+  if (!hctx.isHead) {
+    hctx.context.log.debug(`[${config.entityType}] Skipping metadata fetch - not at head`);
+    return;
+  }
+
+  hctx.context.log.info(`[${config.entityType}] At chain head - checking for metadata backlog`);
 
   // Collect current-batch IDs so we can exclude them from the DB backlog.
   // Entities in the current batch may have updated url/fields that the DB
@@ -199,16 +208,30 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
     batchIds.add(config.getId(entity));
   }
 
+  hctx.context.log.debug(
+    `[${config.entityType}] Querying DB for unfetched entities (limit=${FETCH_LIMIT})`,
+  );
+
   const unfetched = await queryUnfetchedEntities<TEntity>(
     hctx.store,
     config.entityClass,
     FETCH_LIMIT,
   );
+
+  hctx.context.log.info(
+    `[${config.entityType}] Found ${unfetched.length} unfetched entities in DB`,
+  );
+
   if (unfetched.length === 0) return;
 
   // Filter out entities that exist in the current batch — their in-batch
   // state (url, error fields, etc.) may differ from the stale DB snapshot.
   const backlog = unfetched.filter((entity) => !batchIds.has(config.getId(entity)));
+
+  hctx.context.log.info(
+    `[${config.entityType}] After filtering batch IDs: ${backlog.length} entities in backlog`,
+  );
+
   if (backlog.length === 0) return;
 
   // Build fetch requests (only backlog entities that have a URL)
@@ -219,6 +242,10 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
     }
     return acc;
   }, []);
+
+  hctx.context.log.info(
+    `[${config.entityType}] Built ${requests.length} fetch requests (${backlog.length - requests.length} had null URLs)`,
+  );
 
   if (requests.length === 0) return;
 
@@ -233,15 +260,26 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
   let totalProcessed = 0;
   let totalFailed = 0;
 
+  hctx.context.log.info(
+    `[${config.entityType}] Starting metadata fetch: ${requests.length} requests split into ${batchCount} batches of ${FETCH_BATCH_SIZE}`,
+  );
+
   for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
     const batchStart = batchIndex * FETCH_BATCH_SIZE;
     const batchEnd = Math.min(batchStart + FETCH_BATCH_SIZE, requests.length);
     const batchRequests = requests.slice(batchStart, batchEnd);
 
+    hctx.context.log.debug(
+      `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount}: Fetching ${batchRequests.length} URLs via worker pool`,
+    );
+
     // Fetch via worker pool with error handling
     let results: FetchResult[];
     try {
       results = await hctx.workerPool.fetchBatch(batchRequests);
+      hctx.context.log.debug(
+        `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount}: Worker pool returned ${results.length} results`,
+      );
     } catch (err) {
       // Log error but don't crash the processor — metadata fetching is best-effort
       // Pass full error object to capture stack traces for debugging worker crashes
@@ -312,10 +350,8 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
     }
   }
 
-  // Log summary if we processed a significant backlog
-  if (totalProcessed > 0 || totalFailed > 0) {
-    hctx.context.log.info(
-      `Metadata backlog drain for ${config.entityType}: ${totalProcessed} processed, ${totalFailed} failed (${batchCount} batches)`,
-    );
-  }
+  // Log summary after all batches complete
+  hctx.context.log.info(
+    `[${config.entityType}] Metadata backlog drain complete: ${totalProcessed} processed, ${totalFailed} failed (${batchCount} batches)`,
+  );
 }

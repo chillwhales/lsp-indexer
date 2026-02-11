@@ -343,6 +343,7 @@ const LSP4MetadataFetchHandler: EntityHandler = {
   dependsOn: ['lsp4Metadata'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+    hctx.context.log.debug(`[LSP4MetadataFetch] Handler invoked by ${triggeredBy}`);
     await handleMetadataFetch(hctx, config, triggeredBy);
   },
 };
