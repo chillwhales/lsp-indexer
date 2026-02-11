@@ -52,6 +52,43 @@ export function createStepLogger(
 }
 
 // ---------------------------------------------------------------------------
+// createComponentLogger — child logger with persistent component field
+// ---------------------------------------------------------------------------
+
+/**
+ * Creates a child logger that injects a `component` field on every log call.
+ *
+ * This enables component-specific debug logging that can be filtered by setting
+ * DEBUG_COMPONENTS environment variable (e.g., DEBUG_COMPONENTS=worker_pool,metadata_fetch).
+ *
+ * Works with both Subsquid Logger and pino Logger interfaces.
+ *
+ * Usage:
+ * ```ts
+ * const logger = createComponentLogger(baseLogger, 'worker_pool');
+ * if (logger.isLevelEnabled('debug')) {
+ *   logger.debug({ workerId, batchSize }, 'Processing batch');
+ * }
+ * ```
+ *
+ * The component field will appear in all log output and can be used for post-hoc
+ * filtering with jq/grep:
+ * ```bash
+ * cat logs/indexer*.log | jq 'select(.component == "worker_pool")'
+ * ```
+ *
+ * @param baseLogger - Logger instance (Subsquid Logger or pino)
+ * @param component  - Component identifier (e.g., 'worker_pool', 'metadata_fetch')
+ * @returns A child logger with component field injected
+ */
+export function createComponentLogger(
+  baseLogger: Logger | pino.Logger,
+  component: string,
+): Logger | pino.Logger {
+  return baseLogger.child({ component });
+}
+
+// ---------------------------------------------------------------------------
 // File logger (pino) — singleton for rotating JSON file output
 // ---------------------------------------------------------------------------
 

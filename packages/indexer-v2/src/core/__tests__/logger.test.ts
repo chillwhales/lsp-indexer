@@ -149,6 +149,40 @@ describe('getFileLogger', () => {
 });
 
 // ---------------------------------------------------------------------------
+// createComponentLogger tests
+// ---------------------------------------------------------------------------
+
+describe('createComponentLogger', () => {
+  it('injects component field via child()', () => {
+    const { logger } = createMockLogger();
+
+    createComponentLogger(logger as unknown as Logger, 'worker_pool');
+
+    expect(logger.child).toHaveBeenCalledWith({ component: 'worker_pool' });
+  });
+
+  it('works with different component names', () => {
+    const { logger } = createMockLogger();
+
+    createComponentLogger(logger as unknown as Logger, 'metadata_fetch');
+
+    expect(logger.child).toHaveBeenCalledWith({ component: 'metadata_fetch' });
+  });
+
+  it('returns child logger with component field', () => {
+    const { logger, childLogger } = createMockLogger();
+
+    const componentLogger = createComponentLogger(logger as unknown as Logger, 'worker_pool');
+
+    // Verify child() was called
+    expect(logger.child).toHaveBeenCalledTimes(1);
+
+    // Verify returned logger is the child logger
+    expect(componentLogger).toBe(childLogger);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // createDualLogger tests
 // ---------------------------------------------------------------------------
 
