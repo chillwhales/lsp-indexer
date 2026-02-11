@@ -153,8 +153,6 @@ services:
     image: hasura/graphql-engine:v2.46.0
     container_name: lsp-indexer-hasura
     restart: unless-stopped
-    profiles:
-      - hasura
 
     depends_on:
       postgres:
@@ -198,8 +196,6 @@ services:
     image: hasura/graphql-data-connector:v2.46.0
     container_name: lsp-indexer-data-connector
     restart: unless-stopped
-    profiles:
-      - hasura
 
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:8081/api/v1/athena/health']

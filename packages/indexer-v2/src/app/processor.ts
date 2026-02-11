@@ -10,7 +10,11 @@ import { EvmBatchProcessor } from '@subsquid/evm-processor';
 
 export const processor = new EvmBatchProcessor()
   .setGateway(SQD_GATEWAY)
-  .setRpcEndpoint(RPC_URL)
+  .setRpcEndpoint({
+    url: RPC_URL,
+    rateLimit: 10, // requests per second
+    capacity: 5, // max concurrent requests
+  })
   .setFinalityConfirmation(FINALITY_CONFIRMATION)
   .setBlockRange({ from: 0 })
   .setFields({
