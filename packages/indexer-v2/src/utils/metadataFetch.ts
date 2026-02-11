@@ -278,26 +278,24 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
       `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount}: Calling worker pool with ${batchRequests.length} URLs`,
     );
 
-    // Set up timeout warning (but don't cancel the operation)
+    // Fetch via worker pool with timeout protection
     const fetchStartTime = Date.now();
-    const timeoutWarning = setTimeout(() => {
-      const elapsed = Date.now() - fetchStartTime;
-      hctx.context.log.warn(
-        `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount} is taking longer than ${FETCH_BATCH_TIMEOUT_MS}ms (${elapsed}ms elapsed) - still waiting for worker pool...`,
-      );
-    }, FETCH_BATCH_TIMEOUT_MS);
-
-    // Fetch via worker pool with error handling
     let results: FetchResult[];
     try {
-      results = await hctx.workerPool.fetchBatch(batchRequests);
-      clearTimeout(timeoutWarning);
+      // Race between worker pool fetch and timeout
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error(`Worker pool timeout after ${FETCH_BATCH_TIMEOUT_MS}ms`));
+        }, FETCH_BATCH_TIMEOUT_MS);
+      });
+
+      results = await Promise.race([hctx.workerPool.fetchBatch(batchRequests), timeoutPromise]);
+
       const fetchDuration = Date.now() - fetchStartTime;
       hctx.context.log.info(
         `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount}: Worker pool returned ${results.length} results in ${fetchDuration}ms`,
       );
     } catch (err) {
-      clearTimeout(timeoutWarning);
       // Log error but don't crash the processor — metadata fetching is best-effort
       // Pass full error object to capture stack traces for debugging worker crashes
       const fetchDuration = Date.now() - fetchStartTime;
