@@ -89,6 +89,8 @@ services:
     restart: unless-stopped
 
     # Wait for PostgreSQL to be healthy before starting
+    # Note: Hasura/data-connector start in parallel but indexer doesn't wait
+    # (entrypoint script waits for Hasura if ENABLE_HASURA=true)
     depends_on:
       postgres:
         condition: service_healthy
@@ -128,6 +130,11 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       LOG_DIR: /app/packages/indexer-v2/logs
       INDEXER_ENABLE_FILE_LOGGER: ${INDEXER_ENABLE_FILE_LOGGER:-true}
+
+      # Hasura configuration (for entrypoint script)
+      ENABLE_HASURA: ${ENABLE_HASURA:-true}
+      HASURA_GRAPHQL_ENDPOINT: ${HASURA_GRAPHQL_ENDPOINT:-http://hasura:8080}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-admin_secret_change_me}
 
     # Logging configuration for Docker
     logging:
