@@ -72,52 +72,6 @@ const subEntityDescriptors: SubEntityDescriptor[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// LSP4 JSON shape (extends standard with optional category + attribute extras)
-// ---------------------------------------------------------------------------
-
-/**
- * LSP4 metadata JSON shape.
- *
- * LSP4Metadata may include `category` which isn't in the official
- * LSP4DigitalAssetMetadataJSON type. Attribute items may carry `score`
- * and `rarity` fields from LUKSO-specific extensions.
- */
-interface LSP4MetadataJSON {
-  LSP4Metadata?: {
-    name?: string;
-    description?: string;
-    category?: string;
-    links?: Array<{ title?: string; url?: string }>;
-    images?: Array<
-      Array<{
-        url?: string;
-        width?: number;
-        height?: number;
-        verification?: { method?: string; data?: string; source?: string };
-      }>
-    >;
-    icon?: Array<{
-      url?: string;
-      width?: number;
-      height?: number;
-      verification?: { method?: string; data?: string; source?: string };
-    }>;
-    assets?: Array<{
-      url?: string;
-      fileType?: string;
-      verification?: { method?: string; data?: string; source?: string };
-    }>;
-    attributes?: Array<{
-      key?: string;
-      value?: string;
-      type?: string | number;
-      score?: string | number;
-      rarity?: string | number;
-    }>;
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Parse fetched JSON into sub-entities
 // ---------------------------------------------------------------------------
 

@@ -61,65 +61,6 @@ import { v4 as uuidv4 } from 'uuid';
 const ENTITY_TYPE = 'LSP29EncryptedAsset';
 
 // ---------------------------------------------------------------------------
-// LSP29 Encrypted Asset JSON schema (inline — no @lukso/lsp29-contracts pkg)
-// ---------------------------------------------------------------------------
-
-interface AccessControlCondition {
-  contractAddress?: string;
-  chain?: string;
-  method?: string;
-  standardContractType?: string;
-  comparator?: string;
-  returnValueTest?: {
-    comparator?: string;
-    value?: string;
-  };
-  parameters?: string[];
-  [key: string]: unknown;
-}
-
-interface LSP29EncryptedAssetJSON {
-  LSP29EncryptedAsset: {
-    version?: string;
-    id?: string;
-    title?: string;
-    description?: string;
-    images?: {
-      url?: string;
-      width?: number;
-      height?: number;
-      verification?: {
-        method?: string;
-        data?: string;
-        source?: string;
-      };
-    }[][];
-    revision?: number;
-    createdAt?: string;
-    file?: {
-      type?: string;
-      name?: string;
-      size?: number;
-      lastModified?: number;
-      hash?: string;
-    };
-    encryption?: {
-      method?: string;
-      ciphertext?: string;
-      dataToEncryptHash?: string;
-      accessControlConditions?: AccessControlCondition[];
-      decryptionCode?: string;
-      decryptionParams?: Record<string, unknown>;
-    };
-    chunks?: {
-      cids?: string[];
-      iv?: string;
-      totalSize?: number;
-    };
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Sub-entity descriptors (for queueClear operations)
 // ---------------------------------------------------------------------------
 // NOTE: LSP29AccessControlCondition FK is `encryption` → LSP29EncryptedAssetEncryption,
