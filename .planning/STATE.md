@@ -9,9 +9,9 @@
 ## Current Position
 
 - **Phase:** 3.1 of 7 — Improve Debug Logging Strategy (INSERTED)
-- **Plan:** 2 of 2 in current phase
-- **Status:** Phase complete
-- **Last activity:** 2026-02-11 — Completed 03.1-02-PLAN.md (gap closure)
+- **Plan:** 3 of 3 in current phase
+- **Status:** Phase complete (all gap closures addressed)
+- **Last activity:** 2026-02-11 — Completed 03.1-03-PLAN.md (code quality & performance improvements)
 - **Progress:** █████████░ 25/29 requirements complete (phases 1-4, 3.1 done; 3.2/5 remain)
 
 ## Phase Overview
@@ -28,7 +28,7 @@
 
 ## Performance Metrics
 
-- **Plans completed:** 18
+- **Plans completed:** 19
 - **Plans failed:** 0
 - **Phases completed:** 5 (of 7 total; 2 phases inserted 2026-02-11)
 - **Requirements delivered:** 25/29 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04)
@@ -94,6 +94,9 @@
 | createComponentLogger uses Logger.child() for component field       | Automatic component field injection for post-hoc filtering with jq/grep    | 03.1-01 |
 | DEBUG_COMPONENTS documented for advisory filtering                  | Post-hoc filtering only; runtime filtering deferred to future optimization | 03.1-01 |
 | All debug logs use isLevelEnabled check                             | Zero overhead when debug logging is disabled                               | 03.1-01 |
+| createMockLogger() factory for test mocks                           | Consolidates type assertions to factory instead of per-call-site           | 03.1-03 |
+| Date.now() calculations inside debug guards                         | Zero performance overhead when LOG_LEVEL=info (production)                 | 03.1-03 |
+| If/else pattern for debug-enabled vs production paths               | Handlers duplicate minimal code to avoid debug overhead                    | 03.1-03 |
 
 ### Discovered Todos
 
@@ -108,18 +111,20 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-11
-- **Activity:** Executed 03.1-02-PLAN.md — Fix missing imports for debug logging (gap closure)
-- **Outcome:** Added 5 import statements across 5 files (metadataWorkerPool.ts, 3 handler files, logger.test.ts) to wire createComponentLogger/getFileLogger to consumers. Debug logging infrastructure from 03.1-01 now fully functional with zero ReferenceErrors. Phase 3.1 complete (2 min execution).
+- **Activity:** Executed 03.1-03-PLAN.md — Code quality and performance improvements (gap closure)
+- **Outcome:** Eliminated type assertion anti-patterns via createMockLogger() factory (10 call-site assertions → 2 factory assertions). Moved all Date.now() calculations inside isLevelEnabled('debug') guards across 4 files for zero overhead when LOG_LEVEL=info. Phase 3.1 fully complete with all gap closures addressed (3 min execution).
 - **Next Step:** Phase 3.2 (Queue-Based Worker Pool Optimization)
 
 ### Context for Next Session
 
-- **Phase 3.1 complete (gap closed):** Debug logging infrastructure fully functional
+- **Phase 3.1 complete (all gap closures addressed):** Debug logging infrastructure fully functional with code quality and performance optimizations
   - Plan 01: createComponentLogger helper, worker pool instrumentation, handler debug logging
   - Plan 02: Import wiring fixes — all 5 files now correctly import createComponentLogger/getFileLogger
+  - Plan 03: Code quality improvements — eliminated type assertions, zero-overhead debug logging
   - User can set LOG_LEVEL=debug and see component-specific logs with zero ReferenceErrors
   - Post-hoc filtering enabled: `cat logs/*.log | jq 'select(.component == "worker_pool")'`
   - All logging uses isLevelEnabled check for zero overhead when disabled
+  - Production (LOG_LEVEL=info) has no Date.now() overhead from debug instrumentation
 - **Next phase:** Phase 3.2 (Queue-Based Worker Pool Optimization) - run `/gsd-plan-phase 3.2`
   - Refactor MetadataWorkerPool from batch-wait to queue-based architecture
   - Keep N workers busy with X requests each for ~2x throughput
