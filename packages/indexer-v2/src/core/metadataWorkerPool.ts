@@ -58,7 +58,7 @@ class PoolWorker {
   busy = false;
   private pending: PendingJob | null = null;
 
-  constructor(workerPath: string, workerData: object) {
+  constructor(workerPath: string, workerData: object, workerId: number) {
     this.worker = new Worker(workerPath, { workerData });
 
     this.worker.on('message', (results: WorkerFetchResult[]) => {
@@ -69,6 +69,7 @@ class PoolWorker {
     });
 
     this.worker.on('error', (error: Error) => {
+      console.error(`[Worker ${workerId}] Error:`, error);
       const job = this.pending;
       this.pending = null;
       this.busy = false;
@@ -119,11 +120,19 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
     this.retryBaseDelayMs = config.retryBaseDelayMs ?? 1_000;
 
     // Worker script path: compiled JS in lib/core/metadataWorker.js
-    const workerPath = path.resolve(__dirname, 'metadataWorker.js');
+    // When running with ts-node, __dirname points to src/core, but worker must be in lib/core
+    // When running compiled JS, __dirname points to lib/core
+    // Detect by checking if current file ends with .ts
+    const workerPath = __filename.endsWith('.ts')
+      ? path.resolve(__dirname, '../../lib/core/metadataWorker.js') // Running via ts-node
+      : path.resolve(__dirname, 'metadataWorker.js'); // Running compiled JS
 
     const workerData = { ipfsGateway, requestTimeoutMs };
 
-    this.workers = Array.from({ length: poolSize }, () => new PoolWorker(workerPath, workerData));
+    this.workers = Array.from(
+      { length: poolSize },
+      (_, i) => new PoolWorker(workerPath, workerData, i),
+    );
   }
 
   /**

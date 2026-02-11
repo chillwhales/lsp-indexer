@@ -161,14 +161,20 @@ async function fetchSingle(request: FetchRequest): Promise<FetchResult> {
 
 if (parentPort) {
   const port = parentPort;
+
   parentPort.on('message', (requests: FetchRequest[]) => {
     void Promise.all(requests.map(fetchSingle))
       .then((results) => {
         port.postMessage(results);
       })
       .catch((err: unknown) => {
+        console.error('[MetadataWorker] Fatal error processing requests:', err);
         // Re-throw so the worker crashes — parent pool detects this via 'error' event
         throw err;
       });
   });
+} else {
+  console.error(
+    '[MetadataWorker] ERROR: parentPort is null - worker cannot communicate with parent',
+  );
 }

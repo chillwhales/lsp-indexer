@@ -7,7 +7,9 @@ echo "🚀 Indexer v2 starting..."
 cd /app/packages/typeorm
 
 echo "📊 Generating database migrations from schema.graphql..."
-pnpm migration:generate
+pnpm migration:generate || {
+  echo "ℹ️  No schema changes detected - skipping migration generation"
+}
 
 echo "📊 Applying database migrations..."
 pnpm migration:apply

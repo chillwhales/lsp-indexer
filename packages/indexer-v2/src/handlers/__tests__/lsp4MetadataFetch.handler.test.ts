@@ -954,3 +954,74 @@ describe('LSP4MetadataFetchHandler - Failed fetch (META-05)', () => {
     expect(updated.retryCount).toBe(1);
   });
 });
+
+describe('LSP4MetadataFetchHandler - Worker pool errors', () => {
+  it('logs error and continues when workerPool.fetchBatch throws', async () => {
+    const batchCtx = createMockBatchCtx();
+    const hctx = createMockHandlerContext(batchCtx, { isHead: true });
+
+    const unfetched = new LSP4Metadata({
+      id: 'meta-error-1',
+      url: 'ipfs://QmError',
+      isDataFetched: false,
+    } as Partial<LSP4Metadata>);
+
+    (hctx.store.find as ReturnType<typeof vi.fn>).mockResolvedValueOnce([unfetched]);
+    (hctx.workerPool.fetchBatch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new Error('Worker pool crashed'),
+    );
+
+    batchCtx._entityBags.set('LSP4Metadata', new Map());
+
+    // Should not throw - error handling catches and logs
+    await expect(LSP4MetadataFetchHandler.handle(hctx, 'LSP4Metadata')).resolves.not.toThrow();
+
+    // Verify warning was logged (includes batch number now)
+    expect(hctx.context.log.warn).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.stringContaining('Metadata fetch batch 1/1 failed'),
+    );
+
+    // Verify no entities were updated (error causes continue to skip batch)
+    const metaCalls = batchCtx.addEntity.mock.calls.filter(
+      (c: unknown[]) => c[0] === 'LSP4Metadata',
+    );
+    expect(metaCalls.length).toBe(0);
+  });
+
+  it('logs error without crashing when worker pool fails', async () => {
+    const batchCtx = createMockBatchCtx();
+    const hctx = createMockHandlerContext(batchCtx, { isHead: true });
+
+    // Create 2 unfetched entities (both will be in same batch since FETCH_BATCH_SIZE = 1,000)
+    const unfetched1 = new LSP4Metadata({
+      id: 'meta-batch-1',
+      url: 'ipfs://QmBatch1',
+      isDataFetched: false,
+    } as Partial<LSP4Metadata>);
+
+    const unfetched2 = new LSP4Metadata({
+      id: 'meta-batch-2',
+      url: 'ipfs://QmBatch2',
+      isDataFetched: false,
+    } as Partial<LSP4Metadata>);
+
+    (hctx.store.find as ReturnType<typeof vi.fn>).mockResolvedValueOnce([unfetched1, unfetched2]);
+
+    // Worker pool throws error
+    (hctx.workerPool.fetchBatch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new Error('Worker pool crashed'),
+    );
+
+    batchCtx._entityBags.set('LSP4Metadata', new Map());
+
+    // Should not throw - error handling logs and continues
+    await expect(LSP4MetadataFetchHandler.handle(hctx, 'LSP4Metadata')).resolves.not.toThrow();
+
+    // Verify error was logged
+    expect(hctx.context.log.warn).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.stringContaining('Metadata fetch batch 1/1 failed'),
+    );
+  });
+});

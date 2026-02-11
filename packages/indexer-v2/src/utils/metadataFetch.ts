@@ -8,7 +8,12 @@
  * Each fetch handler configures this utility with its specific entity class,
  * parsing function, and sub-entity types.
  */
-import { FETCH_LIMIT, FETCH_RETRY_COUNT } from '@/constants';
+import {
+  FETCH_BATCH_SIZE,
+  FETCH_BATCH_TIMEOUT_MS,
+  FETCH_LIMIT,
+  FETCH_RETRY_COUNT,
+} from '@/constants';
 import { Entity, EntityConstructor, FetchRequest, FetchResult, HandlerContext } from '@/core/types';
 import { Store } from '@subsquid/typeorm-store';
 import { FindOptionsWhere, In, IsNull, LessThan, Not } from 'typeorm';
@@ -189,7 +194,16 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
   }
 
   // ----- Path 2: Head-only fetch (DB backlog drain) -----
-  if (!hctx.isHead) return;
+  hctx.context.log.debug(
+    `[${config.entityType}] isHead=${hctx.isHead}, entities in batch=${entities.size}`,
+  );
+
+  if (!hctx.isHead) {
+    hctx.context.log.debug(`[${config.entityType}] Skipping metadata fetch - not at head`);
+    return;
+  }
+
+  hctx.context.log.info(`[${config.entityType}] At chain head - checking for metadata backlog`);
 
   // Collect current-batch IDs so we can exclude them from the DB backlog.
   // Entities in the current batch may have updated url/fields that the DB
@@ -199,16 +213,30 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
     batchIds.add(config.getId(entity));
   }
 
+  hctx.context.log.debug(
+    `[${config.entityType}] Querying DB for unfetched entities (limit=${FETCH_LIMIT})`,
+  );
+
   const unfetched = await queryUnfetchedEntities<TEntity>(
     hctx.store,
     config.entityClass,
     FETCH_LIMIT,
   );
+
+  hctx.context.log.info(
+    `[${config.entityType}] Found ${unfetched.length} unfetched entities in DB`,
+  );
+
   if (unfetched.length === 0) return;
 
   // Filter out entities that exist in the current batch — their in-batch
   // state (url, error fields, etc.) may differ from the stale DB snapshot.
   const backlog = unfetched.filter((entity) => !batchIds.has(config.getId(entity)));
+
+  hctx.context.log.info(
+    `[${config.entityType}] After filtering batch IDs: ${backlog.length} entities in backlog`,
+  );
+
   if (backlog.length === 0) return;
 
   // Build fetch requests (only backlog entities that have a URL)
@@ -220,68 +248,143 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
     return acc;
   }, []);
 
+  hctx.context.log.info(
+    `[${config.entityType}] Built ${requests.length} fetch requests (${backlog.length - requests.length} had null URLs)`,
+  );
+
   if (requests.length === 0) return;
 
-  // Fetch via worker pool
-  const results: FetchResult[] = await hctx.workerPool.fetchBatch(requests);
-
-  // Build lookup for backlog entities by ID
+  // Build lookup for backlog entities by ID (used for all batches)
   const entityById = new Map<string, TEntity>();
   for (const entity of backlog) {
     entityById.set(config.getId(entity), entity);
   }
 
-  // Process results
-  for (const result of results) {
-    const entity = entityById.get(result.id);
-    if (!entity) continue;
+  // Split requests into batches to prevent memory pressure (same pattern as v1)
+  const batchCount = Math.ceil(requests.length / FETCH_BATCH_SIZE);
+  let totalProcessed = 0;
+  let totalFailed = 0;
 
-    if (result.success && result.data !== undefined) {
-      // Parse JSON into sub-entities
-      const parseResult = config.parseAndAddSubEntities(entity, result.data, hctx);
+  hctx.context.log.info(
+    `[${config.entityType}] Starting metadata fetch: ${requests.length} requests split into ${batchCount} batches of ${FETCH_BATCH_SIZE}`,
+  );
 
-      if (parseResult.success === false) {
-        // Parse error — update entity with error, increment retry
+  for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
+    const batchStart = batchIndex * FETCH_BATCH_SIZE;
+    const batchEnd = Math.min(batchStart + FETCH_BATCH_SIZE, requests.length);
+    const batchRequests = requests.slice(batchStart, batchEnd);
+
+    hctx.context.log.info(
+      `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount}: Calling worker pool with ${batchRequests.length} URLs`,
+    );
+
+    // Fetch via worker pool with timeout protection
+    const fetchStartTime = Date.now();
+    let results: FetchResult[];
+    try {
+      // Race between worker pool fetch and timeout
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error(`Worker pool timeout after ${FETCH_BATCH_TIMEOUT_MS}ms`));
+        }, FETCH_BATCH_TIMEOUT_MS);
+      });
+
+      results = await Promise.race([hctx.workerPool.fetchBatch(batchRequests), timeoutPromise]);
+
+      const fetchDuration = Date.now() - fetchStartTime;
+      hctx.context.log.info(
+        `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount}: Worker pool returned ${results.length} results in ${fetchDuration}ms`,
+      );
+    } catch (err) {
+      // Log error but don't crash the processor — metadata fetching is best-effort
+      // Pass full error object to capture stack traces for debugging worker crashes
+      const fetchDuration = Date.now() - fetchStartTime;
+      const message = `Metadata fetch batch ${batchIndex + 1}/${batchCount} failed for ${config.entityType} (${batchRequests.length} requests, ${fetchDuration}ms elapsed)`;
+      if (typeof err === 'object' && err !== null) {
+        hctx.context.log.warn(err, message);
+      } else {
+        hctx.context.log.warn(message);
+      }
+
+      // Mark all entities in this batch with error to prevent infinite retries
+      // Without this, queryUnfetchedEntities() will keep retrying them on every head batch
+      for (const request of batchRequests) {
+        const entity = entityById.get(request.id);
+        if (!entity) continue;
+
         const updated = new config.entityClass({
           ...entity,
-          fetchErrorMessage: parseResult.fetchErrorMessage,
-          fetchErrorCode: null,
+          fetchErrorMessage: message,
+          fetchErrorCode: 'WORKER_POOL_ERROR',
           fetchErrorStatus: null,
           retryCount: (entity.retryCount ?? 0) + 1,
         });
         hctx.batchCtx.addEntity(config.entityType, config.getId(entity), updated);
-      } else {
-        // Queue clear old sub-entities before new ones are persisted
-        for (const desc of config.subEntityDescriptors) {
-          hctx.batchCtx.queueClear({
-            subEntityClass: desc.subEntityClass,
-            fkField: desc.fkField,
-            parentIds: [config.getId(entity)],
-          });
-        }
+      }
 
-        // Update main entity: isDataFetched = true, clear error fields
+      totalFailed += batchRequests.length;
+      continue; // Skip this batch but process remaining batches
+    }
+
+    // Process results for this batch
+    for (const result of results) {
+      const entity = entityById.get(result.id);
+      if (!entity) continue;
+
+      if (result.success && result.data !== undefined) {
+        // Parse JSON into sub-entities
+        const parseResult = config.parseAndAddSubEntities(entity, result.data, hctx);
+
+        if (parseResult.success === false) {
+          // Parse error — update entity with error, increment retry
+          const updated = new config.entityClass({
+            ...entity,
+            fetchErrorMessage: parseResult.fetchErrorMessage,
+            fetchErrorCode: null,
+            fetchErrorStatus: null,
+            retryCount: (entity.retryCount ?? 0) + 1,
+          });
+          hctx.batchCtx.addEntity(config.entityType, config.getId(entity), updated);
+        } else {
+          // Queue clear old sub-entities before new ones are persisted
+          for (const desc of config.subEntityDescriptors) {
+            hctx.batchCtx.queueClear({
+              subEntityClass: desc.subEntityClass,
+              fkField: desc.fkField,
+              parentIds: [config.getId(entity)],
+            });
+          }
+
+          // Update main entity: isDataFetched = true, clear error fields
+          const updated = new config.entityClass({
+            ...entity,
+            isDataFetched: true,
+            fetchErrorMessage: null,
+            fetchErrorCode: null,
+            fetchErrorStatus: null,
+            retryCount: null,
+            ...(parseResult.entityUpdates ?? {}),
+          });
+          hctx.batchCtx.addEntity(config.entityType, config.getId(entity), updated);
+          totalProcessed++;
+        }
+      } else {
+        // Fetch error — update entity with error fields from worker
         const updated = new config.entityClass({
           ...entity,
-          isDataFetched: true,
-          fetchErrorMessage: null,
-          fetchErrorCode: null,
-          fetchErrorStatus: null,
-          retryCount: null,
-          ...(parseResult.entityUpdates ?? {}),
+          fetchErrorMessage: result.error ?? 'Unknown fetch error',
+          fetchErrorCode: result.errorCode ?? null,
+          fetchErrorStatus: result.errorStatus ?? null,
+          retryCount: (entity.retryCount ?? 0) + 1,
         });
         hctx.batchCtx.addEntity(config.entityType, config.getId(entity), updated);
+        totalFailed++;
       }
-    } else {
-      // Fetch error — update entity with error fields from worker
-      const updated = new config.entityClass({
-        ...entity,
-        fetchErrorMessage: result.error ?? 'Unknown fetch error',
-        fetchErrorCode: result.errorCode ?? null,
-        fetchErrorStatus: result.errorStatus ?? null,
-        retryCount: (entity.retryCount ?? 0) + 1,
-      });
-      hctx.batchCtx.addEntity(config.entityType, config.getId(entity), updated);
     }
   }
+
+  // Log summary after all batches complete
+  hctx.context.log.info(
+    `[${config.entityType}] Metadata backlog drain complete: ${totalProcessed} processed, ${totalFailed} failed (${batchCount} batches)`,
+  );
 }
