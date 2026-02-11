@@ -161,14 +161,28 @@ async function fetchSingle(request: FetchRequest): Promise<FetchResult> {
 
 if (parentPort) {
   const port = parentPort;
+  console.log('[MetadataWorker] Worker thread started and ready');
+
   parentPort.on('message', (requests: FetchRequest[]) => {
+    console.log(`[MetadataWorker] Received ${requests.length} fetch requests`);
+    const startTime = Date.now();
+
     void Promise.all(requests.map(fetchSingle))
       .then((results) => {
+        const duration = Date.now() - startTime;
+        console.log(
+          `[MetadataWorker] Processed ${results.length} requests in ${duration}ms. Sending results back.`,
+        );
         port.postMessage(results);
       })
       .catch((err: unknown) => {
+        console.error('[MetadataWorker] Fatal error processing requests:', err);
         // Re-throw so the worker crashes — parent pool detects this via 'error' event
         throw err;
       });
   });
+} else {
+  console.error(
+    '[MetadataWorker] ERROR: parentPort is null - worker cannot communicate with parent',
+  );
 }

@@ -58,10 +58,12 @@ class PoolWorker {
   busy = false;
   private pending: PendingJob | null = null;
 
-  constructor(workerPath: string, workerData: object) {
+  constructor(workerPath: string, workerData: object, workerId: number) {
+    console.log(`[MetadataWorkerPool] Creating worker ${workerId} at path: ${workerPath}`);
     this.worker = new Worker(workerPath, { workerData });
 
     this.worker.on('message', (results: WorkerFetchResult[]) => {
+      console.log(`[Worker ${workerId}] Received ${results.length} results`);
       const job = this.pending;
       this.pending = null;
       this.busy = false;
@@ -69,14 +71,20 @@ class PoolWorker {
     });
 
     this.worker.on('error', (error: Error) => {
+      console.error(`[Worker ${workerId}] Error:`, error);
       const job = this.pending;
       this.pending = null;
       this.busy = false;
       if (job) job.reject(error);
     });
+
+    this.worker.on('exit', (code) => {
+      console.log(`[Worker ${workerId}] Exited with code ${code}`);
+    });
   }
 
   execute(requests: FetchRequest[]): Promise<WorkerFetchResult[]> {
+    console.log(`[PoolWorker] Sending ${requests.length} requests to worker`);
     this.busy = true;
     return new Promise<WorkerFetchResult[]>((resolve, reject) => {
       this.pending = { resolve, reject };
@@ -123,7 +131,14 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
 
     const workerData = { ipfsGateway, requestTimeoutMs };
 
-    this.workers = Array.from({ length: poolSize }, () => new PoolWorker(workerPath, workerData));
+    console.log(`[MetadataWorkerPool] Initializing ${poolSize} workers`);
+    console.log(`[MetadataWorkerPool] Worker path: ${workerPath}`);
+    console.log(`[MetadataWorkerPool] Worker data:`, workerData);
+
+    this.workers = Array.from(
+      { length: poolSize },
+      (_, i) => new PoolWorker(workerPath, workerData, i),
+    );
   }
 
   /**
@@ -148,8 +163,16 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
 
       // Distribute across workers
       const chunks = this.distribute(pending);
+      console.log(
+        `[MetadataWorkerPool] Attempt ${attempt + 1}/${this.maxRetries + 1}: Distributing ${pending.length} requests across ${chunks.length} workers`,
+      );
+      chunks.forEach((chunk, i) => {
+        console.log(`[MetadataWorkerPool] Worker ${i} will handle ${chunk.length} requests`);
+      });
+
       const chunkPromises = chunks.map((chunk, i) => this.workers[i].execute(chunk));
       const workerResults = (await Promise.all(chunkPromises)).flat();
+      console.log(`[MetadataWorkerPool] Received ${workerResults.length} results from workers`);
 
       // Separate successes and retryable failures
       const toRetry: FetchRequest[] = [];
