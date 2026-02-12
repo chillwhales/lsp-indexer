@@ -1,0 +1,22 @@
+{
+  "name": "@chillwhales/comparison-tool",
+  "version": "1.0.0",
+  "description": "Compare two Hasura GraphQL endpoints for data parity (v1-v2 or v2-v2)",
+  "keywords": [],
+  "author": "b00ste",
+  "license": "MIT",
+  "packageManager": "pnpm@10.10.0",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -Rf lib/",
+    "compare": "ts-node -r tsconfig-paths/register src/cli.ts"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "tsconfig-paths": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "typescript": "^5.9.2"
+  }
+}

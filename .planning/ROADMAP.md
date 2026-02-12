@@ -233,7 +233,7 @@ Plans:
 
 Plans:
 
-- [ ] 05-01-PLAN.md — Types, entity registry (72 types + known divergences), GraphQL client
+- [x] 05-01-PLAN.md — Types, entity registry (72 types + known divergences), GraphQL client
 - [ ] 05-02-PLAN.md — Comparison engine, colored reporter, CLI entry point + human verification
 
 **Note:** DEPL-01 is satisfied by existing Docker infrastructure (V1 and V2 each have their own docker-compose). The deliverable is the comparison tool (DEPL-02) — a CLI that queries two running Hasura endpoints via GraphQL and reports data parity.
@@ -242,15 +242,15 @@ Plans:
 
 ## Progress
 
-| Phase | Name                              | Requirements | Status   |
-| ----- | --------------------------------- | :----------: | -------- |
-| 1     | Handler Migration                 |      5       | Complete |
-| 2     | New Handlers & Structured Logging |      5       | Complete |
-| 3     | Metadata Fetch Handlers           |      5       | Complete |
-| 3.1   | Improve Debug Logging Strategy    |      4       | Complete |
-| 3.2   | Queue-Based Worker Pool           |      4       | Next     |
-| 4     | Integration & Wiring              |      4       | Complete |
-| 5     | Deployment & Validation           |      2       | Upcoming |
+| Phase | Name                              | Requirements | Status                  |
+| ----- | --------------------------------- | :----------: | ----------------------- |
+| 1     | Handler Migration                 |      5       | Complete                |
+| 2     | New Handlers & Structured Logging |      5       | Complete                |
+| 3     | Metadata Fetch Handlers           |      5       | Complete                |
+| 3.1   | Improve Debug Logging Strategy    |      4       | Complete                |
+| 3.2   | Queue-Based Worker Pool           |      4       | Deferred                |
+| 4     | Integration & Wiring              |      4       | Complete                |
+| 5     | Deployment & Validation           |      2       | In progress (1/2 plans) |
 
 **Total:** 29 requirements across 7 phases (5 original + 2 inserted)
 
