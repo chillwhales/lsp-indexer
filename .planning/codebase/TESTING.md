@@ -5,6 +5,7 @@
 ## Test Framework
 
 **Runner:**
+
 - Vitest 2.1.8 (in `packages/indexer-v2` only)
 - Config: `packages/indexer-v2/vitest.config.ts`
 - Globals enabled (`describe`, `it`, `expect` available without import)
@@ -12,10 +13,12 @@
 - Setup file: `packages/indexer-v2/vitest.setup.ts` (registers `@/*` path alias for CJS `require()` calls)
 
 **Assertion Library:**
+
 - Vitest built-in `expect()` assertions
 - Vitest `vi` mock utilities (`vi.fn()`, `vi.mock()`, `vi.spyOn()`, `vi.mocked()`)
 
 **Run Commands:**
+
 ```bash
 pnpm --filter=@chillwhales/indexer-v2 test        # Run all tests (builds first via pretest)
 pnpm --filter=@chillwhales/indexer-v2 test:watch   # Watch mode (vitest without --run)
@@ -26,14 +29,17 @@ pnpm --filter=@chillwhales/indexer-v2 test:watch   # Watch mode (vitest without 
 ## Test File Organization
 
 **Location:**
+
 - Unit tests: co-located in `__tests__/` directories next to source
 - Integration tests: `packages/indexer-v2/test/integration/`
 - Test fixtures: `packages/indexer-v2/test/fixtures/blocks/`
 
 **Naming:**
+
 - All test files: `{module}.test.ts`
 
 **Structure:**
+
 ```
 packages/indexer-v2/
 ├── src/
@@ -67,6 +73,7 @@ packages/indexer-v2/
 ## Test Structure
 
 **Suite Organization:**
+
 ```typescript
 // Tests organized by pipeline steps with section separator comments
 // ---------------------------------------------------------------------------
@@ -82,6 +89,7 @@ describe('Pipeline Step 1: EXTRACT', () => {
 ```
 
 **Handler Test Organization:**
+
 ```typescript
 describe('TotalSupplyHandler', () => {
   describe('FK field preservation', () => {
@@ -93,6 +101,7 @@ describe('TotalSupplyHandler', () => {
 ```
 
 **Patterns:**
+
 - Describe blocks mirror pipeline stages or handler behaviors
 - Test descriptions use `should {verb}` or `{verb}s {thing}` patterns
 - Regression tests reference issue numbers: `(regression test for #146)`
@@ -103,6 +112,7 @@ describe('TotalSupplyHandler', () => {
 **Framework:** Vitest `vi.fn()`, `vi.mock()`, `vi.spyOn()`
 
 **Mock Store Pattern:**
+
 ```typescript
 // From packages/indexer-v2/src/core/__tests__/pipeline.test.ts
 interface MockStore extends Store {
@@ -128,6 +138,7 @@ function createMockStore(): MockStore {
 ```
 
 **Mock BatchContext Pattern (for handler tests):**
+
 ```typescript
 // From packages/indexer-v2/src/handlers/__tests__/follower.handler.test.ts
 function createMockBatchCtx() {
@@ -153,6 +164,7 @@ function createMockBatchCtx() {
 ```
 
 **Mock Context Pattern:**
+
 ```typescript
 function createMockContext(store: Store, blocks: Block[] = [mockBlock]): Context {
   const mockLogger = {
@@ -167,6 +179,7 @@ function createMockContext(store: Store, blocks: Block[] = [mockBlock]): Context
 ```
 
 **Module Mocking (worker_threads):**
+
 ```typescript
 // From packages/indexer-v2/src/core/__tests__/metadataWorkerPool.test.ts
 vi.mock('worker_threads', () => ({
@@ -186,6 +199,7 @@ vi.mock('worker_threads', () => ({
 ```
 
 **What to Mock:**
+
 - Subsquid `Store` (insert/upsert/findBy/find/remove operations)
 - Subsquid `Context` object (blocks, store, log, isHead)
 - Verification functions (`verifyAddresses`)
@@ -195,6 +209,7 @@ vi.mock('worker_threads', () => ({
 - Handler helper modules (`mergeEntitiesFromBatchAndDb`)
 
 **What NOT to Mock:**
+
 - Core domain logic: `BatchContext`, `PluginRegistry`, `processBatch` (tested with real implementations)
 - Entity construction (uses real TypeORM entities from `@chillwhales/typeorm`)
 - Utility functions (`generateTokenId`, `generateFollowId`, etc.)
@@ -202,12 +217,14 @@ vi.mock('worker_threads', () => ({
 ## Fixtures and Factories
 
 **JSON Fixtures (Integration Tests):**
+
 - Location: `packages/indexer-v2/test/fixtures/blocks/`
 - Files: `transfer-lsp7.json`, `transfer-lsp8.json`, `multi-event.json`
 - Loaded at module level: `const lsp7TransferFixture = loadFixture('transfer-lsp7.json')`
 - Contain real blockchain block data with logs for deterministic testing
 
 **Inline Fixtures (Unit Tests):**
+
 ```typescript
 // Block fixture
 const mockBlock: Block = {
@@ -220,21 +237,47 @@ const mockLog = (topic0: string, address = '0xcontract'): Log =>
 ```
 
 **Entity Factory Functions (Handler Tests):**
+
 ```typescript
 // From packages/indexer-v2/src/handlers/__tests__/totalSupply.handler.test.ts
-function createTransfer({ from, to, amount, address, timestamp }: {
-  from: string; to: string; amount: bigint; address?: string; timestamp?: Date;
+function createTransfer({
+  from,
+  to,
+  amount,
+  address,
+  timestamp,
+}: {
+  from: string;
+  to: string;
+  amount: bigint;
+  address?: string;
+  timestamp?: Date;
 }): Transfer {
   return new Transfer({
-    id: uuidv4(), blockNumber: 100, logIndex: 1, transactionIndex: 1,
-    timestamp, address, from, to, amount,
-    tokenId: null, operator: from, force: false, data: '0x',
-    digitalAsset: null, fromProfile: null, toProfile: null, operatorProfile: null, nft: null,
+    id: uuidv4(),
+    blockNumber: 100,
+    logIndex: 1,
+    transactionIndex: 1,
+    timestamp,
+    address,
+    from,
+    to,
+    amount,
+    tokenId: null,
+    operator: from,
+    force: false,
+    data: '0x',
+    digitalAsset: null,
+    fromProfile: null,
+    toProfile: null,
+    operatorProfile: null,
+    nft: null,
   });
 }
 ```
 
 **Pattern for Override Factories:**
+
 ```typescript
 // From packages/indexer-v2/src/handlers/__tests__/follower.handler.test.ts
 function createFollow(overrides: Partial<Follow> = {}): Follow {
@@ -252,6 +295,7 @@ function createFollow(overrides: Partial<Follow> = {}): Follow {
 **Requirements:** None enforced. No coverage configuration.
 
 **View Coverage:**
+
 ```bash
 # No coverage commands configured
 # Could add: vitest run --coverage
@@ -260,6 +304,7 @@ function createFollow(overrides: Partial<Follow> = {}): Follow {
 ## Test Types
 
 **Unit Tests (11 files):**
+
 - `packages/indexer-v2/src/core/__tests__/batchContext.test.ts` - BatchContext entity storage, sealing, enrichment queue
 - `packages/indexer-v2/src/core/__tests__/logger.test.ts` - Step logger, component logger, dual logger, file logger init
 - `packages/indexer-v2/src/core/__tests__/metadataWorkerPool.test.ts` - Worker dispatch, retry, crash recovery, shutdown
@@ -273,6 +318,7 @@ function createFollow(overrides: Partial<Follow> = {}): Follow {
 - `packages/indexer-v2/src/handlers/__tests__/lsp29EncryptedAssetFetch.handler.test.ts` - LSP29 encrypted asset fetch
 
 **Integration Tests (1 file):**
+
 - `packages/indexer-v2/test/integration/pipeline.test.ts` - Full pipeline with real plugin/handler discovery from compiled `lib/` directory
   - Tests registry auto-discovery of plugins and handlers
   - Tests LSP7/LSP8 transfer processing through all 6 pipeline steps
@@ -282,30 +328,42 @@ function createFollow(overrides: Partial<Follow> = {}): Follow {
   - **Requires `pnpm build` before running** (imports from `lib/`)
 
 **E2E Tests:**
+
 - Not present. No database or RPC integration tests.
 
 ## Common Patterns
 
 **Async Testing:**
+
 ```typescript
 it('should persist all raw event entities via store.insert()', async () => {
   const store = createMockStore();
   const context = createMockContext(store, [{ ...mockBlock, logs: [mockLog('0xtopic')] }]);
-  await processBatch(context, { registry, verifyAddresses: createMockVerifyFn(), workerPool: mockWorkerPool });
+  await processBatch(context, {
+    registry,
+    verifyAddresses: createMockVerifyFn(),
+    workerPool: mockWorkerPool,
+  });
   expect(store.insertedEntities).toContainEqual({ id: 'e1', type: 'event1' });
 });
 ```
 
 **Error Testing:**
+
 ```typescript
 it('should throw if handler tries to add entity to raw entity type key', async () => {
   await expect(
-    processBatch(context, { registry, verifyAddresses: createMockVerifyFn(), workerPool: mockWorkerPool })
+    processBatch(context, {
+      registry,
+      verifyAddresses: createMockVerifyFn(),
+      workerPool: mockWorkerPool,
+    }),
   ).rejects.toThrow(/Handler attempted to add entity to raw type 'RawEvent'/);
 });
 ```
 
 **Fake Timers (Worker Pool Tests):**
+
 ```typescript
 beforeEach(() => {
   vi.useFakeTimers();
@@ -320,10 +378,16 @@ async function tick(): Promise<void> {
 ```
 
 **Environment Variable Testing (Logger Tests):**
+
 ```typescript
 const originalEnv = { ...process.env };
-beforeEach(() => { _resetFileLogger(); });
-afterEach(() => { process.env = { ...originalEnv }; _resetFileLogger(); });
+beforeEach(() => {
+  _resetFileLogger();
+});
+afterEach(() => {
+  process.env = { ...originalEnv };
+  _resetFileLogger();
+});
 
 it('respects LOG_LEVEL env var override', () => {
   process.env.LOG_LEVEL = 'warn';
@@ -333,6 +397,7 @@ it('respects LOG_LEVEL env var override', () => {
 ```
 
 **State Verification Pattern:**
+
 - Tests verify persistence by inspecting mock store tracking arrays (`insertedEntities`, `upsertedEntities`)
 - Entity matching uses `find()` with property checks:
   ```typescript
@@ -343,6 +408,7 @@ it('respects LOG_LEVEL env var override', () => {
   ```
 
 **Regression Test Pattern:**
+
 ```typescript
 it('preserves digitalAsset FK field during mint reconstruction (regression test for #146)', async () => {
   // Simulate TypeORM behavior: delete FK property to test preservation
@@ -357,11 +423,13 @@ it('preserves digitalAsset FK field during mint reconstruction (regression test 
 ## Test Gaps
 
 **No tests in other packages:**
+
 - `packages/indexer/` (v1, legacy/read-only) - zero tests
 - `packages/abi/` (codegen) - zero tests
 - `packages/typeorm/` (codegen) - zero tests
 
 **Missing test coverage in indexer-v2:**
+
 - No tests for `packages/indexer-v2/src/core/registry.ts` discovery logic (auto-discovery from filesystem)
 - No tests for `packages/indexer-v2/src/core/verification.ts` (on-chain supportsInterface calls)
 - No tests for `packages/indexer-v2/src/core/multicall.ts` (multicall batching)
@@ -376,6 +444,7 @@ it('preserves digitalAsset FK field during mint reconstruction (regression test 
 ## Adding New Tests
 
 When adding a new handler test:
+
 1. Create `packages/indexer-v2/src/handlers/__tests__/{handlerName}.handler.test.ts`
 2. Import from `vitest`: `import { describe, expect, it, vi } from 'vitest'`
 3. Import handler: `import MyHandler from '../myHandler.handler'`
@@ -385,10 +454,11 @@ When adding a new handler test:
 7. Run: `pnpm --filter=@chillwhales/indexer-v2 test`
 
 When adding a new core module test:
+
 1. Create `packages/indexer-v2/src/core/__tests__/{module}.test.ts`
 2. Follow existing patterns from `pipeline.test.ts` or `logger.test.ts`
 3. Mock external dependencies (`Store`, `Context`, `Logger`) not core logic
 
 ---
 
-*Testing analysis: 2026-02-12*
+_Testing analysis: 2026-02-12_

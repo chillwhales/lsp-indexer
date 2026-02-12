@@ -74,6 +74,7 @@ V2 is designed to replace V1. The migration is ~86% complete (25/29 requirements
 - `packages/indexer-v2/test/integration/pipeline.test.ts` line 272: `TODO: Document V1's complete handler execution order`
 - `decimals.handler.ts` and `formattedTokenId.handler.ts` need logging updates (noted in STATE.md discovered todos)
 - Fix approach: Address during Phase 5 (Deployment and Validation).
+
 ---
 
 ## Security Considerations

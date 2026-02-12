@@ -176,17 +176,20 @@ lsp-indexer/
 ## Directory Purposes
 
 **`packages/indexer-v2/src/core/` — Pipeline Framework:**
+
 - Purpose: The core engine powering the V2 indexer
 - Contains: Pipeline orchestrator, registry, batch context, verification, worker pool, logging
 - Key files: `pipeline.ts` (529 lines — the main 6-step pipeline), `registry.ts` (368 lines — plugin/handler discovery)
 
 **`packages/indexer-v2/src/plugins/events/` — Event Plugins:**
+
 - Purpose: One file per blockchain event type; auto-discovered by `PluginRegistry`
 - Contains: 11 plugin files, each implementing `EventPlugin` interface
 - Pattern: Export default object with `name`, `topic0`, `extract()` method
 - Discovery: Files matching `*.plugin.js` are loaded at runtime
 
 **`packages/indexer-v2/src/handlers/` — Entity Handlers:**
+
 - Purpose: One file per derived entity creation concern; auto-discovered by `PluginRegistry`
 - Contains: 22+ handler files, each implementing `EntityHandler` interface
 - Pattern: Export default object with `name`, `listensToBag[]`, `handle()` method
@@ -194,16 +197,19 @@ lsp-indexer/
 - Subdirectory: `chillwhales/` for project-specific handlers
 
 **`packages/indexer-v2/src/app/` — Application Bootstrap:**
+
 - Purpose: Entry point, processor setup, registry creation, pipeline config assembly
 - Contains: 4 files composing the application startup sequence
 - Key files: `index.ts` (entry), `bootstrap.ts` (registry creation), `config.ts` (pipeline config), `processor.ts` (Subsquid processor)
 
 **`packages/indexer-v2/src/core/types/` — Type System:**
+
 - Purpose: All interface and type definitions for the plugin architecture
 - Contains: 7 type modules with barrel export
 - Key types: `EventPlugin`, `EntityHandler`, `IBatchContext`, `Entity`, `FKFields<T>`, `WritableFields<T>`, `EnrichmentRequest<T>`
 
 **`packages/typeorm/` — Database Schema:**
+
 - Purpose: Single source of truth for the database schema
 - Contains: `schema.graphql` → generated TypeORM entity classes
 - 80+ entity types covering: events, data keys, profiles, assets, permissions, followers, marketplace
@@ -211,10 +217,12 @@ lsp-indexer/
 ## Key File Locations
 
 **Entry Points:**
+
 - `packages/indexer-v2/src/app/index.ts`: V2 main entry (active)
 - `packages/indexer/src/app/index.ts`: V1 main entry (legacy)
 
 **Configuration:**
+
 - `packages/indexer-v2/src/constants/index.ts`: All env-var configuration with defaults
 - `packages/indexer-v2/src/app/processor.ts`: Subsquid processor setup
 - `packages/indexer-v2/tsconfig.json`: TypeScript config with `@/` path alias
@@ -223,6 +231,7 @@ lsp-indexer/
 - `.env.example`: All supported environment variables
 
 **Core Logic:**
+
 - `packages/indexer-v2/src/core/pipeline.ts`: 6-step enrichment pipeline (529 lines)
 - `packages/indexer-v2/src/core/registry.ts`: Plugin discovery and routing (368 lines)
 - `packages/indexer-v2/src/core/batchContext.ts`: Batch entity storage (232 lines)
@@ -232,18 +241,21 @@ lsp-indexer/
 - `packages/indexer-v2/src/utils/metadataFetch.ts`: Shared metadata fetch utility (391 lines)
 
 **Testing:**
+
 - `packages/indexer-v2/src/core/__tests__/`: Core unit tests (pipeline, batchContext, workerPool, logger)
 - `packages/indexer-v2/src/handlers/__tests__/`: Handler unit tests (7 test files)
 - `packages/indexer-v2/test/integration/`: Integration tests
 - `packages/indexer-v2/test/fixtures/`: JSON block fixtures for tests
 
 **Docker:**
+
 - `docker/v2/Dockerfile`: Multi-stage build for V2 indexer
 - `docker/v2/docker-compose.yml`: Full stack (postgres + indexer-v2 + hasura + data-connector)
 
 ## Naming Conventions
 
 **Files:**
+
 - Plugins: `{eventName}.plugin.ts` — e.g., `lsp7Transfer.plugin.ts`, `dataChanged.plugin.ts`
 - Handlers: `{concern}.handler.ts` — e.g., `totalSupply.handler.ts`, `lsp4TokenName.handler.ts`
 - Tests: `{module}.test.ts` — co-located in `__tests__/` directories
@@ -251,11 +263,13 @@ lsp-indexer/
 - Type modules: `camelCase.ts` in `types/` — e.g., `handler.ts`, `plugins.ts`
 
 **Directories:**
+
 - `camelCase` for all source directories
 - `__tests__/` for test directories (co-located with source)
 - `chillwhales/` subdirectory for project-specific handlers
 
 **Exports:**
+
 - Plugins: `export default {PluginName}Plugin` — e.g., `export default LSP7TransferPlugin`
 - Handlers: `export default {HandlerName}Handler` — e.g., `export default TotalSupplyHandler`
 - Types: Named exports via barrel files
@@ -263,6 +277,7 @@ lsp-indexer/
 ## Where to Add New Code
 
 **New Blockchain Event:**
+
 1. Add ABI JSON to `packages/abi/custom/` if needed
 2. Rebuild ABI: `pnpm --filter=@chillwhales/abi build`
 3. Add entity to `packages/typeorm/schema.graphql`
@@ -273,6 +288,7 @@ lsp-indexer/
    - Auto-discovered by registry — no wiring needed
 
 **New Derived Entity (Handler):**
+
 1. Add entity to `packages/typeorm/schema.graphql` if needed
 2. Create `packages/indexer-v2/src/handlers/{concern}.handler.ts`
    - Implement `EntityHandler` interface
@@ -282,42 +298,50 @@ lsp-indexer/
    - Auto-discovered by registry — no wiring needed
 
 **New Metadata Fetch Handler:**
+
 1. Create handler at `packages/indexer-v2/src/handlers/{lspX}Fetch.handler.ts`
 2. Use `handleMetadataFetch()` from `packages/indexer-v2/src/utils/metadataFetch.ts`
 3. Implement `parseAndAddSubEntities()` callback for JSON parsing
 
 **New Test:**
+
 - Unit tests: `packages/indexer-v2/src/{module}/__tests__/{name}.test.ts`
 - Integration tests: `packages/indexer-v2/test/integration/{name}.test.ts`
 - Fixtures: `packages/indexer-v2/test/fixtures/`
 
 **Utilities/Helpers:**
+
 - Shared decode/type-guard helpers: `packages/indexer-v2/src/utils/index.ts`
 - Entity merge helpers: `packages/indexer-v2/src/core/handlerHelpers.ts`
 
 ## Special Directories
 
 **`packages/abi/src/` and `packages/abi/lib/`:**
+
 - Generated: Yes (by `scripts/codegen.sh` via `squid-evm-typegen`)
 - Committed: `lib/` is committed (used by other packages)
 
 **`packages/typeorm/src/model/generated/`:**
+
 - Generated: Yes (by `squid-typeorm-codegen` from `schema.graphql`)
 - Committed: Yes (generated source checked in)
 - NEVER edit manually — edit `schema.graphql` then regenerate
 
 **`packages/*/lib/`:**
+
 - Generated: Yes (by `tsc`)
 - Committed: Yes (needed for runtime — `ts-node` runs compiled JS)
 
 **`packages/indexer-v2/logs/`:**
+
 - Generated: Yes (runtime log output)
 - Committed: No (gitignored)
 
 **`packages/indexer-v2/test/fixtures/`:**
+
 - Generated: No (manually created test data)
 - Committed: Yes
 
 ---
 
-*Structure analysis: 2026-02-12*
+_Structure analysis: 2026-02-12_
