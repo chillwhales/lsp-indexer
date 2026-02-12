@@ -44,10 +44,18 @@ function parseArgs(): ComparisonConfig | null {
         return null;
       }
     } else if (arg.startsWith('--entities=')) {
-      config.entities = arg
+      const entityNames = arg
         .substring('--entities='.length)
         .split(',')
         .map((s) => s.trim());
+      const knownNames = new Set(ENTITY_REGISTRY.map((e) => e.name));
+      const unknown = entityNames.filter((n) => !knownNames.has(n));
+      if (unknown.length > 0) {
+        console.error(`Error: Unknown entity name(s): ${unknown.join(', ')}\n`);
+        console.error(`Available entities: ${ENTITY_REGISTRY.map((e) => e.name).join(', ')}\n`);
+        return null;
+      }
+      config.entities = entityNames;
     } else if (arg.startsWith('--sample-size=')) {
       const size = parseInt(arg.substring('--sample-size='.length), 10);
       if (!isNaN(size) && size > 0) config.sampleSize = size;
@@ -117,7 +125,9 @@ async function main(): Promise<void> {
   try {
     const config = parseArgs();
     if (!config) {
-      process.exit(1);
+      // --help returns null but should exit 0; errors already printed for other cases
+      const isHelp = process.argv.slice(2).some((a) => a === '--help' || a === '-h');
+      process.exit(isHelp ? 0 : 1);
     }
 
     const report = await runComparison(config);

@@ -55,8 +55,9 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
 
     try {
       const response = await client.post('', { query });
+      if (response.data?.errors) return -1;
       const data = response.data?.data;
-      if (data?.errors || !data) return -1;
+      if (!data) return -1;
       const count = data[`${hasuraTable}_aggregate`]?.aggregate?.count;
       return typeof count === 'number' ? count : -1;
     } catch {

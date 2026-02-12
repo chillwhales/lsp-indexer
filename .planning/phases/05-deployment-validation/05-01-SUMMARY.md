@@ -25,9 +25,9 @@ tech-stack:
 
 key-files:
   created:
-    - packages/indexer-v2/src/comparison/types.ts
-    - packages/indexer-v2/src/comparison/entityRegistry.ts
-    - packages/indexer-v2/src/comparison/graphqlClient.ts
+    - packages/comparison-tool/src/types.ts
+    - packages/comparison-tool/src/entityRegistry.ts
+    - packages/comparison-tool/src/graphqlClient.ts
   modified: []
 
 key-decisions:
@@ -76,9 +76,9 @@ Each task was committed atomically:
 
 ## Files Created/Modified
 
-- `packages/indexer-v2/src/comparison/types.ts` - All comparison type definitions (EntityDefinition, KnownDivergence, ComparisonConfig, CountResult, FieldDiff, RowDiff, ComparisonReport)
-- `packages/indexer-v2/src/comparison/entityRegistry.ts` - ENTITY_REGISTRY with 72 entity types, KNOWN_DIVERGENCES array, helper functions (getEntityByName, getKnownDivergences), toSnakeCase utility
-- `packages/indexer-v2/src/comparison/graphqlClient.ts` - createGraphqlClient factory with queryCount, querySampleIds, queryRowsByIds, queryTableFields (introspection), checkHealth
+- `packages/comparison-tool/src/types.ts` - All comparison type definitions (EntityDefinition, KnownDivergence, ComparisonConfig, CountResult, FieldDiff, RowDiff, ComparisonReport)
+- `packages/comparison-tool/src/entityRegistry.ts` - ENTITY_REGISTRY with 72 entity types, KNOWN_DIVERGENCES array, helper functions (getEntityByName, getKnownDivergences), toSnakeCase utility
+- `packages/comparison-tool/src/graphqlClient.ts` - createGraphqlClient factory with queryCount, querySampleIds, queryRowsByIds, queryTableFields (introspection), checkHealth
 
 ## Decisions Made
 

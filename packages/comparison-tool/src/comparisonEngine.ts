@@ -7,8 +7,26 @@ function normalizeValue(value: unknown): unknown {
   return value;
 }
 
+/**
+ * Deep-sort object keys before serializing, so JSON/JSONB fields
+ * with identical content but different key order compare as equal.
+ */
+function stableStringify(value: unknown): string {
+  if (value === null || value === undefined) return 'null';
+  if (typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) {
+    return '[' + value.map(stableStringify).join(',') + ']';
+  }
+  const sorted = Object.keys(value as Record<string, unknown>)
+    .sort()
+    .map(
+      (key) => `${JSON.stringify(key)}:${stableStringify((value as Record<string, unknown>)[key])}`,
+    );
+  return '{' + sorted.join(',') + '}';
+}
+
 function valuesEqual(a: unknown, b: unknown): boolean {
-  return JSON.stringify(normalizeValue(a)) === JSON.stringify(normalizeValue(b));
+  return stableStringify(normalizeValue(a)) === stableStringify(normalizeValue(b));
 }
 
 function calcDiffPercent(a: number, b: number): number {
@@ -73,14 +91,17 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
       missingEntityTypes.push({ endpoint: 'target', entityName: entity.name });
     }
 
-    const diffPercent = calcDiffPercent(Math.max(sourceCount, 0), Math.max(targetCount, 0));
+    const isMissing = sourceCount === -1 || targetCount === -1;
+    const diffPercent = isMissing
+      ? 100
+      : calcDiffPercent(Math.max(sourceCount, 0), Math.max(targetCount, 0));
 
     counts.push({
       entityName: entity.name,
       sourceCount,
       targetCount,
-      match: sourceCount === targetCount,
-      withinTolerance: diffPercent <= config.tolerancePercent,
+      match: !isMissing && sourceCount === targetCount,
+      withinTolerance: !isMissing && diffPercent <= config.tolerancePercent,
       diffPercent,
     });
 
@@ -191,9 +212,16 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
   );
 
   const targetMissingTypes = missingEntityTypes.filter((m) => m.endpoint === 'target');
+  const sourceMissingTypes = missingEntityTypes.filter((m) => m.endpoint === 'source');
 
-  const passed =
-    countFailures.length === 0 && totalUnexpectedDiffs === 0 && targetMissingTypes.length === 0;
+  // In v2-v2 mode, any missing entity (source or target) is a failure.
+  // In v1-v2 mode, only target-missing matters (source may have legacy tables).
+  const missingTypeFailure =
+    config.mode === 'v2-v2'
+      ? targetMissingTypes.length > 0 || sourceMissingTypes.length > 0
+      : targetMissingTypes.length > 0;
+
+  const passed = countFailures.length === 0 && totalUnexpectedDiffs === 0 && !missingTypeFailure;
 
   return {
     mode: config.mode,

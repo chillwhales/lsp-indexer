@@ -15,7 +15,7 @@ function formatNumber(num: number): string {
 }
 
 function truncateValue(value: unknown, maxLength: number = 60): string {
-  const str = JSON.stringify(value);
+  const str = value === undefined ? 'undefined' : (JSON.stringify(value) ?? 'undefined');
   if (str.length <= maxLength) return str;
   return str.substring(0, maxLength - 3) + '...';
 }
