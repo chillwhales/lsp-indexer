@@ -122,7 +122,7 @@ describe('MetadataWorkerPool', () => {
     vi.useFakeTimers();
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     vi.useRealTimers();
   });
 
