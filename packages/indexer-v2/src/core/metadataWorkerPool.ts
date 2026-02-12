@@ -546,7 +546,7 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
     this.isShutdown = true;
 
     // Reject all pending batches
-    for (const [batchId, batch] of this.pendingBatches) {
+    for (const [, batch] of this.pendingBatches) {
       batch.reject(new Error('MetadataWorkerPool shut down'));
     }
     this.pendingBatches.clear();

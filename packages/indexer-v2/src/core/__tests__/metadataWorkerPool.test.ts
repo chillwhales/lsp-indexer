@@ -22,7 +22,7 @@ vi.mock('worker_threads', () => ({
     const worker: MockWorker = {
       postMessage: vi.fn(),
       terminate: vi.fn().mockResolvedValue(undefined),
-      on: vi.fn((event: string, handler: Function) => {
+      on: vi.fn((event: string, handler: (...args: unknown[]) => void) => {
         if (event === 'message') {
           worker._triggerMessage = (results) => handler(results);
         } else if (event === 'error') {
@@ -55,7 +55,13 @@ function createMockRequests(count: number, entityType = 'LSP3Profile'): FetchReq
   }));
 }
 
-function createSuccessResult(req: FetchRequest) {
+function createSuccessResult(req: FetchRequest): {
+  id: string;
+  entityType: string;
+  success: true;
+  data: { mockData: boolean };
+  retryable: false;
+} {
   return {
     id: req.id,
     entityType: req.entityType,
@@ -65,7 +71,18 @@ function createSuccessResult(req: FetchRequest) {
   };
 }
 
-function createFailureResult(req: FetchRequest, retryable = false) {
+function createFailureResult(
+  req: FetchRequest,
+  retryable = false,
+): {
+  id: string;
+  entityType: string;
+  success: false;
+  error: string;
+  errorCode: string;
+  errorStatus: number;
+  retryable: boolean;
+} {
   return {
     id: req.id,
     entityType: req.entityType,
@@ -87,7 +104,9 @@ function tick(): Promise<void> {
 
 /**
  * Wait for a specific amount of time.
+ * Note: Currently unused but kept for potential future use.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -113,11 +132,12 @@ describe('MetadataWorkerPool', () => {
 
   describe('initialization', () => {
     it('spawns N workers on construction', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const pool = new MetadataWorkerPool({ poolSize: 4 });
       expect(mockWorkerInstances).toHaveLength(4);
     });
 
-    it('configures workers with correct workerData', () => {
+    it('configures workers with correct workerData', async () => {
       const Worker = vi.mocked((await import('worker_threads')).Worker);
       new MetadataWorkerPool({
         poolSize: 2,
@@ -581,7 +601,7 @@ describe('MetadataWorkerPool', () => {
       await tick();
 
       // Complete all work
-      const processAll = async () => {
+      const processAll = async (): Promise<void> => {
         let iterations = 0;
         while (iterations++ < 20) {
           // Safety limit
