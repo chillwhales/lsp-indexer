@@ -1,18 +1,19 @@
 # Architecture
 
-**Analysis Date:** 2026-02-06
+**Analysis Date:** 2026-02-12
 
 ## Pattern Overview
 
-**Overall:** Event-Driven Batch Processor (Subsquid EVM Indexer)
+**Overall:** Event-Driven Batch Processor with Plugin Architecture (Subsquid EVM Indexer)
 
 **Key Characteristics:**
 
 - Blockchain event log scanner that processes EVM logs in batches via `@subsquid/evm-processor`
-- Three-phase pipeline per batch: **Scan → Verify/Populate → Handle/Persist**
-- Monorepo with three packages: `abi` (contract types), `typeorm` (schema/models), `indexer` (core logic)
+- **V2 indexer** is the active version: plugin-based architecture with 6-step enrichment queue pipeline
+- **V1 indexer** is legacy: monolithic scan→verify→populate→persist approach (still present but superseded)
+- Monorepo with four packages: `abi` (contract types), `typeorm` (schema/models), `indexer` (v1), `indexer-v2` (v2)
 - GraphQL API served by Hasura on top of PostgreSQL, auto-configured from the TypeORM schema
-- Entity model maps 1:1 to LUKSO LSP standards (LSP0, LSP3, LSP4, LSP5, LSP6, LSP7, LSP8, LSP12, LSP26, LSP29) plus marketplace extensions
+- Entity model maps to LUKSO LSP standards (LSP0, LSP3, LSP4, LSP5, LSP6, LSP7, LSP8, LSP12, LSP26, LSP29) plus Chillwhales-specific entities
 
 ## Layers
 
@@ -22,8 +23,8 @@
 - Location: `packages/abi/`
 - Contains: Generated TypeScript ABI bindings from Solidity contract artifacts and custom JSON ABIs
 - Depends on: `@subsquid/evm-abi`, `@subsquid/evm-codec`, LUKSO contract packages (`@lukso/lsp*-contracts`)
-- Used by: `packages/indexer` (imports as `@chillwhales/abi`)
-- Code generation: `packages/abi/scripts/codegen.sh` runs `squid-evm-typegen` on all JSON artifacts and generates `src/index.ts` barrel file
+- Used by: `packages/indexer`, `packages/indexer-v2` (imports as `@chillwhales/abi`)
+- Code generation: `packages/abi/scripts/codegen.sh` runs `squid-evm-typegen`
 
 **Data Model Layer (`packages/typeorm`):**
 
@@ -31,149 +32,236 @@
 - Location: `packages/typeorm/`
 - Contains: GraphQL schema (`schema.graphql`) that drives TypeORM entity code generation via `squid-typeorm-codegen`
 - Depends on: `@subsquid/typeorm-store`, `@subsquid/typeorm-codegen`
-- Used by: `packages/indexer` (imports as `@chillwhales/typeorm`)
+- Used by: `packages/indexer`, `packages/indexer-v2` (imports as `@chillwhales/typeorm`)
 - Code generation: `pnpm codegen` generates TypeORM entities from `schema.graphql`
-- Also handles: Hasura metadata generation (`squid-hasura-configuration`) and DB migrations (`squid-typeorm-migration`)
+- Also handles: Hasura metadata generation and DB migrations
 
-**Indexer Core Layer (`packages/indexer`):**
+**Indexer V2 Core Layer (`packages/indexer-v2`) — ACTIVE:**
 
-- Purpose: Listen to LUKSO blockchain events, process them, and persist structured data
+- Purpose: Listen to LUKSO blockchain events, process them via plugin architecture, persist structured data
+- Location: `packages/indexer-v2/`
+- Contains: Plugin-based event extraction, handler-based derived entity creation, 6-step pipeline, worker pool
+- Depends on: `@chillwhales/abi`, `@chillwhales/typeorm`, `@subsquid/evm-processor`, `viem`, `axios`, `pino`
+- Key innovation: Auto-discovery of plugins and handlers from filesystem conventions
+
+**Indexer V1 Legacy Layer (`packages/indexer`) — LEGACY:**
+
+- Purpose: Original indexer with monolithic pipeline
 - Location: `packages/indexer/`
-- Contains: Processor setup, event scanner, entity utilities, and post-processing handlers
-- Depends on: `@chillwhales/abi`, `@chillwhales/typeorm`, `@subsquid/evm-processor`, `viem`, `axios`
-- Used by: Runtime entry point; no downstream packages
+- Contains: Scanner-based event routing, manual entity population, sequential handlers
+- Status: Still functional but superseded by V2
 
 **Infrastructure Layer:**
 
 - Purpose: Deployment and data serving
-- Location: Root-level `docker-compose.yaml`, `Dockerfile`, `start.sh`
+- Location: `docker/v2/` (Docker Compose, Dockerfile), root `docker-compose.yml`
 - Contains: PostgreSQL database, Hasura GraphQL Engine, data-connector-agent
-- Hasura auto-exposes TypeORM entities as a GraphQL API with `public` unauthorized role
 
-## Data Flow
+## Data Flow — V2 Pipeline (6-Step Enrichment Queue)
 
-**Batch Processing Pipeline (per block batch):**
+**Step 1: EXTRACT**
 
-1. **Processor Setup** (`packages/indexer/src/app/processor.ts`): `EvmBatchProcessor` subscribes to event topics from ERC725X, ERC725Y, LSP0, LSP7, LSP8, LSP14, LSP23, LSP26, and marketplace extension contracts. Connects to Subsquid gateway + LUKSO RPC.
+- Source: `packages/indexer-v2/src/core/pipeline.ts` L196-211
+- EventPlugins decode events and store base entities in `BatchContext` with null FK references
+- Routing: `PluginRegistry.getEventPlugin(topic0)` — O(1) lookup by event topic hash
+- Each plugin calls `ctx.addEntity()` and `ctx.queueEnrichment()` for FK resolution
 
-2. **Log Scanning** (`packages/indexer/src/app/scanner.ts` → `scanLogs()`): Iterates all logs in the batch. Decodes each log by matching `log.topics[0]` against known event signatures. For `DataChanged` events, further routes by `dataKey` to extract standardized ERC725Y data key entities (LSP3 through LSP29). Collects sets of addresses for UniversalProfiles, DigitalAssets, and NFTs.
+**Step 2: PERSIST RAW**
 
-3. **Entity Verification** (`packages/indexer/src/utils/entityVerification.ts` → `verifyEntities()`): For each address set, checks if entities already exist in the DB. For unknown addresses, uses `Multicall3.aggregate3Static` to call `supportsInterface()` on-chain and verify LSP0/LSP7/LSP8 support. Produces `new`, `valid`, and `invalid` maps.
+- Source: `packages/indexer-v2/src/core/pipeline.ts` L218-232
+- Batch-inserts all raw event entities with null FKs via `context.store.insert()`
+- Seals raw entity types to prevent handlers from adding to them
 
-4. **Entity Population** (`packages/indexer/src/utils/entityPopulation.ts` → `populateEntities()`): Associates each extracted entity with its verified parent (e.g., a `DataChanged` event gets linked to its `UniversalProfile` or `DigitalAsset`). Filters out entities whose parent addresses are invalid.
+**Step 3: HANDLE**
 
-5. **Persistence** (`packages/indexer/src/app/index.ts`): Upserts new core entities (UniversalProfile, DigitalAsset, NFT), then inserts event entities and upserts data key entities in parallel via `context.store`.
+- Source: `packages/indexer-v2/src/core/pipeline.ts` L245-261
+- EntityHandlers run for each subscribed entity bag key that has entities
+- Pre-verification handlers (`postVerification: false`) create derived entities
+- Handlers read from `BatchContext`, create new entities, queue enrichment requests
+- Handlers are topologically sorted by `dependsOn` declarations
 
-6. **Post-Processing Handlers** (`packages/indexer/src/app/handlers/`): Run sequentially after persistence to compute derived data:
-   - `permissionsUpdateHandler`: Resolves individual permission/allowed-call sub-entities
-   - `removeEmptyEntities`: Cleans null-valued array items from LSP4/LSP5/LSP12
-   - `decimalsHandler`: Fetches `decimals()` for new DigitalAssets
-   - `totalSupplyHandler`: Computes total supply from mint/burn transfers
-   - `ownedAssetsHandler`: Maintains `OwnedAsset` and `OwnedToken` balance tables
-   - `followerSystemHandler`: Manages Follow/Unfollow identity entities
-   - `lsp3ProfileHandler`: Fetches JSON metadata from IPFS/URLs for profiles
-   - `lsp4MetadataHandler`: Fetches JSON metadata for digital assets
-   - `lsp29EncryptedAssetHandler`: Fetches encrypted asset metadata
-   - `orbsLevelHandler`, `orbsClaimedHandler`, `chillClaimedHandler`: Chillwhales-specific NFT properties
-   - `ownershipTransferredHandler`: Updates owner tracking entities
-   - `marketplaceHandler`: Maintains Listing aggregate entities from marketplace events
+**Step 3.5: CLEAR SUB-ENTITIES**
 
-**Metadata Fetching (deferred, head-only):**
+- Source: `packages/indexer-v2/src/core/pipeline.ts` L269-285
+- Processes clear queue for sub-entities needing delete-then-reinsert (e.g., LSP6 permissions)
 
-When `context.isHead` is true (indexer is caught up to chain tip), handlers like `lsp3ProfileHandler` and `lsp4MetadataHandler` query the DB for unfetched metadata entities, fetch JSON from IPFS/HTTP URLs in configurable batches (`FETCH_BATCH_SIZE`, `FETCH_LIMIT`), and persist parsed sub-entities (e.g., `LSP3ProfileName`, `LSP3ProfileImage`, `LSP4MetadataAttribute`). Retry logic respects `FETCH_RETRY_COUNT` for transient HTTP errors.
+**Step 4: PERSIST DERIVED**
+
+- Source: `packages/indexer-v2/src/core/pipeline.ts` L292-339
+- Step 4a: DELETE — Removes entities queued for deletion (e.g., zero-balance OwnedAssets)
+- Step 4b: UPSERT — Batch-upserts handler-derived entities, with optional merge-upsert
+- Merge-upsert: preserves existing non-null values in specified `mergeFields` to prevent data loss across batches
+
+**Step 5: VERIFY**
+
+- Source: `packages/indexer-v2/src/core/pipeline.ts` L348-415
+- Batch-verifies addresses via `supportsInterface()` multicalls
+- 3-level error fallback: parallel → per-batch → per-address
+- LRU cache (50K entries) avoids redundant on-chain calls across batches
+- Creates core entities (UniversalProfile, DigitalAsset) for newly verified addresses
+
+**Step 5.5: POST-VERIFICATION HANDLERS**
+
+- Source: `packages/indexer-v2/src/core/pipeline.ts` L423-447
+- Handlers with `postVerification: true` run after core entities are persisted
+- Used by handlers that need verified entity data (e.g., decimals)
+
+**Step 6: ENRICH**
+
+- Source: `packages/indexer-v2/src/core/pipeline.ts` L449-498
+- Batch updates FK fields on already-persisted entities
+- Groups requests by (entityType, entityId) for efficient upserts
+- Only updates entities that have at least one valid FK enrichment
 
 **State Management:**
 
-- All state is in PostgreSQL, accessed via `context.store` (Subsquid's TypeORM store adapter)
-- In-memory Maps are used within a single batch for deduplication and cross-referencing, then discarded
-- No external cache or message queue
+- All persistent state is in PostgreSQL via `context.store` (Subsquid's TypeORM store adapter)
+- Per-batch state: `BatchContext` — new instance for each batch, no carryover
+- Cross-batch state: `VerificationCache` — LRU cache persists across batches (in-memory)
+- Worker pool state: queue + in-flight + retry tracking (in-memory)
 
 ## Key Abstractions
 
-**Extract/Populate Pattern:**
+**EventPlugin Interface:**
 
-- Purpose: Every event type follows a two-step pattern: `extract()` creates a bare entity from log data, `populate()` links it to verified parent entities
-- Examples: `packages/indexer/src/utils/dataChanged/index.ts` (extract + populate for DataChanged), `packages/indexer/src/utils/dataChanged/lsp3Profile.ts` (extract + populate + extractSubEntities for LSP3Profile)
-- Pattern: Each utility module in `src/utils/` exports `extract(params: ExtractParams)` and `populate({ entities, validParents })`. Some also export `extractSubEntities()` (async JSON fetching) and `clearSubEntities()` (cleanup before re-fetch).
+- Purpose: Handles a specific blockchain event type by topic0
+- Location: `packages/indexer-v2/src/core/types/plugins.ts`
+- Pattern: Each plugin file exports a default object implementing `EventPlugin`
+- Properties: `name`, `topic0`, `contractFilter?`, `requiresVerification`, `extract(log, block, ctx)`
+- Adding a new event = creating 1 file in `packages/indexer-v2/src/plugins/events/`
 
-**Entity Verification:**
+**EntityHandler Interface:**
 
-- Purpose: Determine if a blockchain address is a valid UniversalProfile, DigitalAsset, or NFT before linking events to it
-- Examples: `packages/indexer/src/utils/universalProfile.ts`, `packages/indexer/src/utils/digitalAsset.ts`, `packages/indexer/src/utils/nft.ts`
-- Pattern: `verify({ context, addresses })` → uses Multicall3 batched `supportsInterface()` calls → returns `{ new, valid, invalid }` Maps
+- Purpose: Creates derived entities from raw event data
+- Location: `packages/indexer-v2/src/core/types/handler.ts`
+- Pattern: Each handler file exports a default object implementing `EntityHandler`
+- Properties: `name`, `listensToBag[]`, `postVerification?`, `dependsOn?[]`, `handle(hctx, triggeredBy)`
+- Adding a new handler = creating 1 file in `packages/indexer-v2/src/handlers/`
 
-**Handler Pattern:**
+**BatchContext:**
 
-- Purpose: Post-processing functions that derive aggregate/computed entities from raw event data
-- Examples: `packages/indexer/src/app/handlers/totalSupplyHandler.ts`, `packages/indexer/src/app/handlers/ownedAssetsHandler.ts`, `packages/indexer/src/app/handlers/marketplaceHandler.ts`
-- Pattern: `async function handler({ context, populatedEntities, ... })` → queries existing DB state → merges with new data → upserts/removes
+- Purpose: Shared entity bag for a single batch; replaces 60+ destructured Maps from V1
+- Location: `packages/indexer-v2/src/core/batchContext.ts`
+- Interface: `packages/indexer-v2/src/core/types/batchContext.ts`
+- Operations: `addEntity()`, `getEntities<T>()`, `queueEnrichment<T>()`, `queueClear<T>()`, `queueDelete<T>()`, `setPersistHint<T>()`
+- All type-safe: generic parameters validate FK field names and writable fields at compile time
 
-**TypeORM Entity Generation:**
+**PluginRegistry:**
 
-- Purpose: Single-source-of-truth schema defined in GraphQL, auto-generated into TypeORM entities
-- Examples: `packages/typeorm/schema.graphql` defines ~80+ entity types → generated to `packages/typeorm/src/model/generated/`
-- Pattern: `schema.graphql` → `squid-typeorm-codegen` → TypeScript entity classes. Never edit generated code; edit `schema.graphql` then regenerate.
+- Purpose: Auto-discovers plugins/handlers from filesystem, validates, routes, sorts
+- Location: `packages/indexer-v2/src/core/registry.ts`
+- Discovery: Scans `*.plugin.js` and `*.handler.js` files, validates interface compliance
+- Routing: `getEventPlugin(topic0)` — O(1) Map lookup
+- Ordering: Topological sort of handlers via Kahn's algorithm on `dependsOn` graph
+
+**MetadataWorkerPool:**
+
+- Purpose: Parallel metadata fetching via worker threads
+- Location: `packages/indexer-v2/src/core/metadataWorkerPool.ts`
+- Worker: `packages/indexer-v2/src/core/metadataWorker.ts`
+- Architecture: Queue-based — workers continuously pull work from shared queue
+- Features: Exponential backoff retries, worker crash recovery (max 3 restarts), concurrent batch merging
+
+**Verification System:**
+
+- Purpose: Verify blockchain addresses as UniversalProfile or DigitalAsset via `supportsInterface()`
+- Location: `packages/indexer-v2/src/core/verification.ts`
+- Strategy: LRU cache → DB lookup → Multicall3 on-chain check
+- Multicall: `packages/indexer-v2/src/core/multicall.ts` — batched `eth_call` via Multicall3 contract
+
+**MetadataFetch Utility:**
+
+- Purpose: Shared utility for LSP3/LSP4/LSP29 metadata fetch handlers
+- Location: `packages/indexer-v2/src/utils/metadataFetch.ts`
+- Pattern: 3-tier DB backlog query (never-fetched → retryable HTTP → retryable network)
+- Head-only: Only fetches metadata when indexer is at chain head (`isHead === true`)
 
 ## Entry Points
 
-**Indexer Runtime:**
+**V2 Indexer Runtime (PRIMARY):**
+
+- Location: `packages/indexer-v2/src/app/index.ts` (compiled: `packages/indexer-v2/lib/app/index.js`)
+- Triggers: `pnpm start:v2` from root
+- Responsibilities: Initialize file logger, bootstrap registry, configure processor subscriptions, create pipeline config, start `processor.run()`
+- Bootstrap: `packages/indexer-v2/src/app/bootstrap.ts` — creates `PluginRegistry`, discovers plugins and handlers
+- Config: `packages/indexer-v2/src/app/config.ts` — creates `PipelineConfig` with registry, verify function, worker pool
+
+**V1 Indexer Runtime (LEGACY):**
 
 - Location: `packages/indexer/src/app/index.ts` (compiled: `packages/indexer/lib/app/index.js`)
-- Triggers: `pnpm start` from root (runs via `ts-node` + `tsconfig-paths`)
-- Responsibilities: Initializes `EvmBatchProcessor`, registers the main batch handler callback, starts continuous block processing
-
-**Startup Script:**
-
-- Location: `start.sh`
-- Triggers: Docker container CMD
-- Responsibilities: Runs migrations, configures Hasura, then starts the indexer
+- Triggers: `pnpm start` from root
 
 **Processor Configuration:**
 
-- Location: `packages/indexer/src/app/processor.ts`
-- Triggers: Imported by `index.ts`
-- Responsibilities: Configures which event topics and contract addresses to subscribe to, RPC endpoint, gateway, finality confirmation
+- Location: `packages/indexer-v2/src/app/processor.ts`
+- Responsibilities: Configures `EvmBatchProcessor` with Subsquid gateway, RPC endpoint, field selection
+- Log subscriptions are added dynamically by the registry at runtime (not hardcoded)
 
 ## Error Handling
 
-**Strategy:** Defensive with retry for transient failures; log-and-continue for data issues
+**Strategy:** No try/catch in pipeline — errors propagate to Subsquid framework. Best-effort for metadata fetching.
 
 **Patterns:**
 
-- **Multicall verification**: Triple-fallback — batch all → batch individually on failure → single calls per address. Silent catch on irrecoverable failures (address treated as invalid)
-- **Metadata fetching**: Track `fetchErrorMessage`, `fetchErrorCode`, `fetchErrorStatus`, and `retryCount` on entities. Retryable HTTP errors (408, 429, 5xx, ETIMEDOUT, ECONNRESET) are retried up to `FETCH_RETRY_COUNT` times. Non-retryable errors permanently mark the entity.
-- **Event decoding**: No explicit try/catch around `decode()`; if an event can't be decoded, the process crashes (by design — indicates ABI mismatch)
-- **Data URL parsing**: Returns structured error objects with `fetchErrorMessage` rather than throwing
-- **VerifiableURI decoding** (`decodeVerifiableUri` in `packages/indexer/src/utils/index.ts`): Returns `{ value: null, decodeError: string }` on failure; does not throw
+- **Pipeline errors**: A failed store operation halts the pipeline for the batch (Subsquid retries the batch)
+- **Multicall verification**: 3-level fallback — parallel → per-batch → per-address
+- **Metadata fetching**: Track `fetchErrorMessage`, `fetchErrorCode`, `fetchErrorStatus`, `retryCount` per entity. Retryable HTTP errors (408, 429, 5xx) and network errors (ETIMEDOUT, EPROTO) are retried up to `FETCH_RETRY_COUNT` times
+- **Worker crashes**: Workers auto-restart up to 3 times; in-flight requests re-queued without retry count increment
+- **Event decoding**: No try/catch around `decode()` — ABI mismatch crashes the process (by design)
+- **Data URL parsing**: Returns structured error objects; does not throw
+
+## Concurrency Model
+
+**Worker Pool:**
+
+- 4 worker threads (configurable via `METADATA_WORKER_POOL_SIZE`)
+- Queue-based: workers pull `WORKER_BATCH_SIZE` (250) requests from shared queue
+- Exponential backoff for retries: `1000ms * 2^attempt`
+- Concurrent `fetchBatch()` calls merge into the shared queue
+
+**Pipeline:**
+
+- Single-threaded pipeline execution (no parallelism between steps)
+- Parallel verification of UP and DA categories within Step 5
+- Sequential handler execution within Step 3 (topologically sorted)
+
+**Batch Processing:**
+
+- Subsquid framework controls batch boundaries
+- Each batch creates a fresh `BatchContext` — no state carryover (except LRU cache)
 
 ## Cross-Cutting Concerns
 
 **Logging:**
 
-- Uses `context.log.info()` (Subsquid logger) with JSON-stringified structured messages
-- Pattern: `context.log.info(JSON.stringify({ message: "...", entityCount: N }))`
-- No external logging service; stdout-based
+- Dual-output: Subsquid's `context.log` (stdout) + pino file logger (rotating JSON)
+- Preferred pattern: structured attributes like `{ step, blockRange, entityType, count }`; most new logging avoids `JSON.stringify`, but some legacy handlers (e.g., `decimals.handler.ts`, `formattedTokenId.handler.ts`) still use pre-serialized payloads
+- File logger: daily rotation via `pino-roll`, configurable via `LOG_LEVEL`, `INDEXER_ENABLE_FILE_LOGGER`
+- Component loggers: `createComponentLogger()` for handler-level tagging
+- Step loggers: `createStepLogger()` for pipeline step identification
 
 **Validation:**
 
-- On-chain interface verification via `supportsInterface()` + Multicall3 for UniversalProfiles and DigitalAssets
-- Data key routing by exact match or prefix match in the scanner's `switch/if` chain
-- URL validation: checks for non-printable characters in decoded VerifiableURIs
-- No input validation middleware (not an API server)
+- On-chain interface verification via `supportsInterface()` + Multicall3
+- Entity type validation at plugin/handler discovery time (type guards)
+- Compile-time FK field validation via generic type parameters (`FKFields<T>`, `WritableFields<T>`)
+- Null address filtering before enrichment requests (`isNullAddress()`)
 
 **Authentication:**
 
 - Not applicable for the indexer itself (reads public blockchain data)
-- Hasura has `HASURA_GRAPHQL_ADMIN_SECRET` for admin access and `HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public` for public queries
+- Hasura has `HASURA_GRAPHQL_ADMIN_SECRET` for admin and `public` unauthorized role for queries
 
 **ID Generation:**
 
-- Most event entities use `uuid v4` for unique IDs
-- Core entities (UniversalProfile, DigitalAsset) use the blockchain address as ID
-- Data key entities use the address as ID (single latest value per address)
-- Composite entities (OwnedAsset, OwnedToken, Follow) use deterministic composite IDs like `${owner} - ${address}`
-- Marketplace listings use deterministic `${address}-${listingId}` IDs
+- Event entities: `uuid v4` for unique IDs
+- Core entities (UniversalProfile, DigitalAsset): blockchain address as ID
+- Data key entities: address as ID (single latest value per address)
+- NFTs: `"{address} - {tokenId}"` format
+- OwnedAsset: `"{owner}:{address}"` format
+- OwnedToken: `"{owner}:{address}:{tokenId}"` format
+- Follow: `"{followerAddress} - {followedAddress}"` format
 
 ---
 
-_Architecture analysis: 2026-02-06_
+_Architecture analysis: 2026-02-12_

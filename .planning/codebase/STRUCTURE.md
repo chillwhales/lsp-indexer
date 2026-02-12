@@ -1,317 +1,347 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-02-06
+**Analysis Date:** 2026-02-12
 
 ## Directory Layout
 
 ```
 lsp-indexer/
 ├── packages/
-│   ├── abi/                    # Smart contract ABI type bindings
-│   │   ├── custom/             # Custom JSON ABI files (Multicall3, ORBS, CHILL, marketplace extensions)
-│   │   │   └── extensions/     # Marketplace extension ABIs (ListingManager, PurchaseManager, etc.)
-│   │   ├── scripts/            # Code generation script (codegen.sh)
-│   │   ├── src/                # Generated (by codegen): TS ABI bindings — DO NOT EDIT
-│   │   │   └── abi/            # One .ts file per contract ABI
-│   │   ├── lib/                # Compiled JS output
+│   ├── abi/                          # Smart contract ABI type bindings
+│   │   ├── custom/                   # Custom JSON ABI files (Multicall3, ORBS, CHILL)
+│   │   ├── scripts/                  # Code generation script (codegen.sh)
+│   │   ├── src/abi/                  # Generated TS ABI bindings — DO NOT EDIT
+│   │   ├── lib/                      # Compiled JS output
 │   │   ├── package.json
 │   │   └── tsconfig.json
-│   ├── indexer/                # Core blockchain event indexer
+│   ├── indexer/                      # V1 blockchain indexer (LEGACY)
 │   │   ├── src/
-│   │   │   ├── app/            # Application entry point and orchestration
-│   │   │   │   ├── index.ts    # Main entry — processor.run() callback
-│   │   │   │   ├── processor.ts # EvmBatchProcessor configuration
-│   │   │   │   ├── scanner.ts  # scanLogs() — event log parsing and entity extraction
-│   │   │   │   └── handlers/   # Post-processing handlers (one per concern)
-│   │   │   │       └── index.ts # Barrel export for all handlers
-│   │   │   ├── constants/      # Configuration constants and data key definitions
-│   │   │   │   ├── index.ts    # Env vars, addresses, gateway URLs
-│   │   │   │   ├── lsp29.ts    # LSP29 encrypted asset data keys
-│   │   │   │   └── chillwhales.ts # Chillwhales-specific constants
-│   │   │   ├── types/          # TypeScript type definitions
-│   │   │   │   └── index.ts    # Processor, Context, Block, ExtractParams types
-│   │   │   ├── utils/          # Utility functions organized by event/data key type
-│   │   │   │   ├── index.ts    # Barrel + shared helpers (parseIpfsUrl, decodeVerifiableUri, etc.)
-│   │   │   │   ├── entityVerification.ts  # verifyEntities orchestrator
-│   │   │   │   ├── entityPopulation.ts    # populateEntities orchestrator
-│   │   │   │   ├── universalProfile.ts    # UP verification via supportsInterface
-│   │   │   │   ├── digitalAsset.ts        # DA verification via supportsInterface
-│   │   │   │   ├── nft.ts                 # NFT verification
-│   │   │   │   ├── multicall3.ts          # Multicall3 batched RPC calls
-│   │   │   │   ├── lsp4MetadataBaseUri.ts # LSP8 base URI metadata extraction
-│   │   │   │   ├── dataChanged/           # DataChanged event utilities (one file per data key)
-│   │   │   │   ├── executed/              # Executed event extract/populate
-│   │   │   │   ├── transfer/              # Transfer event + OwnedAsset/OwnedToken
-│   │   │   │   ├── tokenIdDataChanged/    # TokenIdDataChanged event
-│   │   │   │   ├── universalReceiver/     # UniversalReceiver event
-│   │   │   │   ├── follow/                # Follow event
-│   │   │   │   ├── unfollow/              # Unfollow event
-│   │   │   │   ├── ownershipTransferred/  # OwnershipTransferred event
-│   │   │   │   ├── marketplace/           # Marketplace event extract/populate functions
-│   │   │   │   ├── orbsClaimed/           # ORBS claimed tracking
-│   │   │   │   └── chillClaimed/          # CHILL claimed tracking
-│   │   │   └── model.ts       # Re-exports @chillwhales/typeorm
-│   │   ├── lib/                # Compiled JS output
+│   │   │   ├── app/
+│   │   │   │   ├── index.ts          # V1 main entry (monolithic pipeline)
+│   │   │   │   ├── processor.ts      # V1 processor config
+│   │   │   │   ├── scanner.ts        # V1 event log parsing
+│   │   │   │   └── handlers/         # V1 post-processing handlers
+│   │   │   ├── constants/            # Shared constants
+│   │   │   ├── types/                # V1 type definitions
+│   │   │   └── utils/                # V1 extract/populate utilities
+│   │   │       ├── dataChanged/      # One file per ERC725Y data key
+│   │   │       ├── transfer/         # Transfer + OwnedAsset/OwnedToken
+│   │   │       ├── executed/         # Executed event
+│   │   │       ├── follow/           # Follow event
+│   │   │       ├── unfollow/         # Unfollow event
+│   │   │       ├── universalReceiver/ # UniversalReceiver event
+│   │   │       ├── ownershipTransferred/
+│   │   │       ├── tokenIdDataChanged/
+│   │   │       ├── marketplace/      # Marketplace events
+│   │   │       ├── orbsClaimed/      # ORBS claimed tracking
+│   │   │       └── chillClaimed/     # CHILL claimed tracking
 │   │   ├── package.json
 │   │   └── tsconfig.json
-│   ├── typeorm/                # Database schema and entity generation
-│   │   ├── schema.graphql      # SOURCE OF TRUTH for all entity types (~1153 lines, ~80+ entities)
-│   │   ├── src/                # Generated (by codegen): TypeORM entity classes — DO NOT EDIT
-│   │   │   └── model/
-│   │   │       └── generated/  # One .ts file per entity from schema.graphql
-│   │   ├── lib/                # Compiled JS output (this is what gets imported)
+│   ├── indexer-v2/                   # V2 blockchain indexer (ACTIVE)
+│   │   ├── src/
+│   │   │   ├── app/                  # Application bootstrap and entry
+│   │   │   │   ├── index.ts          # V2 main entry (pipeline runner)
+│   │   │   │   ├── bootstrap.ts      # Registry creation + plugin/handler discovery
+│   │   │   │   ├── config.ts         # PipelineConfig assembly
+│   │   │   │   └── processor.ts      # EvmBatchProcessor configuration
+│   │   │   ├── core/                 # Core pipeline framework
+│   │   │   │   ├── pipeline.ts       # 6-step enrichment queue pipeline
+│   │   │   │   ├── registry.ts       # PluginRegistry (discovery + routing)
+│   │   │   │   ├── batchContext.ts    # BatchContext (shared entity bag)
+│   │   │   │   ├── verification.ts   # Address verification + LRU cache
+│   │   │   │   ├── multicall.ts      # Multicall3 batched RPC calls
+│   │   │   │   ├── metadataWorkerPool.ts # Queue-based worker pool manager
+│   │   │   │   ├── metadataWorker.ts # Worker thread (IPFS/HTTP fetch)
+│   │   │   │   ├── handlerHelpers.ts # Entity merge utilities
+│   │   │   │   ├── logger.ts         # Dual-output structured logging
+│   │   │   │   ├── index.ts          # Barrel export
+│   │   │   │   ├── types/            # Core type system
+│   │   │   │   │   ├── handler.ts    # EntityHandler interface
+│   │   │   │   │   ├── plugins.ts    # EventPlugin + IPluginRegistry interfaces
+│   │   │   │   │   ├── batchContext.ts # IBatchContext + queue types
+│   │   │   │   │   ├── entity.ts     # Entity, FKFields<T>, WritableFields<T>
+│   │   │   │   │   ├── metadata.ts   # FetchRequest, FetchResult, IMetadataWorkerPool
+│   │   │   │   │   ├── verification.ts # EntityCategory, VerificationResult, EnrichmentRequest
+│   │   │   │   │   ├── subsquid.ts   # Subsquid type re-exports
+│   │   │   │   │   └── index.ts      # Barrel export
+│   │   │   │   └── __tests__/        # Core unit tests
+│   │   │   │       ├── pipeline.test.ts
+│   │   │   │       ├── batchContext.test.ts
+│   │   │   │       ├── metadataWorkerPool.test.ts
+│   │   │   │       └── logger.test.ts
+│   │   │   ├── plugins/events/       # EventPlugin implementations (1 file per event)
+│   │   │   │   ├── dataChanged.plugin.ts
+│   │   │   │   ├── executed.plugin.ts
+│   │   │   │   ├── lsp7Transfer.plugin.ts
+│   │   │   │   ├── lsp8Transfer.plugin.ts
+│   │   │   │   ├── follow.plugin.ts
+│   │   │   │   ├── unfollow.plugin.ts
+│   │   │   │   ├── universalReceiver.plugin.ts
+│   │   │   │   ├── ownershipTransferred.plugin.ts
+│   │   │   │   ├── tokenIdDataChanged.plugin.ts
+│   │   │   │   ├── deployedContracts.plugin.ts
+│   │   │   │   └── deployedProxies.plugin.ts
+│   │   │   ├── handlers/             # EntityHandler implementations (1 file per handler)
+│   │   │   │   ├── totalSupply.handler.ts
+│   │   │   │   ├── ownedAssets.handler.ts
+│   │   │   │   ├── decimals.handler.ts
+│   │   │   │   ├── follower.handler.ts
+│   │   │   │   ├── nft.handler.ts
+│   │   │   │   ├── formattedTokenId.handler.ts
+│   │   │   │   ├── lsp3Profile.handler.ts
+│   │   │   │   ├── lsp3ProfileFetch.handler.ts
+│   │   │   │   ├── lsp4Metadata.handler.ts
+│   │   │   │   ├── lsp4MetadataFetch.handler.ts
+│   │   │   │   ├── lsp4TokenName.handler.ts
+│   │   │   │   ├── lsp4TokenSymbol.handler.ts
+│   │   │   │   ├── lsp4TokenType.handler.ts
+│   │   │   │   ├── lsp4Creators.handler.ts
+│   │   │   │   ├── lsp5ReceivedAssets.handler.ts
+│   │   │   │   ├── lsp6Controllers.handler.ts
+│   │   │   │   ├── lsp8TokenIdFormat.handler.ts
+│   │   │   │   ├── lsp8ReferenceContract.handler.ts
+│   │   │   │   ├── lsp8MetadataBaseURI.handler.ts
+│   │   │   │   ├── lsp12IssuedAssets.handler.ts
+│   │   │   │   ├── lsp29EncryptedAsset.handler.ts
+│   │   │   │   ├── lsp29EncryptedAssetFetch.handler.ts
+│   │   │   │   ├── chillwhales/
+│   │   │   │   │   ├── orbFaction.handler.ts
+│   │   │   │   │   └── orbLevel.handler.ts
+│   │   │   │   └── __tests__/        # Handler unit tests
+│   │   │   │       ├── totalSupply.handler.test.ts
+│   │   │   │       ├── ownedAssets.handler.test.ts
+│   │   │   │       ├── follower.handler.test.ts
+│   │   │   │       ├── lsp3ProfileFetch.handler.test.ts
+│   │   │   │       ├── lsp4MetadataFetch.handler.test.ts
+│   │   │   │       ├── lsp29EncryptedAssetFetch.handler.test.ts
+│   │   │   │       └── lsp6Controllers.handler.test.ts
+│   │   │   ├── constants/            # Configuration constants
+│   │   │   │   ├── index.ts          # Env vars, addresses, gateway URLs, pool sizes
+│   │   │   │   ├── lsp29.ts          # LSP29 data keys
+│   │   │   │   └── chillwhales.ts    # Chillwhales-specific constants
+│   │   │   ├── utils/                # Shared utility functions
+│   │   │   │   ├── index.ts          # Decode helpers, type guards, ID generators
+│   │   │   │   └── metadataFetch.ts  # Shared metadata fetch utility
+│   │   │   └── model.ts              # Re-exports @chillwhales/typeorm
+│   │   ├── test/                     # Integration tests
+│   │   │   ├── fixtures/blocks/      # JSON block fixtures
+│   │   │   │   ├── multi-event.json
+│   │   │   │   ├── transfer-lsp7.json
+│   │   │   │   └── transfer-lsp8.json
+│   │   │   └── integration/
+│   │   │       └── pipeline.test.ts
+│   │   ├── logs/                     # Runtime log output (gitignored)
+│   │   ├── vitest.config.ts          # Test configuration
+│   │   ├── vitest.setup.ts           # Test setup
+│   │   ├── tsconfig.json             # TypeScript config with @/ path alias
+│   │   ├── tsconfig.eslint.json      # ESLint-specific TS config
 │   │   ├── package.json
-│   │   └── tsconfig.json
-│   └── indexer-v2/             # ABANDONED/WIP — compiled-only, no source or package.json
-│       └── lib/                # Compiled JS remnants (core, handlers, plugins, utils)
-├── sql-views/                  # SQL view definitions for Hasura/reporting
-│   ├── DataChangedLatest.sql   # Latest DataChanged per (dataKey, address)
-│   ├── FollowedSellersListings.sql
-│   └── TopSellingContentBySeller.sql
-├── .github/                    # GitHub templates
+│   │   └── lib/                      # Compiled JS output
+│   └── typeorm/                      # Database schema and entity generation
+│       ├── schema.graphql            # SOURCE OF TRUTH for entity types (~80+ entities)
+│       ├── src/model/generated/      # Generated TypeORM entities — DO NOT EDIT
+│       ├── db/migrations/            # TypeORM migrations
+│       ├── lib/                      # Compiled JS output
+│       └── package.json
+├── docker/
+│   ├── v1/                           # V1 Docker config
+│   │   ├── Dockerfile
+│   │   └── docker-compose.yml
+│   └── v2/                           # V2 Docker config (ACTIVE)
+│       ├── Dockerfile                # Multi-stage build (deps → build → runtime)
+│       └── docker-compose.yml        # postgres + indexer-v2 + hasura + data-connector
+├── docs/                             # Documentation
+├── sql/views/                        # SQL view definitions
+├── scripts/                          # Build/utility scripts
+├── .github/                          # GitHub templates and CI
+│   ├── workflows/ci.yml              # CI pipeline
 │   ├── ISSUE_TEMPLATE/
 │   └── PULL_REQUEST_TEMPLATE/
-├── docker-compose.yaml         # Full stack: indexer + postgres + hasura + data-connector
-├── Dockerfile                  # Node 22 Alpine, builds all packages
-├── start.sh                    # Entrypoint: migrate → hasura config → start indexer
-├── env.sh                      # Sources .env for local dev
-├── .env.example                # Template for environment variables
-├── package.json                # Root workspace scripts
-├── pnpm-workspace.yaml         # Workspace config: packages/*
-├── pnpm-lock.yaml              # Lockfile
-├── .prettierrc                 # Prettier config
-├── .prettierignore             # Prettier ignore list
-├── ARCHITECTURE.md             # Existing architecture doc
-├── CONTRIBUTING.md             # Contribution guidelines
-├── CODE_OF_CONDUCT.md          # Code of conduct
-├── README.md                   # Project readme
-└── LICENSE                     # MIT license
+├── .planning/                        # Planning documents
+│   ├── codebase/                     # Codebase analysis (this file)
+│   ├── phases/                       # Implementation phase plans
+│   └── research/                     # Research notes
+├── docker-compose.yml                # Root-level Docker Compose
+├── package.json                      # Root workspace scripts
+├── pnpm-workspace.yaml               # Workspace: packages/*
+├── pnpm-lock.yaml
+├── tsconfig.json                     # Root TypeScript config
+├── eslint.config.ts                  # ESLint flat config
+├── .prettierrc                       # Prettier config
+├── .prettierignore
+├── .env.example                      # Environment variable template
+└── README.md
 ```
 
 ## Directory Purposes
 
-**`packages/abi/`:**
+**`packages/indexer-v2/src/core/` — Pipeline Framework:**
 
-- Purpose: ABI type bindings for smart contracts the indexer decodes
-- Contains: Custom JSON ABIs and auto-generated TypeScript event/function decoders
-- Key files: `custom/extensions/*.json` (marketplace ABIs), `scripts/codegen.sh` (runs `squid-evm-typegen`)
-- Generated content: `src/abi/` and `src/index.ts` — regenerate with `pnpm build` (runs codegen first)
+- Purpose: The core engine powering the V2 indexer
+- Contains: Pipeline orchestrator, registry, batch context, verification, worker pool, logging
+- Key files: `pipeline.ts` (529 lines — the main 6-step pipeline), `registry.ts` (368 lines — plugin/handler discovery)
 
-**`packages/typeorm/`:**
+**`packages/indexer-v2/src/plugins/events/` — Event Plugins:**
 
-- Purpose: Database schema definition and TypeORM entity code generation
-- Contains: `schema.graphql` (the schema source), generated entity classes, migration tooling
-- Key files: `schema.graphql` — the ONLY file to edit when changing the data model
-- Generated content: `src/model/generated/` — regenerate with `pnpm codegen` or `pnpm build`
+- Purpose: One file per blockchain event type; auto-discovered by `PluginRegistry`
+- Contains: 11 plugin files, each implementing `EventPlugin` interface
+- Pattern: Export default object with `name`, `topic0`, `extract()` method
+- Discovery: Files matching `*.plugin.js` are loaded at runtime
 
-**`packages/indexer/`:**
+**`packages/indexer-v2/src/handlers/` — Entity Handlers:**
 
-- Purpose: Core blockchain indexer — listens to events and writes to PostgreSQL
-- Contains: All business logic: event scanning, entity verification, data key extraction, metadata fetching, derived computation
+- Purpose: One file per derived entity creation concern; auto-discovered by `PluginRegistry`
+- Contains: 22+ handler files, each implementing `EntityHandler` interface
+- Pattern: Export default object with `name`, `listensToBag[]`, `handle()` method
+- Discovery: Files matching `*.handler.js` are loaded at runtime
+- Subdirectory: `chillwhales/` for project-specific handlers
 
-**`packages/indexer/src/app/`:**
+**`packages/indexer-v2/src/app/` — Application Bootstrap:**
 
-- Purpose: Application orchestration layer
-- Contains: Entry point, processor config, scanner, and all handler functions
-- Key files: `index.ts` (main pipeline), `processor.ts` (event subscriptions), `scanner.ts` (log parsing)
+- Purpose: Entry point, processor setup, registry creation, pipeline config assembly
+- Contains: 4 files composing the application startup sequence
+- Key files: `index.ts` (entry), `bootstrap.ts` (registry creation), `config.ts` (pipeline config), `processor.ts` (Subsquid processor)
 
-**`packages/indexer/src/app/handlers/`:**
+**`packages/indexer-v2/src/core/types/` — Type System:**
 
-- Purpose: Post-processing handlers that compute derived/aggregate entities
-- Contains: One handler per concern (14 handler files)
-- Key files: `lsp3ProfileHandler.ts` (profile metadata fetching), `marketplaceHandler.ts` (listing state machine), `ownedAssetsHandler.ts` (balance tracking)
+- Purpose: All interface and type definitions for the plugin architecture
+- Contains: 7 type modules with barrel export
+- Key types: `EventPlugin`, `EntityHandler`, `IBatchContext`, `Entity`, `FKFields<T>`, `WritableFields<T>`, `EnrichmentRequest<T>`
 
-**`packages/indexer/src/utils/`:**
+**`packages/typeorm/` — Database Schema:**
 
-- Purpose: Event extraction, entity population, and shared helper functions
-- Contains: Per-event-type subdirectories with `extract()` and `populate()` functions
-- Key files: `index.ts` (barrel + shared helpers), `entityVerification.ts`, `entityPopulation.ts`
-
-**`packages/indexer/src/utils/dataChanged/`:**
-
-- Purpose: Handlers for each standardized ERC725Y data key emitted via DataChanged events
-- Contains: One file per data key type (22 files: lsp3Profile, lsp4*, lsp5*, lsp6*, lsp8*, lsp12*, lsp29*)
-- Pattern: Each exports `extract()`, `populate()`, and optionally `extractSubEntities()`, `clearSubEntities()`
-
-**`packages/indexer/src/constants/`:**
-
-- Purpose: Configuration values loaded from environment variables with defaults
-- Contains: RPC URLs, gateway addresses, rate limits, IPFS gateway, contract addresses
-
-**`packages/indexer/src/types/`:**
-
-- Purpose: Core TypeScript type aliases for Subsquid processor types
-- Contains: `Processor`, `Block`, `Context`, `ExtractParams`, `ChillMintTransfer`
-
-**`sql-views/`:**
-
-- Purpose: SQL view definitions for Hasura GraphQL queries or reporting
-- Contains: 3 SQL files defining useful database views
+- Purpose: Single source of truth for the database schema
+- Contains: `schema.graphql` → generated TypeORM entity classes
+- 80+ entity types covering: events, data keys, profiles, assets, permissions, followers, marketplace
 
 ## Key File Locations
 
 **Entry Points:**
 
-- `packages/indexer/src/app/index.ts`: Main indexer pipeline (starts processor.run)
-- `start.sh`: Docker entrypoint (migration + hasura setup + start)
+- `packages/indexer-v2/src/app/index.ts`: V2 main entry (active)
+- `packages/indexer/src/app/index.ts`: V1 main entry (legacy)
 
 **Configuration:**
 
-- `packages/indexer/src/app/processor.ts`: Event topic subscriptions and RPC configuration
-- `packages/indexer/src/constants/index.ts`: All env-var-based configuration with defaults
-- `packages/typeorm/schema.graphql`: Database schema (source of truth for all entities)
-- `docker-compose.yaml`: Full infrastructure stack definition
+- `packages/indexer-v2/src/constants/index.ts`: All env-var configuration with defaults
+- `packages/indexer-v2/src/app/processor.ts`: Subsquid processor setup
+- `packages/indexer-v2/tsconfig.json`: TypeScript config with `@/` path alias
+- `packages/indexer-v2/vitest.config.ts`: Test framework configuration
+- `packages/typeorm/schema.graphql`: Database schema (source of truth)
 - `.env.example`: All supported environment variables
 
 **Core Logic:**
 
-- `packages/indexer/src/app/scanner.ts`: Event log parsing and routing (~725 lines)
-- `packages/indexer/src/utils/entityVerification.ts`: On-chain entity verification
-- `packages/indexer/src/utils/entityPopulation.ts`: Entity relationship population (~463 lines)
-- `packages/indexer/src/app/handlers/marketplaceHandler.ts`: Listing state machine (~311 lines)
-- `packages/indexer/src/app/handlers/lsp3ProfileHandler.ts`: Profile metadata fetching (~190 lines)
-- `packages/indexer/src/utils/dataChanged/lsp3Profile.ts`: LSP3 data extraction + sub-entity parsing
-
-**Shared Utilities:**
-
-- `packages/indexer/src/utils/index.ts`: Barrel exports + helpers (parseIpfsUrl, decodeVerifiableUri, getDataFromURL, formatTokenId, ID generators)
-- `packages/indexer/src/utils/multicall3.ts`: Multicall3 batched RPC wrapper
+- `packages/indexer-v2/src/core/pipeline.ts`: 6-step enrichment pipeline (529 lines)
+- `packages/indexer-v2/src/core/registry.ts`: Plugin discovery and routing (368 lines)
+- `packages/indexer-v2/src/core/batchContext.ts`: Batch entity storage (232 lines)
+- `packages/indexer-v2/src/core/verification.ts`: Address verification + LRU cache (451 lines)
+- `packages/indexer-v2/src/core/metadataWorkerPool.ts`: Worker pool manager (577 lines)
+- `packages/indexer-v2/src/core/metadataWorker.ts`: Worker thread (181 lines)
+- `packages/indexer-v2/src/utils/metadataFetch.ts`: Shared metadata fetch utility (391 lines)
 
 **Testing:**
 
-- No test files detected in the codebase
+- `packages/indexer-v2/src/core/__tests__/`: Core unit tests (pipeline, batchContext, workerPool, logger)
+- `packages/indexer-v2/src/handlers/__tests__/`: Handler unit tests (7 test files)
+- `packages/indexer-v2/test/integration/`: Integration tests
+- `packages/indexer-v2/test/fixtures/`: JSON block fixtures for tests
 
-**ABI Management:**
+**Docker:**
 
-- `packages/abi/scripts/codegen.sh`: Generates TypeScript from all JSON ABIs
-- `packages/abi/custom/`: Custom contract ABIs not from npm packages
-- `packages/abi/custom/extensions/`: Marketplace extension contract ABIs
+- `docker/v2/Dockerfile`: Multi-stage build for V2 indexer
+- `docker/v2/docker-compose.yml`: Full stack (postgres + indexer-v2 + hasura + data-connector)
 
 ## Naming Conventions
 
 **Files:**
 
-- `camelCase.ts` for all TypeScript source files: `lsp3Profile.ts`, `entityVerification.ts`, `marketplaceHandler.ts`
-- `index.ts` barrel files in every directory for re-exports
-- `UPPERCASE.sql` with PascalCase names for SQL views: `DataChangedLatest.sql`
-- `UPPERCASE.md` for documentation: `ARCHITECTURE.md`, `CONTRIBUTING.md`
+- Plugins: `{eventName}.plugin.ts` — e.g., `lsp7Transfer.plugin.ts`, `dataChanged.plugin.ts`
+- Handlers: `{concern}.handler.ts` — e.g., `totalSupply.handler.ts`, `lsp4TokenName.handler.ts`
+- Tests: `{module}.test.ts` — co-located in `__tests__/` directories
+- Core modules: `camelCase.ts` — e.g., `batchContext.ts`, `metadataWorkerPool.ts`
+- Type modules: `camelCase.ts` in `types/` — e.g., `handler.ts`, `plugins.ts`
 
 **Directories:**
 
-- `camelCase` for all source directories: `dataChanged/`, `tokenIdDataChanged/`, `universalReceiver/`
-- Directory per event type under `src/utils/`: matches the event name in camelCase
-- Directory per data key category under `src/utils/dataChanged/`: matches LSP standard name
+- `camelCase` for all source directories
+- `__tests__/` for test directories (co-located with source)
+- `chillwhales/` subdirectory for project-specific handlers
 
-**Functions:**
+**Exports:**
 
-- `camelCase` for all functions: `scanLogs()`, `verifyEntities()`, `populateEntities()`
-- Event utility functions: `extract()`, `populate()`, `extractSubEntities()`, `clearSubEntities()`
-- Handler functions: `{concern}Handler()` — e.g., `totalSupplyHandler()`, `lsp3ProfileHandler()`
-- ID generators: `generate{EntityType}Id()` — e.g., `generateTokenId()`, `generateOwnedAssetId()`
-
-**Variables:**
-
-- Entity collections use descriptive suffixes: `{type}Entities` (arrays), `{type}Map` (Maps)
-- Populated entities prefixed with `populated`: `populatedLsp3ProfileEntities`
-- Validated entities prefixed with scope: `validUniversalProfiles`, `newDigitalAssets`, `invalidUniversalProfiles`
-
-**Types/Entities:**
-
-- PascalCase for TypeORM entities and TypeScript types: `UniversalProfile`, `DigitalAsset`, `LSP3Profile`
-- Enums in PascalCase with SCREAMING_SNAKE values: `ListingStatus.ACTIVE`, `LSP4TokenTypeEnum.TOKEN`
-
-**Imports:**
-
-- Path alias `@/` maps to `packages/indexer/src/` (configured in `tsconfig.json`)
-- Namespace imports for utility modules: `import * as Utils from '@/utils'`
-- Named imports for entities: `import { UniversalProfile, DigitalAsset } from '@chillwhales/typeorm'`
-- Workspace package imports: `@chillwhales/abi`, `@chillwhales/typeorm`
-
-## Import Organization
-
-**Order:**
-
-1. Local path-aliased imports (`@/constants`, `@/types`, `@/utils`)
-2. Workspace package imports (`@chillwhales/abi`, `@chillwhales/typeorm`)
-3. External LUKSO contract imports (`@lukso/lsp*-contracts`)
-4. External library imports (`@subsquid/*`, `typeorm`, `viem`, `axios`, `uuid`)
-
-**Path Aliases:**
-
-- `@/*` → `packages/indexer/src/*` (defined in `packages/indexer/tsconfig.json`)
+- Plugins: `export default {PluginName}Plugin` — e.g., `export default LSP7TransferPlugin`
+- Handlers: `export default {HandlerName}Handler` — e.g., `export default TotalSupplyHandler`
+- Types: Named exports via barrel files
 
 ## Where to Add New Code
 
-**New Blockchain Event Type:**
+**New Blockchain Event:**
 
-1. Add ABI JSON to `packages/abi/custom/` (or `custom/extensions/` for marketplace)
-2. Rebuild ABI package: `pnpm --filter=@chillwhales/abi build`
-3. Add entity type(s) to `packages/typeorm/schema.graphql`
-4. Rebuild typeorm package: `pnpm --filter=@chillwhales/typeorm build`
-5. Add event topic to `packages/indexer/src/app/processor.ts` (`.addLog({})`)
-6. Create extract/populate utility at `packages/indexer/src/utils/{eventName}/index.ts`
-7. Export from `packages/indexer/src/utils/index.ts`
-8. Add scanning case in `packages/indexer/src/app/scanner.ts` (`switch` on `log.topics[0]`)
-9. Wire into `packages/indexer/src/app/index.ts` main pipeline
-10. If post-processing needed, add handler at `packages/indexer/src/app/handlers/{concern}Handler.ts` and export from `handlers/index.ts`
+1. Add ABI JSON to `packages/abi/custom/` if needed
+2. Rebuild ABI: `pnpm --filter=@chillwhales/abi build`
+3. Add entity to `packages/typeorm/schema.graphql`
+4. Rebuild typeorm: `pnpm --filter=@chillwhales/typeorm build`
+5. Create `packages/indexer-v2/src/plugins/events/{eventName}.plugin.ts`
+   - Implement `EventPlugin` interface
+   - Export as default
+   - Auto-discovered by registry — no wiring needed
 
-**New ERC725Y Data Key:**
+**New Derived Entity (Handler):**
 
-1. Add entity to `packages/typeorm/schema.graphql`
-2. Create extraction file at `packages/indexer/src/utils/dataChanged/{lspXDataKey}.ts` with `extract()` and `populate()` functions
-3. Export from `packages/indexer/src/utils/dataChanged/index.ts`
-4. Add data key constant to `packages/indexer/src/constants/` (or use `@lukso/lsp*-contracts`)
-5. Add `case`/`if` branch in scanner's `DataChanged` handler (match by exact key or prefix)
-6. Add entity collection variables in `scanner.ts` `scanLogs()`, wire through `entityPopulation.ts`, and persist in `index.ts`
+1. Add entity to `packages/typeorm/schema.graphql` if needed
+2. Create `packages/indexer-v2/src/handlers/{concern}.handler.ts`
+   - Implement `EntityHandler` interface
+   - Set `listensToBag` to subscribe to event types
+   - Set `dependsOn` if ordering matters
+   - Export as default
+   - Auto-discovered by registry — no wiring needed
 
-**New Handler (Post-Processing):**
+**New Metadata Fetch Handler:**
 
-1. Create `packages/indexer/src/app/handlers/{concern}Handler.ts`
-2. Export from `packages/indexer/src/app/handlers/index.ts`
-3. Call from `packages/indexer/src/app/index.ts` after persistence (at the bottom of the pipeline)
+1. Create handler at `packages/indexer-v2/src/handlers/{lspX}Fetch.handler.ts`
+2. Use `handleMetadataFetch()` from `packages/indexer-v2/src/utils/metadataFetch.ts`
+3. Implement `parseAndAddSubEntities()` callback for JSON parsing
 
-**New SQL View:**
+**New Test:**
 
-- Add `.sql` file to `sql-views/` directory
-- Apply manually to PostgreSQL or configure in Hasura
+- Unit tests: `packages/indexer-v2/src/{module}/__tests__/{name}.test.ts`
+- Integration tests: `packages/indexer-v2/test/integration/{name}.test.ts`
+- Fixtures: `packages/indexer-v2/test/fixtures/`
 
 **Utilities/Helpers:**
 
-- Shared helpers: Add to `packages/indexer/src/utils/index.ts`
-- Domain-specific helpers: Add to relevant `packages/indexer/src/utils/{domain}/` directory
+- Shared decode/type-guard helpers: `packages/indexer-v2/src/utils/index.ts`
+- Entity merge helpers: `packages/indexer-v2/src/core/handlerHelpers.ts`
 
 ## Special Directories
 
-**`packages/abi/src/`:**
+**`packages/abi/src/` and `packages/abi/lib/`:**
 
-- Purpose: Generated ABI TypeScript bindings
-- Generated: Yes (by `scripts/codegen.sh` via `squid-evm-typegen`)
-- Committed: No (cleaned by `pnpm clean`)
+- Generated: Yes (by `scripts/codegen.sh` via `squid-evm-typegen` and `tsc`)
+- Committed: No — gitignored. Must run `pnpm --filter=@chillwhales/abi build` after clone
 
-**`packages/typeorm/src/`:**
+**`packages/typeorm/src/model/generated/`:**
 
-- Purpose: Generated TypeORM entity classes from schema.graphql
-- Generated: Yes (by `squid-typeorm-codegen`)
-- Committed: No (cleaned by `pnpm clean`)
+- Generated: Yes (by `squid-typeorm-codegen` from `schema.graphql`)
+- Committed: No — gitignored. Must run `pnpm --filter=@chillwhales/typeorm build` after clone
+- NEVER edit manually — edit `schema.graphql` then regenerate
 
 **`packages/*/lib/`:**
 
-- Purpose: TypeScript compilation output
 - Generated: Yes (by `tsc`)
-- Committed: Appears to be committed (present in repo), but ideally should not be
+- Committed: No — `lib/` is gitignored across all packages. Must build before runtime
 
-**`packages/indexer-v2/`:**
+**`packages/indexer-v2/logs/`:**
 
-- Purpose: Abandoned/WIP rewrite — contains only compiled JS output (no source or package.json)
-- Generated: N/A
-- Committed: Yes, but non-functional — no source code, no package.json
+- Generated: Yes (runtime log output)
+- Committed: No (gitignored)
 
-**`node_modules/`:**
+**`packages/indexer-v2/test/fixtures/`:**
 
-- Purpose: Installed dependencies (pnpm workspace)
-- Generated: Yes
-- Committed: No
+- Generated: No (manually created test data)
+- Committed: Yes
 
 ---
 
-_Structure analysis: 2026-02-06_
+_Structure analysis: 2026-02-12_
