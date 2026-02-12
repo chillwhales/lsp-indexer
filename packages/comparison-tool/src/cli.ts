@@ -1,6 +1,7 @@
 #!/usr/bin/env ts-node
 
 import { runComparison } from './comparisonEngine';
+import { ENTITY_REGISTRY } from './entityRegistry';
 import { printReport } from './reporter';
 import { ComparisonConfig, ComparisonMode } from './types';
 
@@ -145,5 +146,5 @@ async function main(): Promise<void> {
 }
 
 if (require.main === module) {
-  main();
+  void main();
 }
