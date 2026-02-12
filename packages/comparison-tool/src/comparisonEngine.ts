@@ -17,11 +17,11 @@ function stableStringify(value: unknown): string {
   if (Array.isArray(value)) {
     return '[' + value.map(stableStringify).join(',') + ']';
   }
-  const sorted = Object.keys(value as Record<string, unknown>)
-    .sort()
-    .map(
-      (key) => `${JSON.stringify(key)}:${stableStringify((value as Record<string, unknown>)[key])}`,
-    );
+  // After null/primitive/array checks, value is a plain object.
+  // Use Object.entries to avoid needing a type assertion on the narrowed `object`.
+  const entries = Object.entries(value);
+  entries.sort(([a], [b]) => a.localeCompare(b));
+  const sorted = entries.map(([key, val]) => `${JSON.stringify(key)}:${stableStringify(val)}`);
   return '{' + sorted.join(',') + '}';
 }
 
@@ -132,8 +132,8 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
       targetClient.queryRowsByIds(entity.hasuraTable, sampleIds),
     ]);
 
-    const sourceRowMap = new Map(sourceRows.map((row) => [row.id as string, row]));
-    const targetRowMap = new Map(targetRows.map((row) => [row.id as string, row]));
+    const sourceRowMap = new Map(sourceRows.map((row) => [String(row.id), row]));
+    const targetRowMap = new Map(targetRows.map((row) => [String(row.id), row]));
 
     const knownDivergencesForEntity = getKnownDivergences(entity.name, config.mode);
     const knownFieldSet = new Set(knownDivergencesForEntity.map((d) => d.field));

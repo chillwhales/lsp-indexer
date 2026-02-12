@@ -72,7 +72,16 @@ function parseArgs(): ComparisonConfig | null {
     return null;
   }
 
-  return config as ComparisonConfig;
+  return {
+    sourceUrl: config.sourceUrl,
+    targetUrl: config.targetUrl,
+    sourceSecret: config.sourceSecret,
+    targetSecret: config.targetSecret,
+    mode: config.mode,
+    entities: config.entities,
+    sampleSize: config.sampleSize ?? 100,
+    tolerancePercent: config.tolerancePercent ?? 0,
+  };
 }
 
 function printUsage(): void {
