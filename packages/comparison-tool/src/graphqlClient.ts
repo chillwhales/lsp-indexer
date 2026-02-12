@@ -7,6 +7,28 @@ export interface GraphqlClient {
   checkHealth(): Promise<boolean>;
 }
 
+/** Standard GraphQL response envelope with typed data payload. */
+interface GraphqlResponse<T> {
+  data?: T;
+  errors?: Array<{ message: string }>;
+}
+
+interface AggregateData {
+  [key: string]: { aggregate: { count: number } } | undefined;
+}
+
+interface SampleIdsData {
+  [key: string]: Array<{ id?: string }> | undefined;
+}
+
+interface RowsData {
+  [key: string]: Record<string, unknown>[] | undefined;
+}
+
+interface HealthData {
+  __typename?: string;
+}
+
 interface IntrospectionField {
   name: string;
   type: {
@@ -19,12 +41,10 @@ interface IntrospectionField {
   };
 }
 
-interface IntrospectionResponse {
-  data: {
-    __type: {
-      fields: IntrospectionField[];
-    } | null;
-  };
+interface IntrospectionData {
+  __type: {
+    fields: IntrospectionField[];
+  } | null;
 }
 
 /**
@@ -54,11 +74,9 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     `;
 
     try {
-      const response = await client.post('', { query });
-      if (response.data?.errors) return -1;
-      const data = response.data?.data;
-      if (!data) return -1;
-      const count = data[`${hasuraTable}_aggregate`]?.aggregate?.count;
+      const response = await client.post<GraphqlResponse<AggregateData>>('', { query });
+      if (response.data.errors || !response.data.data) return -1;
+      const count = response.data.data[`${hasuraTable}_aggregate`]?.aggregate?.count;
       return typeof count === 'number' ? count : -1;
     } catch {
       return -1;
@@ -75,20 +93,19 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     `;
 
     try {
-      const response = await client.post('', { query });
-      const rows = response.data?.data?.[hasuraTable];
+      const response = await client.post<GraphqlResponse<SampleIdsData>>('', { query });
+      const rows = response.data.data?.[hasuraTable];
       if (!Array.isArray(rows)) return [];
-      return rows
-        .map((row: { id?: string }) => row.id)
-        .filter((id: string | undefined): id is string => typeof id === 'string');
+      return rows.map((row) => row.id).filter((id): id is string => typeof id === 'string');
     } catch {
       return [];
     }
   }
 
   async function queryTableFields(hasuraTable: string): Promise<string[]> {
-    if (fieldCache.has(hasuraTable)) {
-      return fieldCache.get(hasuraTable)!;
+    const cached = fieldCache.get(hasuraTable);
+    if (cached) {
+      return cached;
     }
 
     const query = `
@@ -110,8 +127,8 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     `;
 
     try {
-      const response = await client.post<IntrospectionResponse>('', { query });
-      const typeData = response.data?.data?.__type;
+      const response = await client.post<GraphqlResponse<IntrospectionData>>('', { query });
+      const typeData = response.data.data?.__type;
 
       if (!typeData || !typeData.fields) return [];
 
@@ -168,8 +185,8 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     `;
 
     try {
-      const response = await client.post('', { query });
-      const rows = response.data?.data?.[hasuraTable];
+      const response = await client.post<GraphqlResponse<RowsData>>('', { query });
+      const rows = response.data.data?.[hasuraTable];
       if (!Array.isArray(rows)) return [];
       return rows;
     } catch {
@@ -179,8 +196,10 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
 
   async function checkHealth(): Promise<boolean> {
     try {
-      const response = await client.post('', { query: '{ __typename }' });
-      return response.status === 200 && response.data?.data?.__typename !== undefined;
+      const response = await client.post<GraphqlResponse<HealthData>>('', {
+        query: '{ __typename }',
+      });
+      return response.status === 200 && response.data.data?.__typename !== undefined;
     } catch {
       return false;
     }

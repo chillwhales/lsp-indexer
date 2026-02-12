@@ -76,7 +76,7 @@ function parseArgs(): ComparisonConfig | null {
 }
 
 function printUsage(): void {
-  console.log(`
+  console.info(`
 Usage: pnpm compare -- [options]
 
 Compare row counts and sampled content between two Hasura GraphQL endpoints.

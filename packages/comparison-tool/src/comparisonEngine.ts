@@ -64,8 +64,9 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
     throw new Error(`${targetLabel} endpoint health check failed: ${config.targetUrl}`);
   }
 
-  const entitiesToCompare = config.entities
-    ? ENTITY_REGISTRY.filter((e) => config.entities!.includes(e.name))
+  const entityFilter = config.entities;
+  const entitiesToCompare = entityFilter
+    ? ENTITY_REGISTRY.filter((e) => entityFilter.includes(e.name))
     : ENTITY_REGISTRY;
 
   const counts: CountResult[] = [];

@@ -29,42 +29,44 @@ export function printReport(report: ComparisonReport): void {
   const { sourceLabel, targetLabel } = report;
 
   // Header
-  console.log(`\n${BOLD}${'═'.repeat(70)}${RESET}`);
-  console.log(`${BOLD}${CYAN}  ${sourceLabel} vs ${targetLabel} Data Parity Comparison${RESET}`);
+  console.info(`\n${BOLD}${'═'.repeat(70)}${RESET}`);
+  console.info(`${BOLD}${CYAN}  ${sourceLabel} vs ${targetLabel} Data Parity Comparison${RESET}`);
   if (report.tolerancePercent > 0) {
-    console.log(`${DIM}  Tolerance: ${report.tolerancePercent}% count difference accepted${RESET}`);
+    console.info(
+      `${DIM}  Tolerance: ${report.tolerancePercent}% count difference accepted${RESET}`,
+    );
   }
-  console.log(`${BOLD}${'═'.repeat(70)}${RESET}\n`);
+  console.info(`${BOLD}${'═'.repeat(70)}${RESET}\n`);
 
   // Missing Entity Types
   if (report.missingEntityTypes.length > 0) {
-    console.log(`${BOLD}Missing Entity Types:${RESET}`);
+    console.info(`${BOLD}Missing Entity Types:${RESET}`);
     const sourceMissing = report.missingEntityTypes.filter((m) => m.endpoint === 'source');
     const targetMissing = report.missingEntityTypes.filter((m) => m.endpoint === 'target');
 
     if (sourceMissing.length > 0) {
-      console.log(
+      console.info(
         `${DIM}  ${sourceLabel} missing: ${sourceMissing.map((m) => m.entityName).join(', ')}${RESET}`,
       );
     }
     if (targetMissing.length > 0) {
-      console.log(
+      console.info(
         `${RED}  ${targetLabel} missing: ${targetMissing.map((m) => m.entityName).join(', ')}${RESET}`,
       );
     }
-    console.log();
+    console.info();
   }
 
   // Row Counts Table
   const srcHeader = `${sourceLabel} Count`;
   const tgtHeader = `${targetLabel} Count`;
 
-  console.log(`${BOLD}Row Counts:${RESET}`);
-  console.log(`${DIM}${'─'.repeat(80)}${RESET}`);
-  console.log(
+  console.info(`${BOLD}Row Counts:${RESET}`);
+  console.info(`${DIM}${'─'.repeat(80)}${RESET}`);
+  console.info(
     `${'Entity Type'.padEnd(35)} ${srcHeader.padStart(12)} ${tgtHeader.padStart(12)}  ${'Diff'.padStart(8)}  Status`,
   );
-  console.log(`${DIM}${'─'.repeat(80)}${RESET}`);
+  console.info(`${DIM}${'─'.repeat(80)}${RESET}`);
 
   for (const count of report.counts) {
     const entity = ENTITY_REGISTRY.find((e) => e.name === count.entityName);
@@ -92,12 +94,12 @@ export function printReport(report: ComparisonReport): void {
       statusColor = RED;
     }
 
-    console.log(
+    console.info(
       `${entityName.padEnd(35)} ${srcStr.padStart(12)} ${tgtStr.padStart(12)}  ${diffStr.padStart(8)}  ${statusColor}${statusSymbol}${RESET}`,
     );
   }
 
-  console.log(`${DIM}${'─'.repeat(80)}${RESET}\n`);
+  console.info(`${DIM}${'─'.repeat(80)}${RESET}\n`);
 
   // Sampled Content Diffs
   if (report.sampleDiffs.length > 0) {
@@ -117,63 +119,63 @@ export function printReport(report: ComparisonReport): void {
     );
 
     if (entitiesWithUnexpectedDiffs.length > 0) {
-      console.log(`${BOLD}${RED}Unexpected Content Differences:${RESET}`);
+      console.info(`${BOLD}${RED}Unexpected Content Differences:${RESET}`);
 
       for (const [entityName, diffs] of entitiesWithUnexpectedDiffs) {
         const diffsWithUnexpected = diffs.filter((d) => d.unexpectedDiffs.length > 0);
-        console.log(
+        console.info(
           `\n${BOLD}${RED}─── ${entityName} (${diffsWithUnexpected.length} row${diffsWithUnexpected.length === 1 ? '' : 's'} with diffs) ───${RESET}`,
         );
 
         for (const diff of diffsWithUnexpected.slice(0, 5)) {
-          console.log(`\n  ${DIM}Row: ${diff.rowId}${RESET}`);
+          console.info(`\n  ${DIM}Row: ${diff.rowId}${RESET}`);
           for (const fieldDiff of diff.unexpectedDiffs) {
             const srcStr = truncateValue(fieldDiff.sourceValue);
             const tgtStr = truncateValue(fieldDiff.targetValue);
-            console.log(`    ${fieldDiff.field}: ${srcStr} ${RED}→${RESET} ${tgtStr}`);
+            console.info(`    ${fieldDiff.field}: ${srcStr} ${RED}→${RESET} ${tgtStr}`);
           }
         }
 
         if (diffsWithUnexpected.length > 5) {
-          console.log(`  ${DIM}... and ${diffsWithUnexpected.length - 5} more rows${RESET}`);
+          console.info(`  ${DIM}... and ${diffsWithUnexpected.length - 5} more rows${RESET}`);
         }
       }
-      console.log();
+      console.info();
     }
 
     if (entitiesWithKnownOnly.length > 0) {
-      console.log(`${BOLD}${DIM}Known Divergences:${RESET}`);
+      console.info(`${BOLD}${DIM}Known Divergences:${RESET}`);
 
       for (const [entityName, diffs] of entitiesWithKnownOnly) {
-        console.log(
+        console.info(
           `\n${DIM}─── ${entityName} (${diffs.length} row${diffs.length === 1 ? '' : 's'}) ───${RESET}`,
         );
 
         for (const diff of diffs.slice(0, 3)) {
-          console.log(`\n  ${DIM}Row: ${diff.rowId}${RESET}`);
+          console.info(`\n  ${DIM}Row: ${diff.rowId}${RESET}`);
           for (const fieldDiff of diff.knownDivergences) {
             const srcStr = truncateValue(fieldDiff.sourceValue);
             const tgtStr = truncateValue(fieldDiff.targetValue);
-            console.log(`    ${fieldDiff.field}: ${srcStr} → ${tgtStr}`);
+            console.info(`    ${fieldDiff.field}: ${srcStr} → ${tgtStr}`);
           }
         }
 
         if (diffs.length > 3) {
-          console.log(`  ${DIM}... and ${diffs.length - 3} more rows${RESET}`);
+          console.info(`  ${DIM}... and ${diffs.length - 3} more rows${RESET}`);
         }
       }
-      console.log();
+      console.info();
     }
   }
 
   // Summary
-  console.log(`${BOLD}${'═'.repeat(70)}${RESET}`);
+  console.info(`${BOLD}${'═'.repeat(70)}${RESET}`);
 
   const resultColor = report.passed ? GREEN : RED;
   const resultText = report.passed ? 'PASS ✓' : 'FAIL ✗';
-  console.log(`${BOLD}${resultColor}RESULT: ${resultText}${RESET}`);
+  console.info(`${BOLD}${resultColor}RESULT: ${resultText}${RESET}`);
 
-  console.log(`${BOLD}${'═'.repeat(70)}${RESET}`);
+  console.info(`${BOLD}${'═'.repeat(70)}${RESET}`);
 
   const entityTypesCompared = report.counts.length;
   const exactMatches = report.counts.filter((c) => c.match).length;
@@ -193,21 +195,21 @@ export function printReport(report: ComparisonReport): void {
     0,
   );
 
-  console.log(`Mode: ${report.mode}`);
-  console.log(`Entity types compared: ${entityTypesCompared}`);
-  console.log(
+  console.info(`Mode: ${report.mode}`);
+  console.info(`Entity types compared: ${entityTypesCompared}`);
+  console.info(
     `Row count exact matches: ${exactMatches}/${entityTypesCompared}` +
       (toleranceMatches > 0 ? `  (+${toleranceMatches} within tolerance)` : '') +
       (metadataTimingDiffs > 0 ? `  (${metadataTimingDiffs} metadata timing)` : ''),
   );
   if (report.tolerancePercent > 0) {
-    console.log(`Tolerance: ${report.tolerancePercent}%`);
+    console.info(`Tolerance: ${report.tolerancePercent}%`);
   }
-  console.log(
+  console.info(
     `Unexpected diffs: ${totalUnexpectedDiffs > 0 ? `${RED}${totalUnexpectedDiffs}${RESET}` : '0'}`,
   );
   if (report.mode === 'v1-v2') {
-    console.log(`Known divergences: ${DIM}${totalKnownDivergences}${RESET}`);
+    console.info(`Known divergences: ${DIM}${totalKnownDivergences}${RESET}`);
   }
-  console.log(`${BOLD}${'═'.repeat(70)}${RESET}\n`);
+  console.info(`${BOLD}${'═'.repeat(70)}${RESET}\n`);
 }
