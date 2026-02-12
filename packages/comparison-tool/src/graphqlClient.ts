@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 
-interface GraphqlClient {
+export interface GraphqlClient {
   queryCount(hasuraTable: string): Promise<number>;
   querySampleIds(hasuraTable: string, limit: number): Promise<string[]>;
   queryRowsByIds(hasuraTable: string, ids: string[]): Promise<Record<string, unknown>[]>;
@@ -40,13 +40,8 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     },
   });
 
-  // Cache for introspected field lists (table name → field names)
   const fieldCache = new Map<string, string[]>();
 
-  /**
-   * Query aggregate row count for a table.
-   * Returns -1 if table doesn't exist (entity type missing from endpoint).
-   */
   async function queryCount(hasuraTable: string): Promise<number> {
     const query = `
       query {
@@ -60,18 +55,15 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
 
     try {
       const response = await client.post('', { query });
-      const count = response.data?.data?.[`${hasuraTable}_aggregate`]?.aggregate?.count;
+      const data = response.data?.data;
+      if (data?.errors || !data) return -1;
+      const count = data[`${hasuraTable}_aggregate`]?.aggregate?.count;
       return typeof count === 'number' ? count : -1;
-    } catch (error) {
-      // Table doesn't exist or query failed
+    } catch {
       return -1;
     }
   }
 
-  /**
-   * Fetch sample row IDs from a table.
-   * Returns empty array if table doesn't exist or has no 'id' column.
-   */
   async function querySampleIds(hasuraTable: string, limit: number): Promise<string[]> {
     const query = `
       query {
@@ -84,23 +76,16 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     try {
       const response = await client.post('', { query });
       const rows = response.data?.data?.[hasuraTable];
-      if (!Array.isArray(rows)) {
-        return [];
-      }
+      if (!Array.isArray(rows)) return [];
       return rows
         .map((row: { id?: string }) => row.id)
-        .filter((id): id is string => typeof id === 'string');
-    } catch (error) {
+        .filter((id: string | undefined): id is string => typeof id === 'string');
+    } catch {
       return [];
     }
   }
 
-  /**
-   * Introspect table fields via GraphQL __type query.
-   * Returns field names for scalar types only (excludes relations).
-   */
   async function queryTableFields(hasuraTable: string): Promise<string[]> {
-    // Check cache first
     if (fieldCache.has(hasuraTable)) {
       return fieldCache.get(hasuraTable)!;
     }
@@ -127,11 +112,8 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
       const response = await client.post<IntrospectionResponse>('', { query });
       const typeData = response.data?.data?.__type;
 
-      if (!typeData || !typeData.fields) {
-        return [];
-      }
+      if (!typeData || !typeData.fields) return [];
 
-      // Filter to scalar fields only (exclude relations)
       const scalarTypeNames = new Set([
         'String',
         'Int',
@@ -150,50 +132,30 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
 
       const scalarFields = typeData.fields
         .filter((field) => {
-          // Exclude __typename
-          if (field.name === '__typename') {
-            return false;
-          }
-
-          // Check if field type is scalar
+          if (field.name === '__typename') return false;
           const typeName = field.type.name || field.type.ofType?.name;
           const typeKind = field.type.kind || field.type.ofType?.kind;
-
           return typeName && (scalarTypeNames.has(typeName) || typeKind === 'SCALAR');
         })
         .map((field) => field.name);
 
-      // Cache the result
       fieldCache.set(hasuraTable, scalarFields);
-
       return scalarFields;
-    } catch (error) {
+    } catch {
       return [];
     }
   }
 
-  /**
-   * Query full rows by IDs, auto-discovering scalar fields.
-   * Returns array of row objects with all scalar field values.
-   */
   async function queryRowsByIds(
     hasuraTable: string,
     ids: string[],
   ): Promise<Record<string, unknown>[]> {
-    if (ids.length === 0) {
-      return [];
-    }
+    if (ids.length === 0) return [];
 
-    // Introspect fields first
     const fields = await queryTableFields(hasuraTable);
-    if (fields.length === 0) {
-      return [];
-    }
+    if (fields.length === 0) return [];
 
-    // Build field selection string
     const fieldSelection = fields.join('\n          ');
-
-    // Build ID list for _in filter
     const idList = ids.map((id) => `"${id}"`).join(', ');
 
     const query = `
@@ -207,37 +169,21 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     try {
       const response = await client.post('', { query });
       const rows = response.data?.data?.[hasuraTable];
-      if (!Array.isArray(rows)) {
-        return [];
-      }
+      if (!Array.isArray(rows)) return [];
       return rows;
-    } catch (error) {
+    } catch {
       return [];
     }
   }
 
-  /**
-   * Health check - verify GraphQL endpoint is accessible.
-   */
   async function checkHealth(): Promise<boolean> {
-    const query = `
-      query {
-        __typename
-      }
-    `;
-
     try {
-      const response = await client.post('', { query });
+      const response = await client.post('', { query: '{ __typename }' });
       return response.status === 200 && response.data?.data?.__typename !== undefined;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
 
-  return {
-    queryCount,
-    querySampleIds,
-    queryRowsByIds,
-    checkHealth,
-  };
+  return { queryCount, querySampleIds, queryRowsByIds, checkHealth };
 }

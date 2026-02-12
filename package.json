@@ -17,7 +17,8 @@
     "migration:generate": ". ./env.sh && pnpm --filter=@chillwhales/typeorm migration:generate",
     "migration:apply": ". ./env.sh && pnpm --filter=@chillwhales/typeorm migration:apply",
     "start": ". ./env.sh && pnpm --filter=@chillwhales/indexer start",
-    "start:v2": ". ./env.sh && pnpm --filter=@chillwhales/indexer-v2 start"
+    "start:v2": ". ./env.sh && pnpm --filter=@chillwhales/indexer-v2 start",
+    "compare": "pnpm --filter=@chillwhales/comparison-tool compare"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

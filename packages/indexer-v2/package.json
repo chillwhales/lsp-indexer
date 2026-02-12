@@ -11,7 +11,6 @@
     "clean": "rm -Rf lib/",
     "start": "bash -c 'set -o pipefail && mkdir -p \"${LOG_DIR:-logs}\" && ts-node --project ./tsconfig.json -r tsconfig-paths/register lib/app/index.js 2>&1 | tee -a \"${LOG_DIR:-logs}\"/console-$(date +%Y-%m-%d).log'",
     "start:simple": "INDEXER_ENABLE_FILE_LOGGER=false ts-node --project ./tsconfig.json -r tsconfig-paths/register lib/app/index.js",
-    "compare": "ts-node --project ./tsconfig.json -r tsconfig-paths/register src/comparison/cli.ts",
     "pretest": "pnpm build",
     "test": "vitest run",
     "test:watch": "vitest"
