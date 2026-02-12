@@ -4,34 +4,34 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Phase 3.1 complete — Improve Debug Logging Strategy. Next: Phase 3.2 (Queue-Based Worker Pool)
+**Current Focus:** Phase 5 in progress — Deployment & Validation
 
 ## Current Position
 
-- **Phase:** 3.1 of 7 — Improve Debug Logging Strategy (INSERTED)
-- **Plan:** 4 of 4 in current phase
-- **Status:** Phase complete (ALL gap closures addressed)
-- **Last activity:** 2026-02-11 — Completed 03.1-04-PLAN.md (final code quality fixes)
-- **Progress:** █████████░ 25/29 requirements complete (phases 1-4, 3.1 done; 3.2/5 remain)
+- **Phase:** 5 of 7 — Deployment & Validation
+- **Plan:** 1 of 2 in current phase
+- **Status:** In progress
+- **Last activity:** 2026-02-12 — Completed 05-01-PLAN.md (comparison tool foundation)
+- **Progress:** █████████░ 26/29 requirements complete (phases 1-4, 3.1, part of 5 done; 3.2/5 remain)
 
 ## Phase Overview
 
-| Phase | Name                              | Status       | Requirements |
-| ----- | --------------------------------- | ------------ | :----------: |
-| 1     | Handler Migration                 | **Complete** |     5/5      |
-| 2     | New Handlers & Structured Logging | **Complete** |     5/5      |
-| 3     | Metadata Fetch Handlers           | **Complete** |     5/5      |
-| 3.1   | Improve Debug Logging Strategy    | **Complete** |     4/4      |
-| 3.2   | Queue-Based Worker Pool           | **Next**     |     0/4      |
-| 4     | Integration & Wiring              | **Complete** |     4/4      |
-| 5     | Deployment & Validation           | Upcoming     |     0/2      |
+| Phase | Name                              | Status          | Requirements |
+| ----- | --------------------------------- | --------------- | :----------: |
+| 1     | Handler Migration                 | **Complete**    |     5/5      |
+| 2     | New Handlers & Structured Logging | **Complete**    |     5/5      |
+| 3     | Metadata Fetch Handlers           | **Complete**    |     5/5      |
+| 3.1   | Improve Debug Logging Strategy    | **Complete**    |     4/4      |
+| 3.2   | Queue-Based Worker Pool           | Deferred        |     0/4      |
+| 4     | Integration & Wiring              | **Complete**    |     4/4      |
+| 5     | Deployment & Validation           | **In progress** |     1/2      |
 
 ## Performance Metrics
 
-- **Plans completed:** 20
+- **Plans completed:** 21
 - **Plans failed:** 0
 - **Phases completed:** 5 (of 7 total; 2 phases inserted 2026-02-11)
-- **Requirements delivered:** 25/29 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04)
+- **Requirements delivered:** 26/29 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01 partial)
 
 ## Accumulated Context
 
@@ -99,6 +99,10 @@
 | If/else pattern for debug-enabled vs production paths               | Handlers duplicate minimal code to avoid debug overhead                    | 03.1-03 |
 | MockLogger interface with explicit vi.fn() types                    | Zero type assertions in test code - TypeScript validates mock structure    | 03.1-04 |
 | Check base logger level before creating component logger            | Logger only created when debug enabled (minimal variable scope)            | 03.1-04 |
+| Snake case conversion preserves LSP prefixes                        | LSP3ProfileImage → lsp3_profile_image (not lsp_3_profile_image)            | 05-01   |
+| GraphQL client returns -1 for missing tables                        | Enables comparison tool to detect missing entity types without crashes     | 05-01   |
+| Field introspection filters to scalar types only                    | Excludes object/array relations for row comparison with primitive values   | 05-01   |
+| Field cache per table in GraphQL client                             | Avoids repeated introspection queries during sample comparisons            | 05-01   |
 
 ### Discovered Todos
 
@@ -112,31 +116,27 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-11
-- **Activity:** Executed 03.1-04-PLAN.md — Final code quality fixes (gap closure)
-- **Outcome:** Eliminated ALL remaining type assertions via MockLogger interface with explicit vi.fn() types (zero `as unknown as` in test file). Moved logger creation inside debug blocks for all 3 fetch handlers (logger only created when debug enabled, minimal variable scope). Phase 3.1 fully complete with ALL gap closures addressed (3 min execution).
-- **Next Step:** Phase 3.2 (Queue-Based Worker Pool Optimization)
+- **Date:** 2026-02-12
+- **Activity:** Executed 05-01-PLAN.md — Comparison tool foundation
+- **Outcome:** Created complete entity registry with all 72 @entity types from schema.graphql, known divergences for V1→V2 differences, and GraphQL client with introspection-based field discovery. All types mapped to snake_case Hasura table names. Client handles errors gracefully (returns -1 or empty arrays). Zero new dependencies (uses existing axios). (2 min execution)
+- **Next Step:** Phase 05 Plan 02 (Comparison engine, colored reporter, CLI entry point)
 
 ### Context for Next Session
 
-- **Phase 3.1 complete (ALL gap closures addressed):** Debug logging infrastructure fully functional with code quality and performance optimizations
-  - Plan 01: createComponentLogger helper, worker pool instrumentation, handler debug logging
-  - Plan 02: Import wiring fixes — all 5 files now correctly import createComponentLogger/getFileLogger
-  - Plan 03: Code quality improvements — eliminated type assertions in handlers, zero-overhead debug logging
-  - Plan 04: Final fixes — zero type assertions in tests, logger minimal scope
-  - User can set LOG_LEVEL=debug and see component-specific logs with zero ReferenceErrors
-  - Post-hoc filtering enabled: `cat logs/*.log | jq 'select(.component == "worker_pool")'`
-  - All logging uses isLevelEnabled check for zero overhead when disabled
-  - Production (LOG_LEVEL=info) has no Date.now() overhead from debug instrumentation
-  - Zero type assertions anywhere (proper TypeScript interfaces used)
-  - Logger only created when debug enabled (no wasted object creation)
-- **Next phase:** Phase 3.2 (Queue-Based Worker Pool Optimization) - run `/gsd-plan-phase 3.2`
-  - Refactor MetadataWorkerPool from batch-wait to queue-based architecture
-  - Keep N workers busy with X requests each for ~2x throughput
-  - Debug logging from Phase 3.1 will help validate queue behavior
-- **Planning documents available:**
-  - `IMPROVEMENTS_ROADMAP.md` - Detailed specs for Phase 3.2
+- **Phase 05-01 complete:** Comparison tool foundation ready
+  - types.ts: EntityDefinition, KnownDivergence, ComparisonConfig, CountResult, FieldDiff, RowDiff, ComparisonReport
+  - entityRegistry.ts: ENTITY_REGISTRY with all 72 entities, KNOWN_DIVERGENCES array, helper functions
+  - graphqlClient.ts: createGraphqlClient factory with queryCount, querySampleIds, queryRowsByIds, queryTableFields, checkHealth
+  - Entity categorization: core, event, metadata, ownership, lsp, custom
+  - isMetadataSub flag identifies sub-entities for separate handling
+  - Field introspection caches results per table for performance
+- **Next plan:** 05-02 (Comparison engine and CLI)
+  - Build comparison engine using the foundation from 05-01
+  - Colored terminal reporter for per-entity counts and diffs
+  - CLI entry point with URL arguments and entity filtering
+  - Human verification of comparison output
+- **Phase 3.2 deferred:** Queue-Based Worker Pool Optimization can wait until after deployment validation
 
 ---
 
-_Last updated: 2026-02-11_
+_Last updated: 2026-02-12_
