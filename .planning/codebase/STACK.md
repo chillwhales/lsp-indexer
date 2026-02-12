@@ -48,7 +48,7 @@
 **Dependency Graph:**
 
 ```
-indexer-v2 → abi (workspace:1.0.4), typeorm (workspace:1.2.0)
+indexer-v2 → abi (workspace:1.0.4), typeorm (workspace:1.2.0)  ← pinned below latest 1.2.1
 indexer    → abi (workspace:1.0.4), typeorm (workspace:1.2.1)
 typeorm    → (standalone, generates entities from schema.graphql)
 abi        → (standalone, generates ABI types from contract artifacts)

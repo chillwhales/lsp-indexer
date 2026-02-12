@@ -235,7 +235,7 @@
 **Logging:**
 
 - Dual-output: Subsquid's `context.log` (stdout) + pino file logger (rotating JSON)
-- Structured attributes: `{ step, blockRange, entityType, count }` — no JSON.stringify
+- Preferred pattern: structured attributes like `{ step, blockRange, entityType, count }`; most new logging avoids `JSON.stringify`, but some legacy handlers (e.g., `decimals.handler.ts`, `formattedTokenId.handler.ts`) still use pre-serialized payloads
 - File logger: daily rotation via `pino-roll`, configurable via `LOG_LEVEL`, `INDEXER_ENABLE_FILE_LOGGER`
 - Component loggers: `createComponentLogger()` for handler-level tagging
 - Step loggers: `createStepLogger()` for pipeline step identification

@@ -226,8 +226,8 @@ Plans:
 
 **Success Criteria:**
 
-1. User can run `docker compose up` and see both V1 and V2 indexing the same LUKSO chain data into separate PostgreSQL databases simultaneously
-2. User can run an automated comparison script that reports per-table row counts and content diffs between V1 and V2 databases, with an exclusion list for known V1 bugs and expected architectural divergences (null FKs vs entity removal)
+1. User can run V1 and V2 on separate Docker stacks (each has its own docker-compose) indexing the same LUKSO chain data into separate PostgreSQL databases
+2. User can run an automated comparison CLI that queries two Hasura GraphQL endpoints and reports per-entity-type row counts and sampled content diffs, with an exclusion list for known divergences (null FKs vs entity removal, unknown token format returns null)
 
 **Plans:** 2 plans
 

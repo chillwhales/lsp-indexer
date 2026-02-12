@@ -318,19 +318,19 @@ lsp-indexer/
 
 **`packages/abi/src/` and `packages/abi/lib/`:**
 
-- Generated: Yes (by `scripts/codegen.sh` via `squid-evm-typegen`)
-- Committed: `lib/` is committed (used by other packages)
+- Generated: Yes (by `scripts/codegen.sh` via `squid-evm-typegen` and `tsc`)
+- Committed: No — gitignored. Must run `pnpm --filter=@chillwhales/abi build` after clone
 
 **`packages/typeorm/src/model/generated/`:**
 
 - Generated: Yes (by `squid-typeorm-codegen` from `schema.graphql`)
-- Committed: Yes (generated source checked in)
+- Committed: No — gitignored. Must run `pnpm --filter=@chillwhales/typeorm build` after clone
 - NEVER edit manually — edit `schema.graphql` then regenerate
 
 **`packages/*/lib/`:**
 
 - Generated: Yes (by `tsc`)
-- Committed: Yes (needed for runtime — `ts-node` runs compiled JS)
+- Committed: No — `lib/` is gitignored across all packages. Must build before runtime
 
 **`packages/indexer-v2/logs/`:**
 

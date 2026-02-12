@@ -123,7 +123,7 @@
 - Use `createDualLogger()` for writing to both console and file simultaneously
 - Four severity levels: `debug`, `info`, `warn`, `error`
 - Guard debug logging with: `if (hctx.context.log.isDebug()) { ... }`
-- Structured attributes passed as native objects (NOT JSON.stringify): `logger.info({ entityType: 'Follow', count: 5 }, 'Processed')`
+- Prefer passing structured attributes as native objects instead of pre-stringifying with `JSON.stringify`: `logger.info({ entityType: 'Follow', count: 5 }, 'Processed')`. Some existing handlers (e.g., `decimals.handler.ts`, `formattedTokenId.handler.ts`) still log pre-serialized payloads and can be updated incrementally.
 - Pipeline steps defined as `PipelineStep` union type: `'BOOTSTRAP' | 'EXTRACT' | 'PERSIST_RAW' | 'HANDLE' | 'CLEAR_SUB_ENTITIES' | 'DELETE_ENTITIES' | 'PERSIST_DERIVED' | 'VERIFY' | 'ENRICH'`
 
 **Environment Config:**
@@ -175,7 +175,7 @@ cat logs/indexer*.log | jq 'select(.step == "VERIFY")'
 
 **When to Comment:**
 
-- Module-level JSDoc on every file explaining purpose, context, and port origin from v1
+- Module-level JSDoc on most files explaining purpose, context, and port origin from v1; small barrel or trivial utility files (e.g., simple `index.ts` re-exports) may omit this
 - Interface/method JSDoc explaining contracts, parameters, and behavior
 - Pipeline step separator comments using horizontal rules
 - Inline `eslint-disable` comments with reason: `// eslint-disable-next-line @typescript-eslint/no-require-imports`
