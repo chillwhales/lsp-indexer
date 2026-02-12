@@ -95,20 +95,15 @@ function createFailureResult(
 }
 
 /**
- * Wait for next event loop tick.
- * Useful for allowing Promise.then callbacks to execute.
+ * Flush microtask queue and advance fake timers by 0ms.
+ *
+ * `vi.advanceTimersByTimeAsync(0)` both fires pending setTimeout(fn, 0)
+ * callbacks and flushes the microtask queue — unlike a raw
+ * `setTimeout(resolve, 0)` which deadlocks under fake timers because
+ * the timer never fires without manual advancement.
  */
 function tick(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, 0));
-}
-
-/**
- * Wait for a specific amount of time.
- * Note: Currently unused but kept for potential future use.
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return vi.advanceTimersByTimeAsync(0);
 }
 
 // ---------------------------------------------------------------------------
@@ -359,28 +354,25 @@ describe('MetadataWorkerPool', () => {
       const batch1Requests = createMockRequests(3, 'LSP3Profile');
       const batch2Requests = createMockRequests(3, 'LSP4Metadata');
 
+      // Ensure unique IDs across batches (createMockRequests generates req-0..N for both)
+      batch1Requests.forEach((r, i) => (r.id = `lsp3-${i}`));
+      batch2Requests.forEach((r, i) => (r.id = `lsp4-${i}`));
+
       const promise1 = pool.fetchBatch(batch1Requests);
       const promise2 = pool.fetchBatch(batch2Requests);
       await tick();
 
-      // Both batches should be in queue
-      expect(mockWorkerInstances[0].postMessage).toHaveBeenCalled();
+      // Both fetchBatch calls dispatch synchronously: worker 0 gets batch1 (3 reqs),
+      // worker 1 gets batch2 (3 reqs). workerBatchSize=5 so each fits in one dispatch.
+      expect(mockWorkerInstances[0].postMessage).toHaveBeenCalledTimes(1);
+      expect(mockWorkerInstances[1].postMessage).toHaveBeenCalledTimes(1);
 
-      // Collect all sent requests
-      const allSent: FetchRequest[] = [];
-      for (const worker of mockWorkerInstances) {
-        for (const call of worker.postMessage.mock.calls) {
-          allSent.push(...(call[0] as FetchRequest[]));
-        }
-      }
+      const worker0Batch = mockWorkerInstances[0].postMessage.mock.calls[0][0] as FetchRequest[];
+      const worker1Batch = mockWorkerInstances[1].postMessage.mock.calls[0][0] as FetchRequest[];
 
-      // Trigger responses for all requests
-      for (const worker of mockWorkerInstances) {
-        for (const call of worker.postMessage.mock.calls) {
-          const batch = call[0] as FetchRequest[];
-          worker._triggerMessage?.(batch.map(createSuccessResult));
-        }
-      }
+      // Complete both workers
+      mockWorkerInstances[0]._triggerMessage?.(worker0Batch.map(createSuccessResult));
+      mockWorkerInstances[1]._triggerMessage?.(worker1Batch.map(createSuccessResult));
 
       await vi.runAllTimersAsync();
       const results1 = await promise1;
@@ -405,18 +397,29 @@ describe('MetadataWorkerPool', () => {
       const promise2 = pool.fetchBatch(batch2Requests);
       await tick();
 
-      // Worker gets combined queue
-      const workerBatch = mockWorkerInstances[0].postMessage.mock.calls[0][0] as FetchRequest[];
-      expect(workerBatch.length).toBe(4);
-
-      // Trigger responses
-      mockWorkerInstances[0]._triggerMessage?.(workerBatch.map(createSuccessResult));
+      // With poolSize=1, first fetchBatch dispatches batch1 immediately.
+      // batch2 requests queue up and dispatch when the worker finishes.
+      // Complete all dispatched work iteratively
+      let iterations = 0;
+      while (iterations++ < 10) {
+        const callCount = mockWorkerInstances[0].postMessage.mock.calls.length;
+        if (callCount === 0) break;
+        const lastBatch = mockWorkerInstances[0].postMessage.mock.calls[
+          callCount - 1
+        ][0] as FetchRequest[];
+        mockWorkerInstances[0]._triggerMessage?.(lastBatch.map(createSuccessResult));
+        await tick();
+        // Break if no new calls were dispatched
+        if (mockWorkerInstances[0].postMessage.mock.calls.length === callCount) break;
+      }
 
       await vi.runAllTimersAsync();
       const results1 = await promise1;
       const results2 = await promise2;
 
       // Each batch should only have its own results
+      expect(results1).toHaveLength(2);
+      expect(results2).toHaveLength(2);
       expect(results1.every((r) => r.id.startsWith('batch1-'))).toBe(true);
       expect(results2.every((r) => r.id.startsWith('batch2-'))).toBe(true);
     });
