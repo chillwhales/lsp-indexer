@@ -1,233 +1,287 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-02-06
+**Analysis Date:** 2026-02-12
 
 ## Naming Patterns
 
 **Files:**
 
-- Use `camelCase` for all TypeScript source files: `entityVerification.ts`, `entityPopulation.ts`, `multicall3.ts`
-- Handlers follow the pattern `{feature}Handler.ts`: `decimalsHandler.ts`, `followerSystemHandler.ts`, `lsp3ProfileHandler.ts`
-- LSP data key utilities use `lsp{N}{Feature}.ts`: `lsp3Profile.ts`, `lsp4TokenName.ts`, `lsp8TokenIdFormat.ts`
-- Utility modules organized in directories with `index.ts` barrel files: `utils/follow/index.ts`, `utils/transfer/index.ts`
-- Constants use `camelCase` files: `lsp29.ts`, `chillwhales.ts`
+- Source files use `camelCase` with a domain suffix: `{name}.{role}.ts`
+  - Plugins: `follow.plugin.ts`, `lsp7Transfer.plugin.ts`, `dataChanged.plugin.ts`
+  - Handlers: `totalSupply.handler.ts`, `ownedAssets.handler.ts`, `follower.handler.ts`
+  - Core modules: `pipeline.ts`, `registry.ts`, `batchContext.ts`, `logger.ts`
+  - Type definitions: organized in `core/types/` directory with domain-specific files
+  - Test files: `{source}.test.ts` in co-located `__tests__/` directories
+- Barrel exports: `index.ts` in each directory
+
+**Classes:**
+
+- PascalCase: `BatchContext`, `PluginRegistry`, `MetadataWorkerPool`
+- Classes are used sparingly - only for stateful objects (registry, batch context)
+- Most code uses plain objects implementing interfaces
+
+**Interfaces and Types:**
+
+- PascalCase with `I` prefix for behavioral interfaces: `IBatchContext`, `IPluginRegistry`, `IMetadataWorkerPool`
+- PascalCase without prefix for data types: `HandlerContext`, `EntityHandler`, `EventPlugin`, `VerificationResult`
+- Type unions: `PipelineStep` (string literal union)
+- Generic type params: single uppercase letter `T extends Entity`
 
 **Functions:**
 
-- Use `camelCase` for all functions: `extract()`, `populate()`, `verifyEntities()`, `scanLogs()`
-- Handler functions are named `{feature}Handler`: `decimalsHandler()`, `lsp3ProfileHandler()`, `marketplaceHandler()`
-- Extract functions for marketplace use `extract{EventName}` pattern: `extractListingCreated()`, `extractPurchaseCompleted()`
-- Generator/helper functions use `generate{Thing}` or `format{Thing}`: `generateTokenId()`, `generateFollowId()`, `formatTokenId()`
-- Type guard functions use `is{Type}`: `isVerification()`, `isFileAsset()`, `isFileImage()`, `isNumeric()`, `isRetryableError()`
+- camelCase for all functions: `processBatch`, `createStepLogger`, `clearSubEntities`
+- Factory functions: `create{Thing}` pattern - `createMockStore()`, `createPipelineConfig()`, `createRegistry()`, `createVerifyFn()`
+- Type guards: `is{Type}` pattern - `isEventPlugin()`, `isEntityHandler()`, `isNullAddress()`, `isFileAsset()`
+- Decode/format utils: `decode{Thing}` / `format{Thing}` - `decodeTokenType()`, `formatTokenId()`, `decodeVerifiableUri()`
 
 **Variables:**
 
-- Entity collections use descriptive plural names with type suffix: `executedEntities`, `transferEntities`, `lsp3ProfileEntities`
-- Populated/enriched entities add `populated` prefix: `populatedExecuteEntities`, `populatedLsp3ProfileEntities`
-- Valid/verified entity collections add `valid` prefix: `validUniversalProfiles`, `validDigitalAssets`
-- New entity collections add `new` prefix: `newUniversalProfiles`, `newDigitalAssets`
-- Maps and Sets use descriptive names without `Map`/`Set` suffix (context makes it clear from type annotation)
-- Constants use `UPPER_SNAKE_CASE`: `RPC_URL`, `FETCH_LIMIT`, `MULTICALL_ADDRESS`, `LSP26_ADDRESS`
+- camelCase for local variables and parameters
+- UPPER_SNAKE_CASE for module-level constants: `ENTITY_TYPE`, `LSP26_ADDRESS`, `ZERO_ADDRESS`, `DEAD_ADDRESS`
+- Underscore prefix for unused parameters: `_triggeredBy`, `_exhaustive`, `_resetFileLogger`
+- Private fields in classes: no prefix, standard camelCase
 
-**Types:**
+**Entity Type Keys:**
 
-- Use `PascalCase` for all types, interfaces, and enums: `Context`, `ExtractParams`, `FieldSelection`
-- Interface names are plain nouns (no `I` prefix): `VerifyParams`, `PopulateParams`, `ChillMintTransfer`
-- TypeORM entity types imported directly from `@chillwhales/typeorm`: `UniversalProfile`, `DigitalAsset`, `Transfer`
+- PascalCase strings used as entity bag keys in BatchContext: `'Transfer'`, `'Follow'`, `'TotalSupply'`, `'OwnedAsset'`, `'Follower'`
+- Defined as `const ENTITY_TYPE = 'Follow'` at module top
 
 ## Code Style
 
 **Formatting:**
 
-- Prettier (v3.5.3+)
-- Config at `.prettierrc`:
+- Prettier with `prettier-plugin-organize-imports`
+- Config in `.prettierrc`:
   - `tabWidth: 2` (spaces, not tabs)
   - `printWidth: 100`
   - `singleQuote: true`
   - `trailingComma: "all"`
-  - Plugin: `prettier-plugin-organize-imports` (auto-sorts imports)
-- Run with `pnpm format` at root
+- Run: `pnpm format` (write) / `pnpm format:check` (CI)
 
 **Linting:**
 
-- No ESLint configuration detected in the project
-- Prettier serves as the sole style enforcer
+- ESLint 9 flat config with `typescript-eslint` type-checked rules
+- Config: `eslint.config.ts`
+- Run: `pnpm lint` / `pnpm lint:fix`
+- Key enforced rules:
+  - `@typescript-eslint/no-floating-promises: 'error'` - **critical** for async indexer code
+  - `@typescript-eslint/no-misused-promises: 'error'`
+  - `@typescript-eslint/no-unused-vars: 'error'` with `^_` ignore pattern
+  - `@typescript-eslint/explicit-function-return-type: 'warn'` for exported functions
+  - `@typescript-eslint/no-explicit-any: 'warn'` - prefer `unknown`
+  - `prefer-const: 'error'`
+  - `eqeqeq: ['error', 'smart']`
+  - `no-console: ['warn', { allow: ['warn', 'error', 'info'] }]`
+  - `no-duplicate-imports: 'error'`
+- Test file overrides in `eslint.config.ts`: `@typescript-eslint/unbound-method: 'off'` for `**/__tests__/**/*.ts`
+- Unsafe `any` rules set to `'warn'` (not error) as codebase improves
+- ESLint ignores: `packages/indexer/` (legacy v1, read-only), codegen output (`packages/abi/src/`, `packages/typeorm/src/`)
 
 ## Import Organization
 
-**Order (enforced by prettier-plugin-organize-imports):**
+**Order** (auto-sorted by `prettier-plugin-organize-imports`):
 
-1. Path alias imports: `import { Context } from '@/types'`
-2. Internal workspace packages: `import { UniversalProfile } from '@chillwhales/typeorm'`
-3. External dependencies: `import { v4 as uuidv4 } from 'uuid'`
-4. Relative imports: `import { scanLogs } from './scanner'`
+1. Path aliases (`@/core/types`, `@/utils`, `@/constants`)
+2. External packages (`@chillwhales/typeorm`, `@subsquid/typeorm-store`, `viem`, `typeorm`)
+3. Relative imports (`./batchContext`, `../types`)
 
 **Path Aliases:**
 
-- The `@/*` alias maps to `src/*` in the indexer package (configured in `packages/indexer/tsconfig.json`)
-- Use `@/utils`, `@/types`, `@/constants`, `@/app` for internal imports within the indexer package
-- Other packages (abi, typeorm) do not use path aliases
+- `@/*` maps to `src/*` (dev, via tsconfig paths in `packages/indexer-v2/tsconfig.json`)
+- `@/*` maps to `lib/*` (runtime and tests, via `tsconfig-paths/register` and `vitest.setup.ts`)
 
-**Namespace Imports:**
+**Import Style:**
 
-- Utils are frequently imported as a namespace: `import * as Utils from '@/utils'`
-- Handlers are imported as a namespace: `import * as Handlers from './handlers'`
-- ABI contracts use aliased namespace imports:
-  ```typescript
-  import { LSP0ERC725Account as LSP0 } from '@chillwhales/abi';
-  import { LSP7DigitalAsset as LSP7 } from '@chillwhales/abi';
-  ```
+- Named imports preferred: `import { Store } from '@subsquid/typeorm-store'`
+- Type-only imports where applicable: `import type { Logger } from '@subsquid/logger'`
+- Default exports for plugins and handlers: `export default FollowPlugin`
+- Barrel re-exports: `export * from './batchContext'` in `index.ts` files
 
 ## Error Handling
 
 **Patterns:**
 
-- **Return error objects instead of throwing**: Functions like `decodeVerifiableUri()` and `getDataFromURL()` return error information as data rather than throwing exceptions:
-  ```typescript
-  return {
-    fetchErrorMessage: error.toString(),
-    fetchErrorCode: null,
-    fetchErrorStatus: null,
-  };
-  ```
-- **Check-and-return-early pattern**: Functions validate inputs at the top and return error objects for invalid states:
-  ```typescript
-  if (!lsp3Profile.url)
-    return {
-      fetchErrorMessage: 'Error: Missing URL',
-      fetchErrorCode: null,
-      fetchErrorStatus: null,
-    };
-  ```
-- **Empty catch blocks for non-critical failures**: Multicall verification uses empty catch blocks (`catch {}`) when individual call failures should be silently ignored (see `packages/indexer/src/utils/universalProfile.ts` lines 89-121)
-- **Retryable error detection**: `isRetryableError()` in `packages/indexer/src/utils/index.ts` classifies HTTP errors and network errors as retryable vs. permanent
-- **Retry counting**: Entities track `retryCount` and `fetchErrorCode`/`fetchErrorMessage`/`fetchErrorStatus` fields for retry logic
+- **Let errors propagate** - Pipeline has no try/catch; errors propagate to the Subsquid framework. See `packages/indexer-v2/src/core/pipeline.ts` line 174 comment.
+- **Fail-fast validation** - `PluginRegistry` in `packages/indexer-v2/src/core/registry.ts` throws on duplicate topic0, duplicate handler names, circular dependencies, unknown dependency references.
+- **Defensive guards** - Type guards (`isEventPlugin()`, `isEntityHandler()`) validate plugin/handler shape before registration.
+- **Clamp-and-warn** - `packages/indexer-v2/src/handlers/totalSupply.handler.ts` clamps to zero on underflow and logs a warning rather than throwing.
+- **Structured error context** - Log warnings with attribute objects: `enrichLog.warn({ entityType, entityId, fkField }, 'message')`
+- **Exhaustive switch** - Use `const _exhaustive: never = value` pattern for exhaustive category matching (see `createFkStub()` in `packages/indexer-v2/src/core/pipeline.ts`).
+- **Return `{ value, decodeError }` pattern** - For decode operations that can fail, return both value and error string instead of throwing (see `decodeVerifiableUri()` in `packages/indexer-v2/src/utils/index.ts`).
 
 ## Logging
 
-**Framework:** Subsquid's built-in `context.log` (not console)
+**Framework:** Dual-output logging system in `packages/indexer-v2/src/core/logger.ts`
 
-**Patterns:**
+- **Subsquid Logger** - `context.log` for stdout/stderr (structured JSON)
+- **Pino** - File logger via `pino-roll` for rotating JSON file output
 
-- Always log as structured JSON via `JSON.stringify()`:
-  ```typescript
-  context.log.info(
-    JSON.stringify({
-      message: "Saving 'UniversalProfile' entities.",
-      universalProfilesCount: newUniversalProfiles.size,
-    }),
-  );
-  ```
-- Use `context.log.info()` for operational events (entity counts, processing status)
-- Use `context.log.warn()` for non-fatal issues
-- Include entity counts in every log message for observability
-- Log before and after significant operations (verification, persistence, fetching)
-- Conditional logging: only log when there are entities to report:
-  ```typescript
-  if (newUniversalProfiles.size) {
-    context.log.info(JSON.stringify({ message: '...' }));
-  }
-  ```
+**Logging Patterns:**
+
+- Use `createStepLogger(context.log, 'STEP_NAME', blockRange)` for pipeline step logging
+- Use `createComponentLogger(context.log, 'component_name')` for handler/component tagging
+- Use `createDualLogger()` for writing to both console and file simultaneously
+- Four severity levels: `debug`, `info`, `warn`, `error`
+- Guard debug logging with: `if (hctx.context.log.isDebug()) { ... }`
+- Structured attributes passed as native objects (NOT JSON.stringify): `logger.info({ entityType: 'Follow', count: 5 }, 'Processed')`
+- Pipeline steps defined as `PipelineStep` union type: `'BOOTSTRAP' | 'EXTRACT' | 'PERSIST_RAW' | 'HANDLE' | 'CLEAR_SUB_ENTITIES' | 'DELETE_ENTITIES' | 'PERSIST_DERIVED' | 'VERIFY' | 'ENRICH'`
+
+**Environment Config:**
+
+- `LOG_LEVEL` env var overrides default
+- Default: `'debug'` in development, `'info'` in production
+- `INDEXER_ENABLE_FILE_LOGGER=false` disables file logging
+
+**Post-hoc filtering:**
+
+```bash
+cat logs/indexer*.log | jq 'select(.component == "metadata_fetch")'
+cat logs/indexer*.log | jq 'select(.step == "VERIFY")'
+```
+
+## TypeScript Patterns
+
+**Strict Mode:**
+
+- Root `tsconfig.json`: `"strict": true`
+- `packages/indexer-v2/tsconfig.json`: `"experimentalDecorators": true`, `"emitDecoratorMetadata": true` (for TypeORM), target `es2020`, module `commonjs`
+
+**Generic Type Safety:**
+
+- `queueEnrichment<T extends Entity>(request: EnrichmentRequest<T>)` - validates FK field names at compile time
+- `setPersistHint<T extends Entity>(type: string, hint: PersistHint<T>)` - validates merge field names at compile time
+- `queueClear<T extends Entity>(request: ClearRequest<T>)` - validates FK field names at compile time
+- Internal storage uses `StoredEnrichmentRequest` (erased generics) for heterogeneous collections
+- See type definitions in `packages/indexer-v2/src/core/types/batchContext.ts`
+
+**Plugin/Handler Object Pattern:**
+
+- Plugins and handlers are plain objects implementing interfaces, not classes
+- Exported as `default` export: `const TotalSupplyHandler: EntityHandler = { name: 'totalSupply', ... }; export default TotalSupplyHandler;`
+- Single file per plugin/handler - adding a new event = creating 1 new file
+
+**Interface-Driven Architecture:**
+
+- Core types defined as interfaces in `packages/indexer-v2/src/core/types/`: `EventPlugin`, `EntityHandler`, `IBatchContext`, `IPluginRegistry`
+- Implementations separated from interfaces: types in `core/types/`, impls in `core/`
+- Type guards used for runtime validation of dynamically loaded modules in `packages/indexer-v2/src/core/registry.ts`
+
+**Enum Usage:**
+
+- `EntityCategory` enum from core types: `UniversalProfile`, `DigitalAsset`, `NFT`
+- External enums from `@chillwhales/typeorm`: `LSP4TokenTypeEnum`, `LSP8TokenIdFormatEnum`, `OperationType`
 
 ## Comments
 
 **When to Comment:**
 
-- JSDoc-style block comments for module-level documentation (see `packages/indexer/src/constants/lsp29.ts`)
-- Inline `///` comments to denote Solidity event signatures being handled:
-  ```typescript
-  /// event Executed(uint256,address,uint256,bytes4);
-  context.store.insert(populatedExecuteEntities),
-  ```
-- Section separator comments using `// ============================================================================`:
-  ```typescript
-  // ============================================================================
-  // Extract functions - Create entities from event logs
-  // ============================================================================
-  ```
-- Inline comments for clarifying LSP standard references and data key purposes
-- Group-separator comments: `// Marketplace extension events`, `// LSP29 Encrypted Assets`
+- Module-level JSDoc on every file explaining purpose, context, and port origin from v1
+- Interface/method JSDoc explaining contracts, parameters, and behavior
+- Pipeline step separator comments using horizontal rules
+- Inline `eslint-disable` comments with reason: `// eslint-disable-next-line @typescript-eslint/no-require-imports`
+- `TODO:` comments for planned work: `// TODO: Wire this into bootstrap in Phase 6`
+- Port reference comments: `// Port from v1: utils/index.ts decodeVerifiableUri()`
 
-**JSDoc/TSDoc:**
+**JSDoc Style:**
 
-- Used sparingly, primarily for constants and data key definitions
-- Not systematically used on functions
+```typescript
+/**
+ * Brief one-line description.
+ *
+ * Longer explanation with context. Multi-paragraph when needed.
+ *
+ * @param name - Description of parameter
+ * @returns Description of return value
+ * @throws Error description
+ */
+```
 
-## Function Design
+**Section Separators:**
 
-**Size:**
-
-- Handler functions can be very large (100-300+ lines) as they orchestrate full workflows
-- Utility extract/populate functions are typically compact (10-50 lines)
-- No strict size limit enforced
-
-**Parameters:**
-
-- **Named parameters via destructured objects** for functions with 2+ parameters:
-  ```typescript
-  export async function decimalsHandler({
-    context,
-    newDigitalAssets,
-  }: {
-    context: Context;
-    newDigitalAssets: Map<string, DigitalAsset>;
-  }) { ... }
-  ```
-- Inline type annotations on destructured params (not separate interfaces) for most functions
-- Some functions define a separate `interface PopulateParams` when reused
-- The `context: Context` parameter appears in nearly every function
-
-**Return Values:**
-
-- Functions typically return entity instances or arrays/maps of entities
-- Async functions return `Promise<...>` implicitly
-- Error states returned as objects with `fetchErrorMessage` fields (not thrown)
-- No consistent use of `Result` type or discriminated unions
+```typescript
+// ---------------------------------------------------------------------------
+// Section Name
+// ---------------------------------------------------------------------------
+```
 
 ## Module Design
 
 **Exports:**
 
-- Each utility directory has an `index.ts` barrel file re-exporting sub-modules
-- Namespace re-exports used heavily: `export * as DataChanged from './dataChanged'`
-- Handler barrel file (`packages/indexer/src/app/handlers/index.ts`) uses named exports: `export { decimalsHandler } from './decimalsHandler'`
-- Each util module exports two primary functions: `extract()` and `populate()`
-  - `extract()`: Pure function that decodes a log event into an entity
-  - `populate()`: Enriches entities with relationship references (FK links)
-  - Some modules also export `extractSubEntities()` and `clearSubEntities()` for complex entities with child records
+- Plugins: `export default FollowPlugin` (default export, discovered by file naming `*.plugin.js`)
+- Handlers: `export default TotalSupplyHandler` (default export, discovered by file naming `*.handler.js`)
+- Core modules: named exports
+- Barrel files: `export * from './module'` in `index.ts`
 
-**Barrel Files:**
+**File Organization Within Modules:**
 
-- Every directory uses `index.ts` as its entry point
-- `packages/indexer/src/utils/index.ts` aggregates all utility modules plus standalone helper functions
-- `packages/indexer/src/app/handlers/index.ts` re-exports all handlers
+1. Module-level JSDoc
+2. Imports
+3. Constants / type definitions
+4. Main implementation (class or functions)
+5. Helper functions (private, at bottom)
 
 ## Entity Construction Pattern
 
 **Immutable Entity Pattern:** Entities are constructed via `new EntityClass({ ...props })` and spread-updated rather than mutated:
 
 ```typescript
-new UniversalProfile({
-  ...validUniversalProfiles.get(universalProfile.id)!,
-  lsp3Profile: new LSP3Profile({ id }),
+new TotalSupply({
+  ...entity,
+  timestamp,
+  value: entity.value + amount,
+  digitalAsset: entity.digitalAsset ?? null,
 });
 ```
 
 **ID Generation:**
 
 - Unique events: `uuidv4()` for non-deterministic IDs (e.g., `Executed`, `Transfer`, `Follow`)
-- Addressable entities: Contract address as ID (e.g., `UniversalProfile.id = address`)
-- Composite entities: String concatenation (e.g., `generateTokenId()` returns `${address} - ${tokenId}`)
-- Deterministic events: `generateListingEntityId()` returns `${address}-${listingId}` for upsert-safe IDs
+- Addressable entities: Contract address as ID (e.g., `TotalSupply.id = address`)
+- Composite entities: String concatenation in `packages/indexer-v2/src/utils/index.ts`:
+  - `generateTokenId()`: `"${address} - ${tokenId}"`
+  - `generateFollowId()`: `"${followerAddress} - ${followedAddress}"`
+  - `generateOwnedAssetId()`: `"${owner}:${address}"`
+  - `generateOwnedTokenId()`: `"${owner}:${address}:${tokenId}"`
 
-## Data Flow Convention
+## Git Commit Conventions
 
-**Three-phase processing pattern used consistently:**
+**Format:** Conventional commits with scope
 
-1. **Scan** (`scanLogs`): Iterate blocks/logs, decode events, create raw entities
-2. **Verify** (`verifyEntities`): Check addresses against on-chain contracts via multicall
-3. **Populate** (`populateEntities`): Enrich entities with FK relationships to verified addresses
+```
+type(scope): description (#issue)
+```
+
+**Types used:**
+
+- `feat` - New feature: `feat: Phase 3.2 - Queue-based worker pool optimization (#155)`
+- `fix` - Bug fix: `fix(indexer-v2): preserve FK field when reconstructing TotalSupply entities (#146)`
+- `test` - Test additions: `test(indexer-v2): add comprehensive unit tests for OwnedAssets handler (#143)`
+
+**Scopes used:**
+
+- `indexer-v2` - Changes to the v2 indexer package
+- `docker` - Docker/deployment changes
+- Phase numbers for phased work: `03.2`, etc.
+
+**PR references:** Include PR number in parentheses: `(#155)`
+
+## PR Workflow
+
+**Template:** `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`
+
+- Sections: Description, Related Issues, Changes Made, Testing, Checklist
+- Testing checklist: unit tests, integration tests, manual testing
+- Checklist items: style guidelines, documentation, test coverage
+
+**CI Pipeline:** `.github/workflows/ci.yml`
+
+- Three parallel jobs: `format` (Prettier), `lint` (ESLint), `build` (Node 20 + 22)
+- Runs on push to `main`/`refactor/indexer-v2` and PRs to same
+- Concurrency: cancel-in-progress per workflow+ref
+- Build job builds dependency packages first (`@chillwhales/abi` then `@chillwhales/typeorm` then `@chillwhales/indexer-v2`)
+- **No test job in CI** - tests run locally via `pnpm test` within `packages/indexer-v2/`
 
 ---
 
-_Convention analysis: 2026-02-06_
+_Convention analysis: 2026-02-12_
