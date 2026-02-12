@@ -4,38 +4,51 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Phase 5 in progress — Deployment & Validation
+**Current Focus:** Phase 5 comparison tool revealed data gaps — inserting sub-phases 5.1 and 5.2 for gap closure
 
 ## Current Position
 
-- **Phase:** 5 of 7 — Deployment & Validation
-- **Plan:** 1 of 2 in current phase
-- **Status:** In progress
-- **Last activity:** 2026-02-12 — Completed 05-01-PLAN.md (comparison tool foundation)
-- **Progress:** █████████░ 26/29 requirements complete (phases 1-4, 3.1, part of 5 done; 3.2/5 remain)
+- **Phase:** 5 of 9 — Deployment & Validation
+- **Plan:** 2 of 2 in current phase (comparison tool in PR #159)
+- **Status:** Phase 5 functionally complete; sub-phases 5.1 and 5.2 inserted for gap closure
+- **Last activity:** 2026-02-12 — Comparison tool revealed 8 zero-row entities + count mismatches; inserted Phases 5.1/5.2
+- **Progress:** █████████░ 27/38 requirements complete (phases 1-4, 3.1, 5 done; 3.2/5.1/5.2 remain)
 
 ## Phase Overview
 
-| Phase | Name                              | Status          | Requirements |
-| ----- | --------------------------------- | --------------- | :----------: |
-| 1     | Handler Migration                 | **Complete**    |     5/5      |
-| 2     | New Handlers & Structured Logging | **Complete**    |     5/5      |
-| 3     | Metadata Fetch Handlers           | **Complete**    |     5/5      |
-| 3.1   | Improve Debug Logging Strategy    | **Complete**    |     4/4      |
-| 3.2   | Queue-Based Worker Pool           | Deferred        |     0/4      |
-| 4     | Integration & Wiring              | **Complete**    |     4/4      |
-| 5     | Deployment & Validation           | **In progress** |     1/2      |
+| Phase | Name                                | Status       | Requirements |
+| ----- | ----------------------------------- | ------------ | :----------: |
+| 1     | Handler Migration                   | **Complete** |     5/5      |
+| 2     | New Handlers & Structured Logging   | **Complete** |     5/5      |
+| 3     | Metadata Fetch Handlers             | **Complete** |     5/5      |
+| 3.1   | Improve Debug Logging Strategy      | **Complete** |     4/4      |
+| 3.2   | Queue-Based Worker Pool             | Deferred     |     0/4      |
+| 4     | Integration & Wiring                | **Complete** |     4/4      |
+| 5     | Deployment & Validation             | **Complete** |     2/2      |
+| 5.1   | Pipeline Bug Fix & Missing Handlers | **Next**     |     0/5      |
+| 5.2   | LSP4 Base URI & Count Parity        | Upcoming     |     0/4      |
 
 ## Performance Metrics
 
-- **Plans completed:** 21
+- **Plans completed:** 23
 - **Plans failed:** 0
-- **Phases completed:** 5 (of 7 total; 2 phases inserted 2026-02-11)
-- **Requirements delivered:** 26/29 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01 partial)
+- **Phases completed:** 6 (of 9 total; 4 phases inserted)
+- **Requirements delivered:** 27/38 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02)
 
 ## Accumulated Context
 
 ### Roadmap Evolution
+
+**2026-02-12:** Inserted Phase 5.1 and Phase 5.2 after Phase 5 (gaps discovered via comparison tool)
+
+- **Phase 5.1 — Pipeline Bug Fix & Missing Core Handlers:**
+  - **Root cause:** Contract filter in `pipeline.ts:205` uses strict `!==` for address comparison — mixed-case vs lowercase addresses never match, silencing all events from LSP23 and LSP26 contracts (Follow, Unfollow, DeployedContracts, DeployedERC1167Proxies)
+  - **Missing handlers:** UniversalProfileOwner/DigitalAssetOwner (referenced as issue #105 in code comments), ChillClaimed/OrbsClaimed (never ported from V1)
+  - **Impact:** Fixes 8 entity types with zero rows in V2
+- **Phase 5.2 — LSP4 Base URI & Count Parity:**
+  - **Root cause:** V1's `utils/lsp4MetadataBaseUri.ts` creates ~84K additional LSP4Metadata entities by combining `LSP8TokenMetadataBaseURI` with NFT tokenIds. V2 has no equivalent flow.
+  - **Additional:** OwnedAsset V2 creates for ALL transfer participants (V1 filters to verified UPs only), LSP8ReferenceContract and Orb entity count gaps need investigation
+  - **Impact:** Closes remaining count mismatches for production parity
 
 **2026-02-11:** Inserted Phase 3.1 and Phase 3.2 after Phase 3 (urgent work discovered during PR #152)
 
@@ -47,8 +60,8 @@
   - **Rationale:** Batch-wait pattern leaves workers idle during result processing (~35s for 1,000 URLs)
   - **Impact:** Queue-based approach keeps workers continuously busy (~17s expected, ~2x throughput)
 
-- **Numbering strategy:** Decimal phases (3.1, 3.2) preserve logical sequence without renumbering phases 4-5
-- **Dependencies:** Phase 3.2 depends on Phase 3.1 (logging helps validate queue behavior)
+- **Numbering strategy:** Decimal phases (3.1, 3.2, 5.1, 5.2) preserve logical sequence without renumbering
+- **Dependencies:** Phase 5.2 depends on Phase 5.1 (core pipeline bug must be fixed first)
 
 ### Key Decisions
 
@@ -117,25 +130,26 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-12
-- **Activity:** Executed 05-01-PLAN.md — Comparison tool foundation
-- **Outcome:** Created complete entity registry with all 72 @entity types from schema.graphql, known divergences for V1→V2 differences, and GraphQL client with introspection-based field discovery. All types mapped to snake_case Hasura table names. Client handles errors gracefully (returns -1 or empty arrays). Zero new dependencies (uses existing axios). (2 min execution)
-- **Next Step:** Phase 05 Plan 02 (Comparison engine, colored reporter, CLI entry point)
+- **Activity:** Ran comparison tool against live V1/V2 Hasura endpoints; identified data gaps; inserted sub-phases 5.1/5.2
+- **Outcome:** Comparison tool (moved to `packages/comparison-tool/` in PR #159) revealed 8 entity types with zero rows and several large count mismatches. Root causes identified: case-sensitive address comparison in pipeline.ts, missing handlers (Owner, ChillClaimed, OrbsClaimed), missing LSP4 base URI derivation flow. Inserted Phase 5.1 (pipeline fix + 4 handlers) and Phase 5.2 (LSP4 base URI + count parity).
+- **Next Step:** Plan Phase 5.1 (`/gsd-plan-phase 5.1`)
 
 ### Context for Next Session
 
-- **Phase 05-01 complete:** Comparison tool foundation ready
-  - types.ts: EntityDefinition, KnownDivergence, ComparisonConfig, CountResult, FieldDiff, RowDiff, ComparisonReport
-  - entityRegistry.ts: ENTITY_REGISTRY with all 72 entities, KNOWN_DIVERGENCES array, helper functions
-  - graphqlClient.ts: createGraphqlClient factory with queryCount, querySampleIds, queryRowsByIds, queryTableFields, checkHealth
-  - Entity categorization: core, event, metadata, ownership, lsp, custom
-  - isMetadataSub flag identifies sub-entities for separate handling
-  - Field introspection caches results per table for performance
-- **Next plan:** 05-02 (Comparison engine and CLI)
-  - Build comparison engine using the foundation from 05-01
-  - Colored terminal reporter for per-entity counts and diffs
-  - CLI entry point with URL arguments and entity filtering
-  - Human verification of comparison output
-- **Phase 3.2 deferred:** Queue-Based Worker Pool Optimization can wait until after deployment validation
+- **Phase 5 complete:** Comparison tool built and tested against live endpoints
+  - Moved to standalone `packages/comparison-tool/` package (PR #159)
+  - Supports v1-v2 and v2-v2 modes with tolerance percentage
+  - Fixed snake_case conversion bug (LSP entities)
+- **Phase 5.1 needs planning:** Pipeline Bug Fix & Missing Core Handlers
+  - **GAP-01:** Fix `pipeline.ts:205` address comparison (case-insensitive) — fixes Follow, Unfollow, DeployedContracts, DeployedERC1167Proxies
+  - **GAP-02/03:** Create UniversalProfileOwner + DigitalAssetOwner handlers (listensToBag: OwnershipTransferred, postVerification: true)
+  - **GAP-04/05:** Port ChillClaimed + OrbsClaimed handlers from V1 (listensToBag: LSP7Transfer, LSP8Transfer)
+- **Phase 5.2 needs planning:** LSP4 Base URI & Count Parity
+  - **GAP-06:** Create LSP4MetadataBaseURI handler (port V1's utils/lsp4MetadataBaseUri.ts flow)
+  - **GAP-07/08/09:** Investigate LSP8ReferenceContract, OwnedAsset scope, Orb entity gaps
+- **Phase 3.2 deferred:** Queue-Based Worker Pool Optimization
+- **Merged PRs:**
+  - PR #159: Standalone comparison tool package (merged into refactor/indexer-v2)
 
 ---
 
