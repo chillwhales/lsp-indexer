@@ -79,8 +79,8 @@ services:
   # ----------------------------------------------------------------------------
   indexer-v2:
     build:
-      context: ../../
-      dockerfile: docker/v2/Dockerfile
+      context: .
+      dockerfile: Dockerfile
       # Cache build stages for faster rebuilds
       cache_from:
         - lsp-indexer-v2:latest
