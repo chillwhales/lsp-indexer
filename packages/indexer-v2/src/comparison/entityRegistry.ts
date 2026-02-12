@@ -2,13 +2,11 @@ import { EntityDefinition, KnownDivergence } from './types';
 
 /**
  * Convert PascalCase entity name to snake_case Hasura table name.
- * Preserves LSP prefixes correctly (e.g., LSP3ProfileImage → lsp3_profile_image)
+ * Handles consecutive capitals correctly: LSP3ProfileImage → lsp3_profile_image
+ * Insert underscore before capital letter only if previous char was lowercase or digit
  */
 function toSnakeCase(name: string): string {
-  return name
-    .replace(/([A-Z])/g, '_$1')
-    .toLowerCase()
-    .replace(/^_/, '');
+  return name.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
 }
 
 export const ENTITY_REGISTRY: EntityDefinition[] = [
