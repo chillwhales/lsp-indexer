@@ -91,7 +91,9 @@ class PoolWorker {
     });
 
     worker.on('error', (error: Error) => {
-      console.error(`[Worker ${this.workerId}] Error:`, error);
+      if (this.pool.logger?.isLevelEnabled?.('error')) {
+        this.pool.logger.error({ workerId: this.workerId, error: error.message }, 'Worker error');
+      }
       const job = this.pending;
       this.pending = null;
       this.busy = false;
@@ -129,6 +131,10 @@ class PoolWorker {
       this.currentBatch = [];
     }
 
+    // Clear busy and pending state before respawn or marking dead
+    this.busy = false;
+    this.pending = null;
+
     if (this.restartCount <= this.maxRestarts) {
       // Respawn worker
       this.respawnWorker();
@@ -158,8 +164,7 @@ class PoolWorker {
       );
     }
 
-    this.busy = false;
-    this.pending = null;
+    // Note: busy and pending already cleared in handleCrash()
     (this as { worker: Worker }).worker = this.createWorker();
 
     // Trigger dispatch to give new worker work
@@ -422,6 +427,9 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
     }
 
     setTimeout(() => {
+      // Don't retry if pool has been shut down
+      if (this.isShutdown) return;
+
       // Re-find the original request from stored originals
       const original = this.originalRequests.get(requestId);
       if (original) {
@@ -550,6 +558,14 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
       batch.reject(new Error('MetadataWorkerPool shut down'));
     }
     this.pendingBatches.clear();
+
+    // Clear internal state to avoid retaining references after shutdown
+    this.queue = [];
+    this.inFlight.clear();
+    this.results.clear();
+    this.retryCount.clear();
+    this.requestToBatch.clear();
+    this.originalRequests.clear();
 
     await Promise.all(this.workers.map((w) => w.terminate()));
 
