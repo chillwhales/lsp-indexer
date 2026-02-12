@@ -2,8 +2,8 @@
 
 **Created:** 2026-02-06
 **Depth:** Standard
-**Phases:** 7 (5 original + 2 inserted)
-**Coverage:** 21/21 v1 requirements mapped + 8 urgent requirements
+**Phases:** 9 (5 original + 4 inserted)
+**Coverage:** 21/21 v1 requirements mapped + 8 urgent requirements + 9 parity gap requirements
 
 ## Overview
 
@@ -234,25 +234,92 @@ Plans:
 Plans:
 
 - [x] 05-01-PLAN.md — Types, entity registry (72 types + known divergences), GraphQL client
-- [ ] 05-02-PLAN.md — Comparison engine, colored reporter, CLI entry point + human verification
+- [x] 05-02-PLAN.md — Comparison engine, colored reporter, CLI entry point + human verification
 
 **Note:** DEPL-01 is satisfied by existing Docker infrastructure (V1 and V2 each have their own docker-compose). The deliverable is the comparison tool (DEPL-02) — a CLI that queries two running Hasura endpoints via GraphQL and reports data parity.
 
 ---
 
+## Phase 5.1 — Pipeline Bug Fix & Missing Core Handlers (INSERTED)
+
+**Goal:** Fix the contract filter address comparison bug that silences 4 entity types, and implement the 4 missing EntityHandlers for ownership and custom game entities.
+
+**Dependencies:** Phase 5 (comparison tool identified the gaps)
+
+**Requirements:**
+
+| ID     | Requirement                                                                                     |
+| ------ | ----------------------------------------------------------------------------------------------- |
+| GAP-01 | Contract filter address comparison is case-insensitive (fixes Follow, Unfollow, Deployed\* = 0) |
+| GAP-02 | UniversalProfileOwner entities created from OwnershipTransferred events (postVerification)      |
+| GAP-03 | DigitalAssetOwner entities created from OwnershipTransferred events (postVerification)          |
+| GAP-04 | ChillClaimed entities created when Chillwhale NFTs are minted via LSP8 Transfer from zero       |
+| GAP-05 | OrbsClaimed entities created when Orbs NFTs are minted via LSP7/LSP8 Transfer from zero         |
+
+**Success Criteria:**
+
+1. User can re-index and see Follow (>100K), Unfollow (>2K), DeployedContracts (>0), DeployedERC1167Proxies (>35K) rows appear — matching V1 counts
+2. User can see UniversalProfileOwner and DigitalAssetOwner rows created for every OwnershipTransferred event, matching V1 counts
+3. User can see ChillClaimed and OrbsClaimed rows matching V1 counts after full re-index
+4. Comparison tool shows these 8 entity types as ✓ MATCH or within 2% tolerance
+
+**Plans:** TBD (run `/gsd-plan-phase 5.1` to break down)
+
+Plans:
+
+- [ ] TBD
+
+**Context:** Discovered via comparison tool (Phase 5) — V2 has zero rows for Follow, Unfollow, DeployedContracts, DeployedERC1167Proxies due to case-sensitive address comparison in `pipeline.ts:205`. UniversalProfileOwner/DigitalAssetOwner handlers were never written (referenced as issue #105 in V2 code comments). ChillClaimed/OrbsClaimed handlers never ported from V1.
+
+---
+
+## Phase 5.2 — LSP4 Metadata Base URI Derivation & Count Parity (INSERTED)
+
+**Goal:** Implement the missing LSP4 metadata base URI → per-token LSP4Metadata derivation flow, and investigate/fix remaining count mismatches (OwnedAsset, LSP8ReferenceContract, Orb entities).
+
+**Dependencies:** Phase 5.1 (core pipeline bug must be fixed first)
+
+**Requirements:**
+
+| ID     | Requirement                                                                                  |
+| ------ | -------------------------------------------------------------------------------------------- |
+| GAP-06 | LSP4Metadata entities derived from LSP8TokenMetadataBaseURI + NFT tokenIds (V1 BaseURI flow) |
+| GAP-07 | LSP8ReferenceContract count matches V1 within tolerance (investigate DataChanged delivery)   |
+| GAP-08 | OwnedAsset creation scope matches V1 behavior (UP-only filter vs all addresses)              |
+| GAP-09 | Orb entity counts (OrbLevel, OrbCooldownExpiry, OrbFaction) match V1 within tolerance        |
+
+**Success Criteria:**
+
+1. User can see LSP4Metadata row count within 2% of V1 (currently 32K vs 116K — ~84K missing from base URI derivation)
+2. User can see LSP8ReferenceContract count within 2% of V1
+3. User can see OwnedAsset count within 2% of V1 (currently V2 has 14K MORE — need to align creation scope)
+4. Comparison tool shows all entity types as ✓ MATCH or ≈ TOLERANCE with `--tolerance=2`
+
+**Plans:** TBD (run `/gsd-plan-phase 5.2` to break down)
+
+Plans:
+
+- [ ] TBD
+
+**Context:** Discovered via comparison tool (Phase 5). LSP4Metadata gap is caused by V2 missing the base URI → per-token derivation flow that V1 implements in `utils/lsp4MetadataBaseUri.ts`. OwnedAsset count is HIGHER in V2 because V2 creates for all transfer participants while V1 only creates for verified Universal Profiles. Orb entity gaps are likely block-height parity issues or ORBS_ADDRESS constant casing.
+
+---
+
 ## Progress
 
-| Phase | Name                              | Requirements | Status                  |
-| ----- | --------------------------------- | :----------: | ----------------------- |
-| 1     | Handler Migration                 |      5       | Complete                |
-| 2     | New Handlers & Structured Logging |      5       | Complete                |
-| 3     | Metadata Fetch Handlers           |      5       | Complete                |
-| 3.1   | Improve Debug Logging Strategy    |      4       | Complete                |
-| 3.2   | Queue-Based Worker Pool           |      4       | Deferred                |
-| 4     | Integration & Wiring              |      4       | Complete                |
-| 5     | Deployment & Validation           |      2       | In progress (1/2 plans) |
+| Phase | Name                                | Requirements | Status                  |
+| ----- | ----------------------------------- | :----------: | ----------------------- |
+| 1     | Handler Migration                   |      5       | Complete                |
+| 2     | New Handlers & Structured Logging   |      5       | Complete                |
+| 3     | Metadata Fetch Handlers             |      5       | Complete                |
+| 3.1   | Improve Debug Logging Strategy      |      4       | Complete                |
+| 3.2   | Queue-Based Worker Pool             |      4       | Deferred                |
+| 4     | Integration & Wiring                |      4       | Complete                |
+| 5     | Deployment & Validation             |      2       | In progress (1/2 plans) |
+| 5.1   | Pipeline Bug Fix & Missing Handlers |      5       | Next                    |
+| 5.2   | LSP4 Base URI & Count Parity        |      4       | Upcoming                |
 
-**Total:** 29 requirements across 7 phases (5 original + 2 inserted)
+**Total:** 38 requirements across 9 phases (5 original + 4 inserted)
 
 ---
 
@@ -263,19 +330,23 @@ Phase 1 (Handler Migration)
   ├──→ Phase 2 (New Handlers & Logging)
   │      ├──→ Phase 3 (Metadata Fetchers) ←── also depends on Phase 1
   │      │      ├──→ Phase 3.1 (Debug Logging) ←── INSERTED URGENT
-  │      │      │      └──→ Phase 3.2 (Queue-Based Workers) ←── INSERTED URGENT
-  │      │      │             └──→ Phase 4 (Integration & Wiring)
-  │      │      │                    └──→ Phase 5 (Deployment & Validation)
-  │      │      └──→ Phase 4 (alternate path if 3.1/3.2 skipped)
+  │      │      │      └──→ Phase 3.2 (Queue-Based Workers) ←── INSERTED URGENT (Deferred)
+  │      │      │
+  │      │      └──→ Phase 4 (Integration & Wiring)
   │      └──→ Phase 4
   └──→ Phase 3
+           └──→ Phase 5 (Deployment & Validation)
+                  └──→ Phase 5.1 (Pipeline Bug Fix & Missing Handlers) ←── INSERTED
+                         └──→ Phase 5.2 (LSP4 Base URI & Count Parity) ←── INSERTED
 ```
 
 **Parallelization opportunities:**
 
 - Within Phase 2: Logging (INFR-01, INFR-02) parallel with new handlers (HNDL-01–03)
-- Phase 3 can start as soon as Phase 1 completes, overlapping with Phase 2's tail — but Phase 3 benefits from logging being available
+- Phase 3 can start as soon as Phase 1 completes, overlapping with Phase 2's tail
 - **Phases 3.1 and 3.2 are INSERTED urgent work discovered during Phase 3 execution (PR #152)**
+- **Phases 5.1 and 5.2 are INSERTED gap closure work discovered via Phase 5 comparison tool**
+- Within Phase 5.1: Contract filter fix and missing handler implementations can be parallelized
 
 ---
 
@@ -287,7 +358,18 @@ Phase 1 (Handler Migration)
 - **Context:** Debug logging would have accelerated bug discovery; queue-based workers improve throughput 2x
 - **Numbering:** Decimal phases (3.1, 3.2) preserve logical sequence while accommodating urgent work
 
+**2026-02-12:** Inserted Phase 5.1 (Pipeline Bug Fix & Missing Handlers) and Phase 5.2 (LSP4 Base URI & Count Parity) after Phase 5
+
+- **Reason:** V1 vs V2 comparison tool revealed significant data gaps — 8 entity types with zero rows, several with large count mismatches
+- **Root causes identified:**
+  - Contract filter address comparison in `pipeline.ts:205` uses strict `!==` instead of case-insensitive comparison, silencing Follow/Unfollow/Deployed\* events
+  - UniversalProfileOwner and DigitalAssetOwner handlers were never written (referenced as TODO in issue #105)
+  - ChillClaimed and OrbsClaimed handlers never ported from V1
+  - LSP4Metadata base URI → per-token derivation flow missing (~84K rows)
+  - OwnedAsset creation scope broader in V2 (all addresses vs V1's UP-only filter)
+- **Numbering:** Decimal phases (5.1, 5.2) preserve logical sequence
+
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-02-11_
+_Last updated: 2026-02-12_
