@@ -51,6 +51,15 @@ export const FETCH_BATCH_TIMEOUT_MS = isNumeric(process.env.FETCH_BATCH_TIMEOUT_
   ? parseInt(process.env.FETCH_BATCH_TIMEOUT_MS)
   : 300_000;
 
+/**
+ * Number of requests each worker processes per batch in queue-based pool.
+ * With 4 workers and 250 batch size, workers continuously pull 250 requests
+ * from queue, keeping all workers busy without idle time between batches.
+ */
+export const WORKER_BATCH_SIZE = isNumeric(process.env.WORKER_BATCH_SIZE)
+  ? parseInt(process.env.WORKER_BATCH_SIZE)
+  : 250;
+
 export const MULTICALL_ADDRESS = '0x144f4290051C2Ad2aCc9D7b6E8cC0dBe36644869';
 
 export const LSP26_ADDRESS = '0xf01103E5a9909Fc0DBe8166dA7085e0285daDDcA';

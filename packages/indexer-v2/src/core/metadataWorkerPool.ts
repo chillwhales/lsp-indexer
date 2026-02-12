@@ -1,9 +1,9 @@
 /**
- * Metadata worker pool manager.
+ * Metadata worker pool manager — Queue-based architecture.
  *
- * Distributes FetchRequest batches across a pool of worker threads for
- * non-blocking, parallel metadata fetching. Replaces v1's busy-wait
- * polling pattern with proper Promise.all resolution.
+ * Workers continuously pull work from a shared queue, eliminating idle time
+ * between batches. Failed requests re-enter the queue after individual backoff
+ * delays. Multiple concurrent fetchBatch() calls merge into the shared queue.
  *
  * Usage:
  * ```ts
@@ -12,7 +12,8 @@
  * await pool.shutdown();
  * ```
  */
-import { FETCH_RETRY_COUNT, IPFS_GATEWAY } from '@/constants';
+import { FETCH_RETRY_COUNT, IPFS_GATEWAY, WORKER_BATCH_SIZE } from '@/constants';
+import crypto from 'crypto';
 import path from 'path';
 import type pino from 'pino';
 import { Worker } from 'worker_threads';
@@ -44,6 +45,8 @@ export interface MetadataWorkerPoolConfig {
   maxRetries?: number;
   /** Base delay for exponential backoff in ms. Default: 1_000 */
   retryBaseDelayMs?: number;
+  /** Number of requests each worker processes per batch. Default: from WORKER_BATCH_SIZE constant */
+  workerBatchSize?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -59,28 +62,118 @@ class PoolWorker {
   readonly worker: Worker;
   busy = false;
   private pending: PendingJob | null = null;
+  private readonly workerPath: string;
+  private readonly workerData: object;
+  private readonly workerId: number;
+  private restartCount = 0;
+  private readonly maxRestarts = 3;
+  private readonly pool: MetadataWorkerPool;
+  currentBatch: FetchRequest[] = []; // Track in-flight requests for this worker
+  isDead = false; // Mark permanently dead after max restarts
 
-  constructor(workerPath: string, workerData: object, workerId: number) {
-    this.worker = new Worker(workerPath, { workerData });
+  constructor(workerPath: string, workerData: object, workerId: number, pool: MetadataWorkerPool) {
+    this.workerPath = workerPath;
+    this.workerData = workerData;
+    this.workerId = workerId;
+    this.pool = pool;
+    this.worker = this.createWorker();
+  }
 
-    this.worker.on('message', (results: WorkerFetchResult[]) => {
+  private createWorker(): Worker {
+    const worker = new Worker(this.workerPath, { workerData: this.workerData });
+
+    worker.on('message', (results: WorkerFetchResult[]) => {
       const job = this.pending;
       this.pending = null;
       this.busy = false;
+      this.currentBatch = [];
       if (job) job.resolve(results);
     });
 
-    this.worker.on('error', (error: Error) => {
-      console.error(`[Worker ${workerId}] Error:`, error);
+    worker.on('error', (error: Error) => {
+      if (this.pool.logger?.isLevelEnabled?.('error')) {
+        this.pool.logger.error({ workerId: this.workerId, error: error.message }, 'Worker error');
+      }
       const job = this.pending;
       this.pending = null;
       this.busy = false;
+      // Don't clear currentBatch here - needed for re-queue
       if (job) job.reject(error);
     });
+
+    worker.on('exit', (code) => {
+      if (code !== 0 && !this.isDead) {
+        this.handleCrash();
+      }
+    });
+
+    return worker;
+  }
+
+  private handleCrash(): void {
+    this.restartCount++;
+
+    if (this.pool.logger?.isLevelEnabled?.('warn')) {
+      this.pool.logger.warn(
+        {
+          workerId: this.workerId,
+          restartCount: this.restartCount,
+          maxRestarts: this.maxRestarts,
+          inFlightRequests: this.currentBatch.length,
+        },
+        'Worker crashed, handling recovery',
+      );
+    }
+
+    // Re-queue in-flight requests (no retry count increment - worker died, not request failure)
+    if (this.currentBatch.length > 0) {
+      this.pool.handleWorkerCrash(this.currentBatch);
+      this.currentBatch = [];
+    }
+
+    // Clear busy and pending state before respawn or marking dead
+    this.busy = false;
+    this.pending = null;
+
+    if (this.restartCount <= this.maxRestarts) {
+      // Respawn worker
+      this.respawnWorker();
+    } else {
+      // Max restarts exceeded - mark as permanently dead
+      this.isDead = true;
+      if (this.pool.logger?.isLevelEnabled?.('error')) {
+        this.pool.logger.error(
+          {
+            workerId: this.workerId,
+            restartCount: this.restartCount,
+          },
+          'Worker exceeded max restarts, marked as dead',
+        );
+      }
+    }
+  }
+
+  private respawnWorker(): void {
+    if (this.pool.logger?.isLevelEnabled?.('info')) {
+      this.pool.logger.info(
+        {
+          workerId: this.workerId,
+          restartCount: this.restartCount,
+        },
+        'Respawning worker',
+      );
+    }
+
+    // Note: busy and pending already cleared in handleCrash()
+    (this as { worker: Worker }).worker = this.createWorker();
+
+    // Trigger dispatch to give new worker work
+    this.pool.triggerDispatch();
   }
 
   execute(requests: FetchRequest[]): Promise<WorkerFetchResult[]> {
     this.busy = true;
+    this.currentBatch = requests;
     return new Promise<WorkerFetchResult[]>((resolve, reject) => {
       this.pending = { resolve, reject };
       this.worker.postMessage(requests);
@@ -101,19 +194,36 @@ class PoolWorker {
  *
  * Implements `IMetadataWorkerPool` from core/types.ts.
  *
- * How it works:
- * 1. `fetchBatch(requests)` splits requests evenly across N workers
- * 2. Each worker fetches its chunk in parallel (Promise.all inside the worker)
- * 3. Results are collected, failed retryable requests are retried with
- *    exponential backoff up to `maxRetries` times
- * 4. Final merged results are returned
+ * Queue-based architecture:
+ * 1. `fetchBatch(requests)` adds requests to shared queue
+ * 2. Workers continuously pull WORKER_BATCH_SIZE requests from queue
+ * 3. Failed retryable requests re-enter queue after per-request backoff
+ * 4. Concurrent fetchBatch() calls merge into queue and resolve independently
  */
 export class MetadataWorkerPool implements IMetadataWorkerPool {
   private readonly workers: PoolWorker[];
   private readonly maxRetries: number;
   private readonly retryBaseDelayMs: number;
-  private readonly logger: pino.Logger | null;
+  readonly logger: pino.Logger | null; // Make accessible to PoolWorker
   private isShutdown = false;
+
+  // Queue-based state
+  private queue: FetchRequest[] = []; // Work waiting to be assigned
+  private inFlight: Map<string, FetchRequest> = new Map(); // Currently being processed
+  private results: Map<string, FetchResult> = new Map(); // Completed results
+  private retryCount: Map<string, number> = new Map(); // Per-request retry tracking
+  private pendingBatches: Map<
+    string,
+    {
+      // Track concurrent fetchBatch calls
+      requestIds: Set<string>;
+      resolve: (results: FetchResult[]) => void;
+      reject: (error: Error) => void;
+    }
+  > = new Map();
+  private requestToBatch: Map<string, string> = new Map(); // Map request ID to batch ID
+  private originalRequests: Map<string, FetchRequest> = new Map(); // Store for retry
+  private readonly workerBatchSize: number;
 
   constructor(config: MetadataWorkerPoolConfig = {}) {
     const poolSize = config.poolSize ?? 4;
@@ -121,6 +231,7 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
     const requestTimeoutMs = config.requestTimeoutMs ?? 30_000;
     this.maxRetries = config.maxRetries ?? FETCH_RETRY_COUNT;
     this.retryBaseDelayMs = config.retryBaseDelayMs ?? 1_000;
+    this.workerBatchSize = config.workerBatchSize ?? WORKER_BATCH_SIZE;
 
     // Create component logger for worker pool operations
     this.logger = getFileLogger()?.child({ component: 'worker_pool' }) ?? null;
@@ -137,7 +248,7 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
 
     this.workers = Array.from(
       { length: poolSize },
-      (_, i) => new PoolWorker(workerPath, workerData, i),
+      (_, i) => new PoolWorker(workerPath, workerData, i, this),
     );
 
     // Log pool initialization
@@ -149,8 +260,9 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
           requestTimeoutMs,
           maxRetries: this.maxRetries,
           retryBaseDelayMs: this.retryBaseDelayMs,
+          workerBatchSize: this.workerBatchSize,
         },
-        'MetadataWorkerPool initialized',
+        'MetadataWorkerPool initialized (queue-based)',
       );
     }
   }
@@ -158,92 +270,111 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
   /**
    * Fetch a batch of metadata URLs using the worker pool.
    *
-   * Distributes requests across workers, collects results, and retries
-   * failed retryable requests with exponential backoff.
+   * Adds requests to shared queue, returns when all complete.
+   * Workers continuously pull from queue in background.
    *
    * @returns One FetchResult per input FetchRequest (order not guaranteed).
    */
   async fetchBatch(requests: FetchRequest[]): Promise<FetchResult[]> {
-    if (this.isShutdown) {
-      throw new Error('MetadataWorkerPool has been shut down');
-    }
+    if (this.isShutdown) throw new Error('MetadataWorkerPool has been shut down');
     if (requests.length === 0) return [];
 
-    // Log batch start
-    if (this.logger?.isLevelEnabled?.('debug')) {
-      const availableWorkers = this.workers.filter((w) => !w.busy).length;
-      this.logger.debug(
-        {
-          batchSize: requests.length,
-          availableWorkers,
-          totalWorkers: this.workers.length,
-        },
-        'Starting metadata fetch batch',
-      );
-    }
+    return new Promise((resolve, reject) => {
+      const batchId = crypto.randomUUID();
+      const requestIds = new Set(requests.map((r) => r.id));
 
-    const finalResults: FetchResult[] = [];
-    let pending = requests;
-    const debugEnabled = this.logger?.isLevelEnabled?.('debug') ?? false;
-    const startTime = debugEnabled ? Date.now() : 0;
+      // Register this batch
+      this.pendingBatches.set(batchId, { requestIds, resolve, reject });
 
-    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
-      if (pending.length === 0) break;
+      // Add all requests to queue with batch reference
+      for (const req of requests) {
+        this.requestToBatch.set(req.id, batchId);
+        this.originalRequests.set(req.id, req);
+        this.queue.push(req);
+      }
 
-      // Distribute across workers
-      const chunks = this.distribute(pending);
-
-      // Log worker assignment
+      // Log batch start
       if (this.logger?.isLevelEnabled?.('debug')) {
         this.logger.debug(
           {
-            attempt: attempt + 1,
-            maxAttempts: this.maxRetries + 1,
-            pendingCount: pending.length,
-            workersUsed: chunks.length,
-            chunkSizes: chunks.map((c) => c.length),
+            batchId,
+            requestCount: requests.length,
+            queueSize: this.queue.length,
           },
-          'Distributing batch to workers',
+          'fetchBatch: added requests to queue',
         );
       }
 
-      const chunkPromises = chunks.map((chunk, i) => this.workers[i].execute(chunk));
-      const workerResults = (await Promise.all(chunkPromises)).flat();
+      // Start dispatching
+      this.dispatchWork();
+    });
+  }
 
-      // Log worker completion
-      if (this.logger?.isLevelEnabled?.('debug')) {
-        const successCount = workerResults.filter((r) => r.success).length;
-        const failureCount = workerResults.filter((r) => !r.success).length;
-        this.logger.debug(
-          {
-            resultsCount: workerResults.length,
-            successCount,
-            failureCount,
-          },
-          'Workers completed batch processing',
-        );
-      }
+  /**
+   * Core queue dispatch loop — assign work to idle workers.
+   */
+  private dispatchWork(): void {
+    for (const worker of this.workers) {
+      if (worker.isDead) continue; // Skip permanently dead workers
+      if (!worker.busy && this.queue.length > 0) {
+        const batch = this.queue.splice(0, this.workerBatchSize);
 
-      // Separate successes and retryable failures
-      const toRetry: FetchRequest[] = [];
+        // Track in-flight
+        for (const req of batch) {
+          this.inFlight.set(req.id, req);
+        }
 
-      for (const result of workerResults) {
-        if (result.success) {
-          finalResults.push({
-            id: result.id,
-            entityType: result.entityType,
-            success: true,
-            data: result.data,
+        if (this.logger?.isLevelEnabled?.('debug')) {
+          this.logger.debug(
+            {
+              workerId: this.workers.indexOf(worker),
+              batchSize: batch.length,
+              queueRemaining: this.queue.length,
+              inFlightTotal: this.inFlight.size,
+            },
+            'dispatchWork: assigning batch to worker',
+          );
+        }
+
+        worker
+          .execute(batch)
+          .then((results) => {
+            this.handleWorkerResults(results);
+            // Immediately check for more work
+            this.dispatchWork();
+          })
+          .catch((error) => {
+            // Worker error — re-queue all in-flight from this batch (no retry increment)
+            this.handleWorkerError(batch, error);
+            this.dispatchWork();
           });
-        } else if (result.retryable && attempt < this.maxRetries) {
-          // Re-queue for retry
-          const original = pending.find((r) => r.id === result.id);
-          if (original) {
-            toRetry.push(original);
-          }
+      }
+    }
+  }
+
+  /**
+   * Process results from worker completion.
+   */
+  private handleWorkerResults(workerResults: WorkerFetchResult[]): void {
+    for (const result of workerResults) {
+      // Remove from in-flight
+      this.inFlight.delete(result.id);
+
+      if (result.success) {
+        this.results.set(result.id, {
+          id: result.id,
+          entityType: result.entityType,
+          success: true,
+          data: result.data,
+        });
+        this.checkBatchCompletion(result.id);
+      } else if (result.retryable) {
+        const currentRetries = this.retryCount.get(result.id) ?? 0;
+        if (currentRetries < this.maxRetries) {
+          this.scheduleRetry(result.id, currentRetries);
         } else {
-          // Non-retryable or exhausted retries — record as failure
-          finalResults.push({
+          // Exhausted retries — record failure
+          this.results.set(result.id, {
             id: result.id,
             entityType: result.entityType,
             success: false,
@@ -251,45 +382,157 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
             errorCode: result.errorCode,
             errorStatus: result.errorStatus,
           });
+          this.checkBatchCompletion(result.id);
         }
-      }
-
-      pending = toRetry;
-
-      // Exponential backoff before retry
-      if (pending.length > 0 && attempt < this.maxRetries) {
-        const delay = this.retryBaseDelayMs * Math.pow(2, attempt);
-
-        if (this.logger?.isLevelEnabled?.('debug')) {
-          this.logger.debug(
-            {
-              retryCount: pending.length,
-              nextAttempt: attempt + 2,
-              backoffDelayMs: delay,
-            },
-            'Retrying failed requests after backoff',
-          );
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, delay));
+      } else {
+        // Non-retryable failure
+        this.results.set(result.id, {
+          id: result.id,
+          entityType: result.entityType,
+          success: false,
+          error: result.error,
+          errorCode: result.errorCode,
+          errorStatus: result.errorStatus,
+        });
+        this.checkBatchCompletion(result.id);
       }
     }
+  }
 
-    // Log batch completion
+  /**
+   * Schedule per-request retry after exponential backoff.
+   */
+  private scheduleRetry(requestId: string, attempt: number): void {
+    const delay = this.retryBaseDelayMs * Math.pow(2, attempt);
+    this.retryCount.set(requestId, attempt + 1);
+
+    // Find original request
+    const batchId = this.requestToBatch.get(requestId);
+    const batch = batchId ? this.pendingBatches.get(batchId) : undefined;
+
+    if (!batch) {
+      // Batch already resolved/rejected — skip retry
+      return;
+    }
+
     if (this.logger?.isLevelEnabled?.('debug')) {
-      const duration = Date.now() - startTime;
       this.logger.debug(
         {
-          totalResults: finalResults.length,
-          successCount: finalResults.filter((r) => r.success).length,
-          failureCount: finalResults.filter((r) => !r.success).length,
-          durationMs: duration,
+          requestId,
+          attempt: attempt + 1,
+          delayMs: delay,
         },
-        'Metadata fetch batch complete',
+        'scheduleRetry: scheduling retry after backoff',
       );
     }
 
-    return finalResults;
+    setTimeout(() => {
+      // Don't retry if pool has been shut down
+      if (this.isShutdown) return;
+
+      // Re-find the original request from stored originals
+      const original = this.originalRequests.get(requestId);
+      if (original) {
+        this.queue.push(original);
+        this.dispatchWork();
+      }
+    }, delay);
+  }
+
+  /**
+   * Check if batch is complete and resolve if so.
+   */
+  private checkBatchCompletion(requestId: string): void {
+    const batchId = this.requestToBatch.get(requestId);
+    if (!batchId) return;
+
+    const batch = this.pendingBatches.get(batchId);
+    if (!batch) return;
+
+    // Check if all requests from this batch have results
+    const allComplete = [...batch.requestIds].every((id) => this.results.has(id));
+
+    if (allComplete) {
+      // Gather results for this batch
+      const batchResults: FetchResult[] = [];
+      for (const id of batch.requestIds) {
+        const result = this.results.get(id);
+        if (result) batchResults.push(result);
+      }
+
+      if (this.logger?.isLevelEnabled?.('debug')) {
+        const successCount = batchResults.filter((r) => r.success).length;
+        this.logger.debug(
+          {
+            batchId,
+            totalResults: batchResults.length,
+            successCount,
+            failureCount: batchResults.length - successCount,
+          },
+          'checkBatchCompletion: batch complete',
+        );
+      }
+
+      // Clean up batch tracking
+      for (const id of batch.requestIds) {
+        this.results.delete(id);
+        this.retryCount.delete(id);
+        this.requestToBatch.delete(id);
+        this.originalRequests.delete(id);
+      }
+      this.pendingBatches.delete(batchId);
+
+      // Resolve the promise
+      batch.resolve(batchResults);
+    }
+  }
+
+  /**
+   * Re-queue requests from worker error (no retry count increment).
+   */
+  private handleWorkerError(batch: FetchRequest[], error: Error): void {
+    if (this.logger?.isLevelEnabled?.('warn')) {
+      this.logger.warn(
+        {
+          error: error.message,
+          affectedRequests: batch.length,
+        },
+        'handleWorkerError: worker failed, re-queuing requests',
+      );
+    }
+
+    // Re-queue all requests from this batch (no retry count increment — worker died, not request failure)
+    for (const req of batch) {
+      this.inFlight.delete(req.id);
+      this.queue.push(req);
+    }
+  }
+
+  /**
+   * Re-queue requests from worker crash (called by PoolWorker).
+   */
+  handleWorkerCrash(requests: FetchRequest[]): void {
+    if (this.logger?.isLevelEnabled?.('debug')) {
+      this.logger.debug(
+        {
+          requestCount: requests.length,
+        },
+        'handleWorkerCrash: re-queuing requests from crashed worker',
+      );
+    }
+
+    // Re-queue all requests (no retry count increment)
+    for (const req of requests) {
+      this.inFlight.delete(req.id);
+      this.queue.push(req);
+    }
+  }
+
+  /**
+   * Trigger dispatch from PoolWorker (called after respawn).
+   */
+  triggerDispatch(): void {
+    this.dispatchWork();
   }
 
   /**
@@ -299,27 +542,35 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
     if (this.isShutdown) return;
 
     if (this.logger?.isLevelEnabled?.('debug')) {
-      this.logger.debug({ workerCount: this.workers.length }, 'Shutting down MetadataWorkerPool');
+      this.logger.debug(
+        {
+          workerCount: this.workers.length,
+          pendingBatches: this.pendingBatches.size,
+        },
+        'Shutting down MetadataWorkerPool',
+      );
     }
 
     this.isShutdown = true;
+
+    // Reject all pending batches
+    for (const [, batch] of this.pendingBatches) {
+      batch.reject(new Error('MetadataWorkerPool shut down'));
+    }
+    this.pendingBatches.clear();
+
+    // Clear internal state to avoid retaining references after shutdown
+    this.queue = [];
+    this.inFlight.clear();
+    this.results.clear();
+    this.retryCount.clear();
+    this.requestToBatch.clear();
+    this.originalRequests.clear();
+
     await Promise.all(this.workers.map((w) => w.terminate()));
 
     if (this.logger?.isLevelEnabled?.('debug')) {
       this.logger.debug({}, 'MetadataWorkerPool shutdown complete');
     }
-  }
-
-  /**
-   * Split requests into N chunks (one per worker).
-   * Uses round-robin distribution for even load.
-   */
-  private distribute(requests: FetchRequest[]): FetchRequest[][] {
-    const chunks: FetchRequest[][] = this.workers.map((): FetchRequest[] => []);
-    for (let i = 0; i < requests.length; i++) {
-      chunks[i % this.workers.length].push(requests[i]);
-    }
-    // Filter out empty chunks (fewer requests than workers)
-    return chunks.filter((c) => c.length > 0);
   }
 }
