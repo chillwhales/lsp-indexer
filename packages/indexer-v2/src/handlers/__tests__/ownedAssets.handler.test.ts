@@ -39,12 +39,12 @@ function createMockBatchCtx() {
       const bag = entityBags.get(type);
       return entityBags.has(type) && bag !== undefined && bag.size > 0;
     },
-    queueDelete(request: unknown) {
+    queueDelete: vi.fn((request: unknown) => {
       deleteQueue.push(request);
-    },
-    queueEnrichment(request: unknown) {
+    }),
+    queueEnrichment: vi.fn((request: unknown) => {
       enrichmentQueue.push(request);
-    },
+    }),
     queueClear() {
       // no-op for tests
     },
@@ -633,6 +633,185 @@ describe('OwnedAssetsHandler', () => {
       // 4 for receiver2 (OwnedAsset: digitalAsset + universalProfile, OwnedToken: digitalAsset + universalProfile + nft)
       // But handler processes both bags each time, so count may vary
       expect(batchCtx._enrichmentQueue.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('triggeredBy filtering (GAP-08 fix)', () => {
+    it('processes only LSP7Transfer transfers when triggered by LSP7Transfer', async () => {
+      const batchCtx = createMockBatchCtx();
+      const store = createMockStore();
+      const hctx = createMockHandlerContext(batchCtx, store);
+
+      const receiver1 = '0xBBB0000000000000000000000000000000000002';
+      const receiver2 = '0xCCC0000000000000000000000000000000000003';
+      const assetAddress = '0xDA00000000000000000000000000000000000001';
+
+      // Add LSP7 transfer (fungible tokens)
+      const lsp7Transfer = createTransfer({
+        from: '0x0000000000000000000000000000000000000000',
+        to: receiver1,
+        amount: 1000n,
+        address: assetAddress,
+        tokenId: null,
+      });
+
+      // Add LSP8 transfer (NFT)
+      const lsp8Transfer = createTransfer({
+        id: 'test-uuid-2',
+        from: '0x0000000000000000000000000000000000000000',
+        to: receiver2,
+        amount: 1n,
+        address: assetAddress,
+        tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
+      });
+
+      batchCtx.addEntity('LSP7Transfer', lsp7Transfer.id, lsp7Transfer);
+      batchCtx.addEntity('LSP8Transfer', lsp8Transfer.id, lsp8Transfer);
+
+      // Trigger with LSP7Transfer only
+      await OwnedAssetsHandler.handle(hctx, 'LSP7Transfer');
+
+      const ownedAssets = batchCtx.getEntities<OwnedAsset>('OwnedAsset');
+      const ownedTokens = batchCtx.getEntities<OwnedToken>('OwnedToken');
+
+      // Should only process LSP7 transfer
+      expect(ownedAssets.size).toBe(1);
+      expect(ownedTokens.size).toBe(0);
+
+      const receiver1AssetId = generateOwnedAssetId({ owner: receiver1, address: assetAddress });
+      const receiver1Asset = ownedAssets.get(receiver1AssetId);
+      expect(receiver1Asset).toBeDefined();
+      expect(receiver1Asset?.balance).toBe(1000n);
+
+      // LSP8 receiver should NOT have been processed
+      const receiver2AssetId = generateOwnedAssetId({ owner: receiver2, address: assetAddress });
+      expect(ownedAssets.has(receiver2AssetId)).toBe(false);
+    });
+
+    it('processes only LSP8Transfer transfers when triggered by LSP8Transfer', async () => {
+      const batchCtx = createMockBatchCtx();
+      const store = createMockStore();
+      const hctx = createMockHandlerContext(batchCtx, store);
+
+      const receiver1 = '0xBBB0000000000000000000000000000000000002';
+      const receiver2 = '0xCCC0000000000000000000000000000000000003';
+      const assetAddress = '0xDA00000000000000000000000000000000000001';
+
+      // Add LSP7 transfer (fungible tokens)
+      const lsp7Transfer = createTransfer({
+        from: '0x0000000000000000000000000000000000000000',
+        to: receiver1,
+        amount: 1000n,
+        address: assetAddress,
+        tokenId: null,
+      });
+
+      // Add LSP8 transfer (NFT)
+      const lsp8Transfer = createTransfer({
+        id: 'test-uuid-2',
+        from: '0x0000000000000000000000000000000000000000',
+        to: receiver2,
+        amount: 1n,
+        address: assetAddress,
+        tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
+      });
+
+      batchCtx.addEntity('LSP7Transfer', lsp7Transfer.id, lsp7Transfer);
+      batchCtx.addEntity('LSP8Transfer', lsp8Transfer.id, lsp8Transfer);
+
+      // Trigger with LSP8Transfer only
+      await OwnedAssetsHandler.handle(hctx, 'LSP8Transfer');
+
+      const ownedAssets = batchCtx.getEntities<OwnedAsset>('OwnedAsset');
+      const ownedTokens = batchCtx.getEntities<OwnedToken>('OwnedToken');
+
+      // Should only process LSP8 transfer
+      expect(ownedAssets.size).toBe(1);
+      expect(ownedTokens.size).toBe(1);
+
+      // LSP7 receiver should NOT have been processed
+      const receiver1AssetId = generateOwnedAssetId({ owner: receiver1, address: assetAddress });
+      expect(ownedAssets.has(receiver1AssetId)).toBe(false);
+
+      // LSP8 receiver should have both OwnedAsset and OwnedToken
+      const receiver2AssetId = generateOwnedAssetId({ owner: receiver2, address: assetAddress });
+      const receiver2Asset = ownedAssets.get(receiver2AssetId);
+      expect(receiver2Asset).toBeDefined();
+      expect(receiver2Asset?.balance).toBe(1n);
+
+      if (!lsp8Transfer.tokenId) throw new Error('tokenId is required for LSP8 transfer');
+      const receiver2TokenId = generateOwnedTokenId({
+        owner: receiver2,
+        address: assetAddress,
+        tokenId: lsp8Transfer.tokenId,
+      });
+      const receiver2Token = ownedTokens.get(receiver2TokenId);
+      expect(receiver2Token).toBeDefined();
+    });
+
+    it('does not double-count when called for both triggers sequentially', async () => {
+      const batchCtx = createMockBatchCtx();
+      const store = createMockStore();
+      const hctx = createMockHandlerContext(batchCtx, store);
+
+      const addressA = '0xAAA0000000000000000000000000000000000001';
+      const addressB = '0xBBB0000000000000000000000000000000000002';
+      const assetAddress = '0xDA00000000000000000000000000000000000001';
+
+      // LSP7 transfer: mint 100 tokens to address A
+      const lsp7Transfer = createTransfer({
+        from: '0x0000000000000000000000000000000000000000',
+        to: addressA,
+        amount: 100n,
+        address: assetAddress,
+        tokenId: null,
+      });
+
+      // LSP8 transfer: mint 1 NFT to address B
+      const lsp8Transfer = createTransfer({
+        id: 'test-uuid-2',
+        from: '0x0000000000000000000000000000000000000000',
+        to: addressB,
+        amount: 1n,
+        address: assetAddress,
+        tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
+      });
+
+      batchCtx.addEntity('LSP7Transfer', lsp7Transfer.id, lsp7Transfer);
+      batchCtx.addEntity('LSP8Transfer', lsp8Transfer.id, lsp8Transfer);
+
+      // First call: triggered by LSP7Transfer
+      await OwnedAssetsHandler.handle(hctx, 'LSP7Transfer');
+
+      // Second call: triggered by LSP8Transfer
+      await OwnedAssetsHandler.handle(hctx, 'LSP8Transfer');
+
+      const ownedAssets = batchCtx.getEntities<OwnedAsset>('OwnedAsset');
+      const ownedTokens = batchCtx.getEntities<OwnedToken>('OwnedToken');
+
+      // Verify address A has OwnedAsset with balance 100 (not 200 from double-processing)
+      const addressAAssetId = generateOwnedAssetId({ owner: addressA, address: assetAddress });
+      const addressAAsset = ownedAssets.get(addressAAssetId);
+      expect(addressAAsset).toBeDefined();
+      expect(addressAAsset?.balance).toBe(100n); // CRITICAL: not 200n
+
+      // Verify address B has OwnedAsset with balance 1 (not 2 from double-processing)
+      const addressBAssetId = generateOwnedAssetId({ owner: addressB, address: assetAddress });
+      const addressBAsset = ownedAssets.get(addressBAssetId);
+      expect(addressBAsset).toBeDefined();
+      expect(addressBAsset?.balance).toBe(1n); // CRITICAL: not 2n
+
+      // Verify address B has exactly 1 OwnedToken
+      expect(ownedTokens.size).toBe(1);
+
+      if (!lsp8Transfer.tokenId) throw new Error('tokenId is required for LSP8 transfer');
+      const addressBTokenId = generateOwnedTokenId({
+        owner: addressB,
+        address: assetAddress,
+        tokenId: lsp8Transfer.tokenId,
+      });
+      const addressBToken = ownedTokens.get(addressBTokenId);
+      expect(addressBToken).toBeDefined();
     });
   });
 });
