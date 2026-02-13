@@ -202,10 +202,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       if (!plugin) continue;
 
       // If plugin is contract-scoped, verify the log address matches
-      if (
-        plugin.contractFilter &&
-        log.address.toLowerCase() !== plugin.contractFilter.address.toLowerCase()
-      ) {
+      if (plugin.contractFilter && !isAddressEqual(log.address, plugin.contractFilter.address)) {
         continue;
       }
 

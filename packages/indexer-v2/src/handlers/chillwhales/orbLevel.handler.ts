@@ -44,7 +44,7 @@ const OrbLevelHandler: EntityHandler = {
 
     for (const event of events.values()) {
       // Filter by contract address
-      if (event.address.toLowerCase() !== ORBS_ADDRESS.toLowerCase()) continue;
+      if (!isAddressEqual(event.address, ORBS_ADDRESS)) continue;
 
       // Filter by data key
       if (event.dataKey !== ORB_LEVEL_KEY) continue;
