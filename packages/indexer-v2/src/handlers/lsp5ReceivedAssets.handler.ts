@@ -41,7 +41,7 @@
  *   - utils/dataChanged/lsp5ReceivedAssetsItem.ts
  *   - utils/dataChanged/lsp5ReceivedAssetsMap.ts
  */
-import { mergeEntitiesFromBatchAndDb } from '@/core/handlerHelpers';
+import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { DataChanged, LSP5ReceivedAsset, LSP5ReceivedAssetsLength } from '@chillwhales/typeorm';
 import { LSP5DataKeys } from '@lukso/lsp5-contracts';
@@ -83,8 +83,8 @@ const LSP5ReceivedAssetsHandler: EntityHandler = {
       }
     }
 
-    // CORRECT PATTERN: Merge from BOTH batch and database
-    const existingAssets = await mergeEntitiesFromBatchAndDb<LSP5ReceivedAsset>(
+    // CORRECT PATTERN: Resolve from BOTH batch and database
+    const existingAssets = await resolveEntities<LSP5ReceivedAsset>(
       hctx.store,
       hctx.batchCtx,
       RECEIVED_ASSET_TYPE,
@@ -173,8 +173,13 @@ function extractFromIndex(
   const existing = existingAssets.get(id);
   if (existing) {
     // Merge: fill in arrayIndex if not already set
-    existing.arrayIndex = existing.arrayIndex ?? arrayIndex;
-    existing.timestamp = timestamp;
+    const updated = new LSP5ReceivedAsset({
+      ...existing,
+      arrayIndex: existing.arrayIndex ?? arrayIndex,
+      timestamp,
+    });
+    existingAssets.set(id, updated);
+    hctx.batchCtx.addEntity(RECEIVED_ASSET_TYPE, id, updated);
     return;
   }
 
@@ -240,9 +245,14 @@ function extractFromMap(
   const existing = existingAssets.get(id);
   if (existing) {
     // Merge: Map provides interfaceId + potentially better arrayIndex
-    existing.interfaceId = interfaceId ?? existing.interfaceId;
-    existing.arrayIndex = arrayIndex ?? existing.arrayIndex;
-    existing.timestamp = timestamp;
+    const updated = new LSP5ReceivedAsset({
+      ...existing,
+      interfaceId: interfaceId ?? existing.interfaceId,
+      arrayIndex: arrayIndex ?? existing.arrayIndex,
+      timestamp,
+    });
+    existingAssets.set(id, updated);
+    hctx.batchCtx.addEntity(RECEIVED_ASSET_TYPE, id, updated);
     return;
   }
 

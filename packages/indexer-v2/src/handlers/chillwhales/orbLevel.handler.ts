@@ -30,6 +30,7 @@
  *   - constants/chillwhales.ts (ORB_LEVEL_KEY, ORBS_ADDRESS)
  */
 import { ORB_LEVEL_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
+import { resolveEntity } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
 import { OrbCooldownExpiry, OrbLevel, TokenIdDataChanged, Transfer } from '@chillwhales/typeorm';
@@ -53,7 +54,7 @@ const OrbLevelHandler: EntityHandler = {
   name: 'orbLevel',
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
-  handle(hctx: HandlerContext, triggeredBy: string): void {
+  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
     // Branch on triggeredBy to handle mint detection vs data key changes
     if (triggeredBy === 'LSP8Transfer') {
       // MINT DETECTION: Create default entities when Orb NFTs are minted
@@ -149,32 +150,40 @@ const OrbLevelHandler: EntityHandler = {
           const level = bytesToNumber(sliceBytes(dataBytes, 0, 4));
           const cooldownExpiry = bytesToNumber(sliceBytes(dataBytes, 4));
 
-          // Check if entities exist in batch (e.g., from mint path in same batch)
-          const existingLevel = hctx.batchCtx.getEntities<OrbLevel>(ORB_LEVEL_TYPE).get(id);
-          const existingCooldown = hctx.batchCtx
-            .getEntities<OrbCooldownExpiry>(ORB_COOLDOWN_EXPIRY_TYPE)
-            .get(id);
+          // Resolve entities from batch AND database (cross-batch FK preservation)
+          const existingLevel = await resolveEntity(
+            hctx.store,
+            hctx.batchCtx,
+            ORB_LEVEL_TYPE,
+            OrbLevel,
+            id,
+          );
+          const existingCooldown = await resolveEntity(
+            hctx.store,
+            hctx.batchCtx,
+            ORB_COOLDOWN_EXPIRY_TYPE,
+            OrbCooldownExpiry,
+            id,
+          );
 
           // Create OrbLevel entity, preserving existing FKs if entity was already created
           const levelEntity = new OrbLevel({
+            ...(existingLevel ?? {}),
             id,
             address: event.address,
             tokenId: event.tokenId,
             value: level,
-            digitalAsset: existingLevel?.digitalAsset ?? null, // Preserve FK if exists
-            nft: existingLevel?.nft ?? null, // Preserve FK if exists
           });
 
           hctx.batchCtx.addEntity(ORB_LEVEL_TYPE, id, levelEntity);
 
           // Create OrbCooldownExpiry entity, preserving existing FKs if entity was already created
           const cooldownEntity = new OrbCooldownExpiry({
+            ...(existingCooldown ?? {}),
             id,
             address: event.address,
             tokenId: event.tokenId,
             value: cooldownExpiry,
-            digitalAsset: existingCooldown?.digitalAsset ?? null, // Preserve FK if exists
-            nft: existingCooldown?.nft ?? null, // Preserve FK if exists
           });
 
           hctx.batchCtx.addEntity(ORB_COOLDOWN_EXPIRY_TYPE, id, cooldownEntity);

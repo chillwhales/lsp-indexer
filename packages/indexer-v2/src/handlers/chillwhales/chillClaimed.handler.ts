@@ -165,12 +165,8 @@ const ChillClaimedHandler: EntityHandler = {
       ) {
         // Update entity value to true
         const updatedEntity = new ChillClaimed({
-          id: entity.id,
-          address: entity.address,
-          digitalAsset: null, // FK initially null — resolved by enrichment queue
-          tokenId: entity.tokenId,
-          nft: null, // FK initially null — resolved by enrichment queue
-          value: true, // Verified as claimed on-chain
+          ...entity, // Preserves ALL fields including digitalAsset and nft FKs
+          value: true, // Override only the field that changed
         });
 
         batchCtx.addEntity(ENTITY_TYPE, updatedEntity.id, updatedEntity);

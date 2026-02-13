@@ -27,6 +27,7 @@
  *   - constants/chillwhales.ts (ORB_FACTION_KEY, ORBS_ADDRESS)
  */
 import { ORB_FACTION_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
+import { resolveEntity } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
 import { OrbFaction, TokenIdDataChanged, Transfer } from '@chillwhales/typeorm';
@@ -41,7 +42,7 @@ const OrbFactionHandler: EntityHandler = {
   name: 'orbFaction',
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
-  handle(hctx: HandlerContext, triggeredBy: string): void {
+  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
     // Branch on triggeredBy to handle mint detection vs data key changes
     if (triggeredBy === 'LSP8Transfer') {
       // MINT DETECTION: Create default entity when Orb NFTs are minted
@@ -103,17 +104,22 @@ const OrbFactionHandler: EntityHandler = {
         const id = generateTokenId({ address: event.address, tokenId: event.tokenId });
         const faction = hexToString(event.dataValue as Hex);
 
-        // Check if entity exists in batch (e.g., from mint path in same batch)
-        const existing = hctx.batchCtx.getEntities<OrbFaction>(ORB_FACTION_TYPE).get(id);
+        // Resolve entity from batch AND database (cross-batch FK preservation)
+        const existing = await resolveEntity(
+          hctx.store,
+          hctx.batchCtx,
+          ORB_FACTION_TYPE,
+          OrbFaction,
+          id,
+        );
 
         // Create entity, preserving existing FKs if entity was already created
         const entity = new OrbFaction({
+          ...(existing ?? {}),
           id,
           address: event.address,
           tokenId: event.tokenId,
           value: faction,
-          digitalAsset: existing?.digitalAsset ?? null, // Preserve FK if exists
-          nft: existing?.nft ?? null, // Preserve FK if exists
         });
 
         hctx.batchCtx.addEntity(ORB_FACTION_TYPE, id, entity);
