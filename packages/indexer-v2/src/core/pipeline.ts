@@ -17,7 +17,7 @@ import { generateTokenId } from '@/utils';
 import { DigitalAsset, NFT, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
-import { isAddressEqual } from 'viem';
+import { getAddress, isAddressEqual } from 'viem';
 
 import { BatchContext } from './batchContext';
 import { createStepLogger } from './logger';
