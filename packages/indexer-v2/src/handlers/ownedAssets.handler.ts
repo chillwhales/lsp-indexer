@@ -40,12 +40,15 @@ const OwnedAssetsHandler: EntityHandler = {
   name: 'ownedAssets',
   listensToBag: ['LSP7Transfer', 'LSP8Transfer'],
 
-  async handle(hctx: HandlerContext, _triggeredBy: string): Promise<void> {
-    // Gather transfers from both LSP7 and LSP8 bags
-    const lsp7 = hctx.batchCtx.getEntities<Transfer>('LSP7Transfer');
-    const lsp8 = hctx.batchCtx.getEntities<Transfer>('LSP8Transfer');
-
-    const allTransfers: Transfer[] = [...lsp7.values(), ...lsp8.values()];
+  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+    // Only process transfers from the triggered bag (prevents double-processing)
+    // Handler is called twice per batch: once for LSP7Transfer, once for LSP8Transfer
+    const allTransfers: Transfer[] =
+      triggeredBy === 'LSP7Transfer'
+        ? [...hctx.batchCtx.getEntities<Transfer>('LSP7Transfer').values()]
+        : triggeredBy === 'LSP8Transfer'
+          ? [...hctx.batchCtx.getEntities<Transfer>('LSP8Transfer').values()]
+          : [];
 
     if (allTransfers.length === 0) return;
 

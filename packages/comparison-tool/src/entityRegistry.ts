@@ -140,6 +140,12 @@ const V1_V2_DIVERGENCES: KnownDivergence[] = [
     field: 'formattedTokenId',
     reason: 'V2 returns null for unknown LSP8 token ID formats (V1 returned raw tokenId)',
   },
+  {
+    entityType: 'LSP8ReferenceContract',
+    field: 'count',
+    reason:
+      'V1 switch fall-through bug creates phantom entities from unrelated DataChanged events (LSP4Creators[].length, LSP5ReceivedAssets[].length, AddressPermissions[].length fall through to LSP8ReferenceContract case)',
+  },
 ];
 
 export function getEntityByName(name: string): EntityDefinition | undefined {

@@ -320,7 +320,7 @@ Plans:
 | 4     | Integration & Wiring                |      4       | Complete |
 | 5     | Deployment & Validation             |      2       | Complete |
 | 5.1   | Pipeline Bug Fix & Missing Handlers |      5       | Complete |
-| 5.2   | LSP4 Base URI & Count Parity        |      4       | Upcoming |
+| 5.2   | LSP4 Base URI & Count Parity        |      4       | Complete |
 
 **Total:** 38 requirements across 9 phases (5 original + 4 inserted)
 
