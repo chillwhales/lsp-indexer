@@ -36,15 +36,15 @@ Requirements for completing the V2 rewrite. Each maps to roadmap phases.
 
 ### Integration
 
-- [ ] **INTG-01**: User can see processor configured with all EventPlugin log subscriptions from the registry
-- [ ] **INTG-02**: User can boot the application and see all EventPlugins and EntityHandlers discovered and registered
-- [ ] **INTG-03**: User can run integration tests with real block fixtures that verify all 6 pipeline steps
-- [ ] **INTG-04**: User can verify handler ordering preserves V1's dependency graph
+- [x] **INTG-01**: User can see processor configured with all EventPlugin log subscriptions from the registry
+- [x] **INTG-02**: User can boot the application and see all EventPlugins and EntityHandlers discovered and registered
+- [x] **INTG-03**: User can run integration tests with real block fixtures that verify all 6 pipeline steps
+- [x] **INTG-04**: User can verify handler ordering preserves V1's dependency graph
 
 ### Deployment
 
-- [ ] **DEPL-01**: User can run V2 alongside V1 in Docker with separate databases indexing the same chain
-- [ ] **DEPL-02**: User can run automated comparison between V1 and V2 database state
+- [x] **DEPL-01**: User can run V2 alongside V1 in Docker with separate databases indexing the same chain
+- [x] **DEPL-02**: User can run automated comparison between V1 and V2 database state
 
 ## v2 Requirements
 
@@ -93,12 +93,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | META-03     | 3     | Complete |
 | META-04     | 3     | Complete |
 | META-05     | 3     | Complete |
-| INTG-01     | 4     | Pending  |
-| INTG-02     | 4     | Pending  |
-| INTG-03     | 4     | Pending  |
-| INTG-04     | 4     | Pending  |
-| DEPL-01     | 5     | Pending  |
-| DEPL-02     | 5     | Pending  |
+| INTG-01     | 4     | Complete |
+| INTG-02     | 4     | Complete |
+| INTG-03     | 4     | Complete |
+| INTG-04     | 4     | Complete |
+| DEPL-01     | 5     | Complete |
+| DEPL-02     | 5     | Complete |
 
 **Coverage:**
 
@@ -109,4 +109,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 ---
 
 _Requirements defined: 2026-02-06_
-_Last updated: 2026-02-09 after Phase 3 completion_
+_Last updated: 2026-02-13 after Phase 5.2 completion_
