@@ -304,7 +304,7 @@ Plans:
 - [ ] 05.2-02-PLAN.md — Orb handler mint detection defaults (GAP-09)
 - [ ] 05.2-03-PLAN.md — LSP4 Base URI derivation handler (GAP-06)
 
-**Context:** Discovered via comparison tool (Phase 5). LSP4Metadata gap is caused by V2 missing the base URI → per-token derivation flow that V1 implements in `utils/lsp4MetadataBaseUri.ts`. OwnedAsset count is HIGHER in V2 because V2 creates for all transfer participants while V1 only creates for verified Universal Profiles. Orb entity gaps are likely block-height parity issues or ORBS_ADDRESS constant casing.
+**Context:** Discovered via comparison tool (Phase 5). LSP4Metadata gap is caused by V2 missing the base URI → per-token derivation flow that V1 implements in `utils/lsp4MetadataBaseUri.ts`. OwnedAsset count is currently HIGHER in V2 due to double-processing (ignoring `triggeredBy`) rather than UP-only filtering assumptions from earlier analysis. Orb-related entity gaps are now attributed to missing mint-time defaults in the Orb handlers, while LSP8ReferenceContract is treated as a known V1 divergence rather than a parity bug.
 
 ---
 
