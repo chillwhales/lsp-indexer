@@ -50,6 +50,8 @@ const FormattedTokenIdHandler: EntityHandler = {
       const nftAddresses = [...new Set(nftsWithoutFormat.map((nft) => nft.address))];
 
       // Load formats from both DB and current batch
+      // NOTE: Uses address-based query (not ID-based), so resolveEntities is not applicable.
+      // LSP8TokenIdFormat entities are queried by address field, not by id field.
       const dbFormats =
         nftAddresses.length > 0
           ? await store.findBy(LSP8TokenIdFormat, { address: In(nftAddresses) })
@@ -104,6 +106,8 @@ const FormattedTokenIdHandler: EntityHandler = {
     const alreadyUpdatedIds = new Set(nftsWithoutFormat.map((nft) => nft.id));
 
     // Query ALL existing NFTs for affected contracts from DB
+    // NOTE: Uses address-based query (not ID-based), so resolveEntities is not applicable.
+    // We need ALL NFTs for each contract address to retroactively format them.
     const existingNfts =
       formatAddresses.length > 0 ? await store.findBy(NFT, { address: In(formatAddresses) }) : [];
 

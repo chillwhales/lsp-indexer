@@ -38,6 +38,7 @@
  *   - utils/dataChanged/lsp12IssuedAssetsItem.ts
  *   - utils/dataChanged/lsp12IssuedAssetsMap.ts
  */
+import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { DataChanged, LSP12IssuedAsset, LSP12IssuedAssetsLength } from '@chillwhales/typeorm';
 import { LSP12DataKeys } from '@lukso/lsp12-contracts';

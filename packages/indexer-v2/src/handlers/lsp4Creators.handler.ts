@@ -38,6 +38,7 @@
  *   - utils/dataChanged/lsp4CreatorsItem.ts
  *   - utils/dataChanged/lsp4CreatorsMap.ts
  */
+import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { DataChanged, LSP4Creator, LSP4CreatorsLength } from '@chillwhales/typeorm';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
