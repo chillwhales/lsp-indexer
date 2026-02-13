@@ -8,32 +8,32 @@
 
 ## Current Position
 
-- **Phase:** 5 of 9 — Deployment & Validation
-- **Plan:** 2 of 2 in current phase (comparison tool in PR #159)
-- **Status:** Phase 5 functionally complete; sub-phases 5.1 and 5.2 inserted for gap closure
-- **Last activity:** 2026-02-12 — Comparison tool revealed 8 zero-row entities + count mismatches; inserted Phases 5.1/5.2
-- **Progress:** █████████░ 27/38 requirements complete (phases 1-4, 3.1, 5 done; 3.2/5.1/5.2 remain)
+- **Phase:** 5.1 of 9 — Pipeline Bug Fix & Missing Handlers
+- **Plan:** 1 of 2 in current phase
+- **Status:** Phase 5.1 in progress
+- **Last activity:** 2026-02-13 — Completed 05.1-01-PLAN.md (pipeline address comparison + owner handlers)
+- **Progress:** █████████░ 29/38 requirements complete (phases 1-4, 3.1, 5 done; GAP-01/02/03 complete; 3.2/5.1/5.2 remain)
 
 ## Phase Overview
 
-| Phase | Name                                | Status       | Requirements |
-| ----- | ----------------------------------- | ------------ | :----------: |
-| 1     | Handler Migration                   | **Complete** |     5/5      |
-| 2     | New Handlers & Structured Logging   | **Complete** |     5/5      |
-| 3     | Metadata Fetch Handlers             | **Complete** |     5/5      |
-| 3.1   | Improve Debug Logging Strategy      | **Complete** |     4/4      |
-| 3.2   | Queue-Based Worker Pool             | Deferred     |     0/4      |
-| 4     | Integration & Wiring                | **Complete** |     4/4      |
-| 5     | Deployment & Validation             | **Complete** |     2/2      |
-| 5.1   | Pipeline Bug Fix & Missing Handlers | **Next**     |     0/5      |
-| 5.2   | LSP4 Base URI & Count Parity        | Upcoming     |     0/4      |
+| Phase | Name                                | Status          | Requirements |
+| ----- | ----------------------------------- | --------------- | :----------: |
+| 1     | Handler Migration                   | **Complete**    |     5/5      |
+| 2     | New Handlers & Structured Logging   | **Complete**    |     5/5      |
+| 3     | Metadata Fetch Handlers             | **Complete**    |     5/5      |
+| 3.1   | Improve Debug Logging Strategy      | **Complete**    |     4/4      |
+| 3.2   | Queue-Based Worker Pool             | Deferred        |     0/4      |
+| 4     | Integration & Wiring                | **Complete**    |     4/4      |
+| 5     | Deployment & Validation             | **Complete**    |     2/2      |
+| 5.1   | Pipeline Bug Fix & Missing Handlers | **In progress** |     3/5      |
+| 5.2   | LSP4 Base URI & Count Parity        | Upcoming        |     0/4      |
 
 ## Performance Metrics
 
-- **Plans completed:** 23
+- **Plans completed:** 24
 - **Plans failed:** 0
 - **Phases completed:** 6 (of 9 total; 4 phases inserted)
-- **Requirements delivered:** 27/38 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02)
+- **Requirements delivered:** 29/38 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01/02/03)
 
 ## Accumulated Context
 
@@ -116,6 +116,9 @@
 | GraphQL client returns -1 for missing tables                        | Enables comparison tool to detect missing entity types without crashes     | 05-01   |
 | Field introspection filters to scalar types only                    | Excludes object/array relations for row comparison with primitive values   | 05-01   |
 | Field cache per table in GraphQL client                             | Avoids repeated introspection queries during sample comparisons            | 05-01   |
+| Pipeline contract filter uses case-insensitive address comparison   | Subsquid delivers lowercase, constants use checksummed EIP-55 addresses    | 05.1-01 |
+| Owner handlers use postVerification: true for Step 5.5              | Need verified UP/DA entities before creating owner entities                | 05.1-01 |
+| Owner entity id = emitting address, address field = newOwner        | Matches V1 data model exactly for UniversalProfileOwner/DigitalAssetOwner  | 05.1-01 |
 
 ### Discovered Todos
 
@@ -129,10 +132,10 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-12
-- **Activity:** Ran comparison tool against live V1/V2 Hasura endpoints; identified data gaps; inserted sub-phases 5.1/5.2
-- **Outcome:** Comparison tool (moved to `packages/comparison-tool/` in PR #159) revealed 8 entity types with zero rows and several large count mismatches. Root causes identified: case-sensitive address comparison in pipeline.ts, missing handlers (Owner, ChillClaimed, OrbsClaimed), missing LSP4 base URI derivation flow. Inserted Phase 5.1 (pipeline fix + 4 handlers) and Phase 5.2 (LSP4 base URI + count parity).
-- **Next Step:** Plan Phase 5.1 (`/gsd-plan-phase 5.1`)
+- **Date:** 2026-02-13
+- **Activity:** Executed plan 05.1-01 (pipeline bug fix + owner handlers)
+- **Outcome:** Fixed case-sensitive address comparison in pipeline.ts:207 (now uses toLowerCase() on both sides). Created UniversalProfileOwner and DigitalAssetOwner postVerification handlers. Unblocks Follow, Unfollow, DeployedContracts, DeployedERC1167Proxies events (4 entity types with zero rows).
+- **Next Step:** Execute plan 05.1-02 (ChillClaimed + OrbsClaimed handlers)
 
 ### Context for Next Session
 
@@ -140,10 +143,10 @@ _None currently._
   - Moved to standalone `packages/comparison-tool/` package (PR #159)
   - Supports v1-v2 and v2-v2 modes with tolerance percentage
   - Fixed snake_case conversion bug (LSP entities)
-- **Phase 5.1 needs planning:** Pipeline Bug Fix & Missing Core Handlers
-  - **GAP-01:** Fix `pipeline.ts:205` address comparison (case-insensitive) — fixes Follow, Unfollow, DeployedContracts, DeployedERC1167Proxies
-  - **GAP-02/03:** Create UniversalProfileOwner + DigitalAssetOwner handlers (listensToBag: OwnershipTransferred, postVerification: true)
-  - **GAP-04/05:** Port ChillClaimed + OrbsClaimed handlers from V1 (listensToBag: LSP7Transfer, LSP8Transfer)
+- **Phase 5.1 in progress:** Pipeline Bug Fix & Missing Core Handlers
+  - **GAP-01 ✓:** Fixed `pipeline.ts:207` address comparison (case-insensitive) — unblocks Follow, Unfollow, DeployedContracts, DeployedERC1167Proxies
+  - **GAP-02/03 ✓:** Created UniversalProfileOwner + DigitalAssetOwner handlers (listensToBag: OwnershipTransferred, postVerification: true)
+  - **GAP-04/05:** Port ChillClaimed + OrbsClaimed handlers from V1 (next plan)
 - **Phase 5.2 needs planning:** LSP4 Base URI & Count Parity
   - **GAP-06:** Create LSP4MetadataBaseURI handler (port V1's utils/lsp4MetadataBaseUri.ts flow)
   - **GAP-07/08/09:** Investigate LSP8ReferenceContract, OwnedAsset scope, Orb entity gaps
