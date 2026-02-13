@@ -23,6 +23,7 @@ function createMockBatchCtx(): {
   queueEnrichment: ReturnType<typeof vi.fn>;
   _entityBags: Map<string, Map<string, unknown>>;
   _enrichmentQueue: unknown[];
+  _verifiedDAs: Set<string>;
 } {
   const entityBags = new Map<string, Map<string, unknown>>();
   const enrichmentQueue: unknown[] = [];

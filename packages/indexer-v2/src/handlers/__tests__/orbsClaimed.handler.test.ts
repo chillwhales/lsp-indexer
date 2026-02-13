@@ -15,6 +15,7 @@
  * - Should handle empty unclaimed results
  */
 import { CHILLWHALES_ADDRESS } from '@/constants/chillwhales';
+import { aggregate3StaticLatest } from '@/core/multicall';
 import { EntityCategory, type HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
 import { OrbsClaimed, Transfer } from '@chillwhales/typeorm';
@@ -27,9 +28,6 @@ import OrbsClaimedHandler from '../chillwhales/orbsClaimed.handler';
 vi.mock('@/core/multicall', () => ({
   aggregate3StaticLatest: vi.fn(),
 }));
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-const { aggregate3StaticLatest } = await import('@/core/multicall');
 
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper

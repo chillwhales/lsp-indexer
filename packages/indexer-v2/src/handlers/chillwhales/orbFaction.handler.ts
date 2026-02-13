@@ -24,7 +24,7 @@ import { ORB_FACTION_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
 import { OrbFaction, TokenIdDataChanged } from '@chillwhales/typeorm';
-import { Hex, hexToString } from 'viem';
+import { Hex, hexToString, isAddressEqual } from 'viem';
 
 // ---------------------------------------------------------------------------
 // Entity type key used in the BatchContext entity bag
