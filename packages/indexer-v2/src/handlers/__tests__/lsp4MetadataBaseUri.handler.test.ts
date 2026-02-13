@@ -56,7 +56,7 @@ function createMockStore(
   existingBaseURIs: LSP8TokenMetadataBaseURI[] = [],
 ): Store {
   return {
-    findBy: vi.fn((entityClass: unknown, where: unknown) => {
+    findBy: vi.fn((entityClass: unknown, _where: unknown) => {
       if (entityClass === NFT) {
         return Promise.resolve(existingNFTs);
       }
