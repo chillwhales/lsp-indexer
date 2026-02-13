@@ -120,8 +120,6 @@ const OrbFactionHandler: EntityHandler = {
           address: event.address,
           tokenId: event.tokenId,
           value: faction,
-          digitalAsset: existing?.digitalAsset ?? null,
-          nft: existing?.nft ?? null,
         });
 
         hctx.batchCtx.addEntity(ORB_FACTION_TYPE, id, entity);

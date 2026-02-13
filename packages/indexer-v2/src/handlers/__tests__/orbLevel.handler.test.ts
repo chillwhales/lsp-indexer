@@ -191,15 +191,14 @@ describe('OrbLevel handler - Cross-batch FK preservation', () => {
     // Act
     await OrbLevelHandler.handle(hctx, 'TokenIdDataChanged');
 
-    // Assert: Should create new entities with null FKs
+    // Assert: Should create new entities (FKs default to null via TypeORM)
     expect(batchCtx.addEntity).toHaveBeenCalledWith(
       'OrbLevel',
       id,
       expect.objectContaining({
         id,
         value: 3,
-        digitalAsset: null, // No existing entity to preserve from
-        nft: null,
+        // digitalAsset and nft default to null (not explicitly set)
       }),
     );
 
@@ -209,8 +208,7 @@ describe('OrbLevel handler - Cross-batch FK preservation', () => {
       expect.objectContaining({
         id,
         value: 50,
-        digitalAsset: null,
-        nft: null,
+        // digitalAsset and nft default to null (not explicitly set)
       }),
     );
   });

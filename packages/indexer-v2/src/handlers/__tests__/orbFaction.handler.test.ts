@@ -163,15 +163,14 @@ describe('OrbFaction handler - Cross-batch FK preservation', () => {
     // Act
     await OrbFactionHandler.handle(hctx, 'TokenIdDataChanged');
 
-    // Assert: Should create new entity with null FKs
+    // Assert: Should create new entity (FKs default to null via TypeORM)
     expect(batchCtx.addEntity).toHaveBeenCalledWith(
       'OrbFaction',
       id,
       expect.objectContaining({
         id,
         value: 'Water',
-        digitalAsset: null, // No existing entity to preserve from
-        nft: null,
+        // digitalAsset and nft default to null (not explicitly set)
       }),
     );
   });

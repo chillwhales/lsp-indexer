@@ -173,8 +173,6 @@ const OrbLevelHandler: EntityHandler = {
             address: event.address,
             tokenId: event.tokenId,
             value: level,
-            digitalAsset: existingLevel?.digitalAsset ?? null,
-            nft: existingLevel?.nft ?? null,
           });
 
           hctx.batchCtx.addEntity(ORB_LEVEL_TYPE, id, levelEntity);
@@ -186,8 +184,6 @@ const OrbLevelHandler: EntityHandler = {
             address: event.address,
             tokenId: event.tokenId,
             value: cooldownExpiry,
-            digitalAsset: existingCooldown?.digitalAsset ?? null,
-            nft: existingCooldown?.nft ?? null,
           });
 
           hctx.batchCtx.addEntity(ORB_COOLDOWN_EXPIRY_TYPE, id, cooldownEntity);
