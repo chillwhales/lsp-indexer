@@ -332,11 +332,14 @@ Plans:
 5. User can verify OrbLevel/OrbFaction preserve FKs across batch boundaries (gap fix)
 6. All existing tests pass, and runtime behavior matches intended V1 semantics (no regressions introduced by the unification work)
 
-**Plans:** 0 plans (run `/gsd-plan-phase 5.3` to break down)
+**Plans:** 4 plans
 
 Plans:
 
-- [ ] TBD
+- [ ] 05.3-01-PLAN.md — Create resolveEntity/resolveEntities helpers + delete mergeEntitiesFromBatchAndDb
+- [ ] 05.3-02-PLAN.md — Tier 1 bugfix: chillClaimed, orbsClaimed, lsp5ReceivedAssets, orbLevel, orbFaction
+- [ ] 05.3-03-PLAN.md — Tier 2a: totalSupply, ownedAssets, nft standardization
+- [ ] 05.3-04-PLAN.md — Tier 2b: lsp4Creators, lsp12IssuedAssets, lsp6Controllers, formattedTokenId, lsp4MetadataBaseUri
 
 **Context:** Comprehensive audit of all 29 handlers found 4 different ad-hoc patterns for the same operation ("entity might already exist"). This produced 3 confirmed bugs (chillClaimed/orbsClaimed FK wipe, lsp5ReceivedAssets missing addEntity) and 2 cross-batch gaps (orbLevel/orbFaction). Rather than patching only the broken handlers, we standardize ALL 13 handlers that do entity lookups to a single recognizable pattern.
 
