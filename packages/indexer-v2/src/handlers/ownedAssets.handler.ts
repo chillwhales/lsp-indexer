@@ -26,10 +26,10 @@
  *   - utils/transfer/ownedAsset.ts
  *   - utils/transfer/ownedToken.ts
  */
+import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateOwnedAssetId, generateOwnedTokenId, isNullAddress } from '@/utils';
 import { OwnedAsset, OwnedToken, Transfer } from '@chillwhales/typeorm';
-import { In } from 'typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 
 // Entity type keys used in the BatchContext entity bag
@@ -74,23 +74,11 @@ const OwnedAssetsHandler: EntityHandler = {
       }
     }
 
-    // Load existing entities from database
+    // Resolve existing entities from batch + DB
     const [existingOwnedAssetsMap, existingOwnedTokensMap] = await Promise.all([
-      ownedAssetIds.size > 0
-        ? hctx.store
-            .findBy(OwnedAsset, { id: In([...ownedAssetIds]) })
-            .then((entities) => new Map(entities.map((e) => [e.id, e])))
-        : Promise.resolve(new Map<string, OwnedAsset>()),
-      ownedTokenIds.size > 0
-        ? hctx.store
-            .findBy(OwnedToken, { id: In([...ownedTokenIds]) })
-            .then((entities) => new Map(entities.map((e) => [e.id, e])))
-        : Promise.resolve(new Map<string, OwnedToken>()),
+      resolveEntities(hctx.store, hctx.batchCtx, OWNED_ASSET_TYPE, OwnedAsset, [...ownedAssetIds]),
+      resolveEntities(hctx.store, hctx.batchCtx, OWNED_TOKEN_TYPE, OwnedToken, [...ownedTokenIds]),
     ]);
-
-    // Also check what's already in the BatchContext (from a previous trigger invocation)
-    const batchOwnedAssets = hctx.batchCtx.getEntities<OwnedAsset>(OWNED_ASSET_TYPE);
-    const batchOwnedTokens = hctx.batchCtx.getEntities<OwnedToken>(OWNED_TOKEN_TYPE);
 
     const updatedOwnedAssetsMap = new Map<string, OwnedAsset>();
     const updatedOwnedTokensMap = new Map<string, OwnedToken>();
@@ -101,10 +89,7 @@ const OwnedAssetsHandler: EntityHandler = {
       // --- OwnedAsset: decrement sender (floor at 0 to prevent underflow) ---
       if (!isAddressEqual(getAddress(from), zeroAddress)) {
         const fromId = generateOwnedAssetId({ owner: from, address });
-        const existing =
-          updatedOwnedAssetsMap.get(fromId) ??
-          batchOwnedAssets.get(fromId) ??
-          existingOwnedAssetsMap.get(fromId);
+        const existing = updatedOwnedAssetsMap.get(fromId) ?? existingOwnedAssetsMap.get(fromId);
 
         if (existing) {
           const newBalance = existing.balance >= amount ? existing.balance - amount : 0n;
@@ -126,10 +111,7 @@ const OwnedAssetsHandler: EntityHandler = {
       // --- OwnedAsset: increment receiver ---
       if (!isAddressEqual(getAddress(to), zeroAddress)) {
         const toId = generateOwnedAssetId({ owner: to, address });
-        const existing =
-          updatedOwnedAssetsMap.get(toId) ??
-          batchOwnedAssets.get(toId) ??
-          existingOwnedAssetsMap.get(toId);
+        const existing = updatedOwnedAssetsMap.get(toId) ?? existingOwnedAssetsMap.get(toId);
 
         if (existing) {
           updatedOwnedAssetsMap.set(
@@ -166,10 +148,7 @@ const OwnedAssetsHandler: EntityHandler = {
       // --- OwnedToken: mark sender's token for deletion ---
       if (tokenId && !isAddressEqual(getAddress(from), zeroAddress)) {
         const fromId = generateOwnedTokenId({ owner: from, address, tokenId });
-        const existing =
-          updatedOwnedTokensMap.get(fromId) ??
-          batchOwnedTokens.get(fromId) ??
-          existingOwnedTokensMap.get(fromId);
+        const existing = updatedOwnedTokensMap.get(fromId) ?? existingOwnedTokensMap.get(fromId);
 
         if (existing) {
           // Mark for deletion by setting tokenId to null sentinel
@@ -193,10 +172,7 @@ const OwnedAssetsHandler: EntityHandler = {
       // --- OwnedToken: add to receiver ---
       if (tokenId && !isAddressEqual(getAddress(to), zeroAddress)) {
         const toId = generateOwnedTokenId({ owner: to, address, tokenId });
-        const existing =
-          updatedOwnedTokensMap.get(toId) ??
-          batchOwnedTokens.get(toId) ??
-          existingOwnedTokensMap.get(toId);
+        const existing = updatedOwnedTokensMap.get(toId) ?? existingOwnedTokensMap.get(toId);
 
         if (existing) {
           // Restore/update existing OwnedToken
@@ -334,9 +310,7 @@ const OwnedAssetsHandler: EntityHandler = {
       // The parent OwnedAsset may have been created in this same batch
       const parentAssetId = generateOwnedAssetId({ owner: entity.owner, address: entity.address });
       const parentExists =
-        updatedOwnedAssetsMap.has(parentAssetId) ||
-        batchOwnedAssets.has(parentAssetId) ||
-        existingOwnedAssetsMap.has(parentAssetId);
+        updatedOwnedAssetsMap.has(parentAssetId) || existingOwnedAssetsMap.has(parentAssetId);
 
       if (parentExists) {
         // Set ownedAsset FK directly since we know the parent exists in this batch

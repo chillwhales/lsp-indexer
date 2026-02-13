@@ -18,10 +18,10 @@
  * Port from v1:
  *   - core/handlerHelpers.ts → updateTotalSupply() (deleted in 01-04)
  */
+import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { isNullAddress } from '@/utils';
 import { TotalSupply, Transfer } from '@chillwhales/typeorm';
-import { In } from 'typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 
 // Entity type key used in the BatchContext entity bag
@@ -62,24 +62,22 @@ const TotalSupplyHandler: EntityHandler = {
     // Collect unique contract addresses from filtered transfers
     const addresses = [...new Set(mintBurnTransfers.map(({ address }) => address))];
 
-    // Load existing TotalSupply entities from DB
-    const existingEntities = new Map(
-      await hctx.store
-        .findBy(TotalSupply, { id: In(addresses) })
-        .then((entities) => entities.map((entity) => [entity.id, entity])),
+    // Resolve existing TotalSupply entities from batch + DB
+    const existingEntities = await resolveEntities(
+      hctx.store,
+      hctx.batchCtx,
+      ENTITY_TYPE,
+      TotalSupply,
+      addresses,
     );
-
-    // Also check what's already in the BatchContext (from a previous trigger invocation)
-    const batchEntities = hctx.batchCtx.getEntities<TotalSupply>(ENTITY_TYPE);
 
     const updatedEntities = new Map<string, TotalSupply>();
 
     for (const transfer of mintBurnTransfers) {
       const { timestamp, address, from, to, amount } = transfer;
 
-      // Resolve the current entity: check in-progress updates first, then batch, then DB, then create new
-      let entity =
-        updatedEntities.get(address) ?? batchEntities.get(address) ?? existingEntities.get(address);
+      // Resolve the current entity: check in-progress updates first, then batch/DB merge, then create new
+      let entity = updatedEntities.get(address) ?? existingEntities.get(address);
 
       if (!entity) {
         entity = new TotalSupply({
