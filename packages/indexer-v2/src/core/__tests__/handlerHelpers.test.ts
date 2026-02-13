@@ -25,7 +25,10 @@ class TestEntity {
 // ---------------------------------------------------------------------------
 // Mock store
 // ---------------------------------------------------------------------------
-function createMockStore() {
+function createMockStore(): {
+  findOneBy: ReturnType<typeof vi.fn>;
+  findBy: ReturnType<typeof vi.fn>;
+} {
   return {
     findOneBy: vi.fn(),
     findBy: vi.fn(),
@@ -177,9 +180,12 @@ describe('resolveEntities', () => {
     expect(result.get('id-2')).toEqual({ id: 'id-2', value: 'db' });
     // Verify DB query was made with correct IDs (avoid TypeORM internal fields)
     expect(mockStore.findBy).toHaveBeenCalledTimes(1);
-    const [entityArg, whereArg] = mockStore.findBy.mock.calls[0];
-    expect(entityArg).toBe(TestEntity);
-    expect(whereArg.id.value).toEqual(['id-2']);
+    const callArgs = mockStore.findBy.mock.calls[0] as [
+      typeof TestEntity,
+      { id: { value: string[] } },
+    ];
+    expect(callArgs[0]).toBe(TestEntity);
+    expect(callArgs[1].id.value).toEqual(['id-2']);
   });
 
   it('returns merged map with batch entities overriding DB entities for same ID', async () => {
@@ -220,9 +226,12 @@ describe('resolveEntities', () => {
     expect(result.size).toBe(0);
     // Verify DB query was made (avoid TypeORM internal fields)
     expect(mockStore.findBy).toHaveBeenCalledTimes(1);
-    const [entityArg, whereArg] = mockStore.findBy.mock.calls[0];
-    expect(entityArg).toBe(TestEntity);
-    expect(whereArg.id.value).toEqual(['id-1']);
+    const callArgs = mockStore.findBy.mock.calls[0] as [
+      typeof TestEntity,
+      { id: { value: string[] } },
+    ];
+    expect(callArgs[0]).toBe(TestEntity);
+    expect(callArgs[1].id.value).toEqual(['id-1']);
   });
 
   it('handles empty ids array (no DB query, returns batch entities only)', async () => {
@@ -290,9 +299,12 @@ describe('resolveEntities', () => {
     expect(result.get('id-3')).toEqual({ id: 'id-3', value: 'db-3' });
     // Verify DB query was made with correct IDs (avoid TypeORM internal fields)
     expect(mockStore.findBy).toHaveBeenCalledTimes(1);
-    const [entityArg, whereArg] = mockStore.findBy.mock.calls[0];
-    expect(entityArg).toBe(TestEntity);
-    expect(whereArg.id.value).toEqual(['id-2', 'id-3']);
+    const callArgs = mockStore.findBy.mock.calls[0] as [
+      typeof TestEntity,
+      { id: { value: string[] } },
+    ];
+    expect(callArgs[0]).toBe(TestEntity);
+    expect(callArgs[1].id.value).toEqual(['id-2', 'id-3']);
   });
 
   it('preserves batch entities not in requested IDs (intra-batch updates)', async () => {
