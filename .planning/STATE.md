@@ -9,10 +9,10 @@
 ## Current Position
 
 - **Phase:** 5.2 of 9 — LSP4 Base URI & Count Parity
-- **Plan:** 1 of 3 in current phase
+- **Plan:** 2 of 3 in current phase
 - **Status:** In progress
-- **Last activity:** 2026-02-13 — Completed 05.2-01-PLAN.md (OwnedAsset triggeredBy fix + LSP8ReferenceContract divergence)
-- **Progress:** █████████░ 32/38 requirements complete (phases 1-4, 3.1, 5, 5.1 done; 3.2/5.2 remain, 1/4 5.2 reqs done)
+- **Last activity:** 2026-02-13 — Completed 05.2-02-PLAN.md (Orb handler mint detection defaults)
+- **Progress:** █████████░ 33/38 requirements complete (phases 1-4, 3.1, 5, 5.1 done; 3.2/5.2 remain, 2/4 5.2 reqs done)
 
 ## Phase Overview
 
@@ -26,14 +26,14 @@
 | 4     | Integration & Wiring                | **Complete** |     4/4      |
 | 5     | Deployment & Validation             | **Complete** |     2/2      |
 | 5.1   | Pipeline Bug Fix & Missing Handlers | **Complete** |     5/5      |
-| 5.2   | LSP4 Base URI & Count Parity        | In Progress  |     1/4      |
+| 5.2   | LSP4 Base URI & Count Parity        | In Progress  |     2/4      |
 
 ## Performance Metrics
 
-- **Plans completed:** 26
+- **Plans completed:** 27
 - **Plans failed:** 0
 - **Phases completed:** 7 (of 9 total; 4 phases inserted)
-- **Requirements delivered:** 32/38 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01–05, GAP-07, GAP-08)
+- **Requirements delivered:** 33/38 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01–05, GAP-07, GAP-08, GAP-09)
 
 ## Accumulated Context
 
@@ -124,6 +124,8 @@
 | CHILL uses getClaimedStatusFor, ORBS uses getChillwhaleClaimStatus  | Different reward contracts have different ABI function names               | 05.1-02 |
 | OwnedAsset handler filters by triggeredBy parameter                 | Handler called twice per batch, dual-bag read caused 2x processing         | 05.2-01 |
 | LSP8ReferenceContract marked as known V1 divergence                 | V1 switch fall-through bug creates phantom entities, not a V2 gap          | 05.2-01 |
+| Orb handlers create mint-time defaults via LSP8Transfer             | OrbLevel=0, OrbCooldownExpiry=0, OrbFaction='Neutral' on mint from zero    | 05.2-02 |
+| Mint defaults overwritten by addEntity() when TokenIdDataChanged    | Map.set() semantics in batch bag, matches V1 behavior exactly              | 05.2-02 |
 
 ### Discovered Todos
 
@@ -138,9 +140,9 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-13
-- **Activity:** Completed Plan 05.2-01 (OwnedAsset triggeredBy fix + LSP8ReferenceContract divergence)
-- **Outcome:** Fixed OwnedAsset double-processing bug by using triggeredBy parameter to filter to single bag per invocation (eliminates ~14K inflated count). Marked LSP8ReferenceContract as known V1 divergence (switch fall-through bug). Added 3 new unit tests proving no double-processing. All 13 tests pass. GAP-07 and GAP-08 complete.
-- **Stopped at:** Completed 05.2-01-PLAN.md
+- **Activity:** Completed Plan 05.2-02 (Orb handler mint detection defaults)
+- **Outcome:** Added LSP8Transfer mint detection to orbLevel and orbFaction handlers. Both handlers now create default entities on Orb NFT mint (OrbLevel=0, OrbCooldownExpiry=0, OrbFaction='Neutral') matching V1 behavior. Dual-trigger handlers branch on triggeredBy parameter (LSP8Transfer vs TokenIdDataChanged). Mint defaults are overwritten when TokenIdDataChanged events arrive. GAP-09 complete.
+- **Stopped at:** Completed 05.2-02-PLAN.md
 - **Resume file:** None
 
 ### Context for Next Session
@@ -158,10 +160,10 @@ _None currently._
   - Optimized enrichment queue (removed duplicate Phase 2 calls)
   - Refactored address comparisons to use isAddressEqual + getAddress
   - PR #161 merged with commit d86275e
-- **Phase 5.2 in progress (1/3 plans complete):** LSP4 Base URI & Count Parity
+- **Phase 5.2 in progress (2/3 plans complete):** LSP4 Base URI & Count Parity
   - **GAP-07 ✓ COMPLETE:** LSP8ReferenceContract marked as known V1 divergence (switch fall-through bug)
   - **GAP-08 ✓ COMPLETE:** OwnedAsset double-processing fixed via triggeredBy filtering
-  - **GAP-09 (05.2-02):** Orb handler mint detection defaults
+  - **GAP-09 ✓ COMPLETE:** Orb handler mint detection defaults (OrbLevel=0, OrbCooldownExpiry=0, OrbFaction='Neutral')
   - **GAP-06 (05.2-03):** LSP4MetadataBaseURI handler (port V1's utils/lsp4MetadataBaseUri.ts flow)
 - **Phase 3.2 deferred:** Queue-Based Worker Pool Optimization
 - **Merged PRs:**
