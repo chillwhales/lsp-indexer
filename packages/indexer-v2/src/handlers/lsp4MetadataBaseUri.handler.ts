@@ -24,9 +24,6 @@ const NFT_ENTITY_TYPE = 'NFT';
 const BASE_URI_ENTITY_TYPE = 'LSP8TokenMetadataBaseURI';
 const TRANSFER_ENTITY_TYPE = 'LSP8Transfer';
 
-// Zero address lowercase for performance
-const ZERO_ADDRESS_LOWER = zeroAddress.toLowerCase();
-
 const LSP4MetadataBaseUriHandler: EntityHandler = {
   name: 'lsp4MetadataBaseUri',
   listensToBag: ['LSP8Transfer', 'LSP8TokenMetadataBaseURI'],
@@ -122,7 +119,7 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
     hctx.batchCtx.queueEnrichment<LSP4Metadata>({
       category: EntityCategory.NFT,
       address: entity.address,
-      tokenId: entity.tokenId!,
+      tokenId: entity.tokenId,
       entityType: LSP4_ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'nft',
@@ -180,11 +177,11 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
     if (!baseUri) continue; // No base URI for this collection
 
     // Look up NFT entity from batch to get formattedTokenId
-    const nftId = generateTokenId({ address: mint.address, tokenId: mint.tokenId! });
+    const nftId = generateTokenId({ address: mint.address, tokenId: mint.tokenId });
     const nft = hctx.batchCtx.getEntities<NFT>(NFT_ENTITY_TYPE).get(nftId);
 
     // Use formattedTokenId when available, fall back to raw tokenId
-    const tokenIdForUrl = nft?.formattedTokenId ?? mint.tokenId!;
+    const tokenIdForUrl = nft?.formattedTokenId ?? mint.tokenId;
 
     // Derive URL
     const url =
@@ -200,7 +197,7 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
       id: entityId,
       address: mint.address,
       timestamp: baseUri.timestamp,
-      tokenId: mint.tokenId!,
+      tokenId: mint.tokenId,
       url,
       rawValue: baseUri.rawValue,
       isDataFetched: false,
@@ -229,7 +226,7 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
     hctx.batchCtx.queueEnrichment<LSP4Metadata>({
       category: EntityCategory.NFT,
       address: entity.address,
-      tokenId: entity.tokenId!,
+      tokenId: entity.tokenId,
       entityType: LSP4_ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'nft',
