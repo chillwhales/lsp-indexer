@@ -17,7 +17,7 @@
  *   - utils/tokenIdDataChanged/index.ts (NFT stub creation)
  */
 import { ZERO_ADDRESS } from '@/constants';
-import { mergeEntitiesFromBatchAndDb } from '@/core/handlerHelpers';
+import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
 import { NFT, TokenIdDataChanged, Transfer } from '@chillwhales/typeorm';
@@ -79,9 +79,8 @@ const NFTHandler: EntityHandler = {
 
     // Process TokenIdDataChanged (creates stubs only if not already in batch or database)
     //
-    // CORRECT PATTERN: Use mergeEntitiesFromBatchAndDb to check BOTH sources.
-    // This ensures we never overwrite existing NFTs with stub data, preserving
-    // mint/burn flags from previous batches.
+    // Resolve from batch + DB to avoid overwriting existing NFTs with stubs.
+    // This ensures we preserve mint/burn flags from previous batches.
     if (triggeredBy === 'TokenIdDataChanged') {
       const events = hctx.batchCtx.getEntities<TokenIdDataChanged>(triggeredBy);
 
@@ -92,8 +91,8 @@ const NFTHandler: EntityHandler = {
         potentialNewIds.push(nftId);
       }
 
-      // Merge NFTs from BOTH batch and database (correct pattern)
-      const existingNFTs = await mergeEntitiesFromBatchAndDb<NFT>(
+      // Resolve NFTs from batch + DB
+      const existingNFTs = await resolveEntities<NFT>(
         hctx.store,
         hctx.batchCtx,
         ENTITY_TYPE,
