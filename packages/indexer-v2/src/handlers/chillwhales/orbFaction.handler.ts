@@ -103,14 +103,17 @@ const OrbFactionHandler: EntityHandler = {
         const id = generateTokenId({ address: event.address, tokenId: event.tokenId });
         const faction = hexToString(event.dataValue as Hex);
 
-        // Create entity
+        // Check if entity exists in batch (e.g., from mint path in same batch)
+        const existing = hctx.batchCtx.getEntities<OrbFaction>(ORB_FACTION_TYPE).get(id);
+
+        // Create entity, preserving existing FKs if entity was already created
         const entity = new OrbFaction({
           id,
           address: event.address,
           tokenId: event.tokenId,
           value: faction,
-          digitalAsset: null, // FK initially null
-          nft: null, // FK initially null
+          digitalAsset: existing?.digitalAsset ?? null, // Preserve FK if exists
+          nft: existing?.nft ?? null, // Preserve FK if exists
         });
 
         hctx.batchCtx.addEntity(ORB_FACTION_TYPE, id, entity);
