@@ -30,6 +30,7 @@ const UniversalProfileOwnerHandler: EntityHandler = {
   listensToBag: ['OwnershipTransferred'],
   postVerification: true,
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async handle(hctx: HandlerContext, _triggeredBy: string): Promise<void> {
     const { batchCtx } = hctx;
 
