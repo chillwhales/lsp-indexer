@@ -296,13 +296,15 @@ Plans:
 3. User can see OwnedAsset count within 2% of V1 (currently V2 has 14K MORE — need to align creation scope)
 4. Comparison tool shows all entity types as ✓ MATCH or ≈ TOLERANCE with `--tolerance=2`
 
-**Plans:** TBD (run `/gsd-plan-phase 5.2` to break down)
+**Plans:** 3 plans
 
 Plans:
 
-- [ ] TBD
+- [ ] 05.2-01-PLAN.md — OwnedAsset triggeredBy fix (GAP-08) + LSP8ReferenceContract divergence (GAP-07)
+- [ ] 05.2-02-PLAN.md — Orb handler mint detection defaults (GAP-09)
+- [ ] 05.2-03-PLAN.md — LSP4 Base URI derivation handler (GAP-06)
 
-**Context:** Discovered via comparison tool (Phase 5). LSP4Metadata gap is caused by V2 missing the base URI → per-token derivation flow that V1 implements in `utils/lsp4MetadataBaseUri.ts`. OwnedAsset count is HIGHER in V2 because V2 creates for all transfer participants while V1 only creates for verified Universal Profiles. Orb entity gaps are likely block-height parity issues or ORBS_ADDRESS constant casing.
+**Context:** Discovered via comparison tool (Phase 5). LSP4Metadata gap is caused by V2 missing the base URI → per-token derivation flow that V1 implements in `utils/lsp4MetadataBaseUri.ts`. OwnedAsset count is currently HIGHER in V2 due to double-processing (ignoring `triggeredBy`) rather than UP-only filtering assumptions from earlier analysis. Orb-related entity gaps are now attributed to missing mint-time defaults in the Orb handlers, while LSP8ReferenceContract is treated as a known V1 divergence rather than a parity bug.
 
 ---
 
