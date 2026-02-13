@@ -136,8 +136,8 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-13
-- **Activity:** Completed Phase 5.1 (pipeline bug fix + missing handlers)
-- **Outcome:** Plan 05.1-01 fixed case-sensitive address comparison in pipeline.ts + created UniversalProfileOwner/DigitalAssetOwner handlers. Plan 05.1-02 created ChillClaimed/OrbsClaimed handlers with two-phase verification pattern. All 8 zero-row entity types now have handlers.
+- **Activity:** Completed Phase 5.1 (pipeline bug fix + missing handlers) - **MERGED TO refactor/indexer-v2**
+- **Outcome:** Plan 05.1-01 fixed case-sensitive address comparison in pipeline.ts + created UniversalProfileOwner/DigitalAssetOwner handlers. Plan 05.1-02 created ChillClaimed/OrbsClaimed handlers with two-phase verification pattern. All 8 zero-row entity types now have handlers. PR #161 merged with all review comments addressed.
 - **Next Step:** Plan Phase 5.2 (`/gsd-plan-phase 5.2`)
 
 ### Context for Next Session
@@ -146,18 +146,23 @@ _None currently._
   - Moved to standalone `packages/comparison-tool/` package (PR #159)
   - Supports v1-v2 and v2-v2 modes with tolerance percentage
   - Fixed snake_case conversion bug (LSP entities)
-- **Phase 5.1 complete:** Pipeline Bug Fix & Missing Core Handlers
+- **Phase 5.1 complete + MERGED:** Pipeline Bug Fix & Missing Core Handlers
   - Fixed case-sensitive address comparison in pipeline.ts (GAP-01)
   - Created UniversalProfileOwner + DigitalAssetOwner handlers (GAP-02/03)
   - Created ChillClaimed + OrbsClaimed handlers (GAP-04/05)
   - All 8 zero-row entity types now have implementations
+  - Added comprehensive unit tests for all 4 handlers (1,950 lines)
+  - Optimized enrichment queue (removed duplicate Phase 2 calls)
+  - Refactored address comparisons to use isAddressEqual + getAddress
+  - PR #161 merged with commit d86275e
 - **Phase 5.2 needs planning:** LSP4 Base URI & Count Parity
   - **GAP-06:** Create LSP4MetadataBaseURI handler (port V1's utils/lsp4MetadataBaseUri.ts flow)
   - **GAP-07/08/09:** Investigate LSP8ReferenceContract, OwnedAsset scope, Orb entity gaps
 - **Phase 3.2 deferred:** Queue-Based Worker Pool Optimization
 - **Merged PRs:**
   - PR #159: Standalone comparison tool package (merged into refactor/indexer-v2)
+  - PR #161: Pipeline bug fix + 4 missing entity handlers (merged into refactor/indexer-v2)
 
 ---
 
-_Last updated: 2026-02-12_
+_Last updated: 2026-02-13_
