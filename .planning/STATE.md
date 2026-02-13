@@ -8,11 +8,11 @@
 
 ## Current Position
 
-- **Phase:** 5.1 of 9 — Pipeline Bug Fix & Missing Handlers
-- **Plan:** 2 of 2 in current phase (phase complete)
-- **Status:** Phase 5.1 complete
-- **Last activity:** 2026-02-13 — Completed 05.1-02-PLAN.md (ChillClaimed + OrbsClaimed handlers)
-- **Progress:** █████████░ 31/38 requirements complete (phases 1-4, 3.1, 5, 5.1 done; 3.2/5.2 remain)
+- **Phase:** 5.2 of 9 — LSP4 Base URI & Count Parity
+- **Plan:** 1 of 3 in current phase
+- **Status:** In progress
+- **Last activity:** 2026-02-13 — Completed 05.2-01-PLAN.md (OwnedAsset triggeredBy fix + LSP8ReferenceContract divergence)
+- **Progress:** █████████░ 32/38 requirements complete (phases 1-4, 3.1, 5, 5.1 done; 3.2/5.2 remain, 1/4 5.2 reqs done)
 
 ## Phase Overview
 
@@ -26,14 +26,14 @@
 | 4     | Integration & Wiring                | **Complete** |     4/4      |
 | 5     | Deployment & Validation             | **Complete** |     2/2      |
 | 5.1   | Pipeline Bug Fix & Missing Handlers | **Complete** |     5/5      |
-| 5.2   | LSP4 Base URI & Count Parity        | Upcoming     |     0/4      |
+| 5.2   | LSP4 Base URI & Count Parity        | In Progress  |     1/4      |
 
 ## Performance Metrics
 
-- **Plans completed:** 25
+- **Plans completed:** 26
 - **Plans failed:** 0
 - **Phases completed:** 7 (of 9 total; 4 phases inserted)
-- **Requirements delivered:** 31/38 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01–05)
+- **Requirements delivered:** 32/38 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01–05, GAP-07, GAP-08)
 
 ## Accumulated Context
 
@@ -122,6 +122,8 @@
 | ChillClaimed/OrbsClaimed two-phase pattern                          | Mint detection every batch + on-chain verification at isHead only          | 05.1-02 |
 | ChillClaimed/OrbsClaimed batch size 500 with 1s rate limiting       | Matches V1 behavior exactly for production parity                          | 05.1-02 |
 | CHILL uses getClaimedStatusFor, ORBS uses getChillwhaleClaimStatus  | Different reward contracts have different ABI function names               | 05.1-02 |
+| OwnedAsset handler filters by triggeredBy parameter                 | Handler called twice per batch, dual-bag read caused 2x processing         | 05.2-01 |
+| LSP8ReferenceContract marked as known V1 divergence                 | V1 switch fall-through bug creates phantom entities, not a V2 gap          | 05.2-01 |
 
 ### Discovered Todos
 
@@ -136,9 +138,10 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-13
-- **Activity:** Completed Phase 5.1 (pipeline bug fix + missing handlers) - **MERGED TO refactor/indexer-v2**
-- **Outcome:** Plan 05.1-01 fixed case-sensitive address comparison in pipeline.ts + created UniversalProfileOwner/DigitalAssetOwner handlers. Plan 05.1-02 created ChillClaimed/OrbsClaimed handlers with two-phase verification pattern. All 8 zero-row entity types now have handlers. PR #161 merged with all review comments addressed.
-- **Next Step:** Plan Phase 5.2 (`/gsd-plan-phase 5.2`)
+- **Activity:** Completed Plan 05.2-01 (OwnedAsset triggeredBy fix + LSP8ReferenceContract divergence)
+- **Outcome:** Fixed OwnedAsset double-processing bug by using triggeredBy parameter to filter to single bag per invocation (eliminates ~14K inflated count). Marked LSP8ReferenceContract as known V1 divergence (switch fall-through bug). Added 3 new unit tests proving no double-processing. All 13 tests pass. GAP-07 and GAP-08 complete.
+- **Stopped at:** Completed 05.2-01-PLAN.md
+- **Resume file:** None
 
 ### Context for Next Session
 
@@ -155,9 +158,11 @@ _None currently._
   - Optimized enrichment queue (removed duplicate Phase 2 calls)
   - Refactored address comparisons to use isAddressEqual + getAddress
   - PR #161 merged with commit d86275e
-- **Phase 5.2 needs planning:** LSP4 Base URI & Count Parity
-  - **GAP-06:** Create LSP4MetadataBaseURI handler (port V1's utils/lsp4MetadataBaseUri.ts flow)
-  - **GAP-07/08/09:** Investigate LSP8ReferenceContract, OwnedAsset scope, Orb entity gaps
+- **Phase 5.2 in progress (1/3 plans complete):** LSP4 Base URI & Count Parity
+  - **GAP-07 ✓ COMPLETE:** LSP8ReferenceContract marked as known V1 divergence (switch fall-through bug)
+  - **GAP-08 ✓ COMPLETE:** OwnedAsset double-processing fixed via triggeredBy filtering
+  - **GAP-09 (05.2-02):** Orb handler mint detection defaults
+  - **GAP-06 (05.2-03):** LSP4MetadataBaseURI handler (port V1's utils/lsp4MetadataBaseUri.ts flow)
 - **Phase 3.2 deferred:** Queue-Based Worker Pool Optimization
 - **Merged PRs:**
   - PR #159: Standalone comparison tool package (merged into refactor/indexer-v2)
