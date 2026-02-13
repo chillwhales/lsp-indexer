@@ -8,11 +8,11 @@
 
 ## Current Position
 
-- **Phase:** 5 of 9 — Deployment & Validation
-- **Plan:** 2 of 2 in current phase (comparison tool in PR #159)
-- **Status:** Phase 5 functionally complete; sub-phases 5.1 and 5.2 inserted for gap closure
-- **Last activity:** 2026-02-12 — Comparison tool revealed 8 zero-row entities + count mismatches; inserted Phases 5.1/5.2
-- **Progress:** █████████░ 27/38 requirements complete (phases 1-4, 3.1, 5 done; 3.2/5.1/5.2 remain)
+- **Phase:** 5.1 of 9 — Pipeline Bug Fix & Missing Handlers
+- **Plan:** 2 of 2 in current phase (phase complete)
+- **Status:** Phase 5.1 complete
+- **Last activity:** 2026-02-13 — Completed 05.1-02-PLAN.md (ChillClaimed + OrbsClaimed handlers)
+- **Progress:** █████████░ 31/38 requirements complete (phases 1-4, 3.1, 5, 5.1 done; 3.2/5.2 remain)
 
 ## Phase Overview
 
@@ -25,15 +25,15 @@
 | 3.2   | Queue-Based Worker Pool             | Deferred     |     0/4      |
 | 4     | Integration & Wiring                | **Complete** |     4/4      |
 | 5     | Deployment & Validation             | **Complete** |     2/2      |
-| 5.1   | Pipeline Bug Fix & Missing Handlers | **Next**     |     0/5      |
+| 5.1   | Pipeline Bug Fix & Missing Handlers | **Complete** |     5/5      |
 | 5.2   | LSP4 Base URI & Count Parity        | Upcoming     |     0/4      |
 
 ## Performance Metrics
 
-- **Plans completed:** 23
+- **Plans completed:** 25
 - **Plans failed:** 0
-- **Phases completed:** 6 (of 9 total; 4 phases inserted)
-- **Requirements delivered:** 27/38 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02)
+- **Phases completed:** 7 (of 9 total; 4 phases inserted)
+- **Requirements delivered:** 31/38 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01–05)
 
 ## Accumulated Context
 
@@ -116,6 +116,12 @@
 | GraphQL client returns -1 for missing tables                        | Enables comparison tool to detect missing entity types without crashes     | 05-01   |
 | Field introspection filters to scalar types only                    | Excludes object/array relations for row comparison with primitive values   | 05-01   |
 | Field cache per table in GraphQL client                             | Avoids repeated introspection queries during sample comparisons            | 05-01   |
+| Pipeline contract filter uses case-insensitive address comparison   | Subsquid delivers lowercase, constants use checksummed EIP-55 addresses    | 05.1-01 |
+| Owner handlers use postVerification: true for Step 5.5              | Need verified UP/DA entities before creating owner entities                | 05.1-01 |
+| Owner entity id = emitting address, address field = newOwner        | Matches V1 data model exactly for UniversalProfileOwner/DigitalAssetOwner  | 05.1-01 |
+| ChillClaimed/OrbsClaimed two-phase pattern                          | Mint detection every batch + on-chain verification at isHead only          | 05.1-02 |
+| ChillClaimed/OrbsClaimed batch size 500 with 1s rate limiting       | Matches V1 behavior exactly for production parity                          | 05.1-02 |
+| CHILL uses getClaimedStatusFor, ORBS uses getChillwhaleClaimStatus  | Different reward contracts have different ABI function names               | 05.1-02 |
 
 ### Discovered Todos
 
@@ -129,10 +135,10 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-12
-- **Activity:** Ran comparison tool against live V1/V2 Hasura endpoints; identified data gaps; inserted sub-phases 5.1/5.2
-- **Outcome:** Comparison tool (moved to `packages/comparison-tool/` in PR #159) revealed 8 entity types with zero rows and several large count mismatches. Root causes identified: case-sensitive address comparison in pipeline.ts, missing handlers (Owner, ChillClaimed, OrbsClaimed), missing LSP4 base URI derivation flow. Inserted Phase 5.1 (pipeline fix + 4 handlers) and Phase 5.2 (LSP4 base URI + count parity).
-- **Next Step:** Plan Phase 5.1 (`/gsd-plan-phase 5.1`)
+- **Date:** 2026-02-13
+- **Activity:** Completed Phase 5.1 (pipeline bug fix + missing handlers)
+- **Outcome:** Plan 05.1-01 fixed case-sensitive address comparison in pipeline.ts + created UniversalProfileOwner/DigitalAssetOwner handlers. Plan 05.1-02 created ChillClaimed/OrbsClaimed handlers with two-phase verification pattern. All 8 zero-row entity types now have handlers.
+- **Next Step:** Plan Phase 5.2 (`/gsd-plan-phase 5.2`)
 
 ### Context for Next Session
 
@@ -140,10 +146,11 @@ _None currently._
   - Moved to standalone `packages/comparison-tool/` package (PR #159)
   - Supports v1-v2 and v2-v2 modes with tolerance percentage
   - Fixed snake_case conversion bug (LSP entities)
-- **Phase 5.1 needs planning:** Pipeline Bug Fix & Missing Core Handlers
-  - **GAP-01:** Fix `pipeline.ts:205` address comparison (case-insensitive) — fixes Follow, Unfollow, DeployedContracts, DeployedERC1167Proxies
-  - **GAP-02/03:** Create UniversalProfileOwner + DigitalAssetOwner handlers (listensToBag: OwnershipTransferred, postVerification: true)
-  - **GAP-04/05:** Port ChillClaimed + OrbsClaimed handlers from V1 (listensToBag: LSP7Transfer, LSP8Transfer)
+- **Phase 5.1 complete:** Pipeline Bug Fix & Missing Core Handlers
+  - Fixed case-sensitive address comparison in pipeline.ts (GAP-01)
+  - Created UniversalProfileOwner + DigitalAssetOwner handlers (GAP-02/03)
+  - Created ChillClaimed + OrbsClaimed handlers (GAP-04/05)
+  - All 8 zero-row entity types now have implementations
 - **Phase 5.2 needs planning:** LSP4 Base URI & Count Parity
   - **GAP-06:** Create LSP4MetadataBaseURI handler (port V1's utils/lsp4MetadataBaseUri.ts flow)
   - **GAP-07/08/09:** Investigate LSP8ReferenceContract, OwnedAsset scope, Orb entity gaps

@@ -27,7 +27,7 @@ import { ORB_LEVEL_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
 import { OrbCooldownExpiry, OrbLevel, TokenIdDataChanged } from '@chillwhales/typeorm';
-import { bytesToNumber, hexToBytes, isHex, sliceBytes } from 'viem';
+import { bytesToNumber, getAddress, hexToBytes, isAddressEqual, isHex, sliceBytes } from 'viem';
 
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag
@@ -44,7 +44,7 @@ const OrbLevelHandler: EntityHandler = {
 
     for (const event of events.values()) {
       // Filter by contract address
-      if (event.address.toLowerCase() !== ORBS_ADDRESS.toLowerCase()) continue;
+      if (!isAddressEqual(getAddress(event.address), ORBS_ADDRESS)) continue;
 
       // Filter by data key
       if (event.dataKey !== ORB_LEVEL_KEY) continue;

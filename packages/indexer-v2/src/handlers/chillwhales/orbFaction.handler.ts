@@ -24,7 +24,7 @@ import { ORB_FACTION_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
 import { OrbFaction, TokenIdDataChanged } from '@chillwhales/typeorm';
-import { Hex, hexToString } from 'viem';
+import { getAddress, Hex, hexToString, isAddressEqual } from 'viem';
 
 // ---------------------------------------------------------------------------
 // Entity type key used in the BatchContext entity bag
@@ -40,7 +40,7 @@ const OrbFactionHandler: EntityHandler = {
 
     for (const event of events.values()) {
       // Filter by contract address
-      if (event.address.toLowerCase() !== ORBS_ADDRESS.toLowerCase()) continue;
+      if (!isAddressEqual(getAddress(event.address), ORBS_ADDRESS)) continue;
 
       // Filter by data key
       if (event.dataKey !== ORB_FACTION_KEY) continue;
