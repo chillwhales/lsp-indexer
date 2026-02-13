@@ -263,8 +263,7 @@ describe('lsp5ReceivedAssets handler - Cross-batch merge', () => {
     await LSP5ReceivedAssetsHandler.handle(hctx, 'DataChanged');
 
     // Assert: Second call should have both Index and Map data merged
-    const calls = (batchCtx.addEntity as ReturnType<typeof vi.fn>).mock.calls;
-    const secondCall = calls[1];
+    const secondCall = batchCtx.addEntity.mock.calls[1];
     expect(secondCall[0]).toBe('LSP5ReceivedAsset');
     expect(secondCall[1]).toBe(id);
     expect(secondCall[2]).toMatchObject({
