@@ -27,7 +27,7 @@ import { ORB_LEVEL_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
 import { OrbCooldownExpiry, OrbLevel, TokenIdDataChanged } from '@chillwhales/typeorm';
-import { bytesToNumber, hexToBytes, isAddressEqual, isHex, sliceBytes } from 'viem';
+import { bytesToNumber, getAddress, hexToBytes, isAddressEqual, isHex, sliceBytes } from 'viem';
 
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag
