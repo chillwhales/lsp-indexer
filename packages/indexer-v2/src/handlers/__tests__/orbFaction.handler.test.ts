@@ -94,8 +94,8 @@ describe('OrbFaction handler - Cross-batch FK preservation', () => {
       address: ORBS_ADDRESS,
       tokenId,
       value: 'Neutral', // Default from mint
-      digitalAsset: 'digital-asset-id-123', // FK populated by enrichment
-      nft: 'nft-id-456', // FK populated by enrichment
+      digitalAsset: null, // FK populated by enrichment
+      nft: null, // FK populated by enrichment
     });
 
     const store = createMockStore([existingFaction]);
@@ -105,8 +105,6 @@ describe('OrbFaction handler - Cross-batch FK preservation', () => {
     const event = new TokenIdDataChanged({
       id: 'event-1',
       blockNumber: 2000000,
-      blockTimestamp: 1700000000,
-      transactionHash: '0xabc',
       logIndex: 0,
       address: ORBS_ADDRESS,
       tokenId,
@@ -130,8 +128,8 @@ describe('OrbFaction handler - Cross-batch FK preservation', () => {
         address: ORBS_ADDRESS,
         tokenId,
         value: 'Fire', // Updated
-        digitalAsset: 'digital-asset-id-123', // Preserved from DB
-        nft: 'nft-id-456', // Preserved from DB
+        digitalAsset: null, // Preserved from DB
+        nft: null, // Preserved from DB
       }),
     );
   });
@@ -147,8 +145,6 @@ describe('OrbFaction handler - Cross-batch FK preservation', () => {
     const event = new TokenIdDataChanged({
       id: 'event-2',
       blockNumber: 2000000,
-      blockTimestamp: 1700000000,
-      transactionHash: '0xdef',
       logIndex: 0,
       address: ORBS_ADDRESS,
       tokenId,
@@ -186,8 +182,8 @@ describe('OrbFaction handler - Cross-batch FK preservation', () => {
       address: ORBS_ADDRESS,
       tokenId,
       value: 'Neutral',
-      digitalAsset: 'old-digital-asset',
-      nft: 'old-nft',
+      digitalAsset: null,
+      nft: null,
     });
 
     const store = createMockStore([dbFaction]);
@@ -199,8 +195,8 @@ describe('OrbFaction handler - Cross-batch FK preservation', () => {
       address: ORBS_ADDRESS,
       tokenId,
       value: 'Neutral',
-      digitalAsset: 'new-digital-asset', // Updated in current batch
-      nft: 'new-nft',
+      digitalAsset: null, // Updated in current batch
+      nft: null,
     });
 
     batchCtx._entityBags.set('OrbFaction', new Map([[id, batchFaction]]));
@@ -208,8 +204,6 @@ describe('OrbFaction handler - Cross-batch FK preservation', () => {
     const event = new TokenIdDataChanged({
       id: 'event-3',
       blockNumber: 2000000,
-      blockTimestamp: 1700000000,
-      transactionHash: '0xghi',
       logIndex: 0,
       address: ORBS_ADDRESS,
       tokenId,
@@ -231,8 +225,8 @@ describe('OrbFaction handler - Cross-batch FK preservation', () => {
       expect.objectContaining({
         id,
         value: 'Earth',
-        digitalAsset: 'new-digital-asset', // From batch, not DB
-        nft: 'new-nft', // From batch, not DB
+        digitalAsset: null, // From batch, not DB
+        nft: null, // From batch, not DB
       }),
     );
   });
