@@ -62,6 +62,10 @@ export async function resolveEntity<T extends Entity>(
  * Efficient bulk variant: single DB query for all IDs not found in batch.
  * Returns a merged Map with batch entities taking priority over DB entities.
  *
+ * **IMPORTANT:** Returns ALL batch entities (not just requested IDs) plus any
+ * requested IDs from DB. This supports intra-batch updates where one event's
+ * entity affects another (e.g., totalSupply handler updates multiple addresses).
+ *
  * This replaces the old mergeEntitiesFromBatchAndDb() with an identical
  * implementation but a clearer name that matches the resolveEntity API.
  *
@@ -81,7 +85,7 @@ export async function resolveEntity<T extends Entity>(
  * @param entityType   - Entity type key in BatchContext (e.g., 'NFT')
  * @param entityClass  - TypeORM entity class for DB queries
  * @param ids          - IDs to query from database
- * @returns Map of entity ID to entity, merged from both sources
+ * @returns Map containing ALL batch entities + DB entities for requested IDs
  */
 export async function resolveEntities<T extends Entity>(
   store: Store,

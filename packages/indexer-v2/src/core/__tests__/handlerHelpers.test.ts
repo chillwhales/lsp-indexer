@@ -175,15 +175,11 @@ describe('resolveEntities', () => {
     expect(result.size).toBe(2);
     expect(result.get('id-1')).toEqual({ id: 'id-1', value: 'batch' });
     expect(result.get('id-2')).toEqual({ id: 'id-2', value: 'db' });
-    expect(mockStore.findBy).toHaveBeenCalledWith(
-      TestEntity,
-      expect.objectContaining({
-        id: expect.objectContaining({
-          _type: 'in',
-          _value: ['id-2'],
-        }),
-      }),
-    );
+    // Verify DB query was made with correct IDs (avoid TypeORM internal fields)
+    expect(mockStore.findBy).toHaveBeenCalledTimes(1);
+    const [entityArg, whereArg] = mockStore.findBy.mock.calls[0];
+    expect(entityArg).toBe(TestEntity);
+    expect(whereArg.id.value).toEqual(['id-2']);
   });
 
   it('returns merged map with batch entities overriding DB entities for same ID', async () => {
@@ -222,15 +218,11 @@ describe('resolveEntities', () => {
     );
 
     expect(result.size).toBe(0);
-    expect(mockStore.findBy).toHaveBeenCalledWith(
-      TestEntity,
-      expect.objectContaining({
-        id: expect.objectContaining({
-          _type: 'in',
-          _value: ['id-1'],
-        }),
-      }),
-    );
+    // Verify DB query was made (avoid TypeORM internal fields)
+    expect(mockStore.findBy).toHaveBeenCalledTimes(1);
+    const [entityArg, whereArg] = mockStore.findBy.mock.calls[0];
+    expect(entityArg).toBe(TestEntity);
+    expect(whereArg.id.value).toEqual(['id-1']);
   });
 
   it('handles empty ids array (no DB query, returns batch entities only)', async () => {
@@ -296,15 +288,11 @@ describe('resolveEntities', () => {
     expect(result.get('id-1')).toEqual({ id: 'id-1', value: 'batch' });
     expect(result.get('id-2')).toEqual({ id: 'id-2', value: 'db-2' });
     expect(result.get('id-3')).toEqual({ id: 'id-3', value: 'db-3' });
-    expect(mockStore.findBy).toHaveBeenCalledWith(
-      TestEntity,
-      expect.objectContaining({
-        id: expect.objectContaining({
-          _type: 'in',
-          _value: ['id-2', 'id-3'],
-        }),
-      }),
-    );
+    // Verify DB query was made with correct IDs (avoid TypeORM internal fields)
+    expect(mockStore.findBy).toHaveBeenCalledTimes(1);
+    const [entityArg, whereArg] = mockStore.findBy.mock.calls[0];
+    expect(entityArg).toBe(TestEntity);
+    expect(whereArg.id.value).toEqual(['id-2', 'id-3']);
   });
 
   it('preserves batch entities not in requested IDs (intra-batch updates)', async () => {
