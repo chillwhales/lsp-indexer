@@ -1,15 +1,21 @@
 /**
  * OrbLevel entity handler (ChillWhales-specific).
  *
- * Subscribes to TokenIdDataChanged events and creates OrbLevel and
- * OrbCooldownExpiry entities for events matching the ORB_LEVEL_KEY data key
- * on the ORBS contract.
+ * Subscribes to LSP8Transfer and TokenIdDataChanged events and creates
+ * OrbLevel and OrbCooldownExpiry entities.
  *
- * The data value packs two uint32 values:
- *   - **bytes 0–3**: orb level (uint32)
- *   - **bytes 4–7**: cooldown expiry timestamp (uint32)
+ * LSP8Transfer (mint detection):
+ *   - When an Orb NFT is minted (Transfer from zero address), creates defaults:
+ *     - OrbLevel: value = 0
+ *     - OrbCooldownExpiry: value = 0
  *
- * Produces two entity types from a single data key:
+ * TokenIdDataChanged (ORB_LEVEL_KEY):
+ *   - Overwrites defaults with actual on-chain values from data key changes
+ *   - Data value packs two uint32 values:
+ *     - **bytes 0–3**: orb level (uint32)
+ *     - **bytes 4–7**: cooldown expiry timestamp (uint32)
+ *
+ * Produces two entity types:
  *   - `OrbLevel`          — current level of the orb NFT
  *   - `OrbCooldownExpiry` — cooldown expiry timestamp after level-up
  *
@@ -20,14 +26,22 @@
  *
  * Port from v1:
  *   - plugins/datakeys/chillwhales/orbLevel.plugin.ts (extract + populate + persist)
- *   - app/handlers/orbsLevelHandler.ts (OrbLevel + OrbCooldownExpiry from TokenIdDataChanged)
+ *   - app/handlers/orbsLevelHandler.ts (OrbLevel + OrbCooldownExpiry from TokenIdDataChanged and mint defaults)
  *   - constants/chillwhales.ts (ORB_LEVEL_KEY, ORBS_ADDRESS)
  */
 import { ORB_LEVEL_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
-import { OrbCooldownExpiry, OrbLevel, TokenIdDataChanged } from '@chillwhales/typeorm';
-import { bytesToNumber, getAddress, hexToBytes, isAddressEqual, isHex, sliceBytes } from 'viem';
+import { OrbCooldownExpiry, OrbLevel, TokenIdDataChanged, Transfer } from '@chillwhales/typeorm';
+import {
+  bytesToNumber,
+  getAddress,
+  hexToBytes,
+  isAddressEqual,
+  isHex,
+  sliceBytes,
+  zeroAddress,
+} from 'viem';
 
 // ---------------------------------------------------------------------------
 // Entity type keys used in the BatchContext entity bag
@@ -37,45 +51,42 @@ const ORB_COOLDOWN_EXPIRY_TYPE = 'OrbCooldownExpiry';
 
 const OrbLevelHandler: EntityHandler = {
   name: 'orbLevel',
-  listensToBag: ['TokenIdDataChanged'],
+  listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
   handle(hctx: HandlerContext, triggeredBy: string): void {
-    const events = hctx.batchCtx.getEntities<TokenIdDataChanged>(triggeredBy);
+    // Branch on triggeredBy to handle mint detection vs data key changes
+    if (triggeredBy === 'LSP8Transfer') {
+      // MINT DETECTION: Create default entities when Orb NFTs are minted
+      const transfers = hctx.batchCtx.getEntities<Transfer>(triggeredBy);
 
-    for (const event of events.values()) {
-      // Filter by contract address
-      if (!isAddressEqual(getAddress(event.address), ORBS_ADDRESS)) continue;
+      for (const transfer of transfers.values()) {
+        // Filter to ORBS contract only
+        if (!isAddressEqual(getAddress(transfer.address), ORBS_ADDRESS)) continue;
 
-      // Filter by data key
-      if (event.dataKey !== ORB_LEVEL_KEY) continue;
+        // Filter to mints (from zero address)
+        if (!isAddressEqual(getAddress(transfer.from), zeroAddress)) continue;
 
-      // Generate NFT id
-      const id = generateTokenId({ address: event.address, tokenId: event.tokenId });
+        // Generate NFT id
+        const id = generateTokenId({ address: transfer.address, tokenId: transfer.tokenId });
 
-      // Decode packed data value: [level(uint32), cooldownExpiry(uint32)]
-      if (isHex(event.dataValue) && hexToBytes(event.dataValue).length >= 8) {
-        const dataBytes = hexToBytes(event.dataValue);
-        const level = bytesToNumber(sliceBytes(dataBytes, 0, 4));
-        const cooldownExpiry = bytesToNumber(sliceBytes(dataBytes, 4));
-
-        // Create OrbLevel entity
+        // Create OrbLevel entity with default value 0
         const levelEntity = new OrbLevel({
           id,
-          address: event.address,
-          tokenId: event.tokenId,
-          value: level,
+          address: transfer.address,
+          tokenId: transfer.tokenId,
+          value: 0,
           digitalAsset: null, // FK initially null
           nft: null, // FK initially null
         });
 
         hctx.batchCtx.addEntity(ORB_LEVEL_TYPE, id, levelEntity);
 
-        // Create OrbCooldownExpiry entity
+        // Create OrbCooldownExpiry entity with default value 0
         const cooldownEntity = new OrbCooldownExpiry({
           id,
-          address: event.address,
-          tokenId: event.tokenId,
-          value: cooldownExpiry,
+          address: transfer.address,
+          tokenId: transfer.tokenId,
+          value: 0,
           digitalAsset: null, // FK initially null
           nft: null, // FK initially null
         });
@@ -85,7 +96,7 @@ const OrbLevelHandler: EntityHandler = {
         // Queue enrichment for digitalAsset FK (both entities)
         hctx.batchCtx.queueEnrichment<OrbLevel>({
           category: EntityCategory.DigitalAsset,
-          address: event.address,
+          address: transfer.address,
           entityType: ORB_LEVEL_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
@@ -93,7 +104,7 @@ const OrbLevelHandler: EntityHandler = {
 
         hctx.batchCtx.queueEnrichment<OrbCooldownExpiry>({
           category: EntityCategory.DigitalAsset,
-          address: event.address,
+          address: transfer.address,
           entityType: ORB_COOLDOWN_EXPIRY_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
@@ -102,8 +113,8 @@ const OrbLevelHandler: EntityHandler = {
         // Queue enrichment for nft FK (both entities)
         hctx.batchCtx.queueEnrichment<OrbLevel>({
           category: EntityCategory.NFT,
-          address: event.address,
-          tokenId: event.tokenId,
+          address: transfer.address,
+          tokenId: transfer.tokenId,
           entityType: ORB_LEVEL_TYPE,
           entityId: id,
           fkField: 'nft',
@@ -111,12 +122,93 @@ const OrbLevelHandler: EntityHandler = {
 
         hctx.batchCtx.queueEnrichment<OrbCooldownExpiry>({
           category: EntityCategory.NFT,
-          address: event.address,
-          tokenId: event.tokenId,
+          address: transfer.address,
+          tokenId: transfer.tokenId,
           entityType: ORB_COOLDOWN_EXPIRY_TYPE,
           entityId: id,
           fkField: 'nft',
         });
+      }
+    } else if (triggeredBy === 'TokenIdDataChanged') {
+      // DATA KEY CHANGES: Overwrite defaults with actual on-chain values
+      const events = hctx.batchCtx.getEntities<TokenIdDataChanged>(triggeredBy);
+
+      for (const event of events.values()) {
+        // Filter by contract address
+        if (!isAddressEqual(getAddress(event.address), ORBS_ADDRESS)) continue;
+
+        // Filter by data key
+        if (event.dataKey !== ORB_LEVEL_KEY) continue;
+
+        // Generate NFT id
+        const id = generateTokenId({ address: event.address, tokenId: event.tokenId });
+
+        // Decode packed data value: [level(uint32), cooldownExpiry(uint32)]
+        if (isHex(event.dataValue) && hexToBytes(event.dataValue).length >= 8) {
+          const dataBytes = hexToBytes(event.dataValue);
+          const level = bytesToNumber(sliceBytes(dataBytes, 0, 4));
+          const cooldownExpiry = bytesToNumber(sliceBytes(dataBytes, 4));
+
+          // Create OrbLevel entity
+          const levelEntity = new OrbLevel({
+            id,
+            address: event.address,
+            tokenId: event.tokenId,
+            value: level,
+            digitalAsset: null, // FK initially null
+            nft: null, // FK initially null
+          });
+
+          hctx.batchCtx.addEntity(ORB_LEVEL_TYPE, id, levelEntity);
+
+          // Create OrbCooldownExpiry entity
+          const cooldownEntity = new OrbCooldownExpiry({
+            id,
+            address: event.address,
+            tokenId: event.tokenId,
+            value: cooldownExpiry,
+            digitalAsset: null, // FK initially null
+            nft: null, // FK initially null
+          });
+
+          hctx.batchCtx.addEntity(ORB_COOLDOWN_EXPIRY_TYPE, id, cooldownEntity);
+
+          // Queue enrichment for digitalAsset FK (both entities)
+          hctx.batchCtx.queueEnrichment<OrbLevel>({
+            category: EntityCategory.DigitalAsset,
+            address: event.address,
+            entityType: ORB_LEVEL_TYPE,
+            entityId: id,
+            fkField: 'digitalAsset',
+          });
+
+          hctx.batchCtx.queueEnrichment<OrbCooldownExpiry>({
+            category: EntityCategory.DigitalAsset,
+            address: event.address,
+            entityType: ORB_COOLDOWN_EXPIRY_TYPE,
+            entityId: id,
+            fkField: 'digitalAsset',
+          });
+
+          // Queue enrichment for nft FK (both entities)
+          hctx.batchCtx.queueEnrichment<OrbLevel>({
+            category: EntityCategory.NFT,
+            address: event.address,
+            tokenId: event.tokenId,
+            entityType: ORB_LEVEL_TYPE,
+            entityId: id,
+            fkField: 'nft',
+          });
+
+          hctx.batchCtx.queueEnrichment<OrbCooldownExpiry>({
+            category: EntityCategory.NFT,
+            address: event.address,
+            tokenId: event.tokenId,
+            entityType: ORB_COOLDOWN_EXPIRY_TYPE,
+            entityId: id,
+            fkField: 'nft',
+          });
+        }
       }
     }
   },
