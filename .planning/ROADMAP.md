@@ -308,21 +308,56 @@ Plans:
 
 ---
 
+## Phase 5.3 — Entity Upsert Pattern Standardization (INSERTED)
+
+**Goal:** Introduce `resolveEntity`/`resolveEntities` helpers and refactor ALL 13 handlers that do entity lookups to use a single recognizable pattern: **resolve → spread → override → addEntity**. Fixes 3 bugs and 2 gaps while establishing codebase-wide consistency.
+
+**Dependencies:** Phase 5.2 (builds on handler code from 5.2)
+
+**Requirements:**
+
+| ID       | Requirement                                                                                                                      |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| UPSRT-01 | `resolveEntity<T>()` and `resolveEntities<T>()` helpers created, `mergeEntitiesFromBatchAndDb` deleted                           |
+| UPSRT-02 | Tier 1 bugfix: chillClaimed, orbsClaimed, lsp5ReceivedAssets, orbLevel, orbFaction use resolve + spread                          |
+| UPSRT-03 | Tier 2 standardize: totalSupply, ownedAssets, nft use resolve + spread (replacing manual lookups)                                |
+| UPSRT-04 | Tier 2 standardize: lsp4Creators, lsp12IssuedAssets, lsp6Controllers, formattedTokenId, lsp4MetadataBaseUri use resolve + spread |
+
+**Success Criteria:**
+
+1. User can search the codebase for `mergeEntitiesFromBatchAndDb` and find zero references — fully replaced by `resolveEntities`
+2. User can verify that all 13 handlers that update existing entities use the same recognizable pattern: `resolveEntity`/`resolveEntities` → `...existing` spread → `addEntity()`
+3. User can verify ChillClaimed/OrbsClaimed retain FK references after Phase 2 verification (bug fix)
+4. User can verify lsp5ReceivedAssets correctly persists cross-batch merge data (bug fix)
+5. User can verify OrbLevel/OrbFaction preserve FKs across batch boundaries (gap fix)
+6. All existing tests pass — behavior unchanged, only implementation unified
+
+**Plans:** 0 plans (run `/gsd-plan-phase 5.3` to break down)
+
+Plans:
+
+- [ ] TBD
+
+**Context:** Comprehensive audit of all 29 handlers found 4 different ad-hoc patterns for the same operation ("entity might already exist"). This produced 3 confirmed bugs (chillClaimed/orbsClaimed FK wipe, lsp5ReceivedAssets missing addEntity) and 2 cross-batch gaps (orbLevel/orbFaction). Rather than patching only the broken handlers, we standardize ALL 13 handlers that do entity lookups to a single recognizable pattern.
+
+---
+
 ## Progress
 
-| Phase | Name                                | Requirements | Status   |
-| ----- | ----------------------------------- | :----------: | -------- |
-| 1     | Handler Migration                   |      5       | Complete |
-| 2     | New Handlers & Structured Logging   |      5       | Complete |
-| 3     | Metadata Fetch Handlers             |      5       | Complete |
-| 3.1   | Improve Debug Logging Strategy      |      4       | Complete |
-| 3.2   | Queue-Based Worker Pool             |      4       | Deferred |
-| 4     | Integration & Wiring                |      4       | Complete |
-| 5     | Deployment & Validation             |      2       | Complete |
-| 5.1   | Pipeline Bug Fix & Missing Handlers |      5       | Complete |
-| 5.2   | LSP4 Base URI & Count Parity        |      4       | Complete |
+| Phase | Name                                  | Requirements | Status   |
+| ----- | ------------------------------------- | :----------: | -------- |
+| 1     | Handler Migration                     |      5       | Complete |
+| 2     | New Handlers & Structured Logging     |      5       | Complete |
+| 3     | Metadata Fetch Handlers               |      5       | Complete |
+| 3.1   | Improve Debug Logging Strategy        |      4       | Complete |
+| 3.2   | Queue-Based Worker Pool               |      4       | Deferred |
+| 4     | Integration & Wiring                  |      4       | Complete |
+| 5     | Deployment & Validation               |      2       | Complete |
+| 5.1   | Pipeline Bug Fix & Missing Handlers   |      5       | Complete |
+| 5.2   | LSP4 Base URI & Count Parity          |      4       | Complete |
+| 5.3   | Entity Upsert Pattern Standardization |      4       | Planned  |
 
-**Total:** 38 requirements across 9 phases (5 original + 4 inserted)
+**Total:** 42 requirements across 10 phases (5 original + 5 inserted)
 
 ---
 
@@ -341,6 +376,7 @@ Phase 1 (Handler Migration)
            └──→ Phase 5 (Deployment & Validation)
                   └──→ Phase 5.1 (Pipeline Bug Fix & Missing Handlers) ←── INSERTED
                          └──→ Phase 5.2 (LSP4 Base URI & Count Parity) ←── INSERTED
+                                └──→ Phase 5.3 (Entity Upsert Pattern Standardization) ←── INSERTED
 ```
 
 **Parallelization opportunities:**
@@ -372,7 +408,19 @@ Phase 1 (Handler Migration)
   - OwnedAsset creation scope broader in V2 (all addresses vs V1's UP-only filter)
 - **Numbering:** Decimal phases (5.1, 5.2) preserve logical sequence
 
+**2026-02-13:** Inserted Phase 5.3 (Entity Upsert Pattern Standardization) after Phase 5.2
+
+- **Reason:** Comprehensive handler audit revealed 4 different ad-hoc patterns for the same operation ("entity might already exist"), producing 3 bugs and 2 gaps
+- **Approach:** Rather than patching only broken handlers, standardize ALL 13 handlers that do entity lookups to one recognizable pattern: `resolveEntity`/`resolveEntities` → `...existing` spread → `addEntity()`
+- **Bugs found:**
+  - chillClaimed/orbsClaimed Phase 2 verification wipes FK values (creates new entities with null FKs instead of preserving existing)
+  - lsp5ReceivedAssets cross-batch merge modifies DB entities in-memory but never calls addEntity() (merged data silently lost)
+- **Gaps found:**
+  - orbLevel/orbFaction only check batch (not DB) for existing entities in TokenIdDataChanged path
+- **Scope:** ~500 lines (13 handlers + helpers + tests), 4 requirements, 4 plans
+- **Numbering:** Decimal phase (5.3) preserves logical sequence
+
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-02-12_
+_Last updated: 2026-02-13_
