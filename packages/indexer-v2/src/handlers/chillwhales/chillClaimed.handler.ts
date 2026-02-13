@@ -43,7 +43,10 @@ const ChillClaimedHandler: EntityHandler = {
     const mintTransfers: Transfer[] = [];
 
     for (const event of events.values()) {
-      if (isAddressEqual(event.address, CHILLWHALES_ADDRESS) && isNullAddress(event.from)) {
+      if (
+        isAddressEqual(getAddress(event.address), CHILLWHALES_ADDRESS) &&
+        isNullAddress(event.from)
+      ) {
         mintTransfers.push(event);
       }
     }
