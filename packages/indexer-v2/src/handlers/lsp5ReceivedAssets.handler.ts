@@ -22,7 +22,7 @@
  * interfaceId. If both fire in the same batch (typical), the second
  * merges into the existing entity, filling in any missing fields.
  *
- * CORRECT PATTERN: Uses mergeEntitiesFromBatchAndDb to check BOTH batch and database.
+ * CORRECT PATTERN: Uses resolveEntities to check BOTH batch and database.
  * This ensures we never lose data when Index and Map events fire across different batches.
  *
  * In-batch merge: When Index and Map fire in same batch, merge their data into one entity.

@@ -38,7 +38,7 @@
  *   - utils/dataChanged/lsp12IssuedAssetsItem.ts
  *   - utils/dataChanged/lsp12IssuedAssetsMap.ts
  */
-import { mergeEntitiesFromBatchAndDb } from '@/core/handlerHelpers';
+import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { DataChanged, LSP12IssuedAsset, LSP12IssuedAssetsLength } from '@chillwhales/typeorm';
 import { LSP12DataKeys } from '@lukso/lsp12-contracts';
@@ -87,7 +87,7 @@ const LSP12IssuedAssetsHandler: EntityHandler = {
     }
 
     // Merge entities from BOTH BatchContext and database
-    const existingAssets = await mergeEntitiesFromBatchAndDb<LSP12IssuedAsset>(
+    const existingAssets = await resolveEntities<LSP12IssuedAsset>(
       hctx.store,
       hctx.batchCtx,
       ISSUED_ASSET_TYPE,
@@ -177,10 +177,13 @@ function extractFromIndex(
   const existing = existingAssets.get(id);
   if (existing) {
     // Merge: fill in arrayIndex if not already set
-    existing.arrayIndex = existing.arrayIndex ?? arrayIndex;
-    existing.timestamp = timestamp;
-    // Add to batch if coming from DB so it gets persisted
-    hctx.batchCtx.addEntity(ISSUED_ASSET_TYPE, existing.id, existing);
+    const updated = new LSP12IssuedAsset({
+      ...existing,
+      arrayIndex: existing.arrayIndex ?? arrayIndex,
+      timestamp,
+    });
+    hctx.batchCtx.addEntity(ISSUED_ASSET_TYPE, updated.id, updated);
+    existingAssets.set(id, updated);
     return;
   }
 
@@ -246,11 +249,14 @@ function extractFromMap(
   const existing = existingAssets.get(id);
   if (existing) {
     // Merge: Map provides interfaceId + potentially better arrayIndex
-    existing.interfaceId = interfaceId ?? existing.interfaceId;
-    existing.arrayIndex = arrayIndex ?? existing.arrayIndex;
-    existing.timestamp = timestamp;
-    // Add to batch if coming from DB so it gets persisted
-    hctx.batchCtx.addEntity(ISSUED_ASSET_TYPE, existing.id, existing);
+    const updated = new LSP12IssuedAsset({
+      ...existing,
+      interfaceId: interfaceId ?? existing.interfaceId,
+      arrayIndex: arrayIndex ?? existing.arrayIndex,
+      timestamp,
+    });
+    hctx.batchCtx.addEntity(ISSUED_ASSET_TYPE, updated.id, updated);
+    existingAssets.set(id, updated);
     return;
   }
 

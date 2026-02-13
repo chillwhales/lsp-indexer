@@ -38,7 +38,7 @@
  *   - utils/dataChanged/lsp4CreatorsItem.ts
  *   - utils/dataChanged/lsp4CreatorsMap.ts
  */
-import { mergeEntitiesFromBatchAndDb } from '@/core/handlerHelpers';
+import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { DataChanged, LSP4Creator, LSP4CreatorsLength } from '@chillwhales/typeorm';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
@@ -87,7 +87,7 @@ const LSP4CreatorsHandler: EntityHandler = {
     }
 
     // Merge entities from BOTH BatchContext and database
-    const existingCreators = await mergeEntitiesFromBatchAndDb<LSP4Creator>(
+    const existingCreators = await resolveEntities<LSP4Creator>(
       hctx.store,
       hctx.batchCtx,
       CREATOR_TYPE,
@@ -177,10 +177,13 @@ function extractFromIndex(
   const existing = existingCreators.get(id);
   if (existing) {
     // Merge: fill in arrayIndex if not already set
-    existing.arrayIndex = existing.arrayIndex ?? arrayIndex;
-    existing.timestamp = timestamp;
-    // Add to batch if coming from DB so it gets persisted
-    hctx.batchCtx.addEntity(CREATOR_TYPE, existing.id, existing);
+    const updated = new LSP4Creator({
+      ...existing,
+      arrayIndex: existing.arrayIndex ?? arrayIndex,
+      timestamp,
+    });
+    hctx.batchCtx.addEntity(CREATOR_TYPE, updated.id, updated);
+    existingCreators.set(id, updated);
     return;
   }
 
@@ -246,11 +249,14 @@ function extractFromMap(
   const existing = existingCreators.get(id);
   if (existing) {
     // Merge: Map provides interfaceId + potentially better arrayIndex
-    existing.interfaceId = interfaceId ?? existing.interfaceId;
-    existing.arrayIndex = arrayIndex ?? existing.arrayIndex;
-    existing.timestamp = timestamp;
-    // Add to batch if coming from DB so it gets persisted
-    hctx.batchCtx.addEntity(CREATOR_TYPE, existing.id, existing);
+    const updated = new LSP4Creator({
+      ...existing,
+      interfaceId: interfaceId ?? existing.interfaceId,
+      arrayIndex: arrayIndex ?? existing.arrayIndex,
+      timestamp,
+    });
+    hctx.batchCtx.addEntity(CREATOR_TYPE, updated.id, updated);
+    existingCreators.set(id, updated);
     return;
   }
 

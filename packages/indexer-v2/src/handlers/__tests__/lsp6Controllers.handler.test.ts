@@ -8,7 +8,7 @@
  * - Orphan cleanup: sub-entities without parent controller are removed
  * - Enrichment: UP enrichment queued for both universalProfile and controllerProfile FKs
  */
-import { mergeEntitiesFromBatchAndDb } from '@/core/handlerHelpers';
+import { resolveEntities } from '@/core/handlerHelpers';
 import {
   EntityCategory,
   type HandlerContext,
@@ -26,13 +26,13 @@ import { describe, expect, it, vi } from 'vitest';
 import LSP6ControllersHandler from '../lsp6Controllers.handler';
 
 // ---------------------------------------------------------------------------
-// Mock mergeEntitiesFromBatchAndDb — returns empty map by default
+// Mock resolveEntities — returns empty map by default
 // ---------------------------------------------------------------------------
 vi.mock('@/core/handlerHelpers', () => ({
-  mergeEntitiesFromBatchAndDb: vi.fn(() => Promise.resolve(new Map())),
+  resolveEntities: vi.fn(() => Promise.resolve(new Map())),
 }));
 
-const _mockedMerge = vi.mocked(mergeEntitiesFromBatchAndDb);
+const _mockedResolve = vi.mocked(resolveEntities);
 
 // ---------------------------------------------------------------------------
 // LSP6 data key constants (hardcoded from @lukso/lsp6-contracts)

@@ -51,6 +51,8 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
   const addresses = [...new Set([...baseUriEntities.values()].map((e) => e.address))];
 
   // Load ALL NFTs for those addresses from DB
+  // NOTE: Uses address-based query (not ID-based), so resolveEntities is not applicable.
+  // We need ALL NFTs for each contract address to derive metadata URLs.
   const dbNFTs = await hctx.store.findBy(NFT, { address: In(addresses) });
   const nfts = new Map<string, NFT>(dbNFTs.map((nft) => [nft.id, nft]));
 
@@ -153,6 +155,8 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
   const addresses = [...new Set(mints.map((m) => m.address))];
 
   // Load LSP8TokenMetadataBaseURI from DB for those addresses
+  // NOTE: Uses address-based query (not ID-based), so resolveEntities is not applicable.
+  // LSP8TokenMetadataBaseURI entities are queried by address field, not by id field.
   const dbBaseURIs = await hctx.store.findBy(LSP8TokenMetadataBaseURI, {
     address: In(addresses),
   });
