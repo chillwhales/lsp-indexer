@@ -34,6 +34,7 @@ const ChillClaimedHandler: EntityHandler = {
   listensToBag: ['LSP8Transfer'],
   postVerification: false,
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
     const { context, batchCtx, isHead, store } = hctx;
 
