@@ -174,25 +174,7 @@ const ChillClaimedHandler: EntityHandler = {
         });
 
         batchCtx.addEntity(ENTITY_TYPE, updatedEntity.id, updatedEntity);
-
-        // Queue enrichment for digitalAsset FK
-        batchCtx.queueEnrichment<ChillClaimed>({
-          category: EntityCategory.DigitalAsset,
-          address: CHILLWHALES_ADDRESS,
-          entityType: ENTITY_TYPE,
-          entityId: updatedEntity.id,
-          fkField: 'digitalAsset',
-        });
-
-        // Queue enrichment for nft FK
-        batchCtx.queueEnrichment<ChillClaimed>({
-          category: EntityCategory.NFT,
-          address: CHILLWHALES_ADDRESS,
-          tokenId: entity.tokenId,
-          entityType: ENTITY_TYPE,
-          entityId: updatedEntity.id,
-          fkField: 'nft',
-        });
+        // Note: enrichment is queued in Phase 1 only to avoid duplicate enrichment queue entries.
       }
     });
 

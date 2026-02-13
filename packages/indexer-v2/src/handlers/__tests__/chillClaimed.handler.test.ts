@@ -240,7 +240,7 @@ describe('ChillClaimedHandler - Phase 1 (Mint Detection)', () => {
       const hctx = createMockHandlerContext(batchCtx, store, false);
 
       const transfer = createTransfer({
-        address: '0xDIFFERENT00000000000000000000000000000', // Different address
+        address: '0x0000000000000000000000000000000000000001', // Different address
         from: zeroAddress,
       });
 
@@ -265,7 +265,7 @@ describe('ChillClaimedHandler - Phase 1 (Mint Detection)', () => {
 
       const otherTransfer = createTransfer({
         id: 'uuid-2',
-        address: '0xDIFFERENT00000000000000000000000000000',
+        address: '0x0000000000000000000000000000000000000001',
         from: zeroAddress,
         tokenId: '0x0000000000000000000000000000000000000000000000000000000000000002',
       });
