@@ -147,7 +147,7 @@ _None currently._
 
 - **Date:** 2026-02-13
 - **Activity:** Handler audit for entity upsert pattern standardization
-- **Outcome:** Audited all 29 handlers, classified each by entity lifecycle pattern. Found 3 confirmed bugs (chillClaimed/orbsClaimed FK wipe in Phase 2, lsp5ReceivedAssets missing addEntity on DB merge) and 2 cross-batch FK gaps (orbLevel/orbFaction). Created Phase 5.3 with 3 requirements (UPSRT-01–03). Research complete, ready for planning.
+- **Outcome:** Audited all 29 handlers, classified each by entity lifecycle pattern. Found 3 confirmed bugs (chillClaimed/orbsClaimed FK wipe in Phase 2, lsp5ReceivedAssets missing addEntity on DB merge) and 2 cross-batch FK gaps (orbLevel/orbFaction). Created Phase 5.3 with 4 requirements (UPSRT-01–04). Research complete, ready for planning.
 - **Stopped at:** 05.3-RESEARCH.md complete, awaiting `/gsd-plan-phase 5.3`
 - **Resume file:** `.planning/phases/05.3-entity-upsert-pattern-standardization/05.3-RESEARCH.md`
 

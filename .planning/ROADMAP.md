@@ -330,7 +330,7 @@ Plans:
 3. User can verify ChillClaimed/OrbsClaimed retain FK references after Phase 2 verification (bug fix)
 4. User can verify lsp5ReceivedAssets correctly persists cross-batch merge data (bug fix)
 5. User can verify OrbLevel/OrbFaction preserve FKs across batch boundaries (gap fix)
-6. All existing tests pass — behavior unchanged, only implementation unified
+6. All existing tests pass, and runtime behavior matches intended V1 semantics (no regressions introduced by the unification work)
 
 **Plans:** 0 plans (run `/gsd-plan-phase 5.3` to break down)
 
