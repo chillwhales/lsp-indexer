@@ -50,7 +50,7 @@
  *   - utils/dataChanged/lsp6ControllerAllowedCalls.ts
  *   - utils/dataChanged/lsp6ControllerAllowedErc725DataKey.ts
  */
-import { mergeEntitiesFromBatchAndDb } from '@/core/handlerHelpers';
+import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';
 import {
   DataChanged,
@@ -122,7 +122,7 @@ const LSP6ControllersHandler: EntityHandler = {
     }
 
     // Merge entities from BOTH BatchContext and database
-    const existingControllers = await mergeEntitiesFromBatchAndDb<LSP6Controller>(
+    const existingControllers = await resolveEntities<LSP6Controller>(
       hctx.store,
       hctx.batchCtx,
       CONTROLLER_TYPE,
