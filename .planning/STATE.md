@@ -4,36 +4,37 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Phase 5 comparison tool revealed data gaps — inserting sub-phases 5.1 and 5.2 for gap closure
+**Current Focus:** Handler audit revealed inconsistent entity upsert patterns — Phase 5.3 standardizes the "check batch → check DB → merge or create" pattern
 
 ## Current Position
 
-- **Phase:** 5.2 of 9 — LSP4 Base URI & Count Parity
-- **Plan:** 3 of 3 in current phase (phase complete)
-- **Status:** Phase 5.2 complete
-- **Last activity:** 2026-02-13 — Completed 05.2-03-PLAN.md (LSP4 Base URI derivation handler)
-- **Progress:** █████████░ 34/38 requirements complete (phases 1-4, 3.1, 5, 5.1, 5.2 done; 3.2 remains)
+- **Phase:** 5.3 of 10 — Entity Upsert Pattern Standardization
+- **Plan:** 0 of TBD in current phase (research complete, planning next)
+- **Status:** Phase 5.3 research complete
+- **Last activity:** 2026-02-13 — Completed 05.3-RESEARCH.md (handler audit, 3 bugs + 2 gaps found)
+- **Progress:** █████████░ 34/42 requirements complete (phases 1-4, 3.1, 5, 5.1, 5.2 done; 3.2 deferred, 5.3 next)
 
 ## Phase Overview
 
-| Phase | Name                                | Status       | Requirements |
-| ----- | ----------------------------------- | ------------ | :----------: |
-| 1     | Handler Migration                   | **Complete** |     5/5      |
-| 2     | New Handlers & Structured Logging   | **Complete** |     5/5      |
-| 3     | Metadata Fetch Handlers             | **Complete** |     5/5      |
-| 3.1   | Improve Debug Logging Strategy      | **Complete** |     4/4      |
-| 3.2   | Queue-Based Worker Pool             | Deferred     |     0/4      |
-| 4     | Integration & Wiring                | **Complete** |     4/4      |
-| 5     | Deployment & Validation             | **Complete** |     2/2      |
-| 5.1   | Pipeline Bug Fix & Missing Handlers | **Complete** |     5/5      |
-| 5.2   | LSP4 Base URI & Count Parity        | **Complete** |     4/4      |
+| Phase | Name                                  | Status       | Requirements |
+| ----- | ------------------------------------- | ------------ | :----------: |
+| 1     | Handler Migration                     | **Complete** |     5/5      |
+| 2     | New Handlers & Structured Logging     | **Complete** |     5/5      |
+| 3     | Metadata Fetch Handlers               | **Complete** |     5/5      |
+| 3.1   | Improve Debug Logging Strategy        | **Complete** |     4/4      |
+| 3.2   | Queue-Based Worker Pool               | Deferred     |     0/4      |
+| 4     | Integration & Wiring                  | **Complete** |     4/4      |
+| 5     | Deployment & Validation               | **Complete** |     2/2      |
+| 5.1   | Pipeline Bug Fix & Missing Handlers   | **Complete** |     5/5      |
+| 5.2   | LSP4 Base URI & Count Parity          | **Complete** |     4/4      |
+| 5.3   | Entity Upsert Pattern Standardization | Research     |     0/4      |
 
 ## Performance Metrics
 
 - **Plans completed:** 30
 - **Plans failed:** 0
-- **Phases completed:** 8 (of 9 total; 4 phases inserted)
-- **Requirements delivered:** 34/38 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01–09)
+- **Phases completed:** 8 (of 10 total; 5 phases inserted)
+- **Requirements delivered:** 34/42 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01–09)
 
 ## Accumulated Context
 
@@ -145,13 +146,19 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-13
-- **Activity:** Completed Plan 05.2-03 (LSP4 Base URI derivation handler)
-- **Outcome:** Created lsp4MetadataBaseUri.handler.ts with dual trigger paths (LSP8Transfer mints + LSP8TokenMetadataBaseURI changes). Path 1: On base URI change, derives URLs for ALL existing NFTs (queries DB + batch). Path 2: On mint, checks if parent collection has base URI and derives per-token URL. Entity ID format matches V1: "BaseURI - {address} - {tokenId}". URL derivation handles trailing slash correctly. Uses formattedTokenId when available, falls back to raw tokenId. Comprehensive unit tests cover both trigger paths and edge cases. GAP-06 complete. Phase 5.2 complete.
-- **Stopped at:** Completed 05.2-03-PLAN.md
-- **Resume file:** None
+- **Activity:** Handler audit for entity upsert pattern standardization
+- **Outcome:** Audited all 29 handlers, classified each by entity lifecycle pattern. Found 3 confirmed bugs (chillClaimed/orbsClaimed FK wipe in Phase 2, lsp5ReceivedAssets missing addEntity on DB merge) and 2 cross-batch FK gaps (orbLevel/orbFaction). Created Phase 5.3 with 4 requirements (UPSRT-01–04). Research complete, ready for planning.
+- **Stopped at:** 05.3-RESEARCH.md complete, awaiting `/gsd-plan-phase 5.3`
+- **Resume file:** `.planning/phases/05.3-entity-upsert-pattern-standardization/05.3-RESEARCH.md`
 
 ### Context for Next Session
 
+- **Phase 5.3 ready for planning:** Entity Upsert Pattern Standardization
+  - Research at `.planning/phases/05.3-entity-upsert-pattern-standardization/05.3-RESEARCH.md`
+  - 4 requirements: UPSRT-01 (helpers), UPSRT-02 (Tier 1 bugfixes), UPSRT-03 (Tier 2a core), UPSRT-04 (Tier 2b remaining)
+  - Suggested 4 plans: Plan 1 (Wave 1: helpers), Plans 2+3 parallel (Wave 2: bugfixes + core), Plan 4 (Wave 3: remaining)
+  - 13 handlers refactored to unified `resolveEntity`/`resolveEntities` → `...existing` spread → `addEntity()` pattern
+  - Estimated ~500 lines including tests
 - **Phase 5 complete:** Comparison tool built and tested against live endpoints
   - Moved to standalone `packages/comparison-tool/` package (PR #159)
   - Supports v1-v2 and v2-v2 modes with tolerance percentage
