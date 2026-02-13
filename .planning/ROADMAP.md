@@ -263,11 +263,12 @@ Plans:
 3. User can see ChillClaimed and OrbsClaimed rows matching V1 counts after full re-index
 4. Comparison tool shows these 8 entity types as ✓ MATCH or within 2% tolerance
 
-**Plans:** TBD (run `/gsd-plan-phase 5.1` to break down)
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] TBD
+- [ ] 05.1-01-PLAN.md — Pipeline address comparison fix + UniversalProfileOwner/DigitalAssetOwner handlers
+- [ ] 05.1-02-PLAN.md — ChillClaimed + OrbsClaimed handlers (Chillwhales game entities)
 
 **Context:** Discovered via comparison tool (Phase 5) — V2 has zero rows for Follow, Unfollow, DeployedContracts, DeployedERC1167Proxies due to case-sensitive address comparison in `pipeline.ts:205`. UniversalProfileOwner/DigitalAssetOwner handlers were never written (referenced as issue #105 in V2 code comments). ChillClaimed/OrbsClaimed handlers never ported from V1.
 
