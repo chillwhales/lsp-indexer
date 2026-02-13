@@ -1,36 +1,77 @@
 /**
  * Shared handler helpers for EntityHandler handle() methods.
  *
- * Provides reusable patterns for handlers that need to merge entities
- * from both the current batch (BatchContext) and the database. This ensures
- * handlers never lose data by relying only on batch context or only on
- * database queries.
+ * Provides the standard entity resolution pattern for handlers that need to
+ * check if entities already exist before creating or updating them.
  *
  * Core pattern:
- * 1. Load entities from BatchContext (intra-batch updates)
- * 2. Load entities from database (cross-batch persistence)
- * 3. Merge both sources into a single map
- * 4. Process and update entities
- * 5. Add back to BatchContext for pipeline persistence
+ * 1. resolveEntity/resolveEntities checks batch → DB → null
+ * 2. Spread existing entity to preserve all fields including FKs
+ * 3. Override only the fields this handler owns
+ * 4. Add to BatchContext for pipeline persistence
+ *
+ * This replaces the old ad-hoc patterns with a single recognizable shape:
+ * `const existing = await resolveEntity(...); new Entity({ ...existing, id, newField })`
  */
-import { Entity, IBatchContext } from '@/core/types';
+import { Entity, EntityConstructor, IBatchContext } from '@/core/types';
 import { Store } from '@subsquid/typeorm-store';
 import { FindOptionsWhere, In } from 'typeorm';
 
 // ---------------------------------------------------------------------------
-// Entity merging utilities
+// Entity resolution utilities
 // ---------------------------------------------------------------------------
 
 /**
- * Merge entities from both BatchContext and database.
+ * Resolve a single entity from batch or database.
  *
- * This is the CORRECT pattern for handlers that need to check for existing entities.
- * Never rely solely on BatchContext (intra-batch only) or solely on database
- * (misses current batch updates). Always merge both sources.
+ * The standard lookup order:
+ *   1. Check BatchContext (current batch, in-memory)
+ *   2. Check database (previous batches, persisted)
+ *   3. Return null if not found
+ *
+ * This is THE way to look up existing entities in handlers.
+ * Every handler that updates an entity that might already exist
+ * MUST use this function (or resolveEntities for bulk).
+ *
+ * @param store        - Subsquid store for DB queries
+ * @param batchCtx     - BatchContext for intra-batch entities
+ * @param entityType   - Entity type key in BatchContext (e.g., 'NFT')
+ * @param entityClass  - TypeORM entity class for DB queries
+ * @param id           - Entity ID to resolve
+ * @returns Entity if found in batch or DB, null otherwise
+ */
+export async function resolveEntity<T extends Entity>(
+  store: Store,
+  batchCtx: IBatchContext,
+  entityType: string,
+  entityClass: EntityConstructor<T>,
+  id: string,
+): Promise<T | null> {
+  // 1. Check batch first (current batch)
+  const batchEntity = batchCtx.getEntities<T>(entityType).get(id);
+  if (batchEntity) return batchEntity;
+
+  // 2. Check database (previous batches)
+  const dbEntity = await store.findOneBy(entityClass, { id } as FindOptionsWhere<T>);
+  return dbEntity ?? null;
+}
+
+/**
+ * Resolve multiple entities from batch and database.
+ *
+ * Efficient bulk variant: single DB query for all IDs not found in batch.
+ * Returns a merged Map with batch entities taking priority over DB entities.
+ *
+ * **IMPORTANT:** Returns ALL batch entities (not just requested IDs) plus any
+ * requested IDs from DB. This supports intra-batch updates where one event's
+ * entity affects another (e.g., totalSupply handler updates multiple addresses).
+ *
+ * This replaces the old mergeEntitiesFromBatchAndDb() with an identical
+ * implementation but a clearer name that matches the resolveEntity API.
  *
  * Usage:
  * ```typescript
- * const nfts = await mergeEntitiesFromBatchAndDb<NFT>(
+ * const nfts = await resolveEntities<NFT>(
  *   hctx.store,
  *   hctx.batchCtx,
  *   'NFT',
@@ -43,35 +84,49 @@ import { FindOptionsWhere, In } from 'typeorm';
  * @param batchCtx     - BatchContext for intra-batch entities
  * @param entityType   - Entity type key in BatchContext (e.g., 'NFT')
  * @param entityClass  - TypeORM entity class for DB queries
- * @param idsToCheck   - IDs to query from database (optional, queries all if not provided)
- * @returns Map of entity ID to entity, merged from both sources
+ * @param ids          - IDs to query from database
+ * @returns Map containing ALL batch entities + DB entities for requested IDs
+ */
+export async function resolveEntities<T extends Entity>(
+  store: Store,
+  batchCtx: IBatchContext,
+  entityType: string,
+  entityClass: EntityConstructor<T>,
+  ids: string[],
+): Promise<Map<string, T>> {
+  // 1. Start with ALL batch entities (preserves intra-batch updates to other entities)
+  const batchEntities = batchCtx.getEntities<T>(entityType);
+  const merged = new Map<string, T>(batchEntities);
+
+  // 2. Query DB for requested IDs not already in batch
+  const idsNotInBatch = ids.filter((id) => !batchEntities.has(id));
+  if (idsNotInBatch.length > 0) {
+    const dbEntities = await store.findBy(entityClass, {
+      id: In(idsNotInBatch),
+    } as FindOptionsWhere<T>);
+    for (const entity of dbEntities) {
+      merged.set(entity.id, entity);
+    }
+  }
+
+  return merged;
+}
+
+// ---------------------------------------------------------------------------
+// Deprecated (for backward compatibility during migration)
+// ---------------------------------------------------------------------------
+
+/**
+ * @deprecated Use resolveEntities instead. This is a temporary wrapper
+ * to avoid breaking the build while handlers are being migrated.
+ * Will be removed in Phase 5.3 Plan 04.
  */
 export async function mergeEntitiesFromBatchAndDb<T extends Entity>(
   store: Store,
   batchCtx: IBatchContext,
   entityType: string,
-  entityClass: new (props?: Partial<T>) => T,
-  idsToCheck?: string[],
+  entityClass: EntityConstructor<T>,
+  ids: string[],
 ): Promise<Map<string, T>> {
-  // Step 1: Get entities from current batch (intra-batch updates)
-  const batchEntities = batchCtx.getEntities<T>(entityType);
-  const merged = new Map<string, T>(batchEntities);
-
-  // Step 2: Query database for entities not already in batch
-  if (idsToCheck && idsToCheck.length > 0) {
-    const idsNotInBatch = idsToCheck.filter((id) => !merged.has(id));
-
-    if (idsNotInBatch.length > 0) {
-      const dbEntities = await store.findBy(entityClass, {
-        id: In(idsNotInBatch),
-      } as FindOptionsWhere<T>);
-
-      // Step 3: Merge database entities into the map
-      for (const entity of dbEntities) {
-        merged.set(entity.id, entity);
-      }
-    }
-  }
-
-  return merged;
+  return resolveEntities(store, batchCtx, entityType, entityClass, ids);
 }

@@ -9,10 +9,10 @@
 ## Current Position
 
 - **Phase:** 5.3 of 10 — Entity Upsert Pattern Standardization
-- **Plan:** 0 of TBD in current phase (research complete, planning next)
-- **Status:** Phase 5.3 research complete
-- **Last activity:** 2026-02-13 — Completed 05.3-RESEARCH.md (handler audit, 3 bugs + 2 gaps found)
-- **Progress:** █████████░ 34/42 requirements complete (phases 1-4, 3.1, 5, 5.1, 5.2 done; 3.2 deferred, 5.3 next)
+- **Plan:** 1 of 4 in current phase
+- **Status:** In progress
+- **Last activity:** 2026-02-13 — Completed 05.3-01-PLAN.md (foundation helpers + tests)
+- **Progress:** █████████░ 35/42 requirements complete (UPSRT-01 ✓, UPSRT-02-04 next)
 
 ## Phase Overview
 
@@ -27,14 +27,14 @@
 | 5     | Deployment & Validation               | **Complete** |     2/2      |
 | 5.1   | Pipeline Bug Fix & Missing Handlers   | **Complete** |     5/5      |
 | 5.2   | LSP4 Base URI & Count Parity          | **Complete** |     4/4      |
-| 5.3   | Entity Upsert Pattern Standardization | Research     |     0/4      |
+| 5.3   | Entity Upsert Pattern Standardization | In progress  |     1/4      |
 
 ## Performance Metrics
 
-- **Plans completed:** 30
+- **Plans completed:** 31
 - **Plans failed:** 0
 - **Phases completed:** 8 (of 10 total; 5 phases inserted)
-- **Requirements delivered:** 34/42 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01–09)
+- **Requirements delivered:** 35/42 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01–09, UPSRT-01)
 
 ## Accumulated Context
 
@@ -132,6 +132,9 @@
 | formattedTokenId fallback to raw tokenId in URL derivation          | When formattedTokenId is null, use raw tokenId (matches V1 behavior)       | 05.2-03 |
 | Base URI change path queries ALL NFTs from DB + batch               | Comprehensive derivation when base URI changes (V1 extractFromBaseUri)     | 05.2-03 |
 | lsp4MetadataBaseUri handler depends on formattedTokenId handler     | Ensures formattedTokenId populated before URL derivation runs              | 05.2-03 |
+| resolveEntities preserves ALL batch entities (not just requested)   | Supports intra-batch updates where one event's entity affects another      | 05.3-01 |
+| Deleted mergeEntitiesFromBatchAndDb before migrating handlers       | Forces compile errors, impossible to forget migration                      | 05.3-01 |
+| resolveEntity for single-entity lookups                             | Many handlers only need one lookup, clearer than creating [id] arrays      | 05.3-01 |
 
 ### Discovered Todos
 
@@ -146,19 +149,19 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-13
-- **Activity:** Handler audit for entity upsert pattern standardization
-- **Outcome:** Audited all 29 handlers, classified each by entity lifecycle pattern. Found 3 confirmed bugs (chillClaimed/orbsClaimed FK wipe in Phase 2, lsp5ReceivedAssets missing addEntity on DB merge) and 2 cross-batch FK gaps (orbLevel/orbFaction). Created Phase 5.3 with 4 requirements (UPSRT-01–04). Research complete, ready for planning.
-- **Stopped at:** 05.3-RESEARCH.md complete, awaiting `/gsd-plan-phase 5.3`
-- **Resume file:** `.planning/phases/05.3-entity-upsert-pattern-standardization/05.3-RESEARCH.md`
+- **Activity:** Phase 5.3 Plan 01 execution — Entity upsert pattern foundation
+- **Outcome:** Created `resolveEntity<T>()` and `resolveEntities<T>()` helpers with 12 comprehensive unit tests (all passing). Deleted `mergeEntitiesFromBatchAndDb` to force handler migration. 6 handlers now show expected compile errors (will be fixed in Plans 02-04). UPSRT-01 requirement complete.
+- **Stopped at:** Completed 05.3-01-PLAN.md
+- **Resume file:** `.planning/phases/05.3-entity-upsert-pattern-standardization/05.3-01-SUMMARY.md`
 
 ### Context for Next Session
 
-- **Phase 5.3 ready for planning:** Entity Upsert Pattern Standardization
-  - Research at `.planning/phases/05.3-entity-upsert-pattern-standardization/05.3-RESEARCH.md`
-  - 4 requirements: UPSRT-01 (helpers), UPSRT-02 (Tier 1 bugfixes), UPSRT-03 (Tier 2a core), UPSRT-04 (Tier 2b remaining)
-  - Suggested 4 plans: Plan 1 (Wave 1: helpers), Plans 2+3 parallel (Wave 2: bugfixes + core), Plan 4 (Wave 3: remaining)
-  - 13 handlers refactored to unified `resolveEntity`/`resolveEntities` → `...existing` spread → `addEntity()` pattern
-  - Estimated ~500 lines including tests
+- **Phase 5.3 Plan 01 complete:** Foundation helpers + tests (UPSRT-01 ✓)
+  - Created `resolveEntity<T>()` and `resolveEntities<T>()` helpers in handlerHelpers.ts
+  - 12 unit tests covering both helpers, all edge cases (all passing)
+  - Deleted `mergeEntitiesFromBatchAndDb` — 6 handlers show expected compile errors
+  - Commits: fe278a9 (feat), f54c589 (test)
+  - **Next:** Plan 02 (Tier 1 bugfix handlers: chillClaimed, orbsClaimed, lsp5ReceivedAssets, orbLevel, orbFaction)
 - **Phase 5 complete:** Comparison tool built and tested against live endpoints
   - Moved to standalone `packages/comparison-tool/` package (PR #159)
   - Supports v1-v2 and v2-v2 modes with tolerance percentage
