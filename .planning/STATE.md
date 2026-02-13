@@ -9,10 +9,10 @@
 ## Current Position
 
 - **Phase:** 5.2 of 9 — LSP4 Base URI & Count Parity
-- **Plan:** 2 of 3 in current phase
-- **Status:** In progress
-- **Last activity:** 2026-02-13 — Completed 05.2-02-PLAN.md (Orb handler mint detection defaults)
-- **Progress:** █████████░ 33/38 requirements complete (phases 1-4, 3.1, 5, 5.1 done; 3.2/5.2 remain, 2/4 5.2 reqs done)
+- **Plan:** 3 of 3 in current phase (phase complete)
+- **Status:** Phase 5.2 complete
+- **Last activity:** 2026-02-13 — Completed 05.2-03-PLAN.md (LSP4 Base URI derivation handler)
+- **Progress:** █████████░ 34/38 requirements complete (phases 1-4, 3.1, 5, 5.1, 5.2 done; 3.2 remains)
 
 ## Phase Overview
 
@@ -26,14 +26,14 @@
 | 4     | Integration & Wiring                | **Complete** |     4/4      |
 | 5     | Deployment & Validation             | **Complete** |     2/2      |
 | 5.1   | Pipeline Bug Fix & Missing Handlers | **Complete** |     5/5      |
-| 5.2   | LSP4 Base URI & Count Parity        | In Progress  |     2/4      |
+| 5.2   | LSP4 Base URI & Count Parity        | **Complete** |     4/4      |
 
 ## Performance Metrics
 
-- **Plans completed:** 27
+- **Plans completed:** 30
 - **Plans failed:** 0
-- **Phases completed:** 7 (of 9 total; 4 phases inserted)
-- **Requirements delivered:** 33/38 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01–05, GAP-07, GAP-08, GAP-09)
+- **Phases completed:** 8 (of 9 total; 4 phases inserted)
+- **Requirements delivered:** 34/38 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01–09)
 
 ## Accumulated Context
 
@@ -126,6 +126,11 @@
 | LSP8ReferenceContract marked as known V1 divergence                 | V1 switch fall-through bug creates phantom entities, not a V2 gap          | 05.2-01 |
 | Orb handlers create mint-time defaults via LSP8Transfer             | OrbLevel=0, OrbCooldownExpiry=0, OrbFaction='Neutral' on mint from zero    | 05.2-02 |
 | Mint defaults overwritten by addEntity() when TokenIdDataChanged    | Map.set() semantics in batch bag, matches V1 behavior exactly              | 05.2-02 |
+| LSP4 base URI entity ID format: "BaseURI - {address} - {tokenId}"   | Distinct from lsp4Metadata.handler.ts IDs, matches V1 exactly              | 05.2-03 |
+| Base URI URL derivation handles trailing slash                      | endsWith('/') ? baseUri + tokenId : baseUri + '/' + tokenId (no double-/)  | 05.2-03 |
+| formattedTokenId fallback to raw tokenId in URL derivation          | When formattedTokenId is null, use raw tokenId (matches V1 behavior)       | 05.2-03 |
+| Base URI change path queries ALL NFTs from DB + batch               | Comprehensive derivation when base URI changes (V1 extractFromBaseUri)     | 05.2-03 |
+| lsp4MetadataBaseUri handler depends on formattedTokenId handler     | Ensures formattedTokenId populated before URL derivation runs              | 05.2-03 |
 
 ### Discovered Todos
 
@@ -140,9 +145,9 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-13
-- **Activity:** Completed Plan 05.2-02 (Orb handler mint detection defaults)
-- **Outcome:** Added LSP8Transfer mint detection to orbLevel and orbFaction handlers. Both handlers now create default entities on Orb NFT mint (OrbLevel=0, OrbCooldownExpiry=0, OrbFaction='Neutral') matching V1 behavior. Dual-trigger handlers branch on triggeredBy parameter (LSP8Transfer vs TokenIdDataChanged). Mint defaults are overwritten when TokenIdDataChanged events arrive. GAP-09 complete.
-- **Stopped at:** Completed 05.2-02-PLAN.md
+- **Activity:** Completed Plan 05.2-03 (LSP4 Base URI derivation handler)
+- **Outcome:** Created lsp4MetadataBaseUri.handler.ts with dual trigger paths (LSP8Transfer mints + LSP8TokenMetadataBaseURI changes). Path 1: On base URI change, derives URLs for ALL existing NFTs (queries DB + batch). Path 2: On mint, checks if parent collection has base URI and derives per-token URL. Entity ID format matches V1: "BaseURI - {address} - {tokenId}". URL derivation handles trailing slash correctly. Uses formattedTokenId when available, falls back to raw tokenId. Comprehensive unit tests cover both trigger paths and edge cases. GAP-06 complete. Phase 5.2 complete.
+- **Stopped at:** Completed 05.2-03-PLAN.md
 - **Resume file:** None
 
 ### Context for Next Session
@@ -160,11 +165,12 @@ _None currently._
   - Optimized enrichment queue (removed duplicate Phase 2 calls)
   - Refactored address comparisons to use isAddressEqual + getAddress
   - PR #161 merged with commit d86275e
-- **Phase 5.2 in progress (2/3 plans complete):** LSP4 Base URI & Count Parity
+- **Phase 5.2 complete + READY FOR MERGE:** LSP4 Base URI & Count Parity
   - **GAP-07 ✓ COMPLETE:** LSP8ReferenceContract marked as known V1 divergence (switch fall-through bug)
   - **GAP-08 ✓ COMPLETE:** OwnedAsset double-processing fixed via triggeredBy filtering
   - **GAP-09 ✓ COMPLETE:** Orb handler mint detection defaults (OrbLevel=0, OrbCooldownExpiry=0, OrbFaction='Neutral')
-  - **GAP-06 (05.2-03):** LSP4MetadataBaseURI handler (port V1's utils/lsp4MetadataBaseUri.ts flow)
+  - **GAP-06 ✓ COMPLETE:** LSP4MetadataBaseURI base URI derivation handler (~84K missing entities)
+  - All 4 requirements delivered, ready for PR + production re-index
 - **Phase 3.2 deferred:** Queue-Based Worker Pool Optimization
 - **Merged PRs:**
   - PR #159: Standalone comparison tool package (merged into refactor/indexer-v2)
