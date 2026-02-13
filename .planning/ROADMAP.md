@@ -267,8 +267,8 @@ Plans:
 
 Plans:
 
-- [ ] 05.1-01-PLAN.md — Pipeline address comparison fix + UniversalProfileOwner/DigitalAssetOwner handlers
-- [ ] 05.1-02-PLAN.md — ChillClaimed + OrbsClaimed handlers (Chillwhales game entities)
+- [x] 05.1-01-PLAN.md — Pipeline address comparison fix + UniversalProfileOwner/DigitalAssetOwner handlers
+- [x] 05.1-02-PLAN.md — ChillClaimed + OrbsClaimed handlers (Chillwhales game entities)
 
 **Context:** Discovered via comparison tool (Phase 5) — V2 has zero rows for Follow, Unfollow, DeployedContracts, DeployedERC1167Proxies due to case-sensitive address comparison in `pipeline.ts:205`. UniversalProfileOwner/DigitalAssetOwner handlers were never written (referenced as issue #105 in V2 code comments). ChillClaimed/OrbsClaimed handlers never ported from V1.
 
@@ -308,17 +308,17 @@ Plans:
 
 ## Progress
 
-| Phase | Name                                | Requirements | Status                  |
-| ----- | ----------------------------------- | :----------: | ----------------------- |
-| 1     | Handler Migration                   |      5       | Complete                |
-| 2     | New Handlers & Structured Logging   |      5       | Complete                |
-| 3     | Metadata Fetch Handlers             |      5       | Complete                |
-| 3.1   | Improve Debug Logging Strategy      |      4       | Complete                |
-| 3.2   | Queue-Based Worker Pool             |      4       | Deferred                |
-| 4     | Integration & Wiring                |      4       | Complete                |
-| 5     | Deployment & Validation             |      2       | In progress (1/2 plans) |
-| 5.1   | Pipeline Bug Fix & Missing Handlers |      5       | Next                    |
-| 5.2   | LSP4 Base URI & Count Parity        |      4       | Upcoming                |
+| Phase | Name                                | Requirements | Status   |
+| ----- | ----------------------------------- | :----------: | -------- |
+| 1     | Handler Migration                   |      5       | Complete |
+| 2     | New Handlers & Structured Logging   |      5       | Complete |
+| 3     | Metadata Fetch Handlers             |      5       | Complete |
+| 3.1   | Improve Debug Logging Strategy      |      4       | Complete |
+| 3.2   | Queue-Based Worker Pool             |      4       | Deferred |
+| 4     | Integration & Wiring                |      4       | Complete |
+| 5     | Deployment & Validation             |      2       | Complete |
+| 5.1   | Pipeline Bug Fix & Missing Handlers |      5       | Complete |
+| 5.2   | LSP4 Base URI & Count Parity        |      4       | Upcoming |
 
 **Total:** 38 requirements across 9 phases (5 original + 4 inserted)
 
