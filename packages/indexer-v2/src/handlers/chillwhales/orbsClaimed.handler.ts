@@ -24,7 +24,7 @@ import { generateTokenId, isNullAddress } from '@/utils';
 import { ORBS } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { OrbsClaimed, Transfer } from '@chillwhales/typeorm';
-import { hexToBool, isHex } from 'viem';
+import { hexToBool, isAddressEqual, isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'OrbsClaimed';
