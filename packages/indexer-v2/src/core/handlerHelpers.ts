@@ -107,3 +107,22 @@ export async function resolveEntities<T extends Entity>(
 
   return merged;
 }
+
+// ---------------------------------------------------------------------------
+// Deprecated (for backward compatibility during migration)
+// ---------------------------------------------------------------------------
+
+/**
+ * @deprecated Use resolveEntities instead. This is a temporary wrapper
+ * to avoid breaking the build while handlers are being migrated.
+ * Will be removed in Phase 5.3 Plan 04.
+ */
+export async function mergeEntitiesFromBatchAndDb<T extends Entity>(
+  store: Store,
+  batchCtx: IBatchContext,
+  entityType: string,
+  entityClass: EntityConstructor<T>,
+  ids: string[],
+): Promise<Map<string, T>> {
+  return resolveEntities(store, batchCtx, entityType, entityClass, ids);
+}
