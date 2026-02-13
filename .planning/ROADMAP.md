@@ -316,17 +316,17 @@ Plans:
 
 **Requirements:**
 
-| ID       | Requirement                                                                                                                      |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| UPSRT-01 | `resolveEntity<T>()` and `resolveEntities<T>()` helpers created, `mergeEntitiesFromBatchAndDb` deleted                           |
-| UPSRT-02 | Tier 1 bugfix: chillClaimed, orbsClaimed, lsp5ReceivedAssets, orbLevel, orbFaction use resolve + spread                          |
-| UPSRT-03 | Tier 2 standardize: totalSupply, ownedAssets, nft use resolve + spread (replacing manual lookups)                                |
-| UPSRT-04 | Tier 2 standardize: lsp4Creators, lsp12IssuedAssets, lsp6Controllers, formattedTokenId, lsp4MetadataBaseUri use resolve + spread |
+| ID       | Requirement                                                                                                                                                                                       |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| UPSRT-01 | `resolveEntity<T>()` and `resolveEntities<T>()` helpers created, `mergeEntitiesFromBatchAndDb` deleted                                                                                            |
+| UPSRT-02 | Tier 1 bugfix: chillClaimed, orbsClaimed, lsp5ReceivedAssets, orbLevel, orbFaction use resolve + spread                                                                                           |
+| UPSRT-03 | Tier 2 standardize: totalSupply, ownedAssets, nft use resolve + spread (replacing manual lookups)                                                                                                 |
+| UPSRT-04 | Tier 2 standardize: lsp4Creators, lsp12IssuedAssets, lsp6Controllers use resolve + spread; formattedTokenId, lsp4MetadataBaseUri audited (address-based queries — resolveEntities not applicable) |
 
 **Success Criteria:**
 
 1. User can search the codebase for `mergeEntitiesFromBatchAndDb` and find zero references — fully replaced by `resolveEntities`
-2. User can verify that all 13 handlers that update existing entities use the same recognizable pattern: `resolveEntity`/`resolveEntities` → `...existing` spread → `addEntity()`
+2. User can verify all 13 handlers audited: 9 use `resolveEntity`/`resolveEntities` → `...existing` spread → `addEntity()`, 2 use `...entity` spread with pre-loaded DB entities, 2 are documented address-query exceptions
 3. User can verify ChillClaimed/OrbsClaimed retain FK references after Phase 2 verification (bug fix)
 4. User can verify lsp5ReceivedAssets correctly persists cross-batch merge data (bug fix)
 5. User can verify OrbLevel/OrbFaction preserve FKs across batch boundaries (gap fix)
