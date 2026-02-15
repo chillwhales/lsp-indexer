@@ -4,15 +4,15 @@
 
 **Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
 
-**Current Focus:** Handler audit revealed inconsistent entity upsert patterns — Phase 5.3 standardizes the "check batch → check DB → merge or create" pattern
+**Current Focus:** All 10 phases complete — ready for milestone audit and production cutover
 
 ## Current Position
 
-- **Phase:** 5.3 of 10 — Entity Upsert Pattern Standardization
-- **Plan:** 1 of 4 in current phase
-- **Status:** In progress
-- **Last activity:** 2026-02-13 — Completed 05.3-01-PLAN.md (foundation helpers + tests)
-- **Progress:** █████████░ 35/42 requirements complete (UPSRT-01 ✓, UPSRT-02-04 next)
+- **Phase:** 10 of 10 — All phases complete
+- **Plan:** N/A
+- **Status:** Milestone ready
+- **Last activity:** 2026-02-15 — Completed Phase 5.3 (Entity Upsert Pattern Standardization)
+- **Progress:** ██████████ 42/42 requirements complete (ALL COMPLETE ✓)
 
 ## Phase Overview
 
@@ -22,19 +22,19 @@
 | 2     | New Handlers & Structured Logging     | **Complete** |     5/5      |
 | 3     | Metadata Fetch Handlers               | **Complete** |     5/5      |
 | 3.1   | Improve Debug Logging Strategy        | **Complete** |     4/4      |
-| 3.2   | Queue-Based Worker Pool               | Deferred     |     0/4      |
+| 3.2   | Queue-Based Worker Pool               | **Complete** |     4/4      |
 | 4     | Integration & Wiring                  | **Complete** |     4/4      |
 | 5     | Deployment & Validation               | **Complete** |     2/2      |
 | 5.1   | Pipeline Bug Fix & Missing Handlers   | **Complete** |     5/5      |
 | 5.2   | LSP4 Base URI & Count Parity          | **Complete** |     4/4      |
-| 5.3   | Entity Upsert Pattern Standardization | In progress  |     1/4      |
+| 5.3   | Entity Upsert Pattern Standardization | **Complete** |     4/4      |
 
 ## Performance Metrics
 
-- **Plans completed:** 31
+- **Plans completed:** 35
 - **Plans failed:** 0
-- **Phases completed:** 8 (of 10 total; 5 phases inserted)
-- **Requirements delivered:** 35/42 (HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, INTG-01–04, DEPL-01–02, GAP-01–09, UPSRT-01)
+- **Phases completed:** 10 (of 10 total; 5 phases inserted)
+- **Requirements delivered:** 42/42 (ALL REQUIREMENTS COMPLETE — HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, PERF-01–04, INTG-01–04, DEPL-01–02, GAP-01–09, UPSRT-01–04)
 
 ## Accumulated Context
 

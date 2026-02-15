@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-06
 **Depth:** Standard
-**Phases:** 9 (5 original + 4 inserted)
+**Phases:** 10 (5 original + 5 inserted)
 **Coverage:** 21/21 v1 requirements mapped + 8 urgent requirements + 9 parity gap requirements
 
 ## Overview
@@ -353,12 +353,12 @@ Plans:
 | 2     | New Handlers & Structured Logging     |      5       | Complete |
 | 3     | Metadata Fetch Handlers               |      5       | Complete |
 | 3.1   | Improve Debug Logging Strategy        |      4       | Complete |
-| 3.2   | Queue-Based Worker Pool               |      4       | Deferred |
+| 3.2   | Queue-Based Worker Pool               |      4       | Complete |
 | 4     | Integration & Wiring                  |      4       | Complete |
 | 5     | Deployment & Validation               |      2       | Complete |
 | 5.1   | Pipeline Bug Fix & Missing Handlers   |      5       | Complete |
 | 5.2   | LSP4 Base URI & Count Parity          |      4       | Complete |
-| 5.3   | Entity Upsert Pattern Standardization |      4       | Planned  |
+| 5.3   | Entity Upsert Pattern Standardization |      4       | Complete |
 
 **Total:** 42 requirements across 10 phases (5 original + 5 inserted)
 
