@@ -4,7 +4,7 @@
 
 The comparison tool now supports **content-based matching** for metadata sub-entities with random UUIDs.
 
-**Commit**: `51ea57f`
+**Commit**: `4e14a6d`
 
 ## Next Steps
 
@@ -146,7 +146,7 @@ pnpm run build
 
 ### If comparison still shows 19K diffs:
 
-1. Verify you rebuilt after pulling commit `51ea57f`
+1. Verify you rebuilt after pulling commit `4e14a6d`
 2. Check `lib/comparisonEngine.js` exists and has recent timestamp
 3. Try `pnpm run clean && pnpm run build` again
 

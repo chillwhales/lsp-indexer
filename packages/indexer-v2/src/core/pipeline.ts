@@ -269,7 +269,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     // Without this, rarely-updated entity types (e.g. LSP29 with only 11
     // entities on-chain) would never have their metadata fetched.
     if (!triggered && handler.drainAtHead && context.isHead) {
-      await handler.handle(handlerCtx, handler.listensToBag[0]);
+      const drainTrigger = handler.listensToBag[0] ?? 'drain';
+      await handler.handle(handlerCtx, drainTrigger);
     }
   }
 

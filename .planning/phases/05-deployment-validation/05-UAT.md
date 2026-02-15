@@ -73,66 +73,9 @@ result: [pending]
 expected: Code inspection shows resolveEntity and resolveEntities helpers exist in handlerHelpers.ts with 12/12 unit tests passing. Old mergeEntitiesFromBatchAndDb function deleted. Search codebase confirms zero references to old function name
 result: [pending]
 
-### 1. Pipeline Address Filter Bug Fix
-
-expected: After re-indexing with the pipeline bug fix, the comparison tool should show non-zero entity counts for Follow (>100K), Unfollow (>2K), DeployedContracts (>0), and DeployedERC1167Proxies (>35K) entities — previously at zero due to case-sensitive address comparison
-result: issue
-reported: "Comparison shows 29/72 exact matches + 15 within tolerance, but many V2 fields showing as 'undefined' including LSP4 metadata sub-entities (Image/Asset/Attribute), LSP29 encrypted assets, LSP5/LSP6 entities. 19,535 unexpected diffs. Exit status 1."
-severity: blocker
-
-### 2. UniversalProfileOwner Handler
-
-expected: Comparison tool shows UniversalProfileOwner entity count matching V1 (within 2% tolerance). Owner entities created for every OwnershipTransferred event on verified Universal Profiles, with id=emitting address and address=newOwner field
-result: [pending]
-
-### 3. DigitalAssetOwner Handler
-
-expected: Comparison tool shows DigitalAssetOwner entity count matching V1 (within 2% tolerance). Owner entities created for every OwnershipTransferred event on verified Digital Assets, with id=emitting address and address=newOwner field
-result: [pending]
-
-### 4. ChillClaimed Handler
-
-expected: Comparison tool shows ChillClaimed entity count matching V1. Entities created for Chillwhale NFT mints with on-chain verification at chain head (value=true when claimed, value=false when not)
-result: [pending]
-
-### 5. OrbsClaimed Handler
-
-expected: Comparison tool shows OrbsClaimed entity count matching V1. Entities created for Orbs NFT claims with on-chain verification at chain head (value=true when claimed, value=false when not)
-result: [pending]
-
-### 6. OwnedAsset Double-Processing Fix
-
-expected: Comparison tool shows OwnedAsset count matching V1 (within 2% tolerance) — previously V2 had ~14K MORE entities due to double-processing bug. TriggeredBy filtering ensures each transfer processed exactly once per batch
-result: [pending]
-
-### 7. OrbLevel Mint Defaults
-
-expected: Comparison tool shows OrbLevel entity count matching V1 (within 2% tolerance). OrbLevel entities created on mint with default value=0, overwritten when TokenIdDataChanged events arrive
-result: [pending]
-
-### 8. OrbCooldownExpiry Mint Defaults
-
-expected: Comparison tool shows OrbCooldownExpiry entity count matching V1 (within 2% tolerance). OrbCooldownExpiry entities created on mint with default value=0, overwritten when TokenIdDataChanged events arrive
-result: [pending]
-
-### 9. OrbFaction Mint Defaults
-
-expected: Comparison tool shows OrbFaction entity count matching V1 (within 2% tolerance). OrbFaction entities created on mint with default value=0, overwritten when TokenIdDataChanged events arrive
-result: [pending]
-
-### 10. LSP4 Base URI Derivation
-
-expected: Comparison tool shows LSP4Metadata entity count matching V1 (within 2% tolerance) — V2 was missing ~84K entities from base URI derivation. Base URI handler creates per-token metadata URLs from LSP8TokenMetadataBaseURI + NFT tokenIds
-result: [pending]
-
-### 11. Entity Upsert Pattern Helpers
-
-expected: Code inspection shows resolveEntity and resolveEntities helpers exist in handlerHelpers.ts with 12/12 unit tests passing. Old mergeEntitiesFromBatchAndDb function deleted. Search codebase confirms zero references to old function name
-result: [pending]
-
 ### 12. Overall V1-V2 Parity
 
-expected: Running comparison tool with --tolerance=2 shows all 72 entity types as ✓ MATCH or ≈ TOLERANCE (within 2%). No MISMATCH or ✗ FAIL results for entity types that should match. Known divergences (LSP8ReferenceContract) properly flagged as V1 bugs
+expected: Running comparison tool with --tolerance=2 shows all 72 entity types as MATCH or TOLERANCE (within 2%). No MISMATCH or FAIL results for entity types that should match. Known divergences (LSP8ReferenceContract) properly flagged as V1 bugs
 result: [pending]
 
 ## Summary
@@ -163,5 +106,5 @@ skipped: 0
     - "OR: Comparison tool fallback to content-based matching when IDs don't align"
       debug_session: ""
       fix_applied: true
-      fix_commit: "51ea57f"
+      fix_commit: "4e14a6d"
       fix_description: "Added dual matching strategies: ID-based for core entities, content-based for metadata sub-entities (isMetadataSub=true). New querySampleRows() method fetches full rows, buildContentSignatureMap() creates content signatures for matching."

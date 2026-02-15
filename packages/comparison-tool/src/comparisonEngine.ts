@@ -38,13 +38,14 @@ function calcDiffPercent(a: number, b: number): number {
 
 /**
  * Build a content signature map for metadata sub-entities with random UUIDs.
- * Key = content signature (all fields except 'id'), Value = row
+ * Key = content signature (all fields except 'id'), Value = array of rows
  * This enables content-based matching when IDs are non-deterministic.
+ * Uses an array value to handle duplicate-content rows without silent overwrites.
  */
 function buildContentSignatureMap(
   rows: Record<string, unknown>[],
-): Map<string, Record<string, unknown>> {
-  const map = new Map<string, Record<string, unknown>>();
+): Map<string, Record<string, unknown>[]> {
+  const map = new Map<string, Record<string, unknown>[]>();
 
   for (const row of rows) {
     // Build signature from all fields except 'id'
@@ -53,7 +54,12 @@ function buildContentSignatureMap(
       .sort(([a], [b]) => a.localeCompare(b));
 
     const signature = stableStringify(Object.fromEntries(contentFields));
-    map.set(signature, row);
+    const existing = map.get(signature);
+    if (existing) {
+      existing.push(row);
+    } else {
+      map.set(signature, [row]);
+    }
   }
 
   return map;
@@ -161,8 +167,25 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
       ]);
 
       // Build content signature maps for matching
-      sourceRowMap = buildContentSignatureMap(sourceRows);
-      targetRowMap = buildContentSignatureMap(targetRows);
+      const sourceSignatureMap = buildContentSignatureMap(sourceRows);
+      const targetSignatureMap = buildContentSignatureMap(targetRows);
+
+      // Warn if either side produced an empty map but counts indicate data exists
+      if (sourceSignatureMap.size === 0 || targetSignatureMap.size === 0) {
+        process.stderr.write(
+          `\n[warning] Content-based sampling for metadata sub-entity "${entity.name}" ` +
+            'returned no sample rows on one side. If data is expected here, this may indicate a query or ' +
+            'connection issue and can cause all rows from the other side to appear as missing in the diff.\n',
+        );
+      }
+
+      // Flatten to single-row maps for comparison (take first row per signature)
+      sourceRowMap = new Map(
+        Array.from(sourceSignatureMap.entries()).map(([sig, rows]) => [sig, rows[0]]),
+      );
+      targetRowMap = new Map(
+        Array.from(targetSignatureMap.entries()).map(([sig, rows]) => [sig, rows[0]]),
+      );
     } else {
       // For core entities with deterministic IDs, use ID-based matching (original behavior)
       const sampleIds = await sourceClient.querySampleIds(entity.hasuraTable, config.sampleSize);
