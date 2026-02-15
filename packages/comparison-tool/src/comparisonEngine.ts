@@ -211,7 +211,8 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
       // Check for source rows missing in target
       for (const signature of sourceSignatures) {
         if (!targetSignatures.has(signature)) {
-          const sourceRow = sourceRowMap.get(signature)!;
+          const sourceRow = sourceRowMap.get(signature);
+          if (!sourceRow) continue;
           const allFields: FieldDiff[] = Object.keys(sourceRow)
             .filter((field) => field !== 'id')
             .map((field) => ({ field, sourceValue: sourceRow[field], targetValue: undefined }));
@@ -229,7 +230,8 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
       // Check for target rows missing in source
       for (const signature of targetSignatures) {
         if (!sourceSignatures.has(signature)) {
-          const targetRow = targetRowMap.get(signature)!;
+          const targetRow = targetRowMap.get(signature);
+          if (!targetRow) continue;
           const allFields: FieldDiff[] = Object.keys(targetRow)
             .filter((field) => field !== 'id')
             .map((field) => ({ field, sourceValue: undefined, targetValue: targetRow[field] }));
