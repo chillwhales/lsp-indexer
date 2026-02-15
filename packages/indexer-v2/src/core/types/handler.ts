@@ -61,6 +61,18 @@ export interface EntityHandler {
   readonly postVerification?: boolean;
 
   /**
+   * If true, this handler is invoked at chain head even when its entity bag
+   * is empty. Used by metadata fetch handlers that need to drain a DB backlog
+   * of unfetched entities regardless of whether new entities appeared in the
+   * current batch.
+   *
+   * Without this flag, rarely-updated entity types (e.g., LSP29EncryptedAsset
+   * with only 11 entities on-chain) would never have their metadata fetched
+   * because no new entities trigger the handler at head.
+   */
+  readonly drainAtHead?: boolean;
+
+  /**
    * Handler names this handler must execute after. The registry
    * topologically sorts handlers to honor these dependencies.
    * Only applies within the same step (Step 3 or Step 5.5).
