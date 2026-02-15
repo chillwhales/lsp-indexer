@@ -4,6 +4,7 @@ export interface GraphqlClient {
   queryCount(hasuraTable: string): Promise<number>;
   querySampleIds(hasuraTable: string, limit: number): Promise<string[]>;
   queryRowsByIds(hasuraTable: string, ids: string[]): Promise<Record<string, unknown>[]>;
+  querySampleRows(hasuraTable: string, limit: number): Promise<Record<string, unknown>[]>;
   checkHealth(): Promise<boolean>;
 }
 
@@ -194,6 +195,33 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     }
   }
 
+  async function querySampleRows(
+    hasuraTable: string,
+    limit: number,
+  ): Promise<Record<string, unknown>[]> {
+    const fields = await queryTableFields(hasuraTable);
+    if (fields.length === 0) return [];
+
+    const fieldSelection = fields.join('\n          ');
+
+    const query = `
+      query {
+        ${hasuraTable}(limit: ${limit}, order_by: { id: asc }) {
+          ${fieldSelection}
+        }
+      }
+    `;
+
+    try {
+      const response = await client.post<GraphqlResponse<RowsData>>('', { query });
+      const rows = response.data.data?.[hasuraTable];
+      if (!Array.isArray(rows)) return [];
+      return rows;
+    } catch {
+      return [];
+    }
+  }
+
   async function checkHealth(): Promise<boolean> {
     try {
       const response = await client.post<GraphqlResponse<HealthData>>('', {
@@ -205,5 +233,5 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     }
   }
 
-  return { queryCount, querySampleIds, queryRowsByIds, checkHealth };
+  return { queryCount, querySampleIds, queryRowsByIds, querySampleRows, checkHealth };
 }
