@@ -215,6 +215,7 @@ const LSP3ProfileFetchHandler: EntityHandler = {
   name: 'lsp3ProfileFetch',
   listensToBag: ['LSP3Profile'],
   dependsOn: ['lsp3Profile'],
+  drainAtHead: true,
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
     const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_TYPE).values());

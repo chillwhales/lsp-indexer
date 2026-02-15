@@ -282,6 +282,7 @@ const LSP4MetadataFetchHandler: EntityHandler = {
   name: 'lsp4MetadataFetch',
   listensToBag: ['LSP4Metadata'],
   dependsOn: ['lsp4Metadata'],
+  drainAtHead: true,
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
     const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_TYPE).values());

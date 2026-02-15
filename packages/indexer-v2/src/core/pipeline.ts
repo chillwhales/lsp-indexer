@@ -257,10 +257,20 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
 
   const step3Handlers = registry.getAllEntityHandlers().filter((h) => !h.postVerification);
   for (const handler of step3Handlers) {
+    let triggered = false;
     for (const bagKey of handler.listensToBag) {
       if (batchCtx.hasEntities(bagKey)) {
         await handler.handle(handlerCtx, bagKey);
+        triggered = true;
       }
+    }
+    // Handlers with drainAtHead=true must run at chain head even when their
+    // entity bag is empty — they drain a DB backlog of unfetched metadata.
+    // Without this, rarely-updated entity types (e.g. LSP29 with only 11
+    // entities on-chain) would never have their metadata fetched.
+    if (!triggered && handler.drainAtHead && context.isHead) {
+      const drainTrigger = handler.listensToBag[0] ?? 'drain';
+      await handler.handle(handlerCtx, drainTrigger);
     }
   }
 

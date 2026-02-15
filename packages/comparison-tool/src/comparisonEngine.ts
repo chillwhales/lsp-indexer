@@ -37,6 +37,35 @@ function calcDiffPercent(a: number, b: number): number {
 }
 
 /**
+ * Build a content signature map for metadata sub-entities with random UUIDs.
+ * Key = content signature (all fields except 'id'), Value = array of rows
+ * This enables content-based matching when IDs are non-deterministic.
+ * Uses an array value to handle duplicate-content rows without silent overwrites.
+ */
+function buildContentSignatureMap(
+  rows: Record<string, unknown>[],
+): Map<string, Record<string, unknown>[]> {
+  const map = new Map<string, Record<string, unknown>[]>();
+
+  for (const row of rows) {
+    // Build signature from all fields except 'id'
+    const contentFields = Object.entries(row)
+      .filter(([key]) => key !== 'id')
+      .sort(([a], [b]) => a.localeCompare(b));
+
+    const signature = stableStringify(Object.fromEntries(contentFields));
+    const existing = map.get(signature);
+    if (existing) {
+      existing.push(row);
+    } else {
+      map.set(signature, [row]);
+    }
+  }
+
+  return map;
+}
+
+/**
  * Run three-phase comparison between two Hasura endpoints.
  *
  * Phase 1: Aggregate row counts per entity type
@@ -124,72 +153,157 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
 
     process.stderr.write(`\rSampling ${entity.name}...`.padEnd(60, ' '));
 
-    const sampleIds = await sourceClient.querySampleIds(entity.hasuraTable, config.sampleSize);
-    if (sampleIds.length === 0) continue;
+    let sourceRows: Record<string, unknown>[];
+    let targetRows: Record<string, unknown>[];
+    let sourceRowMap: Map<string, Record<string, unknown>>;
+    let targetRowMap: Map<string, Record<string, unknown>>;
 
-    const [sourceRows, targetRows] = await Promise.all([
-      sourceClient.queryRowsByIds(entity.hasuraTable, sampleIds),
-      targetClient.queryRowsByIds(entity.hasuraTable, sampleIds),
-    ]);
+    // For metadata sub-entities with random UUIDs, use content-based matching
+    if (entity.isMetadataSub) {
+      // Fetch full sample rows (not just IDs) from both endpoints
+      [sourceRows, targetRows] = await Promise.all([
+        sourceClient.querySampleRows(entity.hasuraTable, config.sampleSize),
+        targetClient.querySampleRows(entity.hasuraTable, config.sampleSize),
+      ]);
 
-    const sourceRowMap = new Map(sourceRows.map((row) => [String(row.id), row]));
-    const targetRowMap = new Map(targetRows.map((row) => [String(row.id), row]));
+      // Build content signature maps for matching
+      const sourceSignatureMap = buildContentSignatureMap(sourceRows);
+      const targetSignatureMap = buildContentSignatureMap(targetRows);
+
+      // Warn if either side produced an empty map but counts indicate data exists
+      if (sourceSignatureMap.size === 0 || targetSignatureMap.size === 0) {
+        process.stderr.write(
+          `\n[warning] Content-based sampling for metadata sub-entity "${entity.name}" ` +
+            'returned no sample rows on one side. If data is expected here, this may indicate a query or ' +
+            'connection issue and can cause all rows from the other side to appear as missing in the diff.\n',
+        );
+      }
+
+      // Flatten to single-row maps for comparison (take first row per signature)
+      sourceRowMap = new Map(
+        Array.from(sourceSignatureMap.entries()).map(([sig, rows]) => [sig, rows[0]]),
+      );
+      targetRowMap = new Map(
+        Array.from(targetSignatureMap.entries()).map(([sig, rows]) => [sig, rows[0]]),
+      );
+    } else {
+      // For core entities with deterministic IDs, use ID-based matching (original behavior)
+      const sampleIds = await sourceClient.querySampleIds(entity.hasuraTable, config.sampleSize);
+      if (sampleIds.length === 0) continue;
+
+      [sourceRows, targetRows] = await Promise.all([
+        sourceClient.queryRowsByIds(entity.hasuraTable, sampleIds),
+        targetClient.queryRowsByIds(entity.hasuraTable, sampleIds),
+      ]);
+
+      sourceRowMap = new Map(sourceRows.map((row) => [String(row.id), row]));
+      targetRowMap = new Map(targetRows.map((row) => [String(row.id), row]));
+    }
 
     const knownDivergencesForEntity = getKnownDivergences(entity.name, config.mode);
     const knownFieldSet = new Set(knownDivergencesForEntity.map((d) => d.field));
 
-    for (const rowId of sampleIds) {
-      const sourceRow = sourceRowMap.get(rowId);
-      const targetRow = targetRowMap.get(rowId);
+    if (entity.isMetadataSub) {
+      // Content-based comparison for metadata sub-entities
+      const sourceSignatures = new Set(sourceRowMap.keys());
+      const targetSignatures = new Set(targetRowMap.keys());
 
-      if (sourceRow && !targetRow) {
-        const allFields: FieldDiff[] = Object.keys(sourceRow)
-          .filter((field) => field !== 'id')
-          .map((field) => ({ field, sourceValue: sourceRow[field], targetValue: undefined }));
+      // Check for source rows missing in target
+      for (const signature of sourceSignatures) {
+        if (!targetSignatures.has(signature)) {
+          const sourceRow = sourceRowMap.get(signature);
+          if (!sourceRow) continue;
+          const allFields: FieldDiff[] = Object.keys(sourceRow)
+            .filter((field) => field !== 'id')
+            .map((field) => ({ field, sourceValue: sourceRow[field], targetValue: undefined }));
 
-        sampleDiffs.push({
-          entityName: entity.name,
-          rowId,
-          diffs: allFields,
-          knownDivergences: [],
-          unexpectedDiffs: allFields,
-        });
-        continue;
-      }
-
-      if (!sourceRow || !targetRow) continue;
-
-      const knownDivergences: FieldDiff[] = [];
-      const unexpectedDiffs: FieldDiff[] = [];
-
-      const allFields = new Set([
-        ...Object.keys(sourceRow).filter((f) => f !== 'id'),
-        ...Object.keys(targetRow).filter((f) => f !== 'id'),
-      ]);
-
-      for (const field of allFields) {
-        const sourceValue = sourceRow[field];
-        const targetValue = targetRow[field];
-
-        if (!valuesEqual(sourceValue, targetValue)) {
-          const fieldDiff: FieldDiff = { field, sourceValue, targetValue };
-
-          if (knownFieldSet.has(field)) {
-            knownDivergences.push(fieldDiff);
-          } else {
-            unexpectedDiffs.push(fieldDiff);
-          }
+          sampleDiffs.push({
+            entityName: entity.name,
+            rowId: String(sourceRow.id),
+            diffs: allFields,
+            knownDivergences: [],
+            unexpectedDiffs: allFields,
+          });
         }
       }
 
-      if (knownDivergences.length > 0 || unexpectedDiffs.length > 0) {
-        sampleDiffs.push({
-          entityName: entity.name,
-          rowId,
-          diffs: [...knownDivergences, ...unexpectedDiffs],
-          knownDivergences,
-          unexpectedDiffs,
-        });
+      // Check for target rows missing in source
+      for (const signature of targetSignatures) {
+        if (!sourceSignatures.has(signature)) {
+          const targetRow = targetRowMap.get(signature);
+          if (!targetRow) continue;
+          const allFields: FieldDiff[] = Object.keys(targetRow)
+            .filter((field) => field !== 'id')
+            .map((field) => ({ field, sourceValue: undefined, targetValue: targetRow[field] }));
+
+          sampleDiffs.push({
+            entityName: entity.name,
+            rowId: String(targetRow.id),
+            diffs: allFields,
+            knownDivergences: [],
+            unexpectedDiffs: allFields,
+          });
+        }
+      }
+
+      // Note: Matching signatures are considered identical (no diffs to report)
+    } else {
+      // ID-based comparison for core entities (original behavior)
+      const sampleKeys = Array.from(sourceRowMap.keys());
+
+      for (const rowId of sampleKeys) {
+        const sourceRow = sourceRowMap.get(rowId);
+        const targetRow = targetRowMap.get(rowId);
+
+        if (sourceRow && !targetRow) {
+          const allFields: FieldDiff[] = Object.keys(sourceRow)
+            .filter((field) => field !== 'id')
+            .map((field) => ({ field, sourceValue: sourceRow[field], targetValue: undefined }));
+
+          sampleDiffs.push({
+            entityName: entity.name,
+            rowId,
+            diffs: allFields,
+            knownDivergences: [],
+            unexpectedDiffs: allFields,
+          });
+          continue;
+        }
+
+        if (!sourceRow || !targetRow) continue;
+
+        const knownDivergences: FieldDiff[] = [];
+        const unexpectedDiffs: FieldDiff[] = [];
+
+        const allFields = new Set([
+          ...Object.keys(sourceRow).filter((f) => f !== 'id'),
+          ...Object.keys(targetRow).filter((f) => f !== 'id'),
+        ]);
+
+        for (const field of allFields) {
+          const sourceValue = sourceRow[field];
+          const targetValue = targetRow[field];
+
+          if (!valuesEqual(sourceValue, targetValue)) {
+            const fieldDiff: FieldDiff = { field, sourceValue, targetValue };
+
+            if (knownFieldSet.has(field)) {
+              knownDivergences.push(fieldDiff);
+            } else {
+              unexpectedDiffs.push(fieldDiff);
+            }
+          }
+        }
+
+        if (knownDivergences.length > 0 || unexpectedDiffs.length > 0) {
+          sampleDiffs.push({
+            entityName: entity.name,
+            rowId,
+            diffs: [...knownDivergences, ...unexpectedDiffs],
+            knownDivergences,
+            unexpectedDiffs,
+          });
+        }
       }
     }
 
