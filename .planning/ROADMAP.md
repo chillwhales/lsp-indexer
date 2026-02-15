@@ -110,7 +110,7 @@ Plans:
 - [x] 03-01-PLAN.md — FetchResult type fix + shared metadata fetch utility + V1 type guards
 - [x] 03-02-PLAN.md — LSP3 + LSP29 metadata fetch handlers (7 + 7 sub-entity types)
 - [x] 03-03-PLAN.md — LSP4 metadata fetch handler (8 sub-entity types + Score/Rank)
-- [ ] 03-04-PLAN.md — Unit tests for all three metadata fetch handlers
+- [x] 03-04-PLAN.md — Unit tests for all three metadata fetch handlers
 
 ---
 
@@ -173,11 +173,12 @@ Plans:
 3. User can see ~2x throughput improvement (process 1,000 URLs in ~17s vs ~35s)
 4. User can verify error handling still marks entities with errors on batch failures
 
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] TBD (run `/gsd-plan-phase 3.2` to break down)
+- [x] 03.2-01-PLAN.md — Queue-based worker pool architecture (core refactor)
+- [x] 03.2-02-PLAN.md — Worker pool unit tests + UAT verification
 
 **Details:**
 
@@ -300,9 +301,9 @@ Plans:
 
 Plans:
 
-- [ ] 05.2-01-PLAN.md — OwnedAsset triggeredBy fix (GAP-08) + LSP8ReferenceContract divergence (GAP-07)
-- [ ] 05.2-02-PLAN.md — Orb handler mint detection defaults (GAP-09)
-- [ ] 05.2-03-PLAN.md — LSP4 Base URI derivation handler (GAP-06)
+- [x] 05.2-01-PLAN.md — OwnedAsset triggeredBy fix (GAP-08) + LSP8ReferenceContract divergence (GAP-07)
+- [x] 05.2-02-PLAN.md — Orb handler mint detection defaults (GAP-09)
+- [x] 05.2-03-PLAN.md — LSP4 Base URI derivation handler (GAP-06)
 
 **Context:** Discovered via comparison tool (Phase 5). LSP4Metadata gap is caused by V2 missing the base URI → per-token derivation flow that V1 implements in `utils/lsp4MetadataBaseUri.ts`. OwnedAsset count is currently HIGHER in V2 due to double-processing (ignoring `triggeredBy`) rather than UP-only filtering assumptions from earlier analysis. Orb-related entity gaps are now attributed to missing mint-time defaults in the Orb handlers, while LSP8ReferenceContract is treated as a known V1 divergence rather than a parity bug.
 
@@ -336,10 +337,10 @@ Plans:
 
 Plans:
 
-- [ ] 05.3-01-PLAN.md — Create resolveEntity/resolveEntities helpers + delete mergeEntitiesFromBatchAndDb
-- [ ] 05.3-02-PLAN.md — Tier 1 bugfix: chillClaimed, orbsClaimed, lsp5ReceivedAssets, orbLevel, orbFaction
-- [ ] 05.3-03-PLAN.md — Tier 2a: totalSupply, ownedAssets, nft standardization
-- [ ] 05.3-04-PLAN.md — Tier 2b: lsp4Creators, lsp12IssuedAssets, lsp6Controllers, formattedTokenId, lsp4MetadataBaseUri
+- [x] 05.3-01-PLAN.md — Create resolveEntity/resolveEntities helpers + delete mergeEntitiesFromBatchAndDb
+- [x] 05.3-02-PLAN.md — Tier 1 bugfix: chillClaimed, orbsClaimed, lsp5ReceivedAssets, orbLevel, orbFaction
+- [x] 05.3-03-PLAN.md — Tier 2a: totalSupply, ownedAssets, nft standardization
+- [x] 05.3-04-PLAN.md — Tier 2b: lsp4Creators, lsp12IssuedAssets, lsp6Controllers, formattedTokenId, lsp4MetadataBaseUri
 
 **Context:** Comprehensive audit of all 29 handlers found 4 different ad-hoc patterns for the same operation ("entity might already exist"). This produced 3 confirmed bugs (chillClaimed/orbsClaimed FK wipe, lsp5ReceivedAssets missing addEntity) and 2 cross-batch gaps (orbLevel/orbFaction). Rather than patching only the broken handlers, we standardize ALL 13 handlers that do entity lookups to a single recognizable pattern.
 
@@ -371,7 +372,7 @@ Phase 1 (Handler Migration)
   ├──→ Phase 2 (New Handlers & Logging)
   │      ├──→ Phase 3 (Metadata Fetchers) ←── also depends on Phase 1
   │      │      ├──→ Phase 3.1 (Debug Logging) ←── INSERTED URGENT
-  │      │      │      └──→ Phase 3.2 (Queue-Based Workers) ←── INSERTED URGENT (Deferred)
+  │      │      │      └──→ Phase 3.2 (Queue-Based Workers) ←── INSERTED URGENT
   │      │      │
   │      │      └──→ Phase 4 (Integration & Wiring)
   │      └──→ Phase 4
@@ -426,4 +427,4 @@ Phase 1 (Handler Migration)
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-02-13_
+_Last updated: 2026-02-15_
