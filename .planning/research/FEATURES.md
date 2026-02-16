@@ -122,15 +122,15 @@ queryClient.prefetchQuery(options);
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Why Expected**   | Hooks should not contain GraphQL execution logic directly — a service layer enables both client-side and server-side consumption                                                      |
 | **Complexity**     | Medium                                                                                                                                                                                |
-| **Dependencies**   | `graphql-request` (already used in reference implementation)                                                                                                                          |
+| **Dependencies**   | Typed `fetch` wrapper (~30 LOC) — zero runtime deps (replaces `graphql-request` from reference implementation)                                                                        |
 | **Example**        | tRPC has a clear client → router → procedure separation; the reference marketplace has services as the data layer                                                                     |
 | **Recommendation** | Each domain gets a service class/module that handles GraphQL execution. Hooks call services. Server actions call services. Services are the single source of truth for data fetching. |
 
 **Pattern:**
 
 ```
-Hook (useProfile) → Service (profileService.getByAddress) → graphql-request → Hasura
-ServerAction (getProfile) → Service (profileService.getByAddress) → graphql-request → Hasura
+Hook (useProfile) → Service (profileService.getByAddress) → execute() (typed fetch) → Hasura
+ServerAction (getProfile) → Service (profileService.getByAddress) → execute() (typed fetch) → Hasura
 ```
 
 ### TS-5: Provider Pattern (Create-or-Reuse QueryClient)
@@ -244,8 +244,8 @@ Features that would set this package apart. Not expected, but make the package e
 **Architecture:**
 
 ```
-Client-side path:  useProfile() → profileService.getByAddress() → graphql-request → Hasura
-Server-side path:  useProfileAction() → getProfileAction (server action) → profileService.getByAddress() → graphql-request → Hasura
+Client-side path:  useProfile() → profileService.getByAddress() → execute() (typed fetch) → Hasura
+Server-side path:  useProfileAction() → getProfileAction (server action) → profileService.getByAddress() → execute() (typed fetch) → Hasura
 ```
 
 **Why both?** Server actions add security (GraphQL URL never exposed to client), caching benefits (server-side cache), and work in RSC. Direct hooks work in any React app, not just Next.js.
@@ -382,9 +382,9 @@ Things to deliberately NOT build in v1.1. Common mistakes in this domain.
 
 ### AF-5: Do NOT Build Apollo Client / urql Adapters
 
-| Anti-Feature                                                         | Why Avoid                                                                                                                                                                      | What to Do Instead                                                                                                                                                             |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Support for multiple GraphQL client libraries beyond graphql-request | Dramatically increases maintenance surface. The package uses graphql-request (lightweight, no framework lock-in). Supporting Apollo and urql means tripling the service layer. | Ship with graphql-request. It's 12KB, has zero dependencies beyond graphql, and works everywhere. Consumers who want Apollo can use the generated types with their own client. |
+| Anti-Feature                                                                   | Why Avoid                                                                                                                                                                                    | What to Do Instead                                                                                                                                  |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Support for multiple GraphQL client libraries beyond the typed `fetch` wrapper | Dramatically increases maintenance surface. The package uses a ~30 LOC typed `fetch` wrapper (zero deps, no framework lock-in). Supporting Apollo and urql means tripling the service layer. | Ship with the typed `fetch` wrapper. It's zero deps, works everywhere. Consumers who want Apollo can use the generated types with their own client. |
 
 ### AF-6: Do NOT Build Automatic Schema Watching/Hot Reload
 
@@ -419,7 +419,7 @@ Things to deliberately NOT build in v1.1. Common mistakes in this domain.
 │    ProfileByAddressQuery, { address }     │
 │  )                                         │
 ├──────────────────────────────────────────┤
-│  Execute Layer (graphql-request)          │
+│  Execute Layer (typed fetch wrapper)      │
 │  execute(query, variables) → POST /graphql│
 └──────────────────────────────────────────┘
 ```
@@ -498,7 +498,7 @@ packages/react/src/
 │       ├── graphql.ts
 │       └── fragment-masking.ts
 ├── services/
-│   ├── execute.ts              # graphql-request wrapper
+│   ├── execute.ts              # typed fetch wrapper (~30 LOC)
 │   ├── universal-profile.ts
 │   ├── digital-asset.ts
 │   ├── nft.ts
@@ -626,7 +626,7 @@ TS-7 (Error Handling)
 | [wagmi v3 docs — TanStack Query integration](https://wagmi.sh/react/guides/tanstack-query)                                         | HIGH       | Query key export pattern, `get<X>QueryOptions` pattern, provider setup, SSR approach           |
 | [GraphQL Code Generator — React Query guide](https://the-guild.dev/graphql/codegen/docs/guides/react-query)                        | HIGH       | `client` preset with `documentMode: 'string'`, `TypedDocumentString` pattern, execute function |
 | [TanStack Query — Infinite Queries](https://tanstack.com/query/latest/docs/framework/react/guides/infinite-queries)                | HIGH       | `useInfiniteQuery`, `getNextPageParam`, offset pagination pattern, `maxPages`                  |
-| Reference implementation (chillwhales/marketplace)                                                                                 | HIGH       | 11 query domains, service→action→hook pattern, graphql-request usage                           |
+| Reference implementation (chillwhales/marketplace)                                                                                 | HIGH       | 11 query domains, service→action→hook pattern, GraphQL execution patterns                      |
 | Existing lsp-indexer codebase (PROJECT.md, schema.graphql, ARCHITECTURE.md)                                                        | HIGH       | 72+ entity types, Hasura auto-generation, TypeORM schema, constraint documentation             |
 
 ---

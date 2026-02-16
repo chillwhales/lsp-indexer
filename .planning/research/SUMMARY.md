@@ -35,20 +35,25 @@ Points that emerged independently across multiple research dimensions:
 STACK recommends `graphql-request ^7.4.0` (maintained, 6.1k stars). ARCHITECTURE recommends raw `fetch` (zero dependencies, `graphql-request` is evolving into "graffle"). **Recommend: raw `fetch` with a typed wrapper.** Rationale:
 
 - The typed `execute()` wrapper in ARCHITECTURE is ~30 lines of code
-- Eliminates the only runtime dependency (besides `graphql` for types)
+- Eliminates `graphql-request` as a runtime dependency
+- `graphql` is only needed as a `devDependency` for codegen (not shipped at runtime)
 - `TypedDocumentString` from codegen works directly with `fetch`
 - Reduces bundle size to zero additional bytes
 - Removes a dependency that is actively being renamed/restructured
 
-This means the package ships with **zero runtime `dependencies`** — only `peerDependencies`. This is the cleanest possible posture for a library package.
+**Note:** `graphql-ws` is still a runtime dependency for subscription hooks (SUB-01). So the package ships with **one runtime dependency** (`graphql-ws`) plus `peerDependencies`. `graphql` is a `devDependency` only (codegen build-time).
 
 ---
 
 ## 3. Stack Assessment
 
-### Runtime Dependencies: None
+### Runtime Dependencies: Minimal
 
-The package has **no `dependencies`**. All runtime needs are met by peer dependencies and the built-in `fetch` API.
+The package has **one runtime dependency**: `graphql-ws` (for WebSocket subscriptions). Query hooks use a typed `fetch` wrapper with zero deps.
+
+| Library      | Version  | Purpose                                   |
+| ------------ | -------- | ----------------------------------------- |
+| `graphql-ws` | `^6.0.0` | WebSocket client for Hasura subscriptions |
 
 ### Peer Dependencies (Consumer Provides)
 
@@ -218,13 +223,13 @@ Hasura exposes snake_case. The package's **public API uses camelCase** via the p
 
 ## 8. Open Questions
 
-| Question                                                                       | Impact                                                                                                                                                        | When to Resolve                    |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| **Package name: `@chillwhales/react` or `@lsp-indexer/react`?**                | STACK uses `@chillwhales/react`; ARCHITECTURE uses `@lsp-indexer/react`. Must decide before publishing.                                                       | Phase 1 — package.json scaffolding |
-| **Hasura naming: does the Hasura schema actually use snake_case?**             | ARCHITECTURE and PITFALLS assume so based on TypeORM → Postgres conventions. Needs verification by introspecting the actual Hasura endpoint.                  | Phase 1 — codegen setup            |
-| **Should codegen point at Hasura endpoint or local schema file?**              | STACK recommends endpoint with schema-file fallback. ARCHITECTURE recommends endpoint with committed schema. For CI without Hasura, local schema is required. | Phase 1 — codegen setup            |
-| **How much of the marketplace reference code can be extracted vs rewritten?**  | Affects Phase 2 velocity. The marketplace has working query documents and services, but in mixin-based class structure.                                       | Phase 2 — domain implementation    |
-| **Do all 11 domains need server actions in v1.1, or just the most-used ones?** | Reduces Phase 4 scope. FEATURES suggests starting with top 3 domains for dual-mode.                                                                           | Phase 2-3 planning                 |
+| Question                                                                           | Impact                                                                                                                                                        | When to Resolve                 |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| ~~**Package name: `@chillwhales/react` or `@lsp-indexer/react`?**~~                | **RESOLVED:** `@lsp-indexer/react` — the package is indexer-specific, not chillwhales-specific.                                                               | ✓ Resolved                      |
+| **Hasura naming: does the Hasura schema actually use snake_case?**                 | ARCHITECTURE and PITFALLS assume so based on TypeORM → Postgres conventions. Needs verification by introspecting the actual Hasura endpoint.                  | Phase 7 — codegen setup         |
+| **Should codegen point at Hasura endpoint or local schema file?**                  | STACK recommends endpoint with schema-file fallback. ARCHITECTURE recommends endpoint with committed schema. For CI without Hasura, local schema is required. | Phase 7 — codegen setup         |
+| **How much of the marketplace reference code can be extracted vs rewritten?**      | Affects Phase 8 velocity. The marketplace has working query documents and services, but in mixin-based class structure.                                       | Phase 8 — domain implementation |
+| ~~**Do all 11 domains need server actions in v1.1, or just the most-used ones?**~~ | **RESOLVED:** All 11 domains get server actions (ACTION-01).                                                                                                  | ✓ Resolved                      |
 
 ---
 
@@ -232,9 +237,9 @@ Hasura exposes snake_case. The package's **public API uses camelCase** via the p
 
 ### Suggested Phase Structure
 
-#### Phase 1: Package Foundation
+#### Phase 7: Package Foundation
 
-**Rationale:** Every pitfall rated CRITICAL maps to Phase 1. Getting the package structure, exports map, codegen pipeline, and build tooling right is non-negotiable — everything else builds on it.
+**Rationale:** Every pitfall rated CRITICAL maps here. Getting the package structure, exports map, codegen pipeline, and build tooling right is non-negotiable — everything else builds on it.
 
 **Delivers:**
 
@@ -243,28 +248,29 @@ Hasura exposes snake_case. The package's **public API uses camelCase** via the p
 - Typed fetch client (`createIndexerClient`, `execute()`)
 - Build pipeline (ESM + CJS + DTS with `"use client"` banner)
 - Exports map validated with `publint`
+- Next.js test app (`apps/test`) for integration validation
 
 **Features:** TS-1 (codegen), TS-6 (config), foundation for all others
 **Pitfalls to avoid:** C1, C2, C3, C4, C5, H3, H6, H7, M5, M6
 **Research needed?** No — patterns are well-documented and HIGH confidence across all dimensions.
 
-#### Phase 2: First Vertical Slice (Universal Profiles)
+#### Phase 8: First Vertical Slice (Universal Profiles)
 
-**Rationale:** Validate the entire document → parser → service → hook → action architecture with the simplest, most-used domain before replicating across 10 more. Cheaper to fix patterns with 1 domain than 11.
+**Rationale:** Validate the entire document → parser → service → hook architecture with the simplest, most-used domain before replicating across 10 more. Cheaper to fix patterns with 1 domain than 11.
 
 **Delivers:**
 
-- Complete Universal Profile domain (documents, types, parser, service, hook, optional action)
+- Complete Universal Profile domain (documents, types, parser, service, hook)
 - Query key factory pattern established
 - Provider component
 - Error handling pattern
-- First working consumer integration test
+- First working consumer integration test in `apps/test`
 
 **Features:** TS-2, TS-3 (1 of 11), TS-4 (pattern), TS-5, TS-7, DF-2 (pattern)
 **Pitfalls to avoid:** H1, H5, M1, M3, M4, M7
 **Research needed?** No — well-documented TanStack Query patterns.
 
-#### Phase 3: Remaining Domains (10 of 11)
+#### Phase 9: Remaining Domains & Pagination (10 of 11)
 
 **Rationale:** Pattern is validated. This is volume work — replicate the Universal Profile pattern across Digital Assets, NFTs, Owned Assets, Follows, Creators, LSP29, LSP29 Feed, Data Changed, Universal Receiver, UP Stats.
 
@@ -279,40 +285,53 @@ Hasura exposes snake_case. The package's **public API uses camelCase** via the p
 **Pitfalls to avoid:** Consistency enforcement — every domain must follow the established pattern exactly.
 **Research needed?** No — replication of established pattern.
 
-#### Phase 4: Server Actions + Polish
+#### Phase 10: Subscriptions
 
-**Rationale:** Server actions depend on working services (from Phase 2-3). They're optional peer dependency consumers. Build them after the core is solid.
+**Rationale:** WebSocket subscriptions require a different transport (graphql-ws) and cache integration logic. Building after all query domains exist means subscription hooks can integrate with query cache cleanly.
 
 **Delivers:**
 
-- `next-safe-action` wrappers for all (or top) domains
+- WebSocket client setup with graphql-ws
+- Subscription documents and hooks for all 11 domains
+- Automatic TanStack Query cache invalidation/update on subscription events
+
+**Pitfalls to avoid:** WebSocket connection management, reconnection handling, cache synchronization
+**Research needed?** No — graphql-ws + Hasura subscriptions are well-documented.
+
+#### Phase 11: Server Actions + Publish Readiness
+
+**Rationale:** Server actions depend on working services (from Phase 8-9). They're optional peer dependency consumers. Build them after the full client-side story (queries + subscriptions) is complete.
+
+**Delivers:**
+
+- `next-safe-action` wrappers for all 11 domains
 - `@lsp-indexer/react/server` entry point
-- Dual-mode hooks (DF-1)
-- README, JSDoc, consumer examples
+- Zod validation schemas for all action inputs
 - `publint` + `arethetypeswrong` validation
 - Package publish readiness
 
-**Features:** DF-1, polish
 **Pitfalls to avoid:** H4 (server/client boundary violations)
-**Research needed?** Possibly — `next-safe-action` integration with a shared library package is less documented (MEDIUM confidence in PITFALLS). May benefit from a quick spike.
+**Research needed?** Possibly — `next-safe-action` integration with a shared library package is less documented.
 
 ### Phase Summary
 
-| Phase | Name                    | Effort        | Risk                              | Delivers                                    |
-| ----- | ----------------------- | ------------- | --------------------------------- | ------------------------------------------- |
-| 1     | Package Foundation      | Medium        | **HIGH** (structural)             | Scaffold, codegen, build, exports           |
-| 2     | First Vertical Slice    | Medium        | **MEDIUM** (pattern validation)   | 1 complete domain, provider, error handling |
-| 3     | Remaining Domains       | High (volume) | **LOW** (pattern replication)     | 10 domains, pagination, full types          |
-| 4     | Server Actions + Polish | Medium        | **MEDIUM** (boundary correctness) | Dual-mode, docs, publish-ready              |
+| Phase | Name                               | Effort        | Risk                              | Delivers                                    |
+| ----- | ---------------------------------- | ------------- | --------------------------------- | ------------------------------------------- |
+| 7     | Package Foundation                 | Medium        | **HIGH** (structural)             | Scaffold, codegen, build, exports, test app |
+| 8     | First Vertical Slice               | Medium        | **MEDIUM** (pattern validation)   | 1 complete domain, provider, error handling |
+| 9     | Remaining Domains & Pagination     | High (volume) | **LOW** (pattern replication)     | 10 domains, pagination, full types          |
+| 10    | Subscriptions                      | Medium        | **MEDIUM** (new transport)        | WebSocket, subscription hooks, cache sync   |
+| 11    | Server Actions + Publish Readiness | Medium        | **MEDIUM** (boundary correctness) | next-safe-action, publish validation        |
 
 ### Research Flags
 
-| Phase                    | Needs Research? | Reason                                               |
-| ------------------------ | --------------- | ---------------------------------------------------- |
-| Phase 1 (Foundation)     | No              | Well-documented patterns, HIGH confidence            |
-| Phase 2 (Vertical Slice) | No              | Standard TanStack Query patterns                     |
-| Phase 3 (Domains)        | No              | Pattern replication                                  |
-| Phase 4 (Server Actions) | **Maybe**       | `next-safe-action` in shared package less documented |
+| Phase                     | Needs Research? | Reason                                               |
+| ------------------------- | --------------- | ---------------------------------------------------- |
+| Phase 7 (Foundation)      | No              | Well-documented patterns, HIGH confidence            |
+| Phase 8 (Vertical Slice)  | No              | Standard TanStack Query patterns                     |
+| Phase 9 (Domains)         | No              | Pattern replication                                  |
+| Phase 10 (Subscriptions)  | No              | graphql-ws + Hasura subscriptions well-documented    |
+| Phase 11 (Server Actions) | **Maybe**       | `next-safe-action` in shared package less documented |
 
 ---
 
@@ -328,10 +347,10 @@ Hasura exposes snake_case. The package's **public API uses camelCase** via the p
 
 ### Gaps Remaining
 
-1. **Package naming** — needs owner decision (`@chillwhales/react` vs `@lsp-indexer/react`)
+1. ~~**Package naming**~~ — **RESOLVED:** `@lsp-indexer/react`
 2. **Hasura schema introspection** — need to verify actual field naming conventions against live endpoint
-3. **next-safe-action in shared package** — less documented pattern, may need a Phase 4 spike
-4. **Consumer testing** — need a real Next.js app to validate the package early (recommend creating a minimal test consumer in Phase 2)
+3. **next-safe-action in shared package** — less documented pattern, may need a Phase 11 spike
+4. ~~**Consumer testing**~~ — **RESOLVED:** Next.js test app (`apps/test`) added to Phase 7 (FOUND-07)
 
 ---
 

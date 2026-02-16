@@ -102,7 +102,6 @@ V2 rewrite is feature-complete with data parity validated against V1 via automat
 - Subsquid Portal SDK migration — breaking API changes, plan as separate post-V2 milestone
 - Multi-stage Docker build optimization — defer until cutover complete
 - Offline mode — real-time indexing is core value
-- Subscriptions/real-time updates — defer to v1.2, focus on query hooks first
 - Mutations/write operations — indexer is read-only, no write hooks needed
 
 ## Context

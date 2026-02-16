@@ -34,7 +34,7 @@ Mistakes that will break the package for consumers if not addressed in the first
 
 **Why it happens:** In a dual-mode package (client + server), the dependency graph is shared. If a service function is used by both a client-side hook AND a server action, and that service imports anything server-only (even indirectly), the entire chain is pulled into the client bundle.
 
-**This package specifically:** The package has 11 domains, each with a service + hooks + optional server actions. If the service layer imports `graphql-request` with server-only fetch options, or if the server action file isn't properly isolated, every client hook that uses that service will drag server code along.
+**This package specifically:** The package has 11 domains, each with a service + hooks + optional server actions. If the service layer imports modules with server-only APIs, or if the server action file isn't properly isolated, every client hook that uses that service will drag server code along.
 
 **Warning signs:**
 
@@ -45,7 +45,7 @@ Mistakes that will break the package for consumers if not addressed in the first
 **Prevention:**
 
 1. **Strict file-level separation:** `service.ts` (universal), `hooks.ts` (client-only, `"use client"`), `actions.ts` (server-only, `"use server"`). Never cross-import between hooks and actions.
-2. **The service layer must be environment-agnostic:** Use only `fetch()` (available in both Node.js and browser). No `graphql-request` (it has Node.js dependencies). No `node:` protocol imports.
+2. **The service layer must be environment-agnostic:** Use only the typed `fetch()` wrapper (available in both Node.js and browser). No `node:` protocol imports. No server-only modules.
 3. **Use `server-only` package as a build-time guardrail:** If a file should never appear in a client bundle, add `import 'server-only'` at the top. Next.js will error at build time instead of runtime.
 4. **Package `exports` map must separate entry points:**
    ```json

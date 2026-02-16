@@ -13,14 +13,15 @@ The recommended stack from the `chillwhales/marketplace` reference implementatio
 
 ## Core Dependencies (Runtime — shipped in the package)
 
-These are `dependencies` in the package's `package.json` — bundled into the published output.
+**UPDATE (post-synthesis decision):** The package ships with **zero runtime `dependencies`**. SUMMARY.md resolved the `graphql-request` vs typed `fetch` divergence in favor of a ~30-line typed `fetch` wrapper using `TypedDocumentString` from codegen. This eliminates `graphql-request` and `graphql` as runtime deps — `graphql` is only needed as a `devDependency` for codegen at build time.
 
-| Library           | Version    | Purpose                                    | Rationale                                                                                                                                                                                                                                                                 |
-| ----------------- | ---------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `graphql-request` | `^7.4.0`   | GraphQL HTTP client                        | Minimal, isomorphic, first-class `TypedDocumentNode` support. 6.1k stars, actively maintained on the `graphql-request` branch (main repo evolved to "Graffle" for advanced use). Perfect for a library: no framework lock-in, works in Node, browsers, and edge runtimes. |
-| `graphql`         | `^16.12.0` | GraphQL core (peer dep of graphql-request) | Required by `graphql-request` and `@graphql-codegen/*`. v16 is the stable line — v17 exists but is not widely adopted.                                                                                                                                                    |
+| Library               | Version      | Purpose                                   | Status                                                                                                                                                      |
+| --------------------- | ------------ | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~`graphql-request`~~ | ~~`^7.4.0`~~ | ~~GraphQL HTTP client~~                   | **REMOVED** — replaced by typed `fetch` wrapper. `graphql-request` is evolving into "Graffle" (heavier, different API). The `execute()` wrapper is ~30 LOC. |
+| `graphql`             | `^16.12.0`   | GraphQL core (codegen + type generation)  | **Moved to `devDependencies`** — only needed at build time for codegen. Not shipped in the package bundle.                                                  |
+| `graphql-ws`          | `^6.0.0`     | WebSocket client for Hasura subscriptions | **Runtime dependency** — required for subscription hooks. Lightweight (~5KB), implements the graphql-ws protocol Hasura uses.                               |
 
-**Note:** `graphql` and `graphql-request` are the ONLY runtime dependencies this package should ship. Everything else (`@tanstack/react-query`, `next-safe-action`, `zod`, `react`, `viem`) must be **peer dependencies** — the consuming app provides them. This keeps the package lightweight and avoids version conflicts.
+**Note:** `graphql-ws` is the ONLY runtime dependency. Everything else (`@tanstack/react-query`, `next-safe-action`, `zod`, `react`, `viem`) must be **peer dependencies** — the consuming app provides them. This keeps the package lightweight and avoids version conflicts.
 
 ## Peer Dependencies (Consumer provides)
 
@@ -177,7 +178,7 @@ export default defineConfig([
     sourcemap: true,
     clean: true,
     banner: { js: '"use client";' },
-    external: ['react', '@tanstack/react-query', 'graphql-request', 'graphql'],
+    external: ['react', '@tanstack/react-query'],
   },
   // Server actions + core (no "use client" banner)
   {
@@ -188,14 +189,7 @@ export default defineConfig([
     format: ['esm', 'cjs'],
     dts: true,
     sourcemap: true,
-    external: [
-      'react',
-      '@tanstack/react-query',
-      'next-safe-action',
-      'zod',
-      'graphql-request',
-      'graphql',
-    ],
+    external: ['react', '@tanstack/react-query', 'next-safe-action', 'zod'],
   },
 ]);
 ```
@@ -253,7 +247,7 @@ For a library package, stability matters more than bleeding-edge. Pin to `^3.2.0
 
 ### DO NOT add `@apollo/client` or `urql`
 
-**Why:** These are full GraphQL client frameworks with caches, subscriptions, etc. Way too heavy for a hooks library that just needs to send queries. `graphql-request` is the right abstraction — minimal, no cache opinions, works everywhere.
+**Why:** These are full GraphQL client frameworks with caches, subscriptions, etc. Way too heavy for a hooks library that just needs to send queries. The typed `fetch` wrapper is the right abstraction — minimal (~30 LOC), no cache opinions, zero dependencies, works everywhere.
 
 ### DO NOT add `@tanstack/react-query-devtools`
 
@@ -381,11 +375,11 @@ Three entry points:
 ### For the package itself (in `packages/react`)
 
 ```bash
-# Core dependencies
-pnpm add graphql-request graphql
+# Runtime dependencies
+pnpm add graphql-ws
 
-# Dev dependencies — codegen
-pnpm add -D @graphql-codegen/cli @graphql-codegen/client-preset @graphql-codegen/schema-ast @graphql-codegen/introspection @parcel/watcher @0no-co/graphqlsp
+# Dev dependencies — codegen (graphql is build-time only)
+pnpm add -D graphql @graphql-codegen/cli @graphql-codegen/client-preset @graphql-codegen/schema-ast @graphql-codegen/introspection @parcel/watcher @0no-co/graphqlsp
 
 # Dev dependencies — build
 pnpm add -D tsup typescript
@@ -409,25 +403,26 @@ pnpm add @chillwhales/react @tanstack/react-query react next-safe-action zod
 
 ## Version Summary Table
 
-| Package                          | Recommended      | Latest on npm                    | Notes                                          |
-| -------------------------------- | ---------------- | -------------------------------- | ---------------------------------------------- |
-| `graphql-request`                | `^7.4.0`         | 7.4.0                            | Stable, maintained on `graphql-request` branch |
-| `graphql`                        | `^16.12.0`       | 16.12.0                          | Stable line, v17 exists but not widely adopted |
-| `@tanstack/react-query`          | `^5.0.0` (peer)  | 5.90.21                          | Very active, weekly releases                   |
-| `next-safe-action`               | `^8.0.0` (peer)  | 8.0.11                           | Uses Standard Schema, stable                   |
-| `zod`                            | `^3.24.0` (peer) | 4.3.6 (latest), 3.24.4 (v3 line) | Intentionally pin to v3 — see rationale        |
-| `viem`                           | `^2.0.0` (peer)  | 2.46.1                           | Very active, weekly releases                   |
-| `@graphql-codegen/cli`           | `^6.1.1` (dev)   | 6.1.1                            | Current stable                                 |
-| `@graphql-codegen/client-preset` | `^5.2.2` (dev)   | 5.2.2                            | Current stable                                 |
-| `@graphql-codegen/schema-ast`    | `^5.0.0` (dev)   | 5.0.0                            | Current stable                                 |
-| `tsup`                           | `^8.5.1` (dev)   | 8.5.1                            | Current stable                                 |
-| `vitest`                         | `^3.2.0` (dev)   | 4.0.18 (latest)                  | Intentionally pin to v3 — see rationale        |
-| `@testing-library/react`         | `^16.3.2` (dev)  | 16.3.2                           | Current stable                                 |
-| `happy-dom`                      | `^20.0.0` (dev)  | 20.x                             | Current stable                                 |
-| `msw`                            | `^2.0.0` (dev)   | 2.x                              | Current stable                                 |
-| `@0no-co/graphqlsp`              | `^1.15.2` (dev)  | 1.15.2                           | Current stable                                 |
-| `@parcel/watcher`                | `^2.1.0` (dev)   | 2.x                              | For codegen watch mode                         |
-| `typescript`                     | `^5.9.2` (dev)   | 5.9.2                            | Match monorepo root                            |
+| Package                          | Recommended      | Latest on npm                    | Notes                                           |
+| -------------------------------- | ---------------- | -------------------------------- | ----------------------------------------------- |
+| ~~`graphql-request`~~            | ~~`^7.4.0`~~     | ~~7.4.0~~                        | **REMOVED** — replaced by typed `fetch` wrapper |
+| `graphql`                        | `^16.12.0` (dev) | 16.12.0                          | **Dev only** — codegen build-time, not shipped  |
+| `graphql-ws`                     | `^6.0.0`         | 6.x                              | WebSocket subscriptions runtime dep             |
+| `@tanstack/react-query`          | `^5.0.0` (peer)  | 5.90.21                          | Very active, weekly releases                    |
+| `next-safe-action`               | `^8.0.0` (peer)  | 8.0.11                           | Uses Standard Schema, stable                    |
+| `zod`                            | `^3.24.0` (peer) | 4.3.6 (latest), 3.24.4 (v3 line) | Intentionally pin to v3 — see rationale         |
+| `viem`                           | `^2.0.0` (peer)  | 2.46.1                           | Very active, weekly releases                    |
+| `@graphql-codegen/cli`           | `^6.1.1` (dev)   | 6.1.1                            | Current stable                                  |
+| `@graphql-codegen/client-preset` | `^5.2.2` (dev)   | 5.2.2                            | Current stable                                  |
+| `@graphql-codegen/schema-ast`    | `^5.0.0` (dev)   | 5.0.0                            | Current stable                                  |
+| `tsup`                           | `^8.5.1` (dev)   | 8.5.1                            | Current stable                                  |
+| `vitest`                         | `^3.2.0` (dev)   | 4.0.18 (latest)                  | Intentionally pin to v3 — see rationale         |
+| `@testing-library/react`         | `^16.3.2` (dev)  | 16.3.2                           | Current stable                                  |
+| `happy-dom`                      | `^20.0.0` (dev)  | 20.x                             | Current stable                                  |
+| `msw`                            | `^2.0.0` (dev)   | 2.x                              | Current stable                                  |
+| `@0no-co/graphqlsp`              | `^1.15.2` (dev)  | 1.15.2                           | Current stable                                  |
+| `@parcel/watcher`                | `^2.1.0` (dev)   | 2.x                              | For codegen watch mode                          |
+| `typescript`                     | `^5.9.2` (dev)   | 5.9.2                            | Match monorepo root                             |
 
 ## Sources
 
