@@ -1,787 +1,1105 @@
-# Architecture Research
+# Architecture: packages/react Hooks Library
 
-**Project:** LSP Indexer V2 — Completing the Rewrite
-**Domain:** Blockchain event indexer pipeline architecture
-**Researched:** 2026-02-06
-**Confidence:** HIGH (primary source: existing codebase analysis of V1 + compiled V2 artifacts)
+**Project:** LSP Indexer v1.1 — React Hooks Package
+**Domain:** Publishable React hooks library for GraphQL data consumption
+**Researched:** 2026-02-16
+**Confidence:** HIGH (codebase analysis + official library documentation + established patterns)
 
 ---
 
-## Pipeline Integration
+## Executive Summary
 
-### The 6-Step Pipeline Is Already Implemented
+The `packages/react` library provides type-safe React hooks for consuming LUKSO indexer data via the Hasura GraphQL API. It replaces the marketplace's fragmented pattern (mixin-based LSPIndexerClient → class services → actions → hooks) with a clean, three-layer architecture: **codegen types → service functions → hooks**.
 
-The `processBatch()` function in `packages/indexer-v2/lib/core/pipeline.js` fully implements the 6-step pipeline. The remaining work is **wiring**, not **designing**. Here's what exists vs. what's missing:
+The architecture uses **function-based services** (not classes) as the framework-agnostic core, with thin hook wrappers for client-side TanStack Query and thin action wrappers for server-side next-safe-action. Both patterns share the same services, eliminating code duplication.
 
-**Exists (compiled JS, source lost):**
+The package uses **multiple entry points** (`@lsp-indexer/react`, `@lsp-indexer/react/server`) to keep server-only code (next-safe-action) out of client bundles, with `tsup` for ESM/CJS dual builds and `@graphql-codegen/client-preset` for type generation from the Hasura introspection schema.
 
-- `processBatch()` — complete orchestrator for all 6 steps
-- `BatchContext` — entity bag with sealed types, enrichment queue, clear queue, persist hints
-- `PluginRegistry` — auto-discovers `*.plugin.js` and `*.handler.js` files from directories
-- 11 EventPlugins (all event types)
-- 15 DataKey EntityHandlers (LSP3-LSP12, LSP29 data keys)
-- `NFTHandler` with cross-source deduplication
-- `DecimalsHandler` (old interface, needs refactoring)
-- `MetadataWorkerPool` — worker thread pool for parallel IPFS/HTTP fetching
-- `handlerHelpers` — `mergeEntitiesFromBatchAndDb()`, `updateTotalSupply()`, `updateOwnedAssets()`
-- Pipeline tests (compiled Vitest)
+**Key design decisions:**
 
-**Missing (must be built as new TypeScript source):**
+1. **Function-based services over class-based** — eliminates mixin complexity, enables tree-shaking
+2. **`fetch`-based GraphQL client over graphql-request** — `graphql-request` is now `graffle` (renamed, heavier); raw `fetch` with a typed wrapper is simpler, lighter, zero dependencies
+3. **Multiple entry points** — `@lsp-indexer/react` (client hooks + services), `@lsp-indexer/react/server` (server actions + utilities)
+4. **Parsers transform at the service layer** — raw Hasura snake_case → clean camelCase happens once in services, hooks get clean types
+5. **tsup for builds** — proven, fast, handles ESM/CJS/DTS, supports multiple entry points natively
 
-1. **Refactored handlers** — `totalSupply`, `ownedAssets`, `decimals` to new EntityHandler interface (#105)
-2. **FormattedTokenId handler** (#113)
-3. **Permissions update handler** (#50) — V2 version (the V2 compiled `lsp6Controllers.handler.js` already handles this internally using `queueClear()`)
-4. **Follower system handler** (#52)
-5. **LSP3 metadata fetch handler** (#53)
-6. **LSP4 metadata fetch handler** (#54)
-7. **LSP29 metadata fetch handler** (#55)
-8. **Structured logging** (#94)
-9. **Processor configuration** (#57)
-10. **Entry point & startup wiring** (#58)
-11. **Integration testing** (#59)
-12. **Legacy code deletion** (#106)
+---
 
-### Pipeline Flow (Canonical Reference)
+## Package Directory Structure
 
 ```
-EXTRACT → PERSIST RAW → HANDLE → CLEAR SUB-ENTITIES → PERSIST DERIVED → VERIFY → ENRICH
-  Step 1      Step 2      Step 3       Step 3.5            Step 4         Step 5   Step 6
+packages/react/
+├── package.json
+├── tsconfig.json
+├── tsup.config.ts
+├── codegen.ts                         # GraphQL codegen configuration
+│
+├── src/
+│   ├── index.ts                       # Main entry: re-exports client hooks + services + types + provider
+│   ├── server.ts                      # Server entry: re-exports server actions + utilities
+│   │
+│   ├── client/                        # GraphQL client setup
+│   │   ├── index.ts                   # createIndexerClient(), default client
+│   │   ├── client.ts                  # Typed fetch wrapper for GraphQL
+│   │   └── provider.tsx               # <IndexerProvider> React context for client config
+│   │
+│   ├── graphql/                       # Codegen output (GENERATED — do not edit)
+│   │   ├── graphql.ts                 # TypedDocumentString, fragment masking
+│   │   ├── fragment-masking.ts        # Fragment utilities
+│   │   └── gql.ts                     # graphql() tagged template helper
+│   │
+│   ├── documents/                     # GraphQL query documents per domain
+│   │   ├── index.ts                   # Re-exports all documents
+│   │   ├── universal-profile.ts       # UP queries
+│   │   ├── digital-asset.ts           # DA queries
+│   │   ├── nft.ts                     # NFT queries
+│   │   ├── owned-assets.ts            # OwnedAsset/OwnedToken queries
+│   │   ├── social.ts                  # Follow/Follower/Unfollow queries
+│   │   ├── creator.ts                 # LSP4Creator queries
+│   │   ├── lsp29.ts                   # Encrypted asset queries
+│   │   ├── lsp29-feed.ts             # LSP29 feed queries
+│   │   ├── data-changed.ts           # DataChanged event queries
+│   │   ├── universal-receiver.ts     # UniversalReceiver event queries
+│   │   └── up-stats.ts               # UP aggregate stats queries
+│   │
+│   ├── types/                         # Clean output types (not raw Hasura types)
+│   │   ├── index.ts                   # Re-exports all types
+│   │   ├── universal-profile.ts       # UniversalProfile, ProfileMetadata
+│   │   ├── digital-asset.ts           # DigitalAsset, TokenMetadata
+│   │   ├── nft.ts                     # NFT, NFTMetadata
+│   │   ├── owned-assets.ts            # OwnedAsset, OwnedToken
+│   │   ├── social.ts                  # Follow, Follower
+│   │   ├── common.ts                  # Pagination, shared types
+│   │   └── params.ts                  # Service function parameter types
+│   │
+│   ├── parsers/                       # Transform raw Hasura → clean types
+│   │   ├── index.ts                   # Re-exports all parsers
+│   │   ├── universal-profile.ts       # parseUniversalProfile()
+│   │   ├── digital-asset.ts           # parseDigitalAsset()
+│   │   ├── nft.ts                     # parseNFT()
+│   │   ├── owned-assets.ts            # parseOwnedAsset()
+│   │   ├── social.ts                  # parseFollow()
+│   │   ├── metadata.ts               # parseLSP3Metadata(), parseLSP4Metadata()
+│   │   └── utils.ts                   # camelCase helpers, null coalescing
+│   │
+│   ├── services/                      # Framework-agnostic query functions
+│   │   ├── index.ts                   # Re-exports all services
+│   │   ├── universal-profile.ts       # getUniversalProfile(), getUniversalProfiles()
+│   │   ├── digital-asset.ts           # getDigitalAsset(), getDigitalAssets()
+│   │   ├── nft.ts                     # getNFT(), getNFTs(), getNFTsByAsset()
+│   │   ├── owned-assets.ts            # getOwnedAssets(), getOwnedTokens()
+│   │   ├── social.ts                  # getFollowers(), getFollowing()
+│   │   ├── creator.ts                 # getCreators(), getCreatedAssets()
+│   │   ├── lsp29.ts                   # getEncryptedAssets(), getEncryptedAsset()
+│   │   ├── lsp29-feed.ts             # getLSP29Feed()
+│   │   ├── data-changed.ts           # getDataChangedEvents()
+│   │   ├── universal-receiver.ts     # getUniversalReceiverEvents()
+│   │   └── up-stats.ts               # getUPStats()
+│   │
+│   ├── hooks/                         # TanStack Query hooks (client-side)
+│   │   ├── index.ts                   # Re-exports all hooks
+│   │   ├── universal-profile.ts       # useUniversalProfile(), useUniversalProfiles()
+│   │   ├── digital-asset.ts           # useDigitalAsset(), useDigitalAssets()
+│   │   ├── nft.ts                     # useNFT(), useNFTs()
+│   │   ├── owned-assets.ts            # useOwnedAssets(), useOwnedTokens()
+│   │   ├── social.ts                  # useFollowers(), useFollowing()
+│   │   ├── creator.ts                 # useCreators(), useCreatedAssets()
+│   │   ├── lsp29.ts                   # useEncryptedAssets(), useEncryptedAsset()
+│   │   ├── lsp29-feed.ts             # useLSP29Feed()
+│   │   ├── data-changed.ts           # useDataChangedEvents()
+│   │   ├── universal-receiver.ts     # useUniversalReceiverEvents()
+│   │   └── up-stats.ts               # useUPStats()
+│   │
+│   └── server/                        # Server-side utilities (next-safe-action)
+│       ├── index.ts                   # Re-exports server actions
+│       ├── action-client.ts           # createActionClient() helper
+│       └── actions/                   # Server action wrappers per domain
+│           ├── index.ts
+│           ├── universal-profile.ts   # getUniversalProfileAction()
+│           ├── digital-asset.ts       # getDigitalAssetAction()
+│           └── ...                    # (mirrors services/ structure)
+│
+├── generated/                         # Committed codegen output (outside src for clarity)
+│   ├── schema.graphql                 # Introspected Hasura schema
+│   └── hasura-types.ts               # Full Hasura operation types (used by documents)
+│
+└── test/
+    ├── services/                      # Service function tests
+    ├── parsers/                       # Parser unit tests
+    └── hooks/                         # Hook integration tests
 ```
 
-**Step 1 (EXTRACT):** EventPlugins decode logs → `batchCtx.addEntity()` + `batchCtx.queueEnrichment()`
-**Step 2 (PERSIST RAW):** Pipeline calls `store.insert()` for each entity type key in BatchContext
-**Step 2.5:** `batchCtx.sealRawEntityTypes()` — prevents handlers from writing to raw types
-**Step 3 (HANDLE):** EntityHandlers run via `registry.getAllEntityHandlers()`, triggered by `listensToBag` match
-**Step 3.5 (CLEAR):** Process `batchCtx.getClearQueue()` — delete-then-reinsert for sub-entities (LSP6 permissions, etc.)
-**Step 4 (PERSIST DERIVED):** Pipeline calls `store.upsert()` for derived types (skipping sealed raw types). Uses merge-upsert when `persistHint` is set.
-**Step 5 (VERIFY):** Collect addresses from enrichment queue, batch `supportsInterface()`, persist core entities (UP, DA)
-**Step 6 (ENRICH):** Batch `store.upsert()` to set FK fields on already-persisted entities
+### Why This Structure
 
-### Integration Pattern for Remaining Handlers
+1. **`documents/` separate from `services/`** — queries define WHAT to ask, services define HOW to ask and WHAT to return. A service may compose multiple documents or add pagination logic.
+2. **`parsers/` as explicit layer** — raw Hasura types have `_bool_exp`, snake_case, nullable everything. Parsers transform this into clean TypeScript types. Making this explicit (not hidden in services) ensures consistent transformation and testability.
+3. **`types/` for clean output** — consumers import types from `@lsp-indexer/react` that are camelCase, non-nullable where appropriate, and documented. These are NOT the raw codegen types.
+4. **`server/` behind separate entry point** — `next-safe-action` and Node.js-only code stays out of client bundles. Only importable via `@lsp-indexer/react/server`.
 
-All remaining handlers must follow the established pattern visible in the compiled V2 code:
+---
+
+## Component Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    packages/react                            │
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Entry: @lsp-indexer/react (src/index.ts)            │   │
+│  │                                                       │   │
+│  │  ┌─────────────┐  ┌────────────┐  ┌──────────────┐  │   │
+│  │  │   hooks/    │  │  services/ │  │   types/     │  │   │
+│  │  │ TanStack Q  │──│ Pure fns   │  │ Clean types  │  │   │
+│  │  └─────────────┘  └──────┬─────┘  └──────────────┘  │   │
+│  │                          │                            │   │
+│  │  ┌─────────────┐  ┌─────┴──────┐  ┌──────────────┐  │   │
+│  │  │  client/    │  │ documents/ │  │  parsers/    │  │   │
+│  │  │ Fetch wrap  │  │ GQL docs   │  │ Raw → Clean  │  │   │
+│  │  └──────┬──────┘  └────────────┘  └──────────────┘  │   │
+│  │         │                                             │   │
+│  │  ┌──────┴──────┐                                     │   │
+│  │  │  graphql/   │  (codegen output — generated)       │   │
+│  │  └─────────────┘                                     │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Entry: @lsp-indexer/react/server (src/server.ts)    │   │
+│  │                                                       │   │
+│  │  ┌─────────────────┐                                 │   │
+│  │  │ server/actions/  │───► uses services/ from above  │   │
+│  │  │ next-safe-action │                                 │   │
+│  │  └─────────────────┘                                 │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                              │
+│  External Dependencies:                                      │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  packages/typeorm/schema.graphql → Hasura endpoint  │    │
+│  │  (codegen source — introspects Hasura for types)    │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Dependency Flow (Internal)
+
+```
+hooks/ ──────────► services/ ──────────► documents/
+  │                    │                      │
+  │                    │                      ▼
+  │                    │                 graphql/  (codegen types)
+  │                    │
+  │                    ├──────────► parsers/
+  │                    │                │
+  │                    │                ▼
+  │                    │           types/ (clean output)
+  │                    │
+  │                    └──────────► client/ (GraphQL fetch wrapper)
+  │
+  └──────────► client/provider.tsx (for QueryClient + URL context)
+
+server/actions/ ───► services/ (reuses same services)
+```
+
+### External Dependency Map
+
+```
+packages/react depends on:
+  ├── packages/typeorm/schema.graphql  (codegen source — dev time only)
+  │
+  ├── Peer Dependencies (user provides):
+  │   ├── react ^18.0.0
+  │   ├── @tanstack/react-query ^5.0.0
+  │   └── next-safe-action ^7.0.0  (optional — only for server entry)
+  │
+  └── Direct Dependencies:
+      └── (none — fetch is global, codegen output is committed)
+```
+
+---
+
+## Data Flow: Client-Side Pattern
+
+The primary consumption pattern. Hook calls service → service executes GraphQL → parser transforms result → hook returns clean typed data.
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  Consumer Component                                               │
+│                                                                   │
+│  const { data } = useUniversalProfile({ address: "0x..." });    │
+│                     │                                            │
+└─────────────────────┼────────────────────────────────────────────┘
+                      │
+                      ▼
+┌──────────────────────────────────────────────────────────────────┐
+│  hooks/universal-profile.ts                                       │
+│                                                                   │
+│  export function useUniversalProfile(params) {                   │
+│    const client = useIndexerClient();   // from context           │
+│    return useQuery({                                              │
+│      queryKey: ['universal-profile', params.address],             │
+│      queryFn: () => getUniversalProfile(client, params),         │
+│      enabled: !!params.address,                                   │
+│    });                                                            │
+│  }                                                                │
+└──────────────────────┬───────────────────────────────────────────┘
+                       │
+                       ▼
+┌──────────────────────────────────────────────────────────────────┐
+│  services/universal-profile.ts                                    │
+│                                                                   │
+│  export async function getUniversalProfile(                      │
+│    client: IndexerClient,                                         │
+│    params: GetUniversalProfileParams                              │
+│  ): Promise<UniversalProfile> {                                  │
+│    const raw = await client.execute(                              │
+│      UniversalProfileDocument,     // from documents/             │
+│      { address: params.address }                                  │
+│    );                                                             │
+│    return parseUniversalProfile(raw.universalProfile[0]);        │
+│  }                                                                │
+└──────────────────────┬───────────────────────────────────────────┘
+                       │
+              ┌────────┴────────┐
+              │                 │
+              ▼                 ▼
+┌─────────────────────┐  ┌────────────────────────┐
+│  client/client.ts   │  │  parsers/universal-    │
+│                     │  │  profile.ts            │
+│  execute(doc, vars) │  │                        │
+│    │                │  │  parseUniversalProfile │
+│    ▼                │  │  (raw) → clean type    │
+│  fetch(hasuraUrl, { │  │  - camelCase fields    │
+│    body: JSON.str.. │  │  - null coalescing     │
+│    headers: {       │  │  - nested parsing      │
+│      x-hasura-role  │  │    (metadata, images)  │
+│    }                │  │                        │
+│  })                 │  └────────────────────────┘
+│    │                │
+│    ▼                │
+│  Hasura GraphQL API │
+└─────────────────────┘
+```
+
+### Detailed Data Flow
+
+1. **Component** calls `useUniversalProfile({ address: "0x..." })`
+2. **Hook** reads `IndexerClient` from React context (URL, headers configured at app root)
+3. **Hook** wraps `getUniversalProfile()` service call in `useQuery()` with deterministic query key
+4. **Service** calls `client.execute(UniversalProfileDocument, variables)`
+5. **Client** performs `fetch(url, { method: 'POST', body: JSON.stringify({ query, variables }) })`
+6. **Hasura** returns raw GraphQL response with snake_case fields, nullable everything
+7. **Service** passes raw data to `parseUniversalProfile()` which:
+   - Transforms snake_case → camelCase (e.g., `lsp3_profile` → `lsp3Profile`)
+   - Coalesces nulls (e.g., `name?.value ?? null`)
+   - Recursively parses nested objects (metadata → images, tags, links)
+   - Returns clean `UniversalProfile` type
+8. **Hook** returns TanStack Query result (`{ data, isLoading, error, ... }`)
+
+---
+
+## Data Flow: Server-Side Pattern
+
+For Next.js App Router server components that need server-only data fetching via next-safe-action.
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  Server Component (Next.js App Router)                            │
+│                                                                   │
+│  const { data } = await getUniversalProfileAction({              │
+│    address: "0x..."                                               │
+│  });                                                              │
+└──────────────────────┬───────────────────────────────────────────┘
+                       │
+                       ▼
+┌──────────────────────────────────────────────────────────────────┐
+│  server/actions/universal-profile.ts                              │
+│                                                                   │
+│  export const getUniversalProfileAction = actionClient           │
+│    .schema(z.object({ address: z.string() }))                    │
+│    .action(async ({ parsedInput }) => {                          │
+│      const client = createServerClient();  // server env vars    │
+│      return getUniversalProfile(client, parsedInput);            │
+│    });                                                            │
+│  // Uses SAME service as client-side hooks                       │
+└──────────────────────┬───────────────────────────────────────────┘
+                       │
+                       ▼
+┌──────────────────────────────────────────────────────────────────┐
+│  services/universal-profile.ts  (SAME as client-side)            │
+│                                                                   │
+│  getUniversalProfile(client, params) → UniversalProfile          │
+└──────────────────────────────────────────────────────────────────┘
+                       │
+                       ▼
+                  Hasura GraphQL API
+```
+
+### Key Design: Service Reuse
+
+The **services** layer is framework-agnostic. It takes an `IndexerClient` (which is just a thin typed `fetch` wrapper) and returns parsed types. This means:
+
+- **Client-side hooks** call `service(clientFromContext, params)`
+- **Server-side actions** call `service(clientFromEnvVars, params)`
+- **Tests** call `service(mockClient, params)` directly
+
+No code duplication. The service is the single source of truth for "how to query X."
+
+---
+
+## Type Flow
+
+```
+packages/typeorm/schema.graphql                    (entity definitions — source of truth)
+        │
+        ▼
+Hasura auto-generates GraphQL schema               (adds _bool_exp, _order_by, aggregate, etc.)
+        │
+        ▼
+codegen.ts introspects Hasura endpoint             (fetches full schema with Hasura types)
+        │
+        ▼
+generated/schema.graphql                            (full introspected Hasura schema — committed)
+        │
+        ▼
+@graphql-codegen/client-preset                     (generates TypeScript from documents)
+        │
+        ├──► src/graphql/graphql.ts                 (TypedDocumentString with full response types)
+        │
+        └──► Used by: src/documents/*.ts            (query documents use graphql() tagged template)
+                │
+                ▼
+        Codegen infers per-document types:           (UniversalProfileQuery, UniversalProfileQueryVariables)
+                │
+                ▼
+        services/ call client.execute(doc, vars)    (TypedDocumentString provides input/output types)
+                │
+                ▼
+        Raw response types → parsers/               (Hasura raw types: nullable, snake_case)
+                │
+                ▼
+        parsers/ → types/                           (Clean types: non-nullable where safe, camelCase)
+                │
+                ▼
+        hooks/ return clean types                    (useUniversalProfile() → { data: UniversalProfile })
+```
+
+### Type Layers
+
+| Layer                            | Example Type                       | Characteristics                                                              |
+| -------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------- |
+| **Hasura Raw** (codegen)         | `UniversalProfile_Bool_Exp`        | Generated, snake_case, all nullable, includes `_bool_exp`, `_order_by`       |
+| **Document Response** (codegen)  | `UniversalProfileQuery`            | Generated per-document, exact shape of query response                        |
+| **Clean Output** (hand-written)  | `UniversalProfile`                 | camelCase, documented, non-nullable where guaranteed, nested types flattened |
+| **Hook Return** (TanStack Query) | `UseQueryResult<UniversalProfile>` | Wraps clean type in TanStack Query's loading/error states                    |
+
+### Parser Example
 
 ```typescript
-// Handler file: handlers/{name}.handler.ts
-import { EntityHandler, HandlerContext, EntityCategory } from '@/core/types';
+// Raw from Hasura (codegen type)
+interface RawUniversalProfile {
+  id: string;
+  address: string;
+  lsp3_profile: {
+    name: { value: string | null } | null;
+    description: { value: string | null } | null;
+    profile_image: Array<{
+      url: string | null;
+      width: number | null;
+      height: number | null;
+    }> | null;
+    tags: Array<{ value: string | null }> | null;
+  } | null;
+}
 
-const MyHandler: EntityHandler = {
-  name: 'myHandler',
-  listensToBag: ['DataChanged'], // or ['LSP7Transfer', 'LSP8Transfer'], etc.
+// Clean output type (hand-written)
+interface UniversalProfile {
+  id: string;
+  address: string;
+  name: string | null;
+  description: string | null;
+  profileImages: ProfileImage[];
+  tags: string[];
+}
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const events = hctx.batchCtx.getEntities<MyEventType>(triggeredBy);
+// Parser function
+function parseUniversalProfile(raw: RawUniversalProfile): UniversalProfile {
+  const profile = raw.lsp3_profile;
+  return {
+    id: raw.id,
+    address: raw.address,
+    name: profile?.name?.value ?? null,
+    description: profile?.description?.value ?? null,
+    profileImages: (profile?.profile_image ?? []).map((img) => ({
+      url: img.url ?? '',
+      width: img.width ?? 0,
+      height: img.height ?? 0,
+    })),
+    tags: (profile?.tags ?? []).map((t) => t.value).filter(Boolean) as string[],
+  };
+}
+```
 
-    for (const event of events.values()) {
-      // 1. Filter: self-select relevant events
-      if (event.dataKey !== MY_DATA_KEY) continue;
+---
 
-      // 2. Create derived entity with null FKs
-      const entity = new MyEntity({
-        id: event.address,
-        // ... fields
-        digitalAsset: null, // FK initially null
+## Export Strategy
+
+### Multiple Entry Points
+
+```jsonc
+// package.json
+{
+  "name": "@lsp-indexer/react",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+    },
+    "./server": {
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.js",
+      "types": "./dist/server.d.ts",
+    },
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+}
+```
+
+### What Each Entry Point Exports
+
+**`@lsp-indexer/react`** (client-safe):
+
+```typescript
+// Provider
+export { IndexerProvider, type IndexerConfig } from './client/provider';
+export { createIndexerClient, type IndexerClient } from './client';
+
+// Hooks (all 11 domains)
+export { useUniversalProfile, useUniversalProfiles } from './hooks/universal-profile';
+export { useDigitalAsset, useDigitalAssets } from './hooks/digital-asset';
+export { useNFT, useNFTs } from './hooks/nft';
+export { useOwnedAssets, useOwnedTokens } from './hooks/owned-assets';
+export { useFollowers, useFollowing } from './hooks/social';
+export { useCreators, useCreatedAssets } from './hooks/creator';
+export { useEncryptedAssets, useEncryptedAsset } from './hooks/lsp29';
+export { useLSP29Feed } from './hooks/lsp29-feed';
+export { useDataChangedEvents } from './hooks/data-changed';
+export { useUniversalReceiverEvents } from './hooks/universal-receiver';
+export { useUPStats } from './hooks/up-stats';
+
+// Services (for advanced/custom use)
+export * from './services';
+
+// Types
+export * from './types';
+```
+
+**`@lsp-indexer/react/server`** (server-only):
+
+```typescript
+// Server action helpers
+export { createServerClient } from './server';
+export { createActionClient } from './server/action-client';
+
+// Pre-built actions (all 11 domains)
+export { getUniversalProfileAction } from './server/actions/universal-profile';
+export { getDigitalAssetAction } from './server/actions/digital-asset';
+// ... etc
+
+// Re-export services + types for direct server use
+export * from './services';
+export * from './types';
+```
+
+### Tree-Shaking Considerations
+
+1. **ESM output is tree-shakeable** — tsup with `splitting: true` produces separate chunks
+2. **Function-based services** are fully tree-shakeable (unlike class methods which can't be individually eliminated)
+3. **Per-domain files** ensure importing `useUniversalProfile` doesn't pull in `useNFT`'s query documents
+4. **`"sideEffects": false`** in package.json tells bundlers everything is safe to tree-shake
+
+### Server-Only Import Safety
+
+The `./server` entry point should use `import "server-only"` at the top (a Next.js convention) to cause build errors if accidentally imported in client components:
+
+```typescript
+// src/server.ts
+import 'server-only'; // Build error if imported in client component
+
+export { createServerClient } from './server/action-client';
+// ...
+```
+
+This is a Next.js specific pattern but harmless for other frameworks (they won't have the `server-only` package installed, and this import is only in the server entry).
+
+---
+
+## GraphQL Client Configuration
+
+### Client Architecture
+
+```typescript
+// src/client/client.ts
+
+export interface IndexerClientConfig {
+  url: string;
+  headers?: Record<string, string>;
+}
+
+export interface IndexerClient {
+  execute<TResult, TVariables>(
+    document: TypedDocumentString<TResult, TVariables>,
+    ...[variables]: TVariables extends Record<string, never> ? [] : [TVariables]
+  ): Promise<TResult>;
+}
+
+export function createIndexerClient(config: IndexerClientConfig): IndexerClient {
+  return {
+    async execute(document, ...args) {
+      const [variables] = args;
+      const response = await fetch(config.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/graphql-response+json',
+          ...config.headers,
+        },
+        body: JSON.stringify({
+          query: document.toString(),
+          variables: variables ?? undefined,
+        }),
       });
 
-      // 3. Add to BatchContext
-      hctx.batchCtx.addEntity('MyEntity', entity.id, entity);
+      if (!response.ok) {
+        throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
+      }
 
-      // 4. Queue FK enrichment
-      hctx.batchCtx.queueEnrichment<MyEntity>({
-        category: EntityCategory.DigitalAsset,
-        address: event.address,
-        entityType: 'MyEntity',
-        entityId: entity.id,
-        fkField: 'digitalAsset',
-      });
-    }
+      const json = await response.json();
+      if (json.errors?.length) {
+        throw new GraphQLError(json.errors);
+      }
+
+      return json.data;
+    },
+  };
+}
+```
+
+### Why `fetch` Over graphql-request
+
+1. **graphql-request is now "graffle"** — renamed, much heavier (extensible client framework), overkill for typed queries
+2. **Zero dependencies** — `fetch` is global in all modern runtimes (Node 18+, browsers, Deno, Bun)
+3. **TypedDocumentString compatibility** — `@graphql-codegen/client-preset` generates `TypedDocumentString` which is just a string wrapper; works directly with fetch
+4. **Full control** — Hasura needs custom headers (`x-hasura-role`, `x-hasura-admin-secret`); trivial with fetch, requires middleware with graphql-request/graffle
+5. **Bundle size** — zero bytes added vs ~15KB+ for graphql-request
+
+### Environment Variable Handling
+
+```typescript
+// Client-side (Next.js convention)
+// Consumer's next.config.js exposes NEXT_PUBLIC_INDEXER_URL
+const clientUrl = process.env.NEXT_PUBLIC_INDEXER_URL ?? 'http://localhost:8080/v1/graphql';
+
+// Server-side (not exposed to browser)
+const serverUrl = process.env.INDEXER_URL ?? process.env.NEXT_PUBLIC_INDEXER_URL;
+```
+
+The package does NOT read env vars directly. Instead:
+
+```tsx
+// Consumer's app sets up the provider
+<IndexerProvider url={process.env.NEXT_PUBLIC_INDEXER_URL!} headers={{ 'x-hasura-role': 'public' }}>
+  <App />
+</IndexerProvider>
+```
+
+### Client Instantiation Strategy
+
+| Context                   | Strategy                    | Reason                                                     |
+| ------------------------- | --------------------------- | ---------------------------------------------------------- |
+| **Client-side (hooks)**   | Singleton via React Context | One client per app, shared across all hooks                |
+| **Server-side (actions)** | Per-request                 | Server actions may need different auth headers per request |
+| **Testing**               | Mock per test               | Each test gets isolated client                             |
+
+---
+
+## Provider Component
+
+```tsx
+// src/client/provider.tsx
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createIndexerClient, type IndexerClient, type IndexerClientConfig } from './client';
+
+interface IndexerContextValue {
+  client: IndexerClient;
+}
+
+const IndexerContext = createContext<IndexerContextValue | null>(null);
+
+export function useIndexerClient(): IndexerClient {
+  const ctx = useContext(IndexerContext);
+  if (!ctx) throw new Error('useIndexerClient must be used within <IndexerProvider>');
+  return ctx.client;
+}
+
+export interface IndexerProviderProps extends IndexerClientConfig {
+  children: ReactNode;
+  queryClient?: QueryClient; // Use existing QueryClient if available
+}
+
+export function IndexerProvider({ children, queryClient, ...config }: IndexerProviderProps) {
+  const client = useMemo(() => createIndexerClient(config), [config.url]);
+  const qc = useMemo(() => queryClient ?? new QueryClient(), [queryClient]);
+
+  return (
+    <QueryClientProvider client={qc}>
+      <IndexerContext.Provider value={{ client }}>{children}</IndexerContext.Provider>
+    </QueryClientProvider>
+  );
+}
+```
+
+**Key decisions:**
+
+- Provider optionally wraps `QueryClientProvider` — if consumer already has one, they pass it in
+- Client is memoized on URL to prevent unnecessary re-renders
+- No default URL in the package — consumer must provide it (explicit > implicit)
+
+---
+
+## Service Layer Design
+
+### Function-Based, Not Class-Based
+
+The marketplace uses:
+
+```typescript
+// BAD: marketplace pattern
+class LSPIndexerClient { ... }  // base with mixin
+class DigitalAssetService extends IndexerService { ... }  // per-domain class
+```
+
+Problems:
+
+- Mixins are fragile and hard to type
+- Class instances can't be tree-shaken
+- Constructor dependency injection is cumbersome
+- Testing requires mocking class hierarchy
+
+The new pattern:
+
+```typescript
+// GOOD: function-based
+export async function getDigitalAsset(
+  client: IndexerClient,
+  params: GetDigitalAssetParams,
+): Promise<DigitalAsset> {
+  const raw = await client.execute(DigitalAssetDocument, {
+    address: params.address,
+    getLsp4Metadata: params.includeMetadata ?? true,
+    getTransferEvents: params.includeTransfers ?? false,
+  });
+  return parseDigitalAsset(raw.digital_asset[0]);
+}
+```
+
+Benefits:
+
+- Pure function — testable with just a mock client
+- Tree-shakeable — unused services are eliminated
+- Type-safe — TypedDocumentString carries input/output types
+- Composable — one service can call another without class hierarchy
+
+### Service Function Signature Convention
+
+Every service follows the same pattern:
+
+```typescript
+export async function get[Entity](
+  client: IndexerClient,
+  params: Get[Entity]Params
+): Promise<[CleanType]>;
+
+export async function get[Entities](
+  client: IndexerClient,
+  params: Get[Entities]Params
+): Promise<{ items: [CleanType][]; totalCount: number }>;
+```
+
+- First arg is always `IndexerClient` (dependency injection via parameter, not constructor)
+- Second arg is always a typed params object
+- Return type is always a clean type (not raw Hasura type)
+- List queries always return `{ items, totalCount }` for pagination
+
+### How @include Directives Map
+
+The marketplace queries use `@include(if: $getLsp4Metadata)` etc. to conditionally fetch nested data. This maps to service params:
+
+```typescript
+interface GetDigitalAssetParams {
+  address: string;
+  includeMetadata?: boolean; // → $getLsp4Metadata @include
+  includeTransfers?: boolean; // → $getTransferEvents @include
+  includeCreators?: boolean; // → $getLsp4Creators @include
+  includeOwnedAssets?: boolean; // → $getOwnedAssets @include
+}
+```
+
+Services convert these boolean params to GraphQL variables, keeping the API clean for consumers.
+
+---
+
+## Build Configuration
+
+### tsup.config.ts
+
+```typescript
+import { defineConfig } from 'tsup';
+
+export default defineConfig({
+  entry: {
+    index: 'src/index.ts',
+    server: 'src/server.ts',
+  },
+  format: ['esm', 'cjs'],
+  dts: true,
+  splitting: true,
+  sourcemap: true,
+  clean: true,
+  external: ['react', '@tanstack/react-query', 'next-safe-action', 'zod', 'server-only'],
+  treeshake: true,
+});
+```
+
+### package.json (Build-Relevant Fields)
+
+```jsonc
+{
+  "name": "@lsp-indexer/react",
+  "version": "0.1.0",
+  "description": "Type-safe React hooks for LUKSO indexer data",
+  "license": "MIT",
+  "sideEffects": false,
+
+  "exports": {
+    ".": {
+      "import": { "types": "./dist/index.d.mts", "default": "./dist/index.mjs" },
+      "require": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    },
+    "./server": {
+      "import": { "types": "./dist/server.d.mts", "default": "./dist/server.mjs" },
+      "require": { "types": "./dist/server.d.ts", "default": "./dist/server.js" },
+    },
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist/",
+    "codegen": "graphql-codegen --config codegen.ts",
+    "codegen:watch": "graphql-codegen --config codegen.ts --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+  },
+
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "@tanstack/react-query": "^5.0.0",
+  },
+  "peerDependenciesMeta": {
+    "next-safe-action": { "optional": true },
+    "zod": { "optional": true },
+  },
+
+  "devDependencies": {
+    "@graphql-codegen/cli": "^5.0.0",
+    "@graphql-codegen/client-preset": "^4.0.0",
+    "@graphql-codegen/schema-ast": "^4.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.9.2",
+    "vitest": "^2.1.8",
+  },
+}
+```
+
+### GraphQL Codegen Configuration
+
+```typescript
+// codegen.ts
+import type { CodegenConfig } from '@graphql-codegen/cli';
+
+const config: CodegenConfig = {
+  // Introspect from Hasura endpoint (or use local schema file)
+  schema: [
+    {
+      [process.env.HASURA_GRAPHQL_ENDPOINT ?? 'http://localhost:8080/v1/graphql']: {
+        headers: {
+          'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET ?? '',
+        },
+      },
+    },
+  ],
+  documents: ['src/documents/**/*.ts'],
+  ignoreNoDocuments: true,
+  generates: {
+    // TypedDocumentString types from documents
+    './src/graphql/': {
+      preset: 'client',
+      config: {
+        documentMode: 'string', // String mode — no graphql-tag dependency
+        scalars: {
+          DateTime: 'string',
+          BigInt: 'string',
+          Int: 'number',
+          Float: 'number',
+        },
+      },
+    },
+    // Schema file for reference (committed)
+    './generated/schema.graphql': {
+      plugins: ['schema-ast'],
+      config: {
+        includeDirectives: true,
+      },
+    },
   },
 };
 
-export default MyHandler;
+export default config;
 ```
+
+### Why These Codegen Choices
+
+1. **`documentMode: 'string'`** — No runtime `graphql-tag` dependency. The `graphql()` function returns a `TypedDocumentString` (just a string with type information). Works directly with our fetch-based client.
+2. **`client` preset** — The modern recommended approach. Generates types per-document (not per-schema-type). Only generates types for fields you actually query.
+3. **`scalars` mapping** — Hasura's `DateTime` and `BigInt` come as strings. Map them explicitly rather than importing scalar packages.
+4. **Schema introspection from Hasura** — Not from `packages/typeorm/schema.graphql` directly, because Hasura adds `_bool_exp`, `_order_by`, `aggregate` types that TypeORM's schema doesn't have. Codegen needs the full Hasura schema.
 
 ---
 
-## Handler Dispatch
+## Build Order for Implementation
 
-### Registration: Auto-Discovery via PluginRegistry
+### Phase Dependencies
 
-The `PluginRegistry` provides two discovery methods:
-
-1. **`discover(pluginDirs: string[])`** — scans for `*.plugin.js` files, validates `EventPlugin` interface, indexes by `topic0` for O(1) routing
-2. **`discoverHandlers(handlerDirs: string[])`** — scans for `*.handler.js` files, validates `EntityHandler` interface, stores in ordered list
-
-Both use runtime `require()` to load compiled JS, check exports for `default` or named `plugin`/`handler`, and validate with type guards (`isEventPlugin`, `isEntityHandler`).
-
-**Key constraint:** Duplicate `topic0` (plugins) or duplicate `name` (handlers) throw errors at startup — fail-fast validation.
-
-### Dispatch: Bag-Based Triggering
-
-Handlers are NOT ordered by explicit priority. Instead:
-
-1. The pipeline iterates `registry.getAllEntityHandlers()` in **discovery order** (filesystem order of `*.handler.js` files)
-2. For each handler, iterates its `listensToBag` array
-3. If `batchCtx.hasEntities(bagKey)` is true, calls `handler.handle(handlerCtx, bagKey)`
-4. A handler with `listensToBag: ['LSP8Transfer', 'TokenIdDataChanged']` gets called **twice** if both bag keys have entities
-
-### Handler Ordering: Dependencies and Constraints
-
-The existing V2 compiled code reveals important ordering requirements:
-
-| Handler                     | Depends On                                   | Reason                                                         |
-| --------------------------- | -------------------------------------------- | -------------------------------------------------------------- |
-| `nft`                       | `LSP8Transfer`, `TokenIdDataChanged` plugins | Reads raw events to create NFT entities                        |
-| `formattedTokenId` (TODO)   | `nft` handler                                | Needs NFT entities in BatchContext                             |
-| `lsp6Controllers`           | DataChanged plugin                           | Creates permissions sub-entities that need clear-then-reinsert |
-| `totalSupply` (TODO)        | `LSP7Transfer`, `LSP8Transfer` plugins       | Reads Transfer entities for mint/burn                          |
-| `ownedAssets` (TODO)        | `LSP7Transfer`, `LSP8Transfer` plugins       | Reads Transfer entities for balance tracking                   |
-| `lsp3MetadataFetch` (TODO)  | `lsp3Profile` handler                        | Needs LSP3Profile entities with URLs                           |
-| `lsp4MetadataFetch` (TODO)  | `lsp4Metadata` handler                       | Needs LSP4Metadata entities with URLs                          |
-| `lsp29MetadataFetch` (TODO) | `lsp29EncryptedAsset` handler                | Needs LSP29 entities with URLs                                 |
-| `followerSystem` (TODO)     | Follow/Unfollow plugins                      | Creates/removes Follow entities                                |
-
-**Ordering enforcement:** Since handlers are discovered in filesystem order, naming conventions or explicit registration order controls execution sequence. The pipeline runs handlers sequentially with `await`, so order is deterministic.
-
-**Recommendation:** Use explicit registration order in the entry point rather than relying on filesystem order. This makes dependencies visible:
-
-```typescript
-// entry point bootstrap
-registry.registerEntityHandler(nftHandler);
-registry.registerEntityHandler(formattedTokenIdHandler);
-registry.registerEntityHandler(totalSupplyHandler);
-registry.registerEntityHandler(ownedAssetsHandler);
-// ... data key handlers (order-independent among themselves)
-registry.registerEntityHandler(lsp3ProfileHandler);
-registry.registerEntityHandler(lsp4MetadataHandler);
-// ... metadata fetch handlers (must run after their data key handlers)
-registry.registerEntityHandler(lsp3MetadataFetchHandler);
-registry.registerEntityHandler(lsp4MetadataFetchHandler);
-registry.registerEntityHandler(lsp29MetadataFetchHandler);
+```
+Phase 1: Foundation
+  ├── Package scaffolding (package.json, tsconfig, tsup)
+  ├── GraphQL codegen pipeline
+  └── Client module (fetch wrapper, types)
+      │
+      ▼
+Phase 2: Core Services (per domain)
+  ├── Query documents for each of 11 domains
+  ├── Parser functions for each domain
+  ├── Clean type definitions
+  └── Service functions for each domain
+      │
+      ▼
+Phase 3: React Layer
+  ├── Provider component (IndexerProvider)
+  ├── TanStack Query hooks for all 11 domains
+  └── Client-side integration tests
+      │
+      ▼
+Phase 4: Server Layer
+  ├── Server action client helper
+  ├── next-safe-action wrappers for all 11 domains
+  └── Server-side integration tests
+      │
+      ▼
+Phase 5: Polish
+  ├── Build verification (ESM/CJS/types)
+  ├── Tree-shaking verification
+  ├── Documentation and examples
+  └── Package publish configuration
 ```
 
-Alternatively, use `discoverHandlers()` for the bulk and only use explicit `registerEntityHandler()` for ordering-sensitive handlers.
+### What Must Exist Before What
 
-### Handler Categories
+| Component                  | Depends On                                        | Reason                                   |
+| -------------------------- | ------------------------------------------------- | ---------------------------------------- |
+| `codegen.ts`               | Running Hasura endpoint                           | Introspects schema for types             |
+| `src/graphql/` (generated) | `codegen.ts` + `src/documents/`                   | Codegen reads documents, generates types |
+| `src/documents/`           | Hasura schema knowledge                           | Query documents reference Hasura types   |
+| `src/types/`               | `src/graphql/`                                    | Clean types mirror raw types             |
+| `src/parsers/`             | `src/graphql/` + `src/types/`                     | Transforms raw → clean                   |
+| `src/client/`              | `src/graphql/`                                    | Client uses TypedDocumentString          |
+| `src/services/`            | `src/client/` + `src/documents/` + `src/parsers/` | Composes all three                       |
+| `src/hooks/`               | `src/services/` + `src/client/provider.tsx`       | Wraps services in TanStack Query         |
+| `src/server/`              | `src/services/`                                   | Wraps services in next-safe-action       |
+| `tsup` build               | All source files                                  | Bundles everything                       |
 
-Based on codebase analysis, handlers fall into three categories:
+### Suggested Implementation Sequence (Vertical Slice)
 
-**1. Data Key Handlers (pure entity creation)**
+Rather than building all documents, then all parsers, then all services, use a **vertical slice** approach per domain:
 
-- Listen to `DataChanged` or `TokenIdDataChanged`
-- Filter by `dataKey` prefix/match
-- Create derived entities, queue enrichment
-- Examples: `lsp4TokenName`, `lsp3Profile`, `lsp6Controllers`, `lsp5ReceivedAssets`
-- These are order-independent among themselves
+1. **Start with Universal Profile** (simplest, most used):
+   - Write `documents/universal-profile.ts`
+   - Run codegen → generates types
+   - Write `types/universal-profile.ts`
+   - Write `parsers/universal-profile.ts`
+   - Write `services/universal-profile.ts`
+   - Write `hooks/universal-profile.ts`
+   - Test end-to-end
+2. **Then Digital Asset** (adds complexity: @include directives)
+3. **Then NFT** (adds complexity: token-level queries)
+4. **Then remaining 8 domains** (follow established pattern)
 
-**2. Event-Derived Handlers (aggregate computation)**
-
-- Listen to Transfer or other event bags
-- Compute aggregates or maintain denormalized tables
-- Examples: `totalSupply`, `ownedAssets`, `nft`, `followerSystem`
-- May depend on each other (formattedTokenId depends on nft)
-
-**3. Metadata Fetch Handlers (async I/O, head-only)**
-
-- Listen to data key entity bags (`LSP3Profile`, `LSP4Metadata`, `LSP29EncryptedAsset`)
-- Only run when `isHead === true`
-- Use `workerPool.fetchBatch()` for parallel IPFS/HTTP fetching
-- Create sub-entities from parsed JSON
-- Queue clear requests for delete-then-reinsert of sub-entities
+This way, the pattern is validated early on one domain before replicating across all 11.
 
 ---
 
-## Merge-Upsert Patterns
+## Integration with Existing Monorepo
 
-### The Problem
+### New vs Modified Components
 
-Multiple data key events can populate different fields of the same entity. For example, `LSP5ReceivedAssets[]` Index events provide `arrayIndex` while `LSP5ReceivedAssetsMap` events provide `interfaceId`. If they fire in different batches, a plain upsert from the second batch would overwrite the first batch's non-null fields with null.
+| Component                         | Status                        | Notes                          |
+| --------------------------------- | ----------------------------- | ------------------------------ |
+| `packages/react/`                 | **NEW**                       | Entire package is new          |
+| `pnpm-workspace.yaml`             | Already includes `packages/*` | No change needed               |
+| `packages/typeorm/schema.graphql` | **READ-ONLY**                 | Source of truth, not modified  |
+| Root `package.json`               | May add `codegen` script      | Optional convenience script    |
+| Root `tsconfig.json`              | No change                     | React package has own tsconfig |
 
-### In-Batch Merge (Handler Logic)
+### Monorepo Workspace Integration
 
-Handlers use `mergeEntitiesFromBatchAndDb()` to check both BatchContext and database:
+The package is automatically included in the pnpm workspace because `pnpm-workspace.yaml` already specifies `packages/*`. To use it from another package or app within the monorepo:
 
-```typescript
-const existingAssets = await mergeEntitiesFromBatchAndDb<LSP5ReceivedAsset>(
-  hctx.store,
-  hctx.batchCtx,
-  RECEIVED_ASSET_TYPE,
-  LSP5ReceivedAsset,
-  potentialIds,
-);
-
-// Then check existingAssets before creating new entities
-const existing = existingAssets.get(id);
-if (existing) {
-  existing.arrayIndex = existing.arrayIndex ?? arrayIndex; // merge, don't overwrite
-  existing.timestamp = timestamp;
-  return;
-}
-// ... create new entity only if not found
-```
-
-### Cross-Batch Merge (Persist Hints)
-
-Handlers set persist hints to tell the pipeline to use merge-upsert behavior:
-
-```typescript
-hctx.batchCtx.setPersistHint<LSP6Controller>(CONTROLLER_TYPE, {
-  entityClass: LSP6Controller,
-  mergeFields: [
-    'arrayIndex',
-    'permissionsRawValue',
-    'allowedCallsRawValue',
-    'allowedDataKeysRawValue',
-  ],
-});
-```
-
-The pipeline's `mergeUpsertEntities()` then:
-
-1. Reads existing DB records by ID
-2. For each `mergeField`: if new entity has null but existing has non-null, preserves existing value
-3. Upserts the merged result
-
-**Important:** Once a field is set to non-null, it cannot be cleared back to null. This is intentional for data stability.
-
-### Sub-Entity Clear-Then-Reinsert (Clear Queue)
-
-For entities with child records (LSP6 permissions, LSP6 allowed calls), the pattern is:
-
-```typescript
-// In handler
-hctx.batchCtx.queueClear<LSP6Permission>({
-  subEntityClass: LSP6Permission,
-  fkField: 'controller',
-  parentIds: controllerIds,
-});
-```
-
-The pipeline processes this in Step 3.5, using TypeORM's `store.find()` + `store.remove()`.
-
----
-
-## Logging Architecture
-
-### Current State
-
-V1 uses `context.log.info(JSON.stringify({ message: "...", count: N }))` — manual JSON serialization throughout. No log levels beyond info/warn/error, no correlation IDs, no structured fields.
-
-### Recommended Logging Points in the 6-Step Pipeline
-
-| Pipeline Step           | What to Log                                                   | Level |
-| ----------------------- | ------------------------------------------------------------- | ----- |
-| Step 1: EXTRACT         | Plugin name, entity count per type                            | DEBUG |
-| Step 2: PERSIST RAW     | Entity type, count                                            | INFO  |
-| Step 2.5: SEAL          | Sealed type count                                             | DEBUG |
-| Step 3: HANDLE          | Handler name, triggered by, entities processed, derived count | INFO  |
-| Step 3.5: CLEAR         | Sub-entity class, parent count, removed count                 | INFO  |
-| Step 4: PERSIST DERIVED | Entity type, count, merge-upsert vs simple                    | INFO  |
-| Step 5: VERIFY          | Category, new/valid/invalid counts                            | INFO  |
-| Step 6: ENRICH          | Entity type, enriched count                                   | INFO  |
-| Metadata fetch          | Fetch count, success/fail, retry count                        | INFO  |
-| Batch summary           | Total batch time, block range, entity counts                  | INFO  |
-
-### Structured Logging Implementation
-
-**Recommendation:** Wrap `context.log` with a structured logger that adds:
-
-```typescript
-interface PipelineLogger {
-  // Auto-adds batch context (block range, batch ID)
-  step(step: string, data: Record<string, unknown>): void;
-  // Auto-adds handler name
-  handler(handler: string, data: Record<string, unknown>): void;
-  // Performance timing
-  timed<T>(label: string, fn: () => Promise<T>): Promise<T>;
+```jsonc
+// In consumer's package.json
+{
+  "dependencies": {
+    "@lsp-indexer/react": "workspace:*",
+  },
 }
 ```
 
-**Where to integrate:**
-
-1. **Pipeline level** — Create logger in `processBatch()`, pass to handlers via `HandlerContext`
-2. **Handler level** — Each handler uses `hctx.logger` for handler-scoped logging
-3. **Batch summary** — Log at end of `processBatch()` with aggregate metrics
-
-**Key principle:** Don't change the logging interface dramatically. The V2 pipeline already logs entity counts at each step. The structured logging layer should be a thin wrapper that:
-
-- Replaces `JSON.stringify()` calls with structured field passing
-- Adds batch context (block range, timestamp) automatically
-- Adds timing for performance monitoring
-- Supports log level filtering
-
-### Implementation Approach
-
-Since `context.log` is provided by Subsquid and must be used (it integrates with their framework), the structured logger should wrap it:
-
-```typescript
-class PipelineLogger {
-  constructor(
-    private ctx: Context,
-    private batchRange: { from: number; to: number },
-  ) {}
-
-  info(fields: Record<string, unknown>) {
-    this.ctx.log.info(
-      JSON.stringify({
-        ...fields,
-        blockRange: this.batchRange,
-        ts: Date.now(),
-      }),
-    );
-  }
-}
-```
-
-This is additive — no breaking changes to existing patterns.
-
----
-
-## Testing Architecture
-
-### Existing Test Patterns (from compiled V2 tests)
-
-The compiled `pipeline.test.js` (754 lines) and `batchContext.test.js` (199 lines) establish a clear testing architecture:
-
-**Test Organization:**
+### Build Order in Monorepo
 
 ```
-packages/indexer/src/core/__tests__/
-├── pipeline.test.ts          # Integration: 6-step pipeline
-├── batchContext.test.ts       # Unit: BatchContext class
-├── registry.test.ts           # Unit: PluginRegistry
-└── handlerHelpers.test.ts     # Unit: merge utilities
-
-packages/indexer/src/handlers/__tests__/
-├── totalSupply.handler.test.ts
-├── ownedAssets.handler.test.ts
-├── followerSystem.handler.test.ts
-├── lsp3MetadataFetch.handler.test.ts
-└── ...
+packages/abi (no deps)
+    ↓
+packages/typeorm (depends on abi indirectly — uses schema.graphql)
+    ↓
+packages/react (dev-time: introspects Hasura which reads typeorm schema)
 ```
 
-**Mock Factories (directly from compiled tests):**
-
-```typescript
-// Store mock with tracking arrays
-function createMockStore() {
-  const insertedEntities: any[] = [];
-  const upsertedEntities: any[] = [];
-  return Object.assign(
-    {
-      insert: vi.fn((entities) => {
-        insertedEntities.push(...entities);
-        return Promise.resolve();
-      }),
-      upsert: vi.fn((entities) => {
-        upsertedEntities.push(...entities);
-        return Promise.resolve();
-      }),
-      findBy: vi.fn(() => Promise.resolve([])),
-      find: vi.fn(() => Promise.resolve([])),
-      remove: vi.fn(() => Promise.resolve()),
-    },
-    { insertedEntities, upsertedEntities },
-  );
-}
-
-// Context mock
-function createMockContext(store, blocks = [mockBlock]) {
-  return {
-    blocks,
-    store,
-    log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-    isHead: false,
-  };
-}
-
-// Verification mock
-function createMockVerifyFn(validAddresses = new Set(), newAddresses = new Set()) {
-  return vi.fn((category, addresses) => {
-    const valid = new Set([...addresses].filter((a) => validAddresses.has(a)));
-    const newSet = new Set([...addresses].filter((a) => newAddresses.has(a)));
-    const invalid = new Set([...addresses].filter((a) => !validAddresses.has(a)));
-    const newEntities = new Map();
-    // create entity stubs for new addresses
-    return Promise.resolve({ new: newSet, valid, invalid, newEntities });
-  });
-}
-```
-
-### Testing Strategies by Handler Type
-
-**1. Data Key Handlers (unit tests):**
-
-- Create mock `HandlerContext` with pre-populated BatchContext
-- Add DataChanged events with specific `dataKey` and `dataValue`
-- Assert entities were added to BatchContext with correct values
-- Assert enrichment requests queued with correct FK fields
-
-```typescript
-it('should create LSP4TokenName entity from DataChanged event', () => {
-  const batchCtx = new BatchContext();
-  batchCtx.addEntity('DataChanged', 'dc1', {
-    id: 'dc1',
-    address: '0xDA',
-    dataKey: LSP4DataKeys.LSP4TokenName,
-    dataValue: '0x4d79546f6b656e', // "MyToken"
-    timestamp: 1000,
-  });
-
-  const hctx = {
-    batchCtx,
-    store: createMockStore(),
-    context: createMockContext(store),
-    isHead: false,
-    workerPool: mockPool,
-  };
-  handler.handle(hctx, 'DataChanged');
-
-  const entities = batchCtx.getEntities<LSP4TokenName>('LSP4TokenName');
-  expect(entities.get('0xDA')?.value).toBe('MyToken');
-});
-```
-
-**2. Event-Derived Handlers (integration tests):**
-
-- Need mock store that returns existing entities from `findBy()`
-- Test cross-batch merge behavior
-- Test aggregate computation (totalSupply increment/decrement)
-
-**3. Metadata Fetch Handlers (integration tests):**
-
-- Mock `workerPool.fetchBatch()` to return test JSON
-- Test sub-entity creation from parsed metadata
-- Test retry behavior with failed fetches
-- Test `isHead` gating (should be no-op when `isHead === false`)
-
-**4. Full Pipeline Tests (end-to-end):**
-
-- Use `processBatch()` with mock store, mock verify function, and mock worker pool
-- Assert correct entity persistence across all 6 steps
-- Test enrichment: entities persist with null FKs, then get enriched
-- Test sealed types: handlers can't write to raw entity types
-
-### Fixture-Based Testing
-
-For the remaining handlers, use a fixture approach:
-
-```typescript
-// fixtures/dataChanged.fixtures.ts
-export const lsp4TokenNameEvent = {
-  id: 'dc-1',
-  address: '0x1234...abcd',
-  dataKey: '0xdeba1e292f8ba11d...',
-  dataValue: '0x4d79546f6b656e',
-  timestamp: 1700000000,
-};
-
-export const lsp3ProfileEvent = {
-  id: 'dc-2',
-  address: '0x5678...efgh',
-  dataKey: '0x5ef...',
-  dataValue: '0x...', // encoded VerifiableURI
-  timestamp: 1700000000,
-};
-```
-
-### V1 vs V2 Data Comparison Testing
-
-For production cutover validation, the project needs:
-
-1. **Snapshot testing:** Index a known block range with V1 and V2, compare database states
-2. **Entity-by-entity comparison:** Query each table, diff records by ID
-3. **Automated via SQL:** Use `pg_dump` or direct SQL queries to compare table contents
-
-This is explicitly out of scope for unit/integration testing and should be a separate DevOps concern.
-
----
-
-## Entry Point Bootstrapping
-
-### Recommended Bootstrap Sequence
-
-Based on the existing V1 entry point (`packages/indexer/src/app/index.ts`) and V2 architecture:
-
-```typescript
-// packages/indexer/src/app/index.ts (V2 entry point)
-
-import { PluginRegistry, MetadataWorkerPool, processBatch, verifyAddresses } from '@/core';
-import { EvmBatchProcessor } from '@subsquid/evm-processor';
-import { TypeormDatabase } from '@subsquid/typeorm-store';
-
-// 1. Create registry
-const registry = new PluginRegistry();
-
-// 2. Discover plugins (auto-scan directories)
-registry.discover([path.resolve(__dirname, '../plugins/events')]);
-
-// 3. Discover handlers (auto-scan directories)
-registry.discoverHandlers([
-  path.resolve(__dirname, '../handlers'),
-  path.resolve(__dirname, '../handlers/chillwhales'),
-]);
-
-// 4. Configure processor from registry
-const processor = new EvmBatchProcessor()
-  .setGateway(SQD_GATEWAY)
-  .setRpcEndpoint({ url: RPC_URL, rateLimit: RPC_RATE_LIMIT })
-  .setFinalityConfirmation(FINALITY_CONFIRMATION)
-  .setBlockRange({ from: START_BLOCK });
-
-// 5. Add log subscriptions from registry
-for (const sub of registry.getLogSubscriptions()) {
-  processor.addLog(sub);
-}
-
-// 6. Add field selections
-processor.setFields({
-  log: { topics: true, data: true, transactionHash: true },
-  block: { timestamp: true },
-});
-
-// 7. Create worker pool
-const workerPool = new MetadataWorkerPool({
-  poolSize: WORKER_POOL_SIZE,
-  ipfsGateway: IPFS_GATEWAY,
-  maxRetries: FETCH_RETRY_COUNT,
-});
-
-// 8. Run processor
-processor.run(new TypeormDatabase(), async (context) => {
-  await processBatch(context, {
-    registry,
-    verifyAddresses,
-    workerPool,
-  });
-});
-
-// 9. Graceful shutdown
-process.on('SIGTERM', async () => {
-  await workerPool.shutdown();
-  process.exit(0);
-});
-```
-
-### Key Bootstrap Decisions
-
-**Plugin discovery vs explicit registration:**
-
-- Use `discover()` and `discoverHandlers()` for most plugins/handlers — this is the "add one file" promise
-- Use explicit `registerEntityHandler()` only for handlers with strict ordering requirements
-- Since `discoverHandlers()` scans recursively and sorts by filesystem order, naming prefixes (e.g., `01-nft.handler.ts`, `02-formattedTokenId.handler.ts`) could enforce order. However, explicit registration is more readable and maintainable.
-
-**Processor configuration from registry:**
-
-- `registry.getLogSubscriptions()` aggregates all topic0s and contract filters from plugins
-- This eliminates the V1 pattern of manually listing every event topic in `processor.ts`
-- New events are automatically subscribed when a plugin is added
-
----
-
-## Build Order
-
-### Recommended Implementation Order for Remaining Components
-
-Based on dependency analysis and risk assessment:
-
-#### Phase A: Refactor Existing (Low Risk)
-
-1. **#105: Refactor totalSupply, ownedAssets, decimals to EntityHandler interface**
-
-   - `totalSupply` → listens to `['LSP7Transfer', 'LSP8Transfer']`, uses `mergeEntitiesFromBatchAndDb`
-   - `ownedAssets` → listens to `['LSP7Transfer', 'LSP8Transfer']`, manages OwnedAsset/OwnedToken
-   - `decimals` → listens to BatchContext for newly verified DigitalAssets (special case: needs verification results, so must run at or after Step 5 — OR use a `post-verify` hook)
-   - **Note on decimals:** The current DecimalsHandler uses the OLD interface (`listensTo: [EntityCategory.DigitalAsset]`). In the new interface, it should listen to a special bag key populated after verification, or the pipeline should call it directly in Step 5.
-
-2. **#113: FormattedTokenId handler**
-
-   - Listens to `['NFT']` (the entity type key, not an event)
-   - Reads NFT entities from BatchContext, formats tokenId based on LSP8TokenIdFormat
-   - Must run AFTER the `nft` handler
-
-3. **#106: Delete legacy code**
-   - Remove DataKeyPlugin interface, populate helpers, old handler helpers
-   - This is safe after #105 completes
-
-#### Phase B: New Handlers (Medium Risk)
-
-4. **#52: Follower system handler**
-
-   - Listens to `['Follow', 'Unfollow']`
-   - Creates deterministic Follow entities, removes on Unfollow
-   - Port from V1 `followerSystemHandler.ts` — straightforward
-
-5. **#50: Permissions update handler**
-   - The compiled V2 `lsp6Controllers.handler.js` already handles this internally
-   - This issue may be **already resolved** by the existing handler that uses `queueClear()`
-   - Verify: check if the compiled handler covers the full V1 `permissionsUpdateHandler.ts` behavior
-   - If yes, this issue can be closed. If not, extend the existing handler.
-
-#### Phase C: Metadata Fetch Handlers (Higher Risk — External I/O)
-
-6. **#53: LSP3 metadata fetch handler**
-
-   - Listens to `['LSP3Profile']` entity type
-   - Only runs when `isHead === true`
-   - Uses `workerPool.fetchBatch()` to fetch URLs
-   - Creates sub-entities: LSP3ProfileName, LSP3ProfileDescription, LSP3ProfileImage, etc.
-   - Queues clear requests for sub-entity deletion before re-creation
-
-7. **#54: LSP4 metadata fetch handler**
-
-   - Same pattern as LSP3 but for LSP4Metadata
-   - Creates: LSP4MetadataAttribute, LSP4MetadataImage, LSP4MetadataAsset, etc.
-
-8. **#55: LSP29 metadata fetch handler**
-   - Same pattern for encrypted asset metadata
-
-#### Phase D: Cross-Cutting & Wiring (Must Come After Handlers)
-
-9. **#94: Structured logging layer**
-
-   - Can proceed in parallel with handler work
-   - Wrap `context.log` with structured fields, batch context, timing
-   - Apply to pipeline and all handlers
-
-10. **#57: Processor configuration**
-
-    - Generate processor config from registry
-    - Use `registry.getLogSubscriptions()` pattern
-    - Add field selections
-
-11. **#58: Entry point & startup wiring**
-
-    - Bootstrap sequence: registry → discover → processor → run
-    - Must come after all handlers are implemented
-    - Includes graceful shutdown for worker pool
-
-12. **#59: End-to-end integration testing**
-    - Full pipeline tests with all real handlers
-    - Fixture-based block/log data
-    - V1 vs V2 data comparison tooling
-
-### Dependency Graph
-
-```
-                    ┌─────────────┐
-                    │  EventPlugins│ (existing, compiled)
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │  #105 Refactor│──→ totalSupply, ownedAssets, decimals
-                    └──────┬──────┘
-                           │
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-        ┌──────────┐ ┌──────────┐ ┌──────────┐
-        │#113 Token│ │#52 Follow│ │#50 Perms │
-        │  Format  │ │  System  │ │ (verify) │
-        └──────────┘ └──────────┘ └──────────┘
-                           │
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-        ┌──────────┐ ┌──────────┐ ┌──────────┐
-        │#53 LSP3  │ │#54 LSP4  │ │#55 LSP29 │
-        │ MetaFetch│ │ MetaFetch│ │ MetaFetch│
-        └──────────┘ └──────────┘ └──────────┘
-                           │
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-        ┌──────────┐ ┌──────────┐ ┌──────────┐
-        │#94 Logger│ │#57 Config│ │#106 Clean│
-        └──────────┘ └──────────┘ └──────────┘
-                           │
-                    ┌──────▼──────┐
-                    │ #58 Entry   │
-                    │   Point     │
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ #59 E2E     │
-                    │   Tests     │
-                    └─────────────┘
-```
-
-### Parallelizable Work
-
-- **#94 (logging)** can proceed alongside all handler work
-- **#52 (follower)**, **#50 (permissions)**, **#113 (tokenId format)** are independent of each other
-- **#53, #54, #55** (metadata fetchers) share patterns and can be implemented together or sequentially
-- **#106 (cleanup)** can happen anytime after #105
-
-### Risk Assessment
-
-| Component                  | Risk   | Reason                                              |
-| -------------------------- | ------ | --------------------------------------------------- |
-| #105 Refactor handlers     | LOW    | Patterns clear from compiled V2 code                |
-| #113 FormattedTokenId      | LOW    | Small handler, clear interface                      |
-| #52 Follower system        | LOW    | Straightforward port from V1                        |
-| #50 Permissions            | LOW    | May already be handled by compiled V2 code          |
-| #53/#54/#55 Metadata fetch | MEDIUM | External I/O, retry logic, sub-entity parsing       |
-| #94 Structured logging     | LOW    | Thin wrapper, additive change                       |
-| #57 Processor config       | LOW    | Pattern exists in registry.getLogSubscriptions()    |
-| #58 Entry point            | MEDIUM | Integration of all components, startup ordering     |
-| #59 E2E testing            | MEDIUM | Need to reconstruct test fixtures, verify V1 parity |
-
-### Critical Decision: Source Recovery vs. Rewrite
-
-The V2 compiled JS files contain complete, working implementations. The source TypeScript is lost. Two approaches:
-
-**Option A: Reconstruct TypeScript from compiled JS**
-
-- Pros: Preserves battle-tested logic, faster
-- Cons: May miss type annotations, comments slightly different
-- Effort: ~2 hours per handler to reconstruct with proper types
-
-**Option B: Rewrite from V1 + V2 patterns**
-
-- Pros: Clean TypeScript from scratch, proper types
-- Cons: Risk of introducing bugs not in the compiled code
-- Effort: ~3-4 hours per handler
-
-**Recommendation:** Option A for core infrastructure (pipeline, batchContext, registry) and complex handlers (lsp6Controllers, lsp5ReceivedAssets, nft). Option B for simple handlers where the V2 compiled code closely mirrors V1 logic.
+The React package does NOT depend on `packages/typeorm` at runtime. The dependency is **dev-time only**: codegen introspects the Hasura endpoint, which auto-generates its schema from the PostgreSQL tables created by TypeORM entities.
 
 ---
 
 ## Anti-Patterns to Avoid
 
-### 1. Direct Store Access in Handlers
+### 1. Class-Based Services with Mixins
 
-**Don't:** Have handlers call `store.insert()` or `store.upsert()` directly.
-**Do:** Add entities to BatchContext via `addEntity()` and let the pipeline handle persistence.
+**Don't:**
 
-**Exception:** The `decimals` handler and `ownedAssets` handler legitimately need direct store access because they compute aggregates that require reading existing DB state. Use `mergeEntitiesFromBatchAndDb()` for this.
+```typescript
+class LSPIndexerClient extends DigitalAssetMixin(UniversalProfileMixin(BaseClient)) {}
+```
 
-### 2. Adding to Sealed Entity Types
+**Why bad:** Untypeable beyond 2-3 mixins, impossible to tree-shake, testing nightmare.
+**Do:** Function-based services with `IndexerClient` as first parameter.
 
-**Don't:** Have handlers add entities to the same type key used by EventPlugins (e.g., adding to 'Transfer' in a handler).
-**Do:** Use distinct type keys for derived entities (e.g., 'TotalSupply', 'OwnedAsset').
+### 2. Hooks That Directly Execute GraphQL
 
-The pipeline enforces this via `sealRawEntityTypes()` — it will throw if violated.
+**Don't:**
 
-### 3. Relying Only on BatchContext for Existing Entities
+```typescript
+function useUniversalProfile(address: string) {
+  return useQuery({
+    queryKey: ['up', address],
+    queryFn: async () => {
+      const res = await fetch(url, { body: ... });
+      const data = await res.json();
+      return data.data.universalProfile;  // raw Hasura type leaks
+    }
+  });
+}
+```
 
-**Don't:** Check only `batchCtx.getEntities()` when looking for existing entities.
-**Do:** Always use `mergeEntitiesFromBatchAndDb()` to check both batch and database.
+**Why bad:** Query logic duplicated in every hook. Raw types leak to consumers. Can't reuse on server.
+**Do:** Hook calls service → service handles fetch + parse.
 
-This is the #1 correctness pattern in the V2 codebase. Missing it causes data loss across batch boundaries.
+### 3. Circular Dependencies Between Parsers
 
-### 4. Spin-Wait Polling for Async Work
+**Don't:**
 
-**Don't:** Use `while (!done) { await timeout(1000); }` for waiting on async operations.
-**Do:** Use `workerPool.fetchBatch()` which returns a Promise with all results via `Promise.all()`.
+```typescript
+// parsers/universal-profile.ts
+import { parseDigitalAsset } from './digital-asset';
 
-The V2 MetadataWorkerPool already solves this. Don't replicate the V1 spin-wait pattern.
+// parsers/digital-asset.ts
+import { parseUniversalProfile } from './universal-profile';
+```
 
-### 5. Forgetting to Initialize FK Fields as null
+**Why bad:** Circular dependency causes runtime issues with ESM.
+**Do:** Keep parsers independent. If both need shared logic, extract to `parsers/utils.ts`.
 
-**Don't:** Omit FK fields from entity constructors.
-**Do:** Always explicitly set FK fields to `null` in the constructor.
+### 4. Server-Only Code in Main Entry Point
 
-The enrichment step uses `in` operator to check if the FK field exists on the entity instance. TypeORM uses `Object.assign(this, props)`, so fields only exist if explicitly passed. Omitting `digitalAsset` from the constructor means `'digitalAsset' in entity` returns `false`, and the pipeline logs a warning and skips enrichment.
+**Don't:**
+
+```typescript
+// src/index.ts
+export { createActionClient } from './server/action-client'; // imports 'server-only'
+```
+
+**Why bad:** Client bundles fail because `server-only` throws in browser. Even tree-shaking can't help if the import exists in the entry point.
+**Do:** Server code goes ONLY in `src/server.ts` entry point.
+
+### 5. Hardcoding GraphQL URL
+
+**Don't:**
+
+```typescript
+const client = createIndexerClient({
+  url: 'https://indexer.myapp.com/v1/graphql',
+});
+```
+
+**Why bad:** Package becomes app-specific. Can't be published.
+**Do:** Consumer provides URL via `<IndexerProvider url={...}>` or `createServerClient({ url: process.env.INDEXER_URL })`.
+
+### 6. Giant All-Fields Queries
+
+**Don't:** Write one mega-query per domain that fetches every field and relation.
+**Why bad:** Hasura sends massive payloads. Even with `@include`, the query itself is huge.
+**Do:** Use targeted queries: `getUniversalProfile` (with metadata), `getUniversalProfileMinimal` (just address + name). The `@include` pattern from the marketplace is good — keep it.
 
 ---
 
-_Researched: 2026-02-06_
-_Sources: Codebase analysis of V1 source (packages/indexer/src/) and V2 compiled artifacts (packages/indexer-v2/lib/). All findings are HIGH confidence — derived from direct code analysis, not external sources._
+## Scalability Considerations
+
+| Concern            | At 1 app (internal)         | At 10 apps (published)                      | At scale                           |
+| ------------------ | --------------------------- | ------------------------------------------- | ---------------------------------- |
+| **Query patterns** | Fixed 11 domains, all known | Same domains, varied usage patterns         | May need query customization hooks |
+| **Bundle size**    | Doesn't matter              | Tree-shaking critical                       | Per-domain code splitting          |
+| **Schema changes** | Just re-run codegen         | Semver: new fields = minor, removed = major | Automated codegen in CI            |
+| **Caching**        | Default TanStack Query      | Consumer configures stale times             | Consider query key factory pattern |
+| **Error handling** | Simple throw                | Structured error types                      | Retry logic in client              |
+
+---
+
+## Sources
+
+- **TanStack Query v5 Docs:** https://tanstack.com/query/latest (HIGH confidence — official)
+- **GraphQL Codegen Client Preset:** https://the-guild.dev/graphql/codegen/docs/guides/react-query (HIGH confidence — official)
+- **GraphQL Codegen Config:** https://the-guild.dev/graphql/codegen/docs/config-reference/codegen-config (HIGH confidence — official)
+- **tsup Documentation:** https://tsup.egoist.dev/ (HIGH confidence — official)
+- **graphql-request → Graffle rename:** https://github.com/graffle-js/graffle (HIGH confidence — official repo)
+- **Hasura GraphQL Engine:** https://hasura.io/docs (HIGH confidence — auto-schema generation pattern)
+- **Codebase analysis:** `packages/typeorm/schema.graphql` (925 lines, 72+ entity types) (HIGH confidence — direct)
+- **Monorepo patterns:** Existing `packages/abi/package.json`, `packages/typeorm/package.json` (HIGH confidence — direct)
+- **Next.js App Router patterns:** `server-only` import, React Server Components (HIGH confidence — established pattern)
+- **Package.json exports:** Node.js conditional exports documentation (HIGH confidence — official spec)
+
+---
+
+_Researched: 2026-02-16_
+_Confidence: HIGH — Architecture derived from direct codebase analysis of existing monorepo patterns, official library documentation (TanStack Query v5, GraphQL Codegen client preset, tsup), and established React hooks package conventions. The marketplace reference implementation provides concrete patterns to improve upon._

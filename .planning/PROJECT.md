@@ -1,12 +1,27 @@
-# LSP Indexer V2 — Complete the Rewrite
+# LSP Indexer
 
 ## What This Is
 
-The LSP Indexer is an open-source blockchain event indexer for the LUKSO network. It listens to on-chain events (transfers, profile updates, data key changes, follower actions, contract deployments), extracts structured data from them, and persists it to PostgreSQL. A Hasura GraphQL API auto-exposes the data for downstream consumers. V2 is a complete rewrite — migrating from a tightly-coupled pipeline to an enrichment queue architecture where adding a new event or data key requires exactly 1 file.
+The LSP Indexer is an open-source blockchain event indexer for the LUKSO network. It listens to on-chain events (transfers, profile updates, data key changes, follower actions, contract deployments), extracts structured data from them, and persists it to PostgreSQL. A Hasura GraphQL API auto-exposes the data for downstream consumers. The `packages/react` library provides type-safe React hooks for any app to consume this data — with both client-side and server-side patterns.
 
 ## Core Value
 
-The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
+Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer — without needing to understand the underlying blockchain, GraphQL schema, or indexing pipeline.
+
+## Current Milestone: v1.1 React Hooks Package
+
+**Goal:** Ship a standalone, publishable React hooks library (`packages/react`) that gives any app type-safe access to all 11 indexer query domains — with client-side hooks (TanStack Query), WebSocket subscriptions (`graphql-ws`), and server-side actions (`next-safe-action`).
+
+**Target features:**
+
+- GraphQL codegen from Hasura schema (types committed, schema from `packages/typeorm`)
+- 11 query domains: Universal Profiles, Digital Assets, NFTs, Owned Assets, Follows/Social, Creator Addresses, LSP29 Encrypted Assets, LSP29 Feed, Data Changed, Universal Receiver Events, UP Stats
+- Client-side hooks: TanStack Query hooks calling services directly
+- WebSocket subscriptions: `graphql-ws` subscription hooks with TanStack Query cache integration
+- Server-side hooks: services → next-safe-action server actions → hooks
+- TanStack Query provider (use existing or create new)
+- GraphQL URL via provider config (framework-agnostic)
+- Consistent patterns: every domain follows the same service → hook → action structure
 
 ## Current State
 
@@ -21,7 +36,7 @@ V2 rewrite is feature-complete with data parity validated against V1 via automat
 - 20 test files, 9,727 lines of test code
 - 29 handlers, 11 plugins, 72 entity types
 
-**Next:** Production cutover — run V2 alongside V1, validate parity with comparison tool, switch traffic.
+**Next:** React hooks package for consuming indexer data.
 
 ## Requirements
 
@@ -65,9 +80,19 @@ V2 rewrite is feature-complete with data parity validated against V1 via automat
 
 ### Active
 
-- [ ] Production cutover procedure with rollback plan
-- [ ] Full automated V1/V2 comparison test suite with CI integration
-- [ ] Performance benchmarks (V2 vs V1 throughput, memory, CPU)
+- [ ] `packages/react` — standalone React hooks library for indexer data consumption
+- [ ] GraphQL codegen pipeline from Hasura schema
+- [ ] 11 query domain services with consistent patterns
+- [ ] Client-side TanStack Query hooks for all domains
+- [ ] Server-side next-safe-action pattern for all domains
+- [ ] TanStack Query provider setup
+- [ ] Comprehensive tests and documentation for new devs
+
+### Deferred
+
+- Production cutover procedure with rollback plan — deferred from v1.0
+- Full automated V1/V2 comparison test suite with CI integration — deferred from v1.0
+- Performance benchmarks (V2 vs V1 throughput, memory, CPU) — deferred from v1.0
 
 ### Out of Scope
 
@@ -78,15 +103,18 @@ V2 rewrite is feature-complete with data parity validated against V1 via automat
 - Subsquid Portal SDK migration — breaking API changes, plan as separate post-V2 milestone
 - Multi-stage Docker build optimization — defer until cutover complete
 - Offline mode — real-time indexing is core value
+- Mutations/write operations — indexer is read-only, no write hooks needed
 
 ## Context
 
-- **Monorepo**: 3 packages — `abi` (contract types), `typeorm` (schema/models), `indexer` (V1 core), plus `indexer-v2` (V2 rewrite) and `comparison-tool`
+- **Monorepo**: 6 packages — `abi` (contract types), `typeorm` (schema/models), `indexer` (V1 core), `indexer-v2` (V2 rewrite), `comparison-tool`, and `react` (NEW — hooks library)
 - **Stack**: TypeScript, Subsquid EVM Processor, TypeORM + PostgreSQL, Hasura GraphQL, Viem, Node.js 22
 - **Schema**: ~80+ TypeORM entities generated from `schema.graphql`, mapping 1:1 to LUKSO LSP standards
+- **Hasura auto-generates GraphQL API** from PostgreSQL — codegen runs against Hasura endpoint to produce TypeScript types
 - **V1 is live in production** on Docker + VPS, indexing LUKSO mainnet
 - **V2 is feature-complete** — 29 EntityHandlers, 11 EventPlugins, 3 metadata fetchers, structured logging, queue-based worker pool
 - **Key V2 architecture**: Enrichment queue eliminates the populate phase — raw entities persist with null FKs, then batch UPDATE resolves references after verification
+- **Reference implementation**: `chillwhales/marketplace` has existing (non-ideal) GraphQL client, services, actions, and hooks — being standardized and extracted into `packages/react`
 
 ## Constraints
 
@@ -95,6 +123,9 @@ V2 rewrite is feature-complete with data parity validated against V1 via automat
 - **Existing schema**: TypeORM entities and `schema.graphql` shared between V1 and V2 — no breaking changes
 - **Subsquid framework**: Must use Subsquid's `EvmBatchProcessor` and `TypeormDatabase`
 - **LUKSO RPC**: Rate limited (default 10 req/s), finality confirmation at 75 blocks (~15 min)
+- **Framework compatibility**: React hooks package must work with Next.js App Router (primary) and any React 18+ app
+- **Publishable package**: `packages/react` must be installable via npm — no app-specific dependencies
+- **Env-driven config**: GraphQL URL comes from environment variable, not hardcoded
 
 ## Key Decisions
 
@@ -112,6 +143,8 @@ V2 rewrite is feature-complete with data parity validated against V1 via automat
 | Side-by-side V1/V2 validation           | Risk mitigation for production cutover — automated comparison ensures parity   | ✓ Good — comparison tool shipped |
 | Docker + VPS deployment                 | Matches existing V1 infrastructure, no infrastructure migration during rewrite | ✓ Good — both stacks running     |
 
+| React hooks package in lsp-indexer monorepo | Keeps indexer + consumers in one repo, schema stays in sync, single publish pipeline | — Pending |
+
 ---
 
-_Last updated: 2026-02-16 after v1.0 milestone_
+_Last updated: 2026-02-16 after v1.1 milestone start_
