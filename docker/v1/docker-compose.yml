@@ -1,8 +1,8 @@
 services:
   lsp-indexer:
     build:
-      context: ./
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: ./docker/v1/Dockerfile
     restart: unless-stopped
     depends_on:
       postgres:

@@ -15,4 +15,4 @@ RUN chmod 755 start.sh
 ENTRYPOINT [ "sh", "-c" ]
 
 # Run the script
-CMD [ "./start.sh" ]
+CMD [ "./docker/v1/start.sh" ]
