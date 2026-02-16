@@ -66,9 +66,6 @@ export async function resolveEntity<T extends Entity>(
  * requested IDs from DB. This supports intra-batch updates where one event's
  * entity affects another (e.g., totalSupply handler updates multiple addresses).
  *
- * This replaces the old mergeEntitiesFromBatchAndDb() with an identical
- * implementation but a clearer name that matches the resolveEntity API.
- *
  * Usage:
  * ```typescript
  * const nfts = await resolveEntities<NFT>(
@@ -110,23 +107,4 @@ export async function resolveEntities<T extends Entity>(
   }
 
   return merged;
-}
-
-// ---------------------------------------------------------------------------
-// Deprecated (for backward compatibility during migration)
-// ---------------------------------------------------------------------------
-
-/**
- * @deprecated Use resolveEntities instead. This is a temporary wrapper
- * to avoid breaking the build while handlers are being migrated.
- * Will be removed in Phase 5.3 Plan 04.
- */
-export async function mergeEntitiesFromBatchAndDb<T extends Entity>(
-  store: Store,
-  batchCtx: IBatchContext,
-  entityType: string,
-  entityClass: EntityConstructor<T>,
-  ids: string[],
-): Promise<Map<string, T>> {
-  return resolveEntities(store, batchCtx, entityType, entityClass, ids);
 }
