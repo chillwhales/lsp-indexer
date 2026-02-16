@@ -77,12 +77,14 @@ const FormattedTokenIdHandler: EntityHandler = {
 
         if (formatted === null && latestFormat?.value != null) {
           context.log.warn(
-            JSON.stringify({
-              message: 'Unknown LSP8TokenIdFormat — leaving formattedTokenId as null',
+            {
+              step: 'HANDLE',
+              handler: 'formattedTokenId',
               address: nft.address,
               tokenId: nft.tokenId,
-              format: latestFormat.value,
-            }),
+              format: latestFormat?.value,
+            },
+            'Unknown LSP8TokenIdFormat — leaving formattedTokenId as null',
           );
         }
 
@@ -139,12 +141,14 @@ const FormattedTokenIdHandler: EntityHandler = {
 
         if (formatted === null && format.value != null) {
           context.log.warn(
-            JSON.stringify({
-              message: 'Unknown LSP8TokenIdFormat — leaving formattedTokenId as null (retroactive)',
+            {
+              step: 'HANDLE',
+              handler: 'formattedTokenId',
               address: nft.address,
               tokenId: nft.tokenId,
               format: format.value,
-            }),
+            },
+            'Unknown LSP8TokenIdFormat — leaving formattedTokenId as null (retroactive)',
           );
         }
 
