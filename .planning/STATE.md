@@ -8,11 +8,11 @@
 
 ## Current Position
 
-- **Phase:** 10 of 10 — All phases complete
-- **Plan:** N/A
-- **Status:** Milestone ready
-- **Last activity:** 2026-02-15 — Completed Phase 5.3 (Entity Upsert Pattern Standardization)
-- **Progress:** ██████████ 42/42 requirements complete (ALL COMPLETE ✓)
+- **Phase:** 11 of 11 — Phase 6 (Tech Debt Cleanup)
+- **Plan:** 1 of 1 in current phase
+- **Status:** Phase complete
+- **Last activity:** 2026-02-16 — Completed 06-01-PLAN.md
+- **Progress:** ███████████ 45/45 requirements complete (ALL COMPLETE ✓)
 
 ## Phase Overview
 
@@ -28,13 +28,14 @@
 | 5.1   | Pipeline Bug Fix & Missing Handlers   | **Complete** |     5/5      |
 | 5.2   | LSP4 Base URI & Count Parity          | **Complete** |     4/4      |
 | 5.3   | Entity Upsert Pattern Standardization | **Complete** |     4/4      |
+| 6     | Tech Debt Cleanup                     | **Complete** |     3/3      |
 
 ## Performance Metrics
 
-- **Plans completed:** 35
+- **Plans completed:** 36
 - **Plans failed:** 0
-- **Phases completed:** 10 (of 10 total; 5 phases inserted)
-- **Requirements delivered:** 42/42 (ALL REQUIREMENTS COMPLETE — HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, PERF-01–04, INTG-01–04, DEPL-01–02, GAP-01–09, UPSRT-01–04)
+- **Phases completed:** 11 (of 11 total; 6 phases inserted)
+- **Requirements delivered:** 45/45 (ALL REQUIREMENTS COMPLETE — HMIG-01–05, HNDL-01–03, INFR-01–02, META-01–05, LOG-01–04, PERF-01–04, INTG-01–04, DEPL-01–02, GAP-01–09, UPSRT-01–04, DEBT-01–03)
 
 ## Accumulated Context
 
@@ -138,7 +139,7 @@
 
 ### Discovered Todos
 
-- decimals.handler.ts and formattedTokenId.handler.ts need logging updates when Phase 1 creates their TypeScript sources (4 JSON.stringify calls in compiled JS)
+_None currently — all tech debt items resolved in Phase 6._
 
 ### Blockers
 
@@ -148,20 +149,21 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-13
-- **Activity:** Phase 5.3 Plan 01 execution — Entity upsert pattern foundation
-- **Outcome:** Created `resolveEntity<T>()` and `resolveEntities<T>()` helpers with 12 comprehensive unit tests (all passing). Deleted `mergeEntitiesFromBatchAndDb` to force handler migration. 6 handlers now show expected compile errors (will be fixed in Plans 02-04). UPSRT-01 requirement complete.
-- **Stopped at:** Completed 05.3-01-PLAN.md
-- **Resume file:** `.planning/phases/05.3-entity-upsert-pattern-standardization/05.3-01-SUMMARY.md`
+- **Date:** 2026-02-16
+- **Activity:** Phase 6 Plan 01 execution — Tech debt cleanup
+- **Outcome:** Removed stale TODO from registry.ts, deleted deprecated mergeEntitiesFromBatchAndDb wrapper (zero callers), replaced 4 JSON.stringify log calls with structured logging in decimals.handler.ts and formattedTokenId.handler.ts. All 3 DEBT requirements complete (DEBT-01–03).
+- **Stopped at:** Completed 06-01-PLAN.md
+- **Resume file:** `.planning/phases/06-tech-debt-cleanup/06-01-SUMMARY.md`
 
 ### Context for Next Session
 
-- **Phase 5.3 Plan 01 complete:** Foundation helpers + tests (UPSRT-01 ✓)
-  - Created `resolveEntity<T>()` and `resolveEntities<T>()` helpers in handlerHelpers.ts
-  - 12 unit tests covering both helpers, all edge cases (all passing)
-  - Deleted `mergeEntitiesFromBatchAndDb` — 6 handlers show expected compile errors
-  - Commits: fe278a9 (feat), f54c589 (test)
-  - **Next:** Plan 02 (Tier 1 bugfix handlers: chillClaimed, orbsClaimed, lsp5ReceivedAssets, orbLevel, orbFaction)
+- **Phase 6 complete:** Tech Debt Cleanup (DEBT-01–03 ✓)
+  - Removed stale TODO from registry.ts (Phase 4 work already complete)
+  - Deleted deprecated mergeEntitiesFromBatchAndDb wrapper (0 callers)
+  - Replaced 4 JSON.stringify calls with structured logging
+  - All handlers now use context.log.warn({step, handler, ...}, message) pattern
+  - Commits: 91de6d6 (chore), e2e779f (refactor)
+  - **Next:** All 11 phases complete — ready for milestone audit and production cutover
 - **Phase 5 complete:** Comparison tool built and tested against live endpoints
   - Moved to standalone `packages/comparison-tool/` package (PR #159)
   - Supports v1-v2 and v2-v2 modes with tolerance percentage
@@ -188,4 +190,4 @@ _None currently._
 
 ---
 
-_Last updated: 2026-02-13_
+_Last updated: 2026-02-16_

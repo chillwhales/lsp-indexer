@@ -62,12 +62,14 @@ const DecimalsHandler: EntityHandler = {
       } catch (error) {
         // Skip this batch — some assets won't get decimals
         context.log.warn(
-          JSON.stringify({
-            message: 'Multicall3 batch failed for decimals, skipping batch',
+          {
+            step: 'HANDLE',
+            handler: 'decimals',
             batchIndex: index,
             batchSize: batch.length,
             error: error instanceof Error ? error.message : String(error),
-          }),
+          },
+          'Multicall3 batch failed for decimals, skipping batch',
         );
         continue;
       }
@@ -98,11 +100,13 @@ const DecimalsHandler: EntityHandler = {
           } catch (error) {
             // Skip this result if hexToNumber throws (e.g., value out of range)
             context.log.warn(
-              JSON.stringify({
-                message: 'Failed to parse decimals value',
+              {
+                step: 'HANDLE',
+                handler: 'decimals',
                 address: da.id,
                 error: error instanceof Error ? error.message : String(error),
-              }),
+              },
+              'Failed to parse decimals value',
             );
           }
         }
