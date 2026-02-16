@@ -1,335 +1,357 @@
-# Research Summary
+# Research Summary: LSP Indexer v1.1 — React Hooks Package
 
-**Project:** LSP Indexer V2 — Completing the Rewrite
-**Synthesized:** 2026-02-06
-
----
-
-## Executive Summary
-
-This is a **completion project**, not a greenfield build. The V2 rewrite of the LUKSO LSP Indexer already has its core architecture implemented (6-step pipeline, BatchContext, PluginRegistry, 11 EventPlugins, 15 DataKey handlers) — but only as compiled JavaScript with lost TypeScript source. The remaining work is: reconstruct ~12 missing components as TypeScript, wire them together, validate data parity against V1, and cut over to production.
-
-The stack is **stable and well-chosen** — no technology migrations are needed. Subsquid SDK (gateway API), TypeORM, Viem, PostgreSQL 17, Node.js 22, Hasura v2.46 are all current. The critical risk is not technology but **data parity**: V2 must produce identical database state to V1 for the same blockchain data, while V1 has known bugs (missing `break` statements, spin-wait hangs) that complicate comparison. The enrichment queue architecture intentionally changes V1's entity lifecycle (null FKs instead of entity removal), creating expected divergences that must be carefully managed during validation.
-
-The recommended approach is a **4-phase completion**: (1) migrate remaining handlers to the EntityHandler interface, (2) build metadata fetch handlers and structured logging, (3) wire up the entry point and test end-to-end, (4) validate against V1 and deploy. Each phase has well-defined boundaries, clear dependencies, and documented pitfalls to avoid. The plugin architecture means post-cutover enhancements (new LSP standards, IPFS fallback, health endpoints) are trivially addable as single files.
+**Synthesized:** 2026-02-16
+**Research Files:** STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md
+**Overall Confidence:** HIGH
 
 ---
 
-## Consensus Findings
+## 1. Executive Summary
 
-These points emerged independently across multiple research dimensions:
+The v1.1 React hooks package (`packages/react`) is a well-scoped extraction of existing patterns from the `chillwhales/marketplace` into a publishable, reusable library. The research converges strongly: use `@graphql-codegen/client-preset` with `documentMode: 'string'` for type generation, a **function-based service layer** as the framework-agnostic core (replacing the marketplace's mixin-based classes), thin TanStack Query hook wrappers for client consumption, and optional `next-safe-action` wrappers for server-side Next.js patterns. The stack is mature — all recommended libraries are actively maintained, well-documented, and battle-tested.
 
-1. **No technology changes needed.** STACK confirms all versions are current. ARCHITECTURE confirms the existing patterns work. FEATURES confirms the framework handles most table-stakes features automatically. **Action: Do not migrate, upgrade, or introduce new dependencies during V2 completion.**
+The critical risk is **package boundary correctness**: getting the `exports` map, `"use client"` directives, and server/client code separation right in Phase 1. Every research dimension flags this. A broken `exports` map or leaked server-only code in client bundles produces a package that is fundamentally unusable, and fixing it requires restructuring. The second major risk is **codegen pipeline integration** — the Hasura schema has ~80 entity types generating deeply nested TypeScript types with snake_case naming that must be transformed into clean, camelCase consumer-facing types via an explicit parser layer.
 
-2. **V1-V2 data parity is the #1 risk.** FEATURES identifies it as the highest-risk feature. PITFALLS dedicates 5 of 22 pitfalls to parity risks. ARCHITECTURE documents the structural divergence (null FKs vs entity removal). **Action: Build the comparison tooling early, with an exclusion list for known V1 bugs.**
-
-3. **Replace the spin-wait anti-pattern.** FEATURES flags it as a differentiator fix. PITFALLS calls it CRITICAL (Pitfall 10 — infinite loop risk). ARCHITECTURE's MetadataWorkerPool solves it. STACK recommends `p-limit` over worker threads for I/O-bound work. **Action: Use `Promise.allSettled()` + `p-limit` for all metadata fetching.**
-
-4. **Handler ordering is critical.** ARCHITECTURE documents a 9-handler dependency chain. PITFALLS identifies 4 ordering-related pitfalls (Pitfalls 14, 16, 17). FEATURES notes handler dependencies in its dependency graph. **Action: Use explicit handler registration order in the entry point, not filesystem discovery order.**
-
-5. **The pipeline is already built — wire, don't redesign.** ARCHITECTURE confirms `processBatch()`, `BatchContext`, `PluginRegistry` are complete in compiled JS. FEATURES confirms 11 EventPlugins and core infrastructure exist. **Action: Reconstruct TypeScript from compiled JS for complex components; rewrite from patterns for simple handlers.**
-
-6. **Subsquid handles most infrastructure concerns automatically.** STACK confirms crash recovery, reorg handling, and batch processing are framework-provided. FEATURES confirms these are table stakes that come "free." PITFALLS confirms batch idempotency is framework-level. **Action: Don't rebuild what Subsquid provides.**
+The recommended approach is **vertical-slice implementation**: scaffold the package structure with one domain (Universal Profiles) end-to-end through all layers (document → codegen → parser → service → hook → server action), validate the pattern works in a consumer app, then replicate across the remaining 10 domains. This front-loads risk and establishes the pattern before volume work begins.
 
 ---
 
-## Stack Assessment
+## 2. Consensus Findings
 
-**Summary:** The stack is frozen — no changes needed for V2 completion.
+Points that emerged independently across multiple research dimensions:
 
-| Component                  | Version   | Verdict                                                |
-| -------------------------- | --------- | ------------------------------------------------------ |
-| Subsquid SDK (gateway API) | 1.27.2    | **Keep** — stable, do NOT migrate to Portal API (beta) |
-| Viem                       | ^2.33.2   | **Keep** — correct choice over ethers.js               |
-| TypeORM                    | ^0.3.25   | **Keep** — required by Subsquid, no alternatives       |
-| Node.js                    | 22 LTS    | **Keep** — stable `worker_threads`, native `fetch()`   |
-| PostgreSQL                 | 17-alpine | **Keep** — latest stable                               |
-| Hasura                     | v2.46.0   | **Keep** — no v3 migration until v2 EOL                |
-| TypeScript                 | ^5.9.2    | **Keep**                                               |
-| pnpm                       | 10.15.0   | **Keep**                                               |
+| Finding                                           | Confirmed By                     | Implication                                                                                                                                                                              |
+| ------------------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Function-based services over classes**          | ARCHITECTURE, PITFALLS, FEATURES | Eliminates mixin fragility, enables tree-shaking, simplifies testing. Non-negotiable.                                                                                                    |
+| **`client-preset` with `documentMode: 'string'`** | STACK, ARCHITECTURE, FEATURES    | The modern codegen approach. Generates only types for written operations, produces string literals (not AST), works with any client.                                                     |
+| **Service layer is the shared core**              | ARCHITECTURE, FEATURES, PITFALLS | Both hooks (client) and actions (server) call the same service functions. This is the key architectural invariant.                                                                       |
+| **Strict server/client entry point separation**   | STACK, ARCHITECTURE, PITFALLS    | `@lsp-indexer/react` (client-safe) and `@lsp-indexer/react/server` (server-only). Mixing them = broken bundles.                                                                          |
+| **Parser layer for Hasura → clean types**         | ARCHITECTURE, PITFALLS, FEATURES | Raw Hasura types are snake_case, deeply nullable. An explicit parser layer transforms to camelCase, non-nullable output types.                                                           |
+| **`fetch` over `graphql-request`**                | ARCHITECTURE, STACK (divergence) | ARCHITECTURE recommends raw `fetch` (zero deps, graphql-request renamed to "graffle"). STACK recommends `graphql-request ^7.4.0` (still maintained on its branch). **Resolution below.** |
+| **Peer dependencies for React, TanStack Query**   | STACK, PITFALLS                  | Must be `peerDependencies` to avoid duplicate instances. `next-safe-action`, `zod`, `viem` are optional peers.                                                                           |
 
-**Key decision:** Use async concurrency control (`p-limit`) for metadata fetching, not worker threads. Metadata fetching is I/O-bound (HTTP/IPFS), not CPU-bound.
+### Resolution: `fetch` vs `graphql-request`
 
-**Post-V2 opportunities (defer):**
+STACK recommends `graphql-request ^7.4.0` (maintained, 6.1k stars). ARCHITECTURE recommends raw `fetch` (zero dependencies, `graphql-request` is evolving into "graffle"). **Recommend: raw `fetch` with a typed wrapper.** Rationale:
 
-- Subsquid Portal SDK migration (significant API change, 5-10x faster sync)
-- Multi-stage Docker build (image size optimization)
-- Replace axios with native `fetch()`
-- Replace `uuid` with `crypto.randomUUID()`
+- The typed `execute()` wrapper in ARCHITECTURE is ~30 lines of code
+- Eliminates the only runtime dependency (besides `graphql` for types)
+- `TypedDocumentString` from codegen works directly with `fetch`
+- Reduces bundle size to zero additional bytes
+- Removes a dependency that is actively being renamed/restructured
 
----
-
-## Feature Priorities
-
-### Must-Have (Table Stakes)
-
-| Feature                                 | Status                 | Work Needed                                             |
-| --------------------------------------- | ---------------------- | ------------------------------------------------------- |
-| Crash recovery                          | ✅ Framework-provided  | None                                                    |
-| Chain reorg handling                    | ✅ Framework-provided  | None                                                    |
-| Metadata fetch retry with backoff       | 🔄 V1 pattern exists   | Replace spin-wait with `Promise.allSettled` + `p-limit` |
-| Structured logging                      | 🔴 Missing             | Build thin wrapper around `context.log`                 |
-| Data completeness (all events captured) | 🔄 Partially done      | Verify V2 topic subscriptions match V1                  |
-| Idempotent re-processing                | ✅ Pattern established | Maintain upsert/insert split                            |
-| V1 → V2 data comparison                 | 🔴 Missing             | Build comparison tooling                                |
-| Docker deployment                       | ✅ V1 config exists    | Adapt for V2                                            |
-
-### Should-Have (Differentiators — V2's value proposition)
-
-| Feature                                      | Status                | Work Needed                 |
-| -------------------------------------------- | --------------------- | --------------------------- |
-| Plugin architecture (1-file-per-handler)     | ✅ Core implemented   | Complete remaining handlers |
-| Enrichment queue with deferred FK resolution | ✅ Implemented (#101) | Validate correctness        |
-| Concurrency-limited metadata fetching        | 🔴 Missing            | Build with `p-limit`        |
-| LRU address verification cache               | ✅ Implemented (#17)  | None                        |
-| Batch-level processing metrics               | 🔴 Missing            | Add to structured logging   |
-
-### Defer to Post-Cutover
-
-- HTTP health endpoint
-- IPFS gateway fallback (multiple gateways)
-- New LSP standards (LSP9, LSP10, etc.)
-- Marketplace indexing (explicitly removed)
-- Multi-chain support
-- Redis/message queues
-- Custom GraphQL resolvers
+This means the package ships with **zero runtime `dependencies`** — only `peerDependencies`. This is the cleanest possible posture for a library package.
 
 ---
 
-## Architecture Recommendations
+## 3. Stack Assessment
 
-### Pipeline (Exists — Don't Change)
+### Runtime Dependencies: None
+
+The package has **no `dependencies`**. All runtime needs are met by peer dependencies and the built-in `fetch` API.
+
+### Peer Dependencies (Consumer Provides)
+
+| Library                 | Version                | Required? | Rationale                                    |
+| ----------------------- | ---------------------- | --------- | -------------------------------------------- |
+| `react`                 | `^18.0.0 \|\| ^19.0.0` | **Yes**   | Hooks require React                          |
+| `@tanstack/react-query` | `^5.0.0`               | **Yes**   | All hooks wrap `useQuery`/`useInfiniteQuery` |
+| `next-safe-action`      | `^8.0.0`               | Optional  | Only for `@lsp-indexer/react/server` entry   |
+| `zod`                   | `^3.24.0`              | Optional  | Only alongside `next-safe-action`            |
+| `viem`                  | `^2.0.0`               | Optional  | Only if consumer uses `Address` types        |
+
+### Dev Dependencies (Build-Time)
+
+| Library                          | Version   | Purpose                                                   |
+| -------------------------------- | --------- | --------------------------------------------------------- |
+| `@graphql-codegen/cli`           | `^6.1.1`  | Type generation from Hasura                               |
+| `@graphql-codegen/client-preset` | `^5.2.2`  | The recommended preset (includes typescript + operations) |
+| `@graphql-codegen/schema-ast`    | `^5.0.0`  | Schema file for offline dev                               |
+| `tsup`                           | `^8.5.1`  | Build (ESM + CJS + DTS), `"use client"` banner support    |
+| `vitest`                         | `^3.2.0`  | Testing (**pin to v3**, v4 drops Node 18)                 |
+| `@testing-library/react`         | `^16.3.2` | Hook testing (`renderHook` built-in)                      |
+| `msw`                            | `^2.x`    | GraphQL response mocking                                  |
+| `happy-dom`                      | `^20.x`   | DOM environment for vitest                                |
+| `typescript`                     | `^5.9.2`  | Match monorepo root                                       |
+
+### Version Cautions
+
+- **Vitest**: Pin `^3.2.0`, NOT `^4.x` (v4 requires Node ≥20, breaking changes)
+- **Zod**: Pin `^3.24.0`, NOT `^4.x` (v4 has breaking API changes; `next-safe-action` v8 works with both via Standard Schema)
+- **Do NOT add**: `@graphql-codegen/typescript-react-query`, `@apollo/client`, `urql`, `graphql-tag`, `dotenv`, `@tanstack/react-query-devtools`
+
+---
+
+## 4. Feature Priorities
+
+### Table Stakes (Must Ship in v1.1)
+
+| ID   | Feature                                                 | Complexity    | Critical Path?                        |
+| ---- | ------------------------------------------------------- | ------------- | ------------------------------------- |
+| TS-1 | GraphQL codegen pipeline (types from Hasura)            | Medium        | **Yes** — everything depends on types |
+| TS-2 | TanStack Query integration with query key factories     | Medium        | **Yes** — hooks depend on this        |
+| TS-3 | Per-domain hooks (all 11 query domains)                 | High (volume) | No — follows established pattern      |
+| TS-4 | Service layer (framework-agnostic data fetching)        | Medium        | **Yes** — hooks and actions share it  |
+| TS-5 | Provider pattern (create-or-reuse QueryClient)          | Low           | No                                    |
+| TS-6 | Environment-driven configuration (GraphQL URL)          | Low           | No                                    |
+| TS-7 | Error handling (GraphQL + network + Hasura permissions) | Medium        | No                                    |
+| TS-8 | Pagination (offset-based for Hasura lists)              | Medium        | No                                    |
+
+### Differentiators (Should Ship in v1.1)
+
+| ID   | Feature                                   | Value                             |
+| ---- | ----------------------------------------- | --------------------------------- |
+| DF-1 | Dual-mode hooks (client + server actions) | Full Next.js App Router story     |
+| DF-2 | Query key exports for cache management    | Consumer can invalidate, prefetch |
+| DF-5 | Comprehensive TypeScript types export     | Clean consumer DX                 |
+
+### Defer to v1.2+
+
+| Feature                            | Why Defer                                           |
+| ---------------------------------- | --------------------------------------------------- |
+| SSR hydration examples (DF-3)      | Docs concern, not code — add after core works       |
+| Select transforms (DF-4)           | Can add incrementally per domain                    |
+| Domain-specific stale times (DF-6) | Use sensible defaults, optimize from usage data     |
+| GraphQL subscriptions / real-time  | Out of scope — explicit anti-feature per PROJECT.md |
+| Mutation / write hooks             | Indexer is read-only; writes happen on-chain        |
+| Complex query composition/joins    | Let consumers compose hooks; Hasura handles joins   |
+
+---
+
+## 5. Architecture Recommendations
+
+### Package Structure (Three-Layer Architecture)
 
 ```
-EXTRACT → PERSIST RAW → HANDLE → CLEAR SUB-ENTITIES → PERSIST DERIVED → VERIFY → ENRICH
+packages/react/src/
+├── client/          # GraphQL client: typed fetch wrapper + React context
+├── documents/       # GraphQL query documents per domain (.ts with graphql())
+├── graphql/         # GENERATED codegen output (committed, not edited)
+├── types/           # Clean camelCase output types (hand-written)
+├── parsers/         # Transform raw Hasura snake_case → clean types
+├── services/        # Framework-agnostic async functions (the core)
+├── hooks/           # TanStack Query wrappers ("use client")
+├── server/          # next-safe-action wrappers ("use server")
+├── index.ts         # Main entry: hooks + services + types + provider
+└── server.ts        # Server entry: actions + server utilities
 ```
 
-All 6 steps implemented in compiled JS. The pipeline correctly handles: sealed entity types, merge-upsert patterns, clear queues for sub-entities, batch verification, and FK enrichment.
+### Data Flow
 
-### Remaining Components (Build Order)
+```
+Client:  Hook → Service → fetch(Hasura) → Parser → Clean Type → useQuery result
+Server:  Action → Service → fetch(Hasura) → Parser → Clean Type → serialized response
+```
 
-| #   | Component                                        | Risk   | Depends On                       |
-| --- | ------------------------------------------------ | ------ | -------------------------------- |
-| 1   | Refactor totalSupply/ownedAssets/decimals (#105) | LOW    | Compiled V2 patterns             |
-| 2   | FormattedTokenId handler (#113)                  | LOW    | NFT handler (exists)             |
-| 3   | Delete legacy code (#106)                        | LOW    | #105 complete                    |
-| 4   | Follower system handler (#52)                    | LOW    | V1 port                          |
-| 5   | Permissions handler (#50)                        | LOW    | May already exist in compiled V2 |
-| 6   | LSP3 metadata fetch (#53)                        | MEDIUM | Worker pool, `p-limit`           |
-| 7   | LSP4 metadata fetch (#54)                        | MEDIUM | Worker pool, `p-limit`           |
-| 8   | LSP29 metadata fetch (#55)                       | MEDIUM | Worker pool, `p-limit`           |
-| 9   | Structured logging (#94)                         | LOW    | Parallelizable                   |
-| 10  | Processor configuration (#57)                    | LOW    | Registry (exists)                |
-| 11  | Entry point & startup (#58)                      | MEDIUM | All handlers                     |
-| 12  | Integration testing (#59)                        | MEDIUM | Entry point                      |
+### Entry Points
 
-### Critical Architecture Patterns
+| Entry  | Import Path                 | Contains                         | `"use client"`?             |
+| ------ | --------------------------- | -------------------------------- | --------------------------- |
+| Main   | `@lsp-indexer/react`        | Hooks, services, types, provider | Yes (on hook files)         |
+| Server | `@lsp-indexer/react/server` | Actions, server utilities        | No (`import 'server-only'`) |
 
-1. **Merge-upsert for cross-batch data integrity** — use `mergeEntitiesFromBatchAndDb()` and `setPersistHint()` to prevent field overwriting
-2. **Explicit handler registration** — use `registerEntityHandler()` in dependency order, not filesystem auto-discovery
-3. **BatchContext as single source of truth** within a batch — never bypass it with direct store access (except for DB reads via `mergeEntitiesFromBatchAndDb`)
-4. **Initialize all FK fields as `null`** — the enrichment step checks `'field' in entity`, so omitted fields break silently
-5. **Head-only metadata fetching** — guard with `context.isHead` to prevent blocking historical sync
+### Key Patterns
 
----
+1. **Service function signature**: `(client: IndexerClient, params: Params) → Promise<CleanType>`
+2. **Hook pattern**: `useQuery({ queryKey: domainKeys.detail(id), queryFn: () => service(client, params), enabled: !!id })`
+3. **Query key factory**: Hierarchical, namespaced with `'lsp-indexer'` prefix, exported for consumer use
+4. **Provider**: Optional `<IndexerProvider url={...} queryClient={existing}>` — doesn't force new QueryClient
+5. **Vertical slice**: Implement one domain end-to-end before replicating across all 11
 
-## Critical Pitfalls
+### Naming Convention Decision
 
-### Severity: CRITICAL (will block production if not addressed)
-
-| #   | Pitfall                                                                               | Phase               | Prevention                                                               |
-| --- | ------------------------------------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------ |
-| 10  | **Spin-wait infinite loop** on rejected metadata promise                              | Metadata handlers   | Use `Promise.allSettled()` + `p-limit`, not fire-and-forget + while-loop |
-| 1   | **V1 bugs V2 must account for** (missing `break` statements create spurious entities) | V1/V2 comparison    | Build exclusion list before comparison; decide: reproduce or fix         |
-| 18  | **Shared database corruption** if V1/V2 run against same DB                           | Side-by-side deploy | Separate databases, always                                               |
-| 16  | **Handlers reading unpersisted data** when ordering changes                           | Entry point         | Preserve V1 ordering; persist before handle                              |
-
-### Severity: HIGH (will cause data issues)
-
-| #   | Pitfall                                     | Phase               | Prevention                                             |
-| --- | ------------------------------------------- | ------------------- | ------------------------------------------------------ |
-| 3   | Null FK vs entity removal divergence        | V1/V2 comparison    | Compare only reachable data (non-null FK joins)        |
-| 7   | Upsert overwrites unintended fields         | Handler refactoring | Use merge-upsert, never full-entity spread             |
-| 13  | Stale FK references after enrichment        | Enrichment queue    | Verify step must check both new and existing addresses |
-| 17  | Handler creates entity that another deletes | Pipeline ordering   | Run cleanup AFTER enrichment, not before               |
-
-### Severity: MEDIUM (should address, won't block)
-
-| #   | Pitfall                                | Phase             | Prevention                                 |
-| --- | -------------------------------------- | ----------------- | ------------------------------------------ |
-| 9   | IPFS gateway single point of failure   | Metadata handlers | Defer multi-gateway to post-cutover        |
-| 12  | Axios unbounded response size          | Metadata handlers | Set `maxContentLength: 10MB`, timeout: 30s |
-| 5   | UUID non-determinism breaks comparison | V1/V2 comparison  | Compare by natural keys, never UUIDs       |
+Hasura exposes snake_case. The package's **public API uses camelCase** via the parser layer. Internal codegen types remain snake_case (matching GraphQL schema). This is more work upfront but delivers clean consumer DX.
 
 ---
 
-## Actionable Recommendations
+## 6. Critical Pitfalls (Severity-Ordered)
 
-Prioritized by impact and sequencing:
+### CRITICAL (Must address in Phase 1)
 
-1. **Build V1/V2 comparison tooling early** (not last). Define the exclusion list for V1 bugs, natural-key comparison strategy, and per-table expected divergences BEFORE completing handler migration. This shapes how handlers are implemented.
+| #   | Pitfall                                     | Impact                         | Prevention                                                                                  |
+| --- | ------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------- |
+| C1  | Server-only code leaking into client bundle | Package unusable in Next.js    | Strict entry point separation; services use only `fetch`; test with `next build` early      |
+| C2  | Broken `exports` map in package.json        | Package uninstallable          | Validate with `publint` + `arethetypeswrong`; always include `"types"` condition first      |
+| C3  | Missing `"use client"` directives           | Hooks crash in RSC             | tsup `banner` config; verify directive survives compilation; test from Server Component     |
+| C4  | QueryClient provider conflicts              | Runtime errors for consumers   | `@tanstack/react-query` as peerDep; don't auto-create QueryClient; export optional provider |
+| C5  | Generated types not exposed cleanly         | Consumers reach into internals | Curated type exports; never `export *` from generated files; commit generated types         |
 
-2. **Replace spin-wait with `Promise.allSettled()` + `p-limit(50)`** in all three metadata fetch handlers. This is the single highest-risk pattern from V1. Non-negotiable for V2.
+### HIGH (Address in Phase 1-2)
 
-3. **Use explicit handler registration order** in the entry point. Document the dependency DAG. The 9-handler ordering chain must be correct for data integrity.
+| #   | Pitfall                                      | Impact                             | Prevention                                                                            |
+| --- | -------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------- |
+| H1  | Query cache collisions from flat keys        | Wrong data returned                | Hierarchical key factory with `'lsp-indexer'` namespace; include all variables in key |
+| H3  | Hasura snake_case vs TypeScript camelCase    | Confusing DX                       | Explicit parser layer; clean output types; document the convention                    |
+| H5  | Hasura permission errors → silent empty data | "Data missing" debugging nightmare | Support custom headers; warn on unexpectedly empty results in dev mode                |
+| H6  | Peer dependency version conflicts            | "Invalid hook call" errors         | All framework deps as `peerDependencies`; test in clean consumer project              |
+| H7  | Codegen schema drift                         | Runtime query failures             | Commit generated types; run codegen as build step; validate in CI                     |
 
-4. **Reconstruct TypeScript from compiled JS** for complex components (pipeline, BatchContext, registry, lsp6Controllers, nft handler). Rewrite from V1 patterns for simpler handlers (follower, totalSupply, ownedAssets).
+### MEDIUM (Address during implementation)
 
-5. **Freeze the schema** (`schema.graphql`) until V2 is live. Any change invalidates V1 comparison and breaks the shared TypeORM package.
-
-6. **Add `maxContentLength` and timeout to all HTTP requests** (axios/fetch for IPFS). Prevent OOM from malicious payloads.
-
-7. **Validate that compiled permissions handler (#50) covers V1 behavior** before building a new one. May already be done.
-
-8. **Diff V1 vs V2 processor topic subscriptions** before integration testing. Missing a topic = permanent data loss.
-
----
-
-## Open Questions
-
-Questions requiring user/team input before or during implementation:
-
-1. **V1 bug reproduction strategy:** Should V2 reproduce V1's `switch` fall-through bugs for exact data parity, or fix them and document expected divergences? This affects comparison tooling design and every handler's implementation.
-
-2. **Null FK vs entity removal:** V2 keeps entities with null FKs where V1 removes them. Does the downstream GraphQL API need filtering adjustments (e.g., `WHERE universalProfile IS NOT NULL`)? Or should V2 add a cleanup step equivalent to V1's `removeEmptyEntities`?
-
-3. **Metadata comparison scope:** During V1/V2 validation, should metadata sub-entity content be compared (fragile — depends on IPFS timing) or only structure (entity exists, URL matches, `isDataFetched` matches)?
-
-4. **Source recovery approach:** For the 12 remaining components, what's the budget split between TypeScript reconstruction from compiled JS vs. clean rewrite from V1 patterns?
-
-5. **Permissions handler (#50) status:** The compiled V2 `lsp6Controllers.handler.js` may already cover this. Needs verification before planning work.
-
-6. **Worker threads vs async concurrency:** STACK recommends `p-limit` (I/O-bound), but V2 already has a compiled `MetadataWorkerPool` using worker threads. Should V2 keep the worker pool or simplify to async concurrency?
-
-7. **Side-by-side RPC budget:** With 10 req/s rate limit, how should it be split between V1 (5) and V2 (5)? Or use separate RPC endpoints?
+| #   | Pitfall                               | Prevention                                                         |
+| --- | ------------------------------------- | ------------------------------------------------------------------ |
+| M1  | Missing `enabled` guards              | Accept `undefined` params; use `skipToken` pattern                 |
+| M2  | Codegen output bloat                  | `documentMode: 'string'` limits output to written operations       |
+| M4  | `_bool_exp` type explosion in filters | Simplified filter types with raw escape hatch                      |
+| M5  | Monorepo build order                  | Declare `@chillwhales/typeorm` as devDep for ordering              |
+| M6  | Bloated npm package                   | `"files": ["dist", "README.md"]`; verify with `npm pack --dry-run` |
 
 ---
 
-## Roadmap Implications
+## 7. Actionable Recommendations (Prioritized)
+
+1. **Scaffold package structure with strict entry point separation first.** Validate `exports` map works with `publint` before writing any business logic. This is the foundation everything builds on.
+
+2. **Set up codegen pipeline pointing at Hasura endpoint.** Generate types, commit them. Verify `documentMode: 'string'` produces `TypedDocumentString` wrappers. Test that the generated `graphql()` function provides proper type inference.
+
+3. **Build one vertical slice (Universal Profiles): document → parser → service → hook → test.** This validates the entire architecture end-to-end before volume work. If the pattern feels wrong here, fix it before replicating 10 more times.
+
+4. **Test in a real Next.js consumer app immediately after the first hook works.** Catch `"use client"`, `exports`, and bundle issues while there's only one domain to fix — not eleven.
+
+5. **Use raw `fetch` with typed wrapper instead of `graphql-request`.** Zero runtime dependencies. The `execute()` function is ~30 lines and provides full `TypedDocumentString` integration.
+
+6. **Implement query key factory with `'lsp-indexer'` namespace prefix** from the start. Retrofitting namespace prefixes after consumer adoption requires cache migration.
+
+7. **Pin Vitest to `^3.x` and Zod to `^3.24.x`.** Both have newer major versions that introduce breaking changes inappropriate for a library package.
+
+---
+
+## 8. Open Questions
+
+| Question                                                                       | Impact                                                                                                                                                        | When to Resolve                    |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| **Package name: `@chillwhales/react` or `@lsp-indexer/react`?**                | STACK uses `@chillwhales/react`; ARCHITECTURE uses `@lsp-indexer/react`. Must decide before publishing.                                                       | Phase 1 — package.json scaffolding |
+| **Hasura naming: does the Hasura schema actually use snake_case?**             | ARCHITECTURE and PITFALLS assume so based on TypeORM → Postgres conventions. Needs verification by introspecting the actual Hasura endpoint.                  | Phase 1 — codegen setup            |
+| **Should codegen point at Hasura endpoint or local schema file?**              | STACK recommends endpoint with schema-file fallback. ARCHITECTURE recommends endpoint with committed schema. For CI without Hasura, local schema is required. | Phase 1 — codegen setup            |
+| **How much of the marketplace reference code can be extracted vs rewritten?**  | Affects Phase 2 velocity. The marketplace has working query documents and services, but in mixin-based class structure.                                       | Phase 2 — domain implementation    |
+| **Do all 11 domains need server actions in v1.1, or just the most-used ones?** | Reduces Phase 4 scope. FEATURES suggests starting with top 3 domains for dual-mode.                                                                           | Phase 2-3 planning                 |
+
+---
+
+## 9. Roadmap Implications
 
 ### Suggested Phase Structure
 
-#### Phase 1: Handler Migration (Low Risk, High Value)
+#### Phase 1: Package Foundation
 
-**Rationale:** All remaining handlers have clear patterns from compiled V2 and V1 source. No external I/O. Completes the "1-file-per-handler" architecture promise.
-
-**Delivers:**
-
-- totalSupply, ownedAssets, decimals refactored to EntityHandler interface (#105)
-- FormattedTokenId handler (#113)
-- Legacy code deletion (#106)
-- Follower system handler (#52)
-- Permissions handler verification/completion (#50)
-
-**Pitfalls to avoid:** Handler ordering (Pitfall 16), upsert field overwriting (Pitfall 7), circular dependencies (Pitfall 14)
-
-**Research needed:** None — patterns are well-documented in compiled V2 code.
-
-#### Phase 2: Metadata & Cross-Cutting (Medium Risk)
-
-**Rationale:** Metadata handlers involve external I/O (IPFS) and the spin-wait anti-pattern must be replaced. Structured logging is independent and parallelizable.
+**Rationale:** Every pitfall rated CRITICAL maps to Phase 1. Getting the package structure, exports map, codegen pipeline, and build tooling right is non-negotiable — everything else builds on it.
 
 **Delivers:**
 
-- LSP3 metadata fetch handler (#53)
-- LSP4 metadata fetch handler (#54)
-- LSP29 metadata fetch handler (#55)
-- Structured logging layer (#94)
-- `p-limit` concurrency control for all fetches
+- Package scaffold (`package.json`, `tsconfig.json`, `tsup.config.ts`, `codegen.ts`)
+- Working codegen pipeline (Hasura → TypedDocumentString types)
+- Typed fetch client (`createIndexerClient`, `execute()`)
+- Build pipeline (ESM + CJS + DTS with `"use client"` banner)
+- Exports map validated with `publint`
 
-**Pitfalls to avoid:** Spin-wait infinite loop (Pitfall 10, CRITICAL), IPFS gateway failure (Pitfall 9), unbounded response size (Pitfall 12), data URL edge cases (Pitfall 11)
+**Features:** TS-1 (codegen), TS-6 (config), foundation for all others
+**Pitfalls to avoid:** C1, C2, C3, C4, C5, H3, H6, H7, M5, M6
+**Research needed?** No — patterns are well-documented and HIGH confidence across all dimensions.
 
-**Research needed:** May benefit from `/gsd-research-phase` on IPFS gateway resilience patterns and `p-limit` integration with Subsquid's batch model.
+#### Phase 2: First Vertical Slice (Universal Profiles)
 
-#### Phase 3: Integration & Wiring (Medium Risk)
-
-**Rationale:** All handlers must exist before wiring the entry point. Integration testing validates the full pipeline.
-
-**Delivers:**
-
-- Processor configuration from registry (#57)
-- Entry point & startup bootstrap (#58)
-- Integration tests with mock store + fixtures (#59)
-- Handler ordering validation
-- V1 topic subscription parity check
-
-**Pitfalls to avoid:** Missing event topics (Pitfall — processor config), wrong handler ordering (Pitfall 16, CRITICAL), wrong bootstrap sequence (entry point)
-
-**Research needed:** None — patterns are in ARCHITECTURE.md.
-
-#### Phase 4: Validation & Deployment (Highest Risk)
-
-**Rationale:** This is where data parity is proven or disproven. Must come last because it requires a fully working V2.
+**Rationale:** Validate the entire document → parser → service → hook → action architecture with the simplest, most-used domain before replicating across 10 more. Cheaper to fix patterns with 1 domain than 11.
 
 **Delivers:**
 
-- V1/V2 comparison SQL tooling
-- Side-by-side Docker Compose deployment
-- Automated table-level comparison (row counts + checksums)
-- Entity-level diff for mismatched tables
-- GraphQL API response comparison
-- 24-48h side-by-side validation period
-- Production cutover (Hasura metadata swap)
+- Complete Universal Profile domain (documents, types, parser, service, hook, optional action)
+- Query key factory pattern established
+- Provider component
+- Error handling pattern
+- First working consumer integration test
 
-**Pitfalls to avoid:** Shared database corruption (Pitfall 18, CRITICAL), UUID comparison failures (Pitfall 5), metadata timing differences (Pitfall 4), V1 bug artifacts (Pitfall 1), Subsquid status table conflict (Pitfall 19)
+**Features:** TS-2, TS-3 (1 of 11), TS-4 (pattern), TS-5, TS-7, DF-2 (pattern)
+**Pitfalls to avoid:** H1, H5, M1, M3, M4, M7
+**Research needed?** No — well-documented TanStack Query patterns.
 
-**Research needed:** Likely needs `/gsd-research-phase` for comparison tooling design, `postgres_fdw` cross-database queries, and cutover procedure.
+#### Phase 3: Remaining Domains (10 of 11)
+
+**Rationale:** Pattern is validated. This is volume work — replicate the Universal Profile pattern across Digital Assets, NFTs, Owned Assets, Follows, Creators, LSP29, LSP29 Feed, Data Changed, Universal Receiver, UP Stats.
+
+**Delivers:**
+
+- All 11 domain hooks operational
+- Pagination for list queries (TS-8)
+- Full type exports (DF-5)
+- Full query key factory exports (DF-2)
+
+**Features:** TS-3 (10 of 11), TS-8, DF-2, DF-5
+**Pitfalls to avoid:** Consistency enforcement — every domain must follow the established pattern exactly.
+**Research needed?** No — replication of established pattern.
+
+#### Phase 4: Server Actions + Polish
+
+**Rationale:** Server actions depend on working services (from Phase 2-3). They're optional peer dependency consumers. Build them after the core is solid.
+
+**Delivers:**
+
+- `next-safe-action` wrappers for all (or top) domains
+- `@lsp-indexer/react/server` entry point
+- Dual-mode hooks (DF-1)
+- README, JSDoc, consumer examples
+- `publint` + `arethetypeswrong` validation
+- Package publish readiness
+
+**Features:** DF-1, polish
+**Pitfalls to avoid:** H4 (server/client boundary violations)
+**Research needed?** Possibly — `next-safe-action` integration with a shared library package is less documented (MEDIUM confidence in PITFALLS). May benefit from a quick spike.
+
+### Phase Summary
+
+| Phase | Name                    | Effort        | Risk                              | Delivers                                    |
+| ----- | ----------------------- | ------------- | --------------------------------- | ------------------------------------------- |
+| 1     | Package Foundation      | Medium        | **HIGH** (structural)             | Scaffold, codegen, build, exports           |
+| 2     | First Vertical Slice    | Medium        | **MEDIUM** (pattern validation)   | 1 complete domain, provider, error handling |
+| 3     | Remaining Domains       | High (volume) | **LOW** (pattern replication)     | 10 domains, pagination, full types          |
+| 4     | Server Actions + Polish | Medium        | **MEDIUM** (boundary correctness) | Dual-mode, docs, publish-ready              |
 
 ### Research Flags
 
-| Phase                       | Needs Research? | Reason                                                         |
-| --------------------------- | --------------- | -------------------------------------------------------------- |
-| Phase 1 (Handler Migration) | No              | Well-documented patterns in compiled V2                        |
-| Phase 2 (Metadata)          | Maybe           | IPFS resilience, `p-limit` + worker pool decision              |
-| Phase 3 (Integration)       | No              | Entry point pattern documented in ARCHITECTURE.md              |
-| Phase 4 (Validation)        | **Yes**         | Comparison tooling design, cutover procedure, cross-DB queries |
+| Phase                    | Needs Research? | Reason                                               |
+| ------------------------ | --------------- | ---------------------------------------------------- |
+| Phase 1 (Foundation)     | No              | Well-documented patterns, HIGH confidence            |
+| Phase 2 (Vertical Slice) | No              | Standard TanStack Query patterns                     |
+| Phase 3 (Domains)        | No              | Pattern replication                                  |
+| Phase 4 (Server Actions) | **Maybe**       | `next-safe-action` in shared package less documented |
 
 ---
 
-## Confidence Assessment
+## 10. Confidence Assessment
 
-| Area                      | Confidence | Notes                                                                                        |
-| ------------------------- | ---------- | -------------------------------------------------------------------------------------------- |
-| Stack                     | **HIGH**   | All versions verified against official docs. No changes needed.                              |
-| Features                  | **HIGH**   | Table stakes are framework-provided. Differentiators are well-scoped.                        |
-| Architecture              | **HIGH**   | Based on direct codebase analysis of compiled V2 artifacts. Pipeline is proven.              |
-| Pitfalls                  | **HIGH**   | Derived from actual code patterns and known V1 bugs. Not hypothetical.                       |
-| Data Parity Strategy      | **MEDIUM** | Comparison approach is sound but untested. Edge cases in V1 bug inventory may be incomplete. |
-| Metadata Fetch Resilience | **MEDIUM** | `p-limit` approach is well-known, but interaction with MetadataWorkerPool needs validation.  |
+| Area             | Confidence | Notes                                                                                                                                                                                         |
+| ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stack**        | HIGH       | All versions verified via npm registry and official docs (2026-02-16). Only divergence: `fetch` vs `graphql-request` — resolved above.                                                        |
+| **Features**     | HIGH       | Patterns verified from TanStack Query v5 docs, wagmi v3 source, GraphQL Codegen guides. Feature scoping is crisp.                                                                             |
+| **Architecture** | HIGH       | Derived from direct codebase analysis + official library docs. The three-layer pattern (service → hook → action) is well-established.                                                         |
+| **Pitfalls**     | HIGH       | 19 pitfalls identified across 4 severity tiers. Only MEDIUM-confidence area: `next-safe-action` integration with shared library (H4).                                                         |
+| **Overall**      | HIGH       | Unusually strong consensus across all 4 research dimensions. The stack is mature, patterns are documented, and the marketplace provides a working reference (even if architecturally flawed). |
 
-### Gaps Requiring Attention During Planning
+### Gaps Remaining
 
-1. **V1 bug inventory may be incomplete.** CONCERNS.md documents known bugs but there may be undiscovered ones that surface during comparison.
-2. **Worker pool vs. `p-limit` decision not finalized.** Both exist in the codebase. Need to decide which to use.
-3. **Hasura metadata drift between V1 and V2** is mentioned as a risk but no specific audit has been done.
-4. **The `decimals` handler has a special lifecycle** — it needs post-verification data (newly verified DigitalAssets). The current EntityHandler interface may not support this cleanly. Architecture recommends a "post-verify hook" or direct pipeline integration.
-5. **No performance benchmarks exist.** V2's pipeline may be faster or slower than V1. No baseline to compare against.
+1. **Package naming** — needs owner decision (`@chillwhales/react` vs `@lsp-indexer/react`)
+2. **Hasura schema introspection** — need to verify actual field naming conventions against live endpoint
+3. **next-safe-action in shared package** — less documented pattern, may need a Phase 4 spike
+4. **Consumer testing** — need a real Next.js app to validate the package early (recommend creating a minimal test consumer in Phase 2)
 
 ---
 
-## Sources
+## Sources (Aggregated)
 
-Aggregated from all research dimensions:
-
-### Official Documentation (HIGH Confidence)
-
-- SQD SDK Overview: https://docs.sqd.dev/sdk/overview/
-- SQD EvmBatchProcessor: https://docs.sqd.dev/sdk/reference/processors/evm-batch/
-- SQD TypeORM Store: https://docs.sqd.dev/sdk/reference/store/typeorm/
-- SQD Logger: https://docs.sqd.dev/sdk/reference/logger/
-- SQD Self-Hosting: https://docs.sqd.dev/sdk/resources/self-hosting/
-- SQD Portal Migration: https://docs.sqd.dev/migrate-to-portal-sdk/
-- SQD Unfinalized Blocks: https://docs.subsquid.io/sdk/resources/unfinalized-blocks/
-- SQD External APIs & IPFS: https://docs.sqd.dev/sdk/resources/external-api/
-- LUKSO Standards: https://docs.lukso.tech/standards/introduction
-
-### Codebase Analysis (HIGH Confidence)
-
-- V1 source: `packages/indexer/src/`
-- V2 compiled artifacts: `packages/indexer-v2/lib/`
-- V2 compiled tests: `packages/indexer-v2/lib/core/__tests__/`
-- Project planning: `.planning/codebase/`, `.planning/PROJECT.md`
+| Source                                                                                                 | Confidence | Used For                                                         |
+| ------------------------------------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------- |
+| [TanStack Query v5 docs](https://tanstack.com/query/latest/docs/framework/react/overview)              | HIGH       | Query keys, infinite queries, SSR hydration, hook patterns       |
+| [GraphQL Codegen — React Query guide](https://the-guild.dev/graphql/codegen/docs/guides/react-query)   | HIGH       | `client-preset`, `documentMode: 'string'`, `TypedDocumentString` |
+| [GraphQL Codegen — Client Preset](https://the-guild.dev/graphql/codegen/plugins/presets/preset-client) | HIGH       | Codegen configuration, why not `typescript-react-query` plugin   |
+| [wagmi v3 docs](https://wagmi.sh/react/guides/tanstack-query)                                          | HIGH       | Query key exports, `get<X>QueryOptions`, provider pattern, SSR   |
+| [next-safe-action docs](https://next-safe-action.dev/docs/getting-started)                             | HIGH       | Standard Schema, server action patterns                          |
+| [Next.js App Router docs](https://nextjs.org/docs/app/building-your-application)                       | HIGH       | `"use client"`, server/client boundaries, Server Components      |
+| [Node.js package exports](https://nodejs.org/api/packages.html#exports)                                | HIGH       | Conditional exports, dual ESM/CJS                                |
+| [Hasura docs](https://hasura.io/docs)                                                                  | MEDIUM     | Permissions, auto-generated schema, snake_case conventions       |
+| npm registry API (direct fetches)                                                                      | HIGH       | All version numbers verified 2026-02-16                          |
+| Monorepo codebase (direct reads)                                                                       | HIGH       | schema.graphql, package.json, existing patterns                  |
+| Marketplace reference (project owner assessment)                                                       | HIGH       | Anti-patterns to avoid, existing query domains                   |
 
 ---
 
-_Synthesized: 2026-02-06_
+_Synthesized: 2026-02-16_
+_Ready for roadmap generation._
