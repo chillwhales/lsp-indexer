@@ -1,48 +1,97 @@
-# LSP Indexer V2 — Complete the Rewrite
+# LSP Indexer
 
 ## What This Is
 
-The LSP Indexer is an open-source blockchain event indexer for the LUKSO network. It listens to on-chain events (transfers, profile updates, data key changes, follower actions, contract deployments), extracts structured data from them, and persists it to PostgreSQL. A Hasura GraphQL API auto-exposes the data for downstream consumers. This project completes the V2 rewrite — migrating from a tightly-coupled pipeline to an enrichment queue architecture where adding a new event or data key requires exactly 1 file.
+The LSP Indexer is an open-source blockchain event indexer for the LUKSO network. It listens to on-chain events (transfers, profile updates, data key changes, follower actions, contract deployments), extracts structured data from them, and persists it to PostgreSQL. A Hasura GraphQL API auto-exposes the data for downstream consumers. The `packages/react` library provides type-safe React hooks for any app to consume this data — with both client-side and server-side patterns.
 
 ## Core Value
 
-The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
+Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer — without needing to understand the underlying blockchain, GraphQL schema, or indexing pipeline.
+
+## Current Milestone: v1.1 React Hooks Package
+
+**Goal:** Ship a standalone, publishable React hooks library (`packages/react`) that gives any app type-safe access to all 11 indexer query domains — with both client-side (TanStack Query) and server-side (next-safe-action) consumption patterns.
+
+**Target features:**
+
+- GraphQL codegen from Hasura schema (types committed, schema from `packages/typeorm`)
+- 11 query domains: Universal Profiles, Digital Assets, NFTs, Owned Assets, Follows/Social, Creator Addresses, LSP29 Encrypted Assets, LSP29 Feed, Data Changed, Universal Receiver Events, UP Stats
+- Client-side hooks: TanStack Query hooks calling services directly
+- Server-side hooks: services → next-safe-action server actions → hooks
+- TanStack Query provider (use existing or create new)
+- GraphQL URL via environment variable
+- Consistent patterns: every domain follows the same service → hook → action structure
+
+## Current State
+
+**Shipped:** v1.0 (2026-02-16)
+
+V2 rewrite is feature-complete with data parity validated against V1 via automated comparison tool. 29 EntityHandlers, 11 EventPlugins, 3 metadata fetch handlers (LSP3/LSP4/LSP29), structured logging, queue-based worker pool, and a standalone comparison tool — all built across 11 phases in 10 days.
+
+**Stats:**
+
+- 88 TypeScript files, 20,630 LOC (indexer-v2)
+- 7 TypeScript files, 1,195 LOC (comparison-tool)
+- 20 test files, 9,727 lines of test code
+- 29 handlers, 11 plugins, 72 entity types
+
+**Next:** React hooks package for consuming indexer data.
 
 ## Requirements
 
 ### Validated
 
-- ✓ Core type definitions (EntityHandler, EnrichmentRequest, IBatchContext) — existing (#100)
-- ✓ 6-step pipeline (EXTRACT → PERSIST RAW → HANDLE → PERSIST DERIVED → VERIFY → ENRICH) — existing (#101)
-- ✓ 11 EventPlugins simplified to pure extractors — existing (#102)
-- ✓ 15 DataKeyPlugins converted to EntityHandlers — existing (#103)
-- ✓ NFT EntityHandler consolidating 3 creation sources — existing (#104)
-- ✓ BatchContext implementation — existing (#14)
-- ✓ PluginRegistry with auto-discovery — existing (#15)
-- ✓ Address verification with LRU cache — existing (#17)
-- ✓ Metadata worker thread pool — existing (#18)
-- ✓ All 11 event plugins (LSP7/LSP8 Transfer, UniversalReceiver, OwnershipTransferred, Follow/Unfollow, DeployedContracts/Proxies, DataChanged, TokenIdDataChanged) — existing (#19-#29)
-- ✓ Decimals handler — existing (#49)
-- ✓ TotalSupply handler (implementation, not yet migrated) — existing (#47)
-- ✓ OwnedAssets handler (implementation, not yet migrated) — existing (#48)
+- ✓ Core type definitions (EntityHandler, EnrichmentRequest, IBatchContext) — v1.0
+- ✓ 6-step pipeline (EXTRACT → PERSIST RAW → HANDLE → PERSIST DERIVED → VERIFY → ENRICH) — v1.0
+- ✓ 11 EventPlugins simplified to pure extractors — v1.0
+- ✓ 15 DataKeyPlugins converted to EntityHandlers — v1.0
+- ✓ NFT EntityHandler consolidating 3 creation sources — v1.0
+- ✓ BatchContext implementation — v1.0
+- ✓ PluginRegistry with auto-discovery — v1.0
+- ✓ Address verification with LRU cache — v1.0
+- ✓ Metadata worker thread pool (queue-based architecture) — v1.0
+- ✓ All handler migrations (totalSupply, ownedAssets, decimals, formattedTokenId) — v1.0
+- ✓ Legacy code deletion (DataKeyPlugin, populate/persist/handler helpers) — v1.0
+- ✓ Follow/Unfollow handlers with deterministic IDs — v1.0
+- ✓ LSP6 permission handlers (delete + re-create on data key changes) — v1.0
+- ✓ LSP3 metadata fetch handler (7 sub-entity types) — v1.0
+- ✓ LSP4 metadata fetch handler (8 sub-entity types + Score/Rank) — v1.0
+- ✓ LSP29 metadata fetch handler (7 sub-entity types) — v1.0
+- ✓ Head-only gating for metadata fetches — v1.0
+- ✓ Metadata fetch retry with error tracking — v1.0
+- ✓ Structured JSON logging with severity and step filtering — v1.0
+- ✓ Component-specific debug logging (LOG_LEVEL, DEBUG_COMPONENTS) — v1.0
+- ✓ Queue-based worker pool (~2x throughput over batch-wait) — v1.0
+- ✓ Processor configuration with all EventPlugin subscriptions — v1.0
+- ✓ Application boot with plugin/handler discovery and registration — v1.0
+- ✓ Integration tests with real LUKSO block fixtures — v1.0
+- ✓ Handler ordering preserves V1 dependency graph — v1.0
+- ✓ V2 runs alongside V1 in Docker — v1.0
+- ✓ Automated V1/V2 comparison tool (72 entity types, GraphQL-based) — v1.0
+- ✓ Pipeline case-insensitive address comparison — v1.0
+- ✓ UniversalProfileOwner/DigitalAssetOwner handlers — v1.0
+- ✓ ChillClaimed/OrbsClaimed handlers (game entities) — v1.0
+- ✓ LSP4 base URI → per-token metadata derivation — v1.0
+- ✓ OwnedAsset triggeredBy filtering (fixes double-processing) — v1.0
+- ✓ Orb mint-time defaults (OrbLevel/OrbCooldownExpiry/OrbFaction) — v1.0
+- ✓ resolveEntity/resolveEntities standardization (13 handlers unified) — v1.0
+- ✓ Tech debt cleanup (stale TODOs, deprecated wrappers, structured logging) — v1.0
 
 ### Active
 
-- [ ] Refactor existing handlers (totalSupply, ownedAssets, decimals) to new EntityHandler interface (#105)
-- [ ] Delete legacy code — DataKeyPlugin interface, populate helpers, handler helpers (#106)
-- [ ] FormattedTokenId EntityHandler (#113)
-- [ ] Permissions update handler (#50)
-- [ ] Follower system handler (#52)
-- [ ] LSP3 metadata fetch handler (#53)
-- [ ] LSP4 metadata fetch handler (#54)
-- [ ] LSP29 metadata fetch handler (#55)
-- [ ] Structured logging layer (#94)
-- [ ] Processor configuration (#57)
-- [ ] Entry point & startup wiring (#58)
-- [ ] End-to-end integration testing (#59)
-- [ ] Automated V1 vs V2 data comparison for production cutover
-- [ ] Docker deployment configuration for V2
-- [ ] Side-by-side V1/V2 production run and validation
+- [ ] `packages/react` — standalone React hooks library for indexer data consumption
+- [ ] GraphQL codegen pipeline from Hasura schema
+- [ ] 11 query domain services with consistent patterns
+- [ ] Client-side TanStack Query hooks for all domains
+- [ ] Server-side next-safe-action pattern for all domains
+- [ ] TanStack Query provider setup
+- [ ] Comprehensive tests and documentation for new devs
+
+### Deferred
+
+- Production cutover procedure with rollback plan — deferred from v1.0
+- Full automated V1/V2 comparison test suite with CI integration — deferred from v1.0
+- Performance benchmarks (V2 vs V1 throughput, memory, CPU) — deferred from v1.0
 
 ### Out of Scope
 
@@ -50,36 +99,52 @@ The indexer must process every LUKSO blockchain event correctly and produce iden
 - New LSP standards not in V1 — V2 must match V1 parity first
 - GraphQL API changes — Hasura auto-generates from schema, no custom resolvers
 - V1 code changes — V1 is frozen, only V2 gets work
+- Subsquid Portal SDK migration — breaking API changes, plan as separate post-V2 milestone
+- Multi-stage Docker build optimization — defer until cutover complete
+- Offline mode — real-time indexing is core value
+- Subscriptions/real-time updates — defer to v1.2, focus on query hooks first
+- Mutations/write operations — indexer is read-only, no write hooks needed
 
 ## Context
 
-- **Monorepo**: 3 packages — `abi` (contract types), `typeorm` (schema/models), `indexer` (V1 core), plus `indexer-v2` (V2 rewrite in progress)
+- **Monorepo**: 6 packages — `abi` (contract types), `typeorm` (schema/models), `indexer` (V1 core), `indexer-v2` (V2 rewrite), `comparison-tool`, and `react` (NEW — hooks library)
 - **Stack**: TypeScript, Subsquid EVM Processor, TypeORM + PostgreSQL, Hasura GraphQL, Viem, Node.js 22
-- **Schema**: ~80+ TypeORM entities generated from `schema.graphql`, mapping 1:1 to LUKSO LSP standards (LSP0, LSP3, LSP4, LSP5, LSP6, LSP7, LSP8, LSP12, LSP26, LSP29)
+- **Schema**: ~80+ TypeORM entities generated from `schema.graphql`, mapping 1:1 to LUKSO LSP standards
+- **Hasura auto-generates GraphQL API** from PostgreSQL — codegen runs against Hasura endpoint to produce TypeScript types
 - **V1 is live in production** on Docker + VPS, indexing LUKSO mainnet
-- **V2 progress**: Phases 1-4 complete (33 issues closed). Phase 5 (enrichment queue architecture) nearly complete — 5 of 7 issues done. 13 issues remain across phases 5-8 plus #113
-- **Codebase mapped**: Full architecture, stack, and structure analysis available in `.planning/codebase/`
-- **Key V2 architecture change**: Enrichment queue eliminates the populate phase — raw entities persist with null FKs, then batch UPDATE resolves references after verification. This means no entity removal for invalid addresses; FKs simply stay null.
+- **V2 is feature-complete** — 29 EntityHandlers, 11 EventPlugins, 3 metadata fetchers, structured logging, queue-based worker pool
+- **Key V2 architecture**: Enrichment queue eliminates the populate phase — raw entities persist with null FKs, then batch UPDATE resolves references after verification
+- **Reference implementation**: `chillwhales/marketplace` has existing (non-ideal) GraphQL client, services, actions, and hooks — being standardized and extracted into `packages/react`
 
 ## Constraints
 
-- **Data parity**: V2 must produce identical database state to V1 for the same blockchain data — validated via automated comparison before cutover
+- **Data parity**: V2 must produce identical database state to V1 — validated via comparison tool
 - **Zero downtime**: V1 stays live during V2 validation; cutover only after comparison passes
-- **Existing schema**: TypeORM entities and `schema.graphql` are shared between V1 and V2 — no schema changes allowed that would break V1
-- **Subsquid framework**: Must use Subsquid's `EvmBatchProcessor` and `TypeormDatabase` — framework dictates batch processing model
+- **Existing schema**: TypeORM entities and `schema.graphql` shared between V1 and V2 — no breaking changes
+- **Subsquid framework**: Must use Subsquid's `EvmBatchProcessor` and `TypeormDatabase`
 - **LUKSO RPC**: Rate limited (default 10 req/s), finality confirmation at 75 blocks (~15 min)
+- **Framework compatibility**: React hooks package must work with Next.js App Router (primary) and any React 18+ app
+- **Publishable package**: `packages/react` must be installable via npm — no app-specific dependencies
+- **Env-driven config**: GraphQL URL comes from environment variable, not hardcoded
 
 ## Key Decisions
 
-| Decision                             | Rationale                                                                                                   | Outcome                      |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| Enrichment queue over populate phase | Eliminates entity removal, simplifies FK resolution to batch UPDATE, decouples extraction from verification | ✓ Good — implemented in #101 |
-| EntityHandler replaces DataKeyPlugin | Unified interface for all derived entities, self-selecting from BatchContext via `listensToBag`             | ✓ Good — implemented in #103 |
-| Marketplace removed from V2 scope    | High complexity, separate concern, can be added later as EntityHandlers                                     | ✓ Good — simplified scope    |
-| Side-by-side V1/V2 validation        | Risk mitigation for production cutover — automated comparison ensures data parity                           | — Pending                    |
-| Docker + VPS deployment              | Matches existing V1 infrastructure, no infrastructure migration during rewrite                              | — Pending                    |
-| Parallelize independent work         | Logging (#94) can proceed alongside Phase 6 handlers; not all work is strictly sequential                   | — Pending                    |
+| Decision                                | Rationale                                                                      | Outcome                          |
+| --------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------- |
+| Enrichment queue over populate phase    | Eliminates entity removal, simplifies FK resolution to batch UPDATE            | ✓ Good — implemented in #101     |
+| EntityHandler replaces DataKeyPlugin    | Unified interface for all derived entities, self-selecting via `listensToBag`  | ✓ Good — implemented in #103     |
+| Marketplace removed from V2 scope       | High complexity, separate concern, can be added later                          | ✓ Good — simplified scope        |
+| postVerification as opt-in boolean flag | Keeps all handlers as one type, existing handlers unaffected                   | ✓ Good — used by 3 handlers      |
+| Dual-output logging (Subsquid + pino)   | Subsquid controls stdout; pino adds independent file rotation                  | ✓ Good — debug + production logs |
+| Queue-based worker pool                 | Batch-wait left workers idle; queue keeps N workers busy continuously          | ✓ Good — ~2x throughput          |
+| resolveEntity/resolveEntities pattern   | Replaced 4 ad-hoc patterns, fixed 3 bugs and 2 gaps                            | ✓ Good — zero ad-hoc lookups     |
+| Case-insensitive address comparison     | Subsquid delivers lowercase, constants use EIP-55 checksummed                  | ✓ Good — fixed 4 silent failures |
+| Standalone comparison tool package      | Decoupled from indexer, queries Hasura GraphQL endpoints                       | ✓ Good — reusable across stacks  |
+| Side-by-side V1/V2 validation           | Risk mitigation for production cutover — automated comparison ensures parity   | ✓ Good — comparison tool shipped |
+| Docker + VPS deployment                 | Matches existing V1 infrastructure, no infrastructure migration during rewrite | ✓ Good — both stacks running     |
+
+| React hooks package in lsp-indexer monorepo | Keeps indexer + consumers in one repo, schema stays in sync, single publish pipeline | — Pending |
 
 ---
 
-_Last updated: 2026-02-06 after initialization_
+_Last updated: 2026-02-16 after v1.1 milestone start_
