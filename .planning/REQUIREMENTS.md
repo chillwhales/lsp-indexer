@@ -84,42 +84,42 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status  |
 | ----------- | ----- | ------- |
-| FOUND-01    | —     | Pending |
-| FOUND-02    | —     | Pending |
-| FOUND-03    | —     | Pending |
-| FOUND-04    | —     | Pending |
-| FOUND-05    | —     | Pending |
-| FOUND-06    | —     | Pending |
-| FOUND-07    | —     | Pending |
-| QUERY-01    | —     | Pending |
-| QUERY-02    | —     | Pending |
-| QUERY-03    | —     | Pending |
-| QUERY-04    | —     | Pending |
-| QUERY-05    | —     | Pending |
-| QUERY-06    | —     | Pending |
-| QUERY-07    | —     | Pending |
-| QUERY-08    | —     | Pending |
-| QUERY-09    | —     | Pending |
-| QUERY-10    | —     | Pending |
-| QUERY-11    | —     | Pending |
-| PAGE-01     | —     | Pending |
-| SUB-01      | —     | Pending |
-| SUB-02      | —     | Pending |
-| SUB-03      | —     | Pending |
-| ACTION-01   | —     | Pending |
-| ACTION-02   | —     | Pending |
-| ACTION-03   | —     | Pending |
-| DX-01       | —     | Pending |
-| DX-02       | —     | Pending |
-| DX-03       | —     | Pending |
+| FOUND-01    | 7     | Pending |
+| FOUND-02    | 7     | Pending |
+| FOUND-03    | 7     | Pending |
+| FOUND-04    | 7     | Pending |
+| FOUND-05    | 7     | Pending |
+| FOUND-06    | 7     | Pending |
+| FOUND-07    | 7     | Pending |
+| QUERY-01    | 8     | Pending |
+| DX-01       | 8     | Pending |
+| DX-02       | 8     | Pending |
+| QUERY-02    | 9     | Pending |
+| QUERY-03    | 9     | Pending |
+| QUERY-04    | 9     | Pending |
+| QUERY-05    | 9     | Pending |
+| QUERY-06    | 9     | Pending |
+| QUERY-07    | 9     | Pending |
+| QUERY-08    | 9     | Pending |
+| QUERY-09    | 9     | Pending |
+| QUERY-10    | 9     | Pending |
+| QUERY-11    | 9     | Pending |
+| PAGE-01     | 9     | Pending |
+| SUB-01      | 10    | Pending |
+| SUB-02      | 10    | Pending |
+| SUB-03      | 10    | Pending |
+| ACTION-01   | 11    | Pending |
+| ACTION-02   | 11    | Pending |
+| ACTION-03   | 11    | Pending |
+| DX-03       | 11    | Pending |
 
 **Coverage:**
 
 - v1.1 requirements: 28 total
-- Mapped to phases: 0
-- Unmapped: 28 (pending roadmap)
+- Mapped to phases: 28
+- Unmapped: 0 ✓
 
 ---
 
 _Requirements defined: 2026-02-16_
-_Last updated: 2026-02-16 after initial definition_
+_Last updated: 2026-02-16 after roadmap creation (traceability updated)_
