@@ -10,16 +10,17 @@ Any developer can query LUKSO blockchain data through type-safe React hooks back
 
 ## Current Milestone: v1.1 React Hooks Package
 
-**Goal:** Ship a standalone, publishable React hooks library (`packages/react`) that gives any app type-safe access to all 11 indexer query domains — with both client-side (TanStack Query) and server-side (next-safe-action) consumption patterns.
+**Goal:** Ship a standalone, publishable React hooks library (`packages/react`) that gives any app type-safe access to all 11 indexer query domains — with client-side hooks (TanStack Query), WebSocket subscriptions (`graphql-ws`), and server-side actions (`next-safe-action`).
 
 **Target features:**
 
 - GraphQL codegen from Hasura schema (types committed, schema from `packages/typeorm`)
 - 11 query domains: Universal Profiles, Digital Assets, NFTs, Owned Assets, Follows/Social, Creator Addresses, LSP29 Encrypted Assets, LSP29 Feed, Data Changed, Universal Receiver Events, UP Stats
 - Client-side hooks: TanStack Query hooks calling services directly
+- WebSocket subscriptions: `graphql-ws` subscription hooks with TanStack Query cache integration
 - Server-side hooks: services → next-safe-action server actions → hooks
 - TanStack Query provider (use existing or create new)
-- GraphQL URL via environment variable
+- GraphQL URL via provider config (framework-agnostic)
 - Consistent patterns: every domain follows the same service → hook → action structure
 
 ## Current State

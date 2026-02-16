@@ -58,10 +58,11 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - Branch: `refactor/indexer-v2-react` from `refactor/indexer-v2`
 - Reference: `chillwhales/marketplace` graphql package and web hooks (being standardized)
 - Vertical-slice approach: build Universal Profiles end-to-end first, then replicate across 10 domains
-- Zero runtime dependencies — typed fetch wrapper, peer deps only
+- Minimal runtime deps — only `graphql-ws` for subscriptions; typed fetch wrapper for queries (zero query deps)
 - Multiple entry points: `@lsp-indexer/react` (client), `@lsp-indexer/react/server`, `@lsp-indexer/react/types`
 - Parser layer transforms Hasura snake_case → clean camelCase types
-- graphql-ws for WebSocket subscriptions (Hasura supports natively)
+- `graphql-ws` for WebSocket subscriptions (Hasura supports natively)
+- `graphql` is devDependency only (codegen build-time, not shipped)
 - Phase numbering continues from v1.0: Phases 7–11
 
 ### Discovered Todos

@@ -32,7 +32,7 @@ Ship a standalone, publishable React hooks library (`packages/react`) that gives
 **Success Criteria:**
 
 1. Developer can run `pnpm build` in `packages/react` and get ESM + CJS + DTS output with `"use client"` directives on hook files — verified by inspecting dist output
-2. Developer can run codegen against Hasura and see TypeScript types generated with `TypedDocumentString` wrappers — committed to `src/graphql/`
+2. Developer can run codegen against Hasura and see TypeScript types generated with `TypedDocumentString` wrappers — output committed to `src/graphql/`, query documents in `src/documents/`
 3. Developer can import from `@lsp-indexer/react` in a client component and from `@lsp-indexer/react/server` in a server component without bundle errors — validated by `next build` in the test app (`apps/test`)
 4. Developer can wrap a Next.js app in `<IndexerProvider url={...}>` and see TanStack Query context available to child components — with optional existing QueryClient pass-through working
 5. Developer can run `publint` and `arethetypeswrong` against the built package and see zero errors — exports map is correct for all entry points

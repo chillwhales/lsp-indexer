@@ -13,7 +13,7 @@ A production-quality React hooks package for consuming GraphQL/indexer data must
 
 The best-in-class packages in this space — wagmi, tRPC, and Apollo Client — all converge on the same fundamental pattern: a thin hook layer over TanStack Query that provides domain-specific convenience while exposing the full TanStack Query API for advanced use cases. The key differentiator for great DX is **how little a new developer needs to learn** before being productive.
 
-For the `@chillwhales/react` package specifically, the 11 query domains (profiles, assets, NFTs, follows, etc.) map cleanly to per-domain hook files with a unified barrel export. The existing reference implementation in `chillwhales/marketplace` (services → server actions → hooks) provides a proven pattern to extract and generalize.
+For the `@lsp-indexer/react` package specifically, the 11 query domains (profiles, assets, NFTs, follows, etc.) map cleanly to per-domain hook files with a unified barrel export. The existing reference implementation in `chillwhales/marketplace` (services → server actions → hooks) provides a proven pattern to extract and generalize.
 
 ---
 
@@ -85,7 +85,7 @@ export const profileKeys = {
 const { data, queryKey } = useProfile({ address });
 
 // getProfileQueryOptions for vanilla/server usage
-import { getProfileQueryOptions } from '@chillwhales/react/query';
+import { getProfileQueryOptions } from '@lsp-indexer/react/query';
 const options = getProfileQueryOptions(config, { address });
 queryClient.prefetchQuery(options);
 ```
@@ -258,12 +258,12 @@ Server-side path:  useProfileAction() → getProfileAction (server action) → p
 | **Complexity**        | Low                                                                                                                                                                        |
 | **Dependencies**      | TS-2 (query key factories)                                                                                                                                                 |
 | **Example**           | wagmi exports `queryKey` from every hook AND `get<X>QueryOptions` for vanilla JS. This is a hallmark of well-designed TanStack Query wrappers.                             |
-| **Recommendation**    | Export query key factories from a `@chillwhales/react/keys` entrypoint. Consumers use them for invalidation after mutations, prefetching on navigation, and SSR hydration. |
+| **Recommendation**    | Export query key factories from a `@lsp-indexer/react/keys` entrypoint. Consumers use them for invalidation after mutations, prefetching on navigation, and SSR hydration. |
 
 **Usage example:**
 
 ```typescript
-import { profileKeys, assetKeys } from '@chillwhales/react/keys';
+import { profileKeys, assetKeys } from '@lsp-indexer/react/keys';
 
 // After a profile update mutation, invalidate all profile queries
 queryClient.invalidateQueries({ queryKey: profileKeys.all });
@@ -291,7 +291,7 @@ queryClient.prefetchQuery({
 
 ```typescript
 // In server component (page.tsx)
-import { getProfileQueryOptions } from '@chillwhales/react/query'
+import { getProfileQueryOptions } from '@lsp-indexer/react/query'
 
 export default async function ProfilePage({ params }) {
   const queryClient = new QueryClient()
@@ -338,7 +338,7 @@ const { data } = useProfile({ address, select: selectProfileWithImages });
 | **Complexity**        | Low                                                                                                                                                |
 | **Dependencies**      | TS-1 (codegen)                                                                                                                                     |
 | **Example**           | wagmi exports all types from `wagmi` and utility types from `wagmi/chains`                                                                         |
-| **Recommendation**    | Re-export all codegen types from `@chillwhales/react/types`. Include utility types like `ProfileAddress`, `AssetAddress`, `NftId`, `TokenBalance`. |
+| **Recommendation**    | Re-export all codegen types from `@lsp-indexer/react/types`. Include utility types like `ProfileAddress`, `AssetAddress`, `NftId`, `TokenBalance`. |
 
 ### DF-6: Stale Time Defaults Per Domain
 
@@ -362,11 +362,11 @@ Things to deliberately NOT build in v1.1. Common mistakes in this domain.
 | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Custom in-memory cache, localStorage persistence, or deduplication logic | TanStack Query already provides all of this. Building custom caching creates bugs, stale data, and maintenance burden. Every major hooks library (wagmi, Apollo, tRPC) relies on TanStack Query's cache. | Use TanStack Query's built-in cache. For persistence, point users to `@tanstack/query-sync-storage-persister` (as wagmi does). |
 
-### AF-2: Do NOT Build GraphQL Subscriptions/Real-Time
+### AF-2: Do NOT Build Advanced Real-Time Patterns Beyond Baseline Subscriptions
 
-| Anti-Feature                                                 | Why Avoid                                                                                                                                                                                           | What to Do Instead                                                                                              |
-| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| WebSocket subscriptions, polling, or real-time event streams | Adds significant complexity (WebSocket management, reconnection, state synchronization). Already explicitly out of scope for v1.1 per PROJECT.md. Hasura subscriptions require different transport. | Use `refetchInterval` on TanStack Query hooks for near-real-time when needed. Defer real subscriptions to v1.2. |
+| Anti-Feature                                                                     | Why Avoid                                                                                                                                                                                                                                         | What to Do Instead                                                                                                                                       |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Polling, presence indicators, real-time notifications UX, optimistic sub updates | Baseline `graphql-ws` subscriptions (SUB-01–SUB-03) are in-scope for v1.1. But advanced patterns like polling fallbacks, presence systems, or complex optimistic UI on subscription events add significant complexity beyond the transport layer. | Ship baseline subscription hooks via `graphql-ws` in Phase 10. Defer advanced real-time UX patterns (presence, notifications, polling fallback) to v1.2. |
 
 ### AF-3: Do NOT Build Mutations/Write Hooks
 
@@ -545,19 +545,19 @@ packages/react/src/
 
 ```typescript
 // Primary: individual hook imports (tree-shakeable)
-import { useProfile, useFollowers } from '@chillwhales/react';
+import { useProfile, useFollowers } from '@lsp-indexer/react';
 
 // Types
-import type { UniversalProfile, DigitalAsset } from '@chillwhales/react/types';
+import type { UniversalProfile, DigitalAsset } from '@lsp-indexer/react/types';
 
 // Cache management
-import { profileKeys, assetKeys } from '@chillwhales/react/keys';
+import { profileKeys, assetKeys } from '@lsp-indexer/react/keys';
 
 // Server-side prefetching
-import { getProfileQueryOptions } from '@chillwhales/react/query';
+import { getProfileQueryOptions } from '@lsp-indexer/react/query';
 
 // Provider
-import { LuksoIndexerProvider } from '@chillwhales/react';
+import { LuksoIndexerProvider } from '@lsp-indexer/react';
 ```
 
 ---

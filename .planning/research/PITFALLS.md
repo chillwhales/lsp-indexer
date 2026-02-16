@@ -90,7 +90,7 @@ Mistakes that will break the package for consumers if not addressed in the first
 
 **Warning signs:**
 
-- `Cannot find module '@chillwhales/react'` in consumer projects
+- `Cannot find module '@lsp-indexer/react'` in consumer projects
 - TypeScript errors about missing types despite package being installed
 - `npm pack` output missing expected files
 
@@ -155,10 +155,10 @@ Mistakes that will break the package for consumers if not addressed in the first
 
 **Prevention:**
 
-1. **Don't bundle QueryClient creation into the package.** Export hooks that assume the provider exists. Let consumers set up their own `QueryClientProvider`.
-2. **Export an optional convenience provider** that consumers can use if they don't have one:
+1. **Don't implicitly create or hide a QueryClient inside hooks.** Hooks should assume a `QueryClientProvider` already exists in the app tree. Let consumers create and mount their own `QueryClient` / `QueryClientProvider` at the app root.
+2. **Optionally export an explicit convenience provider** for apps that don't already have a `QueryClient` configured. This provider may create and manage a `QueryClient`, but only when the consumer opts into using it — no hidden extra `QueryClient` instances behind the hooks:
    ```tsx
-   // Optional: for apps without existing QueryClient
+   // Optional, opt-in entry point for apps without an existing QueryClient
    export { LspIndexerProvider } from './provider';
    ```
 3. **List `@tanstack/react-query` as a `peerDependency`**, not a dependency. This ensures the consumer and the package share the same QueryClient instance.
@@ -186,13 +186,13 @@ Mistakes that will break the package for consumers if not addressed in the first
 
 **Warning signs:**
 
-- Consumers importing from `@chillwhales/react/dist/generated/graphql` (reaching into internals)
+- Consumers importing from `@lsp-indexer/react/dist/generated/graphql` (reaching into internals)
 - TypeScript errors about incompatible types between package and consumer code
 - Consumer duplicating type definitions that exist in the package
 
 **Prevention:**
 
-1. **Create a curated types entry point:** `@chillwhales/react/types` that re-exports only the types consumers need — not the entire codegen output.
+1. **Create a curated types entry point:** `@lsp-indexer/react/types` that re-exports only the types consumers need — not the entire codegen output.
 2. **Use branded type aliases** for complex generated types:
    ```typescript
    // types/index.ts — curated public API
@@ -246,7 +246,7 @@ Mistakes that will cause DX degradation or runtime issues but won't completely b
 2. **Include ALL variables in the query key.** TanStack Query uses deep comparison, so object variables work.
 3. **Export the key factories** so consumers can use them for manual invalidation:
    ```typescript
-   import { profileKeys } from '@chillwhales/react';
+   import { profileKeys } from '@lsp-indexer/react';
    queryClient.invalidateQueries({ queryKey: profileKeys.all });
    ```
 4. **Namespace keys with the package name** to avoid collision with the consumer's own queries:
@@ -289,7 +289,7 @@ Mistakes that will cause DX degradation or runtime issues but won't completely b
    ```tsx
    // Server Component
    import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
-   import { profileService } from '@chillwhales/react/server';
+   import { profileService } from '@lsp-indexer/react/server';
 
    export default async function Page({ params }) {
      const queryClient = new QueryClient();
@@ -516,7 +516,7 @@ Mistakes that will cause DX degradation or runtime issues but won't completely b
 2. **Commit generated types** — don't require consumers or CI to have access to the Hasura endpoint. Generated types are source-controlled alongside the schema.
 3. **Add a codegen script in the monorepo root** that regenerates types when the schema changes:
    ```json
-   { "scripts": { "codegen": "pnpm --filter @chillwhales/react codegen" } }
+   { "scripts": { "codegen": "pnpm --filter @lsp-indexer/react codegen" } }
    ```
 4. **Use `schema.graphql` file as input** (not introspection endpoint) for local development — this way codegen works offline and doesn't depend on a running Hasura instance.
 5. **Validate in CI:** Compare generated types against the checked-in types. If they differ, fail the build.
@@ -660,7 +660,7 @@ Should address to prevent DX issues and technical debt, but won't block shipping
      where?: Universal_Profile_Bool_Exp; // Advanced: raw Hasura filter
    }
    ```
-3. **Export the raw filter types** from a separate entry point (`@chillwhales/react/types`) for advanced users.
+3. **Export the raw filter types** from a separate entry point (`@lsp-indexer/react/types`) for advanced users.
 
 **Confidence:** MEDIUM — Based on patterns from other Hasura client libraries. The specific approach depends on how much abstraction the package wants to provide.
 
@@ -724,7 +724,7 @@ Should address to prevent DX issues and technical debt, but won't block shipping
    }
    ```
 2. **Run `npm pack --dry-run`** before publishing to verify only intended files are included.
-3. **Check the package size:** `npx package-size @chillwhales/react` or `bundlephobia.com`.
+3. **Check the package size:** `npx package-size @lsp-indexer/react` or `bundlephobia.com`.
 
 **Confidence:** HIGH — Standard npm publishing practice.
 
@@ -941,7 +941,7 @@ domains/{name}/
 
 **Marketplace problem:** Consumers can't import GraphQL types from the shared package. They either re-define types or reach into internal paths.
 
-**How the package avoids this:** Curated type exports via `@chillwhales/react/types` entry point.
+**How the package avoids this:** Curated type exports via `@lsp-indexer/react/types` entry point.
 
 **Maps to:** Pitfall C5 (generated types exposure)
 

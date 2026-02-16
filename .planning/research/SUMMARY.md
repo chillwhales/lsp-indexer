@@ -112,14 +112,14 @@ The package has **one runtime dependency**: `graphql-ws` (for WebSocket subscrip
 
 ### Defer to v1.2+
 
-| Feature                            | Why Defer                                           |
-| ---------------------------------- | --------------------------------------------------- |
-| SSR hydration examples (DF-3)      | Docs concern, not code — add after core works       |
-| Select transforms (DF-4)           | Can add incrementally per domain                    |
-| Domain-specific stale times (DF-6) | Use sensible defaults, optimize from usage data     |
-| GraphQL subscriptions / real-time  | Out of scope — explicit anti-feature per PROJECT.md |
-| Mutation / write hooks             | Indexer is read-only; writes happen on-chain        |
-| Complex query composition/joins    | Let consumers compose hooks; Hasura handles joins   |
+| Feature                            | Why Defer                                                                                           |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------- |
+| SSR hydration examples (DF-3)      | Docs concern, not code — add after core works                                                       |
+| Select transforms (DF-4)           | Can add incrementally per domain                                                                    |
+| Domain-specific stale times (DF-6) | Use sensible defaults, optimize from usage data                                                     |
+| Advanced real-time patterns        | Baseline `graphql-ws` subscriptions (SUB-\*) are in-scope; defer presence/notifications UX to v1.2+ |
+| Mutation / write hooks             | Indexer is read-only; writes happen on-chain                                                        |
+| Complex query composition/joins    | Let consumers compose hooks; Hasura handles joins                                                   |
 
 ---
 
@@ -131,7 +131,9 @@ The package has **one runtime dependency**: `graphql-ws` (for WebSocket subscrip
 packages/react/src/
 ├── client/          # GraphQL client: typed fetch wrapper + React context
 ├── documents/       # GraphQL query documents per domain (.ts with graphql())
-├── graphql/         # GENERATED codegen output (committed, not edited)
+├── graphql/         # GENERATED codegen output (committed, not hand-edited)
+│   ├── graphql.ts   # TypedDocumentString types + helpers
+│   └── ...          # Fragment masking, etc.
 ├── types/           # Clean camelCase output types (hand-written)
 ├── parsers/         # Transform raw Hasura snake_case → clean types
 ├── services/        # Framework-agnostic async functions (the core)
@@ -140,6 +142,8 @@ packages/react/src/
 ├── index.ts         # Main entry: hooks + services + types + provider
 └── server.ts        # Server entry: actions + server utilities
 ```
+
+> **Directory convention:** `src/graphql/` = codegen output (generated, committed). `src/documents/` = hand-written query documents. This is consistent across ARCHITECTURE.md and codegen config.
 
 ### Data Flow
 

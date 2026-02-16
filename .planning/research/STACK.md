@@ -13,7 +13,7 @@ The recommended stack from the `chillwhales/marketplace` reference implementatio
 
 ## Core Dependencies (Runtime — shipped in the package)
 
-**UPDATE (post-synthesis decision):** The package ships with **zero runtime `dependencies`**. SUMMARY.md resolved the `graphql-request` vs typed `fetch` divergence in favor of a ~30-line typed `fetch` wrapper using `TypedDocumentString` from codegen. This eliminates `graphql-request` and `graphql` as runtime deps — `graphql` is only needed as a `devDependency` for codegen at build time.
+**UPDATE (post-synthesis decision):** The package ships with **a single runtime dependency (`graphql-ws`)** for WebSocket subscriptions. SUMMARY.md resolved the `graphql-request` vs typed `fetch` divergence in favor of a ~30-line typed `fetch` wrapper using `TypedDocumentString` from codegen. This eliminates `graphql-request` and `graphql` as runtime deps — `graphql` is only needed as a `devDependency` for codegen at build time.
 
 | Library               | Version      | Purpose                                   | Status                                                                                                                                                      |
 | --------------------- | ------------ | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -99,11 +99,11 @@ const config: CodegenConfig = {
   // Introspect from Hasura endpoint (requires HASURA_GRAPHQL_URL env var)
   // Falls back to local schema file for CI/offline development
   schema: process.env.HASURA_GRAPHQL_URL || './schema.graphql',
-  documents: ['src/**/*.ts', '!src/gql/**/*'],
+  documents: ['src/documents/**/*.ts'],
   ignoreNoDocuments: true,
   generates: {
     // Generated types + graphql() function
-    './src/gql/': {
+    './src/graphql/': {
       preset: 'client',
       config: {
         documentMode: 'string', // String literals, not AST — smaller bundles
@@ -207,7 +207,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/gql/**', 'src/test/**'],
+      exclude: ['src/graphql/**', 'src/test/**'],
     },
   },
 });
@@ -300,42 +300,37 @@ The new package at `packages/react` will automatically be part of the workspace.
 
 ```json
 {
-  "name": "@chillwhales/react",
+  "name": "@lsp-indexer/react",
   "version": "0.1.0"
 }
 ```
 
-Follows the monorepo's `@chillwhales/*` naming convention.
+Follows the decided `@lsp-indexer/*` naming convention (indexer-specific, not org-specific).
 
-### Environment Variable Convention
+### GraphQL URL Configuration
 
-The package should use a configurable GraphQL URL, not hardcoded:
-
-```typescript
-// src/config.ts
-export function getGraphQLUrl(): string {
-  const url =
-    typeof window !== 'undefined'
-      ? process.env.NEXT_PUBLIC_HASURA_GRAPHQL_URL // Client-side (Next.js)
-      : process.env.HASURA_GRAPHQL_URL; // Server-side
-
-  if (!url) {
-    throw new Error(
-      'GraphQL URL not configured. Set NEXT_PUBLIC_HASURA_GRAPHQL_URL (client) or HASURA_GRAPHQL_URL (server).',
-    );
-  }
-  return url;
-}
-```
-
-The consuming app can also override via a provider:
+The package is framework-agnostic — it does NOT hardcode `process.env.NEXT_PUBLIC_*` or any framework-specific env var convention. The consuming app provides the GraphQL URL via the provider:
 
 ```typescript
-// Consumer usage
+// Consumer usage — the consuming app resolves the URL however it wants
 <LspIndexerProvider graphqlUrl="https://my-hasura.example.com/v1/graphql">
   <App />
 </LspIndexerProvider>
 ```
+
+```typescript
+// Next.js consumer example (env var is the consumer's concern, not the library's)
+<LspIndexerProvider graphqlUrl={process.env.NEXT_PUBLIC_HASURA_GRAPHQL_URL!}>
+  <App />
+</LspIndexerProvider>
+
+// Vite consumer example
+<LspIndexerProvider graphqlUrl={import.meta.env.VITE_HASURA_GRAPHQL_URL}>
+  <App />
+</LspIndexerProvider>
+```
+
+The library provides the provider + context; how the URL is derived (env vars, runtime config, hardcoded) is the consumer's responsibility. This keeps the library framework-agnostic and avoids `process.env` assumptions that break in non-Node.js environments.
 
 ## Package Exports Structure
 
@@ -347,16 +342,19 @@ The consuming app can also override via a provider:
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./client": {
-      "import": { "types": "./dist/client.d.ts", "default": "./dist/client.js" },
-      "require": { "types": "./dist/client.d.cts", "default": "./dist/client.cjs" }
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js",
+      "require": "./dist/client.cjs"
     },
     "./server": {
-      "import": { "types": "./dist/server.d.ts", "default": "./dist/server.js" },
-      "require": { "types": "./dist/server.d.cts", "default": "./dist/server.cjs" }
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js",
+      "require": "./dist/server.cjs"
     }
   },
   "files": ["dist", "README.md"],
@@ -366,9 +364,9 @@ The consuming app can also override via a provider:
 
 Three entry points:
 
-- `@chillwhales/react` — Core types, config, GraphQL client
-- `@chillwhales/react/client` — Client-side TanStack Query hooks (has `"use client"` banner)
-- `@chillwhales/react/server` — Server-side next-safe-action wrappers (optional Next.js import)
+- `@lsp-indexer/react` — Core types, config, GraphQL client
+- `@lsp-indexer/react/client` — Client-side TanStack Query hooks (has `"use client"` banner)
+- `@lsp-indexer/react/server` — Server-side next-safe-action wrappers (optional Next.js import)
 
 ## Installation Commands
 
@@ -395,10 +393,10 @@ pnpm add -D react react-dom @types/react @types/react-dom @tanstack/react-query 
 
 ```bash
 # Minimum (client-side hooks only)
-pnpm add @chillwhales/react @tanstack/react-query react
+pnpm add @lsp-indexer/react @tanstack/react-query react
 
 # Full (client + server patterns)
-pnpm add @chillwhales/react @tanstack/react-query react next-safe-action zod
+pnpm add @lsp-indexer/react @tanstack/react-query react next-safe-action zod
 ```
 
 ## Version Summary Table
