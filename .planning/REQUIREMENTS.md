@@ -1,112 +1,125 @@
-# Requirements: LSP Indexer V2
+# Requirements: LSP Indexer — React Hooks Package
 
-**Defined:** 2026-02-06
-**Core Value:** The indexer must process every LUKSO blockchain event correctly and produce identical data to V1, so V2 can replace V1 in production without data loss or API regressions.
+**Defined:** 2026-02-16
+**Core Value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-## v1 Requirements
+## v1.1 Requirements
 
-Requirements for completing the V2 rewrite. Each maps to roadmap phases.
+Requirements for the React hooks package milestone. Each maps to roadmap phases.
 
-### Handler Migration
+### Foundation
 
-- [x] **HMIG-01**: User can see totalSupply handler running as standalone EntityHandler with `listensToBag: ['LSP7Transfer', 'LSP8Transfer']`
-- [x] **HMIG-02**: User can see ownedAssets handler running as standalone EntityHandler with `listensToBag: ['LSP7Transfer', 'LSP8Transfer']`
-- [x] **HMIG-03**: User can see decimals handler adapted to new EntityHandler interface
-- [x] **HMIG-04**: User can see FormattedTokenId handler populating `NFT.formattedTokenId` based on LSP8TokenIdFormat
-- [x] **HMIG-05**: User can verify no legacy code remains — DataKeyPlugin interface, populate helpers, handler helpers all deleted
+- [ ] **FOUND-01**: Developer can install package and get working ESM+CJS+DTS builds with `"use client"` directives
+- [ ] **FOUND-02**: Developer can run codegen to generate TypeScript types from Hasura GraphQL schema
+- [ ] **FOUND-03**: Developer can configure GraphQL URL (HTTP + WebSocket) via environment variable
+- [ ] **FOUND-04**: Developer can wrap app in `<IndexerProvider>` with optional existing QueryClient
+- [ ] **FOUND-05**: Developer gets typed `IndexerError` with network, GraphQL, and Hasura permission error categories
+- [ ] **FOUND-06**: Developer can import from main (`@lsp-indexer/react`) and server (`@lsp-indexer/react/server`) entry points without bundle contamination
+- [ ] **FOUND-07**: A minimal Next.js test app (`apps/test`) exists in the monorepo that imports from `@lsp-indexer/react`, validates hooks work in both client and server components, and catches bundle/export issues during development
 
-### New Handlers
+### Query Domains
 
-- [x] **HNDL-01**: User can see Follow entities created with deterministic IDs when Follow events occur
-- [x] **HNDL-02**: User can see Follow entities removed when Unfollow events occur
-- [x] **HNDL-03**: User can see LSP6 permission sub-entities correctly deleted and re-created on data key changes
+Each domain includes: GraphQL document, parser (snake_case → camelCase), service function, TanStack Query hook, and query key factory entry.
 
-### Metadata Fetchers
+- [ ] **QUERY-01**: Developer can use `useProfile`, `useProfiles`, `useProfileSearch` for Universal Profile data
+- [ ] **QUERY-02**: Developer can use `useDigitalAsset`, `useDigitalAssets`, `useDigitalAssetSearch` for Digital Asset data
+- [ ] **QUERY-03**: Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data
+- [ ] **QUERY-04**: Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data
+- [ ] **QUERY-05**: Developer can use `useFollowers`, `useFollowing`, `useFollowCount` for social/follow data
+- [ ] **QUERY-06**: Developer can use `useCreatorAddresses` for asset creator data
+- [ ] **QUERY-07**: Developer can use `useEncryptedAsset`, `useEncryptedAssets` for LSP29 encrypted asset data
+- [ ] **QUERY-08**: Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery
+- [ ] **QUERY-09**: Developer can use `useDataChangedEvents` for ERC725 data change events
+- [ ] **QUERY-10**: Developer can use `useUniversalReceiverEvents` for universal receiver events
+- [ ] **QUERY-11**: Developer can use `useProfileStats` for aggregate profile statistics
 
-- [x] **META-01**: User can see LSP3 profile metadata fetched from IPFS/HTTP and 7 sub-entity types created
-- [x] **META-02**: User can see LSP4 digital asset metadata fetched and 8 sub-entity types plus Score/Rank created
-- [x] **META-03**: User can see LSP29 encrypted asset metadata fetched and 7 sub-entity types created
-- [x] **META-04**: User can verify metadata handlers only fetch at chain head (`isHead === true`)
-- [x] **META-05**: User can verify metadata fetch failures are retried with proper error tracking
+### Pagination
 
-### Infrastructure
+- [ ] **PAGE-01**: Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain
 
-- [x] **INFR-01**: User can see structured JSON logs with consistent field schemas across all 6 pipeline steps
-- [x] **INFR-02**: User can filter logs by severity level (info/warn/debug) and by pipeline step
+### Subscriptions
 
-### Integration
+- [ ] **SUB-01**: Developer can establish WebSocket connection to Hasura with `graphql-ws`, with automatic reconnection
+- [ ] **SUB-02**: Developer can use `use*Subscription` hooks for all 11 domains (live data via WebSocket)
+- [ ] **SUB-03**: Subscription updates automatically invalidate/update relevant TanStack Query cache entries
 
-- [x] **INTG-01**: User can see processor configured with all EventPlugin log subscriptions from the registry
-- [x] **INTG-02**: User can boot the application and see all EventPlugins and EntityHandlers discovered and registered
-- [x] **INTG-03**: User can run integration tests with real block fixtures that verify all 6 pipeline steps
-- [x] **INTG-04**: User can verify handler ordering preserves V1's dependency graph
+### Server Actions
 
-### Deployment
+- [ ] **ACTION-01**: Developer can use next-safe-action server actions for all 11 domains
+- [ ] **ACTION-02**: Developer can import server utilities from `@lsp-indexer/react/server` without client code leaking
+- [ ] **ACTION-03**: All server action inputs are validated with Zod schemas
 
-- [x] **DEPL-01**: User can run V2 alongside V1 in Docker with separate databases indexing the same chain
-- [x] **DEPL-02**: User can run automated comparison between V1 and V2 database state
+### Developer Experience
 
-## v2 Requirements
+- [ ] **DX-01**: Developer can import all clean camelCase domain types from `@lsp-indexer/react/types`
+- [ ] **DX-02**: Developer can import query key factories for cache invalidation and prefetching
+- [ ] **DX-03**: Package passes `publint` and `arethetypeswrong` validation for publish readiness
 
-Deferred to future release. Tracked but not in current roadmap.
+## Future Requirements
 
-### Deployment
+Deferred to v1.2+. Tracked but not in current roadmap.
 
-- **DEPL-03**: Full automated V1/V2 comparison test suite with CI integration
-- **DEPL-04**: Production cutover procedure with rollback plan
-- **DEPL-05**: Performance benchmarks (V2 vs V1 throughput, memory, CPU)
+### SSR & Optimization
 
-### Infrastructure
-
-- **INFR-03**: Subsquid Portal SDK migration (new DataSourceBuilder API)
-- **INFR-04**: Multi-stage Docker build optimization (reduce image size)
+- **SSR-01**: SSR hydration examples and documentation (prefetch + HydrationBoundary)
+- **SSR-02**: Select transform helpers (selectProfileWithImages, selectAssetWithFormattedBalance)
+- **SSR-03**: Domain-specific stale time tuning based on real usage data
 
 ## Out of Scope
 
-| Feature                       | Reason                                                                 |
-| ----------------------------- | ---------------------------------------------------------------------- |
-| Marketplace functionality     | Removed from scope — issues #40-#46, #56 closed as not planned         |
-| New LSP standards not in V1   | V2 must match V1 parity first before adding new standards              |
-| GraphQL API changes           | Hasura auto-generates from schema, no custom resolvers needed          |
-| V1 code changes               | V1 is frozen, only V2 gets work                                        |
-| Schema changes                | TypeORM entities shared between V1 and V2, no breaking changes allowed |
-| Subsquid Portal SDK migration | Breaking API changes, plan as separate post-V2 milestone               |
+Explicitly excluded. Documented to prevent scope creep.
+
+| Feature                         | Reason                                                                            |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| Custom cache layer              | TanStack Query handles caching — building another creates bugs and maintenance    |
+| Apollo/urql adapters            | Package uses typed fetch; consumers can use generated types with their own client |
+| Complex query composition/joins | Let consumers compose hooks; Hasura handles relationship joins in single queries  |
+| Schema watching/hot reload      | Codegen is build-time; schema validation happens in CI, not at runtime            |
+| Mutation/write hooks            | Indexer is read-only; writes happen on-chain via wallets                          |
+| Mobile-specific hooks           | React Native support deferred; web-first                                          |
 
 ## Traceability
 
 Which phases cover which requirements. Updated during roadmap creation.
 
-| Requirement | Phase | Status   |
-| ----------- | ----- | -------- |
-| HMIG-01     | 1     | Complete |
-| HMIG-02     | 1     | Complete |
-| HMIG-03     | 1     | Complete |
-| HMIG-04     | 1     | Complete |
-| HMIG-05     | 1     | Complete |
-| HNDL-01     | 2     | Complete |
-| HNDL-02     | 2     | Complete |
-| HNDL-03     | 2     | Complete |
-| INFR-01     | 2     | Complete |
-| INFR-02     | 2     | Complete |
-| META-01     | 3     | Complete |
-| META-02     | 3     | Complete |
-| META-03     | 3     | Complete |
-| META-04     | 3     | Complete |
-| META-05     | 3     | Complete |
-| INTG-01     | 4     | Complete |
-| INTG-02     | 4     | Complete |
-| INTG-03     | 4     | Complete |
-| INTG-04     | 4     | Complete |
-| DEPL-01     | 5     | Complete |
-| DEPL-02     | 5     | Complete |
+| Requirement | Phase | Status  |
+| ----------- | ----- | ------- |
+| FOUND-01    | 7     | Pending |
+| FOUND-02    | 7     | Pending |
+| FOUND-03    | 7     | Pending |
+| FOUND-04    | 7     | Pending |
+| FOUND-05    | 7     | Pending |
+| FOUND-06    | 7     | Pending |
+| FOUND-07    | 7     | Pending |
+| QUERY-01    | 8     | Pending |
+| DX-01       | 8     | Pending |
+| DX-02       | 8     | Pending |
+| QUERY-02    | 9     | Pending |
+| QUERY-03    | 9     | Pending |
+| QUERY-04    | 9     | Pending |
+| QUERY-05    | 9     | Pending |
+| QUERY-06    | 9     | Pending |
+| QUERY-07    | 9     | Pending |
+| QUERY-08    | 9     | Pending |
+| QUERY-09    | 9     | Pending |
+| QUERY-10    | 9     | Pending |
+| QUERY-11    | 9     | Pending |
+| PAGE-01     | 9     | Pending |
+| SUB-01      | 10    | Pending |
+| SUB-02      | 10    | Pending |
+| SUB-03      | 10    | Pending |
+| ACTION-01   | 11    | Pending |
+| ACTION-02   | 11    | Pending |
+| ACTION-03   | 11    | Pending |
+| DX-03       | 11    | Pending |
 
 **Coverage:**
 
-- v1 requirements: 21 total
-- Mapped to phases: 21
+- v1.1 requirements: 28 total
+- Mapped to phases: 28
 - Unmapped: 0 ✓
 
 ---
 
-_Requirements defined: 2026-02-06_
-_Last updated: 2026-02-13 after Phase 5.2 completion_
+_Requirements defined: 2026-02-16_
+_Last updated: 2026-02-16 after roadmap creation (traceability updated)_

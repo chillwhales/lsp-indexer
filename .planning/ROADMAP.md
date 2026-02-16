@@ -1,466 +1,237 @@
-# Roadmap: LSP Indexer V2
+# Roadmap: LSP Indexer v1.1 — React Hooks Package
 
-**Created:** 2026-02-06
+**Created:** 2026-02-16
 **Depth:** Standard
-**Phases:** 11 (5 original + 5 inserted + 1 gap closure)
-**Coverage:** 21/21 v1 requirements mapped + 8 urgent requirements + 9 parity gap requirements + 3 tech debt
+**Phases:** 5 (Phase 7–11, continuing from v1.0)
+**Coverage:** 28/28 v1.1 requirements mapped
 
 ## Overview
 
-Complete the V2 rewrite of the LUKSO LSP Indexer by migrating remaining handlers to the EntityHandler interface, building new handlers and metadata fetchers, wiring the full pipeline together, and validating data parity against V1 before production cutover. The phases follow the natural dependency chain: existing handlers must be migrated before new ones can be built, all handlers must exist before integration wiring, and the full pipeline must work before deployment validation.
+Ship a standalone, publishable React hooks library (`packages/react`) that gives any app type-safe access to all 11 indexer query domains — with client-side (TanStack Query) hooks, real-time WebSocket subscriptions (graphql-ws), and server-side (next-safe-action) consumption patterns. The phases follow vertical-slice delivery: scaffold the package and validate exports → build one domain end-to-end → replicate across all domains → add subscriptions → add server actions and ship.
 
 ---
 
-## Phase 1 — Handler Migration
+## Phase 7 — Package Foundation
 
-**Goal:** All existing handler implementations run as standalone EntityHandlers using the V2 interface, and all legacy code is deleted.
+**Goal:** Developer can install the package, run codegen, and see a working build with correct entry points validated in a real Next.js app — before any domain logic exists.
 
-**Dependencies:** None — this is the foundation phase.
+**Dependencies:** None — this is the foundation for v1.1.
 
 **Requirements:**
 
-| ID      | Requirement                                                                                           |
-| ------- | ----------------------------------------------------------------------------------------------------- |
-| HMIG-01 | totalSupply handler as standalone EntityHandler with `listensToBag: ['LSP7Transfer', 'LSP8Transfer']` |
-| HMIG-02 | ownedAssets handler as standalone EntityHandler with `listensToBag: ['LSP7Transfer', 'LSP8Transfer']` |
-| HMIG-03 | decimals handler adapted to new EntityHandler interface                                               |
-| HMIG-04 | FormattedTokenId handler populating `NFT.formattedTokenId` based on LSP8TokenIdFormat                 |
-| HMIG-05 | No legacy code remains — DataKeyPlugin interface, populate helpers, handler helpers all deleted       |
-
-**Plans:**
-
-- [x] **01-01** (Wave 1): Infrastructure — async handle, delete queue, Step 5.5 hook, registry ordering
-- [x] **01-02** (Wave 2): totalSupply + ownedAssets handlers (HMIG-01, HMIG-02)
-- [x] **01-03** (Wave 2): decimals + formattedTokenId handlers (HMIG-03, HMIG-04)
-- [x] **01-04** (Wave 3): Legacy code deletion (HMIG-05)
+| ID       | Requirement                                                                                                                                                                                                            |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FOUND-01 | Developer can install package and get working ESM+CJS+DTS builds with `"use client"` directives                                                                                                                        |
+| FOUND-02 | Developer can run codegen to generate TypeScript types from Hasura GraphQL schema                                                                                                                                      |
+| FOUND-03 | Developer can configure GraphQL URL (HTTP + WebSocket) via environment variable                                                                                                                                        |
+| FOUND-04 | Developer can wrap app in `<IndexerProvider>` with optional existing QueryClient                                                                                                                                       |
+| FOUND-05 | Developer gets typed `IndexerError` with network, GraphQL, and Hasura permission error categories                                                                                                                      |
+| FOUND-06 | Developer can import from main (`@lsp-indexer/react`) and server (`@lsp-indexer/react/server`) entry points without bundle contamination                                                                               |
+| FOUND-07 | A minimal Next.js test app (`apps/test`) exists in the monorepo that imports from `@lsp-indexer/react`, validates hooks work in both client and server components, and catches bundle/export issues during development |
 
 **Success Criteria:**
 
-1. User can run unit tests for totalSupply, ownedAssets, and decimals handlers and see them process events identically to their V1 counterparts
-2. User can see FormattedTokenId handler produce formatted token IDs matching V1 output for LSP8 tokens
-3. User can search the codebase and find zero references to DataKeyPlugin, populate helpers, or handler helpers — all legacy interfaces are gone
-4. User can see every EntityHandler self-selects from BatchContext via `listensToBag` without any direct invocation
+1. Developer can run `pnpm build` in `packages/react` and get ESM + CJS + DTS output with `"use client"` directives on hook files — verified by inspecting dist output
+2. Developer can run codegen against Hasura and see TypeScript types generated with `TypedDocumentString` wrappers — output committed to `src/graphql/`, query documents in `src/documents/`
+3. Developer can import from `@lsp-indexer/react` in a client component and from `@lsp-indexer/react/server` in a server component without bundle errors — validated by `next build` in the test app (`apps/test`)
+4. Developer can wrap a Next.js app in `<IndexerProvider url={...}>` and see TanStack Query context available to child components — with optional existing QueryClient pass-through working
+5. Developer can run `publint` and `arethetypeswrong` against the built package and see zero errors — exports map is correct for all entry points
 
 ---
 
-## Phase 2 — New Handlers & Structured Logging
+## Phase 8 — First Vertical Slice (Universal Profiles)
 
-**Goal:** Follower and permissions handlers deliver complete event coverage for remaining V1 entity types, while structured logging provides observability across all pipeline steps.
+**Goal:** Developer can use complete Universal Profile hooks in a real app — validating the full document → parser → service → hook architecture end-to-end before replicating across 10 more domains.
 
-**Dependencies:** Phase 1 (EntityHandler patterns established and validated)
+**Dependencies:** Phase 7 (package scaffold, codegen, build, provider, error handling must exist)
 
 **Requirements:**
 
-| ID      | Requirement                                                                       |
-| ------- | --------------------------------------------------------------------------------- |
-| HNDL-01 | Follow entities created with deterministic IDs when Follow events occur           |
-| HNDL-02 | Follow entities removed when Unfollow events occur                                |
-| HNDL-03 | LSP6 permission sub-entities correctly deleted and re-created on data key changes |
-| INFR-01 | Structured JSON logs with consistent field schemas across all 6 pipeline steps    |
-| INFR-02 | Logs filterable by severity level (info/warn/debug) and by pipeline step          |
+| ID       | Requirement                                                                                  |
+| -------- | -------------------------------------------------------------------------------------------- |
+| QUERY-01 | Developer can use `useProfile`, `useProfiles`, `useProfileSearch` for Universal Profile data |
+| DX-01    | Developer can import all clean camelCase domain types from `@lsp-indexer/react/types`        |
+| DX-02    | Developer can import query key factories for cache invalidation and prefetching              |
 
 **Success Criteria:**
 
-1. User can trigger Follow/Unfollow events and see Follow entities appear and disappear with deterministic IDs matching V1's ID generation
-2. User can change LSP6 permission data keys and see old permission sub-entities cleared and new ones created in the correct order
-3. User can see structured JSON log output with consistent fields (`step`, `level`, `blockRange`, `entityCount`) across all 6 pipeline steps
-4. User can filter logs by severity and pipeline step to isolate specific processing phases
-
-**Parallelization Note:** INFR-01/INFR-02 (structured logging) can be built in parallel with HNDL-01/HNDL-02/HNDL-03 (new handlers) since they have no mutual dependencies.
-
-**Plans:** 4 plans
-
-Plans:
-
-- [x] 02-01-PLAN.md — Structured logger module (pino + createStepLogger factory)
-- [x] 02-02-PLAN.md — Follower handler + EventPlugin TypeScript sources + unit tests
-- [x] 02-03-PLAN.md — LSP6Controllers handler TypeScript port + verification unit tests
-- [x] 02-04-PLAN.md — Replace all JSON.stringify logging with structured attributes
+1. Developer can call `useProfile({ address })` in a client component and see typed Universal Profile data rendered — with loading, error, and success states all working
+2. Developer can call `useProfiles({ limit: 10 })` and `useProfileSearch({ query: "alice" })` and see correct filtered/paginated results from Hasura
+3. Developer can import `profileKeys` from the query key factory and use it for manual cache invalidation (`queryClient.invalidateQueries({ queryKey: profileKeys.all })`) and prefetching
+4. Developer can import `Profile` type from `@lsp-indexer/react/types` and see clean camelCase properties (e.g., `profileName`, `profileImage`) — not Hasura's snake_case
+5. Developer can see the test app (`apps/test`) render Universal Profile data from the live Hasura endpoint in both a client component (via hook) and verify the service function works standalone
 
 ---
 
-## Phase 3 — Metadata Fetch Handlers
+## Phase 9 — Remaining Query Domains & Pagination
 
-**Goal:** All three metadata standards (LSP3, LSP4, LSP29) are fetched from IPFS/HTTP, parsed into sub-entities, and persisted — with proper head-only gating and retry handling.
+**Goal:** Developer can query all 11 indexer domains with consistent hook patterns, and use infinite scroll pagination on any list query.
 
-**Dependencies:** Phase 1 (EntityHandler patterns), Phase 2 (logging available for observability during metadata fetches)
+**Dependencies:** Phase 8 (vertical slice pattern validated — this is replication)
 
 **Requirements:**
 
-| ID      | Requirement                                                                        |
-| ------- | ---------------------------------------------------------------------------------- |
-| META-01 | LSP3 profile metadata fetched from IPFS/HTTP and 7 sub-entity types created        |
-| META-02 | LSP4 digital asset metadata fetched and 8 sub-entity types plus Score/Rank created |
-| META-03 | LSP29 encrypted asset metadata fetched and 7 sub-entity types created              |
-| META-04 | Metadata handlers only fetch at chain head (`isHead === true`)                     |
-| META-05 | Metadata fetch failures retried with proper error tracking                         |
+| ID       | Requirement                                                                                             |
+| -------- | ------------------------------------------------------------------------------------------------------- |
+| QUERY-02 | Developer can use `useDigitalAsset`, `useDigitalAssets`, `useDigitalAssetSearch` for Digital Asset data |
+| QUERY-03 | Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data                               |
+| QUERY-04 | Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data                                 |
+| QUERY-05 | Developer can use `useFollowers`, `useFollowing`, `useFollowCount` for social/follow data               |
+| QUERY-06 | Developer can use `useCreatorAddresses` for asset creator data                                          |
+| QUERY-07 | Developer can use `useEncryptedAsset`, `useEncryptedAssets` for LSP29 encrypted asset data              |
+| QUERY-08 | Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery                                      |
+| QUERY-09 | Developer can use `useDataChangedEvents` for ERC725 data change events                                  |
+| QUERY-10 | Developer can use `useUniversalReceiverEvents` for universal receiver events                            |
+| QUERY-11 | Developer can use `useProfileStats` for aggregate profile statistics                                    |
+| PAGE-01  | Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain              |
 
 **Success Criteria:**
 
-1. User can see LSP3 profile metadata fetched and all 7 sub-entity types (ProfileImage, BackgroundImage, ProfileTag, ProfileLink, etc.) persisted matching V1 structure
-2. User can see LSP4 digital asset metadata fetched and all 8 sub-entity types plus Score/Rank persisted matching V1 structure
-3. User can see LSP29 encrypted metadata fetched and all 7 sub-entity types persisted matching V1 structure
-4. User can verify that during historical sync (`isHead === false`), no metadata HTTP/IPFS requests are made — fetching is deferred until chain head
-5. User can see failed metadata fetches logged with error details, retried according to backoff policy, and never causing spin-wait or infinite loops
-
-**Plans:** 4 plans
-
-Plans:
-
-- [x] 03-01-PLAN.md — FetchResult type fix + shared metadata fetch utility + V1 type guards
-- [x] 03-02-PLAN.md — LSP3 + LSP29 metadata fetch handlers (7 + 7 sub-entity types)
-- [x] 03-03-PLAN.md — LSP4 metadata fetch handler (8 sub-entity types + Score/Rank)
-- [x] 03-04-PLAN.md — Unit tests for all three metadata fetch handlers
+1. Developer can use hooks for all 11 domains and see typed data returned — every domain follows the same document → parser → service → hook pattern established in Phase 8
+2. Developer can call `useInfiniteProfiles()`, `useInfiniteDigitalAssets()`, `useInfiniteNfts()`, etc. and see offset-based infinite scroll working with `fetchNextPage` / `hasNextPage`
+3. Developer can import query key factories for all 11 domains and use them for targeted cache invalidation (e.g., `digitalAssetKeys.detail(address)`, `nftKeys.byCollection(address)`)
+4. Developer can import all domain types from `@lsp-indexer/react/types` — all 11 domains export clean camelCase types
 
 ---
 
-## Phase 3.1 — Improve Debug Logging Strategy (INSERTED)
+## Phase 10 — Subscriptions
 
-**Goal:** Create structured debug logging infrastructure with configurable log levels and component-specific debug flags, enabling faster debugging of worker pool, metadata fetch, and pipeline issues.
+**Goal:** Developer can subscribe to real-time updates on any domain via WebSocket, with subscription data automatically keeping query caches fresh.
 
-**Dependencies:** Phase 3 (Metadata Fetch Handlers)
+**Dependencies:** Phase 9 (all domain services and query hooks must exist for cache integration)
 
 **Requirements:**
 
-| ID     | Requirement                                                                    |
-| ------ | ------------------------------------------------------------------------------ |
-| LOG-01 | Logger utility module with ERROR, WARN, INFO, DEBUG, TRACE levels              |
-| LOG-02 | Component-specific debug flags (DEBUG_WORKER_POOL, DEBUG_METADATA_FETCH, etc.) |
-| LOG-03 | Environment variable control (LOG_LEVEL, DEBUG_COMPONENTS)                     |
-| LOG-04 | Apply logger to worker pool, metadata fetch handlers, and pipeline             |
+| ID     | Requirement                                                                                           |
+| ------ | ----------------------------------------------------------------------------------------------------- |
+| SUB-01 | Developer can establish WebSocket connection to Hasura with `graphql-ws`, with automatic reconnection |
+| SUB-02 | Developer can use `use*Subscription` hooks for all 11 domains (live data via WebSocket)               |
+| SUB-03 | Subscription updates automatically invalidate/update relevant TanStack Query cache entries            |
 
 **Success Criteria:**
 
-1. User can set `LOG_LEVEL=debug` and see debug-level logs from all components
-2. User can set `DEBUG_COMPONENTS=worker_pool,metadata_fetch` and see only those component logs
-3. User can trace worker pool operations without modifying code (no console.log debugging)
-4. User can see structured log output with consistent fields (timestamp, level, component, message, context)
-
-**Plans:** 2 plans
-
-Plans:
-
-- [x] 03.1-01-PLAN.md — Component-specific debug logging (logger enhancement + worker pool + metadata handlers)
-- [x] 03.1-02-PLAN.md — Fix missing imports for createComponentLogger/getFileLogger (gap closure)
-
-**Details:**
-
-[To be added during planning]
-
-**Context:** Discovered during PR #152 debugging — took too long to find metadata worker pool bug because worker operations were invisible without code modifications.
+1. Developer can see a WebSocket connection established to Hasura's `ws://` endpoint when any subscription hook mounts — with automatic reconnection on disconnect visible in browser devtools
+2. Developer can call `useProfileSubscription({ address })` and see the component re-render within seconds when that profile's on-chain data changes — without manual refetch
+3. Developer can observe that when a subscription fires, the corresponding TanStack Query cache entry is invalidated or updated (e.g., `useProfile` returns fresh data after `useProfileSubscription` receives an update)
+4. Developer can see subscription hooks for all 11 domains following a consistent pattern — each has a subscription document, hook, and cache integration
 
 ---
 
-## Phase 3.2 — Queue-Based Worker Pool Optimization (INSERTED)
+## Phase 11 — Server Actions & Publish Readiness
 
-**Goal:** Refactor MetadataWorkerPool from batch-wait pattern to queue-based architecture, keeping N workers busy at all times for ~2x throughput improvement.
+**Goal:** Developer can use server-side actions for all domains from Next.js Server Components, and the package passes all publish validation checks.
 
-**Dependencies:** Phase 3.1 (Improved logging will help validate queue behavior)
-
-**Requirements:**
-
-| ID      | Requirement                                                                  |
-| ------- | ---------------------------------------------------------------------------- |
-| PERF-01 | Queue-based worker pool architecture (replace batch-wait pattern)            |
-| PERF-02 | Keep N workers busy with X requests each (configurable)                      |
-| PERF-03 | Environment variables: WORKER_POOL_SIZE, WORKER_BATCH_SIZE, FETCH_LIMIT      |
-| PERF-04 | Maintain error handling, timeout protection, and entity marking from PR #152 |
-
-**Success Criteria:**
-
-1. User can see workers never idle when work is available (no wait between batches)
-2. User can configure `WORKER_POOL_SIZE=4` and `WORKER_BATCH_SIZE=250` to tune performance
-3. User can see ~2x throughput improvement (process 1,000 URLs in ~17s vs ~35s)
-4. User can verify error handling still marks entities with errors on batch failures
-
-**Plans:** 2 plans
-
-Plans:
-
-- [x] 03.2-01-PLAN.md — Queue-based worker pool architecture (core refactor)
-- [x] 03.2-02-PLAN.md — Worker pool unit tests + UAT verification
-
-**Details:**
-
-[To be added during planning]
-
-**Context:** Discovered during PR #152 optimization — batch-wait pattern leaves workers idle during result processing. Queue-based approach keeps workers continuously busy.
-
----
-
-## Phase 4 — Integration & Wiring
-
-**Goal:** All EventPlugins and EntityHandlers are discovered, registered, and wired into a bootable application that processes blocks through all 6 pipeline steps end-to-end.
-
-**Dependencies:** Phase 1, Phase 2, Phase 3 (all handlers must exist before wiring)
+**Dependencies:** Phase 9 (all domain services must exist — actions wrap services), Phase 10 (subscriptions should be complete for full package validation)
 
 **Requirements:**
 
-| ID      | Requirement                                                                          |
-| ------- | ------------------------------------------------------------------------------------ |
-| INTG-01 | Processor configured with all EventPlugin log subscriptions from the registry        |
-| INTG-02 | Application boots with all EventPlugins and EntityHandlers discovered and registered |
-| INTG-03 | Integration tests with real block fixtures verify all 6 pipeline steps               |
-| INTG-04 | Handler ordering preserves V1's dependency graph                                     |
+| ID        | Requirement                                                                                        |
+| --------- | -------------------------------------------------------------------------------------------------- |
+| ACTION-01 | Developer can use next-safe-action server actions for all 11 domains                               |
+| ACTION-02 | Developer can import server utilities from `@lsp-indexer/react/server` without client code leaking |
+| ACTION-03 | All server action inputs are validated with Zod schemas                                            |
+| DX-03     | Package passes `publint` and `arethetypeswrong` validation for publish readiness                   |
 
 **Success Criteria:**
 
-1. User can boot the V2 application and see all 11 EventPlugins and all EntityHandlers discovered, registered, and logged in correct dependency order
-2. User can see the Subsquid processor configured with topic subscriptions that exactly match V1's event coverage — no missing events
-3. User can run integration tests with real LUKSO block fixtures and see data flow through EXTRACT → PERSIST RAW → HANDLE → PERSIST DERIVED → VERIFY → ENRICH with correct output
-4. User can verify handler execution order matches V1's dependency graph (e.g., NFT before FormattedTokenId, transfers before totalSupply/ownedAssets)
-
----
-
-## Phase 5 — Deployment & Validation
-
-**Goal:** V2 runs alongside V1 in Docker and automated comparison proves data parity, enabling production cutover.
-
-**Dependencies:** Phase 4 (fully working, tested application)
-
-**Requirements:**
-
-| ID      | Requirement                                                                    |
-| ------- | ------------------------------------------------------------------------------ |
-| DEPL-01 | V2 runs alongside V1 in Docker with separate databases indexing the same chain |
-| DEPL-02 | Automated comparison between V1 and V2 database state                          |
-
-**Success Criteria:**
-
-1. User can run V1 and V2 on separate Docker stacks (each has its own docker-compose) indexing the same LUKSO chain data into separate PostgreSQL databases
-2. User can run an automated comparison CLI that queries two Hasura GraphQL endpoints and reports per-entity-type row counts and sampled content diffs, with an exclusion list for known divergences (null FKs vs entity removal, unknown token format returns null)
-
-**Plans:** 2 plans
-
-Plans:
-
-- [x] 05-01-PLAN.md — Types, entity registry (72 types + known divergences), GraphQL client
-- [x] 05-02-PLAN.md — Comparison engine, colored reporter, CLI entry point + human verification
-
-**Note:** DEPL-01 is satisfied by existing Docker infrastructure (V1 and V2 each have their own docker-compose). The deliverable is the comparison tool (DEPL-02) — a CLI that queries two running Hasura endpoints via GraphQL and reports data parity.
-
----
-
-## Phase 5.1 — Pipeline Bug Fix & Missing Core Handlers (INSERTED)
-
-**Goal:** Fix the contract filter address comparison bug that silences 4 entity types, and implement the 4 missing EntityHandlers for ownership and custom game entities.
-
-**Dependencies:** Phase 5 (comparison tool identified the gaps)
-
-**Requirements:**
-
-| ID     | Requirement                                                                                     |
-| ------ | ----------------------------------------------------------------------------------------------- |
-| GAP-01 | Contract filter address comparison is case-insensitive (fixes Follow, Unfollow, Deployed\* = 0) |
-| GAP-02 | UniversalProfileOwner entities created from OwnershipTransferred events (postVerification)      |
-| GAP-03 | DigitalAssetOwner entities created from OwnershipTransferred events (postVerification)          |
-| GAP-04 | ChillClaimed entities created when Chillwhale NFTs are minted via LSP8 Transfer from zero       |
-| GAP-05 | OrbsClaimed entities created when Orbs NFTs are minted via LSP7/LSP8 Transfer from zero         |
-
-**Success Criteria:**
-
-1. User can re-index and see Follow (>100K), Unfollow (>2K), DeployedContracts (>0), DeployedERC1167Proxies (>35K) rows appear — matching V1 counts
-2. User can see UniversalProfileOwner and DigitalAssetOwner rows created for every OwnershipTransferred event, matching V1 counts
-3. User can see ChillClaimed and OrbsClaimed rows matching V1 counts after full re-index
-4. Comparison tool shows these 8 entity types as ✓ MATCH or within 2% tolerance
-
-**Plans:** 2 plans
-
-Plans:
-
-- [x] 05.1-01-PLAN.md — Pipeline address comparison fix + UniversalProfileOwner/DigitalAssetOwner handlers
-- [x] 05.1-02-PLAN.md — ChillClaimed + OrbsClaimed handlers (Chillwhales game entities)
-
-**Context:** Discovered via comparison tool (Phase 5) — V2 has zero rows for Follow, Unfollow, DeployedContracts, DeployedERC1167Proxies due to case-sensitive address comparison in `pipeline.ts:205`. UniversalProfileOwner/DigitalAssetOwner handlers were never written (referenced as issue #105 in V2 code comments). ChillClaimed/OrbsClaimed handlers never ported from V1.
-
----
-
-## Phase 5.2 — LSP4 Metadata Base URI Derivation & Count Parity (INSERTED)
-
-**Goal:** Implement the missing LSP4 metadata base URI → per-token LSP4Metadata derivation flow, and investigate/fix remaining count mismatches (OwnedAsset, LSP8ReferenceContract, Orb entities).
-
-**Dependencies:** Phase 5.1 (core pipeline bug must be fixed first)
-
-**Requirements:**
-
-| ID     | Requirement                                                                                  |
-| ------ | -------------------------------------------------------------------------------------------- |
-| GAP-06 | LSP4Metadata entities derived from LSP8TokenMetadataBaseURI + NFT tokenIds (V1 BaseURI flow) |
-| GAP-07 | LSP8ReferenceContract count matches V1 within tolerance (investigate DataChanged delivery)   |
-| GAP-08 | OwnedAsset creation scope matches V1 behavior (UP-only filter vs all addresses)              |
-| GAP-09 | Orb entity counts (OrbLevel, OrbCooldownExpiry, OrbFaction) match V1 within tolerance        |
-
-**Success Criteria:**
-
-1. User can see LSP4Metadata row count within 2% of V1 (currently 32K vs 116K — ~84K missing from base URI derivation)
-2. User can see LSP8ReferenceContract count within 2% of V1
-3. User can see OwnedAsset count within 2% of V1 (currently V2 has 14K MORE — need to align creation scope)
-4. Comparison tool shows all entity types as ✓ MATCH or ≈ TOLERANCE with `--tolerance=2`
-
-**Plans:** 3 plans
-
-Plans:
-
-- [x] 05.2-01-PLAN.md — OwnedAsset triggeredBy fix (GAP-08) + LSP8ReferenceContract divergence (GAP-07)
-- [x] 05.2-02-PLAN.md — Orb handler mint detection defaults (GAP-09)
-- [x] 05.2-03-PLAN.md — LSP4 Base URI derivation handler (GAP-06)
-
-**Context:** Discovered via comparison tool (Phase 5). LSP4Metadata gap is caused by V2 missing the base URI → per-token derivation flow that V1 implements in `utils/lsp4MetadataBaseUri.ts`. OwnedAsset count is currently HIGHER in V2 due to double-processing (ignoring `triggeredBy`) rather than UP-only filtering assumptions from earlier analysis. Orb-related entity gaps are now attributed to missing mint-time defaults in the Orb handlers, while LSP8ReferenceContract is treated as a known V1 divergence rather than a parity bug.
-
----
-
-## Phase 5.3 — Entity Upsert Pattern Standardization (INSERTED)
-
-**Goal:** Introduce `resolveEntity`/`resolveEntities` helpers and refactor ALL 13 handlers that do entity lookups to use a single recognizable pattern: **resolve → spread → override → addEntity**. Fixes 3 bugs and 2 gaps while establishing codebase-wide consistency.
-
-**Dependencies:** Phase 5.2 (builds on handler code from 5.2)
-
-**Requirements:**
-
-| ID       | Requirement                                                                                                                                                                                       |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| UPSRT-01 | `resolveEntity<T>()` and `resolveEntities<T>()` helpers created, `mergeEntitiesFromBatchAndDb` deleted                                                                                            |
-| UPSRT-02 | Tier 1 bugfix: chillClaimed, orbsClaimed, lsp5ReceivedAssets, orbLevel, orbFaction use resolve + spread                                                                                           |
-| UPSRT-03 | Tier 2 standardize: totalSupply, ownedAssets, nft use resolve + spread (replacing manual lookups)                                                                                                 |
-| UPSRT-04 | Tier 2 standardize: lsp4Creators, lsp12IssuedAssets, lsp6Controllers use resolve + spread; formattedTokenId, lsp4MetadataBaseUri audited (address-based queries — resolveEntities not applicable) |
-
-**Success Criteria:**
-
-1. User can search the codebase for `mergeEntitiesFromBatchAndDb` and find zero references — fully replaced by `resolveEntities`
-2. User can verify all 13 handlers audited: 9 use `resolveEntity`/`resolveEntities` → `...existing` spread → `addEntity()`, 2 use `...entity` spread with pre-loaded DB entities, 2 are documented address-query exceptions
-3. User can verify ChillClaimed/OrbsClaimed retain FK references after Phase 2 verification (bug fix)
-4. User can verify lsp5ReceivedAssets correctly persists cross-batch merge data (bug fix)
-5. User can verify OrbLevel/OrbFaction preserve FKs across batch boundaries (gap fix)
-6. All existing tests pass, and runtime behavior matches intended V1 semantics (no regressions introduced by the unification work)
-
-**Plans:** 4 plans
-
-Plans:
-
-- [x] 05.3-01-PLAN.md — Create resolveEntity/resolveEntities helpers + delete mergeEntitiesFromBatchAndDb
-- [x] 05.3-02-PLAN.md — Tier 1 bugfix: chillClaimed, orbsClaimed, lsp5ReceivedAssets, orbLevel, orbFaction
-- [x] 05.3-03-PLAN.md — Tier 2a: totalSupply, ownedAssets, nft standardization
-- [x] 05.3-04-PLAN.md — Tier 2b: lsp4Creators, lsp12IssuedAssets, lsp6Controllers, formattedTokenId, lsp4MetadataBaseUri
-
-**Context:** Comprehensive audit of all 29 handlers found 4 different ad-hoc patterns for the same operation ("entity might already exist"). This produced 3 confirmed bugs (chillClaimed/orbsClaimed FK wipe, lsp5ReceivedAssets missing addEntity) and 2 cross-batch gaps (orbLevel/orbFaction). Rather than patching only the broken handlers, we standardize ALL 13 handlers that do entity lookups to a single recognizable pattern.
-
----
-
-## Phase 6 — Tech Debt Cleanup (GAP CLOSURE)
-
-**Goal:** Remove stale code artifacts, deprecated wrappers, and replace remaining JSON.stringify logging calls with structured attributes — closing all tech debt items identified in milestone v1 audit.
-
-**Dependencies:** Phase 5.3 (all functional work complete)
-
-**Requirements:**
-
-| ID      | Requirement                                                                                   |
-| ------- | --------------------------------------------------------------------------------------------- |
-| DEBT-01 | Stale TODO removed from registry.ts (references already-completed bootstrap wiring)           |
-| DEBT-02 | Deprecated mergeEntitiesFromBatchAndDb wrapper removed from handlerHelpers.ts                 |
-| DEBT-03 | JSON.stringify calls in decimals + formattedTokenId handlers replaced with structured logging |
-
-**Success Criteria:**
-
-1. User can search codebase for `mergeEntitiesFromBatchAndDb` and find zero references (0 callers, 0 exports)
-2. User can search registry.ts for TODO comments and find zero stale references to completed work
-3. User can verify decimals.handler.ts and formattedTokenId.handler.ts use structured logging attributes instead of JSON.stringify
-
-**Plans:** 1 plan
-
-Plans:
-
-- [x] 06-01-PLAN.md — Remove stale TODO, deprecated wrapper, and JSON.stringify logging
+1. Developer can call `getProfile({ address })` as a server action in a Next.js Server Component and see typed data returned — without any client-side JavaScript shipped to the browser
+2. Developer can import from `@lsp-indexer/react/server` and run `next build` with zero "client-only code in server" or "server-only code in client" errors — entry point separation is bulletproof
+3. Developer can see Zod validation errors when passing invalid inputs to server actions (e.g., invalid address format) — with typed error responses
+4. Developer can run `publint` and `arethetypeswrong` against the final built package and see zero errors across all entry points (`@lsp-indexer/react`, `@lsp-indexer/react/server`, `@lsp-indexer/react/types`)
+5. Developer can `npm pack` the package and see only `dist/` and `README.md` included — no source files, no test fixtures, no generated intermediates
 
 ---
 
 ## Progress
 
-| Phase | Name                                  | Requirements | Status   |
-| ----- | ------------------------------------- | :----------: | -------- |
-| 1     | Handler Migration                     |      5       | Complete |
-| 2     | New Handlers & Structured Logging     |      5       | Complete |
-| 3     | Metadata Fetch Handlers               |      5       | Complete |
-| 3.1   | Improve Debug Logging Strategy        |      4       | Complete |
-| 3.2   | Queue-Based Worker Pool               |      4       | Complete |
-| 4     | Integration & Wiring                  |      4       | Complete |
-| 5     | Deployment & Validation               |      2       | Complete |
-| 5.1   | Pipeline Bug Fix & Missing Handlers   |      5       | Complete |
-| 5.2   | LSP4 Base URI & Count Parity          |      4       | Complete |
-| 5.3   | Entity Upsert Pattern Standardization |      4       | Complete |
-| 6     | Tech Debt Cleanup                     |      3       | Complete |
+| Phase | Name                                 | Requirements | Status  |
+| ----- | ------------------------------------ | :----------: | ------- |
+| 7     | Package Foundation                   |      7       | Pending |
+| 8     | First Vertical Slice (Profiles)      |      3       | Pending |
+| 9     | Remaining Query Domains & Pagination |      11      | Pending |
+| 10    | Subscriptions                        |      3       | Pending |
+| 11    | Server Actions & Publish Readiness   |      4       | Pending |
 
-**Total:** 45 requirements across 11 phases (5 original + 5 inserted + 1 gap closure)
+**Total:** 28 requirements across 5 phases
 
 ---
 
 ## Dependency Graph
 
 ```
-Phase 1 (Handler Migration)
-  ├──→ Phase 2 (New Handlers & Logging)
-  │      ├──→ Phase 3 (Metadata Fetchers) ←── also depends on Phase 1
-  │      │      ├──→ Phase 3.1 (Debug Logging) ←── INSERTED URGENT
-  │      │      │      └──→ Phase 3.2 (Queue-Based Workers) ←── INSERTED URGENT
-  │      │      │
-  │      │      └──→ Phase 4 (Integration & Wiring)
-  │      └──→ Phase 4
-  └──→ Phase 3
-           └──→ Phase 5 (Deployment & Validation)
-                  └──→ Phase 5.1 (Pipeline Bug Fix & Missing Handlers) ←── INSERTED
-                         └──→ Phase 5.2 (LSP4 Base URI & Count Parity) ←── INSERTED
-                                 └──→ Phase 5.3 (Entity Upsert Pattern Standardization) ←── INSERTED
-                                        └──→ Phase 6 (Tech Debt Cleanup) ←── GAP CLOSURE
+Phase 7 (Package Foundation)
+  └──→ Phase 8 (First Vertical Slice — Universal Profiles)
+         └──→ Phase 9 (Remaining Query Domains & Pagination)
+                ├──→ Phase 10 (Subscriptions)
+                └──→ Phase 11 (Server Actions & Publish Readiness) ←── also depends on Phase 10
 ```
 
 **Parallelization opportunities:**
 
-- Within Phase 2: Logging (INFR-01, INFR-02) parallel with new handlers (HNDL-01–03)
-- Phase 3 can start as soon as Phase 1 completes, overlapping with Phase 2's tail
-- **Phases 3.1 and 3.2 are INSERTED urgent work discovered during Phase 3 execution (PR #152)**
-- **Phases 5.1 and 5.2 are INSERTED gap closure work discovered via Phase 5 comparison tool**
-- Within Phase 5.1: Contract filter fix and missing handler implementations can be parallelized
+- Within Phase 7: Codegen pipeline and build tooling can be worked in parallel with provider/error handling
+- Within Phase 9: All 10 remaining domains are independent — can be built in any order
+- Phase 10 and Phase 11 both depend on Phase 9, but Phase 11's ACTION-01/ACTION-02/ACTION-03 could technically start as soon as Phase 9 completes (only DX-03 needs Phase 10 for full validation)
 
 ---
 
-## Roadmap Evolution
+## Coverage Validation
 
-**2026-02-11:** Inserted Phase 3.1 (Debug Logging) and Phase 3.2 (Queue-Based Workers) after Phase 3
+All 28 v1.1 requirements mapped to exactly one phase:
 
-- **Reason:** Urgent improvements discovered during PR #152 debugging (indexer-v2 hung at block 6,729,432)
-- **Context:** Debug logging would have accelerated bug discovery; queue-based workers improve throughput 2x
-- **Numbering:** Decimal phases (3.1, 3.2) preserve logical sequence while accommodating urgent work
+| Requirement | Phase | Category       |
+| ----------- | ----- | -------------- |
+| FOUND-01    | 7     | Foundation     |
+| FOUND-02    | 7     | Foundation     |
+| FOUND-03    | 7     | Foundation     |
+| FOUND-04    | 7     | Foundation     |
+| FOUND-05    | 7     | Foundation     |
+| FOUND-06    | 7     | Foundation     |
+| FOUND-07    | 7     | Foundation     |
+| QUERY-01    | 8     | Query Domains  |
+| DX-01       | 8     | Developer Exp  |
+| DX-02       | 8     | Developer Exp  |
+| QUERY-02    | 9     | Query Domains  |
+| QUERY-03    | 9     | Query Domains  |
+| QUERY-04    | 9     | Query Domains  |
+| QUERY-05    | 9     | Query Domains  |
+| QUERY-06    | 9     | Query Domains  |
+| QUERY-07    | 9     | Query Domains  |
+| QUERY-08    | 9     | Query Domains  |
+| QUERY-09    | 9     | Query Domains  |
+| QUERY-10    | 9     | Query Domains  |
+| QUERY-11    | 9     | Query Domains  |
+| PAGE-01     | 9     | Pagination     |
+| SUB-01      | 10    | Subscriptions  |
+| SUB-02      | 10    | Subscriptions  |
+| SUB-03      | 10    | Subscriptions  |
+| ACTION-01   | 11    | Server Actions |
+| ACTION-02   | 11    | Server Actions |
+| ACTION-03   | 11    | Server Actions |
+| DX-03       | 11    | Developer Exp  |
 
-**2026-02-12:** Inserted Phase 5.1 (Pipeline Bug Fix & Missing Handlers) and Phase 5.2 (LSP4 Base URI & Count Parity) after Phase 5
-
-- **Reason:** V1 vs V2 comparison tool revealed significant data gaps — 8 entity types with zero rows, several with large count mismatches
-- **Root causes identified:**
-  - Contract filter address comparison in `pipeline.ts:205` uses strict `!==` instead of case-insensitive comparison, silencing Follow/Unfollow/Deployed\* events
-  - UniversalProfileOwner and DigitalAssetOwner handlers were never written (referenced as TODO in issue #105)
-  - ChillClaimed and OrbsClaimed handlers never ported from V1
-  - LSP4Metadata base URI → per-token derivation flow missing (~84K rows)
-  - OwnedAsset creation scope broader in V2 (all addresses vs V1's UP-only filter)
-- **Numbering:** Decimal phases (5.1, 5.2) preserve logical sequence
-
-**2026-02-13:** Inserted Phase 5.3 (Entity Upsert Pattern Standardization) after Phase 5.2
-
-- **Reason:** Comprehensive handler audit revealed 4 different ad-hoc patterns for the same operation ("entity might already exist"), producing 3 bugs and 2 gaps
-- **Approach:** Rather than patching only broken handlers, standardize ALL 13 handlers that do entity lookups to one recognizable pattern: `resolveEntity`/`resolveEntities` → `...existing` spread → `addEntity()`
-- **Bugs found:**
-  - chillClaimed/orbsClaimed Phase 2 verification wipes FK values (creates new entities with null FKs instead of preserving existing)
-  - lsp5ReceivedAssets cross-batch merge modifies DB entities in-memory but never calls addEntity() (merged data silently lost)
-- **Gaps found:**
-  - orbLevel/orbFaction only check batch (not DB) for existing entities in TokenIdDataChanged path
-- **Scope:** ~500 lines (13 handlers + helpers + tests), 4 requirements, 4 plans
-- **Numbering:** Decimal phase (5.3) preserves logical sequence
-
-**2026-02-16:** Added Phase 6 (Tech Debt Cleanup) after milestone v1 audit
-
-- **Reason:** Milestone audit passed (21/21 requirements, 8/8 integration, 7/7 flows) but identified 11 low-severity tech debt items
-- **Scope:** 3 code-level cleanup tasks (stale TODO, deprecated wrapper, JSON.stringify logging)
-- **Note:** 3 phases missing formal VERIFICATION.md (03.2, 05, 05.3) and 4 pending human runtime tests (03.1) are tracked but not blocked — can be verified during production validation or accepted as-is
+**Mapped: 28/28 ✓ — No orphans, no duplicates.**
 
 ---
 
-_Created: 2026-02-06_
+## Roadmap Rationale
+
+### Why 5 phases (not 4)?
+
+Research suggested 4 phases with subscriptions out of scope. The user added subscriptions (SUB-01, SUB-02, SUB-03) requiring WebSocket transport (graphql-ws) and cache integration — a genuinely new capability that doesn't belong in any existing phase. This naturally creates Phase 10.
+
+### Why DX-01 and DX-02 in Phase 8 (not Phase 9)?
+
+The types export pattern (`@lsp-indexer/react/types`) and query key factory pattern need to be validated with the first domain before replicating. If the pattern is wrong, it's cheaper to fix with 1 domain than 11. Phase 9 then replicates the validated pattern.
+
+### Why DX-03 in Phase 11 (not earlier)?
+
+`publint` and `arethetypeswrong` validation for publish readiness only makes sense when all entry points exist — including `@lsp-indexer/react/server` (Phase 11). Running it earlier would miss the server entry point.
+
+### Why subscriptions before server actions?
+
+Subscriptions (Phase 10) add cache integration logic that affects the query layer from Phase 9. Server actions (Phase 11) are isolated wrappers around services — they don't affect the query/subscription layer. Building subscriptions first means the full client-side story (queries + subscriptions) is complete before adding the server-side layer.
+
+---
+
+_Created: 2026-02-16_
 _Last updated: 2026-02-16_
