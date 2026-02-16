@@ -370,7 +370,7 @@ Plans:
 
 Plans:
 
-- [ ] 06-01-PLAN.md — Remove stale TODO, deprecated wrapper, and JSON.stringify logging
+- [x] 06-01-PLAN.md — Remove stale TODO, deprecated wrapper, and JSON.stringify logging
 
 ---
 
@@ -388,7 +388,7 @@ Plans:
 | 5.1   | Pipeline Bug Fix & Missing Handlers   |      5       | Complete |
 | 5.2   | LSP4 Base URI & Count Parity          |      4       | Complete |
 | 5.3   | Entity Upsert Pattern Standardization |      4       | Complete |
-| 6     | Tech Debt Cleanup                     |      3       | Planned  |
+| 6     | Tech Debt Cleanup                     |      3       | Complete |
 
 **Total:** 45 requirements across 11 phases (5 original + 5 inserted + 1 gap closure)
 
