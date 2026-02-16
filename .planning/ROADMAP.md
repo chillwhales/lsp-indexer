@@ -2,8 +2,8 @@
 
 **Created:** 2026-02-06
 **Depth:** Standard
-**Phases:** 10 (5 original + 5 inserted)
-**Coverage:** 21/21 v1 requirements mapped + 8 urgent requirements + 9 parity gap requirements
+**Phases:** 11 (5 original + 5 inserted + 1 gap closure)
+**Coverage:** 21/21 v1 requirements mapped + 8 urgent requirements + 9 parity gap requirements + 3 tech debt
 
 ## Overview
 
@@ -346,6 +346,34 @@ Plans:
 
 ---
 
+## Phase 6 — Tech Debt Cleanup (GAP CLOSURE)
+
+**Goal:** Remove stale code artifacts, deprecated wrappers, and replace remaining JSON.stringify logging calls with structured attributes — closing all tech debt items identified in milestone v1 audit.
+
+**Dependencies:** Phase 5.3 (all functional work complete)
+
+**Requirements:**
+
+| ID      | Requirement                                                                                   |
+| ------- | --------------------------------------------------------------------------------------------- |
+| DEBT-01 | Stale TODO removed from registry.ts (references already-completed bootstrap wiring)           |
+| DEBT-02 | Deprecated mergeEntitiesFromBatchAndDb wrapper removed from handlerHelpers.ts                 |
+| DEBT-03 | JSON.stringify calls in decimals + formattedTokenId handlers replaced with structured logging |
+
+**Success Criteria:**
+
+1. User can search codebase for `mergeEntitiesFromBatchAndDb` and find zero references (0 callers, 0 exports)
+2. User can search registry.ts for TODO comments and find zero stale references to completed work
+3. User can verify decimals.handler.ts and formattedTokenId.handler.ts use structured logging attributes instead of JSON.stringify
+
+**Plans:** 1 plan
+
+Plans:
+
+- [ ] 06-01-PLAN.md — Remove stale TODO, deprecated wrapper, and JSON.stringify logging
+
+---
+
 ## Progress
 
 | Phase | Name                                  | Requirements | Status   |
@@ -360,8 +388,9 @@ Plans:
 | 5.1   | Pipeline Bug Fix & Missing Handlers   |      5       | Complete |
 | 5.2   | LSP4 Base URI & Count Parity          |      4       | Complete |
 | 5.3   | Entity Upsert Pattern Standardization |      4       | Complete |
+| 6     | Tech Debt Cleanup                     |      3       | Planned  |
 
-**Total:** 42 requirements across 10 phases (5 original + 5 inserted)
+**Total:** 45 requirements across 11 phases (5 original + 5 inserted + 1 gap closure)
 
 ---
 
@@ -380,7 +409,8 @@ Phase 1 (Handler Migration)
            └──→ Phase 5 (Deployment & Validation)
                   └──→ Phase 5.1 (Pipeline Bug Fix & Missing Handlers) ←── INSERTED
                          └──→ Phase 5.2 (LSP4 Base URI & Count Parity) ←── INSERTED
-                                └──→ Phase 5.3 (Entity Upsert Pattern Standardization) ←── INSERTED
+                                 └──→ Phase 5.3 (Entity Upsert Pattern Standardization) ←── INSERTED
+                                        └──→ Phase 6 (Tech Debt Cleanup) ←── GAP CLOSURE
 ```
 
 **Parallelization opportunities:**
@@ -424,7 +454,13 @@ Phase 1 (Handler Migration)
 - **Scope:** ~500 lines (13 handlers + helpers + tests), 4 requirements, 4 plans
 - **Numbering:** Decimal phase (5.3) preserves logical sequence
 
+**2026-02-16:** Added Phase 6 (Tech Debt Cleanup) after milestone v1 audit
+
+- **Reason:** Milestone audit passed (21/21 requirements, 8/8 integration, 7/7 flows) but identified 11 low-severity tech debt items
+- **Scope:** 3 code-level cleanup tasks (stale TODO, deprecated wrapper, JSON.stringify logging)
+- **Note:** 3 phases missing formal VERIFICATION.md (03.2, 05, 05.3) and 4 pending human runtime tests (03.1) are tracked but not blocked — can be verified during production validation or accepted as-is
+
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-02-15_
+_Last updated: 2026-02-16_
