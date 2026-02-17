@@ -6,7 +6,8 @@
 # and generate TypedDocumentString types. Full Hasura types (all filters, aggregates,
 # ordering variants) come from introspection — these are simplified stubs.
 #
-# Type naming follows Hasura's convention: PascalCase entities → snake_case types.
+# Type naming follows Hasura's convention: relationship fields use camelCase,
+# table/type names use snake_case.
 
 scalar DateTime
 scalar BigInt
@@ -56,8 +57,8 @@ type Query {
 type universal_profile {
   id: String!
   address: String!
-  lsp3_profile: lsp3_profile
-  followed_by_aggregate: follow_aggregate!
+  lsp3Profile: lsp3_profile
+  followedBy_aggregate: follow_aggregate!
   followed_aggregate: follow_aggregate!
 }
 
@@ -68,8 +69,8 @@ type lsp3_profile {
   tags: [lsp3_profile_tag!]!
   links: [lsp3_profile_link!]!
   avatar: [lsp3_profile_asset!]!
-  profile_image: [lsp3_profile_image!]!
-  background_image: [lsp3_profile_background_image!]!
+  profileImage: [lsp3_profile_image!]!
+  backgroundImage: [lsp3_profile_background_image!]!
 }
 
 type lsp3_profile_name {
@@ -159,11 +160,11 @@ input universal_profile_bool_exp {
   _not: universal_profile_bool_exp
   id: String_comparison_exp
   address: String_comparison_exp
-  lsp3_profile: lsp3_profile_bool_exp
+  lsp3Profile: lsp3_profile_bool_exp
   followed: follow_bool_exp
-  followed_by: follow_bool_exp
-  owned_assets: owned_asset_bool_exp
-  owned_tokens: owned_token_bool_exp
+  followedBy: follow_bool_exp
+  ownedAssets: owned_asset_bool_exp
+  ownedTokens: owned_token_bool_exp
 }
 
 """
@@ -244,8 +245,8 @@ Ordering for universal profiles
 input universal_profile_order_by {
   id: order_by
   address: order_by
-  lsp3_profile: lsp3_profile_order_by
-  followed_by_aggregate: follow_aggregate_order_by
+  lsp3Profile: lsp3_profile_order_by
+  followedBy_aggregate: follow_aggregate_order_by
   followed_aggregate: follow_aggregate_order_by
 }
 

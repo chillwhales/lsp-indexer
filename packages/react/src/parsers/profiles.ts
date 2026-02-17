@@ -13,7 +13,7 @@ type RawProfile = GetProfileQuery['universal_profile'][number];
 /**
  * Raw avatar asset shape from Hasura (LSP3ProfileAsset — no width/height).
  */
-type RawAvatar = NonNullable<NonNullable<RawProfile['lsp3_profile']>['avatar']>[number];
+type RawAvatar = NonNullable<NonNullable<RawProfile['lsp3Profile']>['avatar']>[number];
 
 /**
  * Common shape for image types that have width/height (profile_image, background_image).
@@ -77,7 +77,7 @@ function parseImage(raw: RawImageWithDimensions): ProfileImage {
  * @returns A clean, camelCase `Profile` with safe defaults
  */
 export function parseProfile(raw: RawProfile): Profile {
-  const lsp3 = raw.lsp3_profile;
+  const lsp3 = raw.lsp3Profile;
 
   return {
     address: raw.address,
@@ -90,9 +90,9 @@ export function parseProfile(raw: RawProfile): Profile {
         url: l.url ?? '',
       })) ?? [],
     avatar: lsp3?.avatar?.map(parseAvatar) ?? [],
-    profileImage: lsp3?.profile_image?.map(parseImage) ?? [],
-    backgroundImage: lsp3?.background_image?.map(parseImage) ?? [],
-    followerCount: raw.followed_by_aggregate?.aggregate?.count ?? 0,
+    profileImage: lsp3?.profileImage?.map(parseImage) ?? [],
+    backgroundImage: lsp3?.backgroundImage?.map(parseImage) ?? [],
+    followerCount: raw.followedBy_aggregate?.aggregate?.count ?? 0,
     followingCount: raw.followed_aggregate?.aggregate?.count ?? 0,
   };
 }

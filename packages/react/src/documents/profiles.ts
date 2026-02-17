@@ -21,7 +21,7 @@ export const GetProfileDocument = graphql(`
     universal_profile(where: $where, limit: 1) {
       id
       address
-      lsp3_profile {
+      lsp3Profile {
         name {
           value
         }
@@ -41,14 +41,14 @@ export const GetProfileDocument = graphql(`
           verification_method
           verification_data
         }
-        profile_image @include(if: $includeProfileImage) {
+        profileImage @include(if: $includeProfileImage) {
           url
           width
           height
           verification_method
           verification_data
         }
-        background_image @include(if: $includeBackgroundImage) {
+        backgroundImage @include(if: $includeBackgroundImage) {
           url
           width
           height
@@ -56,7 +56,7 @@ export const GetProfileDocument = graphql(`
           verification_data
         }
       }
-      followed_by_aggregate {
+      followedBy_aggregate {
         aggregate {
           count
         }
@@ -99,7 +99,7 @@ export const GetProfilesDocument = graphql(`
     universal_profile(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       id
       address
-      lsp3_profile {
+      lsp3Profile {
         name {
           value
         }
@@ -119,14 +119,14 @@ export const GetProfilesDocument = graphql(`
           verification_method
           verification_data
         }
-        profile_image @include(if: $includeProfileImage) {
+        profileImage @include(if: $includeProfileImage) {
           url
           width
           height
           verification_method
           verification_data
         }
-        background_image @include(if: $includeBackgroundImage) {
+        backgroundImage @include(if: $includeBackgroundImage) {
           url
           width
           height
@@ -134,7 +134,7 @@ export const GetProfilesDocument = graphql(`
           verification_data
         }
       }
-      followed_by_aggregate {
+      followedBy_aggregate {
         aggregate {
           count
         }

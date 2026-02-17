@@ -30,7 +30,7 @@ function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Bool_Exp {
 
   if (filter.name) {
     conditions.push({
-      lsp3_profile: {
+      lsp3Profile: {
         name: { value: { _ilike: `%${filter.name}%` } },
       },
     });
@@ -38,11 +38,11 @@ function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Bool_Exp {
 
   if (filter.followedBy) {
     // "Profiles that address X follows"
-    // X is the follower → look at followed_by on the target profile
-    // (followed_by = records where target is followedUniversalProfile,
+    // X is the follower → look at followedBy on the target profile
+    // (followedBy = records where target is followedUniversalProfile,
     //  and X is follower_address)
     conditions.push({
-      followed_by: { follower_address: { _eq: filter.followedBy } },
+      followedBy: { follower_address: { _ilike: filter.followedBy } },
     });
   }
 
@@ -52,7 +52,7 @@ function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Bool_Exp {
     // (followed = records where matched profile is followerUniversalProfile,
     //  and X is followed_address)
     conditions.push({
-      followed: { followed_address: { _eq: filter.following } },
+      followed: { followed_address: { _ilike: filter.following } },
     });
   }
 
@@ -62,16 +62,16 @@ function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Bool_Exp {
     if (tokenId) {
       // Filter by specific token ID (NFT/LSP8)
       conditions.push({
-        owned_tokens: {
-          address: { _eq: address },
-          token_id: { _eq: tokenId },
+        ownedTokens: {
+          address: { _ilike: address },
+          token_id: { _ilike: tokenId },
         },
       });
     } else {
       // Filter by token ownership (fungible/LSP7 or any token)
       const assetCondition: Universal_Profile_Bool_Exp = {
-        owned_assets: {
-          address: { _eq: address },
+        ownedAssets: {
+          address: { _ilike: address },
           ...(minBalance ? { balance: { _gt: minBalance } } : {}),
         },
       };
@@ -97,9 +97,9 @@ function buildProfileOrderBy(sort?: ProfileSort): Universal_Profile_Order_By[] |
 
   switch (sort.field) {
     case 'name':
-      return [{ lsp3_profile: { name: { value: sort.direction } } }];
+      return [{ lsp3Profile: { name: { value: sort.direction } } }];
     case 'followerCount':
-      return [{ followed_by_aggregate: { count: sort.direction } }];
+      return [{ followedBy_aggregate: { count: sort.direction } }];
     case 'followingCount':
       return [{ followed_aggregate: { count: sort.direction } }];
     default:
@@ -153,7 +153,7 @@ export async function fetchProfile(
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetProfileDocument, {
-    where: { address: { _eq: params.address } },
+    where: { address: { _ilike: params.address } },
     ...includeVars,
   });
 

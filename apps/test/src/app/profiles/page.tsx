@@ -11,7 +11,7 @@ import {
   User,
   Users,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useInfiniteProfiles, useProfile, useProfiles } from '@lsp-indexer/react';
 import type {
@@ -44,18 +44,33 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const PRESET_ADDRESSES = [
   {
-    label: 'LUKSO',
-    address: '0x79eb93CC915D23E52aD18aCCF7897ACbd1031D42',
+    label: 'chill-labs',
+    address: '0xB6c10458274431189D4D0dA66ce00dc62A215908',
   },
   {
-    label: 'Universal Page',
-    address: '0x98b83eB9BDEcB8dB47BEA4579eb7e1C92C127E1e',
+    label: 'b00ste',
+    address: '0x00Aa9761286f21437c90AD2f895ef0dcA3484306',
   },
   {
-    label: 'chillwhales',
-    address: '0xCf9F3a30e2B5E8A6B9e84B3E84e47d0cE8E46F2c',
+    label: 'feindura',
+    address: '0xCDeC110F9c255357E37f46CD2687be1f7E9B02F7',
   },
 ] as const;
+
+// ---------------------------------------------------------------------------
+// Hooks
+// ---------------------------------------------------------------------------
+
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 // ---------------------------------------------------------------------------
 // Shared components
@@ -333,11 +348,14 @@ function SingleProfileTab(): React.ReactNode {
 
 function ProfileListTab(): React.ReactNode {
   const [nameFilter, setNameFilter] = useState('');
+  const debouncedNameFilter = useDebounce(nameFilter, 300);
   const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [limit, setLimit] = useState(10);
 
-  const filter: ProfileFilter | undefined = nameFilter ? { name: nameFilter } : undefined;
+  const filter: ProfileFilter | undefined = debouncedNameFilter
+    ? { name: debouncedNameFilter }
+    : undefined;
   const sort: ProfileSort = { field: sortField, direction: sortDirection };
 
   const { profiles, totalCount, isLoading, error, isFetching } = useProfiles({
@@ -462,10 +480,13 @@ function ProfileListTab(): React.ReactNode {
 
 function InfiniteScrollTab(): React.ReactNode {
   const [nameFilter, setNameFilter] = useState('');
+  const debouncedNameFilter = useDebounce(nameFilter, 300);
   const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-  const filter: ProfileFilter | undefined = nameFilter ? { name: nameFilter } : undefined;
+  const filter: ProfileFilter | undefined = debouncedNameFilter
+    ? { name: debouncedNameFilter }
+    : undefined;
   const sort: ProfileSort = { field: sortField, direction: sortDirection };
 
   const { profiles, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =

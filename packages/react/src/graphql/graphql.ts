@@ -84,12 +84,12 @@ export type Follow_Bool_Exp = {
 export type Lsp3_Profile = {
   __typename?: 'lsp3_profile';
   avatar: Array<Lsp3_Profile_Asset>;
-  background_image: Array<Lsp3_Profile_Background_Image>;
+  backgroundImage: Array<Lsp3_Profile_Background_Image>;
   description?: Maybe<Lsp3_Profile_Description>;
   id: Scalars['String']['output'];
   links: Array<Lsp3_Profile_Link>;
   name?: Maybe<Lsp3_Profile_Name>;
-  profile_image: Array<Lsp3_Profile_Image>;
+  profileImage: Array<Lsp3_Profile_Image>;
   tags: Array<Lsp3_Profile_Tag>;
 };
 
@@ -207,10 +207,10 @@ export type Owned_Token_Bool_Exp = {
 export type Universal_Profile = {
   __typename?: 'universal_profile';
   address: Scalars['String']['output'];
+  followedBy_aggregate: Follow_Aggregate;
   followed_aggregate: Follow_Aggregate;
-  followed_by_aggregate: Follow_Aggregate;
   id: Scalars['String']['output'];
-  lsp3_profile?: Maybe<Lsp3_Profile>;
+  lsp3Profile?: Maybe<Lsp3_Profile>;
 };
 
 export type Universal_Profile_Aggregate = {
@@ -230,20 +230,20 @@ export type Universal_Profile_Bool_Exp = {
   _or?: InputMaybe<Array<Universal_Profile_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
   followed?: InputMaybe<Follow_Bool_Exp>;
-  followed_by?: InputMaybe<Follow_Bool_Exp>;
+  followedBy?: InputMaybe<Follow_Bool_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
-  lsp3_profile?: InputMaybe<Lsp3_Profile_Bool_Exp>;
-  owned_assets?: InputMaybe<Owned_Asset_Bool_Exp>;
-  owned_tokens?: InputMaybe<Owned_Token_Bool_Exp>;
+  lsp3Profile?: InputMaybe<Lsp3_Profile_Bool_Exp>;
+  ownedAssets?: InputMaybe<Owned_Asset_Bool_Exp>;
+  ownedTokens?: InputMaybe<Owned_Token_Bool_Exp>;
 };
 
 /** Ordering for universal profiles */
 export type Universal_Profile_Order_By = {
   address?: InputMaybe<Order_By>;
+  followedBy_aggregate?: InputMaybe<Follow_Aggregate_Order_By>;
   followed_aggregate?: InputMaybe<Follow_Aggregate_Order_By>;
-  followed_by_aggregate?: InputMaybe<Follow_Aggregate_Order_By>;
   id?: InputMaybe<Order_By>;
-  lsp3_profile?: InputMaybe<Lsp3_Profile_Order_By>;
+  lsp3Profile?: InputMaybe<Lsp3_Profile_Order_By>;
 };
 
 export type GetProfileQueryVariables = Exact<{
@@ -256,7 +256,7 @@ export type GetProfileQueryVariables = Exact<{
 }>;
 
 
-export type GetProfileQuery = { __typename?: 'Query', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, lsp3_profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profile_image?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, background_image?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followed_by_aggregate: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }> };
+export type GetProfileQuery = { __typename?: 'Query', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }> };
 
 export type GetProfilesQueryVariables = Exact<{
   where?: InputMaybe<Universal_Profile_Bool_Exp>;
@@ -271,7 +271,7 @@ export type GetProfilesQueryVariables = Exact<{
 }>;
 
 
-export type GetProfilesQuery = { __typename?: 'Query', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, lsp3_profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profile_image?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, background_image?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followed_by_aggregate: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }>, universal_profile_aggregate: { __typename?: 'universal_profile_aggregate', aggregate?: { __typename?: 'universal_profile_aggregate_fields', count: number } | null } };
+export type GetProfilesQuery = { __typename?: 'Query', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }>, universal_profile_aggregate: { __typename?: 'universal_profile_aggregate', aggregate?: { __typename?: 'universal_profile_aggregate_fields', count: number } | null } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -297,7 +297,7 @@ export const GetProfileDocument = new TypedDocumentString(`
   universal_profile(where: $where, limit: 1) {
     id
     address
-    lsp3_profile {
+    lsp3Profile {
       name {
         value
       }
@@ -317,14 +317,14 @@ export const GetProfileDocument = new TypedDocumentString(`
         verification_method
         verification_data
       }
-      profile_image @include(if: $includeProfileImage) {
+      profileImage @include(if: $includeProfileImage) {
         url
         width
         height
         verification_method
         verification_data
       }
-      background_image @include(if: $includeBackgroundImage) {
+      backgroundImage @include(if: $includeBackgroundImage) {
         url
         width
         height
@@ -332,7 +332,7 @@ export const GetProfileDocument = new TypedDocumentString(`
         verification_data
       }
     }
-    followed_by_aggregate {
+    followedBy_aggregate {
       aggregate {
         count
       }
@@ -355,7 +355,7 @@ export const GetProfilesDocument = new TypedDocumentString(`
   ) {
     id
     address
-    lsp3_profile {
+    lsp3Profile {
       name {
         value
       }
@@ -375,14 +375,14 @@ export const GetProfilesDocument = new TypedDocumentString(`
         verification_method
         verification_data
       }
-      profile_image @include(if: $includeProfileImage) {
+      profileImage @include(if: $includeProfileImage) {
         url
         width
         height
         verification_method
         verification_data
       }
-      background_image @include(if: $includeBackgroundImage) {
+      backgroundImage @include(if: $includeBackgroundImage) {
         url
         width
         height
@@ -390,7 +390,7 @@ export const GetProfilesDocument = new TypedDocumentString(`
         verification_data
       }
     }
-    followed_by_aggregate {
+    followedBy_aggregate {
       aggregate {
         count
       }
