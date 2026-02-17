@@ -5,6 +5,7 @@ export interface GraphqlClient {
   querySampleIds(hasuraTable: string, limit: number): Promise<string[]>;
   queryRowsByIds(hasuraTable: string, ids: string[]): Promise<Record<string, unknown>[]>;
   querySampleRows(hasuraTable: string, limit: number): Promise<Record<string, unknown>[]>;
+  queryIdsWhereFieldNull(hasuraTable: string, field: string, limit: number): Promise<string[]>;
   checkHealth(): Promise<boolean>;
 }
 
@@ -233,5 +234,39 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     }
   }
 
-  return { queryCount, querySampleIds, queryRowsByIds, querySampleRows, checkHealth };
+  /**
+   * Query entity IDs where a specific FK field is null.
+   * Used for FK coverage validation — finding entities with unpopulated FK references.
+   */
+  async function queryIdsWhereFieldNull(
+    hasuraTable: string,
+    field: string,
+    limit: number,
+  ): Promise<string[]> {
+    const query = `
+      query {
+        ${hasuraTable}(where: { ${field}: { _is_null: true } }, limit: ${limit}, order_by: { id: asc }) {
+          id
+        }
+      }
+    `;
+
+    try {
+      const response = await client.post<GraphqlResponse<SampleIdsData>>('', { query });
+      const rows = response.data.data?.[hasuraTable];
+      if (!Array.isArray(rows)) return [];
+      return rows.map((row) => row.id).filter((id): id is string => typeof id === 'string');
+    } catch {
+      return [];
+    }
+  }
+
+  return {
+    queryCount,
+    querySampleIds,
+    queryRowsByIds,
+    querySampleRows,
+    queryIdsWhereFieldNull,
+    checkHealth,
+  };
 }

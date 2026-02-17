@@ -56,6 +56,26 @@ export interface RowDiff {
   unexpectedDiffs: FieldDiff[];
 }
 
+/**
+ * Result of FK coverage validation for a single rule.
+ *
+ * Checks whether entities with null FK fields actually have a corresponding
+ * target entity in the database. If the target exists but the FK is null,
+ * that's an orphaned null — the FK should have been populated.
+ */
+export interface FKCoverageResult {
+  /** Human-readable rule name (e.g., 'UniversalProfile.lsp3Profile') */
+  rule: string;
+  /** Endpoint label (e.g., 'V2' or 'V2-A') */
+  endpoint: string;
+  /** Number of entities sampled with null FK */
+  nullFkCount: number;
+  /** Number of those that have a corresponding target entity (orphaned nulls) */
+  orphanedNullCount: number;
+  /** Sample IDs of orphaned entities (for debugging) */
+  orphanedSampleIds: string[];
+}
+
 export interface ComparisonReport {
   mode: ComparisonMode;
   sourceLabel: string;
@@ -63,6 +83,7 @@ export interface ComparisonReport {
   tolerancePercent: number;
   counts: CountResult[];
   sampleDiffs: RowDiff[];
+  fkCoverage: FKCoverageResult[];
   missingEntityTypes: { endpoint: 'source' | 'target'; entityName: string }[];
   passed: boolean;
 }

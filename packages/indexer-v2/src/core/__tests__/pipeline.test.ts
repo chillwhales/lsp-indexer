@@ -75,6 +75,9 @@ function createMockStore(): MockStore {
       upsertedEntities.push(...entities);
       return Promise.resolve();
     }),
+    findBy: vi.fn(() => Promise.resolve([])),
+    find: vi.fn(() => Promise.resolve([])),
+    remove: vi.fn(() => Promise.resolve()),
   };
 
   return Object.assign(baseStore, {

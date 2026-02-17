@@ -1,13 +1,14 @@
 /**
  * Pipeline orchestrator for the V2 indexer.
  *
- * Processes a single batch of blocks through the 6-step enrichment queue pipeline:
+ * Processes a single batch of blocks through the 7-step enrichment queue pipeline:
  *   1. EXTRACT         — EventPlugins decode events → BatchContext + enrichment queue
  *   2. PERSIST RAW     — Pipeline batch-persists raw event entities (null FKs)
  *   3. HANDLE          — EntityHandlers create derived entities → BatchContext + enrichment queue
  *   4. PERSIST DERIVED — Pipeline batch-persists handler entities (null FKs)
  *   5. VERIFY          — Batch supportsInterface() → create core entities for valid addresses
  *   6. ENRICH          — Batch UPDATE FK references on already-persisted entities
+ *   7. RESOLVE         — Populate non-core FK references (metadata ↔ core entity links)
  *
  * All logging uses structured attributes via createStepLogger from the logger module.
  * No JSON.stringify calls — attributes are passed as native objects for jq filtering.
@@ -20,6 +21,7 @@ import { In } from 'typeorm';
 import { getAddress, isAddressEqual } from 'viem';
 
 import { BatchContext } from './batchContext';
+import { resolveForeignKeys } from './fkResolution';
 import { createStepLogger } from './logger';
 import { PluginRegistry } from './registry';
 import {
@@ -171,6 +173,7 @@ function enrichEntity(entity: unknown, request: StoredEnrichmentRequest, fkStub:
  *   4. PERSIST DERIVED — Pipeline batch-persists handler entities (null FKs)
  *   5. VERIFY          — Batch supportsInterface() → create core entities for valid addresses
  *   6. ENRICH          — Batch UPDATE FK references on already-persisted entities
+ *   7. RESOLVE         — Populate non-core FK references (metadata ↔ core entity links)
  *
  * Error handling: No try/catch — errors propagate to the Subsquid framework.
  * A failed store operation in any step halts the pipeline for the batch.
@@ -510,6 +513,22 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       );
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Step 7: RESOLVE
+  // Populate non-core FK references that the enrichment queue cannot handle.
+  // The enrichment queue only supports UP/DA/NFT categories. This step resolves
+  // "reverse" FK fields where core entities point to metadata entities:
+  //   - UniversalProfile.lsp3Profile → LSP3Profile
+  //   - DigitalAsset.lsp4Metadata   → LSP4Metadata
+  //   - NFT.lsp4Metadata            → LSP4Metadata (per-token)
+  //   - NFT.lsp4MetadataBaseUri     → LSP4Metadata (BaseURI-derived)
+  //
+  // Bidirectional: resolves both source→target (source in batch, target in DB)
+  // and target→source (target in batch, source in DB) to handle cross-batch
+  // dependencies regardless of which entity was created first.
+  // ---------------------------------------------------------------------------
+  await resolveForeignKeys(context.store, batchCtx, context.log, blockRange);
 }
 
 // ---------------------------------------------------------------------------

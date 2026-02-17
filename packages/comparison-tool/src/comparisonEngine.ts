@@ -1,6 +1,13 @@
 import { ENTITY_REGISTRY, getKnownDivergences } from './entityRegistry';
-import { createGraphqlClient } from './graphqlClient';
-import { ComparisonConfig, ComparisonReport, CountResult, FieldDiff, RowDiff } from './types';
+import { createGraphqlClient, GraphqlClient } from './graphqlClient';
+import {
+  ComparisonConfig,
+  ComparisonReport,
+  CountResult,
+  FieldDiff,
+  FKCoverageResult,
+  RowDiff,
+} from './types';
 
 function normalizeValue(value: unknown): unknown {
   if (value === null || value === undefined || value === '') return null;
@@ -65,12 +72,120 @@ function buildContentSignatureMap(
   return map;
 }
 
+// ---------------------------------------------------------------------------
+// FK Coverage validation
+// ---------------------------------------------------------------------------
+
 /**
- * Run three-phase comparison between two Hasura endpoints.
+ * FK coverage rules define which FK fields should be populated when the
+ * target entity exists. Used to detect "orphaned nulls" — entities whose
+ * FK is null but the corresponding target entity exists in the database.
+ */
+interface FKCoverageRule {
+  /** Human-readable name for reporting */
+  name: string;
+  /** Hasura table name for the source entity */
+  sourceTable: string;
+  /** FK field name on the source entity (Hasura column, e.g., 'lsp3_profile_id') */
+  fkField: string;
+  /** Hasura table name for the target entity */
+  targetTable: string;
+  /** Given a source entity ID, derive the target entity ID */
+  resolveTargetId: (sourceId: string) => string;
+}
+
+const FK_COVERAGE_RULES: readonly FKCoverageRule[] = [
+  {
+    name: 'UniversalProfile.lsp3Profile',
+    sourceTable: 'universal_profile',
+    fkField: 'lsp3_profile_id',
+    targetTable: 'lsp3_profile',
+    resolveTargetId: (id) => id,
+  },
+  {
+    name: 'DigitalAsset.lsp4Metadata',
+    sourceTable: 'digital_asset',
+    fkField: 'lsp4_metadata_id',
+    targetTable: 'lsp4_metadata',
+    resolveTargetId: (id) => id,
+  },
+  {
+    name: 'NFT.lsp4Metadata',
+    sourceTable: 'nft',
+    fkField: 'lsp4_metadata_id',
+    targetTable: 'lsp4_metadata',
+    resolveTargetId: (id) => id,
+  },
+  {
+    name: 'NFT.lsp4MetadataBaseUri',
+    sourceTable: 'nft',
+    fkField: 'lsp4_metadata_base_uri_id',
+    targetTable: 'lsp4_metadata',
+    resolveTargetId: (id) => `BaseURI - ${id}`,
+  },
+];
+
+/**
+ * Check FK coverage for a single endpoint. For each rule, samples entities
+ * with null FK fields and checks if the corresponding target entity exists.
+ *
+ * Returns results per rule with orphaned null counts.
+ */
+async function checkFKCoverage(
+  client: GraphqlClient,
+  endpointLabel: string,
+  sampleSize: number,
+): Promise<FKCoverageResult[]> {
+  const results: FKCoverageResult[] = [];
+
+  for (const rule of FK_COVERAGE_RULES) {
+    // Find entities with null FK
+    const nullFkIds = await client.queryIdsWhereFieldNull(
+      rule.sourceTable,
+      rule.fkField,
+      sampleSize,
+    );
+
+    if (nullFkIds.length === 0) {
+      results.push({
+        rule: rule.name,
+        endpoint: endpointLabel,
+        nullFkCount: 0,
+        orphanedNullCount: 0,
+        orphanedSampleIds: [],
+      });
+      continue;
+    }
+
+    // Derive target IDs and check which ones exist
+    const targetIds = nullFkIds.map(rule.resolveTargetId);
+    const existingTargets = await client.queryRowsByIds(rule.targetTable, targetIds);
+    const existingTargetIds = new Set(existingTargets.map((r) => String(r.id)));
+
+    // Find orphaned nulls: source has null FK but target exists
+    const orphanedIds = nullFkIds.filter((sourceId) =>
+      existingTargetIds.has(rule.resolveTargetId(sourceId)),
+    );
+
+    results.push({
+      rule: rule.name,
+      endpoint: endpointLabel,
+      nullFkCount: nullFkIds.length,
+      orphanedNullCount: orphanedIds.length,
+      orphanedSampleIds: orphanedIds.slice(0, 5), // Keep sample small for reporting
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Run four-phase comparison between two Hasura endpoints.
  *
  * Phase 1: Aggregate row counts per entity type
  * Phase 2: Sampled content diffs with known divergence detection
- * Phase 3: Summary with pass/fail verdict (respecting tolerance)
+ * Phase 3: FK coverage validation (orphaned null detection)
+ * Phase 4: Summary with pass/fail verdict (respecting tolerance)
  */
 export async function runComparison(config: ComparisonConfig): Promise<ComparisonReport> {
   const sourceLabel = config.mode === 'v1-v2' ? 'V1' : 'V2-A';
@@ -312,8 +427,38 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
 
   process.stderr.write('\r'.padEnd(60, ' ') + '\r');
 
-  // PHASE 3: Summary
-  process.stderr.write('\nPhase 3: Generating summary...\n');
+  // PHASE 3: FK Coverage validation
+  // Check that FK fields are populated when the target entity exists.
+  // In v1-v2 mode, only check the target (V2) endpoint since V1 never populated these.
+  // In v2-v2 mode, check both endpoints.
+  process.stderr.write('\nPhase 3: Checking FK coverage...\n');
+
+  const fkCoverage: FKCoverageResult[] = [];
+
+  if (config.mode === 'v2-v2') {
+    const [sourceFkResults, targetFkResults] = await Promise.all([
+      checkFKCoverage(sourceClient, sourceLabel, config.sampleSize),
+      checkFKCoverage(targetClient, targetLabel, config.sampleSize),
+    ]);
+    fkCoverage.push(...sourceFkResults, ...targetFkResults);
+  } else {
+    // v1-v2: only check V2 (target) endpoint
+    const targetFkResults = await checkFKCoverage(targetClient, targetLabel, config.sampleSize);
+    fkCoverage.push(...targetFkResults);
+  }
+
+  const fkCoverageOrphans = fkCoverage.reduce((sum, r) => sum + r.orphanedNullCount, 0);
+
+  for (const result of fkCoverage) {
+    if (result.orphanedNullCount > 0) {
+      process.stderr.write(
+        `  [FK] ${result.endpoint} ${result.rule}: ${result.orphanedNullCount}/${result.nullFkCount} orphaned nulls\n`,
+      );
+    }
+  }
+
+  // PHASE 4: Summary
+  process.stderr.write('\nPhase 4: Generating summary...\n');
 
   const countFailures = counts.filter((c) => {
     if (c.match || c.withinTolerance) return false;
@@ -336,7 +481,11 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
       ? targetMissingTypes.length > 0 || sourceMissingTypes.length > 0
       : targetMissingTypes.length > 0;
 
-  const passed = countFailures.length === 0 && totalUnexpectedDiffs === 0 && !missingTypeFailure;
+  const passed =
+    countFailures.length === 0 &&
+    totalUnexpectedDiffs === 0 &&
+    !missingTypeFailure &&
+    fkCoverageOrphans === 0;
 
   return {
     mode: config.mode,
@@ -345,6 +494,7 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
     tolerancePercent: config.tolerancePercent,
     counts,
     sampleDiffs,
+    fkCoverage,
     missingEntityTypes,
     passed,
   };

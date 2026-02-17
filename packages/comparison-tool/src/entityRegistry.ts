@@ -146,6 +146,30 @@ const V1_V2_DIVERGENCES: KnownDivergence[] = [
     reason:
       'V1 switch fall-through bug creates phantom entities from unrelated DataChanged events (LSP4Creators[].length, LSP5ReceivedAssets[].length, AddressPermissions[].length fall through to LSP8ReferenceContract case)',
   },
+  // V2 Step 7 (RESOLVE) populates reverse FK fields that V1 never populated.
+  // These fields link core entities to their metadata entities.
+  {
+    entityType: 'UniversalProfile',
+    field: 'lsp3_profile_id',
+    reason: 'V2 populates reverse FK to LSP3Profile via Step 7 RESOLVE; V1 leaves null',
+  },
+  {
+    entityType: 'DigitalAsset',
+    field: 'lsp4_metadata_id',
+    reason:
+      'V2 populates reverse FK to contract-level LSP4Metadata via Step 7 RESOLVE; V1 leaves null',
+  },
+  {
+    entityType: 'NFT',
+    field: 'lsp4_metadata_id',
+    reason: 'V2 populates reverse FK to per-token LSP4Metadata via Step 7 RESOLVE; V1 leaves null',
+  },
+  {
+    entityType: 'NFT',
+    field: 'lsp4_metadata_base_uri_id',
+    reason:
+      'V2 populates reverse FK to BaseURI-derived LSP4Metadata via Step 7 RESOLVE; V1 leaves null',
+  },
 ];
 
 export function getEntityByName(name: string): EntityDefinition | undefined {
