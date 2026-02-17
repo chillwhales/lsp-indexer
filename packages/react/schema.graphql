@@ -2,17 +2,271 @@
 # This is a minimal valid GraphQL schema used when Hasura introspection is not available.
 # When Hasura is available, codegen introspects the live endpoint instead.
 #
-# NOTE: This is NOT the full Hasura schema — it provides enough structure for
-# codegen to generate TypedDocumentString and base types. Full Hasura types
-# (filters, aggregates, ordering) come from introspection.
+# This schema provides enough type structure for codegen to process GraphQL documents
+# and generate TypedDocumentString types. Full Hasura types (all filters, aggregates,
+# ordering variants) come from introspection — these are simplified stubs.
+#
+# Type naming follows Hasura's convention: PascalCase entities → snake_case types.
 
 scalar DateTime
 scalar BigInt
 scalar numeric
 
+# ---------------------------------------------------------------------------
+# Enums
+# ---------------------------------------------------------------------------
+
+"""
+Hasura column ordering options
+"""
+enum order_by {
+  asc
+  asc_nulls_first
+  asc_nulls_last
+  desc
+  desc_nulls_first
+  desc_nulls_last
+}
+
+# ---------------------------------------------------------------------------
+# Query root
+# ---------------------------------------------------------------------------
+
 type Query {
   """
-  Placeholder query for codegen — real queries come from Hasura introspection
+  Fetch universal profiles
   """
-  __placeholder: Boolean
+  universal_profile(
+    where: universal_profile_bool_exp
+    order_by: [universal_profile_order_by!]
+    limit: Int
+    offset: Int
+  ): [universal_profile!]!
+
+  """
+  Aggregate universal profiles
+  """
+  universal_profile_aggregate(where: universal_profile_bool_exp): universal_profile_aggregate!
+}
+
+# ---------------------------------------------------------------------------
+# Universal Profile types
+# ---------------------------------------------------------------------------
+
+type universal_profile {
+  id: String!
+  address: String!
+  lsp3_profile: lsp3_profile
+  followed_by_aggregate: follow_aggregate!
+  followed_aggregate: follow_aggregate!
+}
+
+type lsp3_profile {
+  id: String!
+  name: lsp3_profile_name
+  description: lsp3_profile_description
+  tags: [lsp3_profile_tag!]!
+  links: [lsp3_profile_link!]!
+  avatar: [lsp3_profile_asset!]!
+  profile_image: [lsp3_profile_image!]!
+  background_image: [lsp3_profile_background_image!]!
+}
+
+type lsp3_profile_name {
+  id: String!
+  value: String
+}
+
+type lsp3_profile_description {
+  id: String!
+  value: String
+}
+
+type lsp3_profile_tag {
+  id: String!
+  value: String
+}
+
+type lsp3_profile_link {
+  id: String!
+  title: String
+  url: String
+}
+
+type lsp3_profile_asset {
+  id: String!
+  url: String
+  file_type: String
+  verification_method: String
+  verification_data: String
+  verification_source: String
+}
+
+type lsp3_profile_image {
+  id: String!
+  url: String
+  width: Int
+  height: Int
+  verification_method: String
+  verification_data: String
+  verification_source: String
+}
+
+type lsp3_profile_background_image {
+  id: String!
+  url: String
+  width: Int
+  height: Int
+  verification_method: String
+  verification_data: String
+  verification_source: String
+}
+
+# ---------------------------------------------------------------------------
+# Follow / aggregate types
+# ---------------------------------------------------------------------------
+
+type follow_aggregate {
+  aggregate: follow_aggregate_fields
+}
+
+type follow_aggregate_fields {
+  count: Int!
+}
+
+# ---------------------------------------------------------------------------
+# Universal Profile aggregate types
+# ---------------------------------------------------------------------------
+
+type universal_profile_aggregate {
+  aggregate: universal_profile_aggregate_fields
+}
+
+type universal_profile_aggregate_fields {
+  count: Int!
+}
+
+# ---------------------------------------------------------------------------
+# Input types (stubs for codegen — full versions come from Hasura introspection)
+# ---------------------------------------------------------------------------
+
+"""
+Boolean expression to filter universal profiles
+"""
+input universal_profile_bool_exp {
+  _and: [universal_profile_bool_exp!]
+  _or: [universal_profile_bool_exp!]
+  _not: universal_profile_bool_exp
+  id: String_comparison_exp
+  address: String_comparison_exp
+  lsp3_profile: lsp3_profile_bool_exp
+  followed: follow_bool_exp
+  followed_by: follow_bool_exp
+  owned_assets: owned_asset_bool_exp
+  owned_tokens: owned_token_bool_exp
+}
+
+"""
+Boolean expression to filter LSP3 profiles
+"""
+input lsp3_profile_bool_exp {
+  _and: [lsp3_profile_bool_exp!]
+  _or: [lsp3_profile_bool_exp!]
+  _not: lsp3_profile_bool_exp
+  name: lsp3_profile_name_bool_exp
+}
+
+"""
+Boolean expression to filter LSP3 profile names
+"""
+input lsp3_profile_name_bool_exp {
+  _and: [lsp3_profile_name_bool_exp!]
+  _or: [lsp3_profile_name_bool_exp!]
+  _not: lsp3_profile_name_bool_exp
+  value: String_comparison_exp
+}
+
+"""
+Boolean expression to filter follows
+"""
+input follow_bool_exp {
+  _and: [follow_bool_exp!]
+  _or: [follow_bool_exp!]
+  _not: follow_bool_exp
+  follower_address: String_comparison_exp
+  followed_address: String_comparison_exp
+}
+
+"""
+Boolean expression to filter owned assets
+"""
+input owned_asset_bool_exp {
+  _and: [owned_asset_bool_exp!]
+  _or: [owned_asset_bool_exp!]
+  _not: owned_asset_bool_exp
+  address: String_comparison_exp
+  balance: String_comparison_exp
+}
+
+"""
+Boolean expression to filter owned tokens
+"""
+input owned_token_bool_exp {
+  _and: [owned_token_bool_exp!]
+  _or: [owned_token_bool_exp!]
+  _not: owned_token_bool_exp
+  address: String_comparison_exp
+  token_id: String_comparison_exp
+}
+
+"""
+String comparison operators
+"""
+input String_comparison_exp {
+  _eq: String
+  _neq: String
+  _gt: String
+  _gte: String
+  _lt: String
+  _lte: String
+  _like: String
+  _nlike: String
+  _ilike: String
+  _nilike: String
+  _in: [String!]
+  _nin: [String!]
+  _is_null: Boolean
+}
+
+"""
+Ordering for universal profiles
+"""
+input universal_profile_order_by {
+  id: order_by
+  address: order_by
+  lsp3_profile: lsp3_profile_order_by
+  followed_by_aggregate: follow_aggregate_order_by
+  followed_aggregate: follow_aggregate_order_by
+}
+
+"""
+Ordering for LSP3 profiles
+"""
+input lsp3_profile_order_by {
+  id: order_by
+  name: lsp3_profile_name_order_by
+}
+
+"""
+Ordering for LSP3 profile names
+"""
+input lsp3_profile_name_order_by {
+  value: order_by
+}
+
+"""
+Aggregate ordering for follow relations
+"""
+input follow_aggregate_order_by {
+  count: order_by
 }
