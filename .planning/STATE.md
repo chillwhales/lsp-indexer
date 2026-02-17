@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 ## Current Position
 
-- **Phase:** 7 — Package Foundation
-- **Plan:** Not started (awaiting phase planning)
-- **Status:** Roadmap complete, ready for phase planning
-- **Last activity:** 2026-02-16 — Roadmap created for v1.1
-- **Progress:** ░░░░░░░░░░ 0%
+- **Phase:** 7 of 11 (Package Foundation)
+- **Plan:** 1 of 2
+- **Status:** In progress
+- **Last activity:** 2026-02-17 — Completed 07-01-PLAN.md
+- **Progress:** █░░░░░░░░░ 10%
 
 ## Milestone History
 
@@ -26,19 +26,19 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                                 | Requirements | Status  |
-| ----- | ------------------------------------ | :----------: | ------- |
-| 7     | Package Foundation                   |      7       | Pending |
-| 8     | First Vertical Slice (Profiles)      |      3       | Pending |
-| 9     | Remaining Query Domains & Pagination |      11      | Pending |
-| 10    | Subscriptions                        |      3       | Pending |
-| 11    | Server Actions & Publish Readiness   |      4       | Pending |
+| Phase | Name                                 | Requirements | Status      |
+| ----- | ------------------------------------ | :----------: | ----------- |
+| 7     | Package Foundation                   |      7       | In Progress |
+| 8     | First Vertical Slice (Profiles)      |      3       | Pending     |
+| 9     | Remaining Query Domains & Pagination |      11      | Pending     |
+| 10    | Subscriptions                        |      3       | Pending     |
+| 11    | Server Actions & Publish Readiness   |      4       | Pending     |
 
-**Total:** 0/28 requirements delivered
+**Total:** 0/28 requirements delivered (FOUND-01 through FOUND-06 partially addressed by 07-01, fully validated after 07-02)
 
 ## Performance Metrics
 
-- **Plans completed:** 36 (v1.0)
+- **Plans completed:** 37 (36 v1.0 + 1 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 11 (v1.0)
 - **Requirements delivered:** 45/45 (v1.0), 0/28 (v1.1)
@@ -64,6 +64,10 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - `graphql-ws` for WebSocket subscriptions (Hasura supports natively)
 - `graphql` is devDependency only (codegen build-time, not shipped)
 - Phase numbering continues from v1.0: Phases 7–11
+- Local schema.graphql with scalar definitions used for codegen fallback (Subsquid schema not directly parseable)
+- Exports map uses split import/require conditions with separate .d.ts/.d.cts types
+- typesVersions used for node10 resolution fallback
+- treeshake disabled on tsup entries to preserve "use client" banner
 
 ### Discovered Todos
 
@@ -77,22 +81,20 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-16
-- **Activity:** v1.1 roadmap creation — 28 requirements mapped to 5 phases (7–11)
-- **Outcome:** ROADMAP.md written, STATE.md updated, REQUIREMENTS.md traceability updated
-- **Resume file:** N/A
+- **Date:** 2026-02-17
+- **Activity:** Executed 07-01-PLAN.md — React package scaffold, codegen, error handling, client utilities
+- **Outcome:** 3 tasks completed, 3 commits, SUMMARY.md written. Package builds with zero publint/arethetypeswrong errors.
+- **Resume file:** None
 
 ### Context for Next Session
 
-- **Roadmap complete** — 28 requirements across 5 phases (7–11)
-- **Next step:** Execute Phase 7 plans (07-01, 07-02)
-- **Phase 7 scope:** 7 FOUND-\* requirements — package scaffold, codegen, build, provider, error handling, entry points, Next.js test app
-- **Critical pitfalls to address in Phase 7:** C1 (server/client leak), C2 (broken exports), C3 (missing "use client"), C4 (QueryClient conflicts), C5 (type exposure)
-- **Research confidence:** HIGH across all dimensions — no spikes needed for Phase 7
-- **Reference implementation:** `chillwhales/marketplace` packages/graphql and apps/web/src/hooks
-- **Schema source:** `packages/typeorm/schema.graphql` → Hasura → codegen
-- **⚠️ BRANCHING:** Before executing ANY plan, fetch latest `refactor/indexer-v2-react` and create a new feature branch. PR back to `refactor/indexer-v2-react`. See PROJECT.md for full protocol.
+- **07-01 complete** — packages/react is buildable with all entry points validated
+- **Next step:** Execute 07-02-PLAN.md (Next.js test app + end-to-end validation)
+- **Branch:** `feat/react-package-scaffold` — needs PR to `refactor/indexer-v2-react` before starting 07-02
+- **Key files delivered:** packages/react/{package.json, tsup.config.ts, codegen.ts, src/errors/, src/client/, src/graphql/}
+- **Note:** Full Hasura types require introspection from live endpoint. Local schema provides base scalars only.
+- **BRANCHING:** Before executing 07-02, merge/PR feat/react-package-scaffold, then create new branch from refactor/indexer-v2-react.
 
 ---
 
-_Last updated: 2026-02-16_
+_Last updated: 2026-02-17_
