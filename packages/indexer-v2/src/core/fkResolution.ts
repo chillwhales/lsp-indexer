@@ -30,10 +30,9 @@ import { In, IsNull } from 'typeorm';
 
 import { BatchContext } from './batchContext';
 import { createStepLogger } from './logger';
-import { EntityCategory } from './types';
+import { EntityCategory, type Entity } from './types';
 
 import type { Logger } from '@subsquid/logger';
-import type { Entity } from './types';
 
 // ---------------------------------------------------------------------------
 // FK Resolution rule definition

@@ -123,11 +123,12 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
       expect(store.upsert).toHaveBeenCalled();
       const upserted = store._upserted.flat();
       const resolvedUp = upserted.find(
-        (e: unknown) => e instanceof UniversalProfile && (e as UniversalProfile).id === UP_ADDRESS,
-      ) as UniversalProfile | undefined;
+        (e): e is UniversalProfile => e instanceof UniversalProfile && e.id === UP_ADDRESS,
+      );
       expect(resolvedUp).toBeDefined();
-      expect(resolvedUp!.lsp3Profile).toBeDefined();
-      expect((resolvedUp!.lsp3Profile as LSP3Profile).id).toBe(UP_ADDRESS);
+      if (resolvedUp == null) return;
+      expect(resolvedUp.lsp3Profile).toBeDefined();
+      expect(resolvedUp.lsp3Profile.id).toBe(UP_ADDRESS);
     });
 
     it('resolves FK when UP in batch and LSP3Profile in DB', async () => {
@@ -152,11 +153,10 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
 
       expect(store.upsert).toHaveBeenCalled();
       const upserted = store._upserted.flat();
-      const resolvedUp = upserted.find((e: unknown) => e instanceof UniversalProfile) as
-        | UniversalProfile
-        | undefined;
+      const resolvedUp = upserted.find((e): e is UniversalProfile => e instanceof UniversalProfile);
       expect(resolvedUp).toBeDefined();
-      expect((resolvedUp!.lsp3Profile as LSP3Profile).id).toBe(UP_ADDRESS);
+      if (resolvedUp == null) return;
+      expect(resolvedUp.lsp3Profile.id).toBe(UP_ADDRESS);
     });
 
     it('leaves FK null when LSP3Profile does not exist', async () => {
@@ -178,9 +178,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
       // No UP-related upsert for this rule (no matching LSP3Profile)
       // Other rules may still produce upserts, but UP should not be resolved
       const upserted = store._upserted.flat();
-      const resolvedUp = upserted.find((e: unknown) => e instanceof UniversalProfile) as
-        | UniversalProfile
-        | undefined;
+      const resolvedUp = upserted.find((e): e is UniversalProfile => e instanceof UniversalProfile);
       expect(resolvedUp).toBeUndefined();
     });
 
@@ -212,11 +210,10 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
 
       expect(store.upsert).toHaveBeenCalled();
       const upserted = store._upserted.flat();
-      const resolvedUp = upserted.find((e: unknown) => e instanceof UniversalProfile) as
-        | UniversalProfile
-        | undefined;
+      const resolvedUp = upserted.find((e): e is UniversalProfile => e instanceof UniversalProfile);
       expect(resolvedUp).toBeDefined();
-      expect((resolvedUp!.lsp3Profile as LSP3Profile).id).toBe(UP_ADDRESS);
+      if (resolvedUp == null) return;
+      expect(resolvedUp.lsp3Profile.id).toBe(UP_ADDRESS);
     });
 
     it('skips if FK is already set on source entity', async () => {
@@ -250,7 +247,9 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
       // The UP should not be in the upserted list for the UP.lsp3Profile rule
       // because it already had the FK set
       const upserted = store._upserted.flat();
-      const resolvedUps = upserted.filter((e: unknown) => e instanceof UniversalProfile);
+      const resolvedUps = upserted.filter(
+        (e): e is UniversalProfile => e instanceof UniversalProfile,
+      );
       // May be resolved by reverse pass (DB lookup returns empty since it's in batch)
       // The important thing is no unnecessary DB write — store.find returns empty
       // for source with null FK since the FK is already set
@@ -288,10 +287,11 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
       expect(store.upsert).toHaveBeenCalled();
       const upserted = store._upserted.flat();
       const resolvedDa = upserted.find(
-        (e: unknown) => e instanceof DigitalAsset && (e as DigitalAsset).id === DA_ADDRESS,
-      ) as DigitalAsset | undefined;
+        (e): e is DigitalAsset => e instanceof DigitalAsset && e.id === DA_ADDRESS,
+      );
       expect(resolvedDa).toBeDefined();
-      expect((resolvedDa!.lsp4Metadata as LSP4Metadata).id).toBe(DA_ADDRESS);
+      if (resolvedDa == null) return;
+      expect(resolvedDa.lsp4Metadata.id).toBe(DA_ADDRESS);
     });
 
     it('reverse pass: resolves FK when LSP4Metadata in batch and DA in DB', async () => {
@@ -322,11 +322,10 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
 
       expect(store.upsert).toHaveBeenCalled();
       const upserted = store._upserted.flat();
-      const resolvedDa = upserted.find((e: unknown) => e instanceof DigitalAsset) as
-        | DigitalAsset
-        | undefined;
+      const resolvedDa = upserted.find((e): e is DigitalAsset => e instanceof DigitalAsset);
       expect(resolvedDa).toBeDefined();
-      expect((resolvedDa!.lsp4Metadata as LSP4Metadata).id).toBe(DA_ADDRESS);
+      if (resolvedDa == null) return;
+      expect(resolvedDa.lsp4Metadata.id).toBe(DA_ADDRESS);
     });
   });
 
@@ -363,11 +362,11 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
       expect(store.upsert).toHaveBeenCalled();
       const upserted = store._upserted.flat();
       const resolvedNft = upserted.find(
-        (e: unknown) =>
-          e instanceof NFT && (e as NFT).id === NFT_ID && (e as NFT).lsp4Metadata != null,
-      ) as NFT | undefined;
+        (e): e is NFT => e instanceof NFT && e.id === NFT_ID && e.lsp4Metadata != null,
+      );
       expect(resolvedNft).toBeDefined();
-      expect((resolvedNft!.lsp4Metadata as LSP4Metadata).id).toBe(NFT_ID);
+      if (resolvedNft == null) return;
+      expect(resolvedNft.lsp4Metadata.id).toBe(NFT_ID);
     });
   });
 
@@ -404,11 +403,11 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
       expect(store.upsert).toHaveBeenCalled();
       const upserted = store._upserted.flat();
       const resolvedNft = upserted.find(
-        (e: unknown) =>
-          e instanceof NFT && (e as NFT).id === NFT_ID && (e as NFT).lsp4MetadataBaseUri != null,
-      ) as NFT | undefined;
+        (e): e is NFT => e instanceof NFT && e.id === NFT_ID && e.lsp4MetadataBaseUri != null,
+      );
       expect(resolvedNft).toBeDefined();
-      expect((resolvedNft!.lsp4MetadataBaseUri as LSP4Metadata).id).toBe(BASE_URI_LSP4_ID);
+      if (resolvedNft == null) return;
+      expect(resolvedNft.lsp4MetadataBaseUri.id).toBe(BASE_URI_LSP4_ID);
     });
 
     it('reverse pass: resolves FK when BaseURI LSP4Metadata in batch and NFT in DB', async () => {
@@ -443,9 +442,10 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
 
       expect(store.upsert).toHaveBeenCalled();
       const upserted = store._upserted.flat();
-      const resolvedNft = upserted.find((e: unknown) => e instanceof NFT) as NFT | undefined;
+      const resolvedNft = upserted.find((e): e is NFT => e instanceof NFT);
       expect(resolvedNft).toBeDefined();
-      expect((resolvedNft!.lsp4MetadataBaseUri as LSP4Metadata).id).toBe(BASE_URI_LSP4_ID);
+      if (resolvedNft == null) return;
+      expect(resolvedNft.lsp4MetadataBaseUri.id).toBe(BASE_URI_LSP4_ID);
     });
 
     it('reverse pass: does NOT populate lsp4MetadataBaseUri from non-BaseURI metadata', async () => {
@@ -482,7 +482,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
       // The NFT.lsp4Metadata rule SHOULD resolve (per-token metadata matches)
       // but NFT.lsp4MetadataBaseUri should NOT be set (no BaseURI-prefixed target)
       const upserted = store._upserted.flat();
-      const resolvedNfts = upserted.filter((e: unknown) => e instanceof NFT) as NFT[];
+      const resolvedNfts = upserted.filter((e): e is NFT => e instanceof NFT);
 
       for (const nft of resolvedNfts) {
         // lsp4MetadataBaseUri must remain null — the per-token metadata
@@ -556,7 +556,9 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
       // The UP should only be upserted once (forward pass resolves it,
       // reverse pass skips because it's already resolved)
       const upserted = store._upserted.flat();
-      const resolvedUps = upserted.filter((e: unknown) => e instanceof UniversalProfile);
+      const resolvedUps = upserted.filter(
+        (e): e is UniversalProfile => e instanceof UniversalProfile,
+      );
       expect(resolvedUps.length).toBe(1);
     });
   });
