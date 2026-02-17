@@ -1,0 +1,70 @@
+import type { ProfileFilter, ProfileSort } from '../types/profiles';
+
+/**
+ * Query key factory for Universal Profile queries.
+ *
+ * Follows the TkDodo hierarchical key pattern for granular cache invalidation.
+ * Keys are structured so that invalidating a parent key automatically
+ * invalidates all child keys.
+ *
+ * **Hierarchy:**
+ * ```
+ * profileKeys.all              → ['profiles']
+ * profileKeys.details()        → ['profiles', 'detail']
+ * profileKeys.detail(addr)     → ['profiles', 'detail', addr]
+ * profileKeys.lists()          → ['profiles', 'list']
+ * profileKeys.list(f, s)       → ['profiles', 'list', { filter, sort }]
+ * profileKeys.infinites()      → ['profiles', 'infinite']
+ * profileKeys.infinite(f, s)   → ['profiles', 'infinite', { filter, sort }]
+ * ```
+ *
+ * **Why `list` and `infinite` are separate:**
+ * `useQuery` and `useInfiniteQuery` store fundamentally different data structures
+ * in the TanStack Query cache (single result vs. pages array). Sharing keys
+ * between them causes cache corruption and runtime errors.
+ *
+ * **Cache invalidation examples:**
+ * ```ts
+ * // Invalidate ALL profile queries (detail + list + infinite)
+ * queryClient.invalidateQueries({ queryKey: profileKeys.all });
+ *
+ * // Invalidate all list queries (any filter/sort combination)
+ * queryClient.invalidateQueries({ queryKey: profileKeys.lists() });
+ *
+ * // Invalidate a specific profile detail
+ * queryClient.invalidateQueries({ queryKey: profileKeys.detail('0x...') });
+ *
+ * // Invalidate all infinite scroll queries
+ * queryClient.invalidateQueries({ queryKey: profileKeys.infinites() });
+ *
+ * // Prefetch a specific profile
+ * queryClient.prefetchQuery({
+ *   queryKey: profileKeys.detail('0x...'),
+ *   queryFn: () => fetchProfile(url, { address: '0x...' }),
+ * });
+ * ```
+ */
+export const profileKeys = {
+  /** Base key for all profile queries — invalidate this to clear the entire profile cache */
+  all: ['profiles'] as const,
+
+  /** Parent key for all single-profile detail queries */
+  details: () => [...profileKeys.all, 'detail'] as const,
+
+  /** Key for a specific profile by address */
+  detail: (address: string) => [...profileKeys.details(), address] as const,
+
+  /** Parent key for all paginated list queries (used with `useQuery`) */
+  lists: () => [...profileKeys.all, 'list'] as const,
+
+  /** Key for a specific list query with filter and sort params */
+  list: (filter?: ProfileFilter, sort?: ProfileSort) =>
+    [...profileKeys.lists(), { filter, sort }] as const,
+
+  /** Parent key for all infinite scroll queries (used with `useInfiniteQuery`) */
+  infinites: () => [...profileKeys.all, 'infinite'] as const,
+
+  /** Key for a specific infinite scroll query with filter and sort params */
+  infinite: (filter?: ProfileFilter, sort?: ProfileSort) =>
+    [...profileKeys.infinites(), { filter, sort }] as const,
+} as const;
