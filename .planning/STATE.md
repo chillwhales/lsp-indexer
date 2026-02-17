@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 ## Current Position
 
-- **Phase:** 7 of 11 (Package Foundation)
-- **Plan:** 2 of 2
-- **Status:** Phase complete
-- **Last activity:** 2026-02-17 — Completed 07-02-PLAN.md
-- **Progress:** ██░░░░░░░░ 20%
+- **Phase:** 8 of 11 (First Vertical Slice — Universal Profiles)
+- **Plan:** 1 of 4
+- **Status:** In progress
+- **Last activity:** 2026-02-17 — Completed 08-01-PLAN.md
+- **Progress:** ██▓░░░░░░░ 25%
 
 ## Milestone History
 
@@ -26,19 +26,19 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                                 | Requirements | Status   |
-| ----- | ------------------------------------ | :----------: | -------- |
-| 7     | Package Foundation                   |     7/7      | Complete |
-| 8     | First Vertical Slice (Profiles)      |      3       | Pending  |
-| 9     | Remaining Query Domains & Pagination |      11      | Pending  |
-| 10    | Subscriptions                        |      3       | Pending  |
-| 11    | Server Actions & Publish Readiness   |      4       | Pending  |
+| Phase | Name                                 | Requirements | Status      |
+| ----- | ------------------------------------ | :----------: | ----------- |
+| 7     | Package Foundation                   |     7/7      | Complete    |
+| 8     | First Vertical Slice (Profiles)      |      3       | In progress |
+| 9     | Remaining Query Domains & Pagination |      11      | Pending     |
+| 10    | Subscriptions                        |      3       | Pending     |
+| 11    | Server Actions & Publish Readiness   |      4       | Pending     |
 
 **Total:** 7/28 requirements delivered (FOUND-01 through FOUND-07 validated by 07-01 + 07-02)
 
 ## Performance Metrics
 
-- **Plans completed:** 38 (36 v1.0 + 2 v1.1)
+- **Plans completed:** 39 (36 v1.0 + 3 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 12 (11 v1.0 + 1 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 7/28 (v1.1)
@@ -72,6 +72,8 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - outputFileTracingRoot needed in next.config.ts for monorepo workspace root detection
 - **UI: Always use shadcn/ui components over custom components** — Tailwind CSS v4 + shadcn/ui (new-york style) is the standard for all UI in apps/test and future consumer apps. No inline styles, no custom components when a shadcn equivalent exists.
 - Next.js 16 for test app (Turbopack default, React 19.2 canary features)
+- Local schema.graphql extended with full Hasura-style type stubs (bool_exp, order_by, aggregates) for CI/build codegen fallback
+- All image types (avatar, profileImage, backgroundImage) share ProfileImage interface with nullable width/height
 
 ### Discovered Todos
 
@@ -86,18 +88,18 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-17
-- **Activity:** Executed 07-02-PLAN.md — Next.js test app + end-to-end validation
-- **Outcome:** 2 tasks completed, 2 commits, SUMMARY.md written. `next build` succeeds with zero errors, all 3 entry points validated.
+- **Activity:** Executed 08-01-PLAN.md — Profile domain types + GraphQL documents + codegen
+- **Outcome:** 2 tasks completed, 2 commits, SUMMARY.md written. Profile types, GraphQL documents, and codegen output all passing typecheck.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 7 complete** — All 7 FOUND requirements delivered
-- **Next step:** Phase 8 planning (First Vertical Slice — Universal Profiles)
-- **Branch:** `feat/react-test-app` — needs PR to `refactor/indexer-v2-react`
-- **Key files delivered:** apps/test/ (Next.js 16 App Router + shadcn/ui + Tailwind v4), pnpm-workspace.yaml (apps/\*)
-- **Note:** Phase 8 requires live Hasura endpoint for codegen introspection to get full query/filter types. Test app has `.env.local.example` for setup.
-- **Test app ready** to receive domain playground pages (profiles, assets, etc.)
+- **Phase 8 plan 01 complete** — types and documents foundation ready
+- **Next step:** 08-02-PLAN.md (Query key factory + parsers + service functions)
+- **Branch:** `feat/react-profile-types-documents` — needs PR to `refactor/indexer-v2-react`
+- **Key files delivered:** `types/profiles.ts` (10 type exports), `documents/profiles.ts` (2 GraphQL documents), `schema.graphql` (230+ line Hasura-style stubs), regenerated `graphql/graphql.ts` (Hasura codegen types)
+- **Codegen types available for 08-02:** `Universal_Profile_Bool_Exp`, `Universal_Profile_Order_By`, `Follow_Bool_Exp`, `String_Comparison_Exp`, `Follow_Aggregate_Order_By` — service layer will use these
+- **Test app ready** to receive domain playground pages (profiles page in 08-04)
 
 ---
 
