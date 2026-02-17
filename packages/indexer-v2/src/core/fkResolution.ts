@@ -29,7 +29,7 @@ import { Store } from '@subsquid/typeorm-store';
 import { In, IsNull } from 'typeorm';
 
 import { BatchContext } from './batchContext';
-import { createStepLogger, PipelineStep } from './logger';
+import { createStepLogger } from './logger';
 import { EntityCategory } from './types';
 
 import type { Logger } from '@subsquid/logger';
@@ -70,8 +70,12 @@ interface FKResolutionRule {
   /** Given a source entity ID, derive the target entity ID */
   readonly resolveTargetId: (sourceId: string) => string;
 
-  /** Given a target entity ID, derive the source entity ID */
-  readonly resolveSourceId: (targetId: string) => string;
+  /**
+   * Given a target entity ID, derive the source entity ID.
+   * Returns null if the target ID doesn't match the expected pattern
+   * (e.g., non-BaseURI metadata should not match the BaseUri rule).
+   */
+  readonly resolveSourceId: (targetId: string) => string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -130,7 +134,8 @@ const FK_RESOLUTION_RULES: readonly FKResolutionRule[] = [
     targetClass: LSP4Metadata as unknown as { new (props?: unknown): Entity },
     targetType: 'LSP4Metadata',
     resolveTargetId: (sourceId: string) => `BaseURI - ${sourceId}`,
-    resolveSourceId: (targetId: string) => targetId.replace(/^BaseURI - /, ''),
+    resolveSourceId: (targetId: string) =>
+      targetId.startsWith('BaseURI - ') ? targetId.slice('BaseURI - '.length) : null,
   },
 ];
 
@@ -162,7 +167,7 @@ export async function resolveForeignKeys(
   log: Logger,
   blockRange?: { from: number; to: number },
 ): Promise<void> {
-  const resolveLog = createStepLogger(log, 'RESOLVE' as PipelineStep, blockRange);
+  const resolveLog = createStepLogger(log, 'RESOLVE', blockRange);
 
   for (const rule of FK_RESOLUTION_RULES) {
     const entitiesToUpdate: Entity[] = [];
@@ -282,7 +287,7 @@ async function resolveForward(
 
   // Batch DB lookup for remaining targets
   if (needsDbLookup.length > 0) {
-    const targetIds = needsDbLookup.map((item) => item.targetId);
+    const targetIds = [...new Set(needsDbLookup.map((item) => item.targetId))];
     const existingTargets = await store.findBy(rule.targetClass, {
       id: In(targetIds),
     });
@@ -314,10 +319,18 @@ async function resolveReverse(
 ): Promise<Entity[]> {
   const resolved: Entity[] = [];
 
-  // Derive source IDs from target entities, excluding already-resolved ones
-  const sourceIds = targetEntities
-    .map((target) => rule.resolveSourceId(target.id))
-    .filter((sourceId) => !alreadyResolved.has(sourceId));
+  // Derive source IDs from target entities, excluding:
+  // - null returns (target ID doesn't match this rule's pattern)
+  // - IDs already resolved in the forward pass
+  const sourceIds = [
+    ...new Set(
+      targetEntities
+        .map((target) => rule.resolveSourceId(target.id))
+        .filter(
+          (sourceId): sourceId is string => sourceId !== null && !alreadyResolved.has(sourceId),
+        ),
+    ),
+  ];
 
   if (sourceIds.length === 0) return resolved;
 

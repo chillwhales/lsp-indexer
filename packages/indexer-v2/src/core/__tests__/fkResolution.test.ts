@@ -448,6 +448,49 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
       expect((resolvedNft!.lsp4MetadataBaseUri as LSP4Metadata).id).toBe(BASE_URI_LSP4_ID);
     });
 
+    it('reverse pass: does NOT populate lsp4MetadataBaseUri from non-BaseURI metadata', async () => {
+      const batchCtx = new BatchContext();
+
+      // Per-token LSP4Metadata in batch (id = "{address} - {tokenId}", no BaseURI prefix)
+      const lsp4PerToken = new LSP4Metadata({
+        id: NFT_ID, // NOT prefixed with "BaseURI - "
+        address: NFT_ADDRESS,
+        tokenId: TOKEN_ID,
+        timestamp: new Date(),
+        rawValue: '0x',
+        isDataFetched: false,
+      });
+      batchCtx.addEntity('LSP4Metadata', lsp4PerToken.id, lsp4PerToken);
+
+      // NFT in DB with null lsp4MetadataBaseUri
+      const dbNft = new NFT({
+        id: NFT_ID,
+        address: NFT_ADDRESS,
+        tokenId: TOKEN_ID,
+        isMinted: true,
+        isBurned: false,
+        lsp4MetadataBaseUri: null,
+        lsp4Metadata: null,
+      });
+      const store = createMockStore({
+        findResults: new Map([[NFT, [dbNft]]]),
+      });
+      const log = createMockLogger();
+
+      await resolveForeignKeys(store, batchCtx, log as never);
+
+      // The NFT.lsp4Metadata rule SHOULD resolve (per-token metadata matches)
+      // but NFT.lsp4MetadataBaseUri should NOT be set (no BaseURI-prefixed target)
+      const upserted = store._upserted.flat();
+      const resolvedNfts = upserted.filter((e: unknown) => e instanceof NFT) as NFT[];
+
+      for (const nft of resolvedNfts) {
+        // lsp4MetadataBaseUri must remain null — the per-token metadata
+        // is NOT a BaseURI-derived entity
+        expect(nft.lsp4MetadataBaseUri).toBeNull();
+      }
+    });
+
     it('correctly derives source ID from BaseURI target ID', async () => {
       // Verify the ID derivation: "BaseURI - {address} - {tokenId}" -> "{address} - {tokenId}"
       const batchCtx = new BatchContext();

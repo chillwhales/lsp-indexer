@@ -157,10 +157,9 @@ async function checkFKCoverage(
       continue;
     }
 
-    // Derive target IDs and check which ones exist
+    // Derive target IDs and check which ones exist (lightweight — only fetches IDs)
     const targetIds = nullFkIds.map(rule.resolveTargetId);
-    const existingTargets = await client.queryRowsByIds(rule.targetTable, targetIds);
-    const existingTargetIds = new Set(existingTargets.map((r) => String(r.id)));
+    const existingTargetIds = new Set(await client.queryExistingIds(rule.targetTable, targetIds));
 
     // Find orphaned nulls: source has null FK but target exists
     const orphanedIds = nullFkIds.filter((sourceId) =>

@@ -6,6 +6,7 @@ export interface GraphqlClient {
   queryRowsByIds(hasuraTable: string, ids: string[]): Promise<Record<string, unknown>[]>;
   querySampleRows(hasuraTable: string, limit: number): Promise<Record<string, unknown>[]>;
   queryIdsWhereFieldNull(hasuraTable: string, field: string, limit: number): Promise<string[]>;
+  queryExistingIds(hasuraTable: string, ids: string[]): Promise<string[]>;
   checkHealth(): Promise<boolean>;
 }
 
@@ -253,6 +254,43 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
 
     try {
       const response = await client.post<GraphqlResponse<SampleIdsData>>('', { query });
+      if (response.data.errors?.length) {
+        const messages = response.data.errors.map((e) => e.message).join('; ');
+        throw new Error(
+          `GraphQL error querying ${hasuraTable} where ${field} is null: ${messages}`,
+        );
+      }
+      const rows = response.data.data?.[hasuraTable];
+      if (!Array.isArray(rows)) return [];
+      return rows.map((row) => row.id).filter((id): id is string => typeof id === 'string');
+    } catch (error) {
+      // Re-throw GraphQL errors; only swallow network/unexpected errors
+      if (error instanceof Error && error.message.startsWith('GraphQL error')) {
+        throw error;
+      }
+      return [];
+    }
+  }
+
+  /**
+   * Lightweight existence check — fetches only `{ id }` for the given IDs.
+   * Use instead of `queryRowsByIds` when you only need to know which IDs exist.
+   */
+  async function queryExistingIds(hasuraTable: string, ids: string[]): Promise<string[]> {
+    if (ids.length === 0) return [];
+
+    const idList = ids.map((id) => `"${id}"`).join(', ');
+
+    const query = `
+      query {
+        ${hasuraTable}(where: { id: { _in: [${idList}] } }) {
+          id
+        }
+      }
+    `;
+
+    try {
+      const response = await client.post<GraphqlResponse<SampleIdsData>>('', { query });
       const rows = response.data.data?.[hasuraTable];
       if (!Array.isArray(rows)) return [];
       return rows.map((row) => row.id).filter((id): id is string => typeof id === 'string');
@@ -267,6 +305,7 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     queryRowsByIds,
     querySampleRows,
     queryIdsWhereFieldNull,
+    queryExistingIds,
     checkHealth,
   };
 }
