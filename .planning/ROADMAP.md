@@ -33,8 +33,8 @@ Ship a standalone, publishable React hooks library (`packages/react`) that gives
 
 Plans:
 
-- [ ] 07-01-PLAN.md — React package scaffold, codegen, error handling, client utilities
-- [ ] 07-02-PLAN.md — Next.js test app + end-to-end validation
+- [x] 07-01-PLAN.md — React package scaffold, codegen, error handling, client utilities
+- [x] 07-02-PLAN.md — Next.js test app + end-to-end validation
 
 **Success Criteria:**
 
@@ -151,15 +151,15 @@ Plans:
 
 ## Progress
 
-| Phase | Name                                 | Requirements | Status  |
-| ----- | ------------------------------------ | :----------: | ------- |
-| 7     | Package Foundation                   |      7       | Pending |
-| 8     | First Vertical Slice (Profiles)      |      3       | Pending |
-| 9     | Remaining Query Domains & Pagination |      11      | Pending |
-| 10    | Subscriptions                        |      3       | Pending |
-| 11    | Server Actions & Publish Readiness   |      4       | Pending |
+| Phase | Name                                 | Requirements | Status   |
+| ----- | ------------------------------------ | :----------: | -------- |
+| 7     | Package Foundation                   |     7/7      | Complete |
+| 8     | First Vertical Slice (Profiles)      |      3       | Pending  |
+| 9     | Remaining Query Domains & Pagination |      11      | Pending  |
+| 10    | Subscriptions                        |      3       | Pending  |
+| 11    | Server Actions & Publish Readiness   |      4       | Pending  |
 
-**Total:** 28 requirements across 5 phases
+**Total:** 7/28 requirements delivered
 
 ---
 
@@ -241,4 +241,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-16_
+_Last updated: 2026-02-17_
