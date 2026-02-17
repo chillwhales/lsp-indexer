@@ -29,6 +29,13 @@ Ship a standalone, publishable React hooks library (`packages/react`) that gives
 | FOUND-06 | Developer can import from main (`@lsp-indexer/react`) and server (`@lsp-indexer/react/server`) entry points without bundle contamination                                                                               |
 | FOUND-07 | A minimal Next.js test app (`apps/test`) exists in the monorepo that imports from `@lsp-indexer/react`, validates hooks work in both client and server components, and catches bundle/export issues during development |
 
+**Plans:** 2 plans
+
+Plans:
+
+- [ ] 07-01-PLAN.md — React package scaffold, codegen, error handling, client utilities
+- [ ] 07-02-PLAN.md — Next.js test app + end-to-end validation
+
 **Success Criteria:**
 
 1. Developer can run `pnpm build` in `packages/react` and get ESM + CJS + DTS output with `"use client"` directives on hook files — verified by inspecting dist output
