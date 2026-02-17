@@ -54,11 +54,11 @@ Plans:
 
 **Requirements:**
 
-| ID       | Requirement                                                                                  |
-| -------- | -------------------------------------------------------------------------------------------- |
-| QUERY-01 | Developer can use `useProfile`, `useProfiles`, `useProfileSearch` for Universal Profile data |
-| DX-01    | Developer can import all clean camelCase domain types from `@lsp-indexer/react/types`        |
-| DX-02    | Developer can import query key factories for cache invalidation and prefetching              |
+| ID       | Requirement                                                                                     |
+| -------- | ----------------------------------------------------------------------------------------------- |
+| QUERY-01 | Developer can use `useProfile`, `useProfiles`, `useInfiniteProfiles` for Universal Profile data |
+| DX-01    | Developer can import all clean camelCase domain types from `@lsp-indexer/react/types`           |
+| DX-02    | Developer can import query key factories for cache invalidation and prefetching                 |
 
 **Plans:** 4 plans
 
