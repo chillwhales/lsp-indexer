@@ -53,6 +53,20 @@ export async function execute<TResult, TVariables>(
     throw IndexerError.fromHttpResponse(response);
   }
 
+  // Check for empty response body before attempting JSON parse.
+  // An empty body from Hasura typically indicates a misconfigured endpoint
+  // or proxy issue — distinct from a body that contains non-JSON content.
+  const text = await response.text();
+  if (!text) {
+    throw new IndexerError({
+      category: 'PARSE',
+      code: 'EMPTY_RESPONSE',
+      message:
+        'The server returned an empty response body. Check that the endpoint is a valid Hasura GraphQL endpoint and not a proxy or load balancer.',
+      query: document.toString(),
+    });
+  }
+
   let json: {
     data?: TResult;
     errors?: Array<{
@@ -62,7 +76,7 @@ export async function execute<TResult, TVariables>(
   };
 
   try {
-    json = (await response.json()) as typeof json;
+    json = JSON.parse(text) as typeof json;
   } catch {
     throw new IndexerError({
       category: 'PARSE',

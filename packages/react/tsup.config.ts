@@ -12,7 +12,8 @@ const sharedExternal = [
 export default defineConfig([
   // Main entry — client hooks + services + types + errors
   // Needs "use client" because it exports hooks that use React.
-  // Banner is injected via esbuild; treeshake disabled to prevent rollup from stripping it.
+  // Banner is injected via esbuild; tsup defaults treeshake to false,
+  // which preserves the banner (rollup treeshake can strip it).
   {
     entry: { index: 'src/index.ts' },
     format: ['esm', 'cjs'],
