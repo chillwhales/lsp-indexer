@@ -60,6 +60,15 @@ Plans:
 | DX-01    | Developer can import all clean camelCase domain types from `@lsp-indexer/react/types`        |
 | DX-02    | Developer can import query key factories for cache invalidation and prefetching              |
 
+**Plans:** 4 plans
+
+Plans:
+
+- [ ] 08-01-PLAN.md — Profile domain types + GraphQL documents + codegen
+- [ ] 08-02-PLAN.md — Query key factory + parsers + service functions
+- [ ] 08-03-PLAN.md — Hooks + entry point wiring + build validation
+- [ ] 08-04-PLAN.md — Test app profiles playground page + end-to-end verification
+
 **Success Criteria:**
 
 1. Developer can call `useProfile({ address })` in a client component and see typed Universal Profile data rendered — with loading, error, and success states all working
