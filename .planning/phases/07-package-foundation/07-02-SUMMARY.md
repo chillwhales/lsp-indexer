@@ -8,7 +8,7 @@ dependency-graph:
   provides: [test-app, entry-point-validation, workspace-apps-config]
   affects: [08-01, 08-02, 09-01]
 tech-stack:
-  added: ['next@15.5.12', 'react@19', 'react-dom@19', '@tanstack/react-query@5']
+  added: ['next@16', 'react@19', 'react-dom@19', '@tanstack/react-query@5']
   patterns: [consumer-owned-queryclient, server-client-entry-separation, monorepo-workspace-app]
 key-files:
   created:
@@ -41,14 +41,14 @@ metrics:
 
 # Phase 7 Plan 02: Next.js Test App + End-to-End Validation Summary
 
-**One-liner:** Next.js 15 test app at `apps/test` validating all 3 @lsp-indexer/react entry points (client, server, types) with zero build errors — consumer-owned QueryClientProvider pattern, server+client component imports, and navigation scaffold for Phase 8+ domain playgrounds.
+**One-liner:** Next.js 16 test app at `apps/test` validating all 3 @lsp-indexer/react entry points (client, server, types) with zero build errors — consumer-owned QueryClientProvider pattern, server+client component imports, and navigation scaffold for Phase 8+ domain playgrounds.
 
 ## What Was Done
 
 ### Task 1: Update workspace config, create Next.js test app shell
 
 - Updated `pnpm-workspace.yaml` to include `apps/*` alongside `packages/*`
-- Created `apps/test/` with full Next.js 15 App Router structure
+- Created `apps/test/` with full Next.js 16 App Router structure
 - Configured `next.config.ts` with `transpilePackages` for workspace package and `outputFileTracingRoot` for monorepo
 - Created `providers.tsx` with consumer-owned `QueryClientProvider` (per CONTEXT.md — no IndexerProvider)
 - Created `layout.tsx` root layout with 2-column sidebar + content area
@@ -78,7 +78,7 @@ metrics:
 **1. [Rule 1 - Bug] JSX.Element not available in React 19**
 
 - **Found during:** Task 2
-- **Issue:** React 19 (used by Next.js 15) removes the global `JSX` namespace. All components using `JSX.Element` as return type failed type checking with "Cannot find namespace 'JSX'".
+- **Issue:** React 19 removes the global `JSX` namespace. All components using `JSX.Element` as return type failed type checking with "Cannot find namespace 'JSX'".
 - **Fix:** Changed all component return types from `JSX.Element` to `React.ReactNode` and added explicit `React` imports where needed.
 - **Files modified:** `layout.tsx`, `page.tsx`, `providers.tsx`, `nav.tsx`, `connection-status.tsx`
 - **Commit:** 11ce625
