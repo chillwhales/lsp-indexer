@@ -18,7 +18,10 @@
     "migration:apply": ". ./env.sh && pnpm --filter=@chillwhales/typeorm migration:apply",
     "start": ". ./env.sh && pnpm --filter=@chillwhales/indexer start",
     "start:v2": ". ./env.sh && pnpm --filter=@chillwhales/indexer-v2 start",
-    "compare": "pnpm --filter=@chillwhales/comparison-tool compare"
+    "compare": "pnpm --filter=@chillwhales/comparison-tool compare",
+    "codegen": "pnpm --filter @lsp-indexer/react codegen",
+    "dev:test": "pnpm --filter test dev",
+    "build:react": "pnpm --filter @lsp-indexer/react build"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
