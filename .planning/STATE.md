@@ -6,15 +6,15 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 7 (Package Foundation)
+**Current focus:** v1.1 React Hooks Package — Phase 8 (First Vertical Slice)
 
 ## Current Position
 
 - **Phase:** 7 of 11 (Package Foundation)
-- **Plan:** 1 of 2
-- **Status:** In progress
-- **Last activity:** 2026-02-17 — Completed 07-01-PLAN.md
-- **Progress:** █░░░░░░░░░ 10%
+- **Plan:** 2 of 2
+- **Status:** Phase complete
+- **Last activity:** 2026-02-17 — Completed 07-02-PLAN.md
+- **Progress:** ██░░░░░░░░ 20%
 
 ## Milestone History
 
@@ -26,22 +26,22 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                                 | Requirements | Status      |
-| ----- | ------------------------------------ | :----------: | ----------- |
-| 7     | Package Foundation                   |      7       | In Progress |
-| 8     | First Vertical Slice (Profiles)      |      3       | Pending     |
-| 9     | Remaining Query Domains & Pagination |      11      | Pending     |
-| 10    | Subscriptions                        |      3       | Pending     |
-| 11    | Server Actions & Publish Readiness   |      4       | Pending     |
+| Phase | Name                                 | Requirements | Status   |
+| ----- | ------------------------------------ | :----------: | -------- |
+| 7     | Package Foundation                   |     7/7      | Complete |
+| 8     | First Vertical Slice (Profiles)      |      3       | Pending  |
+| 9     | Remaining Query Domains & Pagination |      11      | Pending  |
+| 10    | Subscriptions                        |      3       | Pending  |
+| 11    | Server Actions & Publish Readiness   |      4       | Pending  |
 
-**Total:** 0/28 requirements delivered (FOUND-01 through FOUND-06 partially addressed by 07-01, fully validated after 07-02)
+**Total:** 7/28 requirements delivered (FOUND-01 through FOUND-07 validated by 07-01 + 07-02)
 
 ## Performance Metrics
 
-- **Plans completed:** 37 (36 v1.0 + 1 v1.1)
+- **Plans completed:** 38 (36 v1.0 + 2 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 11 (v1.0)
-- **Requirements delivered:** 45/45 (v1.0), 0/28 (v1.1)
+- **Phases completed:** 12 (11 v1.0 + 1 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 7/28 (v1.1)
 
 ## Accumulated Context
 
@@ -68,6 +68,8 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - Exports map uses split import/require conditions with separate .d.ts/.d.cts types
 - typesVersions used for node10 resolution fallback
 - treeshake disabled on tsup entries to preserve "use client" banner
+- React 19 removes global JSX namespace — use React.ReactNode return types in components
+- outputFileTracingRoot needed in next.config.ts for monorepo workspace root detection
 
 ### Discovered Todos
 
@@ -82,18 +84,18 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-17
-- **Activity:** Executed 07-01-PLAN.md — React package scaffold, codegen, error handling, client utilities
-- **Outcome:** 3 tasks completed, 3 commits, SUMMARY.md written. Package builds with zero publint/arethetypeswrong errors.
+- **Activity:** Executed 07-02-PLAN.md — Next.js test app + end-to-end validation
+- **Outcome:** 2 tasks completed, 2 commits, SUMMARY.md written. `next build` succeeds with zero errors, all 3 entry points validated.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **07-01 complete** — packages/react is buildable with all entry points validated
-- **Next step:** Execute 07-02-PLAN.md (Next.js test app + end-to-end validation)
-- **Branch:** `feat/react-package-scaffold` — needs PR to `refactor/indexer-v2-react` before starting 07-02
-- **Key files delivered:** packages/react/{package.json, tsup.config.ts, codegen.ts, src/errors/, src/client/, src/graphql/}
-- **Note:** Full Hasura types require introspection from live endpoint. Local schema provides base scalars only.
-- **BRANCHING:** Before executing 07-02, merge/PR feat/react-package-scaffold, then create new branch from refactor/indexer-v2-react.
+- **Phase 7 complete** — All 7 FOUND requirements delivered
+- **Next step:** Phase 8 planning (First Vertical Slice — Universal Profiles)
+- **Branch:** `feat/react-test-app` — needs PR to `refactor/indexer-v2-react`
+- **Key files delivered:** apps/test/ (Next.js 15 App Router), pnpm-workspace.yaml (apps/\*)
+- **Note:** Phase 8 requires live Hasura endpoint for codegen introspection to get full query/filter types. Test app has `.env.local.example` for setup.
+- **Test app ready** to receive domain playground pages (profiles, assets, etc.)
 
 ---
 
