@@ -55,7 +55,7 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - Two consumption patterns: client-side (TanStack Query) and server-side (next-safe-action)
 - Three consumption patterns: queries (TanStack Query), subscriptions (graphql-ws), server actions (next-safe-action)
 - GraphQL codegen from Hasura schema, types committed to repo
-- Branch: `refactor/indexer-v2-react` from `refactor/indexer-v2`
+- **Branch workflow: ALL v1.1 work merges via PRs to `refactor/indexer-v2-react`** — see PROJECT.md "Branching & PR Workflow" for full protocol
 - Reference: `chillwhales/marketplace` graphql package and web hooks (being standardized)
 - Vertical-slice approach: build Universal Profiles end-to-end first, then replicate across 10 domains
 - Minimal runtime deps — only `graphql-ws` for subscriptions; typed fetch wrapper for queries (zero query deps)
@@ -85,12 +85,13 @@ _None currently._
 ### Context for Next Session
 
 - **Roadmap complete** — 28 requirements across 5 phases (7–11)
-- **Next step:** `/gsd-plan-phase 7` to plan Package Foundation
+- **Next step:** Execute Phase 7 plans (07-01, 07-02)
 - **Phase 7 scope:** 7 FOUND-\* requirements — package scaffold, codegen, build, provider, error handling, entry points, Next.js test app
 - **Critical pitfalls to address in Phase 7:** C1 (server/client leak), C2 (broken exports), C3 (missing "use client"), C4 (QueryClient conflicts), C5 (type exposure)
 - **Research confidence:** HIGH across all dimensions — no spikes needed for Phase 7
 - **Reference implementation:** `chillwhales/marketplace` packages/graphql and apps/web/src/hooks
 - **Schema source:** `packages/typeorm/schema.graphql` → Hasura → codegen
+- **⚠️ BRANCHING:** Before executing ANY plan, fetch latest `refactor/indexer-v2-react` and create a new feature branch. PR back to `refactor/indexer-v2-react`. See PROJECT.md for full protocol.
 
 ---
 

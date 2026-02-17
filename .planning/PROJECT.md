@@ -116,6 +116,45 @@ V2 rewrite is feature-complete with data parity validated against V1 via automat
 - **Key V2 architecture**: Enrichment queue eliminates the populate phase — raw entities persist with null FKs, then batch UPDATE resolves references after verification
 - **Reference implementation**: `chillwhales/marketplace` has existing (non-ideal) GraphQL client, services, actions, and hooks — being standardized and extracted into `packages/react`
 
+## Branching & PR Workflow (v1.1)
+
+**Integration branch:** `refactor/indexer-v2-react`
+
+All v1.1 milestone work (Phases 7–11) merges through pull requests targeting `refactor/indexer-v2-react`. Never commit directly to this branch.
+
+**Before starting ANY plan execution:**
+
+```bash
+# 1. Fetch latest remote state
+git fetch origin
+
+# 2. Checkout and reset to latest integration branch
+git checkout refactor/indexer-v2-react
+git pull origin refactor/indexer-v2-react
+
+# 3. Create a new feature branch for this plan
+git checkout -b feat/<plan-description>
+# Examples:
+#   feat/react-package-scaffold
+#   feat/react-test-app
+#   feat/react-profile-hooks
+```
+
+**After completing a plan:**
+
+```bash
+# Push the feature branch and open a PR targeting the integration branch
+git push -u origin feat/<plan-description>
+gh pr create --base refactor/indexer-v2-react --title "<plan title>" --body "<summary>"
+```
+
+**Rules:**
+
+- One feature branch per plan (or per logical unit of work)
+- PRs always target `refactor/indexer-v2-react` — never `main`, never `refactor/indexer-v2`
+- Fetch + pull `refactor/indexer-v2-react` before branching — stale bases cause merge conflicts
+- `refactor/indexer-v2-react` is the single source of truth for all v1.1 work
+
 ## Constraints
 
 - **Data parity**: V2 must produce identical database state to V1 — validated via comparison tool
