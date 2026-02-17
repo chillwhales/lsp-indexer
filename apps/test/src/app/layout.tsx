@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-import { Nav } from '@/components/nav';
+import { AppSidebar } from '@/components/nav';
+import { Separator } from '@/components/ui/separator';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
+import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
@@ -13,12 +16,19 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }): ReactNode {
   return (
     <html lang="en">
-      <body style={{ margin: 0, fontFamily: 'system-ui, sans-serif' }}>
+      <body className="min-h-screen font-sans antialiased">
         <Providers>
-          <div style={{ display: 'flex', minHeight: '100vh' }}>
-            <Nav />
-            <main style={{ flex: 1, padding: '2rem' }}>{children}</main>
-          </div>
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+              <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" />
+                <span className="text-sm text-muted-foreground">@lsp-indexer/react playground</span>
+              </header>
+              <main className="flex-1 p-6">{children}</main>
+            </SidebarInset>
+          </SidebarProvider>
         </Providers>
       </body>
     </html>

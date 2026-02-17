@@ -1,8 +1,12 @@
 'use client';
 
+import { CheckCircle2, XCircle } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 import { IndexerError } from '@lsp-indexer/react';
+
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function ConnectionStatus(): React.ReactNode {
   const [publicUrl, setPublicUrl] = useState<string | null>(null);
@@ -16,44 +20,34 @@ export function ConnectionStatus(): React.ReactNode {
   }, []);
 
   return (
-    <section style={{ marginBottom: '2rem' }}>
-      <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.75rem' }}>
-        Client-Side Status
-      </h2>
-      <div
-        style={{
-          background: '#f9fafb',
-          border: '1px solid #e5e7eb',
-          borderRadius: '0.5rem',
-          padding: '1rem',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0' }}>
-          <span style={{ color: '#16a34a', fontWeight: 600 }}>✓</span>
-          <span style={{ fontWeight: 500 }}>@lsp-indexer/react (client)</span>
-          <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+    <Card>
+      <CardHeader>
+        <CardTitle>Client-Side Status</CardTitle>
+        <CardDescription>Runtime import validation (client component)</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-1">
+        <div className="flex items-center gap-2 py-1">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600" />
+          <span className="font-medium text-sm">@lsp-indexer/react (client)</span>
+          <span className="text-muted-foreground text-sm">
             — runtime import working ({errorClassName})
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0' }}>
-          <span style={{ color: publicUrl ? '#16a34a' : '#dc2626', fontWeight: 600 }}>
-            {publicUrl ? '✓' : '✗'}
-          </span>
-          <code
-            style={{
-              fontSize: '0.875rem',
-              background: '#f3f4f6',
-              padding: '0.125rem 0.375rem',
-              borderRadius: '0.25rem',
-            }}
-          >
-            NEXT_PUBLIC_INDEXER_URL
-          </code>
-          <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-            {publicUrl ? `configured (${publicUrl})` : 'not set (client-side)'}
-          </span>
+        <div className="flex items-center gap-2 py-1">
+          {publicUrl ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600" />
+          ) : (
+            <XCircle className="h-4 w-4 shrink-0 text-destructive" />
+          )}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-sm">NEXT_PUBLIC_INDEXER_URL</code>
+          <Badge variant={publicUrl ? 'secondary' : 'outline'} className="text-xs">
+            {publicUrl ? `configured` : 'not set'}
+          </Badge>
+          {publicUrl && (
+            <span className="text-muted-foreground text-xs truncate max-w-48">{publicUrl}</span>
+          )}
         </div>
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }

@@ -70,6 +70,8 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - treeshake disabled on tsup entries to preserve "use client" banner
 - React 19 removes global JSX namespace — use React.ReactNode return types in components
 - outputFileTracingRoot needed in next.config.ts for monorepo workspace root detection
+- **UI: Always use shadcn/ui components over custom components** — Tailwind CSS v4 + shadcn/ui (new-york style) is the standard for all UI in apps/test and future consumer apps. No inline styles, no custom components when a shadcn equivalent exists.
+- Next.js 16 for test app (Turbopack default, React 19.2 canary features)
 
 ### Discovered Todos
 
@@ -93,7 +95,7 @@ _None currently._
 - **Phase 7 complete** — All 7 FOUND requirements delivered
 - **Next step:** Phase 8 planning (First Vertical Slice — Universal Profiles)
 - **Branch:** `feat/react-test-app` — needs PR to `refactor/indexer-v2-react`
-- **Key files delivered:** apps/test/ (Next.js 15 App Router), pnpm-workspace.yaml (apps/\*)
+- **Key files delivered:** apps/test/ (Next.js 16 App Router + shadcn/ui + Tailwind v4), pnpm-workspace.yaml (apps/\*)
 - **Note:** Phase 8 requires live Hasura endpoint for codegen introspection to get full query/filter types. Test app has `.env.local.example` for setup.
 - **Test app ready** to receive domain playground pages (profiles, assets, etc.)
 
