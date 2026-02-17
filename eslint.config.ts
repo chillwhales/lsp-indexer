@@ -19,9 +19,14 @@ export default tseslint.config(
       // Legacy v1 indexer — read-only reference, not actively maintained
       'packages/indexer/',
 
+      // Codegen output — auto-generated, don't lint
+      'packages/react/src/graphql/',
+
       // Config files — not source code
       '**/vitest.config.ts',
       '**/vitest.setup.ts',
+      '**/tsup.config.ts',
+      '**/codegen.ts',
     ],
   },
 
@@ -41,6 +46,7 @@ export default tseslint.config(
           './tsconfig.json',
           './packages/*/tsconfig.json',
           './packages/indexer-v2/tsconfig.eslint.json',
+          './apps/*/tsconfig.json',
         ],
         tsconfigRootDir: import.meta.dirname,
       },
