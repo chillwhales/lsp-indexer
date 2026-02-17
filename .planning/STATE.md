@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 8 of 11 (First Vertical Slice — Universal Profiles)
-- **Plan:** 1 of 4
+- **Plan:** 2 of 4
 - **Status:** In progress
-- **Last activity:** 2026-02-17 — Completed 08-01-PLAN.md
-- **Progress:** ██▓░░░░░░░ 25%
+- **Last activity:** 2026-02-17 — Completed 08-02-PLAN.md
+- **Progress:** █████░░░░░ 50%
 
 ## Milestone History
 
@@ -38,7 +38,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## Performance Metrics
 
-- **Plans completed:** 39 (36 v1.0 + 3 v1.1)
+- **Plans completed:** 40 (36 v1.0 + 4 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 12 (11 v1.0 + 1 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 7/28 (v1.1)
@@ -74,6 +74,8 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - Next.js 16 for test app (Turbopack default, React 19.2 canary features)
 - Local schema.graphql extended with full Hasura-style type stubs (bool_exp, order_by, aggregates) for CI/build codegen fallback
 - All image types (avatar, profileImage, backgroundImage) share ProfileImage interface with nullable width/height
+- Structural interface for image parsing (avoids codegen \_\_typename incompatibility between profile_image and background_image)
+- tokenOwned filter branches into owned_tokens (with tokenId) vs owned_assets (without tokenId)
 
 ### Discovered Todos
 
@@ -88,17 +90,18 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-17
-- **Activity:** Executed 08-01-PLAN.md — Profile domain types + GraphQL documents + codegen
-- **Outcome:** 2 tasks completed, 2 commits, SUMMARY.md written. Profile types, GraphQL documents, and codegen output all passing typecheck.
+- **Activity:** Executed 08-02-PLAN.md — Query key factory + parsers + service functions
+- **Outcome:** 2 tasks completed, 2 commits, SUMMARY.md written. Query keys, parser, and service all passing typecheck.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 8 plan 01 complete** — types and documents foundation ready
-- **Next step:** 08-02-PLAN.md (Query key factory + parsers + service functions)
-- **Branch:** `feat/react-profile-types-documents` — needs PR to `refactor/indexer-v2-react`
-- **Key files delivered:** `types/profiles.ts` (10 type exports), `documents/profiles.ts` (2 GraphQL documents), `schema.graphql` (230+ line Hasura-style stubs), regenerated `graphql/graphql.ts` (Hasura codegen types)
-- **Codegen types available for 08-02:** `Universal_Profile_Bool_Exp`, `Universal_Profile_Order_By`, `Follow_Bool_Exp`, `String_Comparison_Exp`, `Follow_Aggregate_Order_By` — service layer will use these
+- **Phase 8 plan 02 complete** — plumbing layer (keys + parser + services) ready
+- **Next step:** 08-03-PLAN.md (Hooks + entry point wiring + build validation)
+- **Branch:** `feat/react-profile-keys-parsers-services` — needs PR to `refactor/indexer-v2-react`
+- **Key files delivered:** `keys/profiles.ts` (query key factory), `parsers/profiles.ts` (Hasura → camelCase), `services/profiles.ts` (flat params → Hasura translation)
+- **Exports available for 08-03:** `profileKeys`, `parseProfile`/`parseProfiles`, `fetchProfile`/`fetchProfiles`/`FetchProfilesResult`
+- **Service layer validated:** All filter types (name, followedBy, following, tokenOwned), all sort fields (name, followerCount, followingCount), include mapping (omit=all, provided=opt-in)
 - **Test app ready** to receive domain playground pages (profiles page in 08-04)
 
 ---
