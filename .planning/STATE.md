@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 8 of 11 (First Vertical Slice — Universal Profiles)
-- **Plan:** 2 of 4
+- **Plan:** 3 of 4
 - **Status:** In progress
-- **Last activity:** 2026-02-17 — Completed 08-02-PLAN.md
-- **Progress:** █████░░░░░ 50%
+- **Last activity:** 2026-02-17 — Completed 08-03-PLAN.md
+- **Progress:** ██████░░░░ 60%
 
 ## Milestone History
 
@@ -38,7 +38,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## Performance Metrics
 
-- **Plans completed:** 40 (36 v1.0 + 4 v1.1)
+- **Plans completed:** 41 (36 v1.0 + 5 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 12 (11 v1.0 + 1 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 7/28 (v1.1)
@@ -76,6 +76,7 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - All image types (avatar, profileImage, backgroundImage) share ProfileImage interface with nullable width/height
 - Structural interface for image parsing (avoids codegen \_\_typename incompatibility between profile_image and background_image)
 - tokenOwned filter branches into owned_tokens (with tokenId) vs owned_assets (without tokenId)
+- Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
 
 ### Discovered Todos
 
@@ -90,18 +91,21 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-17
-- **Activity:** Executed 08-02-PLAN.md — Query key factory + parsers + service functions
-- **Outcome:** 2 tasks completed, 2 commits, SUMMARY.md written. Query keys, parser, and service all passing typecheck.
+- **Activity:** Executed 08-03-PLAN.md — Hooks + entry point wiring + build validation
+- **Outcome:** 2 tasks completed, 2 commits, SUMMARY.md written. All 3 hooks created, all entry points wired, build validated.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 8 plan 02 complete** — plumbing layer (keys + parser + services) ready
-- **Next step:** 08-03-PLAN.md (Hooks + entry point wiring + build validation)
-- **Branch:** `feat/react-profile-keys-parsers-services` — needs PR to `refactor/indexer-v2-react`
-- **Key files delivered:** `keys/profiles.ts` (query key factory), `parsers/profiles.ts` (Hasura → camelCase), `services/profiles.ts` (flat params → Hasura translation)
-- **Exports available for 08-03:** `profileKeys`, `parseProfile`/`parseProfiles`, `fetchProfile`/`fetchProfiles`/`FetchProfilesResult`
-- **Service layer validated:** All filter types (name, followedBy, following, tokenOwned), all sort fields (name, followerCount, followingCount), include mapping (omit=all, provided=opt-in)
+- **Phase 8 plan 03 complete** — hooks + entry points fully wired
+- **Next step:** 08-04-PLAN.md (Test app profiles playground page + end-to-end verification)
+- **Branch:** `feat/react-profile-hooks-entry-points` — needs PR to `refactor/indexer-v2-react` (after 08-01 + 08-02 PRs merge)
+- **Key files delivered:** `hooks/profiles.ts` (3 TanStack Query hooks), updated `index.ts`, `server.ts`, `types.ts`
+- **Full import surface now available:**
+  - `@lsp-indexer/react`: `useProfile`, `useProfiles`, `useInfiniteProfiles`, `profileKeys`
+  - `@lsp-indexer/react/server`: `fetchProfile`, `fetchProfiles`
+  - `@lsp-indexer/react/types`: `Profile`, `ProfileImage`, `ProfileFilter`, `ProfileSort`, etc.
+- **Build validated:** ESM + CJS + DTS for all 3 entry points, zero errors
 - **Test app ready** to receive domain playground pages (profiles page in 08-04)
 
 ---
