@@ -21,7 +21,8 @@
     "compare": "pnpm --filter=@chillwhales/comparison-tool compare",
     "codegen": "pnpm --filter @lsp-indexer/react codegen",
     "dev:test": "pnpm --filter test dev",
-    "build:react": "pnpm --filter @lsp-indexer/react build"
+    "build:react": "pnpm --filter @lsp-indexer/react build",
+    "build:all": "pnpm --filter @lsp-indexer/react build && pnpm --filter test build"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

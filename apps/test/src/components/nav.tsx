@@ -19,7 +19,7 @@ const navLinks: NavLink[] = [
   { href: '/stats', label: 'Stats', available: false },
 ];
 
-export function Nav(): JSX.Element {
+export function Nav(): React.ReactNode {
   return (
     <nav
       style={{

@@ -1,9 +1,13 @@
 // Server component — validates server + types entry points work in RSC context
+import React from 'react';
+
 import { IndexerError } from '@lsp-indexer/react';
 import { getServerUrl } from '@lsp-indexer/react/server';
 import type { IndexerErrorCategory } from '@lsp-indexer/react/types';
 
-function CheckMark({ label, detail }: { label: string; detail: string }): JSX.Element {
+import { ConnectionStatus } from '@/components/connection-status';
+
+function CheckMark({ label, detail }: { label: string; detail: string }): React.ReactNode {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0' }}>
       <span style={{ color: '#16a34a', fontWeight: 600 }}>✓</span>
@@ -13,7 +17,7 @@ function CheckMark({ label, detail }: { label: string; detail: string }): JSX.El
   );
 }
 
-function EnvStatus({ name, value }: { name: string; value: string | undefined }): JSX.Element {
+function EnvStatus({ name, value }: { name: string; value: string | undefined }): React.ReactNode {
   const isSet = Boolean(value);
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0' }}>
@@ -37,7 +41,7 @@ function EnvStatus({ name, value }: { name: string; value: string | undefined })
   );
 }
 
-export default function HomePage(): JSX.Element {
+export default function HomePage(): React.ReactNode {
   // Validate type import works (compile-time check)
   const _typeCheck: IndexerErrorCategory = 'CONFIGURATION';
 
@@ -118,6 +122,9 @@ export default function HomePage(): JSX.Element {
           </div>
         </div>
       </section>
+
+      {/* Client-side import validation */}
+      <ConnectionStatus />
 
       {/* Unused variable usage to avoid TS errors */}
       <div style={{ display: 'none' }}>{_typeCheck}</div>

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Dev playground for testing @lsp-indexer/react hooks',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }): JSX.Element {
+export default function RootLayout({ children }: { children: ReactNode }): ReactNode {
   return (
     <html lang="en">
       <body style={{ margin: 0, fontFamily: 'system-ui, sans-serif' }}>
