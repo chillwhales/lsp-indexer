@@ -1,4 +1,5 @@
 lib/
+!apps/**/src/lib/
 dist/
 node_modules/
 packages/abi/src/

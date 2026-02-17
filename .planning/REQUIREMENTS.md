@@ -9,13 +9,13 @@ Requirements for the React hooks package milestone. Each maps to roadmap phases.
 
 ### Foundation
 
-- [ ] **FOUND-01**: Developer can install package and get working ESM+CJS+DTS builds with `"use client"` directives
-- [ ] **FOUND-02**: Developer can run codegen to generate TypeScript types from Hasura GraphQL schema
-- [ ] **FOUND-03**: Developer can configure GraphQL URL (HTTP + WebSocket) via environment variable
-- [ ] **FOUND-04**: Developer can wrap app in `<IndexerProvider>` with optional existing QueryClient
-- [ ] **FOUND-05**: Developer gets typed `IndexerError` with network, GraphQL, and Hasura permission error categories
-- [ ] **FOUND-06**: Developer can import from main (`@lsp-indexer/react`) and server (`@lsp-indexer/react/server`) entry points without bundle contamination
-- [ ] **FOUND-07**: A minimal Next.js test app (`apps/test`) exists in the monorepo that imports from `@lsp-indexer/react`, validates hooks work in both client and server components, and catches bundle/export issues during development
+- [x] **FOUND-01**: Developer can install package and get working ESM+CJS+DTS builds with `"use client"` directives
+- [x] **FOUND-02**: Developer can run codegen to generate TypeScript types from Hasura GraphQL schema
+- [x] **FOUND-03**: Developer can configure GraphQL URL (HTTP + WebSocket) via environment variable
+- [x] **FOUND-04**: Developer can wrap app in `<IndexerProvider>` with optional existing QueryClient
+- [x] **FOUND-05**: Developer gets typed `IndexerError` with network, GraphQL, and Hasura permission error categories
+- [x] **FOUND-06**: Developer can import from main (`@lsp-indexer/react`) and server (`@lsp-indexer/react/server`) entry points without bundle contamination
+- [x] **FOUND-07**: A minimal Next.js test app (`apps/test`) exists in the monorepo that imports from `@lsp-indexer/react`, validates hooks work in both client and server components, and catches bundle/export issues during development
 
 ### Query Domains
 
@@ -82,36 +82,36 @@ Explicitly excluded. Documented to prevent scope creep.
 
 Which phases cover which requirements. Updated during roadmap creation.
 
-| Requirement | Phase | Status  |
-| ----------- | ----- | ------- |
-| FOUND-01    | 7     | Pending |
-| FOUND-02    | 7     | Pending |
-| FOUND-03    | 7     | Pending |
-| FOUND-04    | 7     | Pending |
-| FOUND-05    | 7     | Pending |
-| FOUND-06    | 7     | Pending |
-| FOUND-07    | 7     | Pending |
-| QUERY-01    | 8     | Pending |
-| DX-01       | 8     | Pending |
-| DX-02       | 8     | Pending |
-| QUERY-02    | 9     | Pending |
-| QUERY-03    | 9     | Pending |
-| QUERY-04    | 9     | Pending |
-| QUERY-05    | 9     | Pending |
-| QUERY-06    | 9     | Pending |
-| QUERY-07    | 9     | Pending |
-| QUERY-08    | 9     | Pending |
-| QUERY-09    | 9     | Pending |
-| QUERY-10    | 9     | Pending |
-| QUERY-11    | 9     | Pending |
-| PAGE-01     | 9     | Pending |
-| SUB-01      | 10    | Pending |
-| SUB-02      | 10    | Pending |
-| SUB-03      | 10    | Pending |
-| ACTION-01   | 11    | Pending |
-| ACTION-02   | 11    | Pending |
-| ACTION-03   | 11    | Pending |
-| DX-03       | 11    | Pending |
+| Requirement | Phase | Status   |
+| ----------- | ----- | -------- |
+| FOUND-01    | 7     | Complete |
+| FOUND-02    | 7     | Complete |
+| FOUND-03    | 7     | Complete |
+| FOUND-04    | 7     | Complete |
+| FOUND-05    | 7     | Complete |
+| FOUND-06    | 7     | Complete |
+| FOUND-07    | 7     | Complete |
+| QUERY-01    | 8     | Pending  |
+| DX-01       | 8     | Pending  |
+| DX-02       | 8     | Pending  |
+| QUERY-02    | 9     | Pending  |
+| QUERY-03    | 9     | Pending  |
+| QUERY-04    | 9     | Pending  |
+| QUERY-05    | 9     | Pending  |
+| QUERY-06    | 9     | Pending  |
+| QUERY-07    | 9     | Pending  |
+| QUERY-08    | 9     | Pending  |
+| QUERY-09    | 9     | Pending  |
+| QUERY-10    | 9     | Pending  |
+| QUERY-11    | 9     | Pending  |
+| PAGE-01     | 9     | Pending  |
+| SUB-01      | 10    | Pending  |
+| SUB-02      | 10    | Pending  |
+| SUB-03      | 10    | Pending  |
+| ACTION-01   | 11    | Pending  |
+| ACTION-02   | 11    | Pending  |
+| ACTION-03   | 11    | Pending  |
+| DX-03       | 11    | Pending  |
 
 **Coverage:**
 
