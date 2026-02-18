@@ -170,6 +170,63 @@ const V1_V2_DIVERGENCES: KnownDivergence[] = [
     reason:
       'V2 populates reverse FK to BaseURI-derived LSP4Metadata via Step 7 RESOLVE; V1 leaves null',
   },
+  // V1 balance underflow bug: negative balances fall through both save AND delete
+  // filters in V1 (ownedAsset.ts:40), preserving stale rows. V2 floors to 0 and
+  // correctly deletes zero-balance rows — so V1 has more rows than V2.
+  {
+    entityType: 'OwnedAsset',
+    field: 'count',
+    reason:
+      'V1 balance underflow bug preserves stale rows with negative balances; V2 floors to 0 and correctly deletes',
+  },
+  {
+    entityType: 'OwnedToken',
+    field: 'count',
+    reason:
+      'V1 balance underflow bug preserves stale rows with negative balances; V2 floors to 0 and correctly deletes',
+  },
+  // V1 switch fall-through bugs in scanner.ts:203-229 — missing `break` statements
+  // cause DataChanged events for LSP4Creators[].length, LSP5ReceivedAssets[].length,
+  // AddressPermissions[].length to fall through into unrelated entity handlers.
+  {
+    entityType: 'LSP5ReceivedAssetsLength',
+    field: 'count',
+    reason:
+      'V1 switch fall-through bug creates phantom entities from unrelated DataChanged events (AddressPermissions[].length falls through)',
+  },
+  {
+    entityType: 'LSP6ControllersLength',
+    field: 'count',
+    reason:
+      'V1 switch fall-through bug creates phantom entities from unrelated DataChanged events (LSP4Creators[].length, LSP5ReceivedAssets[].length fall through)',
+  },
+  // V2-only entities: these entity types exist only in V2.
+  // V1 has 0 rows — count divergence is expected.
+  {
+    entityType: 'LSP4Creator',
+    field: 'count',
+    reason: 'V2-only entity — V1 does not index LSP4Creator as a separate entity',
+  },
+  {
+    entityType: 'LSP5ReceivedAsset',
+    field: 'count',
+    reason: 'V2-only entity — V1 does not index LSP5ReceivedAsset as a separate entity',
+  },
+  {
+    entityType: 'LSP6Controller',
+    field: 'count',
+    reason: 'V2-only entity — V1 does not index LSP6Controller as a separate entity',
+  },
+  {
+    entityType: 'LSP12IssuedAsset',
+    field: 'count',
+    reason: 'V2-only entity — V1 does not index LSP12IssuedAsset as a separate entity',
+  },
+  {
+    entityType: 'Follower',
+    field: 'count',
+    reason: 'V2-only entity — V1 does not index Follower as a separate entity',
+  },
 ];
 
 export function getEntityByName(name: string): EntityDefinition | undefined {

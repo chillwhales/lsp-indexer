@@ -7,9 +7,8 @@
  * accumulates all deltas in-memory, and writes the final result once.
  *
  * Key behaviors:
- * - Dual-trigger: runs once per trigger ('LSP7Transfer' or 'LSP8Transfer'),
- *   but accumulates from BOTH bags each time to produce a single consistent
- *   result per batch.
+ * - Dual-trigger: runs once per trigger ('LSP7Transfer' or 'LSP8Transfer').
+ *   Each invocation only reads the triggered bag to prevent double-processing.
  * - Clamps totalSupply to zero on underflow (burn > recorded supply) and
  *   logs a warning.
  * - Queues enrichment for digitalAsset FK — never sets FKs directly.
@@ -31,24 +30,21 @@ const TotalSupplyHandler: EntityHandler = {
   name: 'totalSupply',
   listensToBag: ['LSP7Transfer', 'LSP8Transfer'],
 
-  async handle(hctx: HandlerContext, _triggeredBy: string): Promise<void> {
-    // Gather transfers from both LSP7 and LSP8 bags
-    const lsp7 = hctx.batchCtx.getEntities<Transfer>('LSP7Transfer');
-    const lsp8 = hctx.batchCtx.getEntities<Transfer>('LSP8Transfer');
+  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+    // Only process transfers from the triggered bag (prevents double-processing).
+    // The pipeline calls handle() once per subscribed bag key that has entities.
+    // Without this guard, reading both bags on each call would apply deltas twice.
+    const transfers =
+      triggeredBy === 'LSP7Transfer'
+        ? hctx.batchCtx.getEntities<Transfer>('LSP7Transfer')
+        : triggeredBy === 'LSP8Transfer'
+          ? hctx.batchCtx.getEntities<Transfer>('LSP8Transfer')
+          : new Map<string, Transfer>();
 
     // Filter for mint/burn only
     const mintBurnTransfers: Transfer[] = [];
 
-    for (const transfer of lsp7.values()) {
-      if (
-        isAddressEqual(zeroAddress, getAddress(transfer.from)) ||
-        isAddressEqual(zeroAddress, getAddress(transfer.to))
-      ) {
-        mintBurnTransfers.push(transfer);
-      }
-    }
-
-    for (const transfer of lsp8.values()) {
+    for (const transfer of transfers.values()) {
       if (
         isAddressEqual(zeroAddress, getAddress(transfer.from)) ||
         isAddressEqual(zeroAddress, getAddress(transfer.to))

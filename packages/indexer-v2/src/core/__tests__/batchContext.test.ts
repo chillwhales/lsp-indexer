@@ -159,9 +159,9 @@ describe('BatchContext - Enrichment Queue', () => {
 
     expect(queue.length).toBe(2);
     expect(queue[0].entityId).toBe('transfer-1');
-    expect(queue[0].fkField).toBe('from');
+    expect(queue[0].fkField).toBe('fromProfile');
     expect(queue[1].entityId).toBe('transfer-1');
-    expect(queue[1].fkField).toBe('to');
+    expect(queue[1].fkField).toBe('toProfile');
   });
 });
 

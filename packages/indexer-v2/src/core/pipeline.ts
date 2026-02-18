@@ -393,6 +393,10 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     requestList.push(request);
   }
 
+  // Capture queue length — any requests added by post-verification handlers
+  // (Step 5.5) will be at indices >= this value and need a second grouping pass.
+  const prePostVerifyQueueLen = enrichmentQueue.length;
+
   // Step 5: VERIFY — Batch-verify UP and DA addresses in parallel
   const verifyLog = createStepLogger(context.log, 'VERIFY', blockRange);
   const categories = [...addressesByCategory.keys()];
@@ -461,6 +465,48 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       { entityType: type, count: entities.size, phase: 'post-verification' },
       'Persisted post-verification entities',
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Process enrichment requests from post-verification handlers.
+  // Post-verify handlers (decimals, universalProfileOwner, digitalAssetOwner)
+  // call queueEnrichment() during Step 5.5, after the initial grouping loop.
+  // Process these late requests into `grouped` so Step 6 ENRICH picks them up.
+  // The addresses are already verified — the handlers themselves filter on
+  // verified sets (e.g., verifiedDAs.valid.has(), getVerified().newEntities).
+  // ---------------------------------------------------------------------------
+  if (enrichmentQueue.length > prePostVerifyQueueLen) {
+    postVerifyLog.info(
+      { newRequests: enrichmentQueue.length - prePostVerifyQueueLen },
+      'Processing enrichment requests from post-verification handlers',
+    );
+
+    for (let i = prePostVerifyQueueLen; i < enrichmentQueue.length; i++) {
+      const request = enrichmentQueue[i];
+
+      // Add to addressesByCategory for completeness (addresses already verified)
+      if (request.category !== EntityCategory.NFT) {
+        let addressSet = addressesByCategory.get(request.category);
+        if (!addressSet) {
+          addressSet = new Set<string>();
+          addressesByCategory.set(request.category, addressSet);
+        }
+        addressSet.add(request.address);
+      }
+
+      // Group for FK assignment in Step 6
+      let entityMap = grouped.get(request.entityType);
+      if (!entityMap) {
+        entityMap = new Map<string, StoredEnrichmentRequest[]>();
+        grouped.set(request.entityType, entityMap);
+      }
+      let requestList = entityMap.get(request.entityId);
+      if (!requestList) {
+        requestList = [];
+        entityMap.set(request.entityId, requestList);
+      }
+      requestList.push(request);
+    }
   }
 
   // Step 6: ENRICH — Batch update FK fields per entity type
