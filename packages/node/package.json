@@ -26,6 +26,7 @@
     "clean": "rm -rf dist/",
     "codegen": "graphql-codegen --config codegen.ts",
     "codegen:watch": "graphql-codegen --config codegen.ts --watch",
+    "schema:dump": "node -e \"const{getIntrospectionQuery,buildClientSchema,printSchema}=require('graphql');const fs=require('fs');(async()=>{const r=await fetch(process.env.HASURA_GRAPHQL_ENDPOINT||'http://192.168.0.21:18716/v1/graphql',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:getIntrospectionQuery()})});const j=await r.json();fs.writeFileSync('schema.graphql',printSchema(buildClientSchema(j.data)));console.log('schema.graphql updated')})()\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
