@@ -13,7 +13,7 @@ import type { ProfileFilter, ProfileSort } from '../types/profiles';
  * profileKeys.details()        → ['profiles', 'detail']
  * profileKeys.detail(addr)     → ['profiles', 'detail', addr]
  * profileKeys.lists()          → ['profiles', 'list']
- * profileKeys.list(f, s)       → ['profiles', 'list', { filter, sort }]
+ * profileKeys.list(f, s, l, o) → ['profiles', 'list', { filter, sort, limit, offset }]
  * profileKeys.infinites()      → ['profiles', 'infinite']
  * profileKeys.infinite(f, s)   → ['profiles', 'infinite', { filter, sort }]
  * ```
@@ -57,9 +57,9 @@ export const profileKeys = {
   /** Parent key for all paginated list queries (used with `useQuery`) */
   lists: () => [...profileKeys.all, 'list'] as const,
 
-  /** Key for a specific list query with filter and sort params */
-  list: (filter?: ProfileFilter, sort?: ProfileSort) =>
-    [...profileKeys.lists(), { filter, sort }] as const,
+  /** Key for a specific list query with filter, sort, and pagination params */
+  list: (filter?: ProfileFilter, sort?: ProfileSort, limit?: number, offset?: number) =>
+    [...profileKeys.lists(), { filter, sort, limit, offset }] as const,
 
   /** Parent key for all infinite scroll queries (used with `useInfiniteQuery`) */
   infinites: () => [...profileKeys.all, 'infinite'] as const,

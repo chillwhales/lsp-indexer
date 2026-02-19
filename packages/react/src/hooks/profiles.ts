@@ -95,7 +95,7 @@ export function useProfiles(params: UseProfilesParams = {}) {
   const { filter, sort, limit, offset, include } = params;
 
   const { data, ...rest } = useQuery({
-    queryKey: profileKeys.list(filter, sort),
+    queryKey: profileKeys.list(filter, sort, limit, offset),
     queryFn: () => fetchProfiles(url, { filter, sort, limit, offset, include }),
   });
 
