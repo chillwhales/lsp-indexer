@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  BarChart3,
+  Bell,
   Calendar,
   Heart,
   Home,
@@ -31,15 +31,15 @@ import {
 const navLinks = [
   { href: '/', label: 'Home', icon: Home, available: true },
   { href: '/profiles', label: 'Profiles', icon: User, available: true },
-  { href: '/assets', label: 'Digital Assets', icon: Image, available: false },
-  { href: '/nfts', label: 'NFTs', icon: Layers, available: false },
+  { href: '/digital-assets', label: 'Digital Assets', icon: Image, available: true },
+  { href: '/nfts', label: 'NFTs', icon: Layers, available: true },
   { href: '/owned-assets', label: 'Owned Assets', icon: Wallet, available: true },
-  { href: '/follows', label: 'Follows', icon: Heart, available: false },
+  { href: '/follows', label: 'Follows', icon: Heart, available: true },
   { href: '/creators', label: 'Creators', icon: Paintbrush, available: true },
-  { href: '/encrypted', label: 'Encrypted Assets', icon: Lock, available: false },
+  { href: '/encrypted-assets', label: 'Encrypted Assets', icon: Lock, available: true },
   { href: '/feed', label: 'Encrypted Feed', icon: Rss, available: true },
-  { href: '/events', label: 'Events', icon: Calendar, available: false },
-  { href: '/stats', label: 'Stats', icon: BarChart3, available: false },
+  { href: '/data-changed', label: 'Data Changed', icon: Calendar, available: true },
+  { href: '/universal-receiver', label: 'Universal Receiver', icon: Bell, available: true },
 ];
 
 export function AppSidebar() {
