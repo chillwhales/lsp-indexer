@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains & Pagination)
-- **Plan:** 1 of 11
+- **Plan:** 6 of 11
 - **Status:** In progress
-- **Last activity:** 2026-02-19 — Completed 09-01-PLAN.md (schema introspection & codegen baseline)
-- **Progress:** ████████░░ 82%
+- **Last activity:** 2026-02-19 — Completed 09-06-PLAN.md (Creator Addresses domain)
+- **Progress:** ████████░░ 83%
 
 ## Milestone History
 
@@ -30,18 +30,18 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | ----- | ------------------------------------ | :----------: | ----------------------------- |
 | 7     | Package Foundation                   |     7/7      | Complete                      |
 | 8     | First Vertical Slice (Profiles)      |     3/3      | Complete                      |
-| 9     | Remaining Query Domains & Pagination |     0/11     | In Progress (1/11 plans done) |
+| 9     | Remaining Query Domains & Pagination |     1/11     | In Progress (2/11 plans done) |
 | 10    | Subscriptions                        |      3       | Pending                       |
 | 11    | Server Actions & Publish Readiness   |      4       | Pending                       |
 
-**Total:** 10/28 requirements delivered (FOUND-01–07, QUERY-01, DX-01, DX-02)
+**Total:** 11/28 requirements delivered (FOUND-01–07, QUERY-01, QUERY-06, DX-01, DX-02)
 
 ## Performance Metrics
 
-- **Plans completed:** 43 (36 v1.0 + 7 v1.1)
+- **Plans completed:** 44 (36 v1.0 + 8 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 13 (11 v1.0 + 2 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 10/28 (v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 11/28 (v1.1)
 
 ## Accumulated Context
 
@@ -99,20 +99,20 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-19
-- **Activity:** Executed 09-01-PLAN.md — schema introspection & codegen baseline for Phase 9
-- **Outcome:** Verified Hasura schema (25,590 lines) and codegen types are current. All 10 domain bool_exp types confirmed present. packages/node builds clean. No file changes needed — baseline already committed from Phase 8.
+- **Activity:** Executed 09-06-PLAN.md — Creator Addresses domain vertical slice
+- **Outcome:** Built complete creator domain across all 4 packages + playground page. Fixed missing social exports from types/index.ts (blocker). All 4 packages build clean. QUERY-06 delivered.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9 plan 01 complete** — schema & codegen baseline verified, all Wave 2 plans unblocked
-- **Next step:** Execute Wave 2 domain plans (09-02 through 09-11) — can run in parallel
+- **Phase 9 plan 06 complete** — Creator Addresses domain delivered
+- **Next step:** Continue Wave 2 domain plans (09-02 through 09-11)
 - **Key assets:**
-  - All 10 domain Hasura types available in graphql.ts (Digital_Asset_Bool_Exp, Nft_Bool_Exp, etc.)
-  - Validated vertical-slice pattern from Phase 8
-  - Shared playground components ready for 10+ domain pages
-  - Developer workflow checklist in PROJECT.md "Adding a New Domain"
-- **Build validated:** packages/node builds with zero errors
+  - Creator domain validates simple-address-only domain pattern (no include/nested data)
+  - TypedDocumentString used directly for non-codegen documents
+  - Shared playground components proven across profiles + creators
+  - Social exports now in types/index.ts (was missing, fixed as blocker)
+- **Build validated:** All 4 packages + apps/test build with zero errors
 
 ---
 
