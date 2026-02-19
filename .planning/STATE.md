@@ -6,14 +6,14 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 8 Complete, ready for Phase 9
+**Current focus:** v1.1 React Hooks Package — 4-package restructure complete, ready for Phase 9
 
 ## Current Position
 
 - **Phase:** 8 of 11 (First Vertical Slice — Universal Profiles) ✅ COMPLETE
 - **Plan:** 4 of 4
-- **Status:** Phase complete
-- **Last activity:** 2026-02-19 — Completed 08-04-PLAN.md (all 4 plans done)
+- **Status:** Phase complete + 4-package restructure done
+- **Last activity:** 2026-02-19 — Completed 4-package split (types, node, react, next)
 - **Progress:** ████████░░ 80%
 
 ## Milestone History
@@ -77,6 +77,9 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - Structural interface for image parsing (avoids codegen \_\_typename incompatibility between profile_image and background_image)
 - tokenOwned filter branches into owned_tokens (with tokenId) vs owned_assets (without tokenId)
 - Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
+- **4-package architecture:** `@lsp-indexer/types` (Zod schemas, zero deps) ← `@lsp-indexer/node` (services, parsers, documents, codegen, keys, execute, errors) ← `@lsp-indexer/react` (thin TanStack Query hooks) and `@lsp-indexer/node` ← `@lsp-indexer/next` (server actions + hooks)
+- **`@lsp-indexer/react` keeps backward-compat re-exports** from `./server` and `./types` entry points
+- **Server actions use `'use server'` directive** — Next.js-only, hence `@lsp-indexer/next` package name
 - **Hasura uses camelCase field names** (lsp3Profile, followedBy, ownedAssets) — not snake_case. Schema.graphql updated to match.
 - **All address/tokenId comparisons use `_ilike`** for case-insensitive matching (EIP-55 mixed-case prevention)
 - **Name sort uses `asc_nulls_last` / `desc_nulls_last`** — profiles without names sort last
@@ -97,20 +100,22 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-19
-- **Activity:** Completed 08-04-PLAN.md — DRY refactor of playground page, all schema alignment fixes committed
-- **Outcome:** Phase 8 fully complete. 3 commits for plan 08-04 (playground page + schema fixes + DRY refactor). SUMMARY.md written and self-checked.
+- **Activity:** Completed 4-package restructure — split @lsp-indexer/react into types, node, react, next
+- **Outcome:** All 4 packages build. Full chain verified: types → node → react → next → test app. Old react source files cleaned up. Commit 5775292.
 - **Resume file:** None
 
 ### Context for Next Session
 
 - **Phase 8 complete** — all 4 plans done, all 3 requirements delivered (QUERY-01, DX-01, DX-02)
+- **4-package restructure complete** — @lsp-indexer/types, @lsp-indexer/node, @lsp-indexer/react (thin), @lsp-indexer/next
 - **Next step:** Phase 9 planning and execution (Remaining Query Domains & Pagination)
 - **PR:** #183 open on `feat/react-profile-playground` → `refactor/indexer-v2-react` — needs push with latest commits
 - **Key assets for Phase 9:**
   - Validated vertical-slice pattern: types → documents → codegen → parsers → services → keys → hooks → entry points
   - Shared playground components: FilterFieldsRow, SortControls, ResultsList<T> — ready for 10+ domain pages
   - Pattern: define `FilterFieldConfig[]`, `SortOption[]`, `buildDomainFilter()`, `DomainCard` → plug into shared components
-- **Build validated:** Both `packages/react` and `apps/test` build with zero errors
+  - 4-package structure means new domains add types in `@lsp-indexer/types`, core logic in `@lsp-indexer/node`, hooks in both `@lsp-indexer/react` and `@lsp-indexer/next`
+- **Build validated:** All 4 packages + test app build with zero errors
 
 ---
 
