@@ -110,6 +110,23 @@ Plans:
 | QUERY-11 | Developer can use `useProfileStats` for aggregate profile statistics                                    |
 | PAGE-01  | Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain              |
 
+**Plans:** 12 plans
+
+Plans:
+
+- [ ] 09-01-PLAN.md — Setup: schema:dump + codegen (Wave 1)
+- [ ] 09-02-PLAN.md — Digital Assets domain: types → documents → parsers → services → keys → hooks → actions → playground (Wave 2)
+- [ ] 09-03-PLAN.md — NFTs domain: types → documents → parsers → services → keys → hooks → actions → playground (Wave 2)
+- [ ] 09-04-PLAN.md — Owned Assets domain: OwnedAsset + OwnedToken tables → full vertical slice (Wave 2)
+- [ ] 09-05-PLAN.md — Social/Follows domain: useFollowers, useFollowing, useFollowCount + infinite variants (Wave 2)
+- [ ] 09-06-PLAN.md — Creators domain: useCreatorAddresses + infinite variant (Wave 2)
+- [ ] 09-07-PLAN.md — Encrypted Assets domain: LSP29 encrypted asset container records (Wave 2)
+- [ ] 09-08-PLAN.md — Encrypted Feed domain: LSP29 encrypted asset entries + /feed playground route (Wave 2)
+- [ ] 09-09-PLAN.md — Data Changed Events domain: ERC725 events, default sort block_number DESC (Wave 2)
+- [ ] 09-10-PLAN.md — Universal Receiver Events domain: events, default sort block_number DESC (Wave 2)
+- [ ] 09-11-PLAN.md — Profile Stats domain: aggregate counts, no infinite variant (Wave 2)
+- [ ] 09-12-PLAN.md — Integration: audit all 4 package exports, update nav + home page, full build validation (Wave 3)
+
 **Per-domain pattern (replicate for each of the 10 remaining domains):**
 
 Each domain follows the validated vertical-slice pattern from Phase 8 (profiles):
