@@ -34,7 +34,7 @@ const navLinks = [
   { href: '/nfts', label: 'NFTs', icon: Layers, available: false },
   { href: '/owned', label: 'Owned Assets', icon: Wallet, available: false },
   { href: '/follows', label: 'Follows', icon: Heart, available: false },
-  { href: '/creators', label: 'Creators', icon: Paintbrush, available: false },
+  { href: '/creators', label: 'Creators', icon: Paintbrush, available: true },
   { href: '/encrypted', label: 'Encrypted Assets', icon: Lock, available: false },
   { href: '/events', label: 'Events', icon: Calendar, available: false },
   { href: '/stats', label: 'Stats', icon: BarChart3, available: false },
