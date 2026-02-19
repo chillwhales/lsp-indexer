@@ -9,6 +9,7 @@ import {
   Layers,
   Lock,
   Paintbrush,
+  Rss,
   User,
   Wallet,
 } from 'lucide-react';
@@ -32,10 +33,11 @@ const navLinks = [
   { href: '/profiles', label: 'Profiles', icon: User, available: true },
   { href: '/assets', label: 'Digital Assets', icon: Image, available: false },
   { href: '/nfts', label: 'NFTs', icon: Layers, available: false },
-  { href: '/owned', label: 'Owned Assets', icon: Wallet, available: false },
+  { href: '/owned-assets', label: 'Owned Assets', icon: Wallet, available: true },
   { href: '/follows', label: 'Follows', icon: Heart, available: false },
   { href: '/creators', label: 'Creators', icon: Paintbrush, available: true },
   { href: '/encrypted', label: 'Encrypted Assets', icon: Lock, available: false },
+  { href: '/feed', label: 'Encrypted Feed', icon: Rss, available: true },
   { href: '/events', label: 'Events', icon: Calendar, available: false },
   { href: '/stats', label: 'Stats', icon: BarChart3, available: false },
 ];
