@@ -33,3 +33,10 @@ export {
   useOwnedAssets,
   useOwnedTokens,
 } from './hooks/owned-assets';
+
+// Digital Asset hooks (client-side — browser → Hasura directly)
+export {
+  useDigitalAsset,
+  useDigitalAssets,
+  useInfiniteDigitalAssets,
+} from './hooks/digital-assets';
