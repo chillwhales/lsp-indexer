@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains & Pagination)
-- **Plan:** 8 of 11
+- **Plan:** 9 of 11
 - **Status:** In progress
-- **Last activity:** 2026-02-19 — Completed 09-08-PLAN.md (Encrypted Feed domain)
-- **Progress:** █████████░ 89%
+- **Last activity:** 2026-02-19 — Completed 09-10-PLAN.md (Universal Receiver Events domain)
+- **Progress:** █████████░ 91%
 
 ## Milestone History
 
@@ -30,18 +30,18 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | ----- | ------------------------------------ | :----------: | ----------------------------- |
 | 7     | Package Foundation                   |     7/7      | Complete                      |
 | 8     | First Vertical Slice (Profiles)      |     3/3      | Complete                      |
-| 9     | Remaining Query Domains & Pagination |     4/11     | In Progress (5/11 plans done) |
+| 9     | Remaining Query Domains & Pagination |     5/11     | In Progress (9/11 plans done) |
 | 10    | Subscriptions                        |      3       | Pending                       |
 | 11    | Server Actions & Publish Readiness   |      4       | Pending                       |
 
-**Total:** 14/28 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-06, QUERY-07, QUERY-08, DX-01, DX-02)
+**Total:** 16/28 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-06, QUERY-07, QUERY-08, QUERY-10, DX-01, DX-02)
 
 ## Performance Metrics
 
-- **Plans completed:** 47 (36 v1.0 + 11 v1.1)
+- **Plans completed:** 48 (36 v1.0 + 12 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 13 (11 v1.0 + 2 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 14/28 (v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 15/28 (v1.1)
 
 ## Accumulated Context
 
@@ -99,21 +99,21 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-19
-- **Activity:** Executed 09-08-PLAN.md — LSP29 Encrypted Feed domain vertical slice
-- **Outcome:** Built encrypted feed playground page at /feed. Tasks 1-2 (types, node, react, next layers) were already committed by concurrent domain agents. Task 3 created the /feed playground with List and Infinite Scroll tabs. QUERY-08 delivered.
+- **Activity:** Executed 09-03-PLAN.md — NFT domain vertical slice
+- **Outcome:** Built complete NFT domain. Types, documents (manual TypedDocumentString with digitalAsset + ownedToken joins), parsers, services, keys (including byCollection), React hooks (useNft, useNfts, useNftsByCollection, useInfiniteNfts), Next.js server actions + hooks, playground page at /nfts. QUERY-03 delivered.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9 plan 08 complete** — Encrypted Feed domain delivered
-- **Next step:** Continue remaining Wave 2 domain plans (09-03, 09-04, 09-05, 09-10, 09-11)
+- **Phase 9 plan 03 complete** — NFT domain delivered (9/11 plans done)
+- **Next step:** Continue remaining Wave 2 domain plans (09-05, 09-11)
 - **Key assets:**
-  - Encrypted feed uses manual TypedDocumentString (query not in codegen yet)
-  - Schema fields: id, address, content_id_hash, array_index, timestamp, universal_profile_id
-  - Bool_Exp confirmed available for full filtering support
-  - Playground at /feed with filter by address/universalProfileId, sort by timestamp/arrayIndex/address
-- **Build validated:** types, react, next packages build clean; test app builds with /feed route
+  - NFT uses manual TypedDocumentString (not codegen graphql())
+  - useNftsByCollection convenience wrapper merges collectionAddress into filter
+  - Playground at /nfts with Single NFT, NFT List, Infinite Scroll tabs
+  - shadcn Label component added for form inputs
+- **Build validated:** All 4 packages build with zero errors, test app type-checks clean
 
 ---
 
-_Last updated: 2026-02-19T16:20Z_
+_Last updated: 2026-02-19_
