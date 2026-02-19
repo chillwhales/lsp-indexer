@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { fetchProfile, fetchProfiles, getClientUrl, profileKeys } from '@lsp-indexer/node';
 import type {
@@ -173,9 +174,9 @@ export function useInfiniteProfiles(params: UseInfiniteProfilesParams = {}) {
     },
   });
 
-  // Flatten all pages into a single profiles array
+  // Flatten all pages into a single profiles array (memoized to avoid re-flattening on every render)
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const profiles = data?.pages.flatMap((page) => page.profiles) ?? [];
+  const profiles = useMemo(() => data?.pages.flatMap((page) => page.profiles) ?? [], [data?.pages]);
 
   return {
     profiles,

@@ -4,7 +4,7 @@ import { graphql } from '../graphql';
  * GraphQL document for fetching a single Universal Profile.
  *
  * Variables:
- * - `$where` — The service layer builds the Hasura bool_exp (e.g., `{ address: { _eq: "0x..." } }`)
+ * - `$where` — The service layer builds the Hasura bool_exp (e.g., `{ address: { _ilike: "0x..." } }` for case-insensitive matching)
  * - `$include*` — Boolean flags controlling nested data, all default to `true`
  *
  * Uses `@include(if:)` directives so omitted nested data is never sent over the wire.

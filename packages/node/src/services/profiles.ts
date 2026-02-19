@@ -5,6 +5,21 @@ import type { Universal_Profile_Bool_Exp, Universal_Profile_Order_By } from '../
 import { parseProfile, parseProfiles } from '../parsers/profiles';
 
 // ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Escape SQL LIKE wildcards (`%` and `_`) in a string so they are treated
+ * as literal characters when used with Hasura's `_ilike` operator.
+ *
+ * Without escaping, user input like `"a%"` would match any value starting
+ * with `"a"` instead of literally matching `"a%"`.
+ */
+function escapeLike(value: string): string {
+  return value.replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
+// ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
 // ---------------------------------------------------------------------------
 
@@ -15,13 +30,13 @@ import { parseProfile, parseProfiles } from '../parsers/profiles';
  * returns an empty object (no filtering).
  *
  * Filter → Hasura mapping:
- * - `name`       → `{ lsp3_profile: { name: { value: { _ilike: '%name%' } } } }`
- * - `followedBy` → `{ followed_by: { follower_address: { _eq: address } } }`
+ * - `name`       → `{ lsp3Profile: { name: { value: { _ilike: '%name%' } } } }`
+ * - `followedBy` → `{ followedBy: { follower_address: { _ilike: address } } }`
  *                   ("profiles that address X follows" = X is the follower)
- * - `following`  → `{ followed: { followed_address: { _eq: address } } }`
+ * - `following`  → `{ followed: { followed_address: { _ilike: address } } }`
  *                   ("profiles that follow address X" = X is the followed)
- * - `tokenOwned` → `{ owned_assets: { address: { _eq }, balance: { _gt } } }`
- *                   and/or `{ owned_tokens: { address: { _eq }, token_id: { _eq } } }`
+ * - `tokenOwned` → `{ ownedAssets: { address: { _ilike }, balance: { _gt } } }`
+ *                   and/or `{ ownedTokens: { address: { _ilike }, token_id: { _ilike } } }`
  */
 function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Bool_Exp {
   if (!filter) return {};
@@ -31,7 +46,7 @@ function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Bool_Exp {
   if (filter.name) {
     conditions.push({
       lsp3Profile: {
-        name: { value: { _ilike: `%${filter.name}%` } },
+        name: { value: { _ilike: `%${escapeLike(filter.name)}%` } },
       },
     });
   }
@@ -88,8 +103,8 @@ function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Bool_Exp {
  * Translate a flat `ProfileSort` to a Hasura `order_by` array.
  *
  * Sort field → Hasura mapping:
- * - `'name'`           → `[{ lsp3_profile: { name: { value: direction } } }]`
- * - `'followerCount'`  → `[{ followed_by_aggregate: { count: direction } }]`
+ * - `'name'`           → `[{ lsp3Profile: { name: { value: direction } } }]`
+ * - `'followerCount'`  → `[{ followedBy_aggregate: { count: direction } }]`
  * - `'followingCount'` → `[{ followed_aggregate: { count: direction } }]`
  */
 function buildProfileOrderBy(sort?: ProfileSort): Universal_Profile_Order_By[] | undefined {

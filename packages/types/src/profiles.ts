@@ -82,24 +82,41 @@ export const ProfileSortSchema = z.object({
   direction: SortDirectionSchema,
 });
 
+/**
+ * Control which nested fields to include in a profile query.
+ *
+ * **Behavior:**
+ * - When `include` is **omitted** entirely → all fields are included (GraphQL defaults to `true`)
+ * - When `include` is **provided** → only fields explicitly set to `true` are included;
+ *   unspecified fields default to `false` (opt-in when provided)
+ *
+ * @example
+ * ```ts
+ * // Include everything (default)
+ * useProfile({ address: '0x...' });
+ *
+ * // Include only name and follower count
+ * useProfile({ address: '0x...', include: { name: true, followerCount: true } });
+ * ```
+ */
 export const ProfileIncludeSchema = z.object({
-  /** Include profile name (default: true) */
+  /** Include profile name (included by default when `include` is omitted; `false` when `include` is provided but this field is not set) */
   name: z.boolean().optional(),
-  /** Include profile description (default: true) */
+  /** Include profile description */
   description: z.boolean().optional(),
-  /** Include profile tags (default: true) */
+  /** Include profile tags */
   tags: z.boolean().optional(),
-  /** Include external links (default: true) */
+  /** Include external links */
   links: z.boolean().optional(),
-  /** Include avatar images (default: true) */
+  /** Include avatar images */
   avatar: z.boolean().optional(),
-  /** Include profile images (default: true) */
+  /** Include profile images */
   profileImage: z.boolean().optional(),
-  /** Include background images (default: true) */
+  /** Include background images */
   backgroundImage: z.boolean().optional(),
-  /** Include follower count aggregate (default: true) */
+  /** Include follower count aggregate */
   followerCount: z.boolean().optional(),
-  /** Include following count aggregate (default: true) */
+  /** Include following count aggregate */
   followingCount: z.boolean().optional(),
 });
 

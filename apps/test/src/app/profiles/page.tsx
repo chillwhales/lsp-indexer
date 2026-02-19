@@ -108,6 +108,20 @@ function buildProfileFilter(debouncedValues: Record<string, string>): ProfileFil
 }
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Validate that a URL uses a safe protocol (prevents javascript: / data: XSS) */
+function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return ['http:', 'https:', 'ipfs:'].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Profile-specific components (domain card — varies per domain)
 // ---------------------------------------------------------------------------
 
@@ -310,18 +324,31 @@ function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
               <div>
                 <h4 className="text-sm font-medium mb-1">Links</h4>
                 <div className="space-y-1">
-                  {profile.links.map((link, i) => (
-                    <a
-                      key={`${link.url}-${i}`}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-sm text-primary hover:underline"
-                    >
-                      <ExternalLink className="size-3.5" />
-                      {link.title || link.url}
-                    </a>
-                  ))}
+                  {profile.links.map((link, i) =>
+                    isSafeUrl(link.url) ? (
+                      <a
+                        key={`${link.url}-${i}`}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-sm text-primary hover:underline"
+                      >
+                        <ExternalLink className="size-3.5" />
+                        {link.title || link.url}
+                      </a>
+                    ) : (
+                      <span
+                        key={`${link.url}-${i}`}
+                        className="flex items-center gap-1.5 text-sm text-muted-foreground"
+                      >
+                        <ExternalLink className="size-3.5" />
+                        {link.title || link.url}
+                        <Badge variant="outline" className="text-xs">
+                          unsafe URL
+                        </Badge>
+                      </span>
+                    ),
+                  )}
                 </div>
               </div>
             )}
