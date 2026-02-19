@@ -25,3 +25,11 @@ export {
   useEncryptedAssets,
   useInfiniteEncryptedAssets,
 } from './hooks/encrypted-assets';
+
+// Owned Assets hooks (client-side — browser → Hasura directly)
+export {
+  useInfiniteOwnedAssets,
+  useInfiniteOwnedTokens,
+  useOwnedAssets,
+  useOwnedTokens,
+} from './hooks/owned-assets';
