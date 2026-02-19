@@ -99,20 +99,21 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-19
-- **Activity:** Executed 09-03-PLAN.md — NFT domain vertical slice
-- **Outcome:** Built complete NFT domain. Types, documents (manual TypedDocumentString with digitalAsset + ownedToken joins), parsers, services, keys (including byCollection), React hooks (useNft, useNfts, useNftsByCollection, useInfiniteNfts), Next.js server actions + hooks, playground page at /nfts. QUERY-03 delivered.
+- **Activity:** Executed 09-09-PLAN.md — ERC725 Data Changed Events domain vertical slice
+- **Outcome:** Built complete data-changed domain. DataChangedEventSchema, GetDataChangedEventsDocument (codegen graphql()), parser, service with default block_number DESC, keys factory. React hooks (useDataChangedEvents, useInfiniteDataChangedEvents), Next.js server action + hooks, playground at /data-changed. QUERY-09 delivered.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9 plan 03 complete** — NFT domain delivered (9/11 plans done)
-- **Next step:** Continue remaining Wave 2 domain plans (09-05, 09-11)
+- **Phase 9 plan 09 complete** — Data Changed Events domain delivered
+- **Next step:** Continue remaining Wave 2 domain plans
 - **Key assets:**
-  - NFT uses manual TypedDocumentString (not codegen graphql())
-  - useNftsByCollection convenience wrapper merges collectionAddress into filter
-  - Playground at /nfts with Single NFT, NFT List, Infinite Scroll tabs
-  - shadcn Label component added for form inputs
-- **Build validated:** All 4 packages build with zero errors, test app type-checks clean
+  - Data changed events use codegen graphql() for typed document
+  - Event-style domain: list-only (no single-item lookup)
+  - Filters: contractAddress, dataKey (both \_ilike), blockNumberMin/Max (numeric range)
+  - Default sort: block_number DESC (newest first)
+  - Playground at /data-changed with List and Infinite Scroll tabs
+- **Build validated:** All 4 packages build with zero errors, test app builds with /data-changed route
 
 ---
 
