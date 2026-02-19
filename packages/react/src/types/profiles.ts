@@ -156,6 +156,10 @@ export interface ProfileSort {
  * ```
  */
 export interface ProfileInclude {
+  /** Include profile name (default: true) */
+  name?: boolean;
+  /** Include profile description (default: true) */
+  description?: boolean;
   /** Include profile tags (default: true) */
   tags?: boolean;
   /** Include external links (default: true) */
@@ -166,6 +170,10 @@ export interface ProfileInclude {
   profileImage?: boolean;
   /** Include background images (default: true) */
   backgroundImage?: boolean;
+  /** Include follower count aggregate (default: true) */
+  followerCount?: boolean;
+  /** Include following count aggregate (default: true) */
+  followingCount?: boolean;
 }
 
 // ---------------------------------------------------------------------------

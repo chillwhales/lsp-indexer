@@ -1,5 +1,7 @@
 export { FilterField, FilterFieldsRow, useFilterFields } from './filter-field';
 export type { FilterFieldConfig } from './filter-field';
+export { IncludeToggles, useIncludeToggles } from './include-toggles';
+export type { IncludeToggleConfig } from './include-toggles';
 export { CardSkeleton, ResultsHeader, ResultsList } from './results-list';
 export { ErrorAlert, RawJsonToggle } from './shared';
 export { SortControls } from './sort-controls';

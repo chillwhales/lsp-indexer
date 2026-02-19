@@ -12,20 +12,24 @@ import { graphql } from '../graphql';
 export const GetProfileDocument = graphql(`
   query GetProfile(
     $where: universal_profile_bool_exp!
+    $includeName: Boolean! = true
+    $includeDescription: Boolean! = true
     $includeTags: Boolean! = true
     $includeLinks: Boolean! = true
     $includeAvatar: Boolean! = true
     $includeProfileImage: Boolean! = true
     $includeBackgroundImage: Boolean! = true
+    $includeFollowerCount: Boolean! = true
+    $includeFollowingCount: Boolean! = true
   ) {
     universal_profile(where: $where, limit: 1) {
       id
       address
       lsp3Profile {
-        name {
+        name @include(if: $includeName) {
           value
         }
-        description {
+        description @include(if: $includeDescription) {
           value
         }
         tags @include(if: $includeTags) {
@@ -56,12 +60,12 @@ export const GetProfileDocument = graphql(`
           verification_data
         }
       }
-      followedBy_aggregate {
+      followedBy_aggregate @include(if: $includeFollowerCount) {
         aggregate {
           count
         }
       }
-      followed_aggregate {
+      followed_aggregate @include(if: $includeFollowingCount) {
         aggregate {
           count
         }
@@ -90,20 +94,24 @@ export const GetProfilesDocument = graphql(`
     $order_by: [universal_profile_order_by!]
     $limit: Int
     $offset: Int
+    $includeName: Boolean! = true
+    $includeDescription: Boolean! = true
     $includeTags: Boolean! = true
     $includeLinks: Boolean! = true
     $includeAvatar: Boolean! = true
     $includeProfileImage: Boolean! = true
     $includeBackgroundImage: Boolean! = true
+    $includeFollowerCount: Boolean! = true
+    $includeFollowingCount: Boolean! = true
   ) {
     universal_profile(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       id
       address
       lsp3Profile {
-        name {
+        name @include(if: $includeName) {
           value
         }
-        description {
+        description @include(if: $includeDescription) {
           value
         }
         tags @include(if: $includeTags) {
@@ -134,12 +142,12 @@ export const GetProfilesDocument = graphql(`
           verification_data
         }
       }
-      followedBy_aggregate {
+      followedBy_aggregate @include(if: $includeFollowerCount) {
         aggregate {
           count
         }
       }
-      followed_aggregate {
+      followed_aggregate @include(if: $includeFollowingCount) {
         aggregate {
           count
         }

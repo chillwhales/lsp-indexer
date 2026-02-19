@@ -125,11 +125,15 @@ function buildIncludeVars(include?: ProfileInclude): Record<string, boolean> {
   }
 
   return {
+    includeName: include.name ?? false,
+    includeDescription: include.description ?? false,
     includeTags: include.tags ?? false,
     includeLinks: include.links ?? false,
     includeAvatar: include.avatar ?? false,
     includeProfileImage: include.profileImage ?? false,
     includeBackgroundImage: include.backgroundImage ?? false,
+    includeFollowerCount: include.followerCount ?? false,
+    includeFollowingCount: include.followingCount ?? false,
   };
 }
 

@@ -19,14 +19,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import type { FilterFieldConfig, SortOption } from '@/components/playground';
+import type { FilterFieldConfig, IncludeToggleConfig, SortOption } from '@/components/playground';
 import {
   ErrorAlert,
   FilterFieldsRow,
+  IncludeToggles,
   RawJsonToggle,
   ResultsList,
   SortControls,
   useFilterFields,
+  useIncludeToggles,
 } from '@/components/playground';
 
 // ---------------------------------------------------------------------------
@@ -44,6 +46,18 @@ const PROFILE_SORT_OPTIONS: SortOption[] = [
   { value: 'name', label: 'Name' },
   { value: 'followerCount', label: 'Followers' },
   { value: 'followingCount', label: 'Following' },
+];
+
+const PROFILE_INCLUDES: IncludeToggleConfig[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'description', label: 'Description' },
+  { key: 'tags', label: 'Tags' },
+  { key: 'links', label: 'Links' },
+  { key: 'avatar', label: 'Avatar' },
+  { key: 'profileImage', label: 'Profile Image' },
+  { key: 'backgroundImage', label: 'Background Image' },
+  { key: 'followerCount', label: 'Follower Count' },
+  { key: 'followingCount', label: 'Following Count' },
 ];
 
 const PRESET_ADDRESSES = [
@@ -113,6 +127,11 @@ function useProfileListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(PROFILE_FILTERS);
   const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const {
+    values: includeValues,
+    toggle: toggleInclude,
+    include,
+  } = useIncludeToggles(PROFILE_INCLUDES);
 
   const filter = buildProfileFilter(debouncedValues);
   const sort: ProfileSort = { field: sortField, direction: sortDirection };
@@ -128,6 +147,9 @@ function useProfileListState() {
     filter,
     sort,
     hasActiveFilter,
+    includeValues,
+    toggleInclude,
+    include,
   };
 }
 
@@ -138,8 +160,13 @@ function useProfileListState() {
 function SingleProfileTab(): React.ReactNode {
   const [address, setAddress] = useState('');
   const [queryAddress, setQueryAddress] = useState('');
+  const {
+    values: includeValues,
+    toggle: toggleInclude,
+    include,
+  } = useIncludeToggles(PROFILE_INCLUDES);
 
-  const { profile, isLoading, error, isFetching } = useProfile({ address: queryAddress });
+  const { profile, isLoading, error, isFetching } = useProfile({ address: queryAddress, include });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,6 +208,9 @@ function SingleProfileTab(): React.ReactNode {
           </Button>
         ))}
       </div>
+
+      {/* Include toggles */}
+      <IncludeToggles configs={PROFILE_INCLUDES} values={includeValues} onToggle={toggleInclude} />
 
       {/* Loading state */}
       {isLoading && (
@@ -319,6 +349,7 @@ function ProfileListTab(): React.ReactNode {
     filter: state.filter,
     sort: state.sort,
     limit,
+    include: state.include,
   });
 
   return (
@@ -336,6 +367,11 @@ function ProfileListTab(): React.ReactNode {
         onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
         limit={limit}
         onLimitChange={setLimit}
+      />
+      <IncludeToggles
+        configs={PROFILE_INCLUDES}
+        values={state.includeValues}
+        onToggle={state.toggleInclude}
       />
       <ResultsList<Profile>
         items={profiles}
@@ -364,6 +400,7 @@ function InfiniteScrollTab(): React.ReactNode {
       filter: state.filter,
       sort: state.sort,
       pageSize: 10,
+      include: state.include,
     });
 
   return (
@@ -379,6 +416,11 @@ function InfiniteScrollTab(): React.ReactNode {
         sortDirection={state.sortDirection}
         onSortFieldChange={(v) => state.setSortField(v as ProfileSortField)}
         onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+      />
+      <IncludeToggles
+        configs={PROFILE_INCLUDES}
+        values={state.includeValues}
+        onToggle={state.toggleInclude}
       />
       <ResultsList<Profile>
         items={profiles}

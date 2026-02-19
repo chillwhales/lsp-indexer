@@ -248,30 +248,38 @@ export type Universal_Profile_Order_By = {
 
 export type GetProfileQueryVariables = Exact<{
   where: Universal_Profile_Bool_Exp;
+  includeName?: Scalars['Boolean']['input'];
+  includeDescription?: Scalars['Boolean']['input'];
   includeTags?: Scalars['Boolean']['input'];
   includeLinks?: Scalars['Boolean']['input'];
   includeAvatar?: Scalars['Boolean']['input'];
   includeProfileImage?: Scalars['Boolean']['input'];
   includeBackgroundImage?: Scalars['Boolean']['input'];
+  includeFollowerCount?: Scalars['Boolean']['input'];
+  includeFollowingCount?: Scalars['Boolean']['input'];
 }>;
 
 
-export type GetProfileQuery = { __typename?: 'Query', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }> };
+export type GetProfileQuery = { __typename?: 'Query', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }> };
 
 export type GetProfilesQueryVariables = Exact<{
   where?: InputMaybe<Universal_Profile_Bool_Exp>;
   order_by?: InputMaybe<Array<Universal_Profile_Order_By> | Universal_Profile_Order_By>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
+  includeName?: Scalars['Boolean']['input'];
+  includeDescription?: Scalars['Boolean']['input'];
   includeTags?: Scalars['Boolean']['input'];
   includeLinks?: Scalars['Boolean']['input'];
   includeAvatar?: Scalars['Boolean']['input'];
   includeProfileImage?: Scalars['Boolean']['input'];
   includeBackgroundImage?: Scalars['Boolean']['input'];
+  includeFollowerCount?: Scalars['Boolean']['input'];
+  includeFollowingCount?: Scalars['Boolean']['input'];
 }>;
 
 
-export type GetProfilesQuery = { __typename?: 'Query', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }>, universal_profile_aggregate: { __typename?: 'universal_profile_aggregate', aggregate?: { __typename?: 'universal_profile_aggregate_fields', count: number } | null } };
+export type GetProfilesQuery = { __typename?: 'Query', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }>, universal_profile_aggregate: { __typename?: 'universal_profile_aggregate', aggregate?: { __typename?: 'universal_profile_aggregate_fields', count: number } | null } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -293,15 +301,15 @@ export class TypedDocumentString<TResult, TVariables>
 }
 
 export const GetProfileDocument = new TypedDocumentString(`
-    query GetProfile($where: universal_profile_bool_exp!, $includeTags: Boolean! = true, $includeLinks: Boolean! = true, $includeAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeBackgroundImage: Boolean! = true) {
+    query GetProfile($where: universal_profile_bool_exp!, $includeName: Boolean! = true, $includeDescription: Boolean! = true, $includeTags: Boolean! = true, $includeLinks: Boolean! = true, $includeAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeBackgroundImage: Boolean! = true, $includeFollowerCount: Boolean! = true, $includeFollowingCount: Boolean! = true) {
   universal_profile(where: $where, limit: 1) {
     id
     address
     lsp3Profile {
-      name {
+      name @include(if: $includeName) {
         value
       }
-      description {
+      description @include(if: $includeDescription) {
         value
       }
       tags @include(if: $includeTags) {
@@ -332,12 +340,12 @@ export const GetProfileDocument = new TypedDocumentString(`
         verification_data
       }
     }
-    followedBy_aggregate {
+    followedBy_aggregate @include(if: $includeFollowerCount) {
       aggregate {
         count
       }
     }
-    followed_aggregate {
+    followed_aggregate @include(if: $includeFollowingCount) {
       aggregate {
         count
       }
@@ -346,7 +354,7 @@ export const GetProfileDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<GetProfileQuery, GetProfileQueryVariables>;
 export const GetProfilesDocument = new TypedDocumentString(`
-    query GetProfiles($where: universal_profile_bool_exp, $order_by: [universal_profile_order_by!], $limit: Int, $offset: Int, $includeTags: Boolean! = true, $includeLinks: Boolean! = true, $includeAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeBackgroundImage: Boolean! = true) {
+    query GetProfiles($where: universal_profile_bool_exp, $order_by: [universal_profile_order_by!], $limit: Int, $offset: Int, $includeName: Boolean! = true, $includeDescription: Boolean! = true, $includeTags: Boolean! = true, $includeLinks: Boolean! = true, $includeAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeBackgroundImage: Boolean! = true, $includeFollowerCount: Boolean! = true, $includeFollowingCount: Boolean! = true) {
   universal_profile(
     where: $where
     order_by: $order_by
@@ -356,10 +364,10 @@ export const GetProfilesDocument = new TypedDocumentString(`
     id
     address
     lsp3Profile {
-      name {
+      name @include(if: $includeName) {
         value
       }
-      description {
+      description @include(if: $includeDescription) {
         value
       }
       tags @include(if: $includeTags) {
@@ -390,12 +398,12 @@ export const GetProfilesDocument = new TypedDocumentString(`
         verification_data
       }
     }
-    followedBy_aggregate {
+    followedBy_aggregate @include(if: $includeFollowerCount) {
       aggregate {
         count
       }
     }
-    followed_aggregate {
+    followed_aggregate @include(if: $includeFollowingCount) {
       aggregate {
         count
       }
