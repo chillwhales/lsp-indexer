@@ -172,8 +172,9 @@ gh pr create --base refactor/indexer-v2-react --title "<plan title>" --body "<su
 - **Subsquid framework**: Must use Subsquid's `EvmBatchProcessor` and `TypeormDatabase`
 - **LUKSO RPC**: Rate limited (default 10 req/s), finality confirmation at 75 blocks (~15 min)
 - **Framework compatibility**: React hooks package must work with Next.js App Router (primary) and any React 18+ app
-- **Publishable package**: `packages/react` must be installable via npm — no app-specific dependencies
+- **Publishable packages**: All 4 packages must be installable via npm — no app-specific dependencies
 - **Env-driven config**: GraphQL URL comes from environment variable, not hardcoded
+- **No re-exports — single source of truth**: Each export lives in exactly one package. Types in `@lsp-indexer/types`, services/errors/keys in `@lsp-indexer/node`, hooks in `@lsp-indexer/react` or `@lsp-indexer/next`. No convenience re-exports or barrel forwarding between packages. Consumers import from the source.
 
 ## Key Decisions
 
@@ -194,6 +195,7 @@ gh pr create --base refactor/indexer-v2-react --title "<plan title>" --body "<su
 | React hooks package in lsp-indexer monorepo | Keeps indexer + consumers in one repo, schema stays in sync, single publish pipeline | ✓ Good — 4 packages shipped |
 | 4-package split (types/node/react/next) | Separation of concerns: types standalone, node has no React dep, react is thin hooks, next adds server actions | ✓ Good — clean dependency graph |
 | Native `'use server'` over next-safe-action | Simpler, zero runtime deps, Next.js-native — no benefit from next-safe-action wrapper for read-only hooks | ✓ Good — lighter bundle |
+| No re-exports across packages | Single source of truth — eliminates maintenance overhead, prevents stale re-exports, clearer import provenance | ✓ Good — clean boundaries |
 
 ---
 

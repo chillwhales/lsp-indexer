@@ -3,8 +3,8 @@ import { CheckCircle2, XCircle } from 'lucide-react';
 import React from 'react';
 
 import { getProfile } from '@lsp-indexer/next';
-import { getServerUrl, profileKeys } from '@lsp-indexer/node';
-import { IndexerError, useProfile } from '@lsp-indexer/react';
+import { IndexerError, getServerUrl, profileKeys } from '@lsp-indexer/node';
+import { useProfile } from '@lsp-indexer/react';
 import type { Profile } from '@lsp-indexer/types';
 
 import { Badge } from '@/components/ui/badge';

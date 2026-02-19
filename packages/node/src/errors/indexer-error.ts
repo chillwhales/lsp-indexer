@@ -4,13 +4,6 @@ import type {
   IndexerErrorOptions,
 } from '@lsp-indexer/types';
 
-// Re-export types for convenience
-export type {
-  IndexerErrorCategory,
-  IndexerErrorCode,
-  IndexerErrorOptions,
-} from '@lsp-indexer/types';
-
 /**
  * Typed error class for all indexer-related failures.
  *

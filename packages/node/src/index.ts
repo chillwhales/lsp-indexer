@@ -1,6 +1,5 @@
 // Error handling
 export { IndexerError } from './errors';
-export type { IndexerErrorCategory, IndexerErrorCode, IndexerErrorOptions } from './errors';
 
 // Client utilities (execute, env helpers)
 export { execute, getClientUrl, getClientWsUrl, getServerUrl, getServerWsUrl } from './client';

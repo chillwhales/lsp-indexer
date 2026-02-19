@@ -10,7 +10,7 @@ import type {
   ProfileSort,
   ProfileSortField,
   SortDirection,
-} from '@lsp-indexer/react/types';
+} from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';

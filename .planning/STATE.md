@@ -63,7 +63,7 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - `graphql-ws` for WebSocket subscriptions (Hasura supports natively)
 - `graphql` is devDependency only (codegen build-time, not shipped)
 - Phase numbering continues from v1.0: Phases 7–11
-- Local schema.graphql with scalar definitions used for codegen fallback (Subsquid schema not directly parseable)
+- schema.graphql auto-generated from Hasura introspection via `pnpm schema:dump` (full 25k-line schema, not hand-maintained)
 - Exports map uses split import/require conditions with separate .d.ts/.d.cts types
 - typesVersions used for node10 resolution fallback
 - treeshake disabled on tsup entries to preserve "use client" banner
@@ -71,13 +71,13 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - outputFileTracingRoot needed in next.config.ts for monorepo workspace root detection
 - **UI: Always use shadcn/ui components over custom components** — Tailwind CSS v4 + shadcn/ui (new-york style) is the standard for all UI in apps/test and future consumer apps. No inline styles, no custom components when a shadcn equivalent exists.
 - Next.js 16 for test app (Turbopack default, React 19.2 canary features)
-- Local schema.graphql extended with full Hasura-style type stubs (bool_exp, order_by, aggregates) for CI/build codegen fallback
+- Codegen always reads local schema.graphql (no env-var fallback branching)
 - All image types (avatar, profileImage, backgroundImage) share ProfileImage interface with nullable width/height
 - Structural interface for image parsing (avoids codegen \_\_typename incompatibility between profile_image and background_image)
 - tokenOwned filter branches into owned_tokens (with tokenId) vs owned_assets (without tokenId)
 - Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
 - **4-package architecture:** `@lsp-indexer/types` (Zod schemas, zero deps) ← `@lsp-indexer/node` (services, parsers, documents, codegen, keys, execute, errors) ← `@lsp-indexer/react` (thin TanStack Query hooks) and `@lsp-indexer/node` ← `@lsp-indexer/next` (server actions + hooks)
-- **`@lsp-indexer/react` keeps backward-compat re-exports** from `./server` and `./types` entry points
+- **No re-exports across packages — single source of truth.** Each export lives in exactly one package. Consumers import from the source: types from `@lsp-indexer/types`, services/errors/keys from `@lsp-indexer/node`, hooks from `@lsp-indexer/react` or `@lsp-indexer/next`. No convenience re-exports, no barrel forwarding between packages.
 - **Server actions use `'use server'` directive** — Next.js-only, hence `@lsp-indexer/next` package name
 - **Hasura uses camelCase field names** (lsp3Profile, followedBy, ownedAssets) — not snake_case. Schema.graphql updated to match.
 - **All address/tokenId comparisons use `_ilike`** for case-insensitive matching (EIP-55 mixed-case prevention)

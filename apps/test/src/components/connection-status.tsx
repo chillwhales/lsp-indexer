@@ -3,7 +3,7 @@
 import { CheckCircle2 } from 'lucide-react';
 import React from 'react';
 
-import { IndexerError } from '@lsp-indexer/react';
+import { IndexerError } from '@lsp-indexer/node';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
