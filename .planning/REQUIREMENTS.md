@@ -31,7 +31,6 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 - [ ] **QUERY-08**: Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery
 - [ ] **QUERY-09**: Developer can use `useDataChangedEvents` for ERC725 data change events
 - [ ] **QUERY-10**: Developer can use `useUniversalReceiverEvents` for universal receiver events
-- [ ] **QUERY-11**: Developer can use `useProfileStats` for aggregate profile statistics
 
 ### Pagination
 
@@ -103,7 +102,6 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUERY-08    | 9     | Pending  |
 | QUERY-09    | 9     | Pending  |
 | QUERY-10    | 9     | Pending  |
-| QUERY-11    | 9     | Pending  |
 | PAGE-01     | 9     | Pending  |
 | SUB-01      | 10    | Pending  |
 | SUB-02      | 10    | Pending  |
