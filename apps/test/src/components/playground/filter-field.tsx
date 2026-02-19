@@ -24,7 +24,7 @@ interface FilterFieldProps {
 
 export function FilterField({ config, value, onChange }: FilterFieldProps): React.ReactNode {
   return (
-    <div className="space-y-1">
+    <div className="flex flex-col gap-1">
       <label className="text-xs text-muted-foreground font-medium">{config.label}</label>
       <Input
         placeholder={config.placeholder}

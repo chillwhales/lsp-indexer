@@ -44,7 +44,7 @@ export function SortControls({
 }: SortControlsProps): React.ReactNode {
   return (
     <div className="flex flex-wrap gap-3 items-end">
-      <div className="space-y-1">
+      <div className="flex flex-col gap-1">
         <label className="text-xs text-muted-foreground font-medium">Sort by</label>
         <Select value={sortField} onValueChange={onSortFieldChange}>
           <SelectTrigger className="w-40">
@@ -60,7 +60,7 @@ export function SortControls({
         </Select>
       </div>
 
-      <div className="space-y-1">
+      <div className="flex flex-col gap-1">
         <label className="text-xs text-muted-foreground font-medium">Direction</label>
         <Select value={sortDirection} onValueChange={onSortDirectionChange}>
           <SelectTrigger className="w-28">
@@ -74,7 +74,7 @@ export function SortControls({
       </div>
 
       {limit !== undefined && onLimitChange && (
-        <div className="space-y-1">
+        <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground font-medium">Limit</label>
           <Input
             type="number"
