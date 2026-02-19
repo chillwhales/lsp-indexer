@@ -6,15 +6,15 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — 4-package restructure complete, ready for Phase 9
+**Current focus:** v1.1 React Hooks Package — Phase 9 restructured into per-domain sub-phases (9.1–9.9)
 
 ## Current Position
 
-- **Phase:** 8 of 11 (First Vertical Slice — Universal Profiles) ✅ COMPLETE
-- **Plan:** 4 of 4
-- **Status:** Phase complete + 4-package restructure done
-- **Last activity:** 2026-02-19 — Completed 4-package split (types, node, react, next)
-- **Progress:** ████████░░ 80%
+- **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
+- **Sub-phase:** 9.1 (Digital Assets) — not yet started
+- **Status:** Phase 9 restructured from monolithic 11-plan phase into 9 independent sub-phases
+- **Last activity:** 2026-02-19 — Closed PRs #187–#190, restructured Phase 9 into sub-phases 9.1–9.9
+- **Progress:** ████░░░░░░ 40% (10/28 requirements)
 
 ## Milestone History
 
@@ -26,13 +26,21 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                                 | Requirements | Status   |
-| ----- | ------------------------------------ | :----------: | -------- |
-| 7     | Package Foundation                   |     7/7      | Complete |
-| 8     | First Vertical Slice (Profiles)      |     3/3      | Complete |
-| 9     | Remaining Query Domains & Pagination |      11      | Pending  |
-| 10    | Subscriptions                        |      3       | Pending  |
-| 11    | Server Actions & Publish Readiness   |      4       | Pending  |
+| Phase | Name                               | Requirements | Status   |
+| ----- | ---------------------------------- | :----------: | -------- |
+| 7     | Package Foundation                 |     7/7      | Complete |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
+| 9.1   | Digital Assets                     |      2       | Pending  |
+| 9.2   | NFTs                               |      2       | Pending  |
+| 9.3   | Owned Assets                       |      2       | Pending  |
+| 9.4   | Social / Follows                   |      2       | Pending  |
+| 9.5   | Creators                           |      2       | Pending  |
+| 9.6   | Encrypted Assets                   |      2       | Pending  |
+| 9.7   | Encrypted Feed                     |      2       | Pending  |
+| 9.8   | Data Changed Events                |      2       | Pending  |
+| 9.9   | Universal Receiver Events          |      2       | Pending  |
+| 10    | Subscriptions                      |      3       | Pending  |
+| 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 **Total:** 10/28 requirements delivered (FOUND-01–07, QUERY-01, DX-01, DX-02)
 
@@ -99,25 +107,24 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-19
-- **Activity:** Final audit of planning docs + remaining fixes from 4-package restructure
-- **Outcome:** Fixed `next.config.ts` transpilePackages (all 4 packages), updated ROADMAP Phase 9/11 with domain pattern details, documented developer workflows (schema:dump, playground toggle pattern) in PROJECT.md, updated STATE.md session continuity.
+- **Activity:** Restructured Phase 9 into per-domain sub-phases
+- **Outcome:** Closed PRs #187–#190 (timeline-based splits lacked domain granularity). Split monolithic Phase 9 (11 plans) into 9 independent sub-phases (9.1–9.9), each with 4 plans mirroring Phase 8's vertical-slice pattern. Updated ROADMAP and STATE.
 - **Resume file:** None
 
 ### Context for Next Session
 
 - **Phase 8 complete** — all 4 plans done, all 3 requirements delivered (QUERY-01, DX-01, DX-02)
-- **4-package restructure complete** — @lsp-indexer/types, @lsp-indexer/node, @lsp-indexer/react (thin), @lsp-indexer/next
-- **All audit items resolved** — transpilePackages, ROADMAP gaps, developer workflow docs, STATE.md all updated
-- **Next step:** Phase 9 planning and execution (Remaining Query Domains & Pagination)
-- **PR:** #183 open on `feat/react-profile-playground` → `refactor/indexer-v2-react` — needs push with latest commits
-- **Key assets for Phase 9:**
+- **Phase 9 restructured** — 9 sub-phases (9.1 Digital Assets → 9.9 Universal Receiver Events), each independent, each with own branch + PR
+- **Existing code on `feat/phase-9-query-domains`** — all 9 domains implemented but needs per-domain review; code can be used as reference for clean per-domain branches
+- **Codegen fix committed** — 4 document files migrated from manual TypedDocumentString to `graphql()` tag (on `feat/phase-9-part-1-codegen-creators-datachanged` branch, commit `16bf104`)
+- **Next step:** Plan and execute Phase 9.1 (Digital Assets) — first sub-phase, own branch + PR
+- **Key assets:**
   - Validated vertical-slice pattern: types → documents → codegen → parsers → services → keys → hooks → actions → playground
-  - Shared playground components: FilterFieldsRow, SortControls, ResultsList<T> — ready for 10+ domain pages
-  - Pattern: define `FilterFieldConfig[]`, `SortOption[]`, `buildDomainFilter()`, `DomainCard` → plug into shared components
+  - Shared playground components: FilterFieldsRow, SortControls, ResultsList<T> — ready for all domain pages
   - Developer workflow checklist documented in PROJECT.md "Adding a New Domain"
-  - 4-package structure means new domains add types in `@lsp-indexer/types`, core logic in `@lsp-indexer/node`, hooks in both `@lsp-indexer/react` and `@lsp-indexer/next`
-- **Build validated:** All 4 packages + test app build with zero errors
+  - 4-package structure: types in `@lsp-indexer/types`, core in `@lsp-indexer/node`, hooks in `@lsp-indexer/react` + `@lsp-indexer/next`
+- **Build validated:** All 4 packages + test app build with zero errors on epic branch
 
 ---
 
-_Last updated: 2026-02-19_
+_Last updated: 2026-02-19 — restructured Phase 9 into sub-phases 9.1–9.9_

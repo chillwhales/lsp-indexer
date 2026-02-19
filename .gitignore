@@ -9,6 +9,16 @@ packages/typeorm/hasura_metadata.json
 .env
 .vscode/
 
+# Build info
+*.tsbuildinfo
+
+# tsup bundled config artifacts
+tsup.config.bundled_*
+
+# Next.js
+.next/
+next-env.d.ts
+
 # Logs
 logs/
 *.log
