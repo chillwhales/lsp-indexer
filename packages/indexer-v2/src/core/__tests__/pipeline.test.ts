@@ -75,6 +75,9 @@ function createMockStore(): MockStore {
       upsertedEntities.push(...entities);
       return Promise.resolve();
     }),
+    findBy: vi.fn(() => Promise.resolve([])),
+    find: vi.fn(() => Promise.resolve([])),
+    remove: vi.fn(() => Promise.resolve()),
   };
 
   return Object.assign(baseStore, {
@@ -177,7 +180,8 @@ describe('Pipeline Step 1: EXTRACT', () => {
 
   it('should respect contractFilter when routing', async () => {
     const topic = '0xtopic';
-    const targetAddress = '0xtarget';
+    const targetAddress = '0x1234567890abcdef1234567890abcdef12345678';
+    const otherAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
     const extractMock = vi.fn();
     const plugin: EventPlugin = {
@@ -195,7 +199,7 @@ describe('Pipeline Step 1: EXTRACT', () => {
     const context = createMockContext(store, [
       {
         ...mockBlock,
-        logs: [mockLog(topic, targetAddress), mockLog(topic, '0xother')],
+        logs: [mockLog(topic, targetAddress), mockLog(topic, otherAddress)],
       },
     ]);
 

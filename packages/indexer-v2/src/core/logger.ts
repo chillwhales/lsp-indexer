@@ -24,7 +24,8 @@ export type PipelineStep =
   | 'DELETE_ENTITIES'
   | 'PERSIST_DERIVED'
   | 'VERIFY'
-  | 'ENRICH';
+  | 'ENRICH'
+  | 'RESOLVE';
 
 // ---------------------------------------------------------------------------
 // createStepLogger — child logger with persistent step field

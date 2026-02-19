@@ -1,13 +1,14 @@
 /**
  * Pipeline orchestrator for the V2 indexer.
  *
- * Processes a single batch of blocks through the 6-step enrichment queue pipeline:
+ * Processes a single batch of blocks through the 7-step enrichment queue pipeline:
  *   1. EXTRACT         — EventPlugins decode events → BatchContext + enrichment queue
  *   2. PERSIST RAW     — Pipeline batch-persists raw event entities (null FKs)
  *   3. HANDLE          — EntityHandlers create derived entities → BatchContext + enrichment queue
  *   4. PERSIST DERIVED — Pipeline batch-persists handler entities (null FKs)
  *   5. VERIFY          — Batch supportsInterface() → create core entities for valid addresses
  *   6. ENRICH          — Batch UPDATE FK references on already-persisted entities
+ *   7. RESOLVE         — Populate non-core FK references (metadata ↔ core entity links)
  *
  * All logging uses structured attributes via createStepLogger from the logger module.
  * No JSON.stringify calls — attributes are passed as native objects for jq filtering.
@@ -20,6 +21,7 @@ import { In } from 'typeorm';
 import { getAddress, isAddressEqual } from 'viem';
 
 import { BatchContext } from './batchContext';
+import { resolveForeignKeys } from './fkResolution';
 import { createStepLogger } from './logger';
 import { PluginRegistry } from './registry';
 import {
@@ -171,6 +173,7 @@ function enrichEntity(entity: unknown, request: StoredEnrichmentRequest, fkStub:
  *   4. PERSIST DERIVED — Pipeline batch-persists handler entities (null FKs)
  *   5. VERIFY          — Batch supportsInterface() → create core entities for valid addresses
  *   6. ENRICH          — Batch UPDATE FK references on already-persisted entities
+ *   7. RESOLVE         — Populate non-core FK references (metadata ↔ core entity links)
  *
  * Error handling: No try/catch — errors propagate to the Subsquid framework.
  * A failed store operation in any step halts the pipeline for the batch.
@@ -390,6 +393,10 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     requestList.push(request);
   }
 
+  // Capture queue length — any requests added by post-verification handlers
+  // (Step 5.5) will be at indices >= this value and need a second grouping pass.
+  const prePostVerifyQueueLen = enrichmentQueue.length;
+
   // Step 5: VERIFY — Batch-verify UP and DA addresses in parallel
   const verifyLog = createStepLogger(context.log, 'VERIFY', blockRange);
   const categories = [...addressesByCategory.keys()];
@@ -460,6 +467,48 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Process enrichment requests from post-verification handlers.
+  // Post-verify handlers (decimals, universalProfileOwner, digitalAssetOwner)
+  // call queueEnrichment() during Step 5.5, after the initial grouping loop.
+  // Process these late requests into `grouped` so Step 6 ENRICH picks them up.
+  // The addresses are already verified — the handlers themselves filter on
+  // verified sets (e.g., verifiedDAs.valid.has(), getVerified().newEntities).
+  // ---------------------------------------------------------------------------
+  if (enrichmentQueue.length > prePostVerifyQueueLen) {
+    postVerifyLog.info(
+      { newRequests: enrichmentQueue.length - prePostVerifyQueueLen },
+      'Processing enrichment requests from post-verification handlers',
+    );
+
+    for (let i = prePostVerifyQueueLen; i < enrichmentQueue.length; i++) {
+      const request = enrichmentQueue[i];
+
+      // Add to addressesByCategory for completeness (addresses already verified)
+      if (request.category !== EntityCategory.NFT) {
+        let addressSet = addressesByCategory.get(request.category);
+        if (!addressSet) {
+          addressSet = new Set<string>();
+          addressesByCategory.set(request.category, addressSet);
+        }
+        addressSet.add(request.address);
+      }
+
+      // Group for FK assignment in Step 6
+      let entityMap = grouped.get(request.entityType);
+      if (!entityMap) {
+        entityMap = new Map<string, StoredEnrichmentRequest[]>();
+        grouped.set(request.entityType, entityMap);
+      }
+      let requestList = entityMap.get(request.entityId);
+      if (!requestList) {
+        requestList = [];
+        entityMap.set(request.entityId, requestList);
+      }
+      requestList.push(request);
+    }
+  }
+
   // Step 6: ENRICH — Batch update FK fields per entity type
   const enrichLog = createStepLogger(context.log, 'ENRICH', blockRange);
   for (const [entityType, entityMap] of grouped) {
@@ -510,6 +559,22 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       );
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Step 7: RESOLVE
+  // Populate non-core FK references that the enrichment queue cannot handle.
+  // The enrichment queue only supports UP/DA/NFT categories. This step resolves
+  // "reverse" FK fields where core entities point to metadata entities:
+  //   - UniversalProfile.lsp3Profile → LSP3Profile
+  //   - DigitalAsset.lsp4Metadata   → LSP4Metadata
+  //   - NFT.lsp4Metadata            → LSP4Metadata (per-token)
+  //   - NFT.lsp4MetadataBaseUri     → LSP4Metadata (BaseURI-derived)
+  //
+  // Bidirectional: resolves both source→target (source in batch, target in DB)
+  // and target→source (target in batch, source in DB) to handle cross-batch
+  // dependencies regardless of which entity was created first.
+  // ---------------------------------------------------------------------------
+  await resolveForeignKeys(context.store, batchCtx, context.log, blockRange);
 }
 
 // ---------------------------------------------------------------------------

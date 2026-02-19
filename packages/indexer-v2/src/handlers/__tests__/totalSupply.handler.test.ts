@@ -29,9 +29,9 @@ function createMockBatchCtx() {
       const bag = entityBags.get(type);
       if (bag) bag.set(id, entity);
     },
-    queueEnrichment(request: unknown) {
+    queueEnrichment: vi.fn((request: unknown) => {
       enrichmentQueue.push(request);
-    },
+    }),
     // Test accessors
     _entityBags: entityBags,
     _enrichmentQueue: enrichmentQueue,

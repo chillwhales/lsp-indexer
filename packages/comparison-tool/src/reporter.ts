@@ -1,5 +1,5 @@
-import { ENTITY_REGISTRY } from './entityRegistry';
-import { ComparisonReport, RowDiff } from './types';
+import { ENTITY_REGISTRY, getKnownDivergences } from './entityRegistry';
+import { ComparisonReport, type KnownDivergence, RowDiff } from './types';
 
 const GREEN = '\x1b[32m';
 const RED = '\x1b[31m';
@@ -77,6 +77,15 @@ export function printReport(report: ComparisonReport): void {
     const tgtStr = formatNumber(count.targetCount);
     const diffStr = count.match ? '' : formatPercent(count.diffPercent);
 
+    // Check if this entity has a known count-level divergence
+    const knownCountDivergences: KnownDivergence[] = getKnownDivergences(
+      count.entityName,
+      report.mode,
+    );
+    const hasKnownCountDivergence = knownCountDivergences.some(
+      (d: KnownDivergence) => d.field === 'count',
+    );
+
     let statusSymbol: string;
     let statusColor: string;
 
@@ -88,6 +97,9 @@ export function printReport(report: ComparisonReport): void {
       statusColor = YELLOW;
     } else if (count.withinTolerance) {
       statusSymbol = '≈ TOLERANCE';
+      statusColor = YELLOW;
+    } else if (hasKnownCountDivergence) {
+      statusSymbol = '~ KNOWN';
       statusColor = YELLOW;
     } else {
       statusSymbol = '✗ MISMATCH';
@@ -168,6 +180,49 @@ export function printReport(report: ComparisonReport): void {
     }
   }
 
+  // FK Coverage
+  const fkOrphans = report.fkCoverage.filter((r) => r.orphanedNullCount > 0);
+  const fkClean = report.fkCoverage.filter((r) => r.orphanedNullCount === 0 && r.nullFkCount > 0);
+
+  if (report.fkCoverage.length > 0) {
+    console.info(`${BOLD}FK Coverage Validation:${RESET}`);
+    console.info(`${DIM}${'─'.repeat(80)}${RESET}`);
+
+    if (fkOrphans.length > 0) {
+      for (const result of fkOrphans) {
+        console.info(
+          `  ${RED}✗${RESET} ${result.endpoint} ${result.rule}: ` +
+            `${RED}${result.orphanedNullCount}${RESET} orphaned nulls ` +
+            `(${result.nullFkCount} sampled with null FK, target entity exists)`,
+        );
+        if (result.orphanedSampleIds.length > 0) {
+          console.info(`    ${DIM}Sample IDs: ${result.orphanedSampleIds.join(', ')}${RESET}`);
+        }
+      }
+    }
+
+    if (fkClean.length > 0) {
+      for (const result of fkClean) {
+        console.info(
+          `  ${GREEN}✓${RESET} ${result.endpoint} ${result.rule}: ` +
+            `${result.nullFkCount} null FKs, all targets missing (correct)`,
+        );
+      }
+    }
+
+    const fkFullyCovered = report.fkCoverage.filter((r) => r.nullFkCount === 0);
+    if (fkFullyCovered.length > 0) {
+      for (const result of fkFullyCovered) {
+        console.info(
+          `  ${GREEN}✓${RESET} ${result.endpoint} ${result.rule}: ` +
+            `fully populated (no null FKs)`,
+        );
+      }
+    }
+
+    console.info(`${DIM}${'─'.repeat(80)}${RESET}\n`);
+  }
+
   // Summary
   console.info(`${BOLD}${'═'.repeat(70)}${RESET}`);
 
@@ -185,6 +240,11 @@ export function printReport(report: ComparisonReport): void {
     const e = ENTITY_REGISTRY.find((ent) => ent.name === c.entityName);
     return e?.isMetadataSub ?? false;
   }).length;
+  const knownCountDivergences = report.counts.filter((c) => {
+    if (c.match) return false;
+    const divs: KnownDivergence[] = getKnownDivergences(c.entityName, report.mode);
+    return divs.some((d: KnownDivergence) => d.field === 'count');
+  }).length;
 
   const totalUnexpectedDiffs = report.sampleDiffs.reduce(
     (sum, diff) => sum + diff.unexpectedDiffs.length,
@@ -200,7 +260,8 @@ export function printReport(report: ComparisonReport): void {
   console.info(
     `Row count exact matches: ${exactMatches}/${entityTypesCompared}` +
       (toleranceMatches > 0 ? `  (+${toleranceMatches} within tolerance)` : '') +
-      (metadataTimingDiffs > 0 ? `  (${metadataTimingDiffs} metadata timing)` : ''),
+      (metadataTimingDiffs > 0 ? `  (${metadataTimingDiffs} metadata timing)` : '') +
+      (knownCountDivergences > 0 ? `  (${knownCountDivergences} known divergences)` : ''),
   );
   if (report.tolerancePercent > 0) {
     console.info(`Tolerance: ${report.tolerancePercent}%`);
@@ -211,5 +272,11 @@ export function printReport(report: ComparisonReport): void {
   if (report.mode === 'v1-v2') {
     console.info(`Known divergences: ${DIM}${totalKnownDivergences}${RESET}`);
   }
+
+  const totalOrphans = report.fkCoverage.reduce((sum, r) => sum + r.orphanedNullCount, 0);
+  console.info(
+    `FK coverage orphans: ${totalOrphans > 0 ? `${RED}${totalOrphans}${RESET}` : `${GREEN}0${RESET}`}`,
+  );
+
   console.info(`${BOLD}${'═'.repeat(70)}${RESET}\n`);
 }

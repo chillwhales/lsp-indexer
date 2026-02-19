@@ -5,6 +5,14 @@ export interface GraphqlClient {
   querySampleIds(hasuraTable: string, limit: number): Promise<string[]>;
   queryRowsByIds(hasuraTable: string, ids: string[]): Promise<Record<string, unknown>[]>;
   querySampleRows(hasuraTable: string, limit: number): Promise<Record<string, unknown>[]>;
+  /** Fetch sample rows ordered by specific columns (all ascending). Used for natural-key matching. */
+  querySampleRowsOrdered(
+    hasuraTable: string,
+    limit: number,
+    orderBy: string[],
+  ): Promise<Record<string, unknown>[]>;
+  queryIdsWhereFieldNull(hasuraTable: string, field: string, limit: number): Promise<string[]>;
+  queryExistingIds(hasuraTable: string, ids: string[]): Promise<string[]>;
   checkHealth(): Promise<boolean>;
 }
 
@@ -222,6 +230,35 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     }
   }
 
+  async function querySampleRowsOrdered(
+    hasuraTable: string,
+    limit: number,
+    orderBy: string[],
+  ): Promise<Record<string, unknown>[]> {
+    const fields = await queryTableFields(hasuraTable);
+    if (fields.length === 0) return [];
+
+    const fieldSelection = fields.join('\n          ');
+    const orderByClause = orderBy.map((field) => `{ ${field}: asc }`).join(', ');
+
+    const query = `
+      query {
+        ${hasuraTable}(limit: ${limit}, order_by: [${orderByClause}]) {
+          ${fieldSelection}
+        }
+      }
+    `;
+
+    try {
+      const response = await client.post<GraphqlResponse<RowsData>>('', { query });
+      const rows = response.data.data?.[hasuraTable];
+      if (!Array.isArray(rows)) return [];
+      return rows;
+    } catch {
+      return [];
+    }
+  }
+
   async function checkHealth(): Promise<boolean> {
     try {
       const response = await client.post<GraphqlResponse<HealthData>>('', {
@@ -233,5 +270,78 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     }
   }
 
-  return { queryCount, querySampleIds, queryRowsByIds, querySampleRows, checkHealth };
+  /**
+   * Query entity IDs where a specific FK field is null.
+   * Used for FK coverage validation — finding entities with unpopulated FK references.
+   */
+  async function queryIdsWhereFieldNull(
+    hasuraTable: string,
+    field: string,
+    limit: number,
+  ): Promise<string[]> {
+    const query = `
+      query {
+        ${hasuraTable}(where: { ${field}: { _is_null: true } }, limit: ${limit}, order_by: { id: asc }) {
+          id
+        }
+      }
+    `;
+
+    try {
+      const response = await client.post<GraphqlResponse<SampleIdsData>>('', { query });
+      if (response.data.errors?.length) {
+        const messages = response.data.errors.map((e) => e.message).join('; ');
+        throw new Error(
+          `GraphQL error querying ${hasuraTable} where ${field} is null: ${messages}`,
+        );
+      }
+      const rows = response.data.data?.[hasuraTable];
+      if (!Array.isArray(rows)) return [];
+      return rows.map((row) => row.id).filter((id): id is string => typeof id === 'string');
+    } catch (error) {
+      // Re-throw GraphQL errors; only swallow network/unexpected errors
+      if (error instanceof Error && error.message.startsWith('GraphQL error')) {
+        throw error;
+      }
+      return [];
+    }
+  }
+
+  /**
+   * Lightweight existence check — fetches only `{ id }` for the given IDs.
+   * Use instead of `queryRowsByIds` when you only need to know which IDs exist.
+   */
+  async function queryExistingIds(hasuraTable: string, ids: string[]): Promise<string[]> {
+    if (ids.length === 0) return [];
+
+    const idList = ids.map((id) => `"${id}"`).join(', ');
+
+    const query = `
+      query {
+        ${hasuraTable}(where: { id: { _in: [${idList}] } }) {
+          id
+        }
+      }
+    `;
+
+    try {
+      const response = await client.post<GraphqlResponse<SampleIdsData>>('', { query });
+      const rows = response.data.data?.[hasuraTable];
+      if (!Array.isArray(rows)) return [];
+      return rows.map((row) => row.id).filter((id): id is string => typeof id === 'string');
+    } catch {
+      return [];
+    }
+  }
+
+  return {
+    queryCount,
+    querySampleIds,
+    queryRowsByIds,
+    querySampleRows,
+    querySampleRowsOrdered,
+    queryIdsWhereFieldNull,
+    queryExistingIds,
+    checkHealth,
+  };
 }
