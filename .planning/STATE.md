@@ -51,15 +51,14 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 
 **v1.1 decisions:**
 
-- React hooks package lives in `packages/react` within lsp-indexer monorepo
-- Two consumption patterns: client-side (TanStack Query) and server-side (next-safe-action)
-- Three consumption patterns: queries (TanStack Query), subscriptions (graphql-ws), server actions (next-safe-action)
-- GraphQL codegen from Hasura schema, types committed to repo
+- 4 packages: `@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next` in lsp-indexer monorepo
+- Three consumption patterns: queries (TanStack Query via `@lsp-indexer/react`), subscriptions (graphql-ws), server actions (`'use server'` via `@lsp-indexer/next`)
+- GraphQL codegen from Hasura schema, types committed to `packages/node`
 - **Branch workflow: ALL v1.1 work merges via PRs to `refactor/indexer-v2-react`** — see PROJECT.md "Branching & PR Workflow" for full protocol
 - Reference: `chillwhales/marketplace` graphql package and web hooks (being standardized)
 - Vertical-slice approach: build Universal Profiles end-to-end first, then replicate across 10 domains
 - Minimal runtime deps — only `graphql-ws` for subscriptions; typed fetch wrapper for queries (zero query deps)
-- Multiple entry points: `@lsp-indexer/react` (client), `@lsp-indexer/react/server`, `@lsp-indexer/react/types`
+- 4 separate packages replace old multi-entry-point approach: `@lsp-indexer/types` (was `/types`), `@lsp-indexer/node` (was `/server`), `@lsp-indexer/react` (hooks), `@lsp-indexer/next` (server actions)
 - Parser layer transforms Hasura snake_case → clean camelCase types
 - `graphql-ws` for WebSocket subscriptions (Hasura supports natively)
 - `graphql` is devDependency only (codegen build-time, not shipped)

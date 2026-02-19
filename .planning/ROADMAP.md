@@ -7,7 +7,16 @@
 
 ## Overview
 
-Ship a standalone, publishable React hooks library (`packages/react`) that gives any app type-safe access to all 11 indexer query domains — with client-side (TanStack Query) hooks, real-time WebSocket subscriptions (graphql-ws), and server-side (next-safe-action) consumption patterns. The phases follow vertical-slice delivery: scaffold the package and validate exports → build one domain end-to-end → replicate across all domains → add subscriptions → add server actions and ship.
+Ship a set of publishable packages (`@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`) that give any app type-safe access to all 11 indexer query domains — with client-side (TanStack Query) hooks, real-time WebSocket subscriptions (graphql-ws), and Next.js server actions (`'use server'`). The phases follow vertical-slice delivery: scaffold the package and validate exports → build one domain end-to-end → replicate across all domains → add subscriptions → add server actions and ship.
+
+**Package architecture:**
+
+```
+@lsp-indexer/types  — Zod schemas + inferred TS types (zero framework deps)
+@lsp-indexer/node   — services, parsers, documents, codegen, query keys, execute, errors
+@lsp-indexer/react  — thin TanStack Query hooks (browser → Hasura directly)
+@lsp-indexer/next   — server actions + hooks routing through them (browser → server → Hasura)
+```
 
 ---
 
@@ -19,15 +28,15 @@ Ship a standalone, publishable React hooks library (`packages/react`) that gives
 
 **Requirements:**
 
-| ID       | Requirement                                                                                                                                                                                                            |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| FOUND-01 | Developer can install package and get working ESM+CJS+DTS builds with `"use client"` directives                                                                                                                        |
-| FOUND-02 | Developer can run codegen to generate TypeScript types from Hasura GraphQL schema                                                                                                                                      |
-| FOUND-03 | Developer can configure GraphQL URL (HTTP + WebSocket) via environment variable                                                                                                                                        |
-| FOUND-04 | Developer can wrap app in `<IndexerProvider>` with optional existing QueryClient                                                                                                                                       |
-| FOUND-05 | Developer gets typed `IndexerError` with network, GraphQL, and Hasura permission error categories                                                                                                                      |
-| FOUND-06 | Developer can import from main (`@lsp-indexer/react`) and server (`@lsp-indexer/react/server`) entry points without bundle contamination                                                                               |
-| FOUND-07 | A minimal Next.js test app (`apps/test`) exists in the monorepo that imports from `@lsp-indexer/react`, validates hooks work in both client and server components, and catches bundle/export issues during development |
+| ID       | Requirement                                                                                                                                                                                                      |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FOUND-01 | Developer can install package and get working ESM+CJS+DTS builds with `"use client"` directives                                                                                                                  |
+| FOUND-02 | Developer can run codegen to generate TypeScript types from Hasura GraphQL schema                                                                                                                                |
+| FOUND-03 | Developer can configure GraphQL URL (HTTP + WebSocket) via environment variable                                                                                                                                  |
+| FOUND-04 | Developer can wrap app in `<IndexerProvider>` with optional existing QueryClient                                                                                                                                 |
+| FOUND-05 | Developer gets typed `IndexerError` with network, GraphQL, and Hasura permission error categories                                                                                                                |
+| FOUND-06 | Developer can import from `@lsp-indexer/react` (client hooks), `@lsp-indexer/node` (server), and `@lsp-indexer/types` (types) without bundle contamination                                                       |
+| FOUND-07 | A minimal Next.js test app (`apps/test`) exists in the monorepo that imports from all 4 packages, validates hooks work in both client and server components, and catches bundle/export issues during development |
 
 **Plans:** 2 plans
 
@@ -38,11 +47,11 @@ Plans:
 
 **Success Criteria:**
 
-1. Developer can run `pnpm build` in `packages/react` and get ESM + CJS + DTS output with `"use client"` directives on hook files — verified by inspecting dist output
-2. Developer can run codegen against Hasura and see TypeScript types generated with `TypedDocumentString` wrappers — output committed to `src/graphql/`, query documents in `src/documents/`
-3. Developer can import from `@lsp-indexer/react` in a client component and from `@lsp-indexer/react/server` in a server component without bundle errors — validated by `next build` in the test app (`apps/test`)
+1. Developer can run `pnpm build` in all 4 packages and get ESM + CJS + DTS output with `"use client"` directives on hook files — verified by inspecting dist output
+2. Developer can run codegen against Hasura and see TypeScript types generated with `TypedDocumentString` wrappers — output committed to `packages/node/src/graphql/`, query documents in `packages/node/src/documents/`
+3. Developer can import from `@lsp-indexer/react` in a client component and from `@lsp-indexer/node` in a server component without bundle errors — validated by `next build` in the test app (`apps/test`)
 4. Developer can wrap a Next.js app in `<IndexerProvider url={...}>` and see TanStack Query context available to child components — with optional existing QueryClient pass-through working
-5. Developer can run `publint` and `arethetypeswrong` against the built package and see zero errors — exports map is correct for all entry points
+5. Developer can run `publint` and `arethetypeswrong` against each package and see zero errors — exports map is correct for all entry points
 
 ---
 
@@ -57,7 +66,7 @@ Plans:
 | ID       | Requirement                                                                                     |
 | -------- | ----------------------------------------------------------------------------------------------- |
 | QUERY-01 | Developer can use `useProfile`, `useProfiles`, `useInfiniteProfiles` for Universal Profile data |
-| DX-01    | Developer can import all clean camelCase domain types from `@lsp-indexer/react/types`           |
+| DX-01    | Developer can import all clean camelCase domain types from `@lsp-indexer/types`                 |
 | DX-02    | Developer can import query key factories for cache invalidation and prefetching                 |
 
 **Plans:** 4 plans
@@ -74,7 +83,7 @@ Plans:
 1. Developer can call `useProfile({ address })` in a client component and see typed Universal Profile data rendered — with loading, error, and success states all working
 2. Developer can call `useProfiles({ limit: 10 })` and `useProfileSearch({ query: "alice" })` and see correct filtered/paginated results from Hasura
 3. Developer can import `profileKeys` from the query key factory and use it for manual cache invalidation (`queryClient.invalidateQueries({ queryKey: profileKeys.all })`) and prefetching
-4. Developer can import `Profile` type from `@lsp-indexer/react/types` and see clean camelCase properties (e.g., `profileName`, `profileImage`) — not Hasura's snake_case
+4. Developer can import `Profile` type from `@lsp-indexer/types` and see clean camelCase properties (e.g., `profileName`, `profileImage`) — not Hasura's snake_case
 5. Developer can see the test app (`apps/test`) render Universal Profile data from the live Hasura endpoint in both a client component (via hook) and verify the service function works standalone
 
 ---
@@ -106,7 +115,7 @@ Plans:
 1. Developer can use hooks for all 11 domains and see typed data returned — every domain follows the same document → parser → service → hook pattern established in Phase 8
 2. Developer can call `useInfiniteProfiles()`, `useInfiniteDigitalAssets()`, `useInfiniteNfts()`, etc. and see offset-based infinite scroll working with `fetchNextPage` / `hasNextPage`
 3. Developer can import query key factories for all 11 domains and use them for targeted cache invalidation (e.g., `digitalAssetKeys.detail(address)`, `nftKeys.byCollection(address)`)
-4. Developer can import all domain types from `@lsp-indexer/react/types` — all 11 domains export clean camelCase types
+4. Developer can import all domain types from `@lsp-indexer/types` — all 11 domains export clean camelCase types
 
 ---
 
@@ -135,26 +144,26 @@ Plans:
 
 ## Phase 11 — Server Actions & Publish Readiness
 
-**Goal:** Developer can use server-side actions for all domains from Next.js Server Components, and the package passes all publish validation checks.
+**Goal:** Developer can use `@lsp-indexer/next` server actions for all domains from Next.js Server Components, and all 4 packages pass publish validation checks.
 
 **Dependencies:** Phase 9 (all domain services must exist — actions wrap services), Phase 10 (subscriptions should be complete for full package validation)
 
 **Requirements:**
 
-| ID        | Requirement                                                                                        |
-| --------- | -------------------------------------------------------------------------------------------------- |
-| ACTION-01 | Developer can use next-safe-action server actions for all 11 domains                               |
-| ACTION-02 | Developer can import server utilities from `@lsp-indexer/react/server` without client code leaking |
-| ACTION-03 | All server action inputs are validated with Zod schemas                                            |
-| DX-03     | Package passes `publint` and `arethetypeswrong` validation for publish readiness                   |
+| ID        | Requirement                                                                           |
+| --------- | ------------------------------------------------------------------------------------- |
+| ACTION-01 | Developer can use `@lsp-indexer/next` server actions for all 11 domains               |
+| ACTION-02 | Developer can import from `@lsp-indexer/node` (server) without client code leaking    |
+| ACTION-03 | All server action inputs are validated with Zod schemas from `@lsp-indexer/types`     |
+| DX-03     | All 4 packages pass `publint` and `arethetypeswrong` validation for publish readiness |
 
 **Success Criteria:**
 
-1. Developer can call `getProfile({ address })` as a server action in a Next.js Server Component and see typed data returned — without any client-side JavaScript shipped to the browser
-2. Developer can import from `@lsp-indexer/react/server` and run `next build` with zero "client-only code in server" or "server-only code in client" errors — entry point separation is bulletproof
-3. Developer can see Zod validation errors when passing invalid inputs to server actions (e.g., invalid address format) — with typed error responses
-4. Developer can run `publint` and `arethetypeswrong` against the final built package and see zero errors across all entry points (`@lsp-indexer/react`, `@lsp-indexer/react/server`, `@lsp-indexer/react/types`)
-5. Developer can `npm pack` the package and see only `dist/` and `README.md` included — no source files, no test fixtures, no generated intermediates
+1. Developer can call `getProfile(address)` from `@lsp-indexer/next` as a server action in a Next.js Server Component and see typed data returned — without any client-side JavaScript shipped to the browser
+2. Developer can import from `@lsp-indexer/node` in a server context and run `next build` with zero "client-only code in server" errors — package separation is bulletproof
+3. Developer can see Zod validation errors when passing invalid inputs to server actions (e.g., invalid address format) — with typed error responses from `@lsp-indexer/types` schemas
+4. Developer can run `publint` and `arethetypeswrong` against all 4 packages and see zero errors — `@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`
+5. Developer can `npm pack` each package and see only `dist/` and `README.md` included — no source files, no test fixtures, no generated intermediates
 
 ---
 
@@ -176,16 +185,23 @@ Plans:
 
 ```
 Phase 7 (Package Foundation)
-  └──→ Phase 8 (First Vertical Slice — Universal Profiles)
+  └──→ Phase 8 (First Vertical Slice — Universal Profiles + 4-package split)
          └──→ Phase 9 (Remaining Query Domains & Pagination)
                 ├──→ Phase 10 (Subscriptions)
                 └──→ Phase 11 (Server Actions & Publish Readiness) ←── also depends on Phase 10
 ```
 
+**Package dependency graph:**
+
+```
+@lsp-indexer/types ← @lsp-indexer/node ← @lsp-indexer/react
+                                        ← @lsp-indexer/next
+```
+
 **Parallelization opportunities:**
 
 - Within Phase 7: Codegen pipeline and build tooling can be worked in parallel with provider/error handling
-- Within Phase 9: All 10 remaining domains are independent — can be built in any order
+- Within Phase 9: All 10 remaining domains are independent — can be built in any order. Each domain adds types to `@lsp-indexer/types`, core logic to `@lsp-indexer/node`, hooks to `@lsp-indexer/react` and `@lsp-indexer/next`
 - Phase 10 and Phase 11 both depend on Phase 9, but Phase 11's ACTION-01/ACTION-02/ACTION-03 could technically start as soon as Phase 9 completes (only DX-03 needs Phase 10 for full validation)
 
 ---
@@ -237,17 +253,17 @@ Research suggested 4 phases with subscriptions out of scope. The user added subs
 
 ### Why DX-01 and DX-02 in Phase 8 (not Phase 9)?
 
-The types export pattern (`@lsp-indexer/react/types`) and query key factory pattern need to be validated with the first domain before replicating. If the pattern is wrong, it's cheaper to fix with 1 domain than 11. Phase 9 then replicates the validated pattern.
+The types package (`@lsp-indexer/types`) and query key factory pattern need to be validated with the first domain before replicating. If the pattern is wrong, it's cheaper to fix with 1 domain than 11. Phase 9 then replicates the validated pattern.
 
 ### Why DX-03 in Phase 11 (not earlier)?
 
-`publint` and `arethetypeswrong` validation for publish readiness only makes sense when all entry points exist — including `@lsp-indexer/react/server` (Phase 11). Running it earlier would miss the server entry point.
+`publint` and `arethetypeswrong` validation for publish readiness only makes sense when all 4 packages have their full domain coverage — including `@lsp-indexer/next` server actions. Running it earlier would miss domains still being added.
 
 ### Why subscriptions before server actions?
 
-Subscriptions (Phase 10) add cache integration logic that affects the query layer from Phase 9. Server actions (Phase 11) are isolated wrappers around services — they don't affect the query/subscription layer. Building subscriptions first means the full client-side story (queries + subscriptions) is complete before adding the server-side layer.
+Subscriptions (Phase 10) add cache integration logic that affects the query layer from Phase 9. Server actions in `@lsp-indexer/next` (Phase 11) are isolated wrappers around `@lsp-indexer/node` services — they don't affect the query/subscription layer. Building subscriptions first means the full client-side story (queries + subscriptions) is complete before expanding the server-side layer to all domains.
 
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-19_
+_Last updated: 2026-02-19 — updated for 4-package architecture_

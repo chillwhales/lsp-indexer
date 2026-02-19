@@ -2,7 +2,7 @@
 
 ## What This Is
 
-The LSP Indexer is an open-source blockchain event indexer for the LUKSO network. It listens to on-chain events (transfers, profile updates, data key changes, follower actions, contract deployments), extracts structured data from them, and persists it to PostgreSQL. A Hasura GraphQL API auto-exposes the data for downstream consumers. The `packages/react` library provides type-safe React hooks for any app to consume this data — with both client-side and server-side patterns.
+The LSP Indexer is an open-source blockchain event indexer for the LUKSO network. It listens to on-chain events (transfers, profile updates, data key changes, follower actions, contract deployments), extracts structured data from them, and persists it to PostgreSQL. A Hasura GraphQL API auto-exposes the data for downstream consumers. Four packages (`@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`) provide type-safe access for any app to consume this data — with both client-side and server-side patterns.
 
 ## Core Value
 
@@ -10,18 +10,27 @@ Any developer can query LUKSO blockchain data through type-safe React hooks back
 
 ## Current Milestone: v1.1 React Hooks Package
 
-**Goal:** Ship a standalone, publishable React hooks library (`packages/react`) that gives any app type-safe access to all 11 indexer query domains — with client-side hooks (TanStack Query), WebSocket subscriptions (`graphql-ws`), and server-side actions (`next-safe-action`).
+**Goal:** Ship 4 publishable packages that give any app type-safe access to all 11 indexer query domains — with client-side hooks (TanStack Query), WebSocket subscriptions (`graphql-ws`), and Next.js server actions (`'use server'`).
+
+**Package architecture:**
+
+```
+@lsp-indexer/types  — Zod schemas + inferred TS types (zero framework deps)
+@lsp-indexer/node   — services, parsers, documents, codegen, query keys, execute, errors
+@lsp-indexer/react  — thin TanStack Query hooks (browser → Hasura directly)
+@lsp-indexer/next   — server actions + hooks routing through them (browser → server → Hasura)
+```
 
 **Target features:**
 
-- GraphQL codegen from Hasura schema (types committed, schema from `packages/typeorm`)
+- GraphQL codegen from Hasura schema (types committed in `packages/node`, schema from `packages/typeorm`)
 - 11 query domains: Universal Profiles, Digital Assets, NFTs, Owned Assets, Follows/Social, Creator Addresses, LSP29 Encrypted Assets, LSP29 Feed, Data Changed, Universal Receiver Events, UP Stats
-- Client-side hooks: TanStack Query hooks calling services directly
+- Client-side hooks: `@lsp-indexer/react` — TanStack Query hooks calling `@lsp-indexer/node` services directly
 - WebSocket subscriptions: `graphql-ws` subscription hooks with TanStack Query cache integration
-- Server-side hooks: services → next-safe-action server actions → hooks
+- Server-side hooks: `@lsp-indexer/next` — `'use server'` actions wrapping `@lsp-indexer/node` services
 - TanStack Query provider (use existing or create new)
-- GraphQL URL via provider config (framework-agnostic)
-- Consistent patterns: every domain follows the same service → hook → action structure
+- GraphQL URL via environment variables (framework-agnostic)
+- Consistent patterns: every domain follows the same types → documents → parsers → services → keys → hooks → actions structure
 
 ## Current State
 
@@ -80,12 +89,12 @@ V2 rewrite is feature-complete with data parity validated against V1 via automat
 
 ### Active
 
-- [ ] `packages/react` — standalone React hooks library for indexer data consumption
-- [ ] GraphQL codegen pipeline from Hasura schema
-- [ ] 11 query domain services with consistent patterns
-- [ ] Client-side TanStack Query hooks for all domains
-- [ ] Server-side next-safe-action pattern for all domains
-- [ ] TanStack Query provider setup
+- [x] 4-package architecture (`@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`)
+- [x] GraphQL codegen pipeline from Hasura schema (in `@lsp-indexer/node`)
+- [ ] 11 query domain services with consistent patterns (1/11 done — profiles)
+- [ ] Client-side TanStack Query hooks in `@lsp-indexer/react` for all domains (1/11 done)
+- [ ] Server action hooks in `@lsp-indexer/next` for all domains (1/11 done)
+- [x] TanStack Query provider setup
 - [ ] Comprehensive tests and documentation for new devs
 
 ### Deferred
@@ -107,7 +116,7 @@ V2 rewrite is feature-complete with data parity validated against V1 via automat
 
 ## Context
 
-- **Monorepo**: 6 packages — `abi` (contract types), `typeorm` (schema/models), `indexer` (V1 core), `indexer-v2` (V2 rewrite), `comparison-tool`, and `react` (NEW — hooks library)
+- **Monorepo**: 9 packages — `abi` (contract types), `typeorm` (schema/models), `indexer` (V1 core), `indexer-v2` (V2 rewrite), `comparison-tool`, `types` (Zod schemas), `node` (services/parsers/codegen), `react` (TanStack Query hooks), `next` (server actions + hooks)
 - **Stack**: TypeScript, Subsquid EVM Processor, TypeORM + PostgreSQL, Hasura GraphQL, Viem, Node.js 22
 - **Schema**: ~80+ TypeORM entities generated from `schema.graphql`, mapping 1:1 to LUKSO LSP standards
 - **Hasura auto-generates GraphQL API** from PostgreSQL — codegen runs against Hasura endpoint to produce TypeScript types
@@ -182,8 +191,10 @@ gh pr create --base refactor/indexer-v2-react --title "<plan title>" --body "<su
 | Side-by-side V1/V2 validation           | Risk mitigation for production cutover — automated comparison ensures parity   | ✓ Good — comparison tool shipped |
 | Docker + VPS deployment                 | Matches existing V1 infrastructure, no infrastructure migration during rewrite | ✓ Good — both stacks running     |
 
-| React hooks package in lsp-indexer monorepo | Keeps indexer + consumers in one repo, schema stays in sync, single publish pipeline | — Pending |
+| React hooks package in lsp-indexer monorepo | Keeps indexer + consumers in one repo, schema stays in sync, single publish pipeline | ✓ Good — 4 packages shipped |
+| 4-package split (types/node/react/next) | Separation of concerns: types standalone, node has no React dep, react is thin hooks, next adds server actions | ✓ Good — clean dependency graph |
+| Native `'use server'` over next-safe-action | Simpler, zero runtime deps, Next.js-native — no benefit from next-safe-action wrapper for read-only hooks | ✓ Good — lighter bundle |
 
 ---
 
-_Last updated: 2026-02-16 after v1.1 milestone start_
+_Last updated: 2026-02-19 — updated for 4-package architecture_

@@ -14,8 +14,8 @@ Requirements for the React hooks package milestone. Each maps to roadmap phases.
 - [x] **FOUND-03**: Developer can configure GraphQL URL (HTTP + WebSocket) via environment variable
 - [x] **FOUND-04**: Developer can wrap app in `<IndexerProvider>` with optional existing QueryClient
 - [x] **FOUND-05**: Developer gets typed `IndexerError` with network, GraphQL, and Hasura permission error categories
-- [x] **FOUND-06**: Developer can import from main (`@lsp-indexer/react`) and server (`@lsp-indexer/react/server`) entry points without bundle contamination
-- [x] **FOUND-07**: A minimal Next.js test app (`apps/test`) exists in the monorepo that imports from `@lsp-indexer/react`, validates hooks work in both client and server components, and catches bundle/export issues during development
+- [x] **FOUND-06**: Developer can import from `@lsp-indexer/react` (client hooks), `@lsp-indexer/node` (server), and `@lsp-indexer/types` (types) without bundle contamination
+- [x] **FOUND-07**: A minimal Next.js test app (`apps/test`) exists in the monorepo that imports from all 4 packages, validates hooks work in both client and server components, and catches bundle/export issues during development
 
 ### Query Domains
 
@@ -45,15 +45,15 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 
 ### Server Actions
 
-- [ ] **ACTION-01**: Developer can use next-safe-action server actions for all 11 domains
-- [ ] **ACTION-02**: Developer can import server utilities from `@lsp-indexer/react/server` without client code leaking
-- [ ] **ACTION-03**: All server action inputs are validated with Zod schemas
+- [ ] **ACTION-01**: Developer can use `@lsp-indexer/next` server actions for all 11 domains
+- [ ] **ACTION-02**: Developer can import from `@lsp-indexer/node` (server) without client code leaking
+- [ ] **ACTION-03**: All server action inputs are validated with Zod schemas from `@lsp-indexer/types`
 
 ### Developer Experience
 
-- [x] **DX-01**: Developer can import all clean camelCase domain types from `@lsp-indexer/react/types`
+- [x] **DX-01**: Developer can import all clean camelCase domain types from `@lsp-indexer/types`
 - [x] **DX-02**: Developer can import query key factories for cache invalidation and prefetching
-- [ ] **DX-03**: Package passes `publint` and `arethetypeswrong` validation for publish readiness
+- [ ] **DX-03**: All 4 packages pass `publint` and `arethetypeswrong` validation for publish readiness
 
 ## Future Requirements
 
@@ -122,4 +122,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 ---
 
 _Requirements defined: 2026-02-16_
-_Last updated: 2026-02-16 after roadmap creation (traceability updated)_
+_Last updated: 2026-02-19 — updated for 4-package architecture (types, node, react, next)_
