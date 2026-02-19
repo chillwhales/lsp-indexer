@@ -1,10 +1,12 @@
 import type { Creator } from '@lsp-indexer/types';
-import type { GetCreatorAddressesResult } from '../documents/creators';
+import type { GetCreatorAddressesQuery } from '../graphql/graphql';
 
 /**
- * Raw Hasura lsp4_creator type from the query result.
+ * Raw Hasura lsp4_creator type from the codegen-generated query result.
+ *
+ * Extracted from the codegen type to keep the parser type-safe against schema changes.
  */
-type RawCreator = GetCreatorAddressesResult['lsp4_creator'][number];
+type RawCreator = GetCreatorAddressesQuery['lsp4_creator'][number];
 
 /**
  * Transform a raw Hasura lsp4_creator row into a clean `Creator` type.

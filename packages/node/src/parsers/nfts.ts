@@ -1,13 +1,14 @@
 import type { Nft } from '@lsp-indexer/types';
-import type { GetNftQueryResult } from '../documents/nfts';
+import type { GetNftQuery } from '../graphql/graphql';
 
 /**
- * Raw Hasura NFT type from the query result.
+ * Raw Hasura NFT type from the codegen-generated query result.
  *
  * This is the shape of a single `nft` element returned by both
- * `GetNftQueryResult` and `GetNftsQueryResult`.
+ * `GetNftQuery` and `GetNftsQuery`. We extract it from the
+ * codegen type to keep the parser type-safe against schema changes.
  */
-type RawNft = GetNftQueryResult['nft'][number];
+type RawNft = GetNftQuery['nft'][number];
 
 /**
  * Transform a raw Hasura NFT response into a clean `Nft` type.

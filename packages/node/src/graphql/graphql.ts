@@ -21320,6 +21320,16 @@ export type Universal_Receiver_Variance_Order_By = {
   value?: InputMaybe<Order_By>;
 };
 
+export type GetCreatorAddressesQueryVariables = Exact<{
+  where?: InputMaybe<Lsp4_Creator_Bool_Exp>;
+  order_by?: InputMaybe<Array<Lsp4_Creator_Order_By> | Lsp4_Creator_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetCreatorAddressesQuery = { __typename?: 'query_root', lsp4_creator: Array<{ __typename?: 'lsp4_creator', address: string, creator_address: string }>, lsp4_creator_aggregate: { __typename?: 'lsp4_creator_aggregate', aggregate?: { __typename?: 'lsp4_creator_aggregate_fields', count: number } | null } };
+
 export type GetDataChangedEventsQueryVariables = Exact<{
   where?: InputMaybe<Data_Changed_Bool_Exp>;
   order_by?: InputMaybe<Array<Data_Changed_Order_By> | Data_Changed_Order_By>;
@@ -21363,6 +21373,53 @@ export type GetEncryptedAssetsQueryVariables = Exact<{
 
 
 export type GetEncryptedAssetsQuery = { __typename?: 'query_root', lsp29_encrypted_asset: Array<{ __typename?: 'lsp29_encrypted_asset', id: string, address: string, url?: string | null, content_id?: string | null, is_data_fetched: boolean, version?: string | null, timestamp: any, universal_profile_id?: string | null, title?: { __typename?: 'lsp29_encrypted_asset_title', value?: string | null } | null, description?: { __typename?: 'lsp29_encrypted_asset_description', value?: string | null } | null, file?: { __typename?: 'lsp29_encrypted_asset_file', name?: string | null, type?: string | null, size?: string | null } | null, encryption?: { __typename?: 'lsp29_encrypted_asset_encryption', method?: string | null } | null, images: Array<{ __typename?: 'lsp29_encrypted_asset_image', url?: string | null, width?: number | null, height?: number | null }>, images_aggregate: { __typename?: 'lsp29_encrypted_asset_image_aggregate', aggregate?: { __typename?: 'lsp29_encrypted_asset_image_aggregate_fields', count: number } | null } }>, lsp29_encrypted_asset_aggregate: { __typename?: 'lsp29_encrypted_asset_aggregate', aggregate?: { __typename?: 'lsp29_encrypted_asset_aggregate_fields', count: number } | null } };
+
+export type GetEncryptedAssetFeedQueryVariables = Exact<{
+  where?: InputMaybe<Lsp29_Encrypted_Asset_Entry_Bool_Exp>;
+  order_by?: InputMaybe<Array<Lsp29_Encrypted_Asset_Entry_Order_By> | Lsp29_Encrypted_Asset_Entry_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetEncryptedAssetFeedQuery = { __typename?: 'query_root', lsp29_encrypted_asset_entry: Array<{ __typename?: 'lsp29_encrypted_asset_entry', id: string, address: string, content_id_hash: string, array_index?: string | null, timestamp: any, universal_profile_id?: string | null }>, lsp29_encrypted_asset_entry_aggregate: { __typename?: 'lsp29_encrypted_asset_entry_aggregate', aggregate?: { __typename?: 'lsp29_encrypted_asset_entry_aggregate_fields', count: number } | null } };
+
+export type GetNftQueryVariables = Exact<{
+  where: Nft_Bool_Exp;
+}>;
+
+
+export type GetNftQuery = { __typename?: 'query_root', nft: Array<{ __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, digitalAsset?: { __typename?: 'digital_asset', lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, ownedToken?: { __typename?: 'owned_token', owner: string } | null }> };
+
+export type GetNftsQueryVariables = Exact<{
+  where?: InputMaybe<Nft_Bool_Exp>;
+  order_by?: InputMaybe<Array<Nft_Order_By> | Nft_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetNftsQuery = { __typename?: 'query_root', nft: Array<{ __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, digitalAsset?: { __typename?: 'digital_asset', lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, ownedToken?: { __typename?: 'owned_token', owner: string } | null }>, nft_aggregate: { __typename?: 'nft_aggregate', aggregate?: { __typename?: 'nft_aggregate_fields', count: number } | null } };
+
+export type GetOwnedAssetsQueryVariables = Exact<{
+  where?: InputMaybe<Owned_Asset_Bool_Exp>;
+  order_by?: InputMaybe<Array<Owned_Asset_Order_By> | Owned_Asset_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetOwnedAssetsQuery = { __typename?: 'query_root', owned_asset: Array<{ __typename?: 'owned_asset', owner: string, address: string, balance: string, digitalAsset?: { __typename?: 'digital_asset', lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null } | null }>, owned_asset_aggregate: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null } };
+
+export type GetOwnedTokensQueryVariables = Exact<{
+  where?: InputMaybe<Owned_Token_Bool_Exp>;
+  order_by?: InputMaybe<Array<Owned_Token_Order_By> | Owned_Token_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetOwnedTokensQuery = { __typename?: 'query_root', owned_token: Array<{ __typename?: 'owned_token', owner: string, address: string, token_id: string, digitalAsset?: { __typename?: 'digital_asset', lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null } | null }>, owned_token_aggregate: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } };
 
 export type GetProfileQueryVariables = Exact<{
   where: Universal_Profile_Bool_Exp;
@@ -21446,6 +21503,19 @@ export class TypedDocumentString<TResult, TVariables>
   }
 }
 
+export const GetCreatorAddressesDocument = new TypedDocumentString(`
+    query GetCreatorAddresses($where: lsp4_creator_bool_exp, $order_by: [lsp4_creator_order_by!], $limit: Int, $offset: Int) {
+  lsp4_creator(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
+    address
+    creator_address
+  }
+  lsp4_creator_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetCreatorAddressesQuery, GetCreatorAddressesQueryVariables>;
 export const GetDataChangedEventsDocument = new TypedDocumentString(`
     query GetDataChangedEvents($where: data_changed_bool_exp, $order_by: [data_changed_order_by!], $limit: Int, $offset: Int) {
   data_changed(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
@@ -21621,6 +21691,127 @@ export const GetEncryptedAssetsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<GetEncryptedAssetsQuery, GetEncryptedAssetsQueryVariables>;
+export const GetEncryptedAssetFeedDocument = new TypedDocumentString(`
+    query GetEncryptedAssetFeed($where: lsp29_encrypted_asset_entry_bool_exp, $order_by: [lsp29_encrypted_asset_entry_order_by!], $limit: Int, $offset: Int) {
+  lsp29_encrypted_asset_entry(
+    where: $where
+    order_by: $order_by
+    limit: $limit
+    offset: $offset
+  ) {
+    id
+    address
+    content_id_hash
+    array_index
+    timestamp
+    universal_profile_id
+  }
+  lsp29_encrypted_asset_entry_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetEncryptedAssetFeedQuery, GetEncryptedAssetFeedQueryVariables>;
+export const GetNftDocument = new TypedDocumentString(`
+    query GetNft($where: nft_bool_exp!) {
+  nft(where: $where, limit: 1) {
+    address
+    token_id
+    formatted_token_id
+    is_burned
+    is_minted
+    digitalAsset {
+      lsp4TokenName {
+        value
+      }
+      lsp4TokenSymbol {
+        value
+      }
+      lsp8TokenMetadataBaseUri {
+        value
+      }
+    }
+    ownedToken {
+      owner
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetNftQuery, GetNftQueryVariables>;
+export const GetNftsDocument = new TypedDocumentString(`
+    query GetNfts($where: nft_bool_exp, $order_by: [nft_order_by!], $limit: Int, $offset: Int) {
+  nft(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
+    address
+    token_id
+    formatted_token_id
+    is_burned
+    is_minted
+    digitalAsset {
+      lsp4TokenName {
+        value
+      }
+      lsp4TokenSymbol {
+        value
+      }
+      lsp8TokenMetadataBaseUri {
+        value
+      }
+    }
+    ownedToken {
+      owner
+    }
+  }
+  nft_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetNftsQuery, GetNftsQueryVariables>;
+export const GetOwnedAssetsDocument = new TypedDocumentString(`
+    query GetOwnedAssets($where: owned_asset_bool_exp, $order_by: [owned_asset_order_by!], $limit: Int, $offset: Int) {
+  owned_asset(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
+    owner
+    address
+    balance
+    digitalAsset {
+      lsp4TokenName {
+        value
+      }
+      lsp4TokenSymbol {
+        value
+      }
+    }
+  }
+  owned_asset_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetOwnedAssetsQuery, GetOwnedAssetsQueryVariables>;
+export const GetOwnedTokensDocument = new TypedDocumentString(`
+    query GetOwnedTokens($where: owned_token_bool_exp, $order_by: [owned_token_order_by!], $limit: Int, $offset: Int) {
+  owned_token(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
+    owner
+    address
+    token_id
+    digitalAsset {
+      lsp4TokenName {
+        value
+      }
+      lsp4TokenSymbol {
+        value
+      }
+    }
+  }
+  owned_token_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetOwnedTokensQuery, GetOwnedTokensQueryVariables>;
 export const GetProfileDocument = new TypedDocumentString(`
     query GetProfile($where: universal_profile_bool_exp!, $includeName: Boolean! = true, $includeDescription: Boolean! = true, $includeTags: Boolean! = true, $includeLinks: Boolean! = true, $includeAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeBackgroundImage: Boolean! = true, $includeFollowerCount: Boolean! = true, $includeFollowingCount: Boolean! = true) {
   universal_profile(where: $where, limit: 1) {

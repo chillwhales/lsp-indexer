@@ -1,15 +1,19 @@
 import type { OwnedAsset, OwnedToken } from '@lsp-indexer/types';
-import type { GetOwnedAssetsResult, GetOwnedTokensResult } from '../documents/owned-assets';
+import type { GetOwnedAssetsQuery, GetOwnedTokensQuery } from '../graphql/graphql';
 
 /**
- * Raw Hasura owned_asset type from the query result.
+ * Raw Hasura owned_asset type from the codegen-generated query result.
+ *
+ * Extracted from the codegen type to keep the parser type-safe against schema changes.
  */
-type RawOwnedAsset = GetOwnedAssetsResult['owned_asset'][number];
+type RawOwnedAsset = GetOwnedAssetsQuery['owned_asset'][number];
 
 /**
- * Raw Hasura owned_token type from the query result.
+ * Raw Hasura owned_token type from the codegen-generated query result.
+ *
+ * Extracted from the codegen type to keep the parser type-safe against schema changes.
  */
-type RawOwnedToken = GetOwnedTokensResult['owned_token'][number];
+type RawOwnedToken = GetOwnedTokensQuery['owned_token'][number];
 
 /**
  * Transform a raw Hasura owned_asset row into a clean `OwnedAsset` type.
