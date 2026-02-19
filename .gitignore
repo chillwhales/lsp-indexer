@@ -9,6 +9,9 @@ packages/typeorm/hasura_metadata.json
 .env
 .vscode/
 
+# Build info
+*.tsbuildinfo
+
 # Logs
 logs/
 *.log
