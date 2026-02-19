@@ -22,19 +22,19 @@ Requirements for the React hooks package milestone. Each maps to roadmap phases.
 Each domain includes: GraphQL document, parser (snake_case → camelCase), service function, TanStack Query hook, and query key factory entry.
 
 - [x] **QUERY-01**: Developer can use `useProfile`, `useProfiles`, `useInfiniteProfiles` for Universal Profile data
-- [ ] **QUERY-02**: Developer can use `useDigitalAsset`, `useDigitalAssets`, `useDigitalAssetSearch` for Digital Asset data
-- [ ] **QUERY-03**: Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data
-- [ ] **QUERY-04**: Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data
-- [ ] **QUERY-05**: Developer can use `useFollowers`, `useFollowing`, `useFollowCount` for social/follow data
-- [ ] **QUERY-06**: Developer can use `useCreatorAddresses` for asset creator data
-- [ ] **QUERY-07**: Developer can use `useEncryptedAsset`, `useEncryptedAssets` for LSP29 encrypted asset data
-- [ ] **QUERY-08**: Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery
-- [ ] **QUERY-09**: Developer can use `useDataChangedEvents` for ERC725 data change events
-- [ ] **QUERY-10**: Developer can use `useUniversalReceiverEvents` for universal receiver events
+- [x] **QUERY-02**: Developer can use `useDigitalAsset`, `useDigitalAssets`, `useDigitalAssetSearch` for Digital Asset data
+- [x] **QUERY-03**: Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data
+- [x] **QUERY-04**: Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data
+- [x] **QUERY-05**: Developer can use `useFollowers`, `useFollowing`, `useFollowCount` for social/follow data
+- [x] **QUERY-06**: Developer can use `useCreatorAddresses` for asset creator data
+- [x] **QUERY-07**: Developer can use `useEncryptedAsset`, `useEncryptedAssets` for LSP29 encrypted asset data
+- [x] **QUERY-08**: Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery
+- [x] **QUERY-09**: Developer can use `useDataChangedEvents` for ERC725 data change events
+- [x] **QUERY-10**: Developer can use `useUniversalReceiverEvents` for universal receiver events
 
 ### Pagination
 
-- [ ] **PAGE-01**: Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain
+- [x] **PAGE-01**: Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain
 
 ### Subscriptions
 
@@ -93,16 +93,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUERY-01    | 8     | Complete |
 | DX-01       | 8     | Complete |
 | DX-02       | 8     | Complete |
-| QUERY-02    | 9     | Pending  |
-| QUERY-03    | 9     | Pending  |
-| QUERY-04    | 9     | Pending  |
-| QUERY-05    | 9     | Pending  |
-| QUERY-06    | 9     | Pending  |
-| QUERY-07    | 9     | Pending  |
-| QUERY-08    | 9     | Pending  |
-| QUERY-09    | 9     | Pending  |
-| QUERY-10    | 9     | Pending  |
-| PAGE-01     | 9     | Pending  |
+| QUERY-02    | 9     | Complete |
+| QUERY-03    | 9     | Complete |
+| QUERY-04    | 9     | Complete |
+| QUERY-05    | 9     | Complete |
+| QUERY-06    | 9     | Complete |
+| QUERY-07    | 9     | Complete |
+| QUERY-08    | 9     | Complete |
+| QUERY-09    | 9     | Complete |
+| QUERY-10    | 9     | Complete |
+| PAGE-01     | 9     | Complete |
 | SUB-01      | 10    | Pending  |
 | SUB-02      | 10    | Pending  |
 | SUB-03      | 10    | Pending  |

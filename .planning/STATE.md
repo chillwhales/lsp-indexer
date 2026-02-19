@@ -14,7 +14,7 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 - **Plan:** 11 of 11
 - **Status:** Phase complete
 - **Last activity:** 2026-02-19 — Completed 09-11-PLAN.md (Integration Audit & Build Validation)
-- **Progress:** ██████████ 100% (Phase 9)
+- **Progress:** ████████████████░░░░ 84% (v1.1)
 
 ## Milestone History
 
@@ -30,18 +30,18 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | ----- | ------------------------------------ | :----------: | ---------------------------- |
 | 7     | Package Foundation                   |     7/7      | Complete                     |
 | 8     | First Vertical Slice (Profiles)      |     3/3      | Complete                     |
-| 9     | Remaining Query Domains & Pagination |    11/11     | Complete (all 11 plans done) |
+| 9     | Remaining Query Domains & Pagination |    10/10     | Complete (all 11 plans done) |
 | 10    | Subscriptions                        |      3       | Pending                      |
 | 11    | Server Actions & Publish Readiness   |      4       | Pending                      |
 
-**Total:** 21/28 requirements delivered (FOUND-01–07, QUERY-01–10, DX-01, DX-02, PAGE-01)
+**Total:** 20/28 requirements delivered (FOUND-01–07, QUERY-01–10, DX-01, DX-02, PAGE-01)
 
 ## Performance Metrics
 
-- **Plans completed:** 50 (36 v1.0 + 14 v1.1)
+- **Plans completed:** 53 (36 v1.0 + 17 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 14 (11 v1.0 + 3 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 21/28 (v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 20/28 (v1.1)
 
 ## Accumulated Context
 
