@@ -40,3 +40,12 @@ export {
   useDigitalAssets,
   useInfiniteDigitalAssets,
 } from './hooks/digital-assets';
+
+// Social/Follow hooks (client-side — browser → Hasura directly)
+export {
+  useFollowCount,
+  useFollowers,
+  useFollowing,
+  useInfiniteFollowers,
+  useInfiniteFollowing,
+} from './hooks/social';

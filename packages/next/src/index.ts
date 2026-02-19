@@ -39,3 +39,15 @@ export {
   useDigitalAssets,
   useInfiniteDigitalAssets,
 } from './hooks/digital-assets';
+
+// Social/Follow server actions
+export { getFollowCount, getFollowers, getFollowing } from './actions/social';
+
+// Social/Follow hooks (via server actions)
+export {
+  useFollowCount,
+  useFollowers,
+  useFollowing,
+  useInfiniteFollowers,
+  useInfiniteFollowing,
+} from './hooks/social';
