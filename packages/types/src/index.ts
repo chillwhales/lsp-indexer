@@ -183,6 +183,28 @@ export type {
   UseInfiniteEncryptedAssetFeedParams,
 } from './encrypted-feed';
 
+// Digital Assets domain — Zod schemas
+export {
+  DigitalAssetFilterSchema,
+  DigitalAssetSchema,
+  DigitalAssetSortFieldSchema,
+  DigitalAssetSortSchema,
+  UseDigitalAssetParamsSchema,
+  UseDigitalAssetsParamsSchema,
+  UseInfiniteDigitalAssetsParamsSchema,
+} from './digital-assets';
+
+// Digital Assets domain — inferred types
+export type {
+  DigitalAsset,
+  DigitalAssetFilter,
+  DigitalAssetSort,
+  DigitalAssetSortField,
+  UseDigitalAssetParams,
+  UseDigitalAssetsParams,
+  UseInfiniteDigitalAssetsParams,
+} from './digital-assets';
+
 // Owned Assets domain — Zod schemas
 export {
   OwnedAssetFilterSchema,

@@ -21320,6 +21320,50 @@ export type Universal_Receiver_Variance_Order_By = {
   value?: InputMaybe<Order_By>;
 };
 
+export type GetDataChangedEventsQueryVariables = Exact<{
+  where?: InputMaybe<Data_Changed_Bool_Exp>;
+  order_by?: InputMaybe<Array<Data_Changed_Order_By> | Data_Changed_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetDataChangedEventsQuery = { __typename?: 'query_root', data_changed: Array<{ __typename?: 'data_changed', id: string, address: string, data_key: string, data_value: string, block_number: number, log_index: number, transaction_index: number, timestamp: any }>, data_changed_aggregate: { __typename?: 'data_changed_aggregate', aggregate?: { __typename?: 'data_changed_aggregate_fields', count: number } | null } };
+
+export type GetDigitalAssetQueryVariables = Exact<{
+  where: Digital_Asset_Bool_Exp;
+}>;
+
+
+export type GetDigitalAssetQuery = { __typename?: 'query_root', digital_asset: Array<{ __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Creators_aggregate: { __typename?: 'lsp4_creator_aggregate', aggregate?: { __typename?: 'lsp4_creator_aggregate_fields', count: number } | null }, ownedTokens_aggregate: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }> };
+
+export type GetDigitalAssetsQueryVariables = Exact<{
+  where?: InputMaybe<Digital_Asset_Bool_Exp>;
+  order_by?: InputMaybe<Array<Digital_Asset_Order_By> | Digital_Asset_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetDigitalAssetsQuery = { __typename?: 'query_root', digital_asset: Array<{ __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Creators_aggregate: { __typename?: 'lsp4_creator_aggregate', aggregate?: { __typename?: 'lsp4_creator_aggregate_fields', count: number } | null }, ownedTokens_aggregate: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }>, digital_asset_aggregate: { __typename?: 'digital_asset_aggregate', aggregate?: { __typename?: 'digital_asset_aggregate_fields', count: number } | null } };
+
+export type GetEncryptedAssetQueryVariables = Exact<{
+  where: Lsp29_Encrypted_Asset_Bool_Exp;
+}>;
+
+
+export type GetEncryptedAssetQuery = { __typename?: 'query_root', lsp29_encrypted_asset: Array<{ __typename?: 'lsp29_encrypted_asset', id: string, address: string, url?: string | null, content_id?: string | null, is_data_fetched: boolean, version?: string | null, timestamp: any, universal_profile_id?: string | null, title?: { __typename?: 'lsp29_encrypted_asset_title', value?: string | null } | null, description?: { __typename?: 'lsp29_encrypted_asset_description', value?: string | null } | null, file?: { __typename?: 'lsp29_encrypted_asset_file', name?: string | null, type?: string | null, size?: string | null } | null, encryption?: { __typename?: 'lsp29_encrypted_asset_encryption', method?: string | null } | null, images: Array<{ __typename?: 'lsp29_encrypted_asset_image', url?: string | null, width?: number | null, height?: number | null }>, images_aggregate: { __typename?: 'lsp29_encrypted_asset_image_aggregate', aggregate?: { __typename?: 'lsp29_encrypted_asset_image_aggregate_fields', count: number } | null } }> };
+
+export type GetEncryptedAssetsQueryVariables = Exact<{
+  where?: InputMaybe<Lsp29_Encrypted_Asset_Bool_Exp>;
+  order_by?: InputMaybe<Array<Lsp29_Encrypted_Asset_Order_By> | Lsp29_Encrypted_Asset_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetEncryptedAssetsQuery = { __typename?: 'query_root', lsp29_encrypted_asset: Array<{ __typename?: 'lsp29_encrypted_asset', id: string, address: string, url?: string | null, content_id?: string | null, is_data_fetched: boolean, version?: string | null, timestamp: any, universal_profile_id?: string | null, title?: { __typename?: 'lsp29_encrypted_asset_title', value?: string | null } | null, description?: { __typename?: 'lsp29_encrypted_asset_description', value?: string | null } | null, file?: { __typename?: 'lsp29_encrypted_asset_file', name?: string | null, type?: string | null, size?: string | null } | null, encryption?: { __typename?: 'lsp29_encrypted_asset_encryption', method?: string | null } | null, images: Array<{ __typename?: 'lsp29_encrypted_asset_image', url?: string | null, width?: number | null, height?: number | null }>, images_aggregate: { __typename?: 'lsp29_encrypted_asset_image_aggregate', aggregate?: { __typename?: 'lsp29_encrypted_asset_image_aggregate_fields', count: number } | null } }>, lsp29_encrypted_asset_aggregate: { __typename?: 'lsp29_encrypted_asset_aggregate', aggregate?: { __typename?: 'lsp29_encrypted_asset_aggregate_fields', count: number } | null } };
+
 export type GetProfileQueryVariables = Exact<{
   where: Universal_Profile_Bool_Exp;
   includeName?: Scalars['Boolean']['input'];
@@ -21355,6 +21399,34 @@ export type GetProfilesQueryVariables = Exact<{
 
 export type GetProfilesQuery = { __typename?: 'query_root', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }>, universal_profile_aggregate: { __typename?: 'universal_profile_aggregate', aggregate?: { __typename?: 'universal_profile_aggregate_fields', count: number } | null } };
 
+export type GetFollowersQueryVariables = Exact<{
+  where?: InputMaybe<Follower_Bool_Exp>;
+  order_by?: InputMaybe<Array<Follower_Order_By> | Follower_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetFollowersQuery = { __typename?: 'query_root', follower: Array<{ __typename?: 'follower', follower_address: string, followed_address: string }>, follower_aggregate: { __typename?: 'follower_aggregate', aggregate?: { __typename?: 'follower_aggregate_fields', count: number } | null } };
+
+export type GetFollowCountQueryVariables = Exact<{
+  followerWhere?: InputMaybe<Follower_Bool_Exp>;
+  followingWhere?: InputMaybe<Follower_Bool_Exp>;
+}>;
+
+
+export type GetFollowCountQuery = { __typename?: 'query_root', followerCount: { __typename?: 'follower_aggregate', aggregate?: { __typename?: 'follower_aggregate_fields', count: number } | null }, followingCount: { __typename?: 'follower_aggregate', aggregate?: { __typename?: 'follower_aggregate_fields', count: number } | null } };
+
+export type GetUniversalReceiverEventsQueryVariables = Exact<{
+  where?: InputMaybe<Universal_Receiver_Bool_Exp>;
+  order_by?: InputMaybe<Array<Universal_Receiver_Order_By> | Universal_Receiver_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetUniversalReceiverEventsQuery = { __typename?: 'query_root', universal_receiver: Array<{ __typename?: 'universal_receiver', id: string, address: string, from: string, type_id: string, received_data: string, returned_value: string, block_number: number, transaction_index: number, log_index: number, value: string, timestamp: any }>, universal_receiver_aggregate: { __typename?: 'universal_receiver_aggregate', aggregate?: { __typename?: 'universal_receiver_aggregate_fields', count: number } | null } };
+
 export class TypedDocumentString<TResult, TVariables>
   extends String
   implements DocumentTypeDecoration<TResult, TVariables>
@@ -21374,6 +21446,181 @@ export class TypedDocumentString<TResult, TVariables>
   }
 }
 
+export const GetDataChangedEventsDocument = new TypedDocumentString(`
+    query GetDataChangedEvents($where: data_changed_bool_exp, $order_by: [data_changed_order_by!], $limit: Int, $offset: Int) {
+  data_changed(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
+    id
+    address
+    data_key
+    data_value
+    block_number
+    log_index
+    transaction_index
+    timestamp
+  }
+  data_changed_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetDataChangedEventsQuery, GetDataChangedEventsQueryVariables>;
+export const GetDigitalAssetDocument = new TypedDocumentString(`
+    query GetDigitalAsset($where: digital_asset_bool_exp!) {
+  digital_asset(where: $where, limit: 1) {
+    id
+    address
+    lsp4TokenName {
+      value
+    }
+    lsp4TokenSymbol {
+      value
+    }
+    lsp4TokenType {
+      value
+    }
+    totalSupply {
+      value
+    }
+    lsp4Creators_aggregate {
+      aggregate {
+        count
+      }
+    }
+    ownedTokens_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetDigitalAssetQuery, GetDigitalAssetQueryVariables>;
+export const GetDigitalAssetsDocument = new TypedDocumentString(`
+    query GetDigitalAssets($where: digital_asset_bool_exp, $order_by: [digital_asset_order_by!], $limit: Int, $offset: Int) {
+  digital_asset(
+    where: $where
+    order_by: $order_by
+    limit: $limit
+    offset: $offset
+  ) {
+    id
+    address
+    lsp4TokenName {
+      value
+    }
+    lsp4TokenSymbol {
+      value
+    }
+    lsp4TokenType {
+      value
+    }
+    totalSupply {
+      value
+    }
+    lsp4Creators_aggregate {
+      aggregate {
+        count
+      }
+    }
+    ownedTokens_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+  digital_asset_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetDigitalAssetsQuery, GetDigitalAssetsQueryVariables>;
+export const GetEncryptedAssetDocument = new TypedDocumentString(`
+    query GetEncryptedAsset($where: lsp29_encrypted_asset_bool_exp!) {
+  lsp29_encrypted_asset(where: $where, limit: 1) {
+    id
+    address
+    url
+    content_id
+    is_data_fetched
+    version
+    timestamp
+    universal_profile_id
+    title {
+      value
+    }
+    description {
+      value
+    }
+    file {
+      name
+      type
+      size
+    }
+    encryption {
+      method
+    }
+    images {
+      url
+      width
+      height
+    }
+    images_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetEncryptedAssetQuery, GetEncryptedAssetQueryVariables>;
+export const GetEncryptedAssetsDocument = new TypedDocumentString(`
+    query GetEncryptedAssets($where: lsp29_encrypted_asset_bool_exp, $order_by: [lsp29_encrypted_asset_order_by!], $limit: Int, $offset: Int) {
+  lsp29_encrypted_asset(
+    where: $where
+    order_by: $order_by
+    limit: $limit
+    offset: $offset
+  ) {
+    id
+    address
+    url
+    content_id
+    is_data_fetched
+    version
+    timestamp
+    universal_profile_id
+    title {
+      value
+    }
+    description {
+      value
+    }
+    file {
+      name
+      type
+      size
+    }
+    encryption {
+      method
+    }
+    images {
+      url
+      width
+      height
+    }
+    images_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+  lsp29_encrypted_asset_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetEncryptedAssetsQuery, GetEncryptedAssetsQueryVariables>;
 export const GetProfileDocument = new TypedDocumentString(`
     query GetProfile($where: universal_profile_bool_exp!, $includeName: Boolean! = true, $includeDescription: Boolean! = true, $includeTags: Boolean! = true, $includeLinks: Boolean! = true, $includeAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeBackgroundImage: Boolean! = true, $includeFollowerCount: Boolean! = true, $includeFollowingCount: Boolean! = true) {
   universal_profile(where: $where, limit: 1) {
@@ -21490,3 +21737,57 @@ export const GetProfilesDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<GetProfilesQuery, GetProfilesQueryVariables>;
+export const GetFollowersDocument = new TypedDocumentString(`
+    query GetFollowers($where: follower_bool_exp, $order_by: [follower_order_by!], $limit: Int, $offset: Int) {
+  follower(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
+    follower_address
+    followed_address
+  }
+  follower_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetFollowersQuery, GetFollowersQueryVariables>;
+export const GetFollowCountDocument = new TypedDocumentString(`
+    query GetFollowCount($followerWhere: follower_bool_exp, $followingWhere: follower_bool_exp) {
+  followerCount: follower_aggregate(where: $followerWhere) {
+    aggregate {
+      count
+    }
+  }
+  followingCount: follower_aggregate(where: $followingWhere) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetFollowCountQuery, GetFollowCountQueryVariables>;
+export const GetUniversalReceiverEventsDocument = new TypedDocumentString(`
+    query GetUniversalReceiverEvents($where: universal_receiver_bool_exp, $order_by: [universal_receiver_order_by!], $limit: Int, $offset: Int) {
+  universal_receiver(
+    where: $where
+    order_by: $order_by
+    limit: $limit
+    offset: $offset
+  ) {
+    id
+    address
+    from
+    type_id
+    received_data
+    returned_value
+    block_number
+    transaction_index
+    log_index
+    value
+    timestamp
+  }
+  universal_receiver_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetUniversalReceiverEventsQuery, GetUniversalReceiverEventsQueryVariables>;
