@@ -5,6 +5,12 @@ export interface GraphqlClient {
   querySampleIds(hasuraTable: string, limit: number): Promise<string[]>;
   queryRowsByIds(hasuraTable: string, ids: string[]): Promise<Record<string, unknown>[]>;
   querySampleRows(hasuraTable: string, limit: number): Promise<Record<string, unknown>[]>;
+  /** Fetch sample rows ordered by specific columns (all ascending). Used for natural-key matching. */
+  querySampleRowsOrdered(
+    hasuraTable: string,
+    limit: number,
+    orderBy: string[],
+  ): Promise<Record<string, unknown>[]>;
   queryIdsWhereFieldNull(hasuraTable: string, field: string, limit: number): Promise<string[]>;
   queryExistingIds(hasuraTable: string, ids: string[]): Promise<string[]>;
   checkHealth(): Promise<boolean>;
@@ -224,6 +230,35 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     }
   }
 
+  async function querySampleRowsOrdered(
+    hasuraTable: string,
+    limit: number,
+    orderBy: string[],
+  ): Promise<Record<string, unknown>[]> {
+    const fields = await queryTableFields(hasuraTable);
+    if (fields.length === 0) return [];
+
+    const fieldSelection = fields.join('\n          ');
+    const orderByClause = orderBy.map((field) => `{ ${field}: asc }`).join(', ');
+
+    const query = `
+      query {
+        ${hasuraTable}(limit: ${limit}, order_by: [${orderByClause}]) {
+          ${fieldSelection}
+        }
+      }
+    `;
+
+    try {
+      const response = await client.post<GraphqlResponse<RowsData>>('', { query });
+      const rows = response.data.data?.[hasuraTable];
+      if (!Array.isArray(rows)) return [];
+      return rows;
+    } catch {
+      return [];
+    }
+  }
+
   async function checkHealth(): Promise<boolean> {
     try {
       const response = await client.post<GraphqlResponse<HealthData>>('', {
@@ -304,6 +339,7 @@ export function createGraphqlClient(url: string, adminSecret?: string): GraphqlC
     querySampleIds,
     queryRowsByIds,
     querySampleRows,
+    querySampleRowsOrdered,
     queryIdsWhereFieldNull,
     queryExistingIds,
     checkHealth,

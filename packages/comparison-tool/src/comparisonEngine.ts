@@ -44,6 +44,45 @@ function calcDiffPercent(a: number, b: number): number {
 }
 
 /**
+ * Build a natural-key map for UUID event entities.
+ * Key = natural key signature (e.g., "1000::5" for block_number::log_index).
+ * When duplicate keys exist (shouldn't happen), keeps the first occurrence.
+ */
+function buildNaturalKeyMap(
+  rows: Record<string, unknown>[],
+  naturalKey: string[],
+): Map<string, Record<string, unknown>> {
+  const map = new Map<string, Record<string, unknown>>();
+  for (const row of rows) {
+    const keyParts = naturalKey.map((field) => {
+      const val = row[field];
+      if (val === null || val === undefined) return '';
+      if (typeof val === 'object') return JSON.stringify(val);
+      return String(val as string | number | boolean);
+    });
+    const key = keyParts.join('::');
+    if (!map.has(key)) {
+      map.set(key, row);
+    }
+  }
+  return map;
+}
+
+/**
+ * Format natural key values into a human-readable row identifier.
+ * e.g., "block:1000 log:5"
+ */
+function formatNaturalKey(key: string, naturalKeyFields: string[]): string {
+  const parts = key.split('::');
+  return naturalKeyFields
+    .map((field, i) => {
+      const shortName = field.replace(/_/g, '');
+      return `${shortName}:${parts[i] ?? '?'}`;
+    })
+    .join(' ');
+}
+
+/**
  * Build a content signature map for metadata sub-entities with random UUIDs.
  * Key = content signature (all fields except 'id'), Value = array of rows
  * This enables content-based matching when IDs are non-deterministic.
@@ -271,20 +310,30 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
     let targetRows: Record<string, unknown>[];
     let sourceRowMap: Map<string, Record<string, unknown>>;
     let targetRowMap: Map<string, Record<string, unknown>>;
+    const naturalKey = entity.idStrategy === 'uuid' ? entity.naturalKey : undefined;
+    const isUuidEntity = naturalKey !== undefined;
 
-    // For metadata sub-entities with random UUIDs, use content-based matching
+    // -----------------------------------------------------------------------
+    // Strategy 1: Metadata sub-entities — content-based signature matching
+    // Order by parent FK (deterministic) so both endpoints sample the same data window.
+    // -----------------------------------------------------------------------
     if (entity.isMetadataSub) {
-      // Fetch full sample rows (not just IDs) from both endpoints
-      [sourceRows, targetRows] = await Promise.all([
-        sourceClient.querySampleRows(entity.hasuraTable, config.sampleSize),
-        targetClient.querySampleRows(entity.hasuraTable, config.sampleSize),
-      ]);
+      const orderFields = entity.parentFk ? [entity.parentFk] : [];
+      if (orderFields.length > 0) {
+        [sourceRows, targetRows] = await Promise.all([
+          sourceClient.querySampleRowsOrdered(entity.hasuraTable, config.sampleSize, orderFields),
+          targetClient.querySampleRowsOrdered(entity.hasuraTable, config.sampleSize, orderFields),
+        ]);
+      } else {
+        [sourceRows, targetRows] = await Promise.all([
+          sourceClient.querySampleRows(entity.hasuraTable, config.sampleSize),
+          targetClient.querySampleRows(entity.hasuraTable, config.sampleSize),
+        ]);
+      }
 
-      // Build content signature maps for matching
       const sourceSignatureMap = buildContentSignatureMap(sourceRows);
       const targetSignatureMap = buildContentSignatureMap(targetRows);
 
-      // Warn if either side produced an empty map but counts indicate data exists
       if (sourceSignatureMap.size === 0 || targetSignatureMap.size === 0) {
         process.stderr.write(
           `\n[warning] Content-based sampling for metadata sub-entity "${entity.name}" ` +
@@ -300,29 +349,11 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
       targetRowMap = new Map(
         Array.from(targetSignatureMap.entries()).map(([sig, rows]) => [sig, rows[0]]),
       );
-    } else {
-      // For core entities with deterministic IDs, use ID-based matching (original behavior)
-      const sampleIds = await sourceClient.querySampleIds(entity.hasuraTable, config.sampleSize);
-      if (sampleIds.length === 0) continue;
 
-      [sourceRows, targetRows] = await Promise.all([
-        sourceClient.queryRowsByIds(entity.hasuraTable, sampleIds),
-        targetClient.queryRowsByIds(entity.hasuraTable, sampleIds),
-      ]);
-
-      sourceRowMap = new Map(sourceRows.map((row) => [String(row.id), row]));
-      targetRowMap = new Map(targetRows.map((row) => [String(row.id), row]));
-    }
-
-    const knownDivergencesForEntity = getKnownDivergences(entity.name, config.mode);
-    const knownFieldSet = new Set(knownDivergencesForEntity.map((d) => d.field));
-
-    if (entity.isMetadataSub) {
-      // Content-based comparison for metadata sub-entities
+      // Bidirectional signature comparison
       const sourceSignatures = new Set(sourceRowMap.keys());
       const targetSignatures = new Set(targetRowMap.keys());
 
-      // Check for source rows missing in target
       for (const signature of sourceSignatures) {
         if (!targetSignatures.has(signature)) {
           const sourceRow = sourceRowMap.get(signature);
@@ -341,7 +372,6 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
         }
       }
 
-      // Check for target rows missing in source
       for (const signature of targetSignatures) {
         if (!sourceSignatures.has(signature)) {
           const targetRow = targetRowMap.get(signature);
@@ -360,64 +390,115 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
         }
       }
 
-      // Note: Matching signatures are considered identical (no diffs to report)
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      continue; // Skip to next entity — metadata sub has its own diff logic above
+    }
+
+    // -----------------------------------------------------------------------
+    // Strategy 2: UUID entities — natural key matching (block_number + log_index)
+    // -----------------------------------------------------------------------
+    if (isUuidEntity) {
+      [sourceRows, targetRows] = await Promise.all([
+        sourceClient.querySampleRowsOrdered(entity.hasuraTable, config.sampleSize, naturalKey),
+        targetClient.querySampleRowsOrdered(entity.hasuraTable, config.sampleSize, naturalKey),
+      ]);
+
+      sourceRowMap = buildNaturalKeyMap(sourceRows, naturalKey);
+      targetRowMap = buildNaturalKeyMap(targetRows, naturalKey);
     } else {
-      // ID-based comparison for core entities (original behavior)
-      const sampleKeys = Array.from(sourceRowMap.keys());
+      // -------------------------------------------------------------------
+      // Strategy 3: Address/composite entities — ID-based matching
+      // -------------------------------------------------------------------
+      const sampleIds = await sourceClient.querySampleIds(entity.hasuraTable, config.sampleSize);
+      if (sampleIds.length === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        continue;
+      }
 
-      for (const rowId of sampleKeys) {
-        const sourceRow = sourceRowMap.get(rowId);
-        const targetRow = targetRowMap.get(rowId);
+      [sourceRows, targetRows] = await Promise.all([
+        sourceClient.queryRowsByIds(entity.hasuraTable, sampleIds),
+        targetClient.queryRowsByIds(entity.hasuraTable, sampleIds),
+      ]);
 
-        if (sourceRow && !targetRow) {
-          const allFields: FieldDiff[] = Object.keys(sourceRow)
-            .filter((field) => field !== 'id')
-            .map((field) => ({ field, sourceValue: sourceRow[field], targetValue: undefined }));
+      sourceRowMap = new Map(sourceRows.map((row) => [String(row.id), row]));
+      targetRowMap = new Map(targetRows.map((row) => [String(row.id), row]));
+    }
 
+    // -----------------------------------------------------------------------
+    // Shared comparison logic for strategies 2 & 3
+    // -----------------------------------------------------------------------
+    const knownDivergencesForEntity = getKnownDivergences(entity.name, config.mode);
+    const knownFieldSet = new Set(knownDivergencesForEntity.map((d) => d.field));
+    const hasKnownCountDivergence = knownFieldSet.has('count');
+    const sampleKeys = Array.from(sourceRowMap.keys());
+
+    for (const key of sampleKeys) {
+      const sourceRow = sourceRowMap.get(key);
+      const targetRow = targetRowMap.get(key);
+
+      // Build a human-readable row identifier
+      const displayRowId = isUuidEntity && naturalKey ? formatNaturalKey(key, naturalKey) : key;
+
+      if (sourceRow && !targetRow) {
+        const allFields: FieldDiff[] = Object.keys(sourceRow)
+          .filter((field) => field !== 'id')
+          .map((field) => ({ field, sourceValue: sourceRow[field], targetValue: undefined }));
+
+        // If this entity has a known count divergence, missing rows in the
+        // target are expected (V1 has phantom/stale rows) — classify as known.
+        if (hasKnownCountDivergence) {
           sampleDiffs.push({
             entityName: entity.name,
-            rowId,
+            rowId: displayRowId,
+            diffs: allFields,
+            knownDivergences: allFields,
+            unexpectedDiffs: [],
+          });
+        } else {
+          sampleDiffs.push({
+            entityName: entity.name,
+            rowId: displayRowId,
             diffs: allFields,
             knownDivergences: [],
             unexpectedDiffs: allFields,
           });
-          continue;
         }
+        continue;
+      }
 
-        if (!sourceRow || !targetRow) continue;
+      if (!sourceRow || !targetRow) continue;
 
-        const knownDivergences: FieldDiff[] = [];
-        const unexpectedDiffs: FieldDiff[] = [];
+      const rowKnownDivergences: FieldDiff[] = [];
+      const rowUnexpectedDiffs: FieldDiff[] = [];
 
-        const allFields = new Set([
-          ...Object.keys(sourceRow).filter((f) => f !== 'id'),
-          ...Object.keys(targetRow).filter((f) => f !== 'id'),
-        ]);
+      const allFields = new Set([
+        ...Object.keys(sourceRow).filter((f) => f !== 'id'),
+        ...Object.keys(targetRow).filter((f) => f !== 'id'),
+      ]);
 
-        for (const field of allFields) {
-          const sourceValue = sourceRow[field];
-          const targetValue = targetRow[field];
+      for (const field of allFields) {
+        const sourceValue = sourceRow[field];
+        const targetValue = targetRow[field];
 
-          if (!valuesEqual(sourceValue, targetValue)) {
-            const fieldDiff: FieldDiff = { field, sourceValue, targetValue };
+        if (!valuesEqual(sourceValue, targetValue)) {
+          const fieldDiff: FieldDiff = { field, sourceValue, targetValue };
 
-            if (knownFieldSet.has(field)) {
-              knownDivergences.push(fieldDiff);
-            } else {
-              unexpectedDiffs.push(fieldDiff);
-            }
+          if (knownFieldSet.has(field)) {
+            rowKnownDivergences.push(fieldDiff);
+          } else {
+            rowUnexpectedDiffs.push(fieldDiff);
           }
         }
+      }
 
-        if (knownDivergences.length > 0 || unexpectedDiffs.length > 0) {
-          sampleDiffs.push({
-            entityName: entity.name,
-            rowId,
-            diffs: [...knownDivergences, ...unexpectedDiffs],
-            knownDivergences,
-            unexpectedDiffs,
-          });
-        }
+      if (rowKnownDivergences.length > 0 || rowUnexpectedDiffs.length > 0) {
+        sampleDiffs.push({
+          entityName: entity.name,
+          rowId: displayRowId,
+          diffs: [...rowKnownDivergences, ...rowUnexpectedDiffs],
+          knownDivergences: rowKnownDivergences,
+          unexpectedDiffs: rowUnexpectedDiffs,
+        });
       }
     }
 
@@ -462,7 +543,11 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
   const countFailures = counts.filter((c) => {
     if (c.match || c.withinTolerance) return false;
     const e = entitiesToCompare.find((ent) => ent.name === c.entityName);
-    return !e?.isMetadataSub;
+    if (e?.isMetadataSub) return false;
+    // Suppress count mismatches for entities with known count-level divergences
+    const knownDivergences = getKnownDivergences(c.entityName, config.mode);
+    if (knownDivergences.some((d) => d.field === 'count')) return false;
+    return true;
   });
 
   const totalUnexpectedDiffs = sampleDiffs.reduce(

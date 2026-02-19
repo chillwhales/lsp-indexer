@@ -8,12 +8,26 @@
  */
 export type ComparisonMode = 'v1-v2' | 'v2-v2';
 
+/**
+ * ID strategy determines how the comparison tool matches rows across endpoints.
+ *
+ * - address: ID is a deterministic address (e.g., '0x...'). Matched by ID.
+ * - composite: ID is a deterministic composite key (e.g., 'addr - tokenId'). Matched by ID.
+ * - uuid: ID is a random UUID. Cannot match by ID — must match by natural key fields.
+ */
+export type IdStrategy = 'address' | 'composite' | 'uuid';
+
 export interface EntityDefinition {
   name: string;
   hasuraTable: string;
   primaryKey: string;
   category: 'core' | 'event' | 'metadata' | 'ownership' | 'lsp' | 'custom';
   isMetadataSub: boolean;
+  idStrategy: IdStrategy;
+  /** Hasura column names that form a natural key for matching UUID entities across V1/V2 */
+  naturalKey?: string[];
+  /** Parent FK column name for metadata sub-entities (deterministic, used for ordered sampling) */
+  parentFk?: string;
 }
 
 export interface KnownDivergence {

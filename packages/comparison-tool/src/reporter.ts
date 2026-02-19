@@ -1,5 +1,5 @@
-import { ENTITY_REGISTRY } from './entityRegistry';
-import { ComparisonReport, RowDiff } from './types';
+import { ENTITY_REGISTRY, getKnownDivergences } from './entityRegistry';
+import { ComparisonReport, type KnownDivergence, RowDiff } from './types';
 
 const GREEN = '\x1b[32m';
 const RED = '\x1b[31m';
@@ -77,6 +77,15 @@ export function printReport(report: ComparisonReport): void {
     const tgtStr = formatNumber(count.targetCount);
     const diffStr = count.match ? '' : formatPercent(count.diffPercent);
 
+    // Check if this entity has a known count-level divergence
+    const knownCountDivergences: KnownDivergence[] = getKnownDivergences(
+      count.entityName,
+      report.mode,
+    );
+    const hasKnownCountDivergence = knownCountDivergences.some(
+      (d: KnownDivergence) => d.field === 'count',
+    );
+
     let statusSymbol: string;
     let statusColor: string;
 
@@ -88,6 +97,9 @@ export function printReport(report: ComparisonReport): void {
       statusColor = YELLOW;
     } else if (count.withinTolerance) {
       statusSymbol = '≈ TOLERANCE';
+      statusColor = YELLOW;
+    } else if (hasKnownCountDivergence) {
+      statusSymbol = '~ KNOWN';
       statusColor = YELLOW;
     } else {
       statusSymbol = '✗ MISMATCH';
@@ -228,6 +240,11 @@ export function printReport(report: ComparisonReport): void {
     const e = ENTITY_REGISTRY.find((ent) => ent.name === c.entityName);
     return e?.isMetadataSub ?? false;
   }).length;
+  const knownCountDivergences = report.counts.filter((c) => {
+    if (c.match) return false;
+    const divs: KnownDivergence[] = getKnownDivergences(c.entityName, report.mode);
+    return divs.some((d: KnownDivergence) => d.field === 'count');
+  }).length;
 
   const totalUnexpectedDiffs = report.sampleDiffs.reduce(
     (sum, diff) => sum + diff.unexpectedDiffs.length,
@@ -243,7 +260,8 @@ export function printReport(report: ComparisonReport): void {
   console.info(
     `Row count exact matches: ${exactMatches}/${entityTypesCompared}` +
       (toleranceMatches > 0 ? `  (+${toleranceMatches} within tolerance)` : '') +
-      (metadataTimingDiffs > 0 ? `  (${metadataTimingDiffs} metadata timing)` : ''),
+      (metadataTimingDiffs > 0 ? `  (${metadataTimingDiffs} metadata timing)` : '') +
+      (knownCountDivergences > 0 ? `  (${knownCountDivergences} known divergences)` : ''),
   );
   if (report.tolerancePercent > 0) {
     console.info(`Tolerance: ${report.tolerancePercent}%`);
