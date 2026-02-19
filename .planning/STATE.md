@@ -6,15 +6,15 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 9 in progress (Remaining Query Domains)
+**Current focus:** v1.1 React Hooks Package — Phase 9 complete, Phase 10 next (Subscriptions)
 
 ## Current Position
 
-- **Phase:** 9 of 11 (Remaining Query Domains & Pagination)
-- **Plan:** 10 of 11
-- **Status:** In progress
-- **Last activity:** 2026-02-19 — Completed 09-05-PLAN.md (Social/Follow domain)
-- **Progress:** █████████░ 93%
+- **Phase:** 9 of 11 (Remaining Query Domains & Pagination) — COMPLETE
+- **Plan:** 11 of 11
+- **Status:** Phase complete
+- **Last activity:** 2026-02-19 — Completed 09-11-PLAN.md (Integration Audit & Build Validation)
+- **Progress:** ██████████ 100% (Phase 9)
 
 ## Milestone History
 
@@ -26,22 +26,22 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                                 | Requirements | Status                         |
-| ----- | ------------------------------------ | :----------: | ------------------------------ |
-| 7     | Package Foundation                   |     7/7      | Complete                       |
-| 8     | First Vertical Slice (Profiles)      |     3/3      | Complete                       |
-| 9     | Remaining Query Domains & Pagination |     6/11     | In Progress (10/11 plans done) |
-| 10    | Subscriptions                        |      3       | Pending                        |
-| 11    | Server Actions & Publish Readiness   |      4       | Pending                        |
+| Phase | Name                                 | Requirements | Status                       |
+| ----- | ------------------------------------ | :----------: | ---------------------------- |
+| 7     | Package Foundation                   |     7/7      | Complete                     |
+| 8     | First Vertical Slice (Profiles)      |     3/3      | Complete                     |
+| 9     | Remaining Query Domains & Pagination |    11/11     | Complete (all 11 plans done) |
+| 10    | Subscriptions                        |      3       | Pending                      |
+| 11    | Server Actions & Publish Readiness   |      4       | Pending                      |
 
-**Total:** 18/28 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, QUERY-10, DX-01, DX-02)
+**Total:** 21/28 requirements delivered (FOUND-01–07, QUERY-01–10, DX-01, DX-02, PAGE-01)
 
 ## Performance Metrics
 
-- **Plans completed:** 49 (36 v1.0 + 13 v1.1)
+- **Plans completed:** 50 (36 v1.0 + 14 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 13 (11 v1.0 + 2 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 18/28 (v1.1)
+- **Phases completed:** 14 (11 v1.0 + 3 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 21/28 (v1.1)
 
 ## Accumulated Context
 
@@ -99,21 +99,21 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-19
-- **Activity:** Executed 09-05-PLAN.md — Social/Follow domain vertical slice
-- **Outcome:** Built complete social/follow domain. FollowerSchema + FollowCountSchema, GetFollowersDocument (shared for both directions) + GetFollowCountDocument (aliased dual aggregates), parser, services (fetchFollowers/fetchFollowing/fetchFollowCount), keys factory. 5 React hooks (useFollowers, useFollowing, useFollowCount, useInfiniteFollowers, useInfiniteFollowing), 3 Next.js server actions + 5 hooks, playground at /follows with Followers/Following/Count tabs. QUERY-05 delivered.
+- **Activity:** Executed 09-11-PLAN.md — Integration Audit & Build Validation (Phase 9 finale)
+- **Outcome:** Audited all 4 package index.ts exports (all correct from parallel plans, no conflicts). Updated nav with long route names, all domains available:true, /stats removed, /events split to /data-changed + /universal-receiver. Rebuilt home page with domain card grid (5 categories, 10 domains). Full build validated — all 4 packages + test app build with zero errors. Phase 9 COMPLETE.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9 plan 05 complete** — Social/Follow domain delivered (10/11 plans done)
-- **Next step:** Execute 09-11 (Transactions domain — last plan in Phase 9)
+- **Phase 9 complete** — All 10 query domains delivered, 11/11 plans done
+- **Next step:** Execute Phase 10 (Subscriptions)
 - **Key assets:**
-  - Social domain uses shared document for followers/following with different where clauses
-  - GetFollowCountDocument uses GraphQL aliases for dual aggregates
-  - useFollowCount returns scalar counts — no infinite variant
-  - Playground at /follows with three tabs (Followers, Following, Follow Count)
-  - All 4 packages build cleanly
-- **Build validated:** All 4 packages build with zero errors, test app builds with /follows route
+  - 27+ hooks across 10 domains (React + Next.js)
+  - All 10 playground pages live at their routes
+  - Home page serves as domain navigation hub
+  - Full build passes (4 packages + test app)
+  - No export conflicts across domain files
+- **Build validated:** All 4 packages + test app build with zero errors
 
 ---
 
