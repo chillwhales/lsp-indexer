@@ -3,17 +3,14 @@ import { defineConfig, type Options } from 'tsup';
 const sharedExternal = [
   'react',
   '@tanstack/react-query',
-  'graphql-ws',
-  'next-safe-action',
+  '@lsp-indexer/node',
+  '@lsp-indexer/types',
   'zod',
-  'server-only',
 ];
 
 export default defineConfig([
-  // Main entry — client hooks + services + types + errors
+  // Main entry — client hooks
   // Needs "use client" because it exports hooks that use React.
-  // Banner is injected via esbuild; tsup defaults treeshake to false,
-  // which preserves the banner (rollup treeshake can strip it).
   {
     entry: { index: 'src/index.ts' },
     format: ['esm', 'cjs'],
@@ -23,7 +20,7 @@ export default defineConfig([
     banner: { js: '"use client";' },
     external: sharedExternal,
   } satisfies Options,
-  // Server entry — no "use client" banner
+  // Server entry — re-exports from @lsp-indexer/node (backward compat)
   {
     entry: { server: 'src/server.ts' },
     format: ['esm', 'cjs'],
@@ -31,12 +28,12 @@ export default defineConfig([
     sourcemap: true,
     external: sharedExternal,
   } satisfies Options,
-  // Types entry — pure types, no runtime, no banner
+  // Types entry — re-exports from @lsp-indexer/types (backward compat)
   {
     entry: { types: 'src/types.ts' },
     format: ['esm', 'cjs'],
     dts: true,
     sourcemap: true,
-    external: ['react', '@tanstack/react-query'],
+    external: sharedExternal,
   } satisfies Options,
 ]);

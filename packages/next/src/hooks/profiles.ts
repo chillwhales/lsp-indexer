@@ -1,21 +1,23 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
-import { fetchProfile, fetchProfiles, getClientUrl, profileKeys } from '@lsp-indexer/node';
+import { profileKeys } from '@lsp-indexer/node';
 import type {
   UseInfiniteProfilesParams,
   UseProfileParams,
   UseProfilesParams,
 } from '@lsp-indexer/types';
 
+import { getProfile, getProfiles } from '../actions/profiles';
+
 /** Default number of profiles per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
 
 /**
- * Fetch a single Universal Profile by address.
+ * Fetch a single Universal Profile by address via Next.js server action.
  *
- * Wraps `fetchProfile` in a TanStack `useQuery` hook with automatic caching,
- * deduplication, and stale-while-revalidate. The query is disabled when
- * `address` is falsy (empty string, undefined via type widening, etc.).
+ * Identical API to `@lsp-indexer/react`'s `useProfile`, but routes the request
+ * through a server action instead of calling Hasura directly from the browser.
+ * This keeps the GraphQL endpoint hidden from the client.
  *
  * @param params - Profile address and optional include config
  * @returns `{ profile, isLoading, error, ...rest }` — full TanStack Query result
@@ -23,7 +25,7 @@ const DEFAULT_PAGE_SIZE = 20;
  *
  * @example
  * ```tsx
- * import { useProfile } from '@lsp-indexer/react';
+ * import { useProfile } from '@lsp-indexer/next';
  *
  * function ProfileCard({ address }: { address: string }) {
  *   const { profile, isLoading, error } = useProfile({ address });
@@ -42,12 +44,11 @@ const DEFAULT_PAGE_SIZE = 20;
  * ```
  */
 export function useProfile(params: UseProfileParams) {
-  const url = getClientUrl();
   const { address, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: profileKeys.detail(address, include),
-    queryFn: () => fetchProfile(url, { address, include }),
+    queryFn: () => getProfile(address, include),
     enabled: Boolean(address),
   });
 
@@ -55,11 +56,10 @@ export function useProfile(params: UseProfileParams) {
 }
 
 /**
- * Fetch a paginated list of Universal Profiles with filtering and sorting.
+ * Fetch a paginated list of Universal Profiles via Next.js server action.
  *
- * Wraps `fetchProfiles` in a TanStack `useQuery` hook. Supports comprehensive
- * filtering (by name, follow relationships, token ownership) and sorting
- * (by name, follower count, following count).
+ * Identical API to `@lsp-indexer/react`'s `useProfiles`, but routes the request
+ * through a server action instead of calling Hasura directly from the browser.
  *
  * @param params - Optional filter, sort, pagination, and include config
  * @returns `{ profiles, totalCount, isLoading, error, ...rest }` — full TanStack Query
@@ -67,7 +67,7 @@ export function useProfile(params: UseProfileParams) {
  *
  * @example
  * ```tsx
- * import { useProfiles } from '@lsp-indexer/react';
+ * import { useProfiles } from '@lsp-indexer/next';
  *
  * function ProfileList() {
  *   const { profiles, totalCount, isLoading } = useProfiles({
@@ -89,12 +89,11 @@ export function useProfile(params: UseProfileParams) {
  * ```
  */
 export function useProfiles(params: UseProfilesParams = {}) {
-  const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: profileKeys.list(filter, sort, limit, offset, include),
-    queryFn: () => fetchProfiles(url, { filter, sort, limit, offset, include }),
+    queryFn: () => getProfiles({ filter, sort, limit, offset, include }),
   });
 
   return {
@@ -105,12 +104,10 @@ export function useProfiles(params: UseProfilesParams = {}) {
 }
 
 /**
- * Fetch Universal Profiles with infinite scroll pagination.
+ * Fetch Universal Profiles with infinite scroll pagination via Next.js server action.
  *
- * Wraps `fetchProfiles` in a TanStack `useInfiniteQuery` hook with offset-based
- * pagination. Pages are automatically flattened into a single `profiles` array.
- * Uses a **separate query key namespace** from `useProfiles` to prevent cache
- * corruption between standard and infinite query data structures.
+ * Identical API to `@lsp-indexer/react`'s `useInfiniteProfiles`, but routes the
+ * request through a server action instead of calling Hasura directly from the browser.
  *
  * @param params - Optional filter, sort, pageSize, and include config
  * @returns `{ profiles, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest }` —
@@ -118,7 +115,7 @@ export function useProfiles(params: UseProfilesParams = {}) {
  *
  * @example
  * ```tsx
- * import { useInfiniteProfiles } from '@lsp-indexer/react';
+ * import { useInfiniteProfiles } from '@lsp-indexer/next';
  *
  * function InfiniteProfileList() {
  *   const {
@@ -149,13 +146,12 @@ export function useProfiles(params: UseProfilesParams = {}) {
  * ```
  */
 export function useInfiniteProfiles(params: UseInfiniteProfilesParams = {}) {
-  const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
   const result = useInfiniteQuery({
     queryKey: profileKeys.infinite(filter, sort, include),
     queryFn: ({ pageParam }) =>
-      fetchProfiles(url, {
+      getProfiles({
         filter,
         sort,
         limit: pageSize,
@@ -164,16 +160,13 @@ export function useInfiniteProfiles(params: UseInfiniteProfilesParams = {}) {
       }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
-      // If the last page returned fewer results than requested, there are no more pages
       if (lastPage.profiles.length < pageSize) {
         return undefined;
       }
-      // Next offset = current offset + page size
       return lastPageParam + pageSize;
     },
   });
 
-  // Flatten all pages into a single profiles array
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
   const profiles = data?.pages.flatMap((page) => page.profiles) ?? [];
 

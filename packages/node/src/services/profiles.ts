@@ -1,8 +1,8 @@
+import type { Profile, ProfileFilter, ProfileInclude, ProfileSort } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
 import { GetProfileDocument, GetProfilesDocument } from '../documents/profiles';
 import type { Universal_Profile_Bool_Exp, Universal_Profile_Order_By } from '../graphql/graphql';
 import { parseProfile, parseProfiles } from '../parsers/profiles';
-import type { Profile, ProfileFilter, ProfileInclude, ProfileSort } from '../types/profiles';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables

@@ -1,10 +1,16 @@
-// Error handling (also available from main entry, re-exported for convenience)
-export { IndexerError } from './errors';
-export type { IndexerErrorCategory, IndexerErrorCode, IndexerErrorOptions } from './errors';
-
-// Server-side client utilities
-export { execute, getServerUrl, getServerWsUrl } from './client';
-
-// Profile services (server-side data fetching)
-export { fetchProfile, fetchProfiles } from './services/profiles';
-export type { FetchProfilesResult } from './services/profiles';
+// Server-side utilities — re-exported from @lsp-indexer/node for backward compatibility.
+// Prefer importing directly from @lsp-indexer/node.
+export {
+  IndexerError,
+  execute,
+  fetchProfile,
+  fetchProfiles,
+  getServerUrl,
+  getServerWsUrl,
+} from '@lsp-indexer/node';
+export type {
+  FetchProfilesResult,
+  IndexerErrorCategory,
+  IndexerErrorCode,
+  IndexerErrorOptions,
+} from '@lsp-indexer/node';

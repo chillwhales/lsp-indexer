@@ -1,4 +1,4 @@
-import type { ProfileFilter, ProfileInclude, ProfileSort } from '../types/profiles';
+import type { ProfileFilter, ProfileInclude, ProfileSort } from '@lsp-indexer/types';
 
 /**
  * Query key factory for Universal Profile queries.

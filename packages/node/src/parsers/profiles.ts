@@ -1,5 +1,5 @@
+import type { Profile, ProfileImage } from '@lsp-indexer/types';
 import type { GetProfileQuery } from '../graphql/graphql';
-import type { Profile, ProfileImage } from '../types/profiles';
 
 /**
  * Raw Hasura profile type from the codegen-generated query result.

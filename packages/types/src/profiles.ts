@@ -1,0 +1,154 @@
+import { z } from 'zod';
+
+// ---------------------------------------------------------------------------
+// Core domain schemas
+// ---------------------------------------------------------------------------
+
+export const ProfileImageSchema = z.object({
+  /** Image URL (IPFS gateway URL or HTTP URL) */
+  url: z.string(),
+  /** Image width in pixels, or `null` if not available */
+  width: z.number().nullable(),
+  /** Image height in pixels, or `null` if not available */
+  height: z.number().nullable(),
+  /** On-chain verification data, or `null` if not verified */
+  verification: z
+    .object({
+      /** Verification method (e.g., "keccak256(bytes)") */
+      method: z.string(),
+      /** Verification data hash (e.g., "0x...") */
+      data: z.string(),
+    })
+    .nullable(),
+});
+
+export const ProfileSchema = z.object({
+  /** The Universal Profile contract address (checksummed or lowercase hex) */
+  address: z.string(),
+  /** Display name from LSP3 metadata, or `null` if not set */
+  name: z.string().nullable(),
+  /** Profile description from LSP3 metadata, or `null` if not set */
+  description: z.string().nullable(),
+  /** Tags associated with the profile (e.g., "artist", "developer") */
+  tags: z.array(z.string()),
+  /** External links (social media, websites, etc.) */
+  links: z.array(z.object({ title: z.string(), url: z.string() })),
+  /** Avatar assets from LSP3 metadata */
+  avatar: z.array(ProfileImageSchema),
+  /** Profile images (typically a square photo or icon) */
+  profileImage: z.array(ProfileImageSchema),
+  /** Background/banner images */
+  backgroundImage: z.array(ProfileImageSchema),
+  /** Number of profiles following this profile */
+  followerCount: z.number(),
+  /** Number of profiles this profile follows */
+  followingCount: z.number(),
+});
+
+// ---------------------------------------------------------------------------
+// Filter & sort schemas
+// ---------------------------------------------------------------------------
+
+export const ProfileFilterSchema = z.object({
+  /** Case-insensitive partial match on profile name */
+  name: z.string().optional(),
+  /** Return profiles that the given address follows */
+  followedBy: z.string().optional(),
+  /** Return profiles that follow the given address */
+  following: z.string().optional(),
+  /** Return profiles that own a specific token */
+  tokenOwned: z
+    .object({
+      /** Token contract address */
+      address: z.string(),
+      /** Specific token ID (for NFTs/LSP8 tokens) */
+      tokenId: z.string().optional(),
+      /** Minimum token balance (as string to handle large numbers) */
+      minBalance: z.string().optional(),
+    })
+    .optional(),
+});
+
+/** Fields available for sorting profile lists */
+export const ProfileSortFieldSchema = z.enum(['name', 'followerCount', 'followingCount']);
+
+/** Sort direction */
+export const SortDirectionSchema = z.enum(['asc', 'desc']);
+
+export const ProfileSortSchema = z.object({
+  /** Which field to sort by */
+  field: ProfileSortFieldSchema,
+  /** Sort direction */
+  direction: SortDirectionSchema,
+});
+
+export const ProfileIncludeSchema = z.object({
+  /** Include profile name (default: true) */
+  name: z.boolean().optional(),
+  /** Include profile description (default: true) */
+  description: z.boolean().optional(),
+  /** Include profile tags (default: true) */
+  tags: z.boolean().optional(),
+  /** Include external links (default: true) */
+  links: z.boolean().optional(),
+  /** Include avatar images (default: true) */
+  avatar: z.boolean().optional(),
+  /** Include profile images (default: true) */
+  profileImage: z.boolean().optional(),
+  /** Include background images (default: true) */
+  backgroundImage: z.boolean().optional(),
+  /** Include follower count aggregate (default: true) */
+  followerCount: z.boolean().optional(),
+  /** Include following count aggregate (default: true) */
+  followingCount: z.boolean().optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Hook parameter schemas
+// ---------------------------------------------------------------------------
+
+export const UseProfileParamsSchema = z.object({
+  /** The Universal Profile contract address to fetch */
+  address: z.string(),
+  /** Control which nested data to include (omit for all data) */
+  include: ProfileIncludeSchema.optional(),
+});
+
+export const UseProfilesParamsSchema = z.object({
+  /** Filter criteria (all combine with AND logic) */
+  filter: ProfileFilterSchema.optional(),
+  /** Sort order for results */
+  sort: ProfileSortSchema.optional(),
+  /** Maximum number of profiles to return */
+  limit: z.number().optional(),
+  /** Number of profiles to skip (for offset-based pagination) */
+  offset: z.number().optional(),
+  /** Control which nested data to include (omit for all data) */
+  include: ProfileIncludeSchema.optional(),
+});
+
+export const UseInfiniteProfilesParamsSchema = z.object({
+  /** Filter criteria (all combine with AND logic) */
+  filter: ProfileFilterSchema.optional(),
+  /** Sort order for results */
+  sort: ProfileSortSchema.optional(),
+  /** Number of profiles per page (default: 20) */
+  pageSize: z.number().optional(),
+  /** Control which nested data to include (omit for all data) */
+  include: ProfileIncludeSchema.optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Inferred types (single source of truth — derive from schemas)
+// ---------------------------------------------------------------------------
+
+export type Profile = z.infer<typeof ProfileSchema>;
+export type ProfileImage = z.infer<typeof ProfileImageSchema>;
+export type ProfileFilter = z.infer<typeof ProfileFilterSchema>;
+export type ProfileSort = z.infer<typeof ProfileSortSchema>;
+export type ProfileSortField = z.infer<typeof ProfileSortFieldSchema>;
+export type SortDirection = z.infer<typeof SortDirectionSchema>;
+export type ProfileInclude = z.infer<typeof ProfileIncludeSchema>;
+export type UseProfileParams = z.infer<typeof UseProfileParamsSchema>;
+export type UseProfilesParams = z.infer<typeof UseProfilesParamsSchema>;
+export type UseInfiniteProfilesParams = z.infer<typeof UseInfiniteProfilesParamsSchema>;

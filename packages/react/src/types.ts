@@ -1,11 +1,9 @@
-// Error types
-export type { IndexerErrorCategory, IndexerErrorCode, IndexerErrorOptions } from './errors';
-
-// Generated GraphQL types
-export type { TypedDocumentString } from './graphql/graphql';
-
-// Profile domain types
+// Types — re-exported from @lsp-indexer/types for backward compatibility.
+// Prefer importing directly from @lsp-indexer/types.
 export type {
+  IndexerErrorCategory,
+  IndexerErrorCode,
+  IndexerErrorOptions,
   Profile,
   ProfileFilter,
   ProfileImage,
@@ -16,4 +14,4 @@ export type {
   UseInfiniteProfilesParams,
   UseProfileParams,
   UseProfilesParams,
-} from './types/profiles';
+} from '@lsp-indexer/types';
