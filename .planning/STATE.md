@@ -34,14 +34,14 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 10    | Subscriptions                        |      3       | Pending                       |
 | 11    | Server Actions & Publish Readiness   |      4       | Pending                       |
 
-**Total:** 16/28 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-06, QUERY-07, QUERY-08, QUERY-10, DX-01, DX-02)
+**Total:** 17/28 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-06, QUERY-07, QUERY-08, QUERY-10, DX-01, DX-02)
 
 ## Performance Metrics
 
 - **Plans completed:** 48 (36 v1.0 + 12 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 13 (11 v1.0 + 2 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 15/28 (v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 16/28 (v1.1)
 
 ## Accumulated Context
 
