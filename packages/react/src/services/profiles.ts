@@ -96,8 +96,10 @@ function buildProfileOrderBy(sort?: ProfileSort): Universal_Profile_Order_By[] |
   if (!sort) return undefined;
 
   switch (sort.field) {
-    case 'name':
-      return [{ lsp3Profile: { name: { value: sort.direction } } }];
+    case 'name': {
+      const dir = sort.direction === 'asc' ? 'asc_nulls_last' : 'desc_nulls_last';
+      return [{ lsp3Profile: { name: { value: dir } } }];
+    }
     case 'followerCount':
       return [{ followedBy_aggregate: { count: sort.direction } }];
     case 'followingCount':

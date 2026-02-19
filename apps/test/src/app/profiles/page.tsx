@@ -1,17 +1,7 @@
 'use client';
 
-import {
-  AlertCircle,
-  ChevronDown,
-  Code2,
-  ExternalLink,
-  Hash,
-  Loader2,
-  Search,
-  User,
-  Users,
-} from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { ExternalLink, Hash, Loader2, Search, User, Users } from 'lucide-react';
+import React, { useState } from 'react';
 
 import { useInfiniteProfiles, useProfile, useProfiles } from '@lsp-indexer/react';
 import type {
@@ -26,79 +16,55 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import type { FilterFieldConfig, SortOption } from '@/components/playground';
+import {
+  ErrorAlert,
+  FilterFieldsRow,
+  RawJsonToggle,
+  ResultsList,
+  SortControls,
+  useFilterFields,
+} from '@/components/playground';
+
 // ---------------------------------------------------------------------------
-// Preset addresses for quick testing
+// Profile domain config — the ONLY things that change per domain
 // ---------------------------------------------------------------------------
 
-const PRESET_ADDRESSES = [
-  {
-    label: 'chill-labs',
-    address: '0xB6c10458274431189D4D0dA66ce00dc62A215908',
-  },
-  {
-    label: 'b00ste',
-    address: '0x00Aa9761286f21437c90AD2f895ef0dcA3484306',
-  },
-  {
-    label: 'feindura',
-    address: '0xCDeC110F9c255357E37f46CD2687be1f7E9B02F7',
-  },
+const PROFILE_FILTERS: FilterFieldConfig[] = [
+  { key: 'name', label: 'Name', placeholder: 'Search by name...' },
+  { key: 'followedBy', label: 'Followed by', placeholder: '0x... (address)', mono: true },
+  { key: 'following', label: 'Following', placeholder: '0x... (address)', mono: true },
+  { key: 'tokenOwned', label: 'Owns asset', placeholder: '0x... (token address)', mono: true },
 ] as const;
 
-// ---------------------------------------------------------------------------
-// Hooks
-// ---------------------------------------------------------------------------
+const PROFILE_SORT_OPTIONS: SortOption[] = [
+  { value: 'name', label: 'Name' },
+  { value: 'followerCount', label: 'Followers' },
+  { value: 'followingCount', label: 'Following' },
+];
 
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+const PRESET_ADDRESSES = [
+  { label: 'chill-labs', address: '0xB6c10458274431189D4D0dA66ce00dc62A215908' },
+  { label: 'b00ste', address: '0x00Aa9761286f21437c90AD2f895ef0dcA3484306' },
+  { label: 'feindura', address: '0xCDeC110F9c255357E37f46CD2687be1f7E9B02F7' },
+] as const;
 
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-
-  return debouncedValue;
+/** Build a ProfileFilter from debounced filter field values */
+function buildProfileFilter(debouncedValues: Record<string, string>): ProfileFilter | undefined {
+  const f: ProfileFilter = {};
+  if (debouncedValues.name) f.name = debouncedValues.name;
+  if (debouncedValues.followedBy) f.followedBy = debouncedValues.followedBy;
+  if (debouncedValues.following) f.following = debouncedValues.following;
+  if (debouncedValues.tokenOwned) f.tokenOwned = { address: debouncedValues.tokenOwned };
+  return Object.keys(f).length > 0 ? f : undefined;
 }
 
 // ---------------------------------------------------------------------------
-// Shared components
+// Profile-specific components (domain card — varies per domain)
 // ---------------------------------------------------------------------------
-
-function ProfileSkeleton(): React.ReactNode {
-  return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-5 w-48" />
-        <Skeleton className="h-4 w-32" />
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-3/4" />
-        <div className="flex gap-2">
-          <Skeleton className="h-5 w-16" />
-          <Skeleton className="h-5 w-16" />
-          <Skeleton className="h-5 w-16" />
-        </div>
-        <div className="flex gap-4">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-4 w-24" />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function ProfileCardCompact({ profile }: { profile: Profile }): React.ReactNode {
   return (
@@ -139,33 +105,30 @@ function ProfileCardCompact({ profile }: { profile: Profile }): React.ReactNode 
   );
 }
 
-function ErrorAlert({ error }: { error: Error }): React.ReactNode {
-  return (
-    <Alert variant="destructive">
-      <AlertCircle className="h-4 w-4" />
-      <AlertTitle>Error</AlertTitle>
-      <AlertDescription>{error.message}</AlertDescription>
-    </Alert>
-  );
-}
+// ---------------------------------------------------------------------------
+// Shared filter + sort hook for list and infinite tabs
+// ---------------------------------------------------------------------------
 
-function RawJsonToggle({ data, label }: { data: unknown; label: string }): React.ReactNode {
-  return (
-    <Collapsible>
-      <CollapsibleTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-          <Code2 className="size-3.5" />
-          Toggle Raw JSON ({label})
-          <ChevronDown className="size-3.5" />
-        </Button>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <pre className="mt-2 max-h-96 overflow-auto rounded-md bg-muted p-4 text-xs">
-          {JSON.stringify(data, null, 2)}
-        </pre>
-      </CollapsibleContent>
-    </Collapsible>
-  );
+function useProfileListState() {
+  const { values, debouncedValues, setFieldValue } = useFilterFields(PROFILE_FILTERS);
+  const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  const filter = buildProfileFilter(debouncedValues);
+  const sort: ProfileSort = { field: sortField, direction: sortDirection };
+  const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
+
+  return {
+    values,
+    setFieldValue,
+    sortField,
+    setSortField,
+    sortDirection,
+    setSortDirection,
+    filter,
+    sort,
+    hasActiveFilter,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -220,7 +183,14 @@ function SingleProfileTab(): React.ReactNode {
       </div>
 
       {/* Loading state */}
-      {isLoading && <ProfileSkeleton />}
+      {isLoading && (
+        <Card>
+          <CardHeader>
+            <div className="h-5 w-48 bg-muted rounded animate-pulse" />
+            <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+          </CardHeader>
+        </Card>
+      )}
 
       {/* Error state */}
       {error && <ErrorAlert error={error} />}
@@ -253,7 +223,6 @@ function SingleProfileTab(): React.ReactNode {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Description */}
             {profile.description && (
               <div>
                 <h4 className="text-sm font-medium mb-1">Description</h4>
@@ -261,7 +230,6 @@ function SingleProfileTab(): React.ReactNode {
               </div>
             )}
 
-            {/* Tags */}
             {profile.tags.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium mb-1">Tags</h4>
@@ -276,7 +244,6 @@ function SingleProfileTab(): React.ReactNode {
               </div>
             )}
 
-            {/* Links */}
             {profile.links.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium mb-1">Links</h4>
@@ -297,7 +264,6 @@ function SingleProfileTab(): React.ReactNode {
               </div>
             )}
 
-            {/* Images summary */}
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Avatar:</span>{' '}
@@ -321,7 +287,6 @@ function SingleProfileTab(): React.ReactNode {
               </div>
             </div>
 
-            {/* Raw JSON toggle */}
             <RawJsonToggle data={profile} label="profile" />
           </CardContent>
         </Card>
@@ -347,129 +312,42 @@ function SingleProfileTab(): React.ReactNode {
 // ---------------------------------------------------------------------------
 
 function ProfileListTab(): React.ReactNode {
-  const [nameFilter, setNameFilter] = useState('');
-  const debouncedNameFilter = useDebounce(nameFilter, 300);
-  const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const state = useProfileListState();
   const [limit, setLimit] = useState(10);
 
-  const filter: ProfileFilter | undefined = debouncedNameFilter
-    ? { name: debouncedNameFilter }
-    : undefined;
-  const sort: ProfileSort = { field: sortField, direction: sortDirection };
-
   const { profiles, totalCount, isLoading, error, isFetching } = useProfiles({
-    filter,
-    sort,
+    filter: state.filter,
+    sort: state.sort,
     limit,
   });
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-end">
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground font-medium">Name filter</label>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Search by name..."
-              value={nameFilter}
-              onChange={(e) => setNameFilter(e.target.value)}
-              className="w-48"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground font-medium">Sort by</label>
-          <Select value={sortField} onValueChange={(v) => setSortField(v as ProfileSortField)}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="followerCount">Followers</SelectItem>
-              <SelectItem value="followingCount">Following</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground font-medium">Direction</label>
-          <Select value={sortDirection} onValueChange={(v) => setSortDirection(v as SortDirection)}>
-            <SelectTrigger className="w-28">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="asc">Ascending</SelectItem>
-              <SelectItem value="desc">Descending</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground font-medium">Limit</label>
-          <Input
-            type="number"
-            min={1}
-            max={100}
-            value={limit}
-            onChange={(e) => setLimit(Number(e.target.value) || 10)}
-            className="w-20"
-          />
-        </div>
-      </div>
-
-      {/* Results header */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        {isLoading ? (
-          <Skeleton className="h-4 w-32" />
-        ) : (
-          <>
-            <span className="font-medium text-foreground">{totalCount}</span> profiles found
-            {isFetching && <Loader2 className="size-3.5 animate-spin" />}
-          </>
-        )}
-      </div>
-
-      {/* Error state */}
-      {error && <ErrorAlert error={error} />}
-
-      {/* Loading state */}
-      {isLoading && (
-        <div className="grid gap-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <ProfileSkeleton key={i} />
-          ))}
-        </div>
-      )}
-
-      {/* Profiles grid */}
-      {!isLoading && profiles.length > 0 && (
-        <div className="grid gap-3">
-          {profiles.map((profile) => (
-            <ProfileCardCompact key={profile.address} profile={profile} />
-          ))}
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!isLoading && !error && profiles.length === 0 && (
-        <Alert>
-          <Search className="h-4 w-4" />
-          <AlertTitle>No Results</AlertTitle>
-          <AlertDescription>
-            {nameFilter
-              ? `No profiles match "${nameFilter}". Try a different search term.`
-              : 'No profiles found.'}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Raw JSON toggle */}
-      {profiles.length > 0 && (
-        <RawJsonToggle data={profiles} label={`${profiles.length} profiles`} />
-      )}
+      <FilterFieldsRow
+        configs={PROFILE_FILTERS}
+        values={state.values}
+        onFieldChange={state.setFieldValue}
+      />
+      <SortControls
+        options={PROFILE_SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as ProfileSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        limit={limit}
+        onLimitChange={setLimit}
+      />
+      <ResultsList<Profile>
+        items={profiles}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        error={error}
+        renderItem={(profile) => <ProfileCardCompact profile={profile} />}
+        getKey={(p) => p.address}
+        label="profiles"
+        totalCount={totalCount}
+        hasActiveFilter={state.hasActiveFilter}
+      />
     </div>
   );
 }
@@ -479,138 +357,40 @@ function ProfileListTab(): React.ReactNode {
 // ---------------------------------------------------------------------------
 
 function InfiniteScrollTab(): React.ReactNode {
-  const [nameFilter, setNameFilter] = useState('');
-  const debouncedNameFilter = useDebounce(nameFilter, 300);
-  const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-
-  const filter: ProfileFilter | undefined = debouncedNameFilter
-    ? { name: debouncedNameFilter }
-    : undefined;
-  const sort: ProfileSort = { field: sortField, direction: sortDirection };
+  const state = useProfileListState();
 
   const { profiles, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =
     useInfiniteProfiles({
-      filter,
-      sort,
+      filter: state.filter,
+      sort: state.sort,
       pageSize: 10,
     });
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-end">
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground font-medium">Name filter</label>
-          <Input
-            placeholder="Search by name..."
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
-            className="w-48"
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground font-medium">Sort by</label>
-          <Select value={sortField} onValueChange={(v) => setSortField(v as ProfileSortField)}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="followerCount">Followers</SelectItem>
-              <SelectItem value="followingCount">Following</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground font-medium">Direction</label>
-          <Select value={sortDirection} onValueChange={(v) => setSortDirection(v as SortDirection)}>
-            <SelectTrigger className="w-28">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="asc">Ascending</SelectItem>
-              <SelectItem value="desc">Descending</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Results header */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        {isLoading ? (
-          <Skeleton className="h-4 w-32" />
-        ) : (
-          <>
-            <span className="font-medium text-foreground">{profiles.length}</span> profiles loaded
-            {isFetching && !isFetchingNextPage && <Loader2 className="size-3.5 animate-spin" />}
-          </>
-        )}
-      </div>
-
-      {/* Error state */}
-      {error && <ErrorAlert error={error} />}
-
-      {/* Loading state */}
-      {isLoading && (
-        <div className="grid gap-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <ProfileSkeleton key={i} />
-          ))}
-        </div>
-      )}
-
-      {/* Profiles grid */}
-      {!isLoading && profiles.length > 0 && (
-        <div className="grid gap-3">
-          {profiles.map((profile) => (
-            <ProfileCardCompact key={profile.address} profile={profile} />
-          ))}
-        </div>
-      )}
-
-      {/* Load more button */}
-      {hasNextPage && (
-        <div className="flex justify-center pt-2">
-          <Button variant="outline" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
-            {isFetchingNextPage ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                Loading more...
-              </>
-            ) : (
-              'Load More'
-            )}
-          </Button>
-        </div>
-      )}
-
-      {/* No more pages indicator */}
-      {!hasNextPage && profiles.length > 0 && !isLoading && (
-        <p className="text-center text-sm text-muted-foreground pt-2">
-          All profiles loaded ({profiles.length} total)
-        </p>
-      )}
-
-      {/* Empty state */}
-      {!isLoading && !error && profiles.length === 0 && (
-        <Alert>
-          <Search className="h-4 w-4" />
-          <AlertTitle>No Results</AlertTitle>
-          <AlertDescription>
-            {nameFilter
-              ? `No profiles match "${nameFilter}". Try a different search term.`
-              : 'No profiles found.'}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Raw JSON toggle */}
-      {profiles.length > 0 && (
-        <RawJsonToggle data={profiles} label={`${profiles.length} profiles`} />
-      )}
+      <FilterFieldsRow
+        configs={PROFILE_FILTERS}
+        values={state.values}
+        onFieldChange={state.setFieldValue}
+      />
+      <SortControls
+        options={PROFILE_SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as ProfileSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+      />
+      <ResultsList<Profile>
+        items={profiles}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        error={error}
+        renderItem={(profile) => <ProfileCardCompact profile={profile} />}
+        getKey={(p) => p.address}
+        label="profiles"
+        hasActiveFilter={state.hasActiveFilter}
+        infinite={{ hasNextPage, fetchNextPage, isFetchingNextPage }}
+      />
     </div>
   );
 }
