@@ -48,7 +48,7 @@ export function useProfile(params: UseProfileParams) {
   const { address, include } = params;
 
   const { data, ...rest } = useQuery({
-    queryKey: profileKeys.detail(address),
+    queryKey: profileKeys.detail(address, include),
     queryFn: () => fetchProfile(url, { address, include }),
     enabled: Boolean(address),
   });
@@ -95,7 +95,7 @@ export function useProfiles(params: UseProfilesParams = {}) {
   const { filter, sort, limit, offset, include } = params;
 
   const { data, ...rest } = useQuery({
-    queryKey: profileKeys.list(filter, sort, limit, offset),
+    queryKey: profileKeys.list(filter, sort, limit, offset, include),
     queryFn: () => fetchProfiles(url, { filter, sort, limit, offset, include }),
   });
 
@@ -155,7 +155,7 @@ export function useInfiniteProfiles(params: UseInfiniteProfilesParams = {}) {
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
   const result = useInfiniteQuery({
-    queryKey: profileKeys.infinite(filter, sort),
+    queryKey: profileKeys.infinite(filter, sort, include),
     queryFn: ({ pageParam }) =>
       fetchProfiles(url, {
         filter,
