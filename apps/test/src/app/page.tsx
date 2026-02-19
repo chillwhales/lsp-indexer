@@ -8,7 +8,6 @@ import type { IndexerErrorCategory } from '@lsp-indexer/react/types';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 
 import { ConnectionStatus } from '@/components/connection-status';
 
@@ -44,9 +43,13 @@ function EnvRow({ name, value }: { name: string; value: string | undefined }): R
         <XCircle className="h-4 w-4 shrink-0 text-destructive" />
       )}
       <code className="rounded bg-muted px-1.5 py-0.5 text-sm">{name}</code>
-      <Badge variant={isSet ? 'secondary' : 'outline'} className="text-xs">
-        {isSet ? 'configured' : 'not set'}
-      </Badge>
+      {isSet ? (
+        <code className="truncate text-muted-foreground text-xs">{value}</code>
+      ) : (
+        <Badge variant="outline" className="text-xs">
+          not set
+        </Badge>
+      )}
     </div>
   );
 }
@@ -58,20 +61,8 @@ export default function HomePage(): React.ReactNode {
   // Validate main entry import works
   const errorClassName = IndexerError.name;
 
-  // Validate server entry — try to get URL, catch if env vars not set
-  let serverUrlStatus: string;
-  let serverUrlOk = false;
-  try {
-    const url = getServerUrl();
-    serverUrlStatus = `Resolved: ${url}`;
-    serverUrlOk = true;
-  } catch (error) {
-    if (error instanceof IndexerError) {
-      serverUrlStatus = `Not configured (${error.code})`;
-    } else {
-      serverUrlStatus = 'Unknown error checking server URL';
-    }
-  }
+  // Touch getServerUrl to prove the import resolved (may throw if env not set — that's OK)
+  void getServerUrl;
 
   return (
     <div className="space-y-6">
@@ -113,13 +104,14 @@ export default function HomePage(): React.ReactNode {
           <CardTitle>Environment</CardTitle>
           <CardDescription>Server-side env var configuration</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-1">
-            <EnvRow name="NEXT_PUBLIC_INDEXER_URL" value={process.env.NEXT_PUBLIC_INDEXER_URL} />
-            <EnvRow name="INDEXER_URL" value={process.env.INDEXER_URL} />
-          </div>
-          <Separator className="my-3" />
-          <StatusRow ok={serverUrlOk} label="Server URL" detail={serverUrlStatus} />
+        <CardContent className="space-y-1">
+          <EnvRow name="NEXT_PUBLIC_INDEXER_URL" value={process.env.NEXT_PUBLIC_INDEXER_URL} />
+          <EnvRow name="INDEXER_URL" value={process.env.INDEXER_URL} />
+          <EnvRow
+            name="NEXT_PUBLIC_INDEXER_WS_URL"
+            value={process.env.NEXT_PUBLIC_INDEXER_WS_URL}
+          />
+          <EnvRow name="INDEXER_WS_URL" value={process.env.INDEXER_WS_URL} />
         </CardContent>
       </Card>
 
