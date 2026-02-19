@@ -110,6 +110,16 @@ Plans:
 | QUERY-11 | Developer can use `useProfileStats` for aggregate profile statistics                                    |
 | PAGE-01  | Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain              |
 
+**Per-domain pattern (replicate for each of the 10 remaining domains):**
+
+Each domain follows the validated vertical-slice pattern from Phase 8 (profiles):
+
+1. **`@lsp-indexer/types`** — Add Zod schemas + inferred TS types in `src/{domain}.ts`, export from `src/index.ts`
+2. **`@lsp-indexer/node`** — Add GraphQL documents in `src/documents/{domain}.ts`, run codegen, add parser in `src/parsers/{domain}.ts`, add service in `src/services/{domain}.ts`, add query key factory in `src/keys/{domain}.ts`, export all from `src/index.ts`
+3. **`@lsp-indexer/react`** — Add hooks in `src/hooks/{domain}.ts` (useX, useXs, useInfiniteXs), export from `src/index.ts`
+4. **`@lsp-indexer/next`** — Add server actions in `src/actions/{domain}.ts`, add hooks in `src/hooks/{domain}.ts`, export from `src/index.ts`
+5. **`apps/test`** — Add playground page at `src/app/{domain}/page.tsx` with Client/Server mode toggle, using shared playground components from `src/components/playground/`
+
 **Success Criteria:**
 
 1. Developer can use hooks for all 11 domains and see typed data returned — every domain follows the same document → parser → service → hook pattern established in Phase 8
@@ -147,6 +157,8 @@ Plans:
 **Goal:** Developer can use `@lsp-indexer/next` server actions for all domains from Next.js Server Components, and all 4 packages pass publish validation checks.
 
 **Dependencies:** Phase 9 (all domain services must exist — actions wrap services), Phase 10 (subscriptions should be complete for full package validation)
+
+**Note:** Profile domain server actions (`getProfile`, `getProfiles`) and corresponding hooks (`useProfile`, `useProfiles`, `useInfiniteProfiles`) already exist in `@lsp-indexer/next` from Phase 8. Phase 11 replicates this pattern to the remaining 10 domains and adds Zod input validation + publish readiness checks.
 
 **Requirements:**
 
@@ -201,7 +213,7 @@ Phase 7 (Package Foundation)
 **Parallelization opportunities:**
 
 - Within Phase 7: Codegen pipeline and build tooling can be worked in parallel with provider/error handling
-- Within Phase 9: All 10 remaining domains are independent — can be built in any order. Each domain adds types to `@lsp-indexer/types`, core logic to `@lsp-indexer/node`, hooks to `@lsp-indexer/react` and `@lsp-indexer/next`
+- Within Phase 9: All 10 remaining domains are independent — can be built in any order. Each domain follows the checklist in PROJECT.md "Adding a New Domain" (types → documents → codegen → parsers → services → keys → hooks → actions → playground). Run `pnpm schema:dump` before starting if Hasura schema has changed.
 - Phase 10 and Phase 11 both depend on Phase 9, but Phase 11's ACTION-01/ACTION-02/ACTION-03 could technically start as soon as Phase 9 completes (only DX-03 needs Phase 10 for full validation)
 
 ---
@@ -266,4 +278,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-19 — updated for 4-package architecture_
+_Last updated: 2026-02-19 — added Phase 9 per-domain pattern, Phase 11 existing actions note_

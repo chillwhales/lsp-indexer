@@ -176,6 +176,46 @@ gh pr create --base refactor/indexer-v2-react --title "<plan title>" --body "<su
 - **Env-driven config**: GraphQL URL comes from environment variable, not hardcoded
 - **No re-exports — single source of truth**: Each export lives in exactly one package. Types in `@lsp-indexer/types`, services/errors/keys in `@lsp-indexer/node`, hooks in `@lsp-indexer/react` or `@lsp-indexer/next`. No convenience re-exports or barrel forwarding between packages. Consumers import from the source.
 
+## Developer Workflows (v1.1)
+
+### Adding a New Domain
+
+Follow this checklist for each of the 11 query domains:
+
+1. **Schema** — Run `pnpm schema:dump` in `packages/node` to introspect Hasura and update `schema.graphql` (only needed if Hasura schema changed)
+2. **Types** — Add Zod schemas + inferred TS types in `packages/types/src/{domain}.ts`, export from `packages/types/src/index.ts`
+3. **Documents** — Add GraphQL query documents in `packages/node/src/documents/{domain}.ts`
+4. **Codegen** — Run `pnpm codegen` in `packages/node` to generate TypeScript types from the new documents
+5. **Parser** — Add Hasura → camelCase transform in `packages/node/src/parsers/{domain}.ts`
+6. **Service** — Add `fetch{Domain}`, `fetch{Domain}s`, filter/sort builders in `packages/node/src/services/{domain}.ts`
+7. **Keys** — Add query key factory in `packages/node/src/keys/{domain}.ts`
+8. **Node exports** — Export all new files from `packages/node/src/index.ts`
+9. **React hooks** — Add `use{Domain}`, `use{Domain}s`, `useInfinite{Domain}s` in `packages/react/src/hooks/{domain}.ts`, export from `packages/react/src/index.ts`
+10. **Next actions** — Add `'use server'` actions in `packages/next/src/actions/{domain}.ts`, add hooks in `packages/next/src/hooks/{domain}.ts`, export from `packages/next/src/index.ts`
+11. **Playground** — Add test page at `apps/test/src/app/{domain}/page.tsx` with Client/Server mode toggle
+12. **Build** — Run `pnpm build` across all 4 packages + test app to verify
+
+### Schema Introspection (`pnpm schema:dump`)
+
+The `schema.graphql` in `packages/node/` is auto-generated from Hasura — never hand-edited. To update:
+
+```bash
+cd packages/node
+pnpm schema:dump  # Introspects http://192.168.0.21:18716/v1/graphql → schema.graphql
+pnpm codegen      # Regenerates TypeScript types from updated schema
+```
+
+Only needed when the Hasura schema changes (new tables, columns, or relationships).
+
+### Playground Client/Server Mode Toggle
+
+Each domain's playground page supports switching between `@lsp-indexer/react` (client-side, browser → Hasura directly) and `@lsp-indexer/next` (server-side, browser → server action → Hasura). Pattern:
+
+1. Import hooks from both packages with aliases: `import { useProfile as useProfileClient } from '@lsp-indexer/react'` and `import { useProfile as useProfileServer } from '@lsp-indexer/next'`
+2. Use a `mode` state (`'client' | 'server'`) toggled by a Switch component
+3. Render content with `key={mode}` on the parent element — this forces a clean React remount when switching, avoiding hook-rule violations from conditional hook calls
+4. Display a Badge showing the active package name and data flow path
+
 ## Key Decisions
 
 | Decision                                | Rationale                                                                      | Outcome                          |
@@ -199,4 +239,4 @@ gh pr create --base refactor/indexer-v2-react --title "<plan title>" --body "<su
 
 ---
 
-_Last updated: 2026-02-19 — updated for 4-package architecture_
+_Last updated: 2026-02-19 — added developer workflows (schema:dump, playground toggle, domain checklist)_

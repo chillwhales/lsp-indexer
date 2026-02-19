@@ -99,20 +99,22 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-19
-- **Activity:** Completed 4-package restructure — split @lsp-indexer/react into types, node, react, next
-- **Outcome:** All 4 packages build. Full chain verified: types → node → react → next → test app. Old react source files cleaned up. Commit 5775292.
+- **Activity:** Final audit of planning docs + remaining fixes from 4-package restructure
+- **Outcome:** Fixed `next.config.ts` transpilePackages (all 4 packages), updated ROADMAP Phase 9/11 with domain pattern details, documented developer workflows (schema:dump, playground toggle pattern) in PROJECT.md, updated STATE.md session continuity.
 - **Resume file:** None
 
 ### Context for Next Session
 
 - **Phase 8 complete** — all 4 plans done, all 3 requirements delivered (QUERY-01, DX-01, DX-02)
 - **4-package restructure complete** — @lsp-indexer/types, @lsp-indexer/node, @lsp-indexer/react (thin), @lsp-indexer/next
+- **All audit items resolved** — transpilePackages, ROADMAP gaps, developer workflow docs, STATE.md all updated
 - **Next step:** Phase 9 planning and execution (Remaining Query Domains & Pagination)
 - **PR:** #183 open on `feat/react-profile-playground` → `refactor/indexer-v2-react` — needs push with latest commits
 - **Key assets for Phase 9:**
-  - Validated vertical-slice pattern: types → documents → codegen → parsers → services → keys → hooks → entry points
+  - Validated vertical-slice pattern: types → documents → codegen → parsers → services → keys → hooks → actions → playground
   - Shared playground components: FilterFieldsRow, SortControls, ResultsList<T> — ready for 10+ domain pages
   - Pattern: define `FilterFieldConfig[]`, `SortOption[]`, `buildDomainFilter()`, `DomainCard` → plug into shared components
+  - Developer workflow checklist documented in PROJECT.md "Adding a New Domain"
   - 4-package structure means new domains add types in `@lsp-indexer/types`, core logic in `@lsp-indexer/node`, hooks in both `@lsp-indexer/react` and `@lsp-indexer/next`
 - **Build validated:** All 4 packages + test app build with zero errors
 
