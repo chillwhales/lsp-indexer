@@ -21,7 +21,7 @@ Requirements for the React hooks package milestone. Each maps to roadmap phases.
 
 Each domain includes: GraphQL document, parser (snake_case → camelCase), service function, TanStack Query hook, and query key factory entry.
 
-- [ ] **QUERY-01**: Developer can use `useProfile`, `useProfiles`, `useProfileSearch` for Universal Profile data
+- [x] **QUERY-01**: Developer can use `useProfile`, `useProfiles`, `useInfiniteProfiles` for Universal Profile data
 - [ ] **QUERY-02**: Developer can use `useDigitalAsset`, `useDigitalAssets`, `useDigitalAssetSearch` for Digital Asset data
 - [ ] **QUERY-03**: Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data
 - [ ] **QUERY-04**: Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data
@@ -51,8 +51,8 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 
 ### Developer Experience
 
-- [ ] **DX-01**: Developer can import all clean camelCase domain types from `@lsp-indexer/react/types`
-- [ ] **DX-02**: Developer can import query key factories for cache invalidation and prefetching
+- [x] **DX-01**: Developer can import all clean camelCase domain types from `@lsp-indexer/react/types`
+- [x] **DX-02**: Developer can import query key factories for cache invalidation and prefetching
 - [ ] **DX-03**: Package passes `publint` and `arethetypeswrong` validation for publish readiness
 
 ## Future Requirements
@@ -91,9 +91,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUND-05    | 7     | Complete |
 | FOUND-06    | 7     | Complete |
 | FOUND-07    | 7     | Complete |
-| QUERY-01    | 8     | Pending  |
-| DX-01       | 8     | Pending  |
-| DX-02       | 8     | Pending  |
+| QUERY-01    | 8     | Complete |
+| DX-01       | 8     | Complete |
+| DX-02       | 8     | Complete |
 | QUERY-02    | 9     | Pending  |
 | QUERY-03    | 9     | Pending  |
 | QUERY-04    | 9     | Pending  |

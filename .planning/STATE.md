@@ -6,15 +6,15 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 8 (First Vertical Slice)
+**Current focus:** v1.1 React Hooks Package — Phase 8 Complete, ready for Phase 9
 
 ## Current Position
 
-- **Phase:** 8 of 11 (First Vertical Slice — Universal Profiles)
-- **Plan:** 3 of 4
-- **Status:** In progress
-- **Last activity:** 2026-02-17 — Completed 08-03-PLAN.md
-- **Progress:** ██████░░░░ 60%
+- **Phase:** 8 of 11 (First Vertical Slice — Universal Profiles) ✅ COMPLETE
+- **Plan:** 4 of 4
+- **Status:** Phase complete
+- **Last activity:** 2026-02-19 — Completed 08-04-PLAN.md (all 4 plans done)
+- **Progress:** ████████░░ 80%
 
 ## Milestone History
 
@@ -26,22 +26,22 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                                 | Requirements | Status      |
-| ----- | ------------------------------------ | :----------: | ----------- |
-| 7     | Package Foundation                   |     7/7      | Complete    |
-| 8     | First Vertical Slice (Profiles)      |      3       | In progress |
-| 9     | Remaining Query Domains & Pagination |      11      | Pending     |
-| 10    | Subscriptions                        |      3       | Pending     |
-| 11    | Server Actions & Publish Readiness   |      4       | Pending     |
+| Phase | Name                                 | Requirements | Status   |
+| ----- | ------------------------------------ | :----------: | -------- |
+| 7     | Package Foundation                   |     7/7      | Complete |
+| 8     | First Vertical Slice (Profiles)      |     3/3      | Complete |
+| 9     | Remaining Query Domains & Pagination |      11      | Pending  |
+| 10    | Subscriptions                        |      3       | Pending  |
+| 11    | Server Actions & Publish Readiness   |      4       | Pending  |
 
-**Total:** 7/28 requirements delivered (FOUND-01 through FOUND-07 validated by 07-01 + 07-02)
+**Total:** 10/28 requirements delivered (FOUND-01–07, QUERY-01, DX-01, DX-02)
 
 ## Performance Metrics
 
-- **Plans completed:** 41 (36 v1.0 + 5 v1.1)
+- **Plans completed:** 42 (36 v1.0 + 6 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 12 (11 v1.0 + 1 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 7/28 (v1.1)
+- **Phases completed:** 13 (11 v1.0 + 2 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 10/28 (v1.1)
 
 ## Accumulated Context
 
@@ -77,6 +77,12 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - Structural interface for image parsing (avoids codegen \_\_typename incompatibility between profile_image and background_image)
 - tokenOwned filter branches into owned_tokens (with tokenId) vs owned_assets (without tokenId)
 - Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
+- **Hasura uses camelCase field names** (lsp3Profile, followedBy, ownedAssets) — not snake_case. Schema.graphql updated to match.
+- **All address/tokenId comparisons use `_ilike`** for case-insensitive matching (EIP-55 mixed-case prevention)
+- **Name sort uses `asc_nulls_last` / `desc_nulls_last`** — profiles without names sort last
+- **Search inputs have 300ms debounce** — prevents excessive GraphQL queries
+- **Labels on top of inputs** — not beside (consistent with shadcn form patterns)
+- **Shared playground components** in `components/playground/` — FilterFieldsRow, SortControls, ResultsList<T>, useFilterFields, ErrorAlert, RawJsonToggle. New domains only need config arrays + domain card component.
 
 ### Discovered Todos
 
@@ -90,24 +96,22 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-17
-- **Activity:** Executed 08-03-PLAN.md — Hooks + entry point wiring + build validation
-- **Outcome:** 2 tasks completed, 2 commits, SUMMARY.md written. All 3 hooks created, all entry points wired, build validated.
+- **Date:** 2026-02-19
+- **Activity:** Completed 08-04-PLAN.md — DRY refactor of playground page, all schema alignment fixes committed
+- **Outcome:** Phase 8 fully complete. 3 commits for plan 08-04 (playground page + schema fixes + DRY refactor). SUMMARY.md written and self-checked.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 8 plan 03 complete** — hooks + entry points fully wired
-- **Next step:** 08-04-PLAN.md (Test app profiles playground page + end-to-end verification)
-- **Branch:** `feat/react-profile-hooks-entry-points` — needs PR to `refactor/indexer-v2-react` (after 08-01 + 08-02 PRs merge)
-- **Key files delivered:** `hooks/profiles.ts` (3 TanStack Query hooks), updated `index.ts`, `server.ts`, `types.ts`
-- **Full import surface now available:**
-  - `@lsp-indexer/react`: `useProfile`, `useProfiles`, `useInfiniteProfiles`, `profileKeys`
-  - `@lsp-indexer/react/server`: `fetchProfile`, `fetchProfiles`
-  - `@lsp-indexer/react/types`: `Profile`, `ProfileImage`, `ProfileFilter`, `ProfileSort`, etc.
-- **Build validated:** ESM + CJS + DTS for all 3 entry points, zero errors
-- **Test app ready** to receive domain playground pages (profiles page in 08-04)
+- **Phase 8 complete** — all 4 plans done, all 3 requirements delivered (QUERY-01, DX-01, DX-02)
+- **Next step:** Phase 9 planning and execution (Remaining Query Domains & Pagination)
+- **PR:** #183 open on `feat/react-profile-playground` → `refactor/indexer-v2-react` — needs push with latest commits
+- **Key assets for Phase 9:**
+  - Validated vertical-slice pattern: types → documents → codegen → parsers → services → keys → hooks → entry points
+  - Shared playground components: FilterFieldsRow, SortControls, ResultsList<T> — ready for 10+ domain pages
+  - Pattern: define `FilterFieldConfig[]`, `SortOption[]`, `buildDomainFilter()`, `DomainCard` → plug into shared components
+- **Build validated:** Both `packages/react` and `apps/test` build with zero errors
 
 ---
 
-_Last updated: 2026-02-17_
+_Last updated: 2026-02-19_

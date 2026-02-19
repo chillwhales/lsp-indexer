@@ -64,10 +64,10 @@ Plans:
 
 Plans:
 
-- [ ] 08-01-PLAN.md — Profile domain types + GraphQL documents + codegen
-- [ ] 08-02-PLAN.md — Query key factory + parsers + service functions
-- [ ] 08-03-PLAN.md — Hooks + entry point wiring + build validation
-- [ ] 08-04-PLAN.md — Test app profiles playground page + end-to-end verification
+- [x] 08-01-PLAN.md — Profile domain types + GraphQL documents + codegen
+- [x] 08-02-PLAN.md — Query key factory + parsers + service functions
+- [x] 08-03-PLAN.md — Hooks + entry point wiring + build validation
+- [x] 08-04-PLAN.md — Test app profiles playground page + end-to-end verification
 
 **Success Criteria:**
 
@@ -163,12 +163,12 @@ Plans:
 | Phase | Name                                 | Requirements | Status   |
 | ----- | ------------------------------------ | :----------: | -------- |
 | 7     | Package Foundation                   |     7/7      | Complete |
-| 8     | First Vertical Slice (Profiles)      |      3       | Pending  |
+| 8     | First Vertical Slice (Profiles)      |     3/3      | Complete |
 | 9     | Remaining Query Domains & Pagination |      11      | Pending  |
 | 10    | Subscriptions                        |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness   |      4       | Pending  |
 
-**Total:** 7/28 requirements delivered
+**Total:** 10/28 requirements delivered
 
 ---
 
@@ -250,4 +250,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-17_
+_Last updated: 2026-02-19_
