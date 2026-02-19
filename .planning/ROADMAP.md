@@ -107,8 +107,23 @@ Plans:
 | QUERY-08 | Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery                                      |
 | QUERY-09 | Developer can use `useDataChangedEvents` for ERC725 data change events                                  |
 | QUERY-10 | Developer can use `useUniversalReceiverEvents` for universal receiver events                            |
-| QUERY-11 | Developer can use `useProfileStats` for aggregate profile statistics                                    |
 | PAGE-01  | Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain              |
+
+**Plans:** 11 plans
+
+Plans:
+
+- [ ] 09-01-PLAN.md — Setup: schema:dump + codegen (Wave 1)
+- [ ] 09-02-PLAN.md — Digital Assets domain: types → documents → parsers → services → keys → hooks → actions → playground (Wave 2)
+- [ ] 09-03-PLAN.md — NFTs domain: types → documents → parsers → services → keys → hooks → actions → playground (Wave 2)
+- [ ] 09-04-PLAN.md — Owned Assets domain: OwnedAsset + OwnedToken tables → full vertical slice (Wave 2)
+- [ ] 09-05-PLAN.md — Social/Follows domain: useFollowers, useFollowing, useFollowCount + infinite variants (Wave 2)
+- [ ] 09-06-PLAN.md — Creators domain: useCreatorAddresses + infinite variant (Wave 2)
+- [ ] 09-07-PLAN.md — Encrypted Assets domain: LSP29 encrypted asset container records (Wave 2)
+- [ ] 09-08-PLAN.md — Encrypted Feed domain: LSP29 encrypted asset entries + /feed playground route (Wave 2)
+- [ ] 09-09-PLAN.md — Data Changed Events domain: ERC725 events, default sort block_number DESC (Wave 2)
+- [ ] 09-10-PLAN.md — Universal Receiver Events domain: events, default sort block_number DESC (Wave 2)
+- [ ] 09-11-PLAN.md — Integration: audit all 4 package exports, update nav (long route names) + home page, full build validation (Wave 3)
 
 **Per-domain pattern (replicate for each of the 10 remaining domains):**
 
@@ -243,7 +258,6 @@ All 28 v1.1 requirements mapped to exactly one phase:
 | QUERY-08    | 9     | Query Domains  |
 | QUERY-09    | 9     | Query Domains  |
 | QUERY-10    | 9     | Query Domains  |
-| QUERY-11    | 9     | Query Domains  |
 | PAGE-01     | 9     | Pagination     |
 | SUB-01      | 10    | Subscriptions  |
 | SUB-02      | 10    | Subscriptions  |
