@@ -39,9 +39,18 @@ importers:
 
   apps/test:
     dependencies:
+      '@lsp-indexer/next':
+        specifier: workspace:*
+        version: link:../../packages/next
+      '@lsp-indexer/node':
+        specifier: workspace:*
+        version: link:../../packages/node
       '@lsp-indexer/react':
         specifier: workspace:*
         version: link:../../packages/react
+      '@lsp-indexer/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@tailwindcss/postcss':
         specifier: ^4.1.18
         version: 4.1.18
