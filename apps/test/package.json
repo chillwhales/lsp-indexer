@@ -8,7 +8,10 @@
     "start": "next start"
   },
   "dependencies": {
+    "@lsp-indexer/next": "workspace:*",
+    "@lsp-indexer/node": "workspace:*",
     "@lsp-indexer/react": "workspace:*",
+    "@lsp-indexer/types": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@tanstack/react-query": "^5.0.0",
     "class-variance-authority": "^0.7.1",

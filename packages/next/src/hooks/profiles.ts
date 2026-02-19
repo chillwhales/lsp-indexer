@@ -1,0 +1,182 @@
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
+
+import { profileKeys } from '@lsp-indexer/node';
+import type {
+  UseInfiniteProfilesParams,
+  UseProfileParams,
+  UseProfilesParams,
+} from '@lsp-indexer/types';
+
+import { getProfile, getProfiles } from '../actions/profiles';
+
+/** Default number of profiles per page for infinite scroll queries */
+const DEFAULT_PAGE_SIZE = 20;
+
+/**
+ * Fetch a single Universal Profile by address via Next.js server action.
+ *
+ * Identical API to `@lsp-indexer/react`'s `useProfile`, but routes the request
+ * through a server action instead of calling Hasura directly from the browser.
+ * This keeps the GraphQL endpoint hidden from the client.
+ *
+ * @param params - Profile address and optional include config
+ * @returns `{ profile, isLoading, error, ...rest }` — full TanStack Query result
+ *   with `data` renamed to `profile`
+ *
+ * @example
+ * ```tsx
+ * import { useProfile } from '@lsp-indexer/next';
+ *
+ * function ProfileCard({ address }: { address: string }) {
+ *   const { profile, isLoading, error } = useProfile({ address });
+ *
+ *   if (isLoading) return <Skeleton />;
+ *   if (error) return <Alert>{error.message}</Alert>;
+ *   if (!profile) return <p>Profile not found</p>;
+ *
+ *   return (
+ *     <div>
+ *       <h2>{profile.name ?? 'Unnamed'}</h2>
+ *       <p>{profile.followerCount} followers</p>
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+export function useProfile(params: UseProfileParams) {
+  const { address, include } = params;
+
+  const { data, ...rest } = useQuery({
+    queryKey: profileKeys.detail(address, include),
+    queryFn: () => getProfile(address, include),
+    enabled: Boolean(address),
+  });
+
+  return { profile: data ?? null, ...rest };
+}
+
+/**
+ * Fetch a paginated list of Universal Profiles via Next.js server action.
+ *
+ * Identical API to `@lsp-indexer/react`'s `useProfiles`, but routes the request
+ * through a server action instead of calling Hasura directly from the browser.
+ *
+ * @param params - Optional filter, sort, pagination, and include config
+ * @returns `{ profiles, totalCount, isLoading, error, ...rest }` — full TanStack Query
+ *   result with `data` flattened to `profiles` and `totalCount`
+ *
+ * @example
+ * ```tsx
+ * import { useProfiles } from '@lsp-indexer/next';
+ *
+ * function ProfileList() {
+ *   const { profiles, totalCount, isLoading } = useProfiles({
+ *     filter: { name: 'alice' },
+ *     sort: { field: 'followerCount', direction: 'desc' },
+ *     limit: 20,
+ *     offset: 0,
+ *   });
+ *
+ *   return (
+ *     <div>
+ *       <p>{totalCount} profiles found</p>
+ *       {profiles.map((p) => (
+ *         <div key={p.address}>{p.name}</div>
+ *       ))}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+export function useProfiles(params: UseProfilesParams = {}) {
+  const { filter, sort, limit, offset, include } = params;
+
+  const { data, ...rest } = useQuery({
+    queryKey: profileKeys.list(filter, sort, limit, offset, include),
+    queryFn: () => getProfiles({ filter, sort, limit, offset, include }),
+  });
+
+  return {
+    profiles: data?.profiles ?? [],
+    totalCount: data?.totalCount ?? 0,
+    ...rest,
+  };
+}
+
+/**
+ * Fetch Universal Profiles with infinite scroll pagination via Next.js server action.
+ *
+ * Identical API to `@lsp-indexer/react`'s `useInfiniteProfiles`, but routes the
+ * request through a server action instead of calling Hasura directly from the browser.
+ *
+ * @param params - Optional filter, sort, pageSize, and include config
+ * @returns `{ profiles, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest }` —
+ *   flattened profiles array with infinite scroll controls
+ *
+ * @example
+ * ```tsx
+ * import { useInfiniteProfiles } from '@lsp-indexer/next';
+ *
+ * function InfiniteProfileList() {
+ *   const {
+ *     profiles,
+ *     hasNextPage,
+ *     fetchNextPage,
+ *     isFetchingNextPage,
+ *     isLoading,
+ *   } = useInfiniteProfiles({
+ *     filter: { followedBy: '0x1234...' },
+ *     sort: { field: 'name', direction: 'asc' },
+ *     pageSize: 20,
+ *   });
+ *
+ *   return (
+ *     <div>
+ *       {profiles.map((p) => (
+ *         <div key={p.address}>{p.name}</div>
+ *       ))}
+ *       {hasNextPage && (
+ *         <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+ *           {isFetchingNextPage ? 'Loading...' : 'Load more'}
+ *         </button>
+ *       )}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+export function useInfiniteProfiles(params: UseInfiniteProfilesParams = {}) {
+  const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
+
+  const result = useInfiniteQuery({
+    queryKey: profileKeys.infinite(filter, sort, include),
+    queryFn: ({ pageParam }) =>
+      getProfiles({
+        filter,
+        sort,
+        limit: pageSize,
+        offset: pageParam,
+        include,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      if (lastPage.profiles.length < pageSize) {
+        return undefined;
+      }
+      return lastPageParam + pageSize;
+    },
+  });
+
+  // Flatten all pages into a single profiles array (memoized to avoid re-flattening on every render)
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
+  const profiles = useMemo(() => data?.pages.flatMap((page) => page.profiles) ?? [], [data?.pages]);
+
+  return {
+    profiles,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+    ...rest,
+  };
+}

@@ -1,14 +1,14 @@
-// Server component — validates server + types entry points work in RSC context
+// Server component — validates all 4 package entry points work in RSC context
 import { CheckCircle2, XCircle } from 'lucide-react';
 import React from 'react';
 
-import { IndexerError } from '@lsp-indexer/react';
-import { getServerUrl } from '@lsp-indexer/react/server';
-import type { IndexerErrorCategory } from '@lsp-indexer/react/types';
+import { getProfile } from '@lsp-indexer/next';
+import { IndexerError, getServerUrl, profileKeys } from '@lsp-indexer/node';
+import { useProfile } from '@lsp-indexer/react';
+import type { Profile } from '@lsp-indexer/types';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 
 import { ConnectionStatus } from '@/components/connection-status';
 
@@ -44,41 +44,30 @@ function EnvRow({ name, value }: { name: string; value: string | undefined }): R
         <XCircle className="h-4 w-4 shrink-0 text-destructive" />
       )}
       <code className="rounded bg-muted px-1.5 py-0.5 text-sm">{name}</code>
-      <Badge variant={isSet ? 'secondary' : 'outline'} className="text-xs">
-        {isSet ? 'configured' : 'not set'}
-      </Badge>
+      {isSet ? (
+        <code className="truncate text-muted-foreground text-xs">{value}</code>
+      ) : (
+        <Badge variant="outline" className="text-xs">
+          not set
+        </Badge>
+      )}
     </div>
   );
 }
 
 export default function HomePage(): React.ReactNode {
-  // Validate type import works (compile-time check)
-  const _typeCheck: IndexerErrorCategory = 'CONFIGURATION';
-
-  // Validate main entry import works
-  const errorClassName = IndexerError.name;
-
-  // Validate server entry — try to get URL, catch if env vars not set
-  let serverUrlStatus: string;
-  let serverUrlOk = false;
-  try {
-    const url = getServerUrl();
-    serverUrlStatus = `Resolved: ${url}`;
-    serverUrlOk = true;
-  } catch (error) {
-    if (error instanceof IndexerError) {
-      serverUrlStatus = `Not configured (${error.code})`;
-    } else {
-      serverUrlStatus = 'Unknown error checking server URL';
-    }
-  }
+  // Prove each import resolved — compile-time type check + runtime reference
+  const _types: Profile | null = null;
+  const _node = typeof profileKeys === 'object' && typeof getServerUrl === 'function';
+  const _react = typeof IndexerError === 'function' && typeof useProfile === 'function';
+  const _next = typeof getProfile === 'function';
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Dev Playground</h1>
         <p className="text-muted-foreground">
-          Validate @lsp-indexer/react entry points, hooks, and integrations.
+          Validate @lsp-indexer packages, hooks, and integrations.
         </p>
       </div>
 
@@ -90,19 +79,24 @@ export default function HomePage(): React.ReactNode {
         </CardHeader>
         <CardContent className="space-y-1">
           <StatusRow
-            ok
+            ok={_types === null}
+            label="@lsp-indexer/types"
+            detail="Profile, ProfileFilter, ProfileSort, ..."
+          />
+          <StatusRow
+            ok={_node}
+            label="@lsp-indexer/node"
+            detail="profileKeys, getServerUrl, fetchProfile, ..."
+          />
+          <StatusRow
+            ok={_react}
             label="@lsp-indexer/react"
-            detail={`imported successfully (${errorClassName})`}
+            detail="useProfile, useProfiles, useInfiniteProfiles"
           />
           <StatusRow
-            ok
-            label="@lsp-indexer/react/server"
-            detail="imported successfully (getServerUrl)"
-          />
-          <StatusRow
-            ok
-            label="@lsp-indexer/react/types"
-            detail="imported successfully (IndexerErrorCategory)"
+            ok={_next}
+            label="@lsp-indexer/next"
+            detail="getProfile, getProfiles (server actions)"
           />
         </CardContent>
       </Card>
@@ -113,21 +107,19 @@ export default function HomePage(): React.ReactNode {
           <CardTitle>Environment</CardTitle>
           <CardDescription>Server-side env var configuration</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-1">
-            <EnvRow name="NEXT_PUBLIC_INDEXER_URL" value={process.env.NEXT_PUBLIC_INDEXER_URL} />
-            <EnvRow name="INDEXER_URL" value={process.env.INDEXER_URL} />
-          </div>
-          <Separator className="my-3" />
-          <StatusRow ok={serverUrlOk} label="Server URL" detail={serverUrlStatus} />
+        <CardContent className="space-y-1">
+          <EnvRow name="NEXT_PUBLIC_INDEXER_URL" value={process.env.NEXT_PUBLIC_INDEXER_URL} />
+          <EnvRow name="INDEXER_URL" value={process.env.INDEXER_URL} />
+          <EnvRow
+            name="NEXT_PUBLIC_INDEXER_WS_URL"
+            value={process.env.NEXT_PUBLIC_INDEXER_WS_URL}
+          />
+          <EnvRow name="INDEXER_WS_URL" value={process.env.INDEXER_WS_URL} />
         </CardContent>
       </Card>
 
       {/* Client-side import validation */}
       <ConnectionStatus />
-
-      {/* Unused variable usage to avoid TS errors */}
-      <div className="hidden">{_typeCheck}</div>
     </div>
   );
 }

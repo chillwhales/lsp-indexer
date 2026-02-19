@@ -6,6 +6,5 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  banner: { js: '"use client";' },
-  external: ['react', '@tanstack/react-query', '@lsp-indexer/node', '@lsp-indexer/types', 'zod'],
+  external: ['zod'],
 });
