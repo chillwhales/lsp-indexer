@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.1 (Digital Assets) — not yet started
-- **Status:** Phase 9 restructured from monolithic 11-plan phase into 9 independent sub-phases
-- **Last activity:** 2026-02-19 — Closed PRs #187–#190, restructured Phase 9 into sub-phases 9.1–9.9
+- **Sub-phase:** 9.1 (Digital Assets) — Plan 01 complete, Plan 02 next
+- **Status:** Plan 09.1-01 complete — Digital Asset types + GraphQL documents + codegen done
+- **Last activity:** 2026-02-20 — Completed 09.1-01-PLAN.md (digital-asset-types-codegen)
 - **Progress:** ████░░░░░░ 40% (10/28 requirements)
 
 ## Milestone History
@@ -48,7 +48,7 @@ _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-pha
 
 ## Performance Metrics
 
-- **Plans completed:** 42 (36 v1.0 + 6 v1.1)
+- **Plans completed:** 43 (36 v1.0 + 7 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 13 (11 v1.0 + 2 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 10/28 (v1.1)
@@ -108,25 +108,26 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-19
-- **Activity:** Restructured Phase 9 into per-domain sub-phases
-- **Outcome:** Closed PRs #187–#190 (timeline-based splits lacked domain granularity). Split monolithic Phase 9 (11 plans) into 9 independent sub-phases (9.1–9.9), each with 4 plans mirroring Phase 8's vertical-slice pattern. Updated ROADMAP and STATE.
+- **Date:** 2026-02-20
+- **Activity:** Executed Phase 9.1 Plan 01 — Digital Asset types + GraphQL documents + codegen
+- **Outcome:** Created `packages/types/src/digital-assets.ts` with all Zod schemas and inferred types; created `packages/node/src/documents/digital-assets.ts` with GetDigitalAsset and GetDigitalAssets documents; ran codegen successfully. All typechecks pass.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 8 complete** — all 4 plans done, all 3 requirements delivered (QUERY-01, DX-01, DX-02)
-- **Phase 9 restructured** — 9 sub-phases (9.1 Digital Assets → 9.9 Universal Receiver Events), each independent, each with own branch + PR
-- **Existing code on `feat/phase-9-query-domains`** — all 9 domains implemented but needs per-domain review; code can be used as reference for clean per-domain branches
-- **Codegen fix committed** — 4 document files migrated from manual TypedDocumentString to `graphql()` tag (on `feat/phase-9-part-1-codegen-creators-datachanged` branch, commit `16bf104`)
-- **Next step:** Plan and execute Phase 9.1 (Digital Assets) — first sub-phase, own branch + PR
-- **Key assets:**
-  - Validated vertical-slice pattern: types → documents → codegen → parsers → services → keys → hooks → actions → playground
-  - Shared playground components: FilterFieldsRow, SortControls, ResultsList<T> — ready for all domain pages
-  - Developer workflow checklist documented in PROJECT.md "Adding a New Domain"
-  - 4-package structure: types in `@lsp-indexer/types`, core in `@lsp-indexer/node`, hooks in `@lsp-indexer/react` + `@lsp-indexer/next`
-- **Build validated:** All 4 packages + test app build with zero errors on epic branch
+- **Phase 9.1 Plan 01 complete** — types, documents, codegen all done and committed
+- **Branch:** `feat/phase-9.1-digital-assets` — continue on this branch for plans 02-04
+- **Next step:** Execute Phase 9.1 Plan 02 (parsers + services + query key factory)
+- **Key assets available:**
+  - `DigitalAsset`, `DigitalAssetFilter`, `DigitalAssetSort`, `DigitalAssetInclude` Zod schemas + inferred types
+  - `GetDigitalAssetQuery`, `GetDigitalAssetsQuery` Hasura types from codegen
+  - `GetDigitalAssetDocument`, `GetDigitalAssetsDocument` typed document strings
+  - `SortDirectionSchema` now in `common.ts` — shared across all domains
+  - Inverted include default pattern: omit include = fetch everything (Boolean! = true GraphQL defaults)
+- **Reference for parsers:** existing parser on `feat/phase-9-query-domains` branch; adapt for digital assets
+- **LSP7 vs LSP8 disambiguation:** parser derives `standard` from presence of `decimals` field (LSP7 only)
+- **Token type mapping:** raw values "0"/"1"/"2" → TOKEN/NFT/COLLECTION enum values in parser
 
 ---
 
-_Last updated: 2026-02-19 — restructured Phase 9 into sub-phases 9.1–9.9_
+_Last updated: 2026-02-20 — completed 09.1-01-PLAN.md (digital-asset-types-codegen)_
