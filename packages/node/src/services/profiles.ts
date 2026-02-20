@@ -3,21 +3,7 @@ import { execute } from '../client/execute';
 import { GetProfileDocument, GetProfilesDocument } from '../documents/profiles';
 import type { Universal_Profile_Bool_Exp, Universal_Profile_Order_By } from '../graphql/graphql';
 import { parseProfile, parseProfiles } from '../parsers/profiles';
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Escape SQL LIKE wildcards (`%` and `_`) in a string so they are treated
- * as literal characters when used with Hasura's `_ilike` operator.
- *
- * Without escaping, user input like `"a%"` would match any value starting
- * with `"a"` instead of literally matching `"a%"`.
- */
-function escapeLike(value: string): string {
-  return value.replace(/%/g, '\\%').replace(/_/g, '\\_');
-}
+import { escapeLike, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -103,22 +89,24 @@ function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Bool_Exp {
  * Translate a flat `ProfileSort` to a Hasura `order_by` array.
  *
  * Sort field → Hasura mapping:
- * - `'name'`           → `[{ lsp3Profile: { name: { value: direction } } }]`
- * - `'followerCount'`  → `[{ followedBy_aggregate: { count: direction } }]`
- * - `'followingCount'` → `[{ followed_aggregate: { count: direction } }]`
+ * - `'name'`           → `[{ lsp3Profile: { name: { value: dir } } }]`
+ * - `'followerCount'`  → `[{ followedBy_aggregate: { count: dir } }]`
+ * - `'followingCount'` → `[{ followed_aggregate: { count: dir } }]`
+ *
+ * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
  */
 function buildProfileOrderBy(sort?: ProfileSort): Universal_Profile_Order_By[] | undefined {
   if (!sort) return undefined;
 
+  const dir = orderDir(sort.direction, sort.nulls);
+
   switch (sort.field) {
-    case 'name': {
-      const dir = sort.direction === 'asc' ? 'asc_nulls_last' : 'desc_nulls_last';
+    case 'name':
       return [{ lsp3Profile: { name: { value: dir } } }];
-    }
     case 'followerCount':
-      return [{ followedBy_aggregate: { count: sort.direction } }];
+      return [{ followedBy_aggregate: { count: dir } }];
     case 'followingCount':
-      return [{ followed_aggregate: { count: sort.direction } }];
+      return [{ followed_aggregate: { count: dir } }];
     default:
       return undefined;
   }

@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.1 (Digital Assets) — not yet started
-- **Status:** Phase 9 restructured from monolithic 11-plan phase into 9 independent sub-phases
-- **Last activity:** 2026-02-19 — Closed PRs #187–#190, restructured Phase 9 into sub-phases 9.1–9.9
+- **Sub-phase:** 9.1 (Digital Assets) — Plans 01-03 complete, Plan 04 next
+- **Status:** Plan 09.1-03 complete — Digital Asset hooks + server actions + build validation done
+- **Last activity:** 2026-02-20 — Completed 09.1-03-PLAN.md (digital-asset-hooks-wiring)
 - **Progress:** ████░░░░░░ 40% (10/28 requirements)
 
 ## Milestone History
@@ -48,7 +48,7 @@ _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-pha
 
 ## Performance Metrics
 
-- **Plans completed:** 42 (36 v1.0 + 6 v1.1)
+- **Plans completed:** 45 (36 v1.0 + 9 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 13 (11 v1.0 + 2 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 10/28 (v1.1)
@@ -95,6 +95,11 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **Search inputs have 300ms debounce** — prevents excessive GraphQL queries
 - **Labels on top of inputs** — not beside (consistent with shadcn form patterns)
 - **Shared playground components** in `components/playground/` — FilterFieldsRow, SortControls, ResultsList<T>, useFilterFields, ErrorAlert, RawJsonToggle. New domains only need config arrays + domain card component.
+- **Digital asset standard derivation:** parser derives `standard` from `decimals` field (3-state: undefined = not included → null, null = LSP8, value = LSP7)
+- **tokenType raw mapping:** Hasura stores "0"/"1"/"2" strings → parser maps to TOKEN/NFT/COLLECTION
+- **holderAddress filter:** maps to `ownedAssets.owner._ilike` (token holders via owned_asset.owner direct address field)
+- **createdAt sort:** maps to `owner.timestamp` (contract owner timestamp = asset creation time, LOCKED)
+- **@lukso/lsp4-contracts:** added to @lsp-indexer/node for LSP4_TOKEN_TYPES constants in service filter
 
 ### Discovered Todos
 
@@ -108,25 +113,24 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-19
-- **Activity:** Restructured Phase 9 into per-domain sub-phases
-- **Outcome:** Closed PRs #187–#190 (timeline-based splits lacked domain granularity). Split monolithic Phase 9 (11 plans) into 9 independent sub-phases (9.1–9.9), each with 4 plans mirroring Phase 8's vertical-slice pattern. Updated ROADMAP and STATE.
+- **Date:** 2026-02-20
+- **Activity:** Executed Phase 9.1 Plan 03 — Digital Asset hooks + server actions + build validation
+- **Outcome:** Created `packages/react/src/hooks/digital-assets.ts` (3 TanStack Query hooks, direct Hasura); `packages/next/src/actions/digital-assets.ts` (2 server actions with 'use server'); `packages/next/src/hooks/digital-assets.ts` (3 hooks routing through server actions). Updated react + next index.ts. All 4 packages build and typecheck clean.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 8 complete** — all 4 plans done, all 3 requirements delivered (QUERY-01, DX-01, DX-02)
-- **Phase 9 restructured** — 9 sub-phases (9.1 Digital Assets → 9.9 Universal Receiver Events), each independent, each with own branch + PR
-- **Existing code on `feat/phase-9-query-domains`** — all 9 domains implemented but needs per-domain review; code can be used as reference for clean per-domain branches
-- **Codegen fix committed** — 4 document files migrated from manual TypedDocumentString to `graphql()` tag (on `feat/phase-9-part-1-codegen-creators-datachanged` branch, commit `16bf104`)
-- **Next step:** Plan and execute Phase 9.1 (Digital Assets) — first sub-phase, own branch + PR
-- **Key assets:**
-  - Validated vertical-slice pattern: types → documents → codegen → parsers → services → keys → hooks → actions → playground
-  - Shared playground components: FilterFieldsRow, SortControls, ResultsList<T> — ready for all domain pages
-  - Developer workflow checklist documented in PROJECT.md "Adding a New Domain"
-  - 4-package structure: types in `@lsp-indexer/types`, core in `@lsp-indexer/node`, hooks in `@lsp-indexer/react` + `@lsp-indexer/next`
-- **Build validated:** All 4 packages + test app build with zero errors on epic branch
+- **Phase 9.1 Plans 01-03 complete** — full digital assets API available (types, documents, codegen, parsers, services, query keys, hooks, server actions, entry points)
+- **Branch:** `feat/phase-9.1-digital-assets` — continue on this branch for plan 04
+- **Next step:** Execute Phase 9.1 Plan 04 (playground UI for digital assets)
+- **Key assets available:**
+  - `useDigitalAsset`, `useDigitalAssets`, `useInfiniteDigitalAssets` from `@lsp-indexer/react`
+  - `getDigitalAsset`, `getDigitalAssets` server actions from `@lsp-indexer/next`
+  - `useDigitalAsset`, `useDigitalAssets`, `useInfiniteDigitalAssets` from `@lsp-indexer/next`
+  - All node exports: `fetchDigitalAsset`, `fetchDigitalAssets`, `digitalAssetKeys`, parsers, documents
+  - All types: `DigitalAsset`, `DigitalAssetFilter`, `DigitalAssetSort`, `DigitalAssetInclude`, `TokenType`
+- **Pattern reference:** Follow shared playground components in `components/playground/` — FilterFieldsRow, SortControls, ResultsList<T>, useFilterFields, ErrorAlert, RawJsonToggle
 
 ---
 
-_Last updated: 2026-02-19 — restructured Phase 9 into sub-phases 9.1–9.9_
+_Last updated: 2026-02-20 — completed 09.1-03-PLAN.md (digital-asset-hooks-wiring)_

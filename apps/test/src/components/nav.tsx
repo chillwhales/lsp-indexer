@@ -30,7 +30,7 @@ import {
 const navLinks = [
   { href: '/', label: 'Home', icon: Home, available: true },
   { href: '/profiles', label: 'Profiles', icon: User, available: true },
-  { href: '/assets', label: 'Digital Assets', icon: Image, available: false },
+  { href: '/digital-assets', label: 'Digital Assets', icon: Image, available: true },
   { href: '/nfts', label: 'NFTs', icon: Layers, available: false },
   { href: '/owned', label: 'Owned Assets', icon: Wallet, available: false },
   { href: '/follows', label: 'Follows', icon: Heart, available: false },

@@ -1,25 +1,26 @@
 'use client';
 
-import { Loader2, Monitor, Search, Server, User, Users } from 'lucide-react';
+import { Coins, Infinity, Layers, Monitor, Search, Server } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
-  useInfiniteProfiles as useInfiniteProfilesNext,
-  useProfile as useProfileNext,
-  useProfiles as useProfilesNext,
+  useDigitalAsset as useDigitalAssetNext,
+  useDigitalAssets as useDigitalAssetsNext,
+  useInfiniteDigitalAssets as useInfiniteDigitalAssetsNext,
 } from '@lsp-indexer/next';
 import {
-  useInfiniteProfiles as useInfiniteProfilesReact,
-  useProfile as useProfileReact,
-  useProfiles as useProfilesReact,
+  useDigitalAsset as useDigitalAssetReact,
+  useDigitalAssets as useDigitalAssetsReact,
+  useInfiniteDigitalAssets as useInfiniteDigitalAssetsReact,
 } from '@lsp-indexer/react';
 import type {
-  Profile,
-  ProfileFilter,
-  ProfileSort,
-  ProfileSortField,
+  DigitalAsset,
+  DigitalAssetFilter,
+  DigitalAssetSort,
+  DigitalAssetSortField,
   SortDirection,
   SortNulls,
+  TokenType,
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -30,6 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import { DigitalAssetCard } from '@/components/digital-asset-card';
 import type { FilterFieldConfig, IncludeToggleConfig, SortOption } from '@/components/playground';
 import {
   ErrorAlert,
@@ -40,7 +42,6 @@ import {
   useFilterFields,
   useIncludeToggles,
 } from '@/components/playground';
-import { ProfileCard } from '@/components/profile-card';
 
 // ---------------------------------------------------------------------------
 // Hook mode — pick which package's hooks to use
@@ -52,60 +53,91 @@ type HookMode = 'client' | 'server';
 function useHooks(mode: HookMode) {
   if (mode === 'server') {
     return {
-      useProfile: useProfileNext,
-      useProfiles: useProfilesNext,
-      useInfiniteProfiles: useInfiniteProfilesNext,
+      useDigitalAsset: useDigitalAssetNext,
+      useDigitalAssets: useDigitalAssetsNext,
+      useInfiniteDigitalAssets: useInfiniteDigitalAssetsNext,
     };
   }
   return {
-    useProfile: useProfileReact,
-    useProfiles: useProfilesReact,
-    useInfiniteProfiles: useInfiniteProfilesReact,
+    useDigitalAsset: useDigitalAssetReact,
+    useDigitalAssets: useDigitalAssetsReact,
+    useInfiniteDigitalAssets: useInfiniteDigitalAssetsReact,
   };
 }
 
 // ---------------------------------------------------------------------------
-// Profile domain config — the ONLY things that change per domain
+// Digital Assets domain config
 // ---------------------------------------------------------------------------
 
-const PROFILE_FILTERS: FilterFieldConfig[] = [
+const DIGITAL_ASSET_FILTERS: FilterFieldConfig[] = [
   { key: 'name', label: 'Name', placeholder: 'Search by name...' },
-  { key: 'followedBy', label: 'Followed by', placeholder: '0x... (address)', mono: true },
-  { key: 'following', label: 'Following', placeholder: '0x... (address)', mono: true },
-  { key: 'tokenOwned', label: 'Owns asset', placeholder: '0x... (token address)', mono: true },
+  { key: 'symbol', label: 'Symbol', placeholder: 'e.g. CHILL' },
+  {
+    key: 'tokenType',
+    label: 'Token Type',
+    options: [
+      { value: 'TOKEN', label: 'TOKEN' },
+      { value: 'NFT', label: 'NFT' },
+      { value: 'COLLECTION', label: 'COLLECTION' },
+    ],
+  },
+  { key: 'category', label: 'Category', placeholder: 'Search by category...' },
+  {
+    key: 'holderAddress',
+    label: 'Holder Address',
+    placeholder: '0x... (token holder)',
+    mono: true,
+  },
+  { key: 'ownerAddress', label: 'Owner Address', placeholder: '0x... (controller)', mono: true },
 ] as const;
 
-const PROFILE_SORT_OPTIONS: SortOption[] = [
+const DIGITAL_ASSET_SORT_OPTIONS: SortOption[] = [
   { value: 'name', label: 'Name' },
-  { value: 'followerCount', label: 'Followers' },
-  { value: 'followingCount', label: 'Following' },
+  { value: 'symbol', label: 'Symbol' },
+  { value: 'holderCount', label: 'Holders' },
+  { value: 'creatorCount', label: 'Creators' },
+  { value: 'totalSupply', label: 'Total Supply' },
+  { value: 'createdAt', label: 'Created At' },
 ];
 
-const PROFILE_INCLUDES: IncludeToggleConfig[] = [
+const DIGITAL_ASSET_INCLUDES: IncludeToggleConfig[] = [
   { key: 'name', label: 'Name' },
+  { key: 'symbol', label: 'Symbol' },
+  { key: 'tokenType', label: 'Token Type' },
+  { key: 'decimals', label: 'Decimals' },
+  { key: 'totalSupply', label: 'Total Supply' },
   { key: 'description', label: 'Description' },
-  { key: 'tags', label: 'Tags' },
+  { key: 'category', label: 'Category' },
+  { key: 'icons', label: 'Icons' },
+  { key: 'images', label: 'Images' },
   { key: 'links', label: 'Links' },
-  { key: 'avatar', label: 'Avatar' },
-  { key: 'profileImage', label: 'Profile Image' },
-  { key: 'backgroundImage', label: 'Background Image' },
-  { key: 'followerCount', label: 'Follower Count' },
-  { key: 'followingCount', label: 'Following Count' },
+  { key: 'attributes', label: 'Attributes' },
+  { key: 'owner', label: 'Owner' },
+  { key: 'holderCount', label: 'Holder Count' },
+  { key: 'creatorCount', label: 'Creator Count' },
+  { key: 'referenceContract', label: 'Reference Contract' },
+  { key: 'tokenIdFormat', label: 'Token ID Format' },
+  { key: 'baseUri', label: 'Base URI' },
 ];
 
 const PRESET_ADDRESSES = [
-  { label: 'chill-labs', address: '0xB6c10458274431189D4D0dA66ce00dc62A215908' },
-  { label: 'b00ste', address: '0x00Aa9761286f21437c90AD2f895ef0dcA3484306' },
-  { label: 'feindura', address: '0xCDeC110F9c255357E37f46CD2687be1f7E9B02F7' },
+  { label: 'CHILL (LSP7)', address: '0x5B8B0E44D4719F8A328470DcCD3746BFc73d6B14' },
+  { label: 'Chillwhales (LSP8)', address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83' },
 ] as const;
 
-/** Build a ProfileFilter from debounced filter field values */
-function buildProfileFilter(debouncedValues: Record<string, string>): ProfileFilter | undefined {
-  const f: ProfileFilter = {};
+/** Build a DigitalAssetFilter from debounced filter field values */
+function buildDigitalAssetFilter(
+  debouncedValues: Record<string, string>,
+): DigitalAssetFilter | undefined {
+  const f: DigitalAssetFilter = {};
   if (debouncedValues.name) f.name = debouncedValues.name;
-  if (debouncedValues.followedBy) f.followedBy = debouncedValues.followedBy;
-  if (debouncedValues.following) f.following = debouncedValues.following;
-  if (debouncedValues.tokenOwned) f.tokenOwned = { address: debouncedValues.tokenOwned };
+  if (debouncedValues.symbol) f.symbol = debouncedValues.symbol;
+  if (debouncedValues.tokenType) {
+    f.tokenType = debouncedValues.tokenType as TokenType;
+  }
+  if (debouncedValues.category) f.category = debouncedValues.category;
+  if (debouncedValues.holderAddress) f.holderAddress = debouncedValues.holderAddress;
+  if (debouncedValues.ownerAddress) f.ownerAddress = debouncedValues.ownerAddress;
   return Object.keys(f).length > 0 ? f : undefined;
 }
 
@@ -113,19 +145,19 @@ function buildProfileFilter(debouncedValues: Record<string, string>): ProfileFil
 // Shared filter + sort hook for list and infinite tabs
 // ---------------------------------------------------------------------------
 
-function useProfileListState() {
-  const { values, debouncedValues, setFieldValue } = useFilterFields(PROFILE_FILTERS);
-  const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
+function useDigitalAssetListState() {
+  const { values, debouncedValues, setFieldValue } = useFilterFields(DIGITAL_ASSET_FILTERS);
+  const [sortField, setSortField] = useState<DigitalAssetSortField>('holderCount');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const {
     values: includeValues,
     toggle: toggleInclude,
     include,
-  } = useIncludeToggles(PROFILE_INCLUDES);
+  } = useIncludeToggles(DIGITAL_ASSET_INCLUDES);
 
-  const filter = buildProfileFilter(debouncedValues);
-  const sort: ProfileSort = { field: sortField, direction: sortDirection, nulls: sortNulls };
+  const filter = buildDigitalAssetFilter(debouncedValues);
+  const sort: DigitalAssetSort = { field: sortField, direction: sortDirection, nulls: sortNulls };
   const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
 
   return {
@@ -147,20 +179,23 @@ function useProfileListState() {
 }
 
 // ---------------------------------------------------------------------------
-// Tab 1: Single Profile
+// Tab 1: Single Digital Asset
 // ---------------------------------------------------------------------------
 
-function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
-  const { useProfile } = useHooks(mode);
+function SingleAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useDigitalAsset } = useHooks(mode);
   const [address, setAddress] = useState('');
   const [queryAddress, setQueryAddress] = useState('');
   const {
     values: includeValues,
     toggle: toggleInclude,
     include,
-  } = useIncludeToggles(PROFILE_INCLUDES);
+  } = useIncludeToggles(DIGITAL_ASSET_INCLUDES);
 
-  const { profile, isLoading, error, isFetching } = useProfile({ address: queryAddress, include });
+  const { digitalAsset, isLoading, error, isFetching } = useDigitalAsset({
+    address: queryAddress,
+    include,
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,7 +212,7 @@ function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
       {/* Address input */}
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
-          placeholder="Enter Universal Profile address (0x...)"
+          placeholder="Enter digital asset address (0x...)"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           className="font-mono text-sm"
@@ -204,7 +239,11 @@ function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
       </div>
 
       {/* Include toggles */}
-      <IncludeToggles configs={PROFILE_INCLUDES} values={includeValues} onToggle={toggleInclude} />
+      <IncludeToggles
+        configs={DIGITAL_ASSET_INCLUDES}
+        values={includeValues}
+        onToggle={toggleInclude}
+      />
 
       {/* Loading state */}
       {isLoading && (
@@ -220,15 +259,15 @@ function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
       {error && <ErrorAlert error={error} />}
 
       {/* Success state */}
-      {profile && <ProfileCard profile={profile} isFetching={isFetching} />}
+      {digitalAsset && <DigitalAssetCard digitalAsset={digitalAsset} isFetching={isFetching} />}
 
       {/* Empty state */}
-      {queryAddress && !isLoading && !error && !profile && (
+      {queryAddress && !isLoading && !error && !digitalAsset && (
         <Alert>
-          <User className="h-4 w-4" />
-          <AlertTitle>No Profile Found</AlertTitle>
+          <Coins className="h-4 w-4" />
+          <AlertTitle>No Asset Found</AlertTitle>
           <AlertDescription>
-            No Universal Profile found at address{' '}
+            No digital asset found at address{' '}
             <code className="text-xs bg-muted px-1 py-0.5 rounded">{queryAddress}</code>
           </AlertDescription>
         </Alert>
@@ -238,15 +277,15 @@ function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
-// Tab 2: Profile List
+// Tab 2: Asset List
 // ---------------------------------------------------------------------------
 
-function ProfileListTab({ mode }: { mode: HookMode }): React.ReactNode {
-  const { useProfiles } = useHooks(mode);
-  const state = useProfileListState();
+function AssetListTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useDigitalAssets } = useHooks(mode);
+  const state = useDigitalAssetListState();
   const [limit, setLimit] = useState(10);
 
-  const { profiles, totalCount, isLoading, error, isFetching } = useProfiles({
+  const { digitalAssets, totalCount, isLoading, error, isFetching } = useDigitalAssets({
     filter: state.filter,
     sort: state.sort,
     limit,
@@ -256,15 +295,15 @@ function ProfileListTab({ mode }: { mode: HookMode }): React.ReactNode {
   return (
     <div className="space-y-4">
       <FilterFieldsRow
-        configs={PROFILE_FILTERS}
+        configs={DIGITAL_ASSET_FILTERS}
         values={state.values}
         onFieldChange={state.setFieldValue}
       />
       <SortControls
-        options={PROFILE_SORT_OPTIONS}
+        options={DIGITAL_ASSET_SORT_OPTIONS}
         sortField={state.sortField}
         sortDirection={state.sortDirection}
-        onSortFieldChange={(v) => state.setSortField(v as ProfileSortField)}
+        onSortFieldChange={(v) => state.setSortField(v as DigitalAssetSortField)}
         onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
         sortNulls={state.sortNulls ?? ''}
         onSortNullsChange={(v) =>
@@ -274,18 +313,18 @@ function ProfileListTab({ mode }: { mode: HookMode }): React.ReactNode {
         onLimitChange={setLimit}
       />
       <IncludeToggles
-        configs={PROFILE_INCLUDES}
+        configs={DIGITAL_ASSET_INCLUDES}
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
-      <ResultsList<Profile>
-        items={profiles}
+      <ResultsList<DigitalAsset>
+        items={digitalAssets}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(profile) => <ProfileCard profile={profile} />}
-        getKey={(p) => p.address}
-        label="profiles"
+        renderItem={(asset) => <DigitalAssetCard digitalAsset={asset} />}
+        getKey={(a) => a.address}
+        label="digital assets"
         totalCount={totalCount}
         hasActiveFilter={state.hasActiveFilter}
       />
@@ -298,29 +337,36 @@ function ProfileListTab({ mode }: { mode: HookMode }): React.ReactNode {
 // ---------------------------------------------------------------------------
 
 function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
-  const { useInfiniteProfiles } = useHooks(mode);
-  const state = useProfileListState();
+  const { useInfiniteDigitalAssets } = useHooks(mode);
+  const state = useDigitalAssetListState();
 
-  const { profiles, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =
-    useInfiniteProfiles({
-      filter: state.filter,
-      sort: state.sort,
-      pageSize: 10,
-      include: state.include,
-    });
+  const {
+    digitalAssets,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+    isLoading,
+    error,
+    isFetching,
+  } = useInfiniteDigitalAssets({
+    filter: state.filter,
+    sort: state.sort,
+    pageSize: 10,
+    include: state.include,
+  });
 
   return (
     <div className="space-y-4">
       <FilterFieldsRow
-        configs={PROFILE_FILTERS}
+        configs={DIGITAL_ASSET_FILTERS}
         values={state.values}
         onFieldChange={state.setFieldValue}
       />
       <SortControls
-        options={PROFILE_SORT_OPTIONS}
+        options={DIGITAL_ASSET_SORT_OPTIONS}
         sortField={state.sortField}
         sortDirection={state.sortDirection}
-        onSortFieldChange={(v) => state.setSortField(v as ProfileSortField)}
+        onSortFieldChange={(v) => state.setSortField(v as DigitalAssetSortField)}
         onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
         sortNulls={state.sortNulls ?? ''}
         onSortNullsChange={(v) =>
@@ -328,18 +374,18 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
         }
       />
       <IncludeToggles
-        configs={PROFILE_INCLUDES}
+        configs={DIGITAL_ASSET_INCLUDES}
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
-      <ResultsList<Profile>
-        items={profiles}
+      <ResultsList<DigitalAsset>
+        items={digitalAssets}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(profile) => <ProfileCard profile={profile} />}
-        getKey={(p) => p.address}
-        label="profiles"
+        renderItem={(asset) => <DigitalAssetCard digitalAsset={asset} />}
+        getKey={(a) => a.address}
+        label="digital assets"
         hasActiveFilter={state.hasActiveFilter}
         infinite={{ hasNextPage, fetchNextPage, isFetchingNextPage }}
       />
@@ -351,19 +397,19 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
 // Main Page
 // ---------------------------------------------------------------------------
 
-export default function ProfilesPage(): React.ReactNode {
+export default function DigitalAssetsPage(): React.ReactNode {
   const [mode, setMode] = useState<HookMode>('client');
 
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Universal Profiles</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Digital Assets</h1>
           <p className="text-muted-foreground">
-            Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useProfile</code>,{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">useProfiles</code>, and{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteProfiles</code> hooks
-            against live Hasura data.
+            Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useDigitalAsset</code>,{' '}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">useDigitalAssets</code>, and{' '}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteDigitalAssets</code>{' '}
+            hooks against live Hasura data.
           </p>
         </div>
 
@@ -404,25 +450,25 @@ export default function ProfilesPage(): React.ReactNode {
       <Tabs defaultValue="single" key={mode}>
         <TabsList>
           <TabsTrigger value="single">
-            <User className="size-4" />
-            Single Profile
+            <Coins className="size-4" />
+            Single Asset
           </TabsTrigger>
           <TabsTrigger value="list">
-            <Users className="size-4" />
-            Profile List
+            <Layers className="size-4" />
+            Asset List
           </TabsTrigger>
           <TabsTrigger value="infinite">
-            <Loader2 className="size-4" />
+            <Infinity className="size-4" />
             Infinite Scroll
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="single" className="mt-4">
-          <SingleProfileTab mode={mode} />
+          <SingleAssetTab mode={mode} />
         </TabsContent>
 
         <TabsContent value="list" className="mt-4">
-          <ProfileListTab mode={mode} />
+          <AssetListTab mode={mode} />
         </TabsContent>
 
         <TabsContent value="infinite" className="mt-4">

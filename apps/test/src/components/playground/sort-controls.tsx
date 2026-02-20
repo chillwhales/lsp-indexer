@@ -3,6 +3,7 @@
 import React from 'react';
 
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -24,13 +25,16 @@ interface SortControlsProps {
   sortDirection: string;
   onSortFieldChange: (field: string) => void;
   onSortDirectionChange: (direction: string) => void;
+  /** Current nulls ordering — empty string means "use Hasura default" */
+  sortNulls?: string;
+  onSortNullsChange?: (nulls: string) => void;
   /** If provided, shows a limit input */
   limit?: number;
   onLimitChange?: (limit: number) => void;
 }
 
 /**
- * Generic sort + direction + optional limit controls.
+ * Generic sort + direction + nulls + optional limit controls.
  * Reusable across all domain playground pages.
  */
 export function SortControls({
@@ -39,13 +43,15 @@ export function SortControls({
   sortDirection,
   onSortFieldChange,
   onSortDirectionChange,
+  sortNulls = '',
+  onSortNullsChange,
   limit,
   onLimitChange,
 }: SortControlsProps): React.ReactNode {
   return (
     <div className="flex flex-wrap gap-3 items-end">
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground font-medium">Sort by</label>
+        <Label className="text-xs text-muted-foreground font-medium">Sort by</Label>
         <Select value={sortField} onValueChange={onSortFieldChange}>
           <SelectTrigger className="w-40">
             <SelectValue />
@@ -61,7 +67,7 @@ export function SortControls({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground font-medium">Direction</label>
+        <Label className="text-xs text-muted-foreground font-medium">Direction</Label>
         <Select value={sortDirection} onValueChange={onSortDirectionChange}>
           <SelectTrigger className="w-28">
             <SelectValue />
@@ -73,9 +79,25 @@ export function SortControls({
         </Select>
       </div>
 
+      {onSortNullsChange && (
+        <div className="flex flex-col gap-1">
+          <Label className="text-xs text-muted-foreground font-medium">Nulls</Label>
+          <Select value={sortNulls || 'default'} onValueChange={onSortNullsChange}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Default</SelectItem>
+              <SelectItem value="first">Nulls first</SelectItem>
+              <SelectItem value="last">Nulls last</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {limit !== undefined && onLimitChange && (
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground font-medium">Limit</label>
+          <Label className="text-xs text-muted-foreground font-medium">Limit</Label>
           <Input
             type="number"
             min={1}

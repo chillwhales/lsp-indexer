@@ -68,7 +68,7 @@ function parseImage(raw: RawImageWithDimensions): ProfileImage {
  * Handles all edge cases:
  * - `lsp3_profile` may be `null` (no metadata set)
  * - `@include(if: false)` omitted fields won't be present in the response —
- *   uses optional chaining and defaults arrays to `[]`, scalars to `null`
+ *   uses optional chaining; omitted arrays become `null`, included-but-empty arrays become `[]`
  * - Aggregate counts may have `null` aggregate — defaults to `0`
  * - Tags and links filter out `null` values from Hasura
  * - Image verification is `null` when no verification method exists
@@ -83,15 +83,20 @@ export function parseProfile(raw: RawProfile): Profile {
     address: raw.address,
     name: lsp3?.name?.value ?? null,
     description: lsp3?.description?.value ?? null,
-    tags: lsp3?.tags?.map((t) => t.value).filter((v): v is string => v != null) ?? [],
+    tags:
+      lsp3?.tags != null
+        ? lsp3.tags.map((t) => t.value).filter((v): v is string => v != null)
+        : null,
     links:
-      lsp3?.links?.map((l) => ({
-        title: l.title ?? '',
-        url: l.url ?? '',
-      })) ?? [],
-    avatar: lsp3?.avatar?.map(parseAvatar) ?? [],
-    profileImage: lsp3?.profileImage?.map(parseImage) ?? [],
-    backgroundImage: lsp3?.backgroundImage?.map(parseImage) ?? [],
+      lsp3?.links != null
+        ? lsp3.links.map((l) => ({
+            title: l.title ?? '',
+            url: l.url ?? '',
+          }))
+        : null,
+    avatar: lsp3?.avatar != null ? lsp3.avatar.map(parseAvatar) : null,
+    profileImage: lsp3?.profileImage != null ? lsp3.profileImage.map(parseImage) : null,
+    backgroundImage: lsp3?.backgroundImage != null ? lsp3.backgroundImage.map(parseImage) : null,
     followerCount: raw.followedBy_aggregate?.aggregate?.count ?? 0,
     followingCount: raw.followed_aggregate?.aggregate?.count ?? 0,
   };

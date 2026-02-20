@@ -21320,6 +21320,57 @@ export type Universal_Receiver_Variance_Order_By = {
   value?: InputMaybe<Order_By>;
 };
 
+export type GetDigitalAssetQueryVariables = Exact<{
+  where: Digital_Asset_Bool_Exp;
+  includeName?: Scalars['Boolean']['input'];
+  includeSymbol?: Scalars['Boolean']['input'];
+  includeTokenType?: Scalars['Boolean']['input'];
+  includeDecimals?: Scalars['Boolean']['input'];
+  includeTotalSupply?: Scalars['Boolean']['input'];
+  includeDescription?: Scalars['Boolean']['input'];
+  includeCategory?: Scalars['Boolean']['input'];
+  includeIcons?: Scalars['Boolean']['input'];
+  includeImages?: Scalars['Boolean']['input'];
+  includeLinks?: Scalars['Boolean']['input'];
+  includeAttributes?: Scalars['Boolean']['input'];
+  includeOwner?: Scalars['Boolean']['input'];
+  includeHolderCount?: Scalars['Boolean']['input'];
+  includeCreatorCount?: Scalars['Boolean']['input'];
+  includeReferenceContract?: Scalars['Boolean']['input'];
+  includeTokenIdFormat?: Scalars['Boolean']['input'];
+  includeBaseUri?: Scalars['Boolean']['input'];
+}>;
+
+
+export type GetDigitalAssetQuery = { __typename?: 'query_root', digital_asset: Array<{ __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null }> };
+
+export type GetDigitalAssetsQueryVariables = Exact<{
+  where?: InputMaybe<Digital_Asset_Bool_Exp>;
+  order_by?: InputMaybe<Array<Digital_Asset_Order_By> | Digital_Asset_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  includeName?: Scalars['Boolean']['input'];
+  includeSymbol?: Scalars['Boolean']['input'];
+  includeTokenType?: Scalars['Boolean']['input'];
+  includeDecimals?: Scalars['Boolean']['input'];
+  includeTotalSupply?: Scalars['Boolean']['input'];
+  includeDescription?: Scalars['Boolean']['input'];
+  includeCategory?: Scalars['Boolean']['input'];
+  includeIcons?: Scalars['Boolean']['input'];
+  includeImages?: Scalars['Boolean']['input'];
+  includeLinks?: Scalars['Boolean']['input'];
+  includeAttributes?: Scalars['Boolean']['input'];
+  includeOwner?: Scalars['Boolean']['input'];
+  includeHolderCount?: Scalars['Boolean']['input'];
+  includeCreatorCount?: Scalars['Boolean']['input'];
+  includeReferenceContract?: Scalars['Boolean']['input'];
+  includeTokenIdFormat?: Scalars['Boolean']['input'];
+  includeBaseUri?: Scalars['Boolean']['input'];
+}>;
+
+
+export type GetDigitalAssetsQuery = { __typename?: 'query_root', digital_asset: Array<{ __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null }>, digital_asset_aggregate: { __typename?: 'digital_asset_aggregate', aggregate?: { __typename?: 'digital_asset_aggregate_fields', count: number } | null } };
+
 export type GetProfileQueryVariables = Exact<{
   where: Universal_Profile_Bool_Exp;
   includeName?: Scalars['Boolean']['input'];
@@ -21374,6 +21425,166 @@ export class TypedDocumentString<TResult, TVariables>
   }
 }
 
+export const GetDigitalAssetDocument = new TypedDocumentString(`
+    query GetDigitalAsset($where: digital_asset_bool_exp!, $includeName: Boolean! = true, $includeSymbol: Boolean! = true, $includeTokenType: Boolean! = true, $includeDecimals: Boolean! = true, $includeTotalSupply: Boolean! = true, $includeDescription: Boolean! = true, $includeCategory: Boolean! = true, $includeIcons: Boolean! = true, $includeImages: Boolean! = true, $includeLinks: Boolean! = true, $includeAttributes: Boolean! = true, $includeOwner: Boolean! = true, $includeHolderCount: Boolean! = true, $includeCreatorCount: Boolean! = true, $includeReferenceContract: Boolean! = true, $includeTokenIdFormat: Boolean! = true, $includeBaseUri: Boolean! = true) {
+  digital_asset(where: $where, limit: 1) {
+    id
+    address
+    lsp4TokenName @include(if: $includeName) {
+      value
+    }
+    lsp4TokenSymbol @include(if: $includeSymbol) {
+      value
+    }
+    lsp4TokenType @include(if: $includeTokenType) {
+      value
+    }
+    decimals @include(if: $includeDecimals) {
+      value
+    }
+    totalSupply @include(if: $includeTotalSupply) {
+      value
+    }
+    lsp4Metadata {
+      description @include(if: $includeDescription) {
+        value
+      }
+      category @include(if: $includeCategory) {
+        value
+      }
+      icon @include(if: $includeIcons) {
+        url
+        width
+        height
+        verification_method
+        verification_data
+      }
+      images @include(if: $includeImages) {
+        url
+        width
+        height
+        verification_method
+        verification_data
+      }
+      links @include(if: $includeLinks) {
+        title
+        url
+      }
+      attributes @include(if: $includeAttributes) {
+        key
+        value
+        type
+      }
+    }
+    owner @include(if: $includeOwner) {
+      address
+      timestamp
+    }
+    ownedAssets_aggregate @include(if: $includeHolderCount) {
+      aggregate {
+        count
+      }
+    }
+    lsp4CreatorsLength @include(if: $includeCreatorCount) {
+      value
+    }
+    lsp8ReferenceContract @include(if: $includeReferenceContract) {
+      value
+    }
+    lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+      value
+    }
+    lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+      value
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetDigitalAssetQuery, GetDigitalAssetQueryVariables>;
+export const GetDigitalAssetsDocument = new TypedDocumentString(`
+    query GetDigitalAssets($where: digital_asset_bool_exp, $order_by: [digital_asset_order_by!], $limit: Int, $offset: Int, $includeName: Boolean! = true, $includeSymbol: Boolean! = true, $includeTokenType: Boolean! = true, $includeDecimals: Boolean! = true, $includeTotalSupply: Boolean! = true, $includeDescription: Boolean! = true, $includeCategory: Boolean! = true, $includeIcons: Boolean! = true, $includeImages: Boolean! = true, $includeLinks: Boolean! = true, $includeAttributes: Boolean! = true, $includeOwner: Boolean! = true, $includeHolderCount: Boolean! = true, $includeCreatorCount: Boolean! = true, $includeReferenceContract: Boolean! = true, $includeTokenIdFormat: Boolean! = true, $includeBaseUri: Boolean! = true) {
+  digital_asset(
+    where: $where
+    order_by: $order_by
+    limit: $limit
+    offset: $offset
+  ) {
+    id
+    address
+    lsp4TokenName @include(if: $includeName) {
+      value
+    }
+    lsp4TokenSymbol @include(if: $includeSymbol) {
+      value
+    }
+    lsp4TokenType @include(if: $includeTokenType) {
+      value
+    }
+    decimals @include(if: $includeDecimals) {
+      value
+    }
+    totalSupply @include(if: $includeTotalSupply) {
+      value
+    }
+    lsp4Metadata {
+      description @include(if: $includeDescription) {
+        value
+      }
+      category @include(if: $includeCategory) {
+        value
+      }
+      icon @include(if: $includeIcons) {
+        url
+        width
+        height
+        verification_method
+        verification_data
+      }
+      images @include(if: $includeImages) {
+        url
+        width
+        height
+        verification_method
+        verification_data
+      }
+      links @include(if: $includeLinks) {
+        title
+        url
+      }
+      attributes @include(if: $includeAttributes) {
+        key
+        value
+        type
+      }
+    }
+    owner @include(if: $includeOwner) {
+      address
+      timestamp
+    }
+    ownedAssets_aggregate @include(if: $includeHolderCount) {
+      aggregate {
+        count
+      }
+    }
+    lsp4CreatorsLength @include(if: $includeCreatorCount) {
+      value
+    }
+    lsp8ReferenceContract @include(if: $includeReferenceContract) {
+      value
+    }
+    lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+      value
+    }
+    lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+      value
+    }
+  }
+  digital_asset_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetDigitalAssetsQuery, GetDigitalAssetsQueryVariables>;
 export const GetProfileDocument = new TypedDocumentString(`
     query GetProfile($where: universal_profile_bool_exp!, $includeName: Boolean! = true, $includeDescription: Boolean! = true, $includeTags: Boolean! = true, $includeLinks: Boolean! = true, $includeAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeBackgroundImage: Boolean! = true, $includeFollowerCount: Boolean! = true, $includeFollowingCount: Boolean! = true) {
   universal_profile(where: $where, limit: 1) {

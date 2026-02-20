@@ -17,5 +17,18 @@ export { profileKeys } from './keys/profiles';
 // GraphQL documents (for advanced usage / custom queries)
 export { GetProfileDocument, GetProfilesDocument } from './documents/profiles';
 
+// Digital asset services (the core fetching layer)
+export { fetchDigitalAsset, fetchDigitalAssets } from './services/digital-assets';
+export type { FetchDigitalAssetsResult } from './services/digital-assets';
+
+// Digital asset parsers (Hasura → clean types)
+export { parseDigitalAsset, parseDigitalAssets } from './parsers/digital-assets';
+
+// Digital asset query key factory
+export { digitalAssetKeys } from './keys/digital-assets';
+
+// Digital asset GraphQL documents (for advanced usage / custom queries)
+export { GetDigitalAssetDocument, GetDigitalAssetsDocument } from './documents/digital-assets';
+
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';
