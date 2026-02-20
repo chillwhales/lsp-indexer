@@ -5,7 +5,7 @@ import React from 'react';
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { isSafeUrl } from '@/lib/utils';
+import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // NFT Card
@@ -28,7 +28,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
               {firstIcon && isSafeUrl(firstIcon.url) ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={firstIcon.url}
+                  src={resolveUrl(firstIcon.url)}
                   alt={nft.name ?? 'nft icon'}
                   className="size-5 rounded object-cover"
                   onError={(e) => {
@@ -134,7 +134,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
                         {isSafeUrl(icon.url) ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={icon.url}
+                            src={resolveUrl(icon.url)}
                             alt=""
                             className="size-8 rounded object-cover shrink-0"
                             onError={(e) => {
@@ -164,7 +164,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
                         {isSafeUrl(image.url) ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={image.url}
+                            src={resolveUrl(image.url)}
                             alt=""
                             className="size-8 rounded object-cover shrink-0"
                             onError={(e) => {
@@ -191,7 +191,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
                       isSafeUrl(link.url) ? (
                         <a
                           key={`${link.url}-${i}`}
-                          href={link.url}
+                          href={resolveUrl(link.url)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1.5 text-sm text-primary hover:underline"

@@ -5,7 +5,7 @@ import React from 'react';
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { isSafeUrl } from '@/lib/utils';
+import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // Profile Card
@@ -77,7 +77,7 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
                 isSafeUrl(link.url) ? (
                   <a
                     key={`${link.url}-${i}`}
-                    href={link.url}
+                    href={resolveUrl(link.url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 text-sm text-primary hover:underline"
@@ -113,7 +113,7 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
                   {isSafeUrl(img.url) ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={img.url}
+                      src={resolveUrl(img.url)}
                       alt=""
                       className="size-8 rounded object-cover shrink-0"
                       onError={(e) => {
@@ -143,7 +143,7 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
                   {isSafeUrl(img.url) ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={img.url}
+                      src={resolveUrl(img.url)}
                       alt=""
                       className="size-8 rounded object-cover shrink-0"
                       onError={(e) => {
@@ -173,7 +173,7 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
                   {isSafeUrl(img.url) ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={img.url}
+                      src={resolveUrl(img.url)}
                       alt=""
                       className="size-8 rounded object-cover shrink-0"
                       onError={(e) => {
