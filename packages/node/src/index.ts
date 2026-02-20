@@ -47,5 +47,31 @@ export { nftKeys } from './keys/nfts';
 // NFT GraphQL documents (for advanced usage / custom queries)
 export { GetNftDocument, GetNftsDocument } from './documents/nfts';
 
+// Owned asset services (the core fetching layer)
+export { fetchOwnedAsset, fetchOwnedAssets } from './services/owned-assets';
+export type { FetchOwnedAssetsResult } from './services/owned-assets';
+
+// Owned asset parsers (Hasura → clean types)
+export { parseOwnedAsset, parseOwnedAssets } from './parsers/owned-assets';
+
+// Owned asset query key factory
+export { ownedAssetKeys } from './keys/owned-assets';
+
+// Owned asset GraphQL documents (for advanced usage / custom queries)
+export { GetOwnedAssetDocument, GetOwnedAssetsDocument } from './documents/owned-assets';
+
+// Owned token services (the core fetching layer)
+export { fetchOwnedToken, fetchOwnedTokens } from './services/owned-tokens';
+export type { FetchOwnedTokensResult } from './services/owned-tokens';
+
+// Owned token parsers (Hasura → clean types)
+export { parseOwnedToken, parseOwnedTokens } from './parsers/owned-tokens';
+
+// Owned token query key factory
+export { ownedTokenKeys } from './keys/owned-tokens';
+
+// Owned token GraphQL documents (for advanced usage / custom queries)
+export { GetOwnedTokenDocument, GetOwnedTokensDocument } from './documents/owned-tokens';
+
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';
