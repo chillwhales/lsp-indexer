@@ -8,6 +8,7 @@ import {
   SortNullsSchema,
 } from './common';
 import { DigitalAssetIncludeSchema, DigitalAssetSchema } from './digital-assets';
+import { ProfileSchema } from './profiles';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -19,6 +20,8 @@ export const NftHolderSchema = z.object({
   address: z.string(),
   /** When this holder acquired the token (ISO timestamp) */
   timestamp: z.string(),
+  /** Holder's universal profile (if they have one) */
+  universalProfile: ProfileSchema.nullable(),
 });
 
 /**

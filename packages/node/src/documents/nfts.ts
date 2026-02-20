@@ -129,6 +129,54 @@ export const GetNftDocument = graphql(`
       ownedToken @include(if: $includeHolder) {
         owner
         timestamp
+        universalProfile {
+          address
+          lsp3Profile {
+            name {
+              value
+            }
+            description {
+              value
+            }
+            tags {
+              value
+            }
+            links {
+              title
+              url
+            }
+            avatar {
+              url
+              file_type
+              verification_method
+              verification_data
+            }
+            profileImage {
+              url
+              width
+              height
+              verification_method
+              verification_data
+            }
+            backgroundImage {
+              url
+              width
+              height
+              verification_method
+              verification_data
+            }
+          }
+          followedBy_aggregate {
+            aggregate {
+              count
+            }
+          }
+          followed_aggregate {
+            aggregate {
+              count
+            }
+          }
+        }
       }
       lsp4Metadata {
         name @include(if: $includeName) {
@@ -337,6 +385,54 @@ export const GetNftsDocument = graphql(`
       ownedToken @include(if: $includeHolder) {
         owner
         timestamp
+        universalProfile {
+          address
+          lsp3Profile {
+            name {
+              value
+            }
+            description {
+              value
+            }
+            tags {
+              value
+            }
+            links {
+              title
+              url
+            }
+            avatar {
+              url
+              file_type
+              verification_method
+              verification_data
+            }
+            profileImage {
+              url
+              width
+              height
+              verification_method
+              verification_data
+            }
+            backgroundImage {
+              url
+              width
+              height
+              verification_method
+              verification_data
+            }
+          }
+          followedBy_aggregate {
+            aggregate {
+              count
+            }
+          }
+          followed_aggregate {
+            aggregate {
+              count
+            }
+          }
+        }
       }
       lsp4Metadata {
         name @include(if: $includeName) {
