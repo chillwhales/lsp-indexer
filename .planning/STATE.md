@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.2 (NFTs) — not yet started
-- **Status:** Phase 9.1 complete (all 4 plans done, PR #193 merged) — QUERY-02 + PAGE-01 delivered
-- **Last activity:** 2026-02-20 — Completed 09.1-04-PLAN.md (digital-assets-playground-e2e)
+- **Sub-phase:** 9.2 (NFTs) — plan 1 of 4 complete
+- **Status:** In progress — executing 09.2 NFTs vertical slice
+- **Last activity:** 2026-02-20 — Completed 09.2-01-PLAN.md (NFT types + GraphQL documents)
 - **Progress:** ████░░░░░░ 39% (11/28 requirements)
 
 ## Milestone History
@@ -48,7 +48,7 @@ _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-pha
 
 ## Performance Metrics
 
-- **Plans completed:** 49 (36 v1.0 + 13 v1.1)
+- **Plans completed:** 50 (36 v1.0 + 14 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 14 (11 v1.0 + 3 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 11/28 (v1.1)
@@ -122,24 +122,26 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-20
-- **Activity:** Executed Phase 9.1 Plans 01–04 + post-plan E2E polish — full Digital Assets vertical slice complete
-- **Outcome:** All 4 plans shipped: types + codegen → parsers + services + keys → hooks + server actions → playground page. Post-plan: SortNulls type, T[]|null arrays, escapeLike shared util, export \* barrel pattern, BigInt formatTokenAmount, extracted card components. PR #193 merged to `refactor/indexer-v2-react`.
+- **Activity:** Executed Phase 9.2 Plan 01 — NFT types + GraphQL documents
+- **Outcome:** Extracted shared LSP4 schemas to common.ts, created NFT domain types (nfts.ts), created GetNftDocument + GetNftsDocument, regenerated codegen.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.1 complete** — QUERY-02 delivered. PR #193 merged. `feat/phase-9.1-digital-assets` branch archived.
-- **Next step:** Execute Phase 9.2 (NFTs) — follow the identical 4-plan vertical-slice pattern
-- **Branch protocol:** Fetch + pull `refactor/indexer-v2-react`, then `git checkout -b feat/phase-9.2-nfts`
+- **Phase 9.2 plan 1 of 4 complete** — types + documents foundation done
+- **Next step:** Execute 09.2-02-PLAN.md (parsers, services, query keys)
+- **Branch:** `feat/phase-9.2-nfts`
 - **Pattern reference (from 9.1):**
   - `SortNulls` type + `orderDir()` — wire through NFT sort schema and service
   - `T[] | null` for all array fields — null = not fetched, [] = empty
   - `escapeLike` from `packages/node/src/services/utils.ts` — apply to all string filters
   - `numericToString` from `packages/node/src/parsers/utils.ts` — for Hasura `numeric` scalars
   - `export *` in all package index.ts files
-  - Extract `NftCard` component to `apps/test/src/components/nft-card.tsx`
-  - `FilterFieldConfig.options[]` for enum filters (tokenIdFormat, etc.)
+  - Shared Lsp4 schemas now in common.ts — new domains import directly
+- **New patterns from this plan:**
+  - `Lsp4ImageSchema`, `Lsp4LinkSchema`, `Lsp4AttributeSchema` extracted to `packages/types/src/common.ts`
+  - Domain-prefixed aliases (DigitalAssetImageSchema = Lsp4ImageSchema) for backward compat
 
 ---
 
-_Last updated: 2026-02-20 — completed 09.1-04-PLAN.md (digital-assets-playground-e2e), Phase 9.1 complete, PR #193 merged_
+_Last updated: 2026-02-20 — completed 09.2-01-PLAN.md (NFT types + GraphQL documents)_
