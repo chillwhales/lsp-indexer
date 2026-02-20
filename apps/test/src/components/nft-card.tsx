@@ -102,7 +102,9 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
             </div>
             <div className="text-sm">
               <span className="text-muted-foreground">Acquired:</span>{' '}
-              <span className="text-xs">{new Date(nft.holder.timestamp).toLocaleString()}</span>
+              <span className="text-xs">
+                {nft.holder.timestamp ? new Date(nft.holder.timestamp).toLocaleString() : 'Unknown'}
+              </span>
             </div>
           </div>
         )}

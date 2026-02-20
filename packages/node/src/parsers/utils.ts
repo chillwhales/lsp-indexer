@@ -1,4 +1,4 @@
-import type { Asset, Lsp4Attribute } from '@lsp-indexer/types';
+import type { Asset, Image, Link, Lsp4Attribute } from '@lsp-indexer/types';
 
 /**
  * Structural interface for raw LSP4 metadata image data.
