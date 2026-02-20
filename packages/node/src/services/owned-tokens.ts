@@ -11,7 +11,7 @@ import { parseOwnedToken, parseOwnedTokens } from '../parsers/owned-tokens';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildNftIncludeVars } from './nfts';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, orderDir } from './utils';
+import { escapeLike, hasActiveIncludes, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -124,9 +124,11 @@ function buildOrderBy(sort?: OwnedTokenSort): Owned_Token_Order_By[] | undefined
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
  *
  * **Nested relation sub-includes:**
- * - `digitalAsset`: When provided (even as `{}`) → `includeDigitalAsset: true` with 17 DA sub-variables.
- * - `nft`: When provided (even as `{}`) → `includeNft: true` with 8 NFT sub-variables.
- * - `universalProfile`: When provided (even as `{}`) → `includeUniversalProfile: true` with 9 profile sub-variables.
+ * - `digitalAsset`: Only included when at least one sub-field is truthy → 17 DA sub-variables.
+ * - `nft`: Only included when at least one sub-field is truthy → 8 NFT sub-variables.
+ * - `universalProfile`: Only included when at least one sub-field is truthy → 9 profile sub-variables.
+ *
+ * `undefined`, `{}`, and all-false objects all resolve to `false` for the parent relation.
  */
 function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> {
   if (!include) {
@@ -134,39 +136,32 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
     return {};
   }
 
+  const activeDA = hasActiveIncludes(include.digitalAsset);
+  const activeNft = hasActiveIncludes(include.nft);
+  const activeUP = hasActiveIncludes(include.universalProfile);
+
   const vars: Record<string, boolean> = {
-    includeDigitalAsset: include.digitalAsset !== undefined, // provided (even {}) = include
-    includeNft: include.nft !== undefined, // provided (even {}) = include
+    includeDigitalAsset: activeDA,
+    includeNft: activeNft,
     includeOwnedAsset: include.ownedAsset ?? false,
-    includeUniversalProfile: include.universalProfile !== undefined, // provided (even {}) = include
+    includeUniversalProfile: activeUP,
   };
 
   // Digital asset sub-includes: reuse digital asset include builder.
-  // When digitalAsset is empty {} → buildDigitalAssetIncludeVars returns {} → GraphQL defaults apply.
-  // When digitalAsset has explicit keys → each key is mapped to include* variables.
-  if (include.digitalAsset) {
-    const daVars = buildDigitalAssetIncludeVars(
-      Object.keys(include.digitalAsset).length > 0 ? include.digitalAsset : undefined,
-    );
+  if (activeDA) {
+    const daVars = buildDigitalAssetIncludeVars(include.digitalAsset);
     Object.assign(vars, daVars);
   }
 
   // NFT sub-includes: reuse NFT include builder with includeNft* prefix.
-  // When nft is empty {} → buildNftIncludeVars returns {} → GraphQL defaults apply.
-  // When nft has explicit keys → each key is mapped to includeNft* variables.
-  if (include.nft) {
-    const nftVars = buildNftIncludeVars(
-      Object.keys(include.nft).length > 0 ? include.nft : undefined,
-    );
+  if (activeNft) {
+    const nftVars = buildNftIncludeVars(include.nft);
     Object.assign(vars, nftVars);
   }
 
   // Profile sub-includes: reuse profile include builder with includeProfile* prefix.
-  // Same pattern as digital asset sub-includes.
-  if (include.universalProfile) {
-    const profileVars = buildProfileIncludeVars(
-      Object.keys(include.universalProfile).length > 0 ? include.universalProfile : undefined,
-    );
+  if (activeUP) {
+    const profileVars = buildProfileIncludeVars(include.universalProfile);
     Object.assign(vars, profileVars);
   }
 

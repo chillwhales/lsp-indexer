@@ -23,3 +23,20 @@ export function orderDir(direction: string, nulls?: 'first' | 'last'): Order_By 
   if (!nulls) return direction as Order_By;
   return `${direction}_nulls_${nulls}` as Order_By;
 }
+
+/**
+ * Check whether a nested include object has at least one **truthy** sub-field.
+ *
+ * Used to decide if a nested relation (collection, holder, digitalAsset, etc.)
+ * should be fetched at all. An empty object `{}` or an object with only falsy
+ * values (`{ name: false }`) means "don't include the relation".
+ *
+ * @example
+ * hasActiveIncludes(undefined)            // false — not provided
+ * hasActiveIncludes({})                   // false — no sub-fields
+ * hasActiveIncludes({ name: false })      // false — no truthy sub-fields
+ * hasActiveIncludes({ name: true })       // true  — at least one active
+ */
+export function hasActiveIncludes(obj: Record<string, unknown> | undefined): boolean {
+  return obj !== undefined && Object.values(obj).some(Boolean);
+}

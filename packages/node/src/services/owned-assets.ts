@@ -10,7 +10,7 @@ import type { Owned_Asset_Bool_Exp, Owned_Asset_Order_By } from '../graphql/grap
 import { parseOwnedAsset, parseOwnedAssets } from '../parsers/owned-assets';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, orderDir } from './utils';
+import { escapeLike, hasActiveIncludes, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -109,9 +109,12 @@ function buildOrderBy(sort?: OwnedAssetSort): Owned_Asset_Order_By[] | undefined
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
  *
  * **Digital asset sub-includes:**
- * - When `include.digitalAsset` is **provided** (even as `{}`) → `includeDigitalAsset: true`
+ * - When `include.digitalAsset` has at least one truthy sub-field → `includeDigitalAsset: true`
  *   with sub-include variables from `buildDigitalAssetIncludeVars`.
- * - When `include.digitalAsset` is **undefined** → `includeDigitalAsset: false`.
+ * - When `include.digitalAsset` is `undefined`, `{}`, or all-false → `includeDigitalAsset: false`.
+ *
+ * **Universal profile sub-includes:**
+ * - Same pattern as digital asset — only included when at least one sub-field is truthy.
  */
 function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> {
   if (!include) {
@@ -119,28 +122,24 @@ function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> 
     return {};
   }
 
+  const activeDA = hasActiveIncludes(include.digitalAsset);
+  const activeUP = hasActiveIncludes(include.universalProfile);
+
   const vars: Record<string, boolean> = {
-    includeDigitalAsset: include.digitalAsset !== undefined, // provided (even {}) = include
-    includeUniversalProfile: include.universalProfile !== undefined, // provided (even {}) = include
+    includeDigitalAsset: activeDA,
+    includeUniversalProfile: activeUP,
     includeTokenIdCount: include.tokenIdCount ?? false,
   };
 
   // Digital asset sub-includes: reuse digital asset include builder.
-  // When digitalAsset is empty {} → buildDigitalAssetIncludeVars returns {} → GraphQL defaults apply.
-  // When digitalAsset has explicit keys → each key is mapped to include* variables.
-  if (include.digitalAsset) {
-    const daVars = buildDigitalAssetIncludeVars(
-      Object.keys(include.digitalAsset).length > 0 ? include.digitalAsset : undefined,
-    );
+  if (activeDA) {
+    const daVars = buildDigitalAssetIncludeVars(include.digitalAsset);
     Object.assign(vars, daVars);
   }
 
   // Profile sub-includes: reuse profile include builder with includeProfile* prefix.
-  // Same pattern as digital asset sub-includes.
-  if (include.universalProfile) {
-    const profileVars = buildProfileIncludeVars(
-      Object.keys(include.universalProfile).length > 0 ? include.universalProfile : undefined,
-    );
+  if (activeUP) {
+    const profileVars = buildProfileIncludeVars(include.universalProfile);
     Object.assign(vars, profileVars);
   }
 

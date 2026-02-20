@@ -5,7 +5,7 @@ import type { Nft_Bool_Exp, Nft_Order_By } from '../graphql/graphql';
 import { parseNft, parseNfts } from '../parsers/nfts';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, orderDir } from './utils';
+import { escapeLike, hasActiveIncludes, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -118,9 +118,12 @@ function buildNftOrderBy(sort?: NftSort): Nft_Order_By[] | undefined {
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
  *
  * **Collection sub-includes:**
- * - When `include.collection` is **provided** (even as `{}`) → `includeCollection: true`
+ * - When `include.collection` has at least one truthy sub-field → `includeCollection: true`
  *   with sub-include variables from the DigitalAssetInclude schema.
- * - When `include.collection` is **undefined** → `includeCollection: false`.
+ * - When `include.collection` is `undefined`, `{}`, or all-false → `includeCollection: false`.
+ *
+ * **Holder sub-includes:**
+ * - Same pattern as collection — only included when at least one sub-field is truthy.
  */
 function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
   if (!include) {
@@ -128,11 +131,14 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
     return {};
   }
 
+  const activeCollection = hasActiveIncludes(include.collection);
+  const activeHolder = hasActiveIncludes(include.holder);
+
   const vars: Record<string, boolean> = {
     includeFormattedTokenId: include.formattedTokenId ?? false,
     includeName: include.name ?? false,
-    includeCollection: include.collection !== undefined, // provided (even {}) = include
-    includeHolder: include.holder !== undefined, // provided (even {}) = include
+    includeCollection: activeCollection,
+    includeHolder: activeHolder,
     includeDescription: include.description ?? false,
     includeCategory: include.category ?? false,
     includeIcons: include.icons ?? false,
@@ -142,12 +148,8 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
   };
 
   // Collection sub-includes: reuse digital asset include builder with "Collection" prefix.
-  // When collection is empty {} → buildDigitalAssetIncludeVars returns {} → GraphQL defaults apply.
-  // When collection has explicit keys → each key is mapped to includeCollection* variables.
-  if (include.collection) {
-    const daVars = buildDigitalAssetIncludeVars(
-      Object.keys(include.collection).length > 0 ? include.collection : undefined,
-    );
+  if (activeCollection) {
+    const daVars = buildDigitalAssetIncludeVars(include.collection);
     for (const [key, val] of Object.entries(daVars)) {
       // includeX → includeCollectionX
       vars[key.replace('include', 'includeCollection')] = val;
@@ -155,12 +157,8 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
   }
 
   // Holder sub-includes: reuse profile include builder with "Holder" prefix.
-  // When holder is empty {} → buildProfileIncludeVars returns {} → GraphQL defaults apply.
-  // When holder has explicit keys → each key is mapped to includeHolder* variables.
-  if (include.holder) {
-    const profileVars = buildProfileIncludeVars(
-      Object.keys(include.holder).length > 0 ? include.holder : undefined,
-    );
+  if (activeHolder) {
+    const profileVars = buildProfileIncludeVars(include.holder);
     for (const [key, val] of Object.entries(profileVars)) {
       // includeProfileX → includeHolderX
       vars[key.replace('includeProfile', 'includeHolder')] = val;
