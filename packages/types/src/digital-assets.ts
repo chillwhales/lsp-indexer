@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-import { SortDirectionSchema, SortNullsSchema } from './common';
+import {
+  Lsp4AttributeSchema,
+  Lsp4ImageSchema,
+  Lsp4LinkSchema,
+  SortDirectionSchema,
+  SortNullsSchema,
+} from './common';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -18,42 +24,14 @@ export const StandardSchema = z.enum(['LSP7', 'LSP8']);
  */
 export const TokenTypeSchema = z.enum(['TOKEN', 'NFT', 'COLLECTION']);
 
-/** Image associated with a digital asset (icon or background image) */
-export const DigitalAssetImageSchema = z.object({
-  /** Image URL (IPFS gateway URL or HTTP URL) */
-  url: z.string(),
-  /** Image width in pixels, or `null` if not available */
-  width: z.number().nullable(),
-  /** Image height in pixels, or `null` if not available */
-  height: z.number().nullable(),
-  /** On-chain verification data, or `null` if not verified */
-  verification: z
-    .object({
-      /** Verification method (e.g., "keccak256(bytes)") */
-      method: z.string(),
-      /** Verification data hash (e.g., "0x...") */
-      data: z.string(),
-    })
-    .nullable(),
-});
+/** Image associated with a digital asset (icon or background image) — alias for shared Lsp4ImageSchema */
+export const DigitalAssetImageSchema = Lsp4ImageSchema;
 
-/** External link associated with a digital asset (social media, website, etc.) */
-export const DigitalAssetLinkSchema = z.object({
-  /** Link display title */
-  title: z.string(),
-  /** Link URL */
-  url: z.string(),
-});
+/** External link associated with a digital asset (social media, website, etc.) — alias for shared Lsp4LinkSchema */
+export const DigitalAssetLinkSchema = Lsp4LinkSchema;
 
-/** NFT metadata attribute (trait/property) */
-export const DigitalAssetAttributeSchema = z.object({
-  /** Attribute key/trait type */
-  key: z.string(),
-  /** Attribute value */
-  value: z.string(),
-  /** Attribute type (e.g., "string", "number", "date") */
-  type: z.string(),
-});
+/** NFT metadata attribute (trait/property) — alias for shared Lsp4AttributeSchema */
+export const DigitalAssetAttributeSchema = Lsp4AttributeSchema;
 
 /** Contract owner (controller) of the digital asset */
 export const DigitalAssetOwnerSchema = z.object({
