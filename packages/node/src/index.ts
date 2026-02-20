@@ -18,7 +18,11 @@ export { profileKeys } from './keys/profiles';
 export { GetProfileDocument, GetProfilesDocument } from './documents/profiles';
 
 // Digital asset services (the core fetching layer)
-export { fetchDigitalAsset, fetchDigitalAssets } from './services/digital-assets';
+export {
+  buildDigitalAssetIncludeVars,
+  fetchDigitalAsset,
+  fetchDigitalAssets,
+} from './services/digital-assets';
 export type { FetchDigitalAssetsResult } from './services/digital-assets';
 
 // Digital asset parsers (Hasura → clean types)

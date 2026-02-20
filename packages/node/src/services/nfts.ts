@@ -3,6 +3,7 @@ import { execute } from '../client/execute';
 import { GetNftDocument, GetNftsDocument } from '../documents/nfts';
 import type { Nft_Bool_Exp, Nft_Order_By } from '../graphql/graphql';
 import { parseNft, parseNfts } from '../parsers/nfts';
+import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { escapeLike, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
@@ -139,29 +140,17 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
     includeAttributes: include.attributes ?? false,
   };
 
-  // Collection sub-includes (only matter when collection is enabled)
-  // When collection is an empty object {} it means "include all collection fields"
-  // — don't set sub-include vars so GraphQL defaults (all true) apply.
-  // When collection has explicit keys, each unset key defaults to false (opt-in).
-  if (include.collection && Object.keys(include.collection).length > 0) {
-    const c = include.collection;
-    vars.includeCollectionName = c.name ?? false;
-    vars.includeCollectionSymbol = c.symbol ?? false;
-    vars.includeCollectionTokenType = c.tokenType ?? false;
-    vars.includeCollectionDecimals = c.decimals ?? false;
-    vars.includeCollectionTotalSupply = c.totalSupply ?? false;
-    vars.includeCollectionDescription = c.description ?? false;
-    vars.includeCollectionCategory = c.category ?? false;
-    vars.includeCollectionIcons = c.icons ?? false;
-    vars.includeCollectionImages = c.images ?? false;
-    vars.includeCollectionLinks = c.links ?? false;
-    vars.includeCollectionAttributes = c.attributes ?? false;
-    vars.includeCollectionOwner = c.owner ?? false;
-    vars.includeCollectionHolderCount = c.holderCount ?? false;
-    vars.includeCollectionCreatorCount = c.creatorCount ?? false;
-    vars.includeCollectionReferenceContract = c.referenceContract ?? false;
-    vars.includeCollectionTokenIdFormat = c.tokenIdFormat ?? false;
-    vars.includeCollectionBaseUri = c.baseUri ?? false;
+  // Collection sub-includes: reuse digital asset include builder with "Collection" prefix.
+  // When collection is empty {} → buildDigitalAssetIncludeVars returns {} → GraphQL defaults apply.
+  // When collection has explicit keys → each key is mapped to includeCollection* variables.
+  if (include.collection) {
+    const daVars = buildDigitalAssetIncludeVars(
+      Object.keys(include.collection).length > 0 ? include.collection : undefined,
+    );
+    for (const [key, val] of Object.entries(daVars)) {
+      // includeX → includeCollectionX
+      vars[key.replace('include', 'includeCollection')] = val;
+    }
   }
 
   return vars;
