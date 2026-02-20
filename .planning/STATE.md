@@ -30,17 +30,19 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | ----- | ---------------------------------- | :----------: | -------- |
 | 7     | Package Foundation                 |     7/7      | Complete |
 | 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
-| 9.1   | Digital Assets                     |      2       | Pending  |
-| 9.2   | NFTs                               |      2       | Pending  |
-| 9.3   | Owned Assets                       |      2       | Pending  |
-| 9.4   | Social / Follows                   |      2       | Pending  |
-| 9.5   | Creators                           |      2       | Pending  |
-| 9.6   | Encrypted Assets                   |      2       | Pending  |
-| 9.7   | Encrypted Feed                     |      2       | Pending  |
-| 9.8   | Data Changed Events                |      2       | Pending  |
-| 9.9   | Universal Receiver Events          |      2       | Pending  |
+| 9.1   | Digital Assets                     |      1       | Pending  |
+| 9.2   | NFTs                               |      1       | Pending  |
+| 9.3   | Owned Assets                       |      1       | Pending  |
+| 9.4   | Social / Follows                   |      1       | Pending  |
+| 9.5   | Creators                           |      1       | Pending  |
+| 9.6   | Encrypted Assets                   |      1       | Pending  |
+| 9.7   | Encrypted Feed                     |      1       | Pending  |
+| 9.8   | Data Changed Events                |      1       | Pending  |
+| 9.9   | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
+
+_Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-phase) plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
 **Total:** 10/28 requirements delivered (FOUND-01–07, QUERY-01, DX-01, DX-02)
 
