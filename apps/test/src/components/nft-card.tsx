@@ -91,36 +91,34 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
           )}
         </dl>
 
-        {/* Holder section */}
+        {/* Holder section (collapsible) */}
         {nft.holder && (
-          <div className="border rounded-lg p-3 space-y-2 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
-            <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Holder</h4>
-            <div className="text-sm">
-              <span className="text-muted-foreground">Address:</span>{' '}
-              <span className="font-mono text-xs break-all">{nft.holder.address}</span>
-            </div>
-            <div className="text-sm">
-              <span className="text-muted-foreground">Acquired:</span>{' '}
-              <span className="text-xs">
-                {nft.holder.timestamp ? new Date(nft.holder.timestamp).toLocaleString() : 'Unknown'}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Holder Universal Profile (collapsible, reuses ProfileCard) */}
-        {nft.holder?.universalProfile && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <User className="size-3.5" />
-                Holder Profile:{' '}
-                {nft.holder.universalProfile.name ?? nft.holder.universalProfile.address}
+                Holder: {nft.holder.universalProfile?.name ?? nft.holder.address}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <ProfileCard profile={nft.holder.universalProfile} />
+            <CollapsibleContent className="mt-2 space-y-3">
+              {/* Basic holder info */}
+              <dl className="space-y-1.5 text-sm">
+                <div className="flex gap-2">
+                  <dt className="text-muted-foreground w-24 shrink-0">Address</dt>
+                  <dd className="font-mono text-xs break-all">{nft.holder.address}</dd>
+                </div>
+                <div className="flex gap-2">
+                  <dt className="text-muted-foreground w-24 shrink-0">Acquired</dt>
+                  <dd className="text-xs">
+                    {nft.holder.timestamp
+                      ? new Date(nft.holder.timestamp).toLocaleString()
+                      : 'Unknown'}
+                  </dd>
+                </div>
+              </dl>
+              {/* Universal Profile (reuses ProfileCard) */}
+              {nft.holder.universalProfile && <ProfileCard profile={nft.holder.universalProfile} />}
             </CollapsibleContent>
           </Collapsible>
         )}

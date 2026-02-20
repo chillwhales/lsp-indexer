@@ -120,13 +120,25 @@ const NFT_SORT_OPTIONS: SortOption[] = [
 const NFT_INCLUDES: IncludeToggleConfig[] = [
   { key: 'formattedTokenId', label: 'Formatted Token ID' },
   { key: 'name', label: 'NFT Name' },
-  { key: 'holder', label: 'Holder' },
   { key: 'description', label: 'Description' },
   { key: 'category', label: 'Category' },
   { key: 'icons', label: 'Icons' },
   { key: 'images', label: 'Images' },
   { key: 'links', label: 'Links' },
   { key: 'attributes', label: 'Attributes' },
+];
+
+/** Holder sub-include toggle configs (ProfileInclude fields) */
+const HOLDER_SUB_INCLUDES: IncludeToggleConfig[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'description', label: 'Description' },
+  { key: 'tags', label: 'Tags' },
+  { key: 'links', label: 'Links' },
+  { key: 'avatar', label: 'Avatar' },
+  { key: 'profileImage', label: 'Profile Image' },
+  { key: 'backgroundImage', label: 'Background Image' },
+  { key: 'followerCount', label: 'Follower Count' },
+  { key: 'followingCount', label: 'Following Count' },
 ];
 
 /** Collection sub-include toggle configs (DigitalAssetInclude fields) */
@@ -201,19 +213,51 @@ function useCollectionInclude() {
 }
 
 // ---------------------------------------------------------------------------
-// Build NftInclude from toggle state + collection sub-includes
+// Holder include hook — manages holder toggle + sub-toggles
+// ---------------------------------------------------------------------------
+
+/**
+ * Hook for managing the holder include state with nested sub-includes.
+ *
+ * When holder is enabled (even without any sub-includes), it means
+ * "include the holder data". The sub-toggles control which profile
+ * fields to fetch for the holder's Universal Profile.
+ */
+function useHolderInclude() {
+  const [enabled, setEnabled] = useState(true);
+  const {
+    values: subValues,
+    toggle: toggleSub,
+    include: subInclude,
+  } = useIncludeToggles(HOLDER_SUB_INCLUDES);
+
+  return {
+    enabled,
+    setEnabled,
+    subValues,
+    toggleSub,
+    /** Returns the holder include value for the NftInclude object */
+    value: enabled ? (subInclude ?? {}) : undefined,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Build NftInclude from toggle state + collection/holder sub-includes
 // ---------------------------------------------------------------------------
 
 function buildNftInclude(
   includeValues: Record<string, boolean>,
   collectionValue: Record<string, boolean> | undefined,
+  holderValue: Record<string, boolean> | undefined,
 ): NftInclude | undefined {
-  // Check if all base toggles are ON and collection is enabled with all sub-includes ON
+  // Check if all base toggles are ON, collection enabled with all sub-includes ON,
+  // and holder enabled with all sub-includes ON
   const allBaseOn = Object.values(includeValues).every(Boolean);
   const collectionAllOn =
     collectionValue !== undefined && Object.keys(collectionValue).length === 0;
+  const holderAllOn = holderValue !== undefined && Object.keys(holderValue).length === 0;
 
-  if (allBaseOn && collectionAllOn) return undefined; // Everything ON = use defaults
+  if (allBaseOn && collectionAllOn && holderAllOn) return undefined; // Everything ON = use defaults
 
   const include: NftInclude = {};
   for (const [key, val] of Object.entries(includeValues)) {
@@ -221,6 +265,9 @@ function buildNftInclude(
   }
   if (collectionValue !== undefined) {
     include.collection = collectionValue;
+  }
+  if (holderValue !== undefined) {
+    include.holder = holderValue;
   }
   return include;
 }
@@ -236,11 +283,12 @@ function useNftListState() {
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(NFT_INCLUDES);
   const collection = useCollectionInclude();
+  const holder = useHolderInclude();
 
   const filter = buildNftFilter(debouncedValues);
   const sort: NftSort = { field: sortField, direction: sortDirection, nulls: sortNulls };
   const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
-  const include = buildNftInclude(includeValues, collection.value);
+  const include = buildNftInclude(includeValues, collection.value, holder.value);
 
   return {
     values,
@@ -258,6 +306,7 @@ function useNftListState() {
     toggleInclude,
     include,
     collection,
+    holder,
   };
 }
 
@@ -313,6 +362,57 @@ function CollectionIncludeSection({
 }
 
 // ---------------------------------------------------------------------------
+// Holder sub-include toggles component
+// ---------------------------------------------------------------------------
+
+function HolderIncludeSection({
+  enabled,
+  setEnabled,
+  subValues,
+  toggleSub,
+}: {
+  enabled: boolean;
+  setEnabled: (v: boolean) => void;
+  subValues: Record<string, boolean>;
+  toggleSub: (key: string) => void;
+}): React.ReactNode {
+  return (
+    <div className="space-y-2">
+      <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+        <Switch size="sm" checked={enabled} onCheckedChange={setEnabled} />
+        <span className={enabled ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+          Holder
+        </span>
+      </label>
+      {enabled && (
+        <div className="ml-6 pl-3 border-l space-y-1">
+          <span className="text-xs text-muted-foreground">Holder profile sub-fields</span>
+          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+            {HOLDER_SUB_INCLUDES.map((config) => (
+              <label
+                key={config.key}
+                className="flex items-center gap-1 text-xs cursor-pointer select-none"
+              >
+                <Switch
+                  size="sm"
+                  checked={subValues[config.key] ?? true}
+                  onCheckedChange={() => toggleSub(config.key)}
+                />
+                <span
+                  className={subValues[config.key] ? 'text-foreground' : 'text-muted-foreground'}
+                >
+                  {config.label}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Tab 1: Single NFT
 // ---------------------------------------------------------------------------
 
@@ -326,7 +426,8 @@ function SingleNftTab({ mode }: { mode: HookMode }): React.ReactNode {
   const [queryFormattedTokenId, setQueryFormattedTokenId] = useState('');
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(NFT_INCLUDES);
   const collection = useCollectionInclude();
-  const include = buildNftInclude(includeValues, collection.value);
+  const holder = useHolderInclude();
+  const include = buildNftInclude(includeValues, collection.value, holder.value);
 
   const { nft, isLoading, error, isFetching } = useNft({
     address: queryAddress,
@@ -407,6 +508,12 @@ function SingleNftTab({ mode }: { mode: HookMode }): React.ReactNode {
 
       {/* Include toggles */}
       <IncludeToggles configs={NFT_INCLUDES} values={includeValues} onToggle={toggleInclude} />
+      <HolderIncludeSection
+        enabled={holder.enabled}
+        setEnabled={holder.setEnabled}
+        subValues={holder.subValues}
+        toggleSub={holder.toggleSub}
+      />
       <CollectionIncludeSection
         enabled={collection.enabled}
         setEnabled={collection.setEnabled}
@@ -502,6 +609,12 @@ function NftListTab({ mode }: { mode: HookMode }): React.ReactNode {
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
+      <HolderIncludeSection
+        enabled={state.holder.enabled}
+        setEnabled={state.holder.setEnabled}
+        subValues={state.holder.subValues}
+        toggleSub={state.holder.toggleSub}
+      />
       <CollectionIncludeSection
         enabled={state.collection.enabled}
         setEnabled={state.collection.setEnabled}
@@ -561,6 +674,12 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
         configs={NFT_INCLUDES}
         values={state.includeValues}
         onToggle={state.toggleInclude}
+      />
+      <HolderIncludeSection
+        enabled={state.holder.enabled}
+        setEnabled={state.holder.setEnabled}
+        subValues={state.holder.subValues}
+        toggleSub={state.holder.toggleSub}
       />
       <CollectionIncludeSection
         enabled={state.collection.enabled}

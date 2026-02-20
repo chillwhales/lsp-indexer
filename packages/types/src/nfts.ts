@@ -8,7 +8,7 @@ import {
   SortNullsSchema,
 } from './common';
 import { DigitalAssetIncludeSchema, DigitalAssetSchema } from './digital-assets';
-import { ProfileSchema } from './profiles';
+import { ProfileIncludeSchema, ProfileSchema } from './profiles';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -125,8 +125,8 @@ export const NftIncludeSchema = z.object({
   name: z.boolean().optional(),
   /** Include parent collection as full DigitalAsset — sub-fields control which collection attributes to fetch */
   collection: DigitalAssetIncludeSchema.optional(),
-  /** Include current holder data from owned_token */
-  holder: z.boolean().optional(),
+  /** Include current holder data from owned_token — sub-fields control which profile attributes to fetch */
+  holder: ProfileIncludeSchema.optional(),
   /** Include metadata description */
   description: z.boolean().optional(),
   /** Include metadata category */

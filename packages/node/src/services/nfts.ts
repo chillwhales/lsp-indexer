@@ -4,6 +4,7 @@ import { GetNftDocument, GetNftsDocument } from '../documents/nfts';
 import type { Nft_Bool_Exp, Nft_Order_By } from '../graphql/graphql';
 import { parseNft, parseNfts } from '../parsers/nfts';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
+import { buildProfileIncludeVars } from './profiles';
 import { escapeLike, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
@@ -131,7 +132,7 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
     includeFormattedTokenId: include.formattedTokenId ?? false,
     includeName: include.name ?? false,
     includeCollection: include.collection !== undefined, // provided (even {}) = include
-    includeHolder: include.holder ?? false,
+    includeHolder: include.holder !== undefined, // provided (even {}) = include
     includeDescription: include.description ?? false,
     includeCategory: include.category ?? false,
     includeIcons: include.icons ?? false,
@@ -150,6 +151,19 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
     for (const [key, val] of Object.entries(daVars)) {
       // includeX → includeCollectionX
       vars[key.replace('include', 'includeCollection')] = val;
+    }
+  }
+
+  // Holder sub-includes: reuse profile include builder with "Holder" prefix.
+  // When holder is empty {} → buildProfileIncludeVars returns {} → GraphQL defaults apply.
+  // When holder has explicit keys → each key is mapped to includeHolder* variables.
+  if (include.holder) {
+    const profileVars = buildProfileIncludeVars(
+      Object.keys(include.holder).length > 0 ? include.holder : undefined,
+    );
+    for (const [key, val] of Object.entries(profileVars)) {
+      // includeProfileX → includeHolderX
+      vars[key.replace('includeProfile', 'includeHolder')] = val;
     }
   }
 

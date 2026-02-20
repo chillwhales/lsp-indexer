@@ -47,6 +47,15 @@ export const GetNftDocument = graphql(`
     $includeCollectionReferenceContract: Boolean! = true
     $includeCollectionTokenIdFormat: Boolean! = true
     $includeCollectionBaseUri: Boolean! = true
+    $includeHolderName: Boolean! = true
+    $includeHolderDescription: Boolean! = true
+    $includeHolderTags: Boolean! = true
+    $includeHolderLinks: Boolean! = true
+    $includeHolderAvatar: Boolean! = true
+    $includeHolderImage: Boolean! = true
+    $includeHolderBackgroundImage: Boolean! = true
+    $includeHolderFollowerCount: Boolean! = true
+    $includeHolderFollowingCount: Boolean! = true
   ) {
     nft(where: $where, limit: 1) {
       id
@@ -132,33 +141,33 @@ export const GetNftDocument = graphql(`
         universalProfile {
           address
           lsp3Profile {
-            name {
+            name @include(if: $includeHolderName) {
               value
             }
-            description {
+            description @include(if: $includeHolderDescription) {
               value
             }
-            tags {
+            tags @include(if: $includeHolderTags) {
               value
             }
-            links {
+            links @include(if: $includeHolderLinks) {
               title
               url
             }
-            avatar {
+            avatar @include(if: $includeHolderAvatar) {
               url
               file_type
               verification_method
               verification_data
             }
-            profileImage {
+            profileImage @include(if: $includeHolderImage) {
               url
               width
               height
               verification_method
               verification_data
             }
-            backgroundImage {
+            backgroundImage @include(if: $includeHolderBackgroundImage) {
               url
               width
               height
@@ -166,12 +175,12 @@ export const GetNftDocument = graphql(`
               verification_data
             }
           }
-          followedBy_aggregate {
+          followedBy_aggregate @include(if: $includeHolderFollowerCount) {
             aggregate {
               count
             }
           }
-          followed_aggregate {
+          followed_aggregate @include(if: $includeHolderFollowingCount) {
             aggregate {
               count
             }
@@ -303,6 +312,15 @@ export const GetNftsDocument = graphql(`
     $includeCollectionReferenceContract: Boolean! = true
     $includeCollectionTokenIdFormat: Boolean! = true
     $includeCollectionBaseUri: Boolean! = true
+    $includeHolderName: Boolean! = true
+    $includeHolderDescription: Boolean! = true
+    $includeHolderTags: Boolean! = true
+    $includeHolderLinks: Boolean! = true
+    $includeHolderAvatar: Boolean! = true
+    $includeHolderImage: Boolean! = true
+    $includeHolderBackgroundImage: Boolean! = true
+    $includeHolderFollowerCount: Boolean! = true
+    $includeHolderFollowingCount: Boolean! = true
   ) {
     nft(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       id
@@ -388,33 +406,33 @@ export const GetNftsDocument = graphql(`
         universalProfile {
           address
           lsp3Profile {
-            name {
+            name @include(if: $includeHolderName) {
               value
             }
-            description {
+            description @include(if: $includeHolderDescription) {
               value
             }
-            tags {
+            tags @include(if: $includeHolderTags) {
               value
             }
-            links {
+            links @include(if: $includeHolderLinks) {
               title
               url
             }
-            avatar {
+            avatar @include(if: $includeHolderAvatar) {
               url
               file_type
               verification_method
               verification_data
             }
-            profileImage {
+            profileImage @include(if: $includeHolderImage) {
               url
               width
               height
               verification_method
               verification_data
             }
-            backgroundImage {
+            backgroundImage @include(if: $includeHolderBackgroundImage) {
               url
               width
               height
@@ -422,12 +440,12 @@ export const GetNftsDocument = graphql(`
               verification_data
             }
           }
-          followedBy_aggregate {
+          followedBy_aggregate @include(if: $includeHolderFollowerCount) {
             aggregate {
               count
             }
           }
-          followed_aggregate {
+          followed_aggregate @include(if: $includeHolderFollowingCount) {
             aggregate {
               count
             }
