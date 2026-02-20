@@ -8,7 +8,7 @@ import type { Order_By } from '../graphql/graphql';
  * with `"a"` instead of literally matching `"a%"`.
  */
 export function escapeLike(value: string): string {
-  return value.replace(/%/g, '\\%').replace(/_/g, '\\_');
+  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
 }
 
 /**

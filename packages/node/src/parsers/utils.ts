@@ -1,19 +1,25 @@
 /**
- * Convert a Hasura `numeric` value to a plain decimal string, avoiding
- * scientific notation that JavaScript uses for large floats.
+ * Convert a Hasura `numeric` value to a plain decimal string, safe to pass
+ * to `BigInt()`, avoiding scientific notation.
  *
- * Hasura's `numeric` PostgreSQL type is serialized over JSON as a number.
- * For large uint256 values this becomes a JS float (e.g. 4.2e+76), which
- * loses precision. We use BigInt to recover the integer representation.
+ * In this codebase the generated GraphQL type for Hasura's `numeric` PostgreSQL
+ * type (`Scalars['numeric']`) is typed as `string`. However this helper
+ * defensively also accepts `number` inputs for cases where a numeric value has
+ * already been coerced to a JS number (e.g. by a JSON parser or runtime layer).
+ *
+ * When a `numeric` value is represented as a JS number, very large uint256
+ * values (e.g. total supply) become floats in scientific notation (`4.2e+76`),
+ * which lose precision. We use `BigInt` to recover an integer representation
+ * and return a non-scientific-notation decimal string.
  *
  * Handles:
- * - Normal integer strings: `"1000"` → `"1000"`
- * - Scientific notation strings: `"4.2e+76"` → rounded BigInt string
- * - Already-a-number (runtime): `4.2e76` → rounded BigInt string
+ * - Normal integer strings: `"1000"` → `"1000"` (fast path, no conversion)
+ * - Scientific notation strings: `"4.2e+76"` → rounded BigInt decimal string
+ * - Defensive runtime `number`: `4.2e76` → rounded BigInt decimal string
  *
- * Note: precision is already lost at the JSON parse step for very large
- * values, but we at least return a non-scientific-notation decimal string
- * that is safe to pass to `BigInt()`.
+ * Note: for values already coerced to a JS `number`, precision may have been
+ * lost before this function runs, but we at least return a decimal string safe
+ * for `BigInt()`.
  */
 export function numericToString(value: string | number): string {
   const s = String(value);

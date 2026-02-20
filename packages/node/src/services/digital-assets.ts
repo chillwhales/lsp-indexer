@@ -26,9 +26,9 @@ import { escapeLike, orderDir } from './utils';
  * - `tokenType`     → `{ lsp4TokenType: { value: { _eq: tokenType } } }`
  *                     the indexer stores the decoded string directly ("TOKEN", "NFT", "COLLECTION")
  * - `category`      → `{ lsp4Metadata: { category: { value: { _ilike: '%category%' } } } }`
- * - `holderAddress` → `{ ownedAssets: { owner: { _ilike: holderAddress } } }`
+ * - `holderAddress` → `{ ownedAssets: { owner: { _ilike: escapeLike(holderAddress) } } }`
  *                     (assets where the given address holds tokens — via owned_asset.owner)
- * - `ownerAddress`  → `{ owner: { address: { _ilike: ownerAddress } } }`
+ * - `ownerAddress`  → `{ owner: { address: { _ilike: escapeLike(ownerAddress) } } }`
  *                     (assets whose contract controller is the given address)
  */
 function buildDigitalAssetWhere(filter?: DigitalAssetFilter): Digital_Asset_Bool_Exp {
@@ -73,7 +73,7 @@ function buildDigitalAssetWhere(filter?: DigitalAssetFilter): Digital_Asset_Bool
     // holderAddress is in owned_asset.owner (the holder's address)
     conditions.push({
       ownedAssets: {
-        owner: { _ilike: filter.holderAddress },
+        owner: { _ilike: escapeLike(filter.holderAddress) },
       },
     });
   }
@@ -83,7 +83,7 @@ function buildDigitalAssetWhere(filter?: DigitalAssetFilter): Digital_Asset_Bool
     // ownerAddress is the digital_asset.owner.address (contract controller)
     conditions.push({
       owner: {
-        address: { _ilike: filter.ownerAddress },
+        address: { _ilike: escapeLike(filter.ownerAddress) },
       },
     });
   }
@@ -187,7 +187,7 @@ export async function fetchDigitalAsset(
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetDigitalAssetDocument, {
-    where: { address: { _ilike: params.address } },
+    where: { address: { _ilike: escapeLike(params.address) } },
     ...includeVars,
   });
 
