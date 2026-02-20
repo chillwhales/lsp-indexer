@@ -10,13 +10,14 @@ import { getNft, getNfts } from '../actions/nfts';
 const DEFAULT_PAGE_SIZE = 20;
 
 /**
- * Fetch a single NFT by collection address and token ID via Next.js server action.
+ * Fetch a single NFT by collection address and token ID (or formatted token ID)
+ * via Next.js server action.
  *
  * Identical API to `@lsp-indexer/react`'s `useNft`, but routes the request
  * through a server action instead of calling Hasura directly from the browser.
  * This keeps the GraphQL endpoint hidden from the client.
  *
- * @param params - NFT collection address, token ID, and optional include config
+ * @param params - NFT collection address, tokenId/formattedTokenId, and optional include config
  * @returns `{ nft, isLoading, error, ...rest }` — full TanStack Query result
  *   with `data` renamed to `nft`
  *
@@ -33,20 +34,20 @@ const DEFAULT_PAGE_SIZE = 20;
  *
  *   return (
  *     <div>
- *       <h2>{nft.tokenId}</h2>
- *       <p>{nft.collectionAddress}</p>
+ *       <h2>{nft.name ?? nft.tokenId}</h2>
+ *       <p>{nft.collection?.name}</p>
  *     </div>
  *   );
  * }
  * ```
  */
 export function useNft(params: UseNftParams) {
-  const { address, tokenId, include } = params;
+  const { address, tokenId, formattedTokenId, include } = params;
 
   const { data, ...rest } = useQuery({
-    queryKey: nftKeys.detail(address, tokenId, include),
-    queryFn: () => getNft(address, tokenId, include),
-    enabled: Boolean(address && tokenId),
+    queryKey: nftKeys.detail(address, tokenId, formattedTokenId, include),
+    queryFn: () => getNft(address, tokenId, formattedTokenId, include),
+    enabled: Boolean(address && (tokenId || formattedTokenId)),
   });
 
   return { nft: data ?? null, ...rest };
@@ -78,7 +79,7 @@ export function useNft(params: UseNftParams) {
  *     <div>
  *       <p>{totalCount} NFTs found</p>
  *       {nfts.map((n) => (
- *         <div key={`${n.collectionAddress}-${n.tokenId}`}>{n.tokenId}</div>
+ *         <div key={`${n.address}-${n.tokenId}`}>{n.name ?? n.tokenId}</div>
  *       ))}
  *     </div>
  *   );
@@ -138,7 +139,7 @@ export function useNfts(params: UseNftsParams = {}) {
  *   return (
  *     <div>
  *       {nfts.map((n) => (
- *         <div key={`${n.collectionAddress}-${n.tokenId}`}>{n.tokenId}</div>
+ *         <div key={`${n.address}-${n.tokenId}`}>{n.name ?? n.tokenId}</div>
  *       ))}
  *       {hasNextPage && (
  *         <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>

@@ -8,14 +8,14 @@ import type { UseInfiniteNftsParams, UseNftParams, UseNftsParams } from '@lsp-in
 const DEFAULT_PAGE_SIZE = 20;
 
 /**
- * Fetch a single NFT by collection address and token ID.
+ * Fetch a single NFT by collection address and token ID (or formatted token ID).
  *
  * Wraps `fetchNft` in a TanStack `useQuery` hook with automatic caching,
  * deduplication, and stale-while-revalidate. The query is disabled when
- * either `address` or `tokenId` is falsy — both are required to identify
- * an NFT (composite key).
+ * `address` is falsy or neither `tokenId` nor `formattedTokenId` is provided —
+ * at least one identifier is required alongside the address.
  *
- * @param params - NFT collection address, token ID, and optional include config
+ * @param params - NFT collection address, tokenId/formattedTokenId, and optional include config
  * @returns `{ nft, isLoading, error, ...rest }` — full TanStack Query result
  *   with `data` renamed to `nft`
  *
@@ -32,8 +32,8 @@ const DEFAULT_PAGE_SIZE = 20;
  *
  *   return (
  *     <div>
- *       <h2>{nft.tokenId}</h2>
- *       <p>{nft.collectionAddress}</p>
+ *       <h2>{nft.name ?? nft.tokenId}</h2>
+ *       <p>{nft.collection?.name}</p>
  *     </div>
  *   );
  * }
@@ -41,12 +41,12 @@ const DEFAULT_PAGE_SIZE = 20;
  */
 export function useNft(params: UseNftParams) {
   const url = getClientUrl();
-  const { address, tokenId, include } = params;
+  const { address, tokenId, formattedTokenId, include } = params;
 
   const { data, ...rest } = useQuery({
-    queryKey: nftKeys.detail(address, tokenId, include),
-    queryFn: () => fetchNft(url, { address, tokenId, include }),
-    enabled: Boolean(address && tokenId),
+    queryKey: nftKeys.detail(address, tokenId, formattedTokenId, include),
+    queryFn: () => fetchNft(url, { address, tokenId, formattedTokenId, include }),
+    enabled: Boolean(address && (tokenId || formattedTokenId)),
   });
 
   return { nft: data ?? null, ...rest };
@@ -56,8 +56,8 @@ export function useNft(params: UseNftParams) {
  * Fetch a paginated list of NFTs with filtering and sorting.
  *
  * Wraps `fetchNfts` in a TanStack `useQuery` hook. Supports filtering
- * (by collectionAddress, tokenId, ownerAddress, isBurned, isMinted) and
- * sorting (by tokenId, formattedTokenId).
+ * (by collectionAddress, tokenId, formattedTokenId, name, holderAddress,
+ * isBurned, isMinted) and sorting (by tokenId, formattedTokenId).
  *
  * @param params - Optional filter, sort, pagination, and include config
  * @returns `{ nfts, totalCount, isLoading, error, ...rest }` — full TanStack Query
@@ -79,7 +79,7 @@ export function useNft(params: UseNftParams) {
  *     <div>
  *       <p>{totalCount} NFTs found</p>
  *       {nfts.map((n) => (
- *         <div key={`${n.collectionAddress}-${n.tokenId}`}>{n.tokenId}</div>
+ *         <div key={`${n.address}-${n.tokenId}`}>{n.name ?? n.tokenId}</div>
  *       ))}
  *     </div>
  *   );
@@ -142,7 +142,7 @@ export function useNfts(params: UseNftsParams = {}) {
  *   return (
  *     <div>
  *       {nfts.map((n) => (
- *         <div key={`${n.collectionAddress}-${n.tokenId}`}>{n.tokenId}</div>
+ *         <div key={`${n.address}-${n.tokenId}`}>{n.name ?? n.tokenId}</div>
  *       ))}
  *       {hasNextPage && (
  *         <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
