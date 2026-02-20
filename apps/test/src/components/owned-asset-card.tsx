@@ -1,11 +1,12 @@
 import type { OwnedAsset } from '@lsp-indexer/types';
-import { ChevronDown, Loader2, Wallet } from 'lucide-react';
+import { ChevronDown, Coins, Loader2, User, Wallet } from 'lucide-react';
 import React from 'react';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { RawJsonToggle } from '@/components/playground';
 import { ProfileCard } from '@/components/profile-card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -158,10 +159,13 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
         {/* Universal Profile section (collapsible, reuses ProfileCard) */}
         {ownedAsset.universalProfile && (
           <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
-              <ChevronDown className="size-3.5" />
-              Universal Profile:{' '}
-              {ownedAsset.universalProfile.name ?? ownedAsset.universalProfile.address}
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                <User className="size-3.5" />
+                Universal Profile:{' '}
+                {ownedAsset.universalProfile.name ?? ownedAsset.universalProfile.address}
+                <ChevronDown className="size-3.5" />
+              </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <ProfileCard profile={ownedAsset.universalProfile} />
@@ -172,14 +176,17 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
         {/* Digital Asset section (collapsible) */}
         {ownedAsset.digitalAsset && (
           <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
-              <ChevronDown className="size-3.5" />
-              Digital Asset: {ownedAsset.digitalAsset.name ?? ownedAsset.digitalAsset.address}
-              {ownedAsset.digitalAsset.symbol && (
-                <span className="text-muted-foreground font-normal">
-                  ({ownedAsset.digitalAsset.symbol})
-                </span>
-              )}
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                <Coins className="size-3.5" />
+                Digital Asset: {ownedAsset.digitalAsset.name ?? ownedAsset.digitalAsset.address}
+                {ownedAsset.digitalAsset.symbol && (
+                  <span className="text-muted-foreground font-normal">
+                    ({ownedAsset.digitalAsset.symbol})
+                  </span>
+                )}
+                <ChevronDown className="size-3.5" />
+              </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <DigitalAssetCard digitalAsset={ownedAsset.digitalAsset} />

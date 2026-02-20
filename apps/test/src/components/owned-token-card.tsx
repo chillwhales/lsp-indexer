@@ -1,5 +1,5 @@
 import type { OwnedToken } from '@lsp-indexer/types';
-import { ChevronDown, Loader2, Tag } from 'lucide-react';
+import { ChevronDown, Coins, Gem, Loader2, Tag, User, Wallet } from 'lucide-react';
 import React from 'react';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
@@ -8,6 +8,7 @@ import { OwnedAssetCard } from '@/components/owned-asset-card';
 import { RawJsonToggle } from '@/components/playground';
 import { ProfileCard } from '@/components/profile-card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
@@ -127,10 +128,13 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
         {/* Universal Profile section (collapsible, reuses ProfileCard) */}
         {ownedToken.universalProfile && (
           <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
-              <ChevronDown className="size-3.5" />
-              Universal Profile:{' '}
-              {ownedToken.universalProfile.name ?? ownedToken.universalProfile.address}
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                <User className="size-3.5" />
+                Universal Profile:{' '}
+                {ownedToken.universalProfile.name ?? ownedToken.universalProfile.address}
+                <ChevronDown className="size-3.5" />
+              </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <ProfileCard profile={ownedToken.universalProfile} />
@@ -141,9 +145,12 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
         {/* NFT section (collapsible) */}
         {ownedToken.nft && (
           <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
-              <ChevronDown className="size-3.5" />
-              NFT: {ownedToken.nft.name ?? `${ownedToken.nft.address} #${ownedToken.nft.tokenId}`}
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                <Gem className="size-3.5" />
+                NFT: {ownedToken.nft.name ?? `${ownedToken.nft.address} #${ownedToken.nft.tokenId}`}
+                <ChevronDown className="size-3.5" />
+              </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <NftCard nft={ownedToken.nft} />
@@ -154,14 +161,17 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
         {/* Digital Asset section (collapsible) */}
         {ownedToken.digitalAsset && (
           <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
-              <ChevronDown className="size-3.5" />
-              Digital Asset: {ownedToken.digitalAsset.name ?? ownedToken.digitalAsset.address}
-              {ownedToken.digitalAsset.symbol && (
-                <span className="text-muted-foreground font-normal">
-                  ({ownedToken.digitalAsset.symbol})
-                </span>
-              )}
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                <Coins className="size-3.5" />
+                Digital Asset: {ownedToken.digitalAsset.name ?? ownedToken.digitalAsset.address}
+                {ownedToken.digitalAsset.symbol && (
+                  <span className="text-muted-foreground font-normal">
+                    ({ownedToken.digitalAsset.symbol})
+                  </span>
+                )}
+                <ChevronDown className="size-3.5" />
+              </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <DigitalAssetCard digitalAsset={ownedToken.digitalAsset} />
@@ -172,10 +182,13 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
         {/* Owned Asset section (collapsible) */}
         {ownedToken.ownedAsset && (
           <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
-              <ChevronDown className="size-3.5" />
-              Owned Asset: {ownedToken.ownedAsset.address} (balance:{' '}
-              {ownedToken.ownedAsset.balance.toString()})
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                <Wallet className="size-3.5" />
+                Owned Asset: {ownedToken.ownedAsset.address} (balance:{' '}
+                {ownedToken.ownedAsset.balance.toString()})
+                <ChevronDown className="size-3.5" />
+              </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <OwnedAssetCard ownedAsset={ownedToken.ownedAsset} />
