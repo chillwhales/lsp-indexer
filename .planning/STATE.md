@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.3 (Owned Assets) — in progress (2/4 plans)
-- **Status:** 09.3-02 complete — parsers, services, query keys done
-- **Last activity:** 2026-02-20 — Completed 09.3-02-PLAN.md (OwnedAsset/OwnedToken parsers, services, keys)
+- **Sub-phase:** 9.3 (Owned Assets) — in progress (3/4 plans)
+- **Status:** 09.3-03 complete — React hooks, server actions, Next.js hooks done
+- **Last activity:** 2026-02-20 — Completed 09.3-03-PLAN.md (OwnedAsset/OwnedToken hooks + actions)
 - **Progress:** ████░░░░░░ 43% (12/28 requirements)
 
 ## Milestone History
@@ -32,7 +32,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 8     | First Vertical Slice (Profiles)    |     3/3      | Complete          |
 | 9.1   | Digital Assets                     |     1/1      | Complete          |
 | 9.2   | NFTs                               |     1/1      | Complete          |
-| 9.3   | Owned Assets                       |      1       | In progress (2/4) |
+| 9.3   | Owned Assets                       |      1       | In progress (3/4) |
 | 9.4   | Social / Follows                   |      1       | Pending           |
 | 9.5   | Creators                           |      1       | Pending           |
 | 9.6   | Encrypted Assets                   |      1       | Pending           |
@@ -48,7 +48,7 @@ _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-pha
 
 ## Performance Metrics
 
-- **Plans completed:** 58 (36 v1.0 + 22 v1.1)
+- **Plans completed:** 59 (36 v1.0 + 23 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 15 (11 v1.0 + 4 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 12/28 (v1.1)
@@ -136,21 +136,20 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-20
-- **Activity:** Completed 09.3-02-PLAN.md — OwnedAsset/OwnedToken parsers, services, query keys
-- **Outcome:** 6 new files (2 keys, 2 parsers, 2 services) + updated index.ts. parseOwnedAsset converts balance to BigInt. All filter/sort/include params translated. Both typecheck and build pass.
+- **Activity:** Completed 09.3-03-PLAN.md — OwnedAsset/OwnedToken React hooks, server actions, Next.js hooks
+- **Outcome:** 6 new files (2 react hooks, 2 actions, 2 next hooks) + updated index.ts files. All 4 packages build clean. QUERY-04 and PAGE-01 structurally complete for owned assets domain.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.3 in progress** — Plans 01-02 complete (types, documents, codegen, parsers, services, keys)
-- **Next step:** 09.3-03 (React hooks for OwnedAsset/OwnedToken)
+- **Phase 9.3 in progress** — Plans 01-03 complete (types, documents, codegen, parsers, services, keys, hooks, actions)
+- **Next step:** 09.3-04 (Test app playground page for owned assets/tokens)
 - **Branch:** `refactor/indexer-v2-react`
-- **Key context for hooks work:**
-  - All services (fetchOwnedAsset, fetchOwnedAssets, fetchOwnedToken, fetchOwnedTokens) available from `@lsp-indexer/node`
-  - Query key factories (ownedAssetKeys, ownedTokenKeys) available from `@lsp-indexer/node`
-  - Both FetchOwnedAssetsResult and FetchOwnedTokensResult return `{ items, totalCount }`
-  - Follow existing hook patterns from `@lsp-indexer/react` (profiles, digital-assets, nfts)
+- **Key context for playground work:**
+  - All hooks available: useOwnedAsset(s), useInfiniteOwnedAssets, useOwnedToken(s), useInfiniteOwnedTokens
+  - Follow existing playground patterns from digital-assets and NFTs pages
+  - Shared playground components ready (FilterFieldsRow, SortControls, ResultsList, etc.)
 
 ---
 
-_Last updated: 2026-02-20 — completed 09.3-02-PLAN.md (OwnedAsset/OwnedToken parsers, services, keys)_
+_Last updated: 2026-02-20 — completed 09.3-03-PLAN.md (OwnedAsset/OwnedToken hooks + actions)_
