@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.1 (Digital Assets) — Plans 01-02 complete, Plan 03 next
-- **Status:** Plan 09.1-02 complete — Digital Asset parsers + services + query key factory done
-- **Last activity:** 2026-02-20 — Completed 09.1-02-PLAN.md (digital-asset-parsers-services)
+- **Sub-phase:** 9.1 (Digital Assets) — Plans 01-03 complete, Plan 04 next
+- **Status:** Plan 09.1-03 complete — Digital Asset hooks + server actions + build validation done
+- **Last activity:** 2026-02-20 — Completed 09.1-03-PLAN.md (digital-asset-hooks-wiring)
 - **Progress:** ████░░░░░░ 40% (10/28 requirements)
 
 ## Milestone History
@@ -48,7 +48,7 @@ _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-pha
 
 ## Performance Metrics
 
-- **Plans completed:** 44 (36 v1.0 + 8 v1.1)
+- **Plans completed:** 45 (36 v1.0 + 9 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 13 (11 v1.0 + 2 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 10/28 (v1.1)
@@ -114,24 +114,23 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-20
-- **Activity:** Executed Phase 9.1 Plan 02 — Digital Asset parsers + services + query key factory
-- **Outcome:** Created `packages/node/src/keys/digital-assets.ts` (TkDodo factory); `packages/node/src/parsers/digital-assets.ts` (standard derivation + tokenType mapping); `packages/node/src/services/digital-assets.ts` (6-field filter/sort + inverted include). Added @lukso/lsp4-contracts@0.16.7. All typechecks and builds pass.
+- **Activity:** Executed Phase 9.1 Plan 03 — Digital Asset hooks + server actions + build validation
+- **Outcome:** Created `packages/react/src/hooks/digital-assets.ts` (3 TanStack Query hooks, direct Hasura); `packages/next/src/actions/digital-assets.ts` (2 server actions with 'use server'); `packages/next/src/hooks/digital-assets.ts` (3 hooks routing through server actions). Updated react + next index.ts. All 4 packages build and typecheck clean.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.1 Plans 01-02 complete** — types, documents, codegen, parsers, services, query keys all done and committed
-- **Branch:** `feat/phase-9.1-digital-assets` — continue on this branch for plans 03-04
-- **Next step:** Execute Phase 9.1 Plan 03 (hooks + server actions + build validation)
+- **Phase 9.1 Plans 01-03 complete** — full digital assets API available (types, documents, codegen, parsers, services, query keys, hooks, server actions, entry points)
+- **Branch:** `feat/phase-9.1-digital-assets` — continue on this branch for plan 04
+- **Next step:** Execute Phase 9.1 Plan 04 (playground UI for digital assets)
 - **Key assets available:**
-  - `fetchDigitalAsset`, `fetchDigitalAssets` service functions in `@lsp-indexer/node`
-  - `digitalAssetKeys` query key factory (detail/list/infinite namespaces)
-  - `parseDigitalAsset`, `parseDigitalAssets` parsers
-  - `FetchDigitalAssetsResult` interface
-  - All exported from `@lsp-indexer/node` index
-- **Standard derivation pattern:** `decimals !== undefined` checks if field was included; presence = LSP7, null = LSP8, undefined = null
-- **Inverted include:** omit include → fetch everything; provide include → each field false by default
+  - `useDigitalAsset`, `useDigitalAssets`, `useInfiniteDigitalAssets` from `@lsp-indexer/react`
+  - `getDigitalAsset`, `getDigitalAssets` server actions from `@lsp-indexer/next`
+  - `useDigitalAsset`, `useDigitalAssets`, `useInfiniteDigitalAssets` from `@lsp-indexer/next`
+  - All node exports: `fetchDigitalAsset`, `fetchDigitalAssets`, `digitalAssetKeys`, parsers, documents
+  - All types: `DigitalAsset`, `DigitalAssetFilter`, `DigitalAssetSort`, `DigitalAssetInclude`, `TokenType`
+- **Pattern reference:** Follow shared playground components in `components/playground/` — FilterFieldsRow, SortControls, ResultsList<T>, useFilterFields, ErrorAlert, RawJsonToggle
 
 ---
 
-_Last updated: 2026-02-20 — completed 09.1-02-PLAN.md (digital-asset-parsers-services)_
+_Last updated: 2026-02-20 — completed 09.1-03-PLAN.md (digital-asset-hooks-wiring)_
