@@ -11,11 +11,11 @@ export const SortDirectionSchema = z.enum(['asc', 'desc']);
 export const SortNullsSchema = z.enum(['first', 'last']);
 
 // ---------------------------------------------------------------------------
-// LSP4 metadata schemas — shared across domains (digital-assets, nfts, etc.)
+// Metadata schemas — shared across domains (profiles, digital-assets, nfts, etc.)
 // ---------------------------------------------------------------------------
 
-/** LSP4 metadata image (icon, background, or content image) — shared across domains */
-export const Lsp4ImageSchema = z.object({
+/** Metadata image (icon, profile image, background, or content image) — shared across domains */
+export const ImageSchema = z.object({
   /** Image URL (IPFS gateway URL or HTTP URL) */
   url: z.string(),
   /** Image width in pixels, or `null` if not available */
@@ -33,8 +33,8 @@ export const Lsp4ImageSchema = z.object({
     .nullable(),
 });
 
-/** LSP4 metadata external link — shared across domains */
-export const Lsp4LinkSchema = z.object({
+/** Metadata external link — shared across domains */
+export const LinkSchema = z.object({
   /** Link display title */
   title: z.string(),
   /** Link URL */
@@ -79,7 +79,7 @@ export const Lsp4AttributeSchema = z.object({
 
 export type SortDirection = z.infer<typeof SortDirectionSchema>;
 export type SortNulls = z.infer<typeof SortNullsSchema>;
-export type Lsp4Image = z.infer<typeof Lsp4ImageSchema>;
-export type Lsp4Link = z.infer<typeof Lsp4LinkSchema>;
+export type Image = z.infer<typeof ImageSchema>;
+export type Link = z.infer<typeof LinkSchema>;
 export type Lsp4Attribute = z.infer<typeof Lsp4AttributeSchema>;
 export type Asset = z.infer<typeof AssetSchema>;

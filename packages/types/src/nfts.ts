@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 import {
+  ImageSchema,
+  LinkSchema,
   Lsp4AttributeSchema,
-  Lsp4ImageSchema,
-  Lsp4LinkSchema,
   SortDirectionSchema,
   SortNullsSchema,
 } from './common';
@@ -49,11 +49,11 @@ export const NftSchema = z.object({
   /** NFT-specific metadata category */
   category: z.string().nullable(),
   /** NFT-specific metadata icon images */
-  icons: z.array(Lsp4ImageSchema).nullable(),
+  icons: z.array(ImageSchema).nullable(),
   /** NFT-specific metadata images */
-  images: z.array(Lsp4ImageSchema).nullable(),
+  images: z.array(ImageSchema).nullable(),
   /** NFT-specific metadata links */
-  links: z.array(Lsp4LinkSchema).nullable(),
+  links: z.array(LinkSchema).nullable(),
   /** NFT-specific metadata attributes (traits) */
   attributes: z.array(Lsp4AttributeSchema).nullable(),
 });

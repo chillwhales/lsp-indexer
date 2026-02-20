@@ -1,4 +1,4 @@
-import type { Lsp4Attribute, Lsp4Image, Lsp4Link } from '@lsp-indexer/types';
+import type { Asset, Lsp4Attribute } from '@lsp-indexer/types';
 
 /**
  * Structural interface for raw LSP4 metadata image data.
@@ -14,10 +14,10 @@ interface RawImage {
 }
 
 /**
- * Parse a raw LSP4 metadata image into a clean Lsp4Image.
- * Shared across digital-assets, nfts, and future domains.
+ * Parse a raw metadata image into a clean Image.
+ * Shared across profiles, digital-assets, nfts, and future domains.
  */
-export function parseImage(raw: RawImage): Lsp4Image {
+export function parseImage(raw: RawImage): Image {
   return {
     url: raw.url ?? '',
     width: raw.width ?? null,
@@ -62,7 +62,7 @@ export function parseAsset(raw: RawAsset): Asset {
  */
 export function parseLinks(
   links: ReadonlyArray<{ title?: string | null; url?: string | null }> | null | undefined,
-): Lsp4Link[] | null {
+): Link[] | null {
   if (!links) return null;
   return links.map((l) => ({ title: l.title ?? '', url: l.url ?? '' }));
 }

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { AssetSchema, Lsp4ImageSchema, SortDirectionSchema, SortNullsSchema } from './common';
+import { AssetSchema, ImageSchema, SortDirectionSchema, SortNullsSchema } from './common';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -9,10 +9,10 @@ import { AssetSchema, Lsp4ImageSchema, SortDirectionSchema, SortNullsSchema } fr
 /**
  * Profile image (profileImage, backgroundImage) — has width/height dimensions.
  *
- * Reuses the shared Lsp4ImageSchema since the structure is identical
+ * Reuses the shared ImageSchema since the structure is identical
  * (url + width + height + verification).
  */
-export const ProfileImageSchema = Lsp4ImageSchema;
+export const ProfileImageSchema = ImageSchema;
 
 export const ProfileSchema = z.object({
   /** The Universal Profile contract address (checksummed or lowercase hex) */

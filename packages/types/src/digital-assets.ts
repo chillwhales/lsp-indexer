@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 import {
+  ImageSchema,
+  LinkSchema,
   Lsp4AttributeSchema,
-  Lsp4ImageSchema,
-  Lsp4LinkSchema,
   SortDirectionSchema,
   SortNullsSchema,
 } from './common';
@@ -24,11 +24,11 @@ export const StandardSchema = z.enum(['LSP7', 'LSP8']);
  */
 export const TokenTypeSchema = z.enum(['TOKEN', 'NFT', 'COLLECTION']);
 
-/** Image associated with a digital asset (icon or background image) — alias for shared Lsp4ImageSchema */
-export const DigitalAssetImageSchema = Lsp4ImageSchema;
+/** Image associated with a digital asset (icon or background image) — alias for shared ImageSchema */
+export const DigitalAssetImageSchema = ImageSchema;
 
-/** External link associated with a digital asset (social media, website, etc.) — alias for shared Lsp4LinkSchema */
-export const DigitalAssetLinkSchema = Lsp4LinkSchema;
+/** External link associated with a digital asset (social media, website, etc.) — alias for shared LinkSchema */
+export const DigitalAssetLinkSchema = LinkSchema;
 
 /** NFT metadata attribute (trait/property) — alias for shared Lsp4AttributeSchema */
 export const DigitalAssetAttributeSchema = Lsp4AttributeSchema;
