@@ -130,10 +130,10 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 
 **Plans:** 4 plans
 
-- [ ] 09.1-01-PLAN.md — Digital Asset types + GraphQL documents + codegen
-- [ ] 09.1-02-PLAN.md — Digital Asset parsers + services + query keys
-- [ ] 09.1-03-PLAN.md — Digital Asset hooks + server actions + build validation
-- [ ] 09.1-04-PLAN.md — Digital Assets playground page + E2E verification
+- [x] 09.1-01-PLAN.md — Digital Asset types + GraphQL documents + codegen
+- [x] 09.1-02-PLAN.md — Digital Asset parsers + services + query keys
+- [x] 09.1-03-PLAN.md — Digital Asset hooks + server actions + build validation
+- [x] 09.1-04-PLAN.md — Digital Assets playground page + E2E verification
 
 ---
 
