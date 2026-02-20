@@ -146,8 +146,8 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 **Plans:** 4 plans
 
 - [x] 09.2-01-PLAN.md — NFT types + GraphQL documents + codegen
-- [ ] 09.2-02-PLAN.md — NFT parsers + services + query keys
-- [ ] 09.2-03-PLAN.md — NFT hooks + server actions + build validation
+- [x] 09.2-02-PLAN.md — NFT parsers + services + query keys
+- [x] 09.2-03-PLAN.md — NFT hooks + server actions + build validation
 - [ ] 09.2-04-PLAN.md — NFTs playground page + E2E verification
 
 ---

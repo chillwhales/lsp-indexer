@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.2 (NFTs) — plan 2 of 4 complete
+- **Sub-phase:** 9.2 (NFTs) — plan 3 of 4 complete
 - **Status:** In progress — executing 09.2 NFTs vertical slice
-- **Last activity:** 2026-02-20 — Completed 09.2-02-PLAN.md (NFT service layer: keys, parsers, services)
+- **Last activity:** 2026-02-20 — Completed 09.2-03-PLAN.md (NFT hooks, server actions, entry points)
 - **Progress:** ████░░░░░░ 39% (11/28 requirements)
 
 ## Milestone History
@@ -48,7 +48,7 @@ _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-pha
 
 ## Performance Metrics
 
-- **Plans completed:** 51 (36 v1.0 + 15 v1.1)
+- **Plans completed:** 52 (36 v1.0 + 16 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 14 (11 v1.0 + 3 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 11/28 (v1.1)
@@ -125,21 +125,21 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-20
-- **Activity:** Executed Phase 9.2 Plan 02 — NFT service layer (keys, parsers, services)
-- **Outcome:** Extracted shared parseImage to utils, created NFT query key factory, parser with nullable lsp4Metadata handling, and service functions with all filter/sort/include translations.
+- **Activity:** Executed Phase 9.2 Plan 03 — NFT hooks, server actions, entry points
+- **Outcome:** Created 3 React hooks, 2 Next.js server actions, 3 Next.js hooks. Wired NFT exports through react and next entry points. All 4 packages build clean.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.2 plan 2 of 4 complete** — types + documents + service layer done
-- **Next step:** Execute 09.2-03-PLAN.md (React hooks wrapping NFT service functions)
+- **Phase 9.2 plan 3 of 4 complete** — types + documents + service layer + hooks done
+- **Next step:** Execute 09.2-04-PLAN.md (test app integration)
 - **Branch:** `feat/phase-9.2-nfts`
 - **Pattern reference:**
-  - `parseImage` now in `parsers/utils.ts` — shared across digital-assets and nfts
-  - NFT detail keys use composite `(address, tokenId)` pair
-  - Boolean filters use `!== undefined` guard for explicit `false` filtering
+  - NFT hooks follow exact same pattern as digital asset hooks
+  - useNft requires both address AND tokenId (composite key)
+  - Server actions route browser→server→Hasura (getNft, getNfts)
   - All established patterns from 9.1 continue to apply
 
 ---
 
-_Last updated: 2026-02-20 — completed 09.2-02-PLAN.md (NFT service layer: keys, parsers, services)_
+_Last updated: 2026-02-20 — completed 09.2-03-PLAN.md (NFT hooks, server actions, entry points)_
