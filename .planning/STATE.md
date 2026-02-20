@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.2 (NFTs) — complete (4/4 plans)
-- **Status:** Phase 9.2 complete — ready for 9.3 (Owned Assets)
-- **Last activity:** 2026-02-20 — Completed 09.2-04-PLAN.md (NFT playground page + E2E verification)
+- **Sub-phase:** 9.3 (Owned Assets) — in progress (1/4 plans)
+- **Status:** 09.3-01 complete — types + documents + codegen done
+- **Last activity:** 2026-02-20 — Completed 09.3-01-PLAN.md (OwnedAsset/OwnedToken types + GraphQL documents)
 - **Progress:** ████░░░░░░ 43% (12/28 requirements)
 
 ## Milestone History
@@ -26,21 +26,21 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                               | Requirements | Status   |
-| ----- | ---------------------------------- | :----------: | -------- |
-| 7     | Package Foundation                 |     7/7      | Complete |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
-| 9.1   | Digital Assets                     |     1/1      | Complete |
-| 9.2   | NFTs                               |     1/1      | Complete |
-| 9.3   | Owned Assets                       |      1       | Pending  |
-| 9.4   | Social / Follows                   |      1       | Pending  |
-| 9.5   | Creators                           |      1       | Pending  |
-| 9.6   | Encrypted Assets                   |      1       | Pending  |
-| 9.7   | Encrypted Feed                     |      1       | Pending  |
-| 9.8   | Data Changed Events                |      1       | Pending  |
-| 9.9   | Universal Receiver Events          |      1       | Pending  |
-| 10    | Subscriptions                      |      3       | Pending  |
-| 11    | Server Actions & Publish Readiness |      4       | Pending  |
+| Phase | Name                               | Requirements | Status            |
+| ----- | ---------------------------------- | :----------: | ----------------- |
+| 7     | Package Foundation                 |     7/7      | Complete          |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete          |
+| 9.1   | Digital Assets                     |     1/1      | Complete          |
+| 9.2   | NFTs                               |     1/1      | Complete          |
+| 9.3   | Owned Assets                       |      1       | In progress (1/4) |
+| 9.4   | Social / Follows                   |      1       | Pending           |
+| 9.5   | Creators                           |      1       | Pending           |
+| 9.6   | Encrypted Assets                   |      1       | Pending           |
+| 9.7   | Encrypted Feed                     |      1       | Pending           |
+| 9.8   | Data Changed Events                |      1       | Pending           |
+| 9.9   | Universal Receiver Events          |      1       | Pending           |
+| 10    | Subscriptions                      |      3       | Pending           |
+| 11    | Server Actions & Publish Readiness |      4       | Pending           |
 
 _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-phase) plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
@@ -48,7 +48,7 @@ _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-pha
 
 ## Performance Metrics
 
-- **Plans completed:** 56 (36 v1.0 + 20 v1.1)
+- **Plans completed:** 57 (36 v1.0 + 21 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 15 (11 v1.0 + 4 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 12/28 (v1.1)
@@ -116,6 +116,10 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **NFT collection = full DigitalAsset:** `digitalAsset` relation on NFT provides 20+ fields. Reuses `parseDigitalAsset` from digital-assets parser. `include.collection` is `DigitalAssetInclude` (17 sub-include variables).
 - **NFT single lookup: tokenId OR formattedTokenId:** Not both required. Stacked vertical inputs in playground.
 - **NFT name filter \_or search:** Name searches both `lsp4Metadata.name.value._ilike` and `lsp4MetadataBaseUri.name.value._ilike` using Hasura `_or` in where clause.
+- **OwnedAsset.balance = z.bigint():** Hasura numeric → parser converts to BigInt. Consumer uses formatTokenAmount helpers.
+- **OwnedAssetFilter: 4 string fields (owner, address, digitalAssetId, universalProfileId):** Balance/timestamp range filters deferred.
+- **OwnedAssetSortField nested sorts:** `digitalAssetName` → `digitalAsset.lsp4TokenName`, `tokenIdCount` → `tokenIds_aggregate.count` at service layer.
+- **Nested universalProfile: all LSP3 fields, no aggregates:** follower/following counts excluded from ownership context.
 
 ### Discovered Todos
 
@@ -130,23 +134,21 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-20
-- **Activity:** Completed Phase 9.2 (NFTs) — all 4 plans + post-checkpoint feedback fixes
-- **Outcome:** Full NFT vertical slice: types → documents → codegen → parser → services → keys → hooks → actions → playground. 6 major schema discoveries resolved (baseUri fallback, holder rename, collection as DigitalAsset, tokenId OR formattedTokenId, name filter, collection sub-includes). All builds pass.
+- **Activity:** Completed 09.3-01-PLAN.md — OwnedAsset/OwnedToken types + GraphQL documents + codegen
+- **Outcome:** 2 type files (owned-assets.ts, owned-tokens.ts) + 2 document files + codegen. OwnedAsset.balance as bigint. 4 GraphQL documents with @include directives. All builds pass.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.2 complete** — NFT vertical slice delivered end-to-end
-- **Next step:** Create PR for `feat/phase-9.2-nfts` → `refactor/indexer-v2-react`, then start Phase 9.3 (Owned Assets)
-- **Branch:** `feat/phase-9.2-nfts`
-- **Key patterns established for future domains:**
-  - BaseUri fallback metadata parsing (check direct first → baseUri second → null)
-  - Shared parseImage in parsers/utils.ts for cross-domain LSP4 image parsing
-  - Composite key hooks (address + tokenId) for NFT-like domains
-  - Nested include toggles (collection sub-includes as DigitalAssetInclude)
-  - Cross-domain parser reuse (parseDigitalAsset for collection data)
-  - Name filter with \_or search across multiple metadata sources
+- **Phase 9.3 in progress** — Plan 01 (types + documents) complete
+- **Next step:** 09.3-02 (parsers for OwnedAsset/OwnedToken)
+- **Branch:** `refactor/indexer-v2-react`
+- **Key context for parser work:**
+  - `balance` is Hasura `numeric` (codegen types as `string`) → parser must convert to BigInt
+  - OwnedToken has 4 nullable relations: digitalAsset, nft, ownedAsset, universalProfile
+  - NFT relation includes lsp4Metadata + lsp4MetadataBaseUri for fallback pattern
+  - Can reuse parseDigitalAsset and parseProfile from existing parsers
 
 ---
 
-_Last updated: 2026-02-20 — completed Phase 9.2 (NFTs) — all 4 plans done, QUERY-03 delivered_
+_Last updated: 2026-02-20 — completed 09.3-01-PLAN.md (OwnedAsset/OwnedToken types + documents)_
