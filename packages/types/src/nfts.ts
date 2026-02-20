@@ -7,13 +7,14 @@ import {
   SortDirectionSchema,
   SortNullsSchema,
 } from './common';
+import { DigitalAssetIncludeSchema, DigitalAssetSchema } from './digital-assets';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
 // ---------------------------------------------------------------------------
 
-/** Owner of an individual NFT token (from owned_token table) */
-export const NftOwnerSchema = z.object({
+/** Holder of an individual NFT token (from owned_token table) */
+export const NftHolderSchema = z.object({
   /** Current holder address */
   address: z.string(),
   /** When this holder acquired the token (ISO timestamp) */
@@ -37,12 +38,12 @@ export const NftSchema = z.object({
   isBurned: z.boolean(),
   /** Whether the token has been minted */
   isMinted: z.boolean(),
-  /** Parent collection name (from digital_asset.lsp4TokenName) */
-  collectionName: z.string().nullable(),
-  /** Parent collection symbol (from digital_asset.lsp4TokenSymbol) */
-  collectionSymbol: z.string().nullable(),
-  /** Current token owner (from owned_token relation) */
-  owner: NftOwnerSchema.nullable(),
+  /** NFT's own name from lsp4Metadata.name (direct metadata first, baseUri fallback) */
+  name: z.string().nullable(),
+  /** Parent collection as full DigitalAsset (from digitalAsset relation) */
+  collection: DigitalAssetSchema.nullable(),
+  /** Current token holder (from owned_token relation) */
+  holder: NftHolderSchema.nullable(),
   /** NFT-specific metadata description */
   description: z.string().nullable(),
   /** NFT-specific metadata category */
@@ -71,8 +72,12 @@ export const NftFilterSchema = z.object({
   collectionAddress: z.string().optional(),
   /** Case-insensitive match on token ID */
   tokenId: z.string().optional(),
-  /** Case-insensitive match on current owner address */
-  ownerAddress: z.string().optional(),
+  /** Case-insensitive match on formatted token ID */
+  formattedTokenId: z.string().optional(),
+  /** Case-insensitive match on NFT name (searches both direct and baseUri metadata) */
+  name: z.string().optional(),
+  /** Case-insensitive match on current holder address */
+  holderAddress: z.string().optional(),
   /** Filter by burned status */
   isBurned: z.boolean().optional(),
   /** Filter by minted status */
@@ -105,14 +110,20 @@ export const NftSortSchema = z.object({
  * **Inverted default:** When `include` is omitted, ALL fields are fetched
  * (opt-out rather than opt-in). When `include` is provided, only fields
  * set to `true` are included.
+ *
+ * **Collection sub-includes:** When `collection` is provided (even as `{}`),
+ * the collection data is included. The sub-fields within `collection` control
+ * which collection attributes to fetch (using DigitalAssetIncludeSchema).
  */
 export const NftIncludeSchema = z.object({
   /** Include human-readable formatted token ID */
   formattedTokenId: z.boolean().optional(),
-  /** Include parent collection info (name, symbol) from digital_asset */
-  collection: z.boolean().optional(),
-  /** Include current owner data from owned_token */
-  owner: z.boolean().optional(),
+  /** Include NFT's own name from metadata */
+  name: z.boolean().optional(),
+  /** Include parent collection as full DigitalAsset — sub-fields control which collection attributes to fetch */
+  collection: DigitalAssetIncludeSchema.optional(),
+  /** Include current holder data from owned_token */
+  holder: z.boolean().optional(),
   /** Include metadata description */
   description: z.boolean().optional(),
   /** Include metadata category */
@@ -131,12 +142,18 @@ export const NftIncludeSchema = z.object({
 // Hook parameter schemas
 // ---------------------------------------------------------------------------
 
-/** Parameters for useNft — single NFT by collection address + token ID */
+/**
+ * Parameters for useNft — single NFT by collection address + token ID or formatted token ID.
+ *
+ * At least one of `tokenId` or `formattedTokenId` is required (enforced at service level).
+ */
 export const UseNftParamsSchema = z.object({
   /** Collection contract address */
   address: z.string(),
-  /** Token ID within the collection */
-  tokenId: z.string(),
+  /** Token ID within the collection (either this or formattedTokenId required) */
+  tokenId: z.string().optional(),
+  /** Formatted token ID (either this or tokenId required) */
+  formattedTokenId: z.string().optional(),
   /** Control which nested data to include (omit for all data — inverted default) */
   include: NftIncludeSchema.optional(),
 });
@@ -171,7 +188,7 @@ export const UseInfiniteNftsParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
-export type NftOwner = z.infer<typeof NftOwnerSchema>;
+export type NftHolder = z.infer<typeof NftHolderSchema>;
 export type Nft = z.infer<typeof NftSchema>;
 export type NftFilter = z.infer<typeof NftFilterSchema>;
 export type NftSortField = z.infer<typeof NftSortFieldSchema>;
