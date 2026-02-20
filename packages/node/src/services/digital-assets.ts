@@ -9,21 +9,7 @@ import { execute } from '../client/execute';
 import { GetDigitalAssetDocument, GetDigitalAssetsDocument } from '../documents/digital-assets';
 import type { Digital_Asset_Bool_Exp, Digital_Asset_Order_By } from '../graphql/graphql';
 import { parseDigitalAsset, parseDigitalAssets } from '../parsers/digital-assets';
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Escape SQL LIKE wildcards (`%` and `_`) in a string so they are treated
- * as literal characters when used with Hasura's `_ilike` operator.
- *
- * Without escaping, user input like `"a%"` would match any value starting
- * with `"a"` instead of literally matching `"a%"`.
- */
-function escapeLike(value: string): string {
-  return value.replace(/%/g, '\\%').replace(/_/g, '\\_');
-}
+import { escapeLike } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables

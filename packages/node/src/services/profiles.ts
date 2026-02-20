@@ -3,21 +3,7 @@ import { execute } from '../client/execute';
 import { GetProfileDocument, GetProfilesDocument } from '../documents/profiles';
 import type { Universal_Profile_Bool_Exp, Universal_Profile_Order_By } from '../graphql/graphql';
 import { parseProfile, parseProfiles } from '../parsers/profiles';
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Escape SQL LIKE wildcards (`%` and `_`) in a string so they are treated
- * as literal characters when used with Hasura's `_ilike` operator.
- *
- * Without escaping, user input like `"a%"` would match any value starting
- * with `"a"` instead of literally matching `"a%"`.
- */
-function escapeLike(value: string): string {
-  return value.replace(/%/g, '\\%').replace(/_/g, '\\_');
-}
+import { escapeLike } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
