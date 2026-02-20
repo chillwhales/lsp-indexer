@@ -29,7 +29,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={firstIcon.url}
-                  alt={nft.collectionName ?? 'nft icon'}
+                  alt={nft.name ?? 'nft icon'}
                   className="size-5 rounded object-cover"
                   onError={(e) => {
                     (e.currentTarget as HTMLImageElement).style.display = 'none';
@@ -38,19 +38,17 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
               ) : (
                 <Gem className="size-5 text-muted-foreground" />
               )}
-              {nft.collectionName ?? 'Unnamed Collection'}
-              {nft.collectionSymbol && (
-                <span className="text-base font-normal text-muted-foreground">
-                  ({nft.collectionSymbol})
-                </span>
-              )}
+              {nft.name ?? 'Unnamed NFT'}
               {isFetching && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
             </CardTitle>
             <CardDescription className="font-mono text-xs break-all">
               Token ID: {nft.formattedTokenId ?? nft.tokenId}
             </CardDescription>
             <CardDescription className="font-mono text-xs break-all">
-              Collection: {nft.address}
+              Collection: {nft.collection?.name ?? nft.address}
+              {nft.collection?.symbol && (
+                <span className="text-muted-foreground"> ({nft.collection.symbol})</span>
+              )}
             </CardDescription>
           </div>
           <div className="flex gap-2">
@@ -94,17 +92,17 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
           )}
         </dl>
 
-        {/* Owner section */}
-        {nft.owner && (
+        {/* Holder section */}
+        {nft.holder && (
           <div className="border rounded-lg p-3 space-y-2 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
-            <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Owner</h4>
+            <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Holder</h4>
             <div className="text-sm">
               <span className="text-muted-foreground">Address:</span>{' '}
-              <span className="font-mono text-xs break-all">{nft.owner.address}</span>
+              <span className="font-mono text-xs break-all">{nft.holder.address}</span>
             </div>
             <div className="text-sm">
               <span className="text-muted-foreground">Acquired:</span>{' '}
-              <span className="text-xs">{new Date(nft.owner.timestamp).toLocaleString()}</span>
+              <span className="text-xs">{new Date(nft.holder.timestamp).toLocaleString()}</span>
             </div>
           </div>
         )}
