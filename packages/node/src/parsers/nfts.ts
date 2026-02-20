@@ -1,5 +1,6 @@
 import type { Nft } from '@lsp-indexer/types';
 import type { GetNftQuery } from '../graphql/graphql';
+import { parseDigitalAsset } from './digital-assets';
 import { parseImage } from './utils';
 
 /**
@@ -11,18 +12,47 @@ import { parseImage } from './utils';
  */
 type RawNft = GetNftQuery['nft'][number];
 
+// ---------------------------------------------------------------------------
+// Small DRY helpers for repeated metadata patterns
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse an array of link objects from metadata.
+ * Returns `null` if the input is nullish (field not included or metadata absent).
+ */
+function parseLinks(
+  links: ReadonlyArray<{ title?: string | null; url?: string | null }> | null | undefined,
+) {
+  if (!links) return null;
+  return links.map((l) => ({ title: l.title ?? '', url: l.url ?? '' }));
+}
+
+/**
+ * Parse an array of attribute objects from metadata.
+ * Returns `null` if the input is nullish (field not included or metadata absent).
+ */
+function parseAttributes(
+  attrs:
+    | ReadonlyArray<{ key?: string | null; value?: string | null; type?: string | null }>
+    | null
+    | undefined,
+) {
+  if (!attrs) return null;
+  return attrs.map((a) => ({ key: a.key ?? '', value: a.value ?? '', type: a.type ?? '' }));
+}
+
 /**
  * Transform a raw Hasura NFT response into a clean `Nft` type.
  *
  * Handles all edge cases:
- * - **Nullable lsp4Metadata:** Some NFTs may not have resolved metadata yet
- *   (the per-token metadata relation can be null). All metadata fields use
- *   optional chaining on `raw.lsp4Metadata` and fall back to `null`.
+ * - **BaseUri fallback:** For each metadata field, checks direct `lsp4Metadata` first,
+ *   falls back to `lsp4MetadataBaseUri`, then `null`. Only returns null if BOTH are absent.
  * - **`@include(if: false)` omitted fields:** Won't be present in the response —
  *   uses optional chaining; omitted arrays become `null`, included-but-empty arrays become `[]`.
- * - **Ownership mapping:** Maps `ownedToken.owner` (address string) and
- *   `ownedToken.timestamp` to a clean `{ address, timestamp }` owner object.
- * - **Collection info:** Parent collection name/symbol from digitalAsset relation.
+ * - **Holder mapping:** Maps `ownedToken.owner` (address string) and
+ *   `ownedToken.timestamp` to a clean `{ address, timestamp }` holder object.
+ * - **Collection info:** Full DigitalAsset from digitalAsset relation, parsed via `parseDigitalAsset`.
+ * - **Name field:** NFT's own name from `lsp4Metadata.name` with baseUri fallback.
  *
  * **Array field convention (T[] | null):**
  * - `null` = field not included in query OR metadata absent
@@ -32,7 +62,8 @@ type RawNft = GetNftQuery['nft'][number];
  * @returns A clean, camelCase `Nft` with safe defaults
  */
 export function parseNft(raw: RawNft): Nft {
-  const metadata = raw.lsp4Metadata;
+  const direct = raw.lsp4Metadata;
+  const baseUri = raw.lsp4MetadataBaseUri;
 
   return {
     address: raw.address,
@@ -41,30 +72,32 @@ export function parseNft(raw: RawNft): Nft {
     isBurned: raw.is_burned,
     isMinted: raw.is_minted,
 
-    // From digitalAsset relation (parent collection)
-    collectionName: raw.digitalAsset?.lsp4TokenName?.value ?? null,
-    collectionSymbol: raw.digitalAsset?.lsp4TokenSymbol?.value ?? null,
+    // NFT's own name: direct metadata first, baseUri fallback
+    name: direct?.name?.value ?? baseUri?.name?.value ?? null,
 
-    // From ownedToken relation (current holder)
-    owner: raw.ownedToken
+    // Full collection from digitalAsset — reuse parseDigitalAsset
+    collection: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset) : null,
+
+    // Holder (not owner — ownedToken tracks the token holder)
+    holder: raw.ownedToken
       ? { address: raw.ownedToken.owner, timestamp: raw.ownedToken.timestamp ?? '' }
       : null,
 
-    // From lsp4Metadata relation (individual token metadata — may be null)
-    description: metadata?.description?.value ?? null,
-    category: metadata?.category?.value ?? null,
-    icons: metadata?.icon ? metadata.icon.map(parseImage) : null,
-    images: metadata?.images ? metadata.images.map(parseImage) : null,
-    links: metadata?.links
-      ? metadata.links.map((l) => ({ title: l.title ?? '', url: l.url ?? '' }))
-      : null,
-    attributes: metadata?.attributes
-      ? metadata.attributes.map((a) => ({
-          key: a.key ?? '',
-          value: a.value ?? '',
-          type: a.type ?? '',
-        }))
-      : null,
+    // All metadata fields: direct first, baseUri fallback
+    description: direct?.description?.value ?? baseUri?.description?.value ?? null,
+    category: direct?.category?.value ?? baseUri?.category?.value ?? null,
+    icons: direct?.icon
+      ? direct.icon.map(parseImage)
+      : baseUri?.icon
+        ? baseUri.icon.map(parseImage)
+        : null,
+    images: direct?.images
+      ? direct.images.map(parseImage)
+      : baseUri?.images
+        ? baseUri.images.map(parseImage)
+        : null,
+    links: parseLinks(direct?.links) ?? parseLinks(baseUri?.links) ?? null,
+    attributes: parseAttributes(direct?.attributes) ?? parseAttributes(baseUri?.attributes) ?? null,
   };
 }
 
