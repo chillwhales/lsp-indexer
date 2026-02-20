@@ -150,10 +150,10 @@ const DA_SUB_INCLUDES: IncludeToggleConfig[] = [
 /** Preset examples for quick single-lookup testing (holder + asset + tokenId) */
 const PRESET_OWNED_TOKENS = [
   {
-    label: 'chill-labs × Chillwhale #112',
+    label: 'chill-labs × Chillwhale #19',
     owner: '0xB6c10458274431189D4D0dA66ce00dc62A215908',
     address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83',
-    tokenId: '0x0000000000000000000000000000000000000000000000000000000000000070',
+    tokenId: '0x0000000000000000000000000000000000000000000000000000000000000013',
   },
   {
     label: 'b00ste × Chillwhale #1',
