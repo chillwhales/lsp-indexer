@@ -147,17 +147,19 @@ const DA_SUB_INCLUDES: IncludeToggleConfig[] = [
   { key: 'baseUri', label: 'Base URI' },
 ];
 
-/** Preset examples for quick single-lookup testing (holder + asset + optional tokenId) */
+/** Preset examples for quick single-lookup testing (holder + asset + tokenId) */
 const PRESET_OWNED_TOKENS = [
   {
-    label: 'chill-labs × Chillwhales',
+    label: 'chill-labs × Chillwhale #112',
     owner: '0xB6c10458274431189D4D0dA66ce00dc62A215908',
     address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83',
+    tokenId: '0x0000000000000000000000000000000000000000000000000000000000000070',
   },
   {
-    label: 'b00ste × Chillwhales',
+    label: 'b00ste × Chillwhale #1',
     owner: '0x00Aa9761286f21437c90AD2f895ef0dcA3484306',
     address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83',
+    tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
   },
 ] as const;
 
@@ -528,10 +530,10 @@ function SingleOwnedTokenTab({ mode }: { mode: HookMode }): React.ReactNode {
   const handlePreset = (preset: (typeof PRESET_OWNED_TOKENS)[number]) => {
     setOwnerInput(preset.owner);
     setAddressInput(preset.address);
-    setTokenIdInput('');
+    setTokenIdInput(preset.tokenId);
     setQueryOwner(preset.owner);
     setQueryAddress(preset.address);
-    setQueryTokenId('');
+    setQueryTokenId(preset.tokenId);
   };
 
   return (
