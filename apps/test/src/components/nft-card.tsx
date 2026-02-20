@@ -20,7 +20,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
   const firstIcon = nft.icons?.[0];
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">

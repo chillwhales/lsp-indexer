@@ -18,7 +18,7 @@ export interface ProfileCardProps {
 
 export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.ReactNode {
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
