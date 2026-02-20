@@ -7,9 +7,11 @@ import { graphql } from '../graphql';
  * - `$where` — The service layer builds the Hasura bool_exp (e.g., `{ id: { _eq: "..." } }`)
  * - `$includeDigitalAsset` — Include related digital asset details (with 17 DA sub-variables)
  * - `$include[Name|Symbol|...]` — 17 digital asset sub-include toggles
- * - `$includeNft` — Include related NFT details (core fields + metadata)
+ * - `$includeNft` — Include related NFT details (with 8 NFT sub-variables)
+ * - `$includeNft[FormattedTokenId|Name|...]` — 8 NFT sub-include toggles
  * - `$includeOwnedAsset` — Include related owned asset (parent fungible ownership record)
- * - `$includeUniversalProfile` — Include related universal profile details
+ * - `$includeUniversalProfile` — Include related universal profile details (with 9 profile sub-variables)
+ * - `$includeProfile[Name|Description|...]` — 9 profile sub-include toggles
  *
  * Uses `@include(if:)` directives so omitted nested data is never sent over the wire.
  * When `include` is omitted by the caller, all variables default to `true` → everything fetched.
@@ -36,6 +38,14 @@ export const GetOwnedTokenDocument = graphql(`
     $includeTokenIdFormat: Boolean! = true
     $includeBaseUri: Boolean! = true
     $includeNft: Boolean! = true
+    $includeNftFormattedTokenId: Boolean! = true
+    $includeNftName: Boolean! = true
+    $includeNftDescription: Boolean! = true
+    $includeNftCategory: Boolean! = true
+    $includeNftIcons: Boolean! = true
+    $includeNftImages: Boolean! = true
+    $includeNftLinks: Boolean! = true
+    $includeNftAttributes: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeUniversalProfile: Boolean! = true
     $includeProfileName: Boolean! = true
@@ -129,27 +139,27 @@ export const GetOwnedTokenDocument = graphql(`
       nft @include(if: $includeNft) {
         address
         token_id
-        formatted_token_id
+        formatted_token_id @include(if: $includeNftFormattedTokenId)
         is_burned
         is_minted
         lsp4Metadata {
-          name {
+          name @include(if: $includeNftName) {
             value
           }
-          description {
+          description @include(if: $includeNftDescription) {
             value
           }
-          category {
+          category @include(if: $includeNftCategory) {
             value
           }
-          icon {
+          icon @include(if: $includeNftIcons) {
             url
             width
             height
             verification_method
             verification_data
           }
-          images {
+          images @include(if: $includeNftImages) {
             url
             width
             height
@@ -157,34 +167,34 @@ export const GetOwnedTokenDocument = graphql(`
             verification_method
             verification_data
           }
-          links {
+          links @include(if: $includeNftLinks) {
             title
             url
           }
-          attributes {
+          attributes @include(if: $includeNftAttributes) {
             key
             value
             type
           }
         }
         lsp4MetadataBaseUri {
-          name {
+          name @include(if: $includeNftName) {
             value
           }
-          description {
+          description @include(if: $includeNftDescription) {
             value
           }
-          category {
+          category @include(if: $includeNftCategory) {
             value
           }
-          icon {
+          icon @include(if: $includeNftIcons) {
             url
             width
             height
             verification_method
             verification_data
           }
-          images {
+          images @include(if: $includeNftImages) {
             url
             width
             height
@@ -192,11 +202,11 @@ export const GetOwnedTokenDocument = graphql(`
             verification_method
             verification_data
           }
-          links {
+          links @include(if: $includeNftLinks) {
             title
             url
           }
-          attributes {
+          attributes @include(if: $includeNftAttributes) {
             key
             value
             type
@@ -274,7 +284,7 @@ export const GetOwnedTokenDocument = graphql(`
  * - `$order_by` — Sort order (built by service layer from OwnedTokenSort)
  * - `$limit` / `$offset` — Pagination
  * - `$includeDigitalAsset` + 17 DA sub-variables — Digital asset nested include toggles
- * - `$includeNft` — NFT nested include toggle
+ * - `$includeNft` + 8 NFT sub-variables — NFT nested include toggles
  * - `$includeOwnedAsset` — Owned asset (parent) nested include toggle
  * - `$includeUniversalProfile` + 9 profile sub-variables — Universal profile nested include toggles
  *
@@ -305,6 +315,14 @@ export const GetOwnedTokensDocument = graphql(`
     $includeTokenIdFormat: Boolean! = true
     $includeBaseUri: Boolean! = true
     $includeNft: Boolean! = true
+    $includeNftFormattedTokenId: Boolean! = true
+    $includeNftName: Boolean! = true
+    $includeNftDescription: Boolean! = true
+    $includeNftCategory: Boolean! = true
+    $includeNftIcons: Boolean! = true
+    $includeNftImages: Boolean! = true
+    $includeNftLinks: Boolean! = true
+    $includeNftAttributes: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeUniversalProfile: Boolean! = true
     $includeProfileName: Boolean! = true
@@ -398,27 +416,27 @@ export const GetOwnedTokensDocument = graphql(`
       nft @include(if: $includeNft) {
         address
         token_id
-        formatted_token_id
+        formatted_token_id @include(if: $includeNftFormattedTokenId)
         is_burned
         is_minted
         lsp4Metadata {
-          name {
+          name @include(if: $includeNftName) {
             value
           }
-          description {
+          description @include(if: $includeNftDescription) {
             value
           }
-          category {
+          category @include(if: $includeNftCategory) {
             value
           }
-          icon {
+          icon @include(if: $includeNftIcons) {
             url
             width
             height
             verification_method
             verification_data
           }
-          images {
+          images @include(if: $includeNftImages) {
             url
             width
             height
@@ -426,34 +444,34 @@ export const GetOwnedTokensDocument = graphql(`
             verification_method
             verification_data
           }
-          links {
+          links @include(if: $includeNftLinks) {
             title
             url
           }
-          attributes {
+          attributes @include(if: $includeNftAttributes) {
             key
             value
             type
           }
         }
         lsp4MetadataBaseUri {
-          name {
+          name @include(if: $includeNftName) {
             value
           }
-          description {
+          description @include(if: $includeNftDescription) {
             value
           }
-          category {
+          category @include(if: $includeNftCategory) {
             value
           }
-          icon {
+          icon @include(if: $includeNftIcons) {
             url
             width
             height
             verification_method
             verification_data
           }
-          images {
+          images @include(if: $includeNftImages) {
             url
             width
             height
@@ -461,11 +479,11 @@ export const GetOwnedTokensDocument = graphql(`
             verification_method
             verification_data
           }
-          links {
+          links @include(if: $includeNftLinks) {
             title
             url
           }
-          attributes {
+          attributes @include(if: $includeNftAttributes) {
             key
             value
             type

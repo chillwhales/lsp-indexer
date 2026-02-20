@@ -9,6 +9,7 @@ import { GetOwnedTokenDocument, GetOwnedTokensDocument } from '../documents/owne
 import type { Owned_Token_Bool_Exp, Owned_Token_Order_By } from '../graphql/graphql';
 import { parseOwnedToken, parseOwnedTokens } from '../parsers/owned-tokens';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
+import { buildNftIncludeVars } from './nfts';
 import { buildProfileIncludeVars } from './profiles';
 import { escapeLike, orderDir } from './utils';
 
@@ -122,10 +123,10 @@ function buildOrderBy(sort?: OwnedTokenSort): Owned_Token_Order_By[] | undefined
  * - When `include` is **provided** → each field defaults to `false` unless explicitly
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
  *
- * **Digital asset sub-includes:**
- * - When `include.digitalAsset` is **provided** (even as `{}`) → `includeDigitalAsset: true`
- *   with sub-include variables from `buildDigitalAssetIncludeVars`.
- * - When `include.digitalAsset` is **undefined** → `includeDigitalAsset: false`.
+ * **Nested relation sub-includes:**
+ * - `digitalAsset`: When provided (even as `{}`) → `includeDigitalAsset: true` with 17 DA sub-variables.
+ * - `nft`: When provided (even as `{}`) → `includeNft: true` with 8 NFT sub-variables.
+ * - `universalProfile`: When provided (even as `{}`) → `includeUniversalProfile: true` with 9 profile sub-variables.
  */
 function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> {
   if (!include) {
@@ -135,7 +136,7 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
 
   const vars: Record<string, boolean> = {
     includeDigitalAsset: include.digitalAsset !== undefined, // provided (even {}) = include
-    includeNft: include.nft ?? false,
+    includeNft: include.nft !== undefined, // provided (even {}) = include
     includeOwnedAsset: include.ownedAsset ?? false,
     includeUniversalProfile: include.universalProfile !== undefined, // provided (even {}) = include
   };
@@ -148,6 +149,16 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
       Object.keys(include.digitalAsset).length > 0 ? include.digitalAsset : undefined,
     );
     Object.assign(vars, daVars);
+  }
+
+  // NFT sub-includes: reuse NFT include builder with includeNft* prefix.
+  // When nft is empty {} → buildNftIncludeVars returns {} → GraphQL defaults apply.
+  // When nft has explicit keys → each key is mapped to includeNft* variables.
+  if (include.nft) {
+    const nftVars = buildNftIncludeVars(
+      Object.keys(include.nft).length > 0 ? include.nft : undefined,
+    );
+    Object.assign(vars, nftVars);
   }
 
   // Profile sub-includes: reuse profile include builder with includeProfile* prefix.

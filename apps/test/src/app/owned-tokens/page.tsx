@@ -99,9 +99,18 @@ const OWNED_TOKEN_SORT_OPTIONS: SortOption[] = [
   { value: 'tokenId', label: 'Token ID' },
 ];
 
-const OWNED_TOKEN_INCLUDES: IncludeToggleConfig[] = [
-  { key: 'nft', label: 'NFT' },
-  { key: 'ownedAsset', label: 'Owned Asset' },
+const OWNED_TOKEN_INCLUDES: IncludeToggleConfig[] = [{ key: 'ownedAsset', label: 'Owned Asset' }];
+
+/** NFT sub-include toggle configs (NftInclude minus collection/holder — 8 fields) */
+const NFT_SUB_INCLUDES: IncludeToggleConfig[] = [
+  { key: 'formattedTokenId', label: 'Formatted Token ID' },
+  { key: 'name', label: 'NFT Name' },
+  { key: 'description', label: 'Description' },
+  { key: 'category', label: 'Category' },
+  { key: 'icons', label: 'Icons' },
+  { key: 'images', label: 'Images' },
+  { key: 'links', label: 'Links' },
+  { key: 'attributes', label: 'Attributes' },
 ];
 
 /** Universal profile sub-include toggle configs (ProfileInclude fields) */
@@ -189,6 +198,35 @@ function useProfileInclude() {
 }
 
 // ---------------------------------------------------------------------------
+// NFT include hook — manages nft toggle + sub-toggles (8 metadata fields)
+// ---------------------------------------------------------------------------
+
+/**
+ * Hook for managing the NFT include state with nested sub-includes.
+ *
+ * When NFT is enabled (even without any sub-includes), it means
+ * "include the NFT data". The sub-toggles control which NFT
+ * metadata fields to fetch (formattedTokenId, name, description, etc.).
+ */
+function useNftInclude() {
+  const [enabled, setEnabled] = useState(true);
+  const {
+    values: subValues,
+    toggle: toggleSub,
+    include: subInclude,
+  } = useIncludeToggles(NFT_SUB_INCLUDES);
+
+  return {
+    enabled,
+    setEnabled,
+    subValues,
+    toggleSub,
+    /** Returns the nft include value for the OwnedTokenInclude object */
+    value: enabled ? (subInclude ?? {}) : undefined,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Digital asset include hook — manages digitalAsset toggle + sub-toggles
 // ---------------------------------------------------------------------------
 
@@ -224,14 +262,16 @@ function useDigitalAssetInclude() {
 function buildOwnedTokenInclude(
   includeValues: Record<string, boolean>,
   daValue: Record<string, boolean> | undefined,
+  nftValue: Record<string, boolean> | undefined,
   upValue: Record<string, boolean> | undefined,
 ): OwnedTokenInclude | undefined {
-  // Check if all base toggles are ON and both DA and UP are enabled with all sub-includes ON
+  // Check if all base toggles are ON and DA, NFT, and UP are all enabled with all sub-includes ON
   const allBaseOn = Object.values(includeValues).every(Boolean);
   const daAllOn = daValue !== undefined && Object.keys(daValue).length === 0;
+  const nftAllOn = nftValue !== undefined && Object.keys(nftValue).length === 0;
   const upAllOn = upValue !== undefined && Object.keys(upValue).length === 0;
 
-  if (allBaseOn && daAllOn && upAllOn) return undefined; // Everything ON = use defaults
+  if (allBaseOn && daAllOn && nftAllOn && upAllOn) return undefined; // Everything ON = use defaults
 
   const include: OwnedTokenInclude = {};
   for (const [key, val] of Object.entries(includeValues)) {
@@ -239,6 +279,9 @@ function buildOwnedTokenInclude(
   }
   if (daValue !== undefined) {
     include.digitalAsset = daValue;
+  }
+  if (nftValue !== undefined) {
+    include.nft = nftValue;
   }
   if (upValue !== undefined) {
     include.universalProfile = upValue;
@@ -257,12 +300,13 @@ function useOwnedTokenListState() {
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(OWNED_TOKEN_INCLUDES);
   const da = useDigitalAssetInclude();
+  const nft = useNftInclude();
   const up = useProfileInclude();
 
   const filter = buildOwnedTokenFilter(debouncedValues);
   const sort: OwnedTokenSort = { field: sortField, direction: sortDirection, nulls: sortNulls };
   const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
-  const include = buildOwnedTokenInclude(includeValues, da.value, up.value);
+  const include = buildOwnedTokenInclude(includeValues, da.value, nft.value, up.value);
 
   return {
     values,
@@ -280,6 +324,7 @@ function useOwnedTokenListState() {
     toggleInclude,
     include,
     da,
+    nft,
     up,
   };
 }
@@ -312,6 +357,57 @@ function DigitalAssetIncludeSection({
           <span className="text-xs text-muted-foreground">Digital asset sub-fields</span>
           <div className="flex flex-wrap gap-x-3 gap-y-1.5">
             {DA_SUB_INCLUDES.map((config) => (
+              <label
+                key={config.key}
+                className="flex items-center gap-1 text-xs cursor-pointer select-none"
+              >
+                <Switch
+                  size="sm"
+                  checked={subValues[config.key] ?? true}
+                  onCheckedChange={() => toggleSub(config.key)}
+                />
+                <span
+                  className={subValues[config.key] ? 'text-foreground' : 'text-muted-foreground'}
+                >
+                  {config.label}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// NFT sub-include toggles component
+// ---------------------------------------------------------------------------
+
+function NftIncludeSection({
+  enabled,
+  setEnabled,
+  subValues,
+  toggleSub,
+}: {
+  enabled: boolean;
+  setEnabled: (v: boolean) => void;
+  subValues: Record<string, boolean>;
+  toggleSub: (key: string) => void;
+}): React.ReactNode {
+  return (
+    <div className="space-y-2">
+      <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+        <Switch size="sm" checked={enabled} onCheckedChange={setEnabled} />
+        <span className={enabled ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+          NFT
+        </span>
+      </label>
+      {enabled && (
+        <div className="ml-6 pl-3 border-l space-y-1">
+          <span className="text-xs text-muted-foreground">NFT sub-fields</span>
+          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+            {NFT_SUB_INCLUDES.map((config) => (
               <label
                 key={config.key}
                 className="flex items-center gap-1 text-xs cursor-pointer select-none"
@@ -400,8 +496,9 @@ function SingleOwnedTokenTab({ mode }: { mode: HookMode }): React.ReactNode {
   const [queryTokenId, setQueryTokenId] = useState('');
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(OWNED_TOKEN_INCLUDES);
   const da = useDigitalAssetInclude();
+  const nft = useNftInclude();
   const up = useProfileInclude();
-  const include = buildOwnedTokenInclude(includeValues, da.value, up.value);
+  const include = buildOwnedTokenInclude(includeValues, da.value, nft.value, up.value);
 
   const hasQuery = Boolean(queryOwner) && Boolean(queryAddress);
   const filter: OwnedTokenFilter | undefined = hasQuery
@@ -504,6 +601,12 @@ function SingleOwnedTokenTab({ mode }: { mode: HookMode }): React.ReactNode {
         subValues={da.subValues}
         toggleSub={da.toggleSub}
       />
+      <NftIncludeSection
+        enabled={nft.enabled}
+        setEnabled={nft.setEnabled}
+        subValues={nft.subValues}
+        toggleSub={nft.toggleSub}
+      />
       <ProfileIncludeSection
         enabled={up.enabled}
         setEnabled={up.setEnabled}
@@ -597,6 +700,12 @@ function OwnedTokenListTab({ mode }: { mode: HookMode }): React.ReactNode {
         subValues={state.da.subValues}
         toggleSub={state.da.toggleSub}
       />
+      <NftIncludeSection
+        enabled={state.nft.enabled}
+        setEnabled={state.nft.setEnabled}
+        subValues={state.nft.subValues}
+        toggleSub={state.nft.toggleSub}
+      />
       <ProfileIncludeSection
         enabled={state.up.enabled}
         setEnabled={state.up.setEnabled}
@@ -669,6 +778,12 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
         setEnabled={state.da.setEnabled}
         subValues={state.da.subValues}
         toggleSub={state.da.toggleSub}
+      />
+      <NftIncludeSection
+        enabled={state.nft.enabled}
+        setEnabled={state.nft.setEnabled}
+        subValues={state.nft.subValues}
+        toggleSub={state.nft.toggleSub}
       />
       <ProfileIncludeSection
         enabled={state.up.enabled}

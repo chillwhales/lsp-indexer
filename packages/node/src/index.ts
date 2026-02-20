@@ -35,7 +35,7 @@ export { digitalAssetKeys } from './keys/digital-assets';
 export { GetDigitalAssetDocument, GetDigitalAssetsDocument } from './documents/digital-assets';
 
 // NFT services (the core fetching layer)
-export { fetchNft, fetchNfts } from './services/nfts';
+export { buildNftIncludeVars, fetchNft, fetchNfts } from './services/nfts';
 export type { FetchNftsResult } from './services/nfts';
 
 // NFT parsers (Hasura → clean types)

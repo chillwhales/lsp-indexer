@@ -2,9 +2,21 @@ import { z } from 'zod';
 
 import { SortDirectionSchema, SortNullsSchema } from './common';
 import { DigitalAssetIncludeSchema, DigitalAssetSchema } from './digital-assets';
-import { NftSchema } from './nfts';
+import { NftIncludeSchema, NftSchema } from './nfts';
 import { OwnedAssetSchema } from './owned-assets';
 import { ProfileIncludeSchema, ProfileSchema } from './profiles';
+
+/**
+ * NFT sub-include schema for the owned-token context.
+ *
+ * Omits `collection` and `holder` because those are sibling relations on
+ * owned_token itself (digitalAsset / universalProfile), not nested within
+ * the NFT block. The 8 remaining fields control which NFT metadata to fetch.
+ */
+export const OwnedTokenNftIncludeSchema = NftIncludeSchema.omit({
+  collection: true,
+  holder: true,
+});
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -92,12 +104,15 @@ export const OwnedTokenSortSchema = z.object({
  *
  * The `digitalAsset` field accepts a `DigitalAssetIncludeSchema` for nested 17-field
  * sub-includes — controlling exactly which digital asset attributes to fetch.
+ *
+ * The `nft` field accepts an `OwnedTokenNftIncludeSchema` (NftInclude minus collection/holder)
+ * for nested 8-field sub-includes — controlling exactly which NFT metadata to fetch.
  */
 export const OwnedTokenIncludeSchema = z.object({
   /** Include related digital asset details — sub-fields control which DA attributes to fetch */
   digitalAsset: DigitalAssetIncludeSchema.optional(),
-  /** Include related NFT details */
-  nft: z.boolean().optional(),
+  /** Include related NFT details — sub-fields control which NFT metadata to fetch */
+  nft: OwnedTokenNftIncludeSchema.optional(),
   /** Include related owned asset (parent fungible ownership record) */
   ownedAsset: z.boolean().optional(),
   /** Include related universal profile details — sub-fields control which profile attributes to fetch */
@@ -151,6 +166,7 @@ export type OwnedTokenFilter = z.infer<typeof OwnedTokenFilterSchema>;
 export type OwnedTokenSortField = z.infer<typeof OwnedTokenSortFieldSchema>;
 export type OwnedTokenSort = z.infer<typeof OwnedTokenSortSchema>;
 export type OwnedTokenInclude = z.infer<typeof OwnedTokenIncludeSchema>;
+export type OwnedTokenNftInclude = z.infer<typeof OwnedTokenNftIncludeSchema>;
 export type UseOwnedTokenParams = z.infer<typeof UseOwnedTokenParamsSchema>;
 export type UseOwnedTokensParams = z.infer<typeof UseOwnedTokensParamsSchema>;
 export type UseInfiniteOwnedTokensParams = z.infer<typeof UseInfiniteOwnedTokensParamsSchema>;

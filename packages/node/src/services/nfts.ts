@@ -1,4 +1,4 @@
-import type { Nft, NftFilter, NftInclude, NftSort } from '@lsp-indexer/types';
+import type { Nft, NftFilter, NftInclude, NftSort, OwnedTokenNftInclude } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
 import { GetNftDocument, GetNftsDocument } from '../documents/nfts';
 import type { Nft_Bool_Exp, Nft_Order_By } from '../graphql/graphql';
@@ -154,6 +154,37 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
   }
 
   return vars;
+}
+
+/**
+ * Build NFT sub-include variables for use as a **nested relation** in the owned-token
+ * domain. Uses `includeNft*` prefix to avoid colliding with digital asset `include*`
+ * and profile `includeProfile*` variables which share the same query.
+ *
+ * **Inverted default pattern:**
+ * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
+ *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
+ * - When `include` is **provided** → each field defaults to `false` unless explicitly
+ *   set to `true`.
+ *
+ * Only maps the 8 fields available in the owned-token NFT context
+ * (excludes `collection` and `holder` which are sibling relations on owned_token).
+ */
+export function buildNftIncludeVars(include?: OwnedTokenNftInclude): Record<string, boolean> {
+  if (!include) {
+    return {};
+  }
+
+  return {
+    includeNftFormattedTokenId: include.formattedTokenId ?? false,
+    includeNftName: include.name ?? false,
+    includeNftDescription: include.description ?? false,
+    includeNftCategory: include.category ?? false,
+    includeNftIcons: include.icons ?? false,
+    includeNftImages: include.images ?? false,
+    includeNftLinks: include.links ?? false,
+    includeNftAttributes: include.attributes ?? false,
+  };
 }
 
 // ---------------------------------------------------------------------------
