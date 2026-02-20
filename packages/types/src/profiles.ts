@@ -6,14 +6,6 @@ import { AssetSchema, ImageSchema, SortDirectionSchema, SortNullsSchema } from '
 // Core domain schemas
 // ---------------------------------------------------------------------------
 
-/**
- * Profile image (profileImage, backgroundImage) — has width/height dimensions.
- *
- * Reuses the shared ImageSchema since the structure is identical
- * (url + width + height + verification).
- */
-export const ProfileImageSchema = ImageSchema;
-
 export const ProfileSchema = z.object({
   /** The Universal Profile contract address (checksummed or lowercase hex) */
   address: z.string(),
@@ -28,9 +20,9 @@ export const ProfileSchema = z.object({
   /** Avatar assets from LSP3 metadata (3D files, media — NOT images), or `null` if not included in query */
   avatar: z.array(AssetSchema).nullable(),
   /** Profile images (typically a square photo or icon), or `null` if not included in query */
-  profileImage: z.array(ProfileImageSchema).nullable(),
+  profileImage: z.array(ImageSchema).nullable(),
   /** Background/banner images, or `null` if not included in query */
-  backgroundImage: z.array(ProfileImageSchema).nullable(),
+  backgroundImage: z.array(ImageSchema).nullable(),
   /** Number of profiles following this profile */
   followerCount: z.number(),
   /** Number of profiles this profile follows */
@@ -151,7 +143,6 @@ export const UseInfiniteProfilesParamsSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export type Profile = z.infer<typeof ProfileSchema>;
-export type ProfileImage = z.infer<typeof ProfileImageSchema>;
 export type ProfileFilter = z.infer<typeof ProfileFilterSchema>;
 export type ProfileSort = z.infer<typeof ProfileSortSchema>;
 export type ProfileSortField = z.infer<typeof ProfileSortFieldSchema>;

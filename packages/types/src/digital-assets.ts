@@ -24,15 +24,6 @@ export const StandardSchema = z.enum(['LSP7', 'LSP8']);
  */
 export const TokenTypeSchema = z.enum(['TOKEN', 'NFT', 'COLLECTION']);
 
-/** Image associated with a digital asset (icon or background image) — alias for shared ImageSchema */
-export const DigitalAssetImageSchema = ImageSchema;
-
-/** External link associated with a digital asset (social media, website, etc.) — alias for shared LinkSchema */
-export const DigitalAssetLinkSchema = LinkSchema;
-
-/** NFT metadata attribute (trait/property) — alias for shared Lsp4AttributeSchema */
-export const DigitalAssetAttributeSchema = Lsp4AttributeSchema;
-
 /** Contract owner (controller) of the digital asset */
 export const DigitalAssetOwnerSchema = z.object({
   /** Owner contract address */
@@ -70,13 +61,13 @@ export const DigitalAssetSchema = z.object({
   /** Category from LSP4 metadata (free-text), or `null` if not set or not included */
   category: z.string().nullable(),
   /** Icon images from LSP4 metadata, or `null` if not included in query */
-  icons: z.array(DigitalAssetImageSchema).nullable(),
+  icons: z.array(ImageSchema).nullable(),
   /** Gallery/cover images from LSP4 metadata, or `null` if not included in query */
-  images: z.array(DigitalAssetImageSchema).nullable(),
+  images: z.array(ImageSchema).nullable(),
   /** External links from LSP4 metadata, or `null` if not included in query */
-  links: z.array(DigitalAssetLinkSchema).nullable(),
+  links: z.array(LinkSchema).nullable(),
   /** NFT metadata attributes/traits, or `null` if not included in query */
-  attributes: z.array(DigitalAssetAttributeSchema).nullable(),
+  attributes: z.array(Lsp4AttributeSchema).nullable(),
   /** Contract owner (controller), or `null` if not included or not set */
   owner: DigitalAssetOwnerSchema.nullable(),
   /** Number of unique token holders, or `null` if not included */
@@ -229,9 +220,6 @@ export const UseInfiniteDigitalAssetsParamsSchema = z.object({
 
 export type Standard = z.infer<typeof StandardSchema>;
 export type TokenType = z.infer<typeof TokenTypeSchema>;
-export type DigitalAssetImage = z.infer<typeof DigitalAssetImageSchema>;
-export type DigitalAssetLink = z.infer<typeof DigitalAssetLinkSchema>;
-export type DigitalAssetAttribute = z.infer<typeof DigitalAssetAttributeSchema>;
 export type DigitalAssetOwner = z.infer<typeof DigitalAssetOwnerSchema>;
 export type DigitalAsset = z.infer<typeof DigitalAssetSchema>;
 export type DigitalAssetFilter = z.infer<typeof DigitalAssetFilterSchema>;
