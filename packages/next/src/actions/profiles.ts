@@ -8,9 +8,9 @@ import type { Profile, ProfileFilter, ProfileInclude, ProfileSort } from '@lsp-i
  * Server action: Fetch a single Universal Profile by address.
  *
  * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchProfile` server-side using `NEXT_PUBLIC_HASURA_GRAPHQL_URL` or
- * `HASURA_GRAPHQL_URL` from the server environment. This keeps the GraphQL
- * endpoint invisible to the client.
+ * `fetchProfile` server-side using the URL returned by `getServerUrl()`
+ * (`INDEXER_URL`, falling back to `NEXT_PUBLIC_INDEXER_URL`). This keeps the
+ * GraphQL endpoint invisible to the client.
  *
  * @param address - The Universal Profile contract address
  * @param include - Optional field inclusion config

@@ -13,9 +13,9 @@ import type {
  * Server action: Fetch a single digital asset by address.
  *
  * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchDigitalAsset` server-side using `NEXT_PUBLIC_HASURA_GRAPHQL_URL` or
- * `HASURA_GRAPHQL_URL` from the server environment. This keeps the GraphQL
- * endpoint invisible to the client.
+ * `fetchDigitalAsset` server-side using the URL returned by `getServerUrl()`
+ * (`INDEXER_URL`, falling back to `NEXT_PUBLIC_INDEXER_URL`). This keeps the
+ * GraphQL endpoint invisible to the client.
  *
  * @param address - The digital asset contract address
  * @param include - Optional field inclusion config
