@@ -9,17 +9,18 @@ import type { NftFilter, NftInclude, NftSort } from '@lsp-indexer/types';
  *
  * **Hierarchy:**
  * ```
- * nftKeys.all                              → ['nfts']
- * nftKeys.details()                        → ['nfts', 'detail']
- * nftKeys.detail(address, tokenId, include?) → ['nfts', 'detail', { address, tokenId, include }]
- * nftKeys.lists()                          → ['nfts', 'list']
- * nftKeys.list(filter?, sort?, ...)        → ['nfts', 'list', { filter, sort, limit, offset, include }]
- * nftKeys.infinites()                      → ['nfts', 'infinite']
- * nftKeys.infinite(filter?, sort?, include?) → ['nfts', 'infinite', { filter, sort, include }]
+ * nftKeys.all                                                   → ['nfts']
+ * nftKeys.details()                                             → ['nfts', 'detail']
+ * nftKeys.detail(address, tokenId?, formattedTokenId?, include?) → ['nfts', 'detail', { ... }]
+ * nftKeys.lists()                                               → ['nfts', 'list']
+ * nftKeys.list(filter?, sort?, ...)                             → ['nfts', 'list', { ... }]
+ * nftKeys.infinites()                                           → ['nfts', 'infinite']
+ * nftKeys.infinite(filter?, sort?, include?)                    → ['nfts', 'infinite', { ... }]
  * ```
  *
  * **Key difference from digital-assets:** The `detail` key includes both `address`
- * AND `tokenId` since an NFT is identified by the composite (collectionAddress, tokenId) pair.
+ * AND `tokenId`/`formattedTokenId` since an NFT is identified by the composite
+ * (collectionAddress, tokenId) pair.
  *
  * **IMPORTANT:** `list` and `infinite` use separate namespaces to prevent
  * TanStack Query cache corruption between useQuery and useInfiniteQuery.
@@ -46,9 +47,9 @@ export const nftKeys = {
   /** Parent key for all single-NFT detail queries */
   details: () => [...nftKeys.all, 'detail'] as const,
 
-  /** Key for a specific NFT by collection address, token ID, and include config */
-  detail: (address: string, tokenId: string, include?: NftInclude) =>
-    [...nftKeys.details(), { address, tokenId, include }] as const,
+  /** Key for a specific NFT by collection address, token ID or formatted token ID, and include config */
+  detail: (address: string, tokenId?: string, formattedTokenId?: string, include?: NftInclude) =>
+    [...nftKeys.details(), { address, tokenId, formattedTokenId, include }] as const,
 
   /** Parent key for all paginated list queries (used with `useQuery`) */
   lists: () => [...nftKeys.all, 'list'] as const,

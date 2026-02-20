@@ -19,7 +19,9 @@ import { escapeLike, orderDir } from './utils';
  * - `collectionAddress` → `{ address: { _ilike: escapeLike(collectionAddress) } }`
  *   (case-insensitive exact match — the nft.address IS the collection address)
  * - `tokenId`           → `{ token_id: { _ilike: escapeLike(tokenId) } }`
- * - `ownerAddress`      → `{ ownedToken: { owner: { _ilike: escapeLike(ownerAddress) } } }`
+ * - `formattedTokenId`  → `{ formatted_token_id: { _ilike: escapeLike(formattedTokenId) } }`
+ * - `name`              → `{ _or: [lsp4Metadata.name, lsp4MetadataBaseUri.name] }` (search both)
+ * - `holderAddress`     → `{ ownedToken: { owner: { _ilike: escapeLike(holderAddress) } } }`
  * - `isBurned`          → `{ is_burned: { _eq: isBurned } }`
  * - `isMinted`          → `{ is_minted: { _eq: isMinted } }`
  */
@@ -40,10 +42,26 @@ function buildNftWhere(filter?: NftFilter): Nft_Bool_Exp {
     });
   }
 
-  if (filter.ownerAddress) {
+  if (filter.formattedTokenId) {
+    conditions.push({
+      formatted_token_id: { _ilike: escapeLike(filter.formattedTokenId) },
+    });
+  }
+
+  if (filter.name) {
+    const namePattern = `%${escapeLike(filter.name)}%`;
+    conditions.push({
+      _or: [
+        { lsp4Metadata: { name: { value: { _ilike: namePattern } } } },
+        { lsp4MetadataBaseUri: { name: { value: { _ilike: namePattern } } } },
+      ],
+    });
+  }
+
+  if (filter.holderAddress) {
     conditions.push({
       ownedToken: {
-        owner: { _ilike: escapeLike(filter.ownerAddress) },
+        owner: { _ilike: escapeLike(filter.holderAddress) },
       },
     });
   }
@@ -96,6 +114,11 @@ function buildNftOrderBy(sort?: NftSort): Nft_Order_By[] | undefined {
  *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
  * - When `include` is **provided** → each field defaults to `false` unless explicitly
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
+ *
+ * **Collection sub-includes:**
+ * - When `include.collection` is **provided** (even as `{}`) → `includeCollection: true`
+ *   with sub-include variables from the DigitalAssetInclude schema.
+ * - When `include.collection` is **undefined** → `includeCollection: false`.
  */
 function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
   if (!include) {
@@ -103,10 +126,11 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
     return {};
   }
 
-  return {
+  const vars: Record<string, boolean> = {
     includeFormattedTokenId: include.formattedTokenId ?? false,
-    includeCollection: include.collection ?? false,
-    includeOwner: include.owner ?? false,
+    includeName: include.name ?? false,
+    includeCollection: include.collection !== undefined, // provided (even {}) = include
+    includeHolder: include.holder ?? false,
     includeDescription: include.description ?? false,
     includeCategory: include.category ?? false,
     includeIcons: include.icons ?? false,
@@ -114,6 +138,30 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
     includeLinks: include.links ?? false,
     includeAttributes: include.attributes ?? false,
   };
+
+  // Collection sub-includes (only matter when collection is enabled)
+  if (include.collection) {
+    const c = include.collection;
+    vars.includeCollectionName = c.name ?? false;
+    vars.includeCollectionSymbol = c.symbol ?? false;
+    vars.includeCollectionTokenType = c.tokenType ?? false;
+    vars.includeCollectionDecimals = c.decimals ?? false;
+    vars.includeCollectionTotalSupply = c.totalSupply ?? false;
+    vars.includeCollectionDescription = c.description ?? false;
+    vars.includeCollectionCategory = c.category ?? false;
+    vars.includeCollectionIcons = c.icons ?? false;
+    vars.includeCollectionImages = c.images ?? false;
+    vars.includeCollectionLinks = c.links ?? false;
+    vars.includeCollectionAttributes = c.attributes ?? false;
+    vars.includeCollectionOwner = c.owner ?? false;
+    vars.includeCollectionHolderCount = c.holderCount ?? false;
+    vars.includeCollectionCreatorCount = c.creatorCount ?? false;
+    vars.includeCollectionReferenceContract = c.referenceContract ?? false;
+    vars.includeCollectionTokenIdFormat = c.tokenIdFormat ?? false;
+    vars.includeCollectionBaseUri = c.baseUri ?? false;
+  }
+
+  return vars;
 }
 
 // ---------------------------------------------------------------------------
@@ -121,29 +169,42 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
 // ---------------------------------------------------------------------------
 
 /**
- * Fetch a single NFT by collection address and token ID.
+ * Fetch a single NFT by collection address and token ID (or formatted token ID).
  *
  * Translates the composite key to a Hasura `where` clause, executes the query,
- * and returns the first result parsed as a clean `Nft`, or `null` if the
- * (address, tokenId) pair doesn't exist.
+ * and returns the first result parsed as a clean `Nft`, or `null` if not found.
+ *
+ * Supports searching by either `tokenId` or `formattedTokenId` (or both).
  *
  * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (address + tokenId + optional include)
+ * @param params - Query parameters (address + tokenId/formattedTokenId + optional include)
  * @returns The parsed NFT, or `null` if not found
  */
 export async function fetchNft(
   url: string,
-  params: { address: string; tokenId: string; include?: NftInclude },
+  params: {
+    address: string;
+    tokenId?: string;
+    formattedTokenId?: string;
+    include?: NftInclude;
+  },
 ): Promise<Nft | null> {
   const includeVars = buildIncludeVars(params.include);
 
+  const conditions: Nft_Bool_Exp[] = [{ address: { _ilike: escapeLike(params.address) } }];
+
+  if (params.tokenId) {
+    conditions.push({ token_id: { _ilike: escapeLike(params.tokenId) } });
+  }
+
+  if (params.formattedTokenId) {
+    conditions.push({
+      formatted_token_id: { _ilike: escapeLike(params.formattedTokenId) },
+    });
+  }
+
   const result = await execute(url, GetNftDocument, {
-    where: {
-      _and: [
-        { address: { _ilike: escapeLike(params.address) } },
-        { token_id: { _ilike: escapeLike(params.tokenId) } },
-      ],
-    },
+    where: conditions.length === 1 ? conditions[0]! : { _and: conditions },
     ...includeVars,
   });
 
