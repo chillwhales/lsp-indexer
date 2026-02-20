@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.1 (Digital Assets) — Plans 01-03 complete, Plan 04 next
-- **Status:** Plan 09.1-03 complete — Digital Asset hooks + server actions + build validation done
-- **Last activity:** 2026-02-20 — Completed 09.1-03-PLAN.md (digital-asset-hooks-wiring)
-- **Progress:** ████░░░░░░ 40% (10/28 requirements)
+- **Sub-phase:** 9.2 (NFTs) — not yet started
+- **Status:** Phase 9.1 complete (all 4 plans done, PR #193 merged) — QUERY-02 + PAGE-01 delivered
+- **Last activity:** 2026-02-20 — Completed 09.1-04-PLAN.md (digital-assets-playground-e2e)
+- **Progress:** ████░░░░░░ 39% (11/28 requirements)
 
 ## Milestone History
 
@@ -30,7 +30,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | ----- | ---------------------------------- | :----------: | -------- |
 | 7     | Package Foundation                 |     7/7      | Complete |
 | 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
-| 9.1   | Digital Assets                     |      1       | Pending  |
+| 9.1   | Digital Assets                     |     1/1      | Complete |
 | 9.2   | NFTs                               |      1       | Pending  |
 | 9.3   | Owned Assets                       |      1       | Pending  |
 | 9.4   | Social / Follows                   |      1       | Pending  |
@@ -44,14 +44,14 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-phase) plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 10/28 requirements delivered (FOUND-01–07, QUERY-01, DX-01, DX-02)
+**Total:** 11/28 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, DX-01, DX-02)
 
 ## Performance Metrics
 
-- **Plans completed:** 45 (36 v1.0 + 9 v1.1)
+- **Plans completed:** 49 (36 v1.0 + 13 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 13 (11 v1.0 + 2 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 10/28 (v1.1)
+- **Phases completed:** 14 (11 v1.0 + 3 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 11/28 (v1.1)
 
 ## Accumulated Context
 
@@ -99,7 +99,15 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **tokenType raw mapping:** Hasura stores "0"/"1"/"2" strings → parser maps to TOKEN/NFT/COLLECTION
 - **holderAddress filter:** maps to `ownedAssets.owner._ilike` (token holders via owned_asset.owner direct address field)
 - **createdAt sort:** maps to `owner.timestamp` (contract owner timestamp = asset creation time, LOCKED)
-- **@lukso/lsp4-contracts:** added to @lsp-indexer/node for LSP4_TOKEN_TYPES constants in service filter
+- **@lukso/lsp4-contracts removed:** constants inlined in parser — dep was only needed for 3 integer values
+- **SortNulls type + orderDir() helper:** `SortNulls = 'first' | 'last' | 'default'` in common.ts; `orderDir(direction, nulls)` maps to `asc_nulls_last` etc. — wired through all sort builders
+- **Array fields `T[] | null`:** null = field not included in query, [] = fetched but empty — clean semantic distinction for include toggles
+- **`export *` barrel pattern:** all package index.ts files use `export *` from domain files — eliminates per-export maintenance
+- **`escapeLike` shared utility:** extracted to `packages/node/src/services/utils.ts` — applied to all string filter fields to prevent PostgreSQL LIKE wildcard injection (escapes `\`, `%`, `_`)
+- **`numericToString` parser util:** in `packages/node/src/parsers/utils.ts` — safe Hasura `numeric` scalar handling (codegen types as string)
+- **`formatTokenAmount` BigInt arithmetic:** `apps/test/src/lib/utils.ts` — avoids Number precision loss on uint256 values (bigintFixed, bigintCompact helpers)
+- **Extracted domain card components:** `DigitalAssetCard`, `ProfileCard` as separate files in `apps/test/src/components/` — pages import, not define
+- **`FilterFieldConfig.options[]`:** renders shadcn Select for enum fields (tokenType filter) — prevents invalid free-text values
 
 ### Discovered Todos
 
@@ -114,23 +122,24 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-20
-- **Activity:** Executed Phase 9.1 Plan 03 — Digital Asset hooks + server actions + build validation
-- **Outcome:** Created `packages/react/src/hooks/digital-assets.ts` (3 TanStack Query hooks, direct Hasura); `packages/next/src/actions/digital-assets.ts` (2 server actions with 'use server'); `packages/next/src/hooks/digital-assets.ts` (3 hooks routing through server actions). Updated react + next index.ts. All 4 packages build and typecheck clean.
+- **Activity:** Executed Phase 9.1 Plans 01–04 + post-plan E2E polish — full Digital Assets vertical slice complete
+- **Outcome:** All 4 plans shipped: types + codegen → parsers + services + keys → hooks + server actions → playground page. Post-plan: SortNulls type, T[]|null arrays, escapeLike shared util, export \* barrel pattern, BigInt formatTokenAmount, extracted card components. PR #193 merged to `refactor/indexer-v2-react`.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.1 Plans 01-03 complete** — full digital assets API available (types, documents, codegen, parsers, services, query keys, hooks, server actions, entry points)
-- **Branch:** `feat/phase-9.1-digital-assets` — continue on this branch for plan 04
-- **Next step:** Execute Phase 9.1 Plan 04 (playground UI for digital assets)
-- **Key assets available:**
-  - `useDigitalAsset`, `useDigitalAssets`, `useInfiniteDigitalAssets` from `@lsp-indexer/react`
-  - `getDigitalAsset`, `getDigitalAssets` server actions from `@lsp-indexer/next`
-  - `useDigitalAsset`, `useDigitalAssets`, `useInfiniteDigitalAssets` from `@lsp-indexer/next`
-  - All node exports: `fetchDigitalAsset`, `fetchDigitalAssets`, `digitalAssetKeys`, parsers, documents
-  - All types: `DigitalAsset`, `DigitalAssetFilter`, `DigitalAssetSort`, `DigitalAssetInclude`, `TokenType`
-- **Pattern reference:** Follow shared playground components in `components/playground/` — FilterFieldsRow, SortControls, ResultsList<T>, useFilterFields, ErrorAlert, RawJsonToggle
+- **Phase 9.1 complete** — QUERY-02 delivered. PR #193 merged. `feat/phase-9.1-digital-assets` branch archived.
+- **Next step:** Execute Phase 9.2 (NFTs) — follow the identical 4-plan vertical-slice pattern
+- **Branch protocol:** Fetch + pull `refactor/indexer-v2-react`, then `git checkout -b feat/phase-9.2-nfts`
+- **Pattern reference (from 9.1):**
+  - `SortNulls` type + `orderDir()` — wire through NFT sort schema and service
+  - `T[] | null` for all array fields — null = not fetched, [] = empty
+  - `escapeLike` from `packages/node/src/services/utils.ts` — apply to all string filters
+  - `numericToString` from `packages/node/src/parsers/utils.ts` — for Hasura `numeric` scalars
+  - `export *` in all package index.ts files
+  - Extract `NftCard` component to `apps/test/src/components/nft-card.tsx`
+  - `FilterFieldConfig.options[]` for enum filters (tokenIdFormat, etc.)
 
 ---
 
-_Last updated: 2026-02-20 — completed 09.1-03-PLAN.md (digital-asset-hooks-wiring)_
+_Last updated: 2026-02-20 — completed 09.1-04-PLAN.md (digital-assets-playground-e2e), Phase 9.1 complete, PR #193 merged_
