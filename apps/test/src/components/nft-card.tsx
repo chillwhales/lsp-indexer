@@ -1,10 +1,12 @@
 import type { Nft } from '@lsp-indexer/types';
-import { ExternalLink, Gem, Loader2 } from 'lucide-react';
+import { ChevronDown, ExternalLink, Gem, Loader2 } from 'lucide-react';
 import React from 'react';
 
+import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
@@ -44,12 +46,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
             <CardDescription className="font-mono text-xs break-all">
               Token ID: {nft.formattedTokenId ?? nft.tokenId}
             </CardDescription>
-            <CardDescription className="font-mono text-xs break-all">
-              Collection: {nft.collection?.name ?? nft.address}
-              {nft.collection?.symbol && (
-                <span className="text-muted-foreground"> ({nft.collection.symbol})</span>
-              )}
-            </CardDescription>
+            <CardDescription className="font-mono text-xs break-all">{nft.address}</CardDescription>
           </div>
           <div className="flex gap-2">
             {nft.isMinted && (
@@ -107,6 +104,22 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
               </span>
             </div>
           </div>
+        )}
+
+        {/* Collection (full DigitalAsset) */}
+        {nft.collection && (
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
+              <ChevronDown className="size-3.5" />
+              Collection: {nft.collection.name ?? nft.collection.address}
+              {nft.collection.symbol && (
+                <span className="text-muted-foreground font-normal">({nft.collection.symbol})</span>
+              )}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <DigitalAssetCard digitalAsset={nft.collection} />
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
         {/* LSP4 Metadata */}
