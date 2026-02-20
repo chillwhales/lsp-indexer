@@ -79,7 +79,15 @@ function useHooks(mode: HookMode) {
 const DIGITAL_ASSET_FILTERS: FilterFieldConfig[] = [
   { key: 'name', label: 'Name', placeholder: 'Search by name...' },
   { key: 'symbol', label: 'Symbol', placeholder: 'e.g. CHILL' },
-  { key: 'tokenType', label: 'Token Type', placeholder: 'TOKEN, NFT, or COLLECTION' },
+  {
+    key: 'tokenType',
+    label: 'Token Type',
+    options: [
+      { value: 'TOKEN', label: 'TOKEN' },
+      { value: 'NFT', label: 'NFT' },
+      { value: 'COLLECTION', label: 'COLLECTION' },
+    ],
+  },
   { key: 'category', label: 'Category', placeholder: 'Search by category...' },
   {
     key: 'holderAddress',
@@ -132,10 +140,7 @@ function buildDigitalAssetFilter(
   if (debouncedValues.name) f.name = debouncedValues.name;
   if (debouncedValues.symbol) f.symbol = debouncedValues.symbol;
   if (debouncedValues.tokenType) {
-    const upper = debouncedValues.tokenType.toUpperCase();
-    if (upper === 'TOKEN' || upper === 'NFT' || upper === 'COLLECTION') {
-      f.tokenType = upper as TokenType;
-    }
+    f.tokenType = debouncedValues.tokenType as TokenType;
   }
   if (debouncedValues.category) f.category = debouncedValues.category;
   if (debouncedValues.holderAddress) f.holderAddress = debouncedValues.holderAddress;
@@ -201,12 +206,6 @@ function isSafeUrl(url: string): boolean {
   }
 }
 
-/** Truncate an address to 0x1234...abcd format */
-function truncateAddress(addr: string): string {
-  if (addr.length <= 12) return addr;
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-}
-
 // ---------------------------------------------------------------------------
 // Compact card for lists
 // ---------------------------------------------------------------------------
@@ -236,7 +235,7 @@ function DigitalAssetCardCompact({ asset }: { asset: DigitalAsset }): React.Reac
             <span className="text-sm font-normal text-muted-foreground">({asset.symbol})</span>
           )}
         </CardTitle>
-        <CardDescription className="font-mono text-xs truncate">{asset.address}</CardDescription>
+        <CardDescription className="font-mono text-xs break-all">{asset.address}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="flex flex-wrap gap-1.5">
@@ -432,9 +431,7 @@ function SingleAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
               {digitalAsset.owner && (
                 <div className="flex gap-2">
                   <dt className="text-muted-foreground w-28 shrink-0">Owner</dt>
-                  <dd className="font-mono text-xs" title={digitalAsset.owner.address}>
-                    {truncateAddress(digitalAsset.owner.address)}
-                  </dd>
+                  <dd className="font-mono text-xs break-all">{digitalAsset.owner.address}</dd>
                 </div>
               )}
             </dl>
@@ -569,13 +566,8 @@ function SingleAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
                 {digitalAsset.referenceContract !== null && (
                   <div className="text-sm">
                     <span className="text-muted-foreground">Reference Contract:</span>{' '}
-                    <span
-                      className="font-mono text-xs"
-                      title={digitalAsset.referenceContract ?? ''}
-                    >
-                      {digitalAsset.referenceContract
-                        ? truncateAddress(digitalAsset.referenceContract)
-                        : 'not set'}
+                    <span className="font-mono text-xs break-all">
+                      {digitalAsset.referenceContract ?? 'not set'}
                     </span>
                   </div>
                 )}

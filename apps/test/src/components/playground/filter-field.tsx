@@ -3,17 +3,29 @@
 import React, { useState } from 'react';
 
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useDebounce } from '@/hooks/use-debounce';
+
+/** Sentinel value representing "no selection" in a select field */
+const CLEAR_VALUE = '__clear__';
 
 export interface FilterFieldConfig {
   /** Unique key for the filter field */
   key: string;
   /** Label displayed above the input */
   label: string;
-  /** Input placeholder text */
-  placeholder: string;
-  /** Whether to use monospace font (for addresses) */
+  /** Placeholder text — used as input placeholder or select empty-state label */
+  placeholder?: string;
+  /** Whether to use monospace font (for addresses, text inputs only) */
   mono?: boolean;
+  /** When provided, renders a select instead of a text input */
+  options?: ReadonlyArray<{ value: string; label: string }>;
 }
 
 interface FilterFieldProps {
@@ -23,11 +35,37 @@ interface FilterFieldProps {
 }
 
 export function FilterField({ config, value, onChange }: FilterFieldProps): React.ReactNode {
+  if (config.options) {
+    return (
+      <div className="flex flex-col gap-1">
+        <label className="text-xs text-muted-foreground font-medium">{config.label}</label>
+        <Select
+          value={value || CLEAR_VALUE}
+          onValueChange={(v) => onChange(v === CLEAR_VALUE ? '' : v)}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder={config.placeholder ?? `All ${config.label}`} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={CLEAR_VALUE}>
+              {config.placeholder ?? `All ${config.label}`}
+            </SelectItem>
+            {config.options.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-1">
       <label className="text-xs text-muted-foreground font-medium">{config.label}</label>
       <Input
-        placeholder={config.placeholder}
+        placeholder={config.placeholder ?? ''}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={`w-48 ${config.mono ? 'font-mono text-xs' : ''}`}
