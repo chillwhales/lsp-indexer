@@ -30,5 +30,18 @@ export { digitalAssetKeys } from './keys/digital-assets';
 // Digital asset GraphQL documents (for advanced usage / custom queries)
 export { GetDigitalAssetDocument, GetDigitalAssetsDocument } from './documents/digital-assets';
 
+// NFT services (the core fetching layer)
+export { fetchNft, fetchNfts } from './services/nfts';
+export type { FetchNftsResult } from './services/nfts';
+
+// NFT parsers (Hasura → clean types)
+export { parseNft, parseNfts } from './parsers/nfts';
+
+// NFT query key factory
+export { nftKeys } from './keys/nfts';
+
+// NFT GraphQL documents (for advanced usage / custom queries)
+export { GetNftDocument, GetNftsDocument } from './documents/nfts';
+
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';
