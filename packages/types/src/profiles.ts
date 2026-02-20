@@ -1,28 +1,18 @@
 import { z } from 'zod';
 
-import { SortDirectionSchema, SortNullsSchema } from './common';
+import { AssetSchema, Lsp4ImageSchema, SortDirectionSchema, SortNullsSchema } from './common';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
 // ---------------------------------------------------------------------------
 
-export const ProfileImageSchema = z.object({
-  /** Image URL (IPFS gateway URL or HTTP URL) */
-  url: z.string(),
-  /** Image width in pixels, or `null` if not available */
-  width: z.number().nullable(),
-  /** Image height in pixels, or `null` if not available */
-  height: z.number().nullable(),
-  /** On-chain verification data, or `null` if not verified */
-  verification: z
-    .object({
-      /** Verification method (e.g., "keccak256(bytes)") */
-      method: z.string(),
-      /** Verification data hash (e.g., "0x...") */
-      data: z.string(),
-    })
-    .nullable(),
-});
+/**
+ * Profile image (profileImage, backgroundImage) — has width/height dimensions.
+ *
+ * Reuses the shared Lsp4ImageSchema since the structure is identical
+ * (url + width + height + verification).
+ */
+export const ProfileImageSchema = Lsp4ImageSchema;
 
 export const ProfileSchema = z.object({
   /** The Universal Profile contract address (checksummed or lowercase hex) */
@@ -35,8 +25,8 @@ export const ProfileSchema = z.object({
   tags: z.array(z.string()).nullable(),
   /** External links (social media, websites, etc.), or `null` if not included in query */
   links: z.array(z.object({ title: z.string(), url: z.string() })).nullable(),
-  /** Avatar assets from LSP3 metadata, or `null` if not included in query */
-  avatar: z.array(ProfileImageSchema).nullable(),
+  /** Avatar assets from LSP3 metadata (3D files, media — NOT images), or `null` if not included in query */
+  avatar: z.array(AssetSchema).nullable(),
   /** Profile images (typically a square photo or icon), or `null` if not included in query */
   profileImage: z.array(ProfileImageSchema).nullable(),
   /** Background/banner images, or `null` if not included in query */

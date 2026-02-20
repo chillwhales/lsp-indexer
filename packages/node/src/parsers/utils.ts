@@ -1,4 +1,4 @@
-import type { Lsp4Image } from '@lsp-indexer/types';
+import type { Lsp4Attribute, Lsp4Image, Lsp4Link } from '@lsp-indexer/types';
 
 /**
  * Structural interface for raw LSP4 metadata image data.
@@ -22,6 +22,32 @@ export function parseImage(raw: RawImage): Lsp4Image {
     url: raw.url ?? '',
     width: raw.width ?? null,
     height: raw.height ?? null,
+    verification:
+      raw.verification_method != null
+        ? { method: raw.verification_method, data: raw.verification_data ?? '' }
+        : null,
+  };
+}
+
+/**
+ * Structural interface for raw asset data (LSP3 avatar / LSP4 assets).
+ * Assets have fileType but no width/height — they're media files, not images.
+ */
+interface RawAsset {
+  url?: string | null;
+  file_type?: string | null;
+  verification_method?: string | null;
+  verification_data?: string | null;
+}
+
+/**
+ * Parse a raw asset file into a clean Asset.
+ * Shared across LSP3 avatars and LSP4 assets.
+ */
+export function parseAsset(raw: RawAsset): Asset {
+  return {
+    url: raw.url ?? '',
+    fileType: raw.file_type ?? '',
     verification:
       raw.verification_method != null
         ? { method: raw.verification_method, data: raw.verification_data ?? '' }

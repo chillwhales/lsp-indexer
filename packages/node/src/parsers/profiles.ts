@@ -1,6 +1,6 @@
 import type { Profile } from '@lsp-indexer/types';
 import type { GetProfileQuery } from '../graphql/graphql';
-import { parseImage, parseLinks } from './utils';
+import { parseAsset, parseImage, parseLinks } from './utils';
 
 /**
  * Raw Hasura profile type from the codegen-generated query result.
@@ -37,7 +37,7 @@ export function parseProfile(raw: RawProfile): Profile {
         ? lsp3.tags.map((t) => t.value).filter((v): v is string => v != null)
         : null,
     links: parseLinks(lsp3?.links),
-    avatar: lsp3?.avatar != null ? lsp3.avatar.map(parseImage) : null,
+    avatar: lsp3?.avatar != null ? lsp3.avatar.map(parseAsset) : null,
     profileImage: lsp3?.profileImage != null ? lsp3.profileImage.map(parseImage) : null,
     backgroundImage: lsp3?.backgroundImage != null ? lsp3.backgroundImage.map(parseImage) : null,
     followerCount: raw.followedBy_aggregate?.aggregate?.count ?? 0,
