@@ -148,7 +148,7 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 - [x] 09.2-01-PLAN.md — NFT types + GraphQL documents + codegen
 - [x] 09.2-02-PLAN.md — NFT parsers + services + query keys
 - [x] 09.2-03-PLAN.md — NFT hooks + server actions + build validation
-- [ ] 09.2-04-PLAN.md — NFTs playground page + E2E verification
+- [x] 09.2-04-PLAN.md — NFTs playground page + E2E verification
 
 ---
 
@@ -322,8 +322,8 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 | ----- | ---------------------------------- | :----------: | -------- |
 | 7     | Package Foundation                 |     7/7      | Complete |
 | 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
-| 9.1   | Digital Assets                     |      1       | Pending  |
-| 9.2   | NFTs                               |      1       | Pending  |
+| 9.1   | Digital Assets                     |     1/1      | Complete |
+| 9.2   | NFTs                               |     1/1      | Complete |
 | 9.3   | Owned Assets                       |      1       | Pending  |
 | 9.4   | Social / Follows                   |      1       | Pending  |
 | 9.5   | Creators                           |      1       | Pending  |
@@ -336,7 +336,7 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 
 _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-phase) plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 10/28 requirements delivered
+**Total:** 12/28 requirements delivered
 
 ---
 
