@@ -140,7 +140,10 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
   };
 
   // Collection sub-includes (only matter when collection is enabled)
-  if (include.collection) {
+  // When collection is an empty object {} it means "include all collection fields"
+  // — don't set sub-include vars so GraphQL defaults (all true) apply.
+  // When collection has explicit keys, each unset key defaults to false (opt-in).
+  if (include.collection && Object.keys(include.collection).length > 0) {
     const c = include.collection;
     vars.includeCollectionName = c.name ?? false;
     vars.includeCollectionSymbol = c.symbol ?? false;
