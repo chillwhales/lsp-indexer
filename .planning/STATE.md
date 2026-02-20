@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.3 (Owned Assets) — in progress (1/4 plans)
-- **Status:** 09.3-01 complete — types + documents + codegen done
-- **Last activity:** 2026-02-20 — Completed 09.3-01-PLAN.md (OwnedAsset/OwnedToken types + GraphQL documents)
+- **Sub-phase:** 9.3 (Owned Assets) — in progress (2/4 plans)
+- **Status:** 09.3-02 complete — parsers, services, query keys done
+- **Last activity:** 2026-02-20 — Completed 09.3-02-PLAN.md (OwnedAsset/OwnedToken parsers, services, keys)
 - **Progress:** ████░░░░░░ 43% (12/28 requirements)
 
 ## Milestone History
@@ -32,7 +32,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 8     | First Vertical Slice (Profiles)    |     3/3      | Complete          |
 | 9.1   | Digital Assets                     |     1/1      | Complete          |
 | 9.2   | NFTs                               |     1/1      | Complete          |
-| 9.3   | Owned Assets                       |      1       | In progress (1/4) |
+| 9.3   | Owned Assets                       |      1       | In progress (2/4) |
 | 9.4   | Social / Follows                   |      1       | Pending           |
 | 9.5   | Creators                           |      1       | Pending           |
 | 9.6   | Encrypted Assets                   |      1       | Pending           |
@@ -48,7 +48,7 @@ _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-pha
 
 ## Performance Metrics
 
-- **Plans completed:** 57 (36 v1.0 + 21 v1.1)
+- **Plans completed:** 58 (36 v1.0 + 22 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 15 (11 v1.0 + 4 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 12/28 (v1.1)
@@ -120,6 +120,8 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **OwnedAssetFilter: 4 string fields (owner, address, digitalAssetId, universalProfileId):** Balance/timestamp range filters deferred.
 - **OwnedAssetSortField nested sorts:** `digitalAssetName` → `digitalAsset.lsp4TokenName`, `tokenIdCount` → `tokenIds_aggregate.count` at service layer.
 - **Nested universalProfile: all LSP3 fields, no aggregates:** follower/following counts excluded from ownership context.
+- **Cross-domain parser `as any` casts:** Nested sub-selections in owned_asset/owned_token documents omit fields (like `id`) that primary parsers expect. Safe because all parsers use optional chaining. Standard pattern for sub-selections.
+- **Owned asset DA include vars reused directly:** Unlike NFT (prefixed `includeCollection*`), owned asset/token documents use same `include*` var names as DA document, so `buildDigitalAssetIncludeVars` output used directly.
 
 ### Discovered Todos
 
@@ -134,21 +136,21 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-20
-- **Activity:** Completed 09.3-01-PLAN.md — OwnedAsset/OwnedToken types + GraphQL documents + codegen
-- **Outcome:** 2 type files (owned-assets.ts, owned-tokens.ts) + 2 document files + codegen. OwnedAsset.balance as bigint. 4 GraphQL documents with @include directives. All builds pass.
+- **Activity:** Completed 09.3-02-PLAN.md — OwnedAsset/OwnedToken parsers, services, query keys
+- **Outcome:** 6 new files (2 keys, 2 parsers, 2 services) + updated index.ts. parseOwnedAsset converts balance to BigInt. All filter/sort/include params translated. Both typecheck and build pass.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.3 in progress** — Plan 01 (types + documents) complete
-- **Next step:** 09.3-02 (parsers for OwnedAsset/OwnedToken)
+- **Phase 9.3 in progress** — Plans 01-02 complete (types, documents, codegen, parsers, services, keys)
+- **Next step:** 09.3-03 (React hooks for OwnedAsset/OwnedToken)
 - **Branch:** `refactor/indexer-v2-react`
-- **Key context for parser work:**
-  - `balance` is Hasura `numeric` (codegen types as `string`) → parser must convert to BigInt
-  - OwnedToken has 4 nullable relations: digitalAsset, nft, ownedAsset, universalProfile
-  - NFT relation includes lsp4Metadata + lsp4MetadataBaseUri for fallback pattern
-  - Can reuse parseDigitalAsset and parseProfile from existing parsers
+- **Key context for hooks work:**
+  - All services (fetchOwnedAsset, fetchOwnedAssets, fetchOwnedToken, fetchOwnedTokens) available from `@lsp-indexer/node`
+  - Query key factories (ownedAssetKeys, ownedTokenKeys) available from `@lsp-indexer/node`
+  - Both FetchOwnedAssetsResult and FetchOwnedTokensResult return `{ items, totalCount }`
+  - Follow existing hook patterns from `@lsp-indexer/react` (profiles, digital-assets, nfts)
 
 ---
 
-_Last updated: 2026-02-20 — completed 09.3-01-PLAN.md (OwnedAsset/OwnedToken types + documents)_
+_Last updated: 2026-02-20 — completed 09.3-02-PLAN.md (OwnedAsset/OwnedToken parsers, services, keys)_
