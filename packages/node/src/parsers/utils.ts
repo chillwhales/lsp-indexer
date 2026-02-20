@@ -30,6 +30,33 @@ export function parseImage(raw: RawImage): Lsp4Image {
 }
 
 /**
+ * Parse an array of link objects from LSP4 metadata.
+ * Returns `null` if the input is nullish (field not included or metadata absent).
+ * Shared across digital-assets, nfts, and future domains.
+ */
+export function parseLinks(
+  links: ReadonlyArray<{ title?: string | null; url?: string | null }> | null | undefined,
+): Lsp4Link[] | null {
+  if (!links) return null;
+  return links.map((l) => ({ title: l.title ?? '', url: l.url ?? '' }));
+}
+
+/**
+ * Parse an array of attribute objects from LSP4 metadata.
+ * Returns `null` if the input is nullish (field not included or metadata absent).
+ * Shared across digital-assets, nfts, and future domains.
+ */
+export function parseAttributes(
+  attrs:
+    | ReadonlyArray<{ key?: string | null; value?: string | null; type?: string | null }>
+    | null
+    | undefined,
+): Lsp4Attribute[] | null {
+  if (!attrs) return null;
+  return attrs.map((a) => ({ key: a.key ?? '', value: a.value ?? '', type: a.type ?? '' }));
+}
+
+/**
  * Convert a Hasura `numeric` value to a plain decimal string, safe to pass
  * to `BigInt()`, avoiding scientific notation.
  *

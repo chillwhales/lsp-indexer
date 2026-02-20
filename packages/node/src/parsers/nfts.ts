@@ -1,7 +1,7 @@
 import type { Nft } from '@lsp-indexer/types';
 import type { GetNftQuery } from '../graphql/graphql';
 import { parseDigitalAsset } from './digital-assets';
-import { parseImage } from './utils';
+import { parseAttributes, parseImage, parseLinks } from './utils';
 
 /**
  * Raw Hasura NFT type from the codegen-generated query result.
@@ -11,35 +11,6 @@ import { parseImage } from './utils';
  * to keep the parser type-safe against schema changes.
  */
 type RawNft = GetNftQuery['nft'][number];
-
-// ---------------------------------------------------------------------------
-// Small DRY helpers for repeated metadata patterns
-// ---------------------------------------------------------------------------
-
-/**
- * Parse an array of link objects from metadata.
- * Returns `null` if the input is nullish (field not included or metadata absent).
- */
-function parseLinks(
-  links: ReadonlyArray<{ title?: string | null; url?: string | null }> | null | undefined,
-) {
-  if (!links) return null;
-  return links.map((l) => ({ title: l.title ?? '', url: l.url ?? '' }));
-}
-
-/**
- * Parse an array of attribute objects from metadata.
- * Returns `null` if the input is nullish (field not included or metadata absent).
- */
-function parseAttributes(
-  attrs:
-    | ReadonlyArray<{ key?: string | null; value?: string | null; type?: string | null }>
-    | null
-    | undefined,
-) {
-  if (!attrs) return null;
-  return attrs.map((a) => ({ key: a.key ?? '', value: a.value ?? '', type: a.type ?? '' }));
-}
 
 /**
  * Transform a raw Hasura NFT response into a clean `Nft` type.
