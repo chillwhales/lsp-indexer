@@ -192,6 +192,10 @@ export async function fetchNft(
     include?: NftInclude;
   },
 ): Promise<Nft | null> {
+  if (!params.tokenId && !params.formattedTokenId) {
+    throw new Error('fetchNft requires at least one of tokenId or formattedTokenId');
+  }
+
   const includeVars = buildIncludeVars(params.include);
 
   const conditions: Nft_Bool_Exp[] = [{ address: { _ilike: escapeLike(params.address) } }];
