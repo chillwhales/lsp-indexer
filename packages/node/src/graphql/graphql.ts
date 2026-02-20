@@ -21371,6 +21371,41 @@ export type GetDigitalAssetsQueryVariables = Exact<{
 
 export type GetDigitalAssetsQuery = { __typename?: 'query_root', digital_asset: Array<{ __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null }>, digital_asset_aggregate: { __typename?: 'digital_asset_aggregate', aggregate?: { __typename?: 'digital_asset_aggregate_fields', count: number } | null } };
 
+export type GetNftQueryVariables = Exact<{
+  where: Nft_Bool_Exp;
+  includeFormattedTokenId?: Scalars['Boolean']['input'];
+  includeCollection?: Scalars['Boolean']['input'];
+  includeOwner?: Scalars['Boolean']['input'];
+  includeDescription?: Scalars['Boolean']['input'];
+  includeCategory?: Scalars['Boolean']['input'];
+  includeIcons?: Scalars['Boolean']['input'];
+  includeImages?: Scalars['Boolean']['input'];
+  includeLinks?: Scalars['Boolean']['input'];
+  includeAttributes?: Scalars['Boolean']['input'];
+}>;
+
+
+export type GetNftQuery = { __typename?: 'query_root', nft: Array<{ __typename?: 'nft', id: string, address: string, token_id: string, is_burned: boolean, is_minted: boolean, formatted_token_id?: string | null, digitalAsset?: { __typename?: 'digital_asset', lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null } | null, ownedToken?: { __typename?: 'owned_token', owner: string, timestamp: any } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null }> };
+
+export type GetNftsQueryVariables = Exact<{
+  where?: InputMaybe<Nft_Bool_Exp>;
+  order_by?: InputMaybe<Array<Nft_Order_By> | Nft_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  includeFormattedTokenId?: Scalars['Boolean']['input'];
+  includeCollection?: Scalars['Boolean']['input'];
+  includeOwner?: Scalars['Boolean']['input'];
+  includeDescription?: Scalars['Boolean']['input'];
+  includeCategory?: Scalars['Boolean']['input'];
+  includeIcons?: Scalars['Boolean']['input'];
+  includeImages?: Scalars['Boolean']['input'];
+  includeLinks?: Scalars['Boolean']['input'];
+  includeAttributes?: Scalars['Boolean']['input'];
+}>;
+
+
+export type GetNftsQuery = { __typename?: 'query_root', nft: Array<{ __typename?: 'nft', id: string, address: string, token_id: string, is_burned: boolean, is_minted: boolean, formatted_token_id?: string | null, digitalAsset?: { __typename?: 'digital_asset', lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null } | null, ownedToken?: { __typename?: 'owned_token', owner: string, timestamp: any } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null }>, nft_aggregate: { __typename?: 'nft_aggregate', aggregate?: { __typename?: 'nft_aggregate_fields', count: number } | null } };
+
 export type GetProfileQueryVariables = Exact<{
   where: Universal_Profile_Bool_Exp;
   includeName?: Scalars['Boolean']['input'];
@@ -21585,6 +21620,123 @@ export const GetDigitalAssetsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<GetDigitalAssetsQuery, GetDigitalAssetsQueryVariables>;
+export const GetNftDocument = new TypedDocumentString(`
+    query GetNft($where: nft_bool_exp!, $includeFormattedTokenId: Boolean! = true, $includeCollection: Boolean! = true, $includeOwner: Boolean! = true, $includeDescription: Boolean! = true, $includeCategory: Boolean! = true, $includeIcons: Boolean! = true, $includeImages: Boolean! = true, $includeLinks: Boolean! = true, $includeAttributes: Boolean! = true) {
+  nft(where: $where, limit: 1) {
+    id
+    address
+    token_id
+    is_burned
+    is_minted
+    formatted_token_id @include(if: $includeFormattedTokenId)
+    digitalAsset @include(if: $includeCollection) {
+      lsp4TokenName {
+        value
+      }
+      lsp4TokenSymbol {
+        value
+      }
+    }
+    ownedToken @include(if: $includeOwner) {
+      owner
+      timestamp
+    }
+    lsp4Metadata {
+      description @include(if: $includeDescription) {
+        value
+      }
+      category @include(if: $includeCategory) {
+        value
+      }
+      icon @include(if: $includeIcons) {
+        url
+        width
+        height
+        verification_method
+        verification_data
+      }
+      images @include(if: $includeImages) {
+        url
+        width
+        height
+        image_index
+        verification_method
+        verification_data
+      }
+      links @include(if: $includeLinks) {
+        title
+        url
+      }
+      attributes @include(if: $includeAttributes) {
+        key
+        value
+        type
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetNftQuery, GetNftQueryVariables>;
+export const GetNftsDocument = new TypedDocumentString(`
+    query GetNfts($where: nft_bool_exp, $order_by: [nft_order_by!], $limit: Int, $offset: Int, $includeFormattedTokenId: Boolean! = true, $includeCollection: Boolean! = true, $includeOwner: Boolean! = true, $includeDescription: Boolean! = true, $includeCategory: Boolean! = true, $includeIcons: Boolean! = true, $includeImages: Boolean! = true, $includeLinks: Boolean! = true, $includeAttributes: Boolean! = true) {
+  nft(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
+    id
+    address
+    token_id
+    is_burned
+    is_minted
+    formatted_token_id @include(if: $includeFormattedTokenId)
+    digitalAsset @include(if: $includeCollection) {
+      lsp4TokenName {
+        value
+      }
+      lsp4TokenSymbol {
+        value
+      }
+    }
+    ownedToken @include(if: $includeOwner) {
+      owner
+      timestamp
+    }
+    lsp4Metadata {
+      description @include(if: $includeDescription) {
+        value
+      }
+      category @include(if: $includeCategory) {
+        value
+      }
+      icon @include(if: $includeIcons) {
+        url
+        width
+        height
+        verification_method
+        verification_data
+      }
+      images @include(if: $includeImages) {
+        url
+        width
+        height
+        image_index
+        verification_method
+        verification_data
+      }
+      links @include(if: $includeLinks) {
+        title
+        url
+      }
+      attributes @include(if: $includeAttributes) {
+        key
+        value
+        type
+      }
+    }
+  }
+  nft_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetNftsQuery, GetNftsQueryVariables>;
 export const GetProfileDocument = new TypedDocumentString(`
     query GetProfile($where: universal_profile_bool_exp!, $includeName: Boolean! = true, $includeDescription: Boolean! = true, $includeTags: Boolean! = true, $includeLinks: Boolean! = true, $includeAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeBackgroundImage: Boolean! = true, $includeFollowerCount: Boolean! = true, $includeFollowingCount: Boolean! = true) {
   universal_profile(where: $where, limit: 1) {
