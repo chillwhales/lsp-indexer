@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+import { SortDirectionSchema } from './common';
+
+// Re-export for backward compatibility
+export { SortDirectionSchema };
+
 // ---------------------------------------------------------------------------
 // Core domain schemas
 // ---------------------------------------------------------------------------
@@ -71,9 +76,6 @@ export const ProfileFilterSchema = z.object({
 
 /** Fields available for sorting profile lists */
 export const ProfileSortFieldSchema = z.enum(['name', 'followerCount', 'followingCount']);
-
-/** Sort direction */
-export const SortDirectionSchema = z.enum(['asc', 'desc']);
 
 export const ProfileSortSchema = z.object({
   /** Which field to sort by */
