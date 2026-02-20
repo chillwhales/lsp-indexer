@@ -15,12 +15,6 @@ import { formatTokenAmount } from '@/lib/utils';
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Truncate an address to 0x1234...abcd format */
-function truncateAddress(address: string): string {
-  if (address.length <= 12) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
-
 /** Format an ISO timestamp to a relative time string (e.g. "2 days ago") */
 function formatRelativeTime(timestamp: string): string {
   const now = Date.now();
@@ -120,29 +114,11 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Owner</dt>
-            <dd>
-              <Tooltip>
-                <TooltipTrigger className="font-mono text-xs underline decoration-dashed underline-offset-2 cursor-default">
-                  {truncateAddress(ownedAsset.owner)}
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-mono text-xs">{ownedAsset.owner}</p>
-                </TooltipContent>
-              </Tooltip>
-            </dd>
+            <dd className="font-mono text-xs break-all">{ownedAsset.owner}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Asset Address</dt>
-            <dd>
-              <Tooltip>
-                <TooltipTrigger className="font-mono text-xs underline decoration-dashed underline-offset-2 cursor-default">
-                  {truncateAddress(ownedAsset.address)}
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-mono text-xs">{ownedAsset.address}</p>
-                </TooltipContent>
-              </Tooltip>
-            </dd>
+            <dd className="font-mono text-xs break-all">{ownedAsset.address}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Balance</dt>
@@ -185,8 +161,7 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
             <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
               <ChevronDown className="size-3.5" />
               Universal Profile:{' '}
-              {ownedAsset.universalProfile.name ??
-                truncateAddress(ownedAsset.universalProfile.address)}
+              {ownedAsset.universalProfile.name ?? ownedAsset.universalProfile.address}
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <ProfileCard profile={ownedAsset.universalProfile} />

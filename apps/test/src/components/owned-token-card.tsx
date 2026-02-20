@@ -10,17 +10,10 @@ import { ProfileCard } from '@/components/profile-card';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/** Truncate an address to 0x1234...abcd format */
-function truncateAddress(address: string): string {
-  if (address.length <= 12) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
 
 /** Format an ISO timestamp to a relative time string */
 function formatRelativeTime(timestamp: string): string {
@@ -106,29 +99,11 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Owner</dt>
-            <dd>
-              <Tooltip>
-                <TooltipTrigger className="font-mono text-xs underline decoration-dashed underline-offset-2 cursor-default">
-                  {truncateAddress(ownedToken.owner)}
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-mono text-xs">{ownedToken.owner}</p>
-                </TooltipContent>
-              </Tooltip>
-            </dd>
+            <dd className="font-mono text-xs break-all">{ownedToken.owner}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Asset Address</dt>
-            <dd>
-              <Tooltip>
-                <TooltipTrigger className="font-mono text-xs underline decoration-dashed underline-offset-2 cursor-default">
-                  {truncateAddress(ownedToken.address)}
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-mono text-xs">{ownedToken.address}</p>
-                </TooltipContent>
-              </Tooltip>
-            </dd>
+            <dd className="font-mono text-xs break-all">{ownedToken.address}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Token ID</dt>
@@ -155,8 +130,7 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
             <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
               <ChevronDown className="size-3.5" />
               Universal Profile:{' '}
-              {ownedToken.universalProfile.name ??
-                truncateAddress(ownedToken.universalProfile.address)}
+              {ownedToken.universalProfile.name ?? ownedToken.universalProfile.address}
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <ProfileCard profile={ownedToken.universalProfile} />
@@ -169,9 +143,7 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
           <Collapsible>
             <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
               <ChevronDown className="size-3.5" />
-              NFT:{' '}
-              {ownedToken.nft.name ??
-                `${truncateAddress(ownedToken.nft.address)} #${ownedToken.nft.tokenId}`}
+              NFT: {ownedToken.nft.name ?? `${ownedToken.nft.address} #${ownedToken.nft.tokenId}`}
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <NftCard nft={ownedToken.nft} />
@@ -202,7 +174,7 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
           <Collapsible>
             <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
               <ChevronDown className="size-3.5" />
-              Owned Asset: {truncateAddress(ownedToken.ownedAsset.address)} (balance:{' '}
+              Owned Asset: {ownedToken.ownedAsset.address} (balance:{' '}
               {ownedToken.ownedAsset.balance.toString()})
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
