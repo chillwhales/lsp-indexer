@@ -17,6 +17,11 @@ export function ErrorAlert({ error }: { error: Error }): React.ReactNode {
   );
 }
 
+/** JSON replacer that converts BigInt values to strings so JSON.stringify doesn't throw. */
+function bigintReplacer(_key: string, value: unknown): unknown {
+  return typeof value === 'bigint' ? value.toString() : value;
+}
+
 export function RawJsonToggle({ data, label }: { data: unknown; label: string }): React.ReactNode {
   return (
     <Collapsible>
@@ -29,7 +34,7 @@ export function RawJsonToggle({ data, label }: { data: unknown; label: string })
       </CollapsibleTrigger>
       <CollapsibleContent>
         <pre className="mt-2 max-h-96 overflow-auto rounded-md bg-muted p-4 text-xs whitespace-pre-wrap break-all">
-          {JSON.stringify(data, null, 2)}
+          {JSON.stringify(data, bigintReplacer, 2)}
         </pre>
       </CollapsibleContent>
     </Collapsible>
