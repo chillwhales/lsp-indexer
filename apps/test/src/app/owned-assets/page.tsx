@@ -281,38 +281,58 @@ function DigitalAssetIncludeSection({
 // ---------------------------------------------------------------------------
 
 function SingleOwnedAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
-  const { useOwnedAsset } = useHooks(mode);
-  const [id, setId] = useState('');
-  const [queryId, setQueryId] = useState('');
+  const { useOwnedAssets } = useHooks(mode);
+  const [ownerInput, setOwnerInput] = useState('');
+  const [addressInput, setAddressInput] = useState('');
+  const [queryOwner, setQueryOwner] = useState('');
+  const [queryAddress, setQueryAddress] = useState('');
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(OWNED_ASSET_INCLUDES);
   const da = useDigitalAssetInclude();
   const include = buildOwnedAssetInclude(includeValues, da.value);
 
-  const { ownedAsset, isLoading, error, isFetching } = useOwnedAsset({
-    id: queryId,
+  const hasQuery = Boolean(queryOwner) && Boolean(queryAddress);
+  const filter: OwnedAssetFilter | undefined = hasQuery
+    ? { owner: queryOwner, address: queryAddress }
+    : undefined;
+
+  const { ownedAssets, isLoading, error, isFetching } = useOwnedAssets({
+    filter,
+    limit: 1,
     include,
   });
+  const ownedAsset = ownedAssets[0] ?? null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setQueryId(id);
+    setQueryOwner(ownerInput);
+    setQueryAddress(addressInput);
   };
 
   return (
     <div className="space-y-4">
-      {/* ID input */}
+      {/* Lookup inputs: owner + asset address (natural keys) */}
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="space-y-1.5">
-          <Label htmlFor="owned-asset-id">Owned Asset ID</Label>
+          <Label htmlFor="owned-asset-owner">Holder Address</Label>
           <Input
-            id="owned-asset-id"
-            placeholder="Enter owned asset unique ID"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
+            id="owned-asset-owner"
+            placeholder="0x... (holder / owner address)"
+            value={ownerInput}
+            onChange={(e) => setOwnerInput(e.target.value)}
             className="font-mono text-sm"
           />
         </div>
-        <Button type="submit" disabled={!id}>
+        <div className="space-y-1.5">
+          <Label htmlFor="owned-asset-address">Asset Address</Label>
+          <Input
+            id="owned-asset-address"
+            placeholder="0x... (asset contract address)"
+            value={addressInput}
+            onChange={(e) => setAddressInput(e.target.value)}
+            className="font-mono text-sm"
+          />
+        </div>
+        <Button type="submit" disabled={!ownerInput || !addressInput}>
           <Search className="size-4" />
           Fetch
         </Button>
@@ -348,13 +368,15 @@ function SingleOwnedAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
       {ownedAsset && <OwnedAssetCard ownedAsset={ownedAsset} isFetching={isFetching} />}
 
       {/* Empty state */}
-      {queryId && !isLoading && !error && !ownedAsset && (
+      {hasQuery && !isLoading && !error && !ownedAsset && (
         <Alert>
           <Wallet className="h-4 w-4" />
           <AlertTitle>No Owned Asset Found</AlertTitle>
           <AlertDescription>
-            No owned asset found with ID{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">{queryId}</code>
+            No owned asset found for holder{' '}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">{queryOwner}</code>
+            {' on asset '}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">{queryAddress}</code>
           </AlertDescription>
         </Alert>
       )}
@@ -546,7 +568,7 @@ export default function OwnedAssetsPage(): React.ReactNode {
       </div>
 
       {/* key={mode} forces full remount when switching — avoids hook-rule violations */}
-      <Tabs defaultValue="single" key={mode}>
+      <Tabs defaultValue="list" key={mode}>
         <TabsList>
           <TabsTrigger value="single">
             <Wallet className="size-4" />

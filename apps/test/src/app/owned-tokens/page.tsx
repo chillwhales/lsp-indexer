@@ -286,38 +286,75 @@ function DigitalAssetIncludeSection({
 // ---------------------------------------------------------------------------
 
 function SingleOwnedTokenTab({ mode }: { mode: HookMode }): React.ReactNode {
-  const { useOwnedToken } = useHooks(mode);
-  const [id, setId] = useState('');
-  const [queryId, setQueryId] = useState('');
+  const { useOwnedTokens } = useHooks(mode);
+  const [ownerInput, setOwnerInput] = useState('');
+  const [addressInput, setAddressInput] = useState('');
+  const [tokenIdInput, setTokenIdInput] = useState('');
+  const [queryOwner, setQueryOwner] = useState('');
+  const [queryAddress, setQueryAddress] = useState('');
+  const [queryTokenId, setQueryTokenId] = useState('');
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(OWNED_TOKEN_INCLUDES);
   const da = useDigitalAssetInclude();
   const include = buildOwnedTokenInclude(includeValues, da.value);
 
-  const { ownedToken, isLoading, error, isFetching } = useOwnedToken({
-    id: queryId,
+  const hasQuery = Boolean(queryOwner) && Boolean(queryAddress);
+  const filter: OwnedTokenFilter | undefined = hasQuery
+    ? {
+        owner: queryOwner,
+        address: queryAddress,
+        ...(queryTokenId ? { tokenId: queryTokenId } : {}),
+      }
+    : undefined;
+
+  const { ownedTokens, isLoading, error, isFetching } = useOwnedTokens({
+    filter,
+    limit: 1,
     include,
   });
+  const ownedToken = ownedTokens[0] ?? null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setQueryId(id);
+    setQueryOwner(ownerInput);
+    setQueryAddress(addressInput);
+    setQueryTokenId(tokenIdInput);
   };
 
   return (
     <div className="space-y-4">
-      {/* ID input */}
+      {/* Lookup inputs: owner + asset address + optional tokenId (natural keys) */}
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="space-y-1.5">
-          <Label htmlFor="owned-token-id">Owned Token ID</Label>
+          <Label htmlFor="owned-token-owner">Holder Address</Label>
           <Input
-            id="owned-token-id"
-            placeholder="Enter owned token unique ID"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
+            id="owned-token-owner"
+            placeholder="0x... (holder / owner address)"
+            value={ownerInput}
+            onChange={(e) => setOwnerInput(e.target.value)}
             className="font-mono text-sm"
           />
         </div>
-        <Button type="submit" disabled={!id}>
+        <div className="space-y-1.5">
+          <Label htmlFor="owned-token-address">Asset Address</Label>
+          <Input
+            id="owned-token-address"
+            placeholder="0x... (asset contract address)"
+            value={addressInput}
+            onChange={(e) => setAddressInput(e.target.value)}
+            className="font-mono text-sm"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="owned-token-tokenid">Token ID (optional)</Label>
+          <Input
+            id="owned-token-tokenid"
+            placeholder="Specific token ID (optional)"
+            value={tokenIdInput}
+            onChange={(e) => setTokenIdInput(e.target.value)}
+            className="font-mono text-sm"
+          />
+        </div>
+        <Button type="submit" disabled={!ownerInput || !addressInput}>
           <Search className="size-4" />
           Fetch
         </Button>
@@ -353,13 +390,21 @@ function SingleOwnedTokenTab({ mode }: { mode: HookMode }): React.ReactNode {
       {ownedToken && <OwnedTokenCard ownedToken={ownedToken} isFetching={isFetching} />}
 
       {/* Empty state */}
-      {queryId && !isLoading && !error && !ownedToken && (
+      {hasQuery && !isLoading && !error && !ownedToken && (
         <Alert>
           <Tag className="h-4 w-4" />
           <AlertTitle>No Owned Token Found</AlertTitle>
           <AlertDescription>
-            No owned token found with ID{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">{queryId}</code>
+            No owned token found for holder{' '}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">{queryOwner}</code>
+            {' on asset '}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">{queryAddress}</code>
+            {queryTokenId && (
+              <>
+                {' with token ID '}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">{queryTokenId}</code>
+              </>
+            )}
           </AlertDescription>
         </Alert>
       )}
@@ -551,7 +596,7 @@ export default function OwnedTokensPage(): React.ReactNode {
       </div>
 
       {/* key={mode} forces full remount when switching — avoids hook-rule violations */}
-      <Tabs defaultValue="single" key={mode}>
+      <Tabs defaultValue="list" key={mode}>
         <TabsList>
           <TabsTrigger value="single">
             <Tag className="size-4" />

@@ -401,7 +401,7 @@ export default function ProfilesPage(): React.ReactNode {
       </div>
 
       {/* key={mode} forces full remount when switching — avoids hook-rule violations */}
-      <Tabs defaultValue="single" key={mode}>
+      <Tabs defaultValue="list" key={mode}>
         <TabsList>
           <TabsTrigger value="single">
             <User className="size-4" />
