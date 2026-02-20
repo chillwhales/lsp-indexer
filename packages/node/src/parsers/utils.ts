@@ -1,3 +1,87 @@
+import type { Asset, Image, Link, Lsp4Attribute } from '@lsp-indexer/types';
+
+/**
+ * Structural interface for raw LSP4 metadata image data.
+ * Works with both lsp4_metadata_icon and lsp4_metadata_image types
+ * without depending on codegen __typename.
+ */
+interface RawImage {
+  url?: string | null;
+  width?: number | null;
+  height?: number | null;
+  verification_method?: string | null;
+  verification_data?: string | null;
+}
+
+/**
+ * Parse a raw metadata image into a clean Image.
+ * Shared across profiles, digital-assets, nfts, and future domains.
+ */
+export function parseImage(raw: RawImage): Image {
+  return {
+    url: raw.url ?? '',
+    width: raw.width ?? null,
+    height: raw.height ?? null,
+    verification:
+      raw.verification_method != null
+        ? { method: raw.verification_method, data: raw.verification_data ?? '' }
+        : null,
+  };
+}
+
+/**
+ * Structural interface for raw asset data (LSP3 avatar / LSP4 assets).
+ * Assets have fileType but no width/height — they're media files, not images.
+ */
+interface RawAsset {
+  url?: string | null;
+  file_type?: string | null;
+  verification_method?: string | null;
+  verification_data?: string | null;
+}
+
+/**
+ * Parse a raw asset file into a clean Asset.
+ * Shared across LSP3 avatars and LSP4 assets.
+ */
+export function parseAsset(raw: RawAsset): Asset {
+  return {
+    url: raw.url ?? '',
+    fileType: raw.file_type ?? '',
+    verification:
+      raw.verification_method != null
+        ? { method: raw.verification_method, data: raw.verification_data ?? '' }
+        : null,
+  };
+}
+
+/**
+ * Parse an array of link objects from LSP4 metadata.
+ * Returns `null` if the input is nullish (field not included or metadata absent).
+ * Shared across digital-assets, nfts, and future domains.
+ */
+export function parseLinks(
+  links: ReadonlyArray<{ title?: string | null; url?: string | null }> | null | undefined,
+): Link[] | null {
+  if (!links) return null;
+  return links.map((l) => ({ title: l.title ?? '', url: l.url ?? '' }));
+}
+
+/**
+ * Parse an array of attribute objects from LSP4 metadata.
+ * Returns `null` if the input is nullish (field not included or metadata absent).
+ * Shared across digital-assets, nfts, and future domains.
+ */
+export function parseAttributes(
+  attrs:
+    | ReadonlyArray<{ key?: string | null; value?: string | null; type?: string | null }>
+    | null
+    | undefined,
+): Lsp4Attribute[] | null {
+  if (!attrs) return null;
+  return attrs.map((a) => ({ key: a.key ?? '', value: a.value ?? '', type: a.type ?? '' }));
+}
+
 /**
  * Convert a Hasura `numeric` value to a plain decimal string, safe to pass
  * to `BigInt()`, avoiding scientific notation.

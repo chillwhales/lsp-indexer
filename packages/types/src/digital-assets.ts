@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-import { SortDirectionSchema, SortNullsSchema } from './common';
+import {
+  ImageSchema,
+  LinkSchema,
+  Lsp4AttributeSchema,
+  SortDirectionSchema,
+  SortNullsSchema,
+} from './common';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -17,43 +23,6 @@ export const StandardSchema = z.enum(['LSP7', 'LSP8']);
  * - COLLECTION: Collection of NFTs (LSP4 tokenType 2)
  */
 export const TokenTypeSchema = z.enum(['TOKEN', 'NFT', 'COLLECTION']);
-
-/** Image associated with a digital asset (icon or background image) */
-export const DigitalAssetImageSchema = z.object({
-  /** Image URL (IPFS gateway URL or HTTP URL) */
-  url: z.string(),
-  /** Image width in pixels, or `null` if not available */
-  width: z.number().nullable(),
-  /** Image height in pixels, or `null` if not available */
-  height: z.number().nullable(),
-  /** On-chain verification data, or `null` if not verified */
-  verification: z
-    .object({
-      /** Verification method (e.g., "keccak256(bytes)") */
-      method: z.string(),
-      /** Verification data hash (e.g., "0x...") */
-      data: z.string(),
-    })
-    .nullable(),
-});
-
-/** External link associated with a digital asset (social media, website, etc.) */
-export const DigitalAssetLinkSchema = z.object({
-  /** Link display title */
-  title: z.string(),
-  /** Link URL */
-  url: z.string(),
-});
-
-/** NFT metadata attribute (trait/property) */
-export const DigitalAssetAttributeSchema = z.object({
-  /** Attribute key/trait type */
-  key: z.string(),
-  /** Attribute value */
-  value: z.string(),
-  /** Attribute type (e.g., "string", "number", "date") */
-  type: z.string(),
-});
 
 /** Contract owner (controller) of the digital asset */
 export const DigitalAssetOwnerSchema = z.object({
@@ -92,13 +61,13 @@ export const DigitalAssetSchema = z.object({
   /** Category from LSP4 metadata (free-text), or `null` if not set or not included */
   category: z.string().nullable(),
   /** Icon images from LSP4 metadata, or `null` if not included in query */
-  icons: z.array(DigitalAssetImageSchema).nullable(),
+  icons: z.array(ImageSchema).nullable(),
   /** Gallery/cover images from LSP4 metadata, or `null` if not included in query */
-  images: z.array(DigitalAssetImageSchema).nullable(),
+  images: z.array(ImageSchema).nullable(),
   /** External links from LSP4 metadata, or `null` if not included in query */
-  links: z.array(DigitalAssetLinkSchema).nullable(),
+  links: z.array(LinkSchema).nullable(),
   /** NFT metadata attributes/traits, or `null` if not included in query */
-  attributes: z.array(DigitalAssetAttributeSchema).nullable(),
+  attributes: z.array(Lsp4AttributeSchema).nullable(),
   /** Contract owner (controller), or `null` if not included or not set */
   owner: DigitalAssetOwnerSchema.nullable(),
   /** Number of unique token holders, or `null` if not included */
@@ -251,9 +220,6 @@ export const UseInfiniteDigitalAssetsParamsSchema = z.object({
 
 export type Standard = z.infer<typeof StandardSchema>;
 export type TokenType = z.infer<typeof TokenTypeSchema>;
-export type DigitalAssetImage = z.infer<typeof DigitalAssetImageSchema>;
-export type DigitalAssetLink = z.infer<typeof DigitalAssetLinkSchema>;
-export type DigitalAssetAttribute = z.infer<typeof DigitalAssetAttributeSchema>;
 export type DigitalAssetOwner = z.infer<typeof DigitalAssetOwnerSchema>;
 export type DigitalAsset = z.infer<typeof DigitalAssetSchema>;
 export type DigitalAssetFilter = z.infer<typeof DigitalAssetFilterSchema>;

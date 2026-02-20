@@ -28,7 +28,7 @@ export function RawJsonToggle({ data, label }: { data: unknown; label: string })
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <pre className="mt-2 max-h-96 overflow-auto rounded-md bg-muted p-4 text-xs">
+        <pre className="mt-2 max-h-96 overflow-auto rounded-md bg-muted p-4 text-xs whitespace-pre-wrap break-all">
           {JSON.stringify(data, null, 2)}
         </pre>
       </CollapsibleContent>

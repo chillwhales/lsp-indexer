@@ -138,7 +138,9 @@ function buildDigitalAssetOrderBy(sort?: DigitalAssetSort): Digital_Asset_Order_
  * - When `include` is **provided** → each field defaults to `false` unless explicitly
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
  */
-function buildIncludeVars(include?: DigitalAssetInclude): Record<string, boolean> {
+export function buildDigitalAssetIncludeVars(
+  include?: DigitalAssetInclude,
+): Record<string, boolean> {
   if (!include) {
     // Omitted = include everything (GraphQL defaults all Boolean! = true)
     return {};
@@ -184,7 +186,7 @@ export async function fetchDigitalAsset(
   url: string,
   params: { address: string; include?: DigitalAssetInclude },
 ): Promise<DigitalAsset | null> {
-  const includeVars = buildIncludeVars(params.include);
+  const includeVars = buildDigitalAssetIncludeVars(params.include);
 
   const result = await execute(url, GetDigitalAssetDocument, {
     where: { address: { _ilike: escapeLike(params.address) } },
@@ -227,7 +229,7 @@ export async function fetchDigitalAssets(
 ): Promise<FetchDigitalAssetsResult> {
   const where = buildDigitalAssetWhere(params.filter);
   const orderBy = buildDigitalAssetOrderBy(params.sort);
-  const includeVars = buildIncludeVars(params.include);
+  const includeVars = buildDigitalAssetIncludeVars(params.include);
 
   const result = await execute(url, GetDigitalAssetsDocument, {
     where: Object.keys(where).length > 0 ? where : undefined,

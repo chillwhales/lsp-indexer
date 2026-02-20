@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.2 (NFTs) — not yet started
-- **Status:** Phase 9.1 complete (all 4 plans done, PR #193 merged) — QUERY-02 + PAGE-01 delivered
-- **Last activity:** 2026-02-20 — Completed 09.1-04-PLAN.md (digital-assets-playground-e2e)
-- **Progress:** ████░░░░░░ 39% (11/28 requirements)
+- **Sub-phase:** 9.2 (NFTs) — complete (4/4 plans)
+- **Status:** Phase 9.2 complete — ready for 9.3 (Owned Assets)
+- **Last activity:** 2026-02-20 — Completed 09.2-04-PLAN.md (NFT playground page + E2E verification)
+- **Progress:** ████░░░░░░ 43% (12/28 requirements)
 
 ## Milestone History
 
@@ -31,7 +31,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 7     | Package Foundation                 |     7/7      | Complete |
 | 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
 | 9.1   | Digital Assets                     |     1/1      | Complete |
-| 9.2   | NFTs                               |      1       | Pending  |
+| 9.2   | NFTs                               |     1/1      | Complete |
 | 9.3   | Owned Assets                       |      1       | Pending  |
 | 9.4   | Social / Follows                   |      1       | Pending  |
 | 9.5   | Creators                           |      1       | Pending  |
@@ -44,14 +44,14 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-phase) plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 11/28 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, DX-01, DX-02)
+**Total:** 12/28 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, DX-01, DX-02)
 
 ## Performance Metrics
 
-- **Plans completed:** 49 (36 v1.0 + 13 v1.1)
+- **Plans completed:** 56 (36 v1.0 + 20 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 14 (11 v1.0 + 3 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 11/28 (v1.1)
+- **Phases completed:** 15 (11 v1.0 + 4 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 12/28 (v1.1)
 
 ## Accumulated Context
 
@@ -108,6 +108,14 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **`formatTokenAmount` BigInt arithmetic:** `apps/test/src/lib/utils.ts` — avoids Number precision loss on uint256 values (bigintFixed, bigintCompact helpers)
 - **Extracted domain card components:** `DigitalAssetCard`, `ProfileCard` as separate files in `apps/test/src/components/` — pages import, not define
 - **`FilterFieldConfig.options[]`:** renders shadcn Select for enum fields (tokenType filter) — prevents invalid free-text values
+- **Shared `parseImage` in `parsers/utils.ts`:** cross-domain LSP4 metadata image parsing — returns `Lsp4Image`, used by digital-assets and nfts parsers (no duplication)
+- **NFT composite detail key:** `nftKeys.detail(address, tokenId)` — NFTs identified by (collectionAddress, tokenId) pair, not single address
+- **Boolean filter `!== undefined` guard:** `isBurned`/`isMinted` filters use `!== undefined` to allow explicit `false` filtering
+- **NFT lsp4Metadata + lsp4MetadataBaseUri dual sources:** parser checks direct metadata first → baseUri fallback second → null. Both are `lsp4_metadata` type with identical structure.
+- **NFT holder vs owner:** `ownedToken.owner` = token holder (current possessor), NOT contract owner. Renamed to `holder`/`NftHolder` throughout for semantic clarity.
+- **NFT collection = full DigitalAsset:** `digitalAsset` relation on NFT provides 20+ fields. Reuses `parseDigitalAsset` from digital-assets parser. `include.collection` is `DigitalAssetInclude` (17 sub-include variables).
+- **NFT single lookup: tokenId OR formattedTokenId:** Not both required. Stacked vertical inputs in playground.
+- **NFT name filter \_or search:** Name searches both `lsp4Metadata.name.value._ilike` and `lsp4MetadataBaseUri.name.value._ilike` using Hasura `_or` in where clause.
 
 ### Discovered Todos
 
@@ -122,24 +130,23 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-20
-- **Activity:** Executed Phase 9.1 Plans 01–04 + post-plan E2E polish — full Digital Assets vertical slice complete
-- **Outcome:** All 4 plans shipped: types + codegen → parsers + services + keys → hooks + server actions → playground page. Post-plan: SortNulls type, T[]|null arrays, escapeLike shared util, export \* barrel pattern, BigInt formatTokenAmount, extracted card components. PR #193 merged to `refactor/indexer-v2-react`.
+- **Activity:** Completed Phase 9.2 (NFTs) — all 4 plans + post-checkpoint feedback fixes
+- **Outcome:** Full NFT vertical slice: types → documents → codegen → parser → services → keys → hooks → actions → playground. 6 major schema discoveries resolved (baseUri fallback, holder rename, collection as DigitalAsset, tokenId OR formattedTokenId, name filter, collection sub-includes). All builds pass.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.1 complete** — QUERY-02 delivered. PR #193 merged. `feat/phase-9.1-digital-assets` branch archived.
-- **Next step:** Execute Phase 9.2 (NFTs) — follow the identical 4-plan vertical-slice pattern
-- **Branch protocol:** Fetch + pull `refactor/indexer-v2-react`, then `git checkout -b feat/phase-9.2-nfts`
-- **Pattern reference (from 9.1):**
-  - `SortNulls` type + `orderDir()` — wire through NFT sort schema and service
-  - `T[] | null` for all array fields — null = not fetched, [] = empty
-  - `escapeLike` from `packages/node/src/services/utils.ts` — apply to all string filters
-  - `numericToString` from `packages/node/src/parsers/utils.ts` — for Hasura `numeric` scalars
-  - `export *` in all package index.ts files
-  - Extract `NftCard` component to `apps/test/src/components/nft-card.tsx`
-  - `FilterFieldConfig.options[]` for enum filters (tokenIdFormat, etc.)
+- **Phase 9.2 complete** — NFT vertical slice delivered end-to-end
+- **Next step:** Create PR for `feat/phase-9.2-nfts` → `refactor/indexer-v2-react`, then start Phase 9.3 (Owned Assets)
+- **Branch:** `feat/phase-9.2-nfts`
+- **Key patterns established for future domains:**
+  - BaseUri fallback metadata parsing (check direct first → baseUri second → null)
+  - Shared parseImage in parsers/utils.ts for cross-domain LSP4 image parsing
+  - Composite key hooks (address + tokenId) for NFT-like domains
+  - Nested include toggles (collection sub-includes as DigitalAssetInclude)
+  - Cross-domain parser reuse (parseDigitalAsset for collection data)
+  - Name filter with \_or search across multiple metadata sources
 
 ---
 
-_Last updated: 2026-02-20 — completed 09.1-04-PLAN.md (digital-assets-playground-e2e), Phase 9.1 complete, PR #193 merged_
+_Last updated: 2026-02-20 — completed Phase 9.2 (NFTs) — all 4 plans done, QUERY-03 delivered_

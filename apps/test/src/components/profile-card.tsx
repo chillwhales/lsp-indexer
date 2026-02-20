@@ -5,7 +5,7 @@ import React from 'react';
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { isSafeUrl } from '@/lib/utils';
+import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // Profile Card
@@ -18,7 +18,7 @@ export interface ProfileCardProps {
 
 export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.ReactNode {
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
@@ -77,7 +77,7 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
                 isSafeUrl(link.url) ? (
                   <a
                     key={`${link.url}-${i}`}
-                    href={link.url}
+                    href={resolveUrl(link.url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 text-sm text-primary hover:underline"
@@ -105,27 +105,30 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
         {profile.avatar != null && profile.avatar.length > 0 && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1">
-              Avatar ({profile.avatar.length})
+              Avatar Assets ({profile.avatar.length})
             </h5>
             <div className="space-y-1.5">
-              {profile.avatar.map((img, i) => (
+              {profile.avatar.map((asset, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  {isSafeUrl(img.url) ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={img.url}
-                      alt=""
-                      className="size-8 rounded object-cover shrink-0"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="size-8 rounded bg-muted shrink-0" />
+                  {asset.fileType && (
+                    <Badge variant="outline" className="text-xs shrink-0">
+                      {asset.fileType}
+                    </Badge>
                   )}
-                  <span className="font-mono text-xs text-muted-foreground truncate">
-                    {img.url}
-                  </span>
+                  {isSafeUrl(asset.url) ? (
+                    <a
+                      href={resolveUrl(asset.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-xs text-primary hover:underline truncate"
+                    >
+                      {asset.url}
+                    </a>
+                  ) : (
+                    <span className="font-mono text-xs text-muted-foreground truncate">
+                      {asset.url}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -143,7 +146,7 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
                   {isSafeUrl(img.url) ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={img.url}
+                      src={resolveUrl(img.url)}
                       alt=""
                       className="size-8 rounded object-cover shrink-0"
                       onError={(e) => {
@@ -173,7 +176,7 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
                   {isSafeUrl(img.url) ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={img.url}
+                      src={resolveUrl(img.url)}
                       alt=""
                       className="size-8 rounded object-cover shrink-0"
                       onError={(e) => {

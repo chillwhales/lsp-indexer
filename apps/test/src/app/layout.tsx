@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }): React
                 <Separator orientation="vertical" className="mr-2 h-4" />
                 <span className="text-sm text-muted-foreground">@lsp-indexer/react playground</span>
               </header>
-              <main className="flex-1 p-6">{children}</main>
+              <main className="flex-1 min-w-0 p-6">{children}</main>
             </SidebarInset>
           </SidebarProvider>
         </Providers>

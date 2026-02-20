@@ -88,3 +88,11 @@ export function isSafeUrl(url: string): boolean {
     return false;
   }
 }
+
+/** Resolve a URL, converting ipfs:// to an HTTPS gateway URL */
+export function resolveUrl(url: string): string {
+  if (url.startsWith('ipfs://')) {
+    return url.replace('ipfs://', 'https://ipfs.io/ipfs/');
+  }
+  return url;
+}

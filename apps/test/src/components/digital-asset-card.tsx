@@ -6,7 +6,7 @@ import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { formatTokenAmount, isSafeUrl } from '@/lib/utils';
+import { formatTokenAmount, isSafeUrl, resolveUrl } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // Standard badge
@@ -67,7 +67,7 @@ export function DigitalAssetCard({
   const firstIcon = digitalAsset.icons?.[0];
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -75,7 +75,7 @@ export function DigitalAssetCard({
               {firstIcon && isSafeUrl(firstIcon.url) ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={firstIcon.url}
+                  src={resolveUrl(firstIcon.url)}
                   alt={digitalAsset.name ?? 'icon'}
                   className="size-5 rounded object-cover"
                   onError={(e) => {
@@ -179,7 +179,7 @@ export function DigitalAssetCard({
                         {isSafeUrl(icon.url) ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={icon.url}
+                            src={resolveUrl(icon.url)}
                             alt=""
                             className="size-8 rounded object-cover shrink-0"
                             onError={(e) => {
@@ -209,7 +209,7 @@ export function DigitalAssetCard({
                         {isSafeUrl(image.url) ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={image.url}
+                            src={resolveUrl(image.url)}
                             alt=""
                             className="size-8 rounded object-cover shrink-0"
                             onError={(e) => {
@@ -236,7 +236,7 @@ export function DigitalAssetCard({
                       isSafeUrl(link.url) ? (
                         <a
                           key={`${link.url}-${i}`}
-                          href={link.url}
+                          href={resolveUrl(link.url)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1.5 text-sm text-primary hover:underline"
@@ -307,7 +307,7 @@ export function DigitalAssetCard({
                 {digitalAsset.baseUri ? (
                   isSafeUrl(digitalAsset.baseUri) ? (
                     <a
-                      href={digitalAsset.baseUri}
+                      href={resolveUrl(digitalAsset.baseUri)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:underline font-mono text-xs"

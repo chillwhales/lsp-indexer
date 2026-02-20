@@ -1,6 +1,6 @@
-import type { DigitalAsset, DigitalAssetImage, TokenType } from '@lsp-indexer/types';
+import type { DigitalAsset, TokenType } from '@lsp-indexer/types';
 import type { GetDigitalAssetQuery } from '../graphql/graphql';
-import { numericToString } from './utils';
+import { numericToString, parseAttributes, parseImage, parseLinks } from './utils';
 
 /**
  * Raw Hasura digital asset type from the codegen-generated query result.
@@ -10,34 +10,6 @@ import { numericToString } from './utils';
  * codegen type to keep the parser type-safe against schema changes.
  */
 type RawDigitalAsset = GetDigitalAssetQuery['digital_asset'][number];
-
-/**
- * Common shape for image types that have url/width/height/verification.
- * Uses a structural interface to avoid codegen `__typename` incompatibility
- * between lsp4_metadata_icon and lsp4_metadata_image types.
- */
-interface RawImage {
-  url?: string | null;
-  width?: number | null;
-  height?: number | null;
-  verification_method?: string | null;
-  verification_data?: string | null;
-}
-
-/**
- * Parse a raw Hasura image (icon or gallery image) to a clean DigitalAssetImage.
- */
-function parseImage(raw: RawImage): DigitalAssetImage {
-  return {
-    url: raw.url ?? '',
-    width: raw.width ?? null,
-    height: raw.height ?? null,
-    verification:
-      raw.verification_method != null
-        ? { method: raw.verification_method, data: raw.verification_data ?? '' }
-        : null,
-  };
-}
 
 /**
  * Validate and return a raw Hasura tokenType string as a clean TokenType.
@@ -97,21 +69,8 @@ export function parseDigitalAsset(raw: RawDigitalAsset): DigitalAsset {
     category: lsp4?.category?.value ?? null,
     icons: lsp4?.icon != null ? lsp4.icon.map(parseImage) : null,
     images: lsp4?.images != null ? lsp4.images.map(parseImage) : null,
-    links:
-      lsp4?.links != null
-        ? lsp4.links.map((l) => ({
-            title: l.title ?? '',
-            url: l.url ?? '',
-          }))
-        : null,
-    attributes:
-      lsp4?.attributes != null
-        ? lsp4.attributes.map((a) => ({
-            key: a.key ?? '',
-            value: a.value ?? '',
-            type: a.type ?? '',
-          }))
-        : null,
+    links: parseLinks(lsp4?.links),
+    attributes: parseAttributes(lsp4?.attributes),
     owner:
       raw.owner != null
         ? {
