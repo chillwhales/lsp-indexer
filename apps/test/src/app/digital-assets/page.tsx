@@ -410,34 +410,34 @@ function SingleAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Core token details */}
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <dl className="space-y-1.5 text-sm">
               {digitalAsset.decimals !== null && (
-                <div>
-                  <span className="text-muted-foreground">Decimals:</span>{' '}
-                  <span className="font-mono">{digitalAsset.decimals}</span>
+                <div className="flex gap-2">
+                  <dt className="text-muted-foreground w-28 shrink-0">Decimals</dt>
+                  <dd className="font-mono">{digitalAsset.decimals}</dd>
                 </div>
               )}
               {digitalAsset.totalSupply !== null && (
-                <div>
-                  <span className="text-muted-foreground">Total Supply:</span>{' '}
-                  <span className="font-mono">{digitalAsset.totalSupply}</span>
+                <div className="flex gap-2">
+                  <dt className="text-muted-foreground w-28 shrink-0">Total Supply</dt>
+                  <dd className="font-mono break-all">{digitalAsset.totalSupply}</dd>
                 </div>
               )}
               {digitalAsset.category && (
-                <div>
-                  <span className="text-muted-foreground">Category:</span>{' '}
-                  <span>{digitalAsset.category}</span>
+                <div className="flex gap-2">
+                  <dt className="text-muted-foreground w-28 shrink-0">Category</dt>
+                  <dd>{digitalAsset.category}</dd>
                 </div>
               )}
               {digitalAsset.owner && (
-                <div>
-                  <span className="text-muted-foreground">Owner:</span>{' '}
-                  <span className="font-mono text-xs" title={digitalAsset.owner.address}>
+                <div className="flex gap-2">
+                  <dt className="text-muted-foreground w-28 shrink-0">Owner</dt>
+                  <dd className="font-mono text-xs" title={digitalAsset.owner.address}>
                     {truncateAddress(digitalAsset.owner.address)}
-                  </span>
+                  </dd>
                 </div>
               )}
-            </div>
+            </dl>
 
             {/* LSP4 Metadata */}
             <div>
@@ -450,20 +450,65 @@ function SingleAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                {digitalAsset.icons.length > 0 && (
                   <div>
-                    <span className="text-muted-foreground">Icons:</span>{' '}
-                    <Badge variant="outline" className="text-xs">
-                      {digitalAsset.icons.length}
-                    </Badge>
+                    <h5 className="text-xs font-medium text-muted-foreground mb-1">
+                      Icons ({digitalAsset.icons.length})
+                    </h5>
+                    <div className="space-y-1.5">
+                      {digitalAsset.icons.map((icon, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          {isSafeUrl(icon.url) ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={icon.url}
+                              alt=""
+                              className="size-8 rounded object-cover shrink-0"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="size-8 rounded bg-muted shrink-0" />
+                          )}
+                          <span className="font-mono text-xs text-muted-foreground truncate">
+                            {icon.url}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                )}
+
+                {digitalAsset.images.length > 0 && (
                   <div>
-                    <span className="text-muted-foreground">Images:</span>{' '}
-                    <Badge variant="outline" className="text-xs">
-                      {digitalAsset.images.length}
-                    </Badge>
+                    <h5 className="text-xs font-medium text-muted-foreground mb-1">
+                      Images ({digitalAsset.images.length})
+                    </h5>
+                    <div className="space-y-1.5">
+                      {digitalAsset.images.map((image, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          {isSafeUrl(image.url) ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={image.url}
+                              alt=""
+                              className="size-8 rounded object-cover shrink-0"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="size-8 rounded bg-muted shrink-0" />
+                          )}
+                          <span className="font-mono text-xs text-muted-foreground truncate">
+                            {image.url}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {digitalAsset.links.length > 0 && (
                   <div>
