@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.3 (Owned Assets) — in progress (3/4 plans)
-- **Status:** 09.3-03 complete — React hooks, server actions, Next.js hooks done
-- **Last activity:** 2026-02-20 — Completed 09.3-03-PLAN.md (OwnedAsset/OwnedToken hooks + actions)
-- **Progress:** ████░░░░░░ 43% (12/28 requirements)
+- **Sub-phase:** 9.3 (Owned Assets) — complete (4/4 plans)
+- **Status:** Phase 9.3 complete — all owned assets/tokens plans delivered including playground verification
+- **Last activity:** 2026-02-20 — Completed 09.3-04-PLAN.md (Playground pages + E2E verification)
+- **Progress:** █████░░░░░ 50% (14/28 requirements)
 
 ## Milestone History
 
@@ -26,32 +26,32 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                               | Requirements | Status            |
-| ----- | ---------------------------------- | :----------: | ----------------- |
-| 7     | Package Foundation                 |     7/7      | Complete          |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete          |
-| 9.1   | Digital Assets                     |     1/1      | Complete          |
-| 9.2   | NFTs                               |     1/1      | Complete          |
-| 9.3   | Owned Assets                       |      1       | In progress (3/4) |
-| 9.4   | Social / Follows                   |      1       | Pending           |
-| 9.5   | Creators                           |      1       | Pending           |
-| 9.6   | Encrypted Assets                   |      1       | Pending           |
-| 9.7   | Encrypted Feed                     |      1       | Pending           |
-| 9.8   | Data Changed Events                |      1       | Pending           |
-| 9.9   | Universal Receiver Events          |      1       | Pending           |
-| 10    | Subscriptions                      |      3       | Pending           |
-| 11    | Server Actions & Publish Readiness |      4       | Pending           |
+| Phase | Name                               | Requirements | Status   |
+| ----- | ---------------------------------- | :----------: | -------- |
+| 7     | Package Foundation                 |     7/7      | Complete |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
+| 9.1   | Digital Assets                     |     1/1      | Complete |
+| 9.2   | NFTs                               |     1/1      | Complete |
+| 9.3   | Owned Assets                       |     1/1      | Complete |
+| 9.4   | Social / Follows                   |      1       | Pending  |
+| 9.5   | Creators                           |      1       | Pending  |
+| 9.6   | Encrypted Assets                   |      1       | Pending  |
+| 9.7   | Encrypted Feed                     |      1       | Pending  |
+| 9.8   | Data Changed Events                |      1       | Pending  |
+| 9.9   | Universal Receiver Events          |      1       | Pending  |
+| 10    | Subscriptions                      |      3       | Pending  |
+| 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-phase) plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 12/28 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, DX-01, DX-02)
+**Total:** 14/28 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, DX-01, DX-02, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 59 (36 v1.0 + 23 v1.1)
+- **Plans completed:** 60 (36 v1.0 + 24 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 15 (11 v1.0 + 4 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 12/28 (v1.1)
+- **Phases completed:** 16 (11 v1.0 + 5 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 14/28 (v1.1)
 
 ## Accumulated Context
 
@@ -122,6 +122,13 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **Nested universalProfile: all LSP3 fields, no aggregates:** follower/following counts excluded from ownership context.
 - **Cross-domain parser `as any` casts:** Nested sub-selections in owned_asset/owned_token documents omit fields (like `id`) that primary parsers expect. Safe because all parsers use optional chaining. Standard pattern for sub-selections.
 - **Owned asset DA include vars reused directly:** Unlike NFT (prefixed `includeCollection*`), owned asset/token documents use same `include*` var names as DA document, so `buildDigitalAssetIncludeVars` output used directly.
+- **Natural key lookup for playground single tab:** Uses holder+asset address via `useOwnedAssets({ filter, limit: 1 })` instead of opaque Hasura IDs — more developer-friendly
+- **Preload prevention via limit:0:** When no query present, pass `limit: 0` to prevent hooks from firing on empty filter
+- **Full addresses, no truncation:** Display full hex addresses with `break-all` CSS wrapping — user preference
+- **Unified ghost Button collapsible triggers:** All card collapsible sections use `<Button variant="ghost" size="sm">` with icon + text + ChevronDown, matching RawJsonToggle style
+- **NFT holder UP as full block:** ownedToken.universalProfile fetched as complete block (not per-field @include), parsed via `parseHolderProfile()` inline helper
+- **NftCard section order:** Holder Profile → NFT Metadata → Collection (collection moved to last per user preference)
+- **OwnedTokenNftIncludeSchema:** 8 per-field `@include` toggles for NFT metadata (NftInclude minus collection/holder which are sibling relations)
 
 ### Discovered Todos
 
@@ -136,20 +143,22 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-20
-- **Activity:** Completed 09.3-03-PLAN.md — OwnedAsset/OwnedToken React hooks, server actions, Next.js hooks
-- **Outcome:** 6 new files (2 react hooks, 2 actions, 2 next hooks) + updated index.ts files. All 4 packages build clean. QUERY-04 and PAGE-01 structurally complete for owned assets domain.
+- **Activity:** Completed 09.3-04-PLAN.md — Owned assets/tokens playground pages + E2E verification
+- **Outcome:** 2 playground pages, 2 card components, NFT holder UP pipeline, NFT sub-includes, unified collapsible triggers. Phase 9.3 fully complete (4/4 plans). 12 commits, 21 files (6 created, 15 modified). QUERY-04 verified end-to-end against live Hasura.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.3 in progress** — Plans 01-03 complete (types, documents, codegen, parsers, services, keys, hooks, actions)
-- **Next step:** 09.3-04 (Test app playground page for owned assets/tokens)
-- **Branch:** `refactor/indexer-v2-react`
-- **Key context for playground work:**
-  - All hooks available: useOwnedAsset(s), useInfiniteOwnedAssets, useOwnedToken(s), useInfiniteOwnedTokens
-  - Follow existing playground patterns from digital-assets and NFTs pages
-  - Shared playground components ready (FilterFieldsRow, SortControls, ResultsList, etc.)
+- **Phase 9.3 complete** — All 4 plans delivered (types → documents → parsers/services → hooks → playground)
+- **Next step:** Phase 9.4 (Social / Follows) — new sub-phase
+- **Branch:** `feat/phase-9.3-owned-assets` → merge PR #197 to `refactor/indexer-v2-react`, then create new branch for 9.4
+- **Key patterns established for 9.4+:**
+  - Preset buttons pattern for playground single lookup
+  - Ghost Button collapsible triggers in all card components
+  - BigInt serialization fix in RawJsonToggle
+  - Cross-domain reusable `buildProfileIncludeVars()`, `buildDigitalAssetIncludeVars()`, `buildNftIncludeVars()`
+  - NFT holder UP inline parsing pattern (`parseHolderProfile()`)
 
 ---
 
-_Last updated: 2026-02-20 — completed 09.3-03-PLAN.md (OwnedAsset/OwnedToken hooks + actions)_
+_Last updated: 2026-02-20 — completed 09.3-04-PLAN.md (Phase 9.3 complete — owned assets/tokens E2E)_
