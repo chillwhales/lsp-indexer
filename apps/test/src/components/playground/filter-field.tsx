@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -38,7 +39,7 @@ export function FilterField({ config, value, onChange }: FilterFieldProps): Reac
   if (config.options) {
     return (
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground font-medium">{config.label}</label>
+        <Label className="text-xs text-muted-foreground font-medium">{config.label}</Label>
         <Select
           value={value || CLEAR_VALUE}
           onValueChange={(v) => onChange(v === CLEAR_VALUE ? '' : v)}
@@ -63,7 +64,7 @@ export function FilterField({ config, value, onChange }: FilterFieldProps): Reac
 
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs text-muted-foreground font-medium">{config.label}</label>
+      <Label className="text-xs text-muted-foreground font-medium">{config.label}</Label>
       <Input
         placeholder={config.placeholder ?? ''}
         value={value}

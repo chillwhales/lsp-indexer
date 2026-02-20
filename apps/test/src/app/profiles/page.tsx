@@ -1,6 +1,6 @@
 'use client';
 
-import { ExternalLink, Hash, Loader2, Monitor, Search, Server, User, Users } from 'lucide-react';
+import { Loader2, Monitor, Search, Server, User, Users } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -19,13 +19,15 @@ import type {
   ProfileSort,
   ProfileSortField,
   SortDirection,
+  SortNulls,
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import type { FilterFieldConfig, IncludeToggleConfig, SortOption } from '@/components/playground';
@@ -33,12 +35,12 @@ import {
   ErrorAlert,
   FilterFieldsRow,
   IncludeToggles,
-  RawJsonToggle,
   ResultsList,
   SortControls,
   useFilterFields,
   useIncludeToggles,
 } from '@/components/playground';
+import { ProfileCard } from '@/components/profile-card';
 
 // ---------------------------------------------------------------------------
 // Hook mode — pick which package's hooks to use
@@ -108,63 +110,6 @@ function buildProfileFilter(debouncedValues: Record<string, string>): ProfileFil
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Validate that a URL uses a safe protocol (prevents javascript: / data: XSS) */
-function isSafeUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    return ['http:', 'https:', 'ipfs:'].includes(parsed.protocol);
-  } catch {
-    return false;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Profile-specific components (domain card — varies per domain)
-// ---------------------------------------------------------------------------
-
-function ProfileCardCompact({ profile }: { profile: Profile }): React.ReactNode {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <User className="size-4 text-muted-foreground" />
-          {profile.name ?? 'Unnamed Profile'}
-        </CardTitle>
-        <CardDescription className="font-mono text-xs truncate">{profile.address}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {profile.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">{profile.description}</p>
-        )}
-        <div className="flex gap-4 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Users className="size-3.5" />
-            {profile.followerCount} followers
-          </span>
-          <span className="flex items-center gap-1">
-            <Users className="size-3.5" />
-            {profile.followingCount} following
-          </span>
-        </div>
-        {profile.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {profile.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs">
-                <Hash className="size-3" />
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Shared filter + sort hook for list and infinite tabs
 // ---------------------------------------------------------------------------
 
@@ -172,6 +117,7 @@ function useProfileListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(PROFILE_FILTERS);
   const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const {
     values: includeValues,
     toggle: toggleInclude,
@@ -179,7 +125,7 @@ function useProfileListState() {
   } = useIncludeToggles(PROFILE_INCLUDES);
 
   const filter = buildProfileFilter(debouncedValues);
-  const sort: ProfileSort = { field: sortField, direction: sortDirection };
+  const sort: ProfileSort = { field: sortField, direction: sortDirection, nulls: sortNulls };
   const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
 
   return {
@@ -189,6 +135,8 @@ function useProfileListState() {
     setSortField,
     sortDirection,
     setSortDirection,
+    sortNulls,
+    setSortNulls,
     filter,
     sort,
     hasActiveFilter,
@@ -262,8 +210,8 @@ function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
       {isLoading && (
         <Card>
           <CardHeader>
-            <div className="h-5 w-48 bg-muted rounded animate-pulse" />
-            <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-4 w-32" />
           </CardHeader>
         </Card>
       )}
@@ -272,114 +220,7 @@ function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
       {error && <ErrorAlert error={error} />}
 
       {/* Success state */}
-      {profile && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="size-5 text-muted-foreground" />
-                  {profile.name ?? 'Unnamed Profile'}
-                  {isFetching && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
-                </CardTitle>
-                <CardDescription className="font-mono text-xs mt-1">
-                  {profile.address}
-                </CardDescription>
-              </div>
-              <div className="flex gap-3 text-sm">
-                <div className="text-center">
-                  <div className="font-semibold">{profile.followerCount}</div>
-                  <div className="text-muted-foreground text-xs">Followers</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold">{profile.followingCount}</div>
-                  <div className="text-muted-foreground text-xs">Following</div>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {profile.description && (
-              <div>
-                <h4 className="text-sm font-medium mb-1">Description</h4>
-                <p className="text-sm text-muted-foreground">{profile.description}</p>
-              </div>
-            )}
-
-            {profile.tags.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium mb-1">Tags</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {profile.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">
-                      <Hash className="size-3" />
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {profile.links.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium mb-1">Links</h4>
-                <div className="space-y-1">
-                  {profile.links.map((link, i) =>
-                    isSafeUrl(link.url) ? (
-                      <a
-                        key={`${link.url}-${i}`}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-sm text-primary hover:underline"
-                      >
-                        <ExternalLink className="size-3.5" />
-                        {link.title || link.url}
-                      </a>
-                    ) : (
-                      <span
-                        key={`${link.url}-${i}`}
-                        className="flex items-center gap-1.5 text-sm text-muted-foreground"
-                      >
-                        <ExternalLink className="size-3.5" />
-                        {link.title || link.url}
-                        <Badge variant="outline" className="text-xs">
-                          unsafe URL
-                        </Badge>
-                      </span>
-                    ),
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Avatar:</span>{' '}
-                <Badge variant="outline" className="text-xs">
-                  {profile.avatar.length} image{profile.avatar.length !== 1 ? 's' : ''}
-                </Badge>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Profile Image:</span>{' '}
-                <Badge variant="outline" className="text-xs">
-                  {profile.profileImage.length} image
-                  {profile.profileImage.length !== 1 ? 's' : ''}
-                </Badge>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Background:</span>{' '}
-                <Badge variant="outline" className="text-xs">
-                  {profile.backgroundImage.length} image
-                  {profile.backgroundImage.length !== 1 ? 's' : ''}
-                </Badge>
-              </div>
-            </div>
-
-            <RawJsonToggle data={profile} label="profile" />
-          </CardContent>
-        </Card>
-      )}
+      {profile && <ProfileCard profile={profile} isFetching={isFetching} />}
 
       {/* Empty state */}
       {queryAddress && !isLoading && !error && !profile && (
@@ -425,6 +266,10 @@ function ProfileListTab({ mode }: { mode: HookMode }): React.ReactNode {
         sortDirection={state.sortDirection}
         onSortFieldChange={(v) => state.setSortField(v as ProfileSortField)}
         onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
         limit={limit}
         onLimitChange={setLimit}
       />
@@ -438,7 +283,7 @@ function ProfileListTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(profile) => <ProfileCardCompact profile={profile} />}
+        renderItem={(profile) => <ProfileCard profile={profile} />}
         getKey={(p) => p.address}
         label="profiles"
         totalCount={totalCount}
@@ -477,6 +322,10 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
         sortDirection={state.sortDirection}
         onSortFieldChange={(v) => state.setSortField(v as ProfileSortField)}
         onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
       />
       <IncludeToggles
         configs={PROFILE_INCLUDES}
@@ -488,7 +337,7 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(profile) => <ProfileCardCompact profile={profile} />}
+        renderItem={(profile) => <ProfileCard profile={profile} />}
         getKey={(p) => p.address}
         label="profiles"
         hasActiveFilter={state.hasActiveFilter}

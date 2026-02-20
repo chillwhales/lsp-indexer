@@ -1,5 +1,6 @@
 import type { DigitalAsset, DigitalAssetImage, TokenType } from '@lsp-indexer/types';
 import type { GetDigitalAssetQuery } from '../graphql/graphql';
+import { numericToString } from './utils';
 
 /**
  * Raw Hasura digital asset type from the codegen-generated query result.
@@ -39,26 +40,18 @@ function parseImage(raw: RawImage): DigitalAssetImage {
 }
 
 /**
- * Map raw Hasura tokenType string ("0"/"1"/"2") to clean TokenType enum.
+ * Validate and return a raw Hasura tokenType string as a clean TokenType.
  *
- * Hasura stores token types as string values:
- * - `"0"` → `"TOKEN"` (fungible token)
- * - `"1"` → `"NFT"` (non-fungible token)
- * - `"2"` → `"COLLECTION"` (collection of NFTs)
+ * The indexer stores the decoded string value directly:
+ * - `"TOKEN"` — fungible token (LSP4 tokenType 0)
+ * - `"NFT"` — non-fungible token (LSP4 tokenType 1)
+ * - `"COLLECTION"` — collection of NFTs (LSP4 tokenType 2)
  *
  * Returns `null` if the value is absent or unrecognized.
  */
 function mapTokenType(raw: string | null | undefined): TokenType | null {
-  switch (raw) {
-    case '0':
-      return 'TOKEN';
-    case '1':
-      return 'NFT';
-    case '2':
-      return 'COLLECTION';
-    default:
-      return null;
-  }
+  if (raw === 'TOKEN' || raw === 'NFT' || raw === 'COLLECTION') return raw;
+  return null;
 }
 
 /**
@@ -66,9 +59,9 @@ function mapTokenType(raw: string | null | undefined): TokenType | null {
  *
  * Handles all edge cases:
  * - `@include(if: false)` omitted fields won't be present in the response —
- *   uses optional chaining and defaults arrays to `[]`, scalars to `null`
+ *   uses optional chaining; omitted arrays become `null`, included-but-empty arrays become `[]`
  * - `decimals` presence is used to derive `standard` (LSP7 when present, LSP8 when absent)
- * - Raw tokenType string values ("0"/"1"/"2") are mapped to clean enum values
+ * - Raw tokenType string values ("TOKEN"/"NFT"/"COLLECTION") are validated and passed through
  * - Aggregate counts may have `null` aggregate — defaults to `null`
  * - Owner field may be omitted if not included
  *
@@ -99,22 +92,26 @@ export function parseDigitalAsset(raw: RawDigitalAsset): DigitalAsset {
     symbol: raw.lsp4TokenSymbol?.value ?? null,
     tokenType: mapTokenType(raw.lsp4TokenType?.value),
     decimals: raw.decimals?.value ?? null,
-    totalSupply: raw.totalSupply?.value ?? null,
+    totalSupply: raw.totalSupply?.value != null ? numericToString(raw.totalSupply.value) : null,
     description: lsp4?.description?.value ?? null,
     category: lsp4?.category?.value ?? null,
-    icons: lsp4?.icon?.map(parseImage) ?? [],
-    images: lsp4?.images?.map(parseImage) ?? [],
+    icons: lsp4?.icon != null ? lsp4.icon.map(parseImage) : null,
+    images: lsp4?.images != null ? lsp4.images.map(parseImage) : null,
     links:
-      lsp4?.links?.map((l) => ({
-        title: l.title ?? '',
-        url: l.url ?? '',
-      })) ?? [],
+      lsp4?.links != null
+        ? lsp4.links.map((l) => ({
+            title: l.title ?? '',
+            url: l.url ?? '',
+          }))
+        : null,
     attributes:
-      lsp4?.attributes?.map((a) => ({
-        key: a.key ?? '',
-        value: a.value ?? '',
-        type: a.type ?? '',
-      })) ?? [],
+      lsp4?.attributes != null
+        ? lsp4.attributes.map((a) => ({
+            key: a.key ?? '',
+            value: a.value ?? '',
+            type: a.type ?? '',
+          }))
+        : null,
     owner:
       raw.owner != null
         ? {

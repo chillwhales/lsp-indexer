@@ -357,9 +357,6 @@ importers:
       '@lsp-indexer/types':
         specifier: workspace:*
         version: link:../types
-      '@lukso/lsp4-contracts':
-        specifier: 0.16.7
-        version: 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     devDependencies:
       '@graphql-codegen/cli':
         specifier: ^6.1.1

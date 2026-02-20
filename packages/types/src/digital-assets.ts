@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { SortDirectionSchema } from './common';
+import { SortDirectionSchema, SortNullsSchema } from './common';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -11,7 +11,7 @@ export const StandardSchema = z.enum(['LSP7', 'LSP8']);
 
 /**
  * Token type for a digital asset.
- * Maps from Hasura raw values (0/1/2) to clean string literals.
+ * The indexer stores these as decoded strings directly.
  * - TOKEN: Fungible token (LSP4 tokenType 0)
  * - NFT: Non-fungible token (LSP4 tokenType 1)
  * - COLLECTION: Collection of NFTs (LSP4 tokenType 2)
@@ -77,7 +77,7 @@ export const DigitalAssetSchema = z.object({
   /** Token symbol from LSP4 metadata (e.g., "CHILL"), or `null` if not set or not included */
   symbol: z.string().nullable(),
   /**
-   * Token type — clean enum derived from LSP4 raw value (0/1/2).
+   * Token type — decoded string stored directly by the indexer.
    * - TOKEN: Fungible token
    * - NFT: Non-fungible token
    * - COLLECTION: Collection of NFTs
@@ -91,14 +91,14 @@ export const DigitalAssetSchema = z.object({
   description: z.string().nullable(),
   /** Category from LSP4 metadata (free-text), or `null` if not set or not included */
   category: z.string().nullable(),
-  /** Icon images from LSP4 metadata */
-  icons: z.array(DigitalAssetImageSchema),
-  /** Gallery/cover images from LSP4 metadata */
-  images: z.array(DigitalAssetImageSchema),
-  /** External links from LSP4 metadata */
-  links: z.array(DigitalAssetLinkSchema),
-  /** NFT metadata attributes/traits */
-  attributes: z.array(DigitalAssetAttributeSchema),
+  /** Icon images from LSP4 metadata, or `null` if not included in query */
+  icons: z.array(DigitalAssetImageSchema).nullable(),
+  /** Gallery/cover images from LSP4 metadata, or `null` if not included in query */
+  images: z.array(DigitalAssetImageSchema).nullable(),
+  /** External links from LSP4 metadata, or `null` if not included in query */
+  links: z.array(DigitalAssetLinkSchema).nullable(),
+  /** NFT metadata attributes/traits, or `null` if not included in query */
+  attributes: z.array(DigitalAssetAttributeSchema).nullable(),
   /** Contract owner (controller), or `null` if not included or not set */
   owner: DigitalAssetOwnerSchema.nullable(),
   /** Number of unique token holders, or `null` if not included */
@@ -148,6 +148,8 @@ export const DigitalAssetSortSchema = z.object({
   field: DigitalAssetSortFieldSchema,
   /** Sort direction */
   direction: SortDirectionSchema,
+  /** Where nulls appear — omit to use Hasura default (nulls last for asc, nulls first for desc) */
+  nulls: SortNullsSchema.optional(),
 });
 
 /**

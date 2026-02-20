@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { SortDirectionSchema } from './common';
+import { SortDirectionSchema, SortNullsSchema } from './common';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -31,16 +31,16 @@ export const ProfileSchema = z.object({
   name: z.string().nullable(),
   /** Profile description from LSP3 metadata, or `null` if not set */
   description: z.string().nullable(),
-  /** Tags associated with the profile (e.g., "artist", "developer") */
-  tags: z.array(z.string()),
-  /** External links (social media, websites, etc.) */
-  links: z.array(z.object({ title: z.string(), url: z.string() })),
-  /** Avatar assets from LSP3 metadata */
-  avatar: z.array(ProfileImageSchema),
-  /** Profile images (typically a square photo or icon) */
-  profileImage: z.array(ProfileImageSchema),
-  /** Background/banner images */
-  backgroundImage: z.array(ProfileImageSchema),
+  /** Tags associated with the profile, or `null` if not included in query */
+  tags: z.array(z.string()).nullable(),
+  /** External links (social media, websites, etc.), or `null` if not included in query */
+  links: z.array(z.object({ title: z.string(), url: z.string() })).nullable(),
+  /** Avatar assets from LSP3 metadata, or `null` if not included in query */
+  avatar: z.array(ProfileImageSchema).nullable(),
+  /** Profile images (typically a square photo or icon), or `null` if not included in query */
+  profileImage: z.array(ProfileImageSchema).nullable(),
+  /** Background/banner images, or `null` if not included in query */
+  backgroundImage: z.array(ProfileImageSchema).nullable(),
   /** Number of profiles following this profile */
   followerCount: z.number(),
   /** Number of profiles this profile follows */
@@ -79,6 +79,8 @@ export const ProfileSortSchema = z.object({
   field: ProfileSortFieldSchema,
   /** Sort direction */
   direction: SortDirectionSchema,
+  /** Where nulls appear — omit to use Hasura default (nulls last for asc, nulls first for desc) */
+  nulls: SortNullsSchema.optional(),
 });
 
 /**

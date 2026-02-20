@@ -4,12 +4,11 @@ import type {
   DigitalAssetInclude,
   DigitalAssetSort,
 } from '@lsp-indexer/types';
-import { LSP4_TOKEN_TYPES } from '@lukso/lsp4-contracts';
 import { execute } from '../client/execute';
 import { GetDigitalAssetDocument, GetDigitalAssetsDocument } from '../documents/digital-assets';
 import type { Digital_Asset_Bool_Exp, Digital_Asset_Order_By } from '../graphql/graphql';
 import { parseDigitalAsset, parseDigitalAssets } from '../parsers/digital-assets';
-import { escapeLike } from './utils';
+import { escapeLike, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -24,8 +23,8 @@ import { escapeLike } from './utils';
  * Filter → Hasura mapping:
  * - `name`          → `{ lsp4TokenName: { value: { _ilike: '%name%' } } }`
  * - `symbol`        → `{ lsp4TokenSymbol: { value: { _ilike: '%symbol%' } } }`
- * - `tokenType`     → `{ lsp4TokenType: { value: { _eq: LSP4_TOKEN_TYPES[tokenType].toString() } } }`
- *                     using `@lukso/lsp4-contracts` constants (TOKEN→0, NFT→1, COLLECTION→2)
+ * - `tokenType`     → `{ lsp4TokenType: { value: { _eq: tokenType } } }`
+ *                     the indexer stores the decoded string directly ("TOKEN", "NFT", "COLLECTION")
  * - `category`      → `{ lsp4Metadata: { category: { value: { _ilike: '%category%' } } } }`
  * - `holderAddress` → `{ ownedAssets: { owner: { _ilike: holderAddress } } }`
  *                     (assets where the given address holds tokens — via owned_asset.owner)
@@ -54,10 +53,9 @@ function buildDigitalAssetWhere(filter?: DigitalAssetFilter): Digital_Asset_Bool
   }
 
   if (filter.tokenType) {
-    const rawValue = LSP4_TOKEN_TYPES[filter.tokenType];
     conditions.push({
       lsp4TokenType: {
-        value: { _eq: rawValue.toString() },
+        value: { _eq: filter.tokenType },
       },
     });
   }
@@ -99,27 +97,25 @@ function buildDigitalAssetWhere(filter?: DigitalAssetFilter): Digital_Asset_Bool
  * Translate a flat `DigitalAssetSort` to a Hasura `order_by` array.
  *
  * Sort field → Hasura mapping:
- * - `'name'`         → `[{ lsp4TokenName: { value: asc_nulls_last/desc_nulls_last } }]`
- * - `'symbol'`       → `[{ lsp4TokenSymbol: { value: asc_nulls_last/desc_nulls_last } }]`
- * - `'holderCount'`  → `[{ ownedAssets_aggregate: { count: direction } }]`
- * - `'creatorCount'` → `[{ lsp4CreatorsLength: { value: direction } }]`
- * - `'totalSupply'`  → `[{ totalSupply: { value: direction } }]`
- * - `'createdAt'`    → `[{ owner: { timestamp: direction } }]` (LOCKED DECISION)
+ * - `'name'`         → `[{ lsp4TokenName: { value: dir } }]`
+ * - `'symbol'`       → `[{ lsp4TokenSymbol: { value: dir } }]`
+ * - `'holderCount'`  → `[{ ownedAssets_aggregate: { count: dir } }]`
+ * - `'creatorCount'` → `[{ lsp4CreatorsLength: { value: dir } }]`
+ * - `'totalSupply'`  → `[{ totalSupply: { value: dir } }]`
+ * - `'createdAt'`    → `[{ owner: { timestamp: dir } }]` (LOCKED DECISION)
+ *
+ * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
  */
 function buildDigitalAssetOrderBy(sort?: DigitalAssetSort): Digital_Asset_Order_By[] | undefined {
   if (!sort) return undefined;
 
-  const dir = sort.direction;
+  const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
-    case 'name': {
-      const nullsDir = dir === 'asc' ? 'asc_nulls_last' : 'desc_nulls_last';
-      return [{ lsp4TokenName: { value: nullsDir } }];
-    }
-    case 'symbol': {
-      const nullsDir = dir === 'asc' ? 'asc_nulls_last' : 'desc_nulls_last';
-      return [{ lsp4TokenSymbol: { value: nullsDir } }];
-    }
+    case 'name':
+      return [{ lsp4TokenName: { value: dir } }];
+    case 'symbol':
+      return [{ lsp4TokenSymbol: { value: dir } }];
     case 'holderCount':
       return [{ ownedAssets_aggregate: { count: dir } }];
     case 'creatorCount':
