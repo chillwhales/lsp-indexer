@@ -568,7 +568,7 @@ export default function OwnedAssetsPage(): React.ReactNode {
       </div>
 
       {/* key={mode} forces full remount when switching — avoids hook-rule violations */}
-      <Tabs defaultValue="list" key={mode}>
+      <Tabs defaultValue="single" key={mode}>
         <TabsList>
           <TabsTrigger value="single">
             <Wallet className="size-4" />

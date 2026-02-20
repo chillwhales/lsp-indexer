@@ -639,7 +639,7 @@ export default function NftsPage(): React.ReactNode {
       </div>
 
       {/* key={mode} forces full remount when switching — avoids hook-rule violations */}
-      <Tabs defaultValue="list" key={mode}>
+      <Tabs defaultValue="single" key={mode}>
         <TabsList>
           <TabsTrigger value="single">
             <Gem className="size-4" />
