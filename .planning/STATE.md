@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.1 (Digital Assets) — Plan 01 complete, Plan 02 next
-- **Status:** Plan 09.1-01 complete — Digital Asset types + GraphQL documents + codegen done
-- **Last activity:** 2026-02-20 — Completed 09.1-01-PLAN.md (digital-asset-types-codegen)
+- **Sub-phase:** 9.1 (Digital Assets) — Plans 01-02 complete, Plan 03 next
+- **Status:** Plan 09.1-02 complete — Digital Asset parsers + services + query key factory done
+- **Last activity:** 2026-02-20 — Completed 09.1-02-PLAN.md (digital-asset-parsers-services)
 - **Progress:** ████░░░░░░ 40% (10/28 requirements)
 
 ## Milestone History
@@ -48,7 +48,7 @@ _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-pha
 
 ## Performance Metrics
 
-- **Plans completed:** 43 (36 v1.0 + 7 v1.1)
+- **Plans completed:** 44 (36 v1.0 + 8 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 13 (11 v1.0 + 2 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 10/28 (v1.1)
@@ -95,6 +95,11 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **Search inputs have 300ms debounce** — prevents excessive GraphQL queries
 - **Labels on top of inputs** — not beside (consistent with shadcn form patterns)
 - **Shared playground components** in `components/playground/` — FilterFieldsRow, SortControls, ResultsList<T>, useFilterFields, ErrorAlert, RawJsonToggle. New domains only need config arrays + domain card component.
+- **Digital asset standard derivation:** parser derives `standard` from `decimals` field (3-state: undefined = not included → null, null = LSP8, value = LSP7)
+- **tokenType raw mapping:** Hasura stores "0"/"1"/"2" strings → parser maps to TOKEN/NFT/COLLECTION
+- **holderAddress filter:** maps to `ownedAssets.owner._ilike` (token holders via owned_asset.owner direct address field)
+- **createdAt sort:** maps to `owner.timestamp` (contract owner timestamp = asset creation time, LOCKED)
+- **@lukso/lsp4-contracts:** added to @lsp-indexer/node for LSP4_TOKEN_TYPES constants in service filter
 
 ### Discovered Todos
 
@@ -109,25 +114,24 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-20
-- **Activity:** Executed Phase 9.1 Plan 01 — Digital Asset types + GraphQL documents + codegen
-- **Outcome:** Created `packages/types/src/digital-assets.ts` with all Zod schemas and inferred types; created `packages/node/src/documents/digital-assets.ts` with GetDigitalAsset and GetDigitalAssets documents; ran codegen successfully. All typechecks pass.
+- **Activity:** Executed Phase 9.1 Plan 02 — Digital Asset parsers + services + query key factory
+- **Outcome:** Created `packages/node/src/keys/digital-assets.ts` (TkDodo factory); `packages/node/src/parsers/digital-assets.ts` (standard derivation + tokenType mapping); `packages/node/src/services/digital-assets.ts` (6-field filter/sort + inverted include). Added @lukso/lsp4-contracts@0.16.7. All typechecks and builds pass.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.1 Plan 01 complete** — types, documents, codegen all done and committed
-- **Branch:** `feat/phase-9.1-digital-assets` — continue on this branch for plans 02-04
-- **Next step:** Execute Phase 9.1 Plan 02 (parsers + services + query key factory)
+- **Phase 9.1 Plans 01-02 complete** — types, documents, codegen, parsers, services, query keys all done and committed
+- **Branch:** `feat/phase-9.1-digital-assets` — continue on this branch for plans 03-04
+- **Next step:** Execute Phase 9.1 Plan 03 (hooks + server actions + build validation)
 - **Key assets available:**
-  - `DigitalAsset`, `DigitalAssetFilter`, `DigitalAssetSort`, `DigitalAssetInclude` Zod schemas + inferred types
-  - `GetDigitalAssetQuery`, `GetDigitalAssetsQuery` Hasura types from codegen
-  - `GetDigitalAssetDocument`, `GetDigitalAssetsDocument` typed document strings
-  - `SortDirectionSchema` now in `common.ts` — shared across all domains
-  - Inverted include default pattern: omit include = fetch everything (Boolean! = true GraphQL defaults)
-- **Reference for parsers:** existing parser on `feat/phase-9-query-domains` branch; adapt for digital assets
-- **LSP7 vs LSP8 disambiguation:** parser derives `standard` from presence of `decimals` field (LSP7 only)
-- **Token type mapping:** raw values "0"/"1"/"2" → TOKEN/NFT/COLLECTION enum values in parser
+  - `fetchDigitalAsset`, `fetchDigitalAssets` service functions in `@lsp-indexer/node`
+  - `digitalAssetKeys` query key factory (detail/list/infinite namespaces)
+  - `parseDigitalAsset`, `parseDigitalAssets` parsers
+  - `FetchDigitalAssetsResult` interface
+  - All exported from `@lsp-indexer/node` index
+- **Standard derivation pattern:** `decimals !== undefined` checks if field was included; presence = LSP7, null = LSP8, undefined = null
+- **Inverted include:** omit include → fetch everything; provide include → each field false by default
 
 ---
 
-_Last updated: 2026-02-20 — completed 09.1-01-PLAN.md (digital-asset-types-codegen)_
+_Last updated: 2026-02-20 — completed 09.1-02-PLAN.md (digital-asset-parsers-services)_
