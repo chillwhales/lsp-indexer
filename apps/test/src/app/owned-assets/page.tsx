@@ -124,6 +124,20 @@ const DA_SUB_INCLUDES: IncludeToggleConfig[] = [
   { key: 'baseUri', label: 'Base URI' },
 ];
 
+/** Preset examples for quick single-lookup testing (holder + asset pairs) */
+const PRESET_OWNED_ASSETS = [
+  {
+    label: 'chill-labs × CHILL',
+    owner: '0xB6c10458274431189D4D0dA66ce00dc62A215908',
+    address: '0x5B8B0E44D4719F8A328470DcCD3746BFc73d6B14',
+  },
+  {
+    label: 'b00ste × CHILL',
+    owner: '0x00Aa9761286f21437c90AD2f895ef0dcA3484306',
+    address: '0x5B8B0E44D4719F8A328470DcCD3746BFc73d6B14',
+  },
+] as const;
+
 /** Build an OwnedAssetFilter from debounced filter field values */
 function buildOwnedAssetFilter(
   debouncedValues: Record<string, string>,
@@ -308,6 +322,13 @@ function SingleOwnedAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
     setQueryAddress(addressInput);
   };
 
+  const handlePreset = (preset: (typeof PRESET_OWNED_ASSETS)[number]) => {
+    setOwnerInput(preset.owner);
+    setAddressInput(preset.address);
+    setQueryOwner(preset.owner);
+    setQueryAddress(preset.address);
+  };
+
   return (
     <div className="space-y-4">
       {/* Lookup inputs: owner + asset address (natural keys) */}
@@ -337,6 +358,21 @@ function SingleOwnedAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
           Fetch
         </Button>
       </form>
+
+      {/* Preset buttons */}
+      <div className="flex flex-wrap gap-2">
+        <span className="text-sm text-muted-foreground self-center">Presets:</span>
+        {PRESET_OWNED_ASSETS.map((preset) => (
+          <Button
+            key={`${preset.owner}-${preset.address}`}
+            variant="outline"
+            size="sm"
+            onClick={() => handlePreset(preset)}
+          >
+            {preset.label}
+          </Button>
+        ))}
+      </div>
 
       {/* Include toggles */}
       <IncludeToggles
