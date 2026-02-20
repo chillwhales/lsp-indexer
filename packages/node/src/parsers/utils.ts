@@ -1,3 +1,34 @@
+import type { Lsp4Image } from '@lsp-indexer/types';
+
+/**
+ * Structural interface for raw LSP4 metadata image data.
+ * Works with both lsp4_metadata_icon and lsp4_metadata_image types
+ * without depending on codegen __typename.
+ */
+interface RawImage {
+  url?: string | null;
+  width?: number | null;
+  height?: number | null;
+  verification_method?: string | null;
+  verification_data?: string | null;
+}
+
+/**
+ * Parse a raw LSP4 metadata image into a clean Lsp4Image.
+ * Shared across digital-assets, nfts, and future domains.
+ */
+export function parseImage(raw: RawImage): Lsp4Image {
+  return {
+    url: raw.url ?? '',
+    width: raw.width ?? null,
+    height: raw.height ?? null,
+    verification:
+      raw.verification_method != null
+        ? { method: raw.verification_method, data: raw.verification_data ?? '' }
+        : null,
+  };
+}
+
 /**
  * Convert a Hasura `numeric` value to a plain decimal string, safe to pass
  * to `BigInt()`, avoiding scientific notation.
