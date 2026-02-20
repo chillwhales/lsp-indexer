@@ -2,9 +2,6 @@ import { z } from 'zod';
 
 import { SortDirectionSchema } from './common';
 
-// Re-export for backward compatibility
-export { SortDirectionSchema };
-
 // ---------------------------------------------------------------------------
 // Core domain schemas
 // ---------------------------------------------------------------------------
@@ -166,7 +163,6 @@ export type ProfileImage = z.infer<typeof ProfileImageSchema>;
 export type ProfileFilter = z.infer<typeof ProfileFilterSchema>;
 export type ProfileSort = z.infer<typeof ProfileSortSchema>;
 export type ProfileSortField = z.infer<typeof ProfileSortFieldSchema>;
-export type SortDirection = z.infer<typeof SortDirectionSchema>;
 export type ProfileInclude = z.infer<typeof ProfileIncludeSchema>;
 export type UseProfileParams = z.infer<typeof UseProfileParamsSchema>;
 export type UseProfilesParams = z.infer<typeof UseProfilesParamsSchema>;
