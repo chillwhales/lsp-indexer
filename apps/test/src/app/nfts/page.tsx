@@ -162,8 +162,17 @@ const COLLECTION_SUB_INCLUDES: IncludeToggleConfig[] = [
   { key: 'baseUri', label: 'Base URI' },
 ];
 
-const PRESET_COLLECTIONS = [
-  { label: 'Chillwhales', address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83' },
+const PRESET_NFTS = [
+  {
+    label: 'Chillwhale #1',
+    address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83',
+    tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
+  },
+  {
+    label: 'Unknown collection #1',
+    address: '0x6edbbce5eba138de468eb0901ed2cf602bf473c9',
+    tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
+  },
 ] as const;
 
 /** Build an NftFilter from debounced filter field values */
@@ -443,10 +452,13 @@ function SingleNftTab({ mode }: { mode: HookMode }): React.ReactNode {
     setQueryFormattedTokenId(formattedTokenId);
   };
 
-  const handlePreset = (presetAddress: string) => {
+  const handlePreset = (presetAddress: string, presetTokenId: string) => {
     setAddress(presetAddress);
+    setTokenId(presetTokenId);
+    setFormattedTokenId('');
     setQueryAddress(presetAddress);
-    // Keep tokenId / formattedTokenId as-is — user enters them separately
+    setQueryTokenId(presetTokenId);
+    setQueryFormattedTokenId('');
   };
 
   const canSubmit = Boolean(address && (tokenId || formattedTokenId));
@@ -494,12 +506,12 @@ function SingleNftTab({ mode }: { mode: HookMode }): React.ReactNode {
       {/* Preset buttons */}
       <div className="flex flex-wrap gap-2">
         <span className="text-sm text-muted-foreground self-center">Presets:</span>
-        {PRESET_COLLECTIONS.map((preset) => (
+        {PRESET_NFTS.map((preset) => (
           <Button
-            key={preset.address}
+            key={`${preset.address}-${preset.tokenId}`}
             variant="outline"
             size="sm"
-            onClick={() => handlePreset(preset.address)}
+            onClick={() => handlePreset(preset.address, preset.tokenId)}
           >
             {preset.label}
           </Button>
