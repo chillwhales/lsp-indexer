@@ -4,7 +4,7 @@ import { SortDirectionSchema, SortNullsSchema } from './common';
 import { DigitalAssetIncludeSchema, DigitalAssetSchema } from './digital-assets';
 import { NftSchema } from './nfts';
 import { OwnedAssetSchema } from './owned-assets';
-import { ProfileSchema } from './profiles';
+import { ProfileIncludeSchema, ProfileSchema } from './profiles';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -100,8 +100,8 @@ export const OwnedTokenIncludeSchema = z.object({
   nft: z.boolean().optional(),
   /** Include related owned asset (parent fungible ownership record) */
   ownedAsset: z.boolean().optional(),
-  /** Include related universal profile details */
-  universalProfile: z.boolean().optional(),
+  /** Include related universal profile details — sub-fields control which profile attributes to fetch */
+  universalProfile: ProfileIncludeSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------

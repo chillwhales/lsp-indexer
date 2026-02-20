@@ -99,8 +99,20 @@ const OWNED_ASSET_SORT_OPTIONS: SortOption[] = [
 ];
 
 const OWNED_ASSET_INCLUDES: IncludeToggleConfig[] = [
-  { key: 'universalProfile', label: 'Universal Profile' },
   { key: 'tokenIdCount', label: 'Token ID Count' },
+];
+
+/** Universal profile sub-include toggle configs (ProfileInclude fields) */
+const UP_SUB_INCLUDES: IncludeToggleConfig[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'description', label: 'Description' },
+  { key: 'tags', label: 'Tags' },
+  { key: 'links', label: 'Links' },
+  { key: 'avatar', label: 'Avatar' },
+  { key: 'profileImage', label: 'Profile Image' },
+  { key: 'backgroundImage', label: 'Background Image' },
+  { key: 'followerCount', label: 'Follower Count' },
+  { key: 'followingCount', label: 'Following Count' },
 ];
 
 /** Digital asset sub-include toggle configs (DigitalAssetInclude fields) */
@@ -151,6 +163,35 @@ function buildOwnedAssetFilter(
 }
 
 // ---------------------------------------------------------------------------
+// Universal profile include hook — manages universalProfile toggle + sub-toggles
+// ---------------------------------------------------------------------------
+
+/**
+ * Hook for managing the universalProfile include state with nested sub-includes.
+ *
+ * When universalProfile is enabled (even without any sub-includes), it means
+ * "include the profile data". The sub-toggles control which profile
+ * fields to fetch.
+ */
+function useProfileInclude() {
+  const [enabled, setEnabled] = useState(true);
+  const {
+    values: subValues,
+    toggle: toggleSub,
+    include: subInclude,
+  } = useIncludeToggles(UP_SUB_INCLUDES);
+
+  return {
+    enabled,
+    setEnabled,
+    subValues,
+    toggleSub,
+    /** Returns the universalProfile include value for the OwnedAssetInclude object */
+    value: enabled ? (subInclude ?? {}) : undefined,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Digital asset include hook — manages digitalAsset toggle + sub-toggles
 // ---------------------------------------------------------------------------
 
@@ -186,12 +227,14 @@ function useDigitalAssetInclude() {
 function buildOwnedAssetInclude(
   includeValues: Record<string, boolean>,
   daValue: Record<string, boolean> | undefined,
+  upValue: Record<string, boolean> | undefined,
 ): OwnedAssetInclude | undefined {
-  // Check if all base toggles are ON and DA is enabled with all sub-includes ON
+  // Check if all base toggles are ON and both DA and UP are enabled with all sub-includes ON
   const allBaseOn = Object.values(includeValues).every(Boolean);
   const daAllOn = daValue !== undefined && Object.keys(daValue).length === 0;
+  const upAllOn = upValue !== undefined && Object.keys(upValue).length === 0;
 
-  if (allBaseOn && daAllOn) return undefined; // Everything ON = use defaults
+  if (allBaseOn && daAllOn && upAllOn) return undefined; // Everything ON = use defaults
 
   const include: OwnedAssetInclude = {};
   for (const [key, val] of Object.entries(includeValues)) {
@@ -199,6 +242,9 @@ function buildOwnedAssetInclude(
   }
   if (daValue !== undefined) {
     include.digitalAsset = daValue;
+  }
+  if (upValue !== undefined) {
+    include.universalProfile = upValue;
   }
   return include;
 }
@@ -214,11 +260,12 @@ function useOwnedAssetListState() {
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(OWNED_ASSET_INCLUDES);
   const da = useDigitalAssetInclude();
+  const up = useProfileInclude();
 
   const filter = buildOwnedAssetFilter(debouncedValues);
   const sort: OwnedAssetSort = { field: sortField, direction: sortDirection, nulls: sortNulls };
   const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
-  const include = buildOwnedAssetInclude(includeValues, da.value);
+  const include = buildOwnedAssetInclude(includeValues, da.value, up.value);
 
   return {
     values,
@@ -236,6 +283,7 @@ function useOwnedAssetListState() {
     toggleInclude,
     include,
     da,
+    up,
   };
 }
 
@@ -291,6 +339,57 @@ function DigitalAssetIncludeSection({
 }
 
 // ---------------------------------------------------------------------------
+// Universal profile sub-include toggles component
+// ---------------------------------------------------------------------------
+
+function ProfileIncludeSection({
+  enabled,
+  setEnabled,
+  subValues,
+  toggleSub,
+}: {
+  enabled: boolean;
+  setEnabled: (v: boolean) => void;
+  subValues: Record<string, boolean>;
+  toggleSub: (key: string) => void;
+}): React.ReactNode {
+  return (
+    <div className="space-y-2">
+      <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+        <Switch size="sm" checked={enabled} onCheckedChange={setEnabled} />
+        <span className={enabled ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+          Universal Profile
+        </span>
+      </label>
+      {enabled && (
+        <div className="ml-6 pl-3 border-l space-y-1">
+          <span className="text-xs text-muted-foreground">Profile sub-fields</span>
+          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+            {UP_SUB_INCLUDES.map((config) => (
+              <label
+                key={config.key}
+                className="flex items-center gap-1 text-xs cursor-pointer select-none"
+              >
+                <Switch
+                  size="sm"
+                  checked={subValues[config.key] ?? true}
+                  onCheckedChange={() => toggleSub(config.key)}
+                />
+                <span
+                  className={subValues[config.key] ? 'text-foreground' : 'text-muted-foreground'}
+                >
+                  {config.label}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Tab 1: Single Owned Asset
 // ---------------------------------------------------------------------------
 
@@ -302,19 +401,22 @@ function SingleOwnedAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
   const [queryAddress, setQueryAddress] = useState('');
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(OWNED_ASSET_INCLUDES);
   const da = useDigitalAssetInclude();
-  const include = buildOwnedAssetInclude(includeValues, da.value);
+  const up = useProfileInclude();
+  const include = buildOwnedAssetInclude(includeValues, da.value, up.value);
 
   const hasQuery = Boolean(queryOwner) && Boolean(queryAddress);
   const filter: OwnedAssetFilter | undefined = hasQuery
     ? { owner: queryOwner, address: queryAddress }
     : undefined;
 
+  // Only fetch when user has submitted a query — pass limit 0 to prevent
+  // pre-loading data on initial page load (no `enabled` option on hook)
   const { ownedAssets, isLoading, error, isFetching } = useOwnedAssets({
     filter,
-    limit: 1,
+    limit: hasQuery ? 1 : 0,
     include,
   });
-  const ownedAsset = ownedAssets[0] ?? null;
+  const ownedAsset = hasQuery ? (ownedAssets[0] ?? null) : null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -385,6 +487,12 @@ function SingleOwnedAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
         setEnabled={da.setEnabled}
         subValues={da.subValues}
         toggleSub={da.toggleSub}
+      />
+      <ProfileIncludeSection
+        enabled={up.enabled}
+        setEnabled={up.setEnabled}
+        subValues={up.subValues}
+        toggleSub={up.toggleSub}
       />
 
       {/* Loading state */}
@@ -467,6 +575,12 @@ function OwnedAssetListTab({ mode }: { mode: HookMode }): React.ReactNode {
         subValues={state.da.subValues}
         toggleSub={state.da.toggleSub}
       />
+      <ProfileIncludeSection
+        enabled={state.up.enabled}
+        setEnabled={state.up.setEnabled}
+        subValues={state.up.subValues}
+        toggleSub={state.up.toggleSub}
+      />
       <ResultsList<OwnedAsset>
         items={ownedAssets}
         isLoading={isLoading}
@@ -533,6 +647,12 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
         setEnabled={state.da.setEnabled}
         subValues={state.da.subValues}
         toggleSub={state.da.toggleSub}
+      />
+      <ProfileIncludeSection
+        enabled={state.up.enabled}
+        setEnabled={state.up.setEnabled}
+        subValues={state.up.subValues}
+        toggleSub={state.up.toggleSub}
       />
       <ResultsList<OwnedAsset>
         items={ownedAssets}

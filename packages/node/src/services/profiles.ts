@@ -140,6 +140,35 @@ function buildIncludeVars(include?: ProfileInclude): Record<string, boolean> {
   };
 }
 
+/**
+ * Build profile sub-include variables for use as a **nested relation** in other domains
+ * (owned-assets, owned-tokens). Uses `includeProfile*` prefix to avoid colliding with
+ * digital asset `include*` variables which share the same query.
+ *
+ * **Inverted default pattern:**
+ * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
+ *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
+ * - When `include` is **provided** → each field defaults to `false` unless explicitly
+ *   set to `true`.
+ */
+export function buildProfileIncludeVars(include?: ProfileInclude): Record<string, boolean> {
+  if (!include) {
+    return {};
+  }
+
+  return {
+    includeProfileName: include.name ?? false,
+    includeProfileDescription: include.description ?? false,
+    includeProfileTags: include.tags ?? false,
+    includeProfileLinks: include.links ?? false,
+    includeProfileAvatar: include.avatar ?? false,
+    includeProfileImage: include.profileImage ?? false,
+    includeProfileBackgroundImage: include.backgroundImage ?? false,
+    includeProfileFollowerCount: include.followerCount ?? false,
+    includeProfileFollowingCount: include.followingCount ?? false,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Public service functions
 // ---------------------------------------------------------------------------

@@ -5,7 +5,7 @@ export { IndexerError } from './errors';
 export { execute, getClientUrl, getClientWsUrl, getServerUrl, getServerWsUrl } from './client';
 
 // Profile services (the core fetching layer)
-export { fetchProfile, fetchProfiles } from './services/profiles';
+export { buildProfileIncludeVars, fetchProfile, fetchProfiles } from './services/profiles';
 export type { FetchProfilesResult } from './services/profiles';
 
 // Profile parsers (Hasura → clean types)

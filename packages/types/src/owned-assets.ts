@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { SortDirectionSchema, SortNullsSchema } from './common';
 import { DigitalAssetIncludeSchema, DigitalAssetSchema } from './digital-assets';
-import { ProfileSchema } from './profiles';
+import { ProfileIncludeSchema, ProfileSchema } from './profiles';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -95,8 +95,8 @@ export const OwnedAssetSortSchema = z.object({
 export const OwnedAssetIncludeSchema = z.object({
   /** Include related digital asset details — sub-fields control which DA attributes to fetch */
   digitalAsset: DigitalAssetIncludeSchema.optional(),
-  /** Include related universal profile details */
-  universalProfile: z.boolean().optional(),
+  /** Include related universal profile details — sub-fields control which profile attributes to fetch */
+  universalProfile: ProfileIncludeSchema.optional(),
   /** Include count of individual token IDs (tokenIds_aggregate) */
   tokenIdCount: z.boolean().optional(),
 });

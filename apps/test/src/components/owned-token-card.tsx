@@ -6,6 +6,7 @@ import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { NftCard } from '@/components/nft-card';
 import { OwnedAssetCard } from '@/components/owned-asset-card';
 import { RawJsonToggle } from '@/components/playground';
+import { ProfileCard } from '@/components/profile-card';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -148,29 +149,19 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
           </div>
         </dl>
 
-        {/* Universal Profile section */}
+        {/* Universal Profile section (collapsible, reuses ProfileCard) */}
         {ownedToken.universalProfile && (
-          <div className="border rounded-lg p-3 space-y-2 bg-violet-50/50 dark:bg-violet-950/20 border-violet-200 dark:border-violet-900">
-            <h4 className="text-sm font-semibold text-violet-800 dark:text-violet-300">
-              Universal Profile
-            </h4>
-            <div className="text-sm">
-              <span className="text-muted-foreground">Name:</span>{' '}
-              <span>{ownedToken.universalProfile.name ?? 'Unnamed'}</span>
-            </div>
-            <div className="text-sm">
-              <span className="text-muted-foreground">Address:</span>{' '}
-              <span className="font-mono text-xs break-all">
-                {ownedToken.universalProfile.address}
-              </span>
-            </div>
-            {ownedToken.universalProfile.description && (
-              <div className="text-sm">
-                <span className="text-muted-foreground">Description:</span>{' '}
-                <span className="text-xs">{ownedToken.universalProfile.description}</span>
-              </div>
-            )}
-          </div>
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
+              <ChevronDown className="size-3.5" />
+              Universal Profile:{' '}
+              {ownedToken.universalProfile.name ??
+                truncateAddress(ownedToken.universalProfile.address)}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <ProfileCard profile={ownedToken.universalProfile} />
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
         {/* NFT section (collapsible) */}

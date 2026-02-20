@@ -9,6 +9,7 @@ import { GetOwnedTokenDocument, GetOwnedTokensDocument } from '../documents/owne
 import type { Owned_Token_Bool_Exp, Owned_Token_Order_By } from '../graphql/graphql';
 import { parseOwnedToken, parseOwnedTokens } from '../parsers/owned-tokens';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
+import { buildProfileIncludeVars } from './profiles';
 import { escapeLike, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
@@ -136,7 +137,7 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
     includeDigitalAsset: include.digitalAsset !== undefined, // provided (even {}) = include
     includeNft: include.nft ?? false,
     includeOwnedAsset: include.ownedAsset ?? false,
-    includeUniversalProfile: include.universalProfile ?? false,
+    includeUniversalProfile: include.universalProfile !== undefined, // provided (even {}) = include
   };
 
   // Digital asset sub-includes: reuse digital asset include builder.
@@ -147,6 +148,15 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
       Object.keys(include.digitalAsset).length > 0 ? include.digitalAsset : undefined,
     );
     Object.assign(vars, daVars);
+  }
+
+  // Profile sub-includes: reuse profile include builder with includeProfile* prefix.
+  // Same pattern as digital asset sub-includes.
+  if (include.universalProfile) {
+    const profileVars = buildProfileIncludeVars(
+      Object.keys(include.universalProfile).length > 0 ? include.universalProfile : undefined,
+    );
+    Object.assign(vars, profileVars);
   }
 
   return vars;

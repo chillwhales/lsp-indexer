@@ -9,6 +9,7 @@ import { GetOwnedAssetDocument, GetOwnedAssetsDocument } from '../documents/owne
 import type { Owned_Asset_Bool_Exp, Owned_Asset_Order_By } from '../graphql/graphql';
 import { parseOwnedAsset, parseOwnedAssets } from '../parsers/owned-assets';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
+import { buildProfileIncludeVars } from './profiles';
 import { escapeLike, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
@@ -120,7 +121,7 @@ function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> 
 
   const vars: Record<string, boolean> = {
     includeDigitalAsset: include.digitalAsset !== undefined, // provided (even {}) = include
-    includeUniversalProfile: include.universalProfile ?? false,
+    includeUniversalProfile: include.universalProfile !== undefined, // provided (even {}) = include
     includeTokenIdCount: include.tokenIdCount ?? false,
   };
 
@@ -132,6 +133,15 @@ function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> 
       Object.keys(include.digitalAsset).length > 0 ? include.digitalAsset : undefined,
     );
     Object.assign(vars, daVars);
+  }
+
+  // Profile sub-includes: reuse profile include builder with includeProfile* prefix.
+  // Same pattern as digital asset sub-includes.
+  if (include.universalProfile) {
+    const profileVars = buildProfileIncludeVars(
+      Object.keys(include.universalProfile).length > 0 ? include.universalProfile : undefined,
+    );
+    Object.assign(vars, profileVars);
   }
 
   return vars;

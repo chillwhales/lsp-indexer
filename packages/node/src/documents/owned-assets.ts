@@ -35,6 +35,15 @@ export const GetOwnedAssetDocument = graphql(`
     $includeTokenIdFormat: Boolean! = true
     $includeBaseUri: Boolean! = true
     $includeUniversalProfile: Boolean! = true
+    $includeProfileName: Boolean! = true
+    $includeProfileDescription: Boolean! = true
+    $includeProfileTags: Boolean! = true
+    $includeProfileLinks: Boolean! = true
+    $includeProfileAvatar: Boolean! = true
+    $includeProfileImage: Boolean! = true
+    $includeProfileBackgroundImage: Boolean! = true
+    $includeProfileFollowerCount: Boolean! = true
+    $includeProfileFollowingCount: Boolean! = true
     $includeTokenIdCount: Boolean! = true
   ) {
     owned_asset(where: $where, limit: 1) {
@@ -118,38 +127,48 @@ export const GetOwnedAssetDocument = graphql(`
       universalProfile @include(if: $includeUniversalProfile) {
         address
         lsp3Profile {
-          name {
+          name @include(if: $includeProfileName) {
             value
           }
-          description {
+          description @include(if: $includeProfileDescription) {
             value
           }
-          tags {
+          tags @include(if: $includeProfileTags) {
             value
           }
-          links {
+          links @include(if: $includeProfileLinks) {
             title
             url
           }
-          avatar {
+          avatar @include(if: $includeProfileAvatar) {
             url
             file_type
             verification_method
             verification_data
           }
-          profileImage {
+          profileImage @include(if: $includeProfileImage) {
             url
             width
             height
             verification_method
             verification_data
           }
-          backgroundImage {
+          backgroundImage @include(if: $includeProfileBackgroundImage) {
             url
             width
             height
             verification_method
             verification_data
+          }
+        }
+        followedBy_aggregate @include(if: $includeProfileFollowerCount) {
+          aggregate {
+            count
+          }
+        }
+        followed_aggregate @include(if: $includeProfileFollowingCount) {
+          aggregate {
+            count
           }
         }
       }
@@ -173,7 +192,7 @@ export const GetOwnedAssetDocument = graphql(`
  * - `$order_by` — Sort order (built by service layer from OwnedAssetSort)
  * - `$limit` / `$offset` — Pagination
  * - `$includeDigitalAsset` + 17 DA sub-variables — Digital asset nested include toggles
- * - `$includeUniversalProfile` — Universal profile nested include toggle
+ * - `$includeUniversalProfile` + 9 profile sub-variables — Universal profile nested include toggles
  * - `$includeTokenIdCount` — Token ID count aggregate toggle
  *
  * Includes `owned_asset_aggregate` for total count (used for "X of Y results" UI).
@@ -203,6 +222,15 @@ export const GetOwnedAssetsDocument = graphql(`
     $includeTokenIdFormat: Boolean! = true
     $includeBaseUri: Boolean! = true
     $includeUniversalProfile: Boolean! = true
+    $includeProfileName: Boolean! = true
+    $includeProfileDescription: Boolean! = true
+    $includeProfileTags: Boolean! = true
+    $includeProfileLinks: Boolean! = true
+    $includeProfileAvatar: Boolean! = true
+    $includeProfileImage: Boolean! = true
+    $includeProfileBackgroundImage: Boolean! = true
+    $includeProfileFollowerCount: Boolean! = true
+    $includeProfileFollowingCount: Boolean! = true
     $includeTokenIdCount: Boolean! = true
   ) {
     owned_asset(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
@@ -286,38 +314,48 @@ export const GetOwnedAssetsDocument = graphql(`
       universalProfile @include(if: $includeUniversalProfile) {
         address
         lsp3Profile {
-          name {
+          name @include(if: $includeProfileName) {
             value
           }
-          description {
+          description @include(if: $includeProfileDescription) {
             value
           }
-          tags {
+          tags @include(if: $includeProfileTags) {
             value
           }
-          links {
+          links @include(if: $includeProfileLinks) {
             title
             url
           }
-          avatar {
+          avatar @include(if: $includeProfileAvatar) {
             url
             file_type
             verification_method
             verification_data
           }
-          profileImage {
+          profileImage @include(if: $includeProfileImage) {
             url
             width
             height
             verification_method
             verification_data
           }
-          backgroundImage {
+          backgroundImage @include(if: $includeProfileBackgroundImage) {
             url
             width
             height
             verification_method
             verification_data
+          }
+        }
+        followedBy_aggregate @include(if: $includeProfileFollowerCount) {
+          aggregate {
+            count
+          }
+        }
+        followed_aggregate @include(if: $includeProfileFollowingCount) {
+          aggregate {
+            count
           }
         }
       }

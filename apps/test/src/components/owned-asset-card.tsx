@@ -4,6 +4,7 @@ import React from 'react';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { RawJsonToggle } from '@/components/playground';
+import { ProfileCard } from '@/components/profile-card';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -49,13 +50,26 @@ function formatRelativeTime(timestamp: string): string {
 
 /**
  * Format balance: use formatTokenAmount when digital asset decimals are available,
- * otherwise show raw bigint string.
+ * otherwise show raw bigint string with thousands separators.
  */
 function formatBalance(balance: bigint, decimals: number | null | undefined): string {
-  if (decimals != null) {
+  if (decimals != null && decimals > 0) {
     return formatTokenAmount(balance.toString(), decimals);
   }
-  return balance.toString();
+  // No decimals: show raw value with thousands separators for readability
+  return balance.toLocaleString();
+}
+
+/**
+ * Build a descriptive tooltip for the balance field.
+ * Always shows the raw bigint; when decimals available, also shows formatted.
+ */
+function balanceTooltip(balance: bigint, decimals: number | null | undefined): string {
+  const raw = balance.toString();
+  if (decimals != null && decimals > 0) {
+    return `Raw: ${raw} (${decimals} decimals)`;
+  }
+  return `Raw: ${raw}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -136,11 +150,15 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
               <Tooltip>
                 <TooltipTrigger className="font-mono underline decoration-dashed underline-offset-2 cursor-default">
                   {formatBalance(ownedAsset.balance, decimals)}
+                  {decimals != null && ownedAsset.digitalAsset?.symbol && (
+                    <span className="text-muted-foreground ml-1">
+                      {ownedAsset.digitalAsset.symbol}
+                    </span>
+                  )}
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="font-mono text-xs">
-                    Raw: {ownedAsset.balance.toString()}
-                    {decimals != null && ` (${decimals} decimals)`}
+                    {balanceTooltip(ownedAsset.balance, decimals)}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -161,29 +179,19 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
           </div>
         </dl>
 
-        {/* Universal Profile section */}
+        {/* Universal Profile section (collapsible, reuses ProfileCard) */}
         {ownedAsset.universalProfile && (
-          <div className="border rounded-lg p-3 space-y-2 bg-violet-50/50 dark:bg-violet-950/20 border-violet-200 dark:border-violet-900">
-            <h4 className="text-sm font-semibold text-violet-800 dark:text-violet-300">
-              Universal Profile
-            </h4>
-            <div className="text-sm">
-              <span className="text-muted-foreground">Name:</span>{' '}
-              <span>{ownedAsset.universalProfile.name ?? 'Unnamed'}</span>
-            </div>
-            <div className="text-sm">
-              <span className="text-muted-foreground">Address:</span>{' '}
-              <span className="font-mono text-xs break-all">
-                {ownedAsset.universalProfile.address}
-              </span>
-            </div>
-            {ownedAsset.universalProfile.description && (
-              <div className="text-sm">
-                <span className="text-muted-foreground">Description:</span>{' '}
-                <span className="text-xs">{ownedAsset.universalProfile.description}</span>
-              </div>
-            )}
-          </div>
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
+              <ChevronDown className="size-3.5" />
+              Universal Profile:{' '}
+              {ownedAsset.universalProfile.name ??
+                truncateAddress(ownedAsset.universalProfile.address)}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <ProfileCard profile={ownedAsset.universalProfile} />
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
         {/* Digital Asset section (collapsible) */}
