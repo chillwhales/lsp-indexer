@@ -97,28 +97,22 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <User className="size-3.5" />
-                Holder: {nft.holder.universalProfile?.name ?? nft.holder.address}
+                Holder: {nft.holder.name ?? nft.holder.address}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2 space-y-3">
-              {/* Basic holder info */}
-              <dl className="space-y-1.5 text-sm">
-                <div className="flex gap-2">
-                  <dt className="text-muted-foreground w-24 shrink-0">Address</dt>
-                  <dd className="font-mono text-xs break-all">{nft.holder.address}</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="text-muted-foreground w-24 shrink-0">Acquired</dt>
-                  <dd className="text-xs">
-                    {nft.holder.timestamp
-                      ? new Date(nft.holder.timestamp).toLocaleString()
-                      : 'Unknown'}
-                  </dd>
-                </div>
-              </dl>
-              {/* Universal Profile (reuses ProfileCard) */}
-              {nft.holder.universalProfile && <ProfileCard profile={nft.holder.universalProfile} />}
+              {/* Acquisition timestamp */}
+              {nft.holder.timestamp && (
+                <dl className="space-y-1.5 text-sm">
+                  <div className="flex gap-2">
+                    <dt className="text-muted-foreground w-24 shrink-0">Acquired</dt>
+                    <dd className="text-xs">{new Date(nft.holder.timestamp).toLocaleString()}</dd>
+                  </div>
+                </dl>
+              )}
+              {/* Holder profile (flat — holder IS a Profile with timestamp) */}
+              <ProfileCard profile={nft.holder} />
             </CollapsibleContent>
           </Collapsible>
         )}

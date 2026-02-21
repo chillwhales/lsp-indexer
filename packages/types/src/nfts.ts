@@ -14,15 +14,19 @@ import { ProfileIncludeSchema, ProfileSchema } from './profiles';
 // Core domain schemas
 // ---------------------------------------------------------------------------
 
-/** Holder of an individual NFT token (from owned_token table) */
-export const NftHolderSchema = z.object({
-  /** Current holder address */
-  address: z.string(),
-  /** When this holder acquired the token (ISO timestamp) */
-  timestamp: z.string(),
-  /** Holder's universal profile (if they have one) */
-  universalProfile: ProfileSchema.nullable(),
-});
+/**
+ * Holder of an individual NFT token (from owned_token table).
+ *
+ * Profile fields are spread flat into the holder object — the `universalProfile`
+ * Hasura relation is merged, not nested. When the holder has no UP, profile
+ * fields will be `null` / `0` / `[]`.
+ */
+export const NftHolderSchema = z
+  .object({
+    /** When this holder acquired the token (ISO timestamp) */
+    timestamp: z.string(),
+  })
+  .merge(ProfileSchema);
 
 /**
  * Individual NFT token within an LSP8 collection.

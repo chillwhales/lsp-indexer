@@ -21,8 +21,8 @@ type RawNft = GetNftQuery['nft'][number];
  *   falls back to `lsp4MetadataBaseUri`, then `null`. Only returns null if BOTH are absent.
  * - **`@include(if: false)` omitted fields:** Won't be present in the response —
  *   uses optional chaining; omitted arrays become `null`, included-but-empty arrays become `[]`.
- * - **Holder mapping:** Maps `ownedToken.owner` (address string) and
- *   `ownedToken.timestamp` to a clean `{ address, timestamp }` holder object.
+ * - **Holder mapping:** Spreads profile fields flat into holder (no nested
+ *   `universalProfile` wrapper). When holder has no UP, profile fields get safe defaults.
  * - **Collection info:** Full DigitalAsset from digitalAsset relation, parsed via `parseDigitalAsset`.
  * - **Name field:** NFT's own name from `lsp4Metadata.name` with baseUri fallback.
  *
@@ -50,14 +50,26 @@ export function parseNft(raw: RawNft): Nft {
     // Full collection from digitalAsset — reuse parseDigitalAsset
     collection: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset) : null,
 
-    // Holder (not owner — ownedToken tracks the token holder)
+    // Holder — profile fields spread flat (no nested universalProfile wrapper).
+    // When the holder has a UP, profile fields are populated from parseProfile.
+    // When no UP exists, profile fields get safe defaults (null / 0 / []).
     holder: raw.ownedToken
       ? {
-          address: raw.ownedToken.owner,
           timestamp: raw.ownedToken.timestamp ?? '',
-          universalProfile: raw.ownedToken.universalProfile
+          ...(raw.ownedToken.universalProfile
             ? parseProfile(raw.ownedToken.universalProfile as Parameters<typeof parseProfile>[0])
-            : null,
+            : {
+                address: raw.ownedToken.owner,
+                name: null,
+                description: null,
+                tags: null,
+                links: null,
+                avatar: null,
+                profileImage: null,
+                backgroundImage: null,
+                followerCount: 0,
+                followingCount: 0,
+              }),
         }
       : null,
 
