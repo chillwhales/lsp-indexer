@@ -27,28 +27,33 @@ export const OwnedTokenNftIncludeSchema = NftIncludeSchema.omit({
  *
  * Each record represents which specific token (identified by token_id) an
  * address holds within a particular collection.
+ *
+ * Fields renamed for developer clarity:
+ * - `digitalAssetAddress` (Hasura: `address`) — the asset contract address
+ * - `holderAddress` (Hasura: `owner`) — the holder's address
+ * - `holder` (Hasura: `universalProfile`) — the holder's profile
  */
 export const OwnedTokenSchema = z.object({
   /** Unique identifier */
   id: z.string(),
-  /** Asset contract address */
-  address: z.string(),
-  /** Owner address */
-  owner: z.string(),
+  /** Asset contract address (Hasura column: address) */
+  digitalAssetAddress: z.string(),
+  /** Holder address (Hasura column: owner) */
+  holderAddress: z.string(),
   /** Specific token ID within the collection */
   tokenId: z.string(),
-  /** Block number when this ownership was last updated */
-  block: z.number(),
-  /** Timestamp when this ownership was last updated (ISO string) */
-  timestamp: z.string(),
+  /** Block number when this ownership was last updated (null when excluded via include) */
+  block: z.number().nullable(),
+  /** Timestamp when this ownership was last updated — ISO string (null when excluded via include) */
+  timestamp: z.string().nullable(),
   /** Related digital asset (null = not included) */
   digitalAsset: DigitalAssetSchema.nullable(),
   /** Related NFT details (null = not included) */
   nft: NftSchema.nullable(),
   /** Related owned asset (parent fungible ownership record, null = not included) */
   ownedAsset: OwnedAssetSchema.nullable(),
-  /** Related universal profile (null = not included) */
-  universalProfile: ProfileSchema.nullable(),
+  /** Related holder's universal profile details (null = not included in query) */
+  holder: ProfileSchema.nullable(),
 });
 
 // ---------------------------------------------------------------------------
@@ -62,14 +67,14 @@ export const OwnedTokenSchema = z.object({
  * Name filters use nested relation filtering through Hasura.
  */
 export const OwnedTokenFilterSchema = z.object({
-  /** Case-insensitive match on holder (owner) address */
-  owner: z.string().optional(),
-  /** Case-insensitive match on asset contract address */
-  address: z.string().optional(),
+  /** Case-insensitive match on holder address (Hasura column: owner) */
+  holderAddress: z.string().optional(),
+  /** Case-insensitive match on asset contract address (Hasura column: address) */
+  digitalAssetAddress: z.string().optional(),
   /** Case-insensitive match on token ID */
   tokenId: z.string().optional(),
   /** Case-insensitive match on the holder's profile name (via universalProfile.lsp3Profile.name) */
-  ownerName: z.string().optional(),
+  holderName: z.string().optional(),
   /** Case-insensitive match on the digital asset's token name (via digitalAsset.lsp4TokenName) */
   assetName: z.string().optional(),
   /** Case-insensitive match on the NFT's name (via nft.lsp4Metadata.name or nft.lsp4MetadataBaseUri.name) */
@@ -78,9 +83,9 @@ export const OwnedTokenFilterSchema = z.object({
 
 /** Fields available for sorting owned token lists */
 export const OwnedTokenSortFieldSchema = z.enum([
-  'address',
+  'digitalAssetAddress',
   'block',
-  'owner',
+  'holderAddress',
   'timestamp',
   'tokenId',
 ]);
@@ -95,11 +100,13 @@ export const OwnedTokenSortSchema = z.object({
 });
 
 /**
- * Control which nested fields to include in an owned token query.
+ * Control which fields to include in an owned token query.
  *
  * **Behavior (inverted default):**
  * - When `include` is **omitted** entirely → all fields are fetched (opt-out model).
- * - When `include` is **provided** → only fields explicitly set/provided are included.
+ *   GraphQL variables default to `true`, so all `@include(if:)` directives pass.
+ * - When `include` is **provided** → only fields explicitly set/provided are included;
+ *   unspecified fields default to `false` (opt-in when provided).
  *
  * The `digitalAsset` field accepts a `DigitalAssetIncludeSchema` for nested 17-field
  * sub-includes — controlling exactly which digital asset attributes to fetch.
@@ -108,14 +115,18 @@ export const OwnedTokenSortSchema = z.object({
  * for nested 8-field sub-includes — controlling exactly which NFT metadata to fetch.
  */
 export const OwnedTokenIncludeSchema = z.object({
+  /** Include block number */
+  block: z.boolean().optional(),
+  /** Include timestamp */
+  timestamp: z.boolean().optional(),
   /** Include related digital asset details — sub-fields control which DA attributes to fetch */
   digitalAsset: DigitalAssetIncludeSchema.optional(),
   /** Include related NFT details — sub-fields control which NFT metadata to fetch */
   nft: OwnedTokenNftIncludeSchema.optional(),
   /** Include related owned asset (parent fungible ownership record) */
   ownedAsset: z.boolean().optional(),
-  /** Include related universal profile details — sub-fields control which profile attributes to fetch */
-  universalProfile: ProfileIncludeSchema.optional(),
+  /** Include related holder profile details — sub-fields control which profile attributes to fetch */
+  holder: ProfileIncludeSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------

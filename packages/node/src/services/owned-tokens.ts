@@ -24,12 +24,12 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
  * returns an empty object (no filtering).
  *
  * Filter → Hasura mapping:
- * - `owner`     → `{ owner: { _ilike: '%owner%' } }`
- * - `address`   → `{ address: { _ilike: '%address%' } }`
- * - `tokenId`   → `{ token_id: { _ilike: '%tokenId%' } }` (snake_case column)
- * - `ownerName` → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike: '%name%' } } } } }`
- * - `assetName` → `{ digitalAsset: { lsp4TokenName: { value: { _ilike: '%name%' } } } }`
- * - `tokenName` → `{ nft: { _or: [lsp4Metadata.name, lsp4MetadataBaseUri.name] } }`
+ * - `holderAddress`       → `{ owner: { _ilike: '%holder%' } }`
+ * - `digitalAssetAddress` → `{ address: { _ilike: '%address%' } }`
+ * - `tokenId`             → `{ token_id: { _ilike: '%tokenId%' } }` (snake_case column)
+ * - `holderName`          → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike: '%name%' } } } } }`
+ * - `assetName`           → `{ digitalAsset: { lsp4TokenName: { value: { _ilike: '%name%' } } } }`
+ * - `tokenName`           → `{ nft: { _or: [lsp4Metadata.name, lsp4MetadataBaseUri.name] } }`
  *
  * All string fields use `_ilike` + `escapeLike` for case-insensitive matching
  * (EIP-55 mixed-case address prevention).
@@ -39,15 +39,15 @@ function buildWhere(filter?: OwnedTokenFilter): Owned_Token_Bool_Exp {
 
   const conditions: Owned_Token_Bool_Exp[] = [];
 
-  if (filter.owner) {
+  if (filter.holderAddress) {
     conditions.push({
-      owner: { _ilike: `%${escapeLike(filter.owner)}%` },
+      owner: { _ilike: `%${escapeLike(filter.holderAddress)}%` },
     });
   }
 
-  if (filter.address) {
+  if (filter.digitalAssetAddress) {
     conditions.push({
-      address: { _ilike: `%${escapeLike(filter.address)}%` },
+      address: { _ilike: `%${escapeLike(filter.digitalAssetAddress)}%` },
     });
   }
 
@@ -57,10 +57,10 @@ function buildWhere(filter?: OwnedTokenFilter): Owned_Token_Bool_Exp {
     });
   }
 
-  if (filter.ownerName) {
+  if (filter.holderName) {
     conditions.push({
       universalProfile: {
-        lsp3Profile: { name: { value: { _ilike: `%${escapeLike(filter.ownerName)}%` } } },
+        lsp3Profile: { name: { value: { _ilike: `%${escapeLike(filter.holderName)}%` } } },
       },
     });
   }
@@ -94,7 +94,9 @@ function buildWhere(filter?: OwnedTokenFilter): Owned_Token_Bool_Exp {
  * Translate a flat `OwnedTokenSort` to a Hasura `order_by` array.
  *
  * Sort field → Hasura mapping:
- * - Direct columns: `address`, `block`, `owner`, `timestamp` → `[{ [field]: dir }]`
+ * - Direct columns: `block`, `timestamp` → `[{ [field]: dir }]`
+ * - Renamed: `digitalAssetAddress` → `[{ address: dir }]`
+ * - Renamed: `holderAddress` → `[{ owner: dir }]`
  * - `tokenId` → `[{ token_id: dir }]` (snake_case in Hasura)
  *
  * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
@@ -105,11 +107,13 @@ function buildOrderBy(sort?: OwnedTokenSort): Owned_Token_Order_By[] | undefined
   const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
-    case 'address':
     case 'block':
-    case 'owner':
     case 'timestamp':
       return [{ [sort.field]: dir }];
+    case 'digitalAssetAddress':
+      return [{ address: dir }];
+    case 'holderAddress':
+      return [{ owner: dir }];
     case 'tokenId':
       return [{ token_id: dir }];
     default:
@@ -126,10 +130,14 @@ function buildOrderBy(sort?: OwnedTokenSort): Owned_Token_Order_By[] | undefined
  * - When `include` is **provided** → each field defaults to `false` unless explicitly
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
  *
+ * **Direct column includes:**
+ * - `block`, `timestamp` map to `includeBlock`, `includeTimestamp`.
+ *
  * **Nested relation sub-includes:**
  * - `digitalAsset`: Only included when at least one sub-field is truthy → 17 DA sub-variables.
  * - `nft`: Only included when at least one sub-field is truthy → 8 NFT sub-variables.
- * - `universalProfile`: Only included when at least one sub-field is truthy → 9 profile sub-variables.
+ * - `holder` (universal profile): Only included when at least one sub-field is truthy → 9 profile sub-variables.
+ *   Variable name: `includeHolder` (maps to `$includeHolder` in GraphQL document).
  *
  * `undefined`, `{}`, and all-false objects all resolve to `false` for the parent relation.
  */
@@ -141,13 +149,15 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
 
   const activeDA = hasActiveIncludes(include.digitalAsset);
   const activeNft = hasActiveIncludes(include.nft);
-  const activeUP = hasActiveIncludes(include.universalProfile);
+  const activeHolder = hasActiveIncludes(include.holder);
 
   const vars: Record<string, boolean> = {
+    includeBlock: include.block ?? false,
+    includeTimestamp: include.timestamp ?? false,
     includeDigitalAsset: activeDA,
     includeNft: activeNft,
     includeOwnedAsset: include.ownedAsset ?? false,
-    includeUniversalProfile: activeUP,
+    includeHolder: activeHolder,
   };
 
   // Digital asset sub-includes: reuse digital asset include builder.
@@ -163,8 +173,8 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
   }
 
   // Profile sub-includes: reuse profile include builder with includeProfile* prefix.
-  if (activeUP) {
-    const profileVars = buildProfileIncludeVars(include.universalProfile);
+  if (activeHolder) {
+    const profileVars = buildProfileIncludeVars(include.holder);
     Object.assign(vars, profileVars);
   }
 

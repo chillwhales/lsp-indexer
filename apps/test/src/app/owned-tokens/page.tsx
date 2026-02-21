@@ -60,8 +60,13 @@ import {
 // ---------------------------------------------------------------------------
 
 const ADDRESS_FILTERS: FilterFieldConfig[] = [
-  { key: 'owner', label: 'Holder Address', placeholder: '0x... (holder)', mono: true },
-  { key: 'address', label: 'Asset Address', placeholder: '0x... (asset contract)', mono: true },
+  { key: 'holderAddress', label: 'Holder Address', placeholder: '0x... (holder)', mono: true },
+  {
+    key: 'digitalAssetAddress',
+    label: 'Asset Address',
+    placeholder: '0x... (asset contract)',
+    mono: true,
+  },
   { key: 'tokenId', label: 'Token ID', placeholder: 'Token ID', mono: true },
 ];
 
@@ -74,14 +79,18 @@ const NAME_FILTERS: FilterFieldConfig[] = [
 const ALL_FILTERS = [...ADDRESS_FILTERS, ...NAME_FILTERS];
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'address', label: 'Address' },
+  { value: 'digitalAssetAddress', label: 'Asset Address' },
   { value: 'block', label: 'Block' },
-  { value: 'owner', label: 'Holder' },
+  { value: 'holderAddress', label: 'Holder Address' },
   { value: 'timestamp', label: 'Timestamp' },
   { value: 'tokenId', label: 'Token ID' },
 ];
 
-const BASE_INCLUDES: IncludeToggleConfig[] = [{ key: 'ownedAsset', label: 'Owned Asset' }];
+const BASE_INCLUDES: IncludeToggleConfig[] = [
+  { key: 'block', label: 'Block' },
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'ownedAsset', label: 'Owned Asset' },
+];
 
 const PRESETS = [
   {
@@ -115,10 +124,11 @@ function useHooks(mode: HookMode) {
 
 function buildFilter(debouncedValues: Record<string, string>): OwnedTokenFilter | undefined {
   const f: OwnedTokenFilter = {};
-  if (debouncedValues.owner) f.owner = debouncedValues.owner;
-  if (debouncedValues.address) f.address = debouncedValues.address;
+  if (debouncedValues.holderAddress) f.holderAddress = debouncedValues.holderAddress;
+  if (debouncedValues.digitalAssetAddress)
+    f.digitalAssetAddress = debouncedValues.digitalAssetAddress;
   if (debouncedValues.tokenId) f.tokenId = debouncedValues.tokenId;
-  if (debouncedValues.holderName) f.ownerName = debouncedValues.holderName;
+  if (debouncedValues.holderName) f.holderName = debouncedValues.holderName;
   if (debouncedValues.assetName) f.assetName = debouncedValues.assetName;
   if (debouncedValues.tokenName) f.tokenName = debouncedValues.tokenName;
   return Object.keys(f).length > 0 ? f : undefined;
@@ -144,7 +154,7 @@ function useListState() {
   const include = buildNestedInclude(includeValues, {
     digitalAsset: da.value,
     nft: nft.value,
-    universalProfile: up.value,
+    holder: up.value,
   }) as OwnedTokenInclude | undefined;
 
   return {
@@ -223,14 +233,14 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const include = buildNestedInclude(includeValues, {
     digitalAsset: da.value,
     nft: nft.value,
-    universalProfile: up.value,
+    holder: up.value,
   }) as OwnedTokenInclude | undefined;
 
   const hasQuery = Boolean(queryOwner) && Boolean(queryAddress);
   const filter: OwnedTokenFilter | undefined = hasQuery
     ? {
-        owner: queryOwner,
-        address: queryAddress,
+        holderAddress: queryOwner,
+        digitalAssetAddress: queryAddress,
         ...(queryTokenId ? { tokenId: queryTokenId } : {}),
       }
     : undefined;

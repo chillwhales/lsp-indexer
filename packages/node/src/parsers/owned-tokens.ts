@@ -18,14 +18,16 @@ type RawOwnedToken = GetOwnedTokenQuery['owned_token'][number];
  * Transform a raw Hasura owned token response into a clean `OwnedToken` type.
  *
  * Handles all edge cases:
+ * - **Field renames:** Hasura `address` → `digitalAssetAddress`, `owner` → `holderAddress`,
+ *   `universalProfile` → `holder` for developer clarity.
  * - **`token_id` → `tokenId`:** snake_case to camelCase mapping.
  * - **`@include(if: false)` omitted fields:** Won't be present in the response —
- *   uses optional chaining; omitted relations become `null`.
+ *   uses optional chaining; omitted relations/fields become `null`.
  * - **Nested `digitalAsset`:** Parsed via `parseDigitalAsset` for full DA details.
  * - **Nested `nft`:** Parsed via `parseNft` for NFT-specific fields (metadata, baseUri).
  * - **Nested `ownedAsset`:** Parsed via `parseOwnedAsset` for parent ownership record
  *   (basic fields only — no nested DA/profile/tokenIdCount in this context).
- * - **Nested `universalProfile`:** Parsed via `parseProfile` for LSP3 profile data.
+ * - **Nested `universalProfile` (→ `holder`):** Parsed via `parseProfile` for LSP3 profile data.
  *
  * @param raw - A single owned_token from the Hasura GraphQL response
  * @returns A clean, camelCase `OwnedToken` with all nested relations parsed
@@ -33,11 +35,11 @@ type RawOwnedToken = GetOwnedTokenQuery['owned_token'][number];
 export function parseOwnedToken(raw: RawOwnedToken): OwnedToken {
   return {
     id: raw.id,
-    address: raw.address,
-    owner: raw.owner,
+    digitalAssetAddress: raw.address,
+    holderAddress: raw.owner,
     tokenId: raw.token_id,
-    block: raw.block,
-    timestamp: raw.timestamp,
+    block: raw.block ?? null,
+    timestamp: raw.timestamp ?? null,
     // Cast needed: the owned_token document selects a subset of digital_asset fields;
     // parseDigitalAsset uses optional chaining and handles missing fields gracefully.
     digitalAsset: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset as any) : null,
@@ -49,7 +51,7 @@ export function parseOwnedToken(raw: RawOwnedToken): OwnedToken {
     ownedAsset: raw.ownedAsset ? parseOwnedAsset(raw.ownedAsset as any) : null,
     // Cast needed: the owned_token document selects a subset of universal_profile fields
     // (no `id`); parseProfile uses optional chaining and handles missing fields gracefully.
-    universalProfile: raw.universalProfile ? parseProfile(raw.universalProfile as any) : null,
+    holder: raw.universalProfile ? parseProfile(raw.universalProfile as any) : null,
   };
 }
 

@@ -89,9 +89,11 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
                 Burned
               </Badge>
             )}
-            <Badge variant="outline" className="text-xs">
-              {formatRelativeTime(ownedToken.timestamp)}
-            </Badge>
+            {ownedToken.timestamp && (
+              <Badge variant="outline" className="text-xs">
+                {formatRelativeTime(ownedToken.timestamp)}
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -99,45 +101,48 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
         {/* Core ownership details */}
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Owner</dt>
-            <dd className="font-mono text-xs break-all">{ownedToken.owner}</dd>
+            <dt className="text-muted-foreground w-28 shrink-0">Holder</dt>
+            <dd className="font-mono text-xs break-all">{ownedToken.holderAddress}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Asset Address</dt>
-            <dd className="font-mono text-xs break-all">{ownedToken.address}</dd>
+            <dd className="font-mono text-xs break-all">{ownedToken.digitalAssetAddress}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Token ID</dt>
             <dd className="font-mono text-xs break-all">{ownedToken.tokenId}</dd>
           </div>
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Block</dt>
-            <dd className="font-mono text-xs">{ownedToken.block}</dd>
-          </div>
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Timestamp</dt>
-            <dd className="text-xs">
-              {new Date(ownedToken.timestamp).toLocaleString()}{' '}
-              <span className="text-muted-foreground">
-                ({formatRelativeTime(ownedToken.timestamp)})
-              </span>
-            </dd>
-          </div>
+          {ownedToken.block != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-28 shrink-0">Block</dt>
+              <dd className="font-mono text-xs">{ownedToken.block}</dd>
+            </div>
+          )}
+          {ownedToken.timestamp != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-28 shrink-0">Timestamp</dt>
+              <dd className="text-xs">
+                {new Date(ownedToken.timestamp).toLocaleString()}{' '}
+                <span className="text-muted-foreground">
+                  ({formatRelativeTime(ownedToken.timestamp)})
+                </span>
+              </dd>
+            </div>
+          )}
         </dl>
 
-        {/* Universal Profile section (collapsible, reuses ProfileCard) */}
-        {ownedToken.universalProfile && (
+        {/* Holder Profile section (collapsible, reuses ProfileCard) */}
+        {ownedToken.holder && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <User className="size-3.5" />
-                Universal Profile:{' '}
-                {ownedToken.universalProfile.name ?? ownedToken.universalProfile.address}
+                Holder Profile: {ownedToken.holder.name ?? ownedToken.holder.address}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
-              <ProfileCard profile={ownedToken.universalProfile} />
+              <ProfileCard profile={ownedToken.holder} />
             </CollapsibleContent>
           </Collapsible>
         )}

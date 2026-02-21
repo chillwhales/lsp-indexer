@@ -5,12 +5,13 @@ import { graphql } from '../graphql';
  *
  * Variables:
  * - `$where` — The service layer builds the Hasura bool_exp (e.g., `{ id: { _eq: "..." } }`)
+ * - `$includeBlock` / `$includeTimestamp` — Direct column toggles
  * - `$includeDigitalAsset` — Include related digital asset details (with 17 DA sub-variables)
  * - `$include[Name|Symbol|...]` — 17 digital asset sub-include toggles
  * - `$includeNft` — Include related NFT details (with 8 NFT sub-variables)
  * - `$includeNft[FormattedTokenId|Name|...]` — 8 NFT sub-include toggles
  * - `$includeOwnedAsset` — Include related owned asset (parent fungible ownership record)
- * - `$includeUniversalProfile` — Include related universal profile details (with 9 profile sub-variables)
+ * - `$includeHolder` — Include related holder universal profile details
  * - `$includeProfile[Name|Description|...]` — 9 profile sub-include toggles
  *
  * Uses `@include(if:)` directives so omitted nested data is never sent over the wire.
@@ -19,6 +20,8 @@ import { graphql } from '../graphql';
 export const GetOwnedTokenDocument = graphql(`
   query GetOwnedToken(
     $where: owned_token_bool_exp!
+    $includeBlock: Boolean! = true
+    $includeTimestamp: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeName: Boolean! = true
     $includeSymbol: Boolean! = true
@@ -47,7 +50,7 @@ export const GetOwnedTokenDocument = graphql(`
     $includeNftLinks: Boolean! = true
     $includeNftAttributes: Boolean! = true
     $includeOwnedAsset: Boolean! = true
-    $includeUniversalProfile: Boolean! = true
+    $includeHolder: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
     $includeProfileTags: Boolean! = true
@@ -63,8 +66,8 @@ export const GetOwnedTokenDocument = graphql(`
       address
       owner
       token_id
-      block
-      timestamp
+      block @include(if: $includeBlock)
+      timestamp @include(if: $includeTimestamp)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
@@ -221,7 +224,7 @@ export const GetOwnedTokenDocument = graphql(`
         block
         timestamp
       }
-      universalProfile @include(if: $includeUniversalProfile) {
+      universalProfile @include(if: $includeHolder) {
         address
         lsp3Profile {
           name @include(if: $includeProfileName) {
@@ -283,10 +286,11 @@ export const GetOwnedTokenDocument = graphql(`
  * - `$where` — Filter conditions (built by service layer from flat OwnedTokenFilter)
  * - `$order_by` — Sort order (built by service layer from OwnedTokenSort)
  * - `$limit` / `$offset` — Pagination
+ * - `$includeBlock` / `$includeTimestamp` — Direct column toggles
  * - `$includeDigitalAsset` + 17 DA sub-variables — Digital asset nested include toggles
  * - `$includeNft` + 8 NFT sub-variables — NFT nested include toggles
  * - `$includeOwnedAsset` — Owned asset (parent) nested include toggle
- * - `$includeUniversalProfile` + 9 profile sub-variables — Universal profile nested include toggles
+ * - `$includeHolder` + 9 profile sub-variables — Holder profile nested include toggles
  *
  * Includes `owned_token_aggregate` for total count (used for "X of Y results" UI).
  */
@@ -296,6 +300,8 @@ export const GetOwnedTokensDocument = graphql(`
     $order_by: [owned_token_order_by!]
     $limit: Int
     $offset: Int
+    $includeBlock: Boolean! = true
+    $includeTimestamp: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeName: Boolean! = true
     $includeSymbol: Boolean! = true
@@ -324,7 +330,7 @@ export const GetOwnedTokensDocument = graphql(`
     $includeNftLinks: Boolean! = true
     $includeNftAttributes: Boolean! = true
     $includeOwnedAsset: Boolean! = true
-    $includeUniversalProfile: Boolean! = true
+    $includeHolder: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
     $includeProfileTags: Boolean! = true
@@ -340,8 +346,8 @@ export const GetOwnedTokensDocument = graphql(`
       address
       owner
       token_id
-      block
-      timestamp
+      block @include(if: $includeBlock)
+      timestamp @include(if: $includeTimestamp)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
@@ -498,7 +504,7 @@ export const GetOwnedTokensDocument = graphql(`
         block
         timestamp
       }
-      universalProfile @include(if: $includeUniversalProfile) {
+      universalProfile @include(if: $includeHolder) {
         address
         lsp3Profile {
           name @include(if: $includeProfileName) {

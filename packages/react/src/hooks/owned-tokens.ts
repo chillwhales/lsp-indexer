@@ -35,8 +35,9 @@ const DEFAULT_PAGE_SIZE = 20;
  *
  *   return (
  *     <div>
- *       <h2>{ownedToken.address}</h2>
+ *       <h2>{ownedToken.digitalAssetAddress}</h2>
  *       <p>Token ID: {ownedToken.tokenId}</p>
+ *       <p>Holder: {ownedToken.holderAddress}</p>
  *     </div>
  *   );
  * }
@@ -59,8 +60,8 @@ export function useOwnedToken(params: UseOwnedTokenParams) {
  * Fetch a paginated list of owned tokens with filtering and sorting.
  *
  * Wraps `fetchOwnedTokens` in a TanStack `useQuery` hook. Supports filtering
- * (by owner, address, tokenId, digitalAssetId, nftId, ownedAssetId,
- * universalProfileId) and sorting (by address, block, owner, timestamp, tokenId).
+ * (by holderAddress, digitalAssetAddress, tokenId, holderName, assetName, tokenName)
+ * and sorting (by digitalAssetAddress, block, holderAddress, timestamp, tokenId).
  *
  * @param params - Optional filter, sort, pagination, and include config
  * @returns `{ ownedTokens, totalCount, isLoading, error, ...rest }` — full TanStack Query
@@ -70,9 +71,9 @@ export function useOwnedToken(params: UseOwnedTokenParams) {
  * ```tsx
  * import { useOwnedTokens } from '@lsp-indexer/react';
  *
- * function OwnedTokenList({ owner }: { owner: string }) {
+ * function OwnedTokenList({ holderAddress }: { holderAddress: string }) {
  *   const { ownedTokens, totalCount, isLoading } = useOwnedTokens({
- *     filter: { owner },
+ *     filter: { holderAddress },
  *     sort: { field: 'tokenId', direction: 'asc' },
  *     limit: 20,
  *     offset: 0,
@@ -82,7 +83,7 @@ export function useOwnedToken(params: UseOwnedTokenParams) {
  *     <div>
  *       <p>{totalCount} owned tokens found</p>
  *       {ownedTokens.map((t) => (
- *         <div key={t.id}>{t.address} — {t.tokenId}</div>
+ *         <div key={t.id}>{t.digitalAssetAddress} — {t.tokenId}</div>
  *       ))}
  *     </div>
  *   );
@@ -121,7 +122,7 @@ export function useOwnedTokens(params: UseOwnedTokensParams = {}) {
  * ```tsx
  * import { useInfiniteOwnedTokens } from '@lsp-indexer/react';
  *
- * function InfiniteOwnedTokenList({ owner }: { owner: string }) {
+ * function InfiniteOwnedTokenList({ holderAddress }: { holderAddress: string }) {
  *   const {
  *     ownedTokens,
  *     hasNextPage,
@@ -129,7 +130,7 @@ export function useOwnedTokens(params: UseOwnedTokensParams = {}) {
  *     isFetchingNextPage,
  *     isLoading,
  *   } = useInfiniteOwnedTokens({
- *     filter: { owner },
+ *     filter: { holderAddress },
  *     sort: { field: 'tokenId', direction: 'asc' },
  *     pageSize: 20,
  *   });
@@ -137,7 +138,7 @@ export function useOwnedTokens(params: UseOwnedTokensParams = {}) {
  *   return (
  *     <div>
  *       {ownedTokens.map((t) => (
- *         <div key={t.id}>{t.address} — {t.tokenId}</div>
+ *         <div key={t.id}>{t.digitalAssetAddress} — {t.tokenId}</div>
  *       ))}
  *       {hasNextPage && (
  *         <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
