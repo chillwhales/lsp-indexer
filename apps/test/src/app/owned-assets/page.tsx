@@ -61,13 +61,7 @@ import {
 const FILTERS: FilterFieldConfig[] = [
   { key: 'owner', label: 'Owner Address', placeholder: '0x... (owner)', mono: true },
   { key: 'address', label: 'Asset Address', placeholder: '0x... (asset contract)', mono: true },
-  { key: 'digitalAssetId', label: 'Digital Asset ID', placeholder: 'Digital asset FK', mono: true },
-  {
-    key: 'universalProfileId',
-    label: 'Universal Profile ID',
-    placeholder: 'Universal profile FK',
-    mono: true,
-  },
+  { key: 'assetName', label: 'Asset Name', placeholder: 'Search by token name...' },
 ];
 
 const SORT_OPTIONS: SortOption[] = [
@@ -114,8 +108,7 @@ function buildFilter(debouncedValues: Record<string, string>): OwnedAssetFilter 
   const f: OwnedAssetFilter = {};
   if (debouncedValues.owner) f.owner = debouncedValues.owner;
   if (debouncedValues.address) f.address = debouncedValues.address;
-  if (debouncedValues.digitalAssetId) f.digitalAssetId = debouncedValues.digitalAssetId;
-  if (debouncedValues.universalProfileId) f.universalProfileId = debouncedValues.universalProfileId;
+  if (debouncedValues.assetName) f.assetName = debouncedValues.assetName;
   return Object.keys(f).length > 0 ? f : undefined;
 }
 

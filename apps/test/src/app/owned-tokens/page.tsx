@@ -60,18 +60,11 @@ import {
 // ---------------------------------------------------------------------------
 
 const FILTERS: FilterFieldConfig[] = [
-  { key: 'owner', label: 'Owner Address', placeholder: '0x... (owner)', mono: true },
+  { key: 'owner', label: 'Holder Address', placeholder: '0x... (holder)', mono: true },
   { key: 'address', label: 'Asset Address', placeholder: '0x... (asset contract)', mono: true },
   { key: 'tokenId', label: 'Token ID', placeholder: 'Token ID', mono: true },
-  { key: 'digitalAssetId', label: 'Digital Asset ID', placeholder: 'Digital asset FK', mono: true },
-  { key: 'nftId', label: 'NFT ID', placeholder: 'NFT FK', mono: true },
-  { key: 'ownedAssetId', label: 'Owned Asset ID', placeholder: 'Owned asset FK', mono: true },
-  {
-    key: 'universalProfileId',
-    label: 'Universal Profile ID',
-    placeholder: 'Universal profile FK',
-    mono: true,
-  },
+  { key: 'assetName', label: 'Asset Name', placeholder: 'Search by collection name...' },
+  { key: 'tokenName', label: 'Token Name', placeholder: 'Search by NFT name...' },
 ];
 
 const SORT_OPTIONS: SortOption[] = [
@@ -119,10 +112,8 @@ function buildFilter(debouncedValues: Record<string, string>): OwnedTokenFilter 
   if (debouncedValues.owner) f.owner = debouncedValues.owner;
   if (debouncedValues.address) f.address = debouncedValues.address;
   if (debouncedValues.tokenId) f.tokenId = debouncedValues.tokenId;
-  if (debouncedValues.digitalAssetId) f.digitalAssetId = debouncedValues.digitalAssetId;
-  if (debouncedValues.nftId) f.nftId = debouncedValues.nftId;
-  if (debouncedValues.ownedAssetId) f.ownedAssetId = debouncedValues.ownedAssetId;
-  if (debouncedValues.universalProfileId) f.universalProfileId = debouncedValues.universalProfileId;
+  if (debouncedValues.assetName) f.assetName = debouncedValues.assetName;
+  if (debouncedValues.tokenName) f.tokenName = debouncedValues.tokenName;
   return Object.keys(f).length > 0 ? f : undefined;
 }
 

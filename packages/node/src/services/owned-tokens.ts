@@ -24,13 +24,11 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
  * returns an empty object (no filtering).
  *
  * Filter → Hasura mapping:
- * - `owner`              → `{ owner: { _ilike: '%owner%' } }`
- * - `address`            → `{ address: { _ilike: '%address%' } }`
- * - `tokenId`            → `{ token_id: { _ilike: '%tokenId%' } }` (snake_case column)
- * - `digitalAssetId`     → `{ digital_asset_id: { _ilike: '%digitalAssetId%' } }`
- * - `nftId`              → `{ nft_id: { _ilike: '%nftId%' } }`
- * - `ownedAssetId`       → `{ owned_asset_id: { _ilike: '%ownedAssetId%' } }`
- * - `universalProfileId` → `{ universal_profile_id: { _ilike: '%universalProfileId%' } }`
+ * - `owner`     → `{ owner: { _ilike: '%owner%' } }`
+ * - `address`   → `{ address: { _ilike: '%address%' } }`
+ * - `tokenId`   → `{ token_id: { _ilike: '%tokenId%' } }` (snake_case column)
+ * - `assetName` → `{ digitalAsset: { lsp4TokenName: { value: { _ilike: '%name%' } } } }`
+ * - `tokenName` → `{ nft: { _or: [lsp4Metadata.name, lsp4MetadataBaseUri.name] } }`
  *
  * All string fields use `_ilike` + `escapeLike` for case-insensitive matching
  * (EIP-55 mixed-case address prevention).
@@ -58,27 +56,23 @@ function buildWhere(filter?: OwnedTokenFilter): Owned_Token_Bool_Exp {
     });
   }
 
-  if (filter.digitalAssetId) {
+  if (filter.assetName) {
     conditions.push({
-      digital_asset_id: { _ilike: `%${escapeLike(filter.digitalAssetId)}%` },
+      digitalAsset: {
+        lsp4TokenName: { value: { _ilike: `%${escapeLike(filter.assetName)}%` } },
+      },
     });
   }
 
-  if (filter.nftId) {
+  if (filter.tokenName) {
+    const namePattern = `%${escapeLike(filter.tokenName)}%`;
     conditions.push({
-      nft_id: { _ilike: `%${escapeLike(filter.nftId)}%` },
-    });
-  }
-
-  if (filter.ownedAssetId) {
-    conditions.push({
-      owned_asset_id: { _ilike: `%${escapeLike(filter.ownedAssetId)}%` },
-    });
-  }
-
-  if (filter.universalProfileId) {
-    conditions.push({
-      universal_profile_id: { _ilike: `%${escapeLike(filter.universalProfileId)}%` },
+      nft: {
+        _or: [
+          { lsp4Metadata: { name: { value: { _ilike: namePattern } } } },
+          { lsp4MetadataBaseUri: { name: { value: { _ilike: namePattern } } } },
+        ],
+      },
     });
   }
 

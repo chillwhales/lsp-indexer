@@ -23,10 +23,9 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
  * returns an empty object (no filtering).
  *
  * Filter → Hasura mapping:
- * - `owner`              → `{ owner: { _ilike: '%owner%' } }`
- * - `address`            → `{ address: { _ilike: '%address%' } }`
- * - `digitalAssetId`     → `{ digital_asset_id: { _ilike: '%digitalAssetId%' } }`
- * - `universalProfileId` → `{ universal_profile_id: { _ilike: '%universalProfileId%' } }`
+ * - `owner`     → `{ owner: { _ilike: '%owner%' } }`
+ * - `address`   → `{ address: { _ilike: '%address%' } }`
+ * - `assetName` → `{ digitalAsset: { lsp4TokenName: { value: { _ilike: '%name%' } } } }`
  *
  * All string fields use `_ilike` + `escapeLike` for case-insensitive matching
  * (EIP-55 mixed-case address prevention).
@@ -48,15 +47,11 @@ function buildWhere(filter?: OwnedAssetFilter): Owned_Asset_Bool_Exp {
     });
   }
 
-  if (filter.digitalAssetId) {
+  if (filter.assetName) {
     conditions.push({
-      digital_asset_id: { _ilike: `%${escapeLike(filter.digitalAssetId)}%` },
-    });
-  }
-
-  if (filter.universalProfileId) {
-    conditions.push({
-      universal_profile_id: { _ilike: `%${escapeLike(filter.universalProfileId)}%` },
+      digitalAsset: {
+        lsp4TokenName: { value: { _ilike: `%${escapeLike(filter.assetName)}%` } },
+      },
     });
   }
 

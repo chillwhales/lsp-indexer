@@ -43,16 +43,15 @@ export const OwnedAssetSchema = z.object({
  * Filter criteria for owned asset queries.
  *
  * All string fields use case-insensitive `_ilike` matching at the service layer.
+ * Name filters use nested relation filtering through Hasura.
  */
 export const OwnedAssetFilterSchema = z.object({
   /** Case-insensitive match on owner address */
   owner: z.string().optional(),
   /** Case-insensitive match on asset contract address */
   address: z.string().optional(),
-  /** Case-insensitive match on digital_asset_id FK */
-  digitalAssetId: z.string().optional(),
-  /** Case-insensitive match on universal_profile_id FK */
-  universalProfileId: z.string().optional(),
+  /** Case-insensitive match on the digital asset's token name (via digitalAsset.lsp4TokenName) */
+  assetName: z.string().optional(),
 });
 
 /**
