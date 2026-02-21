@@ -22,6 +22,29 @@ function bigintReplacer(_key: string, value: unknown): unknown {
   return typeof value === 'bigint' ? value.toString() : value;
 }
 
+/**
+ * Row of preset buttons for quick single-lookup testing.
+ * Generic over the preset shape — each page can define its own preset type.
+ */
+export function PresetButtons<T extends { label: string }>({
+  presets,
+  onSelect,
+}: {
+  presets: readonly T[];
+  onSelect: (preset: T) => void;
+}): React.ReactNode {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <span className="text-sm text-muted-foreground self-center">Presets:</span>
+      {presets.map((preset) => (
+        <Button key={preset.label} variant="outline" size="sm" onClick={() => onSelect(preset)}>
+          {preset.label}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
 export function RawJsonToggle({ data, label }: { data: unknown; label: string }): React.ReactNode {
   return (
     <Collapsible>

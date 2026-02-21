@@ -80,3 +80,137 @@ export function IncludeToggles({
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Sub-include hook + component — for nested relations with per-field toggles
+// ---------------------------------------------------------------------------
+
+/** State returned by `useSubInclude` for a single nested relation. */
+export interface SubIncludeState {
+  enabled: boolean;
+  setEnabled: (v: boolean) => void;
+  subValues: Record<string, boolean>;
+  toggleSub: (key: string) => void;
+  /**
+   * The include value to pass into the parent include object.
+   * - `undefined` → relation excluded (enabled = false)
+   * - `{}` → relation included with all defaults (enabled + all sub-toggles ON)
+   * - `{ key: true/false, ... }` → relation included with explicit sub-fields
+   */
+  value: Record<string, boolean> | undefined;
+}
+
+/**
+ * Generic hook for managing a nested relation's include state.
+ *
+ * Replaces the 7 identical `useCollectionInclude`, `useHolderInclude`,
+ * `useProfileInclude`, `useDigitalAssetInclude`, `useNftInclude` hooks
+ * that were duplicated across pages.
+ *
+ * @param configs - The sub-field toggle configs for this relation
+ */
+export function useSubInclude(configs: readonly IncludeToggleConfig[]): SubIncludeState {
+  const [enabled, setEnabled] = useState(true);
+  const { values: subValues, toggle: toggleSub, include: subInclude } = useIncludeToggles(configs);
+
+  return {
+    enabled,
+    setEnabled,
+    subValues,
+    toggleSub,
+    value: enabled ? (subInclude ?? {}) : undefined,
+  };
+}
+
+/**
+ * Collapsible sub-include toggle section for a nested relation.
+ *
+ * Shows a parent enable/disable switch with a label, and when enabled,
+ * shows the individual sub-field toggles indented beneath it.
+ *
+ * Replaces 7 near-identical `CollectionIncludeSection`, `HolderIncludeSection`,
+ * `DigitalAssetIncludeSection`, etc. components.
+ */
+export function SubIncludeSection({
+  label,
+  subtitle,
+  configs,
+  state,
+}: {
+  label: string;
+  subtitle: string;
+  configs: readonly IncludeToggleConfig[];
+  state: SubIncludeState;
+}): React.ReactNode {
+  return (
+    <div className="space-y-2">
+      <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+        <Switch size="sm" checked={state.enabled} onCheckedChange={state.setEnabled} />
+        <span className={state.enabled ? 'text-foreground font-medium' : 'text-muted-foreground'}>
+          {label}
+        </span>
+      </label>
+      {state.enabled && (
+        <div className="ml-6 pl-3 border-l space-y-1">
+          <span className="text-xs text-muted-foreground">{subtitle}</span>
+          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+            {configs.map((config) => (
+              <label
+                key={config.key}
+                className="flex items-center gap-1 text-xs cursor-pointer select-none"
+              >
+                <Switch
+                  size="sm"
+                  checked={state.subValues[config.key] ?? true}
+                  onCheckedChange={() => state.toggleSub(config.key)}
+                />
+                <span
+                  className={
+                    state.subValues[config.key] ? 'text-foreground' : 'text-muted-foreground'
+                  }
+                >
+                  {config.label}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Build nested include — merges base toggles with sub-include relation values
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a nested include object from flat base-toggle values and
+ * sub-include relation values.
+ *
+ * Returns `undefined` when everything is at defaults (all base toggles ON
+ * and all sub-includes enabled with all sub-fields ON), letting the GraphQL
+ * document defaults apply.
+ *
+ * @param baseValues - Flat boolean toggles (e.g., `{ tokenIdCount: true }`)
+ * @param subIncludes - Keyed sub-include values from `useSubInclude().value`
+ */
+export function buildNestedInclude(
+  baseValues: Record<string, boolean>,
+  subIncludes: Record<string, Record<string, boolean> | undefined>,
+): Record<string, unknown> | undefined {
+  const allBaseOn = Object.values(baseValues).every(Boolean);
+  const allSubsDefaulted = Object.values(subIncludes).every(
+    (v) => v !== undefined && Object.keys(v).length === 0,
+  );
+
+  if (allBaseOn && allSubsDefaulted) return undefined; // Everything at defaults
+
+  const include: Record<string, unknown> = { ...baseValues };
+  for (const [key, val] of Object.entries(subIncludes)) {
+    if (val !== undefined) {
+      include[key] = val;
+    }
+  }
+  return include;
+}

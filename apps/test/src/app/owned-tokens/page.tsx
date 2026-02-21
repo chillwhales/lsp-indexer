@@ -1,6 +1,6 @@
 'use client';
 
-import { Infinity, Layers, Monitor, Search, Server, Tag } from 'lucide-react';
+import { Infinity, Layers, Search, Tag } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -24,34 +24,81 @@ import type {
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { OwnedTokenCard } from '@/components/owned-token-card';
-import type { FilterFieldConfig, IncludeToggleConfig, SortOption } from '@/components/playground';
+import type {
+  FilterFieldConfig,
+  HookMode,
+  IncludeToggleConfig,
+  SortOption,
+} from '@/components/playground';
 import {
+  buildNestedInclude,
+  DIGITAL_ASSET_INCLUDE_FIELDS,
   ErrorAlert,
   FilterFieldsRow,
   IncludeToggles,
+  NFT_INCLUDE_FIELDS,
+  PlaygroundPageLayout,
+  PresetButtons,
+  PROFILE_INCLUDE_FIELDS,
   ResultsList,
   SortControls,
+  SubIncludeSection,
   useFilterFields,
   useIncludeToggles,
+  useSubInclude,
 } from '@/components/playground';
 
 // ---------------------------------------------------------------------------
-// Hook mode — pick which package's hooks to use
+// Domain config
 // ---------------------------------------------------------------------------
 
-type HookMode = 'client' | 'server';
+const FILTERS: FilterFieldConfig[] = [
+  { key: 'owner', label: 'Owner Address', placeholder: '0x... (owner)', mono: true },
+  { key: 'address', label: 'Asset Address', placeholder: '0x... (asset contract)', mono: true },
+  { key: 'tokenId', label: 'Token ID', placeholder: 'Token ID', mono: true },
+  { key: 'digitalAssetId', label: 'Digital Asset ID', placeholder: 'Digital asset FK', mono: true },
+  { key: 'nftId', label: 'NFT ID', placeholder: 'NFT FK', mono: true },
+  { key: 'ownedAssetId', label: 'Owned Asset ID', placeholder: 'Owned asset FK', mono: true },
+  {
+    key: 'universalProfileId',
+    label: 'Universal Profile ID',
+    placeholder: 'Universal profile FK',
+    mono: true,
+  },
+];
 
-/** Returns the correct hook set based on the current mode */
+const SORT_OPTIONS: SortOption[] = [
+  { value: 'address', label: 'Address' },
+  { value: 'block', label: 'Block' },
+  { value: 'owner', label: 'Owner' },
+  { value: 'timestamp', label: 'Timestamp' },
+  { value: 'tokenId', label: 'Token ID' },
+];
+
+const BASE_INCLUDES: IncludeToggleConfig[] = [{ key: 'ownedAsset', label: 'Owned Asset' }];
+
+const PRESETS = [
+  {
+    label: 'chill-labs × Chillwhale #19',
+    owner: '0xB6c10458274431189D4D0dA66ce00dc62A215908',
+    address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83',
+    tokenId: '0x0000000000000000000000000000000000000000000000000000000000000013',
+  },
+  {
+    label: 'b00ste × Chillwhale #1',
+    owner: '0x00Aa9761286f21437c90AD2f895ef0dcA3484306',
+    address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83',
+    tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
+  },
+] as const;
+
 function useHooks(mode: HookMode) {
   if (mode === 'server') {
     return {
@@ -67,106 +114,7 @@ function useHooks(mode: HookMode) {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Owned Tokens domain config
-// ---------------------------------------------------------------------------
-
-const OWNED_TOKEN_FILTERS: FilterFieldConfig[] = [
-  { key: 'owner', label: 'Owner Address', placeholder: '0x... (owner)', mono: true },
-  { key: 'address', label: 'Asset Address', placeholder: '0x... (asset contract)', mono: true },
-  { key: 'tokenId', label: 'Token ID', placeholder: 'Token ID', mono: true },
-  {
-    key: 'digitalAssetId',
-    label: 'Digital Asset ID',
-    placeholder: 'Digital asset FK',
-    mono: true,
-  },
-  { key: 'nftId', label: 'NFT ID', placeholder: 'NFT FK', mono: true },
-  { key: 'ownedAssetId', label: 'Owned Asset ID', placeholder: 'Owned asset FK', mono: true },
-  {
-    key: 'universalProfileId',
-    label: 'Universal Profile ID',
-    placeholder: 'Universal profile FK',
-    mono: true,
-  },
-];
-
-const OWNED_TOKEN_SORT_OPTIONS: SortOption[] = [
-  { value: 'address', label: 'Address' },
-  { value: 'block', label: 'Block' },
-  { value: 'owner', label: 'Owner' },
-  { value: 'timestamp', label: 'Timestamp' },
-  { value: 'tokenId', label: 'Token ID' },
-];
-
-const OWNED_TOKEN_INCLUDES: IncludeToggleConfig[] = [{ key: 'ownedAsset', label: 'Owned Asset' }];
-
-/** NFT sub-include toggle configs (NftInclude minus collection/holder — 8 fields) */
-const NFT_SUB_INCLUDES: IncludeToggleConfig[] = [
-  { key: 'formattedTokenId', label: 'Formatted Token ID' },
-  { key: 'name', label: 'NFT Name' },
-  { key: 'description', label: 'Description' },
-  { key: 'category', label: 'Category' },
-  { key: 'icons', label: 'Icons' },
-  { key: 'images', label: 'Images' },
-  { key: 'links', label: 'Links' },
-  { key: 'attributes', label: 'Attributes' },
-];
-
-/** Universal profile sub-include toggle configs (ProfileInclude fields) */
-const UP_SUB_INCLUDES: IncludeToggleConfig[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'description', label: 'Description' },
-  { key: 'tags', label: 'Tags' },
-  { key: 'links', label: 'Links' },
-  { key: 'avatar', label: 'Avatar' },
-  { key: 'profileImage', label: 'Profile Image' },
-  { key: 'backgroundImage', label: 'Background Image' },
-  { key: 'followerCount', label: 'Follower Count' },
-  { key: 'followingCount', label: 'Following Count' },
-];
-
-/** Digital asset sub-include toggle configs (DigitalAssetInclude fields) */
-const DA_SUB_INCLUDES: IncludeToggleConfig[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'symbol', label: 'Symbol' },
-  { key: 'tokenType', label: 'Token Type' },
-  { key: 'decimals', label: 'Decimals' },
-  { key: 'totalSupply', label: 'Total Supply' },
-  { key: 'description', label: 'Description' },
-  { key: 'category', label: 'Category' },
-  { key: 'icons', label: 'Icons' },
-  { key: 'images', label: 'Images' },
-  { key: 'links', label: 'Links' },
-  { key: 'attributes', label: 'Attributes' },
-  { key: 'owner', label: 'Owner' },
-  { key: 'holderCount', label: 'Holder Count' },
-  { key: 'creatorCount', label: 'Creator Count' },
-  { key: 'referenceContract', label: 'Reference Contract' },
-  { key: 'tokenIdFormat', label: 'Token ID Format' },
-  { key: 'baseUri', label: 'Base URI' },
-];
-
-/** Preset examples for quick single-lookup testing (holder + asset + tokenId) */
-const PRESET_OWNED_TOKENS = [
-  {
-    label: 'chill-labs × Chillwhale #19',
-    owner: '0xB6c10458274431189D4D0dA66ce00dc62A215908',
-    address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83',
-    tokenId: '0x0000000000000000000000000000000000000000000000000000000000000013',
-  },
-  {
-    label: 'b00ste × Chillwhale #1',
-    owner: '0x00Aa9761286f21437c90AD2f895ef0dcA3484306',
-    address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83',
-    tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
-  },
-] as const;
-
-/** Build an OwnedTokenFilter from debounced filter field values */
-function buildOwnedTokenFilter(
-  debouncedValues: Record<string, string>,
-): OwnedTokenFilter | undefined {
+function buildFilter(debouncedValues: Record<string, string>): OwnedTokenFilter | undefined {
   const f: OwnedTokenFilter = {};
   if (debouncedValues.owner) f.owner = debouncedValues.owner;
   if (debouncedValues.address) f.address = debouncedValues.address;
@@ -179,136 +127,27 @@ function buildOwnedTokenFilter(
 }
 
 // ---------------------------------------------------------------------------
-// Universal profile include hook — manages universalProfile toggle + sub-toggles
+// Shared list state
 // ---------------------------------------------------------------------------
 
-function useProfileInclude() {
-  const [enabled, setEnabled] = useState(true);
-  const {
-    values: subValues,
-    toggle: toggleSub,
-    include: subInclude,
-  } = useIncludeToggles(UP_SUB_INCLUDES);
-
-  return {
-    enabled,
-    setEnabled,
-    subValues,
-    toggleSub,
-    value: enabled ? (subInclude ?? {}) : undefined,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// NFT include hook — manages nft toggle + sub-toggles (8 metadata fields)
-// ---------------------------------------------------------------------------
-
-/**
- * Hook for managing the NFT include state with nested sub-includes.
- *
- * When NFT is enabled (even without any sub-includes), it means
- * "include the NFT data". The sub-toggles control which NFT
- * metadata fields to fetch (formattedTokenId, name, description, etc.).
- */
-function useNftInclude() {
-  const [enabled, setEnabled] = useState(true);
-  const {
-    values: subValues,
-    toggle: toggleSub,
-    include: subInclude,
-  } = useIncludeToggles(NFT_SUB_INCLUDES);
-
-  return {
-    enabled,
-    setEnabled,
-    subValues,
-    toggleSub,
-    /** Returns the nft include value for the OwnedTokenInclude object */
-    value: enabled ? (subInclude ?? {}) : undefined,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Digital asset include hook — manages digitalAsset toggle + sub-toggles
-// ---------------------------------------------------------------------------
-
-/**
- * Hook for managing the digitalAsset include state with nested sub-includes.
- *
- * When digitalAsset is enabled (even without any sub-includes), it means
- * "include the digital asset data". The sub-toggles control which DA
- * fields to fetch.
- */
-function useDigitalAssetInclude() {
-  const [enabled, setEnabled] = useState(true);
-  const {
-    values: subValues,
-    toggle: toggleSub,
-    include: subInclude,
-  } = useIncludeToggles(DA_SUB_INCLUDES);
-
-  return {
-    enabled,
-    setEnabled,
-    subValues,
-    toggleSub,
-    /** Returns the digitalAsset include value for the OwnedTokenInclude object */
-    value: enabled ? (subInclude ?? {}) : undefined,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Build OwnedTokenInclude from toggle state + DA sub-includes
-// ---------------------------------------------------------------------------
-
-function buildOwnedTokenInclude(
-  includeValues: Record<string, boolean>,
-  daValue: Record<string, boolean> | undefined,
-  nftValue: Record<string, boolean> | undefined,
-  upValue: Record<string, boolean> | undefined,
-): OwnedTokenInclude | undefined {
-  // Check if all base toggles are ON and DA, NFT, and UP are all enabled with all sub-includes ON
-  const allBaseOn = Object.values(includeValues).every(Boolean);
-  const daAllOn = daValue !== undefined && Object.keys(daValue).length === 0;
-  const nftAllOn = nftValue !== undefined && Object.keys(nftValue).length === 0;
-  const upAllOn = upValue !== undefined && Object.keys(upValue).length === 0;
-
-  if (allBaseOn && daAllOn && nftAllOn && upAllOn) return undefined; // Everything ON = use defaults
-
-  const include: OwnedTokenInclude = {};
-  for (const [key, val] of Object.entries(includeValues)) {
-    (include as Record<string, unknown>)[key] = val;
-  }
-  if (daValue !== undefined) {
-    include.digitalAsset = daValue;
-  }
-  if (nftValue !== undefined) {
-    include.nft = nftValue;
-  }
-  if (upValue !== undefined) {
-    include.universalProfile = upValue;
-  }
-  return include;
-}
-
-// ---------------------------------------------------------------------------
-// Shared filter + sort hook for list and infinite tabs
-// ---------------------------------------------------------------------------
-
-function useOwnedTokenListState() {
-  const { values, debouncedValues, setFieldValue } = useFilterFields(OWNED_TOKEN_FILTERS);
+function useListState() {
+  const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
   const [sortField, setSortField] = useState<OwnedTokenSortField>('timestamp');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
-  const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(OWNED_TOKEN_INCLUDES);
-  const da = useDigitalAssetInclude();
-  const nft = useNftInclude();
-  const up = useProfileInclude();
+  const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(BASE_INCLUDES);
+  const da = useSubInclude(DIGITAL_ASSET_INCLUDE_FIELDS);
+  const nft = useSubInclude(NFT_INCLUDE_FIELDS);
+  const up = useSubInclude(PROFILE_INCLUDE_FIELDS);
 
-  const filter = buildOwnedTokenFilter(debouncedValues);
+  const filter = buildFilter(debouncedValues);
   const sort: OwnedTokenSort = { field: sortField, direction: sortDirection, nulls: sortNulls };
   const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
-  const include = buildOwnedTokenInclude(includeValues, da.value, nft.value, up.value);
+  const include = buildNestedInclude(includeValues, {
+    digitalAsset: da.value,
+    nft: nft.value,
+    universalProfile: up.value,
+  }) as OwnedTokenInclude | undefined;
 
   return {
     values,
@@ -332,155 +171,38 @@ function useOwnedTokenListState() {
 }
 
 // ---------------------------------------------------------------------------
-// Digital asset sub-include toggles component
+// Sub-include sections (shared between all 3 tabs)
 // ---------------------------------------------------------------------------
 
-function DigitalAssetIncludeSection({
-  enabled,
-  setEnabled,
-  subValues,
-  toggleSub,
-}: {
-  enabled: boolean;
-  setEnabled: (v: boolean) => void;
-  subValues: Record<string, boolean>;
-  toggleSub: (key: string) => void;
-}): React.ReactNode {
+function IncludeSections({
+  includeValues,
+  toggleInclude,
+  da,
+  nft,
+  up,
+}: ReturnType<typeof useListState>): React.ReactNode {
   return (
-    <div className="space-y-2">
-      <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
-        <Switch size="sm" checked={enabled} onCheckedChange={setEnabled} />
-        <span className={enabled ? 'text-foreground font-medium' : 'text-muted-foreground'}>
-          Digital Asset
-        </span>
-      </label>
-      {enabled && (
-        <div className="ml-6 pl-3 border-l space-y-1">
-          <span className="text-xs text-muted-foreground">Digital asset sub-fields</span>
-          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
-            {DA_SUB_INCLUDES.map((config) => (
-              <label
-                key={config.key}
-                className="flex items-center gap-1 text-xs cursor-pointer select-none"
-              >
-                <Switch
-                  size="sm"
-                  checked={subValues[config.key] ?? true}
-                  onCheckedChange={() => toggleSub(config.key)}
-                />
-                <span
-                  className={subValues[config.key] ? 'text-foreground' : 'text-muted-foreground'}
-                >
-                  {config.label}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// NFT sub-include toggles component
-// ---------------------------------------------------------------------------
-
-function NftIncludeSection({
-  enabled,
-  setEnabled,
-  subValues,
-  toggleSub,
-}: {
-  enabled: boolean;
-  setEnabled: (v: boolean) => void;
-  subValues: Record<string, boolean>;
-  toggleSub: (key: string) => void;
-}): React.ReactNode {
-  return (
-    <div className="space-y-2">
-      <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
-        <Switch size="sm" checked={enabled} onCheckedChange={setEnabled} />
-        <span className={enabled ? 'text-foreground font-medium' : 'text-muted-foreground'}>
-          NFT
-        </span>
-      </label>
-      {enabled && (
-        <div className="ml-6 pl-3 border-l space-y-1">
-          <span className="text-xs text-muted-foreground">NFT sub-fields</span>
-          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
-            {NFT_SUB_INCLUDES.map((config) => (
-              <label
-                key={config.key}
-                className="flex items-center gap-1 text-xs cursor-pointer select-none"
-              >
-                <Switch
-                  size="sm"
-                  checked={subValues[config.key] ?? true}
-                  onCheckedChange={() => toggleSub(config.key)}
-                />
-                <span
-                  className={subValues[config.key] ? 'text-foreground' : 'text-muted-foreground'}
-                >
-                  {config.label}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Universal profile sub-include toggles component
-// ---------------------------------------------------------------------------
-
-function ProfileIncludeSection({
-  enabled,
-  setEnabled,
-  subValues,
-  toggleSub,
-}: {
-  enabled: boolean;
-  setEnabled: (v: boolean) => void;
-  subValues: Record<string, boolean>;
-  toggleSub: (key: string) => void;
-}): React.ReactNode {
-  return (
-    <div className="space-y-2">
-      <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
-        <Switch size="sm" checked={enabled} onCheckedChange={setEnabled} />
-        <span className={enabled ? 'text-foreground font-medium' : 'text-muted-foreground'}>
-          Universal Profile
-        </span>
-      </label>
-      {enabled && (
-        <div className="ml-6 pl-3 border-l space-y-1">
-          <span className="text-xs text-muted-foreground">Profile sub-fields</span>
-          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
-            {UP_SUB_INCLUDES.map((config) => (
-              <label
-                key={config.key}
-                className="flex items-center gap-1 text-xs cursor-pointer select-none"
-              >
-                <Switch
-                  size="sm"
-                  checked={subValues[config.key] ?? true}
-                  onCheckedChange={() => toggleSub(config.key)}
-                />
-                <span
-                  className={subValues[config.key] ? 'text-foreground' : 'text-muted-foreground'}
-                >
-                  {config.label}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+    <>
+      <IncludeToggles configs={BASE_INCLUDES} values={includeValues} onToggle={toggleInclude} />
+      <SubIncludeSection
+        label="Digital Asset"
+        subtitle="Digital asset sub-fields"
+        configs={DIGITAL_ASSET_INCLUDE_FIELDS}
+        state={da}
+      />
+      <SubIncludeSection
+        label="NFT"
+        subtitle="NFT sub-fields"
+        configs={NFT_INCLUDE_FIELDS}
+        state={nft}
+      />
+      <SubIncludeSection
+        label="Universal Profile"
+        subtitle="Profile sub-fields"
+        configs={PROFILE_INCLUDE_FIELDS}
+        state={up}
+      />
+    </>
   );
 }
 
@@ -488,7 +210,7 @@ function ProfileIncludeSection({
 // Tab 1: Single Owned Token
 // ---------------------------------------------------------------------------
 
-function SingleOwnedTokenTab({ mode }: { mode: HookMode }): React.ReactNode {
+function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useOwnedTokens } = useHooks(mode);
   const [ownerInput, setOwnerInput] = useState('');
   const [addressInput, setAddressInput] = useState('');
@@ -496,11 +218,15 @@ function SingleOwnedTokenTab({ mode }: { mode: HookMode }): React.ReactNode {
   const [queryOwner, setQueryOwner] = useState('');
   const [queryAddress, setQueryAddress] = useState('');
   const [queryTokenId, setQueryTokenId] = useState('');
-  const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(OWNED_TOKEN_INCLUDES);
-  const da = useDigitalAssetInclude();
-  const nft = useNftInclude();
-  const up = useProfileInclude();
-  const include = buildOwnedTokenInclude(includeValues, da.value, nft.value, up.value);
+  const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(BASE_INCLUDES);
+  const da = useSubInclude(DIGITAL_ASSET_INCLUDE_FIELDS);
+  const nft = useSubInclude(NFT_INCLUDE_FIELDS);
+  const up = useSubInclude(PROFILE_INCLUDE_FIELDS);
+  const include = buildNestedInclude(includeValues, {
+    digitalAsset: da.value,
+    nft: nft.value,
+    universalProfile: up.value,
+  }) as OwnedTokenInclude | undefined;
 
   const hasQuery = Boolean(queryOwner) && Boolean(queryAddress);
   const filter: OwnedTokenFilter | undefined = hasQuery
@@ -511,8 +237,6 @@ function SingleOwnedTokenTab({ mode }: { mode: HookMode }): React.ReactNode {
       }
     : undefined;
 
-  // Only fetch when user has submitted a query — pass limit 0 to prevent
-  // pre-loading data on initial page load (no `enabled` option on hook)
   const { ownedTokens, isLoading, error, isFetching } = useOwnedTokens({
     filter,
     limit: hasQuery ? 1 : 0,
@@ -527,18 +251,8 @@ function SingleOwnedTokenTab({ mode }: { mode: HookMode }): React.ReactNode {
     setQueryTokenId(tokenIdInput);
   };
 
-  const handlePreset = (preset: (typeof PRESET_OWNED_TOKENS)[number]) => {
-    setOwnerInput(preset.owner);
-    setAddressInput(preset.address);
-    setTokenIdInput(preset.tokenId);
-    setQueryOwner(preset.owner);
-    setQueryAddress(preset.address);
-    setQueryTokenId(preset.tokenId);
-  };
-
   return (
     <div className="space-y-4">
-      {/* Lookup inputs: owner + asset address + optional tokenId (natural keys) */}
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="space-y-1.5">
           <Label htmlFor="owned-token-owner">Holder Address</Label>
@@ -576,47 +290,38 @@ function SingleOwnedTokenTab({ mode }: { mode: HookMode }): React.ReactNode {
         </Button>
       </form>
 
-      {/* Preset buttons */}
-      <div className="flex flex-wrap gap-2">
-        <span className="text-sm text-muted-foreground self-center">Presets:</span>
-        {PRESET_OWNED_TOKENS.map((preset) => (
-          <Button
-            key={`${preset.owner}-${preset.address}`}
-            variant="outline"
-            size="sm"
-            onClick={() => handlePreset(preset)}
-          >
-            {preset.label}
-          </Button>
-        ))}
-      </div>
-
-      {/* Include toggles */}
-      <IncludeToggles
-        configs={OWNED_TOKEN_INCLUDES}
-        values={includeValues}
-        onToggle={toggleInclude}
-      />
-      <DigitalAssetIncludeSection
-        enabled={da.enabled}
-        setEnabled={da.setEnabled}
-        subValues={da.subValues}
-        toggleSub={da.toggleSub}
-      />
-      <NftIncludeSection
-        enabled={nft.enabled}
-        setEnabled={nft.setEnabled}
-        subValues={nft.subValues}
-        toggleSub={nft.toggleSub}
-      />
-      <ProfileIncludeSection
-        enabled={up.enabled}
-        setEnabled={up.setEnabled}
-        subValues={up.subValues}
-        toggleSub={up.toggleSub}
+      <PresetButtons
+        presets={PRESETS}
+        onSelect={(p) => {
+          setOwnerInput(p.owner);
+          setAddressInput(p.address);
+          setTokenIdInput(p.tokenId);
+          setQueryOwner(p.owner);
+          setQueryAddress(p.address);
+          setQueryTokenId(p.tokenId);
+        }}
       />
 
-      {/* Loading state */}
+      <IncludeToggles configs={BASE_INCLUDES} values={includeValues} onToggle={toggleInclude} />
+      <SubIncludeSection
+        label="Digital Asset"
+        subtitle="Digital asset sub-fields"
+        configs={DIGITAL_ASSET_INCLUDE_FIELDS}
+        state={da}
+      />
+      <SubIncludeSection
+        label="NFT"
+        subtitle="NFT sub-fields"
+        configs={NFT_INCLUDE_FIELDS}
+        state={nft}
+      />
+      <SubIncludeSection
+        label="Universal Profile"
+        subtitle="Profile sub-fields"
+        configs={PROFILE_INCLUDE_FIELDS}
+        state={up}
+      />
+
       {isLoading && (
         <Card>
           <CardHeader>
@@ -625,14 +330,8 @@ function SingleOwnedTokenTab({ mode }: { mode: HookMode }): React.ReactNode {
           </CardHeader>
         </Card>
       )}
-
-      {/* Error state */}
       {error && <ErrorAlert error={error} />}
-
-      {/* Success state */}
       {ownedToken && <OwnedTokenCard ownedToken={ownedToken} isFetching={isFetching} />}
-
-      {/* Empty state */}
       {hasQuery && !isLoading && !error && !ownedToken && (
         <Alert>
           <Tag className="h-4 w-4" />
@@ -659,9 +358,9 @@ function SingleOwnedTokenTab({ mode }: { mode: HookMode }): React.ReactNode {
 // Tab 2: Owned Token List
 // ---------------------------------------------------------------------------
 
-function OwnedTokenListTab({ mode }: { mode: HookMode }): React.ReactNode {
+function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useOwnedTokens } = useHooks(mode);
-  const state = useOwnedTokenListState();
+  const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { ownedTokens, totalCount, isLoading, error, isFetching } = useOwnedTokens({
@@ -674,12 +373,12 @@ function OwnedTokenListTab({ mode }: { mode: HookMode }): React.ReactNode {
   return (
     <div className="space-y-4">
       <FilterFieldsRow
-        configs={OWNED_TOKEN_FILTERS}
+        configs={FILTERS}
         values={state.values}
         onFieldChange={state.setFieldValue}
       />
       <SortControls
-        options={OWNED_TOKEN_SORT_OPTIONS}
+        options={SORT_OPTIONS}
         sortField={state.sortField}
         sortDirection={state.sortDirection}
         onSortFieldChange={(v) => state.setSortField(v as OwnedTokenSortField)}
@@ -691,29 +390,7 @@ function OwnedTokenListTab({ mode }: { mode: HookMode }): React.ReactNode {
         limit={limit}
         onLimitChange={setLimit}
       />
-      <IncludeToggles
-        configs={OWNED_TOKEN_INCLUDES}
-        values={state.includeValues}
-        onToggle={state.toggleInclude}
-      />
-      <DigitalAssetIncludeSection
-        enabled={state.da.enabled}
-        setEnabled={state.da.setEnabled}
-        subValues={state.da.subValues}
-        toggleSub={state.da.toggleSub}
-      />
-      <NftIncludeSection
-        enabled={state.nft.enabled}
-        setEnabled={state.nft.setEnabled}
-        subValues={state.nft.subValues}
-        toggleSub={state.nft.toggleSub}
-      />
-      <ProfileIncludeSection
-        enabled={state.up.enabled}
-        setEnabled={state.up.setEnabled}
-        subValues={state.up.subValues}
-        toggleSub={state.up.toggleSub}
-      />
+      <IncludeSections {...state} />
       <ResultsList<OwnedToken>
         items={ownedTokens}
         isLoading={isLoading}
@@ -733,9 +410,9 @@ function OwnedTokenListTab({ mode }: { mode: HookMode }): React.ReactNode {
 // Tab 3: Infinite Scroll
 // ---------------------------------------------------------------------------
 
-function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
+function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteOwnedTokens } = useHooks(mode);
-  const state = useOwnedTokenListState();
+  const state = useListState();
 
   const {
     ownedTokens,
@@ -755,12 +432,12 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
   return (
     <div className="space-y-4">
       <FilterFieldsRow
-        configs={OWNED_TOKEN_FILTERS}
+        configs={FILTERS}
         values={state.values}
         onFieldChange={state.setFieldValue}
       />
       <SortControls
-        options={OWNED_TOKEN_SORT_OPTIONS}
+        options={SORT_OPTIONS}
         sortField={state.sortField}
         sortDirection={state.sortDirection}
         onSortFieldChange={(v) => state.setSortField(v as OwnedTokenSortField)}
@@ -770,29 +447,7 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
           state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
         }
       />
-      <IncludeToggles
-        configs={OWNED_TOKEN_INCLUDES}
-        values={state.includeValues}
-        onToggle={state.toggleInclude}
-      />
-      <DigitalAssetIncludeSection
-        enabled={state.da.enabled}
-        setEnabled={state.da.setEnabled}
-        subValues={state.da.subValues}
-        toggleSub={state.da.toggleSub}
-      />
-      <NftIncludeSection
-        enabled={state.nft.enabled}
-        setEnabled={state.nft.setEnabled}
-        subValues={state.nft.subValues}
-        toggleSub={state.nft.toggleSub}
-      />
-      <ProfileIncludeSection
-        enabled={state.up.enabled}
-        setEnabled={state.up.setEnabled}
-        subValues={state.up.subValues}
-        toggleSub={state.up.toggleSub}
-      />
+      <IncludeSections {...state} />
       <ResultsList<OwnedToken>
         items={ownedTokens}
         isLoading={isLoading}
@@ -813,84 +468,38 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
 // ---------------------------------------------------------------------------
 
 export default function OwnedTokensPage(): React.ReactNode {
-  const [mode, setMode] = useState<HookMode>('client');
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Owned Tokens</h1>
-          <p className="text-muted-foreground">
-            Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedToken</code>,{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedTokens</code>, and{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteOwnedTokens</code>{' '}
-            hooks against live Hasura data. Filter by owner to find individual NFT ownership records
-            (QUERY-04).
-          </p>
-        </div>
-
-        {/* Client / Server mode toggle */}
-        <div className="flex items-center gap-1 rounded-lg border p-1">
-          <Button
-            variant={mode === 'client' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMode('client')}
-            className="gap-1.5"
-          >
-            <Monitor className="size-3.5" />
-            Client
-          </Button>
-          <Button
-            variant={mode === 'server' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMode('server')}
-            className="gap-1.5"
-          >
-            <Server className="size-3.5" />
-            Server
-          </Button>
-        </div>
-      </div>
-
-      {/* Mode indicator */}
-      <div className="flex items-center gap-2">
-        <Badge variant={mode === 'client' ? 'default' : 'secondary'}>
-          {mode === 'client' ? '@lsp-indexer/react' : '@lsp-indexer/next'}
-        </Badge>
-        <span className="text-xs text-muted-foreground">
-          {mode === 'client' ? 'Browser → Hasura directly' : 'Browser → Server Action → Hasura'}
-        </span>
-      </div>
-
-      {/* key={mode} forces full remount when switching — avoids hook-rule violations */}
-      <Tabs defaultValue="single" key={mode}>
-        <TabsList>
-          <TabsTrigger value="single">
-            <Tag className="size-4" />
-            Single Lookup
-          </TabsTrigger>
-          <TabsTrigger value="list">
-            <Layers className="size-4" />
-            Owned Token List
-          </TabsTrigger>
-          <TabsTrigger value="infinite">
-            <Infinity className="size-4" />
-            Infinite Scroll
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="single" className="mt-4">
-          <SingleOwnedTokenTab mode={mode} />
-        </TabsContent>
-
-        <TabsContent value="list" className="mt-4">
-          <OwnedTokenListTab mode={mode} />
-        </TabsContent>
-
-        <TabsContent value="infinite" className="mt-4">
-          <InfiniteScrollTab mode={mode} />
-        </TabsContent>
-      </Tabs>
-    </div>
+    <PlaygroundPageLayout
+      title="Owned Tokens"
+      description={
+        <>
+          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedToken</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedTokens</code>, and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteOwnedTokens</code> hooks
+          against live Hasura data. Filter by owner to find individual NFT ownership records
+          (QUERY-04).
+        </>
+      }
+      tabs={[
+        {
+          value: 'single',
+          label: 'Single Lookup',
+          icon: <Tag className="size-4" />,
+          render: (mode) => <SingleTab mode={mode} />,
+        },
+        {
+          value: 'list',
+          label: 'Owned Token List',
+          icon: <Layers className="size-4" />,
+          render: (mode) => <ListTab mode={mode} />,
+        },
+        {
+          value: 'infinite',
+          label: 'Infinite Scroll',
+          icon: <Infinity className="size-4" />,
+          render: (mode) => <InfiniteTab mode={mode} />,
+        },
+      ]}
+    />
   );
 }

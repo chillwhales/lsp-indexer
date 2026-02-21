@@ -1,6 +1,6 @@
 'use client';
 
-import { Coins, Infinity, Layers, Monitor, Search, Server } from 'lucide-react';
+import { Coins, Infinity, Layers, Search } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -24,19 +24,20 @@ import type {
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
-import type { FilterFieldConfig, IncludeToggleConfig, SortOption } from '@/components/playground';
+import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  DIGITAL_ASSET_INCLUDE_FIELDS,
   ErrorAlert,
   FilterFieldsRow,
   IncludeToggles,
+  PlaygroundPageLayout,
+  PresetButtons,
   ResultsList,
   SortControls,
   useFilterFields,
@@ -44,32 +45,10 @@ import {
 } from '@/components/playground';
 
 // ---------------------------------------------------------------------------
-// Hook mode — pick which package's hooks to use
+// Domain config
 // ---------------------------------------------------------------------------
 
-type HookMode = 'client' | 'server';
-
-/** Returns the correct hook set based on the current mode */
-function useHooks(mode: HookMode) {
-  if (mode === 'server') {
-    return {
-      useDigitalAsset: useDigitalAssetNext,
-      useDigitalAssets: useDigitalAssetsNext,
-      useInfiniteDigitalAssets: useInfiniteDigitalAssetsNext,
-    };
-  }
-  return {
-    useDigitalAsset: useDigitalAssetReact,
-    useDigitalAssets: useDigitalAssetsReact,
-    useInfiniteDigitalAssets: useInfiniteDigitalAssetsReact,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Digital Assets domain config
-// ---------------------------------------------------------------------------
-
-const DIGITAL_ASSET_FILTERS: FilterFieldConfig[] = [
+const FILTERS: FilterFieldConfig[] = [
   { key: 'name', label: 'Name', placeholder: 'Search by name...' },
   { key: 'symbol', label: 'Symbol', placeholder: 'e.g. CHILL' },
   {
@@ -91,7 +70,7 @@ const DIGITAL_ASSET_FILTERS: FilterFieldConfig[] = [
   { key: 'ownerAddress', label: 'Owner Address', placeholder: '0x... (controller)', mono: true },
 ] as const;
 
-const DIGITAL_ASSET_SORT_OPTIONS: SortOption[] = [
+const SORT_OPTIONS: SortOption[] = [
   { value: 'name', label: 'Name' },
   { value: 'symbol', label: 'Symbol' },
   { value: 'holderCount', label: 'Holders' },
@@ -100,41 +79,31 @@ const DIGITAL_ASSET_SORT_OPTIONS: SortOption[] = [
   { value: 'createdAt', label: 'Created At' },
 ];
 
-const DIGITAL_ASSET_INCLUDES: IncludeToggleConfig[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'symbol', label: 'Symbol' },
-  { key: 'tokenType', label: 'Token Type' },
-  { key: 'decimals', label: 'Decimals' },
-  { key: 'totalSupply', label: 'Total Supply' },
-  { key: 'description', label: 'Description' },
-  { key: 'category', label: 'Category' },
-  { key: 'icons', label: 'Icons' },
-  { key: 'images', label: 'Images' },
-  { key: 'links', label: 'Links' },
-  { key: 'attributes', label: 'Attributes' },
-  { key: 'owner', label: 'Owner' },
-  { key: 'holderCount', label: 'Holder Count' },
-  { key: 'creatorCount', label: 'Creator Count' },
-  { key: 'referenceContract', label: 'Reference Contract' },
-  { key: 'tokenIdFormat', label: 'Token ID Format' },
-  { key: 'baseUri', label: 'Base URI' },
-];
-
-const PRESET_ADDRESSES = [
+const PRESETS = [
   { label: 'CHILL (LSP7)', address: '0x5B8B0E44D4719F8A328470DcCD3746BFc73d6B14' },
   { label: 'Chillwhales (LSP8)', address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83' },
 ] as const;
 
-/** Build a DigitalAssetFilter from debounced filter field values */
-function buildDigitalAssetFilter(
-  debouncedValues: Record<string, string>,
-): DigitalAssetFilter | undefined {
+function useHooks(mode: HookMode) {
+  if (mode === 'server') {
+    return {
+      useDigitalAsset: useDigitalAssetNext,
+      useDigitalAssets: useDigitalAssetsNext,
+      useInfiniteDigitalAssets: useInfiniteDigitalAssetsNext,
+    };
+  }
+  return {
+    useDigitalAsset: useDigitalAssetReact,
+    useDigitalAssets: useDigitalAssetsReact,
+    useInfiniteDigitalAssets: useInfiniteDigitalAssetsReact,
+  };
+}
+
+function buildFilter(debouncedValues: Record<string, string>): DigitalAssetFilter | undefined {
   const f: DigitalAssetFilter = {};
   if (debouncedValues.name) f.name = debouncedValues.name;
   if (debouncedValues.symbol) f.symbol = debouncedValues.symbol;
-  if (debouncedValues.tokenType) {
-    f.tokenType = debouncedValues.tokenType as TokenType;
-  }
+  if (debouncedValues.tokenType) f.tokenType = debouncedValues.tokenType as TokenType;
   if (debouncedValues.category) f.category = debouncedValues.category;
   if (debouncedValues.holderAddress) f.holderAddress = debouncedValues.holderAddress;
   if (debouncedValues.ownerAddress) f.ownerAddress = debouncedValues.ownerAddress;
@@ -142,11 +111,11 @@ function buildDigitalAssetFilter(
 }
 
 // ---------------------------------------------------------------------------
-// Shared filter + sort hook for list and infinite tabs
+// Shared list state
 // ---------------------------------------------------------------------------
 
-function useDigitalAssetListState() {
-  const { values, debouncedValues, setFieldValue } = useFilterFields(DIGITAL_ASSET_FILTERS);
+function useListState() {
+  const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
   const [sortField, setSortField] = useState<DigitalAssetSortField>('holderCount');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
@@ -154,9 +123,9 @@ function useDigitalAssetListState() {
     values: includeValues,
     toggle: toggleInclude,
     include,
-  } = useIncludeToggles(DIGITAL_ASSET_INCLUDES);
+  } = useIncludeToggles(DIGITAL_ASSET_INCLUDE_FIELDS);
 
-  const filter = buildDigitalAssetFilter(debouncedValues);
+  const filter = buildFilter(debouncedValues);
   const sort: DigitalAssetSort = { field: sortField, direction: sortDirection, nulls: sortNulls };
   const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
 
@@ -182,7 +151,7 @@ function useDigitalAssetListState() {
 // Tab 1: Single Digital Asset
 // ---------------------------------------------------------------------------
 
-function SingleAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
+function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useDigitalAsset } = useHooks(mode);
   const [address, setAddress] = useState('');
   const [queryAddress, setQueryAddress] = useState('');
@@ -190,7 +159,7 @@ function SingleAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
     values: includeValues,
     toggle: toggleInclude,
     include,
-  } = useIncludeToggles(DIGITAL_ASSET_INCLUDES);
+  } = useIncludeToggles(DIGITAL_ASSET_INCLUDE_FIELDS);
 
   const { digitalAsset, isLoading, error, isFetching } = useDigitalAsset({
     address: queryAddress,
@@ -202,14 +171,8 @@ function SingleAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
     setQueryAddress(address);
   };
 
-  const handlePreset = (presetAddress: string) => {
-    setAddress(presetAddress);
-    setQueryAddress(presetAddress);
-  };
-
   return (
     <div className="space-y-4">
-      {/* Address input */}
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
           placeholder="Enter digital asset address (0x...)"
@@ -223,29 +186,20 @@ function SingleAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
         </Button>
       </form>
 
-      {/* Preset buttons */}
-      <div className="flex flex-wrap gap-2">
-        <span className="text-sm text-muted-foreground self-center">Presets:</span>
-        {PRESET_ADDRESSES.map((preset) => (
-          <Button
-            key={preset.address}
-            variant="outline"
-            size="sm"
-            onClick={() => handlePreset(preset.address)}
-          >
-            {preset.label}
-          </Button>
-        ))}
-      </div>
+      <PresetButtons
+        presets={PRESETS}
+        onSelect={(p) => {
+          setAddress(p.address);
+          setQueryAddress(p.address);
+        }}
+      />
 
-      {/* Include toggles */}
       <IncludeToggles
-        configs={DIGITAL_ASSET_INCLUDES}
+        configs={DIGITAL_ASSET_INCLUDE_FIELDS}
         values={includeValues}
         onToggle={toggleInclude}
       />
 
-      {/* Loading state */}
       {isLoading && (
         <Card>
           <CardHeader>
@@ -254,14 +208,8 @@ function SingleAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
           </CardHeader>
         </Card>
       )}
-
-      {/* Error state */}
       {error && <ErrorAlert error={error} />}
-
-      {/* Success state */}
       {digitalAsset && <DigitalAssetCard digitalAsset={digitalAsset} isFetching={isFetching} />}
-
-      {/* Empty state */}
       {queryAddress && !isLoading && !error && !digitalAsset && (
         <Alert>
           <Coins className="h-4 w-4" />
@@ -280,9 +228,9 @@ function SingleAssetTab({ mode }: { mode: HookMode }): React.ReactNode {
 // Tab 2: Asset List
 // ---------------------------------------------------------------------------
 
-function AssetListTab({ mode }: { mode: HookMode }): React.ReactNode {
+function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useDigitalAssets } = useHooks(mode);
-  const state = useDigitalAssetListState();
+  const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { digitalAssets, totalCount, isLoading, error, isFetching } = useDigitalAssets({
@@ -295,12 +243,12 @@ function AssetListTab({ mode }: { mode: HookMode }): React.ReactNode {
   return (
     <div className="space-y-4">
       <FilterFieldsRow
-        configs={DIGITAL_ASSET_FILTERS}
+        configs={FILTERS}
         values={state.values}
         onFieldChange={state.setFieldValue}
       />
       <SortControls
-        options={DIGITAL_ASSET_SORT_OPTIONS}
+        options={SORT_OPTIONS}
         sortField={state.sortField}
         sortDirection={state.sortDirection}
         onSortFieldChange={(v) => state.setSortField(v as DigitalAssetSortField)}
@@ -313,7 +261,7 @@ function AssetListTab({ mode }: { mode: HookMode }): React.ReactNode {
         onLimitChange={setLimit}
       />
       <IncludeToggles
-        configs={DIGITAL_ASSET_INCLUDES}
+        configs={DIGITAL_ASSET_INCLUDE_FIELDS}
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
@@ -336,9 +284,9 @@ function AssetListTab({ mode }: { mode: HookMode }): React.ReactNode {
 // Tab 3: Infinite Scroll
 // ---------------------------------------------------------------------------
 
-function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
+function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteDigitalAssets } = useHooks(mode);
-  const state = useDigitalAssetListState();
+  const state = useListState();
 
   const {
     digitalAssets,
@@ -358,12 +306,12 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
   return (
     <div className="space-y-4">
       <FilterFieldsRow
-        configs={DIGITAL_ASSET_FILTERS}
+        configs={FILTERS}
         values={state.values}
         onFieldChange={state.setFieldValue}
       />
       <SortControls
-        options={DIGITAL_ASSET_SORT_OPTIONS}
+        options={SORT_OPTIONS}
         sortField={state.sortField}
         sortDirection={state.sortDirection}
         onSortFieldChange={(v) => state.setSortField(v as DigitalAssetSortField)}
@@ -374,7 +322,7 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
         }
       />
       <IncludeToggles
-        configs={DIGITAL_ASSET_INCLUDES}
+        configs={DIGITAL_ASSET_INCLUDE_FIELDS}
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
@@ -398,83 +346,37 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
 // ---------------------------------------------------------------------------
 
 export default function DigitalAssetsPage(): React.ReactNode {
-  const [mode, setMode] = useState<HookMode>('client');
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Digital Assets</h1>
-          <p className="text-muted-foreground">
-            Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useDigitalAsset</code>,{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">useDigitalAssets</code>, and{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteDigitalAssets</code>{' '}
-            hooks against live Hasura data.
-          </p>
-        </div>
-
-        {/* Client / Server mode toggle */}
-        <div className="flex items-center gap-1 rounded-lg border p-1">
-          <Button
-            variant={mode === 'client' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMode('client')}
-            className="gap-1.5"
-          >
-            <Monitor className="size-3.5" />
-            Client
-          </Button>
-          <Button
-            variant={mode === 'server' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMode('server')}
-            className="gap-1.5"
-          >
-            <Server className="size-3.5" />
-            Server
-          </Button>
-        </div>
-      </div>
-
-      {/* Mode indicator */}
-      <div className="flex items-center gap-2">
-        <Badge variant={mode === 'client' ? 'default' : 'secondary'}>
-          {mode === 'client' ? '@lsp-indexer/react' : '@lsp-indexer/next'}
-        </Badge>
-        <span className="text-xs text-muted-foreground">
-          {mode === 'client' ? 'Browser → Hasura directly' : 'Browser → Server Action → Hasura'}
-        </span>
-      </div>
-
-      {/* key={mode} forces full remount when switching — avoids hook-rule violations */}
-      <Tabs defaultValue="single" key={mode}>
-        <TabsList>
-          <TabsTrigger value="single">
-            <Coins className="size-4" />
-            Single Asset
-          </TabsTrigger>
-          <TabsTrigger value="list">
-            <Layers className="size-4" />
-            Asset List
-          </TabsTrigger>
-          <TabsTrigger value="infinite">
-            <Infinity className="size-4" />
-            Infinite Scroll
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="single" className="mt-4">
-          <SingleAssetTab mode={mode} />
-        </TabsContent>
-
-        <TabsContent value="list" className="mt-4">
-          <AssetListTab mode={mode} />
-        </TabsContent>
-
-        <TabsContent value="infinite" className="mt-4">
-          <InfiniteScrollTab mode={mode} />
-        </TabsContent>
-      </Tabs>
-    </div>
+    <PlaygroundPageLayout
+      title="Digital Assets"
+      description={
+        <>
+          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useDigitalAsset</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useDigitalAssets</code>, and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteDigitalAssets</code>{' '}
+          hooks against live Hasura data.
+        </>
+      }
+      tabs={[
+        {
+          value: 'single',
+          label: 'Single Asset',
+          icon: <Coins className="size-4" />,
+          render: (mode) => <SingleTab mode={mode} />,
+        },
+        {
+          value: 'list',
+          label: 'Asset List',
+          icon: <Layers className="size-4" />,
+          render: (mode) => <ListTab mode={mode} />,
+        },
+        {
+          value: 'infinite',
+          label: 'Infinite Scroll',
+          icon: <Infinity className="size-4" />,
+          render: (mode) => <InfiniteTab mode={mode} />,
+        },
+      ]}
+    />
   );
 }
