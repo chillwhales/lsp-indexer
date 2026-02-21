@@ -6,15 +6,15 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 9 restructured into per-domain sub-phases (9.1–9.9)
+**Current focus:** v1.1 React Hooks Package — Phase 9 restructured into 10 sub-phases (9.1–9.10, including 9.4 Conditional Include Types)
 
 ## Current Position
 
-- **Phase:** 9 of 11 (Remaining Query Domains — 9 sub-phases)
-- **Sub-phase:** 9.2 (NFTs) — complete (4/4 plans)
-- **Status:** Phase 9.2 complete — ready for 9.3 (Owned Assets)
-- **Last activity:** 2026-02-20 — Completed 09.2-04-PLAN.md (NFT playground page + E2E verification)
-- **Progress:** ████░░░░░░ 43% (12/28 requirements)
+- **Phase:** 9 of 11 (Remaining Query Domains + DX — 10 sub-phases)
+- **Sub-phase:** 9.4 (Conditional Include Types) — pending (research-first)
+- **Status:** Phase 9.3 complete, roadmap updated with new Phase 9.4 inserted
+- **Last activity:** 2026-02-21 — Inserted Phase 9.4 (Conditional Include Types), bumped 9.4–9.9 → 9.5–9.10
+- **Progress:** █████░░░░░ 48% (14/29 requirements)
 
 ## Milestone History
 
@@ -32,26 +32,27 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
 | 9.1   | Digital Assets                     |     1/1      | Complete |
 | 9.2   | NFTs                               |     1/1      | Complete |
-| 9.3   | Owned Assets                       |      1       | Pending  |
-| 9.4   | Social / Follows                   |      1       | Pending  |
-| 9.5   | Creators                           |      1       | Pending  |
-| 9.6   | Encrypted Assets                   |      1       | Pending  |
-| 9.7   | Encrypted Feed                     |      1       | Pending  |
-| 9.8   | Data Changed Events                |      1       | Pending  |
-| 9.9   | Universal Receiver Events          |      1       | Pending  |
+| 9.3   | Owned Assets                       |     1/1      | Complete |
+| 9.4   | Conditional Include Types          |      1       | Pending  |
+| 9.5   | Social / Follows                   |      1       | Pending  |
+| 9.6   | Creators                           |      1       | Pending  |
+| 9.7   | Encrypted Assets                   |      1       | Pending  |
+| 9.8   | Encrypted Feed                     |      1       | Pending  |
+| 9.9   | Data Changed Events                |      1       | Pending  |
+| 9.10  | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
-_Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-phase) plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
+_Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 12/28 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, DX-01, DX-02)
+**Total:** 14/29 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, DX-01, DX-02, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 56 (36 v1.0 + 20 v1.1)
+- **Plans completed:** 60 (36 v1.0 + 24 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 15 (11 v1.0 + 4 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 12/28 (v1.1)
+- **Phases completed:** 16 (11 v1.0 + 5 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 14/29 (v1.1)
 
 ## Accumulated Context
 
@@ -116,6 +117,20 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **NFT collection = full DigitalAsset:** `digitalAsset` relation on NFT provides 20+ fields. Reuses `parseDigitalAsset` from digital-assets parser. `include.collection` is `DigitalAssetInclude` (17 sub-include variables).
 - **NFT single lookup: tokenId OR formattedTokenId:** Not both required. Stacked vertical inputs in playground.
 - **NFT name filter \_or search:** Name searches both `lsp4Metadata.name.value._ilike` and `lsp4MetadataBaseUri.name.value._ilike` using Hasura `_or` in where clause.
+- **OwnedAsset.balance = z.bigint():** Hasura numeric → parser converts to BigInt. Consumer uses formatTokenAmount helpers.
+- **OwnedAssetFilter: 4 string fields (owner, address, digitalAssetId, universalProfileId):** Balance/timestamp range filters deferred.
+- **OwnedAssetSortField nested sorts:** `digitalAssetName` → `digitalAsset.lsp4TokenName`, `tokenIdCount` → `tokenIds_aggregate.count` at service layer.
+- **Nested universalProfile: all LSP3 fields, no aggregates:** follower/following counts excluded from ownership context.
+- **Cross-domain parser `as any` casts:** Nested sub-selections in owned_asset/owned_token documents omit fields (like `id`) that primary parsers expect. Safe because all parsers use optional chaining. Standard pattern for sub-selections.
+- **Owned asset DA include vars reused directly:** Unlike NFT (prefixed `includeCollection*`), owned asset/token documents use same `include*` var names as DA document, so `buildDigitalAssetIncludeVars` output used directly.
+- **Natural key lookup for playground single tab:** Uses holder+asset address via `useOwnedAssets({ filter, limit: 1 })` instead of opaque Hasura IDs — more developer-friendly
+- **Preload prevention via limit:0:** When no query present, pass `limit: 0` to prevent hooks from firing on empty filter
+- **Full addresses, no truncation:** Display full hex addresses with `break-all` CSS wrapping — user preference
+- **Unified ghost Button collapsible triggers:** All card collapsible sections use `<Button variant="ghost" size="sm">` with icon + text + ChevronDown, matching RawJsonToggle style
+- **NFT holder UP as full block:** ownedToken.universalProfile fetched as complete block (not per-field @include), parsed via `parseHolderProfile()` inline helper
+- **NftCard section order:** Holder Profile → NFT Metadata → Collection (collection moved to last per user preference)
+- **OwnedTokenNftIncludeSchema:** 8 per-field `@include` toggles for NFT metadata (NftInclude minus collection/holder which are sibling relations)
+- **Conditional include types (DX-04):** Hook return types should be narrowed by `include` parameter — excluded fields absent from type, not `null`. Prisma-style `select`/`include` inference. Nested includes narrow recursively. Default (no include) returns full type. Research-first approach: design spike before implementation plans.
 
 ### Discovered Todos
 
@@ -129,24 +144,26 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-20
-- **Activity:** Completed Phase 9.2 (NFTs) — all 4 plans + post-checkpoint feedback fixes
-- **Outcome:** Full NFT vertical slice: types → documents → codegen → parser → services → keys → hooks → actions → playground. 6 major schema discoveries resolved (baseUri fallback, holder rename, collection as DigitalAsset, tokenId OR formattedTokenId, name filter, collection sub-includes). All builds pass.
+- **Date:** 2026-02-21
+- **Activity:** Inserted Phase 9.4 (Conditional Include Types) into roadmap, bumped 9.4–9.9 → 9.5–9.10
+- **Outcome:** Roadmap updated with new DX-04 requirement, phase directories renamed on disk, STATE.md updated. Phase 9.3 PR #197 still open for review/merge.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.2 complete** — NFT vertical slice delivered end-to-end
-- **Next step:** Create PR for `feat/phase-9.2-nfts` → `refactor/indexer-v2-react`, then start Phase 9.3 (Owned Assets)
-- **Branch:** `feat/phase-9.2-nfts`
-- **Key patterns established for future domains:**
-  - BaseUri fallback metadata parsing (check direct first → baseUri second → null)
-  - Shared parseImage in parsers/utils.ts for cross-domain LSP4 image parsing
-  - Composite key hooks (address + tokenId) for NFT-like domains
-  - Nested include toggles (collection sub-includes as DigitalAssetInclude)
-  - Cross-domain parser reuse (parseDigitalAsset for collection data)
-  - Name filter with \_or search across multiple metadata sources
+- **Phase 9.3 complete** — All 4 plans delivered, PR #197 open on `feat/phase-9.3-owned-assets`
+- **Next step:** Phase 9.4 (Conditional Include Types) — research-first approach
+  - Merge PR #197 → create `feat/phase-9.4-conditional-include-types` branch
+  - Plan 01 is a design spike: research TypeScript conditional type patterns (Prisma-style `select`/`include` inference), Zod interop, TanStack Query generic propagation
+  - Implementation plans created after research validates approach
+- **Key technical challenge for 9.4:** Return types narrowed by `include` parameter — `useProfile({ address, include: { name: true } })` returns only `{ address, name }`, excluded fields absent from type (not `null`). Nested includes must also narrow (e.g., `digitalAsset` with sub-includes). Default (no `include`) returns full type.
+- **Key patterns established for 9.5+:**
+  - Preset buttons pattern for playground single lookup
+  - Ghost Button collapsible triggers in all card components
+  - BigInt serialization fix in RawJsonToggle
+  - Cross-domain reusable `buildProfileIncludeVars()`, `buildDigitalAssetIncludeVars()`, `buildNftIncludeVars()`
+  - NFT holder UP inline parsing pattern (`parseHolderProfile()`)
 
 ---
 
-_Last updated: 2026-02-20 — completed Phase 9.2 (NFTs) — all 4 plans done, QUERY-03 delivered_
+_Last updated: 2026-02-21 — inserted Phase 9.4 (Conditional Include Types), bumped 9.4–9.9 → 9.5–9.10_

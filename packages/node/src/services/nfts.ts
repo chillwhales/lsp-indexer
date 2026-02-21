@@ -1,10 +1,11 @@
-import type { Nft, NftFilter, NftInclude, NftSort } from '@lsp-indexer/types';
+import type { Nft, NftFilter, NftInclude, NftSort, OwnedTokenNftInclude } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
 import { GetNftDocument, GetNftsDocument } from '../documents/nfts';
 import type { Nft_Bool_Exp, Nft_Order_By } from '../graphql/graphql';
 import { parseNft, parseNfts } from '../parsers/nfts';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
-import { escapeLike, orderDir } from './utils';
+import { buildProfileIncludeVars } from './profiles';
+import { escapeLike, hasActiveIncludes, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -117,9 +118,12 @@ function buildNftOrderBy(sort?: NftSort): Nft_Order_By[] | undefined {
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
  *
  * **Collection sub-includes:**
- * - When `include.collection` is **provided** (even as `{}`) → `includeCollection: true`
+ * - When `include.collection` has at least one truthy sub-field → `includeCollection: true`
  *   with sub-include variables from the DigitalAssetInclude schema.
- * - When `include.collection` is **undefined** → `includeCollection: false`.
+ * - When `include.collection` is `undefined`, `{}`, or all-false → `includeCollection: false`.
+ *
+ * **Holder sub-includes:**
+ * - Same pattern as collection — only included when at least one sub-field is truthy.
  */
 function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
   if (!include) {
@@ -127,11 +131,14 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
     return {};
   }
 
+  const activeCollection = hasActiveIncludes(include.collection);
+  const activeHolder = hasActiveIncludes(include.holder);
+
   const vars: Record<string, boolean> = {
     includeFormattedTokenId: include.formattedTokenId ?? false,
     includeName: include.name ?? false,
-    includeCollection: include.collection !== undefined, // provided (even {}) = include
-    includeHolder: include.holder ?? false,
+    includeCollection: activeCollection,
+    includeHolder: activeHolder,
     includeDescription: include.description ?? false,
     includeCategory: include.category ?? false,
     includeIcons: include.icons ?? false,
@@ -141,19 +148,55 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
   };
 
   // Collection sub-includes: reuse digital asset include builder with "Collection" prefix.
-  // When collection is empty {} → buildDigitalAssetIncludeVars returns {} → GraphQL defaults apply.
-  // When collection has explicit keys → each key is mapped to includeCollection* variables.
-  if (include.collection) {
-    const daVars = buildDigitalAssetIncludeVars(
-      Object.keys(include.collection).length > 0 ? include.collection : undefined,
-    );
+  if (activeCollection) {
+    const daVars = buildDigitalAssetIncludeVars(include.collection);
     for (const [key, val] of Object.entries(daVars)) {
       // includeX → includeCollectionX
       vars[key.replace('include', 'includeCollection')] = val;
     }
   }
 
+  // Holder sub-includes: reuse profile include builder with "Holder" prefix.
+  if (activeHolder) {
+    const profileVars = buildProfileIncludeVars(include.holder);
+    for (const [key, val] of Object.entries(profileVars)) {
+      // includeProfileX → includeHolderX
+      vars[key.replace('includeProfile', 'includeHolder')] = val;
+    }
+  }
+
   return vars;
+}
+
+/**
+ * Build NFT sub-include variables for use as a **nested relation** in the owned-token
+ * domain. Uses `includeNft*` prefix to avoid colliding with digital asset `include*`
+ * and profile `includeProfile*` variables which share the same query.
+ *
+ * **Inverted default pattern:**
+ * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
+ *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
+ * - When `include` is **provided** → each field defaults to `false` unless explicitly
+ *   set to `true`.
+ *
+ * Only maps the 8 fields available in the owned-token NFT context
+ * (excludes `collection` and `holder` which are sibling relations on owned_token).
+ */
+export function buildNftIncludeVars(include?: OwnedTokenNftInclude): Record<string, boolean> {
+  if (!include) {
+    return {};
+  }
+
+  return {
+    includeNftFormattedTokenId: include.formattedTokenId ?? false,
+    includeNftName: include.name ?? false,
+    includeNftDescription: include.description ?? false,
+    includeNftCategory: include.category ?? false,
+    includeNftIcons: include.icons ?? false,
+    includeNftImages: include.images ?? false,
+    includeNftLinks: include.links ?? false,
+    includeNftAttributes: include.attributes ?? false,
+  };
 }
 
 // ---------------------------------------------------------------------------

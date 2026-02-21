@@ -1,6 +1,6 @@
 'use client';
 
-import { Gem, Infinity, Layers, Monitor, Search, Server } from 'lucide-react';
+import { Gem, Infinity, Layers, Search } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -24,54 +24,37 @@ import type {
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { NftCard } from '@/components/nft-card';
-import type { FilterFieldConfig, IncludeToggleConfig, SortOption } from '@/components/playground';
+import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  buildNestedInclude,
+  DIGITAL_ASSET_INCLUDE_FIELDS,
   ErrorAlert,
   FilterFieldsRow,
   IncludeToggles,
+  NFT_INCLUDE_FIELDS,
+  PlaygroundPageLayout,
+  PresetButtons,
+  PROFILE_INCLUDE_FIELDS,
   ResultsList,
   SortControls,
+  SubIncludeSection,
   useFilterFields,
   useIncludeToggles,
+  useSubInclude,
 } from '@/components/playground';
 
 // ---------------------------------------------------------------------------
-// Hook mode — pick which package's hooks to use
+// Domain config
 // ---------------------------------------------------------------------------
 
-type HookMode = 'client' | 'server';
-
-/** Returns the correct hook set based on the current mode */
-function useHooks(mode: HookMode) {
-  if (mode === 'server') {
-    return {
-      useNft: useNftNext,
-      useNfts: useNftsNext,
-      useInfiniteNfts: useInfiniteNftsNext,
-    };
-  }
-  return {
-    useNft: useNftReact,
-    useNfts: useNftsReact,
-    useInfiniteNfts: useInfiniteNftsReact,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// NFT domain config
-// ---------------------------------------------------------------------------
-
-const NFT_FILTERS: FilterFieldConfig[] = [
+const FILTERS: FilterFieldConfig[] = [
   {
     key: 'collectionAddress',
     label: 'Collection Address',
@@ -112,50 +95,32 @@ const NFT_FILTERS: FilterFieldConfig[] = [
   },
 ];
 
-const NFT_SORT_OPTIONS: SortOption[] = [
+const SORT_OPTIONS: SortOption[] = [
   { value: 'tokenId', label: 'Token ID' },
   { value: 'formattedTokenId', label: 'Formatted Token ID' },
 ];
 
-const NFT_INCLUDES: IncludeToggleConfig[] = [
-  { key: 'formattedTokenId', label: 'Formatted Token ID' },
-  { key: 'name', label: 'NFT Name' },
-  { key: 'holder', label: 'Holder' },
-  { key: 'description', label: 'Description' },
-  { key: 'category', label: 'Category' },
-  { key: 'icons', label: 'Icons' },
-  { key: 'images', label: 'Images' },
-  { key: 'links', label: 'Links' },
-  { key: 'attributes', label: 'Attributes' },
-];
-
-/** Collection sub-include toggle configs (DigitalAssetInclude fields) */
-const COLLECTION_SUB_INCLUDES: IncludeToggleConfig[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'symbol', label: 'Symbol' },
-  { key: 'tokenType', label: 'Token Type' },
-  { key: 'decimals', label: 'Decimals' },
-  { key: 'totalSupply', label: 'Total Supply' },
-  { key: 'description', label: 'Description' },
-  { key: 'category', label: 'Category' },
-  { key: 'icons', label: 'Icons' },
-  { key: 'images', label: 'Images' },
-  { key: 'links', label: 'Links' },
-  { key: 'attributes', label: 'Attributes' },
-  { key: 'owner', label: 'Owner' },
-  { key: 'holderCount', label: 'Holder Count' },
-  { key: 'creatorCount', label: 'Creator Count' },
-  { key: 'referenceContract', label: 'Reference Contract' },
-  { key: 'tokenIdFormat', label: 'Token ID Format' },
-  { key: 'baseUri', label: 'Base URI' },
-];
-
-const PRESET_COLLECTIONS = [
-  { label: 'Chillwhales', address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83' },
+const PRESETS = [
+  {
+    label: 'Chillwhale #1',
+    address: '0x86E817172b5c07f7036Bf8aA46e2db9063743A83',
+    tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
+  },
+  {
+    label: 'B.A.D. #1',
+    address: '0x6edbbce5eba138de468eb0901ed2cf602bf473c9',
+    tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
+  },
 ] as const;
 
-/** Build an NftFilter from debounced filter field values */
-function buildNftFilter(debouncedValues: Record<string, string>): NftFilter | undefined {
+function useHooks(mode: HookMode) {
+  if (mode === 'server') {
+    return { useNft: useNftNext, useNfts: useNftsNext, useInfiniteNfts: useInfiniteNftsNext };
+  }
+  return { useNft: useNftReact, useNfts: useNftsReact, useInfiniteNfts: useInfiniteNftsReact };
+}
+
+function buildFilter(debouncedValues: Record<string, string>): NftFilter | undefined {
   const f: NftFilter = {};
   if (debouncedValues.collectionAddress) f.collectionAddress = debouncedValues.collectionAddress;
   if (debouncedValues.tokenId) f.tokenId = debouncedValues.tokenId;
@@ -172,75 +137,25 @@ function buildNftFilter(debouncedValues: Record<string, string>): NftFilter | un
 }
 
 // ---------------------------------------------------------------------------
-// Collection include hook — manages collection toggle + sub-toggles
+// Shared list state
 // ---------------------------------------------------------------------------
 
-/**
- * Hook for managing the collection include state with nested sub-includes.
- *
- * When collection is enabled (even without any sub-includes), it means
- * "include the collection data". The sub-toggles control which collection
- * fields to fetch.
- */
-function useCollectionInclude() {
-  const [enabled, setEnabled] = useState(true);
-  const {
-    values: subValues,
-    toggle: toggleSub,
-    include: subInclude,
-  } = useIncludeToggles(COLLECTION_SUB_INCLUDES);
-
-  return {
-    enabled,
-    setEnabled,
-    subValues,
-    toggleSub,
-    /** Returns the collection include value for the NftInclude object */
-    value: enabled ? (subInclude ?? {}) : undefined,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Build NftInclude from toggle state + collection sub-includes
-// ---------------------------------------------------------------------------
-
-function buildNftInclude(
-  includeValues: Record<string, boolean>,
-  collectionValue: Record<string, boolean> | undefined,
-): NftInclude | undefined {
-  // Check if all base toggles are ON and collection is enabled with all sub-includes ON
-  const allBaseOn = Object.values(includeValues).every(Boolean);
-  const collectionAllOn =
-    collectionValue !== undefined && Object.keys(collectionValue).length === 0;
-
-  if (allBaseOn && collectionAllOn) return undefined; // Everything ON = use defaults
-
-  const include: NftInclude = {};
-  for (const [key, val] of Object.entries(includeValues)) {
-    (include as Record<string, unknown>)[key] = val;
-  }
-  if (collectionValue !== undefined) {
-    include.collection = collectionValue;
-  }
-  return include;
-}
-
-// ---------------------------------------------------------------------------
-// Shared filter + sort hook for list and infinite tabs
-// ---------------------------------------------------------------------------
-
-function useNftListState() {
-  const { values, debouncedValues, setFieldValue } = useFilterFields(NFT_FILTERS);
+function useListState() {
+  const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
   const [sortField, setSortField] = useState<NftSortField>('tokenId');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
-  const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(NFT_INCLUDES);
-  const collection = useCollectionInclude();
+  const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(NFT_INCLUDE_FIELDS);
+  const collection = useSubInclude(DIGITAL_ASSET_INCLUDE_FIELDS);
+  const holder = useSubInclude(PROFILE_INCLUDE_FIELDS);
 
-  const filter = buildNftFilter(debouncedValues);
+  const filter = buildFilter(debouncedValues);
   const sort: NftSort = { field: sortField, direction: sortDirection, nulls: sortNulls };
   const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
-  const include = buildNftInclude(includeValues, collection.value);
+  const include = buildNestedInclude(includeValues, {
+    collection: collection.value,
+    holder: holder.value,
+  }) as NftInclude | undefined;
 
   return {
     values,
@@ -258,57 +173,40 @@ function useNftListState() {
     toggleInclude,
     include,
     collection,
+    holder,
   };
 }
 
 // ---------------------------------------------------------------------------
-// Collection sub-include toggles component
+// Sub-include sections (shared between all 3 tabs)
 // ---------------------------------------------------------------------------
 
-function CollectionIncludeSection({
-  enabled,
-  setEnabled,
-  subValues,
-  toggleSub,
-}: {
-  enabled: boolean;
-  setEnabled: (v: boolean) => void;
-  subValues: Record<string, boolean>;
-  toggleSub: (key: string) => void;
-}): React.ReactNode {
+function IncludeSections({
+  includeValues,
+  toggleInclude,
+  collection,
+  holder,
+}: ReturnType<typeof useListState>): React.ReactNode {
   return (
-    <div className="space-y-2">
-      <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
-        <Switch size="sm" checked={enabled} onCheckedChange={setEnabled} />
-        <span className={enabled ? 'text-foreground font-medium' : 'text-muted-foreground'}>
-          Collection
-        </span>
-      </label>
-      {enabled && (
-        <div className="ml-6 pl-3 border-l space-y-1">
-          <span className="text-xs text-muted-foreground">Collection sub-fields</span>
-          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
-            {COLLECTION_SUB_INCLUDES.map((config) => (
-              <label
-                key={config.key}
-                className="flex items-center gap-1 text-xs cursor-pointer select-none"
-              >
-                <Switch
-                  size="sm"
-                  checked={subValues[config.key] ?? true}
-                  onCheckedChange={() => toggleSub(config.key)}
-                />
-                <span
-                  className={subValues[config.key] ? 'text-foreground' : 'text-muted-foreground'}
-                >
-                  {config.label}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+    <>
+      <IncludeToggles
+        configs={NFT_INCLUDE_FIELDS}
+        values={includeValues}
+        onToggle={toggleInclude}
+      />
+      <SubIncludeSection
+        label="Holder"
+        subtitle="Holder profile sub-fields"
+        configs={PROFILE_INCLUDE_FIELDS}
+        state={holder}
+      />
+      <SubIncludeSection
+        label="Collection"
+        subtitle="Collection sub-fields"
+        configs={DIGITAL_ASSET_INCLUDE_FIELDS}
+        state={collection}
+      />
+    </>
   );
 }
 
@@ -316,7 +214,7 @@ function CollectionIncludeSection({
 // Tab 1: Single NFT
 // ---------------------------------------------------------------------------
 
-function SingleNftTab({ mode }: { mode: HookMode }): React.ReactNode {
+function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useNft } = useHooks(mode);
   const [address, setAddress] = useState('');
   const [tokenId, setTokenId] = useState('');
@@ -324,9 +222,13 @@ function SingleNftTab({ mode }: { mode: HookMode }): React.ReactNode {
   const [queryAddress, setQueryAddress] = useState('');
   const [queryTokenId, setQueryTokenId] = useState('');
   const [queryFormattedTokenId, setQueryFormattedTokenId] = useState('');
-  const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(NFT_INCLUDES);
-  const collection = useCollectionInclude();
-  const include = buildNftInclude(includeValues, collection.value);
+  const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(NFT_INCLUDE_FIELDS);
+  const collection = useSubInclude(DIGITAL_ASSET_INCLUDE_FIELDS);
+  const holder = useSubInclude(PROFILE_INCLUDE_FIELDS);
+  const include = buildNestedInclude(includeValues, {
+    collection: collection.value,
+    holder: holder.value,
+  }) as NftInclude | undefined;
 
   const { nft, isLoading, error, isFetching } = useNft({
     address: queryAddress,
@@ -342,17 +244,10 @@ function SingleNftTab({ mode }: { mode: HookMode }): React.ReactNode {
     setQueryFormattedTokenId(formattedTokenId);
   };
 
-  const handlePreset = (presetAddress: string) => {
-    setAddress(presetAddress);
-    setQueryAddress(presetAddress);
-    // Keep tokenId / formattedTokenId as-is — user enters them separately
-  };
-
   const canSubmit = Boolean(address && (tokenId || formattedTokenId));
 
   return (
     <div className="space-y-4">
-      {/* Address + Token ID + Formatted Token ID inputs — stacked vertically */}
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="space-y-1.5">
           <Label htmlFor="nft-address">Collection Address</Label>
@@ -390,31 +285,36 @@ function SingleNftTab({ mode }: { mode: HookMode }): React.ReactNode {
         </Button>
       </form>
 
-      {/* Preset buttons */}
-      <div className="flex flex-wrap gap-2">
-        <span className="text-sm text-muted-foreground self-center">Presets:</span>
-        {PRESET_COLLECTIONS.map((preset) => (
-          <Button
-            key={preset.address}
-            variant="outline"
-            size="sm"
-            onClick={() => handlePreset(preset.address)}
-          >
-            {preset.label}
-          </Button>
-        ))}
-      </div>
-
-      {/* Include toggles */}
-      <IncludeToggles configs={NFT_INCLUDES} values={includeValues} onToggle={toggleInclude} />
-      <CollectionIncludeSection
-        enabled={collection.enabled}
-        setEnabled={collection.setEnabled}
-        subValues={collection.subValues}
-        toggleSub={collection.toggleSub}
+      <PresetButtons
+        presets={PRESETS}
+        onSelect={(p) => {
+          setAddress(p.address);
+          setTokenId(p.tokenId);
+          setFormattedTokenId('');
+          setQueryAddress(p.address);
+          setQueryTokenId(p.tokenId);
+          setQueryFormattedTokenId('');
+        }}
       />
 
-      {/* Loading state */}
+      <IncludeToggles
+        configs={NFT_INCLUDE_FIELDS}
+        values={includeValues}
+        onToggle={toggleInclude}
+      />
+      <SubIncludeSection
+        label="Holder"
+        subtitle="Holder profile sub-fields"
+        configs={PROFILE_INCLUDE_FIELDS}
+        state={holder}
+      />
+      <SubIncludeSection
+        label="Collection"
+        subtitle="Collection sub-fields"
+        configs={DIGITAL_ASSET_INCLUDE_FIELDS}
+        state={collection}
+      />
+
       {isLoading && (
         <Card>
           <CardHeader>
@@ -423,14 +323,8 @@ function SingleNftTab({ mode }: { mode: HookMode }): React.ReactNode {
           </CardHeader>
         </Card>
       )}
-
-      {/* Error state */}
       {error && <ErrorAlert error={error} />}
-
-      {/* Success state */}
       {nft && <NftCard nft={nft} isFetching={isFetching} />}
-
-      {/* Empty state */}
       {queryAddress && (queryTokenId || queryFormattedTokenId) && !isLoading && !error && !nft && (
         <Alert>
           <Gem className="h-4 w-4" />
@@ -465,9 +359,9 @@ function SingleNftTab({ mode }: { mode: HookMode }): React.ReactNode {
 // Tab 2: NFT List
 // ---------------------------------------------------------------------------
 
-function NftListTab({ mode }: { mode: HookMode }): React.ReactNode {
+function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useNfts } = useHooks(mode);
-  const state = useNftListState();
+  const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { nfts, totalCount, isLoading, error, isFetching } = useNfts({
@@ -480,12 +374,12 @@ function NftListTab({ mode }: { mode: HookMode }): React.ReactNode {
   return (
     <div className="space-y-4">
       <FilterFieldsRow
-        configs={NFT_FILTERS}
+        configs={FILTERS}
         values={state.values}
         onFieldChange={state.setFieldValue}
       />
       <SortControls
-        options={NFT_SORT_OPTIONS}
+        options={SORT_OPTIONS}
         sortField={state.sortField}
         sortDirection={state.sortDirection}
         onSortFieldChange={(v) => state.setSortField(v as NftSortField)}
@@ -497,17 +391,7 @@ function NftListTab({ mode }: { mode: HookMode }): React.ReactNode {
         limit={limit}
         onLimitChange={setLimit}
       />
-      <IncludeToggles
-        configs={NFT_INCLUDES}
-        values={state.includeValues}
-        onToggle={state.toggleInclude}
-      />
-      <CollectionIncludeSection
-        enabled={state.collection.enabled}
-        setEnabled={state.collection.setEnabled}
-        subValues={state.collection.subValues}
-        toggleSub={state.collection.toggleSub}
-      />
+      <IncludeSections {...state} />
       <ResultsList<Nft>
         items={nfts}
         isLoading={isLoading}
@@ -527,9 +411,9 @@ function NftListTab({ mode }: { mode: HookMode }): React.ReactNode {
 // Tab 3: Infinite Scroll
 // ---------------------------------------------------------------------------
 
-function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
+function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteNfts } = useHooks(mode);
-  const state = useNftListState();
+  const state = useListState();
 
   const { nfts, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =
     useInfiniteNfts({
@@ -542,12 +426,12 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
   return (
     <div className="space-y-4">
       <FilterFieldsRow
-        configs={NFT_FILTERS}
+        configs={FILTERS}
         values={state.values}
         onFieldChange={state.setFieldValue}
       />
       <SortControls
-        options={NFT_SORT_OPTIONS}
+        options={SORT_OPTIONS}
         sortField={state.sortField}
         sortDirection={state.sortDirection}
         onSortFieldChange={(v) => state.setSortField(v as NftSortField)}
@@ -557,17 +441,7 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
           state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
         }
       />
-      <IncludeToggles
-        configs={NFT_INCLUDES}
-        values={state.includeValues}
-        onToggle={state.toggleInclude}
-      />
-      <CollectionIncludeSection
-        enabled={state.collection.enabled}
-        setEnabled={state.collection.setEnabled}
-        subValues={state.collection.subValues}
-        toggleSub={state.collection.toggleSub}
-      />
+      <IncludeSections {...state} />
       <ResultsList<Nft>
         items={nfts}
         isLoading={isLoading}
@@ -588,85 +462,39 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
 // ---------------------------------------------------------------------------
 
 export default function NftsPage(): React.ReactNode {
-  const [mode, setMode] = useState<HookMode>('client');
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">NFTs</h1>
-          <p className="text-muted-foreground">
-            Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useNft</code>,{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">useNfts</code>, and{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteNfts</code> hooks
-            against live Hasura data. Filter by collection address to exercise the{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">useNftsByCollection</code>{' '}
-            pattern (QUERY-03).
-          </p>
-        </div>
-
-        {/* Client / Server mode toggle */}
-        <div className="flex items-center gap-1 rounded-lg border p-1">
-          <Button
-            variant={mode === 'client' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMode('client')}
-            className="gap-1.5"
-          >
-            <Monitor className="size-3.5" />
-            Client
-          </Button>
-          <Button
-            variant={mode === 'server' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMode('server')}
-            className="gap-1.5"
-          >
-            <Server className="size-3.5" />
-            Server
-          </Button>
-        </div>
-      </div>
-
-      {/* Mode indicator */}
-      <div className="flex items-center gap-2">
-        <Badge variant={mode === 'client' ? 'default' : 'secondary'}>
-          {mode === 'client' ? '@lsp-indexer/react' : '@lsp-indexer/next'}
-        </Badge>
-        <span className="text-xs text-muted-foreground">
-          {mode === 'client' ? 'Browser → Hasura directly' : 'Browser → Server Action → Hasura'}
-        </span>
-      </div>
-
-      {/* key={mode} forces full remount when switching — avoids hook-rule violations */}
-      <Tabs defaultValue="single" key={mode}>
-        <TabsList>
-          <TabsTrigger value="single">
-            <Gem className="size-4" />
-            Single NFT
-          </TabsTrigger>
-          <TabsTrigger value="list">
-            <Layers className="size-4" />
-            NFT List
-          </TabsTrigger>
-          <TabsTrigger value="infinite">
-            <Infinity className="size-4" />
-            Infinite Scroll
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="single" className="mt-4">
-          <SingleNftTab mode={mode} />
-        </TabsContent>
-
-        <TabsContent value="list" className="mt-4">
-          <NftListTab mode={mode} />
-        </TabsContent>
-
-        <TabsContent value="infinite" className="mt-4">
-          <InfiniteScrollTab mode={mode} />
-        </TabsContent>
-      </Tabs>
-    </div>
+    <PlaygroundPageLayout
+      title="NFTs"
+      description={
+        <>
+          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useNft</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useNfts</code>, and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteNfts</code> hooks
+          against live Hasura data. Filter by collection address to exercise the{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useNftsByCollection</code> pattern
+          (QUERY-03).
+        </>
+      }
+      tabs={[
+        {
+          value: 'single',
+          label: 'Single NFT',
+          icon: <Gem className="size-4" />,
+          render: (mode) => <SingleTab mode={mode} />,
+        },
+        {
+          value: 'list',
+          label: 'NFT List',
+          icon: <Layers className="size-4" />,
+          render: (mode) => <ListTab mode={mode} />,
+        },
+        {
+          value: 'infinite',
+          label: 'Infinite Scroll',
+          icon: <Infinity className="size-4" />,
+          render: (mode) => <InfiniteTab mode={mode} />,
+        },
+      ]}
+    />
   );
 }

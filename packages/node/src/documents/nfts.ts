@@ -47,6 +47,15 @@ export const GetNftDocument = graphql(`
     $includeCollectionReferenceContract: Boolean! = true
     $includeCollectionTokenIdFormat: Boolean! = true
     $includeCollectionBaseUri: Boolean! = true
+    $includeHolderName: Boolean! = true
+    $includeHolderDescription: Boolean! = true
+    $includeHolderTags: Boolean! = true
+    $includeHolderLinks: Boolean! = true
+    $includeHolderAvatar: Boolean! = true
+    $includeHolderImage: Boolean! = true
+    $includeHolderBackgroundImage: Boolean! = true
+    $includeHolderFollowerCount: Boolean! = true
+    $includeHolderFollowingCount: Boolean! = true
   ) {
     nft(where: $where, limit: 1) {
       id
@@ -129,6 +138,54 @@ export const GetNftDocument = graphql(`
       ownedToken @include(if: $includeHolder) {
         owner
         timestamp
+        universalProfile {
+          address
+          lsp3Profile {
+            name @include(if: $includeHolderName) {
+              value
+            }
+            description @include(if: $includeHolderDescription) {
+              value
+            }
+            tags @include(if: $includeHolderTags) {
+              value
+            }
+            links @include(if: $includeHolderLinks) {
+              title
+              url
+            }
+            avatar @include(if: $includeHolderAvatar) {
+              url
+              file_type
+              verification_method
+              verification_data
+            }
+            profileImage @include(if: $includeHolderImage) {
+              url
+              width
+              height
+              verification_method
+              verification_data
+            }
+            backgroundImage @include(if: $includeHolderBackgroundImage) {
+              url
+              width
+              height
+              verification_method
+              verification_data
+            }
+          }
+          followedBy_aggregate @include(if: $includeHolderFollowerCount) {
+            aggregate {
+              count
+            }
+          }
+          followed_aggregate @include(if: $includeHolderFollowingCount) {
+            aggregate {
+              count
+            }
+          }
+        }
       }
       lsp4Metadata {
         name @include(if: $includeName) {
@@ -255,6 +312,15 @@ export const GetNftsDocument = graphql(`
     $includeCollectionReferenceContract: Boolean! = true
     $includeCollectionTokenIdFormat: Boolean! = true
     $includeCollectionBaseUri: Boolean! = true
+    $includeHolderName: Boolean! = true
+    $includeHolderDescription: Boolean! = true
+    $includeHolderTags: Boolean! = true
+    $includeHolderLinks: Boolean! = true
+    $includeHolderAvatar: Boolean! = true
+    $includeHolderImage: Boolean! = true
+    $includeHolderBackgroundImage: Boolean! = true
+    $includeHolderFollowerCount: Boolean! = true
+    $includeHolderFollowingCount: Boolean! = true
   ) {
     nft(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       id
@@ -337,6 +403,54 @@ export const GetNftsDocument = graphql(`
       ownedToken @include(if: $includeHolder) {
         owner
         timestamp
+        universalProfile {
+          address
+          lsp3Profile {
+            name @include(if: $includeHolderName) {
+              value
+            }
+            description @include(if: $includeHolderDescription) {
+              value
+            }
+            tags @include(if: $includeHolderTags) {
+              value
+            }
+            links @include(if: $includeHolderLinks) {
+              title
+              url
+            }
+            avatar @include(if: $includeHolderAvatar) {
+              url
+              file_type
+              verification_method
+              verification_data
+            }
+            profileImage @include(if: $includeHolderImage) {
+              url
+              width
+              height
+              verification_method
+              verification_data
+            }
+            backgroundImage @include(if: $includeHolderBackgroundImage) {
+              url
+              width
+              height
+              verification_method
+              verification_data
+            }
+          }
+          followedBy_aggregate @include(if: $includeHolderFollowerCount) {
+            aggregate {
+              count
+            }
+          }
+          followed_aggregate @include(if: $includeHolderFollowingCount) {
+            aggregate {
+              count
+            }
+          }
+        }
       }
       lsp4Metadata {
         name @include(if: $includeName) {

@@ -3,22 +3,31 @@
 import {
   BarChart3,
   Calendar,
+  ChevronDown,
   Heart,
   Home,
   Image,
   Layers,
   Lock,
+  Monitor,
+  Moon,
   Paintbrush,
+  Sun,
+  Tag,
   User,
   Wallet,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
@@ -32,7 +41,8 @@ const navLinks = [
   { href: '/profiles', label: 'Profiles', icon: User, available: true },
   { href: '/digital-assets', label: 'Digital Assets', icon: Image, available: true },
   { href: '/nfts', label: 'NFTs', icon: Layers, available: true },
-  { href: '/owned', label: 'Owned Assets', icon: Wallet, available: false },
+  { href: '/owned-assets', label: 'Owned Assets', icon: Wallet, available: true },
+  { href: '/owned-tokens', label: 'Owned Tokens', icon: Tag, available: true },
   { href: '/follows', label: 'Follows', icon: Heart, available: false },
   { href: '/creators', label: 'Creators', icon: Paintbrush, available: false },
   { href: '/encrypted', label: 'Encrypted Assets', icon: Lock, available: false },
@@ -40,8 +50,15 @@ const navLinks = [
   { href: '/stats', label: 'Stats', icon: BarChart3, available: false },
 ];
 
+const themeOptions = [
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'dark', label: 'Dark', icon: Moon },
+  { value: 'system', label: 'System', icon: Monitor },
+] as const;
+
 export function AppSidebar() {
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
 
   return (
     <Sidebar>
@@ -76,6 +93,35 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-1.5 text-muted-foreground"
+            >
+              <Sun className="size-3.5" />
+              Theme
+              <ChevronDown className="size-3.5 ml-auto" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-1 space-y-0.5 px-1">
+            {themeOptions.map((opt) => (
+              <Button
+                key={opt.value}
+                variant={theme === opt.value ? 'secondary' : 'ghost'}
+                size="sm"
+                className="w-full justify-start gap-2"
+                onClick={() => setTheme(opt.value)}
+              >
+                <opt.icon className="size-3.5" />
+                {opt.label}
+              </Button>
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      </SidebarFooter>
     </Sidebar>
   );
 }

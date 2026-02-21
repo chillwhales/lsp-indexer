@@ -1,10 +1,12 @@
 import type { Nft } from '@lsp-indexer/types';
-import { ChevronDown, ExternalLink, Gem, Loader2 } from 'lucide-react';
+import { ChevronDown, Coins, ExternalLink, Gem, Loader2, User } from 'lucide-react';
 import React from 'react';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { RawJsonToggle } from '@/components/playground';
+import { ProfileCard } from '@/components/profile-card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { isSafeUrl, resolveUrl } from '@/lib/utils';
@@ -89,35 +91,28 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
           )}
         </dl>
 
-        {/* Holder section */}
+        {/* Holder section (collapsible) */}
         {nft.holder && (
-          <div className="border rounded-lg p-3 space-y-2 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
-            <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Holder</h4>
-            <div className="text-sm">
-              <span className="text-muted-foreground">Address:</span>{' '}
-              <span className="font-mono text-xs break-all">{nft.holder.address}</span>
-            </div>
-            <div className="text-sm">
-              <span className="text-muted-foreground">Acquired:</span>{' '}
-              <span className="text-xs">
-                {nft.holder.timestamp ? new Date(nft.holder.timestamp).toLocaleString() : 'Unknown'}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Collection (full DigitalAsset) */}
-        {nft.collection && (
           <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold hover:underline cursor-pointer">
-              <ChevronDown className="size-3.5" />
-              Collection: {nft.collection.name ?? nft.collection.address}
-              {nft.collection.symbol && (
-                <span className="text-muted-foreground font-normal">({nft.collection.symbol})</span>
-              )}
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                <User className="size-3.5" />
+                Holder: {nft.holder.name ?? nft.holder.address}
+                <ChevronDown className="size-3.5" />
+              </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <DigitalAssetCard digitalAsset={nft.collection} />
+            <CollapsibleContent className="mt-2 space-y-3">
+              {/* Acquisition timestamp */}
+              {nft.holder.timestamp && (
+                <dl className="space-y-1.5 text-sm">
+                  <div className="flex gap-2">
+                    <dt className="text-muted-foreground w-24 shrink-0">Acquired</dt>
+                    <dd className="text-xs">{new Date(nft.holder.timestamp).toLocaleString()}</dd>
+                  </div>
+                </dl>
+              )}
+              {/* Holder profile (flat — holder IS a Profile with timestamp) */}
+              <ProfileCard profile={nft.holder} />
             </CollapsibleContent>
           </Collapsible>
         )}
@@ -247,6 +242,27 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
               )}
             </div>
           </div>
+        )}
+
+        {/* Collection (full DigitalAsset) — last section like owned-asset pattern */}
+        {nft.collection && (
+          <Collapsible>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                <Coins className="size-3.5" />
+                Collection: {nft.collection.name ?? nft.collection.address}
+                {nft.collection.symbol && (
+                  <span className="text-muted-foreground font-normal">
+                    ({nft.collection.symbol})
+                  </span>
+                )}
+                <ChevronDown className="size-3.5" />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <DigitalAssetCard digitalAsset={nft.collection} />
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
         <RawJsonToggle data={nft} label="nft" />

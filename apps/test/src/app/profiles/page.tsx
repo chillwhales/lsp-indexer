@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, Monitor, Search, Server, User, Users } from 'lucide-react';
+import { Loader2, Search, User, Users } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -23,18 +23,19 @@ import type {
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import type { FilterFieldConfig, IncludeToggleConfig, SortOption } from '@/components/playground';
+import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
   ErrorAlert,
   FilterFieldsRow,
   IncludeToggles,
+  PlaygroundPageLayout,
+  PresetButtons,
+  PROFILE_INCLUDE_FIELDS,
   ResultsList,
   SortControls,
   useFilterFields,
@@ -43,12 +44,28 @@ import {
 import { ProfileCard } from '@/components/profile-card';
 
 // ---------------------------------------------------------------------------
-// Hook mode — pick which package's hooks to use
+// Domain config
 // ---------------------------------------------------------------------------
 
-type HookMode = 'client' | 'server';
+const FILTERS: FilterFieldConfig[] = [
+  { key: 'name', label: 'Name', placeholder: 'Search by name...' },
+  { key: 'followedBy', label: 'Followed by', placeholder: '0x... (address)', mono: true },
+  { key: 'following', label: 'Following', placeholder: '0x... (address)', mono: true },
+  { key: 'tokenOwned', label: 'Owns asset', placeholder: '0x... (token address)', mono: true },
+] as const;
 
-/** Returns the correct hook set based on the current mode */
+const SORT_OPTIONS: SortOption[] = [
+  { value: 'name', label: 'Name' },
+  { value: 'followerCount', label: 'Followers' },
+  { value: 'followingCount', label: 'Following' },
+];
+
+const PRESETS = [
+  { label: 'chill-labs', address: '0xB6c10458274431189D4D0dA66ce00dc62A215908' },
+  { label: 'b00ste', address: '0x00Aa9761286f21437c90AD2f895ef0dcA3484306' },
+  { label: 'feindura', address: '0xCDeC110F9c255357E37f46CD2687be1f7E9B02F7' },
+] as const;
+
 function useHooks(mode: HookMode) {
   if (mode === 'server') {
     return {
@@ -64,43 +81,7 @@ function useHooks(mode: HookMode) {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Profile domain config — the ONLY things that change per domain
-// ---------------------------------------------------------------------------
-
-const PROFILE_FILTERS: FilterFieldConfig[] = [
-  { key: 'name', label: 'Name', placeholder: 'Search by name...' },
-  { key: 'followedBy', label: 'Followed by', placeholder: '0x... (address)', mono: true },
-  { key: 'following', label: 'Following', placeholder: '0x... (address)', mono: true },
-  { key: 'tokenOwned', label: 'Owns asset', placeholder: '0x... (token address)', mono: true },
-] as const;
-
-const PROFILE_SORT_OPTIONS: SortOption[] = [
-  { value: 'name', label: 'Name' },
-  { value: 'followerCount', label: 'Followers' },
-  { value: 'followingCount', label: 'Following' },
-];
-
-const PROFILE_INCLUDES: IncludeToggleConfig[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'description', label: 'Description' },
-  { key: 'tags', label: 'Tags' },
-  { key: 'links', label: 'Links' },
-  { key: 'avatar', label: 'Avatar' },
-  { key: 'profileImage', label: 'Profile Image' },
-  { key: 'backgroundImage', label: 'Background Image' },
-  { key: 'followerCount', label: 'Follower Count' },
-  { key: 'followingCount', label: 'Following Count' },
-];
-
-const PRESET_ADDRESSES = [
-  { label: 'chill-labs', address: '0xB6c10458274431189D4D0dA66ce00dc62A215908' },
-  { label: 'b00ste', address: '0x00Aa9761286f21437c90AD2f895ef0dcA3484306' },
-  { label: 'feindura', address: '0xCDeC110F9c255357E37f46CD2687be1f7E9B02F7' },
-] as const;
-
-/** Build a ProfileFilter from debounced filter field values */
-function buildProfileFilter(debouncedValues: Record<string, string>): ProfileFilter | undefined {
+function buildFilter(debouncedValues: Record<string, string>): ProfileFilter | undefined {
   const f: ProfileFilter = {};
   if (debouncedValues.name) f.name = debouncedValues.name;
   if (debouncedValues.followedBy) f.followedBy = debouncedValues.followedBy;
@@ -110,11 +91,11 @@ function buildProfileFilter(debouncedValues: Record<string, string>): ProfileFil
 }
 
 // ---------------------------------------------------------------------------
-// Shared filter + sort hook for list and infinite tabs
+// Shared list state
 // ---------------------------------------------------------------------------
 
-function useProfileListState() {
-  const { values, debouncedValues, setFieldValue } = useFilterFields(PROFILE_FILTERS);
+function useListState() {
+  const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
   const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
@@ -122,9 +103,9 @@ function useProfileListState() {
     values: includeValues,
     toggle: toggleInclude,
     include,
-  } = useIncludeToggles(PROFILE_INCLUDES);
+  } = useIncludeToggles(PROFILE_INCLUDE_FIELDS);
 
-  const filter = buildProfileFilter(debouncedValues);
+  const filter = buildFilter(debouncedValues);
   const sort: ProfileSort = { field: sortField, direction: sortDirection, nulls: sortNulls };
   const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
 
@@ -150,7 +131,7 @@ function useProfileListState() {
 // Tab 1: Single Profile
 // ---------------------------------------------------------------------------
 
-function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
+function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useProfile } = useHooks(mode);
   const [address, setAddress] = useState('');
   const [queryAddress, setQueryAddress] = useState('');
@@ -158,7 +139,7 @@ function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
     values: includeValues,
     toggle: toggleInclude,
     include,
-  } = useIncludeToggles(PROFILE_INCLUDES);
+  } = useIncludeToggles(PROFILE_INCLUDE_FIELDS);
 
   const { profile, isLoading, error, isFetching } = useProfile({ address: queryAddress, include });
 
@@ -167,14 +148,8 @@ function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
     setQueryAddress(address);
   };
 
-  const handlePreset = (presetAddress: string) => {
-    setAddress(presetAddress);
-    setQueryAddress(presetAddress);
-  };
-
   return (
     <div className="space-y-4">
-      {/* Address input */}
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
           placeholder="Enter Universal Profile address (0x...)"
@@ -188,25 +163,20 @@ function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
         </Button>
       </form>
 
-      {/* Preset buttons */}
-      <div className="flex flex-wrap gap-2">
-        <span className="text-sm text-muted-foreground self-center">Presets:</span>
-        {PRESET_ADDRESSES.map((preset) => (
-          <Button
-            key={preset.address}
-            variant="outline"
-            size="sm"
-            onClick={() => handlePreset(preset.address)}
-          >
-            {preset.label}
-          </Button>
-        ))}
-      </div>
+      <PresetButtons
+        presets={PRESETS}
+        onSelect={(p) => {
+          setAddress(p.address);
+          setQueryAddress(p.address);
+        }}
+      />
 
-      {/* Include toggles */}
-      <IncludeToggles configs={PROFILE_INCLUDES} values={includeValues} onToggle={toggleInclude} />
+      <IncludeToggles
+        configs={PROFILE_INCLUDE_FIELDS}
+        values={includeValues}
+        onToggle={toggleInclude}
+      />
 
-      {/* Loading state */}
       {isLoading && (
         <Card>
           <CardHeader>
@@ -215,14 +185,8 @@ function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
           </CardHeader>
         </Card>
       )}
-
-      {/* Error state */}
       {error && <ErrorAlert error={error} />}
-
-      {/* Success state */}
       {profile && <ProfileCard profile={profile} isFetching={isFetching} />}
-
-      {/* Empty state */}
       {queryAddress && !isLoading && !error && !profile && (
         <Alert>
           <User className="h-4 w-4" />
@@ -241,9 +205,9 @@ function SingleProfileTab({ mode }: { mode: HookMode }): React.ReactNode {
 // Tab 2: Profile List
 // ---------------------------------------------------------------------------
 
-function ProfileListTab({ mode }: { mode: HookMode }): React.ReactNode {
+function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useProfiles } = useHooks(mode);
-  const state = useProfileListState();
+  const state = useListState();
   const [limit, setLimit] = useState(10);
 
   const { profiles, totalCount, isLoading, error, isFetching } = useProfiles({
@@ -256,12 +220,12 @@ function ProfileListTab({ mode }: { mode: HookMode }): React.ReactNode {
   return (
     <div className="space-y-4">
       <FilterFieldsRow
-        configs={PROFILE_FILTERS}
+        configs={FILTERS}
         values={state.values}
         onFieldChange={state.setFieldValue}
       />
       <SortControls
-        options={PROFILE_SORT_OPTIONS}
+        options={SORT_OPTIONS}
         sortField={state.sortField}
         sortDirection={state.sortDirection}
         onSortFieldChange={(v) => state.setSortField(v as ProfileSortField)}
@@ -274,7 +238,7 @@ function ProfileListTab({ mode }: { mode: HookMode }): React.ReactNode {
         onLimitChange={setLimit}
       />
       <IncludeToggles
-        configs={PROFILE_INCLUDES}
+        configs={PROFILE_INCLUDE_FIELDS}
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
@@ -297,9 +261,9 @@ function ProfileListTab({ mode }: { mode: HookMode }): React.ReactNode {
 // Tab 3: Infinite Scroll
 // ---------------------------------------------------------------------------
 
-function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
+function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteProfiles } = useHooks(mode);
-  const state = useProfileListState();
+  const state = useListState();
 
   const { profiles, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =
     useInfiniteProfiles({
@@ -312,12 +276,12 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
   return (
     <div className="space-y-4">
       <FilterFieldsRow
-        configs={PROFILE_FILTERS}
+        configs={FILTERS}
         values={state.values}
         onFieldChange={state.setFieldValue}
       />
       <SortControls
-        options={PROFILE_SORT_OPTIONS}
+        options={SORT_OPTIONS}
         sortField={state.sortField}
         sortDirection={state.sortDirection}
         onSortFieldChange={(v) => state.setSortField(v as ProfileSortField)}
@@ -328,7 +292,7 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
         }
       />
       <IncludeToggles
-        configs={PROFILE_INCLUDES}
+        configs={PROFILE_INCLUDE_FIELDS}
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
@@ -352,83 +316,37 @@ function InfiniteScrollTab({ mode }: { mode: HookMode }): React.ReactNode {
 // ---------------------------------------------------------------------------
 
 export default function ProfilesPage(): React.ReactNode {
-  const [mode, setMode] = useState<HookMode>('client');
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Universal Profiles</h1>
-          <p className="text-muted-foreground">
-            Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useProfile</code>,{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">useProfiles</code>, and{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteProfiles</code> hooks
-            against live Hasura data.
-          </p>
-        </div>
-
-        {/* Client / Server mode toggle */}
-        <div className="flex items-center gap-1 rounded-lg border p-1">
-          <Button
-            variant={mode === 'client' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMode('client')}
-            className="gap-1.5"
-          >
-            <Monitor className="size-3.5" />
-            Client
-          </Button>
-          <Button
-            variant={mode === 'server' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMode('server')}
-            className="gap-1.5"
-          >
-            <Server className="size-3.5" />
-            Server
-          </Button>
-        </div>
-      </div>
-
-      {/* Mode indicator */}
-      <div className="flex items-center gap-2">
-        <Badge variant={mode === 'client' ? 'default' : 'secondary'}>
-          {mode === 'client' ? '@lsp-indexer/react' : '@lsp-indexer/next'}
-        </Badge>
-        <span className="text-xs text-muted-foreground">
-          {mode === 'client' ? 'Browser → Hasura directly' : 'Browser → Server Action → Hasura'}
-        </span>
-      </div>
-
-      {/* key={mode} forces full remount when switching — avoids hook-rule violations */}
-      <Tabs defaultValue="single" key={mode}>
-        <TabsList>
-          <TabsTrigger value="single">
-            <User className="size-4" />
-            Single Profile
-          </TabsTrigger>
-          <TabsTrigger value="list">
-            <Users className="size-4" />
-            Profile List
-          </TabsTrigger>
-          <TabsTrigger value="infinite">
-            <Loader2 className="size-4" />
-            Infinite Scroll
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="single" className="mt-4">
-          <SingleProfileTab mode={mode} />
-        </TabsContent>
-
-        <TabsContent value="list" className="mt-4">
-          <ProfileListTab mode={mode} />
-        </TabsContent>
-
-        <TabsContent value="infinite" className="mt-4">
-          <InfiniteScrollTab mode={mode} />
-        </TabsContent>
-      </Tabs>
-    </div>
+    <PlaygroundPageLayout
+      title="Universal Profiles"
+      description={
+        <>
+          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useProfile</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useProfiles</code>, and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteProfiles</code> hooks
+          against live Hasura data.
+        </>
+      }
+      tabs={[
+        {
+          value: 'single',
+          label: 'Single Profile',
+          icon: <User className="size-4" />,
+          render: (mode) => <SingleTab mode={mode} />,
+        },
+        {
+          value: 'list',
+          label: 'Profile List',
+          icon: <Users className="size-4" />,
+          render: (mode) => <ListTab mode={mode} />,
+        },
+        {
+          value: 'infinite',
+          label: 'Infinite Scroll',
+          icon: <Loader2 className="size-4" />,
+          render: (mode) => <InfiniteTab mode={mode} />,
+        },
+      ]}
+    />
   );
 }
