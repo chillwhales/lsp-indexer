@@ -59,12 +59,12 @@ import {
 // ---------------------------------------------------------------------------
 
 const ADDRESS_FILTERS: FilterFieldConfig[] = [
-  { key: 'owner', label: 'Owner Address', placeholder: '0x... (owner)', mono: true },
+  { key: 'owner', label: 'Holder Address', placeholder: '0x... (holder)', mono: true },
   { key: 'address', label: 'Asset Address', placeholder: '0x... (asset contract)', mono: true },
 ];
 
 const NAME_FILTERS: FilterFieldConfig[] = [
-  { key: 'ownerName', label: 'Owner Name', placeholder: 'Search by profile name...' },
+  { key: 'ownerName', label: 'Holder Name', placeholder: 'Search by holder name...' },
   { key: 'assetName', label: 'Asset Name', placeholder: 'Search by token name...' },
 ];
 
@@ -74,7 +74,7 @@ const SORT_OPTIONS: SortOption[] = [
   { value: 'balance', label: 'Balance' },
   { value: 'timestamp', label: 'Timestamp' },
   { value: 'address', label: 'Address' },
-  { value: 'owner', label: 'Owner' },
+  { value: 'owner', label: 'Holder' },
   { value: 'block', label: 'Block' },
   { value: 'digitalAssetName', label: 'Digital Asset Name' },
   { value: 'tokenIdCount', label: 'Token ID Count' },
@@ -232,7 +232,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
           <Label htmlFor="owned-asset-owner">Holder Address</Label>
           <Input
             id="owned-asset-owner"
-            placeholder="0x... (holder / owner address)"
+            placeholder="0x... (holder address)"
             value={ownerInput}
             onChange={(e) => setOwnerInput(e.target.value)}
             className="font-mono text-sm"
@@ -436,7 +436,7 @@ export default function OwnedAssetsPage(): React.ReactNode {
           Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedAsset</code>,{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedAssets</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteOwnedAssets</code> hooks
-          against live Hasura data. Filter by owner to find token balances for a specific address
+          against live Hasura data. Filter by holder to find token balances for a specific address
           (QUERY-04).
         </>
       }

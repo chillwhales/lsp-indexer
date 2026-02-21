@@ -66,7 +66,7 @@ const ADDRESS_FILTERS: FilterFieldConfig[] = [
 ];
 
 const NAME_FILTERS: FilterFieldConfig[] = [
-  { key: 'ownerName', label: 'Owner Name', placeholder: 'Search by profile name...' },
+  { key: 'ownerName', label: 'Holder Name', placeholder: 'Search by holder name...' },
   { key: 'assetName', label: 'Asset Name', placeholder: 'Search by collection name...' },
   { key: 'tokenName', label: 'Token Name', placeholder: 'Search by NFT name...' },
 ];
@@ -76,7 +76,7 @@ const ALL_FILTERS = [...ADDRESS_FILTERS, ...NAME_FILTERS];
 const SORT_OPTIONS: SortOption[] = [
   { value: 'address', label: 'Address' },
   { value: 'block', label: 'Block' },
-  { value: 'owner', label: 'Owner' },
+  { value: 'owner', label: 'Holder' },
   { value: 'timestamp', label: 'Timestamp' },
   { value: 'tokenId', label: 'Token ID' },
 ];
@@ -256,7 +256,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
           <Label htmlFor="owned-token-owner">Holder Address</Label>
           <Input
             id="owned-token-owner"
-            placeholder="0x... (holder / owner address)"
+            placeholder="0x... (holder address)"
             value={ownerInput}
             onChange={(e) => setOwnerInput(e.target.value)}
             className="font-mono text-sm"
@@ -484,7 +484,7 @@ export default function OwnedTokensPage(): React.ReactNode {
           Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedToken</code>,{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedTokens</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteOwnedTokens</code> hooks
-          against live Hasura data. Filter by owner to find individual NFT ownership records
+          against live Hasura data. Filter by holder to find individual NFT ownership records
           (QUERY-04).
         </>
       }
