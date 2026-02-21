@@ -3,7 +3,7 @@
 **Created:** 2026-02-16
 **Depth:** Standard
 **Phases:** 5 (Phase 7–11, continuing from v1.0)
-**Coverage:** 28/28 v1.1 requirements mapped
+**Coverage:** 29/29 v1.1 requirements mapped
 
 ## Overview
 
@@ -94,22 +94,23 @@ Plans:
 
 **Dependencies:** Phase 8 (vertical slice pattern validated — this is replication)
 
-**Structure:** 9 sub-phases, one per domain. Each sub-phase follows the same 4-plan vertical-slice pattern established in Phase 8 (types+docs+codegen → parsers+services+keys → hooks+wiring+build → playground+verification). Each sub-phase gets its own branch and PR for granular review.
+**Structure:** 10 sub-phases — 9 domain sub-phases (one per query domain) plus 1 cross-cutting DX sub-phase (9.4 — conditional include types). Domain sub-phases follow the same 4-plan vertical-slice pattern established in Phase 8 (types+docs+codegen → parsers+services+keys → hooks+wiring+build → playground+verification). Each sub-phase gets its own branch and PR for granular review.
 
 **Requirements:**
 
-| ID       | Requirement                                                                                             | Sub-phase |
-| -------- | ------------------------------------------------------------------------------------------------------- | --------- |
-| QUERY-02 | Developer can use `useDigitalAsset`, `useDigitalAssets`, `useDigitalAssetSearch` for Digital Asset data | 9.1       |
-| QUERY-03 | Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data                               | 9.2       |
-| QUERY-04 | Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data                                 | 9.3       |
-| QUERY-05 | Developer can use `useFollowers`, `useFollowing`, `useFollowCount` for social/follow data               | 9.4       |
-| QUERY-06 | Developer can use `useCreatorAddresses` for asset creator data                                          | 9.5       |
-| QUERY-07 | Developer can use `useEncryptedAsset`, `useEncryptedAssets` for LSP29 encrypted asset data              | 9.6       |
-| QUERY-08 | Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery                                      | 9.7       |
-| QUERY-09 | Developer can use `useDataChangedEvents` for ERC725 data change events                                  | 9.8       |
-| QUERY-10 | Developer can use `useUniversalReceiverEvents` for universal receiver events                            | 9.9       |
-| PAGE-01  | Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain              | All       |
+| ID       | Requirement                                                                                                                   | Sub-phase |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------- | --------- |
+| QUERY-02 | Developer can use `useDigitalAsset`, `useDigitalAssets`, `useDigitalAssetSearch` for Digital Asset data                       | 9.1       |
+| QUERY-03 | Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data                                                     | 9.2       |
+| QUERY-04 | Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data                                                       | 9.3       |
+| DX-04    | Developer gets TypeScript return types narrowed by `include` parameter — excluded fields are absent from the type, not `null` | 9.4       |
+| QUERY-05 | Developer can use `useFollowers`, `useFollowing`, `useFollowCount` for social/follow data                                     | 9.5       |
+| QUERY-06 | Developer can use `useCreatorAddresses` for asset creator data                                                                | 9.6       |
+| QUERY-07 | Developer can use `useEncryptedAsset`, `useEncryptedAssets` for LSP29 encrypted asset data                                    | 9.7       |
+| QUERY-08 | Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery                                                            | 9.8       |
+| QUERY-09 | Developer can use `useDataChangedEvents` for ERC725 data change events                                                        | 9.9       |
+| QUERY-10 | Developer can use `useUniversalReceiverEvents` for universal receiver events                                                  | 9.10      |
+| PAGE-01  | Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain                                    | All       |
 
 **Per-domain pattern (4 plans per sub-phase, mirroring Phase 8):**
 
@@ -160,14 +161,38 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 
 **Plans:** 4 plans
 
-- [ ] 09.3-01-PLAN.md — Owned Asset/Token types + GraphQL documents + codegen
-- [ ] 09.3-02-PLAN.md — Owned Asset/Token parsers + services + query keys
-- [ ] 09.3-03-PLAN.md — Owned Asset/Token hooks + server actions + build validation
-- [ ] 09.3-04-PLAN.md — Owned Assets playground page + E2E verification
+- [x] 09.3-01-PLAN.md — Owned Asset/Token types + GraphQL documents + codegen
+- [x] 09.3-02-PLAN.md — Owned Asset/Token parsers + services + query keys
+- [x] 09.3-03-PLAN.md — Owned Asset/Token hooks + server actions + build validation
+- [x] 09.3-04-PLAN.md — Owned Assets playground page + E2E verification
 
 ---
 
-### Phase 9.4 — Social / Follows
+### Phase 9.4 — Conditional Include Types
+
+**Goal:** Developer gets TypeScript return types that are narrowed based on the `include` parameter — excluded fields are absent from the type (not `null`), so autocomplete only shows what was requested. Applies to all 5 existing domains (Profiles, Digital Assets, NFTs, Owned Assets, Owned Tokens) and establishes the pattern for all future domains.
+
+**Requirement:** DX-04
+
+**Scope:**
+
+This is a cross-cutting DX refactor that touches types, parsers, hooks, server actions, and the playground across all completed domains. The key technical challenges:
+
+1. **Conditional TypeScript utility types** — `Pick`/`Omit`-based mapped types that derive the return shape from the `include` parameter at the type level (similar to Prisma's `select`/`include` inference)
+2. **Nested conditional types** — `include: { digitalAsset: { name: true, symbol: true } }` narrows the nested `digitalAsset` type to only `{ name, symbol }`, not the full 17-field type
+3. **Default = everything** — when `include` is omitted entirely, the full type is returned (backward compatible)
+4. **Zod ↔ TypeScript interop** — Zod schemas define the _full_ shape; a separate TS utility type layer narrows based on include. Parsers conditionally omit keys instead of setting them to `null`
+5. **Hook generic propagation** — TanStack Query hooks parameterized by include shape so `data` is correctly narrowed
+6. **5 domains × 3 hooks × 2 packages** (react + next) = 30 hook signatures to update, plus 10 server actions
+
+**Plans:** TBD (research-first — needs design spike before plan breakdown)
+
+- [ ] 09.4-01-PLAN.md — Research: TypeScript conditional type patterns + Zod interop design
+- [ ] 09.4-02-PLAN.md — TBD (implementation plans created after research)
+
+---
+
+### Phase 9.5 — Social / Follows
 
 **Goal:** Developer can use `useFollowers`, `useFollowing`, `useFollowCount`, `useInfiniteFollowers`, `useInfiniteFollowing` for LSP26 social graph data.
 
@@ -175,14 +200,14 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 
 **Plans:** 4 plans
 
-- [ ] 09.4-01-PLAN.md — Social/Follow types + GraphQL documents + codegen
-- [ ] 09.4-02-PLAN.md — Social/Follow parsers + services + query keys
-- [ ] 09.4-03-PLAN.md — Social/Follow hooks + server actions + build validation
-- [ ] 09.4-04-PLAN.md — Social/Follows playground page + E2E verification
+- [ ] 09.5-01-PLAN.md — Social/Follow types + GraphQL documents + codegen
+- [ ] 09.5-02-PLAN.md — Social/Follow parsers + services + query keys
+- [ ] 09.5-03-PLAN.md — Social/Follow hooks + server actions + build validation
+- [ ] 09.5-04-PLAN.md — Social/Follows playground page + E2E verification
 
 ---
 
-### Phase 9.5 — Creators
+### Phase 9.6 — Creators
 
 **Goal:** Developer can use `useCreatorAddresses`, `useInfiniteCreatorAddresses` for LSP4 creator data.
 
@@ -190,14 +215,14 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 
 **Plans:** 4 plans
 
-- [ ] 09.5-01-PLAN.md — Creator types + GraphQL documents + codegen
-- [ ] 09.5-02-PLAN.md — Creator parsers + services + query keys
-- [ ] 09.5-03-PLAN.md — Creator hooks + server actions + build validation
-- [ ] 09.5-04-PLAN.md — Creators playground page + E2E verification
+- [ ] 09.6-01-PLAN.md — Creator types + GraphQL documents + codegen
+- [ ] 09.6-02-PLAN.md — Creator parsers + services + query keys
+- [ ] 09.6-03-PLAN.md — Creator hooks + server actions + build validation
+- [ ] 09.6-04-PLAN.md — Creators playground page + E2E verification
 
 ---
 
-### Phase 9.6 — Encrypted Assets
+### Phase 9.7 — Encrypted Assets
 
 **Goal:** Developer can use `useEncryptedAsset`, `useEncryptedAssets`, `useInfiniteEncryptedAssets` for LSP29 encrypted asset container records.
 
@@ -205,14 +230,14 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 
 **Plans:** 4 plans
 
-- [ ] 09.6-01-PLAN.md — Encrypted Asset types + GraphQL documents + codegen
-- [ ] 09.6-02-PLAN.md — Encrypted Asset parsers + services + query keys
-- [ ] 09.6-03-PLAN.md — Encrypted Asset hooks + server actions + build validation
-- [ ] 09.6-04-PLAN.md — Encrypted Assets playground page + E2E verification
+- [ ] 09.7-01-PLAN.md — Encrypted Asset types + GraphQL documents + codegen
+- [ ] 09.7-02-PLAN.md — Encrypted Asset parsers + services + query keys
+- [ ] 09.7-03-PLAN.md — Encrypted Asset hooks + server actions + build validation
+- [ ] 09.7-04-PLAN.md — Encrypted Assets playground page + E2E verification
 
 ---
 
-### Phase 9.7 — Encrypted Feed
+### Phase 9.8 — Encrypted Feed
 
 **Goal:** Developer can use `useEncryptedAssetFeed`, `useInfiniteEncryptedAssetFeed` for LSP29 encrypted asset entry timeline data.
 
@@ -220,14 +245,14 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 
 **Plans:** 4 plans
 
-- [ ] 09.7-01-PLAN.md — Encrypted Feed types + GraphQL documents + codegen
-- [ ] 09.7-02-PLAN.md — Encrypted Feed parsers + services + query keys
-- [ ] 09.7-03-PLAN.md — Encrypted Feed hooks + server actions + build validation
-- [ ] 09.7-04-PLAN.md — Encrypted Feed playground page + E2E verification
+- [ ] 09.8-01-PLAN.md — Encrypted Feed types + GraphQL documents + codegen
+- [ ] 09.8-02-PLAN.md — Encrypted Feed parsers + services + query keys
+- [ ] 09.8-03-PLAN.md — Encrypted Feed hooks + server actions + build validation
+- [ ] 09.8-04-PLAN.md — Encrypted Feed playground page + E2E verification
 
 ---
 
-### Phase 9.8 — Data Changed Events
+### Phase 9.9 — Data Changed Events
 
 **Goal:** Developer can use `useDataChangedEvents`, `useInfiniteDataChangedEvents` for ERC725 data change event history.
 
@@ -235,14 +260,14 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 
 **Plans:** 4 plans
 
-- [ ] 09.8-01-PLAN.md — Data Changed Event types + GraphQL documents + codegen
-- [ ] 09.8-02-PLAN.md — Data Changed Event parsers + services + query keys
-- [ ] 09.8-03-PLAN.md — Data Changed Event hooks + server actions + build validation
-- [ ] 09.8-04-PLAN.md — Data Changed Events playground page + E2E verification
+- [ ] 09.9-01-PLAN.md — Data Changed Event types + GraphQL documents + codegen
+- [ ] 09.9-02-PLAN.md — Data Changed Event parsers + services + query keys
+- [ ] 09.9-03-PLAN.md — Data Changed Event hooks + server actions + build validation
+- [ ] 09.9-04-PLAN.md — Data Changed Events playground page + E2E verification
 
 ---
 
-### Phase 9.9 — Universal Receiver Events
+### Phase 9.10 — Universal Receiver Events
 
 **Goal:** Developer can use `useUniversalReceiverEvents`, `useInfiniteUniversalReceiverEvents` for universal receiver event history.
 
@@ -250,10 +275,10 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 
 **Plans:** 4 plans
 
-- [ ] 09.9-01-PLAN.md — Universal Receiver Event types + GraphQL documents + codegen
-- [ ] 09.9-02-PLAN.md — Universal Receiver Event parsers + services + query keys
-- [ ] 09.9-03-PLAN.md — Universal Receiver Event hooks + server actions + build validation
-- [ ] 09.9-04-PLAN.md — Universal Receiver Events playground page + E2E verification
+- [ ] 09.10-01-PLAN.md — Universal Receiver Event types + GraphQL documents + codegen
+- [ ] 09.10-02-PLAN.md — Universal Receiver Event parsers + services + query keys
+- [ ] 09.10-03-PLAN.md — Universal Receiver Event hooks + server actions + build validation
+- [ ] 09.10-04-PLAN.md — Universal Receiver Events playground page + E2E verification
 
 ---
 
@@ -263,6 +288,7 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 2. Developer can call `useInfiniteProfiles()`, `useInfiniteDigitalAssets()`, `useInfiniteNfts()`, etc. and see offset-based infinite scroll working with `fetchNextPage` / `hasNextPage`
 3. Developer can import query key factories for all 11 domains and use them for targeted cache invalidation (e.g., `digitalAssetKeys.detail(address)`, `nftKeys.byCollection(address)`)
 4. Developer can import all domain types from `@lsp-indexer/types` — all 11 domains export clean camelCase types
+5. Developer gets TypeScript return types narrowed by `include` parameter — `useProfile({ address, include: { name: true } })` returns a type where only `address` + `name` exist, excluded fields are absent from autocomplete
 
 ---
 
@@ -324,19 +350,20 @@ Each domain follows the validated vertical-slice pattern from Phase 8 (profiles)
 | 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
 | 9.1   | Digital Assets                     |     1/1      | Complete |
 | 9.2   | NFTs                               |     1/1      | Complete |
-| 9.3   | Owned Assets                       |      1       | Pending  |
-| 9.4   | Social / Follows                   |      1       | Pending  |
-| 9.5   | Creators                           |      1       | Pending  |
-| 9.6   | Encrypted Assets                   |      1       | Pending  |
-| 9.7   | Encrypted Feed                     |      1       | Pending  |
-| 9.8   | Data Changed Events                |      1       | Pending  |
-| 9.9   | Universal Receiver Events          |      1       | Pending  |
+| 9.3   | Owned Assets                       |     1/1      | Complete |
+| 9.4   | Conditional Include Types          |      1       | Pending  |
+| 9.5   | Social / Follows                   |      1       | Pending  |
+| 9.6   | Creators                           |      1       | Pending  |
+| 9.7   | Encrypted Assets                   |      1       | Pending  |
+| 9.8   | Encrypted Feed                     |      1       | Pending  |
+| 9.9   | Data Changed Events                |      1       | Pending  |
+| 9.10  | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
-_Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-phase) plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
+_Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 12/28 requirements delivered
+**Total:** 14/29 requirements delivered
 
 ---
 
@@ -345,16 +372,17 @@ _Note:_ Phase 9 has 10 requirements total: 9 QUERY requirements (one per sub-pha
 ```
 Phase 7 (Package Foundation)
   └──→ Phase 8 (First Vertical Slice — Universal Profiles + 4-package split)
-         └──→ Phase 9 (Remaining Query Domains — all sub-phases independent)
+         └──→ Phase 9 (Remaining Query Domains + DX — 10 sub-phases)
                 ├──→ 9.1 (Digital Assets)
                 ├──→ 9.2 (NFTs)
                 ├──→ 9.3 (Owned Assets)
-                ├──→ 9.4 (Social / Follows)
-                ├──→ 9.5 (Creators)
-                ├──→ 9.6 (Encrypted Assets)
-                ├──→ 9.7 (Encrypted Feed)
-                ├──→ 9.8 (Data Changed Events)
-                └──→ 9.9 (Universal Receiver Events)
+                ├──→ 9.4 (Conditional Include Types) ←── depends on 9.1–9.3 (refactors existing domains)
+                ├──→ 9.5 (Social / Follows) ←── can run before or after 9.4
+                ├──→ 9.6 (Creators)
+                ├──→ 9.7 (Encrypted Assets)
+                ├──→ 9.8 (Encrypted Feed)
+                ├──→ 9.9 (Data Changed Events)
+                └──→ 9.10 (Universal Receiver Events)
                        ↓ (all 9.x must complete)
                 ├──→ Phase 10 (Subscriptions)
                 └──→ Phase 11 (Server Actions & Publish Readiness) ←── also depends on Phase 10
@@ -370,14 +398,14 @@ Phase 7 (Package Foundation)
 **Parallelization opportunities:**
 
 - Within Phase 7: Codegen pipeline and build tooling can be worked in parallel with provider/error handling
-- Within Phase 9: All 9 sub-phases are independent of each other — can be built in any order. Each sub-phase follows the 4-plan vertical-slice pattern from Phase 8 (types+docs+codegen → parsers+services+keys → hooks+actions+wiring → playground+verification). Each gets its own branch and PR for granular review.
+- Within Phase 9: Domain sub-phases (9.1–9.3, 9.5–9.10) are independent of each other — can be built in any order. Phase 9.4 (Conditional Include Types) depends on at least some domains existing to refactor but can run in parallel with later domain sub-phases. Each sub-phase gets its own branch and PR for granular review.
 - Phase 10 and Phase 11 both depend on Phase 9, but Phase 11's ACTION-01/ACTION-02/ACTION-03 could technically start as soon as Phase 9 completes (only DX-03 needs Phase 10 for full validation)
 
 ---
 
 ## Coverage Validation
 
-All 28 v1.1 requirements mapped to exactly one phase:
+All 29 v1.1 requirements mapped to exactly one phase:
 
 | Requirement | Phase | Category       |
 | ----------- | ----- | -------------- |
@@ -394,12 +422,13 @@ All 28 v1.1 requirements mapped to exactly one phase:
 | QUERY-02    | 9.1   | Query Domains  |
 | QUERY-03    | 9.2   | Query Domains  |
 | QUERY-04    | 9.3   | Query Domains  |
-| QUERY-05    | 9.4   | Query Domains  |
-| QUERY-06    | 9.5   | Query Domains  |
-| QUERY-07    | 9.6   | Query Domains  |
-| QUERY-08    | 9.7   | Query Domains  |
-| QUERY-09    | 9.8   | Query Domains  |
-| QUERY-10    | 9.9   | Query Domains  |
+| DX-04       | 9.4   | Developer Exp  |
+| QUERY-05    | 9.5   | Query Domains  |
+| QUERY-06    | 9.6   | Query Domains  |
+| QUERY-07    | 9.7   | Query Domains  |
+| QUERY-08    | 9.8   | Query Domains  |
+| QUERY-09    | 9.9   | Query Domains  |
+| QUERY-10    | 9.10  | Query Domains  |
 | PAGE-01     | 9.\*  | Pagination     |
 | SUB-01      | 10    | Subscriptions  |
 | SUB-02      | 10    | Subscriptions  |
@@ -409,7 +438,7 @@ All 28 v1.1 requirements mapped to exactly one phase:
 | ACTION-03   | 11    | Server Actions |
 | DX-03       | 11    | Developer Exp  |
 
-**Mapped: 28/28 ✓ — No orphans, no duplicates.**
+**Mapped: 29/29 ✓ — No orphans, no duplicates.**
 
 ---
 
@@ -427,6 +456,10 @@ The types package (`@lsp-indexer/types`) and query key factory pattern need to b
 
 `publint` and `arethetypeswrong` validation for publish readiness only makes sense when all 4 packages have their full domain coverage — including `@lsp-indexer/next` server actions. Running it earlier would miss domains still being added.
 
+### Why conditional include types as Phase 9.4 (not later)?
+
+Conditional include types (DX-04) refactor the return type system across all existing domains. Doing this _before_ building the remaining 6 domain sub-phases (9.5–9.10) means those domains are built with the correct pattern from the start — no rework needed. If deferred to after all domains, every domain would need retrofitting. The research-first approach (plan 01 is a design spike) minimizes risk of a bad type pattern propagating.
+
 ### Why subscriptions before server actions?
 
 Subscriptions (Phase 10) add cache integration logic that affects the query layer from Phase 9. Server actions in `@lsp-indexer/next` (Phase 11) are isolated wrappers around `@lsp-indexer/node` services — they don't affect the query/subscription layer. Building subscriptions first means the full client-side story (queries + subscriptions) is complete before expanding the server-side layer to all domains.
@@ -434,4 +467,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-19 — split Phase 9 into 9 sub-phases (9.1–9.9), one per domain, each with 4 plans mirroring Phase 8 pattern_
+_Last updated: 2026-02-21 — inserted Phase 9.4 (Conditional Include Types), bumped 9.4–9.9 → 9.5–9.10, added DX-04 requirement_
