@@ -118,7 +118,11 @@ export function useSubInclude(configs: readonly IncludeToggleConfig[]): SubInclu
     setEnabled,
     subValues,
     toggleSub,
-    value: enabled ? (subInclude ?? {}) : undefined,
+    // When all sub-toggles are ON, subInclude is undefined (useIncludeToggles returns
+    // undefined for "all defaults"). We must pass the explicit subValues (all true) instead
+    // of {} — because {} is treated as "no active includes" by hasActiveIncludes, which
+    // would incorrectly exclude this relation when the parent include object is present.
+    value: enabled ? (subInclude ?? { ...subValues }) : undefined,
   };
 }
 
