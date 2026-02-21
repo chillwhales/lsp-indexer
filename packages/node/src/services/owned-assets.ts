@@ -3,6 +3,7 @@ import type {
   OwnedAssetFilter,
   OwnedAssetInclude,
   OwnedAssetSort,
+  OwnedTokenOwnedAssetInclude,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
 import { GetOwnedAssetDocument, GetOwnedAssetsDocument } from '../documents/owned-assets';
@@ -159,6 +160,28 @@ function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> 
   }
 
   return vars;
+}
+
+/**
+ * Build owned-asset sub-include variables for use in cross-domain contexts.
+ *
+ * Used by owned-tokens when building include variables for the nested `ownedAsset` relation.
+ * Maps `OwnedTokenOwnedAssetInclude` fields to `includeOwnedAsset*` prefixed variables.
+ *
+ * Returns `{}` when include is undefined (GraphQL defaults all to true).
+ */
+export function buildOwnedAssetIncludeVars(
+  include?: OwnedTokenOwnedAssetInclude,
+): Record<string, boolean> {
+  if (!include) {
+    return {};
+  }
+
+  return {
+    includeOwnedAssetBalance: include.balance ?? false,
+    includeOwnedAssetBlock: include.block ?? false,
+    includeOwnedAssetTimestamp: include.timestamp ?? false,
+  };
 }
 
 // ---------------------------------------------------------------------------

@@ -11,6 +11,7 @@ import { graphql } from '../graphql';
  * - `$includeNft` — Include related NFT details (with 8 NFT sub-variables)
  * - `$includeNft[FormattedTokenId|Name|...]` — 8 NFT sub-include toggles
  * - `$includeOwnedAsset` — Include related owned asset (parent fungible ownership record)
+ * - `$includeOwnedAsset[Balance|Block|Timestamp]` — 3 owned asset sub-include toggles
  * - `$includeHolder` — Include related holder universal profile details
  * - `$includeProfile[Name|Description|...]` — 9 profile sub-include toggles
  *
@@ -50,6 +51,9 @@ export const GetOwnedTokenDocument = graphql(`
     $includeNftLinks: Boolean! = true
     $includeNftAttributes: Boolean! = true
     $includeOwnedAsset: Boolean! = true
+    $includeOwnedAssetBalance: Boolean! = true
+    $includeOwnedAssetBlock: Boolean! = true
+    $includeOwnedAssetTimestamp: Boolean! = true
     $includeHolder: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
@@ -220,9 +224,9 @@ export const GetOwnedTokenDocument = graphql(`
         id
         address
         owner
-        balance
-        block
-        timestamp
+        balance @include(if: $includeOwnedAssetBalance)
+        block @include(if: $includeOwnedAssetBlock)
+        timestamp @include(if: $includeOwnedAssetTimestamp)
       }
       universalProfile @include(if: $includeHolder) {
         address
@@ -289,7 +293,7 @@ export const GetOwnedTokenDocument = graphql(`
  * - `$includeBlock` / `$includeTimestamp` — Direct column toggles
  * - `$includeDigitalAsset` + 17 DA sub-variables — Digital asset nested include toggles
  * - `$includeNft` + 8 NFT sub-variables — NFT nested include toggles
- * - `$includeOwnedAsset` — Owned asset (parent) nested include toggle
+ * - `$includeOwnedAsset` + 3 owned asset sub-variables — Owned asset nested include toggles
  * - `$includeHolder` + 9 profile sub-variables — Holder profile nested include toggles
  *
  * Includes `owned_token_aggregate` for total count (used for "X of Y results" UI).
@@ -330,6 +334,9 @@ export const GetOwnedTokensDocument = graphql(`
     $includeNftLinks: Boolean! = true
     $includeNftAttributes: Boolean! = true
     $includeOwnedAsset: Boolean! = true
+    $includeOwnedAssetBalance: Boolean! = true
+    $includeOwnedAssetBlock: Boolean! = true
+    $includeOwnedAssetTimestamp: Boolean! = true
     $includeHolder: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
@@ -500,9 +507,9 @@ export const GetOwnedTokensDocument = graphql(`
         id
         address
         owner
-        balance
-        block
-        timestamp
+        balance @include(if: $includeOwnedAssetBalance)
+        block @include(if: $includeOwnedAssetBlock)
+        timestamp @include(if: $includeOwnedAssetTimestamp)
       }
       universalProfile @include(if: $includeHolder) {
         address

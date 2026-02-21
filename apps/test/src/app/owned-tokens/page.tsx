@@ -44,6 +44,7 @@ import {
   FilterFieldsRow,
   IncludeToggles,
   NFT_INCLUDE_FIELDS,
+  OWNED_ASSET_INCLUDE_FIELDS,
   PlaygroundPageLayout,
   PresetButtons,
   PROFILE_INCLUDE_FIELDS,
@@ -89,7 +90,6 @@ const SORT_OPTIONS: SortOption[] = [
 const BASE_INCLUDES: IncludeToggleConfig[] = [
   { key: 'block', label: 'Block' },
   { key: 'timestamp', label: 'Timestamp' },
-  { key: 'ownedAsset', label: 'Owned Asset' },
 ];
 
 const PRESETS = [
@@ -146,6 +146,7 @@ function useListState() {
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(BASE_INCLUDES);
   const da = useSubInclude(DIGITAL_ASSET_INCLUDE_FIELDS);
   const nft = useSubInclude(NFT_INCLUDE_FIELDS);
+  const oa = useSubInclude(OWNED_ASSET_INCLUDE_FIELDS);
   const up = useSubInclude(PROFILE_INCLUDE_FIELDS);
 
   const filter = buildFilter(debouncedValues);
@@ -154,6 +155,7 @@ function useListState() {
   const include = buildNestedInclude(includeValues, {
     digitalAsset: da.value,
     nft: nft.value,
+    ownedAsset: oa.value,
     holder: up.value,
   }) as OwnedTokenInclude | undefined;
 
@@ -174,6 +176,7 @@ function useListState() {
     include,
     da,
     nft,
+    oa,
     up,
   };
 }
@@ -187,6 +190,7 @@ function IncludeSections({
   toggleInclude,
   da,
   nft,
+  oa,
   up,
 }: ReturnType<typeof useListState>): React.ReactNode {
   return (
@@ -203,6 +207,12 @@ function IncludeSections({
         subtitle="NFT sub-fields"
         configs={NFT_INCLUDE_FIELDS}
         state={nft}
+      />
+      <SubIncludeSection
+        label="Owned Asset"
+        subtitle="Owned asset sub-fields"
+        configs={OWNED_ASSET_INCLUDE_FIELDS}
+        state={oa}
       />
       <SubIncludeSection
         label="Holder Profile"
@@ -229,10 +239,12 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(BASE_INCLUDES);
   const da = useSubInclude(DIGITAL_ASSET_INCLUDE_FIELDS);
   const nft = useSubInclude(NFT_INCLUDE_FIELDS);
+  const oa = useSubInclude(OWNED_ASSET_INCLUDE_FIELDS);
   const up = useSubInclude(PROFILE_INCLUDE_FIELDS);
   const include = buildNestedInclude(includeValues, {
     digitalAsset: da.value,
     nft: nft.value,
+    ownedAsset: oa.value,
     holder: up.value,
   }) as OwnedTokenInclude | undefined;
 
@@ -322,6 +334,12 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
         subtitle="NFT sub-fields"
         configs={NFT_INCLUDE_FIELDS}
         state={nft}
+      />
+      <SubIncludeSection
+        label="Owned Asset"
+        subtitle="Owned asset sub-fields"
+        configs={OWNED_ASSET_INCLUDE_FIELDS}
+        state={oa}
       />
       <SubIncludeSection
         label="Holder Profile"

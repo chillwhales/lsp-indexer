@@ -18,6 +18,23 @@ export const OwnedTokenNftIncludeSchema = NftIncludeSchema.omit({
   holder: true,
 });
 
+/**
+ * Owned Asset sub-include schema for the owned-token context.
+ *
+ * Controls which fields of the parent owned_asset record to fetch.
+ * Only includes the direct scalar fields — nested relations (digitalAsset,
+ * holder, tokenIdCount) are not available in this sub-selection context
+ * because they are sibling relations on the owned_token itself.
+ */
+export const OwnedTokenOwnedAssetIncludeSchema = z.object({
+  /** Include token balance (bigint) */
+  balance: z.boolean().optional(),
+  /** Include block number */
+  block: z.boolean().optional(),
+  /** Include timestamp */
+  timestamp: z.boolean().optional(),
+});
+
 // ---------------------------------------------------------------------------
 // Core domain schemas
 // ---------------------------------------------------------------------------
@@ -123,8 +140,8 @@ export const OwnedTokenIncludeSchema = z.object({
   digitalAsset: DigitalAssetIncludeSchema.optional(),
   /** Include related NFT details — sub-fields control which NFT metadata to fetch */
   nft: OwnedTokenNftIncludeSchema.optional(),
-  /** Include related owned asset (parent fungible ownership record) */
-  ownedAsset: z.boolean().optional(),
+  /** Include related owned asset — sub-fields control which owned asset attributes to fetch */
+  ownedAsset: OwnedTokenOwnedAssetIncludeSchema.optional(),
   /** Include related holder profile details — sub-fields control which profile attributes to fetch */
   holder: ProfileIncludeSchema.optional(),
 });
@@ -177,6 +194,7 @@ export type OwnedTokenSortField = z.infer<typeof OwnedTokenSortFieldSchema>;
 export type OwnedTokenSort = z.infer<typeof OwnedTokenSortSchema>;
 export type OwnedTokenInclude = z.infer<typeof OwnedTokenIncludeSchema>;
 export type OwnedTokenNftInclude = z.infer<typeof OwnedTokenNftIncludeSchema>;
+export type OwnedTokenOwnedAssetInclude = z.infer<typeof OwnedTokenOwnedAssetIncludeSchema>;
 export type UseOwnedTokenParams = z.infer<typeof UseOwnedTokenParamsSchema>;
 export type UseOwnedTokensParams = z.infer<typeof UseOwnedTokensParamsSchema>;
 export type UseInfiniteOwnedTokensParams = z.infer<typeof UseInfiniteOwnedTokensParamsSchema>;

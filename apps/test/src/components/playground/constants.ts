@@ -42,6 +42,13 @@ export const DIGITAL_ASSET_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'baseUri', label: 'Base URI' },
 ];
 
+/** OwnedTokenOwnedAssetInclude — 3 fields. Used on owned-tokens (nested ownedAsset relation). */
+export const OWNED_ASSET_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'balance', label: 'Balance' },
+  { key: 'block', label: 'Block' },
+  { key: 'timestamp', label: 'Timestamp' },
+];
+
 /** OwnedTokenNftInclude — 8 fields (excludes collection/holder). Used on nfts, owned-tokens. */
 export const NFT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'formattedTokenId', label: 'Formatted Token ID' },

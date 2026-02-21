@@ -10,6 +10,7 @@ import type { Owned_Token_Bool_Exp, Owned_Token_Order_By } from '../graphql/grap
 import { parseOwnedToken, parseOwnedTokens } from '../parsers/owned-tokens';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildNftIncludeVars } from './nfts';
+import { buildOwnedAssetIncludeVars } from './owned-assets';
 import { buildProfileIncludeVars } from './profiles';
 import { escapeLike, hasActiveIncludes, orderDir } from './utils';
 
@@ -136,6 +137,7 @@ function buildOrderBy(sort?: OwnedTokenSort): Owned_Token_Order_By[] | undefined
  * **Nested relation sub-includes:**
  * - `digitalAsset`: Only included when at least one sub-field is truthy → 17 DA sub-variables.
  * - `nft`: Only included when at least one sub-field is truthy → 8 NFT sub-variables.
+ * - `ownedAsset`: Only included when at least one sub-field is truthy → 3 owned asset sub-variables.
  * - `holder` (universal profile): Only included when at least one sub-field is truthy → 9 profile sub-variables.
  *   Variable name: `includeHolder` (maps to `$includeHolder` in GraphQL document).
  *
@@ -149,6 +151,7 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
 
   const activeDA = hasActiveIncludes(include.digitalAsset);
   const activeNft = hasActiveIncludes(include.nft);
+  const activeOA = hasActiveIncludes(include.ownedAsset);
   const activeHolder = hasActiveIncludes(include.holder);
 
   const vars: Record<string, boolean> = {
@@ -156,7 +159,7 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
     includeTimestamp: include.timestamp ?? false,
     includeDigitalAsset: activeDA,
     includeNft: activeNft,
-    includeOwnedAsset: include.ownedAsset ?? false,
+    includeOwnedAsset: activeOA,
     includeHolder: activeHolder,
   };
 
@@ -170,6 +173,12 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
   if (activeNft) {
     const nftVars = buildNftIncludeVars(include.nft);
     Object.assign(vars, nftVars);
+  }
+
+  // Owned asset sub-includes: reuse owned asset include builder with includeOwnedAsset* prefix.
+  if (activeOA) {
+    const oaVars = buildOwnedAssetIncludeVars(include.ownedAsset);
+    Object.assign(vars, oaVars);
   }
 
   // Profile sub-includes: reuse profile include builder with includeProfile* prefix.

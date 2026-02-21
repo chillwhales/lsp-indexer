@@ -1,6 +1,7 @@
 export {
   DIGITAL_ASSET_INCLUDE_FIELDS,
   NFT_INCLUDE_FIELDS,
+  OWNED_ASSET_INCLUDE_FIELDS,
   PROFILE_INCLUDE_FIELDS,
 } from './constants';
 export { FilterField, FilterFieldsRow, useFilterFields } from './filter-field';
