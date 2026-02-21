@@ -61,6 +61,7 @@ import {
 const FILTERS: FilterFieldConfig[] = [
   { key: 'owner', label: 'Owner Address', placeholder: '0x... (owner)', mono: true },
   { key: 'address', label: 'Asset Address', placeholder: '0x... (asset contract)', mono: true },
+  { key: 'ownerName', label: 'Owner Name', placeholder: 'Search by profile name...' },
   { key: 'assetName', label: 'Asset Name', placeholder: 'Search by token name...' },
 ];
 
@@ -108,6 +109,7 @@ function buildFilter(debouncedValues: Record<string, string>): OwnedAssetFilter 
   const f: OwnedAssetFilter = {};
   if (debouncedValues.owner) f.owner = debouncedValues.owner;
   if (debouncedValues.address) f.address = debouncedValues.address;
+  if (debouncedValues.ownerName) f.ownerName = debouncedValues.ownerName;
   if (debouncedValues.assetName) f.assetName = debouncedValues.assetName;
   return Object.keys(f).length > 0 ? f : undefined;
 }

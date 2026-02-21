@@ -68,6 +68,8 @@ export const OwnedTokenFilterSchema = z.object({
   address: z.string().optional(),
   /** Case-insensitive match on token ID */
   tokenId: z.string().optional(),
+  /** Case-insensitive match on the holder's profile name (via universalProfile.lsp3Profile.name) */
+  ownerName: z.string().optional(),
   /** Case-insensitive match on the digital asset's token name (via digitalAsset.lsp4TokenName) */
   assetName: z.string().optional(),
   /** Case-insensitive match on the NFT's name (via nft.lsp4Metadata.name or nft.lsp4MetadataBaseUri.name) */

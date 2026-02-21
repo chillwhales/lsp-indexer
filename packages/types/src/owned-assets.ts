@@ -50,6 +50,8 @@ export const OwnedAssetFilterSchema = z.object({
   owner: z.string().optional(),
   /** Case-insensitive match on asset contract address */
   address: z.string().optional(),
+  /** Case-insensitive match on the owner's profile name (via universalProfile.lsp3Profile.name) */
+  ownerName: z.string().optional(),
   /** Case-insensitive match on the digital asset's token name (via digitalAsset.lsp4TokenName) */
   assetName: z.string().optional(),
 });

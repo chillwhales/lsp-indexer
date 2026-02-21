@@ -25,6 +25,7 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
  * Filter → Hasura mapping:
  * - `owner`     → `{ owner: { _ilike: '%owner%' } }`
  * - `address`   → `{ address: { _ilike: '%address%' } }`
+ * - `ownerName` → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike: '%name%' } } } } }`
  * - `assetName` → `{ digitalAsset: { lsp4TokenName: { value: { _ilike: '%name%' } } } }`
  *
  * All string fields use `_ilike` + `escapeLike` for case-insensitive matching
@@ -44,6 +45,14 @@ function buildWhere(filter?: OwnedAssetFilter): Owned_Asset_Bool_Exp {
   if (filter.address) {
     conditions.push({
       address: { _ilike: `%${escapeLike(filter.address)}%` },
+    });
+  }
+
+  if (filter.ownerName) {
+    conditions.push({
+      universalProfile: {
+        lsp3Profile: { name: { value: { _ilike: `%${escapeLike(filter.ownerName)}%` } } },
+      },
     });
   }
 

@@ -27,6 +27,7 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
  * - `owner`     → `{ owner: { _ilike: '%owner%' } }`
  * - `address`   → `{ address: { _ilike: '%address%' } }`
  * - `tokenId`   → `{ token_id: { _ilike: '%tokenId%' } }` (snake_case column)
+ * - `ownerName` → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike: '%name%' } } } } }`
  * - `assetName` → `{ digitalAsset: { lsp4TokenName: { value: { _ilike: '%name%' } } } }`
  * - `tokenName` → `{ nft: { _or: [lsp4Metadata.name, lsp4MetadataBaseUri.name] } }`
  *
@@ -53,6 +54,14 @@ function buildWhere(filter?: OwnedTokenFilter): Owned_Token_Bool_Exp {
   if (filter.tokenId) {
     conditions.push({
       token_id: { _ilike: `%${escapeLike(filter.tokenId)}%` },
+    });
+  }
+
+  if (filter.ownerName) {
+    conditions.push({
+      universalProfile: {
+        lsp3Profile: { name: { value: { _ilike: `%${escapeLike(filter.ownerName)}%` } } },
+      },
     });
   }
 

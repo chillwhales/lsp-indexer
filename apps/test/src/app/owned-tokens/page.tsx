@@ -63,6 +63,7 @@ const FILTERS: FilterFieldConfig[] = [
   { key: 'owner', label: 'Holder Address', placeholder: '0x... (holder)', mono: true },
   { key: 'address', label: 'Asset Address', placeholder: '0x... (asset contract)', mono: true },
   { key: 'tokenId', label: 'Token ID', placeholder: 'Token ID', mono: true },
+  { key: 'ownerName', label: 'Owner Name', placeholder: 'Search by profile name...' },
   { key: 'assetName', label: 'Asset Name', placeholder: 'Search by collection name...' },
   { key: 'tokenName', label: 'Token Name', placeholder: 'Search by NFT name...' },
 ];
@@ -112,6 +113,7 @@ function buildFilter(debouncedValues: Record<string, string>): OwnedTokenFilter 
   if (debouncedValues.owner) f.owner = debouncedValues.owner;
   if (debouncedValues.address) f.address = debouncedValues.address;
   if (debouncedValues.tokenId) f.tokenId = debouncedValues.tokenId;
+  if (debouncedValues.ownerName) f.ownerName = debouncedValues.ownerName;
   if (debouncedValues.assetName) f.assetName = debouncedValues.assetName;
   if (debouncedValues.tokenName) f.tokenName = debouncedValues.tokenName;
   return Object.keys(f).length > 0 ? f : undefined;
