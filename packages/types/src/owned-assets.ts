@@ -13,24 +13,29 @@ import { ProfileIncludeSchema, ProfileSchema } from './profiles';
  *
  * Each record represents how much of a particular token an address holds.
  * The `balance` field uses `bigint` for uint256 precision (per locked decision).
+ *
+ * Fields renamed for developer clarity:
+ * - `digitalAssetAddress` (Hasura: `address`) — the asset contract address
+ * - `holderAddress` (Hasura: `owner`) — the holder's address
+ * - `holder` (Hasura: `universalProfile`) — the holder's profile
  */
 export const OwnedAssetSchema = z.object({
   /** Unique identifier */
   id: z.string(),
-  /** Asset contract address */
-  address: z.string(),
-  /** Owner address */
-  owner: z.string(),
-  /** Token balance — bigint for uint256 precision (consumer formats) */
-  balance: z.bigint(),
-  /** Block number when this ownership was last updated */
-  block: z.number(),
-  /** Timestamp when this ownership was last updated (ISO string) */
-  timestamp: z.string(),
+  /** Asset contract address (Hasura column: address) */
+  digitalAssetAddress: z.string(),
+  /** Holder address (Hasura column: owner) */
+  holderAddress: z.string(),
+  /** Token balance — bigint for uint256 precision (null when excluded via include) */
+  balance: z.bigint().nullable(),
+  /** Block number when this ownership was last updated (null when excluded via include) */
+  block: z.number().nullable(),
+  /** Timestamp when this ownership was last updated — ISO string (null when excluded via include) */
+  timestamp: z.string().nullable(),
   /** Related digital asset details (null = not included in query) */
   digitalAsset: DigitalAssetSchema.nullable(),
-  /** Related universal profile details (null = not included in query) */
-  universalProfile: ProfileSchema.nullable(),
+  /** Related holder's universal profile details (null = not included in query) */
+  holder: ProfileSchema.nullable(),
   /** Count of individual tokens (LSP8 token IDs) within this ownership, null if not included */
   tokenIdCount: z.number().nullable(),
 });
@@ -46,12 +51,12 @@ export const OwnedAssetSchema = z.object({
  * Name filters use nested relation filtering through Hasura.
  */
 export const OwnedAssetFilterSchema = z.object({
-  /** Case-insensitive match on owner address */
-  owner: z.string().optional(),
-  /** Case-insensitive match on asset contract address */
-  address: z.string().optional(),
-  /** Case-insensitive match on the owner's profile name (via universalProfile.lsp3Profile.name) */
-  ownerName: z.string().optional(),
+  /** Case-insensitive match on holder address (Hasura column: owner) */
+  holderAddress: z.string().optional(),
+  /** Case-insensitive match on asset contract address (Hasura column: address) */
+  digitalAssetAddress: z.string().optional(),
+  /** Case-insensitive match on the holder's profile name (via universalProfile.lsp3Profile.name) */
+  holderName: z.string().optional(),
   /** Case-insensitive match on the digital asset's token name (via digitalAsset.lsp4TokenName) */
   assetName: z.string().optional(),
 });
@@ -59,14 +64,14 @@ export const OwnedAssetFilterSchema = z.object({
 /**
  * Fields available for sorting owned asset lists.
  *
- * Direct columns: balance, timestamp, address, owner, block.
+ * Direct columns: balance, timestamp, digitalAssetAddress, holderAddress, block.
  * Nested sorts: digitalAssetName (via digitalAsset.lsp4TokenName), tokenIdCount (via tokenIds_aggregate).
  */
 export const OwnedAssetSortFieldSchema = z.enum([
   'balance',
   'timestamp',
-  'address',
-  'owner',
+  'digitalAssetAddress',
+  'holderAddress',
   'block',
   'digitalAssetName',
   'tokenIdCount',
@@ -82,7 +87,7 @@ export const OwnedAssetSortSchema = z.object({
 });
 
 /**
- * Control which nested fields to include in an owned asset query.
+ * Control which fields to include in an owned asset query.
  *
  * **Behavior (inverted default):**
  * - When `include` is **omitted** entirely → all fields are fetched (opt-out model).
@@ -94,10 +99,16 @@ export const OwnedAssetSortSchema = z.object({
  * sub-includes — controlling exactly which digital asset attributes to fetch.
  */
 export const OwnedAssetIncludeSchema = z.object({
+  /** Include token balance */
+  balance: z.boolean().optional(),
+  /** Include block number */
+  block: z.boolean().optional(),
+  /** Include timestamp */
+  timestamp: z.boolean().optional(),
   /** Include related digital asset details — sub-fields control which DA attributes to fetch */
   digitalAsset: DigitalAssetIncludeSchema.optional(),
-  /** Include related universal profile details — sub-fields control which profile attributes to fetch */
-  universalProfile: ProfileIncludeSchema.optional(),
+  /** Include related holder profile details — sub-fields control which profile attributes to fetch */
+  holder: ProfileIncludeSchema.optional(),
   /** Include count of individual token IDs (tokenIds_aggregate) */
   tokenIdCount: z.boolean().optional(),
 });
@@ -110,7 +121,7 @@ export const OwnedAssetIncludeSchema = z.object({
 export const UseOwnedAssetParamsSchema = z.object({
   /** Owned asset unique ID */
   id: z.string(),
-  /** Control which nested data to include (omit for all data — inverted default) */
+  /** Control which data to include (omit for all data — inverted default) */
   include: OwnedAssetIncludeSchema.optional(),
 });
 
@@ -124,7 +135,7 @@ export const UseOwnedAssetsParamsSchema = z.object({
   limit: z.number().optional(),
   /** Number of owned assets to skip (for offset-based pagination) */
   offset: z.number().optional(),
-  /** Control which nested data to include (omit for all data — inverted default) */
+  /** Control which data to include (omit for all data — inverted default) */
   include: OwnedAssetIncludeSchema.optional(),
 });
 
@@ -136,7 +147,7 @@ export const UseInfiniteOwnedAssetsParamsSchema = z.object({
   sort: OwnedAssetSortSchema.optional(),
   /** Number of owned assets per page (default: 20) */
   pageSize: z.number().optional(),
-  /** Control which nested data to include (omit for all data — inverted default) */
+  /** Control which data to include (omit for all data — inverted default) */
   include: OwnedAssetIncludeSchema.optional(),
 });
 

@@ -104,9 +104,11 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
                 {ownedAsset.tokenIdCount} token ID{ownedAsset.tokenIdCount !== 1 ? 's' : ''}
               </Badge>
             )}
-            <Badge variant="outline" className="text-xs">
-              {formatRelativeTime(ownedAsset.timestamp)}
-            </Badge>
+            {ownedAsset.timestamp && (
+              <Badge variant="outline" className="text-xs">
+                {formatRelativeTime(ownedAsset.timestamp)}
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -114,61 +116,66 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
         {/* Core ownership details */}
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Owner</dt>
-            <dd className="font-mono text-xs break-all">{ownedAsset.owner}</dd>
+            <dt className="text-muted-foreground w-28 shrink-0">Holder</dt>
+            <dd className="font-mono text-xs break-all">{ownedAsset.holderAddress}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Asset Address</dt>
-            <dd className="font-mono text-xs break-all">{ownedAsset.address}</dd>
+            <dd className="font-mono text-xs break-all">{ownedAsset.digitalAssetAddress}</dd>
           </div>
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Balance</dt>
-            <dd>
-              <Tooltip>
-                <TooltipTrigger className="font-mono underline decoration-dashed underline-offset-2 cursor-default">
-                  {formatBalance(ownedAsset.balance, decimals)}
-                  {decimals != null && ownedAsset.digitalAsset?.symbol && (
-                    <span className="text-muted-foreground ml-1">
-                      {ownedAsset.digitalAsset.symbol}
-                    </span>
-                  )}
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-mono text-xs">
-                    {balanceTooltip(ownedAsset.balance, decimals)}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </dd>
-          </div>
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Block</dt>
-            <dd className="font-mono text-xs">{ownedAsset.block}</dd>
-          </div>
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Timestamp</dt>
-            <dd className="text-xs">
-              {new Date(ownedAsset.timestamp).toLocaleString()}{' '}
-              <span className="text-muted-foreground">
-                ({formatRelativeTime(ownedAsset.timestamp)})
-              </span>
-            </dd>
-          </div>
+          {ownedAsset.balance !== null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-28 shrink-0">Balance</dt>
+              <dd>
+                <Tooltip>
+                  <TooltipTrigger className="font-mono underline decoration-dashed underline-offset-2 cursor-default">
+                    {formatBalance(ownedAsset.balance, decimals)}
+                    {decimals != null && ownedAsset.digitalAsset?.symbol && (
+                      <span className="text-muted-foreground ml-1">
+                        {ownedAsset.digitalAsset.symbol}
+                      </span>
+                    )}
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="font-mono text-xs">
+                      {balanceTooltip(ownedAsset.balance, decimals)}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </dd>
+            </div>
+          )}
+          {ownedAsset.block !== null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-28 shrink-0">Block</dt>
+              <dd className="font-mono text-xs">{ownedAsset.block}</dd>
+            </div>
+          )}
+          {ownedAsset.timestamp && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-28 shrink-0">Timestamp</dt>
+              <dd className="text-xs">
+                {new Date(ownedAsset.timestamp).toLocaleString()}{' '}
+                <span className="text-muted-foreground">
+                  ({formatRelativeTime(ownedAsset.timestamp)})
+                </span>
+              </dd>
+            </div>
+          )}
         </dl>
 
-        {/* Universal Profile section (collapsible, reuses ProfileCard) */}
-        {ownedAsset.universalProfile && (
+        {/* Holder Profile section (collapsible, reuses ProfileCard) */}
+        {ownedAsset.holder && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <User className="size-3.5" />
-                Universal Profile:{' '}
-                {ownedAsset.universalProfile.name ?? ownedAsset.universalProfile.address}
+                Holder Profile: {ownedAsset.holder.name ?? ownedAsset.holder.address}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
-              <ProfileCard profile={ownedAsset.universalProfile} />
+              <ProfileCard profile={ownedAsset.holder} />
             </CollapsibleContent>
           </Collapsible>
         )}

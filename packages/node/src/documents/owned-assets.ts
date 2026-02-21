@@ -5,17 +5,21 @@ import { graphql } from '../graphql';
  *
  * Variables:
  * - `$where` — The service layer builds the Hasura bool_exp (e.g., `{ id: { _eq: "..." } }`)
+ * - `$includeBalance` / `$includeBlock` / `$includeTimestamp` — Direct column toggles
  * - `$includeDigitalAsset` — Include related digital asset details (with 17 DA sub-variables)
  * - `$include[Name|Symbol|...]` — 17 digital asset sub-include toggles
- * - `$includeUniversalProfile` — Include related universal profile details
+ * - `$includeHolder` — Include related holder universal profile details
  * - `$includeTokenIdCount` — Include count of individual token IDs (tokenIds_aggregate)
  *
- * Uses `@include(if:)` directives so omitted nested data is never sent over the wire.
+ * Uses `@include(if:)` directives so omitted data is never sent over the wire.
  * When `include` is omitted by the caller, all variables default to `true` → everything fetched.
  */
 export const GetOwnedAssetDocument = graphql(`
   query GetOwnedAsset(
     $where: owned_asset_bool_exp!
+    $includeBalance: Boolean! = true
+    $includeBlock: Boolean! = true
+    $includeTimestamp: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeName: Boolean! = true
     $includeSymbol: Boolean! = true
@@ -34,7 +38,7 @@ export const GetOwnedAssetDocument = graphql(`
     $includeReferenceContract: Boolean! = true
     $includeTokenIdFormat: Boolean! = true
     $includeBaseUri: Boolean! = true
-    $includeUniversalProfile: Boolean! = true
+    $includeHolder: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
     $includeProfileTags: Boolean! = true
@@ -50,9 +54,9 @@ export const GetOwnedAssetDocument = graphql(`
       id
       address
       owner
-      balance
-      block
-      timestamp
+      balance @include(if: $includeBalance)
+      block @include(if: $includeBlock)
+      timestamp @include(if: $includeTimestamp)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
@@ -124,7 +128,7 @@ export const GetOwnedAssetDocument = graphql(`
           value
         }
       }
-      universalProfile @include(if: $includeUniversalProfile) {
+      universalProfile @include(if: $includeHolder) {
         address
         lsp3Profile {
           name @include(if: $includeProfileName) {
@@ -191,8 +195,9 @@ export const GetOwnedAssetDocument = graphql(`
  * - `$where` — Filter conditions (built by service layer from flat OwnedAssetFilter)
  * - `$order_by` — Sort order (built by service layer from OwnedAssetSort)
  * - `$limit` / `$offset` — Pagination
+ * - `$includeBalance` / `$includeBlock` / `$includeTimestamp` — Direct column toggles
  * - `$includeDigitalAsset` + 17 DA sub-variables — Digital asset nested include toggles
- * - `$includeUniversalProfile` + 9 profile sub-variables — Universal profile nested include toggles
+ * - `$includeHolder` + 9 profile sub-variables — Holder profile nested include toggles
  * - `$includeTokenIdCount` — Token ID count aggregate toggle
  *
  * Includes `owned_asset_aggregate` for total count (used for "X of Y results" UI).
@@ -203,6 +208,9 @@ export const GetOwnedAssetsDocument = graphql(`
     $order_by: [owned_asset_order_by!]
     $limit: Int
     $offset: Int
+    $includeBalance: Boolean! = true
+    $includeBlock: Boolean! = true
+    $includeTimestamp: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeName: Boolean! = true
     $includeSymbol: Boolean! = true
@@ -221,7 +229,7 @@ export const GetOwnedAssetsDocument = graphql(`
     $includeReferenceContract: Boolean! = true
     $includeTokenIdFormat: Boolean! = true
     $includeBaseUri: Boolean! = true
-    $includeUniversalProfile: Boolean! = true
+    $includeHolder: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
     $includeProfileTags: Boolean! = true
@@ -237,9 +245,9 @@ export const GetOwnedAssetsDocument = graphql(`
       id
       address
       owner
-      balance
-      block
-      timestamp
+      balance @include(if: $includeBalance)
+      block @include(if: $includeBlock)
+      timestamp @include(if: $includeTimestamp)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
@@ -311,7 +319,7 @@ export const GetOwnedAssetsDocument = graphql(`
           value
         }
       }
-      universalProfile @include(if: $includeUniversalProfile) {
+      universalProfile @include(if: $includeHolder) {
         address
         lsp3Profile {
           name @include(if: $includeProfileName) {

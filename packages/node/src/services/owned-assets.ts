@@ -23,10 +23,10 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
  * returns an empty object (no filtering).
  *
  * Filter → Hasura mapping:
- * - `owner`     → `{ owner: { _ilike: '%owner%' } }`
- * - `address`   → `{ address: { _ilike: '%address%' } }`
- * - `ownerName` → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike: '%name%' } } } } }`
- * - `assetName` → `{ digitalAsset: { lsp4TokenName: { value: { _ilike: '%name%' } } } }`
+ * - `holderAddress`       → `{ owner: { _ilike: '%holder%' } }`
+ * - `digitalAssetAddress` → `{ address: { _ilike: '%address%' } }`
+ * - `holderName`          → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike: '%name%' } } } } }`
+ * - `assetName`           → `{ digitalAsset: { lsp4TokenName: { value: { _ilike: '%name%' } } } }`
  *
  * All string fields use `_ilike` + `escapeLike` for case-insensitive matching
  * (EIP-55 mixed-case address prevention).
@@ -36,22 +36,22 @@ function buildWhere(filter?: OwnedAssetFilter): Owned_Asset_Bool_Exp {
 
   const conditions: Owned_Asset_Bool_Exp[] = [];
 
-  if (filter.owner) {
+  if (filter.holderAddress) {
     conditions.push({
-      owner: { _ilike: `%${escapeLike(filter.owner)}%` },
+      owner: { _ilike: `%${escapeLike(filter.holderAddress)}%` },
     });
   }
 
-  if (filter.address) {
+  if (filter.digitalAssetAddress) {
     conditions.push({
-      address: { _ilike: `%${escapeLike(filter.address)}%` },
+      address: { _ilike: `%${escapeLike(filter.digitalAssetAddress)}%` },
     });
   }
 
-  if (filter.ownerName) {
+  if (filter.holderName) {
     conditions.push({
       universalProfile: {
-        lsp3Profile: { name: { value: { _ilike: `%${escapeLike(filter.ownerName)}%` } } },
+        lsp3Profile: { name: { value: { _ilike: `%${escapeLike(filter.holderName)}%` } } },
       },
     });
   }
@@ -73,8 +73,10 @@ function buildWhere(filter?: OwnedAssetFilter): Owned_Asset_Bool_Exp {
  * Translate a flat `OwnedAssetSort` to a Hasura `order_by` array.
  *
  * Sort field → Hasura mapping:
- * - Direct columns: `balance`, `timestamp`, `address`, `owner`, `block`
+ * - Direct columns: `balance`, `timestamp`, `block`
  *   → `[{ [field]: dir }]`
+ * - Renamed: `digitalAssetAddress` → `[{ address: dir }]`
+ * - Renamed: `holderAddress` → `[{ owner: dir }]`
  * - Nested `digitalAssetName`
  *   → `[{ digitalAsset: { lsp4TokenName: { value: dir } } }]`
  * - Nested `tokenIdCount`
@@ -90,10 +92,12 @@ function buildOrderBy(sort?: OwnedAssetSort): Owned_Asset_Order_By[] | undefined
   switch (sort.field) {
     case 'balance':
     case 'timestamp':
-    case 'address':
-    case 'owner':
     case 'block':
       return [{ [sort.field]: dir }];
+    case 'digitalAssetAddress':
+      return [{ address: dir }];
+    case 'holderAddress':
+      return [{ owner: dir }];
     case 'digitalAssetName':
       return [{ digitalAsset: { lsp4TokenName: { value: dir } } }];
     case 'tokenIdCount':
@@ -112,13 +116,17 @@ function buildOrderBy(sort?: OwnedAssetSort): Owned_Asset_Order_By[] | undefined
  * - When `include` is **provided** → each field defaults to `false` unless explicitly
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
  *
+ * **Direct column includes:**
+ * - `balance`, `block`, `timestamp` map to `includeBalance`, `includeBlock`, `includeTimestamp`.
+ *
  * **Digital asset sub-includes:**
  * - When `include.digitalAsset` has at least one truthy sub-field → `includeDigitalAsset: true`
  *   with sub-include variables from `buildDigitalAssetIncludeVars`.
  * - When `include.digitalAsset` is `undefined`, `{}`, or all-false → `includeDigitalAsset: false`.
  *
- * **Universal profile sub-includes:**
+ * **Holder (universal profile) sub-includes:**
  * - Same pattern as digital asset — only included when at least one sub-field is truthy.
+ *   Variable name: `includeHolder` (maps to `$includeHolder` in GraphQL document).
  */
 function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> {
   if (!include) {
@@ -127,11 +135,14 @@ function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> 
   }
 
   const activeDA = hasActiveIncludes(include.digitalAsset);
-  const activeUP = hasActiveIncludes(include.universalProfile);
+  const activeHolder = hasActiveIncludes(include.holder);
 
   const vars: Record<string, boolean> = {
+    includeBalance: include.balance ?? false,
+    includeBlock: include.block ?? false,
+    includeTimestamp: include.timestamp ?? false,
     includeDigitalAsset: activeDA,
-    includeUniversalProfile: activeUP,
+    includeHolder: activeHolder,
     includeTokenIdCount: include.tokenIdCount ?? false,
   };
 
@@ -142,8 +153,8 @@ function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> 
   }
 
   // Profile sub-includes: reuse profile include builder with includeProfile* prefix.
-  if (activeUP) {
-    const profileVars = buildProfileIncludeVars(include.universalProfile);
+  if (activeHolder) {
+    const profileVars = buildProfileIncludeVars(include.holder);
     Object.assign(vars, profileVars);
   }
 

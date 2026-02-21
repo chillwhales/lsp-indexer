@@ -16,13 +16,14 @@ type RawOwnedAsset = GetOwnedAssetQuery['owned_asset'][number];
  * Transform a raw Hasura owned asset response into a clean `OwnedAsset` type.
  *
  * Handles all edge cases:
+ * - **Field renames:** Hasura `address` → `digitalAssetAddress`, `owner` → `holderAddress`,
+ *   `universalProfile` → `holder` for developer clarity.
  * - **`balance` → `bigint`:** Hasura returns `numeric` as a string; we convert
- *   with `BigInt()` for uint256 precision. This is safe because Hasura's numeric
- *   scalar serializes as a plain decimal integer string.
+ *   with `BigInt()` for uint256 precision. Nullable when excluded via `@include`.
  * - **`@include(if: false)` omitted fields:** Won't be present in the response —
- *   uses optional chaining; omitted relations become `null`.
+ *   uses optional chaining; omitted relations/fields become `null`.
  * - **Nested `digitalAsset`:** Parsed via `parseDigitalAsset` for full DA details.
- * - **Nested `universalProfile`:** Parsed via `parseProfile` for LSP3 profile data.
+ * - **Nested `universalProfile` (→ `holder`):** Parsed via `parseProfile` for LSP3 profile data.
  * - **`tokenIdCount`:** Extracted from `tokenIds_aggregate.aggregate.count`.
  *
  * @param raw - A single owned_asset from the Hasura GraphQL response
@@ -31,17 +32,17 @@ type RawOwnedAsset = GetOwnedAssetQuery['owned_asset'][number];
 export function parseOwnedAsset(raw: RawOwnedAsset): OwnedAsset {
   return {
     id: raw.id,
-    address: raw.address,
-    owner: raw.owner,
-    balance: BigInt(raw.balance),
-    block: raw.block,
-    timestamp: raw.timestamp,
+    digitalAssetAddress: raw.address,
+    holderAddress: raw.owner,
+    balance: raw.balance != null ? BigInt(raw.balance) : null,
+    block: raw.block ?? null,
+    timestamp: raw.timestamp ?? null,
     // Cast needed: the owned_asset document selects a subset of digital_asset fields;
     // parseDigitalAsset uses optional chaining and handles missing fields gracefully.
     digitalAsset: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset as any) : null,
     // Cast needed: the owned_asset document selects a subset of universal_profile fields
     // (no `id`); parseProfile uses optional chaining and handles missing fields gracefully.
-    universalProfile: raw.universalProfile ? parseProfile(raw.universalProfile as any) : null,
+    holder: raw.universalProfile ? parseProfile(raw.universalProfile as any) : null,
     tokenIdCount: raw.tokenIds_aggregate?.aggregate?.count ?? null,
   };
 }

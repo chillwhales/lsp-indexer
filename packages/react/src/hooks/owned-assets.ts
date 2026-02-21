@@ -59,8 +59,8 @@ export function useOwnedAsset(params: UseOwnedAssetParams) {
  * Fetch a paginated list of owned assets with filtering and sorting.
  *
  * Wraps `fetchOwnedAssets` in a TanStack `useQuery` hook. Supports filtering
- * (by owner, address, digitalAssetId, universalProfileId) and sorting
- * (by balance, timestamp, address, owner, block, digitalAssetName, tokenIdCount).
+ * (by holderAddress, digitalAssetAddress, holderName, assetName) and sorting
+ * (by balance, timestamp, digitalAssetAddress, holderAddress, block, digitalAssetName, tokenIdCount).
  *
  * @param params - Optional filter, sort, pagination, and include config
  * @returns `{ ownedAssets, totalCount, isLoading, error, ...rest }` — full TanStack Query

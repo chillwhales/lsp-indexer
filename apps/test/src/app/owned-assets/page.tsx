@@ -59,12 +59,22 @@ import {
 // ---------------------------------------------------------------------------
 
 const ADDRESS_FILTERS: FilterFieldConfig[] = [
-  { key: 'owner', label: 'Holder Address', placeholder: '0x... (holder)', mono: true },
-  { key: 'address', label: 'Asset Address', placeholder: '0x... (asset contract)', mono: true },
+  {
+    key: 'holderAddress',
+    label: 'Holder Address',
+    placeholder: '0x... (holder)',
+    mono: true,
+  },
+  {
+    key: 'digitalAssetAddress',
+    label: 'Asset Address',
+    placeholder: '0x... (asset contract)',
+    mono: true,
+  },
 ];
 
 const NAME_FILTERS: FilterFieldConfig[] = [
-  { key: 'ownerName', label: 'Holder Name', placeholder: 'Search by holder name...' },
+  { key: 'holderName', label: 'Holder Name', placeholder: 'Search by holder name...' },
   { key: 'assetName', label: 'Asset Name', placeholder: 'Search by token name...' },
 ];
 
@@ -73,25 +83,30 @@ const ALL_FILTERS = [...ADDRESS_FILTERS, ...NAME_FILTERS];
 const SORT_OPTIONS: SortOption[] = [
   { value: 'balance', label: 'Balance' },
   { value: 'timestamp', label: 'Timestamp' },
-  { value: 'address', label: 'Address' },
-  { value: 'owner', label: 'Holder' },
+  { value: 'digitalAssetAddress', label: 'Asset Address' },
+  { value: 'holderAddress', label: 'Holder' },
   { value: 'block', label: 'Block' },
   { value: 'digitalAssetName', label: 'Digital Asset Name' },
   { value: 'tokenIdCount', label: 'Token ID Count' },
 ];
 
-const BASE_INCLUDES: IncludeToggleConfig[] = [{ key: 'tokenIdCount', label: 'Token ID Count' }];
+const BASE_INCLUDES: IncludeToggleConfig[] = [
+  { key: 'balance', label: 'Balance' },
+  { key: 'block', label: 'Block' },
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'tokenIdCount', label: 'Token ID Count' },
+];
 
 const PRESETS = [
   {
     label: 'chill-labs × CHILL',
-    owner: '0xB6c10458274431189D4D0dA66ce00dc62A215908',
-    address: '0x5B8B0E44D4719F8A328470DcCD3746BFc73d6B14',
+    holderAddress: '0xB6c10458274431189D4D0dA66ce00dc62A215908',
+    digitalAssetAddress: '0x5B8B0E44D4719F8A328470DcCD3746BFc73d6B14',
   },
   {
     label: 'b00ste × CHILL',
-    owner: '0x00Aa9761286f21437c90AD2f895ef0dcA3484306',
-    address: '0x5B8B0E44D4719F8A328470DcCD3746BFc73d6B14',
+    holderAddress: '0x00Aa9761286f21437c90AD2f895ef0dcA3484306',
+    digitalAssetAddress: '0x5B8B0E44D4719F8A328470DcCD3746BFc73d6B14',
   },
 ] as const;
 
@@ -112,9 +127,10 @@ function useHooks(mode: HookMode) {
 
 function buildFilter(debouncedValues: Record<string, string>): OwnedAssetFilter | undefined {
   const f: OwnedAssetFilter = {};
-  if (debouncedValues.owner) f.owner = debouncedValues.owner;
-  if (debouncedValues.address) f.address = debouncedValues.address;
-  if (debouncedValues.ownerName) f.ownerName = debouncedValues.ownerName;
+  if (debouncedValues.holderAddress) f.holderAddress = debouncedValues.holderAddress;
+  if (debouncedValues.digitalAssetAddress)
+    f.digitalAssetAddress = debouncedValues.digitalAssetAddress;
+  if (debouncedValues.holderName) f.holderName = debouncedValues.holderName;
   if (debouncedValues.assetName) f.assetName = debouncedValues.assetName;
   return Object.keys(f).length > 0 ? f : undefined;
 }
@@ -130,14 +146,14 @@ function useListState() {
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(BASE_INCLUDES);
   const da = useSubInclude(DIGITAL_ASSET_INCLUDE_FIELDS);
-  const up = useSubInclude(PROFILE_INCLUDE_FIELDS);
+  const holder = useSubInclude(PROFILE_INCLUDE_FIELDS);
 
   const filter = buildFilter(debouncedValues);
   const sort: OwnedAssetSort = { field: sortField, direction: sortDirection, nulls: sortNulls };
   const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
   const include = buildNestedInclude(includeValues, {
     digitalAsset: da.value,
-    universalProfile: up.value,
+    holder: holder.value,
   }) as OwnedAssetInclude | undefined;
 
   return {
@@ -156,7 +172,7 @@ function useListState() {
     toggleInclude,
     include,
     da,
-    up,
+    holder,
   };
 }
 
@@ -168,7 +184,7 @@ function IncludeSections({
   includeValues,
   toggleInclude,
   da,
-  up,
+  holder,
 }: ReturnType<typeof useListState>): React.ReactNode {
   return (
     <>
@@ -180,10 +196,10 @@ function IncludeSections({
         state={da}
       />
       <SubIncludeSection
-        label="Universal Profile"
+        label="Holder Profile"
         subtitle="Profile sub-fields"
         configs={PROFILE_INCLUDE_FIELDS}
-        state={up}
+        state={holder}
       />
     </>
   );
@@ -195,21 +211,21 @@ function IncludeSections({
 
 function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useOwnedAssets } = useHooks(mode);
-  const [ownerInput, setOwnerInput] = useState('');
+  const [holderInput, setHolderInput] = useState('');
   const [addressInput, setAddressInput] = useState('');
-  const [queryOwner, setQueryOwner] = useState('');
+  const [queryHolder, setQueryHolder] = useState('');
   const [queryAddress, setQueryAddress] = useState('');
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(BASE_INCLUDES);
   const da = useSubInclude(DIGITAL_ASSET_INCLUDE_FIELDS);
-  const up = useSubInclude(PROFILE_INCLUDE_FIELDS);
+  const holder = useSubInclude(PROFILE_INCLUDE_FIELDS);
   const include = buildNestedInclude(includeValues, {
     digitalAsset: da.value,
-    universalProfile: up.value,
+    holder: holder.value,
   }) as OwnedAssetInclude | undefined;
 
-  const hasQuery = Boolean(queryOwner) && Boolean(queryAddress);
+  const hasQuery = Boolean(queryHolder) && Boolean(queryAddress);
   const filter: OwnedAssetFilter | undefined = hasQuery
-    ? { owner: queryOwner, address: queryAddress }
+    ? { holderAddress: queryHolder, digitalAssetAddress: queryAddress }
     : undefined;
 
   const { ownedAssets, isLoading, error, isFetching } = useOwnedAssets({
@@ -221,7 +237,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setQueryOwner(ownerInput);
+    setQueryHolder(holderInput);
     setQueryAddress(addressInput);
   };
 
@@ -229,12 +245,12 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
     <div className="space-y-4">
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="space-y-1.5">
-          <Label htmlFor="owned-asset-owner">Holder Address</Label>
+          <Label htmlFor="owned-asset-holder">Holder Address</Label>
           <Input
-            id="owned-asset-owner"
+            id="owned-asset-holder"
             placeholder="0x... (holder address)"
-            value={ownerInput}
-            onChange={(e) => setOwnerInput(e.target.value)}
+            value={holderInput}
+            onChange={(e) => setHolderInput(e.target.value)}
             className="font-mono text-sm"
           />
         </div>
@@ -248,7 +264,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
             className="font-mono text-sm"
           />
         </div>
-        <Button type="submit" disabled={!ownerInput || !addressInput}>
+        <Button type="submit" disabled={!holderInput || !addressInput}>
           <Search className="size-4" />
           Fetch
         </Button>
@@ -257,10 +273,10 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
       <PresetButtons
         presets={PRESETS}
         onSelect={(p) => {
-          setOwnerInput(p.owner);
-          setAddressInput(p.address);
-          setQueryOwner(p.owner);
-          setQueryAddress(p.address);
+          setHolderInput(p.holderAddress);
+          setAddressInput(p.digitalAssetAddress);
+          setQueryHolder(p.holderAddress);
+          setQueryAddress(p.digitalAssetAddress);
         }}
       />
 
@@ -272,10 +288,10 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
         state={da}
       />
       <SubIncludeSection
-        label="Universal Profile"
+        label="Holder Profile"
         subtitle="Profile sub-fields"
         configs={PROFILE_INCLUDE_FIELDS}
-        state={up}
+        state={holder}
       />
 
       {isLoading && (
@@ -294,7 +310,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
           <AlertTitle>No Owned Asset Found</AlertTitle>
           <AlertDescription>
             No owned asset found for holder{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">{queryOwner}</code>
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">{queryHolder}</code>
             {' on asset '}
             <code className="text-xs bg-muted px-1 py-0.5 rounded">{queryAddress}</code>
           </AlertDescription>

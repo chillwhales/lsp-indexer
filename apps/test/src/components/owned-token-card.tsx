@@ -185,8 +185,9 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Wallet className="size-3.5" />
-                Owned Asset: {ownedToken.ownedAsset.address} (balance:{' '}
-                {ownedToken.ownedAsset.balance.toString()})
+                Owned Asset: {ownedToken.ownedAsset.digitalAssetAddress}
+                {ownedToken.ownedAsset.balance != null &&
+                  ` (balance: ${ownedToken.ownedAsset.balance.toString()})`}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>

@@ -66,7 +66,7 @@ const ADDRESS_FILTERS: FilterFieldConfig[] = [
 ];
 
 const NAME_FILTERS: FilterFieldConfig[] = [
-  { key: 'ownerName', label: 'Holder Name', placeholder: 'Search by holder name...' },
+  { key: 'holderName', label: 'Holder Name', placeholder: 'Search by holder name...' },
   { key: 'assetName', label: 'Asset Name', placeholder: 'Search by collection name...' },
   { key: 'tokenName', label: 'Token Name', placeholder: 'Search by NFT name...' },
 ];
@@ -118,7 +118,7 @@ function buildFilter(debouncedValues: Record<string, string>): OwnedTokenFilter 
   if (debouncedValues.owner) f.owner = debouncedValues.owner;
   if (debouncedValues.address) f.address = debouncedValues.address;
   if (debouncedValues.tokenId) f.tokenId = debouncedValues.tokenId;
-  if (debouncedValues.ownerName) f.ownerName = debouncedValues.ownerName;
+  if (debouncedValues.holderName) f.ownerName = debouncedValues.holderName;
   if (debouncedValues.assetName) f.assetName = debouncedValues.assetName;
   if (debouncedValues.tokenName) f.tokenName = debouncedValues.tokenName;
   return Object.keys(f).length > 0 ? f : undefined;
@@ -195,7 +195,7 @@ function IncludeSections({
         state={nft}
       />
       <SubIncludeSection
-        label="Universal Profile"
+        label="Holder Profile"
         subtitle="Profile sub-fields"
         configs={PROFILE_INCLUDE_FIELDS}
         state={up}
@@ -314,7 +314,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
         state={nft}
       />
       <SubIncludeSection
-        label="Universal Profile"
+        label="Holder Profile"
         subtitle="Profile sub-fields"
         configs={PROFILE_INCLUDE_FIELDS}
         state={up}
