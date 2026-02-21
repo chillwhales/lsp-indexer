@@ -35,7 +35,7 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
  * All string fields use `_ilike` + `escapeLike` for case-insensitive matching
  * (EIP-55 mixed-case address prevention).
  */
-function buildWhere(filter?: OwnedTokenFilter): Owned_Token_Bool_Exp {
+function buildOwnedTokenWhere(filter?: OwnedTokenFilter): Owned_Token_Bool_Exp {
   if (!filter) return {};
 
   const conditions: Owned_Token_Bool_Exp[] = [];
@@ -102,7 +102,7 @@ function buildWhere(filter?: OwnedTokenFilter): Owned_Token_Bool_Exp {
  *
  * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
  */
-function buildOrderBy(sort?: OwnedTokenSort): Owned_Token_Order_By[] | undefined {
+function buildOwnedTokenOrderBy(sort?: OwnedTokenSort): Owned_Token_Order_By[] | undefined {
   if (!sort) return undefined;
 
   const dir = orderDir(sort.direction, sort.nulls);
@@ -250,8 +250,8 @@ export async function fetchOwnedTokens(
     include?: OwnedTokenInclude;
   } = {},
 ): Promise<FetchOwnedTokensResult> {
-  const where = buildWhere(params.filter);
-  const orderBy = buildOrderBy(params.sort);
+  const where = buildOwnedTokenWhere(params.filter);
+  const orderBy = buildOwnedTokenOrderBy(params.sort);
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetOwnedTokensDocument, {

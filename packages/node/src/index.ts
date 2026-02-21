@@ -48,7 +48,11 @@ export { nftKeys } from './keys/nfts';
 export { GetNftDocument, GetNftsDocument } from './documents/nfts';
 
 // Owned asset services (the core fetching layer)
-export { fetchOwnedAsset, fetchOwnedAssets } from './services/owned-assets';
+export {
+  buildOwnedAssetIncludeVars,
+  fetchOwnedAsset,
+  fetchOwnedAssets,
+} from './services/owned-assets';
 export type { FetchOwnedAssetsResult } from './services/owned-assets';
 
 // Owned asset parsers (Hasura → clean types)

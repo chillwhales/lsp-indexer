@@ -32,7 +32,7 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
  * All string fields use `_ilike` + `escapeLike` for case-insensitive matching
  * (EIP-55 mixed-case address prevention).
  */
-function buildWhere(filter?: OwnedAssetFilter): Owned_Asset_Bool_Exp {
+function buildOwnedAssetWhere(filter?: OwnedAssetFilter): Owned_Asset_Bool_Exp {
   if (!filter) return {};
 
   const conditions: Owned_Asset_Bool_Exp[] = [];
@@ -85,7 +85,7 @@ function buildWhere(filter?: OwnedAssetFilter): Owned_Asset_Bool_Exp {
  *
  * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
  */
-function buildOrderBy(sort?: OwnedAssetSort): Owned_Asset_Order_By[] | undefined {
+function buildOwnedAssetOrderBy(sort?: OwnedAssetSort): Owned_Asset_Order_By[] | undefined {
   if (!sort) return undefined;
 
   const dir = orderDir(sort.direction, sort.nulls);
@@ -244,8 +244,8 @@ export async function fetchOwnedAssets(
     include?: OwnedAssetInclude;
   } = {},
 ): Promise<FetchOwnedAssetsResult> {
-  const where = buildWhere(params.filter);
-  const orderBy = buildOrderBy(params.sort);
+  const where = buildOwnedAssetWhere(params.filter);
+  const orderBy = buildOwnedAssetOrderBy(params.sort);
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetOwnedAssetsDocument, {
