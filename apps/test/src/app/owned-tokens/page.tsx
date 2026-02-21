@@ -59,14 +59,19 @@ import {
 // Domain config
 // ---------------------------------------------------------------------------
 
-const FILTERS: FilterFieldConfig[] = [
+const ADDRESS_FILTERS: FilterFieldConfig[] = [
   { key: 'owner', label: 'Holder Address', placeholder: '0x... (holder)', mono: true },
   { key: 'address', label: 'Asset Address', placeholder: '0x... (asset contract)', mono: true },
   { key: 'tokenId', label: 'Token ID', placeholder: 'Token ID', mono: true },
+];
+
+const NAME_FILTERS: FilterFieldConfig[] = [
   { key: 'ownerName', label: 'Owner Name', placeholder: 'Search by profile name...' },
   { key: 'assetName', label: 'Asset Name', placeholder: 'Search by collection name...' },
   { key: 'tokenName', label: 'Token Name', placeholder: 'Search by NFT name...' },
 ];
+
+const ALL_FILTERS = [...ADDRESS_FILTERS, ...NAME_FILTERS];
 
 const SORT_OPTIONS: SortOption[] = [
   { value: 'address', label: 'Address' },
@@ -124,7 +129,7 @@ function buildFilter(debouncedValues: Record<string, string>): OwnedTokenFilter 
 // ---------------------------------------------------------------------------
 
 function useListState() {
-  const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
+  const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
   const [sortField, setSortField] = useState<OwnedTokenSortField>('timestamp');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
@@ -366,7 +371,12 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   return (
     <div className="space-y-4">
       <FilterFieldsRow
-        configs={FILTERS}
+        configs={ADDRESS_FILTERS}
+        values={state.values}
+        onFieldChange={state.setFieldValue}
+      />
+      <FilterFieldsRow
+        configs={NAME_FILTERS}
         values={state.values}
         onFieldChange={state.setFieldValue}
       />
@@ -425,7 +435,12 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   return (
     <div className="space-y-4">
       <FilterFieldsRow
-        configs={FILTERS}
+        configs={ADDRESS_FILTERS}
+        values={state.values}
+        onFieldChange={state.setFieldValue}
+      />
+      <FilterFieldsRow
+        configs={NAME_FILTERS}
         values={state.values}
         onFieldChange={state.setFieldValue}
       />
