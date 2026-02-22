@@ -185,10 +185,15 @@ This is a cross-cutting DX refactor that touches types, parsers, hooks, server a
 5. **Hook generic propagation** — TanStack Query hooks parameterized by include shape so `data` is correctly narrowed
 6. **5 domains × 3 hooks × 2 packages** (react + next) = 30 hook signatures to update, plus 10 server actions
 
-**Plans:** TBD (research-first — needs design spike before plan breakdown)
+**Plans:** 5 plans
 
-- [ ] 09.4-01-PLAN.md — Research: TypeScript conditional type patterns + Zod interop design
-- [ ] 09.4-02-PLAN.md — TBD (implementation plans created after research)
+Plans:
+
+- [ ] 09.4-01-PLAN.md — Shared utility types (IncludeResult, stripExcluded) + Profile domain end-to-end
+- [ ] 09.4-02-PLAN.md — Digital Assets domain with standard↔decimals derived field handling
+- [ ] 09.4-03-PLAN.md — NFTs + Owned Assets domains with nested relation narrowing
+- [ ] 09.4-04-PLAN.md — Owned Tokens domain (most complex — 4 nested relations)
+- [ ] 09.4-05-PLAN.md — Playground cards update + full build validation
 
 ---
 
