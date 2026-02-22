@@ -1,7 +1,7 @@
 import type {
-  OwnedAsset,
   OwnedAssetFilter,
   OwnedAssetInclude,
+  OwnedAssetResult,
   OwnedAssetSort,
   OwnedTokenOwnedAssetInclude,
 } from '@lsp-indexer/types';
@@ -199,10 +199,10 @@ export function buildOwnedAssetIncludeVars(
  * @param params - Query parameters (id + optional include)
  * @returns The parsed owned asset, or `null` if not found
  */
-export async function fetchOwnedAsset(
+export async function fetchOwnedAsset<const I extends OwnedAssetInclude | undefined = undefined>(
   url: string,
-  params: { id: string; include?: OwnedAssetInclude },
-): Promise<OwnedAsset | null> {
+  params: { id: string; include?: I },
+): Promise<OwnedAssetResult<I> | null> {
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetOwnedAssetDocument, {
@@ -211,15 +211,19 @@ export async function fetchOwnedAsset(
   });
 
   const raw = result.owned_asset[0];
-  return raw ? parseOwnedAsset(raw) : null;
+  if (!raw) return null;
+  return parseOwnedAsset(raw, params.include) as OwnedAssetResult<I>;
 }
 
 /**
  * Result shape for paginated owned asset list queries.
+ *
+ * When the include parameter `I` is provided, the `ownedAssets` array contains
+ * narrowed types with only base fields + included fields.
  */
-export interface FetchOwnedAssetsResult {
-  /** Parsed owned assets for the current page */
-  ownedAssets: OwnedAsset[];
+export interface FetchOwnedAssetsResult<I extends OwnedAssetInclude | undefined = undefined> {
+  /** Parsed owned assets for the current page (narrowed by include) */
+  ownedAssets: OwnedAssetResult<I>[];
   /** Total number of owned assets matching the filter (for pagination UI) */
   totalCount: number;
 }
@@ -234,16 +238,22 @@ export interface FetchOwnedAssetsResult {
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed owned assets and total count
  */
-export async function fetchOwnedAssets(
+export async function fetchOwnedAssets<const I extends OwnedAssetInclude | undefined = undefined>(
   url: string,
   params: {
     filter?: OwnedAssetFilter;
     sort?: OwnedAssetSort;
     limit?: number;
     offset?: number;
-    include?: OwnedAssetInclude;
-  } = {},
-): Promise<FetchOwnedAssetsResult> {
+    include?: I;
+  } = {} as {
+    filter?: OwnedAssetFilter;
+    sort?: OwnedAssetSort;
+    limit?: number;
+    offset?: number;
+    include?: I;
+  },
+): Promise<FetchOwnedAssetsResult<I>> {
   const where = buildOwnedAssetWhere(params.filter);
   const orderBy = buildOwnedAssetOrderBy(params.sort);
   const includeVars = buildIncludeVars(params.include);
@@ -257,7 +267,7 @@ export async function fetchOwnedAssets(
   });
 
   return {
-    ownedAssets: parseOwnedAssets(result.owned_asset),
+    ownedAssets: parseOwnedAssets(result.owned_asset, params.include) as OwnedAssetResult<I>[],
     totalCount: result.owned_asset_aggregate?.aggregate?.count ?? 0,
   };
 }

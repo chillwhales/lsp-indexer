@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 
 import { fetchOwnedAsset, fetchOwnedAssets, getClientUrl, ownedAssetKeys } from '@lsp-indexer/node';
 import type {
+  OwnedAssetInclude,
+  OwnedAssetResult,
   UseInfiniteOwnedAssetsParams,
   UseOwnedAssetParams,
   UseOwnedAssetsParams,
@@ -42,7 +44,9 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useOwnedAsset(params: UseOwnedAssetParams) {
+export function useOwnedAsset<const I extends OwnedAssetInclude | undefined = undefined>(
+  params: UseOwnedAssetParams & { include?: I },
+) {
   const url = getClientUrl();
   const { id, include } = params;
 
@@ -52,7 +56,7 @@ export function useOwnedAsset(params: UseOwnedAssetParams) {
     enabled: Boolean(id),
   });
 
-  return { ownedAsset: data ?? null, ...rest };
+  return { ownedAsset: (data ?? null) as OwnedAssetResult<I> | null, ...rest };
 }
 
 /**
@@ -89,7 +93,9 @@ export function useOwnedAsset(params: UseOwnedAssetParams) {
  * }
  * ```
  */
-export function useOwnedAssets(params: UseOwnedAssetsParams = {}) {
+export function useOwnedAssets<const I extends OwnedAssetInclude | undefined = undefined>(
+  params: UseOwnedAssetsParams & { include?: I } = {} as UseOwnedAssetsParams & { include?: I },
+) {
   const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
@@ -99,7 +105,7 @@ export function useOwnedAssets(params: UseOwnedAssetsParams = {}) {
   });
 
   return {
-    ownedAssets: data?.ownedAssets ?? [],
+    ownedAssets: (data?.ownedAssets ?? []) as OwnedAssetResult<I>[],
     totalCount: data?.totalCount ?? 0,
     ...rest,
   };
@@ -149,7 +155,11 @@ export function useOwnedAssets(params: UseOwnedAssetsParams = {}) {
  * }
  * ```
  */
-export function useInfiniteOwnedAssets(params: UseInfiniteOwnedAssetsParams = {}) {
+export function useInfiniteOwnedAssets<const I extends OwnedAssetInclude | undefined = undefined>(
+  params: UseInfiniteOwnedAssetsParams & { include?: I } = {} as UseInfiniteOwnedAssetsParams & {
+    include?: I;
+  },
+) {
   const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
@@ -178,7 +188,7 @@ export function useInfiniteOwnedAssets(params: UseInfiniteOwnedAssetsParams = {}
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
   const ownedAssets = useMemo(
-    () => data?.pages.flatMap((page) => page.ownedAssets) ?? [],
+    () => (data?.pages.flatMap((page) => page.ownedAssets) ?? []) as OwnedAssetResult<I>[],
     [data?.pages],
   );
 

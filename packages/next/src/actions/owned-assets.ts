@@ -3,9 +3,9 @@
 import type { FetchOwnedAssetsResult } from '@lsp-indexer/node';
 import { fetchOwnedAsset, fetchOwnedAssets, getServerUrl } from '@lsp-indexer/node';
 import type {
-  OwnedAsset,
   OwnedAssetFilter,
   OwnedAssetInclude,
+  OwnedAssetResult,
   OwnedAssetSort,
 } from '@lsp-indexer/types';
 
@@ -19,12 +19,12 @@ import type {
  *
  * @param id - The owned asset unique ID
  * @param include - Optional field inclusion config
- * @returns The parsed owned asset, or `null` if not found
+ * @returns The parsed owned asset (narrowed by include), or `null` if not found
  */
-export async function getOwnedAsset(
+export async function getOwnedAsset<const I extends OwnedAssetInclude | undefined = undefined>(
   id: string,
-  include?: OwnedAssetInclude,
-): Promise<OwnedAsset | null> {
+  include?: I,
+): Promise<OwnedAssetResult<I> | null> {
   const url = getServerUrl();
   return fetchOwnedAsset(url, { id, include });
 }
@@ -39,13 +39,15 @@ export async function getOwnedAsset(
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed owned assets and total count
  */
-export async function getOwnedAssets(params?: {
+export async function getOwnedAssets<
+  const I extends OwnedAssetInclude | undefined = undefined,
+>(params?: {
   filter?: OwnedAssetFilter;
   sort?: OwnedAssetSort;
   limit?: number;
   offset?: number;
-  include?: OwnedAssetInclude;
-}): Promise<FetchOwnedAssetsResult> {
+  include?: I;
+}): Promise<FetchOwnedAssetsResult<I>> {
   const url = getServerUrl();
   return fetchOwnedAssets(url, params ?? {});
 }

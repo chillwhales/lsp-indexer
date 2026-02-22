@@ -1,7 +1,8 @@
-import type { OwnedAsset } from '@lsp-indexer/types';
+import type { OwnedAsset, OwnedAssetInclude } from '@lsp-indexer/types';
 import type { GetOwnedAssetQuery } from '../graphql/graphql';
 import { parseDigitalAsset } from './digital-assets';
 import { parseProfile } from './profiles';
+import { stripExcluded } from './strip';
 
 /**
  * Raw Hasura owned asset type from the codegen-generated query result.
@@ -27,10 +28,11 @@ type RawOwnedAsset = GetOwnedAssetQuery['owned_asset'][number];
  * - **`tokenIdCount`:** Extracted from `tokenIds_aggregate.aggregate.count`.
  *
  * @param raw - A single owned_asset from the Hasura GraphQL response
- * @returns A clean, camelCase `OwnedAsset` with bigint balance
+ * @param include - Optional include config; when provided, excluded fields are stripped at runtime
+ * @returns A clean, camelCase `OwnedAsset` with bigint balance (narrowed if include provided)
  */
-export function parseOwnedAsset(raw: RawOwnedAsset): OwnedAsset {
-  return {
+export function parseOwnedAsset(raw: RawOwnedAsset, include?: OwnedAssetInclude): OwnedAsset {
+  const result: OwnedAsset = {
     id: raw.id,
     digitalAssetAddress: raw.address,
     holderAddress: raw.owner,
@@ -39,12 +41,28 @@ export function parseOwnedAsset(raw: RawOwnedAsset): OwnedAsset {
     timestamp: raw.timestamp ?? null,
     // Cast needed: the owned_asset document selects a subset of digital_asset fields;
     // parseDigitalAsset uses optional chaining and handles missing fields gracefully.
-    digitalAsset: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset as any) : null,
+    // When include has digitalAsset sub-include, strip nested DA fields via parseDigitalAsset
+    digitalAsset: raw.digitalAsset
+      ? parseDigitalAsset(
+          raw.digitalAsset as any,
+          include?.digitalAsset && typeof include.digitalAsset === 'object'
+            ? include.digitalAsset
+            : undefined,
+        )
+      : null,
     // Cast needed: the owned_asset document selects a subset of universal_profile fields
     // (no `id`); parseProfile uses optional chaining and handles missing fields gracefully.
-    holder: raw.universalProfile ? parseProfile(raw.universalProfile as any) : null,
+    // When include has holder sub-include, strip nested profile fields via parseProfile
+    holder: raw.universalProfile
+      ? parseProfile(
+          raw.universalProfile as any,
+          include?.holder && typeof include.holder === 'object' ? include.holder : undefined,
+        )
+      : null,
     tokenIdCount: raw.tokenIds_aggregate?.aggregate?.count ?? null,
   };
+
+  return stripExcluded(result, include, ['id', 'digitalAssetAddress', 'holderAddress']);
 }
 
 /**
@@ -53,8 +71,9 @@ export function parseOwnedAsset(raw: RawOwnedAsset): OwnedAsset {
  * Convenience wrapper around `parseOwnedAsset` for batch results.
  *
  * @param raw - Array of owned_asset from the Hasura GraphQL response
- * @returns Array of clean, camelCase `OwnedAsset` objects with bigint balances
+ * @param include - Optional include config; forwarded to each `parseOwnedAsset` call
+ * @returns Array of clean, camelCase `OwnedAsset` objects with bigint balances (narrowed if include provided)
  */
-export function parseOwnedAssets(raw: RawOwnedAsset[]): OwnedAsset[] {
-  return raw.map(parseOwnedAsset);
+export function parseOwnedAssets(raw: RawOwnedAsset[], include?: OwnedAssetInclude): OwnedAsset[] {
+  return raw.map((r) => parseOwnedAsset(r, include));
 }
