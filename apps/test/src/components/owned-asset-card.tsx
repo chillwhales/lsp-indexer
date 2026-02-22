@@ -1,7 +1,7 @@
 import { ChevronDown, Coins, Loader2, User, Wallet } from 'lucide-react';
 import React from 'react';
 
-import type { OwnedAsset } from '@lsp-indexer/types';
+import type { OwnedAsset, PartialExcept } from '@lsp-indexer/types';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { RawJsonToggle } from '@/components/playground';
@@ -47,8 +47,7 @@ function balanceTooltip(balance: bigint, decimals: number | null | undefined): s
 
 export interface OwnedAssetCardProps {
   /** Accepts any shape of OwnedAsset — full, narrowed via include, or partial from nested relations */
-  ownedAsset: Partial<OwnedAsset> &
-    Pick<OwnedAsset, 'id' | 'digitalAssetAddress' | 'holderAddress'>;
+  ownedAsset: PartialExcept<OwnedAsset, 'id' | 'digitalAssetAddress' | 'holderAddress'>;
   isFetching?: boolean;
 }
 

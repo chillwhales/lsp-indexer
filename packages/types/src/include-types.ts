@@ -61,3 +61,21 @@ export type IncludeResult<
 > = I extends undefined
   ? Full
   : Pick<Full, Base | Extract<ActiveFields<Map, NonNullable<I>>, keyof Full>>;
+
+/**
+ * Make all fields of `T` optional except those in `K`.
+ *
+ * Used for component props that accept any narrowing of a domain type —
+ * base fields are guaranteed present while every other field may be absent
+ * depending on the `include` parameter at runtime.
+ *
+ * @example
+ * ```ts
+ * type Props = PartialExcept<Profile, 'address'>;
+ * // = { address: string; name?: string | null; description?: string | null; ... }
+ *
+ * type NftProps = PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;
+ * // = { address: string; tokenId: string; isBurned: boolean; isMinted: boolean; name?: ... }
+ * ```
+ */
+export type PartialExcept<T, K extends keyof T> = Partial<T> & Pick<T, K>;

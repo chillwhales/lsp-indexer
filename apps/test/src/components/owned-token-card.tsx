@@ -1,7 +1,7 @@
 import { ChevronDown, Coins, Gem, Loader2, Tag, User, Wallet } from 'lucide-react';
 import React from 'react';
 
-import type { OwnedToken } from '@lsp-indexer/types';
+import type { OwnedToken, PartialExcept } from '@lsp-indexer/types';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { NftCard } from '@/components/nft-card';
@@ -20,8 +20,7 @@ import { formatRelativeTime } from '@/lib/utils';
 
 export interface OwnedTokenCardProps {
   /** Accepts any shape of OwnedToken — full, narrowed via include, or partial from nested relations */
-  ownedToken: Partial<OwnedToken> &
-    Pick<OwnedToken, 'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId'>;
+  ownedToken: PartialExcept<OwnedToken, 'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId'>;
   isFetching?: boolean;
 }
 

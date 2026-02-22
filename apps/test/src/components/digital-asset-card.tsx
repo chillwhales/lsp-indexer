@@ -1,7 +1,7 @@
 import { Coins, ExternalLink, Loader2 } from 'lucide-react';
 import React from 'react';
 
-import type { DigitalAsset } from '@lsp-indexer/types';
+import type { DigitalAsset, PartialExcept } from '@lsp-indexer/types';
 
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
@@ -59,7 +59,7 @@ function StandardBadge({
 
 export interface DigitalAssetCardProps {
   /** Accepts any shape of DigitalAsset — full, narrowed via include, or partial from nested relations */
-  digitalAsset: Partial<DigitalAsset> & Pick<DigitalAsset, 'address'>;
+  digitalAsset: PartialExcept<DigitalAsset, 'address'>;
   isFetching?: boolean;
 }
 

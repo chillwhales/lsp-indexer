@@ -1,7 +1,7 @@
 import { ChevronDown, Coins, ExternalLink, Gem, Loader2, User } from 'lucide-react';
 import React from 'react';
 
-import type { Nft } from '@lsp-indexer/types';
+import type { Nft, PartialExcept } from '@lsp-indexer/types';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { RawJsonToggle } from '@/components/playground';
@@ -18,7 +18,7 @@ import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
 export interface NftCardProps {
   /** Accepts any shape of Nft — full, narrowed via include, or partial from nested relations */
-  nft: Partial<Nft> & Pick<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;
+  nft: PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;
   isFetching?: boolean;
 }
 

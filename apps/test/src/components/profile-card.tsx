@@ -1,7 +1,7 @@
 import { ExternalLink, Hash, Loader2, User } from 'lucide-react';
 import React from 'react';
 
-import type { Profile } from '@lsp-indexer/types';
+import type { PartialExcept, Profile } from '@lsp-indexer/types';
 
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
 export interface ProfileCardProps {
   /** Accepts any shape of Profile — full, narrowed via include, or partial from nested relations */
-  profile: Partial<Profile> & Pick<Profile, 'address'>;
+  profile: PartialExcept<Profile, 'address'>;
   isFetching?: boolean;
 }
 
