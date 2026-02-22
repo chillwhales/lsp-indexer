@@ -7,7 +7,7 @@ import {
   type DigitalAssetInclude,
   type DigitalAssetResult,
 } from './digital-assets';
-import type { IncludeResult } from './include-types';
+import type { IncludeResult, PartialExcept } from './include-types';
 import { NftIncludeSchema, NftSchema, type Nft } from './nfts';
 import { OwnedAssetSchema, type OwnedAsset } from './owned-assets';
 import {
@@ -358,3 +358,14 @@ export type OwnedTokenResult<I extends OwnedTokenInclude | undefined = undefined
         ResolveOwnedTokenNft<NonNullable<I>> &
         ResolveOwnedTokenOA<NonNullable<I>> &
         ResolveOwnedTokenHolder<NonNullable<I>>;
+
+/**
+ * OwnedToken with only base fields guaranteed — used for functions that accept
+ * any include-narrowed owned token. All non-base fields are optional.
+ *
+ * Equivalent to `PartialExcept<OwnedToken, 'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId'>`.
+ */
+export type PartialOwnedToken = PartialExcept<
+  OwnedToken,
+  'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId'
+>;

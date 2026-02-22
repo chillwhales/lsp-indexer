@@ -1,4 +1,4 @@
-import type { Nft, NftInclude } from '@lsp-indexer/types';
+import type { Nft, NftInclude, PartialNft } from '@lsp-indexer/types';
 import type { GetNftQuery } from '../graphql/graphql';
 import { parseDigitalAsset } from './digital-assets';
 import { parseProfile } from './profiles';
@@ -31,11 +31,17 @@ type RawNft = GetNftQuery['nft'][number];
  * - `null` = field not included in query OR metadata absent
  * - `[]` = fetched but legitimately empty
  *
+ * Uses function overloads for type-safe return types:
+ * - No `include` → returns full `Nft` (all fields guaranteed)
+ * - With `include` → returns `PartialNft` (only base fields guaranteed, rest optional)
+ *
  * @param raw - A single nft from the Hasura GraphQL response
  * @param include - Optional include config; when provided, excluded fields are stripped at runtime
- * @returns A clean, camelCase `Nft` with safe defaults (narrowed if include provided)
+ * @returns A clean, camelCase `Nft` (full or partial depending on include)
  */
-export function parseNft(raw: RawNft, include?: NftInclude): Nft {
+export function parseNft(raw: RawNft): Nft;
+export function parseNft(raw: RawNft, include: NftInclude): PartialNft;
+export function parseNft(raw: RawNft, include?: NftInclude): Nft | PartialNft {
   const direct = raw.lsp4Metadata;
   const baseUri = raw.lsp4MetadataBaseUri;
 
@@ -49,28 +55,19 @@ export function parseNft(raw: RawNft, include?: NftInclude): Nft {
     // NFT's own name: direct metadata first, baseUri fallback
     name: direct?.name?.value ?? baseUri?.name?.value ?? null,
 
-    // Full collection from digitalAsset — reuse parseDigitalAsset
-    // When include has collection sub-include, strip nested DA fields via parseDigitalAsset
-    collection: raw.digitalAsset
-      ? parseDigitalAsset(
-          raw.digitalAsset,
-          include?.collection && typeof include.collection === 'object'
-            ? include.collection
-            : undefined,
-        )
-      : null,
+    // Full collection from digitalAsset — reuse parseDigitalAsset.
+    // Always parse as full DigitalAsset; outer stripExcluded controls field presence.
+    collection: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset) : null,
 
     // Holder — profile fields spread flat (no nested universalProfile wrapper).
     // When the holder has a UP, profile fields are populated from parseProfile.
     // When no UP exists, profile fields get safe defaults (null / 0 / []).
+    // Always parse as full Profile; outer stripExcluded controls field presence.
     holder: raw.ownedToken
       ? {
           timestamp: raw.ownedToken.timestamp ?? '',
           ...(raw.ownedToken.universalProfile
-            ? parseProfile(
-                raw.ownedToken.universalProfile as Parameters<typeof parseProfile>[0],
-                include?.holder && typeof include.holder === 'object' ? include.holder : undefined,
-              )
+            ? parseProfile(raw.ownedToken.universalProfile as Parameters<typeof parseProfile>[0])
             : {
                 address: raw.ownedToken.owner,
                 name: null,
@@ -103,6 +100,7 @@ export function parseNft(raw: RawNft, include?: NftInclude): Nft {
     attributes: parseAttributes(direct?.attributes) ?? parseAttributes(baseUri?.attributes) ?? null,
   };
 
+  if (!include) return result;
   return stripExcluded(result, include, ['address', 'tokenId', 'isBurned', 'isMinted']);
 }
 
@@ -113,8 +111,11 @@ export function parseNft(raw: RawNft, include?: NftInclude): Nft {
  *
  * @param raw - Array of nft from the Hasura GraphQL response
  * @param include - Optional include config; forwarded to each `parseNft` call
- * @returns Array of clean, camelCase `Nft` objects (narrowed if include provided)
+ * @returns Array of clean, camelCase `Nft` objects (full or partial depending on include)
  */
-export function parseNfts(raw: RawNft[], include?: NftInclude): Nft[] {
+export function parseNfts(raw: RawNft[]): Nft[];
+export function parseNfts(raw: RawNft[], include: NftInclude): PartialNft[];
+export function parseNfts(raw: RawNft[], include?: NftInclude): (Nft | PartialNft)[] {
+  if (!include) return raw.map((r) => parseNft(r));
   return raw.map((r) => parseNft(r, include));
 }

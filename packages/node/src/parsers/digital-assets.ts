@@ -1,4 +1,9 @@
-import type { DigitalAsset, DigitalAssetInclude, TokenType } from '@lsp-indexer/types';
+import type {
+  DigitalAsset,
+  DigitalAssetInclude,
+  PartialDigitalAsset,
+  TokenType,
+} from '@lsp-indexer/types';
 import type { GetDigitalAssetQuery } from '../graphql/graphql';
 import { stripExcluded } from './strip';
 import { numericToString, parseAttributes, parseImage, parseLinks } from './utils';
@@ -43,14 +48,23 @@ function mapTokenType(raw: string | null | undefined): TokenType | null {
  * - If `decimals` is null/undefined → `"LSP8"`
  * - When decimals is not included at all (undefined), standard is `null`
  *
+ * Uses function overloads for type-safe return types:
+ * - No `include` → returns full `DigitalAsset` (all fields guaranteed)
+ * - With `include` → returns `PartialDigitalAsset` (only `address` guaranteed, rest optional)
+ *
  * @param raw - A single digital_asset from the Hasura GraphQL response
  * @param include - Optional include config; when provided, excluded fields are stripped at runtime
- * @returns A clean, camelCase `DigitalAsset` with safe defaults (narrowed if include provided)
+ * @returns A clean, camelCase `DigitalAsset` (full or partial depending on include)
  */
+export function parseDigitalAsset(raw: RawDigitalAsset): DigitalAsset;
+export function parseDigitalAsset(
+  raw: RawDigitalAsset,
+  include: DigitalAssetInclude,
+): PartialDigitalAsset;
 export function parseDigitalAsset(
   raw: RawDigitalAsset,
   include?: DigitalAssetInclude,
-): DigitalAsset {
+): DigitalAsset | PartialDigitalAsset {
   // Derive standard from presence of decimals field
   // decimals being undefined means the field was not included in the query
   // decimals being null means it was included but not set (→ LSP8)
@@ -91,6 +105,7 @@ export function parseDigitalAsset(
     baseUri: raw.lsp8TokenMetadataBaseUri?.value ?? null,
   };
 
+  if (!include) return result;
   return stripExcluded(result, include, ['address'], { standard: 'decimals' });
 }
 
@@ -101,11 +116,17 @@ export function parseDigitalAsset(
  *
  * @param raw - Array of digital_asset from the Hasura GraphQL response
  * @param include - Optional include config; forwarded to each `parseDigitalAsset` call
- * @returns Array of clean, camelCase `DigitalAsset` objects (narrowed if include provided)
+ * @returns Array of clean, camelCase `DigitalAsset` objects (full or partial depending on include)
  */
+export function parseDigitalAssets(raw: RawDigitalAsset[]): DigitalAsset[];
+export function parseDigitalAssets(
+  raw: RawDigitalAsset[],
+  include: DigitalAssetInclude,
+): PartialDigitalAsset[];
 export function parseDigitalAssets(
   raw: RawDigitalAsset[],
   include?: DigitalAssetInclude,
-): DigitalAsset[] {
+): (DigitalAsset | PartialDigitalAsset)[] {
+  if (!include) return raw.map((r) => parseDigitalAsset(r));
   return raw.map((r) => parseDigitalAsset(r, include));
 }

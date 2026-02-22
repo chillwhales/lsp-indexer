@@ -3,8 +3,8 @@ import { useMemo } from 'react';
 
 import { fetchProfile, fetchProfiles, getClientUrl, profileKeys } from '@lsp-indexer/node';
 import type {
+  PartialProfile,
   ProfileInclude,
-  ProfileResult,
   UseInfiniteProfilesParams,
   UseProfileParams,
   UseProfilesParams,
@@ -44,19 +44,19 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useProfile<const I extends ProfileInclude | undefined = undefined>(
-  params: UseProfileParams & { include?: I },
-) {
+export function useProfile(params: UseProfileParams & { include?: ProfileInclude }) {
   const url = getClientUrl();
   const { address, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: profileKeys.detail(address, include),
-    queryFn: () => fetchProfile(url, { address, include }),
+    queryFn: () =>
+      include ? fetchProfile(url, { address, include }) : fetchProfile(url, { address }),
     enabled: Boolean(address),
   });
 
-  return { profile: (data ?? null) as ProfileResult<I> | null, ...rest };
+  const profile: PartialProfile | null = data ?? null;
+  return { profile, ...rest };
 }
 
 /**
@@ -93,22 +93,20 @@ export function useProfile<const I extends ProfileInclude | undefined = undefine
  * }
  * ```
  */
-export function useProfiles<const I extends ProfileInclude | undefined = undefined>(
-  params: UseProfilesParams & { include?: I } = {} as UseProfilesParams & { include?: I },
-) {
+export function useProfiles(params: UseProfilesParams & { include?: ProfileInclude } = {}) {
   const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: profileKeys.list(filter, sort, limit, offset, include),
-    queryFn: () => fetchProfiles(url, { filter, sort, limit, offset, include }),
+    queryFn: () =>
+      include
+        ? fetchProfiles(url, { filter, sort, limit, offset, include })
+        : fetchProfiles(url, { filter, sort, limit, offset }),
   });
 
-  return {
-    profiles: (data?.profiles ?? []) as ProfileResult<I>[],
-    totalCount: data?.totalCount ?? 0,
-    ...rest,
-  };
+  const profiles: PartialProfile[] = data?.profiles ?? [];
+  return { profiles, totalCount: data?.totalCount ?? 0, ...rest };
 }
 
 /**
@@ -155,10 +153,8 @@ export function useProfiles<const I extends ProfileInclude | undefined = undefin
  * }
  * ```
  */
-export function useInfiniteProfiles<const I extends ProfileInclude | undefined = undefined>(
-  params: UseInfiniteProfilesParams & { include?: I } = {} as UseInfiniteProfilesParams & {
-    include?: I;
-  },
+export function useInfiniteProfiles(
+  params: UseInfiniteProfilesParams & { include?: ProfileInclude } = {},
 ) {
   const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
@@ -166,13 +162,9 @@ export function useInfiniteProfiles<const I extends ProfileInclude | undefined =
   const result = useInfiniteQuery({
     queryKey: profileKeys.infinite(filter, sort, include),
     queryFn: ({ pageParam }) =>
-      fetchProfiles(url, {
-        filter,
-        sort,
-        limit: pageSize,
-        offset: pageParam,
-        include,
-      }),
+      include
+        ? fetchProfiles(url, { filter, sort, limit: pageSize, offset: pageParam, include })
+        : fetchProfiles(url, { filter, sort, limit: pageSize, offset: pageParam }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       // If the last page returned fewer results than requested, there are no more pages
@@ -186,8 +178,8 @@ export function useInfiniteProfiles<const I extends ProfileInclude | undefined =
 
   // Flatten all pages into a single profiles array (memoized to avoid re-flattening on every render)
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const profiles = useMemo(
-    () => (data?.pages.flatMap((page) => page.profiles) ?? []) as ProfileResult<I>[],
+  const profiles: PartialProfile[] = useMemo(
+    () => data?.pages.flatMap((page) => page.profiles) ?? [],
     [data?.pages],
   );
 

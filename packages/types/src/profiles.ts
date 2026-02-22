@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { AssetSchema, ImageSchema, SortDirectionSchema, SortNullsSchema } from './common';
-import type { IncludeResult } from './include-types';
+import type { IncludeResult, PartialExcept } from './include-types';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -193,3 +193,11 @@ export type ProfileResult<I extends ProfileInclude | undefined = undefined> = In
   ProfileIncludeFieldMap,
   I
 >;
+
+/**
+ * Profile with only base fields guaranteed — used for functions that accept
+ * any include-narrowed profile. All non-base fields are optional.
+ *
+ * Equivalent to `PartialExcept<Profile, 'address'>`.
+ */
+export type PartialProfile = PartialExcept<Profile, 'address'>;

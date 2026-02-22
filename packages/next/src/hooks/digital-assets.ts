@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { digitalAssetKeys } from '@lsp-indexer/node';
 import type {
   DigitalAssetInclude,
-  DigitalAssetResult,
+  PartialDigitalAsset,
   UseDigitalAssetParams,
   UseDigitalAssetsParams,
   UseInfiniteDigitalAssetsParams,
@@ -46,18 +46,17 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useDigitalAsset<const I extends DigitalAssetInclude | undefined = undefined>(
-  params: UseDigitalAssetParams & { include?: I },
-) {
+export function useDigitalAsset(params: UseDigitalAssetParams & { include?: DigitalAssetInclude }) {
   const { address, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: digitalAssetKeys.detail(address, include),
-    queryFn: () => getDigitalAsset(address, include),
+    queryFn: () => (include ? getDigitalAsset(address, include) : getDigitalAsset(address)),
     enabled: Boolean(address),
   });
 
-  return { digitalAsset: (data ?? null) as DigitalAssetResult<I> | null, ...rest };
+  const digitalAsset: PartialDigitalAsset | null = data ?? null;
+  return { digitalAsset, ...rest };
 }
 
 /**
@@ -93,23 +92,21 @@ export function useDigitalAsset<const I extends DigitalAssetInclude | undefined 
  * }
  * ```
  */
-export function useDigitalAssets<const I extends DigitalAssetInclude | undefined = undefined>(
-  params: UseDigitalAssetsParams & { include?: I } = {} as UseDigitalAssetsParams & {
-    include?: I;
-  },
+export function useDigitalAssets(
+  params: UseDigitalAssetsParams & { include?: DigitalAssetInclude } = {},
 ) {
   const { filter, sort, limit, offset, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: digitalAssetKeys.list(filter, sort, limit, offset, include),
-    queryFn: () => getDigitalAssets({ filter, sort, limit, offset, include }),
+    queryFn: () =>
+      include
+        ? getDigitalAssets({ filter, sort, limit, offset, include })
+        : getDigitalAssets({ filter, sort, limit, offset }),
   });
 
-  return {
-    digitalAssets: (data?.digitalAssets ?? []) as DigitalAssetResult<I>[],
-    totalCount: data?.totalCount ?? 0,
-    ...rest,
-  };
+  const digitalAssets: PartialDigitalAsset[] = data?.digitalAssets ?? [];
+  return { digitalAssets, totalCount: data?.totalCount ?? 0, ...rest };
 }
 
 /**
@@ -154,27 +151,17 @@ export function useDigitalAssets<const I extends DigitalAssetInclude | undefined
  * }
  * ```
  */
-export function useInfiniteDigitalAssets<
-  const I extends DigitalAssetInclude | undefined = undefined,
->(
-  params: UseInfiniteDigitalAssetsParams & {
-    include?: I;
-  } = {} as UseInfiniteDigitalAssetsParams & {
-    include?: I;
-  },
+export function useInfiniteDigitalAssets(
+  params: UseInfiniteDigitalAssetsParams & { include?: DigitalAssetInclude } = {},
 ) {
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
   const result = useInfiniteQuery({
     queryKey: digitalAssetKeys.infinite(filter, sort, include),
     queryFn: ({ pageParam }) =>
-      getDigitalAssets({
-        filter,
-        sort,
-        limit: pageSize,
-        offset: pageParam,
-        include,
-      }),
+      include
+        ? getDigitalAssets({ filter, sort, limit: pageSize, offset: pageParam, include })
+        : getDigitalAssets({ filter, sort, limit: pageSize, offset: pageParam }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       if (lastPage.digitalAssets.length < pageSize) {
@@ -187,8 +174,8 @@ export function useInfiniteDigitalAssets<
   // Flatten all pages into a single digitalAssets array (memoized to avoid re-flattening on every render)
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const digitalAssets = useMemo(
-    () => (data?.pages.flatMap((page) => page.digitalAssets) ?? []) as DigitalAssetResult<I>[],
+  const digitalAssets: PartialDigitalAsset[] = useMemo(
+    () => data?.pages.flatMap((page) => page.digitalAssets) ?? [],
     [data?.pages],
   );
 

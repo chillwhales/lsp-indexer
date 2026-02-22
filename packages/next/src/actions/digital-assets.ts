@@ -3,10 +3,11 @@
 import type { FetchDigitalAssetsResult } from '@lsp-indexer/node';
 import { fetchDigitalAsset, fetchDigitalAssets, getServerUrl } from '@lsp-indexer/node';
 import type {
+  DigitalAsset,
   DigitalAssetFilter,
   DigitalAssetInclude,
-  DigitalAssetResult,
   DigitalAssetSort,
+  PartialDigitalAsset,
 } from '@lsp-indexer/types';
 
 /**
@@ -21,12 +22,18 @@ import type {
  * @param include - Optional field inclusion config
  * @returns The parsed digital asset, or `null` if not found
  */
-export async function getDigitalAsset<const I extends DigitalAssetInclude | undefined = undefined>(
+export async function getDigitalAsset(address: string): Promise<DigitalAsset | null>;
+export async function getDigitalAsset(
   address: string,
-  include?: I,
-): Promise<DigitalAssetResult<I> | null> {
+  include: DigitalAssetInclude,
+): Promise<PartialDigitalAsset | null>;
+export async function getDigitalAsset(
+  address: string,
+  include?: DigitalAssetInclude,
+): Promise<DigitalAsset | PartialDigitalAsset | null> {
   const url = getServerUrl();
-  return fetchDigitalAsset(url, { address, include });
+  if (include) return fetchDigitalAsset(url, { address, include });
+  return fetchDigitalAsset(url, { address });
 }
 
 /**
@@ -39,15 +46,27 @@ export async function getDigitalAsset<const I extends DigitalAssetInclude | unde
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed digital assets and total count
  */
-export async function getDigitalAssets<
-  const I extends DigitalAssetInclude | undefined = undefined,
->(params?: {
+export async function getDigitalAssets(params?: {
   filter?: DigitalAssetFilter;
   sort?: DigitalAssetSort;
   limit?: number;
   offset?: number;
-  include?: I;
-}): Promise<FetchDigitalAssetsResult<I>> {
+}): Promise<FetchDigitalAssetsResult>;
+export async function getDigitalAssets(params: {
+  filter?: DigitalAssetFilter;
+  sort?: DigitalAssetSort;
+  limit?: number;
+  offset?: number;
+  include: DigitalAssetInclude;
+}): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>>;
+export async function getDigitalAssets(params?: {
+  filter?: DigitalAssetFilter;
+  sort?: DigitalAssetSort;
+  limit?: number;
+  offset?: number;
+  include?: DigitalAssetInclude;
+}): Promise<FetchDigitalAssetsResult | FetchDigitalAssetsResult<PartialDigitalAsset>> {
   const url = getServerUrl();
+  if (params?.include) return fetchDigitalAssets(url, params);
   return fetchDigitalAssets(url, params ?? {});
 }

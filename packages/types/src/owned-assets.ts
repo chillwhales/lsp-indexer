@@ -7,7 +7,7 @@ import {
   type DigitalAssetInclude,
   type DigitalAssetResult,
 } from './digital-assets';
-import type { IncludeResult } from './include-types';
+import type { IncludeResult, PartialExcept } from './include-types';
 import {
   ProfileIncludeSchema,
   ProfileSchema,
@@ -243,3 +243,14 @@ export type OwnedAssetResult<I extends OwnedAssetInclude | undefined = undefined
       > &
         ResolveOwnedAssetDA<NonNullable<I>> &
         ResolveOwnedAssetHolder<NonNullable<I>>;
+
+/**
+ * OwnedAsset with only base fields guaranteed — used for functions that accept
+ * any include-narrowed owned asset. All non-base fields are optional.
+ *
+ * Equivalent to `PartialExcept<OwnedAsset, 'id' | 'digitalAssetAddress' | 'holderAddress'>`.
+ */
+export type PartialOwnedAsset = PartialExcept<
+  OwnedAsset,
+  'id' | 'digitalAssetAddress' | 'holderAddress'
+>;

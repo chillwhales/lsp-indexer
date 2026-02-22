@@ -13,7 +13,7 @@ import {
   type DigitalAssetInclude,
   type DigitalAssetResult,
 } from './digital-assets';
-import type { IncludeResult } from './include-types';
+import type { IncludeResult, PartialExcept } from './include-types';
 import {
   ProfileIncludeSchema,
   ProfileSchema,
@@ -288,3 +288,11 @@ export type NftResult<I extends NftInclude | undefined = undefined> = I extends 
     > &
       ResolveNftCollection<NonNullable<I>> &
       ResolveNftHolder<NonNullable<I>>;
+
+/**
+ * Nft with only base fields guaranteed — used for functions that accept
+ * any include-narrowed NFT. All non-base fields are optional.
+ *
+ * Equivalent to `PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>`.
+ */
+export type PartialNft = PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;

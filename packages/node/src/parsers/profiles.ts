@@ -1,4 +1,4 @@
-import type { Profile, ProfileInclude } from '@lsp-indexer/types';
+import type { PartialProfile, Profile, ProfileInclude } from '@lsp-indexer/types';
 import type { GetProfileQuery } from '../graphql/graphql';
 import { stripExcluded } from './strip';
 import { parseAsset, parseImage, parseLinks } from './utils';
@@ -23,11 +23,17 @@ type RawProfile = GetProfileQuery['universal_profile'][number];
  * - Tags and links filter out `null` values from Hasura
  * - Image verification is `null` when no verification method exists
  *
+ * Uses function overloads for type-safe return types:
+ * - No `include` → returns full `Profile` (all fields guaranteed)
+ * - With `include` → returns `PartialProfile` (only `address` guaranteed, rest optional)
+ *
  * @param raw - A single universal_profile from the Hasura GraphQL response
  * @param include - Optional include config; when provided, excluded fields are stripped at runtime
- * @returns A clean, camelCase `Profile` with safe defaults (narrowed if include provided)
+ * @returns A clean, camelCase `Profile` (full or partial depending on include)
  */
-export function parseProfile(raw: RawProfile, include?: ProfileInclude): Profile {
+export function parseProfile(raw: RawProfile): Profile;
+export function parseProfile(raw: RawProfile, include: ProfileInclude): PartialProfile;
+export function parseProfile(raw: RawProfile, include?: ProfileInclude): Profile | PartialProfile {
   const lsp3 = raw.lsp3Profile;
 
   const profile: Profile = {
@@ -46,6 +52,7 @@ export function parseProfile(raw: RawProfile, include?: ProfileInclude): Profile
     followingCount: raw.followed_aggregate?.aggregate?.count ?? 0,
   };
 
+  if (!include) return profile;
   return stripExcluded(profile, include, ['address']);
 }
 
@@ -56,8 +63,14 @@ export function parseProfile(raw: RawProfile, include?: ProfileInclude): Profile
  *
  * @param raw - Array of universal_profile from the Hasura GraphQL response
  * @param include - Optional include config; forwarded to each `parseProfile` call
- * @returns Array of clean, camelCase `Profile` objects (narrowed if include provided)
+ * @returns Array of clean, camelCase `Profile` objects (full or partial depending on include)
  */
-export function parseProfiles(raw: RawProfile[], include?: ProfileInclude): Profile[] {
+export function parseProfiles(raw: RawProfile[]): Profile[];
+export function parseProfiles(raw: RawProfile[], include: ProfileInclude): PartialProfile[];
+export function parseProfiles(
+  raw: RawProfile[],
+  include?: ProfileInclude,
+): (Profile | PartialProfile)[] {
+  if (!include) return raw.map((r) => parseProfile(r));
   return raw.map((r) => parseProfile(r, include));
 }

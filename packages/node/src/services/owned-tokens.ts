@@ -1,8 +1,9 @@
 import type {
+  OwnedToken,
   OwnedTokenFilter,
   OwnedTokenInclude,
-  OwnedTokenResult,
   OwnedTokenSort,
+  PartialOwnedToken,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
 import { GetOwnedTokenDocument, GetOwnedTokensDocument } from '../documents/owned-tokens';
@@ -205,10 +206,18 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
  * @param params - Query parameters (id + optional include)
  * @returns The parsed owned token, or `null` if not found
  */
-export async function fetchOwnedToken<const I extends OwnedTokenInclude | undefined = undefined>(
+export async function fetchOwnedToken(
   url: string,
-  params: { id: string; include?: I },
-): Promise<OwnedTokenResult<I> | null> {
+  params: { id: string },
+): Promise<OwnedToken | null>;
+export async function fetchOwnedToken(
+  url: string,
+  params: { id: string; include: OwnedTokenInclude },
+): Promise<PartialOwnedToken | null>;
+export async function fetchOwnedToken(
+  url: string,
+  params: { id: string; include?: OwnedTokenInclude },
+): Promise<OwnedToken | PartialOwnedToken | null> {
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetOwnedTokenDocument, {
@@ -218,7 +227,8 @@ export async function fetchOwnedToken<const I extends OwnedTokenInclude | undefi
 
   const raw = result.owned_token[0];
   if (!raw) return null;
-  return parseOwnedToken(raw, params.include) as OwnedTokenResult<I>;
+  if (params.include) return parseOwnedToken(raw, params.include);
+  return parseOwnedToken(raw);
 }
 
 /**
@@ -227,9 +237,9 @@ export async function fetchOwnedToken<const I extends OwnedTokenInclude | undefi
  * When the include parameter `I` is provided, the `ownedTokens` array contains
  * narrowed types with only base fields + included fields.
  */
-export interface FetchOwnedTokensResult<I extends OwnedTokenInclude | undefined = undefined> {
+export interface FetchOwnedTokensResult<P = OwnedToken> {
   /** Parsed owned tokens for the current page (narrowed by include) */
-  ownedTokens: OwnedTokenResult<I>[];
+  ownedTokens: P[];
   /** Total number of owned tokens matching the filter (for pagination UI) */
   totalCount: number;
 }
@@ -244,22 +254,35 @@ export interface FetchOwnedTokensResult<I extends OwnedTokenInclude | undefined 
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed owned tokens and total count
  */
-export async function fetchOwnedTokens<const I extends OwnedTokenInclude | undefined = undefined>(
+export async function fetchOwnedTokens(
+  url: string,
+  params?: {
+    filter?: OwnedTokenFilter;
+    sort?: OwnedTokenSort;
+    limit?: number;
+    offset?: number;
+  },
+): Promise<FetchOwnedTokensResult>;
+export async function fetchOwnedTokens(
   url: string,
   params: {
     filter?: OwnedTokenFilter;
     sort?: OwnedTokenSort;
     limit?: number;
     offset?: number;
-    include?: I;
-  } = {} as {
+    include: OwnedTokenInclude;
+  },
+): Promise<FetchOwnedTokensResult<PartialOwnedToken>>;
+export async function fetchOwnedTokens(
+  url: string,
+  params: {
     filter?: OwnedTokenFilter;
     sort?: OwnedTokenSort;
     limit?: number;
     offset?: number;
-    include?: I;
-  },
-): Promise<FetchOwnedTokensResult<I>> {
+    include?: OwnedTokenInclude;
+  } = {},
+): Promise<FetchOwnedTokensResult | FetchOwnedTokensResult<PartialOwnedToken>> {
   const where = buildOwnedTokenWhere(params.filter);
   const orderBy = buildOwnedTokenOrderBy(params.sort);
   const includeVars = buildIncludeVars(params.include);
@@ -272,8 +295,14 @@ export async function fetchOwnedTokens<const I extends OwnedTokenInclude | undef
     ...includeVars,
   });
 
+  if (params.include) {
+    return {
+      ownedTokens: parseOwnedTokens(result.owned_token, params.include),
+      totalCount: result.owned_token_aggregate?.aggregate?.count ?? 0,
+    };
+  }
   return {
-    ownedTokens: parseOwnedTokens(result.owned_token, params.include) as OwnedTokenResult<I>[],
+    ownedTokens: parseOwnedTokens(result.owned_token),
     totalCount: result.owned_token_aggregate?.aggregate?.count ?? 0,
   };
 }

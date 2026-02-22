@@ -2,7 +2,13 @@
 
 import type { FetchProfilesResult } from '@lsp-indexer/node';
 import { fetchProfile, fetchProfiles, getServerUrl } from '@lsp-indexer/node';
-import type { ProfileFilter, ProfileInclude, ProfileResult, ProfileSort } from '@lsp-indexer/types';
+import type {
+  PartialProfile,
+  Profile,
+  ProfileFilter,
+  ProfileInclude,
+  ProfileSort,
+} from '@lsp-indexer/types';
 
 /**
  * Server action: Fetch a single Universal Profile by address.
@@ -16,12 +22,18 @@ import type { ProfileFilter, ProfileInclude, ProfileResult, ProfileSort } from '
  * @param include - Optional field inclusion config
  * @returns The parsed profile, or `null` if not found
  */
-export async function getProfile<const I extends ProfileInclude | undefined = undefined>(
+export async function getProfile(address: string): Promise<Profile | null>;
+export async function getProfile(
   address: string,
-  include?: I,
-): Promise<ProfileResult<I> | null> {
+  include: ProfileInclude,
+): Promise<PartialProfile | null>;
+export async function getProfile(
+  address: string,
+  include?: ProfileInclude,
+): Promise<Profile | PartialProfile | null> {
   const url = getServerUrl();
-  return fetchProfile(url, { address, include });
+  if (include) return fetchProfile(url, { address, include });
+  return fetchProfile(url, { address });
 }
 
 /**
@@ -34,13 +46,27 @@ export async function getProfile<const I extends ProfileInclude | undefined = un
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed profiles and total count
  */
-export async function getProfiles<const I extends ProfileInclude | undefined = undefined>(params?: {
+export async function getProfiles(params?: {
   filter?: ProfileFilter;
   sort?: ProfileSort;
   limit?: number;
   offset?: number;
-  include?: I;
-}): Promise<FetchProfilesResult<I>> {
+}): Promise<FetchProfilesResult>;
+export async function getProfiles(params: {
+  filter?: ProfileFilter;
+  sort?: ProfileSort;
+  limit?: number;
+  offset?: number;
+  include: ProfileInclude;
+}): Promise<FetchProfilesResult<PartialProfile>>;
+export async function getProfiles(params?: {
+  filter?: ProfileFilter;
+  sort?: ProfileSort;
+  limit?: number;
+  offset?: number;
+  include?: ProfileInclude;
+}): Promise<FetchProfilesResult | FetchProfilesResult<PartialProfile>> {
   const url = getServerUrl();
+  if (params?.include) return fetchProfiles(url, params);
   return fetchProfiles(url, params ?? {});
 }

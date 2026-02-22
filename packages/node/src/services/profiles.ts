@@ -1,4 +1,10 @@
-import type { ProfileFilter, ProfileInclude, ProfileResult, ProfileSort } from '@lsp-indexer/types';
+import type {
+  PartialProfile,
+  Profile,
+  ProfileFilter,
+  ProfileInclude,
+  ProfileSort,
+} from '@lsp-indexer/types';
 import { execute } from '../client/execute';
 import { GetProfileDocument, GetProfilesDocument } from '../documents/profiles';
 import type { Universal_Profile_Bool_Exp, Universal_Profile_Order_By } from '../graphql/graphql';
@@ -188,10 +194,18 @@ export function buildProfileIncludeVars(include?: ProfileInclude): Record<string
  * @param params - Query parameters (address + optional include)
  * @returns The parsed profile (narrowed by include), or `null` if not found
  */
-export async function fetchProfile<const I extends ProfileInclude | undefined = undefined>(
+export async function fetchProfile(
   url: string,
-  params: { address: string; include?: I },
-): Promise<ProfileResult<I> | null> {
+  params: { address: string },
+): Promise<Profile | null>;
+export async function fetchProfile(
+  url: string,
+  params: { address: string; include: ProfileInclude },
+): Promise<PartialProfile | null>;
+export async function fetchProfile(
+  url: string,
+  params: { address: string; include?: ProfileInclude },
+): Promise<Profile | PartialProfile | null> {
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetProfileDocument, {
@@ -201,7 +215,8 @@ export async function fetchProfile<const I extends ProfileInclude | undefined = 
 
   const raw = result.universal_profile[0];
   if (!raw) return null;
-  return parseProfile(raw, params.include) as ProfileResult<I>;
+  if (params.include) return parseProfile(raw, params.include);
+  return parseProfile(raw);
 }
 
 /**
@@ -210,9 +225,9 @@ export async function fetchProfile<const I extends ProfileInclude | undefined = 
  * When the include parameter `I` is provided, the `profiles` array contains
  * narrowed types with only base fields + included fields.
  */
-export interface FetchProfilesResult<I extends ProfileInclude | undefined = undefined> {
+export interface FetchProfilesResult<P = Profile> {
   /** Parsed profiles for the current page (narrowed by include) */
-  profiles: ProfileResult<I>[];
+  profiles: P[];
   /** Total number of profiles matching the filter (for pagination UI) */
   totalCount: number;
 }
@@ -230,22 +245,30 @@ export interface FetchProfilesResult<I extends ProfileInclude | undefined = unde
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed profiles (narrowed by include) and total count
  */
-export async function fetchProfiles<const I extends ProfileInclude | undefined = undefined>(
+export async function fetchProfiles(
+  url: string,
+  params?: { filter?: ProfileFilter; sort?: ProfileSort; limit?: number; offset?: number },
+): Promise<FetchProfilesResult>;
+export async function fetchProfiles(
   url: string,
   params: {
     filter?: ProfileFilter;
     sort?: ProfileSort;
     limit?: number;
     offset?: number;
-    include?: I;
-  } = {} as {
+    include: ProfileInclude;
+  },
+): Promise<FetchProfilesResult<PartialProfile>>;
+export async function fetchProfiles(
+  url: string,
+  params: {
     filter?: ProfileFilter;
     sort?: ProfileSort;
     limit?: number;
     offset?: number;
-    include?: I;
-  },
-): Promise<FetchProfilesResult<I>> {
+    include?: ProfileInclude;
+  } = {},
+): Promise<FetchProfilesResult | FetchProfilesResult<PartialProfile>> {
   const where = buildProfileWhere(params.filter);
   const orderBy = buildProfileOrderBy(params.sort);
   const includeVars = buildIncludeVars(params.include);
@@ -258,8 +281,14 @@ export async function fetchProfiles<const I extends ProfileInclude | undefined =
     ...includeVars,
   });
 
+  if (params.include) {
+    return {
+      profiles: parseProfiles(result.universal_profile, params.include),
+      totalCount: result.universal_profile_aggregate?.aggregate?.count ?? 0,
+    };
+  }
   return {
-    profiles: parseProfiles(result.universal_profile, params.include) as ProfileResult<I>[],
+    profiles: parseProfiles(result.universal_profile),
     totalCount: result.universal_profile_aggregate?.aggregate?.count ?? 0,
   };
 }

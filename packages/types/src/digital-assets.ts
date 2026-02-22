@@ -7,7 +7,7 @@ import {
   SortDirectionSchema,
   SortNullsSchema,
 } from './common';
-import type { IncludeResult } from './include-types';
+import type { IncludeResult, PartialExcept } from './include-types';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -293,3 +293,11 @@ export type DigitalAssetResult<I extends DigitalAssetInclude | undefined = undef
     ? DigitalAsset
     : IncludeResult<DigitalAsset, 'address', DigitalAssetIncludeFieldMap, I> &
         ResolveStandard<NonNullable<I>>;
+
+/**
+ * DigitalAsset with only base fields guaranteed — used for functions that accept
+ * any include-narrowed digital asset. All non-base fields are optional.
+ *
+ * Equivalent to `PartialExcept<DigitalAsset, 'address'>`.
+ */
+export type PartialDigitalAsset = PartialExcept<DigitalAsset, 'address'>;
