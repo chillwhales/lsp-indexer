@@ -1,8 +1,19 @@
 import { z } from 'zod';
 
 import { SortDirectionSchema, SortNullsSchema } from './common';
-import { DigitalAssetIncludeSchema, DigitalAssetSchema } from './digital-assets';
-import { ProfileIncludeSchema, ProfileSchema } from './profiles';
+import {
+  DigitalAssetIncludeSchema,
+  DigitalAssetSchema,
+  type DigitalAssetInclude,
+  type DigitalAssetResult,
+} from './digital-assets';
+import type { IncludeResult, PartialExcept } from './include-types';
+import {
+  ProfileIncludeSchema,
+  ProfileSchema,
+  type ProfileInclude,
+  type ProfileResult,
+} from './profiles';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -163,3 +174,83 @@ export type OwnedAssetInclude = z.infer<typeof OwnedAssetIncludeSchema>;
 export type UseOwnedAssetParams = z.infer<typeof UseOwnedAssetParamsSchema>;
 export type UseOwnedAssetsParams = z.infer<typeof UseOwnedAssetsParamsSchema>;
 export type UseInfiniteOwnedAssetsParams = z.infer<typeof UseInfiniteOwnedAssetsParamsSchema>;
+
+// ---------------------------------------------------------------------------
+// Conditional include result type
+// ---------------------------------------------------------------------------
+
+/**
+ * Scalar include fields (non-relation): include schema key → OwnedAsset field name.
+ * Relations (digitalAsset, holder) are handled separately by resolver types.
+ */
+type OwnedAssetScalarIncludeFieldMap = {
+  balance: 'balance';
+  block: 'block';
+  timestamp: 'timestamp';
+  tokenIdCount: 'tokenIdCount';
+};
+
+/**
+ * Resolve the nested `digitalAsset` relation based on the include parameter.
+ *
+ * When `include` has `digitalAsset` as a `DigitalAssetInclude` object, the digitalAsset
+ * field is present and narrowed by the sub-include. Otherwise, it's absent from the type.
+ */
+type ResolveOwnedAssetDA<I> = I extends { digitalAsset: infer C }
+  ? C extends DigitalAssetInclude
+    ? { digitalAsset: DigitalAssetResult<C> | null }
+    : {}
+  : {};
+
+/**
+ * Resolve the nested `holder` relation based on the include parameter.
+ *
+ * When `include` has `holder` as a `ProfileInclude` object, the holder field is
+ * present with narrowed profile fields. Otherwise, it's absent from the type.
+ *
+ * OwnedAsset holder is a plain Profile (no timestamp merge like NftHolder).
+ */
+type ResolveOwnedAssetHolder<I> = I extends { holder: infer H }
+  ? H extends ProfileInclude
+    ? { holder: ProfileResult<H> | null }
+    : {}
+  : {};
+
+/**
+ * OwnedAsset type narrowed by include parameter.
+ *
+ * - `OwnedAssetResult` (no generic) → full `OwnedAsset` type (backward compatible)
+ * - `OwnedAssetResult<{}>` → `{ id; digitalAssetAddress; holderAddress }` (base fields only)
+ * - `OwnedAssetResult<{ balance: true }>` → base fields + balance
+ * - `OwnedAssetResult<{ digitalAsset: { name: true } }>` → base fields + narrowed digitalAsset
+ * - `OwnedAssetResult<{ holder: { name: true } }>` → base fields + narrowed holder
+ *
+ * @example
+ * ```ts
+ * type Full = OwnedAssetResult;                                          // = OwnedAsset (all fields)
+ * type Minimal = OwnedAssetResult<{}>;                                   // = { id; digitalAssetAddress; holderAddress }
+ * type WithDA = OwnedAssetResult<{ digitalAsset: { name: true } }>;      // = base + { digitalAsset: { address; name } | null }
+ * ```
+ */
+export type OwnedAssetResult<I extends OwnedAssetInclude | undefined = undefined> =
+  I extends undefined
+    ? OwnedAsset
+    : IncludeResult<
+        OwnedAsset,
+        'id' | 'digitalAssetAddress' | 'holderAddress',
+        OwnedAssetScalarIncludeFieldMap,
+        I
+      > &
+        ResolveOwnedAssetDA<NonNullable<I>> &
+        ResolveOwnedAssetHolder<NonNullable<I>>;
+
+/**
+ * OwnedAsset with only base fields guaranteed — used for functions that accept
+ * any include-narrowed owned asset. All non-base fields are optional.
+ *
+ * Equivalent to `PartialExcept<OwnedAsset, 'id' | 'digitalAssetAddress' | 'holderAddress'>`.
+ */
+export type PartialOwnedAsset = PartialExcept<
+  OwnedAsset,
+  'id' | 'digitalAssetAddress' | 'holderAddress'
+>;

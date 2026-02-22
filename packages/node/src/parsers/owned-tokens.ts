@@ -1,9 +1,10 @@
-import type { OwnedToken } from '@lsp-indexer/types';
+import type { OwnedToken, OwnedTokenInclude, PartialOwnedToken } from '@lsp-indexer/types';
 import type { GetOwnedTokenQuery } from '../graphql/graphql';
 import { parseDigitalAsset } from './digital-assets';
 import { parseNft } from './nfts';
 import { parseOwnedAsset } from './owned-assets';
 import { parseProfile } from './profiles';
+import { stripExcluded } from './strip';
 
 /**
  * Raw Hasura owned token type from the codegen-generated query result.
@@ -29,30 +30,46 @@ type RawOwnedToken = GetOwnedTokenQuery['owned_token'][number];
  *   (basic fields only — no nested DA/profile/tokenIdCount in this context).
  * - **Nested `universalProfile` (→ `holder`):** Parsed via `parseProfile` for LSP3 profile data.
  *
+ * Uses function overloads for type-safe return types:
+ * - No `include` → returns full `OwnedToken` (all fields guaranteed)
+ * - With `include` → returns `PartialOwnedToken` (only base fields guaranteed, rest optional)
+ *
  * @param raw - A single owned_token from the Hasura GraphQL response
- * @returns A clean, camelCase `OwnedToken` with all nested relations parsed
+ * @param include - Optional include config; when provided, excluded fields are stripped at runtime
+ * @returns A clean, camelCase `OwnedToken` with all nested relations parsed (full or partial depending on include)
  */
-export function parseOwnedToken(raw: RawOwnedToken): OwnedToken {
-  return {
+export function parseOwnedToken(raw: RawOwnedToken): OwnedToken;
+export function parseOwnedToken(raw: RawOwnedToken, include: OwnedTokenInclude): PartialOwnedToken;
+export function parseOwnedToken(
+  raw: RawOwnedToken,
+  include?: OwnedTokenInclude,
+): OwnedToken | PartialOwnedToken {
+  const result: OwnedToken = {
     id: raw.id,
     digitalAssetAddress: raw.address,
     holderAddress: raw.owner,
     tokenId: raw.token_id,
     block: raw.block ?? null,
     timestamp: raw.timestamp ?? null,
-    // Cast needed: the owned_token document selects a subset of digital_asset fields;
-    // parseDigitalAsset uses optional chaining and handles missing fields gracefully.
-    digitalAsset: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset as any) : null,
-    // Cast needed: the owned_token nft sub-selection omits `id` and collection/holder;
-    // parseNft uses optional chaining and handles missing fields gracefully.
-    nft: raw.nft ? parseNft(raw.nft as any) : null,
-    // Cast needed: the owned_token ownedAsset sub-selection has basic fields only
-    // (no nested DA/profile/tokenIdCount); parseOwnedAsset handles missing fields.
-    ownedAsset: raw.ownedAsset ? parseOwnedAsset(raw.ownedAsset as any) : null,
-    // Cast needed: the owned_token document selects a subset of universal_profile fields
-    // (no `id`); parseProfile uses optional chaining and handles missing fields gracefully.
-    holder: raw.universalProfile ? parseProfile(raw.universalProfile as any) : null,
+    digitalAsset: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset) : null,
+    nft: raw.nft ? parseNft(raw.nft) : null,
+    ownedAsset: raw.ownedAsset ? parseOwnedAsset(raw.ownedAsset) : null,
+    holder: raw.universalProfile ? parseProfile(raw.universalProfile) : null,
   };
+
+  if (!include) return result;
+  return stripExcluded(
+    result,
+    include,
+    ['id', 'digitalAssetAddress', 'holderAddress', 'tokenId'],
+    undefined,
+    {
+      digitalAsset: { baseFields: ['address'], derivedFields: { standard: 'decimals' } },
+      nft: { baseFields: ['address', 'tokenId', 'isBurned', 'isMinted'] },
+      ownedAsset: { baseFields: ['id', 'digitalAssetAddress', 'holderAddress'] },
+      holder: { baseFields: ['address'] },
+    },
+  );
 }
 
 /**
@@ -61,8 +78,18 @@ export function parseOwnedToken(raw: RawOwnedToken): OwnedToken {
  * Convenience wrapper around `parseOwnedToken` for batch results.
  *
  * @param raw - Array of owned_token from the Hasura GraphQL response
- * @returns Array of clean, camelCase `OwnedToken` objects
+ * @param include - Optional include config; forwarded to each `parseOwnedToken` call
+ * @returns Array of clean, camelCase `OwnedToken` objects (full or partial depending on include)
  */
-export function parseOwnedTokens(raw: RawOwnedToken[]): OwnedToken[] {
-  return raw.map(parseOwnedToken);
+export function parseOwnedTokens(raw: RawOwnedToken[]): OwnedToken[];
+export function parseOwnedTokens(
+  raw: RawOwnedToken[],
+  include: OwnedTokenInclude,
+): PartialOwnedToken[];
+export function parseOwnedTokens(
+  raw: RawOwnedToken[],
+  include?: OwnedTokenInclude,
+): (OwnedToken | PartialOwnedToken)[] {
+  if (!include) return raw.map((r) => parseOwnedToken(r));
+  return raw.map((r) => parseOwnedToken(r, include));
 }

@@ -2,7 +2,13 @@
 
 import type { FetchProfilesResult } from '@lsp-indexer/node';
 import { fetchProfile, fetchProfiles, getServerUrl } from '@lsp-indexer/node';
-import type { Profile, ProfileFilter, ProfileInclude, ProfileSort } from '@lsp-indexer/types';
+import type {
+  PartialProfile,
+  Profile,
+  ProfileFilter,
+  ProfileInclude,
+  ProfileSort,
+} from '@lsp-indexer/types';
 
 /**
  * Server action: Fetch a single Universal Profile by address.
@@ -16,12 +22,18 @@ import type { Profile, ProfileFilter, ProfileInclude, ProfileSort } from '@lsp-i
  * @param include - Optional field inclusion config
  * @returns The parsed profile, or `null` if not found
  */
+export async function getProfile(address: string): Promise<Profile | null>;
+export async function getProfile(
+  address: string,
+  include: ProfileInclude,
+): Promise<PartialProfile | null>;
 export async function getProfile(
   address: string,
   include?: ProfileInclude,
-): Promise<Profile | null> {
+): Promise<Profile | PartialProfile | null> {
   const url = getServerUrl();
-  return fetchProfile(url, { address, include });
+  if (include) return fetchProfile(url, { address, include });
+  return fetchProfile(url, { address });
 }
 
 /**
@@ -39,8 +51,22 @@ export async function getProfiles(params?: {
   sort?: ProfileSort;
   limit?: number;
   offset?: number;
+}): Promise<FetchProfilesResult>;
+export async function getProfiles(params: {
+  filter?: ProfileFilter;
+  sort?: ProfileSort;
+  limit?: number;
+  offset?: number;
+  include: ProfileInclude;
+}): Promise<FetchProfilesResult<PartialProfile>>;
+export async function getProfiles(params?: {
+  filter?: ProfileFilter;
+  sort?: ProfileSort;
+  limit?: number;
+  offset?: number;
   include?: ProfileInclude;
-}): Promise<FetchProfilesResult> {
+}): Promise<FetchProfilesResult | FetchProfilesResult<PartialProfile>> {
   const url = getServerUrl();
+  if (params?.include) return fetchProfiles(url, params);
   return fetchProfiles(url, params ?? {});
 }

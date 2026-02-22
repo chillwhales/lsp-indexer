@@ -7,6 +7,7 @@ import type {
   DigitalAssetFilter,
   DigitalAssetInclude,
   DigitalAssetSort,
+  PartialDigitalAsset,
 } from '@lsp-indexer/types';
 
 /**
@@ -21,12 +22,18 @@ import type {
  * @param include - Optional field inclusion config
  * @returns The parsed digital asset, or `null` if not found
  */
+export async function getDigitalAsset(address: string): Promise<DigitalAsset | null>;
+export async function getDigitalAsset(
+  address: string,
+  include: DigitalAssetInclude,
+): Promise<PartialDigitalAsset | null>;
 export async function getDigitalAsset(
   address: string,
   include?: DigitalAssetInclude,
-): Promise<DigitalAsset | null> {
+): Promise<DigitalAsset | PartialDigitalAsset | null> {
   const url = getServerUrl();
-  return fetchDigitalAsset(url, { address, include });
+  if (include) return fetchDigitalAsset(url, { address, include });
+  return fetchDigitalAsset(url, { address });
 }
 
 /**
@@ -44,8 +51,22 @@ export async function getDigitalAssets(params?: {
   sort?: DigitalAssetSort;
   limit?: number;
   offset?: number;
+}): Promise<FetchDigitalAssetsResult>;
+export async function getDigitalAssets(params: {
+  filter?: DigitalAssetFilter;
+  sort?: DigitalAssetSort;
+  limit?: number;
+  offset?: number;
+  include: DigitalAssetInclude;
+}): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>>;
+export async function getDigitalAssets(params?: {
+  filter?: DigitalAssetFilter;
+  sort?: DigitalAssetSort;
+  limit?: number;
+  offset?: number;
   include?: DigitalAssetInclude;
-}): Promise<FetchDigitalAssetsResult> {
+}): Promise<FetchDigitalAssetsResult | FetchDigitalAssetsResult<PartialDigitalAsset>> {
   const url = getServerUrl();
+  if (params?.include) return fetchDigitalAssets(url, params);
   return fetchDigitalAssets(url, params ?? {});
 }

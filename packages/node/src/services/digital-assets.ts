@@ -3,6 +3,7 @@ import type {
   DigitalAssetFilter,
   DigitalAssetInclude,
   DigitalAssetSort,
+  PartialDigitalAsset,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
 import { GetDigitalAssetDocument, GetDigitalAssetsDocument } from '../documents/digital-assets';
@@ -178,14 +179,26 @@ export function buildDigitalAssetIncludeVars(
  * and returns the first result parsed as a clean `DigitalAsset`, or `null` if
  * the address doesn't exist.
  *
+ * When `include` is provided, the return type is narrowed to only contain
+ * base fields + included fields (e.g., `DigitalAssetResult<{ name: true }>` =
+ * `{ address: string; name: string | null }`).
+ *
  * @param url - The GraphQL endpoint URL
  * @param params - Query parameters (address + optional include)
- * @returns The parsed digital asset, or `null` if not found
+ * @returns The parsed digital asset (narrowed by include), or `null` if not found
  */
 export async function fetchDigitalAsset(
   url: string,
+  params: { address: string },
+): Promise<DigitalAsset | null>;
+export async function fetchDigitalAsset(
+  url: string,
+  params: { address: string; include: DigitalAssetInclude },
+): Promise<PartialDigitalAsset | null>;
+export async function fetchDigitalAsset(
+  url: string,
   params: { address: string; include?: DigitalAssetInclude },
-): Promise<DigitalAsset | null> {
+): Promise<DigitalAsset | PartialDigitalAsset | null> {
   const includeVars = buildDigitalAssetIncludeVars(params.include);
 
   const result = await execute(url, GetDigitalAssetDocument, {
@@ -194,15 +207,20 @@ export async function fetchDigitalAsset(
   });
 
   const raw = result.digital_asset[0];
-  return raw ? parseDigitalAsset(raw) : null;
+  if (!raw) return null;
+  if (params.include) return parseDigitalAsset(raw, params.include);
+  return parseDigitalAsset(raw);
 }
 
 /**
  * Result shape for paginated digital asset list queries.
+ *
+ * When the include parameter `I` is provided, the `digitalAssets` array contains
+ * narrowed types with only base fields + included fields.
  */
-export interface FetchDigitalAssetsResult {
-  /** Parsed digital assets for the current page */
-  digitalAssets: DigitalAsset[];
+export interface FetchDigitalAssetsResult<P = DigitalAsset> {
+  /** Parsed digital assets for the current page (narrowed by include) */
+  digitalAssets: P[];
   /** Total number of digital assets matching the filter (for pagination UI) */
   totalCount: number;
 }
@@ -213,10 +231,32 @@ export interface FetchDigitalAssetsResult {
  * Translates flat filter/sort/include params to Hasura variables, executes the
  * query, and returns parsed results with a total count for pagination.
  *
+ * When `include` is provided, the returned `digitalAssets` array contains narrowed types
+ * with only base fields + included fields.
+ *
  * @param url - The GraphQL endpoint URL
  * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed digital assets and total count
+ * @returns Parsed digital assets (narrowed by include) and total count
  */
+export async function fetchDigitalAssets(
+  url: string,
+  params?: {
+    filter?: DigitalAssetFilter;
+    sort?: DigitalAssetSort;
+    limit?: number;
+    offset?: number;
+  },
+): Promise<FetchDigitalAssetsResult>;
+export async function fetchDigitalAssets(
+  url: string,
+  params: {
+    filter?: DigitalAssetFilter;
+    sort?: DigitalAssetSort;
+    limit?: number;
+    offset?: number;
+    include: DigitalAssetInclude;
+  },
+): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>>;
 export async function fetchDigitalAssets(
   url: string,
   params: {
@@ -226,7 +266,7 @@ export async function fetchDigitalAssets(
     offset?: number;
     include?: DigitalAssetInclude;
   } = {},
-): Promise<FetchDigitalAssetsResult> {
+): Promise<FetchDigitalAssetsResult | FetchDigitalAssetsResult<PartialDigitalAsset>> {
   const where = buildDigitalAssetWhere(params.filter);
   const orderBy = buildDigitalAssetOrderBy(params.sort);
   const includeVars = buildDigitalAssetIncludeVars(params.include);
@@ -239,6 +279,12 @@ export async function fetchDigitalAssets(
     ...includeVars,
   });
 
+  if (params.include) {
+    return {
+      digitalAssets: parseDigitalAssets(result.digital_asset, params.include),
+      totalCount: result.digital_asset_aggregate?.aggregate?.count ?? 0,
+    };
+  }
   return {
     digitalAssets: parseDigitalAssets(result.digital_asset),
     totalCount: result.digital_asset_aggregate?.aggregate?.count ?? 0,

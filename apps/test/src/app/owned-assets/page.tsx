@@ -14,7 +14,6 @@ import {
   useOwnedAssets as useOwnedAssetsReact,
 } from '@lsp-indexer/react';
 import type {
-  OwnedAsset,
   OwnedAssetFilter,
   OwnedAssetInclude,
   OwnedAssetSort,
@@ -362,7 +361,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         onLimitChange={setLimit}
       />
       <IncludeSections {...state} />
-      <ResultsList<OwnedAsset>
+      <ResultsList
         items={ownedAssets}
         isLoading={isLoading}
         isFetching={isFetching}
@@ -424,7 +423,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         }
       />
       <IncludeSections {...state} />
-      <ResultsList<OwnedAsset>
+      <ResultsList
         items={ownedAssets}
         isLoading={isLoading}
         isFetching={isFetching}

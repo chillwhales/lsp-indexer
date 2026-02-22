@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 
 import { ownedTokenKeys } from '@lsp-indexer/node';
 import type {
+  OwnedTokenInclude,
+  PartialOwnedToken,
   UseInfiniteOwnedTokensParams,
   UseOwnedTokenParams,
   UseOwnedTokensParams,
@@ -45,16 +47,17 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useOwnedToken(params: UseOwnedTokenParams) {
+export function useOwnedToken(params: UseOwnedTokenParams & { include?: OwnedTokenInclude }) {
   const { id, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: ownedTokenKeys.detail(id, include),
-    queryFn: () => getOwnedToken(id, include),
+    queryFn: () => (include ? getOwnedToken(id, include) : getOwnedToken(id)),
     enabled: Boolean(id),
   });
 
-  return { ownedToken: data ?? null, ...rest };
+  const ownedToken: PartialOwnedToken | null = data ?? null;
+  return { ownedToken, ...rest };
 }
 
 /**
@@ -90,19 +93,21 @@ export function useOwnedToken(params: UseOwnedTokenParams) {
  * }
  * ```
  */
-export function useOwnedTokens(params: UseOwnedTokensParams = {}) {
+export function useOwnedTokens(
+  params: UseOwnedTokensParams & { include?: OwnedTokenInclude } = {},
+) {
   const { filter, sort, limit, offset, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: ownedTokenKeys.list(filter, sort, limit, offset, include),
-    queryFn: () => getOwnedTokens({ filter, sort, limit, offset, include }),
+    queryFn: () =>
+      include
+        ? getOwnedTokens({ filter, sort, limit, offset, include })
+        : getOwnedTokens({ filter, sort, limit, offset }),
   });
 
-  return {
-    ownedTokens: data?.ownedTokens ?? [],
-    totalCount: data?.totalCount ?? 0,
-    ...rest,
-  };
+  const ownedTokens: PartialOwnedToken[] = data?.ownedTokens ?? [];
+  return { ownedTokens, totalCount: data?.totalCount ?? 0, ...rest };
 }
 
 /**
@@ -147,19 +152,17 @@ export function useOwnedTokens(params: UseOwnedTokensParams = {}) {
  * }
  * ```
  */
-export function useInfiniteOwnedTokens(params: UseInfiniteOwnedTokensParams = {}) {
+export function useInfiniteOwnedTokens(
+  params: UseInfiniteOwnedTokensParams & { include?: OwnedTokenInclude } = {},
+) {
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
   const result = useInfiniteQuery({
     queryKey: ownedTokenKeys.infinite(filter, sort, include),
     queryFn: ({ pageParam }) =>
-      getOwnedTokens({
-        filter,
-        sort,
-        limit: pageSize,
-        offset: pageParam,
-        include,
-      }),
+      include
+        ? getOwnedTokens({ filter, sort, limit: pageSize, offset: pageParam, include })
+        : getOwnedTokens({ filter, sort, limit: pageSize, offset: pageParam }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       if (lastPage.ownedTokens.length < pageSize) {
@@ -172,7 +175,7 @@ export function useInfiniteOwnedTokens(params: UseInfiniteOwnedTokensParams = {}
   // Flatten all pages into a single ownedTokens array (memoized to avoid re-flattening on every render)
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const ownedTokens = useMemo(
+  const ownedTokens: PartialOwnedToken[] = useMemo(
     () => data?.pages.flatMap((page) => page.ownedTokens) ?? [],
     [data?.pages],
   );

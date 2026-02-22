@@ -14,7 +14,6 @@ import {
   useInfiniteDigitalAssets as useInfiniteDigitalAssetsReact,
 } from '@lsp-indexer/react';
 import type {
-  DigitalAsset,
   DigitalAssetFilter,
   DigitalAssetSort,
   DigitalAssetSortField,
@@ -265,7 +264,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
-      <ResultsList<DigitalAsset>
+      <ResultsList
         items={digitalAssets}
         isLoading={isLoading}
         isFetching={isFetching}
@@ -326,7 +325,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
-      <ResultsList<DigitalAsset>
+      <ResultsList
         items={digitalAssets}
         isLoading={isLoading}
         isFetching={isFetching}

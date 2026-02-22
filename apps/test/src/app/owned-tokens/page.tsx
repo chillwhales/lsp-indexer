@@ -14,7 +14,6 @@ import {
   useOwnedTokens as useOwnedTokensReact,
 } from '@lsp-indexer/react';
 import type {
-  OwnedToken,
   OwnedTokenFilter,
   OwnedTokenInclude,
   OwnedTokenSort,
@@ -422,7 +421,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         onLimitChange={setLimit}
       />
       <IncludeSections {...state} />
-      <ResultsList<OwnedToken>
+      <ResultsList
         items={ownedTokens}
         isLoading={isLoading}
         isFetching={isFetching}
@@ -484,7 +483,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         }
       />
       <IncludeSections {...state} />
-      <ResultsList<OwnedToken>
+      <ResultsList
         items={ownedTokens}
         isLoading={isLoading}
         isFetching={isFetching}

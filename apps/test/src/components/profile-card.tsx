@@ -1,6 +1,7 @@
-import type { Profile } from '@lsp-indexer/types';
 import { ExternalLink, Hash, Loader2, User } from 'lucide-react';
 import React from 'react';
+
+import type { PartialExcept, Profile } from '@lsp-indexer/types';
 
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
@@ -12,11 +13,26 @@ import { isSafeUrl, resolveUrl } from '@/lib/utils';
 // ---------------------------------------------------------------------------
 
 export interface ProfileCardProps {
-  profile: Profile;
+  /** Accepts any shape of Profile — full, narrowed via include, or partial from nested relations */
+  profile: PartialExcept<Profile, 'address'>;
   isFetching?: boolean;
 }
 
 export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.ReactNode {
+  // Destructure — address is always present, everything else may be undefined
+  const {
+    address,
+    name,
+    description,
+    followerCount,
+    followingCount,
+    tags,
+    links,
+    avatar,
+    profileImage,
+    backgroundImage,
+  } = profile;
+
   return (
     <Card className="overflow-hidden">
       <CardHeader>
@@ -24,23 +40,23 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           <div>
             <CardTitle className="flex items-center gap-2">
               <User className="size-5 text-muted-foreground" />
-              {profile.name ?? 'Unnamed Profile'}
+              {name !== undefined ? (name ?? 'Unnamed Profile') : 'Profile'}
               {isFetching && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
             </CardTitle>
             <CardDescription className="font-mono text-xs mt-1 break-all">
-              {profile.address}
+              {address}
             </CardDescription>
           </div>
           <div className="flex gap-3 text-sm">
-            {profile.followerCount !== null && (
+            {followerCount != null && (
               <div className="text-center">
-                <div className="font-semibold">{profile.followerCount}</div>
+                <div className="font-semibold">{followerCount}</div>
                 <div className="text-muted-foreground text-xs">Followers</div>
               </div>
             )}
-            {profile.followingCount !== null && (
+            {followingCount != null && (
               <div className="text-center">
-                <div className="font-semibold">{profile.followingCount}</div>
+                <div className="font-semibold">{followingCount}</div>
                 <div className="text-muted-foreground text-xs">Following</div>
               </div>
             )}
@@ -48,18 +64,18 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {profile.description && (
+        {description && (
           <div>
             <h4 className="text-sm font-medium mb-1">Description</h4>
-            <p className="text-sm text-muted-foreground">{profile.description}</p>
+            <p className="text-sm text-muted-foreground">{description}</p>
           </div>
         )}
 
-        {profile.tags != null && profile.tags.length > 0 && (
+        {tags != null && tags.length > 0 && (
           <div>
             <h4 className="text-sm font-medium mb-1">Tags</h4>
             <div className="flex flex-wrap gap-1.5">
-              {profile.tags.map((tag) => (
+              {tags.map((tag) => (
                 <Badge key={tag} variant="secondary">
                   <Hash className="size-3" />
                   {tag}
@@ -69,11 +85,11 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {profile.links != null && profile.links.length > 0 && (
+        {links != null && links.length > 0 && (
           <div>
             <h4 className="text-sm font-medium mb-1">Links</h4>
             <div className="space-y-1">
-              {profile.links.map((link, i) =>
+              {links.map((link, i) =>
                 isSafeUrl(link.url) ? (
                   <a
                     key={`${link.url}-${i}`}
@@ -102,13 +118,13 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {profile.avatar != null && profile.avatar.length > 0 && (
+        {avatar != null && avatar.length > 0 && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1">
-              Avatar Assets ({profile.avatar.length})
+              Avatar Assets ({avatar.length})
             </h5>
             <div className="space-y-1.5">
-              {profile.avatar.map((asset, i) => (
+              {avatar.map((asset, i) => (
                 <div key={i} className="flex items-center gap-2">
                   {asset.fileType && (
                     <Badge variant="outline" className="text-xs shrink-0">
@@ -135,13 +151,13 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {profile.profileImage != null && profile.profileImage.length > 0 && (
+        {profileImage != null && profileImage.length > 0 && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1">
-              Profile Image ({profile.profileImage.length})
+              Profile Image ({profileImage.length})
             </h5>
             <div className="space-y-1.5">
-              {profile.profileImage.map((img, i) => (
+              {profileImage.map((img, i) => (
                 <div key={i} className="flex items-center gap-2">
                   {isSafeUrl(img.url) ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -165,13 +181,13 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {profile.backgroundImage != null && profile.backgroundImage.length > 0 && (
+        {backgroundImage != null && backgroundImage.length > 0 && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1">
-              Background Image ({profile.backgroundImage.length})
+              Background Image ({backgroundImage.length})
             </h5>
             <div className="space-y-1.5">
-              {profile.backgroundImage.map((img, i) => (
+              {backgroundImage.map((img, i) => (
                 <div key={i} className="flex items-center gap-2">
                   {isSafeUrl(img.url) ? (
                     // eslint-disable-next-line @next/next/no-img-element

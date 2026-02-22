@@ -14,7 +14,6 @@ import {
   useProfiles as useProfilesReact,
 } from '@lsp-indexer/react';
 import type {
-  Profile,
   ProfileFilter,
   ProfileSort,
   ProfileSortField,
@@ -242,7 +241,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
-      <ResultsList<Profile>
+      <ResultsList
         items={profiles}
         isLoading={isLoading}
         isFetching={isFetching}
@@ -296,7 +295,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
-      <ResultsList<Profile>
+      <ResultsList
         items={profiles}
         isLoading={isLoading}
         isFetching={isFetching}

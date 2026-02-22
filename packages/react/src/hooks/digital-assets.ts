@@ -8,6 +8,8 @@ import {
   getClientUrl,
 } from '@lsp-indexer/node';
 import type {
+  DigitalAssetInclude,
+  PartialDigitalAsset,
   UseDigitalAssetParams,
   UseDigitalAssetsParams,
   UseInfiniteDigitalAssetsParams,
@@ -47,17 +49,19 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useDigitalAsset(params: UseDigitalAssetParams) {
+export function useDigitalAsset(params: UseDigitalAssetParams & { include?: DigitalAssetInclude }) {
   const url = getClientUrl();
   const { address, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: digitalAssetKeys.detail(address, include),
-    queryFn: () => fetchDigitalAsset(url, { address, include }),
+    queryFn: () =>
+      include ? fetchDigitalAsset(url, { address, include }) : fetchDigitalAsset(url, { address }),
     enabled: Boolean(address),
   });
 
-  return { digitalAsset: data ?? null, ...rest };
+  const digitalAsset: PartialDigitalAsset | null = data ?? null;
+  return { digitalAsset, ...rest };
 }
 
 /**
@@ -94,20 +98,22 @@ export function useDigitalAsset(params: UseDigitalAssetParams) {
  * }
  * ```
  */
-export function useDigitalAssets(params: UseDigitalAssetsParams = {}) {
+export function useDigitalAssets(
+  params: UseDigitalAssetsParams & { include?: DigitalAssetInclude } = {},
+) {
   const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: digitalAssetKeys.list(filter, sort, limit, offset, include),
-    queryFn: () => fetchDigitalAssets(url, { filter, sort, limit, offset, include }),
+    queryFn: () =>
+      include
+        ? fetchDigitalAssets(url, { filter, sort, limit, offset, include })
+        : fetchDigitalAssets(url, { filter, sort, limit, offset }),
   });
 
-  return {
-    digitalAssets: data?.digitalAssets ?? [],
-    totalCount: data?.totalCount ?? 0,
-    ...rest,
-  };
+  const digitalAssets: PartialDigitalAsset[] = data?.digitalAssets ?? [];
+  return { digitalAssets, totalCount: data?.totalCount ?? 0, ...rest };
 }
 
 /**
@@ -154,20 +160,29 @@ export function useDigitalAssets(params: UseDigitalAssetsParams = {}) {
  * }
  * ```
  */
-export function useInfiniteDigitalAssets(params: UseInfiniteDigitalAssetsParams = {}) {
+export function useInfiniteDigitalAssets(
+  params: UseInfiniteDigitalAssetsParams & { include?: DigitalAssetInclude } = {},
+) {
   const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
   const result = useInfiniteQuery({
     queryKey: digitalAssetKeys.infinite(filter, sort, include),
     queryFn: ({ pageParam }) =>
-      fetchDigitalAssets(url, {
-        filter,
-        sort,
-        limit: pageSize,
-        offset: pageParam,
-        include,
-      }),
+      include
+        ? fetchDigitalAssets(url, {
+            filter,
+            sort,
+            limit: pageSize,
+            offset: pageParam,
+            include,
+          })
+        : fetchDigitalAssets(url, {
+            filter,
+            sort,
+            limit: pageSize,
+            offset: pageParam,
+          }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       // If the last page returned fewer results than requested, there are no more pages
@@ -182,7 +197,7 @@ export function useInfiniteDigitalAssets(params: UseInfiniteDigitalAssetsParams 
   // Flatten all pages into a single digitalAssets array (memoized to avoid re-flattening on every render)
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const digitalAssets = useMemo(
+  const digitalAssets: PartialDigitalAsset[] = useMemo(
     () => data?.pages.flatMap((page) => page.digitalAssets) ?? [],
     [data?.pages],
   );

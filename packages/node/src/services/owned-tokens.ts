@@ -3,6 +3,7 @@ import type {
   OwnedTokenFilter,
   OwnedTokenInclude,
   OwnedTokenSort,
+  PartialOwnedToken,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
 import { GetOwnedTokenDocument, GetOwnedTokensDocument } from '../documents/owned-tokens';
@@ -207,8 +208,16 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
  */
 export async function fetchOwnedToken(
   url: string,
+  params: { id: string },
+): Promise<OwnedToken | null>;
+export async function fetchOwnedToken(
+  url: string,
+  params: { id: string; include: OwnedTokenInclude },
+): Promise<PartialOwnedToken | null>;
+export async function fetchOwnedToken(
+  url: string,
   params: { id: string; include?: OwnedTokenInclude },
-): Promise<OwnedToken | null> {
+): Promise<OwnedToken | PartialOwnedToken | null> {
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetOwnedTokenDocument, {
@@ -217,15 +226,20 @@ export async function fetchOwnedToken(
   });
 
   const raw = result.owned_token[0];
-  return raw ? parseOwnedToken(raw) : null;
+  if (!raw) return null;
+  if (params.include) return parseOwnedToken(raw, params.include);
+  return parseOwnedToken(raw);
 }
 
 /**
  * Result shape for paginated owned token list queries.
+ *
+ * When the include parameter `I` is provided, the `ownedTokens` array contains
+ * narrowed types with only base fields + included fields.
  */
-export interface FetchOwnedTokensResult {
-  /** Parsed owned tokens for the current page */
-  ownedTokens: OwnedToken[];
+export interface FetchOwnedTokensResult<P = OwnedToken> {
+  /** Parsed owned tokens for the current page (narrowed by include) */
+  ownedTokens: P[];
   /** Total number of owned tokens matching the filter (for pagination UI) */
   totalCount: number;
 }
@@ -242,6 +256,25 @@ export interface FetchOwnedTokensResult {
  */
 export async function fetchOwnedTokens(
   url: string,
+  params?: {
+    filter?: OwnedTokenFilter;
+    sort?: OwnedTokenSort;
+    limit?: number;
+    offset?: number;
+  },
+): Promise<FetchOwnedTokensResult>;
+export async function fetchOwnedTokens(
+  url: string,
+  params: {
+    filter?: OwnedTokenFilter;
+    sort?: OwnedTokenSort;
+    limit?: number;
+    offset?: number;
+    include: OwnedTokenInclude;
+  },
+): Promise<FetchOwnedTokensResult<PartialOwnedToken>>;
+export async function fetchOwnedTokens(
+  url: string,
   params: {
     filter?: OwnedTokenFilter;
     sort?: OwnedTokenSort;
@@ -249,7 +282,7 @@ export async function fetchOwnedTokens(
     offset?: number;
     include?: OwnedTokenInclude;
   } = {},
-): Promise<FetchOwnedTokensResult> {
+): Promise<FetchOwnedTokensResult | FetchOwnedTokensResult<PartialOwnedToken>> {
   const where = buildOwnedTokenWhere(params.filter);
   const orderBy = buildOwnedTokenOrderBy(params.sort);
   const includeVars = buildIncludeVars(params.include);
@@ -262,6 +295,12 @@ export async function fetchOwnedTokens(
     ...includeVars,
   });
 
+  if (params.include) {
+    return {
+      ownedTokens: parseOwnedTokens(result.owned_token, params.include),
+      totalCount: result.owned_token_aggregate?.aggregate?.count ?? 0,
+    };
+  }
   return {
     ownedTokens: parseOwnedTokens(result.owned_token),
     totalCount: result.owned_token_aggregate?.aggregate?.count ?? 0,

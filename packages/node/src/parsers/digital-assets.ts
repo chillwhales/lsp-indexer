@@ -1,15 +1,23 @@
-import type { DigitalAsset, TokenType } from '@lsp-indexer/types';
+import type {
+  DigitalAsset,
+  DigitalAssetInclude,
+  PartialDigitalAsset,
+  TokenType,
+} from '@lsp-indexer/types';
 import type { GetDigitalAssetQuery } from '../graphql/graphql';
+import { stripExcluded } from './strip';
 import { numericToString, parseAttributes, parseImage, parseLinks } from './utils';
 
 /**
  * Raw Hasura digital asset type from the codegen-generated query result.
  *
- * This is the shape of a single `digital_asset` element returned by
- * both `GetDigitalAssetQuery` and `GetDigitalAssetsQuery`. We extract it from the
- * codegen type to keep the parser type-safe against schema changes.
+ * Uses `Omit<..., 'id'>` because the parser never reads `id` — it only needs
+ * `address` and metadata fields. This allows the same parser to accept both
+ * primary query results (which include `id`) and sub-selections from other
+ * domains (nfts, owned-assets, owned-tokens) which may not select `id`.
+ * TypeScript structural subtyping means types WITH `id` still satisfy this.
  */
-type RawDigitalAsset = GetDigitalAssetQuery['digital_asset'][number];
+type RawDigitalAsset = Omit<GetDigitalAssetQuery['digital_asset'][number], 'id'>;
 
 /**
  * Validate and return a raw Hasura tokenType string as a clean TokenType.
@@ -42,10 +50,23 @@ function mapTokenType(raw: string | null | undefined): TokenType | null {
  * - If `decimals` is null/undefined → `"LSP8"`
  * - When decimals is not included at all (undefined), standard is `null`
  *
+ * Uses function overloads for type-safe return types:
+ * - No `include` → returns full `DigitalAsset` (all fields guaranteed)
+ * - With `include` → returns `PartialDigitalAsset` (only `address` guaranteed, rest optional)
+ *
  * @param raw - A single digital_asset from the Hasura GraphQL response
- * @returns A clean, camelCase `DigitalAsset` with safe defaults
+ * @param include - Optional include config; when provided, excluded fields are stripped at runtime
+ * @returns A clean, camelCase `DigitalAsset` (full or partial depending on include)
  */
-export function parseDigitalAsset(raw: RawDigitalAsset): DigitalAsset {
+export function parseDigitalAsset(raw: RawDigitalAsset): DigitalAsset;
+export function parseDigitalAsset(
+  raw: RawDigitalAsset,
+  include: DigitalAssetInclude,
+): PartialDigitalAsset;
+export function parseDigitalAsset(
+  raw: RawDigitalAsset,
+  include?: DigitalAssetInclude,
+): DigitalAsset | PartialDigitalAsset {
   // Derive standard from presence of decimals field
   // decimals being undefined means the field was not included in the query
   // decimals being null means it was included but not set (→ LSP8)
@@ -57,7 +78,7 @@ export function parseDigitalAsset(raw: RawDigitalAsset): DigitalAsset {
 
   const lsp4 = raw.lsp4Metadata;
 
-  return {
+  const result: DigitalAsset = {
     address: raw.address,
     standard,
     name: raw.lsp4TokenName?.value ?? null,
@@ -85,6 +106,9 @@ export function parseDigitalAsset(raw: RawDigitalAsset): DigitalAsset {
     tokenIdFormat: raw.lsp8TokenIdFormat?.value ?? null,
     baseUri: raw.lsp8TokenMetadataBaseUri?.value ?? null,
   };
+
+  if (!include) return result;
+  return stripExcluded(result, include, ['address'], { standard: 'decimals' });
 }
 
 /**
@@ -93,8 +117,18 @@ export function parseDigitalAsset(raw: RawDigitalAsset): DigitalAsset {
  * Convenience wrapper around `parseDigitalAsset` for batch results.
  *
  * @param raw - Array of digital_asset from the Hasura GraphQL response
- * @returns Array of clean, camelCase `DigitalAsset` objects
+ * @param include - Optional include config; forwarded to each `parseDigitalAsset` call
+ * @returns Array of clean, camelCase `DigitalAsset` objects (full or partial depending on include)
  */
-export function parseDigitalAssets(raw: RawDigitalAsset[]): DigitalAsset[] {
-  return raw.map(parseDigitalAsset);
+export function parseDigitalAssets(raw: RawDigitalAsset[]): DigitalAsset[];
+export function parseDigitalAssets(
+  raw: RawDigitalAsset[],
+  include: DigitalAssetInclude,
+): PartialDigitalAsset[];
+export function parseDigitalAssets(
+  raw: RawDigitalAsset[],
+  include?: DigitalAssetInclude,
+): (DigitalAsset | PartialDigitalAsset)[] {
+  if (!include) return raw.map((r) => parseDigitalAsset(r));
+  return raw.map((r) => parseDigitalAsset(r, include));
 }

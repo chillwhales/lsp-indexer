@@ -189,11 +189,11 @@ This is a cross-cutting DX refactor that touches types, parsers, hooks, server a
 
 Plans:
 
-- [ ] 09.4-01-PLAN.md — Shared utility types (IncludeResult, stripExcluded) + Profile domain end-to-end
-- [ ] 09.4-02-PLAN.md — Digital Assets domain with standard↔decimals derived field handling
-- [ ] 09.4-03-PLAN.md — NFTs + Owned Assets domains with nested relation narrowing
-- [ ] 09.4-04-PLAN.md — Owned Tokens domain (most complex — 4 nested relations)
-- [ ] 09.4-05-PLAN.md — Playground cards update + full build validation
+- [x] 09.4-01-PLAN.md — Shared utility types (IncludeResult, stripExcluded) + Profile domain end-to-end
+- [x] 09.4-02-PLAN.md — Digital Assets domain with standard↔decimals derived field handling
+- [x] 09.4-03-PLAN.md — NFTs + Owned Assets domains with nested relation narrowing
+- [x] 09.4-04-PLAN.md — Owned Tokens domain (most complex — 4 nested relations)
+- [x] 09.4-05-PLAN.md — Playground cards update + full build validation
 
 ---
 
@@ -356,7 +356,7 @@ Plans:
 | 9.1   | Digital Assets                     |     1/1      | Complete |
 | 9.2   | NFTs                               |     1/1      | Complete |
 | 9.3   | Owned Assets                       |     1/1      | Complete |
-| 9.4   | Conditional Include Types          |      1       | Pending  |
+| 9.4   | Conditional Include Types          |     1/1      | Complete |
 | 9.5   | Social / Follows                   |      1       | Pending  |
 | 9.6   | Creators                           |      1       | Pending  |
 | 9.7   | Encrypted Assets                   |      1       | Pending  |
@@ -368,7 +368,7 @@ Plans:
 
 _Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 14/29 requirements delivered
+**Total:** 15/29 requirements delivered
 
 ---
 
@@ -472,4 +472,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-21 — inserted Phase 9.4 (Conditional Include Types), bumped 9.4–9.9 → 9.5–9.10, added DX-04 requirement_
+_Last updated: 2026-02-22 — Phase 9.4 complete (DX-04 conditional include types — all 5 plans done, playground cards updated)_

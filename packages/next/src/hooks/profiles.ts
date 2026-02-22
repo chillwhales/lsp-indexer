@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 
 import { profileKeys } from '@lsp-indexer/node';
 import type {
+  PartialProfile,
+  ProfileInclude,
   UseInfiniteProfilesParams,
   UseProfileParams,
   UseProfilesParams,
@@ -44,16 +46,17 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useProfile(params: UseProfileParams) {
+export function useProfile(params: UseProfileParams & { include?: ProfileInclude }) {
   const { address, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: profileKeys.detail(address, include),
-    queryFn: () => getProfile(address, include),
+    queryFn: () => (include ? getProfile(address, include) : getProfile(address)),
     enabled: Boolean(address),
   });
 
-  return { profile: data ?? null, ...rest };
+  const profile: PartialProfile | null = data ?? null;
+  return { profile, ...rest };
 }
 
 /**
@@ -89,19 +92,19 @@ export function useProfile(params: UseProfileParams) {
  * }
  * ```
  */
-export function useProfiles(params: UseProfilesParams = {}) {
+export function useProfiles(params: UseProfilesParams & { include?: ProfileInclude } = {}) {
   const { filter, sort, limit, offset, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: profileKeys.list(filter, sort, limit, offset, include),
-    queryFn: () => getProfiles({ filter, sort, limit, offset, include }),
+    queryFn: () =>
+      include
+        ? getProfiles({ filter, sort, limit, offset, include })
+        : getProfiles({ filter, sort, limit, offset }),
   });
 
-  return {
-    profiles: data?.profiles ?? [],
-    totalCount: data?.totalCount ?? 0,
-    ...rest,
-  };
+  const profiles: PartialProfile[] = data?.profiles ?? [];
+  return { profiles, totalCount: data?.totalCount ?? 0, ...rest };
 }
 
 /**
@@ -146,19 +149,17 @@ export function useProfiles(params: UseProfilesParams = {}) {
  * }
  * ```
  */
-export function useInfiniteProfiles(params: UseInfiniteProfilesParams = {}) {
+export function useInfiniteProfiles(
+  params: UseInfiniteProfilesParams & { include?: ProfileInclude } = {},
+) {
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
   const result = useInfiniteQuery({
     queryKey: profileKeys.infinite(filter, sort, include),
     queryFn: ({ pageParam }) =>
-      getProfiles({
-        filter,
-        sort,
-        limit: pageSize,
-        offset: pageParam,
-        include,
-      }),
+      include
+        ? getProfiles({ filter, sort, limit: pageSize, offset: pageParam, include })
+        : getProfiles({ filter, sort, limit: pageSize, offset: pageParam }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       if (lastPage.profiles.length < pageSize) {
@@ -170,7 +171,10 @@ export function useInfiniteProfiles(params: UseInfiniteProfilesParams = {}) {
 
   // Flatten all pages into a single profiles array (memoized to avoid re-flattening on every render)
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const profiles = useMemo(() => data?.pages.flatMap((page) => page.profiles) ?? [], [data?.pages]);
+  const profiles: PartialProfile[] = useMemo(
+    () => data?.pages.flatMap((page) => page.profiles) ?? [],
+    [data?.pages],
+  );
 
   return {
     profiles,

@@ -7,6 +7,7 @@ import type {
   OwnedAssetFilter,
   OwnedAssetInclude,
   OwnedAssetSort,
+  PartialOwnedAsset,
 } from '@lsp-indexer/types';
 
 /**
@@ -19,14 +20,20 @@ import type {
  *
  * @param id - The owned asset unique ID
  * @param include - Optional field inclusion config
- * @returns The parsed owned asset, or `null` if not found
+ * @returns The parsed owned asset (narrowed by include), or `null` if not found
  */
+export async function getOwnedAsset(id: string): Promise<OwnedAsset | null>;
+export async function getOwnedAsset(
+  id: string,
+  include: OwnedAssetInclude,
+): Promise<PartialOwnedAsset | null>;
 export async function getOwnedAsset(
   id: string,
   include?: OwnedAssetInclude,
-): Promise<OwnedAsset | null> {
+): Promise<OwnedAsset | PartialOwnedAsset | null> {
   const url = getServerUrl();
-  return fetchOwnedAsset(url, { id, include });
+  if (include) return fetchOwnedAsset(url, { id, include });
+  return fetchOwnedAsset(url, { id });
 }
 
 /**
@@ -44,8 +51,22 @@ export async function getOwnedAssets(params?: {
   sort?: OwnedAssetSort;
   limit?: number;
   offset?: number;
+}): Promise<FetchOwnedAssetsResult>;
+export async function getOwnedAssets(params: {
+  filter?: OwnedAssetFilter;
+  sort?: OwnedAssetSort;
+  limit?: number;
+  offset?: number;
+  include: OwnedAssetInclude;
+}): Promise<FetchOwnedAssetsResult<PartialOwnedAsset>>;
+export async function getOwnedAssets(params?: {
+  filter?: OwnedAssetFilter;
+  sort?: OwnedAssetSort;
+  limit?: number;
+  offset?: number;
   include?: OwnedAssetInclude;
-}): Promise<FetchOwnedAssetsResult> {
+}): Promise<FetchOwnedAssetsResult | FetchOwnedAssetsResult<PartialOwnedAsset>> {
   const url = getServerUrl();
+  if (params?.include) return fetchOwnedAssets(url, params);
   return fetchOwnedAssets(url, params ?? {});
 }

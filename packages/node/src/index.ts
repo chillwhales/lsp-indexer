@@ -11,6 +11,9 @@ export type { FetchProfilesResult } from './services/profiles';
 // Profile parsers (Hasura → clean types)
 export { parseProfile, parseProfiles } from './parsers/profiles';
 
+// Shared parser utilities
+export { stripExcluded } from './parsers/strip';
+
 // Query key factories (shared by @lsp-indexer/react and @lsp-indexer/next)
 export { profileKeys } from './keys/profiles';
 

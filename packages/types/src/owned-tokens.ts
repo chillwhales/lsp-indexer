@@ -1,10 +1,21 @@
 import { z } from 'zod';
 
 import { SortDirectionSchema, SortNullsSchema } from './common';
-import { DigitalAssetIncludeSchema, DigitalAssetSchema } from './digital-assets';
-import { NftIncludeSchema, NftSchema } from './nfts';
-import { OwnedAssetSchema } from './owned-assets';
-import { ProfileIncludeSchema, ProfileSchema } from './profiles';
+import {
+  DigitalAssetIncludeSchema,
+  DigitalAssetSchema,
+  type DigitalAssetInclude,
+  type DigitalAssetResult,
+} from './digital-assets';
+import type { IncludeResult, PartialExcept } from './include-types';
+import { NftIncludeSchema, NftSchema, type Nft } from './nfts';
+import { OwnedAssetSchema, type OwnedAsset } from './owned-assets';
+import {
+  ProfileIncludeSchema,
+  ProfileSchema,
+  type ProfileInclude,
+  type ProfileResult,
+} from './profiles';
 
 /**
  * NFT sub-include schema for the owned-token context.
@@ -198,3 +209,163 @@ export type OwnedTokenOwnedAssetInclude = z.infer<typeof OwnedTokenOwnedAssetInc
 export type UseOwnedTokenParams = z.infer<typeof UseOwnedTokenParamsSchema>;
 export type UseOwnedTokensParams = z.infer<typeof UseOwnedTokensParamsSchema>;
 export type UseInfiniteOwnedTokensParams = z.infer<typeof UseInfiniteOwnedTokensParamsSchema>;
+
+// ---------------------------------------------------------------------------
+// Conditional include result type
+// ---------------------------------------------------------------------------
+
+/**
+ * Scalar include fields (non-relation): include schema key → OwnedToken field name.
+ * Relations (digitalAsset, nft, ownedAsset, holder) are handled separately by resolver types.
+ */
+type OwnedTokenScalarIncludeFieldMap = {
+  block: 'block';
+  timestamp: 'timestamp';
+};
+
+/**
+ * Resolve the nested `digitalAsset` relation based on the include parameter.
+ *
+ * When `include` has `digitalAsset` as a `DigitalAssetInclude` object, the digitalAsset
+ * field is present and narrowed by the sub-include. Otherwise, it's absent from the type.
+ */
+type ResolveOwnedTokenDA<I> = I extends { digitalAsset: infer C }
+  ? C extends DigitalAssetInclude
+    ? { digitalAsset: DigitalAssetResult<C> | null }
+    : {}
+  : {};
+
+/**
+ * Scalar field map for the NFT sub-include within OwnedToken context.
+ *
+ * OwnedTokenNftInclude has 8 fields (NftInclude minus collection/holder — those
+ * are sibling relations on owned_token, not nested within the NFT block).
+ */
+type OwnedTokenNftScalarFieldMap = {
+  formattedTokenId: 'formattedTokenId';
+  name: 'name';
+  description: 'description';
+  category: 'category';
+  icons: 'icons';
+  images: 'images';
+  links: 'links';
+  attributes: 'attributes';
+};
+
+/**
+ * Resolve the nested `nft` relation based on the include parameter.
+ *
+ * When `include` has `nft` as an `OwnedTokenNftInclude` object, the nft field is
+ * present and narrowed using `IncludeResult` with NFT base fields + the 8 scalar
+ * sub-include fields. Otherwise, it's absent from the type.
+ */
+type ResolveOwnedTokenNft<I> = I extends { nft: infer N }
+  ? N extends OwnedTokenNftInclude
+    ? {
+        nft: IncludeResult<
+          Nft,
+          'address' | 'tokenId' | 'isBurned' | 'isMinted',
+          OwnedTokenNftScalarFieldMap,
+          N
+        > | null;
+      }
+    : {}
+  : {};
+
+/**
+ * Scalar field map for the OwnedAsset sub-include within OwnedToken context.
+ *
+ * OwnedTokenOwnedAssetInclude has 3 scalar fields only — nested relations
+ * (digitalAsset, holder, tokenIdCount) are not available in the owned_token
+ * sub-selection context because they are sibling relations on owned_token itself.
+ */
+type OwnedTokenOwnedAssetFieldMap = {
+  balance: 'balance';
+  block: 'block';
+  timestamp: 'timestamp';
+};
+
+/**
+ * Resolve the nested `ownedAsset` relation based on the include parameter.
+ *
+ * When `include` has `ownedAsset` as an `OwnedTokenOwnedAssetInclude` object,
+ * the ownedAsset field is present and narrowed using `IncludeResult` with
+ * OwnedAsset base fields + the 3 scalar sub-include fields.
+ */
+type ResolveOwnedTokenOA<I> = I extends { ownedAsset: infer O }
+  ? O extends OwnedTokenOwnedAssetInclude
+    ? {
+        ownedAsset: IncludeResult<
+          OwnedAsset,
+          'id' | 'digitalAssetAddress' | 'holderAddress',
+          OwnedTokenOwnedAssetFieldMap,
+          O
+        > | null;
+      }
+    : {}
+  : {};
+
+/**
+ * Resolve the nested `holder` relation based on the include parameter.
+ *
+ * When `include` has `holder` as a `ProfileInclude` object, the holder field is
+ * present with narrowed profile fields. Otherwise, it's absent from the type.
+ *
+ * OwnedToken holder is a plain Profile (no timestamp merge like NftHolder).
+ */
+type ResolveOwnedTokenHolder<I> = I extends { holder: infer H }
+  ? H extends ProfileInclude
+    ? { holder: ProfileResult<H> | null }
+    : {}
+  : {};
+
+/**
+ * OwnedToken type narrowed by include parameter.
+ *
+ * The most complex domain type — 4 nested relations each with their own narrowing:
+ * - `digitalAsset` → `DigitalAssetResult<C>`
+ * - `nft` → `IncludeResult<Nft, base, OwnedTokenNftScalarFieldMap, N>` (8 fields, no collection/holder)
+ * - `ownedAsset` → `IncludeResult<OwnedAsset, base, OwnedTokenOwnedAssetFieldMap, O>` (3 scalar fields)
+ * - `holder` → `ProfileResult<H>`
+ *
+ * - `OwnedTokenResult` (no generic) → full `OwnedToken` type (backward compatible)
+ * - `OwnedTokenResult<{}>` → `{ id; digitalAssetAddress; holderAddress; tokenId }` (base fields only)
+ * - `OwnedTokenResult<{ digitalAsset: { name: true } }>` → base + narrowed digitalAsset
+ * - `OwnedTokenResult<{ nft: { name: true } }>` → base + narrowed nft (no collection/holder)
+ * - `OwnedTokenResult<{ ownedAsset: { balance: true } }>` → base + narrowed ownedAsset
+ * - `OwnedTokenResult<{ holder: { name: true } }>` → base + narrowed holder
+ *
+ * @example
+ * ```ts
+ * type Full = OwnedTokenResult;                                             // = OwnedToken (all fields)
+ * type Minimal = OwnedTokenResult<{}>;                                      // = { id; digitalAssetAddress; holderAddress; tokenId }
+ * type WithDA = OwnedTokenResult<{ digitalAsset: { name: true } }>;         // = base + { digitalAsset: { address; name } | null }
+ * type WithNft = OwnedTokenResult<{ nft: { name: true } }>;                 // = base + { nft: { address; tokenId; isBurned; isMinted; name } | null }
+ * type WithOA = OwnedTokenResult<{ ownedAsset: { balance: true } }>;        // = base + { ownedAsset: { id; digitalAssetAddress; holderAddress; balance } | null }
+ * type WithHolder = OwnedTokenResult<{ holder: { name: true } }>;           // = base + { holder: { address; name } | null }
+ * ```
+ */
+export type OwnedTokenResult<I extends OwnedTokenInclude | undefined = undefined> =
+  I extends undefined
+    ? OwnedToken
+    : IncludeResult<
+        OwnedToken,
+        'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId',
+        OwnedTokenScalarIncludeFieldMap,
+        I
+      > &
+        ResolveOwnedTokenDA<NonNullable<I>> &
+        ResolveOwnedTokenNft<NonNullable<I>> &
+        ResolveOwnedTokenOA<NonNullable<I>> &
+        ResolveOwnedTokenHolder<NonNullable<I>>;
+
+/**
+ * OwnedToken with only base fields guaranteed — used for functions that accept
+ * any include-narrowed owned token. All non-base fields are optional.
+ *
+ * Equivalent to `PartialExcept<OwnedToken, 'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId'>`.
+ */
+export type PartialOwnedToken = PartialExcept<
+  OwnedToken,
+  'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId'
+>;

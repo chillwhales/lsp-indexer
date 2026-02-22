@@ -7,8 +7,19 @@ import {
   SortDirectionSchema,
   SortNullsSchema,
 } from './common';
-import { DigitalAssetIncludeSchema, DigitalAssetSchema } from './digital-assets';
-import { ProfileIncludeSchema, ProfileSchema } from './profiles';
+import {
+  DigitalAssetIncludeSchema,
+  DigitalAssetSchema,
+  type DigitalAssetInclude,
+  type DigitalAssetResult,
+} from './digital-assets';
+import type { IncludeResult, PartialExcept } from './include-types';
+import {
+  ProfileIncludeSchema,
+  ProfileSchema,
+  type ProfileInclude,
+  type ProfileResult,
+} from './profiles';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -204,3 +215,84 @@ export type NftInclude = z.infer<typeof NftIncludeSchema>;
 export type UseNftParams = z.infer<typeof UseNftParamsSchema>;
 export type UseNftsParams = z.infer<typeof UseNftsParamsSchema>;
 export type UseInfiniteNftsParams = z.infer<typeof UseInfiniteNftsParamsSchema>;
+
+// ---------------------------------------------------------------------------
+// Conditional include result type
+// ---------------------------------------------------------------------------
+
+/**
+ * Scalar include fields (non-relation): include schema key → Nft field name.
+ * Relations (collection, holder) are handled separately by resolver types.
+ */
+type NftScalarIncludeFieldMap = {
+  formattedTokenId: 'formattedTokenId';
+  name: 'name';
+  description: 'description';
+  category: 'category';
+  icons: 'icons';
+  images: 'images';
+  links: 'links';
+  attributes: 'attributes';
+};
+
+/**
+ * Resolve the nested `collection` relation based on the include parameter.
+ *
+ * When `include` has `collection` as a `DigitalAssetInclude` object, the collection
+ * field is present and narrowed by the sub-include. Otherwise, it's absent from the type.
+ */
+type ResolveNftCollection<I> = I extends { collection: infer C }
+  ? C extends DigitalAssetInclude
+    ? { collection: DigitalAssetResult<C> | null }
+    : {}
+  : {};
+
+/**
+ * Resolve the nested `holder` relation based on the include parameter.
+ *
+ * When `include` has `holder` as a `ProfileInclude` object, the holder field is
+ * present with narrowed profile fields + `timestamp`. Otherwise, it's absent from the type.
+ *
+ * NftHolder = Profile & { timestamp: string }, so the holder type is:
+ * `(ProfileResult<H> & { timestamp: string }) | null`
+ */
+type ResolveNftHolder<I> = I extends { holder: infer H }
+  ? H extends ProfileInclude
+    ? { holder: (ProfileResult<H> & { timestamp: string }) | null }
+    : {}
+  : {};
+
+/**
+ * NFT type narrowed by include parameter.
+ *
+ * - `NftResult` (no generic) → full `Nft` type (backward compatible)
+ * - `NftResult<{}>` → `{ address; tokenId; isBurned; isMinted }` (base fields only)
+ * - `NftResult<{ name: true }>` → base fields + name
+ * - `NftResult<{ collection: { name: true } }>` → base fields + narrowed collection
+ * - `NftResult<{ holder: { name: true } }>` → base fields + narrowed holder with timestamp
+ *
+ * @example
+ * ```ts
+ * type Full = NftResult;                                  // = Nft (all fields)
+ * type Minimal = NftResult<{}>;                           // = { address; tokenId; isBurned; isMinted }
+ * type WithCol = NftResult<{ collection: { name: true } }>; // = base + { collection: { address; name } | null }
+ * ```
+ */
+export type NftResult<I extends NftInclude | undefined = undefined> = I extends undefined
+  ? Nft
+  : IncludeResult<
+      Nft,
+      'address' | 'tokenId' | 'isBurned' | 'isMinted',
+      NftScalarIncludeFieldMap,
+      I
+    > &
+      ResolveNftCollection<NonNullable<I>> &
+      ResolveNftHolder<NonNullable<I>>;
+
+/**
+ * Nft with only base fields guaranteed — used for functions that accept
+ * any include-narrowed NFT. All non-base fields are optional.
+ *
+ * Equivalent to `PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>`.
+ */
+export type PartialNft = PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;

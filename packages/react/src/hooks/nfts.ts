@@ -2,7 +2,13 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { fetchNft, fetchNfts, getClientUrl, nftKeys } from '@lsp-indexer/node';
-import type { UseInfiniteNftsParams, UseNftParams, UseNftsParams } from '@lsp-indexer/types';
+import type {
+  NftInclude,
+  PartialNft,
+  UseInfiniteNftsParams,
+  UseNftParams,
+  UseNftsParams,
+} from '@lsp-indexer/types';
 
 /** Default number of NFTs per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -39,17 +45,21 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useNft(params: UseNftParams) {
+export function useNft(params: UseNftParams & { include?: NftInclude }) {
   const url = getClientUrl();
   const { address, tokenId, formattedTokenId, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: nftKeys.detail(address, tokenId, formattedTokenId, include),
-    queryFn: () => fetchNft(url, { address, tokenId, formattedTokenId, include }),
+    queryFn: () =>
+      include
+        ? fetchNft(url, { address, tokenId, formattedTokenId, include })
+        : fetchNft(url, { address, tokenId, formattedTokenId }),
     enabled: Boolean(address && (tokenId || formattedTokenId)),
   });
 
-  return { nft: data ?? null, ...rest };
+  const nft: PartialNft | null = data ?? null;
+  return { nft, ...rest };
 }
 
 /**
@@ -94,20 +104,20 @@ export function useNft(params: UseNftParams) {
  * });
  * ```
  */
-export function useNfts(params: UseNftsParams = {}) {
+export function useNfts(params: UseNftsParams & { include?: NftInclude } = {}) {
   const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: nftKeys.list(filter, sort, limit, offset, include),
-    queryFn: () => fetchNfts(url, { filter, sort, limit, offset, include }),
+    queryFn: () =>
+      include
+        ? fetchNfts(url, { filter, sort, limit, offset, include })
+        : fetchNfts(url, { filter, sort, limit, offset }),
   });
 
-  return {
-    nfts: data?.nfts ?? [],
-    totalCount: data?.totalCount ?? 0,
-    ...rest,
-  };
+  const nfts: PartialNft[] = data?.nfts ?? [];
+  return { nfts, totalCount: data?.totalCount ?? 0, ...rest };
 }
 
 /**
@@ -162,20 +172,16 @@ export function useNfts(params: UseNftsParams = {}) {
  * });
  * ```
  */
-export function useInfiniteNfts(params: UseInfiniteNftsParams = {}) {
+export function useInfiniteNfts(params: UseInfiniteNftsParams & { include?: NftInclude } = {}) {
   const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
   const result = useInfiniteQuery({
     queryKey: nftKeys.infinite(filter, sort, include),
     queryFn: ({ pageParam }) =>
-      fetchNfts(url, {
-        filter,
-        sort,
-        limit: pageSize,
-        offset: pageParam,
-        include,
-      }),
+      include
+        ? fetchNfts(url, { filter, sort, limit: pageSize, offset: pageParam, include })
+        : fetchNfts(url, { filter, sort, limit: pageSize, offset: pageParam }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       // If the last page returned fewer results than requested, there are no more pages
@@ -190,7 +196,10 @@ export function useInfiniteNfts(params: UseInfiniteNftsParams = {}) {
   // Flatten all pages into a single nfts array (memoized to avoid re-flattening on every render)
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const nfts = useMemo(() => data?.pages.flatMap((page) => page.nfts) ?? [], [data?.pages]);
+  const nfts: PartialNft[] = useMemo(
+    () => data?.pages.flatMap((page) => page.nfts) ?? [],
+    [data?.pages],
+  );
 
   return {
     nfts,

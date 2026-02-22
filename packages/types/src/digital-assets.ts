@@ -7,6 +7,7 @@ import {
   SortDirectionSchema,
   SortNullsSchema,
 } from './common';
+import type { IncludeResult, PartialExcept } from './include-types';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -229,3 +230,74 @@ export type DigitalAssetInclude = z.infer<typeof DigitalAssetIncludeSchema>;
 export type UseDigitalAssetParams = z.infer<typeof UseDigitalAssetParamsSchema>;
 export type UseDigitalAssetsParams = z.infer<typeof UseDigitalAssetsParamsSchema>;
 export type UseInfiniteDigitalAssetsParams = z.infer<typeof UseInfiniteDigitalAssetsParamsSchema>;
+
+// ---------------------------------------------------------------------------
+// Conditional include result type
+// ---------------------------------------------------------------------------
+
+/**
+ * Include field map: include schema key → DigitalAsset field name.
+ * For digital assets, the mapping is 1:1 (include key matches field name exactly).
+ * Note: `standard` is NOT in this map — it's a derived field handled by `ResolveStandard`.
+ */
+type DigitalAssetIncludeFieldMap = {
+  name: 'name';
+  symbol: 'symbol';
+  tokenType: 'tokenType';
+  decimals: 'decimals';
+  totalSupply: 'totalSupply';
+  description: 'description';
+  category: 'category';
+  icons: 'icons';
+  images: 'images';
+  links: 'links';
+  attributes: 'attributes';
+  owner: 'owner';
+  holderCount: 'holderCount';
+  creatorCount: 'creatorCount';
+  referenceContract: 'referenceContract';
+  tokenIdFormat: 'tokenIdFormat';
+  baseUri: 'baseUri';
+};
+
+/**
+ * Resolve the `standard` derived field based on whether `decimals` is included.
+ *
+ * `standard` is derived from `decimals` at parse time — LSP7 when decimals has a value,
+ * LSP8 when decimals is null. If `decimals` is not included, `standard` should also be
+ * absent from the return type.
+ */
+type ResolveStandard<I> = I extends { decimals: true } ? { standard: Standard | null } : {};
+
+/**
+ * DigitalAsset type narrowed by include parameter.
+ *
+ * - `DigitalAssetResult` (no generic) → full `DigitalAsset` type (backward compatible)
+ * - `DigitalAssetResult<{}>` → `{ address: string }` (base fields only)
+ * - `DigitalAssetResult<{ name: true }>` → `{ address: string; name: string | null }`
+ * - `DigitalAssetResult<{ decimals: true }>` → `{ address: string; decimals: number | null; standard: Standard | null }`
+ *
+ * The `standard` field follows `decimals` — it's only present when `decimals` is included,
+ * because it's derived from the `decimals` value at parse time.
+ *
+ * @example
+ * ```ts
+ * type Full = DigitalAssetResult;                          // = DigitalAsset (all fields)
+ * type Minimal = DigitalAssetResult<{}>;                   // = { address: string }
+ * type NameOnly = DigitalAssetResult<{ name: true }>;      // = { address: string; name: string | null }
+ * type WithDec = DigitalAssetResult<{ decimals: true }>;   // = { address: string; decimals: number | null; standard: Standard | null }
+ * ```
+ */
+export type DigitalAssetResult<I extends DigitalAssetInclude | undefined = undefined> =
+  I extends undefined
+    ? DigitalAsset
+    : IncludeResult<DigitalAsset, 'address', DigitalAssetIncludeFieldMap, I> &
+        ResolveStandard<NonNullable<I>>;
+
+/**
+ * DigitalAsset with only base fields guaranteed — used for functions that accept
+ * any include-narrowed digital asset. All non-base fields are optional.
+ *
+ * Equivalent to `PartialExcept<DigitalAsset, 'address'>`.
+ */
+export type PartialDigitalAsset = PartialExcept<DigitalAsset, 'address'>;

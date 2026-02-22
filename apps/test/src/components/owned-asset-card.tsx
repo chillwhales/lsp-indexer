@@ -1,6 +1,7 @@
-import type { OwnedAsset } from '@lsp-indexer/types';
 import { ChevronDown, Coins, Loader2, User, Wallet } from 'lucide-react';
 import React from 'react';
+
+import type { OwnedAsset, PartialExcept } from '@lsp-indexer/types';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { RawJsonToggle } from '@/components/playground';
@@ -45,12 +46,29 @@ function balanceTooltip(balance: bigint, decimals: number | null | undefined): s
 // ---------------------------------------------------------------------------
 
 export interface OwnedAssetCardProps {
-  ownedAsset: OwnedAsset;
+  /** Accepts any shape of OwnedAsset — full, narrowed via include, or partial from nested relations */
+  ownedAsset: PartialExcept<OwnedAsset, 'id' | 'digitalAssetAddress' | 'holderAddress'>;
   isFetching?: boolean;
 }
 
 export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps): React.ReactNode {
-  const decimals = ownedAsset.digitalAsset?.decimals;
+  // Destructure — base fields always present, everything else may be undefined
+  const {
+    id,
+    digitalAssetAddress,
+    holderAddress,
+    balance,
+    block,
+    timestamp,
+    tokenIdCount,
+    digitalAsset,
+    holder,
+  } = ownedAsset;
+
+  // Derive decimals and name/symbol from nested digital asset for display
+  const decimals = digitalAsset?.decimals;
+  const daName = digitalAsset?.name;
+  const daSymbol = digitalAsset?.symbol;
 
   return (
     <Card className="overflow-hidden">
@@ -59,27 +77,23 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2">
               <Wallet className="size-5 text-muted-foreground" />
-              {ownedAsset.digitalAsset?.name ?? 'Owned Asset'}
-              {ownedAsset.digitalAsset?.symbol && (
-                <span className="text-base font-normal text-muted-foreground">
-                  ({ownedAsset.digitalAsset.symbol})
-                </span>
+              {daName !== undefined ? (daName ?? 'Owned Asset') : 'Owned Asset'}
+              {daSymbol && (
+                <span className="text-base font-normal text-muted-foreground">({daSymbol})</span>
               )}
               {isFetching && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
             </CardTitle>
-            <CardDescription className="font-mono text-xs break-all">
-              ID: {ownedAsset.id}
-            </CardDescription>
+            <CardDescription className="font-mono text-xs break-all">ID: {id}</CardDescription>
           </div>
           <div className="flex gap-2 items-center">
-            {ownedAsset.tokenIdCount !== null && (
+            {tokenIdCount != null && (
               <Badge variant="secondary" className="text-xs">
-                {ownedAsset.tokenIdCount} token ID{ownedAsset.tokenIdCount !== 1 ? 's' : ''}
+                {tokenIdCount} token ID{tokenIdCount !== 1 ? 's' : ''}
               </Badge>
             )}
-            {ownedAsset.timestamp && (
+            {timestamp && (
               <Badge variant="outline" className="text-xs">
-                {formatRelativeTime(ownedAsset.timestamp)}
+                {formatRelativeTime(timestamp)}
               </Badge>
             )}
           </div>
@@ -90,86 +104,78 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Holder</dt>
-            <dd className="font-mono text-xs break-all">{ownedAsset.holderAddress}</dd>
+            <dd className="font-mono text-xs break-all">{holderAddress}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Asset Address</dt>
-            <dd className="font-mono text-xs break-all">{ownedAsset.digitalAssetAddress}</dd>
+            <dd className="font-mono text-xs break-all">{digitalAssetAddress}</dd>
           </div>
-          {ownedAsset.balance !== null && (
+          {balance != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Balance</dt>
               <dd>
                 <Tooltip>
                   <TooltipTrigger className="font-mono underline decoration-dashed underline-offset-2 cursor-default">
-                    {formatBalance(ownedAsset.balance, decimals)}
-                    {decimals != null && ownedAsset.digitalAsset?.symbol && (
-                      <span className="text-muted-foreground ml-1">
-                        {ownedAsset.digitalAsset.symbol}
-                      </span>
+                    {formatBalance(balance, decimals)}
+                    {decimals != null && daSymbol && (
+                      <span className="text-muted-foreground ml-1">{daSymbol}</span>
                     )}
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="font-mono text-xs">
-                      {balanceTooltip(ownedAsset.balance, decimals)}
-                    </p>
+                    <p className="font-mono text-xs">{balanceTooltip(balance, decimals)}</p>
                   </TooltipContent>
                 </Tooltip>
               </dd>
             </div>
           )}
-          {ownedAsset.block !== null && (
+          {block != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Block</dt>
-              <dd className="font-mono text-xs">{ownedAsset.block}</dd>
+              <dd className="font-mono text-xs">{block}</dd>
             </div>
           )}
-          {ownedAsset.timestamp && (
+          {timestamp && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(ownedAsset.timestamp).toLocaleString()}{' '}
-                <span className="text-muted-foreground">
-                  ({formatRelativeTime(ownedAsset.timestamp)})
-                </span>
+                {new Date(timestamp).toLocaleString()}{' '}
+                <span className="text-muted-foreground">({formatRelativeTime(timestamp)})</span>
               </dd>
             </div>
           )}
         </dl>
 
         {/* Holder Profile section (collapsible, reuses ProfileCard) */}
-        {ownedAsset.holder && (
+        {holder != null && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <User className="size-3.5" />
-                Holder Profile: {ownedAsset.holder.name ?? ownedAsset.holder.address}
+                Holder Profile: {holder.name ?? holder.address}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
-              <ProfileCard profile={ownedAsset.holder} />
+              <ProfileCard profile={holder} />
             </CollapsibleContent>
           </Collapsible>
         )}
 
         {/* Digital Asset section (collapsible) */}
-        {ownedAsset.digitalAsset && (
+        {digitalAsset != null && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Coins className="size-3.5" />
-                Digital Asset: {ownedAsset.digitalAsset.name ?? ownedAsset.digitalAsset.address}
-                {ownedAsset.digitalAsset.symbol && (
-                  <span className="text-muted-foreground font-normal">
-                    ({ownedAsset.digitalAsset.symbol})
-                  </span>
+                Digital Asset: {daName ?? digitalAsset.address}
+                {daSymbol && (
+                  <span className="text-muted-foreground font-normal">({daSymbol})</span>
                 )}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
-              <DigitalAssetCard digitalAsset={ownedAsset.digitalAsset} />
+              <DigitalAssetCard digitalAsset={digitalAsset} />
             </CollapsibleContent>
           </Collapsible>
         )}
