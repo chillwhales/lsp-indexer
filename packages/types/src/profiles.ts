@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { AssetSchema, ImageSchema, SortDirectionSchema, SortNullsSchema } from './common';
+import type { IncludeResult } from './include-types';
 
 // ---------------------------------------------------------------------------
 // Core domain schemas
@@ -150,3 +151,45 @@ export type ProfileInclude = z.infer<typeof ProfileIncludeSchema>;
 export type UseProfileParams = z.infer<typeof UseProfileParamsSchema>;
 export type UseProfilesParams = z.infer<typeof UseProfilesParamsSchema>;
 export type UseInfiniteProfilesParams = z.infer<typeof UseInfiniteProfilesParamsSchema>;
+
+// ---------------------------------------------------------------------------
+// Conditional include result type
+// ---------------------------------------------------------------------------
+
+/**
+ * Include field map: include schema key → Profile field name.
+ * For profiles, the mapping is 1:1 (include key matches field name exactly).
+ */
+type ProfileIncludeFieldMap = {
+  name: 'name';
+  description: 'description';
+  tags: 'tags';
+  links: 'links';
+  avatar: 'avatar';
+  profileImage: 'profileImage';
+  backgroundImage: 'backgroundImage';
+  followerCount: 'followerCount';
+  followingCount: 'followingCount';
+};
+
+/**
+ * Profile type narrowed by include parameter.
+ *
+ * - `ProfileResult` (no generic) → full `Profile` type (backward compatible)
+ * - `ProfileResult<{}>` → `{ address: string }` (base fields only)
+ * - `ProfileResult<{ name: true }>` → `{ address: string; name: string | null }`
+ * - `ProfileResult<{ name: true; tags: false }>` → same as `{ name: true }`
+ *
+ * @example
+ * ```ts
+ * type Full = ProfileResult;                      // = Profile (all fields)
+ * type Minimal = ProfileResult<{}>;               // = { address: string }
+ * type NameOnly = ProfileResult<{ name: true }>;  // = { address: string; name: string | null }
+ * ```
+ */
+export type ProfileResult<I extends ProfileInclude | undefined = undefined> = IncludeResult<
+  Profile,
+  'address',
+  ProfileIncludeFieldMap,
+  I
+>;

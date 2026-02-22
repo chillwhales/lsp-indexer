@@ -1,5 +1,6 @@
-import type { Profile } from '@lsp-indexer/types';
+import type { Profile, ProfileInclude } from '@lsp-indexer/types';
 import type { GetProfileQuery } from '../graphql/graphql';
+import { stripExcluded } from './strip';
 import { parseAsset, parseImage, parseLinks } from './utils';
 
 /**
@@ -23,12 +24,13 @@ type RawProfile = GetProfileQuery['universal_profile'][number];
  * - Image verification is `null` when no verification method exists
  *
  * @param raw - A single universal_profile from the Hasura GraphQL response
- * @returns A clean, camelCase `Profile` with safe defaults
+ * @param include - Optional include config; when provided, excluded fields are stripped at runtime
+ * @returns A clean, camelCase `Profile` with safe defaults (narrowed if include provided)
  */
-export function parseProfile(raw: RawProfile): Profile {
+export function parseProfile(raw: RawProfile, include?: ProfileInclude): Profile {
   const lsp3 = raw.lsp3Profile;
 
-  return {
+  const profile: Profile = {
     address: raw.address,
     name: lsp3?.name?.value ?? null,
     description: lsp3?.description?.value ?? null,
@@ -43,6 +45,8 @@ export function parseProfile(raw: RawProfile): Profile {
     followerCount: raw.followedBy_aggregate?.aggregate?.count ?? 0,
     followingCount: raw.followed_aggregate?.aggregate?.count ?? 0,
   };
+
+  return stripExcluded(profile, include, ['address']);
 }
 
 /**
@@ -51,8 +55,9 @@ export function parseProfile(raw: RawProfile): Profile {
  * Convenience wrapper around `parseProfile` for batch results.
  *
  * @param raw - Array of universal_profile from the Hasura GraphQL response
- * @returns Array of clean, camelCase `Profile` objects
+ * @param include - Optional include config; forwarded to each `parseProfile` call
+ * @returns Array of clean, camelCase `Profile` objects (narrowed if include provided)
  */
-export function parseProfiles(raw: RawProfile[]): Profile[] {
-  return raw.map(parseProfile);
+export function parseProfiles(raw: RawProfile[], include?: ProfileInclude): Profile[] {
+  return raw.map((r) => parseProfile(r, include));
 }
