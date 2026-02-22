@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 10 sub-phases)
-- **Sub-phase:** 9.4 (Conditional Include Types) — Plan 02 of 5 complete
-- **Status:** In progress — Profile + Digital Assets conditional include types done
-- **Last activity:** 2026-02-22 — Completed 09.4-02-PLAN.md (Digital Assets conditional include types)
+- **Sub-phase:** 9.4 (Conditional Include Types) — Plan 03 of 5 complete
+- **Status:** In progress — Profile + Digital Assets + NFTs + Owned Assets conditional include types done
+- **Last activity:** 2026-02-22 — Completed 09.4-03-PLAN.md (NFTs + Owned Assets conditional include types)
 - **Progress:** █████░░░░░ 48% (14/29 requirements)
 
 ## Milestone History
@@ -33,7 +33,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.1   | Digital Assets                     |     1/1      | Complete                |
 | 9.2   | NFTs                               |     1/1      | Complete                |
 | 9.3   | Owned Assets                       |     1/1      | Complete                |
-| 9.4   | Conditional Include Types          |      1       | In progress (2/5 plans) |
+| 9.4   | Conditional Include Types          |      1       | In progress (3/5 plans) |
 | 9.5   | Social / Follows                   |      1       | Pending                 |
 | 9.6   | Creators                           |      1       | Pending                 |
 | 9.7   | Encrypted Assets                   |      1       | Pending                 |
@@ -49,7 +49,7 @@ _Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 62 (36 v1.0 + 26 v1.1)
+- **Plans completed:** 63 (36 v1.0 + 27 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 16 (11 v1.0 + 5 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 14/29 (v1.1)
@@ -136,6 +136,10 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **`as ProfileResult<I>` cast pattern:** Service boundaries require explicit cast because parser returns full `Profile` type before runtime stripping. TypeScript can't infer `stripExcluded` narrows the type.
 - **`DigitalAssetResult<I>` with `ResolveStandard<I>`:** Derived field pattern — `standard` follows `decimals` via intersection type `& ResolveStandard<NonNullable<I>>`. Runtime: `stripExcluded(result, include, ['address'], { standard: 'decimals' })`.
 - **`as DigitalAssetResult<I>` cast pattern:** Same cast pattern as Profile — service boundaries cast parser output to narrowed generic type.
+- **`NftResult<I>` with nested relation narrowing:** `ResolveNftCollection<I>` and `ResolveNftHolder<I>` intersection types use `I extends { field: infer C } ? C extends SubInclude ? { field: SubResult<C> | null } : {} : {}` pattern. Base fields: address, tokenId, isBurned, isMinted.
+- **`OwnedAssetResult<I>` with nested relation narrowing:** `ResolveOwnedAssetDA<I>` and `ResolveOwnedAssetHolder<I>` intersection types. Base fields: id, digitalAssetAddress, holderAddress.
+- **NftHolder = ProfileResult + timestamp:** Handled via `ProfileResult<H> & { timestamp: string }` intersection because NftHolder extends Profile with a timestamp.
+- **Recursive nested stripping:** Parsers delegate to `parseDigitalAsset(raw, include?.collection)` and `parseProfile(raw, include?.holder)` with sub-include param — nested relations handled by their own parsers.
 
 ### Discovered Todos
 
@@ -150,24 +154,26 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-22
-- **Activity:** Completed 09.4-02-PLAN.md (Digital Assets conditional include types)
-- **Outcome:** `DigitalAssetResult<I>` type with standard↔decimals derivation, threaded through services/hooks/actions in all 4 packages. All builds pass.
+- **Activity:** Completed 09.4-03-PLAN.md (NFTs + Owned Assets conditional include types)
+- **Outcome:** `NftResult<I>` and `OwnedAssetResult<I>` types with nested relation narrowing (collection→DigitalAsset, holder→Profile), threaded through parsers/services/hooks/actions in all 4 packages. All builds pass.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.4 Plan 02 complete** — Digital Assets domain conditional include types implemented
-- **Next step:** Plan 03 (NFTs + Owned Assets) — nested relation narrowing
-  - NFTs: `NftResult<I>` with nested `collection` (DigitalAssetResult) and `holder` (profile) narrowing
-  - Owned Assets: `OwnedAssetResult<I>` with nested `digitalAsset` and `universalProfile` narrowing
+- **Phase 9.4 Plan 03 complete** — NFTs + Owned Assets conditional include types implemented
+- **Next step:** Plan 04 (Owned Tokens — cross-domain include composition, most complex with 4 nested relations)
+  - Owned Tokens: `OwnedTokenResult<I>` with nested `digitalAsset`, `nft`, `holder`, and `universalProfile` relations
+  - Most complex domain — composes NFT + OwnedAsset + DigitalAsset + Profile includes in a single query
 - **Patterns established:**
   - `IncludeResult<Full, Base, Map, I>` utility type in `include-types.ts`
   - `stripExcluded(obj, include, baseFields, derivedFields?)` in `parsers/strip.ts`
   - `const I extends XInclude | undefined = undefined` on all generic functions
   - `as XResult<I>` cast at service boundaries
   - `& { include?: I }` intersection for hook params
-  - `ResolveStandard<I>` intersection type for derived fields (new in Plan 02)
+  - `ResolveStandard<I>` intersection type for derived fields (Plan 02)
+  - **Nested relation narrowing** via `ResolveX<I>` intersection types (Plan 03) — `I extends { field: infer C } ? C extends SubInclude ? { field: SubResult<C> | null } : {} : {}`
+  - **Recursive stripping** — parsers delegate nested relations to their own parsers with sub-include
 
 ---
 
-_Last updated: 2026-02-22 — Completed 09.4-02-PLAN.md (Digital Assets conditional include types)_
+_Last updated: 2026-02-22 — Completed 09.4-03-PLAN.md (NFTs + Owned Assets conditional include types)_
