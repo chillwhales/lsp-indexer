@@ -159,14 +159,15 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-22
-- **Activity:** Completed 09.4-05-PLAN.md (Playground cards + full build validation)
-- **Outcome:** All 5 playground card components updated to `'key' in obj` field-presence checks. DX-04 fully delivered end-to-end. Phase 9.4 complete.
+- **Activity:** Executed Phase 9.4 (Conditional Include Types) — all 5 plans across 5 waves
+- **Outcome:** DX-04 fully delivered. Phase verified (14/14 must-haves). VERIFICATION.md created.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.4 complete** — DX-04 (conditional include types) fully delivered across all 5 domains
+- **Phase 9.4 complete and verified** — DX-04 (conditional include types) fully delivered across all 5 domains
 - **Next step:** Phase 9.5 (Social / Follows) — first domain to be built with conditional include types from the start
+- **REQUIREMENTS.md updated** — DX-04 added and marked Complete, QUERY-02/03/04 marked Complete
 - **All patterns established and proven across 5 domains:**
   - `IncludeResult<Full, Base, Map, I>` utility type
   - `stripExcluded(obj, include, baseFields, derivedFields?)` runtime stripping
@@ -181,4 +182,4 @@ _None currently._
 
 ---
 
-_Last updated: 2026-02-22 — Completed 09.4-05-PLAN.md, Phase 9.4 complete (DX-04 conditional include types fully delivered)_
+_Last updated: 2026-02-22 — Phase 9.4 complete and verified (DX-04 conditional include types — 14/14 must-haves passed)_

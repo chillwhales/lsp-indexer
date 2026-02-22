@@ -22,9 +22,9 @@ Requirements for the React hooks package milestone. Each maps to roadmap phases.
 Each domain includes: GraphQL document, parser (snake_case → camelCase), service function, TanStack Query hook, and query key factory entry.
 
 - [x] **QUERY-01**: Developer can use `useProfile`, `useProfiles`, `useInfiniteProfiles` for Universal Profile data
-- [ ] **QUERY-02**: Developer can use `useDigitalAsset`, `useDigitalAssets`, `useDigitalAssetSearch` for Digital Asset data
-- [ ] **QUERY-03**: Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data
-- [ ] **QUERY-04**: Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data
+- [x] **QUERY-02**: Developer can use `useDigitalAsset`, `useDigitalAssets`, `useDigitalAssetSearch` for Digital Asset data
+- [x] **QUERY-03**: Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data
+- [x] **QUERY-04**: Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data
 - [ ] **QUERY-05**: Developer can use `useFollowers`, `useFollowing`, `useFollowCount` for social/follow data
 - [ ] **QUERY-06**: Developer can use `useCreatorAddresses` for asset creator data
 - [ ] **QUERY-07**: Developer can use `useEncryptedAsset`, `useEncryptedAssets` for LSP29 encrypted asset data
@@ -53,6 +53,7 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 - [x] **DX-01**: Developer can import all clean camelCase domain types from `@lsp-indexer/types`
 - [x] **DX-02**: Developer can import query key factories for cache invalidation and prefetching
 - [ ] **DX-03**: All 4 packages pass `publint` and `arethetypeswrong` validation for publish readiness
+- [x] **DX-04**: Developer gets TypeScript return types narrowed by `include` parameter — excluded fields are absent from the type, not `null`
 
 ## Future Requirements
 
@@ -93,9 +94,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUERY-01    | 8     | Complete |
 | DX-01       | 8     | Complete |
 | DX-02       | 8     | Complete |
-| QUERY-02    | 9     | Pending  |
-| QUERY-03    | 9     | Pending  |
-| QUERY-04    | 9     | Pending  |
+| QUERY-02    | 9.1   | Complete |
+| QUERY-03    | 9.2   | Complete |
+| QUERY-04    | 9.3   | Complete |
+| DX-04       | 9.4   | Complete |
 | QUERY-05    | 9     | Pending  |
 | QUERY-06    | 9     | Pending  |
 | QUERY-07    | 9     | Pending  |
@@ -113,11 +115,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 **Coverage:**
 
-- v1.1 requirements: 28 total
-- Mapped to phases: 28
+- v1.1 requirements: 29 total
+- Mapped to phases: 29
 - Unmapped: 0 ✓
 
 ---
 
 _Requirements defined: 2026-02-16_
-_Last updated: 2026-02-19 — updated for 4-package architecture (types, node, react, next)_
+_Last updated: 2026-02-22 — Phase 9.4 complete (DX-04), QUERY-02/03/04 marked Complete_
