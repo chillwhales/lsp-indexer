@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 10 sub-phases)
-- **Sub-phase:** 9.4 (Conditional Include Types) — Plan 04 of 5 complete
-- **Status:** In progress — All 5 domains (Profile, DigitalAsset, NFT, OwnedAsset, OwnedToken) have conditional include types
-- **Last activity:** 2026-02-22 — Completed 09.4-04-PLAN.md (OwnedToken conditional include types)
-- **Progress:** █████░░░░░ 48% (14/29 requirements)
+- **Sub-phase:** 9.4 (Conditional Include Types) — Complete (5/5 plans)
+- **Status:** Phase 9.4 complete — DX-04 fully delivered, ready for Phase 9.5
+- **Last activity:** 2026-02-22 — Completed 09.4-05-PLAN.md (Playground cards + full build validation)
+- **Progress:** █████░░░░░ 52% (15/29 requirements)
 
 ## Milestone History
 
@@ -26,33 +26,33 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                               | Requirements | Status                  |
-| ----- | ---------------------------------- | :----------: | ----------------------- |
-| 7     | Package Foundation                 |     7/7      | Complete                |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete                |
-| 9.1   | Digital Assets                     |     1/1      | Complete                |
-| 9.2   | NFTs                               |     1/1      | Complete                |
-| 9.3   | Owned Assets                       |     1/1      | Complete                |
-| 9.4   | Conditional Include Types          |      1       | In progress (4/5 plans) |
-| 9.5   | Social / Follows                   |      1       | Pending                 |
-| 9.6   | Creators                           |      1       | Pending                 |
-| 9.7   | Encrypted Assets                   |      1       | Pending                 |
-| 9.8   | Encrypted Feed                     |      1       | Pending                 |
-| 9.9   | Data Changed Events                |      1       | Pending                 |
-| 9.10  | Universal Receiver Events          |      1       | Pending                 |
-| 10    | Subscriptions                      |      3       | Pending                 |
-| 11    | Server Actions & Publish Readiness |      4       | Pending                 |
+| Phase | Name                               | Requirements | Status   |
+| ----- | ---------------------------------- | :----------: | -------- |
+| 7     | Package Foundation                 |     7/7      | Complete |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
+| 9.1   | Digital Assets                     |     1/1      | Complete |
+| 9.2   | NFTs                               |     1/1      | Complete |
+| 9.3   | Owned Assets                       |     1/1      | Complete |
+| 9.4   | Conditional Include Types          |     1/1      | Complete |
+| 9.5   | Social / Follows                   |      1       | Pending  |
+| 9.6   | Creators                           |      1       | Pending  |
+| 9.7   | Encrypted Assets                   |      1       | Pending  |
+| 9.8   | Encrypted Feed                     |      1       | Pending  |
+| 9.9   | Data Changed Events                |      1       | Pending  |
+| 9.10  | Universal Receiver Events          |      1       | Pending  |
+| 10    | Subscriptions                      |      3       | Pending  |
+| 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 14/29 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, DX-01, DX-02, PAGE-01 incremental)
+**Total:** 15/29 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, DX-01, DX-02, DX-04, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 64 (36 v1.0 + 28 v1.1)
+- **Plans completed:** 65 (36 v1.0 + 29 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 16 (11 v1.0 + 5 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 14/29 (v1.1)
+- **Phases completed:** 17 (11 v1.0 + 6 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 15/29 (v1.1)
 
 ## Accumulated Context
 
@@ -142,6 +142,9 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **Recursive nested stripping:** Parsers delegate to `parseDigitalAsset(raw, include?.collection)` and `parseProfile(raw, include?.holder)` with sub-include param — nested relations handled by their own parsers.
 - **`OwnedTokenResult<I>` with 4 nested relation narrowing:** Most complex domain — `ResolveOwnedTokenDA<I>`, `ResolveOwnedTokenNft<I>`, `ResolveOwnedTokenOA<I>`, `ResolveOwnedTokenHolder<I>`. Custom scalar field maps for sub-domain contexts (OwnedTokenNftScalarFieldMap with 8 fields, OwnedTokenOwnedAssetFieldMap with 3 fields).
 - **Sub-domain IncludeResult vs XResult:** NFT and OwnedAsset sub-contexts in owned-token use `IncludeResult<Nft/OwnedAsset>` directly (not `NftResult`/`OwnedAssetResult`) because collection/holder and digitalAsset/holder/tokenIdCount are unavailable in sub-selection context.
+- **Card prop types as `Record<string, unknown>`:** Cards accept any subset of the full domain type. `'key' in obj` guards determine which sections render. Typed narrowing enforced at hook consumer level, not card level.
+- **`as Record<string, unknown>` casts at page-card boundaries:** Pages cast narrowed `XResult<I>` types when passing to cards — single clean boundary between typed hook results and field-presence-based rendering.
+- **Removed explicit `ResultsList<T>` generics:** Let TypeScript infer from `items` prop — avoids type mismatch when hooks return narrowed result types.
 
 ### Discovered Todos
 
@@ -156,14 +159,14 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-22
-- **Activity:** Completed 09.4-04-PLAN.md (OwnedToken conditional include types)
-- **Outcome:** `OwnedTokenResult<I>` with 4 nested relation narrowing — most complex domain. All 5 domains complete. All 4 packages build.
+- **Activity:** Completed 09.4-05-PLAN.md (Playground cards + full build validation)
+- **Outcome:** All 5 playground card components updated to `'key' in obj` field-presence checks. DX-04 fully delivered end-to-end. Phase 9.4 complete.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.4 Plan 04 complete** — All 5 domains have conditional include types
-- **Next step:** Plan 05 (type-level tests to verify all domain result types resolve correctly)
+- **Phase 9.4 complete** — DX-04 (conditional include types) fully delivered across all 5 domains
+- **Next step:** Phase 9.5 (Social / Follows) — first domain to be built with conditional include types from the start
 - **All patterns established and proven across 5 domains:**
   - `IncludeResult<Full, Base, Map, I>` utility type
   - `stripExcluded(obj, include, baseFields, derivedFields?)` runtime stripping
@@ -173,7 +176,9 @@ _None currently._
   - Nested relation narrowing via `Resolve*<I>` intersection types
   - Recursive stripping via sub-parser delegation
   - Custom scalar field maps for constrained sub-domain contexts
+  - `'key' in obj` field-presence checks in card components
+  - `Record<string, unknown>` prop types for narrowed result rendering
 
 ---
 
-_Last updated: 2026-02-22 — Completed 09.4-04-PLAN.md (OwnedToken conditional include types)_
+_Last updated: 2026-02-22 — Completed 09.4-05-PLAN.md, Phase 9.4 complete (DX-04 conditional include types fully delivered)_
