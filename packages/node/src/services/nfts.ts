@@ -1,4 +1,10 @@
-import type { Nft, NftFilter, NftInclude, NftSort, OwnedTokenNftInclude } from '@lsp-indexer/types';
+import type {
+  NftFilter,
+  NftInclude,
+  NftResult,
+  NftSort,
+  OwnedTokenNftInclude,
+} from '@lsp-indexer/types';
 import { execute } from '../client/execute';
 import { GetNftDocument, GetNftsDocument } from '../documents/nfts';
 import type { Nft_Bool_Exp, Nft_Order_By } from '../graphql/graphql';
@@ -215,15 +221,15 @@ export function buildNftIncludeVars(include?: OwnedTokenNftInclude): Record<stri
  * @param params - Query parameters (address + tokenId/formattedTokenId + optional include)
  * @returns The parsed NFT, or `null` if not found
  */
-export async function fetchNft(
+export async function fetchNft<const I extends NftInclude | undefined = undefined>(
   url: string,
   params: {
     address: string;
     tokenId?: string;
     formattedTokenId?: string;
-    include?: NftInclude;
+    include?: I;
   },
-): Promise<Nft | null> {
+): Promise<NftResult<I> | null> {
   if (!params.tokenId && !params.formattedTokenId) {
     throw new Error('fetchNft requires at least one of tokenId or formattedTokenId');
   }
@@ -248,15 +254,19 @@ export async function fetchNft(
   });
 
   const raw = result.nft[0];
-  return raw ? parseNft(raw) : null;
+  if (!raw) return null;
+  return parseNft(raw, params.include) as NftResult<I>;
 }
 
 /**
  * Result shape for paginated NFT list queries.
+ *
+ * When the include parameter `I` is provided, the `nfts` array contains
+ * narrowed types with only base fields + included fields.
  */
-export interface FetchNftsResult {
-  /** Parsed NFTs for the current page */
-  nfts: Nft[];
+export interface FetchNftsResult<I extends NftInclude | undefined = undefined> {
+  /** Parsed NFTs for the current page (narrowed by include) */
+  nfts: NftResult<I>[];
   /** Total number of NFTs matching the filter (for pagination UI) */
   totalCount: number;
 }
@@ -271,16 +281,22 @@ export interface FetchNftsResult {
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed NFTs and total count
  */
-export async function fetchNfts(
+export async function fetchNfts<const I extends NftInclude | undefined = undefined>(
   url: string,
   params: {
     filter?: NftFilter;
     sort?: NftSort;
     limit?: number;
     offset?: number;
-    include?: NftInclude;
-  } = {},
-): Promise<FetchNftsResult> {
+    include?: I;
+  } = {} as {
+    filter?: NftFilter;
+    sort?: NftSort;
+    limit?: number;
+    offset?: number;
+    include?: I;
+  },
+): Promise<FetchNftsResult<I>> {
   const where = buildNftWhere(params.filter);
   const orderBy = buildNftOrderBy(params.sort);
   const includeVars = buildIncludeVars(params.include);
@@ -294,7 +310,7 @@ export async function fetchNfts(
   });
 
   return {
-    nfts: parseNfts(result.nft),
+    nfts: parseNfts(result.nft, params.include) as NftResult<I>[],
     totalCount: result.nft_aggregate?.aggregate?.count ?? 0,
   };
 }

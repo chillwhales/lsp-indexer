@@ -1,7 +1,8 @@
-import type { Nft } from '@lsp-indexer/types';
+import type { Nft, NftInclude } from '@lsp-indexer/types';
 import type { GetNftQuery } from '../graphql/graphql';
 import { parseDigitalAsset } from './digital-assets';
 import { parseProfile } from './profiles';
+import { stripExcluded } from './strip';
 import { parseAttributes, parseImage, parseLinks } from './utils';
 
 /**
@@ -31,13 +32,14 @@ type RawNft = GetNftQuery['nft'][number];
  * - `[]` = fetched but legitimately empty
  *
  * @param raw - A single nft from the Hasura GraphQL response
- * @returns A clean, camelCase `Nft` with safe defaults
+ * @param include - Optional include config; when provided, excluded fields are stripped at runtime
+ * @returns A clean, camelCase `Nft` with safe defaults (narrowed if include provided)
  */
-export function parseNft(raw: RawNft): Nft {
+export function parseNft(raw: RawNft, include?: NftInclude): Nft {
   const direct = raw.lsp4Metadata;
   const baseUri = raw.lsp4MetadataBaseUri;
 
-  return {
+  const result: Nft = {
     address: raw.address,
     tokenId: raw.token_id,
     formattedTokenId: raw.formatted_token_id ?? null,
@@ -48,7 +50,15 @@ export function parseNft(raw: RawNft): Nft {
     name: direct?.name?.value ?? baseUri?.name?.value ?? null,
 
     // Full collection from digitalAsset — reuse parseDigitalAsset
-    collection: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset) : null,
+    // When include has collection sub-include, strip nested DA fields via parseDigitalAsset
+    collection: raw.digitalAsset
+      ? parseDigitalAsset(
+          raw.digitalAsset,
+          include?.collection && typeof include.collection === 'object'
+            ? include.collection
+            : undefined,
+        )
+      : null,
 
     // Holder — profile fields spread flat (no nested universalProfile wrapper).
     // When the holder has a UP, profile fields are populated from parseProfile.
@@ -57,7 +67,10 @@ export function parseNft(raw: RawNft): Nft {
       ? {
           timestamp: raw.ownedToken.timestamp ?? '',
           ...(raw.ownedToken.universalProfile
-            ? parseProfile(raw.ownedToken.universalProfile as Parameters<typeof parseProfile>[0])
+            ? parseProfile(
+                raw.ownedToken.universalProfile as Parameters<typeof parseProfile>[0],
+                include?.holder && typeof include.holder === 'object' ? include.holder : undefined,
+              )
             : {
                 address: raw.ownedToken.owner,
                 name: null,
@@ -89,6 +102,8 @@ export function parseNft(raw: RawNft): Nft {
     links: parseLinks(direct?.links) ?? parseLinks(baseUri?.links) ?? null,
     attributes: parseAttributes(direct?.attributes) ?? parseAttributes(baseUri?.attributes) ?? null,
   };
+
+  return stripExcluded(result, include, ['address', 'tokenId', 'isBurned', 'isMinted']);
 }
 
 /**
@@ -97,8 +112,9 @@ export function parseNft(raw: RawNft): Nft {
  * Convenience wrapper around `parseNft` for batch results.
  *
  * @param raw - Array of nft from the Hasura GraphQL response
- * @returns Array of clean, camelCase `Nft` objects
+ * @param include - Optional include config; forwarded to each `parseNft` call
+ * @returns Array of clean, camelCase `Nft` objects (narrowed if include provided)
  */
-export function parseNfts(raw: RawNft[]): Nft[] {
-  return raw.map(parseNft);
+export function parseNfts(raw: RawNft[], include?: NftInclude): Nft[] {
+  return raw.map((r) => parseNft(r, include));
 }
