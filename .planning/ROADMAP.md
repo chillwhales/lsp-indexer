@@ -189,7 +189,7 @@ This is a cross-cutting DX refactor that touches types, parsers, hooks, server a
 
 Plans:
 
-- [ ] 09.4-01-PLAN.md — Shared utility types (IncludeResult, stripExcluded) + Profile domain end-to-end
+- [x] 09.4-01-PLAN.md — Shared utility types (IncludeResult, stripExcluded) + Profile domain end-to-end
 - [ ] 09.4-02-PLAN.md — Digital Assets domain with standard↔decimals derived field handling
 - [ ] 09.4-03-PLAN.md — NFTs + Owned Assets domains with nested relation narrowing
 - [ ] 09.4-04-PLAN.md — Owned Tokens domain (most complex — 4 nested relations)
@@ -349,22 +349,22 @@ Plans:
 
 ## Progress
 
-| Phase | Name                               | Requirements | Status   |
-| ----- | ---------------------------------- | :----------: | -------- |
-| 7     | Package Foundation                 |     7/7      | Complete |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
-| 9.1   | Digital Assets                     |     1/1      | Complete |
-| 9.2   | NFTs                               |     1/1      | Complete |
-| 9.3   | Owned Assets                       |     1/1      | Complete |
-| 9.4   | Conditional Include Types          |      1       | Pending  |
-| 9.5   | Social / Follows                   |      1       | Pending  |
-| 9.6   | Creators                           |      1       | Pending  |
-| 9.7   | Encrypted Assets                   |      1       | Pending  |
-| 9.8   | Encrypted Feed                     |      1       | Pending  |
-| 9.9   | Data Changed Events                |      1       | Pending  |
-| 9.10  | Universal Receiver Events          |      1       | Pending  |
-| 10    | Subscriptions                      |      3       | Pending  |
-| 11    | Server Actions & Publish Readiness |      4       | Pending  |
+| Phase | Name                               | Requirements | Status                  |
+| ----- | ---------------------------------- | :----------: | ----------------------- |
+| 7     | Package Foundation                 |     7/7      | Complete                |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete                |
+| 9.1   | Digital Assets                     |     1/1      | Complete                |
+| 9.2   | NFTs                               |     1/1      | Complete                |
+| 9.3   | Owned Assets                       |     1/1      | Complete                |
+| 9.4   | Conditional Include Types          |      1       | In progress (1/5 plans) |
+| 9.5   | Social / Follows                   |      1       | Pending                 |
+| 9.6   | Creators                           |      1       | Pending                 |
+| 9.7   | Encrypted Assets                   |      1       | Pending                 |
+| 9.8   | Encrypted Feed                     |      1       | Pending                 |
+| 9.9   | Data Changed Events                |      1       | Pending                 |
+| 9.10  | Universal Receiver Events          |      1       | Pending                 |
+| 10    | Subscriptions                      |      3       | Pending                 |
+| 11    | Server Actions & Publish Readiness |      4       | Pending                 |
 
 _Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 

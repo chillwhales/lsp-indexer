@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 10 sub-phases)
-- **Sub-phase:** 9.4 (Conditional Include Types) — pending (research-first)
-- **Status:** Phase 9.3 complete, roadmap updated with new Phase 9.4 inserted
-- **Last activity:** 2026-02-21 — Inserted Phase 9.4 (Conditional Include Types), bumped 9.4–9.9 → 9.5–9.10
+- **Sub-phase:** 9.4 (Conditional Include Types) — Plan 01 of 5 complete
+- **Status:** In progress — Profile domain conditional include types done
+- **Last activity:** 2026-02-22 — Completed 09.4-01-PLAN.md (Profile conditional include types)
 - **Progress:** █████░░░░░ 48% (14/29 requirements)
 
 ## Milestone History
@@ -26,22 +26,22 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                               | Requirements | Status   |
-| ----- | ---------------------------------- | :----------: | -------- |
-| 7     | Package Foundation                 |     7/7      | Complete |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
-| 9.1   | Digital Assets                     |     1/1      | Complete |
-| 9.2   | NFTs                               |     1/1      | Complete |
-| 9.3   | Owned Assets                       |     1/1      | Complete |
-| 9.4   | Conditional Include Types          |      1       | Pending  |
-| 9.5   | Social / Follows                   |      1       | Pending  |
-| 9.6   | Creators                           |      1       | Pending  |
-| 9.7   | Encrypted Assets                   |      1       | Pending  |
-| 9.8   | Encrypted Feed                     |      1       | Pending  |
-| 9.9   | Data Changed Events                |      1       | Pending  |
-| 9.10  | Universal Receiver Events          |      1       | Pending  |
-| 10    | Subscriptions                      |      3       | Pending  |
-| 11    | Server Actions & Publish Readiness |      4       | Pending  |
+| Phase | Name                               | Requirements | Status                  |
+| ----- | ---------------------------------- | :----------: | ----------------------- |
+| 7     | Package Foundation                 |     7/7      | Complete                |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete                |
+| 9.1   | Digital Assets                     |     1/1      | Complete                |
+| 9.2   | NFTs                               |     1/1      | Complete                |
+| 9.3   | Owned Assets                       |     1/1      | Complete                |
+| 9.4   | Conditional Include Types          |      1       | In progress (1/5 plans) |
+| 9.5   | Social / Follows                   |      1       | Pending                 |
+| 9.6   | Creators                           |      1       | Pending                 |
+| 9.7   | Encrypted Assets                   |      1       | Pending                 |
+| 9.8   | Encrypted Feed                     |      1       | Pending                 |
+| 9.9   | Data Changed Events                |      1       | Pending                 |
+| 9.10  | Universal Receiver Events          |      1       | Pending                 |
+| 10    | Subscriptions                      |      3       | Pending                 |
+| 11    | Server Actions & Publish Readiness |      4       | Pending                 |
 
 _Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
@@ -49,7 +49,7 @@ _Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 60 (36 v1.0 + 24 v1.1)
+- **Plans completed:** 61 (36 v1.0 + 25 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 16 (11 v1.0 + 5 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 14/29 (v1.1)
@@ -131,6 +131,9 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **NftCard section order:** Holder Profile → NFT Metadata → Collection (collection moved to last per user preference)
 - **OwnedTokenNftIncludeSchema:** 8 per-field `@include` toggles for NFT metadata (NftInclude minus collection/holder which are sibling relations)
 - **Conditional include types (DX-04):** Hook return types should be narrowed by `include` parameter — excluded fields absent from type, not `null`. Prisma-style `select`/`include` inference. Nested includes narrow recursively. Default (no include) returns full type. Research-first approach: design spike before implementation plans.
+- **`IncludeResult<Full, Base, Map, I>` utility type:** Core type algebra in `include-types.ts` — maps include params to narrowed domain types. Uses `ActiveFields` helper with conditional mapped types. `const I` generic param preserves literal type inference.
+- **`stripExcluded` runtime utility:** `parsers/strip.ts` — ensures Object.keys only returns included fields at runtime. Accepts `derivedFields` map for cross-field dependencies (e.g., digital asset `standard` derives from `decimals`).
+- **`as ProfileResult<I>` cast pattern:** Service boundaries require explicit cast because parser returns full `Profile` type before runtime stripping. TypeScript can't infer `stripExcluded` narrows the type.
 
 ### Discovered Todos
 
@@ -144,26 +147,25 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-21
-- **Activity:** Inserted Phase 9.4 (Conditional Include Types) into roadmap, bumped 9.4–9.9 → 9.5–9.10
-- **Outcome:** Roadmap updated with new DX-04 requirement, phase directories renamed on disk, STATE.md updated. Phase 9.3 PR #197 still open for review/merge.
+- **Date:** 2026-02-22
+- **Activity:** Completed 09.4-01-PLAN.md (Profile conditional include types)
+- **Outcome:** `IncludeResult` utility type, `stripExcluded` runtime utility, `ProfileResult<I>` type, and generic I parameter threaded through all Profile services/hooks/actions. All 4 packages build successfully.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.3 complete** — All 4 plans delivered, PR #197 open on `feat/phase-9.3-owned-assets`
-- **Next step:** Phase 9.4 (Conditional Include Types) — research-first approach
-  - Merge PR #197 → create `feat/phase-9.4-conditional-include-types` branch
-  - Plan 01 is a design spike: research TypeScript conditional type patterns (Prisma-style `select`/`include` inference), Zod interop, TanStack Query generic propagation
-  - Implementation plans created after research validates approach
-- **Key technical challenge for 9.4:** Return types narrowed by `include` parameter — `useProfile({ address, include: { name: true } })` returns only `{ address, name }`, excluded fields absent from type (not `null`). Nested includes must also narrow (e.g., `digitalAsset` with sub-includes). Default (no `include`) returns full type.
-- **Key patterns established for 9.5+:**
-  - Preset buttons pattern for playground single lookup
-  - Ghost Button collapsible triggers in all card components
-  - BigInt serialization fix in RawJsonToggle
-  - Cross-domain reusable `buildProfileIncludeVars()`, `buildDigitalAssetIncludeVars()`, `buildNftIncludeVars()`
-  - NFT holder UP inline parsing pattern (`parseHolderProfile()`)
+- **Phase 9.4 Plan 01 complete** — Profile domain conditional include types implemented
+- **Next step:** Plan 02 (Digital Assets) — replicate pattern to DigitalAsset domain
+  - Create `DigitalAssetIncludeFieldMap`, `DigitalAssetResult<I>` type
+  - Use `derivedFields` parameter on `stripExcluded` for `standard` → `decimals` relationship
+  - Thread generic through digital asset services/hooks/actions
+- **Pattern established in Plan 01:**
+  - `IncludeResult<Full, Base, Map, I>` utility type in `include-types.ts`
+  - `stripExcluded(obj, include, baseFields, derivedFields?)` in `parsers/strip.ts`
+  - `const I extends XInclude | undefined = undefined` on all generic functions
+  - `as XResult<I>` cast at service boundaries
+  - `& { include?: I }` intersection for hook params
 
 ---
 
-_Last updated: 2026-02-21 — inserted Phase 9.4 (Conditional Include Types), bumped 9.4–9.9 → 9.5–9.10_
+_Last updated: 2026-02-22 — Completed 09.4-01-PLAN.md (Profile conditional include types)_
