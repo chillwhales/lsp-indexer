@@ -80,5 +80,23 @@ export { ownedTokenKeys } from './keys/owned-tokens';
 // Owned token GraphQL documents (for advanced usage / custom queries)
 export { GetOwnedTokenDocument, GetOwnedTokensDocument } from './documents/owned-tokens';
 
+// Follower services (the core fetching layer)
+export {
+  buildFollowerIncludeVars,
+  fetchFollowCount,
+  fetchFollowers,
+  fetchIsFollowing,
+} from './services/followers';
+export type { FetchFollowersResult } from './services/followers';
+
+// Follower parsers (Hasura → clean types)
+export { parseFollower, parseFollowers } from './parsers/followers';
+
+// Follower query key factory
+export { followerKeys } from './keys/followers';
+
+// Follower GraphQL documents (for advanced usage / custom queries)
+export { GetFollowCountDocument, GetFollowersDocument } from './documents/followers';
+
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';
