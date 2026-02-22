@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 10 sub-phases)
-- **Sub-phase:** 9.5 (Social / Follows) — In progress (3/4 plans)
-- **Status:** Phase 9.5 plan 03 complete — hooks + server actions + build validation delivered
-- **Last activity:** 2026-02-22 — Completed 09.5-03-PLAN.md (Follower hooks + server actions + build validation)
-- **Progress:** █████░░░░░ 52% (15/29 requirements)
+- **Sub-phase:** 9.5 (Social / Follows) — Complete (4/4 plans)
+- **Status:** Phase 9.5 complete — QUERY-05 delivered, playground verified
+- **Last activity:** 2026-02-22 — Completed 09.5-04-PLAN.md (FollowerCard + Follows playground page)
+- **Progress:** ██████░░░░ 55% (16/29 requirements)
 
 ## Milestone History
 
@@ -26,33 +26,33 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                               | Requirements | Status            |
-| ----- | ---------------------------------- | :----------: | ----------------- |
-| 7     | Package Foundation                 |     7/7      | Complete          |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete          |
-| 9.1   | Digital Assets                     |     1/1      | Complete          |
-| 9.2   | NFTs                               |     1/1      | Complete          |
-| 9.3   | Owned Assets                       |     1/1      | Complete          |
-| 9.4   | Conditional Include Types          |     1/1      | Complete          |
-| 9.5   | Social / Follows                   |      1       | In progress (3/4) |
-| 9.6   | Creators                           |      1       | Pending           |
-| 9.7   | Encrypted Assets                   |      1       | Pending           |
-| 9.8   | Encrypted Feed                     |      1       | Pending           |
-| 9.9   | Data Changed Events                |      1       | Pending           |
-| 9.10  | Universal Receiver Events          |      1       | Pending           |
-| 10    | Subscriptions                      |      3       | Pending           |
-| 11    | Server Actions & Publish Readiness |      4       | Pending           |
+| Phase | Name                               | Requirements | Status   |
+| ----- | ---------------------------------- | :----------: | -------- |
+| 7     | Package Foundation                 |     7/7      | Complete |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
+| 9.1   | Digital Assets                     |     1/1      | Complete |
+| 9.2   | NFTs                               |     1/1      | Complete |
+| 9.3   | Owned Assets                       |     1/1      | Complete |
+| 9.4   | Conditional Include Types          |     1/1      | Complete |
+| 9.5   | Social / Follows                   |     1/1      | Complete |
+| 9.6   | Creators                           |      1       | Pending  |
+| 9.7   | Encrypted Assets                   |      1       | Pending  |
+| 9.8   | Encrypted Feed                     |      1       | Pending  |
+| 9.9   | Data Changed Events                |      1       | Pending  |
+| 9.10  | Universal Receiver Events          |      1       | Pending  |
+| 10    | Subscriptions                      |      3       | Pending  |
+| 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 15/29 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, DX-01, DX-02, DX-04, PAGE-01 incremental)
+**Total:** 16/29 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, DX-01, DX-02, DX-04, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 67 (36 v1.0 + 31 v1.1)
+- **Plans completed:** 69 (36 v1.0 + 33 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 17 (11 v1.0 + 6 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 15/29 (v1.1)
+- **Phases completed:** 18 (11 v1.0 + 7 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 16/29 (v1.1)
 
 ## Accumulated Context
 
@@ -159,22 +159,18 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-22
-- **Activity:** Executed Phase 9.5 plan 03 — Follower hooks + server actions + build validation
-- **Outcome:** 6 React hooks, 3 server actions, 6 Next.js hooks created. Barrel exports wired. All 4 packages build and typecheck with zero errors.
+- **Activity:** Executed Phase 9.5 plan 04 — FollowerCard + Follows playground page (6 tabs) + nav update
+- **Outcome:** FollowerCard component and 6-tab /follows page created. All hooks verified. next build passes. Nav updated.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.5 plan 03 complete** — Hooks + server actions + build validation delivered
-- **Next step:** Phase 9.5 plan 04 — FollowerCard + Follows playground page (6 tabs) + nav update
-- **Key patterns for playground:**
-  - 6 tabs: Followers / Infinite Followers / Following / Infinite Following / Count / Is Following
-  - useFollowers/useFollowing return { followers/following, totalCount }
-  - useFollowCount returns { followerCount, followingCount }
-  - useIsFollowing returns { isFollowing: boolean }
-  - All list hooks support include parameter — playground can test field narrowing
+- **Phase 9.5 complete** — QUERY-05 delivered (useFollowers, useFollowing, useFollowCount, useIsFollowing + infinite variants)
+- **Next step:** Phase 9.6 (Creators) — next domain sub-phase
 - **All DX-04 patterns established and proven across 6 domains** (profiles, digital-assets, nfts, owned-assets, owned-tokens, followers)
+- **Follows was first domain built WITH conditional include types from the start** (not retrofitted)
+- **Playground patterns now include dual SubIncludeSection** (followerProfile + followedProfile)
 
 ---
 
-_Last updated: 2026-02-22 — Phase 9.5 plan 03 complete (Follower hooks + server actions + build validation)_
+_Last updated: 2026-02-22 — Phase 9.5 complete (Social / Follows — all 4 plans delivered, QUERY-05 satisfied)_
