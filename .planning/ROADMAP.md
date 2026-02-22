@@ -192,7 +192,7 @@ Plans:
 - [x] 09.4-01-PLAN.md — Shared utility types (IncludeResult, stripExcluded) + Profile domain end-to-end
 - [x] 09.4-02-PLAN.md — Digital Assets domain with standard↔decimals derived field handling
 - [x] 09.4-03-PLAN.md — NFTs + Owned Assets domains with nested relation narrowing
-- [ ] 09.4-04-PLAN.md — Owned Tokens domain (most complex — 4 nested relations)
+- [x] 09.4-04-PLAN.md — Owned Tokens domain (most complex — 4 nested relations)
 - [ ] 09.4-05-PLAN.md — Playground cards update + full build validation
 
 ---
@@ -356,7 +356,7 @@ Plans:
 | 9.1   | Digital Assets                     |     1/1      | Complete                |
 | 9.2   | NFTs                               |     1/1      | Complete                |
 | 9.3   | Owned Assets                       |     1/1      | Complete                |
-| 9.4   | Conditional Include Types          |      1       | In progress (3/5 plans) |
+| 9.4   | Conditional Include Types          |      1       | In progress (4/5 plans) |
 | 9.5   | Social / Follows                   |      1       | Pending                 |
 | 9.6   | Creators                           |      1       | Pending                 |
 | 9.7   | Encrypted Assets                   |      1       | Pending                 |
@@ -472,4 +472,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-22 — Phase 9.4 Plan 03 complete (NFTs + Owned Assets conditional include types)_
+_Last updated: 2026-02-22 — Phase 9.4 Plan 04 complete (OwnedToken conditional include types — all 5 domains done)_
