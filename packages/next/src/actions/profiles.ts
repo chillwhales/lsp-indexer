@@ -2,7 +2,7 @@
 
 import type { FetchProfilesResult } from '@lsp-indexer/node';
 import { fetchProfile, fetchProfiles, getServerUrl } from '@lsp-indexer/node';
-import type { Profile, ProfileFilter, ProfileInclude, ProfileSort } from '@lsp-indexer/types';
+import type { ProfileFilter, ProfileInclude, ProfileResult, ProfileSort } from '@lsp-indexer/types';
 
 /**
  * Server action: Fetch a single Universal Profile by address.
@@ -16,10 +16,10 @@ import type { Profile, ProfileFilter, ProfileInclude, ProfileSort } from '@lsp-i
  * @param include - Optional field inclusion config
  * @returns The parsed profile, or `null` if not found
  */
-export async function getProfile(
+export async function getProfile<const I extends ProfileInclude | undefined = undefined>(
   address: string,
-  include?: ProfileInclude,
-): Promise<Profile | null> {
+  include?: I,
+): Promise<ProfileResult<I> | null> {
   const url = getServerUrl();
   return fetchProfile(url, { address, include });
 }
@@ -34,13 +34,13 @@ export async function getProfile(
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed profiles and total count
  */
-export async function getProfiles(params?: {
+export async function getProfiles<const I extends ProfileInclude | undefined = undefined>(params?: {
   filter?: ProfileFilter;
   sort?: ProfileSort;
   limit?: number;
   offset?: number;
-  include?: ProfileInclude;
-}): Promise<FetchProfilesResult> {
+  include?: I;
+}): Promise<FetchProfilesResult<I>> {
   const url = getServerUrl();
   return fetchProfiles(url, params ?? {});
 }

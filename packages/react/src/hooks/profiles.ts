@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 
 import { fetchProfile, fetchProfiles, getClientUrl, profileKeys } from '@lsp-indexer/node';
 import type {
+  ProfileInclude,
+  ProfileResult,
   UseInfiniteProfilesParams,
   UseProfileParams,
   UseProfilesParams,
@@ -42,7 +44,9 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useProfile(params: UseProfileParams) {
+export function useProfile<const I extends ProfileInclude | undefined = undefined>(
+  params: UseProfileParams & { include?: I },
+) {
   const url = getClientUrl();
   const { address, include } = params;
 
@@ -52,7 +56,7 @@ export function useProfile(params: UseProfileParams) {
     enabled: Boolean(address),
   });
 
-  return { profile: data ?? null, ...rest };
+  return { profile: (data ?? null) as ProfileResult<I> | null, ...rest };
 }
 
 /**
@@ -89,7 +93,9 @@ export function useProfile(params: UseProfileParams) {
  * }
  * ```
  */
-export function useProfiles(params: UseProfilesParams = {}) {
+export function useProfiles<const I extends ProfileInclude | undefined = undefined>(
+  params: UseProfilesParams & { include?: I } = {} as UseProfilesParams & { include?: I },
+) {
   const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
@@ -99,7 +105,7 @@ export function useProfiles(params: UseProfilesParams = {}) {
   });
 
   return {
-    profiles: data?.profiles ?? [],
+    profiles: (data?.profiles ?? []) as ProfileResult<I>[],
     totalCount: data?.totalCount ?? 0,
     ...rest,
   };
@@ -149,7 +155,11 @@ export function useProfiles(params: UseProfilesParams = {}) {
  * }
  * ```
  */
-export function useInfiniteProfiles(params: UseInfiniteProfilesParams = {}) {
+export function useInfiniteProfiles<const I extends ProfileInclude | undefined = undefined>(
+  params: UseInfiniteProfilesParams & { include?: I } = {} as UseInfiniteProfilesParams & {
+    include?: I;
+  },
+) {
   const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
@@ -176,7 +186,10 @@ export function useInfiniteProfiles(params: UseInfiniteProfilesParams = {}) {
 
   // Flatten all pages into a single profiles array (memoized to avoid re-flattening on every render)
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const profiles = useMemo(() => data?.pages.flatMap((page) => page.profiles) ?? [], [data?.pages]);
+  const profiles = useMemo(
+    () => (data?.pages.flatMap((page) => page.profiles) ?? []) as ProfileResult<I>[],
+    [data?.pages],
+  );
 
   return {
     profiles,
