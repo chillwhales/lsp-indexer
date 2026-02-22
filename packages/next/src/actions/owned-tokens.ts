@@ -3,9 +3,9 @@
 import type { FetchOwnedTokensResult } from '@lsp-indexer/node';
 import { fetchOwnedToken, fetchOwnedTokens, getServerUrl } from '@lsp-indexer/node';
 import type {
-  OwnedToken,
   OwnedTokenFilter,
   OwnedTokenInclude,
+  OwnedTokenResult,
   OwnedTokenSort,
 } from '@lsp-indexer/types';
 
@@ -19,12 +19,12 @@ import type {
  *
  * @param id - The owned token unique ID
  * @param include - Optional field inclusion config
- * @returns The parsed owned token, or `null` if not found
+ * @returns The parsed owned token (narrowed by include), or `null` if not found
  */
-export async function getOwnedToken(
+export async function getOwnedToken<const I extends OwnedTokenInclude | undefined = undefined>(
   id: string,
-  include?: OwnedTokenInclude,
-): Promise<OwnedToken | null> {
+  include?: I,
+): Promise<OwnedTokenResult<I> | null> {
   const url = getServerUrl();
   return fetchOwnedToken(url, { id, include });
 }
@@ -39,13 +39,15 @@ export async function getOwnedToken(
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed owned tokens and total count
  */
-export async function getOwnedTokens(params?: {
+export async function getOwnedTokens<
+  const I extends OwnedTokenInclude | undefined = undefined,
+>(params?: {
   filter?: OwnedTokenFilter;
   sort?: OwnedTokenSort;
   limit?: number;
   offset?: number;
-  include?: OwnedTokenInclude;
-}): Promise<FetchOwnedTokensResult> {
+  include?: I;
+}): Promise<FetchOwnedTokensResult<I>> {
   const url = getServerUrl();
   return fetchOwnedTokens(url, params ?? {});
 }

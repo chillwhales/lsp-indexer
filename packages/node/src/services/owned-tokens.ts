@@ -1,7 +1,7 @@
 import type {
-  OwnedToken,
   OwnedTokenFilter,
   OwnedTokenInclude,
+  OwnedTokenResult,
   OwnedTokenSort,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
@@ -205,10 +205,10 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
  * @param params - Query parameters (id + optional include)
  * @returns The parsed owned token, or `null` if not found
  */
-export async function fetchOwnedToken(
+export async function fetchOwnedToken<const I extends OwnedTokenInclude | undefined = undefined>(
   url: string,
-  params: { id: string; include?: OwnedTokenInclude },
-): Promise<OwnedToken | null> {
+  params: { id: string; include?: I },
+): Promise<OwnedTokenResult<I> | null> {
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetOwnedTokenDocument, {
@@ -217,15 +217,19 @@ export async function fetchOwnedToken(
   });
 
   const raw = result.owned_token[0];
-  return raw ? parseOwnedToken(raw) : null;
+  if (!raw) return null;
+  return parseOwnedToken(raw, params.include) as OwnedTokenResult<I>;
 }
 
 /**
  * Result shape for paginated owned token list queries.
+ *
+ * When the include parameter `I` is provided, the `ownedTokens` array contains
+ * narrowed types with only base fields + included fields.
  */
-export interface FetchOwnedTokensResult {
-  /** Parsed owned tokens for the current page */
-  ownedTokens: OwnedToken[];
+export interface FetchOwnedTokensResult<I extends OwnedTokenInclude | undefined = undefined> {
+  /** Parsed owned tokens for the current page (narrowed by include) */
+  ownedTokens: OwnedTokenResult<I>[];
   /** Total number of owned tokens matching the filter (for pagination UI) */
   totalCount: number;
 }
@@ -240,16 +244,22 @@ export interface FetchOwnedTokensResult {
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed owned tokens and total count
  */
-export async function fetchOwnedTokens(
+export async function fetchOwnedTokens<const I extends OwnedTokenInclude | undefined = undefined>(
   url: string,
   params: {
     filter?: OwnedTokenFilter;
     sort?: OwnedTokenSort;
     limit?: number;
     offset?: number;
-    include?: OwnedTokenInclude;
-  } = {},
-): Promise<FetchOwnedTokensResult> {
+    include?: I;
+  } = {} as {
+    filter?: OwnedTokenFilter;
+    sort?: OwnedTokenSort;
+    limit?: number;
+    offset?: number;
+    include?: I;
+  },
+): Promise<FetchOwnedTokensResult<I>> {
   const where = buildOwnedTokenWhere(params.filter);
   const orderBy = buildOwnedTokenOrderBy(params.sort);
   const includeVars = buildIncludeVars(params.include);
@@ -263,7 +273,7 @@ export async function fetchOwnedTokens(
   });
 
   return {
-    ownedTokens: parseOwnedTokens(result.owned_token),
+    ownedTokens: parseOwnedTokens(result.owned_token, params.include) as OwnedTokenResult<I>[],
     totalCount: result.owned_token_aggregate?.aggregate?.count ?? 0,
   };
 }

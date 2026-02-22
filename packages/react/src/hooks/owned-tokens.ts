@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 
 import { fetchOwnedToken, fetchOwnedTokens, getClientUrl, ownedTokenKeys } from '@lsp-indexer/node';
 import type {
+  OwnedTokenInclude,
+  OwnedTokenResult,
   UseInfiniteOwnedTokensParams,
   UseOwnedTokenParams,
   UseOwnedTokensParams,
@@ -43,7 +45,9 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useOwnedToken(params: UseOwnedTokenParams) {
+export function useOwnedToken<const I extends OwnedTokenInclude | undefined = undefined>(
+  params: UseOwnedTokenParams & { include?: I },
+) {
   const url = getClientUrl();
   const { id, include } = params;
 
@@ -53,7 +57,7 @@ export function useOwnedToken(params: UseOwnedTokenParams) {
     enabled: Boolean(id),
   });
 
-  return { ownedToken: data ?? null, ...rest };
+  return { ownedToken: (data ?? null) as OwnedTokenResult<I> | null, ...rest };
 }
 
 /**
@@ -90,7 +94,9 @@ export function useOwnedToken(params: UseOwnedTokenParams) {
  * }
  * ```
  */
-export function useOwnedTokens(params: UseOwnedTokensParams = {}) {
+export function useOwnedTokens<const I extends OwnedTokenInclude | undefined = undefined>(
+  params: UseOwnedTokensParams & { include?: I } = {} as UseOwnedTokensParams & { include?: I },
+) {
   const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
@@ -100,7 +106,7 @@ export function useOwnedTokens(params: UseOwnedTokensParams = {}) {
   });
 
   return {
-    ownedTokens: data?.ownedTokens ?? [],
+    ownedTokens: (data?.ownedTokens ?? []) as OwnedTokenResult<I>[],
     totalCount: data?.totalCount ?? 0,
     ...rest,
   };
@@ -150,7 +156,11 @@ export function useOwnedTokens(params: UseOwnedTokensParams = {}) {
  * }
  * ```
  */
-export function useInfiniteOwnedTokens(params: UseInfiniteOwnedTokensParams = {}) {
+export function useInfiniteOwnedTokens<const I extends OwnedTokenInclude | undefined = undefined>(
+  params: UseInfiniteOwnedTokensParams & { include?: I } = {} as UseInfiniteOwnedTokensParams & {
+    include?: I;
+  },
+) {
   const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
@@ -179,7 +189,7 @@ export function useInfiniteOwnedTokens(params: UseInfiniteOwnedTokensParams = {}
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
   const ownedTokens = useMemo(
-    () => data?.pages.flatMap((page) => page.ownedTokens) ?? [],
+    () => (data?.pages.flatMap((page) => page.ownedTokens) ?? []) as OwnedTokenResult<I>[],
     [data?.pages],
   );
 
