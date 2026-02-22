@@ -5,5 +5,8 @@ packages/typeorm/src/
 packages/typeorm/db/
 packages/typeorm/hasura_metadata.json
 .env
+.vscode/
 
-memory-bank/
+# Logs
+logs/
+*.log

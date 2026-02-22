@@ -3,7 +3,6 @@
 squid-evm-typegen \
     src/abi \
     custom/*.json \
-    custom/extensions/*.json \
     node_modules/@erc725/smart-contracts/artifacts/*.json \
     node_modules/@lukso/lsp0-contracts/artifacts/*.json \
     node_modules/@lukso/lsp6-contracts/artifacts/*.json \
