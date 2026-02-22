@@ -14,7 +14,6 @@ import {
   useOwnedTokens as useOwnedTokensReact,
 } from '@lsp-indexer/react';
 import type {
-  OwnedToken,
   OwnedTokenFilter,
   OwnedTokenInclude,
   OwnedTokenSort,
@@ -357,7 +356,12 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
         </Card>
       )}
       {error && <ErrorAlert error={error} />}
-      {ownedToken && <OwnedTokenCard ownedToken={ownedToken} isFetching={isFetching} />}
+      {ownedToken && (
+        <OwnedTokenCard
+          ownedToken={ownedToken as Record<string, unknown>}
+          isFetching={isFetching}
+        />
+      )}
       {hasQuery && !isLoading && !error && !ownedToken && (
         <Alert>
           <Tag className="h-4 w-4" />
@@ -422,12 +426,14 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         onLimitChange={setLimit}
       />
       <IncludeSections {...state} />
-      <ResultsList<OwnedToken>
+      <ResultsList
         items={ownedTokens}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(ownedToken) => <OwnedTokenCard ownedToken={ownedToken} />}
+        renderItem={(ownedToken) => (
+          <OwnedTokenCard ownedToken={ownedToken as Record<string, unknown>} />
+        )}
         getKey={(t) => t.id}
         label="owned tokens"
         totalCount={totalCount}
@@ -484,12 +490,14 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         }
       />
       <IncludeSections {...state} />
-      <ResultsList<OwnedToken>
+      <ResultsList
         items={ownedTokens}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(ownedToken) => <OwnedTokenCard ownedToken={ownedToken} />}
+        renderItem={(ownedToken) => (
+          <OwnedTokenCard ownedToken={ownedToken as Record<string, unknown>} />
+        )}
         getKey={(t) => t.id}
         label="owned tokens"
         hasActiveFilter={state.hasActiveFilter}

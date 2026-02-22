@@ -14,7 +14,6 @@ import {
   useOwnedAssets as useOwnedAssetsReact,
 } from '@lsp-indexer/react';
 import type {
-  OwnedAsset,
   OwnedAssetFilter,
   OwnedAssetInclude,
   OwnedAssetSort,
@@ -303,7 +302,12 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
         </Card>
       )}
       {error && <ErrorAlert error={error} />}
-      {ownedAsset && <OwnedAssetCard ownedAsset={ownedAsset} isFetching={isFetching} />}
+      {ownedAsset && (
+        <OwnedAssetCard
+          ownedAsset={ownedAsset as Record<string, unknown>}
+          isFetching={isFetching}
+        />
+      )}
       {hasQuery && !isLoading && !error && !ownedAsset && (
         <Alert>
           <Wallet className="h-4 w-4" />
@@ -362,12 +366,14 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         onLimitChange={setLimit}
       />
       <IncludeSections {...state} />
-      <ResultsList<OwnedAsset>
+      <ResultsList
         items={ownedAssets}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(ownedAsset) => <OwnedAssetCard ownedAsset={ownedAsset} />}
+        renderItem={(ownedAsset) => (
+          <OwnedAssetCard ownedAsset={ownedAsset as Record<string, unknown>} />
+        )}
         getKey={(a) => a.id}
         label="owned assets"
         totalCount={totalCount}
@@ -424,12 +430,14 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         }
       />
       <IncludeSections {...state} />
-      <ResultsList<OwnedAsset>
+      <ResultsList
         items={ownedAssets}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(ownedAsset) => <OwnedAssetCard ownedAsset={ownedAsset} />}
+        renderItem={(ownedAsset) => (
+          <OwnedAssetCard ownedAsset={ownedAsset as Record<string, unknown>} />
+        )}
         getKey={(a) => a.id}
         label="owned assets"
         hasActiveFilter={state.hasActiveFilter}

@@ -1,4 +1,3 @@
-import type { Profile } from '@lsp-indexer/types';
 import { ExternalLink, Hash, Loader2, User } from 'lucide-react';
 import React from 'react';
 
@@ -8,15 +7,59 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
+// Type helpers — access fields that may be absent from narrowed result types
+// ---------------------------------------------------------------------------
+
+type ProfileImage = {
+  url: string;
+  fileType?: string | null;
+  width?: number | null;
+  height?: number | null;
+};
+type ProfileLink = { title: string; url: string };
+
+// ---------------------------------------------------------------------------
 // Profile Card
 // ---------------------------------------------------------------------------
 
 export interface ProfileCardProps {
-  profile: Profile;
+  /** Accepts full Profile or narrowed ProfileResult<I> — uses field-presence checks */
+  profile: Record<string, unknown>;
   isFetching?: boolean;
 }
 
 export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.ReactNode {
+  // Base field — always present
+  const address = profile.address as string;
+
+  // Conditionally included scalar fields
+  const name = 'name' in profile ? (profile.name as string | null) : undefined;
+  const description = 'description' in profile ? (profile.description as string | null) : undefined;
+  const followerCount =
+    'followerCount' in profile ? (profile.followerCount as number | null) : undefined;
+  const followingCount =
+    'followingCount' in profile ? (profile.followingCount as number | null) : undefined;
+
+  // Conditionally included array fields
+  const tags =
+    'tags' in profile && Array.isArray(profile.tags) ? (profile.tags as string[]) : undefined;
+  const links =
+    'links' in profile && Array.isArray(profile.links)
+      ? (profile.links as ProfileLink[])
+      : undefined;
+  const avatar =
+    'avatar' in profile && Array.isArray(profile.avatar)
+      ? (profile.avatar as ProfileImage[])
+      : undefined;
+  const profileImage =
+    'profileImage' in profile && Array.isArray(profile.profileImage)
+      ? (profile.profileImage as ProfileImage[])
+      : undefined;
+  const backgroundImage =
+    'backgroundImage' in profile && Array.isArray(profile.backgroundImage)
+      ? (profile.backgroundImage as ProfileImage[])
+      : undefined;
+
   return (
     <Card className="overflow-hidden">
       <CardHeader>
@@ -24,23 +67,23 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           <div>
             <CardTitle className="flex items-center gap-2">
               <User className="size-5 text-muted-foreground" />
-              {profile.name ?? 'Unnamed Profile'}
+              {name !== undefined ? (name ?? 'Unnamed Profile') : 'Profile'}
               {isFetching && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
             </CardTitle>
             <CardDescription className="font-mono text-xs mt-1 break-all">
-              {profile.address}
+              {address}
             </CardDescription>
           </div>
           <div className="flex gap-3 text-sm">
-            {profile.followerCount !== null && (
+            {followerCount !== undefined && followerCount !== null && (
               <div className="text-center">
-                <div className="font-semibold">{profile.followerCount}</div>
+                <div className="font-semibold">{followerCount}</div>
                 <div className="text-muted-foreground text-xs">Followers</div>
               </div>
             )}
-            {profile.followingCount !== null && (
+            {followingCount !== undefined && followingCount !== null && (
               <div className="text-center">
-                <div className="font-semibold">{profile.followingCount}</div>
+                <div className="font-semibold">{followingCount}</div>
                 <div className="text-muted-foreground text-xs">Following</div>
               </div>
             )}
@@ -48,18 +91,18 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {profile.description && (
+        {description && (
           <div>
             <h4 className="text-sm font-medium mb-1">Description</h4>
-            <p className="text-sm text-muted-foreground">{profile.description}</p>
+            <p className="text-sm text-muted-foreground">{description}</p>
           </div>
         )}
 
-        {profile.tags != null && profile.tags.length > 0 && (
+        {tags && tags.length > 0 && (
           <div>
             <h4 className="text-sm font-medium mb-1">Tags</h4>
             <div className="flex flex-wrap gap-1.5">
-              {profile.tags.map((tag) => (
+              {tags.map((tag) => (
                 <Badge key={tag} variant="secondary">
                   <Hash className="size-3" />
                   {tag}
@@ -69,11 +112,11 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {profile.links != null && profile.links.length > 0 && (
+        {links && links.length > 0 && (
           <div>
             <h4 className="text-sm font-medium mb-1">Links</h4>
             <div className="space-y-1">
-              {profile.links.map((link, i) =>
+              {links.map((link, i) =>
                 isSafeUrl(link.url) ? (
                   <a
                     key={`${link.url}-${i}`}
@@ -102,13 +145,13 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {profile.avatar != null && profile.avatar.length > 0 && (
+        {avatar && avatar.length > 0 && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1">
-              Avatar Assets ({profile.avatar.length})
+              Avatar Assets ({avatar.length})
             </h5>
             <div className="space-y-1.5">
-              {profile.avatar.map((asset, i) => (
+              {avatar.map((asset, i) => (
                 <div key={i} className="flex items-center gap-2">
                   {asset.fileType && (
                     <Badge variant="outline" className="text-xs shrink-0">
@@ -135,13 +178,13 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {profile.profileImage != null && profile.profileImage.length > 0 && (
+        {profileImage && profileImage.length > 0 && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1">
-              Profile Image ({profile.profileImage.length})
+              Profile Image ({profileImage.length})
             </h5>
             <div className="space-y-1.5">
-              {profile.profileImage.map((img, i) => (
+              {profileImage.map((img, i) => (
                 <div key={i} className="flex items-center gap-2">
                   {isSafeUrl(img.url) ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -165,13 +208,13 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {profile.backgroundImage != null && profile.backgroundImage.length > 0 && (
+        {backgroundImage && backgroundImage.length > 0 && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1">
-              Background Image ({profile.backgroundImage.length})
+              Background Image ({backgroundImage.length})
             </h5>
             <div className="space-y-1.5">
-              {profile.backgroundImage.map((img, i) => (
+              {backgroundImage.map((img, i) => (
                 <div key={i} className="flex items-center gap-2">
                   {isSafeUrl(img.url) ? (
                     // eslint-disable-next-line @next/next/no-img-element

@@ -14,7 +14,6 @@ import {
   useInfiniteDigitalAssets as useInfiniteDigitalAssetsReact,
 } from '@lsp-indexer/react';
 import type {
-  DigitalAsset,
   DigitalAssetFilter,
   DigitalAssetSort,
   DigitalAssetSortField,
@@ -209,7 +208,12 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
         </Card>
       )}
       {error && <ErrorAlert error={error} />}
-      {digitalAsset && <DigitalAssetCard digitalAsset={digitalAsset} isFetching={isFetching} />}
+      {digitalAsset && (
+        <DigitalAssetCard
+          digitalAsset={digitalAsset as Record<string, unknown>}
+          isFetching={isFetching}
+        />
+      )}
       {queryAddress && !isLoading && !error && !digitalAsset && (
         <Alert>
           <Coins className="h-4 w-4" />
@@ -265,12 +269,12 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
-      <ResultsList<DigitalAsset>
+      <ResultsList
         items={digitalAssets}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(asset) => <DigitalAssetCard digitalAsset={asset} />}
+        renderItem={(asset) => <DigitalAssetCard digitalAsset={asset as Record<string, unknown>} />}
         getKey={(a) => a.address}
         label="digital assets"
         totalCount={totalCount}
@@ -326,12 +330,12 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         values={state.includeValues}
         onToggle={state.toggleInclude}
       />
-      <ResultsList<DigitalAsset>
+      <ResultsList
         items={digitalAssets}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(asset) => <DigitalAssetCard digitalAsset={asset} />}
+        renderItem={(asset) => <DigitalAssetCard digitalAsset={asset as Record<string, unknown>} />}
         getKey={(a) => a.address}
         label="digital assets"
         hasActiveFilter={state.hasActiveFilter}

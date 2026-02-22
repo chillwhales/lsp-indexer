@@ -14,7 +14,6 @@ import {
   useNfts as useNftsReact,
 } from '@lsp-indexer/react';
 import type {
-  Nft,
   NftFilter,
   NftInclude,
   NftSort,
@@ -324,7 +323,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
         </Card>
       )}
       {error && <ErrorAlert error={error} />}
-      {nft && <NftCard nft={nft} isFetching={isFetching} />}
+      {nft && <NftCard nft={nft as Record<string, unknown>} isFetching={isFetching} />}
       {queryAddress && (queryTokenId || queryFormattedTokenId) && !isLoading && !error && !nft && (
         <Alert>
           <Gem className="h-4 w-4" />
@@ -392,12 +391,12 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         onLimitChange={setLimit}
       />
       <IncludeSections {...state} />
-      <ResultsList<Nft>
+      <ResultsList
         items={nfts}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(nft) => <NftCard nft={nft} />}
+        renderItem={(nft) => <NftCard nft={nft as Record<string, unknown>} />}
         getKey={(n) => `${n.address}-${n.tokenId}`}
         label="NFTs"
         totalCount={totalCount}
@@ -442,12 +441,12 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         }
       />
       <IncludeSections {...state} />
-      <ResultsList<Nft>
+      <ResultsList
         items={nfts}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(nft) => <NftCard nft={nft} />}
+        renderItem={(nft) => <NftCard nft={nft as Record<string, unknown>} />}
         getKey={(n) => `${n.address}-${n.tokenId}`}
         label="NFTs"
         hasActiveFilter={state.hasActiveFilter}

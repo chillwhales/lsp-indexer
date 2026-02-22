@@ -1,4 +1,3 @@
-import type { OwnedToken } from '@lsp-indexer/types';
 import { ChevronDown, Coins, Gem, Loader2, Tag, User, Wallet } from 'lucide-react';
 import React from 'react';
 
@@ -18,11 +17,44 @@ import { formatRelativeTime } from '@/lib/utils';
 // ---------------------------------------------------------------------------
 
 export interface OwnedTokenCardProps {
-  ownedToken: OwnedToken;
+  /** Accepts full OwnedToken or narrowed OwnedTokenResult<I> — uses field-presence checks */
+  ownedToken: Record<string, unknown>;
   isFetching?: boolean;
 }
 
 export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps): React.ReactNode {
+  // Base fields — always present
+  const id = ownedToken.id as string;
+  const digitalAssetAddress = ownedToken.digitalAssetAddress as string;
+  const holderAddress = ownedToken.holderAddress as string;
+  const tokenId = ownedToken.tokenId as string;
+
+  // Conditionally included scalar fields
+  const block = 'block' in ownedToken ? (ownedToken.block as number | null) : undefined;
+  const timestamp = 'timestamp' in ownedToken ? (ownedToken.timestamp as string | null) : undefined;
+
+  // Conditionally included nested relations
+  const holder =
+    'holder' in ownedToken && ownedToken.holder
+      ? (ownedToken.holder as Record<string, unknown>)
+      : undefined;
+  const nft =
+    'nft' in ownedToken && ownedToken.nft ? (ownedToken.nft as Record<string, unknown>) : undefined;
+  const digitalAsset =
+    'digitalAsset' in ownedToken && ownedToken.digitalAsset
+      ? (ownedToken.digitalAsset as Record<string, unknown>)
+      : undefined;
+  const ownedAsset =
+    'ownedAsset' in ownedToken && ownedToken.ownedAsset
+      ? (ownedToken.ownedAsset as Record<string, unknown>)
+      : undefined;
+
+  // Derive name/symbol from nested digital asset for header
+  const daName =
+    digitalAsset && 'name' in digitalAsset ? (digitalAsset.name as string | null) : undefined;
+  const daSymbol =
+    digitalAsset && 'symbol' in digitalAsset ? (digitalAsset.symbol as string | null) : undefined;
+
   return (
     <Card className="overflow-hidden">
       <CardHeader>
@@ -30,20 +62,16 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2">
               <Tag className="size-5 text-muted-foreground" />
-              {ownedToken.digitalAsset?.name ?? 'Owned Token'}
-              {ownedToken.digitalAsset?.symbol && (
-                <span className="text-base font-normal text-muted-foreground">
-                  ({ownedToken.digitalAsset.symbol})
-                </span>
+              {daName !== undefined ? (daName ?? 'Owned Token') : 'Owned Token'}
+              {daSymbol && (
+                <span className="text-base font-normal text-muted-foreground">({daSymbol})</span>
               )}
               {isFetching && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
             </CardTitle>
-            <CardDescription className="font-mono text-xs break-all">
-              ID: {ownedToken.id}
-            </CardDescription>
+            <CardDescription className="font-mono text-xs break-all">ID: {id}</CardDescription>
           </div>
           <div className="flex gap-2 items-center">
-            {ownedToken.nft?.isMinted && (
+            {nft && 'isMinted' in nft && (nft.isMinted as boolean) && (
               <Badge
                 variant="outline"
                 className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
@@ -51,7 +79,7 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
                 Minted
               </Badge>
             )}
-            {ownedToken.nft?.isBurned && (
+            {nft && 'isBurned' in nft && (nft.isBurned as boolean) && (
               <Badge
                 variant="outline"
                 className="bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800"
@@ -59,9 +87,9 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
                 Burned
               </Badge>
             )}
-            {ownedToken.timestamp && (
+            {timestamp && (
               <Badge variant="outline" className="text-xs">
-                {formatRelativeTime(ownedToken.timestamp)}
+                {formatRelativeTime(timestamp)}
               </Badge>
             )}
           </div>
@@ -72,102 +100,103 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Holder</dt>
-            <dd className="font-mono text-xs break-all">{ownedToken.holderAddress}</dd>
+            <dd className="font-mono text-xs break-all">{holderAddress}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Asset Address</dt>
-            <dd className="font-mono text-xs break-all">{ownedToken.digitalAssetAddress}</dd>
+            <dd className="font-mono text-xs break-all">{digitalAssetAddress}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Token ID</dt>
-            <dd className="font-mono text-xs break-all">{ownedToken.tokenId}</dd>
+            <dd className="font-mono text-xs break-all">{tokenId}</dd>
           </div>
-          {ownedToken.block != null && (
+          {block !== undefined && block !== null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Block</dt>
-              <dd className="font-mono text-xs">{ownedToken.block}</dd>
+              <dd className="font-mono text-xs">{block}</dd>
             </div>
           )}
-          {ownedToken.timestamp != null && (
+          {timestamp && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(ownedToken.timestamp).toLocaleString()}{' '}
-                <span className="text-muted-foreground">
-                  ({formatRelativeTime(ownedToken.timestamp)})
-                </span>
+                {new Date(timestamp).toLocaleString()}{' '}
+                <span className="text-muted-foreground">({formatRelativeTime(timestamp)})</span>
               </dd>
             </div>
           )}
         </dl>
 
         {/* Holder Profile section (collapsible, reuses ProfileCard) */}
-        {ownedToken.holder && (
+        {holder && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <User className="size-3.5" />
-                Holder Profile: {ownedToken.holder.name ?? ownedToken.holder.address}
+                Holder Profile:{' '}
+                {('name' in holder ? (holder.name as string | null) : null) ??
+                  (holder.address as string)}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
-              <ProfileCard profile={ownedToken.holder} />
+              <ProfileCard profile={holder} />
             </CollapsibleContent>
           </Collapsible>
         )}
 
         {/* NFT section (collapsible) */}
-        {ownedToken.nft && (
+        {nft && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Gem className="size-3.5" />
-                NFT: {ownedToken.nft.name ?? `${ownedToken.nft.address} #${ownedToken.nft.tokenId}`}
+                NFT:{' '}
+                {('name' in nft ? (nft.name as string | null) : null) ??
+                  `${nft.address as string} #${nft.tokenId as string}`}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
-              <NftCard nft={ownedToken.nft} />
+              <NftCard nft={nft} />
             </CollapsibleContent>
           </Collapsible>
         )}
 
         {/* Digital Asset section (collapsible) */}
-        {ownedToken.digitalAsset && (
+        {digitalAsset && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Coins className="size-3.5" />
-                Digital Asset: {ownedToken.digitalAsset.name ?? ownedToken.digitalAsset.address}
-                {ownedToken.digitalAsset.symbol && (
-                  <span className="text-muted-foreground font-normal">
-                    ({ownedToken.digitalAsset.symbol})
-                  </span>
+                Digital Asset: {daName ?? (digitalAsset.address as string)}
+                {daSymbol && (
+                  <span className="text-muted-foreground font-normal">({daSymbol})</span>
                 )}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
-              <DigitalAssetCard digitalAsset={ownedToken.digitalAsset} />
+              <DigitalAssetCard digitalAsset={digitalAsset} />
             </CollapsibleContent>
           </Collapsible>
         )}
 
         {/* Owned Asset section (collapsible) */}
-        {ownedToken.ownedAsset && (
+        {ownedAsset && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Wallet className="size-3.5" />
-                Owned Asset: {ownedToken.ownedAsset.digitalAssetAddress}
-                {ownedToken.ownedAsset.balance != null &&
-                  ` (balance: ${ownedToken.ownedAsset.balance.toString()})`}
+                Owned Asset: {ownedAsset.digitalAssetAddress as string}
+                {'balance' in ownedAsset &&
+                  ownedAsset.balance != null &&
+                  ` (balance: ${(ownedAsset.balance as bigint).toString()})`}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
-              <OwnedAssetCard ownedAsset={ownedToken.ownedAsset} />
+              <OwnedAssetCard ownedAsset={ownedAsset} />
             </CollapsibleContent>
           </Collapsible>
         )}
