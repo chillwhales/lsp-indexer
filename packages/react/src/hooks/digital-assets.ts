@@ -8,6 +8,8 @@ import {
   getClientUrl,
 } from '@lsp-indexer/node';
 import type {
+  DigitalAssetInclude,
+  DigitalAssetResult,
   UseDigitalAssetParams,
   UseDigitalAssetsParams,
   UseInfiniteDigitalAssetsParams,
@@ -47,7 +49,9 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useDigitalAsset(params: UseDigitalAssetParams) {
+export function useDigitalAsset<const I extends DigitalAssetInclude | undefined = undefined>(
+  params: UseDigitalAssetParams & { include?: I },
+) {
   const url = getClientUrl();
   const { address, include } = params;
 
@@ -57,7 +61,7 @@ export function useDigitalAsset(params: UseDigitalAssetParams) {
     enabled: Boolean(address),
   });
 
-  return { digitalAsset: data ?? null, ...rest };
+  return { digitalAsset: (data ?? null) as DigitalAssetResult<I> | null, ...rest };
 }
 
 /**
@@ -94,7 +98,11 @@ export function useDigitalAsset(params: UseDigitalAssetParams) {
  * }
  * ```
  */
-export function useDigitalAssets(params: UseDigitalAssetsParams = {}) {
+export function useDigitalAssets<const I extends DigitalAssetInclude | undefined = undefined>(
+  params: UseDigitalAssetsParams & { include?: I } = {} as UseDigitalAssetsParams & {
+    include?: I;
+  },
+) {
   const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
@@ -104,7 +112,7 @@ export function useDigitalAssets(params: UseDigitalAssetsParams = {}) {
   });
 
   return {
-    digitalAssets: data?.digitalAssets ?? [],
+    digitalAssets: (data?.digitalAssets ?? []) as DigitalAssetResult<I>[],
     totalCount: data?.totalCount ?? 0,
     ...rest,
   };
@@ -154,7 +162,15 @@ export function useDigitalAssets(params: UseDigitalAssetsParams = {}) {
  * }
  * ```
  */
-export function useInfiniteDigitalAssets(params: UseInfiniteDigitalAssetsParams = {}) {
+export function useInfiniteDigitalAssets<
+  const I extends DigitalAssetInclude | undefined = undefined,
+>(
+  params: UseInfiniteDigitalAssetsParams & {
+    include?: I;
+  } = {} as UseInfiniteDigitalAssetsParams & {
+    include?: I;
+  },
+) {
   const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
@@ -183,7 +199,7 @@ export function useInfiniteDigitalAssets(params: UseInfiniteDigitalAssetsParams 
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
   const digitalAssets = useMemo(
-    () => data?.pages.flatMap((page) => page.digitalAssets) ?? [],
+    () => (data?.pages.flatMap((page) => page.digitalAssets) ?? []) as DigitalAssetResult<I>[],
     [data?.pages],
   );
 

@@ -3,9 +3,9 @@
 import type { FetchDigitalAssetsResult } from '@lsp-indexer/node';
 import { fetchDigitalAsset, fetchDigitalAssets, getServerUrl } from '@lsp-indexer/node';
 import type {
-  DigitalAsset,
   DigitalAssetFilter,
   DigitalAssetInclude,
+  DigitalAssetResult,
   DigitalAssetSort,
 } from '@lsp-indexer/types';
 
@@ -21,10 +21,10 @@ import type {
  * @param include - Optional field inclusion config
  * @returns The parsed digital asset, or `null` if not found
  */
-export async function getDigitalAsset(
+export async function getDigitalAsset<const I extends DigitalAssetInclude | undefined = undefined>(
   address: string,
-  include?: DigitalAssetInclude,
-): Promise<DigitalAsset | null> {
+  include?: I,
+): Promise<DigitalAssetResult<I> | null> {
   const url = getServerUrl();
   return fetchDigitalAsset(url, { address, include });
 }
@@ -39,13 +39,15 @@ export async function getDigitalAsset(
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed digital assets and total count
  */
-export async function getDigitalAssets(params?: {
+export async function getDigitalAssets<
+  const I extends DigitalAssetInclude | undefined = undefined,
+>(params?: {
   filter?: DigitalAssetFilter;
   sort?: DigitalAssetSort;
   limit?: number;
   offset?: number;
-  include?: DigitalAssetInclude;
-}): Promise<FetchDigitalAssetsResult> {
+  include?: I;
+}): Promise<FetchDigitalAssetsResult<I>> {
   const url = getServerUrl();
   return fetchDigitalAssets(url, params ?? {});
 }
