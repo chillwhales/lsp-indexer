@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 10 sub-phases)
-- **Sub-phase:** 9.4 (Conditional Include Types) — Complete (5/5 plans)
-- **Status:** Phase 9.4 complete — DX-04 fully delivered, ready for Phase 9.5
-- **Last activity:** 2026-02-22 — Completed 09.4-05-PLAN.md (Playground cards + full build validation)
+- **Sub-phase:** 9.5 (Social / Follows) — In progress (1/4 plans)
+- **Status:** Phase 9.5 plan 01 complete — types + documents + codegen delivered
+- **Last activity:** 2026-02-22 — Completed 09.5-01-PLAN.md (Follower types + documents + codegen)
 - **Progress:** █████░░░░░ 52% (15/29 requirements)
 
 ## Milestone History
@@ -26,22 +26,22 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                               | Requirements | Status   |
-| ----- | ---------------------------------- | :----------: | -------- |
-| 7     | Package Foundation                 |     7/7      | Complete |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
-| 9.1   | Digital Assets                     |     1/1      | Complete |
-| 9.2   | NFTs                               |     1/1      | Complete |
-| 9.3   | Owned Assets                       |     1/1      | Complete |
-| 9.4   | Conditional Include Types          |     1/1      | Complete |
-| 9.5   | Social / Follows                   |      1       | Pending  |
-| 9.6   | Creators                           |      1       | Pending  |
-| 9.7   | Encrypted Assets                   |      1       | Pending  |
-| 9.8   | Encrypted Feed                     |      1       | Pending  |
-| 9.9   | Data Changed Events                |      1       | Pending  |
-| 9.10  | Universal Receiver Events          |      1       | Pending  |
-| 10    | Subscriptions                      |      3       | Pending  |
-| 11    | Server Actions & Publish Readiness |      4       | Pending  |
+| Phase | Name                               | Requirements | Status            |
+| ----- | ---------------------------------- | :----------: | ----------------- |
+| 7     | Package Foundation                 |     7/7      | Complete          |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete          |
+| 9.1   | Digital Assets                     |     1/1      | Complete          |
+| 9.2   | NFTs                               |     1/1      | Complete          |
+| 9.3   | Owned Assets                       |     1/1      | Complete          |
+| 9.4   | Conditional Include Types          |     1/1      | Complete          |
+| 9.5   | Social / Follows                   |      1       | In progress (1/4) |
+| 9.6   | Creators                           |      1       | Pending           |
+| 9.7   | Encrypted Assets                   |      1       | Pending           |
+| 9.8   | Encrypted Feed                     |      1       | Pending           |
+| 9.9   | Data Changed Events                |      1       | Pending           |
+| 9.10  | Universal Receiver Events          |      1       | Pending           |
+| 10    | Subscriptions                      |      3       | Pending           |
+| 11    | Server Actions & Publish Readiness |      4       | Pending           |
 
 _Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
@@ -159,27 +159,20 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-22
-- **Activity:** Executed Phase 9.4 (Conditional Include Types) — all 5 plans across 5 waves
-- **Outcome:** DX-04 fully delivered. Phase verified (14/14 must-haves). VERIFICATION.md created.
+- **Activity:** Executed Phase 9.5 plan 01 — Follower types + GraphQL documents + codegen
+- **Outcome:** Follower domain types with DX-04 conditional includes + 2 GraphQL documents. All typechecks and builds pass.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.4 complete and verified** — DX-04 (conditional include types) fully delivered across all 5 domains
-- **Next step:** Phase 9.5 (Social / Follows) — first domain to be built with conditional include types from the start
-- **REQUIREMENTS.md updated** — DX-04 added and marked Complete, QUERY-02/03/04 marked Complete
-- **All patterns established and proven across 5 domains:**
-  - `IncludeResult<Full, Base, Map, I>` utility type
-  - `stripExcluded(obj, include, baseFields, derivedFields?)` runtime stripping
-  - `const I extends XInclude | undefined = undefined` generic constraints
-  - `as XResult<I>` cast at service boundaries
-  - `& { include?: I }` intersection for hook params
-  - Nested relation narrowing via `Resolve*<I>` intersection types
-  - Recursive stripping via sub-parser delegation
-  - Custom scalar field maps for constrained sub-domain contexts
-  - `'key' in obj` field-presence checks in card components
-  - `Record<string, unknown>` prop types for narrowed result rendering
+- **Phase 9.5 plan 01 complete** — Follower types + documents + codegen delivered
+- **Next step:** Phase 9.5 plan 02 — Follower parser (with stripExcluded) + services (3 functions) + query keys
+- **New patterns for this domain:**
+  - Dual profile sub-includes (followerProfile + followedProfile) with independent narrowing
+  - Single GetFollowersDocument reused for 5 hooks via service-layer $where variation
+  - GetFollowCountDocument with aliased follower_aggregate queries
+- **All DX-04 patterns established and proven across 6 domains** (profiles, digital-assets, nfts, owned-assets, owned-tokens, followers)
 
 ---
 
-_Last updated: 2026-02-22 — Phase 9.4 complete and verified (DX-04 conditional include types — 14/14 must-haves passed)_
+_Last updated: 2026-02-22 — Phase 9.5 plan 01 complete (Follower types + documents + codegen)_
