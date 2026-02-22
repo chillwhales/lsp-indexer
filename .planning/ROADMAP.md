@@ -205,7 +205,7 @@ Plans:
 
 **Plans:** 4 plans
 
-- [ ] 09.5-01-PLAN.md — Follower types + conditional include types + GraphQL documents + codegen
+- [x] 09.5-01-PLAN.md — Follower types + conditional include types + GraphQL documents + codegen
 - [ ] 09.5-02-PLAN.md — Follower parser (with stripExcluded) + services (3 functions) + query keys
 - [ ] 09.5-03-PLAN.md — 6 React hooks + 3 server actions + 6 Next.js hooks + build validation
 - [ ] 09.5-04-PLAN.md — FollowerCard + Follows playground page (6 tabs) + nav update
