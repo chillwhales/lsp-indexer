@@ -8,11 +8,13 @@ import { parseAttributes, parseImage, parseLinks } from './utils';
 /**
  * Raw Hasura NFT type from the codegen-generated query result.
  *
- * This is the shape of a single `nft` element returned by both
- * `GetNftQuery` and `GetNftsQuery`. We extract it from the codegen type
- * to keep the parser type-safe against schema changes.
+ * Uses `Omit<..., 'id'>` because the parser never reads `id` — it only needs
+ * `address`, `token_id`, and metadata fields. This allows the same parser
+ * to accept both primary query results (which include `id`) and sub-selections
+ * from owned-tokens (which don't select `id`).
+ * TypeScript structural subtyping means types WITH `id` still satisfy this.
  */
-type RawNft = GetNftQuery['nft'][number];
+type RawNft = Omit<GetNftQuery['nft'][number], 'id'>;
 
 /**
  * Transform a raw Hasura NFT response into a clean `Nft` type.
@@ -67,7 +69,7 @@ export function parseNft(raw: RawNft, include?: NftInclude): Nft | PartialNft {
       ? {
           timestamp: raw.ownedToken.timestamp ?? '',
           ...(raw.ownedToken.universalProfile
-            ? parseProfile(raw.ownedToken.universalProfile as Parameters<typeof parseProfile>[0])
+            ? parseProfile(raw.ownedToken.universalProfile)
             : {
                 address: raw.ownedToken.owner,
                 name: null,

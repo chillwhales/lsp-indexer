@@ -6,11 +6,13 @@ import { parseAsset, parseImage, parseLinks } from './utils';
 /**
  * Raw Hasura profile type from the codegen-generated query result.
  *
- * This is the shape of a single `universal_profile` element returned by
- * both `GetProfileQuery` and `GetProfilesQuery`. We extract it from the
- * codegen type to keep the parser type-safe against schema changes.
+ * Uses `Omit<..., 'id'>` because the parser never reads `id` — it only needs
+ * `address`, `lsp3Profile`, and aggregate counts. This allows the same parser
+ * to accept both primary query results (which include `id`) and sub-selections
+ * from other domains (owned-assets, nfts, owned-tokens) which don't select `id`.
+ * TypeScript structural subtyping means types WITH `id` still satisfy this.
  */
-type RawProfile = GetProfileQuery['universal_profile'][number];
+type RawProfile = Omit<GetProfileQuery['universal_profile'][number], 'id'>;
 
 /**
  * Transform a raw Hasura Universal Profile response into a clean `Profile` type.

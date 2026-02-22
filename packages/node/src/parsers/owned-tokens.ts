@@ -51,28 +51,10 @@ export function parseOwnedToken(
     tokenId: raw.token_id,
     block: raw.block ?? null,
     timestamp: raw.timestamp ?? null,
-    // The owned_token document selects a subset of digital_asset fields;
-    // parseDigitalAsset uses optional chaining and handles missing fields gracefully.
-    // Always parse as full type; outer stripExcluded controls field presence.
-    digitalAsset: raw.digitalAsset
-      ? parseDigitalAsset(raw.digitalAsset as Parameters<typeof parseDigitalAsset>[0])
-      : null,
-    // The owned_token nft sub-selection omits `id` and collection/holder;
-    // parseNft uses optional chaining and handles missing fields gracefully.
-    // Always parse as full type; outer stripExcluded controls field presence.
-    nft: raw.nft ? parseNft(raw.nft as Parameters<typeof parseNft>[0]) : null,
-    // The owned_token ownedAsset sub-selection has basic fields only
-    // (no nested DA/profile/tokenIdCount); parseOwnedAsset handles missing fields.
-    // Always parse as full type; outer stripExcluded controls field presence.
-    ownedAsset: raw.ownedAsset
-      ? parseOwnedAsset(raw.ownedAsset as Parameters<typeof parseOwnedAsset>[0])
-      : null,
-    // The owned_token document selects a subset of universal_profile fields
-    // (no `id`); parseProfile uses optional chaining and handles missing fields gracefully.
-    // Always parse as full type; outer stripExcluded controls field presence.
-    holder: raw.universalProfile
-      ? parseProfile(raw.universalProfile as Parameters<typeof parseProfile>[0])
-      : null,
+    digitalAsset: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset) : null,
+    nft: raw.nft ? parseNft(raw.nft) : null,
+    ownedAsset: raw.ownedAsset ? parseOwnedAsset(raw.ownedAsset) : null,
+    holder: raw.universalProfile ? parseProfile(raw.universalProfile) : null,
   };
 
   if (!include) return result;

@@ -48,18 +48,8 @@ export function parseOwnedAsset(
     balance: raw.balance != null ? BigInt(raw.balance) : null,
     block: raw.block ?? null,
     timestamp: raw.timestamp ?? null,
-    // The owned_asset document selects a subset of digital_asset fields;
-    // parseDigitalAsset uses optional chaining and handles missing fields gracefully.
-    // Always parse as full DigitalAsset; outer stripExcluded controls field presence.
-    digitalAsset: raw.digitalAsset
-      ? parseDigitalAsset(raw.digitalAsset as Parameters<typeof parseDigitalAsset>[0])
-      : null,
-    // The owned_asset document selects a subset of universal_profile fields
-    // (no `id`); parseProfile uses optional chaining and handles missing fields gracefully.
-    // Always parse as full Profile; outer stripExcluded controls field presence.
-    holder: raw.universalProfile
-      ? parseProfile(raw.universalProfile as Parameters<typeof parseProfile>[0])
-      : null,
+    digitalAsset: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset) : null,
+    holder: raw.universalProfile ? parseProfile(raw.universalProfile) : null,
     tokenIdCount: raw.tokenIds_aggregate?.aggregate?.count ?? null,
   };
 

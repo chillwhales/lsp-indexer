@@ -11,11 +11,13 @@ import { numericToString, parseAttributes, parseImage, parseLinks } from './util
 /**
  * Raw Hasura digital asset type from the codegen-generated query result.
  *
- * This is the shape of a single `digital_asset` element returned by
- * both `GetDigitalAssetQuery` and `GetDigitalAssetsQuery`. We extract it from the
- * codegen type to keep the parser type-safe against schema changes.
+ * Uses `Omit<..., 'id'>` because the parser never reads `id` — it only needs
+ * `address` and metadata fields. This allows the same parser to accept both
+ * primary query results (which include `id`) and sub-selections from other
+ * domains (nfts, owned-assets, owned-tokens) which may not select `id`.
+ * TypeScript structural subtyping means types WITH `id` still satisfy this.
  */
-type RawDigitalAsset = GetDigitalAssetQuery['digital_asset'][number];
+type RawDigitalAsset = Omit<GetDigitalAssetQuery['digital_asset'][number], 'id'>;
 
 /**
  * Validate and return a raw Hasura tokenType string as a clean TokenType.
