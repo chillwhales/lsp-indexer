@@ -1,6 +1,7 @@
 export * from './common';
 export * from './digital-assets';
 export * from './errors';
+export * from './followers';
 export * from './include-types';
 export * from './nfts';
 export * from './owned-assets';
