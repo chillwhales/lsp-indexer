@@ -10,10 +10,23 @@
  * - When `include` is provided → returns a new object with only base + included fields,
  *   typed as `Partial<T> & Pick<T, K>` (base fields guaranteed, rest optional)
  *
+ * **Recursive nested stripping:** When an include value is an object (sub-include map)
+ * and a `nestedConfig` entry exists for that key, the nested object's sub-fields are
+ * recursively stripped using the sub-include as the include map and the config's
+ * `baseFields` / `derivedFields` for the nested type.
+ *
  * @module
  */
 
 type IncludeMap = Record<string, boolean | Record<string, unknown> | undefined>;
+
+/** Configuration for recursively stripping a nested object's sub-fields. */
+interface NestedStripConfig {
+  /** Base fields to always keep in the nested object (e.g., `['address']` for profiles) */
+  baseFields: readonly string[];
+  /** Optional derived field map for the nested object (e.g., `{ standard: 'decimals' }`) */
+  derivedFields?: Record<string, string>;
+}
 
 /**
  * Strip excluded fields from a parsed domain object at runtime.
@@ -25,6 +38,9 @@ type IncludeMap = Record<string, boolean | Record<string, unknown> | undefined>;
  * @param baseFields - Field names to always keep (e.g., `['address']`)
  * @param derivedFields - Optional map of derived field → source field
  *                        (e.g., `{ standard: 'decimals' }` — standard follows decimals)
+ * @param nestedConfig - Optional map of field name → nested strip config. When a field's
+ *                       include value is an object (sub-include) and a config exists,
+ *                       the nested object is recursively stripped.
  * @returns The original object if include is undefined, or a new partial object with base + included fields
  */
 export function stripExcluded<T extends Record<string, unknown>>(
@@ -32,18 +48,21 @@ export function stripExcluded<T extends Record<string, unknown>>(
   include: undefined,
   baseFields: readonly string[],
   derivedFields?: Record<string, string>,
+  nestedConfig?: Record<string, NestedStripConfig>,
 ): T;
 export function stripExcluded<T extends Record<string, unknown>, const K extends string & keyof T>(
   obj: T,
   include: IncludeMap,
   baseFields: readonly K[],
   derivedFields?: Record<string, string>,
+  nestedConfig?: Record<string, NestedStripConfig>,
 ): Partial<T> & Pick<T, K>;
 export function stripExcluded(
   obj: Record<string, unknown>,
   include: IncludeMap | undefined,
   baseFields: readonly string[],
   derivedFields?: Record<string, string>,
+  nestedConfig?: Record<string, NestedStripConfig>,
 ): Record<string, unknown> {
   if (!include) return obj;
 
@@ -56,8 +75,25 @@ export function stripExcluded(
 
   // Include fields that are in the include parameter and truthy
   for (const [key, value] of Object.entries(include)) {
-    if (value === true || (typeof value === 'object' && value !== null)) {
+    if (value === true) {
       if (key in obj) result[key] = obj[key];
+    } else if (typeof value === 'object' && value !== null) {
+      if (key in obj) {
+        const nested = obj[key];
+        const config = nestedConfig?.[key];
+        if (nested && typeof nested === 'object' && config) {
+          // Recursively strip nested object's sub-fields
+          result[key] = stripExcluded(
+            nested as Record<string, unknown>,
+            value as IncludeMap,
+            config.baseFields,
+            config.derivedFields,
+          );
+        } else {
+          // No config for this nested field — keep as-is
+          result[key] = nested;
+        }
+      }
     }
   }
 

@@ -54,7 +54,10 @@ export function parseOwnedAsset(
   };
 
   if (!include) return result;
-  return stripExcluded(result, include, ['id', 'digitalAssetAddress', 'holderAddress']);
+  return stripExcluded(result, include, ['id', 'digitalAssetAddress', 'holderAddress'], undefined, {
+    digitalAsset: { baseFields: ['address'], derivedFields: { standard: 'decimals' } },
+    holder: { baseFields: ['address'] },
+  });
 }
 
 /**

@@ -58,7 +58,18 @@ export function parseOwnedToken(
   };
 
   if (!include) return result;
-  return stripExcluded(result, include, ['id', 'digitalAssetAddress', 'holderAddress', 'tokenId']);
+  return stripExcluded(
+    result,
+    include,
+    ['id', 'digitalAssetAddress', 'holderAddress', 'tokenId'],
+    undefined,
+    {
+      digitalAsset: { baseFields: ['address'], derivedFields: { standard: 'decimals' } },
+      nft: { baseFields: ['address', 'tokenId', 'isBurned', 'isMinted'] },
+      ownedAsset: { baseFields: ['id', 'digitalAssetAddress', 'holderAddress'] },
+      holder: { baseFields: ['address'] },
+    },
+  );
 }
 
 /**

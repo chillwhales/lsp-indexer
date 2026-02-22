@@ -103,7 +103,10 @@ export function parseNft(raw: RawNft, include?: NftInclude): Nft | PartialNft {
   };
 
   if (!include) return result;
-  return stripExcluded(result, include, ['address', 'tokenId', 'isBurned', 'isMinted']);
+  return stripExcluded(result, include, ['address', 'tokenId', 'isBurned', 'isMinted'], undefined, {
+    collection: { baseFields: ['address'], derivedFields: { standard: 'decimals' } },
+    holder: { baseFields: ['address', 'timestamp'] },
+  });
 }
 
 /**
