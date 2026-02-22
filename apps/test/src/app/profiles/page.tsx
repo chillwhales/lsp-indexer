@@ -185,9 +185,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
         </Card>
       )}
       {error && <ErrorAlert error={error} />}
-      {profile && (
-        <ProfileCard profile={profile as Record<string, unknown>} isFetching={isFetching} />
-      )}
+      {profile && <ProfileCard profile={profile} isFetching={isFetching} />}
       {queryAddress && !isLoading && !error && !profile && (
         <Alert>
           <User className="h-4 w-4" />
@@ -248,7 +246,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(profile) => <ProfileCard profile={profile as Record<string, unknown>} />}
+        renderItem={(profile) => <ProfileCard profile={profile} />}
         getKey={(p) => p.address}
         label="profiles"
         totalCount={totalCount}
@@ -302,7 +300,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(profile) => <ProfileCard profile={profile as Record<string, unknown>} />}
+        renderItem={(profile) => <ProfileCard profile={profile} />}
         getKey={(p) => p.address}
         label="profiles"
         hasActiveFilter={state.hasActiveFilter}

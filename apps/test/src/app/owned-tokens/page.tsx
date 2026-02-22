@@ -356,12 +356,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
         </Card>
       )}
       {error && <ErrorAlert error={error} />}
-      {ownedToken && (
-        <OwnedTokenCard
-          ownedToken={ownedToken as Record<string, unknown>}
-          isFetching={isFetching}
-        />
-      )}
+      {ownedToken && <OwnedTokenCard ownedToken={ownedToken} isFetching={isFetching} />}
       {hasQuery && !isLoading && !error && !ownedToken && (
         <Alert>
           <Tag className="h-4 w-4" />
@@ -431,9 +426,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(ownedToken) => (
-          <OwnedTokenCard ownedToken={ownedToken as Record<string, unknown>} />
-        )}
+        renderItem={(ownedToken) => <OwnedTokenCard ownedToken={ownedToken} />}
         getKey={(t) => t.id}
         label="owned tokens"
         totalCount={totalCount}
@@ -495,9 +488,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(ownedToken) => (
-          <OwnedTokenCard ownedToken={ownedToken as Record<string, unknown>} />
-        )}
+        renderItem={(ownedToken) => <OwnedTokenCard ownedToken={ownedToken} />}
         getKey={(t) => t.id}
         label="owned tokens"
         hasActiveFilter={state.hasActiveFilter}

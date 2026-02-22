@@ -1,24 +1,13 @@
 import { Coins, ExternalLink, Loader2 } from 'lucide-react';
 import React from 'react';
 
+import type { DigitalAsset } from '@lsp-indexer/types';
+
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatTokenAmount, isSafeUrl, resolveUrl } from '@/lib/utils';
-
-// ---------------------------------------------------------------------------
-// Type helpers — access fields that may be absent from narrowed result types
-// ---------------------------------------------------------------------------
-
-type Lsp4Image = {
-  url: string;
-  fileType?: string | null;
-  width?: number | null;
-  height?: number | null;
-};
-type Lsp4Link = { title: string; url: string };
-type Lsp4Attribute = { key: string; value: string; type: string };
 
 // ---------------------------------------------------------------------------
 // Standard badge
@@ -69,8 +58,8 @@ function StandardBadge({
 // ---------------------------------------------------------------------------
 
 export interface DigitalAssetCardProps {
-  /** Accepts full DigitalAsset or narrowed DigitalAssetResult<I> — uses field-presence checks */
-  digitalAsset: Record<string, unknown>;
+  /** Accepts any shape of DigitalAsset — full, narrowed via include, or partial from nested relations */
+  digitalAsset: Partial<DigitalAsset> & Pick<DigitalAsset, 'address'>;
   isFetching?: boolean;
 }
 
@@ -78,59 +67,28 @@ export function DigitalAssetCard({
   digitalAsset,
   isFetching,
 }: DigitalAssetCardProps): React.ReactNode {
-  // Base field — always present
-  const address = digitalAsset.address as string;
-
-  // Conditionally included scalar fields
-  const name = 'name' in digitalAsset ? (digitalAsset.name as string | null) : undefined;
-  const symbol = 'symbol' in digitalAsset ? (digitalAsset.symbol as string | null) : undefined;
-  const decimals =
-    'decimals' in digitalAsset ? (digitalAsset.decimals as number | null) : undefined;
-  const totalSupply =
-    'totalSupply' in digitalAsset ? (digitalAsset.totalSupply as string | null) : undefined;
-  const tokenType =
-    'tokenType' in digitalAsset ? (digitalAsset.tokenType as string | null) : undefined;
-  const standard =
-    'standard' in digitalAsset ? (digitalAsset.standard as string | null) : undefined;
-  const category =
-    'category' in digitalAsset ? (digitalAsset.category as string | null) : undefined;
-  const holderCount =
-    'holderCount' in digitalAsset ? (digitalAsset.holderCount as number | null) : undefined;
-  const creatorCount =
-    'creatorCount' in digitalAsset ? (digitalAsset.creatorCount as number | null) : undefined;
-  const description =
-    'description' in digitalAsset ? (digitalAsset.description as string | null) : undefined;
-  const referenceContract =
-    'referenceContract' in digitalAsset
-      ? (digitalAsset.referenceContract as string | null)
-      : undefined;
-  const tokenIdFormat =
-    'tokenIdFormat' in digitalAsset ? (digitalAsset.tokenIdFormat as number | null) : undefined;
-  const baseUri = 'baseUri' in digitalAsset ? (digitalAsset.baseUri as string | null) : undefined;
-
-  // Conditionally included array fields
-  const icons =
-    'icons' in digitalAsset && Array.isArray(digitalAsset.icons)
-      ? (digitalAsset.icons as Lsp4Image[])
-      : undefined;
-  const images =
-    'images' in digitalAsset && Array.isArray(digitalAsset.images)
-      ? (digitalAsset.images as Lsp4Image[])
-      : undefined;
-  const links =
-    'links' in digitalAsset && Array.isArray(digitalAsset.links)
-      ? (digitalAsset.links as Lsp4Link[])
-      : undefined;
-  const attributes =
-    'attributes' in digitalAsset && Array.isArray(digitalAsset.attributes)
-      ? (digitalAsset.attributes as Lsp4Attribute[])
-      : undefined;
-
-  // Conditionally included relation
-  const owner =
-    'owner' in digitalAsset && digitalAsset.owner
-      ? (digitalAsset.owner as { address: string })
-      : undefined;
+  // Destructure — address is always present, everything else may be undefined
+  const {
+    address,
+    name,
+    symbol,
+    decimals,
+    totalSupply,
+    tokenType,
+    standard,
+    category,
+    holderCount,
+    creatorCount,
+    description,
+    referenceContract,
+    tokenIdFormat,
+    baseUri,
+    icons,
+    images,
+    links,
+    attributes,
+    owner,
+  } = digitalAsset;
 
   const firstIcon = icons?.[0];
 
@@ -160,18 +118,18 @@ export function DigitalAssetCard({
               {isFetching && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
             </CardTitle>
             <CardDescription className="font-mono text-xs break-all">{address}</CardDescription>
-            {('standard' in digitalAsset || 'tokenType' in digitalAsset) && (
+            {(standard !== undefined || tokenType !== undefined) && (
               <StandardBadge standard={standard} tokenType={tokenType} />
             )}
           </div>
           <div className="flex gap-3 text-sm">
-            {holderCount !== undefined && holderCount !== null && (
+            {holderCount != null && (
               <div className="text-center">
                 <div className="font-semibold">{holderCount}</div>
                 <div className="text-muted-foreground text-xs">Holders</div>
               </div>
             )}
-            {creatorCount !== undefined && creatorCount !== null && (
+            {creatorCount != null && (
               <div className="text-center">
                 <div className="font-semibold">{creatorCount}</div>
                 <div className="text-muted-foreground text-xs">Creators</div>
@@ -183,13 +141,13 @@ export function DigitalAssetCard({
       <CardContent className="space-y-4">
         {/* Core token details */}
         <dl className="space-y-1.5 text-sm">
-          {decimals !== undefined && decimals !== null && (
+          {decimals != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Decimals</dt>
               <dd className="font-mono">{decimals}</dd>
             </div>
           )}
-          {totalSupply !== undefined && totalSupply !== null && (
+          {totalSupply != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Total Supply</dt>
               <dd>
@@ -346,15 +304,15 @@ export function DigitalAssetCard({
         )}
 
         {/* LSP8 Section — shown when any LSP8 field was fetched and has a value */}
-        {('referenceContract' in digitalAsset ||
-          'tokenIdFormat' in digitalAsset ||
-          'baseUri' in digitalAsset) &&
-          (referenceContract !== null || tokenIdFormat !== null || baseUri !== null) && (
+        {(referenceContract !== undefined ||
+          tokenIdFormat !== undefined ||
+          baseUri !== undefined) &&
+          (referenceContract != null || tokenIdFormat != null || baseUri != null) && (
             <div className="border rounded-lg p-3 space-y-2 bg-orange-50/50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900">
               <h4 className="text-sm font-semibold text-orange-800 dark:text-orange-300">
                 LSP8 Token Details
               </h4>
-              {'referenceContract' in digitalAsset && referenceContract !== null && (
+              {referenceContract != null && (
                 <div className="text-sm">
                   <span className="text-muted-foreground">Reference Contract:</span>{' '}
                   <span className="font-mono text-xs break-all">
@@ -362,13 +320,13 @@ export function DigitalAssetCard({
                   </span>
                 </div>
               )}
-              {'tokenIdFormat' in digitalAsset && tokenIdFormat !== null && (
+              {tokenIdFormat != null && (
                 <div className="text-sm">
                   <span className="text-muted-foreground">Token ID Format:</span>{' '}
                   <span className="font-mono">{tokenIdFormat ?? 'not set'}</span>
                 </div>
               )}
-              {'baseUri' in digitalAsset && baseUri !== null && (
+              {baseUri != null && (
                 <div className="text-sm">
                   <span className="text-muted-foreground">Base URI:</span>{' '}
                   {baseUri ? (

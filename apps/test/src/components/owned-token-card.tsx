@@ -1,6 +1,8 @@
 import { ChevronDown, Coins, Gem, Loader2, Tag, User, Wallet } from 'lucide-react';
 import React from 'react';
 
+import type { OwnedToken } from '@lsp-indexer/types';
+
 import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { NftCard } from '@/components/nft-card';
 import { OwnedAssetCard } from '@/components/owned-asset-card';
@@ -17,43 +19,30 @@ import { formatRelativeTime } from '@/lib/utils';
 // ---------------------------------------------------------------------------
 
 export interface OwnedTokenCardProps {
-  /** Accepts full OwnedToken or narrowed OwnedTokenResult<I> — uses field-presence checks */
-  ownedToken: Record<string, unknown>;
+  /** Accepts any shape of OwnedToken — full, narrowed via include, or partial from nested relations */
+  ownedToken: Partial<OwnedToken> &
+    Pick<OwnedToken, 'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId'>;
   isFetching?: boolean;
 }
 
 export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps): React.ReactNode {
-  // Base fields — always present
-  const id = ownedToken.id as string;
-  const digitalAssetAddress = ownedToken.digitalAssetAddress as string;
-  const holderAddress = ownedToken.holderAddress as string;
-  const tokenId = ownedToken.tokenId as string;
-
-  // Conditionally included scalar fields
-  const block = 'block' in ownedToken ? (ownedToken.block as number | null) : undefined;
-  const timestamp = 'timestamp' in ownedToken ? (ownedToken.timestamp as string | null) : undefined;
-
-  // Conditionally included nested relations
-  const holder =
-    'holder' in ownedToken && ownedToken.holder
-      ? (ownedToken.holder as Record<string, unknown>)
-      : undefined;
-  const nft =
-    'nft' in ownedToken && ownedToken.nft ? (ownedToken.nft as Record<string, unknown>) : undefined;
-  const digitalAsset =
-    'digitalAsset' in ownedToken && ownedToken.digitalAsset
-      ? (ownedToken.digitalAsset as Record<string, unknown>)
-      : undefined;
-  const ownedAsset =
-    'ownedAsset' in ownedToken && ownedToken.ownedAsset
-      ? (ownedToken.ownedAsset as Record<string, unknown>)
-      : undefined;
+  // Destructure — base fields always present, everything else may be undefined
+  const {
+    id,
+    digitalAssetAddress,
+    holderAddress,
+    tokenId,
+    block,
+    timestamp,
+    holder,
+    nft,
+    digitalAsset,
+    ownedAsset,
+  } = ownedToken;
 
   // Derive name/symbol from nested digital asset for header
-  const daName =
-    digitalAsset && 'name' in digitalAsset ? (digitalAsset.name as string | null) : undefined;
-  const daSymbol =
-    digitalAsset && 'symbol' in digitalAsset ? (digitalAsset.symbol as string | null) : undefined;
+  const daName = digitalAsset?.name;
+  const daSymbol = digitalAsset?.symbol;
 
   return (
     <Card className="overflow-hidden">
@@ -71,7 +60,7 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
             <CardDescription className="font-mono text-xs break-all">ID: {id}</CardDescription>
           </div>
           <div className="flex gap-2 items-center">
-            {nft && 'isMinted' in nft && (nft.isMinted as boolean) && (
+            {nft?.isMinted && (
               <Badge
                 variant="outline"
                 className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
@@ -79,7 +68,7 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
                 Minted
               </Badge>
             )}
-            {nft && 'isBurned' in nft && (nft.isBurned as boolean) && (
+            {nft?.isBurned && (
               <Badge
                 variant="outline"
                 className="bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800"
@@ -110,7 +99,7 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
             <dt className="text-muted-foreground w-28 shrink-0">Token ID</dt>
             <dd className="font-mono text-xs break-all">{tokenId}</dd>
           </div>
-          {block !== undefined && block !== null && (
+          {block != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Block</dt>
               <dd className="font-mono text-xs">{block}</dd>
@@ -128,14 +117,12 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
         </dl>
 
         {/* Holder Profile section (collapsible, reuses ProfileCard) */}
-        {holder && (
+        {holder != null && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <User className="size-3.5" />
-                Holder Profile:{' '}
-                {('name' in holder ? (holder.name as string | null) : null) ??
-                  (holder.address as string)}
+                Holder Profile: {holder.name ?? holder.address}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
@@ -146,14 +133,12 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
         )}
 
         {/* NFT section (collapsible) */}
-        {nft && (
+        {nft != null && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Gem className="size-3.5" />
-                NFT:{' '}
-                {('name' in nft ? (nft.name as string | null) : null) ??
-                  `${nft.address as string} #${nft.tokenId as string}`}
+                NFT: {nft.name ?? `${nft.address} #${nft.tokenId}`}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
@@ -164,12 +149,12 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
         )}
 
         {/* Digital Asset section (collapsible) */}
-        {digitalAsset && (
+        {digitalAsset != null && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Coins className="size-3.5" />
-                Digital Asset: {daName ?? (digitalAsset.address as string)}
+                Digital Asset: {daName ?? digitalAsset.address}
                 {daSymbol && (
                   <span className="text-muted-foreground font-normal">({daSymbol})</span>
                 )}
@@ -183,15 +168,13 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
         )}
 
         {/* Owned Asset section (collapsible) */}
-        {ownedAsset && (
+        {ownedAsset != null && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Wallet className="size-3.5" />
-                Owned Asset: {ownedAsset.digitalAssetAddress as string}
-                {'balance' in ownedAsset &&
-                  ownedAsset.balance != null &&
-                  ` (balance: ${(ownedAsset.balance as bigint).toString()})`}
+                Owned Asset: {ownedAsset.digitalAssetAddress}
+                {ownedAsset.balance != null && ` (balance: ${ownedAsset.balance.toString()})`}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>

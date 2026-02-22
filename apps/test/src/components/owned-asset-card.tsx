@@ -1,6 +1,8 @@
 import { ChevronDown, Coins, Loader2, User, Wallet } from 'lucide-react';
 import React from 'react';
 
+import type { OwnedAsset } from '@lsp-indexer/types';
+
 import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { RawJsonToggle } from '@/components/playground';
 import { ProfileCard } from '@/components/profile-card';
@@ -44,45 +46,30 @@ function balanceTooltip(balance: bigint, decimals: number | null | undefined): s
 // ---------------------------------------------------------------------------
 
 export interface OwnedAssetCardProps {
-  /** Accepts full OwnedAsset or narrowed OwnedAssetResult<I> — uses field-presence checks */
-  ownedAsset: Record<string, unknown>;
+  /** Accepts any shape of OwnedAsset — full, narrowed via include, or partial from nested relations */
+  ownedAsset: Partial<OwnedAsset> &
+    Pick<OwnedAsset, 'id' | 'digitalAssetAddress' | 'holderAddress'>;
   isFetching?: boolean;
 }
 
 export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps): React.ReactNode {
-  // Base fields — always present
-  const id = ownedAsset.id as string;
-  const digitalAssetAddress = ownedAsset.digitalAssetAddress as string;
-  const holderAddress = ownedAsset.holderAddress as string;
+  // Destructure — base fields always present, everything else may be undefined
+  const {
+    id,
+    digitalAssetAddress,
+    holderAddress,
+    balance,
+    block,
+    timestamp,
+    tokenIdCount,
+    digitalAsset,
+    holder,
+  } = ownedAsset;
 
-  // Conditionally included scalar fields
-  const balance = 'balance' in ownedAsset ? (ownedAsset.balance as bigint | null) : undefined;
-  const block = 'block' in ownedAsset ? (ownedAsset.block as number | null) : undefined;
-  const timestamp = 'timestamp' in ownedAsset ? (ownedAsset.timestamp as string | null) : undefined;
-  const tokenIdCount =
-    'tokenIdCount' in ownedAsset ? (ownedAsset.tokenIdCount as number | null) : undefined;
-
-  // Conditionally included nested relations
-  const digitalAsset =
-    'digitalAsset' in ownedAsset && ownedAsset.digitalAsset
-      ? (ownedAsset.digitalAsset as Record<string, unknown>)
-      : undefined;
-  const holder =
-    'holder' in ownedAsset && ownedAsset.holder
-      ? (ownedAsset.holder as Record<string, unknown>)
-      : undefined;
-
-  // Derive decimals from nested digital asset if available
-  const decimals =
-    digitalAsset && 'decimals' in digitalAsset
-      ? (digitalAsset.decimals as number | null | undefined)
-      : undefined;
-
-  // Derive name/symbol from nested digital asset for header
-  const daName =
-    digitalAsset && 'name' in digitalAsset ? (digitalAsset.name as string | null) : undefined;
-  const daSymbol =
-    digitalAsset && 'symbol' in digitalAsset ? (digitalAsset.symbol as string | null) : undefined;
+  // Derive decimals and name/symbol from nested digital asset for display
+  const decimals = digitalAsset?.decimals;
+  const daName = digitalAsset?.name;
+  const daSymbol = digitalAsset?.symbol;
 
   return (
     <Card className="overflow-hidden">
@@ -100,7 +87,7 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
             <CardDescription className="font-mono text-xs break-all">ID: {id}</CardDescription>
           </div>
           <div className="flex gap-2 items-center">
-            {tokenIdCount !== undefined && tokenIdCount !== null && (
+            {tokenIdCount != null && (
               <Badge variant="secondary" className="text-xs">
                 {tokenIdCount} token ID{tokenIdCount !== 1 ? 's' : ''}
               </Badge>
@@ -124,7 +111,7 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
             <dt className="text-muted-foreground w-28 shrink-0">Asset Address</dt>
             <dd className="font-mono text-xs break-all">{digitalAssetAddress}</dd>
           </div>
-          {balance !== undefined && balance !== null && (
+          {balance != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Balance</dt>
               <dd>
@@ -142,7 +129,7 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
               </dd>
             </div>
           )}
-          {block !== undefined && block !== null && (
+          {block != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Block</dt>
               <dd className="font-mono text-xs">{block}</dd>
@@ -160,14 +147,12 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
         </dl>
 
         {/* Holder Profile section (collapsible, reuses ProfileCard) */}
-        {holder && (
+        {holder != null && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <User className="size-3.5" />
-                Holder Profile:{' '}
-                {('name' in holder ? (holder.name as string | null) : null) ??
-                  (holder.address as string)}
+                Holder Profile: {holder.name ?? holder.address}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
@@ -178,12 +163,12 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
         )}
 
         {/* Digital Asset section (collapsible) */}
-        {digitalAsset && (
+        {digitalAsset != null && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Coins className="size-3.5" />
-                Digital Asset: {daName ?? (digitalAsset.address as string)}
+                Digital Asset: {daName ?? digitalAsset.address}
                 {daSymbol && (
                   <span className="text-muted-foreground font-normal">({daSymbol})</span>
                 )}

@@ -323,7 +323,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
         </Card>
       )}
       {error && <ErrorAlert error={error} />}
-      {nft && <NftCard nft={nft as Record<string, unknown>} isFetching={isFetching} />}
+      {nft && <NftCard nft={nft} isFetching={isFetching} />}
       {queryAddress && (queryTokenId || queryFormattedTokenId) && !isLoading && !error && !nft && (
         <Alert>
           <Gem className="h-4 w-4" />
@@ -396,7 +396,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(nft) => <NftCard nft={nft as Record<string, unknown>} />}
+        renderItem={(nft) => <NftCard nft={nft} />}
         getKey={(n) => `${n.address}-${n.tokenId}`}
         label="NFTs"
         totalCount={totalCount}
@@ -446,7 +446,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(nft) => <NftCard nft={nft as Record<string, unknown>} />}
+        renderItem={(nft) => <NftCard nft={nft} />}
         getKey={(n) => `${n.address}-${n.tokenId}`}
         label="NFTs"
         hasActiveFilter={state.hasActiveFilter}

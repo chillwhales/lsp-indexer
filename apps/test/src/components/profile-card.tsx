@@ -1,64 +1,37 @@
 import { ExternalLink, Hash, Loader2, User } from 'lucide-react';
 import React from 'react';
 
+import type { Profile } from '@lsp-indexer/types';
+
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
-// Type helpers — access fields that may be absent from narrowed result types
-// ---------------------------------------------------------------------------
-
-type ProfileImage = {
-  url: string;
-  fileType?: string | null;
-  width?: number | null;
-  height?: number | null;
-};
-type ProfileLink = { title: string; url: string };
-
-// ---------------------------------------------------------------------------
 // Profile Card
 // ---------------------------------------------------------------------------
 
 export interface ProfileCardProps {
-  /** Accepts full Profile or narrowed ProfileResult<I> — uses field-presence checks */
-  profile: Record<string, unknown>;
+  /** Accepts any shape of Profile — full, narrowed via include, or partial from nested relations */
+  profile: Partial<Profile> & Pick<Profile, 'address'>;
   isFetching?: boolean;
 }
 
 export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.ReactNode {
-  // Base field — always present
-  const address = profile.address as string;
-
-  // Conditionally included scalar fields
-  const name = 'name' in profile ? (profile.name as string | null) : undefined;
-  const description = 'description' in profile ? (profile.description as string | null) : undefined;
-  const followerCount =
-    'followerCount' in profile ? (profile.followerCount as number | null) : undefined;
-  const followingCount =
-    'followingCount' in profile ? (profile.followingCount as number | null) : undefined;
-
-  // Conditionally included array fields
-  const tags =
-    'tags' in profile && Array.isArray(profile.tags) ? (profile.tags as string[]) : undefined;
-  const links =
-    'links' in profile && Array.isArray(profile.links)
-      ? (profile.links as ProfileLink[])
-      : undefined;
-  const avatar =
-    'avatar' in profile && Array.isArray(profile.avatar)
-      ? (profile.avatar as ProfileImage[])
-      : undefined;
-  const profileImage =
-    'profileImage' in profile && Array.isArray(profile.profileImage)
-      ? (profile.profileImage as ProfileImage[])
-      : undefined;
-  const backgroundImage =
-    'backgroundImage' in profile && Array.isArray(profile.backgroundImage)
-      ? (profile.backgroundImage as ProfileImage[])
-      : undefined;
+  // Destructure — address is always present, everything else may be undefined
+  const {
+    address,
+    name,
+    description,
+    followerCount,
+    followingCount,
+    tags,
+    links,
+    avatar,
+    profileImage,
+    backgroundImage,
+  } = profile;
 
   return (
     <Card className="overflow-hidden">
@@ -75,13 +48,13 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
             </CardDescription>
           </div>
           <div className="flex gap-3 text-sm">
-            {followerCount !== undefined && followerCount !== null && (
+            {followerCount != null && (
               <div className="text-center">
                 <div className="font-semibold">{followerCount}</div>
                 <div className="text-muted-foreground text-xs">Followers</div>
               </div>
             )}
-            {followingCount !== undefined && followingCount !== null && (
+            {followingCount != null && (
               <div className="text-center">
                 <div className="font-semibold">{followingCount}</div>
                 <div className="text-muted-foreground text-xs">Following</div>
@@ -98,7 +71,7 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {tags && tags.length > 0 && (
+        {tags != null && tags.length > 0 && (
           <div>
             <h4 className="text-sm font-medium mb-1">Tags</h4>
             <div className="flex flex-wrap gap-1.5">
@@ -112,7 +85,7 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {links && links.length > 0 && (
+        {links != null && links.length > 0 && (
           <div>
             <h4 className="text-sm font-medium mb-1">Links</h4>
             <div className="space-y-1">
@@ -145,7 +118,7 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {avatar && avatar.length > 0 && (
+        {avatar != null && avatar.length > 0 && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1">
               Avatar Assets ({avatar.length})
@@ -178,7 +151,7 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {profileImage && profileImage.length > 0 && (
+        {profileImage != null && profileImage.length > 0 && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1">
               Profile Image ({profileImage.length})
@@ -208,7 +181,7 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
           </div>
         )}
 
-        {backgroundImage && backgroundImage.length > 0 && (
+        {backgroundImage != null && backgroundImage.length > 0 && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1">
               Background Image ({backgroundImage.length})

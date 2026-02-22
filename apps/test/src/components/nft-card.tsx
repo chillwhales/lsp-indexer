@@ -1,6 +1,8 @@
 import { ChevronDown, Coins, ExternalLink, Gem, Loader2, User } from 'lucide-react';
 import React from 'react';
 
+import type { Nft } from '@lsp-indexer/types';
+
 import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { RawJsonToggle } from '@/components/playground';
 import { ProfileCard } from '@/components/profile-card';
@@ -11,57 +13,33 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
-// Type helpers — access fields that may be absent from narrowed result types
-// ---------------------------------------------------------------------------
-
-type Lsp4Image = {
-  url: string;
-  fileType?: string | null;
-  width?: number | null;
-  height?: number | null;
-};
-type Lsp4Link = { title: string; url: string };
-type Lsp4Attribute = { key: string; value: string; type: string };
-
-// ---------------------------------------------------------------------------
 // NFT Card
 // ---------------------------------------------------------------------------
 
 export interface NftCardProps {
-  /** Accepts full Nft or narrowed NftResult<I> — uses field-presence checks */
-  nft: Record<string, unknown>;
+  /** Accepts any shape of Nft — full, narrowed via include, or partial from nested relations */
+  nft: Partial<Nft> & Pick<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;
   isFetching?: boolean;
 }
 
 export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
-  // Base fields — always present
-  const address = nft.address as string;
-  const tokenId = nft.tokenId as string;
-  const isBurned = nft.isBurned as boolean;
-  const isMinted = nft.isMinted as boolean;
-
-  // Conditionally included scalar fields
-  const name = 'name' in nft ? (nft.name as string | null) : undefined;
-  const formattedTokenId =
-    'formattedTokenId' in nft ? (nft.formattedTokenId as string | null) : undefined;
-  const category = 'category' in nft ? (nft.category as string | null) : undefined;
-  const description = 'description' in nft ? (nft.description as string | null) : undefined;
-
-  // Conditionally included array fields
-  const icons = 'icons' in nft && Array.isArray(nft.icons) ? (nft.icons as Lsp4Image[]) : undefined;
-  const images =
-    'images' in nft && Array.isArray(nft.images) ? (nft.images as Lsp4Image[]) : undefined;
-  const links = 'links' in nft && Array.isArray(nft.links) ? (nft.links as Lsp4Link[]) : undefined;
-  const attributes =
-    'attributes' in nft && Array.isArray(nft.attributes)
-      ? (nft.attributes as Lsp4Attribute[])
-      : undefined;
-
-  // Conditionally included nested relations
-  const holder =
-    'holder' in nft && nft.holder ? (nft.holder as Record<string, unknown>) : undefined;
-  const collection =
-    'collection' in nft && nft.collection ? (nft.collection as Record<string, unknown>) : undefined;
+  // Destructure — base fields always present, everything else may be undefined
+  const {
+    address,
+    tokenId,
+    isBurned,
+    isMinted,
+    name,
+    formattedTokenId,
+    category,
+    description,
+    icons,
+    images,
+    links,
+    attributes,
+    holder,
+    collection,
+  } = nft;
 
   const firstIcon = icons?.[0];
 
@@ -88,7 +66,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
               {isFetching && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
             </CardTitle>
             <CardDescription className="font-mono text-xs break-all">
-              Token ID: {formattedTokenId !== undefined ? (formattedTokenId ?? tokenId) : tokenId}
+              Token ID: {formattedTokenId ?? tokenId}
             </CardDescription>
             <CardDescription className="font-mono text-xs break-all">{address}</CardDescription>
           </div>
@@ -134,20 +112,18 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
         </dl>
 
         {/* Holder section (collapsible) */}
-        {holder && (
+        {holder != null && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <User className="size-3.5" />
-                Holder:{' '}
-                {('name' in holder ? (holder.name as string | null) : null) ??
-                  (holder.address as string)}
+                Holder: {holder.name ?? holder.address}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2 space-y-3">
               {/* Acquisition timestamp */}
-              {'timestamp' in holder && typeof holder.timestamp === 'string' && (
+              {holder.timestamp && (
                 <dl className="space-y-1.5 text-sm">
                   <div className="flex gap-2">
                     <dt className="text-muted-foreground w-24 shrink-0">Acquired</dt>
@@ -289,15 +265,13 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
         )}
 
         {/* Collection (full DigitalAsset) — last section like owned-asset pattern */}
-        {collection && (
+        {collection != null && (
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Coins className="size-3.5" />
-                Collection:{' '}
-                {('name' in collection ? (collection.name as string | null) : null) ??
-                  (collection.address as string)}
-                {'symbol' in collection && typeof collection.symbol === 'string' && (
+                Collection: {collection.name ?? collection.address}
+                {collection.symbol && (
                   <span className="text-muted-foreground font-normal">({collection.symbol})</span>
                 )}
                 <ChevronDown className="size-3.5" />
