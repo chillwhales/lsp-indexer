@@ -145,6 +145,11 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **Card prop types as `Record<string, unknown>`:** Cards accept any subset of the full domain type. `'key' in obj` guards determine which sections render. Typed narrowing enforced at hook consumer level, not card level.
 - **`as Record<string, unknown>` casts at page-card boundaries:** Pages cast narrowed `XResult<I>` types when passing to cards — single clean boundary between typed hook results and field-presence-based rendering.
 - **Removed explicit `ResultsList<T>` generics:** Let TypeScript infer from `items` prop — avoids type mismatch when hooks return narrowed result types.
+- **Follower domain `direction` param:** `fetchFollowers` accepts `direction: 'followers' | 'following'` to serve both useFollowers and useFollowing from a single service function. `direction: 'followers'` → `primaryField = 'followed_address'` (who follows X), `direction: 'following'` → `primaryField = 'follower_address'` (who X follows).
+- **FollowerResult<I> with two profile sub-includes:** `ResolveFollowerProfile<I>` and `ResolveFollowedProfile<I>` intersection types narrow both nested profiles independently. Base fields: followerAddress, followedAddress.
+- **buildFollowerIncludeVars prefix replacement:** Reuses `buildProfileIncludeVars` with `key.replace('includeProfile', 'includeFollowerProfile')` / `'includeFollowedProfile'` for nested profile variable mapping — same pattern as NFT collection.
+- **FollowCount separate document:** `GetFollowCountDocument` uses two aliased `follower_aggregate` queries — one for follower count (where followed_address = X), one for following count (where follower_address = X).
+- **fetchIsFollowing reuses list document:** No separate existence query — `GetFollowersDocument` with `limit: 1` and all includes disabled for minimal payload.
 
 ### Discovered Todos
 
@@ -159,18 +164,23 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-22
-- **Activity:** Executed Phase 9.5 plan 04 — FollowerCard + Follows playground page (6 tabs) + nav update
-- **Outcome:** FollowerCard component and 6-tab /follows page created. All hooks verified. next build passes. Nav updated.
+- **Activity:** Executed Phase 9.5 (Social / Follows) — all 4 plans across 4 waves
+- **Outcome:** QUERY-05 fully delivered. Phase verified (20/20 must-haves). VERIFICATION.md created.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.5 complete** — QUERY-05 delivered (useFollowers, useFollowing, useFollowCount, useIsFollowing + infinite variants)
+- **Phase 9.5 complete and verified** — QUERY-05 delivered (useFollowers, useFollowing, useFollowCount, useIsFollowing, useInfiniteFollowers, useInfiniteFollowing)
 - **Next step:** Phase 9.6 (Creators) — next domain sub-phase
+- **REQUIREMENTS.md updated** — QUERY-05 marked Complete
 - **All DX-04 patterns established and proven across 6 domains** (profiles, digital-assets, nfts, owned-assets, owned-tokens, followers)
 - **Follows was first domain built WITH conditional include types from the start** (not retrofitted)
-- **Playground patterns now include dual SubIncludeSection** (followerProfile + followedProfile)
+- **New patterns established:**
+  - `direction` param on service function to serve both followers/following from single function
+  - Dual SubIncludeSection (followerProfile + followedProfile) in playground
+  - `fetchIsFollowing` reusing list document with limit:1 for existence checks
+  - 6 hooks in single domain (vs 3-4 in previous domains)
 
 ---
 
-_Last updated: 2026-02-22 — Phase 9.5 complete (Social / Follows — all 4 plans delivered, QUERY-05 satisfied)_
+_Last updated: 2026-02-22 — Phase 9.5 complete and verified (Social / Follows — 20/20 must-haves passed)_

@@ -368,7 +368,7 @@ Plans:
 
 _Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 16/29 requirements delivered
+**Total:** 16/29 requirements delivered (QUERY-05 complete)
 
 ---
 
@@ -472,4 +472,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-22 — Phase 9.4 complete (DX-04 conditional include types — all 5 plans done, playground cards updated)_
+_Last updated: 2026-02-22 — Phase 9.5 complete (Social / Follows — 4 plans, 6 hooks, QUERY-05 delivered)_
