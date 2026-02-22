@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 10 sub-phases)
-- **Sub-phase:** 9.5 (Social / Follows) — In progress (1/4 plans)
-- **Status:** Phase 9.5 plan 01 complete — types + documents + codegen delivered
-- **Last activity:** 2026-02-22 — Completed 09.5-01-PLAN.md (Follower types + documents + codegen)
+- **Sub-phase:** 9.5 (Social / Follows) — In progress (2/4 plans)
+- **Status:** Phase 9.5 plan 02 complete — parser + services + query keys delivered
+- **Last activity:** 2026-02-22 — Completed 09.5-02-PLAN.md (Follower parser + services + query keys)
 - **Progress:** █████░░░░░ 52% (15/29 requirements)
 
 ## Milestone History
@@ -34,7 +34,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.2   | NFTs                               |     1/1      | Complete          |
 | 9.3   | Owned Assets                       |     1/1      | Complete          |
 | 9.4   | Conditional Include Types          |     1/1      | Complete          |
-| 9.5   | Social / Follows                   |      1       | In progress (1/4) |
+| 9.5   | Social / Follows                   |      1       | In progress (2/4) |
 | 9.6   | Creators                           |      1       | Pending           |
 | 9.7   | Encrypted Assets                   |      1       | Pending           |
 | 9.8   | Encrypted Feed                     |      1       | Pending           |
@@ -49,7 +49,7 @@ _Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 65 (36 v1.0 + 29 v1.1)
+- **Plans completed:** 66 (36 v1.0 + 30 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 17 (11 v1.0 + 6 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 15/29 (v1.1)
@@ -159,20 +159,21 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-22
-- **Activity:** Executed Phase 9.5 plan 01 — Follower types + GraphQL documents + codegen
-- **Outcome:** Follower domain types with DX-04 conditional includes + 2 GraphQL documents. All typechecks and builds pass.
+- **Activity:** Executed Phase 9.5 plan 02 — Follower parser + services + query keys
+- **Outcome:** Parser with recursive profile sub-include narrowing, 3 service functions (fetchFollowers direction-aware, fetchFollowCount, fetchIsFollowing), query key factory with 4 namespaces. All typechecks and builds pass.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.5 plan 01 complete** — Follower types + documents + codegen delivered
-- **Next step:** Phase 9.5 plan 02 — Follower parser (with stripExcluded) + services (3 functions) + query keys
-- **New patterns for this domain:**
-  - Dual profile sub-includes (followerProfile + followedProfile) with independent narrowing
-  - Single GetFollowersDocument reused for 5 hooks via service-layer $where variation
-  - GetFollowCountDocument with aliased follower_aggregate queries
+- **Phase 9.5 plan 02 complete** — Parser + services + query keys delivered
+- **Next step:** Phase 9.5 plan 03 — 6 React hooks + 3 server actions + 6 Next.js hooks + build validation
+- **Key patterns for hooks:**
+  - fetchFollowers `direction` param: hooks set internally ('followers' or 'following')
+  - fetchFollowCount returns `{ followerCount, followingCount }` — single hook
+  - fetchIsFollowing returns boolean — single hook with two address params
+  - followerKeys expanded namespaces: followers/following/count/isFollowing
 - **All DX-04 patterns established and proven across 6 domains** (profiles, digital-assets, nfts, owned-assets, owned-tokens, followers)
 
 ---
 
-_Last updated: 2026-02-22 — Phase 9.5 plan 01 complete (Follower types + documents + codegen)_
+_Last updated: 2026-02-22 — Phase 9.5 plan 02 complete (Follower parser + services + query keys)_
