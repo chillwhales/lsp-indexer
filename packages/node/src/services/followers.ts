@@ -11,7 +11,7 @@ import { GetFollowCountDocument, GetFollowersDocument } from '../documents/follo
 import type { Follower_Bool_Exp, Follower_Order_By } from '../graphql/graphql';
 import { parseFollowers } from '../parsers/followers';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, hasActiveIncludes, orderDir } from './utils';
+import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -70,13 +70,13 @@ function buildFollowerWhere(filter: FollowerFilter | undefined): Follower_Bool_E
 
   if (filter.timestampFrom) {
     conditions.push({
-      timestamp: { _gte: filter.timestampFrom },
+      timestamp: { _gte: normalizeTimestamp(filter.timestampFrom) },
     });
   }
 
   if (filter.timestampTo) {
     conditions.push({
-      timestamp: { _lte: filter.timestampTo },
+      timestamp: { _lte: normalizeTimestamp(filter.timestampTo) },
     });
   }
 

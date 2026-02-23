@@ -68,10 +68,10 @@ export const FollowerFilterSchema = z.object({
   followerName: z.string().optional(),
   /** Case-insensitive match on followed's profile name (nested via followedUniversalProfile.lsp3Profile.name) */
   followedName: z.string().optional(),
-  /** ISO timestamp lower bound (inclusive) — maps to `timestamp: { _gte }` */
-  timestampFrom: z.string().optional(),
-  /** ISO timestamp upper bound (inclusive) — maps to `timestamp: { _lte }` */
-  timestampTo: z.string().optional(),
+  /** Timestamp lower bound (inclusive) — ISO string or unix seconds. Maps to `timestamp: { _gte }` */
+  timestampFrom: z.union([z.string(), z.number()]).optional(),
+  /** Timestamp upper bound (inclusive) — ISO string or unix seconds. Maps to `timestamp: { _lte }` */
+  timestampTo: z.union([z.string(), z.number()]).optional(),
 });
 
 // ---------------------------------------------------------------------------
