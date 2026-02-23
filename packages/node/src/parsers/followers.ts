@@ -51,36 +51,54 @@ export function parseFollower(
   raw: RawFollower,
   include?: FollowerInclude,
 ): Follower | PartialFollower {
-  // Parse nested profiles with sub-include for recursive nested stripping.
-  // When sub-include is provided, parseProfile returns a narrowed PartialProfile.
-  // When undefined (or no include at all), parseProfile returns full Profile.
-  const followerProfile = raw.followerUniversalProfile
-    ? include?.followerProfile
-      ? parseProfile(raw.followerUniversalProfile, include.followerProfile)
-      : parseProfile(raw.followerUniversalProfile)
-    : null;
-
-  const followedProfile = raw.followedUniversalProfile
-    ? include?.followedProfile
-      ? parseProfile(raw.followedUniversalProfile, include.followedProfile)
-      : parseProfile(raw.followedUniversalProfile)
-    : null;
-
-  const result = {
-    followerAddress: raw.follower_address,
-    followedAddress: raw.followed_address,
-    timestamp: raw.timestamp,
-    address: raw.address,
-    followerProfile,
-    followedProfile,
-  } as Follower;
-
   if (include) {
+    // With include: profiles may be narrowed (PartialProfile), and stripExcluded
+    // removes fields not in the include map. We build a loosely-typed intermediate
+    // because PartialProfile is not assignable to Profile.
+    const followerProfile = raw.followerUniversalProfile
+      ? include.followerProfile
+        ? parseProfile(raw.followerUniversalProfile, include.followerProfile)
+        : parseProfile(raw.followerUniversalProfile)
+      : null;
+
+    const followedProfile = raw.followedUniversalProfile
+      ? include.followedProfile
+        ? parseProfile(raw.followedUniversalProfile, include.followedProfile)
+        : parseProfile(raw.followedUniversalProfile)
+      : null;
+
+    const result = {
+      followerAddress: raw.follower_address,
+      followedAddress: raw.followed_address,
+      timestamp: raw.timestamp ?? null,
+      address: raw.address ?? null,
+      followerProfile,
+      followedProfile,
+    };
+
     return stripExcluded(result, include, ['followerAddress', 'followedAddress']) as FollowerResult<
       typeof include
     >;
   }
-  return result;
+
+  // Without include: all @include defaults are true, so all fields are present.
+  // parseProfile returns full Profile (not PartialProfile).
+  const followerProfile = raw.followerUniversalProfile
+    ? parseProfile(raw.followerUniversalProfile)
+    : null;
+
+  const followedProfile = raw.followedUniversalProfile
+    ? parseProfile(raw.followedUniversalProfile)
+    : null;
+
+  return {
+    followerAddress: raw.follower_address,
+    followedAddress: raw.followed_address,
+    timestamp: raw.timestamp ?? null,
+    address: raw.address ?? null,
+    followerProfile,
+    followedProfile,
+  };
 }
 
 /**

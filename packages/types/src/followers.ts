@@ -25,10 +25,10 @@ export const FollowerSchema = z.object({
   followerAddress: z.string(),
   /** Address that is being followed */
   followedAddress: z.string(),
-  /** Timestamp when the follow relationship was created (ISO string) */
-  timestamp: z.string(),
-  /** Contract address of the follow relationship */
-  address: z.string(),
+  /** Timestamp when the follow relationship was created — ISO string (null when excluded via include) */
+  timestamp: z.string().nullable(),
+  /** Contract address of the follow relationship (null when excluded via include) */
+  address: z.string().nullable(),
   /** Universal Profile of the follower (null = not included in query or no UP) */
   followerProfile: ProfileSchema.nullable(),
   /** Universal Profile of the followed (null = not included in query or no UP) */
