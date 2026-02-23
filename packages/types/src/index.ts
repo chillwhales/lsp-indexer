@@ -1,4 +1,5 @@
 export * from './common';
+export * from './creators';
 export * from './digital-assets';
 export * from './errors';
 export * from './followers';
