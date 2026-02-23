@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
 - **Sub-phase:** 9.6 (Generic Type Propagation) — In progress
-- **Plan:** 1 of 3 in current sub-phase
-- **Status:** In progress — 09.6-01 complete (parsers + services)
-- **Last activity:** 2026-02-23 — Completed 09.6-01-PLAN.md
+- **Plan:** 2 of 3 in current sub-phase
+- **Status:** In progress — 09.6-02 complete (actions + hooks generic overloads)
+- **Last activity:** 2026-02-23 — Completed 09.6-02-PLAN.md
 - **Progress:** █████▓░░░░ 53% (16/30 requirements)
 
 ## Milestone History
@@ -166,17 +166,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-23
-- **Activity:** Executed 09.6-01-PLAN.md — added generic overloads to all parsers + services in @lsp-indexer/node
-- **Outcome:** 10 files modified, 10 commits. All 5 parser pairs + 5 service pairs now have 3-overload `<const I>` pattern.
+- **Activity:** Executed 09.6-02-PLAN.md — added generic overloads + return type aliases to all hooks and server actions
+- **Outcome:** 15 files modified, 15 commits. All 5 action files + 5 React hook files + 5 Next.js hook files now have 3-overload `<const I>` pattern.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **09.6-01 complete** — parsers + services layer done
-- **Next step:** Execute 09.6-02-PLAN.md (React hooks generic propagation)
-- **Then:** 09.6-03-PLAN.md (Next.js hooks)
-- **All XResult<I> types already exist** from Phase 9.4 — node layer now fully connected
+- **09.6-02 complete** — actions + hooks layer done (react + next packages)
+- **Next step:** Execute 09.6-03-PLAN.md (verification / final DX-05 completion)
+- **Full generic chain complete:** types → parsers → services → hooks → actions across all 6 domains
 
 ---
 
-_Last updated: 2026-02-23 — Completed 09.6-01-PLAN.md (parsers + services generic overloads)_
+_Last updated: 2026-02-23 — Completed 09.6-02-PLAN.md (actions + hooks generic overloads)_
