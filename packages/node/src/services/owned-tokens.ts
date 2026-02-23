@@ -2,6 +2,7 @@ import type {
   OwnedToken,
   OwnedTokenFilter,
   OwnedTokenInclude,
+  OwnedTokenResult,
   OwnedTokenSort,
   PartialOwnedToken,
 } from '@lsp-indexer/types';
@@ -210,14 +211,18 @@ export async function fetchOwnedToken(
   url: string,
   params: { id: string },
 ): Promise<OwnedToken | null>;
+export async function fetchOwnedToken<const I extends OwnedTokenInclude>(
+  url: string,
+  params: { id: string; include: I },
+): Promise<OwnedTokenResult<I> | null>;
 export async function fetchOwnedToken(
   url: string,
-  params: { id: string; include: OwnedTokenInclude },
+  params: { id: string; include?: OwnedTokenInclude },
 ): Promise<PartialOwnedToken | null>;
 export async function fetchOwnedToken(
   url: string,
   params: { id: string; include?: OwnedTokenInclude },
-): Promise<OwnedToken | PartialOwnedToken | null> {
+): Promise<PartialOwnedToken | null> {
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetOwnedTokenDocument, {
@@ -263,6 +268,16 @@ export async function fetchOwnedTokens(
     offset?: number;
   },
 ): Promise<FetchOwnedTokensResult>;
+export async function fetchOwnedTokens<const I extends OwnedTokenInclude>(
+  url: string,
+  params: {
+    filter?: OwnedTokenFilter;
+    sort?: OwnedTokenSort;
+    limit?: number;
+    offset?: number;
+    include: I;
+  },
+): Promise<FetchOwnedTokensResult<OwnedTokenResult<I>>>;
 export async function fetchOwnedTokens(
   url: string,
   params: {
@@ -270,7 +285,7 @@ export async function fetchOwnedTokens(
     sort?: OwnedTokenSort;
     limit?: number;
     offset?: number;
-    include: OwnedTokenInclude;
+    include?: OwnedTokenInclude;
   },
 ): Promise<FetchOwnedTokensResult<PartialOwnedToken>>;
 export async function fetchOwnedTokens(
@@ -282,7 +297,7 @@ export async function fetchOwnedTokens(
     offset?: number;
     include?: OwnedTokenInclude;
   } = {},
-): Promise<FetchOwnedTokensResult | FetchOwnedTokensResult<PartialOwnedToken>> {
+): Promise<FetchOwnedTokensResult<PartialOwnedToken>> {
   const where = buildOwnedTokenWhere(params.filter);
   const orderBy = buildOwnedTokenOrderBy(params.sort);
   const includeVars = buildIncludeVars(params.include);
