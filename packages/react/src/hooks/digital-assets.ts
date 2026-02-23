@@ -18,6 +18,29 @@ import type {
 /** Default number of digital assets per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
 
+/** Flat return shape for useDigitalAsset — digitalAsset + query state */
+type UseDigitalAssetReturn<F> = { digitalAsset: F | null } & Omit<
+  UseQueryResult<F | null, Error>,
+  'data'
+>;
+
+/** Flat return shape for useDigitalAssets — digitalAssets array + totalCount + query state */
+type UseDigitalAssetsReturn<F> = { digitalAssets: F[]; totalCount: number } & Omit<
+  UseQueryResult<FetchDigitalAssetsResult<F>, Error>,
+  'data'
+>;
+
+/** Flat return shape for useInfiniteDigitalAssets — digitalAssets array + infinite scroll controls + query state */
+type UseInfiniteDigitalAssetsReturn<F> = {
+  digitalAssets: F[];
+  hasNextPage: boolean;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  isFetchingNextPage: boolean;
+} & Omit<
+  UseInfiniteQueryResult<InfiniteData<FetchDigitalAssetsResult<F>>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;
+
 /**
  * Fetch a single digital asset by address.
  *
@@ -49,7 +72,18 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useDigitalAsset(params: UseDigitalAssetParams & { include?: DigitalAssetInclude }) {
+export function useDigitalAsset<const I extends DigitalAssetInclude>(
+  params: UseDigitalAssetParams & { include: I },
+): UseDigitalAssetReturn<DigitalAssetResult<I>>;
+export function useDigitalAsset(
+  params: Omit<UseDigitalAssetParams, 'include'> & { include?: never },
+): UseDigitalAssetReturn<DigitalAsset>;
+export function useDigitalAsset(
+  params: UseDigitalAssetParams & { include?: DigitalAssetInclude },
+): UseDigitalAssetReturn<PartialDigitalAsset>;
+export function useDigitalAsset(
+  params: UseDigitalAssetParams & { include?: DigitalAssetInclude },
+): UseDigitalAssetReturn<PartialDigitalAsset> {
   const url = getClientUrl();
   const { address, include } = params;
 
@@ -60,7 +94,7 @@ export function useDigitalAsset(params: UseDigitalAssetParams & { include?: Digi
     enabled: Boolean(address),
   });
 
-  const digitalAsset: PartialDigitalAsset | null = data ?? null;
+  const digitalAsset = data ?? null;
   return { digitalAsset, ...rest };
 }
 
@@ -98,9 +132,18 @@ export function useDigitalAsset(params: UseDigitalAssetParams & { include?: Digi
  * }
  * ```
  */
+export function useDigitalAssets<const I extends DigitalAssetInclude>(
+  params: UseDigitalAssetsParams & { include: I },
+): UseDigitalAssetsReturn<DigitalAssetResult<I>>;
+export function useDigitalAssets(
+  params?: Omit<UseDigitalAssetsParams, 'include'> & { include?: never },
+): UseDigitalAssetsReturn<DigitalAsset>;
+export function useDigitalAssets(
+  params: UseDigitalAssetsParams & { include?: DigitalAssetInclude },
+): UseDigitalAssetsReturn<PartialDigitalAsset>;
 export function useDigitalAssets(
   params: UseDigitalAssetsParams & { include?: DigitalAssetInclude } = {},
-) {
+): UseDigitalAssetsReturn<PartialDigitalAsset> {
   const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
@@ -112,7 +155,7 @@ export function useDigitalAssets(
         : fetchDigitalAssets(url, { filter, sort, limit, offset }),
   });
 
-  const digitalAssets: PartialDigitalAsset[] = data?.digitalAssets ?? [];
+  const digitalAssets = data?.digitalAssets ?? [];
   return { digitalAssets, totalCount: data?.totalCount ?? 0, ...rest };
 }
 
@@ -160,9 +203,18 @@ export function useDigitalAssets(
  * }
  * ```
  */
+export function useInfiniteDigitalAssets<const I extends DigitalAssetInclude>(
+  params: UseInfiniteDigitalAssetsParams & { include: I },
+): UseInfiniteDigitalAssetsReturn<DigitalAssetResult<I>>;
+export function useInfiniteDigitalAssets(
+  params?: Omit<UseInfiniteDigitalAssetsParams, 'include'> & { include?: never },
+): UseInfiniteDigitalAssetsReturn<DigitalAsset>;
+export function useInfiniteDigitalAssets(
+  params: UseInfiniteDigitalAssetsParams & { include?: DigitalAssetInclude },
+): UseInfiniteDigitalAssetsReturn<PartialDigitalAsset>;
 export function useInfiniteDigitalAssets(
   params: UseInfiniteDigitalAssetsParams & { include?: DigitalAssetInclude } = {},
-) {
+): UseInfiniteDigitalAssetsReturn<PartialDigitalAsset> {
   const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
@@ -197,7 +249,7 @@ export function useInfiniteDigitalAssets(
   // Flatten all pages into a single digitalAssets array (memoized to avoid re-flattening on every render)
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const digitalAssets: PartialDigitalAsset[] = useMemo(
+  const digitalAssets = useMemo(
     () => data?.pages.flatMap((page) => page.digitalAssets) ?? [],
     [data?.pages],
   );
