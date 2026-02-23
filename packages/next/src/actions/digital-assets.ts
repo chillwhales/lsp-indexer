@@ -23,14 +23,18 @@ import type {
  * @returns The parsed digital asset, or `null` if not found
  */
 export async function getDigitalAsset(address: string): Promise<DigitalAsset | null>;
+export async function getDigitalAsset<const I extends DigitalAssetInclude>(
+  address: string,
+  include: I,
+): Promise<DigitalAssetResult<I> | null>;
 export async function getDigitalAsset(
   address: string,
-  include: DigitalAssetInclude,
+  include?: DigitalAssetInclude,
 ): Promise<PartialDigitalAsset | null>;
 export async function getDigitalAsset(
   address: string,
   include?: DigitalAssetInclude,
-): Promise<DigitalAsset | PartialDigitalAsset | null> {
+): Promise<PartialDigitalAsset | null> {
   const url = getServerUrl();
   if (include) return fetchDigitalAsset(url, { address, include });
   return fetchDigitalAsset(url, { address });
@@ -52,12 +56,19 @@ export async function getDigitalAssets(params?: {
   limit?: number;
   offset?: number;
 }): Promise<FetchDigitalAssetsResult>;
+export async function getDigitalAssets<const I extends DigitalAssetInclude>(params: {
+  filter?: DigitalAssetFilter;
+  sort?: DigitalAssetSort;
+  limit?: number;
+  offset?: number;
+  include: I;
+}): Promise<FetchDigitalAssetsResult<DigitalAssetResult<I>>>;
 export async function getDigitalAssets(params: {
   filter?: DigitalAssetFilter;
   sort?: DigitalAssetSort;
   limit?: number;
   offset?: number;
-  include: DigitalAssetInclude;
+  include?: DigitalAssetInclude;
 }): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>>;
 export async function getDigitalAssets(params?: {
   filter?: DigitalAssetFilter;
@@ -65,7 +76,7 @@ export async function getDigitalAssets(params?: {
   limit?: number;
   offset?: number;
   include?: DigitalAssetInclude;
-}): Promise<FetchDigitalAssetsResult | FetchDigitalAssetsResult<PartialDigitalAsset>> {
+}): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>> {
   const url = getServerUrl();
   if (params?.include) return fetchDigitalAssets(url, params);
   return fetchDigitalAssets(url, params ?? {});
