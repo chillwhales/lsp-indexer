@@ -78,12 +78,12 @@ type UseInfiniteFollowsReturn<F> = {
  * }
  * ```
  */
-export function useFollows(
-  params: Omit<UseFollowsParams, 'include'> & { include?: never },
-): UseFollowsReturn<Follower>;
 export function useFollows<const I extends FollowerInclude>(
   params: UseFollowsParams & { include: I },
 ): UseFollowsReturn<FollowerResult<I>>;
+export function useFollows(
+  params: Omit<UseFollowsParams, 'include'> & { include?: never },
+): UseFollowsReturn<Follower>;
 export function useFollows(
   params: UseFollowsParams & { include?: FollowerInclude },
 ): UseFollowsReturn<PartialFollower>;
@@ -151,12 +151,12 @@ export function useFollows(
  * }
  * ```
  */
-export function useInfiniteFollows(
-  params: Omit<UseInfiniteFollowsParams, 'include'> & { include?: never },
-): UseInfiniteFollowsReturn<Follower>;
 export function useInfiniteFollows<const I extends FollowerInclude>(
   params: UseInfiniteFollowsParams & { include: I },
 ): UseInfiniteFollowsReturn<FollowerResult<I>>;
+export function useInfiniteFollows(
+  params: Omit<UseInfiniteFollowsParams, 'include'> & { include?: never },
+): UseInfiniteFollowsReturn<Follower>;
 export function useInfiniteFollows(
   params: UseInfiniteFollowsParams & { include?: FollowerInclude },
 ): UseInfiniteFollowsReturn<PartialFollower>;
