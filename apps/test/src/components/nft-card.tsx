@@ -1,15 +1,15 @@
-import { ChevronDown, Coins, ExternalLink, Gem, Loader2, User } from 'lucide-react';
+import { ExternalLink, Gem, Loader2 } from 'lucide-react';
 import React from 'react';
 
 import type { Nft, PartialExcept } from '@lsp-indexer/types';
 
-import { DigitalAssetCard } from '@/components/digital-asset-card';
+import {
+  CollapsibleDigitalAssetSection,
+  CollapsibleProfileSection,
+} from '@/components/collapsible-sections';
 import { RawJsonToggle } from '@/components/playground';
-import { ProfileCard } from '@/components/profile-card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
@@ -111,30 +111,22 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
           )}
         </dl>
 
-        {/* Holder section (collapsible) */}
+        {/* Holder section */}
         {holder != null && (
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-                <User className="size-3.5" />
-                Holder: {holder.name ?? holder.address}
-                <ChevronDown className="size-3.5" />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 space-y-3">
-              {/* Acquisition timestamp */}
-              {holder.timestamp && (
-                <dl className="space-y-1.5 text-sm">
+          <CollapsibleProfileSection
+            label="Holder"
+            profile={holder}
+            before={
+              holder.timestamp ? (
+                <dl className="space-y-1.5 text-sm mb-3">
                   <div className="flex gap-2">
                     <dt className="text-muted-foreground w-24 shrink-0">Acquired</dt>
                     <dd className="text-xs">{new Date(holder.timestamp).toLocaleString()}</dd>
                   </div>
                 </dl>
-              )}
-              {/* Holder profile (flat — holder IS a Profile with timestamp) */}
-              <ProfileCard profile={holder} />
-            </CollapsibleContent>
-          </Collapsible>
+              ) : undefined
+            }
+          />
         )}
 
         {/* LSP4 Metadata */}
@@ -264,23 +256,9 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
           </div>
         )}
 
-        {/* Collection (full DigitalAsset) — last section like owned-asset pattern */}
+        {/* Collection (full DigitalAsset) */}
         {collection != null && (
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-                <Coins className="size-3.5" />
-                Collection: {collection.name ?? collection.address}
-                {collection.symbol && (
-                  <span className="text-muted-foreground font-normal">({collection.symbol})</span>
-                )}
-                <ChevronDown className="size-3.5" />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <DigitalAssetCard digitalAsset={collection} />
-            </CollapsibleContent>
-          </Collapsible>
+          <CollapsibleDigitalAssetSection label="Collection" digitalAsset={collection} />
         )}
 
         <RawJsonToggle data={nft} label="nft" />

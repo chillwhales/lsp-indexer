@@ -1,15 +1,15 @@
-import { ChevronDown, Coins, Loader2, User, Wallet } from 'lucide-react';
+import { Loader2, Wallet } from 'lucide-react';
 import React from 'react';
 
 import type { OwnedAsset, PartialExcept } from '@lsp-indexer/types';
 
-import { DigitalAssetCard } from '@/components/digital-asset-card';
+import {
+  CollapsibleDigitalAssetSection,
+  CollapsibleProfileSection,
+} from '@/components/collapsible-sections';
 import { RawJsonToggle } from '@/components/playground';
-import { ProfileCard } from '@/components/profile-card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatRelativeTime, formatTokenAmount } from '@/lib/utils';
 
@@ -145,39 +145,12 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
           )}
         </dl>
 
-        {/* Holder Profile section (collapsible, reuses ProfileCard) */}
-        {holder != null && (
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-                <User className="size-3.5" />
-                Holder Profile: {holder.name ?? holder.address}
-                <ChevronDown className="size-3.5" />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <ProfileCard profile={holder} />
-            </CollapsibleContent>
-          </Collapsible>
-        )}
+        {/* Holder Profile section */}
+        {holder != null && <CollapsibleProfileSection label="Holder Profile" profile={holder} />}
 
-        {/* Digital Asset section (collapsible) */}
+        {/* Digital Asset section */}
         {digitalAsset != null && (
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-                <Coins className="size-3.5" />
-                Digital Asset: {daName ?? digitalAsset.address}
-                {daSymbol && (
-                  <span className="text-muted-foreground font-normal">({daSymbol})</span>
-                )}
-                <ChevronDown className="size-3.5" />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <DigitalAssetCard digitalAsset={digitalAsset} />
-            </CollapsibleContent>
-          </Collapsible>
+          <CollapsibleDigitalAssetSection label="Digital Asset" digitalAsset={digitalAsset} />
         )}
 
         <RawJsonToggle data={ownedAsset} label="ownedAsset" />

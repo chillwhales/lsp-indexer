@@ -106,6 +106,65 @@ export function formatRelativeTime(timestamp: string): string {
   return `${years}y ago`;
 }
 
+// ---------------------------------------------------------------------------
+// Display label helpers — shared across domain card components
+// ---------------------------------------------------------------------------
+
+/** Truncate an address to 0x1234…abcd format */
+export function truncateAddress(address: string): string {
+  if (address.length <= 12) return address;
+  return `${address.slice(0, 6)}…${address.slice(-4)}`;
+}
+
+/**
+ * Extract a display label from a profile-like object.
+ * Returns the profile name when available, otherwise truncates the address.
+ *
+ * @param profile - A profile object (may have `name` and/or `address`)
+ * @param fallbackAddress - Used when profile is null/undefined or has no address field
+ */
+export function getProfileLabel(
+  profile: Record<string, unknown> | null | undefined,
+  fallbackAddress: string,
+): string {
+  if (
+    profile &&
+    typeof profile === 'object' &&
+    'name' in profile &&
+    typeof profile.name === 'string'
+  ) {
+    return profile.name;
+  }
+  if (profile && typeof profile === 'object' && 'address' in profile) {
+    return truncateAddress(String(profile.address));
+  }
+  return truncateAddress(fallbackAddress);
+}
+
+/**
+ * Extract display label info from a digital-asset-like object.
+ * Returns name (or truncated address) and symbol.
+ *
+ * @param da - A digital asset object (may have `name`, `symbol`, `address`)
+ * @param fallbackAddress - Used when da has no `address` field
+ */
+export function getDigitalAssetLabel(
+  da: Record<string, unknown> | null | undefined,
+  fallbackAddress: string,
+): { label: string; symbol: string | null } {
+  if (!da) return { label: truncateAddress(fallbackAddress), symbol: null };
+
+  const name = 'name' in da && typeof da.name === 'string' ? da.name : null;
+  const symbol = 'symbol' in da && typeof da.symbol === 'string' ? da.symbol : null;
+  const address = 'address' in da ? String(da.address) : fallbackAddress;
+
+  return { label: name ?? truncateAddress(address), symbol };
+}
+
+// ---------------------------------------------------------------------------
+// URL helpers
+// ---------------------------------------------------------------------------
+
 /** Validate that a URL uses a safe protocol (prevents javascript: / data: XSS) */
 export function isSafeUrl(url: string): boolean {
   try {

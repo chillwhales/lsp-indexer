@@ -1,18 +1,20 @@
-import { ChevronDown, Coins, Gem, Loader2, Tag, User, Wallet } from 'lucide-react';
+import { ChevronDown, Gem, Loader2, Tag, Wallet } from 'lucide-react';
 import React from 'react';
 
 import type { OwnedToken, PartialExcept } from '@lsp-indexer/types';
 
-import { DigitalAssetCard } from '@/components/digital-asset-card';
+import {
+  CollapsibleDigitalAssetSection,
+  CollapsibleProfileSection,
+} from '@/components/collapsible-sections';
 import { NftCard } from '@/components/nft-card';
 import { OwnedAssetCard } from '@/components/owned-asset-card';
 import { RawJsonToggle } from '@/components/playground';
-import { ProfileCard } from '@/components/profile-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { formatRelativeTime } from '@/lib/utils';
+import { formatRelativeTime, truncateAddress } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // Owned Token Card
@@ -115,21 +117,8 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
           )}
         </dl>
 
-        {/* Holder Profile section (collapsible, reuses ProfileCard) */}
-        {holder != null && (
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-                <User className="size-3.5" />
-                Holder Profile: {holder.name ?? holder.address}
-                <ChevronDown className="size-3.5" />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <ProfileCard profile={holder} />
-            </CollapsibleContent>
-          </Collapsible>
-        )}
+        {/* Holder Profile section */}
+        {holder != null && <CollapsibleProfileSection label="Holder Profile" profile={holder} />}
 
         {/* NFT section (collapsible) */}
         {nft != null && (
@@ -137,7 +126,7 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Gem className="size-3.5" />
-                NFT: {nft.name ?? `${nft.address} #${nft.tokenId}`}
+                NFT: {nft.name ?? `${truncateAddress(nft.address)} #${nft.tokenId}`}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
@@ -147,23 +136,9 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
           </Collapsible>
         )}
 
-        {/* Digital Asset section (collapsible) */}
+        {/* Digital Asset section */}
         {digitalAsset != null && (
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-                <Coins className="size-3.5" />
-                Digital Asset: {daName ?? digitalAsset.address}
-                {daSymbol && (
-                  <span className="text-muted-foreground font-normal">({daSymbol})</span>
-                )}
-                <ChevronDown className="size-3.5" />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <DigitalAssetCard digitalAsset={digitalAsset} />
-            </CollapsibleContent>
-          </Collapsible>
+          <CollapsibleDigitalAssetSection label="Digital Asset" digitalAsset={digitalAsset} />
         )}
 
         {/* Owned Asset section (collapsible) */}
@@ -172,7 +147,7 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Wallet className="size-3.5" />
-                Owned Asset: {ownedAsset.digitalAssetAddress}
+                Owned Asset: {truncateAddress(ownedAsset.digitalAssetAddress)}
                 {ownedAsset.balance != null && ` (balance: ${ownedAsset.balance.toString()})`}
                 <ChevronDown className="size-3.5" />
               </Button>

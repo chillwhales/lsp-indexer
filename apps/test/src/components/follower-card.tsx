@@ -1,40 +1,12 @@
-import { ArrowRight, ChevronDown, User } from 'lucide-react';
+import { ArrowRight, User } from 'lucide-react';
 import React from 'react';
 
 import type { PartialExcept } from '@lsp-indexer/types';
 
+import { CollapsibleProfileSection } from '@/components/collapsible-sections';
 import { RawJsonToggle } from '@/components/playground';
-import { ProfileCard } from '@/components/profile-card';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { formatRelativeTime } from '@/lib/utils';
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Truncate an address to 0x1234…abcd format */
-function truncateAddress(address: string): string {
-  if (address.length <= 12) return address;
-  return `${address.slice(0, 6)}…${address.slice(-4)}`;
-}
-
-/** Extract a display label from a profile object or fall back to truncated address */
-function getProfileLabel(
-  profile: Record<string, unknown> | undefined | null,
-  address: string,
-): string {
-  if (
-    profile &&
-    typeof profile === 'object' &&
-    'name' in profile &&
-    typeof profile.name === 'string'
-  ) {
-    return profile.name;
-  }
-  return truncateAddress(address);
-}
+import { formatRelativeTime, getProfileLabel } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // FollowerCard
@@ -44,14 +16,6 @@ export interface FollowerCardProps {
   /** Accepts any shape of Follower — full, narrowed via include, or partial */
   follower: Record<string, unknown>;
   index: number;
-}
-
-/**
- * Render profile fields that may be present on a nested profile object.
- * Uses 'key' in obj guards for field-presence checks (DX-04 pattern).
- */
-function renderProfileFields(profile: Record<string, unknown>): React.ReactNode {
-  return <ProfileCard profile={profile as PartialExcept<{ address: string }, 'address'>} />;
 }
 
 export function FollowerCard({ follower, index }: FollowerCardProps): React.ReactNode {
@@ -110,34 +74,18 @@ export function FollowerCard({ follower, index }: FollowerCardProps): React.Reac
 
         {/* Collapsible section 1: Follower Profile */}
         {'followerProfile' in obj && obj.followerProfile != null && (
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-                <User className="size-3.5" />
-                Follower Profile: {followerLabel}
-                <ChevronDown className="size-3.5" />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              {renderProfileFields(obj.followerProfile as Record<string, unknown>)}
-            </CollapsibleContent>
-          </Collapsible>
+          <CollapsibleProfileSection
+            label="Follower Profile"
+            profile={obj.followerProfile as PartialExcept<{ address: string }, 'address'>}
+          />
         )}
 
         {/* Collapsible section 2: Followed Profile */}
         {'followedProfile' in obj && obj.followedProfile != null && (
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-                <User className="size-3.5" />
-                Followed Profile: {followedLabel}
-                <ChevronDown className="size-3.5" />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              {renderProfileFields(obj.followedProfile as Record<string, unknown>)}
-            </CollapsibleContent>
-          </Collapsible>
+          <CollapsibleProfileSection
+            label="Followed Profile"
+            profile={obj.followedProfile as PartialExcept<{ address: string }, 'address'>}
+          />
         )}
 
         <RawJsonToggle data={follower} label="follower" />

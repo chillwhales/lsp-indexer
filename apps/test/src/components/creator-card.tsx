@@ -1,53 +1,17 @@
 'use client';
 
-import { ChevronDown, Coins, Paintbrush, User } from 'lucide-react';
+import { Paintbrush } from 'lucide-react';
 import React from 'react';
 
 import type { PartialExcept } from '@lsp-indexer/types';
 
-import { DigitalAssetCard } from '@/components/digital-asset-card';
+import {
+  CollapsibleDigitalAssetSection,
+  CollapsibleProfileSection,
+} from '@/components/collapsible-sections';
 import { RawJsonToggle } from '@/components/playground';
-import { ProfileCard } from '@/components/profile-card';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { formatRelativeTime } from '@/lib/utils';
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Truncate an address to 0x1234…abcd format */
-function truncateAddress(address: string): string {
-  if (address.length <= 12) return address;
-  return `${address.slice(0, 6)}…${address.slice(-4)}`;
-}
-
-/** Extract the profile name from a nested profile object, or fall back to truncated address */
-function getProfileLabel(profile: Record<string, unknown> | null | undefined): string | null {
-  if (
-    profile &&
-    typeof profile === 'object' &&
-    'name' in profile &&
-    typeof profile.name === 'string'
-  ) {
-    return profile.name;
-  }
-  if (profile && typeof profile === 'object' && 'address' in profile) {
-    return truncateAddress(String(profile.address));
-  }
-  return null;
-}
-
-/** Extract digital asset name and symbol from a nested DA object */
-function getDigitalAssetLabel(da: Record<string, unknown>): {
-  name: string | null;
-  symbol: string | null;
-} {
-  const name = 'name' in da && typeof da.name === 'string' ? da.name : null;
-  const symbol = 'symbol' in da && typeof da.symbol === 'string' ? da.symbol : null;
-  return { name, symbol };
-}
+import { formatRelativeTime, getDigitalAssetLabel, getProfileLabel } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // CreatorCard
@@ -71,27 +35,23 @@ export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNo
   const obj = creator;
 
   // Derive display labels from nested relations
-  const profileLabel =
-    'creatorProfile' in obj
-      ? getProfileLabel(obj.creatorProfile as Record<string, unknown> | null)
-      : null;
-  const daInfo =
-    'digitalAsset' in obj && obj.digitalAsset
-      ? getDigitalAssetLabel(obj.digitalAsset as Record<string, unknown>)
-      : null;
+  const creatorLabel = getProfileLabel(
+    'creatorProfile' in obj ? (obj.creatorProfile as Record<string, unknown> | null) : null,
+    obj.creatorAddress as string,
+  );
+  const daInfo = getDigitalAssetLabel(
+    'digitalAsset' in obj ? (obj.digitalAsset as Record<string, unknown> | null) : null,
+    obj.digitalAssetAddress as string,
+  );
 
   return (
     <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm">
           <Paintbrush className="size-4 text-muted-foreground" />
-          <span className="truncate">
-            {profileLabel ?? truncateAddress(obj.creatorAddress as string)}
-          </span>
+          <span className="truncate">{creatorLabel}</span>
           <span className="text-muted-foreground shrink-0">→</span>
-          <span className="truncate">
-            {daInfo?.name ?? truncateAddress(obj.digitalAssetAddress as string)}
-          </span>
+          <span className="truncate">{daInfo.label}</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -134,46 +94,18 @@ export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNo
 
         {/* Collapsible section 1: Creator Profile */}
         {'creatorProfile' in obj && obj.creatorProfile != null && (
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-                <User className="size-3.5" />
-                Creator Profile: {profileLabel ?? 'Unknown'}
-                <ChevronDown className="size-3.5" />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <ProfileCard
-                profile={obj.creatorProfile as PartialExcept<{ address: string }, 'address'>}
-              />
-            </CollapsibleContent>
-          </Collapsible>
+          <CollapsibleProfileSection
+            label="Creator Profile"
+            profile={obj.creatorProfile as PartialExcept<{ address: string }, 'address'>}
+          />
         )}
 
         {/* Collapsible section 2: Digital Asset */}
         {'digitalAsset' in obj && obj.digitalAsset != null && (
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-                <Coins className="size-3.5" />
-                Digital Asset:{' '}
-                {daInfo?.name ??
-                  truncateAddress(
-                    ((obj.digitalAsset as Record<string, unknown>).address as string) ??
-                      (obj.digitalAssetAddress as string),
-                  )}
-                {daInfo?.symbol && (
-                  <span className="text-muted-foreground font-normal">({daInfo.symbol})</span>
-                )}
-                <ChevronDown className="size-3.5" />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <DigitalAssetCard
-                digitalAsset={obj.digitalAsset as PartialExcept<{ address: string }, 'address'>}
-              />
-            </CollapsibleContent>
-          </Collapsible>
+          <CollapsibleDigitalAssetSection
+            label="Digital Asset"
+            digitalAsset={obj.digitalAsset as PartialExcept<{ address: string }, 'address'>}
+          />
         )}
 
         <RawJsonToggle data={creator} label="creator" />
