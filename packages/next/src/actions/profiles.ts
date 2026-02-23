@@ -7,6 +7,7 @@ import type {
   Profile,
   ProfileFilter,
   ProfileInclude,
+  ProfileResult,
   ProfileSort,
 } from '@lsp-indexer/types';
 

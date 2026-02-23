@@ -6,6 +6,7 @@ import type {
   DigitalAsset,
   DigitalAssetFilter,
   DigitalAssetInclude,
+  DigitalAssetResult,
   DigitalAssetSort,
   PartialDigitalAsset,
 } from '@lsp-indexer/types';

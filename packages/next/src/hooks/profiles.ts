@@ -1,10 +1,14 @@
+import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import type { FetchProfilesResult } from '@lsp-indexer/node';
 import { profileKeys } from '@lsp-indexer/node';
 import type {
   PartialProfile,
+  Profile,
   ProfileInclude,
+  ProfileResult,
   UseInfiniteProfilesParams,
   UseProfileParams,
   UseProfilesParams,

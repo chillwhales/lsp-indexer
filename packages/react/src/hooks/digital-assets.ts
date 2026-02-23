@@ -1,6 +1,8 @@
+import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import type { FetchDigitalAssetsResult } from '@lsp-indexer/node';
 import {
   digitalAssetKeys,
   fetchDigitalAsset,
@@ -8,7 +10,9 @@ import {
   getClientUrl,
 } from '@lsp-indexer/node';
 import type {
+  DigitalAsset,
   DigitalAssetInclude,
+  DigitalAssetResult,
   PartialDigitalAsset,
   UseDigitalAssetParams,
   UseDigitalAssetsParams,

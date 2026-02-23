@@ -1,9 +1,13 @@
+import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import type { FetchNftsResult } from '@lsp-indexer/node';
 import { fetchNft, fetchNfts, getClientUrl, nftKeys } from '@lsp-indexer/node';
 import type {
+  Nft,
   NftInclude,
+  NftResult,
   PartialNft,
   UseInfiniteNftsParams,
   UseNftParams,

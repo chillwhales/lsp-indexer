@@ -1,9 +1,13 @@
+import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import type { FetchOwnedTokensResult } from '@lsp-indexer/node';
 import { ownedTokenKeys } from '@lsp-indexer/node';
 import type {
+  OwnedToken,
   OwnedTokenInclude,
+  OwnedTokenResult,
   PartialOwnedToken,
   UseInfiniteOwnedTokensParams,
   UseOwnedTokenParams,

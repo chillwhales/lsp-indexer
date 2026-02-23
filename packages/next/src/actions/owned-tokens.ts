@@ -6,6 +6,7 @@ import type {
   OwnedToken,
   OwnedTokenFilter,
   OwnedTokenInclude,
+  OwnedTokenResult,
   OwnedTokenSort,
   PartialOwnedToken,
 } from '@lsp-indexer/types';

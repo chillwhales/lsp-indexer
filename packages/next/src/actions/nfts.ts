@@ -2,7 +2,14 @@
 
 import type { FetchNftsResult } from '@lsp-indexer/node';
 import { fetchNft, fetchNfts, getServerUrl } from '@lsp-indexer/node';
-import type { Nft, NftFilter, NftInclude, NftSort, PartialNft } from '@lsp-indexer/types';
+import type {
+  Nft,
+  NftFilter,
+  NftInclude,
+  NftResult,
+  NftSort,
+  PartialNft,
+} from '@lsp-indexer/types';
 
 /**
  * Server action: Fetch a single NFT by collection address and token ID (or formatted token ID).

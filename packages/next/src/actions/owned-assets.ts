@@ -6,6 +6,7 @@ import type {
   OwnedAsset,
   OwnedAssetFilter,
   OwnedAssetInclude,
+  OwnedAssetResult,
   OwnedAssetSort,
   PartialOwnedAsset,
 } from '@lsp-indexer/types';
