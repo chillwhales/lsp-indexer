@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.6 (Generic Type Propagation) — Complete
-- **Plan:** 3 of 3 in current sub-phase (phase complete)
-- **Status:** Phase 9.6 complete — DX-05 delivered
-- **Last activity:** 2026-02-23 — Completed 09.6-03-PLAN.md
+- **Sub-phase:** 9.7 (Creators) — In progress
+- **Plan:** 1 of 4 in current sub-phase
+- **Status:** Plan 09.7-01 complete — Creator types + document + codegen
+- **Last activity:** 2026-02-23 — Completed 09.7-01-PLAN.md
 - **Progress:** █████▓░░░░ 57% (17/30 requirements)
 
 ## Milestone History
@@ -27,23 +27,23 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                               | Requirements | Status   |
-| ----- | ---------------------------------- | :----------: | -------- |
-| 7     | Package Foundation                 |     7/7      | Complete |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
-| 9.1   | Digital Assets                     |     1/1      | Complete |
-| 9.2   | NFTs                               |     1/1      | Complete |
-| 9.3   | Owned Assets                       |     1/1      | Complete |
-| 9.4   | Conditional Include Types          |     1/1      | Complete |
-| 9.5   | Social / Follows                   |     1/1      | Complete |
-| 9.6   | Generic Type Propagation           |     1/1      | Complete |
-| 9.7   | Creators                           |      1       | Pending  |
-| 9.8   | Encrypted Assets                   |      1       | Pending  |
-| 9.9   | Encrypted Feed                     |      1       | Pending  |
-| 9.10  | Data Changed Events                |      1       | Pending  |
-| 9.11  | Universal Receiver Events          |      1       | Pending  |
-| 10    | Subscriptions                      |      3       | Pending  |
-| 11    | Server Actions & Publish Readiness |      4       | Pending  |
+| Phase | Name                               | Requirements | Status                  |
+| ----- | ---------------------------------- | :----------: | ----------------------- |
+| 7     | Package Foundation                 |     7/7      | Complete                |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete                |
+| 9.1   | Digital Assets                     |     1/1      | Complete                |
+| 9.2   | NFTs                               |     1/1      | Complete                |
+| 9.3   | Owned Assets                       |     1/1      | Complete                |
+| 9.4   | Conditional Include Types          |     1/1      | Complete                |
+| 9.5   | Social / Follows                   |     1/1      | Complete                |
+| 9.6   | Generic Type Propagation           |     1/1      | Complete                |
+| 9.7   | Creators                           |      1       | In progress (1/4 plans) |
+| 9.8   | Encrypted Assets                   |      1       | Pending                 |
+| 9.9   | Encrypted Feed                     |      1       | Pending                 |
+| 9.10  | Data Changed Events                |      1       | Pending                 |
+| 9.11  | Universal Receiver Events          |      1       | Pending                 |
+| 10    | Subscriptions                      |      3       | Pending                 |
+| 11    | Server Actions & Publish Readiness |      4       | Pending                 |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
@@ -51,7 +51,7 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 71 (36 v1.0 + 35 v1.1)
+- **Plans completed:** 72 (36 v1.0 + 36 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 19 (11 v1.0 + 8 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 17/30 (v1.1)
@@ -152,6 +152,10 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **buildFollowerIncludeVars prefix replacement:** Reuses `buildProfileIncludeVars` with `key.replace('includeProfile', 'includeFollowerProfile')` / `'includeFollowedProfile'` for nested profile variable mapping — same pattern as NFT collection.
 - **FollowCount separate document:** `GetFollowCountDocument` uses two aliased `follower_aggregate` queries — one for follower count (where followed_address = X), one for following count (where follower_address = X).
 - **fetchIsFollowing reuses list document:** No separate existence query — `GetFollowersDocument` with `limit: 1` and all includes disabled for minimal payload.
+- **CreatorResult<I> with dual heterogeneous relation resolvers:** `ResolveCreatorProfile<I>` (ProfileResult) and `ResolveCreatorDigitalAsset<I>` (DigitalAssetResult) — each side independently narrowable. Base fields: creatorAddress, digitalAssetAddress.
+- **Creator has no singular hook:** No natural key exists (opaque Hasura ID only) — only useCreators and useInfiniteCreators hooks
+- **GetCreatorsDocument 31 include variables:** 3 scalar (arrayIndex, interfaceId, timestamp) + 10 creator profile ($includeCreatorProfile*) + 18 digital asset ($includeDigitalAsset\*) — all Boolean! = true defaults
+- **Creator profile sub-fields:** followedBy_aggregate for follower count, following_aggregate for following count (matching established profile document pattern)
 
 ### Discovered Todos
 
@@ -166,17 +170,19 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-23
-- **Activity:** Executed Phase 9.6 (all 3 plans) + verification
-- **Outcome:** 3 plans executed across 3 waves, 29 commits. Verifier confirmed 5/5 must-haves passed. DX-05 complete.
+- **Activity:** Executed Phase 9.7 Plan 01 — Creator types + document + codegen
+- **Outcome:** 2 tasks committed atomically (8270e92, f919750). Creator domain types with DX-04 conditional include types and GetCreatorsDocument with 31 @include variables.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.6 complete + verified** — DX-05 (Generic Type Propagation) delivered and verified (VERIFICATION.md created)
-- **Next step:** Plan Phase 9.7 (Creators) — first of 5 remaining domain sub-phases
-- **Full generic chain verified:** types → parsers → services → actions → hooks across all 6 domains, zero type assertions
-- **Remaining sub-phases (9.7–9.11)** will be built with correct 3-overload `<const I>` pattern from the start
+- **Phase 9.7 Plan 01 complete** — Creator types and GraphQL document delivered
+- **Next step:** Execute 09.7-02-PLAN.md (parsers + services + query keys)
+- **CreatorResult<I>** uses dual relation resolvers: ResolveCreatorProfile + ResolveCreatorDigitalAsset
+- **GetCreatorsDocument** has 31 include variables (3 scalar + 10 profile + 18 DA) with Boolean! = true defaults
+- **No singular useCreator hook** — creator records have no natural key (opaque Hasura ID only)
+- **Remaining sub-phases (9.7–9.11)** being built with correct 3-overload `<const I>` pattern from the start
 
 ---
 
-_Last updated: 2026-02-23 — Phase 9.6 complete + verified (Generic Type Propagation — DX-05)_
+_Last updated: 2026-02-23 — Phase 9.7 Plan 01 complete (Creator types + document + codegen)_
