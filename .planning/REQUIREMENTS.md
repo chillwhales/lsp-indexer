@@ -26,7 +26,7 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 - [x] **QUERY-03**: Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data
 - [x] **QUERY-04**: Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data
 - [x] **QUERY-05**: Developer can use `useFollowers`, `useFollowing`, `useFollowCount` for social/follow data
-- [ ] **QUERY-06**: Developer can use `useCreatorAddresses` for asset creator data
+- [ ] **QUERY-06**: Developer can use `useCreators`, `useInfiniteCreators` for LSP4 creator data
 - [ ] **QUERY-07**: Developer can use `useEncryptedAsset`, `useEncryptedAssets` for LSP29 encrypted asset data
 - [ ] **QUERY-08**: Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery
 - [ ] **QUERY-09**: Developer can use `useDataChangedEvents` for ERC725 data change events

@@ -106,7 +106,7 @@ Plans:
 | DX-04    | Developer gets TypeScript return types narrowed by `include` parameter — excluded fields are absent from the type, not `null`     | 9.4       |
 | QUERY-05 | Developer can use `useFollowers`, `useFollowing`, `useFollowCount` for social/follow data                                         | 9.5       |
 | DX-05    | All domain hooks/services/actions use 3-overload generic `<const I>` pattern with `XResult<I>` narrowing and zero type assertions | 9.6       |
-| QUERY-06 | Developer can use `useCreatorAddresses` for asset creator data                                                                    | 9.7       |
+| QUERY-06 | Developer can use `useCreators`, `useInfiniteCreators` for LSP4 creator data                                                      | 9.7       |
 | QUERY-07 | Developer can use `useEncryptedAsset`, `useEncryptedAssets` for LSP29 encrypted asset data                                        | 9.8       |
 | QUERY-08 | Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery                                                                | 9.9       |
 | QUERY-09 | Developer can use `useDataChangedEvents` for ERC725 data change events                                                            | 9.10      |
@@ -241,7 +241,7 @@ No implementation bodies change — only overload signatures and return type ann
 
 ### Phase 9.7 — Creators
 
-**Goal:** Developer can use `useCreatorAddresses`, `useInfiniteCreatorAddresses` for LSP4 creator data.
+**Goal:** Developer can use `useCreators`, `useInfiniteCreators` for LSP4 creator data.
 
 **Requirement:** QUERY-06, PAGE-01
 
