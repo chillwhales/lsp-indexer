@@ -82,14 +82,14 @@ const ALL_FILTERS: FilterFieldConfig[] = [
   },
   {
     key: 'timestampFrom',
-    label: 'From Date',
-    placeholder: 'ISO date (e.g. 2024-01-01)',
+    label: 'From',
+    placeholder: 'ISO or unix (e.g. 2024-01-01 or 1704067200)',
     width: 'w-80',
   },
   {
     key: 'timestampTo',
-    label: 'To Date',
-    placeholder: 'ISO date (e.g. 2025-01-01)',
+    label: 'To',
+    placeholder: 'ISO or unix (e.g. 2025-01-01 or 1735689600)',
     width: 'w-80',
   },
 ];
@@ -132,14 +132,21 @@ function useFollowerHooks(mode: HookMode) {
 // Build filter from debounced values
 // ---------------------------------------------------------------------------
 
+/** Parse a timestamp input — pure digits → unix seconds (number), otherwise ISO string */
+function parseTimestamp(value: string): string | number {
+  if (/^\d+$/.test(value)) return Number(value);
+  return value;
+}
+
 function buildFilter(debouncedValues: Record<string, string>): FollowerFilter | undefined {
   const f: FollowerFilter = {};
   if (debouncedValues.followerAddress) f.followerAddress = debouncedValues.followerAddress;
   if (debouncedValues.followedAddress) f.followedAddress = debouncedValues.followedAddress;
   if (debouncedValues.followerName) f.followerName = debouncedValues.followerName;
   if (debouncedValues.followedName) f.followedName = debouncedValues.followedName;
-  if (debouncedValues.timestampFrom) f.timestampFrom = debouncedValues.timestampFrom;
-  if (debouncedValues.timestampTo) f.timestampTo = debouncedValues.timestampTo;
+  if (debouncedValues.timestampFrom)
+    f.timestampFrom = parseTimestamp(debouncedValues.timestampFrom);
+  if (debouncedValues.timestampTo) f.timestampTo = parseTimestamp(debouncedValues.timestampTo);
   return Object.keys(f).length > 0 ? f : undefined;
 }
 
