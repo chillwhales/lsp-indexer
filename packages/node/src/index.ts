@@ -98,5 +98,18 @@ export { followerKeys } from './keys/followers';
 // Follower GraphQL documents (for advanced usage / custom queries)
 export { GetFollowCountDocument, GetFollowersDocument } from './documents/followers';
 
+// Creator services (the core fetching layer)
+export { buildCreatorIncludeVars, fetchCreators } from './services/creators';
+export type { FetchCreatorsResult } from './services/creators';
+
+// Creator parsers (Hasura → clean types)
+export { parseCreator, parseCreators } from './parsers/creators';
+
+// Creator query key factory
+export { creatorKeys } from './keys/creators';
+
+// Creator GraphQL documents (for advanced usage / custom queries)
+export { GetCreatorsDocument } from './documents/creators';
+
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';
