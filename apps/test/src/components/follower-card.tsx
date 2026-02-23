@@ -1,4 +1,4 @@
-import { ChevronDown, User } from 'lucide-react';
+import { ArrowRight, ChevronDown, User } from 'lucide-react';
 import React from 'react';
 
 import type { PartialExcept } from '@lsp-indexer/types';
@@ -9,6 +9,32 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatRelativeTime } from '@/lib/utils';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Truncate an address to 0x1234…abcd format */
+function truncateAddress(address: string): string {
+  if (address.length <= 12) return address;
+  return `${address.slice(0, 6)}…${address.slice(-4)}`;
+}
+
+/** Extract a display label from a profile object or fall back to truncated address */
+function getProfileLabel(
+  profile: Record<string, unknown> | undefined | null,
+  address: string,
+): string {
+  if (
+    profile &&
+    typeof profile === 'object' &&
+    'name' in profile &&
+    typeof profile.name === 'string'
+  ) {
+    return profile.name;
+  }
+  return truncateAddress(address);
+}
 
 // ---------------------------------------------------------------------------
 // FollowerCard
@@ -31,12 +57,23 @@ function renderProfileFields(profile: Record<string, unknown>): React.ReactNode 
 export function FollowerCard({ follower, index }: FollowerCardProps): React.ReactNode {
   const obj = follower;
 
+  const followerLabel = getProfileLabel(
+    obj.followerProfile as Record<string, unknown> | undefined,
+    obj.followerAddress as string,
+  );
+  const followedLabel = getProfileLabel(
+    obj.followedProfile as Record<string, unknown> | undefined,
+    obj.followedAddress as string,
+  );
+
   return (
     <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm">
           <User className="size-4 text-muted-foreground" />
-          Follow Relationship #{index + 1}
+          <span className="truncate">{followerLabel}</span>
+          <ArrowRight className="size-3.5 shrink-0 text-muted-foreground" />
+          <span className="truncate">{followedLabel}</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
