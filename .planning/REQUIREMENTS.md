@@ -102,7 +102,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUERY-05    | 9.5   | Complete |
 | DX-05       | 9.6   | Complete |
 | QUERY-06    | 9.7   | Complete |
-| QUERY-07    | 9.8   | Pending  |
+| QUERY-07    | 9.8   | Complete |
 | QUERY-08    | 9.9   | Pending  |
 | QUERY-09    | 9.10  | Pending  |
 | QUERY-10    | 9.11  | Pending  |
