@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
 - **Sub-phase:** 9.7 (Creators) — In progress
-- **Plan:** 2 of 4 in current sub-phase
-- **Status:** Plan 09.7-02 complete — Creator parsers + services + query keys
-- **Last activity:** 2026-02-23 — Completed 09.7-02-PLAN.md
+- **Plan:** 3 of 4 in current sub-phase
+- **Status:** Plan 09.7-03 complete — Creator hooks + server action + barrel exports
+- **Last activity:** 2026-02-23 — Completed 09.7-03-PLAN.md
 - **Progress:** █████▓░░░░ 57% (17/30 requirements)
 
 ## Milestone History
@@ -37,7 +37,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.4   | Conditional Include Types          |     1/1      | Complete                |
 | 9.5   | Social / Follows                   |     1/1      | Complete                |
 | 9.6   | Generic Type Propagation           |     1/1      | Complete                |
-| 9.7   | Creators                           |      1       | In progress (2/4 plans) |
+| 9.7   | Creators                           |      1       | In progress (3/4 plans) |
 | 9.8   | Encrypted Assets                   |      1       | Pending                 |
 | 9.9   | Encrypted Feed                     |      1       | Pending                 |
 | 9.10  | Data Changed Events                |      1       | Pending                 |
@@ -170,19 +170,18 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-23
-- **Activity:** Executed Phase 9.7 Plan 02 — Creator parsers + services + query keys
-- **Outcome:** 2 tasks committed atomically (6c3bf7c, ec06781). Creator parser with dual nested delegation, service with 7 filters/6 sorts, query keys, barrel exports.
+- **Activity:** Executed Phase 9.7 Plan 03 — Creator hooks + server action + barrel exports
+- **Outcome:** 2 tasks committed atomically (73f22f0, 09bbae9). 2 React hooks, 1 server action, 2 Next.js hooks, barrel exports wired, all 4 packages build and typecheck.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.7 Plan 02 complete** — Parser, service, and query keys delivered
-- **Next step:** Execute 09.7-03-PLAN.md (hooks + server actions + build validation)
-- **fetchCreators** serves both useCreators and useInfiniteCreators hooks
-- **buildCreatorIncludeVars** reuses profile + DA builders with prefix replacement
-- **creatorKeys** has list and infinite namespaces (2 hooks)
+- **Phase 9.7 Plan 03 complete** — All consumer API layers delivered
+- **Next step:** Execute 09.7-04-PLAN.md (playground + verification)
+- **useCreators** and **useInfiniteCreators** exported from both `@lsp-indexer/react` and `@lsp-indexer/next`
+- **getCreators** server action exported from `@lsp-indexer/next`
 - **No singular useCreator hook** — creator records have no natural key (opaque Hasura ID only)
 
 ---
 
-_Last updated: 2026-02-23 — Phase 9.7 Plan 02 complete (Creator parsers + services + query keys)_
+_Last updated: 2026-02-23 — Phase 9.7 Plan 03 complete (Creator hooks + server action + barrel exports)_
