@@ -17,7 +17,13 @@ import { formatRelativeTime } from '@/lib/utils';
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Extract the profile name from a nested profile object, or fall back to address */
+/** Truncate an address to 0x1234…abcd format */
+function truncateAddress(address: string): string {
+  if (address.length <= 12) return address;
+  return `${address.slice(0, 6)}…${address.slice(-4)}`;
+}
+
+/** Extract the profile name from a nested profile object, or fall back to truncated address */
 function getProfileLabel(profile: Record<string, unknown> | null | undefined): string | null {
   if (
     profile &&
@@ -28,7 +34,7 @@ function getProfileLabel(profile: Record<string, unknown> | null | undefined): s
     return profile.name;
   }
   if (profile && typeof profile === 'object' && 'address' in profile) {
-    return String(profile.address);
+    return truncateAddress(String(profile.address));
   }
   return null;
 }
@@ -79,10 +85,13 @@ export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNo
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm">
           <Paintbrush className="size-4 text-muted-foreground" />
-          <span>{profileLabel ?? `Creator #${index + 1}`}</span>
-          {daInfo?.name && (
-            <span className="text-sm font-normal text-muted-foreground">→ {daInfo.name}</span>
-          )}
+          <span className="truncate">
+            {profileLabel ?? truncateAddress(obj.creatorAddress as string)}
+          </span>
+          <span className="text-muted-foreground shrink-0">→</span>
+          <span className="truncate">
+            {daInfo?.name ?? truncateAddress(obj.digitalAssetAddress as string)}
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -149,8 +158,10 @@ export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNo
                 <Coins className="size-3.5" />
                 Digital Asset:{' '}
                 {daInfo?.name ??
-                  ((obj.digitalAsset as Record<string, unknown>).address as string) ??
-                  (obj.digitalAssetAddress as string)}
+                  truncateAddress(
+                    ((obj.digitalAsset as Record<string, unknown>).address as string) ??
+                      (obj.digitalAssetAddress as string),
+                  )}
                 {daInfo?.symbol && (
                   <span className="text-muted-foreground font-normal">({daInfo.symbol})</span>
                 )}
