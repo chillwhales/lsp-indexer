@@ -23,14 +23,18 @@ import type {
  * @returns The parsed profile, or `null` if not found
  */
 export async function getProfile(address: string): Promise<Profile | null>;
+export async function getProfile<const I extends ProfileInclude>(
+  address: string,
+  include: I,
+): Promise<ProfileResult<I> | null>;
 export async function getProfile(
   address: string,
-  include: ProfileInclude,
+  include?: ProfileInclude,
 ): Promise<PartialProfile | null>;
 export async function getProfile(
   address: string,
   include?: ProfileInclude,
-): Promise<Profile | PartialProfile | null> {
+): Promise<PartialProfile | null> {
   const url = getServerUrl();
   if (include) return fetchProfile(url, { address, include });
   return fetchProfile(url, { address });
@@ -52,12 +56,19 @@ export async function getProfiles(params?: {
   limit?: number;
   offset?: number;
 }): Promise<FetchProfilesResult>;
+export async function getProfiles<const I extends ProfileInclude>(params: {
+  filter?: ProfileFilter;
+  sort?: ProfileSort;
+  limit?: number;
+  offset?: number;
+  include: I;
+}): Promise<FetchProfilesResult<ProfileResult<I>>>;
 export async function getProfiles(params: {
   filter?: ProfileFilter;
   sort?: ProfileSort;
   limit?: number;
   offset?: number;
-  include: ProfileInclude;
+  include?: ProfileInclude;
 }): Promise<FetchProfilesResult<PartialProfile>>;
 export async function getProfiles(params?: {
   filter?: ProfileFilter;
@@ -65,7 +76,7 @@ export async function getProfiles(params?: {
   limit?: number;
   offset?: number;
   include?: ProfileInclude;
-}): Promise<FetchProfilesResult | FetchProfilesResult<PartialProfile>> {
+}): Promise<FetchProfilesResult<PartialProfile>> {
   const url = getServerUrl();
   if (params?.include) return fetchProfiles(url, params);
   return fetchProfiles(url, params ?? {});
