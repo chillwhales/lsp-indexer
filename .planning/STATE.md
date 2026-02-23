@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.6 (Generic Type Propagation) — In progress
-- **Plan:** 2 of 3 in current sub-phase
-- **Status:** In progress — 09.6-02 complete (actions + hooks generic overloads)
-- **Last activity:** 2026-02-23 — Completed 09.6-02-PLAN.md
-- **Progress:** █████▓░░░░ 53% (16/30 requirements)
+- **Sub-phase:** 9.6 (Generic Type Propagation) — Complete
+- **Plan:** 3 of 3 in current sub-phase (phase complete)
+- **Status:** Phase 9.6 complete — DX-05 delivered
+- **Last activity:** 2026-02-23 — Completed 09.6-03-PLAN.md
+- **Progress:** █████▓░░░░ 57% (17/30 requirements)
 
 ## Milestone History
 
@@ -27,34 +27,34 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                               | Requirements | Status      |
-| ----- | ---------------------------------- | :----------: | ----------- |
-| 7     | Package Foundation                 |     7/7      | Complete    |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete    |
-| 9.1   | Digital Assets                     |     1/1      | Complete    |
-| 9.2   | NFTs                               |     1/1      | Complete    |
-| 9.3   | Owned Assets                       |     1/1      | Complete    |
-| 9.4   | Conditional Include Types          |     1/1      | Complete    |
-| 9.5   | Social / Follows                   |     1/1      | Complete    |
-| 9.6   | Generic Type Propagation           |      1       | In progress |
-| 9.7   | Creators                           |      1       | Pending     |
-| 9.8   | Encrypted Assets                   |      1       | Pending     |
-| 9.9   | Encrypted Feed                     |      1       | Pending     |
-| 9.10  | Data Changed Events                |      1       | Pending     |
-| 9.11  | Universal Receiver Events          |      1       | Pending     |
-| 10    | Subscriptions                      |      3       | Pending     |
-| 11    | Server Actions & Publish Readiness |      4       | Pending     |
+| Phase | Name                               | Requirements | Status   |
+| ----- | ---------------------------------- | :----------: | -------- |
+| 7     | Package Foundation                 |     7/7      | Complete |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
+| 9.1   | Digital Assets                     |     1/1      | Complete |
+| 9.2   | NFTs                               |     1/1      | Complete |
+| 9.3   | Owned Assets                       |     1/1      | Complete |
+| 9.4   | Conditional Include Types          |     1/1      | Complete |
+| 9.5   | Social / Follows                   |     1/1      | Complete |
+| 9.6   | Generic Type Propagation           |     1/1      | Complete |
+| 9.7   | Creators                           |      1       | Pending  |
+| 9.8   | Encrypted Assets                   |      1       | Pending  |
+| 9.9   | Encrypted Feed                     |      1       | Pending  |
+| 9.10  | Data Changed Events                |      1       | Pending  |
+| 9.11  | Universal Receiver Events          |      1       | Pending  |
+| 10    | Subscriptions                      |      3       | Pending  |
+| 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 16/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, DX-01, DX-02, DX-04, PAGE-01 incremental)
+**Total:** 17/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 70 (36 v1.0 + 34 v1.1)
+- **Plans completed:** 71 (36 v1.0 + 35 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 18 (11 v1.0 + 7 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 16/30 (v1.1)
+- **Phases completed:** 19 (11 v1.0 + 8 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 17/30 (v1.1)
 
 ## Accumulated Context
 
@@ -166,16 +166,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-23
-- **Activity:** Executed 09.6-02-PLAN.md — added generic overloads + return type aliases to all hooks and server actions
-- **Outcome:** 15 files modified, 15 commits. All 5 action files + 5 React hook files + 5 Next.js hook files now have 3-overload `<const I>` pattern.
+- **Activity:** Executed 09.6-03-PLAN.md — build validation + type narrowing verification
+- **Outcome:** Fixed 15 missing type imports, all 4 packages + test app build clean, type narrowing verified
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **09.6-02 complete** — actions + hooks layer done (react + next packages)
-- **Next step:** Execute 09.6-03-PLAN.md (verification / final DX-05 completion)
-- **Full generic chain complete:** types → parsers → services → hooks → actions across all 6 domains
+- **Phase 9.6 complete** — DX-05 (Generic Type Propagation) fully delivered
+- **Next step:** Phase 9.7 (Creators) — next domain sub-phase
+- **Full generic chain verified:** types → parsers → services → actions → hooks across all 6 domains, zero type assertions
 
 ---
 
-_Last updated: 2026-02-23 — Completed 09.6-02-PLAN.md (actions + hooks generic overloads)_
+_Last updated: 2026-02-23 — Completed 09.6-03-PLAN.md (build validation + verification)_

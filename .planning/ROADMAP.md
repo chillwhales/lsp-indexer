@@ -234,8 +234,8 @@ No implementation bodies change — only overload signatures and return type ann
 **Plans:** 3 plans
 
 - [x] 09.6-01-PLAN.md — Parsers + services: add generic overloads to all 5 domains (node package)
-- [ ] 09.6-02-PLAN.md — Actions + hooks: add generic overloads + return type aliases (next + react packages)
-- [ ] 09.6-03-PLAN.md — Build validation + verification across all 4 packages
+- [x] 09.6-02-PLAN.md — Actions + hooks: add generic overloads + return type aliases (next + react packages)
+- [x] 09.6-03-PLAN.md — Build validation + verification across all 4 packages
 
 ---
 
@@ -376,27 +376,27 @@ No implementation bodies change — only overload signatures and return type ann
 
 ## Progress
 
-| Phase | Name                               | Requirements | Status      |
-| ----- | ---------------------------------- | :----------: | ----------- |
-| 7     | Package Foundation                 |     7/7      | Complete    |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete    |
-| 9.1   | Digital Assets                     |     1/1      | Complete    |
-| 9.2   | NFTs                               |     1/1      | Complete    |
-| 9.3   | Owned Assets                       |     1/1      | Complete    |
-| 9.4   | Conditional Include Types          |     1/1      | Complete    |
-| 9.5   | Social / Follows                   |     1/1      | Complete    |
-| 9.6   | Generic Type Propagation           |      1       | In progress |
-| 9.7   | Creators                           |      1       | Pending     |
-| 9.8   | Encrypted Assets                   |      1       | Pending     |
-| 9.9   | Encrypted Feed                     |      1       | Pending     |
-| 9.10  | Data Changed Events                |      1       | Pending     |
-| 9.11  | Universal Receiver Events          |      1       | Pending     |
-| 10    | Subscriptions                      |      3       | Pending     |
-| 11    | Server Actions & Publish Readiness |      4       | Pending     |
+| Phase | Name                               | Requirements | Status   |
+| ----- | ---------------------------------- | :----------: | -------- |
+| 7     | Package Foundation                 |     7/7      | Complete |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
+| 9.1   | Digital Assets                     |     1/1      | Complete |
+| 9.2   | NFTs                               |     1/1      | Complete |
+| 9.3   | Owned Assets                       |     1/1      | Complete |
+| 9.4   | Conditional Include Types          |     1/1      | Complete |
+| 9.5   | Social / Follows                   |     1/1      | Complete |
+| 9.6   | Generic Type Propagation           |     1/1      | Complete |
+| 9.7   | Creators                           |      1       | Pending  |
+| 9.8   | Encrypted Assets                   |      1       | Pending  |
+| 9.9   | Encrypted Feed                     |      1       | Pending  |
+| 9.10  | Data Changed Events                |      1       | Pending  |
+| 9.11  | Universal Receiver Events          |      1       | Pending  |
+| 10    | Subscriptions                      |      3       | Pending  |
+| 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 16/30 requirements delivered (QUERY-05 complete)
+**Total:** 17/30 requirements delivered (DX-05 complete)
 
 ---
 
