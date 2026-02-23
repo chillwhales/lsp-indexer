@@ -3,7 +3,7 @@
 import { Paintbrush } from 'lucide-react';
 import React from 'react';
 
-import type { DigitalAsset, PartialExcept, Profile } from '@lsp-indexer/types';
+import type { Creator, PartialExcept } from '@lsp-indexer/types';
 
 import {
   CollapsibleDigitalAssetSection,
@@ -18,8 +18,7 @@ import { formatRelativeTime, getDigitalAssetLabel, getProfileLabel } from '@/lib
 // ---------------------------------------------------------------------------
 
 export interface CreatorCardProps {
-  /** Accepts any shape of Creator — full, narrowed via include, or partial */
-  creator: Record<string, unknown>;
+  creator: PartialExcept<Creator, 'creatorAddress' | 'digitalAssetAddress'>;
   index: number;
 }
 
@@ -32,16 +31,11 @@ export interface CreatorCardProps {
  * Two collapsible relation sections: Creator Profile + Digital Asset.
  */
 export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNode {
-  const obj = creator;
+  const creatorProfile = 'creatorProfile' in creator ? creator.creatorProfile : null;
+  const digitalAsset = 'digitalAsset' in creator ? creator.digitalAsset : null;
 
-  // Derive display labels from nested relations
-  const profile =
-    'creatorProfile' in obj ? (obj.creatorProfile as PartialExcept<Profile, 'address'>) : null;
-  const digitalAsset =
-    'digitalAsset' in obj ? (obj.digitalAsset as PartialExcept<DigitalAsset, 'address'>) : null;
-
-  const creatorLabel = getProfileLabel(profile, obj.creatorAddress as string);
-  const daInfo = getDigitalAssetLabel(digitalAsset, obj.digitalAssetAddress as string);
+  const creatorLabel = getProfileLabel(creatorProfile, creator.creatorAddress);
+  const daInfo = getDigitalAssetLabel(digitalAsset, creator.digitalAssetAddress);
 
   return (
     <Card className="overflow-hidden">
@@ -58,33 +52,33 @@ export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNo
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-40 shrink-0">Creator Address</dt>
-            <dd className="font-mono text-xs break-all">{obj.creatorAddress as string}</dd>
+            <dd className="font-mono text-xs break-all">{creator.creatorAddress}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-40 shrink-0">Digital Asset Address</dt>
-            <dd className="font-mono text-xs break-all">{obj.digitalAssetAddress as string}</dd>
+            <dd className="font-mono text-xs break-all">{creator.digitalAssetAddress}</dd>
           </div>
 
           {/* Conditional scalar fields via field-presence checks */}
-          {'arrayIndex' in obj && obj.arrayIndex != null && (
+          {'arrayIndex' in creator && creator.arrayIndex != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Array Index</dt>
-              <dd className="font-mono">{String(obj.arrayIndex)}</dd>
+              <dd className="font-mono">{String(creator.arrayIndex)}</dd>
             </div>
           )}
-          {'interfaceId' in obj && obj.interfaceId != null && (
+          {'interfaceId' in creator && creator.interfaceId != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Interface ID</dt>
-              <dd className="font-mono text-xs break-all">{obj.interfaceId as string}</dd>
+              <dd className="font-mono text-xs break-all">{creator.interfaceId}</dd>
             </div>
           )}
-          {'timestamp' in obj && obj.timestamp != null && (
+          {'timestamp' in creator && creator.timestamp != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(obj.timestamp as string).toLocaleString()}{' '}
+                {new Date(creator.timestamp).toLocaleString()}{' '}
                 <span className="text-muted-foreground">
-                  ({formatRelativeTime(obj.timestamp as string)})
+                  ({formatRelativeTime(creator.timestamp)})
                 </span>
               </dd>
             </div>
@@ -92,7 +86,9 @@ export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNo
         </dl>
 
         {/* Collapsible section 1: Creator Profile */}
-        {profile != null && <CollapsibleProfileSection label="Creator Profile" profile={profile} />}
+        {creatorProfile != null && (
+          <CollapsibleProfileSection label="Creator Profile" profile={creatorProfile} />
+        )}
 
         {/* Collapsible section 2: Digital Asset */}
         {digitalAsset != null && (

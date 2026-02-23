@@ -1,7 +1,7 @@
 import { ArrowRight, User } from 'lucide-react';
 import React from 'react';
 
-import type { PartialExcept, Profile } from '@lsp-indexer/types';
+import type { Follower, PartialExcept } from '@lsp-indexer/types';
 
 import { CollapsibleProfileSection } from '@/components/collapsible-sections';
 import { RawJsonToggle } from '@/components/playground';
@@ -13,21 +13,18 @@ import { formatRelativeTime, getProfileLabel } from '@/lib/utils';
 // ---------------------------------------------------------------------------
 
 export interface FollowerCardProps {
-  /** Accepts any shape of Follower — full, narrowed via include, or partial */
-  follower: Record<string, unknown>;
+  follower: PartialExcept<Follower, 'followerAddress' | 'followedAddress'>;
   index: number;
 }
 
 export function FollowerCard({ follower, index }: FollowerCardProps): React.ReactNode {
   const obj = follower;
 
-  const followerProfile =
-    'followerProfile' in obj ? (obj.followerProfile as PartialExcept<Profile, 'address'>) : null;
-  const followedProfile =
-    'followedProfile' in obj ? (obj.followedProfile as PartialExcept<Profile, 'address'>) : null;
+  const followerProfile = 'followerProfile' in obj ? obj.followerProfile : null;
+  const followedProfile = 'followedProfile' in obj ? obj.followedProfile : null;
 
-  const followerLabel = getProfileLabel(followerProfile, obj.followerAddress as string);
-  const followedLabel = getProfileLabel(followedProfile, obj.followedAddress as string);
+  const followerLabel = getProfileLabel(followerProfile, obj.followerAddress);
+  const followedLabel = getProfileLabel(followedProfile, obj.followedAddress);
 
   return (
     <Card className="overflow-hidden">
@@ -44,11 +41,11 @@ export function FollowerCard({ follower, index }: FollowerCardProps): React.Reac
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-36 shrink-0">Follower Address</dt>
-            <dd className="font-mono text-xs break-all">{obj.followerAddress as string}</dd>
+            <dd className="font-mono text-xs break-all">{obj.followerAddress}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-36 shrink-0">Followed Address</dt>
-            <dd className="font-mono text-xs break-all">{obj.followedAddress as string}</dd>
+            <dd className="font-mono text-xs break-all">{obj.followedAddress}</dd>
           </div>
 
           {/* Conditional scalar fields via field-presence checks */}
@@ -56,10 +53,8 @@ export function FollowerCard({ follower, index }: FollowerCardProps): React.Reac
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-36 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(obj.timestamp as string).toLocaleString()}{' '}
-                <span className="text-muted-foreground">
-                  ({formatRelativeTime(obj.timestamp as string)})
-                </span>
+                {new Date(obj.timestamp).toLocaleString()}{' '}
+                <span className="text-muted-foreground">({formatRelativeTime(obj.timestamp)})</span>
               </dd>
             </div>
           )}

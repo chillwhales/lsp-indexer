@@ -56,7 +56,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
                   alt={name ?? 'nft icon'}
                   className="size-5 rounded object-cover"
                   onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    e.currentTarget.style.display = 'none';
                   }}
                 />
               ) : (
@@ -160,7 +160,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
                             alt=""
                             className="size-8 rounded object-cover shrink-0"
                             onError={(e) => {
-                              (e.currentTarget as HTMLImageElement).style.display = 'none';
+                              e.currentTarget.style.display = 'none';
                             }}
                           />
                         ) : (
@@ -190,7 +190,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
                             alt=""
                             className="size-8 rounded object-cover shrink-0"
                             onError={(e) => {
-                              (e.currentTarget as HTMLImageElement).style.display = 'none';
+                              e.currentTarget.style.display = 'none';
                             }}
                           />
                         ) : (

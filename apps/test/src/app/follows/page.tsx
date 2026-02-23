@@ -287,9 +287,7 @@ function FollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(f, i) => (
-          <FollowerCard follower={f as unknown as Record<string, unknown>} index={i} />
-        )}
+        renderItem={(f, i) => <FollowerCard follower={f} index={i} />}
         getKey={(f) => `${f.followerAddress}-${f.followedAddress}`}
         label="follows"
         totalCount={totalCount}
@@ -351,9 +349,7 @@ function InfiniteFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(f, i) => (
-          <FollowerCard follower={f as unknown as Record<string, unknown>} index={i} />
-        )}
+        renderItem={(f, i) => <FollowerCard follower={f} index={i} />}
         getKey={(f) => `${f.followerAddress}-${f.followedAddress}`}
         label="follows"
         hasActiveFilter={state.hasActiveFilter}

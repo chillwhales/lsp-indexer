@@ -274,9 +274,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(c, i) => (
-          <CreatorCard creator={c as unknown as Record<string, unknown>} index={i} />
-        )}
+        renderItem={(c, i) => <CreatorCard creator={c} index={i} />}
         getKey={(c) => `${c.creatorAddress}-${c.digitalAssetAddress}`}
         label="creators"
         totalCount={totalCount}
@@ -338,9 +336,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(c, i) => (
-          <CreatorCard creator={c as unknown as Record<string, unknown>} index={i} />
-        )}
+        renderItem={(c, i) => <CreatorCard creator={c} index={i} />}
         getKey={(c) => `${c.creatorAddress}-${c.digitalAssetAddress}`}
         label="creators"
         hasActiveFilter={state.hasActiveFilter}
