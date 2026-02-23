@@ -493,7 +493,7 @@ The types package (`@lsp-indexer/types`) and query key factory pattern need to b
 
 ### Why conditional include types as Phase 9.4 (not later)?
 
-Conditional include types (DX-04) refactor the return type system across all existing domains. Doing this _before_ building the remaining 6 domain sub-phases (9.5–9.10) means those domains are built with the correct pattern from the start — no rework needed. If deferred to after all domains, every domain would need retrofitting. The research-first approach (plan 01 is a design spike) minimizes risk of a bad type pattern propagating.
+Conditional include types (DX-04) refactor the return type system across all existing domains. Doing this _before_ building the remaining 6 domain sub-phases (9.5, 9.7–9.11) means those domains are built with the correct pattern from the start — no rework needed. If deferred to after all domains, every domain would need retrofitting. The research-first approach (plan 01 is a design spike) minimizes risk of a bad type pattern propagating.
 
 ### Why generic type propagation as Phase 9.6 (not later)?
 

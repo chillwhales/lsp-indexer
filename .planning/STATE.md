@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 ## Current Position
 
-- **Phase:** 9 of 11 (Remaining Query Domains + DX — 10 sub-phases)
+- **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
 - **Sub-phase:** 9.6 (Generic Type Propagation) — Planning
 - **Status:** Phase 9.6 planned — research complete, PLAN.md files ready
 - **Last activity:** 2026-02-23 — Created phase 9.6, renumbered 9.6–9.10 → 9.7–9.11
-- **Progress:** █████░░░░░ 53% (16/30 requirements)
+- **Progress:** █████▓░░░░ 53% (16/30 requirements)
 
 ## Milestone History
 
