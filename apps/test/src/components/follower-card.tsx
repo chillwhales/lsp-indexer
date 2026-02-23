@@ -54,7 +54,12 @@ export function FollowerCard({ follower, index }: FollowerCardProps): React.Reac
           {'timestamp' in obj && obj.timestamp != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-36 shrink-0">Timestamp</dt>
-              <dd className="text-xs">{new Date(obj.timestamp as string).toLocaleString()}</dd>
+              <dd className="text-xs">
+                {new Date(obj.timestamp as string).toLocaleString()}{' '}
+                <span className="text-muted-foreground">
+                  ({formatRelativeTime(obj.timestamp as string)})
+                </span>
+              </dd>
             </div>
           )}
           {'address' in obj && obj.address != null && (
