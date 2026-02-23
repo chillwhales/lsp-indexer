@@ -52,24 +52,52 @@ import {
 // Domain config
 // ---------------------------------------------------------------------------
 
-const FILTERS: FilterFieldConfig[] = [
+/** All filter configs — used by useFilterFields for state management */
+const ALL_FILTERS: FilterFieldConfig[] = [
   {
     key: 'followerAddress',
     label: 'Follower Address',
     placeholder: '0x... (follower)',
     mono: true,
+    width: 'w-80',
   },
   {
     key: 'followedAddress',
     label: 'Followed Address',
     placeholder: '0x... (followed)',
     mono: true,
+    width: 'w-80',
   },
-  { key: 'followerName', label: 'Follower Name', placeholder: 'Search follower name...' },
-  { key: 'followedName', label: 'Followed Name', placeholder: 'Search followed name...' },
-  { key: 'timestampFrom', label: 'From Date', placeholder: 'ISO date (e.g. 2024-01-01)' },
-  { key: 'timestampTo', label: 'To Date', placeholder: 'ISO date (e.g. 2025-01-01)' },
+  {
+    key: 'followerName',
+    label: 'Follower Name',
+    placeholder: 'Search follower name...',
+    width: 'w-80',
+  },
+  {
+    key: 'followedName',
+    label: 'Followed Name',
+    placeholder: 'Search followed name...',
+    width: 'w-80',
+  },
+  {
+    key: 'timestampFrom',
+    label: 'From Date',
+    placeholder: 'ISO date (e.g. 2024-01-01)',
+    width: 'w-80',
+  },
+  {
+    key: 'timestampTo',
+    label: 'To Date',
+    placeholder: 'ISO date (e.g. 2025-01-01)',
+    width: 'w-80',
+  },
 ];
+
+/** Filter groups rendered as separate rows — addresses, names, dates */
+const ADDRESS_FILTERS = ALL_FILTERS.filter((f) => f.key.endsWith('Address'));
+const NAME_FILTERS = ALL_FILTERS.filter((f) => f.key.endsWith('Name'));
+const DATE_FILTERS = ALL_FILTERS.filter((f) => f.key.startsWith('timestamp'));
 
 const SORT_OPTIONS: SortOption[] = [
   { value: 'timestamp', label: 'Timestamp' },
@@ -120,7 +148,7 @@ function buildFilter(debouncedValues: Record<string, string>): FollowerFilter | 
 // ---------------------------------------------------------------------------
 
 function useListState() {
-  const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
+  const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
   const [sortField, setSortField] = useState<FollowerSortField>('timestamp');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
@@ -208,11 +236,23 @@ function FollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      <FilterFieldsRow
-        configs={FILTERS}
-        values={state.values}
-        onFieldChange={state.setFieldValue}
-      />
+      <div className="space-y-2">
+        <FilterFieldsRow
+          configs={ADDRESS_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+        <FilterFieldsRow
+          configs={NAME_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+        <FilterFieldsRow
+          configs={DATE_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+      </div>
       <SortControls
         options={SORT_OPTIONS}
         sortField={state.sortField}
@@ -262,11 +302,23 @@ function InfiniteFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      <FilterFieldsRow
-        configs={FILTERS}
-        values={state.values}
-        onFieldChange={state.setFieldValue}
-      />
+      <div className="space-y-2">
+        <FilterFieldsRow
+          configs={ADDRESS_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+        <FilterFieldsRow
+          configs={NAME_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+        <FilterFieldsRow
+          configs={DATE_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+      </div>
       <SortControls
         options={SORT_OPTIONS}
         sortField={state.sortField}
