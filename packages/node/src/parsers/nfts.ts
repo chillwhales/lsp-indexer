@@ -1,4 +1,4 @@
-import type { Nft, NftInclude, PartialNft } from '@lsp-indexer/types';
+import type { Nft, NftInclude, NftResult, PartialNft } from '@lsp-indexer/types';
 import type { GetNftQuery } from '../graphql/graphql';
 import { parseDigitalAsset } from './digital-assets';
 import { parseProfile } from './profiles';
@@ -42,7 +42,7 @@ type RawNft = Omit<GetNftQuery['nft'][number], 'id'>;
  * @returns A clean, camelCase `Nft` (full or partial depending on include)
  */
 export function parseNft(raw: RawNft): Nft;
-export function parseNft(raw: RawNft, include: NftInclude): PartialNft;
+export function parseNft<const I extends NftInclude>(raw: RawNft, include: I): NftResult<I>;
 export function parseNft(raw: RawNft, include?: NftInclude): Nft | PartialNft {
   const direct = raw.lsp4Metadata;
   const baseUri = raw.lsp4MetadataBaseUri;
@@ -119,7 +119,7 @@ export function parseNft(raw: RawNft, include?: NftInclude): Nft | PartialNft {
  * @returns Array of clean, camelCase `Nft` objects (full or partial depending on include)
  */
 export function parseNfts(raw: RawNft[]): Nft[];
-export function parseNfts(raw: RawNft[], include: NftInclude): PartialNft[];
+export function parseNfts<const I extends NftInclude>(raw: RawNft[], include: I): NftResult<I>[];
 export function parseNfts(raw: RawNft[], include?: NftInclude): (Nft | PartialNft)[] {
   if (!include) return raw.map((r) => parseNft(r));
   return raw.map((r) => parseNft(r, include));
