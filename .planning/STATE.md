@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.7 (Creators) — Complete
-- **Plan:** 4 of 4 in current sub-phase
-- **Status:** Phase 9.7 complete — Creator playground + verification
-- **Last activity:** 2026-02-23 — Completed 09.7-04-PLAN.md
+- **Sub-phase:** 9.8 (Issued Assets) — In progress
+- **Plan:** 3 of 4 in current sub-phase
+- **Status:** In progress — Issued Asset hooks + server action + build validation complete
+- **Last activity:** 2026-02-23 — Completed 09.8-03-PLAN.md
 - **Progress:** ██████░░░░ 60% (18/30 requirements)
 
 ## Milestone History
@@ -27,23 +27,23 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                               | Requirements | Status   |
-| ----- | ---------------------------------- | :----------: | -------- |
-| 7     | Package Foundation                 |     7/7      | Complete |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
-| 9.1   | Digital Assets                     |     1/1      | Complete |
-| 9.2   | NFTs                               |     1/1      | Complete |
-| 9.3   | Owned Assets                       |     1/1      | Complete |
-| 9.4   | Conditional Include Types          |     1/1      | Complete |
-| 9.5   | Social / Follows                   |     1/1      | Complete |
-| 9.6   | Generic Type Propagation           |     1/1      | Complete |
-| 9.7   | Creators                           |     1/1      | Complete |
-| 9.8   | Encrypted Assets                   |      1       | Pending  |
-| 9.9   | Encrypted Feed                     |      1       | Pending  |
-| 9.10  | Data Changed Events                |      1       | Pending  |
-| 9.11  | Universal Receiver Events          |      1       | Pending  |
-| 10    | Subscriptions                      |      3       | Pending  |
-| 11    | Server Actions & Publish Readiness |      4       | Pending  |
+| Phase | Name                               | Requirements | Status      |
+| ----- | ---------------------------------- | :----------: | ----------- |
+| 7     | Package Foundation                 |     7/7      | Complete    |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete    |
+| 9.1   | Digital Assets                     |     1/1      | Complete    |
+| 9.2   | NFTs                               |     1/1      | Complete    |
+| 9.3   | Owned Assets                       |     1/1      | Complete    |
+| 9.4   | Conditional Include Types          |     1/1      | Complete    |
+| 9.5   | Social / Follows                   |     1/1      | Complete    |
+| 9.6   | Generic Type Propagation           |     1/1      | Complete    |
+| 9.7   | Creators                           |     1/1      | Complete    |
+| 9.8   | Issued Assets                      |     0/1      | In progress |
+| 9.9   | Encrypted Feed                     |      1       | Pending     |
+| 9.10  | Data Changed Events                |      1       | Pending     |
+| 9.11  | Universal Receiver Events          |      1       | Pending     |
+| 10    | Subscriptions                      |      3       | Pending     |
+| 11    | Server Actions & Publish Readiness |      4       | Pending     |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
@@ -51,7 +51,7 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 74 (36 v1.0 + 38 v1.1)
+- **Plans completed:** 76 (36 v1.0 + 40 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 20 (11 v1.0 + 9 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 18/30 (v1.1)
@@ -156,6 +156,9 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **Creator has no singular hook:** No natural key exists (opaque Hasura ID only) — only useCreators and useInfiniteCreators hooks
 - **GetCreatorsDocument 31 include variables:** 3 scalar (arrayIndex, interfaceId, timestamp) + 10 creator profile ($includeCreatorProfile*) + 18 digital asset ($includeDigitalAsset\*) — all Boolean! = true defaults
 - **Creator profile sub-fields:** followedBy_aggregate for follower count, following_aggregate for following count (matching established profile document pattern)
+- **IssuedAssetResult<I> with ResolveIssuerProfile and ResolveIssuedAssetDigitalAsset:** Same dual heterogeneous relation pattern as Creator. Base fields: issuerAddress, assetAddress. Hasura uses `universalProfile` (not issuerProfile) and `issuedAsset` (not digitalAsset) — parser maps to domain names.
+- **GetIssuedAssetsDocument 31 include variables:** 3 scalar (arrayIndex, verificationData, interfaceId) + 10 issuer profile ($includeIssuerProfile*) + 18 digital asset ($includeIssuedAssetDigitalAsset\*) — all Boolean! = true defaults
+- **Issuer profile uses `followed_aggregate`** (not `following_aggregate`) for following count — schema field name difference from other profile sub-documents
 
 ### Discovered Todos
 
@@ -170,17 +173,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-23
-- **Activity:** Executed Phase 9.7 (all 4 plans across 4 waves) + verification
-- **Outcome:** 4 plans executed across 4 waves, 12 commits. Verifier confirmed 14/14 must-haves passed. QUERY-06 complete.
+- **Activity:** Executed Phase 9.8 Plan 03 (IssuedAsset hooks + server action + build validation)
+- **Outcome:** 2 tasks completed, 2 commits (8db5e51, 6eedebb). 2 React hooks + 1 server action + 2 Next.js hooks, barrel exports wired, all 4 packages build+typecheck.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.7 complete + verified** — QUERY-06 (Creators) delivered and verified (VERIFICATION.md created)
-- **Next step:** Plan Phase 9.8 (Encrypted Assets) — second of 4 remaining domain sub-phases
-- **Full vertical slice pattern verified:** types → parsers → services → hooks → playground across 7 domains
-- **Remaining sub-phases (9.8–9.11)** will follow the same 4-plan pattern with correct 3-overload `<const I>` pattern
+- **Phase 9.8 plan 03 complete** — hooks + server action + barrel exports done
+- **Next step:** Plan 09.8-04 (playground + E2E verification)
+- **useIssuedAssets and useInfiniteIssuedAssets importable from @lsp-indexer/react and @lsp-indexer/next**
+- **Remaining plans in 9.8:** 04 (playground+verification)
 
 ---
 
-_Last updated: 2026-02-23 — Phase 9.7 complete + verified (Creators — QUERY-06)_
+_Last updated: 2026-02-23 — Phase 9.8 plan 03 complete (IssuedAsset hooks + server action + build validation)_

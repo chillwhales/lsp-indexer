@@ -1,6 +1,7 @@
 export * from './hooks/creators';
 export * from './hooks/digital-assets';
 export * from './hooks/followers';
+export * from './hooks/issued-assets';
 export * from './hooks/nfts';
 export * from './hooks/owned-assets';
 export * from './hooks/owned-tokens';

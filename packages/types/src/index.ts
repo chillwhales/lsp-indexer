@@ -4,6 +4,7 @@ export * from './digital-assets';
 export * from './errors';
 export * from './followers';
 export * from './include-types';
+export * from './issued-assets';
 export * from './nfts';
 export * from './owned-assets';
 export * from './owned-tokens';

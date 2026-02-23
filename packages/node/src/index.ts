@@ -111,5 +111,18 @@ export { creatorKeys } from './keys/creators';
 // Creator GraphQL documents (for advanced usage / custom queries)
 export { GetCreatorsDocument } from './documents/creators';
 
+// Issued asset services (the core fetching layer)
+export { buildIssuedAssetIncludeVars, fetchIssuedAssets } from './services/issued-assets';
+export type { FetchIssuedAssetsResult } from './services/issued-assets';
+
+// Issued asset parsers (Hasura → clean types)
+export { parseIssuedAsset, parseIssuedAssets } from './parsers/issued-assets';
+
+// Issued asset query key factory
+export { issuedAssetKeys } from './keys/issued-assets';
+
+// Issued asset GraphQL documents (for advanced usage / custom queries)
+export { GetIssuedAssetsDocument } from './documents/issued-assets';
+
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';
