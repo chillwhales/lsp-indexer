@@ -2,6 +2,7 @@ import type {
   DigitalAsset,
   DigitalAssetFilter,
   DigitalAssetInclude,
+  DigitalAssetResult,
   DigitalAssetSort,
   PartialDigitalAsset,
 } from '@lsp-indexer/types';
@@ -191,14 +192,18 @@ export async function fetchDigitalAsset(
   url: string,
   params: { address: string },
 ): Promise<DigitalAsset | null>;
+export async function fetchDigitalAsset<const I extends DigitalAssetInclude>(
+  url: string,
+  params: { address: string; include: I },
+): Promise<DigitalAssetResult<I> | null>;
 export async function fetchDigitalAsset(
   url: string,
-  params: { address: string; include: DigitalAssetInclude },
+  params: { address: string; include?: DigitalAssetInclude },
 ): Promise<PartialDigitalAsset | null>;
 export async function fetchDigitalAsset(
   url: string,
   params: { address: string; include?: DigitalAssetInclude },
-): Promise<DigitalAsset | PartialDigitalAsset | null> {
+): Promise<PartialDigitalAsset | null> {
   const includeVars = buildDigitalAssetIncludeVars(params.include);
 
   const result = await execute(url, GetDigitalAssetDocument, {
@@ -247,6 +252,16 @@ export async function fetchDigitalAssets(
     offset?: number;
   },
 ): Promise<FetchDigitalAssetsResult>;
+export async function fetchDigitalAssets<const I extends DigitalAssetInclude>(
+  url: string,
+  params: {
+    filter?: DigitalAssetFilter;
+    sort?: DigitalAssetSort;
+    limit?: number;
+    offset?: number;
+    include: I;
+  },
+): Promise<FetchDigitalAssetsResult<DigitalAssetResult<I>>>;
 export async function fetchDigitalAssets(
   url: string,
   params: {
@@ -254,7 +269,7 @@ export async function fetchDigitalAssets(
     sort?: DigitalAssetSort;
     limit?: number;
     offset?: number;
-    include: DigitalAssetInclude;
+    include?: DigitalAssetInclude;
   },
 ): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>>;
 export async function fetchDigitalAssets(
@@ -266,7 +281,7 @@ export async function fetchDigitalAssets(
     offset?: number;
     include?: DigitalAssetInclude;
   } = {},
-): Promise<FetchDigitalAssetsResult | FetchDigitalAssetsResult<PartialDigitalAsset>> {
+): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>> {
   const where = buildDigitalAssetWhere(params.filter);
   const orderBy = buildDigitalAssetOrderBy(params.sort);
   const includeVars = buildDigitalAssetIncludeVars(params.include);
