@@ -1,9 +1,13 @@
+import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import type { FetchOwnedTokensResult } from '@lsp-indexer/node';
 import { fetchOwnedToken, fetchOwnedTokens, getClientUrl, ownedTokenKeys } from '@lsp-indexer/node';
 import type {
+  OwnedToken,
   OwnedTokenInclude,
+  OwnedTokenResult,
   PartialOwnedToken,
   UseInfiniteOwnedTokensParams,
   UseOwnedTokenParams,
@@ -12,6 +16,29 @@ import type {
 
 /** Default number of owned tokens per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
+
+/** Flat return shape for useOwnedToken — ownedToken + query state */
+type UseOwnedTokenReturn<F> = { ownedToken: F | null } & Omit<
+  UseQueryResult<F | null, Error>,
+  'data'
+>;
+
+/** Flat return shape for useOwnedTokens — ownedTokens array + totalCount + query state */
+type UseOwnedTokensReturn<F> = { ownedTokens: F[]; totalCount: number } & Omit<
+  UseQueryResult<FetchOwnedTokensResult<F>, Error>,
+  'data'
+>;
+
+/** Flat return shape for useInfiniteOwnedTokens — ownedTokens array + infinite scroll controls + query state */
+type UseInfiniteOwnedTokensReturn<F> = {
+  ownedTokens: F[];
+  hasNextPage: boolean;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  isFetchingNextPage: boolean;
+} & Omit<
+  UseInfiniteQueryResult<InfiniteData<FetchOwnedTokensResult<F>>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;
 
 /**
  * Fetch a single owned token by unique ID.
@@ -45,7 +72,18 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useOwnedToken(params: UseOwnedTokenParams & { include?: OwnedTokenInclude }) {
+export function useOwnedToken<const I extends OwnedTokenInclude>(
+  params: UseOwnedTokenParams & { include: I },
+): UseOwnedTokenReturn<OwnedTokenResult<I>>;
+export function useOwnedToken(
+  params: Omit<UseOwnedTokenParams, 'include'> & { include?: never },
+): UseOwnedTokenReturn<OwnedToken>;
+export function useOwnedToken(
+  params: UseOwnedTokenParams & { include?: OwnedTokenInclude },
+): UseOwnedTokenReturn<PartialOwnedToken>;
+export function useOwnedToken(
+  params: UseOwnedTokenParams & { include?: OwnedTokenInclude },
+): UseOwnedTokenReturn<PartialOwnedToken> {
   const url = getClientUrl();
   const { id, include } = params;
 
@@ -55,7 +93,7 @@ export function useOwnedToken(params: UseOwnedTokenParams & { include?: OwnedTok
     enabled: Boolean(id),
   });
 
-  const ownedToken: PartialOwnedToken | null = data ?? null;
+  const ownedToken = data ?? null;
   return { ownedToken, ...rest };
 }
 
@@ -93,9 +131,18 @@ export function useOwnedToken(params: UseOwnedTokenParams & { include?: OwnedTok
  * }
  * ```
  */
+export function useOwnedTokens<const I extends OwnedTokenInclude>(
+  params: UseOwnedTokensParams & { include: I },
+): UseOwnedTokensReturn<OwnedTokenResult<I>>;
+export function useOwnedTokens(
+  params?: Omit<UseOwnedTokensParams, 'include'> & { include?: never },
+): UseOwnedTokensReturn<OwnedToken>;
+export function useOwnedTokens(
+  params: UseOwnedTokensParams & { include?: OwnedTokenInclude },
+): UseOwnedTokensReturn<PartialOwnedToken>;
 export function useOwnedTokens(
   params: UseOwnedTokensParams & { include?: OwnedTokenInclude } = {},
-) {
+): UseOwnedTokensReturn<PartialOwnedToken> {
   const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
@@ -107,7 +154,7 @@ export function useOwnedTokens(
         : fetchOwnedTokens(url, { filter, sort, limit, offset }),
   });
 
-  const ownedTokens: PartialOwnedToken[] = data?.ownedTokens ?? [];
+  const ownedTokens = data?.ownedTokens ?? [];
   return { ownedTokens, totalCount: data?.totalCount ?? 0, ...rest };
 }
 
@@ -155,9 +202,18 @@ export function useOwnedTokens(
  * }
  * ```
  */
+export function useInfiniteOwnedTokens<const I extends OwnedTokenInclude>(
+  params: UseInfiniteOwnedTokensParams & { include: I },
+): UseInfiniteOwnedTokensReturn<OwnedTokenResult<I>>;
+export function useInfiniteOwnedTokens(
+  params?: Omit<UseInfiniteOwnedTokensParams, 'include'> & { include?: never },
+): UseInfiniteOwnedTokensReturn<OwnedToken>;
+export function useInfiniteOwnedTokens(
+  params: UseInfiniteOwnedTokensParams & { include?: OwnedTokenInclude },
+): UseInfiniteOwnedTokensReturn<PartialOwnedToken>;
 export function useInfiniteOwnedTokens(
   params: UseInfiniteOwnedTokensParams & { include?: OwnedTokenInclude } = {},
-) {
+): UseInfiniteOwnedTokensReturn<PartialOwnedToken> {
   const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
@@ -192,7 +248,7 @@ export function useInfiniteOwnedTokens(
   // Flatten all pages into a single ownedTokens array (memoized to avoid re-flattening on every render)
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const ownedTokens: PartialOwnedToken[] = useMemo(
+  const ownedTokens = useMemo(
     () => data?.pages.flatMap((page) => page.ownedTokens) ?? [],
     [data?.pages],
   );

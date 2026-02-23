@@ -1,6 +1,7 @@
 import type {
   DigitalAsset,
   DigitalAssetInclude,
+  DigitalAssetResult,
   PartialDigitalAsset,
   TokenType,
 } from '@lsp-indexer/types';
@@ -59,10 +60,10 @@ function mapTokenType(raw: string | null | undefined): TokenType | null {
  * @returns A clean, camelCase `DigitalAsset` (full or partial depending on include)
  */
 export function parseDigitalAsset(raw: RawDigitalAsset): DigitalAsset;
-export function parseDigitalAsset(
+export function parseDigitalAsset<const I extends DigitalAssetInclude>(
   raw: RawDigitalAsset,
-  include: DigitalAssetInclude,
-): PartialDigitalAsset;
+  include: I,
+): DigitalAssetResult<I>;
 export function parseDigitalAsset(
   raw: RawDigitalAsset,
   include?: DigitalAssetInclude,
@@ -121,10 +122,10 @@ export function parseDigitalAsset(
  * @returns Array of clean, camelCase `DigitalAsset` objects (full or partial depending on include)
  */
 export function parseDigitalAssets(raw: RawDigitalAsset[]): DigitalAsset[];
-export function parseDigitalAssets(
+export function parseDigitalAssets<const I extends DigitalAssetInclude>(
   raw: RawDigitalAsset[],
-  include: DigitalAssetInclude,
-): PartialDigitalAsset[];
+  include: I,
+): DigitalAssetResult<I>[];
 export function parseDigitalAssets(
   raw: RawDigitalAsset[],
   include?: DigitalAssetInclude,

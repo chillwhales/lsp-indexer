@@ -233,9 +233,9 @@ No implementation bodies change — only overload signatures and return type ann
 
 **Plans:** 3 plans
 
-- [ ] 09.6-01-PLAN.md — Parsers + services: add generic overloads to all 5 domains (node package)
-- [ ] 09.6-02-PLAN.md — Actions + hooks: add generic overloads + return type aliases (next + react packages)
-- [ ] 09.6-03-PLAN.md — Build validation + verification across all 4 packages
+- [x] 09.6-01-PLAN.md — Parsers + services: add generic overloads to all 5 domains (node package)
+- [x] 09.6-02-PLAN.md — Actions + hooks: add generic overloads + return type aliases (next + react packages)
+- [x] 09.6-03-PLAN.md — Build validation + verification across all 4 packages
 
 ---
 
@@ -385,7 +385,7 @@ No implementation bodies change — only overload signatures and return type ann
 | 9.3   | Owned Assets                       |     1/1      | Complete |
 | 9.4   | Conditional Include Types          |     1/1      | Complete |
 | 9.5   | Social / Follows                   |     1/1      | Complete |
-| 9.6   | Generic Type Propagation           |      1       | Pending  |
+| 9.6   | Generic Type Propagation           |     1/1      | Complete |
 | 9.7   | Creators                           |      1       | Pending  |
 | 9.8   | Encrypted Assets                   |      1       | Pending  |
 | 9.9   | Encrypted Feed                     |      1       | Pending  |
@@ -396,7 +396,7 @@ No implementation bodies change — only overload signatures and return type ann
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 16/30 requirements delivered (QUERY-05 complete)
+**Total:** 17/30 requirements delivered (DX-05 complete)
 
 ---
 
@@ -506,4 +506,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-23 — Phase 9.6 inserted (Generic Type Propagation — DX-05), phases 9.6–9.10 renumbered to 9.7–9.11_
+_Last updated: 2026-02-23 — Phase 9.6 complete (Generic Type Propagation — DX-05 verified), 17/30 requirements delivered_

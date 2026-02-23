@@ -1,9 +1,13 @@
+import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import type { FetchOwnedAssetsResult } from '@lsp-indexer/node';
 import { fetchOwnedAsset, fetchOwnedAssets, getClientUrl, ownedAssetKeys } from '@lsp-indexer/node';
 import type {
+  OwnedAsset,
   OwnedAssetInclude,
+  OwnedAssetResult,
   PartialOwnedAsset,
   UseInfiniteOwnedAssetsParams,
   UseOwnedAssetParams,
@@ -12,6 +16,29 @@ import type {
 
 /** Default number of owned assets per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
+
+/** Flat return shape for useOwnedAsset — ownedAsset + query state */
+type UseOwnedAssetReturn<F> = { ownedAsset: F | null } & Omit<
+  UseQueryResult<F | null, Error>,
+  'data'
+>;
+
+/** Flat return shape for useOwnedAssets — ownedAssets array + totalCount + query state */
+type UseOwnedAssetsReturn<F> = { ownedAssets: F[]; totalCount: number } & Omit<
+  UseQueryResult<FetchOwnedAssetsResult<F>, Error>,
+  'data'
+>;
+
+/** Flat return shape for useInfiniteOwnedAssets — ownedAssets array + infinite scroll controls + query state */
+type UseInfiniteOwnedAssetsReturn<F> = {
+  ownedAssets: F[];
+  hasNextPage: boolean;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  isFetchingNextPage: boolean;
+} & Omit<
+  UseInfiniteQueryResult<InfiniteData<FetchOwnedAssetsResult<F>>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;
 
 /**
  * Fetch a single owned asset by unique ID.
@@ -44,7 +71,18 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useOwnedAsset(params: UseOwnedAssetParams & { include?: OwnedAssetInclude }) {
+export function useOwnedAsset<const I extends OwnedAssetInclude>(
+  params: UseOwnedAssetParams & { include: I },
+): UseOwnedAssetReturn<OwnedAssetResult<I>>;
+export function useOwnedAsset(
+  params: Omit<UseOwnedAssetParams, 'include'> & { include?: never },
+): UseOwnedAssetReturn<OwnedAsset>;
+export function useOwnedAsset(
+  params: UseOwnedAssetParams & { include?: OwnedAssetInclude },
+): UseOwnedAssetReturn<PartialOwnedAsset>;
+export function useOwnedAsset(
+  params: UseOwnedAssetParams & { include?: OwnedAssetInclude },
+): UseOwnedAssetReturn<PartialOwnedAsset> {
   const url = getClientUrl();
   const { id, include } = params;
 
@@ -54,7 +92,7 @@ export function useOwnedAsset(params: UseOwnedAssetParams & { include?: OwnedAss
     enabled: Boolean(id),
   });
 
-  const ownedAsset: PartialOwnedAsset | null = data ?? null;
+  const ownedAsset = data ?? null;
   return { ownedAsset, ...rest };
 }
 
@@ -92,9 +130,18 @@ export function useOwnedAsset(params: UseOwnedAssetParams & { include?: OwnedAss
  * }
  * ```
  */
+export function useOwnedAssets<const I extends OwnedAssetInclude>(
+  params: UseOwnedAssetsParams & { include: I },
+): UseOwnedAssetsReturn<OwnedAssetResult<I>>;
+export function useOwnedAssets(
+  params?: Omit<UseOwnedAssetsParams, 'include'> & { include?: never },
+): UseOwnedAssetsReturn<OwnedAsset>;
+export function useOwnedAssets(
+  params: UseOwnedAssetsParams & { include?: OwnedAssetInclude },
+): UseOwnedAssetsReturn<PartialOwnedAsset>;
 export function useOwnedAssets(
   params: UseOwnedAssetsParams & { include?: OwnedAssetInclude } = {},
-) {
+): UseOwnedAssetsReturn<PartialOwnedAsset> {
   const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
@@ -106,7 +153,7 @@ export function useOwnedAssets(
         : fetchOwnedAssets(url, { filter, sort, limit, offset }),
   });
 
-  const ownedAssets: PartialOwnedAsset[] = data?.ownedAssets ?? [];
+  const ownedAssets = data?.ownedAssets ?? [];
   return { ownedAssets, totalCount: data?.totalCount ?? 0, ...rest };
 }
 
@@ -154,9 +201,18 @@ export function useOwnedAssets(
  * }
  * ```
  */
+export function useInfiniteOwnedAssets<const I extends OwnedAssetInclude>(
+  params: UseInfiniteOwnedAssetsParams & { include: I },
+): UseInfiniteOwnedAssetsReturn<OwnedAssetResult<I>>;
+export function useInfiniteOwnedAssets(
+  params?: Omit<UseInfiniteOwnedAssetsParams, 'include'> & { include?: never },
+): UseInfiniteOwnedAssetsReturn<OwnedAsset>;
+export function useInfiniteOwnedAssets(
+  params: UseInfiniteOwnedAssetsParams & { include?: OwnedAssetInclude },
+): UseInfiniteOwnedAssetsReturn<PartialOwnedAsset>;
 export function useInfiniteOwnedAssets(
   params: UseInfiniteOwnedAssetsParams & { include?: OwnedAssetInclude } = {},
-) {
+): UseInfiniteOwnedAssetsReturn<PartialOwnedAsset> {
   const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
@@ -191,7 +247,7 @@ export function useInfiniteOwnedAssets(
   // Flatten all pages into a single ownedAssets array (memoized to avoid re-flattening on every render)
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const ownedAssets: PartialOwnedAsset[] = useMemo(
+  const ownedAssets = useMemo(
     () => data?.pages.flatMap((page) => page.ownedAssets) ?? [],
     [data?.pages],
   );

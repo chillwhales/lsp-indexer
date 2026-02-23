@@ -54,7 +54,7 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 - [x] **DX-02**: Developer can import query key factories for cache invalidation and prefetching
 - [ ] **DX-03**: All 4 packages pass `publint` and `arethetypeswrong` validation for publish readiness
 - [x] **DX-04**: Developer gets TypeScript return types narrowed by `include` parameter — excluded fields are absent from the type, not `null`
-- [ ] **DX-05**: All domain hooks/services/actions use 3-overload generic `<const I>` pattern with `XResult<I>` narrowing and zero type assertions
+- [x] **DX-05**: All domain hooks/services/actions use 3-overload generic `<const I>` pattern with `XResult<I>` narrowing and zero type assertions
 
 ## Future Requirements
 
@@ -100,7 +100,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUERY-04    | 9.3   | Complete |
 | DX-04       | 9.4   | Complete |
 | QUERY-05    | 9.5   | Complete |
-| DX-05       | 9.6   | Pending  |
+| DX-05       | 9.6   | Complete |
 | QUERY-06    | 9.7   | Pending  |
 | QUERY-07    | 9.8   | Pending  |
 | QUERY-08    | 9.9   | Pending  |
@@ -124,4 +124,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 ---
 
 _Requirements defined: 2026-02-16_
-_Last updated: 2026-02-23 — DX-05 added (phase 9.6), phases 9.6–9.10 renumbered to 9.7–9.11_
+_Last updated: 2026-02-23 — DX-05 marked Complete (phase 9.6 verified)_

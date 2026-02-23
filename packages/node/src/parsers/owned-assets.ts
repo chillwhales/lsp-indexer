@@ -1,4 +1,9 @@
-import type { OwnedAsset, OwnedAssetInclude, PartialOwnedAsset } from '@lsp-indexer/types';
+import type {
+  OwnedAsset,
+  OwnedAssetInclude,
+  OwnedAssetResult,
+  PartialOwnedAsset,
+} from '@lsp-indexer/types';
 import type { GetOwnedAssetQuery } from '../graphql/graphql';
 import { parseDigitalAsset } from './digital-assets';
 import { parseProfile } from './profiles';
@@ -36,7 +41,10 @@ type RawOwnedAsset = GetOwnedAssetQuery['owned_asset'][number];
  * @returns A clean, camelCase `OwnedAsset` with bigint balance (full or partial depending on include)
  */
 export function parseOwnedAsset(raw: RawOwnedAsset): OwnedAsset;
-export function parseOwnedAsset(raw: RawOwnedAsset, include: OwnedAssetInclude): PartialOwnedAsset;
+export function parseOwnedAsset<const I extends OwnedAssetInclude>(
+  raw: RawOwnedAsset,
+  include: I,
+): OwnedAssetResult<I>;
 export function parseOwnedAsset(
   raw: RawOwnedAsset,
   include?: OwnedAssetInclude,
@@ -70,10 +78,10 @@ export function parseOwnedAsset(
  * @returns Array of clean, camelCase `OwnedAsset` objects with bigint balances (full or partial depending on include)
  */
 export function parseOwnedAssets(raw: RawOwnedAsset[]): OwnedAsset[];
-export function parseOwnedAssets(
+export function parseOwnedAssets<const I extends OwnedAssetInclude>(
   raw: RawOwnedAsset[],
-  include: OwnedAssetInclude,
-): PartialOwnedAsset[];
+  include: I,
+): OwnedAssetResult<I>[];
 export function parseOwnedAssets(
   raw: RawOwnedAsset[],
   include?: OwnedAssetInclude,

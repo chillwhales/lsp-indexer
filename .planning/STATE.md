@@ -11,10 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.6 (Generic Type Propagation) — Planning
-- **Status:** Phase 9.6 planned — research complete, PLAN.md files ready
-- **Last activity:** 2026-02-23 — Created phase 9.6, renumbered 9.6–9.10 → 9.7–9.11
-- **Progress:** █████▓░░░░ 53% (16/30 requirements)
+- **Sub-phase:** 9.6 (Generic Type Propagation) — Complete
+- **Plan:** 3 of 3 in current sub-phase (phase complete)
+- **Status:** Phase 9.6 complete — DX-05 delivered
+- **Last activity:** 2026-02-23 — Completed 09.6-03-PLAN.md
+- **Progress:** █████▓░░░░ 57% (17/30 requirements)
 
 ## Milestone History
 
@@ -35,7 +36,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.3   | Owned Assets                       |     1/1      | Complete |
 | 9.4   | Conditional Include Types          |     1/1      | Complete |
 | 9.5   | Social / Follows                   |     1/1      | Complete |
-| 9.6   | Generic Type Propagation           |      1       | Planned  |
+| 9.6   | Generic Type Propagation           |     1/1      | Complete |
 | 9.7   | Creators                           |      1       | Pending  |
 | 9.8   | Encrypted Assets                   |      1       | Pending  |
 | 9.9   | Encrypted Feed                     |      1       | Pending  |
@@ -46,14 +47,14 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 16/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, DX-01, DX-02, DX-04, PAGE-01 incremental)
+**Total:** 17/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 69 (36 v1.0 + 33 v1.1)
+- **Plans completed:** 71 (36 v1.0 + 35 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 18 (11 v1.0 + 7 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 16/30 (v1.1)
+- **Phases completed:** 19 (11 v1.0 + 8 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 17/30 (v1.1)
 
 ## Accumulated Context
 
@@ -165,19 +166,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-23
-- **Activity:** Inserted Phase 9.6 (Generic Type Propagation), renumbered 9.6–9.10 → 9.7–9.11, created research + plans
-- **Outcome:** ROADMAP, STATE, REQUIREMENTS updated. 3 plan files created for 9.6.
+- **Activity:** Executed Phase 9.6 (all 3 plans) + verification
+- **Outcome:** 3 plans executed across 3 waves, 29 commits. Verifier confirmed 5/5 must-haves passed. DX-05 complete.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.6 planned** — Generic Type Propagation (DX-05): update 5 older domains to followers pattern
-- **Next step:** Execute Phase 9.6 plans (09.6-01 through 09.6-03)
-- **Phase renumbering complete:** Creators=9.7, Encrypted Assets=9.8, Encrypted Feed=9.9, Data Changed Events=9.10, Universal Receiver Events=9.11
-- **All XResult<I> types already exist** from Phase 9.4 — this phase just connects the plumbing
-- **Scope:** 25 files across 5 layers (parser → service → action → react hook → next hook) × 5 domains
-- **Zero implementation body changes** — only overload signatures and return type annotations
+- **Phase 9.6 complete + verified** — DX-05 (Generic Type Propagation) delivered and verified (VERIFICATION.md created)
+- **Next step:** Plan Phase 9.7 (Creators) — first of 5 remaining domain sub-phases
+- **Full generic chain verified:** types → parsers → services → actions → hooks across all 6 domains, zero type assertions
+- **Remaining sub-phases (9.7–9.11)** will be built with correct 3-overload `<const I>` pattern from the start
 
 ---
 
-_Last updated: 2026-02-23 — Phase 9.6 inserted (Generic Type Propagation), phases renumbered 9.6–9.10 → 9.7–9.11_
+_Last updated: 2026-02-23 — Phase 9.6 complete + verified (Generic Type Propagation — DX-05)_

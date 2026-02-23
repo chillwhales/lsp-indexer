@@ -1,4 +1,9 @@
-import type { OwnedToken, OwnedTokenInclude, PartialOwnedToken } from '@lsp-indexer/types';
+import type {
+  OwnedToken,
+  OwnedTokenInclude,
+  OwnedTokenResult,
+  PartialOwnedToken,
+} from '@lsp-indexer/types';
 import type { GetOwnedTokenQuery } from '../graphql/graphql';
 import { parseDigitalAsset } from './digital-assets';
 import { parseNft } from './nfts';
@@ -39,7 +44,10 @@ type RawOwnedToken = GetOwnedTokenQuery['owned_token'][number];
  * @returns A clean, camelCase `OwnedToken` with all nested relations parsed (full or partial depending on include)
  */
 export function parseOwnedToken(raw: RawOwnedToken): OwnedToken;
-export function parseOwnedToken(raw: RawOwnedToken, include: OwnedTokenInclude): PartialOwnedToken;
+export function parseOwnedToken<const I extends OwnedTokenInclude>(
+  raw: RawOwnedToken,
+  include: I,
+): OwnedTokenResult<I>;
 export function parseOwnedToken(
   raw: RawOwnedToken,
   include?: OwnedTokenInclude,
@@ -82,10 +90,10 @@ export function parseOwnedToken(
  * @returns Array of clean, camelCase `OwnedToken` objects (full or partial depending on include)
  */
 export function parseOwnedTokens(raw: RawOwnedToken[]): OwnedToken[];
-export function parseOwnedTokens(
+export function parseOwnedTokens<const I extends OwnedTokenInclude>(
   raw: RawOwnedToken[],
-  include: OwnedTokenInclude,
-): PartialOwnedToken[];
+  include: I,
+): OwnedTokenResult<I>[];
 export function parseOwnedTokens(
   raw: RawOwnedToken[],
   include?: OwnedTokenInclude,
