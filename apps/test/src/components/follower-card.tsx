@@ -114,7 +114,7 @@ export function FollowerCard({ follower, index }: FollowerCardProps): React.Reac
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <User className="size-3.5" />
-                Follower Profile
+                Follower Profile: {followerLabel}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
@@ -130,7 +130,7 @@ export function FollowerCard({ follower, index }: FollowerCardProps): React.Reac
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <User className="size-3.5" />
-                Followed Profile
+                Followed Profile: {followedLabel}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>

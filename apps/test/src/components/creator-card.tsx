@@ -14,6 +14,36 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { formatRelativeTime } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Extract the profile name from a nested profile object, or fall back to address */
+function getProfileLabel(profile: Record<string, unknown> | null | undefined): string | null {
+  if (
+    profile &&
+    typeof profile === 'object' &&
+    'name' in profile &&
+    typeof profile.name === 'string'
+  ) {
+    return profile.name;
+  }
+  if (profile && typeof profile === 'object' && 'address' in profile) {
+    return String(profile.address);
+  }
+  return null;
+}
+
+/** Extract digital asset name and symbol from a nested DA object */
+function getDigitalAssetLabel(da: Record<string, unknown>): {
+  name: string | null;
+  symbol: string | null;
+} {
+  const name = 'name' in da && typeof da.name === 'string' ? da.name : null;
+  const symbol = 'symbol' in da && typeof da.symbol === 'string' ? da.symbol : null;
+  return { name, symbol };
+}
+
+// ---------------------------------------------------------------------------
 // CreatorCard
 // ---------------------------------------------------------------------------
 
@@ -34,12 +64,25 @@ export interface CreatorCardProps {
 export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNode {
   const obj = creator;
 
+  // Derive display labels from nested relations
+  const profileLabel =
+    'creatorProfile' in obj
+      ? getProfileLabel(obj.creatorProfile as Record<string, unknown> | null)
+      : null;
+  const daInfo =
+    'digitalAsset' in obj && obj.digitalAsset
+      ? getDigitalAssetLabel(obj.digitalAsset as Record<string, unknown>)
+      : null;
+
   return (
     <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm">
           <Paintbrush className="size-4 text-muted-foreground" />
-          <span>Creator #{index + 1}</span>
+          <span>{profileLabel ?? `Creator #${index + 1}`}</span>
+          {daInfo?.name && (
+            <span className="text-sm font-normal text-muted-foreground">→ {daInfo.name}</span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -86,7 +129,7 @@ export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNo
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <User className="size-3.5" />
-                Creator Profile
+                Creator Profile: {profileLabel ?? 'Unknown'}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
@@ -104,7 +147,13 @@ export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNo
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                 <Coins className="size-3.5" />
-                Digital Asset
+                Digital Asset:{' '}
+                {daInfo?.name ??
+                  ((obj.digitalAsset as Record<string, unknown>).address as string) ??
+                  (obj.digitalAssetAddress as string)}
+                {daInfo?.symbol && (
+                  <span className="text-muted-foreground font-normal">({daInfo.symbol})</span>
+                )}
                 <ChevronDown className="size-3.5" />
               </Button>
             </CollapsibleTrigger>
