@@ -2,6 +2,7 @@ import type {
   Nft,
   NftFilter,
   NftInclude,
+  NftResult,
   NftSort,
   OwnedTokenNftInclude,
   PartialNft,
@@ -226,14 +227,18 @@ export async function fetchNft(
   url: string,
   params: { address: string; tokenId?: string; formattedTokenId?: string },
 ): Promise<Nft | null>;
+export async function fetchNft<const I extends NftInclude>(
+  url: string,
+  params: { address: string; tokenId?: string; formattedTokenId?: string; include: I },
+): Promise<NftResult<I> | null>;
 export async function fetchNft(
   url: string,
-  params: { address: string; tokenId?: string; formattedTokenId?: string; include: NftInclude },
+  params: { address: string; tokenId?: string; formattedTokenId?: string; include?: NftInclude },
 ): Promise<PartialNft | null>;
 export async function fetchNft(
   url: string,
   params: { address: string; tokenId?: string; formattedTokenId?: string; include?: NftInclude },
-): Promise<Nft | PartialNft | null> {
+): Promise<PartialNft | null> {
   if (!params.tokenId && !params.formattedTokenId) {
     throw new Error('fetchNft requires at least one of tokenId or formattedTokenId');
   }
@@ -290,6 +295,16 @@ export async function fetchNfts(
   url: string,
   params?: { filter?: NftFilter; sort?: NftSort; limit?: number; offset?: number },
 ): Promise<FetchNftsResult>;
+export async function fetchNfts<const I extends NftInclude>(
+  url: string,
+  params: {
+    filter?: NftFilter;
+    sort?: NftSort;
+    limit?: number;
+    offset?: number;
+    include: I;
+  },
+): Promise<FetchNftsResult<NftResult<I>>>;
 export async function fetchNfts(
   url: string,
   params: {
@@ -297,7 +312,7 @@ export async function fetchNfts(
     sort?: NftSort;
     limit?: number;
     offset?: number;
-    include: NftInclude;
+    include?: NftInclude;
   },
 ): Promise<FetchNftsResult<PartialNft>>;
 export async function fetchNfts(
@@ -309,7 +324,7 @@ export async function fetchNfts(
     offset?: number;
     include?: NftInclude;
   } = {},
-): Promise<FetchNftsResult | FetchNftsResult<PartialNft>> {
+): Promise<FetchNftsResult<PartialNft>> {
   const where = buildNftWhere(params.filter);
   const orderBy = buildNftOrderBy(params.sort);
   const includeVars = buildIncludeVars(params.include);
