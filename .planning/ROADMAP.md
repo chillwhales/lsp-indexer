@@ -506,4 +506,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-23 — Phase 9.6 complete (Generic Type Propagation — DX-05 verified), 17/30 requirements delivered_
+_Last updated: 2026-02-23 — Phase 9.7 complete (Creators — QUERY-06 verified), 18/30 requirements delivered_

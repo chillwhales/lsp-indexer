@@ -26,7 +26,7 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 - [x] **QUERY-03**: Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data
 - [x] **QUERY-04**: Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data
 - [x] **QUERY-05**: Developer can use `useFollowers`, `useFollowing`, `useFollowCount` for social/follow data
-- [ ] **QUERY-06**: Developer can use `useCreators`, `useInfiniteCreators` for LSP4 creator data
+- [x] **QUERY-06**: Developer can use `useCreators`, `useInfiniteCreators` for LSP4 creator data
 - [ ] **QUERY-07**: Developer can use `useEncryptedAsset`, `useEncryptedAssets` for LSP29 encrypted asset data
 - [ ] **QUERY-08**: Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery
 - [ ] **QUERY-09**: Developer can use `useDataChangedEvents` for ERC725 data change events
@@ -101,7 +101,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DX-04       | 9.4   | Complete |
 | QUERY-05    | 9.5   | Complete |
 | DX-05       | 9.6   | Complete |
-| QUERY-06    | 9.7   | Pending  |
+| QUERY-06    | 9.7   | Complete |
 | QUERY-07    | 9.8   | Pending  |
 | QUERY-08    | 9.9   | Pending  |
 | QUERY-09    | 9.10  | Pending  |
