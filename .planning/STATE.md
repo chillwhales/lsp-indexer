@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.6 (Generic Type Propagation) — Complete
-- **Plan:** 3 of 3 in current sub-phase (phase complete)
-- **Status:** Phase 9.6 complete — DX-05 delivered
-- **Last activity:** 2026-02-23 — Completed 09.6-03-PLAN.md
-- **Progress:** █████▓░░░░ 57% (17/30 requirements)
+- **Sub-phase:** 9.7 (Creators) — Complete
+- **Plan:** 4 of 4 in current sub-phase
+- **Status:** Phase 9.7 complete — Creator playground + verification
+- **Last activity:** 2026-02-23 — Completed 09.7-04-PLAN.md
+- **Progress:** ██████░░░░ 60% (18/30 requirements)
 
 ## Milestone History
 
@@ -37,7 +37,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.4   | Conditional Include Types          |     1/1      | Complete |
 | 9.5   | Social / Follows                   |     1/1      | Complete |
 | 9.6   | Generic Type Propagation           |     1/1      | Complete |
-| 9.7   | Creators                           |      1       | Pending  |
+| 9.7   | Creators                           |     1/1      | Complete |
 | 9.8   | Encrypted Assets                   |      1       | Pending  |
 | 9.9   | Encrypted Feed                     |      1       | Pending  |
 | 9.10  | Data Changed Events                |      1       | Pending  |
@@ -47,14 +47,14 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 17/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
+**Total:** 18/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 71 (36 v1.0 + 35 v1.1)
+- **Plans completed:** 74 (36 v1.0 + 38 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 19 (11 v1.0 + 8 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 17/30 (v1.1)
+- **Phases completed:** 20 (11 v1.0 + 9 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 18/30 (v1.1)
 
 ## Accumulated Context
 
@@ -152,6 +152,10 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **buildFollowerIncludeVars prefix replacement:** Reuses `buildProfileIncludeVars` with `key.replace('includeProfile', 'includeFollowerProfile')` / `'includeFollowedProfile'` for nested profile variable mapping — same pattern as NFT collection.
 - **FollowCount separate document:** `GetFollowCountDocument` uses two aliased `follower_aggregate` queries — one for follower count (where followed_address = X), one for following count (where follower_address = X).
 - **fetchIsFollowing reuses list document:** No separate existence query — `GetFollowersDocument` with `limit: 1` and all includes disabled for minimal payload.
+- **CreatorResult<I> with dual heterogeneous relation resolvers:** `ResolveCreatorProfile<I>` (ProfileResult) and `ResolveCreatorDigitalAsset<I>` (DigitalAssetResult) — each side independently narrowable. Base fields: creatorAddress, digitalAssetAddress.
+- **Creator has no singular hook:** No natural key exists (opaque Hasura ID only) — only useCreators and useInfiniteCreators hooks
+- **GetCreatorsDocument 31 include variables:** 3 scalar (arrayIndex, interfaceId, timestamp) + 10 creator profile ($includeCreatorProfile*) + 18 digital asset ($includeDigitalAsset\*) — all Boolean! = true defaults
+- **Creator profile sub-fields:** followedBy_aggregate for follower count, following_aggregate for following count (matching established profile document pattern)
 
 ### Discovered Todos
 
@@ -166,17 +170,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-23
-- **Activity:** Executed Phase 9.6 (all 3 plans) + verification
-- **Outcome:** 3 plans executed across 3 waves, 29 commits. Verifier confirmed 5/5 must-haves passed. DX-05 complete.
+- **Activity:** Executed Phase 9.7 (all 4 plans across 4 waves) + verification
+- **Outcome:** 4 plans executed across 4 waves, 12 commits. Verifier confirmed 14/14 must-haves passed. QUERY-06 complete.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.6 complete + verified** — DX-05 (Generic Type Propagation) delivered and verified (VERIFICATION.md created)
-- **Next step:** Plan Phase 9.7 (Creators) — first of 5 remaining domain sub-phases
-- **Full generic chain verified:** types → parsers → services → actions → hooks across all 6 domains, zero type assertions
-- **Remaining sub-phases (9.7–9.11)** will be built with correct 3-overload `<const I>` pattern from the start
+- **Phase 9.7 complete + verified** — QUERY-06 (Creators) delivered and verified (VERIFICATION.md created)
+- **Next step:** Plan Phase 9.8 (Encrypted Assets) — second of 4 remaining domain sub-phases
+- **Full vertical slice pattern verified:** types → parsers → services → hooks → playground across 7 domains
+- **Remaining sub-phases (9.8–9.11)** will follow the same 4-plan pattern with correct 3-overload `<const I>` pattern
 
 ---
 
-_Last updated: 2026-02-23 — Phase 9.6 complete + verified (Generic Type Propagation — DX-05)_
+_Last updated: 2026-02-23 — Phase 9.7 complete + verified (Creators — QUERY-06)_

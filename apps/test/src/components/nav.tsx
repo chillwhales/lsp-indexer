@@ -44,7 +44,7 @@ const navLinks = [
   { href: '/owned-assets', label: 'Owned Assets', icon: Wallet, available: true },
   { href: '/owned-tokens', label: 'Owned Tokens', icon: Tag, available: true },
   { href: '/follows', label: 'Follows', icon: Heart, available: true },
-  { href: '/creators', label: 'Creators', icon: Paintbrush, available: false },
+  { href: '/creators', label: 'Creators', icon: Paintbrush, available: true },
   { href: '/encrypted', label: 'Encrypted Assets', icon: Lock, available: false },
   { href: '/events', label: 'Events', icon: Calendar, available: false },
   { href: '/stats', label: 'Stats', icon: BarChart3, available: false },

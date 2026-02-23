@@ -106,6 +106,54 @@ export function formatRelativeTime(timestamp: string): string {
   return `${years}y ago`;
 }
 
+// ---------------------------------------------------------------------------
+// Display label helpers — shared across domain card components
+// ---------------------------------------------------------------------------
+
+/** Truncate an address to 0x1234…abcd format */
+export function truncateAddress(address: string): string {
+  if (address.length <= 12) return address;
+  return `${address.slice(0, 6)}…${address.slice(-4)}`;
+}
+
+/**
+ * Extract a display label from a profile-like object.
+ * Returns the profile name when available, otherwise truncates the address.
+ *
+ * @param profile - Any object with optional `name` and `address` fields
+ * @param fallbackAddress - Used when profile is null/undefined or has no address
+ */
+export function getProfileLabel(
+  profile: { name?: string | null; address?: string } | null | undefined,
+  fallbackAddress: string,
+): string {
+  if (profile?.name) return profile.name;
+  if (profile?.address) return truncateAddress(profile.address);
+  return truncateAddress(fallbackAddress);
+}
+
+/**
+ * Extract display label info from a digital-asset-like object.
+ * Returns name (or truncated address) and symbol.
+ *
+ * @param da - Any object with optional `name`, `symbol`, and `address` fields
+ * @param fallbackAddress - Used when da is null/undefined or has no address
+ */
+export function getDigitalAssetLabel(
+  da: { name?: string | null; symbol?: string | null; address?: string } | null | undefined,
+  fallbackAddress: string,
+): { label: string; symbol: string | null } {
+  if (!da) return { label: truncateAddress(fallbackAddress), symbol: null };
+  return {
+    label: da.name ?? truncateAddress(da.address ?? fallbackAddress),
+    symbol: da.symbol ?? null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// URL helpers
+// ---------------------------------------------------------------------------
+
 /** Validate that a URL uses a safe protocol (prevents javascript: / data: XSS) */
 export function isSafeUrl(url: string): boolean {
   try {

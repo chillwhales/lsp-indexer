@@ -15,7 +15,6 @@ import {
 } from '@lsp-indexer/react';
 import type {
   NftFilter,
-  NftInclude,
   NftSort,
   NftSortField,
   SortDirection,
@@ -154,7 +153,7 @@ function useListState() {
   const include = buildNestedInclude(includeValues, {
     collection: collection.value,
     holder: holder.value,
-  }) as NftInclude | undefined;
+  });
 
   return {
     values,
@@ -227,7 +226,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const include = buildNestedInclude(includeValues, {
     collection: collection.value,
     holder: holder.value,
-  }) as NftInclude | undefined;
+  });
 
   const { nft, isLoading, error, isFetching } = useNft({
     address: queryAddress,

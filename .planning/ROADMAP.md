@@ -247,10 +247,10 @@ No implementation bodies change — only overload signatures and return type ann
 
 **Plans:** 4 plans
 
-- [ ] 09.7-01-PLAN.md — Creator types + GraphQL documents + codegen
-- [ ] 09.7-02-PLAN.md — Creator parsers + services + query keys
-- [ ] 09.7-03-PLAN.md — Creator hooks + server actions + build validation
-- [ ] 09.7-04-PLAN.md — Creators playground page + E2E verification
+- [x] 09.7-01-PLAN.md — Creator types + GraphQL documents + codegen
+- [x] 09.7-02-PLAN.md — Creator parsers + services + query keys
+- [x] 09.7-03-PLAN.md — Creator hooks + server actions + build validation
+- [x] 09.7-04-PLAN.md — Creators playground page + E2E verification
 
 ---
 
@@ -386,7 +386,7 @@ No implementation bodies change — only overload signatures and return type ann
 | 9.4   | Conditional Include Types          |     1/1      | Complete |
 | 9.5   | Social / Follows                   |     1/1      | Complete |
 | 9.6   | Generic Type Propagation           |     1/1      | Complete |
-| 9.7   | Creators                           |      1       | Pending  |
+| 9.7   | Creators                           |     1/1      | Complete |
 | 9.8   | Encrypted Assets                   |      1       | Pending  |
 | 9.9   | Encrypted Feed                     |      1       | Pending  |
 | 9.10  | Data Changed Events                |      1       | Pending  |
@@ -396,7 +396,7 @@ No implementation bodies change — only overload signatures and return type ann
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 17/30 requirements delivered (DX-05 complete)
+**Total:** 18/30 requirements delivered (QUERY-06 complete)
 
 ---
 
@@ -506,4 +506,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-23 — Phase 9.6 complete (Generic Type Propagation — DX-05 verified), 17/30 requirements delivered_
+_Last updated: 2026-02-23 — Phase 9.7 complete (Creators — QUERY-06 verified), 18/30 requirements delivered_

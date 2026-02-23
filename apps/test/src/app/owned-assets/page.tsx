@@ -15,7 +15,6 @@ import {
 } from '@lsp-indexer/react';
 import type {
   OwnedAssetFilter,
-  OwnedAssetInclude,
   OwnedAssetSort,
   OwnedAssetSortField,
   SortDirection,
@@ -153,7 +152,7 @@ function useListState() {
   const include = buildNestedInclude(includeValues, {
     digitalAsset: da.value,
     holder: holder.value,
-  }) as OwnedAssetInclude | undefined;
+  });
 
   return {
     values,
@@ -220,7 +219,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const include = buildNestedInclude(includeValues, {
     digitalAsset: da.value,
     holder: holder.value,
-  }) as OwnedAssetInclude | undefined;
+  });
 
   const hasQuery = Boolean(queryHolder) && Boolean(queryAddress);
   const filter: OwnedAssetFilter | undefined = hasQuery

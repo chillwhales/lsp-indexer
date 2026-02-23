@@ -66,3 +66,10 @@ export const FOLLOWER_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'timestamp', label: 'Timestamp' },
   { key: 'address', label: 'Contract Address' },
 ];
+
+/** CreatorInclude — 3 scalar fields. creatorProfile/digitalAsset are SubIncludeSections. */
+export const CREATOR_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'arrayIndex', label: 'Array Index' },
+  { key: 'interfaceId', label: 'Interface ID' },
+  { key: 'timestamp', label: 'Timestamp' },
+];
