@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.8 (Issued Assets) — In progress
-- **Plan:** 3 of 4 in current sub-phase
-- **Status:** In progress — Issued Asset hooks + server action + build validation complete
-- **Last activity:** 2026-02-23 — Completed 09.8-03-PLAN.md
-- **Progress:** ██████░░░░ 60% (18/30 requirements)
+- **Sub-phase:** 9.8 (Issued Assets) — Complete
+- **Plan:** 4 of 4 in current sub-phase
+- **Status:** Phase 9.8 complete — ready for Phase 9.9 (Encrypted Feed)
+- **Last activity:** 2026-02-23 — Completed 09.8-04-PLAN.md
+- **Progress:** ██████░░░░ 63% (19/30 requirements)
 
 ## Milestone History
 
@@ -27,34 +27,34 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                               | Requirements | Status      |
-| ----- | ---------------------------------- | :----------: | ----------- |
-| 7     | Package Foundation                 |     7/7      | Complete    |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete    |
-| 9.1   | Digital Assets                     |     1/1      | Complete    |
-| 9.2   | NFTs                               |     1/1      | Complete    |
-| 9.3   | Owned Assets                       |     1/1      | Complete    |
-| 9.4   | Conditional Include Types          |     1/1      | Complete    |
-| 9.5   | Social / Follows                   |     1/1      | Complete    |
-| 9.6   | Generic Type Propagation           |     1/1      | Complete    |
-| 9.7   | Creators                           |     1/1      | Complete    |
-| 9.8   | Issued Assets                      |     0/1      | In progress |
-| 9.9   | Encrypted Feed                     |      1       | Pending     |
-| 9.10  | Data Changed Events                |      1       | Pending     |
-| 9.11  | Universal Receiver Events          |      1       | Pending     |
-| 10    | Subscriptions                      |      3       | Pending     |
-| 11    | Server Actions & Publish Readiness |      4       | Pending     |
+| Phase | Name                               | Requirements | Status   |
+| ----- | ---------------------------------- | :----------: | -------- |
+| 7     | Package Foundation                 |     7/7      | Complete |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
+| 9.1   | Digital Assets                     |     1/1      | Complete |
+| 9.2   | NFTs                               |     1/1      | Complete |
+| 9.3   | Owned Assets                       |     1/1      | Complete |
+| 9.4   | Conditional Include Types          |     1/1      | Complete |
+| 9.5   | Social / Follows                   |     1/1      | Complete |
+| 9.6   | Generic Type Propagation           |     1/1      | Complete |
+| 9.7   | Creators                           |     1/1      | Complete |
+| 9.8   | Issued Assets                      |     1/1      | Complete |
+| 9.9   | Encrypted Feed                     |      1       | Pending  |
+| 9.10  | Data Changed Events                |      1       | Pending  |
+| 9.11  | Universal Receiver Events          |      1       | Pending  |
+| 10    | Subscriptions                      |      3       | Pending  |
+| 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 18/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
+**Total:** 19/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 76 (36 v1.0 + 40 v1.1)
+- **Plans completed:** 77 (36 v1.0 + 41 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 20 (11 v1.0 + 9 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 18/30 (v1.1)
+- **Phases completed:** 21 (11 v1.0 + 10 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 19/30 (v1.1)
 
 ## Accumulated Context
 
@@ -173,17 +173,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-23
-- **Activity:** Executed Phase 9.8 Plan 03 (IssuedAsset hooks + server action + build validation)
-- **Outcome:** 2 tasks completed, 2 commits (8db5e51, 6eedebb). 2 React hooks + 1 server action + 2 Next.js hooks, barrel exports wired, all 4 packages build+typecheck.
+- **Activity:** Executed Phase 9.8 Plan 04 (Issued Assets playground + E2E verification)
+- **Outcome:** 2 tasks completed, 2 commits (16cb30d, 2bc46dd). IssuedAssetCard + playground page at /issued-assets + nav update. next build succeeds.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.8 plan 03 complete** — hooks + server action + barrel exports done
-- **Next step:** Plan 09.8-04 (playground + E2E verification)
-- **useIssuedAssets and useInfiniteIssuedAssets importable from @lsp-indexer/react and @lsp-indexer/next**
-- **Remaining plans in 9.8:** 04 (playground+verification)
+- **Phase 9.8 complete** — all 4 plans done, QUERY-07 delivered
+- **Next step:** Phase 9.9 (Encrypted Feed)
+- **Remaining sub-phases in Phase 9:** 9.9 (Encrypted Feed), 9.10 (Data Changed Events), 9.11 (Universal Receiver Events)
 
 ---
 
-_Last updated: 2026-02-23 — Phase 9.8 plan 03 complete (IssuedAsset hooks + server action + build validation)_
+_Last updated: 2026-02-23 — Phase 9.8 complete (Issued Assets — QUERY-07 delivered)_
