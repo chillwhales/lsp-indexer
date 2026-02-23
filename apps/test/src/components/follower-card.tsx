@@ -61,7 +61,7 @@ export function FollowerCard({ follower, index }: FollowerCardProps): React.Reac
           {'address' in obj && obj.address != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-36 shrink-0">Contract Address</dt>
-              <dd className="font-mono text-xs break-all">{obj.address as string}</dd>
+              <dd className="font-mono text-xs break-all">{obj.address}</dd>
             </div>
           )}
         </dl>

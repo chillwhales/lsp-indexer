@@ -17,7 +17,6 @@ import {
 } from '@lsp-indexer/react';
 import type {
   FollowerFilter,
-  FollowerInclude,
   FollowerSort,
   FollowerSortField,
   SortDirection,
@@ -122,10 +121,10 @@ type FollowerHooks = {
 function useFollowerHooks(mode: HookMode): FollowerHooks {
   if (mode === 'server') {
     return {
-      useFollows: useFollowsNext as unknown as typeof useFollowsReact,
-      useInfiniteFollows: useInfiniteFollowsNext as unknown as typeof useInfiniteFollowsReact,
-      useFollowCount: useFollowCountNext as unknown as typeof useFollowCountReact,
-      useIsFollowing: useIsFollowingNext as unknown as typeof useIsFollowingReact,
+      useFollows: useFollowsNext,
+      useInfiniteFollows: useInfiniteFollowsNext,
+      useFollowCount: useFollowCountNext,
+      useIsFollowing: useIsFollowingNext,
     };
   }
   return {
@@ -178,7 +177,7 @@ function useListState() {
   const include = buildNestedInclude(includeValues, {
     followerProfile: followerProfile.value,
     followedProfile: followedProfile.value,
-  }) as FollowerInclude | undefined;
+  });
 
   return {
     values,

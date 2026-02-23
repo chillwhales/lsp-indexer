@@ -15,7 +15,6 @@ import {
 } from '@lsp-indexer/react';
 import type {
   OwnedTokenFilter,
-  OwnedTokenInclude,
   OwnedTokenSort,
   OwnedTokenSortField,
   SortDirection,
@@ -156,7 +155,7 @@ function useListState() {
     nft: nft.value,
     ownedAsset: oa.value,
     holder: up.value,
-  }) as OwnedTokenInclude | undefined;
+  });
 
   return {
     values,
@@ -245,7 +244,7 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
     nft: nft.value,
     ownedAsset: oa.value,
     holder: up.value,
-  }) as OwnedTokenInclude | undefined;
+  });
 
   const hasQuery = Boolean(queryOwner) && Boolean(queryAddress);
   const filter: OwnedTokenFilter | undefined = hasQuery

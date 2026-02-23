@@ -118,8 +118,8 @@ type CreatorHooks = {
 function useCreatorHooks(mode: HookMode): CreatorHooks {
   if (mode === 'server') {
     return {
-      useCreators: useCreatorsNext as unknown as typeof useCreatorsReact,
-      useInfiniteCreators: useInfiniteCreatorsNext as unknown as typeof useInfiniteCreatorsReact,
+      useCreators: useCreatorsNext,
+      useInfiniteCreators: useInfiniteCreatorsNext,
     };
   }
   return {

@@ -88,6 +88,25 @@ Core files (`core/*.ts`) use relative imports for siblings (`./types`). All othe
 - Generics with constraints: `<T extends { address: string; digitalAsset?: unknown }>`
 - Plugins call helpers with explicit type params: `populateByDA<Transfer>(ctx, TYPE)`
 
+### Type Assertions (`as`) — Avoid Unless Proven Necessary
+
+**Do NOT add `as X` casts defensively.** If TypeScript infers the correct type, trust it. Only use `as` when there is a genuine type boundary that the compiler cannot resolve.
+
+**Rules:**
+
+1. **Never cast to satisfy a hunch.** If you're not sure two types align, check the signatures — don't slap `as` on it.
+2. **Never cast a return type that already matches.** If `buildNestedInclude()` returns `T | undefined` and the consumer expects `T | undefined`, no cast is needed.
+3. **Never cast compatible function types.** If `useCreatorsNext` and `useCreatorsReact` have compatible signatures, assigning one where the other is expected needs no `as unknown as typeof ...` double-cast.
+4. **Never cast a property access to its own type.** If `obj.address` is typed as `string`, writing `{obj.address as string}` in JSX is pointless.
+5. **Unused type imports are a smell.** If you import `NftInclude` only to use it in `as NftInclude`, and removing the cast also removes the import — the cast was unnecessary.
+
+**Legitimate uses of `as` (rare):**
+
+- **Service boundary casts:** `as ProfileResult<I>` after `stripExcluded()` — TypeScript cannot infer that runtime stripping narrows the generic type parameter. This is a genuine type-system limitation.
+- **Cross-domain parser sub-selections:** `as any` on nested sub-selections where codegen types omit fields that the primary parser expects. These are documented inline.
+
+**Test:** If you remove an `as` cast and the code still compiles with `pnpm build` — the cast was unnecessary. Always try removing it first.
+
 ### Functions
 
 | Context              | Style                                     |
