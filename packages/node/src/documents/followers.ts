@@ -34,7 +34,7 @@ export const GetFollowersDocument = graphql(`
     $includeFollowerProfileTags: Boolean! = true
     $includeFollowerProfileLinks: Boolean! = true
     $includeFollowerProfileAvatar: Boolean! = true
-    $includeFollowerProfileProfileImage: Boolean! = true
+    $includeFollowerProfileImage: Boolean! = true
     $includeFollowerProfileBackgroundImage: Boolean! = true
     $includeFollowerProfileFollowerCount: Boolean! = true
     $includeFollowerProfileFollowingCount: Boolean! = true
@@ -44,7 +44,7 @@ export const GetFollowersDocument = graphql(`
     $includeFollowedProfileTags: Boolean! = true
     $includeFollowedProfileLinks: Boolean! = true
     $includeFollowedProfileAvatar: Boolean! = true
-    $includeFollowedProfileProfileImage: Boolean! = true
+    $includeFollowedProfileImage: Boolean! = true
     $includeFollowedProfileBackgroundImage: Boolean! = true
     $includeFollowedProfileFollowerCount: Boolean! = true
     $includeFollowedProfileFollowingCount: Boolean! = true
@@ -76,7 +76,7 @@ export const GetFollowersDocument = graphql(`
             verification_method
             verification_data
           }
-          profileImage @include(if: $includeFollowerProfileProfileImage) {
+          profileImage @include(if: $includeFollowerProfileImage) {
             url
             width
             height
@@ -124,7 +124,7 @@ export const GetFollowersDocument = graphql(`
             verification_method
             verification_data
           }
-          profileImage @include(if: $includeFollowedProfileProfileImage) {
+          profileImage @include(if: $includeFollowedProfileImage) {
             url
             width
             height

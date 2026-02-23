@@ -21384,7 +21384,7 @@ export type GetFollowersQueryVariables = Exact<{
   includeFollowerProfileTags?: Scalars['Boolean']['input'];
   includeFollowerProfileLinks?: Scalars['Boolean']['input'];
   includeFollowerProfileAvatar?: Scalars['Boolean']['input'];
-  includeFollowerProfileProfileImage?: Scalars['Boolean']['input'];
+  includeFollowerProfileImage?: Scalars['Boolean']['input'];
   includeFollowerProfileBackgroundImage?: Scalars['Boolean']['input'];
   includeFollowerProfileFollowerCount?: Scalars['Boolean']['input'];
   includeFollowerProfileFollowingCount?: Scalars['Boolean']['input'];
@@ -21394,7 +21394,7 @@ export type GetFollowersQueryVariables = Exact<{
   includeFollowedProfileTags?: Scalars['Boolean']['input'];
   includeFollowedProfileLinks?: Scalars['Boolean']['input'];
   includeFollowedProfileAvatar?: Scalars['Boolean']['input'];
-  includeFollowedProfileProfileImage?: Scalars['Boolean']['input'];
+  includeFollowedProfileImage?: Scalars['Boolean']['input'];
   includeFollowedProfileBackgroundImage?: Scalars['Boolean']['input'];
   includeFollowedProfileFollowerCount?: Scalars['Boolean']['input'];
   includeFollowedProfileFollowingCount?: Scalars['Boolean']['input'];
@@ -21899,7 +21899,7 @@ export const GetDigitalAssetsDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<GetDigitalAssetsQuery, GetDigitalAssetsQueryVariables>;
 export const GetFollowersDocument = new TypedDocumentString(`
-    query GetFollowers($where: follower_bool_exp, $order_by: [follower_order_by!], $limit: Int, $offset: Int, $includeTimestamp: Boolean! = true, $includeAddress: Boolean! = true, $includeFollowerProfile: Boolean! = true, $includeFollowerProfileName: Boolean! = true, $includeFollowerProfileDescription: Boolean! = true, $includeFollowerProfileTags: Boolean! = true, $includeFollowerProfileLinks: Boolean! = true, $includeFollowerProfileAvatar: Boolean! = true, $includeFollowerProfileProfileImage: Boolean! = true, $includeFollowerProfileBackgroundImage: Boolean! = true, $includeFollowerProfileFollowerCount: Boolean! = true, $includeFollowerProfileFollowingCount: Boolean! = true, $includeFollowedProfile: Boolean! = true, $includeFollowedProfileName: Boolean! = true, $includeFollowedProfileDescription: Boolean! = true, $includeFollowedProfileTags: Boolean! = true, $includeFollowedProfileLinks: Boolean! = true, $includeFollowedProfileAvatar: Boolean! = true, $includeFollowedProfileProfileImage: Boolean! = true, $includeFollowedProfileBackgroundImage: Boolean! = true, $includeFollowedProfileFollowerCount: Boolean! = true, $includeFollowedProfileFollowingCount: Boolean! = true) {
+    query GetFollowers($where: follower_bool_exp, $order_by: [follower_order_by!], $limit: Int, $offset: Int, $includeTimestamp: Boolean! = true, $includeAddress: Boolean! = true, $includeFollowerProfile: Boolean! = true, $includeFollowerProfileName: Boolean! = true, $includeFollowerProfileDescription: Boolean! = true, $includeFollowerProfileTags: Boolean! = true, $includeFollowerProfileLinks: Boolean! = true, $includeFollowerProfileAvatar: Boolean! = true, $includeFollowerProfileImage: Boolean! = true, $includeFollowerProfileBackgroundImage: Boolean! = true, $includeFollowerProfileFollowerCount: Boolean! = true, $includeFollowerProfileFollowingCount: Boolean! = true, $includeFollowedProfile: Boolean! = true, $includeFollowedProfileName: Boolean! = true, $includeFollowedProfileDescription: Boolean! = true, $includeFollowedProfileTags: Boolean! = true, $includeFollowedProfileLinks: Boolean! = true, $includeFollowedProfileAvatar: Boolean! = true, $includeFollowedProfileImage: Boolean! = true, $includeFollowedProfileBackgroundImage: Boolean! = true, $includeFollowedProfileFollowerCount: Boolean! = true, $includeFollowedProfileFollowingCount: Boolean! = true) {
   follower(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
     follower_address
     followed_address
@@ -21927,7 +21927,7 @@ export const GetFollowersDocument = new TypedDocumentString(`
           verification_method
           verification_data
         }
-        profileImage @include(if: $includeFollowerProfileProfileImage) {
+        profileImage @include(if: $includeFollowerProfileImage) {
           url
           width
           height
@@ -21975,7 +21975,7 @@ export const GetFollowersDocument = new TypedDocumentString(`
           verification_method
           verification_data
         }
-        profileImage @include(if: $includeFollowedProfileProfileImage) {
+        profileImage @include(if: $includeFollowedProfileImage) {
           url
           width
           height
