@@ -3,7 +3,7 @@
 import { Paintbrush } from 'lucide-react';
 import React from 'react';
 
-import type { PartialExcept } from '@lsp-indexer/types';
+import type { DigitalAsset, PartialExcept, Profile } from '@lsp-indexer/types';
 
 import {
   CollapsibleDigitalAssetSection,
@@ -35,14 +35,13 @@ export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNo
   const obj = creator;
 
   // Derive display labels from nested relations
-  const creatorLabel = getProfileLabel(
-    'creatorProfile' in obj ? (obj.creatorProfile as Record<string, unknown> | null) : null,
-    obj.creatorAddress as string,
-  );
-  const daInfo = getDigitalAssetLabel(
-    'digitalAsset' in obj ? (obj.digitalAsset as Record<string, unknown> | null) : null,
-    obj.digitalAssetAddress as string,
-  );
+  const profile =
+    'creatorProfile' in obj ? (obj.creatorProfile as PartialExcept<Profile, 'address'>) : null;
+  const digitalAsset =
+    'digitalAsset' in obj ? (obj.digitalAsset as PartialExcept<DigitalAsset, 'address'>) : null;
+
+  const creatorLabel = getProfileLabel(profile, obj.creatorAddress as string);
+  const daInfo = getDigitalAssetLabel(digitalAsset, obj.digitalAssetAddress as string);
 
   return (
     <Card className="overflow-hidden">
@@ -93,19 +92,11 @@ export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNo
         </dl>
 
         {/* Collapsible section 1: Creator Profile */}
-        {'creatorProfile' in obj && obj.creatorProfile != null && (
-          <CollapsibleProfileSection
-            label="Creator Profile"
-            profile={obj.creatorProfile as PartialExcept<{ address: string }, 'address'>}
-          />
-        )}
+        {profile != null && <CollapsibleProfileSection label="Creator Profile" profile={profile} />}
 
         {/* Collapsible section 2: Digital Asset */}
-        {'digitalAsset' in obj && obj.digitalAsset != null && (
-          <CollapsibleDigitalAssetSection
-            label="Digital Asset"
-            digitalAsset={obj.digitalAsset as PartialExcept<{ address: string }, 'address'>}
-          />
+        {digitalAsset != null && (
+          <CollapsibleDigitalAssetSection label="Digital Asset" digitalAsset={digitalAsset} />
         )}
 
         <RawJsonToggle data={creator} label="creator" />

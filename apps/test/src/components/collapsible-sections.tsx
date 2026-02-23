@@ -1,7 +1,7 @@
 import { ChevronDown, Coins, User } from 'lucide-react';
 import React from 'react';
 
-import type { PartialExcept } from '@lsp-indexer/types';
+import type { DigitalAsset, PartialExcept, Profile } from '@lsp-indexer/types';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
 import { ProfileCard } from '@/components/profile-card';
@@ -17,7 +17,7 @@ export interface CollapsibleProfileSectionProps {
   /** Trigger label prefix, e.g. "Holder Profile", "Creator Profile" */
   label: string;
   /** The profile object — must have at least `address` */
-  profile: PartialExcept<{ address: string }, 'address'>;
+  profile: PartialExcept<Profile, 'address'>;
   /** Optional extra content rendered before the ProfileCard (e.g. timestamp) */
   before?: React.ReactNode;
 }
@@ -35,17 +35,14 @@ export function CollapsibleProfileSection({
   profile,
   before,
 }: CollapsibleProfileSectionProps): React.ReactNode {
-  const profileLabel = getProfileLabel(
-    profile as unknown as Record<string, unknown>,
-    profile.address,
-  );
+  const displayLabel = getProfileLabel(profile, profile.address);
 
   return (
     <Collapsible>
       <CollapsibleTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
           <User className="size-3.5" />
-          {label}: {profileLabel}
+          {label}: {displayLabel}
           <ChevronDown className="size-3.5" />
         </Button>
       </CollapsibleTrigger>
@@ -65,7 +62,7 @@ export interface CollapsibleDigitalAssetSectionProps {
   /** Trigger label prefix, e.g. "Digital Asset", "Collection" */
   label: string;
   /** The digital asset object — must have at least `address` */
-  digitalAsset: PartialExcept<{ address: string }, 'address'>;
+  digitalAsset: PartialExcept<DigitalAsset, 'address'>;
 }
 
 /**
@@ -80,10 +77,7 @@ export function CollapsibleDigitalAssetSection({
   label,
   digitalAsset,
 }: CollapsibleDigitalAssetSectionProps): React.ReactNode {
-  const { label: daLabel, symbol } = getDigitalAssetLabel(
-    digitalAsset as unknown as Record<string, unknown>,
-    digitalAsset.address,
-  );
+  const { label: daLabel, symbol } = getDigitalAssetLabel(digitalAsset, digitalAsset.address);
 
   return (
     <Collapsible>

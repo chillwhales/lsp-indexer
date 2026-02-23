@@ -1,7 +1,7 @@
 import { ArrowRight, User } from 'lucide-react';
 import React from 'react';
 
-import type { PartialExcept } from '@lsp-indexer/types';
+import type { PartialExcept, Profile } from '@lsp-indexer/types';
 
 import { CollapsibleProfileSection } from '@/components/collapsible-sections';
 import { RawJsonToggle } from '@/components/playground';
@@ -21,14 +21,13 @@ export interface FollowerCardProps {
 export function FollowerCard({ follower, index }: FollowerCardProps): React.ReactNode {
   const obj = follower;
 
-  const followerLabel = getProfileLabel(
-    obj.followerProfile as Record<string, unknown> | undefined,
-    obj.followerAddress as string,
-  );
-  const followedLabel = getProfileLabel(
-    obj.followedProfile as Record<string, unknown> | undefined,
-    obj.followedAddress as string,
-  );
+  const followerProfile =
+    'followerProfile' in obj ? (obj.followerProfile as PartialExcept<Profile, 'address'>) : null;
+  const followedProfile =
+    'followedProfile' in obj ? (obj.followedProfile as PartialExcept<Profile, 'address'>) : null;
+
+  const followerLabel = getProfileLabel(followerProfile, obj.followerAddress as string);
+  const followedLabel = getProfileLabel(followedProfile, obj.followedAddress as string);
 
   return (
     <Card className="overflow-hidden">
@@ -73,19 +72,13 @@ export function FollowerCard({ follower, index }: FollowerCardProps): React.Reac
         </dl>
 
         {/* Collapsible section 1: Follower Profile */}
-        {'followerProfile' in obj && obj.followerProfile != null && (
-          <CollapsibleProfileSection
-            label="Follower Profile"
-            profile={obj.followerProfile as PartialExcept<{ address: string }, 'address'>}
-          />
+        {followerProfile != null && (
+          <CollapsibleProfileSection label="Follower Profile" profile={followerProfile} />
         )}
 
         {/* Collapsible section 2: Followed Profile */}
-        {'followedProfile' in obj && obj.followedProfile != null && (
-          <CollapsibleProfileSection
-            label="Followed Profile"
-            profile={obj.followedProfile as PartialExcept<{ address: string }, 'address'>}
-          />
+        {followedProfile != null && (
+          <CollapsibleProfileSection label="Followed Profile" profile={followedProfile} />
         )}
 
         <RawJsonToggle data={follower} label="follower" />

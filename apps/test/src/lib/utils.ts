@@ -120,24 +120,15 @@ export function truncateAddress(address: string): string {
  * Extract a display label from a profile-like object.
  * Returns the profile name when available, otherwise truncates the address.
  *
- * @param profile - A profile object (may have `name` and/or `address`)
- * @param fallbackAddress - Used when profile is null/undefined or has no address field
+ * @param profile - Any object with optional `name` and `address` fields
+ * @param fallbackAddress - Used when profile is null/undefined or has no address
  */
 export function getProfileLabel(
-  profile: Record<string, unknown> | null | undefined,
+  profile: { name?: string | null; address?: string } | null | undefined,
   fallbackAddress: string,
 ): string {
-  if (
-    profile &&
-    typeof profile === 'object' &&
-    'name' in profile &&
-    typeof profile.name === 'string'
-  ) {
-    return profile.name;
-  }
-  if (profile && typeof profile === 'object' && 'address' in profile) {
-    return truncateAddress(String(profile.address));
-  }
+  if (profile?.name) return profile.name;
+  if (profile?.address) return truncateAddress(profile.address);
   return truncateAddress(fallbackAddress);
 }
 
@@ -145,20 +136,18 @@ export function getProfileLabel(
  * Extract display label info from a digital-asset-like object.
  * Returns name (or truncated address) and symbol.
  *
- * @param da - A digital asset object (may have `name`, `symbol`, `address`)
- * @param fallbackAddress - Used when da has no `address` field
+ * @param da - Any object with optional `name`, `symbol`, and `address` fields
+ * @param fallbackAddress - Used when da is null/undefined or has no address
  */
 export function getDigitalAssetLabel(
-  da: Record<string, unknown> | null | undefined,
+  da: { name?: string | null; symbol?: string | null; address?: string } | null | undefined,
   fallbackAddress: string,
 ): { label: string; symbol: string | null } {
   if (!da) return { label: truncateAddress(fallbackAddress), symbol: null };
-
-  const name = 'name' in da && typeof da.name === 'string' ? da.name : null;
-  const symbol = 'symbol' in da && typeof da.symbol === 'string' ? da.symbol : null;
-  const address = 'address' in da ? String(da.address) : fallbackAddress;
-
-  return { label: name ?? truncateAddress(address), symbol };
+  return {
+    label: da.name ?? truncateAddress(da.address ?? fallbackAddress),
+    symbol: da.symbol ?? null,
+  };
 }
 
 // ---------------------------------------------------------------------------
