@@ -2,6 +2,7 @@ import type {
   OwnedAsset,
   OwnedAssetFilter,
   OwnedAssetInclude,
+  OwnedAssetResult,
   OwnedAssetSort,
   OwnedTokenOwnedAssetInclude,
   PartialOwnedAsset,
@@ -204,14 +205,18 @@ export async function fetchOwnedAsset(
   url: string,
   params: { id: string },
 ): Promise<OwnedAsset | null>;
+export async function fetchOwnedAsset<const I extends OwnedAssetInclude>(
+  url: string,
+  params: { id: string; include: I },
+): Promise<OwnedAssetResult<I> | null>;
 export async function fetchOwnedAsset(
   url: string,
-  params: { id: string; include: OwnedAssetInclude },
+  params: { id: string; include?: OwnedAssetInclude },
 ): Promise<PartialOwnedAsset | null>;
 export async function fetchOwnedAsset(
   url: string,
   params: { id: string; include?: OwnedAssetInclude },
-): Promise<OwnedAsset | PartialOwnedAsset | null> {
+): Promise<PartialOwnedAsset | null> {
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetOwnedAssetDocument, {
@@ -257,6 +262,16 @@ export async function fetchOwnedAssets(
     offset?: number;
   },
 ): Promise<FetchOwnedAssetsResult>;
+export async function fetchOwnedAssets<const I extends OwnedAssetInclude>(
+  url: string,
+  params: {
+    filter?: OwnedAssetFilter;
+    sort?: OwnedAssetSort;
+    limit?: number;
+    offset?: number;
+    include: I;
+  },
+): Promise<FetchOwnedAssetsResult<OwnedAssetResult<I>>>;
 export async function fetchOwnedAssets(
   url: string,
   params: {
@@ -264,7 +279,7 @@ export async function fetchOwnedAssets(
     sort?: OwnedAssetSort;
     limit?: number;
     offset?: number;
-    include: OwnedAssetInclude;
+    include?: OwnedAssetInclude;
   },
 ): Promise<FetchOwnedAssetsResult<PartialOwnedAsset>>;
 export async function fetchOwnedAssets(
@@ -276,7 +291,7 @@ export async function fetchOwnedAssets(
     offset?: number;
     include?: OwnedAssetInclude;
   } = {},
-): Promise<FetchOwnedAssetsResult | FetchOwnedAssetsResult<PartialOwnedAsset>> {
+): Promise<FetchOwnedAssetsResult<PartialOwnedAsset>> {
   const where = buildOwnedAssetWhere(params.filter);
   const orderBy = buildOwnedAssetOrderBy(params.sort);
   const includeVars = buildIncludeVars(params.include);
