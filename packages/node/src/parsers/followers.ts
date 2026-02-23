@@ -4,8 +4,20 @@ import type {
   FollowerResult,
   PartialFollower,
 } from '@lsp-indexer/types';
+import type { GetFollowersQuery } from '../graphql/graphql';
 import { parseProfile } from './profiles';
 import { stripExcluded } from './strip';
+
+/**
+ * Raw Hasura follower type from the codegen-generated query result.
+ *
+ * Uses `Omit<..., 'id'>` because the parser never reads `id` — it only needs
+ * `follower_address`, `followed_address`, and relation fields. This allows the
+ * same parser to accept both primary query results (which include `id`) and
+ * sub-selections from other domains which may not select `id`.
+ * TypeScript structural subtyping means types WITH `id` still satisfy this.
+ */
+type RawFollower = Omit<GetFollowersQuery['follower'][number], 'id'>;
 
 /**
  * Transform a raw Hasura follower response into a clean `Follower` type.
@@ -30,15 +42,15 @@ import { stripExcluded } from './strip';
  * @param include - Optional include config; when provided, excluded fields are stripped at runtime
  * @returns A clean, camelCase `Follower` (full or partial depending on include)
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function parseFollower(raw: any): Follower;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function parseFollower(raw: RawFollower): Follower;
 export function parseFollower<const I extends FollowerInclude>(
-  raw: any,
+  raw: RawFollower,
   include: I,
 ): FollowerResult<I>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function parseFollower(raw: any, include?: FollowerInclude): Follower | PartialFollower {
+export function parseFollower(
+  raw: RawFollower,
+  include?: FollowerInclude,
+): Follower | PartialFollower {
   // Parse nested profiles with sub-include for recursive nested stripping.
   // When sub-include is provided, parseProfile returns a narrowed PartialProfile.
   // When undefined (or no include at all), parseProfile returns full Profile.
@@ -80,16 +92,13 @@ export function parseFollower(raw: any, include?: FollowerInclude): Follower | P
  * @param include - Optional include config; forwarded to each `parseFollower` call
  * @returns Array of clean, camelCase `Follower` objects (full or partial depending on include)
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function parseFollowers(raw: any[]): Follower[];
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function parseFollowers(raw: RawFollower[]): Follower[];
 export function parseFollowers<const I extends FollowerInclude>(
-  raw: any[],
+  raw: RawFollower[],
   include: I,
 ): FollowerResult<I>[];
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseFollowers(
-  raw: any[],
+  raw: RawFollower[],
   include?: FollowerInclude,
 ): (Follower | PartialFollower)[] {
   if (include) return raw.map((r) => parseFollower(r, include));
