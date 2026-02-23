@@ -1,6 +1,8 @@
+import type { UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import type { FetchFollowsResult } from '@lsp-indexer/node';
 import {
   fetchFollowCount,
   fetchFollows,
@@ -9,7 +11,9 @@ import {
   getClientUrl,
 } from '@lsp-indexer/node';
 import type {
+  Follower,
   FollowerInclude,
+  FollowerResult,
   PartialFollower,
   UseFollowCountParams,
   UseFollowsParams,
@@ -19,6 +23,23 @@ import type {
 
 /** Default number of follows per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
+
+/** Flat return shape for useFollows — follows array + totalCount + query state */
+type UseFollowsReturn<F> = { follows: F[]; totalCount: number } & Omit<
+  UseQueryResult<FetchFollowsResult<F>, Error>,
+  'data'
+>;
+
+/** Flat return shape for useInfiniteFollows — follows array + infinite scroll controls + query state */
+type UseInfiniteFollowsReturn<F> = {
+  follows: F[];
+  hasNextPage: boolean;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  isFetchingNextPage: boolean;
+} & Omit<
+  UseInfiniteQueryResult<FetchFollowsResult<F>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;
 
 /**
  * Fetch a paginated list of follow relationships.
@@ -57,7 +78,18 @@ const DEFAULT_PAGE_SIZE = 20;
  * }
  * ```
  */
-export function useFollows(params: UseFollowsParams & { include?: FollowerInclude }) {
+export function useFollows(
+  params: Omit<UseFollowsParams, 'include'> & { include?: never },
+): UseFollowsReturn<Follower>;
+export function useFollows<const I extends FollowerInclude>(
+  params: UseFollowsParams & { include: I },
+): UseFollowsReturn<FollowerResult<I>>;
+export function useFollows(
+  params: UseFollowsParams & { include?: FollowerInclude },
+): UseFollowsReturn<PartialFollower>;
+export function useFollows(
+  params: UseFollowsParams & { include?: FollowerInclude },
+): UseFollowsReturn<PartialFollower> {
   const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
@@ -69,8 +101,12 @@ export function useFollows(params: UseFollowsParams & { include?: FollowerInclud
         : fetchFollows(url, { filter, sort, limit, offset }),
   });
 
-  const follows: PartialFollower[] = data?.follows ?? [];
-  return { follows, totalCount: data?.totalCount ?? 0, ...rest };
+  const follows = data?.follows ?? [];
+  return {
+    follows,
+    totalCount: data?.totalCount ?? 0,
+    ...rest,
+  } as UseFollowsReturn<PartialFollower>;
 }
 
 /**
@@ -116,8 +152,17 @@ export function useFollows(params: UseFollowsParams & { include?: FollowerInclud
  * ```
  */
 export function useInfiniteFollows(
+  params: Omit<UseInfiniteFollowsParams, 'include'> & { include?: never },
+): UseInfiniteFollowsReturn<Follower>;
+export function useInfiniteFollows<const I extends FollowerInclude>(
+  params: UseInfiniteFollowsParams & { include: I },
+): UseInfiniteFollowsReturn<FollowerResult<I>>;
+export function useInfiniteFollows(
   params: UseInfiniteFollowsParams & { include?: FollowerInclude },
-) {
+): UseInfiniteFollowsReturn<PartialFollower>;
+export function useInfiniteFollows(
+  params: UseInfiniteFollowsParams & { include?: FollowerInclude },
+): UseInfiniteFollowsReturn<PartialFollower> {
   const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
@@ -150,10 +195,7 @@ export function useInfiniteFollows(
   // Flatten all pages into a single follows array (memoized to avoid re-flattening on every render)
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const follows: PartialFollower[] = useMemo(
-    () => data?.pages.flatMap((page) => page.follows) ?? [],
-    [data?.pages],
-  );
+  const follows = useMemo(() => data?.pages.flatMap((page) => page.follows) ?? [], [data?.pages]);
 
   return {
     follows,
@@ -161,7 +203,7 @@ export function useInfiniteFollows(
     fetchNextPage,
     isFetchingNextPage,
     ...rest,
-  };
+  } as unknown as UseInfiniteFollowsReturn<PartialFollower>;
 }
 
 /**

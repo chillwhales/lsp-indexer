@@ -111,13 +111,21 @@ const SORT_OPTIONS: SortOption[] = [
 // Hook resolution by mode
 // ---------------------------------------------------------------------------
 
-function useFollowerHooks(mode: HookMode) {
+/** Canonical hooks type — resolves to React overload signatures (Next has identical shapes) */
+type FollowerHooks = {
+  useFollows: typeof useFollowsReact;
+  useInfiniteFollows: typeof useInfiniteFollowsReact;
+  useFollowCount: typeof useFollowCountReact;
+  useIsFollowing: typeof useIsFollowingReact;
+};
+
+function useFollowerHooks(mode: HookMode): FollowerHooks {
   if (mode === 'server') {
     return {
-      useFollows: useFollowsNext,
-      useInfiniteFollows: useInfiniteFollowsNext,
-      useFollowCount: useFollowCountNext,
-      useIsFollowing: useIsFollowingNext,
+      useFollows: useFollowsNext as unknown as typeof useFollowsReact,
+      useInfiniteFollows: useInfiniteFollowsNext as unknown as typeof useInfiniteFollowsReact,
+      useFollowCount: useFollowCountNext as unknown as typeof useFollowCountReact,
+      useIsFollowing: useIsFollowingNext as unknown as typeof useIsFollowingReact,
     };
   }
   return {

@@ -6,6 +6,7 @@ import type {
   FollowCount,
   FollowerFilter,
   FollowerInclude,
+  FollowerResult,
   FollowerSort,
   PartialFollower,
 } from '@lsp-indexer/types';
@@ -31,12 +32,19 @@ export async function getFollows(params: {
   limit?: number;
   offset?: number;
 }): Promise<FetchFollowsResult>;
+export async function getFollows<const I extends FollowerInclude>(params: {
+  filter?: FollowerFilter;
+  sort?: FollowerSort;
+  limit?: number;
+  offset?: number;
+  include: I;
+}): Promise<FetchFollowsResult<FollowerResult<I>>>;
 export async function getFollows(params: {
   filter?: FollowerFilter;
   sort?: FollowerSort;
   limit?: number;
   offset?: number;
-  include: FollowerInclude;
+  include?: FollowerInclude;
 }): Promise<FetchFollowsResult<PartialFollower>>;
 export async function getFollows(params: {
   filter?: FollowerFilter;
@@ -44,7 +52,7 @@ export async function getFollows(params: {
   limit?: number;
   offset?: number;
   include?: FollowerInclude;
-}): Promise<FetchFollowsResult | FetchFollowsResult<PartialFollower>> {
+}): Promise<FetchFollowsResult<PartialFollower>> {
   const url = getServerUrl();
   if (params.include) return fetchFollows(url, params);
   return fetchFollows(url, params);
