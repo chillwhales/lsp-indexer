@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 10 sub-phases)
-- **Sub-phase:** 9.4 (Conditional Include Types) — Complete (5/5 plans)
-- **Status:** Phase 9.4 complete — DX-04 fully delivered, ready for Phase 9.5
-- **Last activity:** 2026-02-22 — Completed 09.4-05-PLAN.md (Playground cards + full build validation)
-- **Progress:** █████░░░░░ 52% (15/29 requirements)
+- **Sub-phase:** 9.5 (Social / Follows) — Complete (4/4 plans)
+- **Status:** Phase 9.5 complete — QUERY-05 delivered, playground verified
+- **Last activity:** 2026-02-22 — Completed 09.5-04-PLAN.md (FollowerCard + Follows playground page)
+- **Progress:** ██████░░░░ 55% (16/29 requirements)
 
 ## Milestone History
 
@@ -34,7 +34,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.2   | NFTs                               |     1/1      | Complete |
 | 9.3   | Owned Assets                       |     1/1      | Complete |
 | 9.4   | Conditional Include Types          |     1/1      | Complete |
-| 9.5   | Social / Follows                   |      1       | Pending  |
+| 9.5   | Social / Follows                   |     1/1      | Complete |
 | 9.6   | Creators                           |      1       | Pending  |
 | 9.7   | Encrypted Assets                   |      1       | Pending  |
 | 9.8   | Encrypted Feed                     |      1       | Pending  |
@@ -45,14 +45,14 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 _Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 15/29 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, DX-01, DX-02, DX-04, PAGE-01 incremental)
+**Total:** 16/29 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, DX-01, DX-02, DX-04, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 65 (36 v1.0 + 29 v1.1)
+- **Plans completed:** 69 (36 v1.0 + 33 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 17 (11 v1.0 + 6 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 15/29 (v1.1)
+- **Phases completed:** 18 (11 v1.0 + 7 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 16/29 (v1.1)
 
 ## Accumulated Context
 
@@ -145,6 +145,11 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **Card prop types as `Record<string, unknown>`:** Cards accept any subset of the full domain type. `'key' in obj` guards determine which sections render. Typed narrowing enforced at hook consumer level, not card level.
 - **`as Record<string, unknown>` casts at page-card boundaries:** Pages cast narrowed `XResult<I>` types when passing to cards — single clean boundary between typed hook results and field-presence-based rendering.
 - **Removed explicit `ResultsList<T>` generics:** Let TypeScript infer from `items` prop — avoids type mismatch when hooks return narrowed result types.
+- **Follower domain `direction` param:** `fetchFollowers` accepts `direction: 'followers' | 'following'` to serve both useFollowers and useFollowing from a single service function. `direction: 'followers'` → `primaryField = 'followed_address'` (who follows X), `direction: 'following'` → `primaryField = 'follower_address'` (who X follows).
+- **FollowerResult<I> with two profile sub-includes:** `ResolveFollowerProfile<I>` and `ResolveFollowedProfile<I>` intersection types narrow both nested profiles independently. Base fields: followerAddress, followedAddress.
+- **buildFollowerIncludeVars prefix replacement:** Reuses `buildProfileIncludeVars` with `key.replace('includeProfile', 'includeFollowerProfile')` / `'includeFollowedProfile'` for nested profile variable mapping — same pattern as NFT collection.
+- **FollowCount separate document:** `GetFollowCountDocument` uses two aliased `follower_aggregate` queries — one for follower count (where followed_address = X), one for following count (where follower_address = X).
+- **fetchIsFollowing reuses list document:** No separate existence query — `GetFollowersDocument` with `limit: 1` and all includes disabled for minimal payload.
 
 ### Discovered Todos
 
@@ -159,27 +164,23 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-22
-- **Activity:** Executed Phase 9.4 (Conditional Include Types) — all 5 plans across 5 waves
-- **Outcome:** DX-04 fully delivered. Phase verified (14/14 must-haves). VERIFICATION.md created.
+- **Activity:** Executed Phase 9.5 (Social / Follows) — all 4 plans across 4 waves
+- **Outcome:** QUERY-05 fully delivered. Phase verified (20/20 must-haves). VERIFICATION.md created.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.4 complete and verified** — DX-04 (conditional include types) fully delivered across all 5 domains
-- **Next step:** Phase 9.5 (Social / Follows) — first domain to be built with conditional include types from the start
-- **REQUIREMENTS.md updated** — DX-04 added and marked Complete, QUERY-02/03/04 marked Complete
-- **All patterns established and proven across 5 domains:**
-  - `IncludeResult<Full, Base, Map, I>` utility type
-  - `stripExcluded(obj, include, baseFields, derivedFields?)` runtime stripping
-  - `const I extends XInclude | undefined = undefined` generic constraints
-  - `as XResult<I>` cast at service boundaries
-  - `& { include?: I }` intersection for hook params
-  - Nested relation narrowing via `Resolve*<I>` intersection types
-  - Recursive stripping via sub-parser delegation
-  - Custom scalar field maps for constrained sub-domain contexts
-  - `'key' in obj` field-presence checks in card components
-  - `Record<string, unknown>` prop types for narrowed result rendering
+- **Phase 9.5 complete and verified** — QUERY-05 delivered (useFollowers, useFollowing, useFollowCount, useIsFollowing, useInfiniteFollowers, useInfiniteFollowing)
+- **Next step:** Phase 9.6 (Creators) — next domain sub-phase
+- **REQUIREMENTS.md updated** — QUERY-05 marked Complete
+- **All DX-04 patterns established and proven across 6 domains** (profiles, digital-assets, nfts, owned-assets, owned-tokens, followers)
+- **Follows was first domain built WITH conditional include types from the start** (not retrofitted)
+- **New patterns established:**
+  - `direction` param on service function to serve both followers/following from single function
+  - Dual SubIncludeSection (followerProfile + followedProfile) in playground
+  - `fetchIsFollowing` reusing list document with limit:1 for existence checks
+  - 6 hooks in single domain (vs 3-4 in previous domains)
 
 ---
 
-_Last updated: 2026-02-22 — Phase 9.4 complete and verified (DX-04 conditional include types — 14/14 must-haves passed)_
+_Last updated: 2026-02-22 — Phase 9.5 complete and verified (Social / Follows — 20/20 must-haves passed)_

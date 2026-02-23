@@ -60,3 +60,9 @@ export const NFT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'links', label: 'Links' },
   { key: 'attributes', label: 'Attributes' },
 ];
+
+/** FollowerInclude — 2 scalar fields. followerProfile/followedProfile are SubIncludeSections. */
+export const FOLLOWER_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'address', label: 'Contract Address' },
+];

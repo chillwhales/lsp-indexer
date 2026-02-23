@@ -205,10 +205,10 @@ Plans:
 
 **Plans:** 4 plans
 
-- [ ] 09.5-01-PLAN.md — Follower types + conditional include types + GraphQL documents + codegen
-- [ ] 09.5-02-PLAN.md — Follower parser (with stripExcluded) + services (3 functions) + query keys
-- [ ] 09.5-03-PLAN.md — 6 React hooks + 3 server actions + 6 Next.js hooks + build validation
-- [ ] 09.5-04-PLAN.md — FollowerCard + Follows playground page (6 tabs) + nav update
+- [x] 09.5-01-PLAN.md — Follower types + conditional include types + GraphQL documents + codegen
+- [x] 09.5-02-PLAN.md — Follower parser (with stripExcluded) + services (3 functions) + query keys
+- [x] 09.5-03-PLAN.md — 6 React hooks + 3 server actions + 6 Next.js hooks + build validation
+- [x] 09.5-04-PLAN.md — FollowerCard + Follows playground page (6 tabs) + nav update
 
 ---
 
@@ -357,7 +357,7 @@ Plans:
 | 9.2   | NFTs                               |     1/1      | Complete |
 | 9.3   | Owned Assets                       |     1/1      | Complete |
 | 9.4   | Conditional Include Types          |     1/1      | Complete |
-| 9.5   | Social / Follows                   |      1       | Pending  |
+| 9.5   | Social / Follows                   |     1/1      | Complete |
 | 9.6   | Creators                           |      1       | Pending  |
 | 9.7   | Encrypted Assets                   |      1       | Pending  |
 | 9.8   | Encrypted Feed                     |      1       | Pending  |
@@ -368,7 +368,7 @@ Plans:
 
 _Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 15/29 requirements delivered
+**Total:** 16/29 requirements delivered (QUERY-05 complete)
 
 ---
 
@@ -472,4 +472,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-22 — Phase 9.4 complete (DX-04 conditional include types — all 5 plans done, playground cards updated)_
+_Last updated: 2026-02-22 — Phase 9.5 complete (Social / Follows — 4 plans, 6 hooks, QUERY-05 delivered)_

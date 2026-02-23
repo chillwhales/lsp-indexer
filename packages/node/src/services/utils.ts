@@ -19,9 +19,9 @@ export function escapeLike(value: string): string {
  * - `orderDir('desc', 'first')` → `'desc_nulls_first'`
  * - `orderDir('asc', 'last')` → `'asc_nulls_last'`
  */
-export function orderDir(direction: string, nulls?: 'first' | 'last'): Order_By {
-  if (!nulls) return direction as Order_By;
-  return `${direction}_nulls_${nulls}` as Order_By;
+export function orderDir(direction: 'asc' | 'desc', nulls?: 'first' | 'last'): Order_By {
+  if (!nulls) return direction;
+  return `${direction}_nulls_${nulls}`;
 }
 
 /**
@@ -39,4 +39,20 @@ export function orderDir(direction: string, nulls?: 'first' | 'last'): Order_By 
  */
 export function hasActiveIncludes(obj: Record<string, unknown> | undefined): boolean {
   return obj !== undefined && Object.values(obj).some(Boolean);
+}
+
+/**
+ * Normalize a timestamp value to an ISO 8601 string for Hasura.
+ *
+ * Accepts either:
+ * - An ISO date string (e.g. `"2024-01-01"`, `"2024-01-01T00:00:00Z"`) — passed through as-is
+ * - A unix timestamp in **seconds** (e.g. `1704067200`) — converted to ISO string
+ *
+ * Unix timestamps are detected by type: `number` → unix seconds, `string` → ISO string.
+ */
+export function normalizeTimestamp(value: string | number): string {
+  if (typeof value === 'number') {
+    return new Date(value * 1000).toISOString();
+  }
+  return value;
 }

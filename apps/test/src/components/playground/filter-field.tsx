@@ -27,6 +27,8 @@ export interface FilterFieldConfig {
   mono?: boolean;
   /** When provided, renders a select instead of a text input */
   options?: ReadonlyArray<{ value: string; label: string }>;
+  /** Override the default width class (default: 'w-48') */
+  width?: string;
 }
 
 interface FilterFieldProps {
@@ -44,7 +46,7 @@ export function FilterField({ config, value, onChange }: FilterFieldProps): Reac
           value={value || CLEAR_VALUE}
           onValueChange={(v) => onChange(v === CLEAR_VALUE ? '' : v)}
         >
-          <SelectTrigger className="w-48">
+          <SelectTrigger className={config.width ?? 'w-48'}>
             <SelectValue placeholder={config.placeholder ?? `All ${config.label}`} />
           </SelectTrigger>
           <SelectContent>
@@ -62,6 +64,8 @@ export function FilterField({ config, value, onChange }: FilterFieldProps): Reac
     );
   }
 
+  const widthClass = config.width ?? 'w-48';
+
   return (
     <div className="flex flex-col gap-1">
       <Label className="text-xs text-muted-foreground font-medium">{config.label}</Label>
@@ -69,7 +73,7 @@ export function FilterField({ config, value, onChange }: FilterFieldProps): Reac
         placeholder={config.placeholder ?? ''}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-48 ${config.mono ? 'font-mono text-xs' : ''}`}
+        className={`${widthClass} ${config.mono ? 'font-mono text-xs' : ''}`}
       />
     </div>
   );
