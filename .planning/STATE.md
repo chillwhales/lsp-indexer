@@ -6,15 +6,15 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 9 restructured into 10 sub-phases (9.1–9.10, including 9.4 Conditional Include Types)
+**Current focus:** v1.1 React Hooks Package — Phase 9 restructured into 11 sub-phases (9.1–9.11, including 9.4 Conditional Include Types and 9.6 Generic Type Propagation)
 
 ## Current Position
 
-- **Phase:** 9 of 11 (Remaining Query Domains + DX — 10 sub-phases)
-- **Sub-phase:** 9.5 (Social / Follows) — Complete (4/4 plans)
-- **Status:** Phase 9.5 complete — QUERY-05 delivered, playground verified
-- **Last activity:** 2026-02-22 — Completed 09.5-04-PLAN.md (FollowerCard + Follows playground page)
-- **Progress:** ██████░░░░ 55% (16/29 requirements)
+- **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
+- **Sub-phase:** 9.6 (Generic Type Propagation) — Planning
+- **Status:** Phase 9.6 planned — research complete, PLAN.md files ready
+- **Last activity:** 2026-02-23 — Created phase 9.6, renumbered 9.6–9.10 → 9.7–9.11
+- **Progress:** █████▓░░░░ 53% (16/30 requirements)
 
 ## Milestone History
 
@@ -35,24 +35,25 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.3   | Owned Assets                       |     1/1      | Complete |
 | 9.4   | Conditional Include Types          |     1/1      | Complete |
 | 9.5   | Social / Follows                   |     1/1      | Complete |
-| 9.6   | Creators                           |      1       | Pending  |
-| 9.7   | Encrypted Assets                   |      1       | Pending  |
-| 9.8   | Encrypted Feed                     |      1       | Pending  |
-| 9.9   | Data Changed Events                |      1       | Pending  |
-| 9.10  | Universal Receiver Events          |      1       | Pending  |
+| 9.6   | Generic Type Propagation           |      1       | Planned  |
+| 9.7   | Creators                           |      1       | Pending  |
+| 9.8   | Encrypted Assets                   |      1       | Pending  |
+| 9.9   | Encrypted Feed                     |      1       | Pending  |
+| 9.10  | Data Changed Events                |      1       | Pending  |
+| 9.11  | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
-_Note:_ Phase 9 has 11 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
+_Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 16/29 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, DX-01, DX-02, DX-04, PAGE-01 incremental)
+**Total:** 16/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, DX-01, DX-02, DX-04, PAGE-01 incremental)
 
 ## Performance Metrics
 
 - **Plans completed:** 69 (36 v1.0 + 33 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 18 (11 v1.0 + 7 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 16/29 (v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 16/30 (v1.1)
 
 ## Accumulated Context
 
@@ -163,24 +164,20 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-22
-- **Activity:** Executed Phase 9.5 (Social / Follows) — all 4 plans across 4 waves
-- **Outcome:** QUERY-05 fully delivered. Phase verified (20/20 must-haves). VERIFICATION.md created.
+- **Date:** 2026-02-23
+- **Activity:** Inserted Phase 9.6 (Generic Type Propagation), renumbered 9.6–9.10 → 9.7–9.11, created research + plans
+- **Outcome:** ROADMAP, STATE, REQUIREMENTS updated. 3 plan files created for 9.6.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.5 complete and verified** — QUERY-05 delivered (useFollowers, useFollowing, useFollowCount, useIsFollowing, useInfiniteFollowers, useInfiniteFollowing)
-- **Next step:** Phase 9.6 (Creators) — next domain sub-phase
-- **REQUIREMENTS.md updated** — QUERY-05 marked Complete
-- **All DX-04 patterns established and proven across 6 domains** (profiles, digital-assets, nfts, owned-assets, owned-tokens, followers)
-- **Follows was first domain built WITH conditional include types from the start** (not retrofitted)
-- **New patterns established:**
-  - `direction` param on service function to serve both followers/following from single function
-  - Dual SubIncludeSection (followerProfile + followedProfile) in playground
-  - `fetchIsFollowing` reusing list document with limit:1 for existence checks
-  - 6 hooks in single domain (vs 3-4 in previous domains)
+- **Phase 9.6 planned** — Generic Type Propagation (DX-05): update 5 older domains to followers pattern
+- **Next step:** Execute Phase 9.6 plans (09.6-01 through 09.6-03)
+- **Phase renumbering complete:** Creators=9.7, Encrypted Assets=9.8, Encrypted Feed=9.9, Data Changed Events=9.10, Universal Receiver Events=9.11
+- **All XResult<I> types already exist** from Phase 9.4 — this phase just connects the plumbing
+- **Scope:** 25 files across 5 layers (parser → service → action → react hook → next hook) × 5 domains
+- **Zero implementation body changes** — only overload signatures and return type annotations
 
 ---
 
-_Last updated: 2026-02-22 — Phase 9.5 complete and verified (Social / Follows — 20/20 must-haves passed)_
+_Last updated: 2026-02-23 — Phase 9.6 inserted (Generic Type Propagation), phases renumbered 9.6–9.10 → 9.7–9.11_
