@@ -73,3 +73,10 @@ export const CREATOR_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'interfaceId', label: 'Interface ID' },
   { key: 'timestamp', label: 'Timestamp' },
 ];
+
+/** IssuedAssetInclude — 3 scalar fields. issuerProfile/digitalAsset are SubIncludeSections. */
+export const ISSUED_ASSET_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'arrayIndex', label: 'Array Index' },
+  { key: 'interfaceId', label: 'Interface ID' },
+  { key: 'timestamp', label: 'Timestamp' },
+];
