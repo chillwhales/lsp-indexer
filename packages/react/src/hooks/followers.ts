@@ -1,4 +1,4 @@
-import type { UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
+import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
@@ -37,7 +37,7 @@ type UseInfiniteFollowsReturn<F> = {
   fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
   isFetchingNextPage: boolean;
 } & Omit<
-  UseInfiniteQueryResult<FetchFollowsResult<F>, Error>,
+  UseInfiniteQueryResult<InfiniteData<FetchFollowsResult<F>>, Error>,
   'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
 >;
 
@@ -106,7 +106,7 @@ export function useFollows(
     follows,
     totalCount: data?.totalCount ?? 0,
     ...rest,
-  } as UseFollowsReturn<PartialFollower>;
+  };
 }
 
 /**
@@ -203,7 +203,7 @@ export function useInfiniteFollows(
     fetchNextPage,
     isFetchingNextPage,
     ...rest,
-  } as unknown as UseInfiniteFollowsReturn<PartialFollower>;
+  };
 }
 
 /**

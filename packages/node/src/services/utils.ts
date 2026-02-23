@@ -19,9 +19,9 @@ export function escapeLike(value: string): string {
  * - `orderDir('desc', 'first')` → `'desc_nulls_first'`
  * - `orderDir('asc', 'last')` → `'asc_nulls_last'`
  */
-export function orderDir(direction: string, nulls?: 'first' | 'last'): Order_By {
-  if (!nulls) return direction as Order_By;
-  return `${direction}_nulls_${nulls}` as Order_By;
+export function orderDir(direction: 'asc' | 'desc', nulls?: 'first' | 'last'): Order_By {
+  if (!nulls) return direction;
+  return `${direction}_nulls_${nulls}`;
 }
 
 /**
