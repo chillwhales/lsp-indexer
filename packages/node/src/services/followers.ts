@@ -18,19 +18,16 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
 // ---------------------------------------------------------------------------
 
 /**
- * Translate a `FollowerFilter` + primary address to a Hasura `follower_bool_exp`.
+ * Translate a `FollowerFilter` to a Hasura `follower_bool_exp`.
  *
- * The `primaryAddress` and `primaryField` params allow the same builder to serve
- * both useFollowers and useFollowing:
- * - useFollowers: `primaryField = 'followed_address'`, `primaryAddress = params.address`
- *   (find followers OF this address)
- * - useFollowing: `primaryField = 'follower_address'`, `primaryAddress = params.address`
- *   (find who this address FOLLOWS)
+ * All filter fields are optional — consumers scope results by setting
+ * `followerAddress` and/or `followedAddress` in the filter:
+ * - "who follows X?" → `filter: { followedAddress: X }`
+ * - "who does X follow?" → `filter: { followerAddress: X }`
  *
- * Multiple conditions combine with `_and`. Empty filter + no primary = empty object.
+ * Multiple conditions combine with `_and`. Empty filter = empty object.
  *
  * Filter → Hasura mapping:
- * - `primaryAddress` → `{ [primaryField]: { _ilike: escapeLike(primaryAddress) } }` (exact match)
  * - `filter.followerAddress` → `{ follower_address: { _ilike: '%escapeLike%' } }` (partial match)
  * - `filter.followedAddress` → `{ followed_address: { _ilike: '%escapeLike%' } }` (partial match)
  * - `filter.followerName` → nested profile name search via followerUniversalProfile
@@ -38,60 +35,49 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
  * - `filter.timestampFrom` → `{ timestamp: { _gte: timestampFrom } }`
  * - `filter.timestampTo` → `{ timestamp: { _lte: timestampTo } }`
  */
-function buildFollowerWhere(
-  filter: FollowerFilter | undefined,
-  primaryAddress?: string,
-  primaryField?: 'follower_address' | 'followed_address',
-): Follower_Bool_Exp {
+function buildFollowerWhere(filter: FollowerFilter | undefined): Follower_Bool_Exp {
+  if (!filter) return {};
+
   const conditions: Follower_Bool_Exp[] = [];
 
-  // Primary address filter — exact match (no % wrapping)
-  if (primaryAddress && primaryField) {
+  if (filter.followerAddress) {
     conditions.push({
-      [primaryField]: { _ilike: escapeLike(primaryAddress) },
+      follower_address: { _ilike: `%${escapeLike(filter.followerAddress)}%` },
     });
   }
 
-  if (filter) {
-    if (filter.followerAddress) {
-      conditions.push({
-        follower_address: { _ilike: `%${escapeLike(filter.followerAddress)}%` },
-      });
-    }
+  if (filter.followedAddress) {
+    conditions.push({
+      followed_address: { _ilike: `%${escapeLike(filter.followedAddress)}%` },
+    });
+  }
 
-    if (filter.followedAddress) {
-      conditions.push({
-        followed_address: { _ilike: `%${escapeLike(filter.followedAddress)}%` },
-      });
-    }
+  if (filter.followerName) {
+    conditions.push({
+      followerUniversalProfile: {
+        lsp3Profile: { name: { value: { _ilike: `%${escapeLike(filter.followerName)}%` } } },
+      },
+    });
+  }
 
-    if (filter.followerName) {
-      conditions.push({
-        followerUniversalProfile: {
-          lsp3Profile: { name: { value: { _ilike: `%${escapeLike(filter.followerName)}%` } } },
-        },
-      });
-    }
+  if (filter.followedName) {
+    conditions.push({
+      followedUniversalProfile: {
+        lsp3Profile: { name: { value: { _ilike: `%${escapeLike(filter.followedName)}%` } } },
+      },
+    });
+  }
 
-    if (filter.followedName) {
-      conditions.push({
-        followedUniversalProfile: {
-          lsp3Profile: { name: { value: { _ilike: `%${escapeLike(filter.followedName)}%` } } },
-        },
-      });
-    }
+  if (filter.timestampFrom) {
+    conditions.push({
+      timestamp: { _gte: filter.timestampFrom },
+    });
+  }
 
-    if (filter.timestampFrom) {
-      conditions.push({
-        timestamp: { _gte: filter.timestampFrom },
-      });
-    }
-
-    if (filter.timestampTo) {
-      conditions.push({
-        timestamp: { _lte: filter.timestampTo },
-      });
-    }
+  if (filter.timestampTo) {
+    conditions.push({
+      timestamp: { _lte: filter.timestampTo },
+    });
   }
 
   if (conditions.length === 0) return {};
@@ -198,70 +184,64 @@ export function buildFollowerIncludeVars(include?: FollowerInclude): Record<stri
 // ---------------------------------------------------------------------------
 
 /**
- * Result shape for paginated follower list queries.
+ * Result shape for paginated follow list queries.
  *
- * When the include parameter is provided, the `followers` array contains
+ * When the include parameter is provided, the `follows` array contains
  * narrowed types with only base fields + included fields.
  */
-export interface FetchFollowersResult<P = Follower> {
-  /** Parsed followers for the current page (narrowed by include) */
-  followers: P[];
-  /** Total number of followers matching the filter (for pagination UI) */
+export interface FetchFollowsResult<P = Follower> {
+  /** Parsed follow relationships for the current page (narrowed by include) */
+  follows: P[];
+  /** Total number of follow relationships matching the filter (for pagination UI) */
   totalCount: number;
 }
 
 /**
- * Fetch a paginated list of followers with filtering, sorting, total count, and optional include narrowing.
+ * Fetch a paginated list of follow relationships with filtering, sorting,
+ * total count, and optional include narrowing.
  *
- * The `direction` param determines which primary field to use:
- * - `'followers'` → `primaryField = 'followed_address'` (find followers OF this address)
- * - `'following'` → `primaryField = 'follower_address'` (find who this address FOLLOWS)
+ * Consumers scope results via the filter:
+ * - "who follows X?" → `filter: { followedAddress: X }`
+ * - "who does X follow?" → `filter: { followerAddress: X }`
+ * - "all follows" → omit filter or add name/timestamp filters
  *
  * Translates flat filter/sort/include params to Hasura variables, executes the
  * query, and returns parsed results with a total count for pagination.
  *
  * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (address, direction, filter, sort, pagination, include)
- * @returns Parsed followers (narrowed by include) and total count
+ * @param params - Query parameters (filter, sort, pagination, include)
+ * @returns Parsed follows (narrowed by include) and total count
  */
-export async function fetchFollowers(
+export async function fetchFollows(
   url: string,
   params: {
-    address: string;
-    direction: 'followers' | 'following';
     filter?: FollowerFilter;
     sort?: FollowerSort;
     limit?: number;
     offset?: number;
   },
-): Promise<FetchFollowersResult>;
-export async function fetchFollowers(
+): Promise<FetchFollowsResult>;
+export async function fetchFollows(
   url: string,
   params: {
-    address: string;
-    direction: 'followers' | 'following';
     filter?: FollowerFilter;
     sort?: FollowerSort;
     limit?: number;
     offset?: number;
     include: FollowerInclude;
   },
-): Promise<FetchFollowersResult<PartialFollower>>;
-export async function fetchFollowers(
+): Promise<FetchFollowsResult<PartialFollower>>;
+export async function fetchFollows(
   url: string,
   params: {
-    address: string;
-    direction: 'followers' | 'following';
     filter?: FollowerFilter;
     sort?: FollowerSort;
     limit?: number;
     offset?: number;
     include?: FollowerInclude;
   },
-): Promise<FetchFollowersResult | FetchFollowersResult<PartialFollower>> {
-  const primaryField = params.direction === 'followers' ? 'followed_address' : 'follower_address';
-
-  const where = buildFollowerWhere(params.filter, params.address, primaryField);
+): Promise<FetchFollowsResult | FetchFollowsResult<PartialFollower>> {
+  const where = buildFollowerWhere(params.filter);
   const orderBy = buildFollowerOrderBy(params.sort);
   const includeVars = buildFollowerIncludeVars(params.include);
 
@@ -275,12 +255,12 @@ export async function fetchFollowers(
 
   if (params.include) {
     return {
-      followers: parseFollowers(result.follower, params.include),
+      follows: parseFollowers(result.follower, params.include),
       totalCount: result.follower_aggregate?.aggregate?.count ?? 0,
     };
   }
   return {
-    followers: parseFollowers(result.follower),
+    follows: parseFollowers(result.follower),
     totalCount: result.follower_aggregate?.aggregate?.count ?? 0,
   };
 }

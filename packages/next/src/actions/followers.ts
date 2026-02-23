@@ -1,12 +1,7 @@
 'use server';
 
-import type { FetchFollowersResult } from '@lsp-indexer/node';
-import {
-  fetchFollowCount,
-  fetchFollowers,
-  fetchIsFollowing,
-  getServerUrl,
-} from '@lsp-indexer/node';
+import type { FetchFollowsResult } from '@lsp-indexer/node';
+import { fetchFollowCount, fetchFollows, fetchIsFollowing, getServerUrl } from '@lsp-indexer/node';
 import type {
   FollowCount,
   FollowerFilter,
@@ -16,49 +11,43 @@ import type {
 } from '@lsp-indexer/types';
 
 /**
- * Server action: Fetch a paginated list of followers.
+ * Server action: Fetch a paginated list of follow relationships.
  *
  * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchFollowers` server-side using the URL returned by `getServerUrl()`
+ * `fetchFollows` server-side using the URL returned by `getServerUrl()`
  * (`INDEXER_URL`, falling back to `NEXT_PUBLIC_INDEXER_URL`). This keeps the
  * GraphQL endpoint invisible to the client.
  *
- * The `direction` param determines query semantics:
- * - `'followers'` → find followers OF the given address
- * - `'following'` → find who the given address FOLLOWS
+ * Consumers scope results via filter fields:
+ * - "who follows X?" → `filter: { followedAddress: X }`
+ * - "who does X follow?" → `filter: { followerAddress: X }`
  *
- * @param params - Query parameters (address, direction, filter, sort, pagination, include)
- * @returns Parsed followers and total count
+ * @param params - Query parameters (filter, sort, pagination, include)
+ * @returns Parsed follows and total count
  */
-export async function getFollowers(params: {
-  address: string;
-  direction: 'followers' | 'following';
+export async function getFollows(params: {
   filter?: FollowerFilter;
   sort?: FollowerSort;
   limit?: number;
   offset?: number;
-}): Promise<FetchFollowersResult>;
-export async function getFollowers(params: {
-  address: string;
-  direction: 'followers' | 'following';
+}): Promise<FetchFollowsResult>;
+export async function getFollows(params: {
   filter?: FollowerFilter;
   sort?: FollowerSort;
   limit?: number;
   offset?: number;
   include: FollowerInclude;
-}): Promise<FetchFollowersResult<PartialFollower>>;
-export async function getFollowers(params: {
-  address: string;
-  direction: 'followers' | 'following';
+}): Promise<FetchFollowsResult<PartialFollower>>;
+export async function getFollows(params: {
   filter?: FollowerFilter;
   sort?: FollowerSort;
   limit?: number;
   offset?: number;
   include?: FollowerInclude;
-}): Promise<FetchFollowersResult | FetchFollowersResult<PartialFollower>> {
+}): Promise<FetchFollowsResult | FetchFollowsResult<PartialFollower>> {
   const url = getServerUrl();
-  if (params.include) return fetchFollowers(url, params);
-  return fetchFollowers(url, params);
+  if (params.include) return fetchFollows(url, params);
+  return fetchFollows(url, params);
 }
 
 /**

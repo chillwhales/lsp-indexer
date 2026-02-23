@@ -130,13 +130,19 @@ export const FollowerIncludeSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Hook parameter schemas — 6 hooks
+// Hook parameter schemas — 4 hooks
 // ---------------------------------------------------------------------------
 
-/** Params for useFollowers — "who follows this address?" */
-export const UseFollowersParamsSchema = z.object({
-  /** The address whose followers to fetch (queries followed_address = this) */
-  address: z.string(),
+/**
+ * Params for useFollows — query follow relationships.
+ *
+ * No mandatory address — use `filter.followerAddress` and/or
+ * `filter.followedAddress` to scope results:
+ * - "who follows X?" → `filter: { followedAddress: X }`
+ * - "who does X follow?" → `filter: { followerAddress: X }`
+ * - "all follows" → omit both (or add name/timestamp filters)
+ */
+export const UseFollowsParamsSchema = z.object({
   filter: FollowerFilterSchema.optional(),
   sort: FollowerSortSchema.optional(),
   limit: z.number().optional(),
@@ -144,29 +150,8 @@ export const UseFollowersParamsSchema = z.object({
   include: FollowerIncludeSchema.optional(),
 });
 
-/** Params for useInfiniteFollowers — infinite scroll variant of useFollowers */
-export const UseInfiniteFollowersParamsSchema = z.object({
-  address: z.string(),
-  filter: FollowerFilterSchema.optional(),
-  sort: FollowerSortSchema.optional(),
-  pageSize: z.number().optional(),
-  include: FollowerIncludeSchema.optional(),
-});
-
-/** Params for useFollowing — "who does this address follow?" */
-export const UseFollowingParamsSchema = z.object({
-  /** The address whose following list to fetch (queries follower_address = this) */
-  address: z.string(),
-  filter: FollowerFilterSchema.optional(),
-  sort: FollowerSortSchema.optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  include: FollowerIncludeSchema.optional(),
-});
-
-/** Params for useInfiniteFollowing — infinite scroll variant of useFollowing */
-export const UseInfiniteFollowingParamsSchema = z.object({
-  address: z.string(),
+/** Params for useInfiniteFollows — infinite scroll variant of useFollows */
+export const UseInfiniteFollowsParamsSchema = z.object({
   filter: FollowerFilterSchema.optional(),
   sort: FollowerSortSchema.optional(),
   pageSize: z.number().optional(),
@@ -196,10 +181,8 @@ export type FollowerFilter = z.infer<typeof FollowerFilterSchema>;
 export type FollowerSortField = z.infer<typeof FollowerSortFieldSchema>;
 export type FollowerSort = z.infer<typeof FollowerSortSchema>;
 export type FollowerInclude = z.infer<typeof FollowerIncludeSchema>;
-export type UseFollowersParams = z.infer<typeof UseFollowersParamsSchema>;
-export type UseInfiniteFollowersParams = z.infer<typeof UseInfiniteFollowersParamsSchema>;
-export type UseFollowingParams = z.infer<typeof UseFollowingParamsSchema>;
-export type UseInfiniteFollowingParams = z.infer<typeof UseInfiniteFollowingParamsSchema>;
+export type UseFollowsParams = z.infer<typeof UseFollowsParamsSchema>;
+export type UseInfiniteFollowsParams = z.infer<typeof UseInfiniteFollowsParamsSchema>;
 export type UseFollowCountParams = z.infer<typeof UseFollowCountParamsSchema>;
 export type UseIsFollowingParams = z.infer<typeof UseIsFollowingParamsSchema>;
 

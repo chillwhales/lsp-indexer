@@ -1,22 +1,18 @@
 'use client';
 
-import { Hash, Heart, Infinity, UserCheck, Users } from 'lucide-react';
+import { Hash, Infinity, UserCheck, Users } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useFollowCount as useFollowCountNext,
-  useFollowers as useFollowersNext,
-  useFollowing as useFollowingNext,
-  useInfiniteFollowers as useInfiniteFollowersNext,
-  useInfiniteFollowing as useInfiniteFollowingNext,
+  useFollows as useFollowsNext,
+  useInfiniteFollows as useInfiniteFollowsNext,
   useIsFollowing as useIsFollowingNext,
 } from '@lsp-indexer/next';
 import {
   useFollowCount as useFollowCountReact,
-  useFollowers as useFollowersReact,
-  useFollowing as useFollowingReact,
-  useInfiniteFollowers as useInfiniteFollowersReact,
-  useInfiniteFollowing as useInfiniteFollowingReact,
+  useFollows as useFollowsReact,
+  useInfiniteFollows as useInfiniteFollowsReact,
   useIsFollowing as useIsFollowingReact,
 } from '@lsp-indexer/react';
 import type {
@@ -90,19 +86,15 @@ const SORT_OPTIONS: SortOption[] = [
 function useFollowerHooks(mode: HookMode) {
   if (mode === 'server') {
     return {
-      useFollowers: useFollowersNext,
-      useInfiniteFollowers: useInfiniteFollowersNext,
-      useFollowing: useFollowingNext,
-      useInfiniteFollowing: useInfiniteFollowingNext,
+      useFollows: useFollowsNext,
+      useInfiniteFollows: useInfiniteFollowsNext,
       useFollowCount: useFollowCountNext,
       useIsFollowing: useIsFollowingNext,
     };
   }
   return {
-    useFollowers: useFollowersReact,
-    useInfiniteFollowers: useInfiniteFollowersReact,
-    useFollowing: useFollowingReact,
-    useInfiniteFollowing: useInfiniteFollowingReact,
+    useFollows: useFollowsReact,
+    useInfiniteFollows: useInfiniteFollowsReact,
     useFollowCount: useFollowCountReact,
     useIsFollowing: useIsFollowingReact,
   };
@@ -199,17 +191,15 @@ function IncludeSections({
 }
 
 // ---------------------------------------------------------------------------
-// Tab 1: Followers — "who follows this address?"
+// Tab 1: Follows — paginated list of follow relationships
 // ---------------------------------------------------------------------------
 
-function FollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
-  const { useFollowers } = useFollowerHooks(mode);
-  const [address, setAddress] = useState('');
+function FollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useFollows } = useFollowerHooks(mode);
   const state = useListState();
   const [limit, setLimit] = useState(10);
 
-  const { followers, totalCount, isLoading, error, isFetching } = useFollowers({
-    address,
+  const { follows, totalCount, isLoading, error, isFetching } = useFollows({
     filter: state.filter,
     sort: state.sort,
     limit,
@@ -218,16 +208,6 @@ function FollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="followers-address">Address (who is being followed)</Label>
-        <Input
-          id="followers-address"
-          placeholder="0x... (address to find followers for)"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="font-mono text-sm"
-        />
-      </div>
       <FilterFieldsRow
         configs={FILTERS}
         values={state.values}
@@ -248,7 +228,7 @@ function FollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
       />
       <IncludeSections {...state} />
       <ResultsList
-        items={followers}
+        items={follows}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
@@ -256,7 +236,7 @@ function FollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
           <FollowerCard follower={f as unknown as Record<string, unknown>} index={i} />
         )}
         getKey={(f) => `${f.followerAddress}-${f.followedAddress}`}
-        label="followers"
+        label="follows"
         totalCount={totalCount}
         hasActiveFilter={state.hasActiveFilter}
       />
@@ -265,42 +245,23 @@ function FollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
-// Tab 2: Infinite Followers
+// Tab 2: Infinite Follows
 // ---------------------------------------------------------------------------
 
-function InfiniteFollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
-  const { useInfiniteFollowers } = useFollowerHooks(mode);
-  const [address, setAddress] = useState('');
+function InfiniteFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useInfiniteFollows } = useFollowerHooks(mode);
   const state = useListState();
 
-  const {
-    followers,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
-    isLoading,
-    error,
-    isFetching,
-  } = useInfiniteFollowers({
-    address,
-    filter: state.filter,
-    sort: state.sort,
-    pageSize: 10,
-    include: state.include,
-  });
+  const { follows, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, error, isFetching } =
+    useInfiniteFollows({
+      filter: state.filter,
+      sort: state.sort,
+      pageSize: 10,
+      include: state.include,
+    });
 
   return (
     <div className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="inf-followers-address">Address (who is being followed)</Label>
-        <Input
-          id="inf-followers-address"
-          placeholder="0x... (address to find followers for)"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="font-mono text-sm"
-        />
-      </div>
       <FilterFieldsRow
         configs={FILTERS}
         values={state.values}
@@ -319,7 +280,7 @@ function InfiniteFollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
       />
       <IncludeSections {...state} />
       <ResultsList
-        items={followers}
+        items={follows}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
@@ -327,7 +288,7 @@ function InfiniteFollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
           <FollowerCard follower={f as unknown as Record<string, unknown>} index={i} />
         )}
         getKey={(f) => `${f.followerAddress}-${f.followedAddress}`}
-        label="followers"
+        label="follows"
         hasActiveFilter={state.hasActiveFilter}
         infinite={{ hasNextPage, fetchNextPage, isFetchingNextPage }}
       />
@@ -336,144 +297,7 @@ function InfiniteFollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
-// Tab 3: Following — "who does this address follow?"
-// ---------------------------------------------------------------------------
-
-function FollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
-  const { useFollowing } = useFollowerHooks(mode);
-  const [address, setAddress] = useState('');
-  const state = useListState();
-  const [limit, setLimit] = useState(10);
-
-  const { following, totalCount, isLoading, error, isFetching } = useFollowing({
-    address,
-    filter: state.filter,
-    sort: state.sort,
-    limit,
-    include: state.include,
-  });
-
-  return (
-    <div className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="following-address">Address (who is following)</Label>
-        <Input
-          id="following-address"
-          placeholder="0x... (address to find following for)"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="font-mono text-sm"
-        />
-      </div>
-      <FilterFieldsRow
-        configs={FILTERS}
-        values={state.values}
-        onFieldChange={state.setFieldValue}
-      />
-      <SortControls
-        options={SORT_OPTIONS}
-        sortField={state.sortField}
-        sortDirection={state.sortDirection}
-        onSortFieldChange={(v) => state.setSortField(v as FollowerSortField)}
-        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
-        sortNulls={state.sortNulls ?? ''}
-        onSortNullsChange={(v) =>
-          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
-        }
-        limit={limit}
-        onLimitChange={setLimit}
-      />
-      <IncludeSections {...state} />
-      <ResultsList
-        items={following}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        error={error}
-        renderItem={(f, i) => (
-          <FollowerCard follower={f as unknown as Record<string, unknown>} index={i} />
-        )}
-        getKey={(f) => `${f.followerAddress}-${f.followedAddress}`}
-        label="following"
-        totalCount={totalCount}
-        hasActiveFilter={state.hasActiveFilter}
-      />
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Tab 4: Infinite Following
-// ---------------------------------------------------------------------------
-
-function InfiniteFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
-  const { useInfiniteFollowing } = useFollowerHooks(mode);
-  const [address, setAddress] = useState('');
-  const state = useListState();
-
-  const {
-    following,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
-    isLoading,
-    error,
-    isFetching,
-  } = useInfiniteFollowing({
-    address,
-    filter: state.filter,
-    sort: state.sort,
-    pageSize: 10,
-    include: state.include,
-  });
-
-  return (
-    <div className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="inf-following-address">Address (who is following)</Label>
-        <Input
-          id="inf-following-address"
-          placeholder="0x... (address to find following for)"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="font-mono text-sm"
-        />
-      </div>
-      <FilterFieldsRow
-        configs={FILTERS}
-        values={state.values}
-        onFieldChange={state.setFieldValue}
-      />
-      <SortControls
-        options={SORT_OPTIONS}
-        sortField={state.sortField}
-        sortDirection={state.sortDirection}
-        onSortFieldChange={(v) => state.setSortField(v as FollowerSortField)}
-        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
-        sortNulls={state.sortNulls ?? ''}
-        onSortNullsChange={(v) =>
-          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
-        }
-      />
-      <IncludeSections {...state} />
-      <ResultsList
-        items={following}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        error={error}
-        renderItem={(f, i) => (
-          <FollowerCard follower={f as unknown as Record<string, unknown>} index={i} />
-        )}
-        getKey={(f) => `${f.followerAddress}-${f.followedAddress}`}
-        label="following"
-        hasActiveFilter={state.hasActiveFilter}
-        infinite={{ hasNextPage, fetchNextPage, isFetchingNextPage }}
-      />
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Tab 5: Count — simplified, just address → followerCount + followingCount
+// Tab 3: Count — simplified, just address → followerCount + followingCount
 // ---------------------------------------------------------------------------
 
 function CountTab({ mode }: { mode: HookMode }): React.ReactNode {
@@ -529,7 +353,7 @@ function CountTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
-// Tab 6: Is Following — two address inputs → boolean result
+// Tab 4: Is Following — two address inputs → boolean result
 // ---------------------------------------------------------------------------
 
 function IsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
@@ -610,8 +434,7 @@ export default function FollowsPage(): React.ReactNode {
       title="Follows"
       description={
         <>
-          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowers</code>,{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowing</code>,{' '}
+          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollows</code>,{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowCount</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useIsFollowing</code> hooks against
           live Hasura data (QUERY-05).
@@ -619,28 +442,16 @@ export default function FollowsPage(): React.ReactNode {
       }
       tabs={[
         {
-          value: 'followers',
-          label: 'Followers',
+          value: 'follows',
+          label: 'Follows',
           icon: <Users className="size-4" />,
-          render: (mode) => <FollowersTab mode={mode} />,
+          render: (mode) => <FollowsTab mode={mode} />,
         },
         {
-          value: 'infinite-followers',
-          label: 'Infinite Followers',
+          value: 'infinite-follows',
+          label: 'Infinite Follows',
           icon: <Infinity className="size-4" />,
-          render: (mode) => <InfiniteFollowersTab mode={mode} />,
-        },
-        {
-          value: 'following',
-          label: 'Following',
-          icon: <Heart className="size-4" />,
-          render: (mode) => <FollowingTab mode={mode} />,
-        },
-        {
-          value: 'infinite-following',
-          label: 'Infinite Following',
-          icon: <Infinity className="size-4" />,
-          render: (mode) => <InfiniteFollowingTab mode={mode} />,
+          render: (mode) => <InfiniteFollowsTab mode={mode} />,
         },
         {
           value: 'count',

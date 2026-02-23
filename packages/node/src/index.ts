@@ -84,10 +84,10 @@ export { GetOwnedTokenDocument, GetOwnedTokensDocument } from './documents/owned
 export {
   buildFollowerIncludeVars,
   fetchFollowCount,
-  fetchFollowers,
+  fetchFollows,
   fetchIsFollowing,
 } from './services/followers';
-export type { FetchFollowersResult } from './services/followers';
+export type { FetchFollowsResult } from './services/followers';
 
 // Follower parsers (Hasura → clean types)
 export { parseFollower, parseFollowers } from './parsers/followers';

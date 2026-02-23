@@ -7,18 +7,12 @@ import type { FollowerFilter, FollowerInclude, FollowerSort } from '@lsp-indexer
  * Keys are structured so that invalidating a parent key automatically
  * invalidates all child keys.
  *
- * The follower domain has more key namespaces than typical domains because
- * it serves 6 hooks with different query shapes:
- *
  * **Hierarchy:**
  * ```
  * followerKeys.all                          → ['followers']
- * followerKeys.followers()                  → ['followers', 'followers']
- * followerKeys.followersList(...)           → ['followers', 'followers', 'list', ...]
- * followerKeys.followersInfinite(...)       → ['followers', 'followers', 'infinite', ...]
- * followerKeys.following()                  → ['followers', 'following']
- * followerKeys.followingList(...)           → ['followers', 'following', 'list', ...]
- * followerKeys.followingInfinite(...)       → ['followers', 'following', 'infinite', ...]
+ * followerKeys.follows()                    → ['followers', 'follows']
+ * followerKeys.list(...)                    → ['followers', 'follows', 'list', ...]
+ * followerKeys.infinite(...)                → ['followers', 'follows', 'infinite', ...]
  * followerKeys.counts()                     → ['followers', 'count']
  * followerKeys.count(address)               → ['followers', 'count', address]
  * followerKeys.isFollowings()               → ['followers', 'is-following']
@@ -30,14 +24,11 @@ import type { FollowerFilter, FollowerInclude, FollowerSort } from '@lsp-indexer
  *
  * **Cache invalidation examples:**
  * ```ts
- * // Invalidate ALL follower queries (followers + following + count + isFollowing)
+ * // Invalidate ALL follower queries (follows + count + isFollowing)
  * queryClient.invalidateQueries({ queryKey: followerKeys.all });
  *
- * // Invalidate all "followers of" queries
- * queryClient.invalidateQueries({ queryKey: followerKeys.followers() });
- *
- * // Invalidate all "following" queries
- * queryClient.invalidateQueries({ queryKey: followerKeys.following() });
+ * // Invalidate all follow list queries (paginated + infinite)
+ * queryClient.invalidateQueries({ queryKey: followerKeys.follows() });
  *
  * // Invalidate all count queries
  * queryClient.invalidateQueries({ queryKey: followerKeys.counts() });
@@ -50,49 +41,21 @@ export const followerKeys = {
   /** Base key for all follower queries — invalidate this to clear the entire follower cache */
   all: ['followers'] as const,
 
-  /** Parent key for all "followers of" queries (who follows this address?) */
-  followers: () => [...followerKeys.all, 'followers'] as const,
+  /** Parent key for all follow list queries */
+  follows: () => [...followerKeys.all, 'follows'] as const,
 
-  /** Key for a specific paginated followers list query */
-  followersList: (
-    address: string,
+  /** Key for a specific paginated follows list query */
+  list: (
     filter?: FollowerFilter,
     sort?: FollowerSort,
     limit?: number,
     offset?: number,
     include?: FollowerInclude,
-  ) =>
-    [...followerKeys.followers(), 'list', address, filter, sort, limit, offset, include] as const,
+  ) => [...followerKeys.follows(), 'list', filter, sort, limit, offset, include] as const,
 
-  /** Key for a specific infinite scroll followers query */
-  followersInfinite: (
-    address: string,
-    filter?: FollowerFilter,
-    sort?: FollowerSort,
-    include?: FollowerInclude,
-  ) => [...followerKeys.followers(), 'infinite', address, filter, sort, include] as const,
-
-  /** Parent key for all "following" queries (who does this address follow?) */
-  following: () => [...followerKeys.all, 'following'] as const,
-
-  /** Key for a specific paginated following list query */
-  followingList: (
-    address: string,
-    filter?: FollowerFilter,
-    sort?: FollowerSort,
-    limit?: number,
-    offset?: number,
-    include?: FollowerInclude,
-  ) =>
-    [...followerKeys.following(), 'list', address, filter, sort, limit, offset, include] as const,
-
-  /** Key for a specific infinite scroll following query */
-  followingInfinite: (
-    address: string,
-    filter?: FollowerFilter,
-    sort?: FollowerSort,
-    include?: FollowerInclude,
-  ) => [...followerKeys.following(), 'infinite', address, filter, sort, include] as const,
+  /** Key for a specific infinite scroll follows query */
+  infinite: (filter?: FollowerFilter, sort?: FollowerSort, include?: FollowerInclude) =>
+    [...followerKeys.follows(), 'infinite', filter, sort, include] as const,
 
   /** Parent key for all follow count queries */
   counts: () => [...followerKeys.all, 'count'] as const,
