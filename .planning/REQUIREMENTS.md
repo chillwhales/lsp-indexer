@@ -54,6 +54,7 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 - [x] **DX-02**: Developer can import query key factories for cache invalidation and prefetching
 - [ ] **DX-03**: All 4 packages pass `publint` and `arethetypeswrong` validation for publish readiness
 - [x] **DX-04**: Developer gets TypeScript return types narrowed by `include` parameter — excluded fields are absent from the type, not `null`
+- [ ] **DX-05**: All domain hooks/services/actions use 3-overload generic `<const I>` pattern with `XResult<I>` narrowing and zero type assertions
 
 ## Future Requirements
 
@@ -99,11 +100,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUERY-04    | 9.3   | Complete |
 | DX-04       | 9.4   | Complete |
 | QUERY-05    | 9.5   | Complete |
-| QUERY-06    | 9     | Pending  |
-| QUERY-07    | 9     | Pending  |
-| QUERY-08    | 9     | Pending  |
-| QUERY-09    | 9     | Pending  |
-| QUERY-10    | 9     | Pending  |
+| DX-05       | 9.6   | Pending  |
+| QUERY-06    | 9.7   | Pending  |
+| QUERY-07    | 9.8   | Pending  |
+| QUERY-08    | 9.9   | Pending  |
+| QUERY-09    | 9.10  | Pending  |
+| QUERY-10    | 9.11  | Pending  |
 | PAGE-01     | 9     | Pending  |
 | SUB-01      | 10    | Pending  |
 | SUB-02      | 10    | Pending  |
@@ -115,11 +117,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 **Coverage:**
 
-- v1.1 requirements: 29 total
-- Mapped to phases: 29
+- v1.1 requirements: 30 total
+- Mapped to phases: 30
 - Unmapped: 0 ✓
 
 ---
 
 _Requirements defined: 2026-02-16_
-_Last updated: 2026-02-22 — Phase 9.5 complete (QUERY-05 marked Complete)_
+_Last updated: 2026-02-23 — DX-05 added (phase 9.6), phases 9.6–9.10 renumbered to 9.7–9.11_
