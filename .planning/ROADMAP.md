@@ -262,7 +262,7 @@ No implementation bodies change — only overload signatures and return type ann
 
 **Plans:** 4 plans
 
-- [ ] 09.8-01-PLAN.md — Issued Asset types + GraphQL documents + codegen
+- [x] 09.8-01-PLAN.md — Issued Asset types + GraphQL documents + codegen
 - [ ] 09.8-02-PLAN.md — Issued Asset parsers + services + query keys
 - [ ] 09.8-03-PLAN.md — Issued Asset hooks + server actions + build validation
 - [ ] 09.8-04-PLAN.md — Issued Assets playground page + E2E verification
@@ -376,23 +376,23 @@ No implementation bodies change — only overload signatures and return type ann
 
 ## Progress
 
-| Phase | Name                               | Requirements | Status   |
-| ----- | ---------------------------------- | :----------: | -------- |
-| 7     | Package Foundation                 |     7/7      | Complete |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
-| 9.1   | Digital Assets                     |     1/1      | Complete |
-| 9.2   | NFTs                               |     1/1      | Complete |
-| 9.3   | Owned Assets                       |     1/1      | Complete |
-| 9.4   | Conditional Include Types          |     1/1      | Complete |
-| 9.5   | Social / Follows                   |     1/1      | Complete |
-| 9.6   | Generic Type Propagation           |     1/1      | Complete |
-| 9.7   | Creators                           |     1/1      | Complete |
-| 9.8   | Issued Assets                      |      1       | Pending  |
-| 9.9   | Encrypted Feed                     |      1       | Pending  |
-| 9.10  | Data Changed Events                |      1       | Pending  |
-| 9.11  | Universal Receiver Events          |      1       | Pending  |
-| 10    | Subscriptions                      |      3       | Pending  |
-| 11    | Server Actions & Publish Readiness |      4       | Pending  |
+| Phase | Name                               | Requirements | Status                  |
+| ----- | ---------------------------------- | :----------: | ----------------------- |
+| 7     | Package Foundation                 |     7/7      | Complete                |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete                |
+| 9.1   | Digital Assets                     |     1/1      | Complete                |
+| 9.2   | NFTs                               |     1/1      | Complete                |
+| 9.3   | Owned Assets                       |     1/1      | Complete                |
+| 9.4   | Conditional Include Types          |     1/1      | Complete                |
+| 9.5   | Social / Follows                   |     1/1      | Complete                |
+| 9.6   | Generic Type Propagation           |     1/1      | Complete                |
+| 9.7   | Creators                           |     1/1      | Complete                |
+| 9.8   | Issued Assets                      |     0/1      | In progress (1/4 plans) |
+| 9.9   | Encrypted Feed                     |      1       | Pending                 |
+| 9.10  | Data Changed Events                |      1       | Pending                 |
+| 9.11  | Universal Receiver Events          |      1       | Pending                 |
+| 10    | Subscriptions                      |      3       | Pending                 |
+| 11    | Server Actions & Publish Readiness |      4       | Pending                 |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
@@ -506,4 +506,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-23 — Phase 9.7 complete (Creators — QUERY-06 verified), 18/30 requirements delivered_
+_Last updated: 2026-02-23 — Phase 9.8 plan 01 complete (IssuedAsset types + docs + codegen), 18/30 requirements delivered_
