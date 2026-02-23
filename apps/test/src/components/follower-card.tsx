@@ -8,6 +8,7 @@ import { ProfileCard } from '@/components/profile-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { formatRelativeTime } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // FollowerCard
