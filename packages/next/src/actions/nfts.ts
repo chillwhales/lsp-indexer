@@ -25,18 +25,24 @@ export async function getNft(
   tokenId?: string,
   formattedTokenId?: string,
 ): Promise<Nft | null>;
-export async function getNft(
+export async function getNft<const I extends NftInclude>(
   address: string,
   tokenId: string | undefined,
   formattedTokenId: string | undefined,
-  include: NftInclude,
+  include: I,
+): Promise<NftResult<I> | null>;
+export async function getNft(
+  address: string,
+  tokenId?: string,
+  formattedTokenId?: string,
+  include?: NftInclude,
 ): Promise<PartialNft | null>;
 export async function getNft(
   address: string,
   tokenId?: string,
   formattedTokenId?: string,
   include?: NftInclude,
-): Promise<Nft | PartialNft | null> {
+): Promise<PartialNft | null> {
   const url = getServerUrl();
   if (include) return fetchNft(url, { address, tokenId, formattedTokenId, include });
   return fetchNft(url, { address, tokenId, formattedTokenId });
@@ -58,12 +64,19 @@ export async function getNfts(params?: {
   limit?: number;
   offset?: number;
 }): Promise<FetchNftsResult>;
+export async function getNfts<const I extends NftInclude>(params: {
+  filter?: NftFilter;
+  sort?: NftSort;
+  limit?: number;
+  offset?: number;
+  include: I;
+}): Promise<FetchNftsResult<NftResult<I>>>;
 export async function getNfts(params: {
   filter?: NftFilter;
   sort?: NftSort;
   limit?: number;
   offset?: number;
-  include: NftInclude;
+  include?: NftInclude;
 }): Promise<FetchNftsResult<PartialNft>>;
 export async function getNfts(params?: {
   filter?: NftFilter;
@@ -71,7 +84,7 @@ export async function getNfts(params?: {
   limit?: number;
   offset?: number;
   include?: NftInclude;
-}): Promise<FetchNftsResult | FetchNftsResult<PartialNft>> {
+}): Promise<FetchNftsResult<PartialNft>> {
   const url = getServerUrl();
   if (params?.include) return fetchNfts(url, params);
   return fetchNfts(url, params ?? {});
