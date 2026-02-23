@@ -3,6 +3,7 @@ import type {
   Profile,
   ProfileFilter,
   ProfileInclude,
+  ProfileResult,
   ProfileSort,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
@@ -198,14 +199,18 @@ export async function fetchProfile(
   url: string,
   params: { address: string },
 ): Promise<Profile | null>;
+export async function fetchProfile<const I extends ProfileInclude>(
+  url: string,
+  params: { address: string; include: I },
+): Promise<ProfileResult<I> | null>;
 export async function fetchProfile(
   url: string,
-  params: { address: string; include: ProfileInclude },
+  params: { address: string; include?: ProfileInclude },
 ): Promise<PartialProfile | null>;
 export async function fetchProfile(
   url: string,
   params: { address: string; include?: ProfileInclude },
-): Promise<Profile | PartialProfile | null> {
+): Promise<PartialProfile | null> {
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetProfileDocument, {
@@ -249,6 +254,16 @@ export async function fetchProfiles(
   url: string,
   params?: { filter?: ProfileFilter; sort?: ProfileSort; limit?: number; offset?: number },
 ): Promise<FetchProfilesResult>;
+export async function fetchProfiles<const I extends ProfileInclude>(
+  url: string,
+  params: {
+    filter?: ProfileFilter;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+    include: I;
+  },
+): Promise<FetchProfilesResult<ProfileResult<I>>>;
 export async function fetchProfiles(
   url: string,
   params: {
@@ -256,7 +271,7 @@ export async function fetchProfiles(
     sort?: ProfileSort;
     limit?: number;
     offset?: number;
-    include: ProfileInclude;
+    include?: ProfileInclude;
   },
 ): Promise<FetchProfilesResult<PartialProfile>>;
 export async function fetchProfiles(
@@ -268,7 +283,7 @@ export async function fetchProfiles(
     offset?: number;
     include?: ProfileInclude;
   } = {},
-): Promise<FetchProfilesResult | FetchProfilesResult<PartialProfile>> {
+): Promise<FetchProfilesResult<PartialProfile>> {
   const where = buildProfileWhere(params.filter);
   const orderBy = buildProfileOrderBy(params.sort);
   const includeVars = buildIncludeVars(params.include);
