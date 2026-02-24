@@ -145,8 +145,8 @@ export const EncryptedAssetSchema = z.object({
 /**
  * Filter for encrypted asset queries.
  *
- * All 8 filter fields from CONTEXT.md — string fields use `_ilike` (case-insensitive),
- * numeric/timestamp fields use `_gte` for range filtering.
+ * All 8 filter fields from CONTEXT.md — string fields use `_ilike` (case-insensitive).
+ * `fileSize` and `timestamp` use `_gte` for range filtering; `revision` is exact-match.
  */
 export const EncryptedAssetFilterSchema = z.object({
   /** Case-insensitive match on UP address (uses _ilike) */

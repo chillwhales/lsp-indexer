@@ -19,7 +19,6 @@ import { formatRelativeTime, truncateAddress } from '@/lib/utils';
 
 export interface EncryptedAssetCardProps {
   encryptedAsset: PartialExcept<EncryptedAsset, 'address' | 'contentId' | 'revision'>;
-  index: number;
 }
 
 /**
@@ -36,10 +35,7 @@ export interface EncryptedAssetCardProps {
  * 8. Universal Profile via CollapsibleProfileSection
  * 9. RawJsonToggle
  */
-export function EncryptedAssetCard({
-  encryptedAsset,
-  index,
-}: EncryptedAssetCardProps): React.ReactNode {
+export function EncryptedAssetCard({ encryptedAsset }: EncryptedAssetCardProps): React.ReactNode {
   const universalProfile =
     'universalProfile' in encryptedAsset ? encryptedAsset.universalProfile : null;
 

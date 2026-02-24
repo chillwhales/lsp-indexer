@@ -11,6 +11,14 @@ import { isSafeUrl, resolveUrl } from '@/lib/utils';
 /** A single image object — must have at least a `url` field */
 type ImageItem = { url?: string | null; [key: string]: unknown };
 
+type FlatImages = ReadonlyArray<ImageItem>;
+type MatrixImages = ReadonlyArray<ReadonlyArray<ImageItem>>;
+
+/** Type guard — detects matrix format by checking if the first element is an array. */
+function isMatrix(images: FlatImages | MatrixImages): images is MatrixImages {
+  return images.length > 0 && Array.isArray(images[0]);
+}
+
 export interface ImageListProps {
   /** Section label, e.g. "Images (3)" or "Icons (2)" */
   label: string;
@@ -22,7 +30,7 @@ export interface ImageListProps {
    * When a matrix is provided, each inner array is rendered as an indented group
    * labelled by its index, making the resolution grouping explicit.
    */
-  images: ReadonlyArray<ImageItem> | ReadonlyArray<ReadonlyArray<ImageItem>>;
+  images: FlatImages | MatrixImages;
 }
 
 /**
@@ -32,21 +40,16 @@ export interface ImageListProps {
  * 1. **Flat** — simple list of images (icons, profile images, background images)
  * 2. **Matrix** — grouped by image_index with indented resolution sub-lists
  *    (digital asset images, NFT images, encrypted asset images)
- *
- * Detects matrix format by checking if the first element is an array.
  */
 export function ImageList({ label, images }: ImageListProps): React.ReactNode {
   if (images.length === 0) return null;
 
-  const isMatrix = Array.isArray(images[0]);
-
-  if (isMatrix) {
-    const matrix = images as ReadonlyArray<ReadonlyArray<ImageItem>>;
+  if (isMatrix(images)) {
     return (
       <div>
         <h5 className="text-xs font-medium text-muted-foreground mb-1">{label}</h5>
         <div className="space-y-2">
-          {matrix.map((resolutions, idx) =>
+          {images.map((resolutions, idx) =>
             resolutions.length > 0 ? (
               <div key={idx}>
                 <h6 className="text-xs text-muted-foreground/70 mb-1 font-mono">
@@ -66,12 +69,11 @@ export function ImageList({ label, images }: ImageListProps): React.ReactNode {
   }
 
   // Flat array
-  const flat = images as ReadonlyArray<ImageItem>;
   return (
     <div>
       <h5 className="text-xs font-medium text-muted-foreground mb-1">{label}</h5>
       <div className="space-y-1.5">
-        {flat.map((image, i) => (
+        {images.map((image, i) => (
           <ImageRow key={i} image={image} />
         ))}
       </div>

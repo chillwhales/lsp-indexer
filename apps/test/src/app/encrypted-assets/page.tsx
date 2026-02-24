@@ -320,7 +320,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(ea, i) => <EncryptedAssetCard encryptedAsset={ea} index={i} />}
+        renderItem={(ea) => <EncryptedAssetCard encryptedAsset={ea} />}
         getKey={(ea) => `${ea.address}-${ea.contentId ?? ''}-${ea.revision ?? ''}`}
         label="encrypted assets"
         totalCount={totalCount}
@@ -389,7 +389,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(ea, i) => <EncryptedAssetCard encryptedAsset={ea} index={i} />}
+        renderItem={(ea) => <EncryptedAssetCard encryptedAsset={ea} />}
         getKey={(ea) => `${ea.address}-${ea.contentId ?? ''}-${ea.revision ?? ''}`}
         label="encrypted assets"
         hasActiveFilter={state.hasActiveFilter}

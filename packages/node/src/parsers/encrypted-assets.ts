@@ -162,9 +162,7 @@ export function parseEncryptedAsset(
     // Universal Profile — parsed as full Profile via parseProfile.
     // Sub-include stripping handled by stripExcluded nestedConfig below.
     // Uses `as any` cast for structural subtyping (sub-selection may omit `id`).
-    universalProfile: raw.universalProfile
-      ? parseProfile(raw.universalProfile as Parameters<typeof parseProfile>[0])
-      : null,
+    universalProfile: raw.universalProfile ? parseProfile(raw.universalProfile) : null,
   };
 
   if (include) {
@@ -190,7 +188,7 @@ export function parseEncryptedAsset(
       {
         universalProfile: { baseFields: ['address'] },
       },
-    ) as EncryptedAssetResult<typeof include>;
+    );
   }
   return result;
 }
