@@ -13,7 +13,6 @@ import {
 } from '@lsp-indexer/react';
 import type {
   EncryptedAssetFilter,
-  EncryptedAssetInclude,
   EncryptedAssetSort,
   EncryptedAssetSortField,
   SortDirection,
@@ -195,7 +194,7 @@ function useListState() {
     file: file.value,
     chunks: chunks.value,
     universalProfile: universalProfile.value,
-  }) as EncryptedAssetInclude | undefined;
+  });
 
   return {
     values,
