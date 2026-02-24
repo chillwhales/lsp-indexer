@@ -80,3 +80,19 @@ export const ISSUED_ASSET_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'interfaceId', label: 'Interface ID' },
   { key: 'timestamp', label: 'Timestamp' },
 ];
+
+/** EncryptedAssetInclude — 7 boolean fields. encryption sub-include and universalProfile are SubIncludeSections. */
+export const ENCRYPTED_ASSET_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'arrayIndex', label: 'Array Index' },
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'title', label: 'Title' },
+  { key: 'description', label: 'Description' },
+  { key: 'file', label: 'File' },
+  { key: 'chunks', label: 'Chunks' },
+  { key: 'images', label: 'Images' },
+];
+
+/** EncryptedAssetEncryptionInclude — 1 field (accessControlConditions). Used in encryption sub-include. */
+export const ENCRYPTED_ASSET_ENCRYPTION_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'accessControlConditions', label: 'Access Control Conditions' },
+];

@@ -1,0 +1,348 @@
+'use client';
+
+import { ChevronDown, Lock, ShieldCheck } from 'lucide-react';
+import React from 'react';
+
+import type { EncryptedAsset, PartialExcept } from '@lsp-indexer/types';
+
+import { CollapsibleProfileSection } from '@/components/collapsible-sections';
+import { ImageList } from '@/components/image-list';
+import { RawJsonToggle } from '@/components/playground';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { formatRelativeTime, truncateAddress } from '@/lib/utils';
+
+// ---------------------------------------------------------------------------
+// EncryptedAssetCard
+// ---------------------------------------------------------------------------
+
+export interface EncryptedAssetCardProps {
+  encryptedAsset: PartialExcept<EncryptedAsset, 'address' | 'contentId' | 'revision'>;
+  index: number;
+}
+
+/**
+ * Card component for rendering a single LSP29 encrypted asset record.
+ *
+ * The most feature-rich domain card in the project:
+ * 1. Base fields: address, contentId, revision (always present)
+ * 2. Conditional scalars: arrayIndex, timestamp
+ * 3. Title and description sections
+ * 4. Encryption collapsible with method, ciphertext (truncated), access control conditions
+ * 5. File metadata section
+ * 6. Chunks metadata section
+ * 7. Images via ImageList component
+ * 8. Universal Profile via CollapsibleProfileSection
+ * 9. RawJsonToggle
+ */
+export function EncryptedAssetCard({
+  encryptedAsset,
+  index,
+}: EncryptedAssetCardProps): React.ReactNode {
+  const universalProfile =
+    'universalProfile' in encryptedAsset ? encryptedAsset.universalProfile : null;
+
+  // Determine card title: use title if present, otherwise truncated address
+  const titleText =
+    'title' in encryptedAsset && encryptedAsset.title
+      ? encryptedAsset.title
+      : truncateAddress(encryptedAsset.address);
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Lock className="size-4 text-muted-foreground" />
+          <span className="truncate">{titleText}</span>
+          {encryptedAsset.contentId && (
+            <span className="font-mono text-xs text-muted-foreground shrink-0">
+              {encryptedAsset.contentId.length > 16
+                ? `${encryptedAsset.contentId.slice(0, 16)}…`
+                : encryptedAsset.contentId}
+            </span>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Base fields — always present */}
+        <dl className="space-y-1.5 text-sm">
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-32 shrink-0">Address</dt>
+            <dd className="font-mono text-xs break-all">{encryptedAsset.address}</dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-32 shrink-0">Content ID</dt>
+            <dd className="font-mono text-xs break-all">{encryptedAsset.contentId ?? '(none)'}</dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-32 shrink-0">Revision</dt>
+            <dd className="font-mono">{encryptedAsset.revision ?? '(none)'}</dd>
+          </div>
+
+          {/* Conditional scalar fields via field-presence checks */}
+          {'arrayIndex' in encryptedAsset && encryptedAsset.arrayIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Array Index</dt>
+              <dd className="font-mono">{String(encryptedAsset.arrayIndex)}</dd>
+            </div>
+          )}
+          {'timestamp' in encryptedAsset && encryptedAsset.timestamp != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Timestamp</dt>
+              <dd className="text-xs">
+                {new Date(encryptedAsset.timestamp).toLocaleString()}{' '}
+                <span className="text-muted-foreground">
+                  ({formatRelativeTime(encryptedAsset.timestamp)})
+                </span>
+              </dd>
+            </div>
+          )}
+        </dl>
+
+        {/* Title & Description */}
+        {'title' in encryptedAsset && encryptedAsset.title && (
+          <div>
+            <h5 className="text-xs font-medium text-muted-foreground mb-1">Title</h5>
+            <p className="text-sm">{encryptedAsset.title}</p>
+          </div>
+        )}
+        {'description' in encryptedAsset && encryptedAsset.description && (
+          <div>
+            <h5 className="text-xs font-medium text-muted-foreground mb-1">Description</h5>
+            <p className="text-sm">{encryptedAsset.description}</p>
+          </div>
+        )}
+
+        {/* Encryption collapsible section */}
+        {'encryption' in encryptedAsset && encryptedAsset.encryption != null && (
+          <EncryptionSection encryption={encryptedAsset.encryption} />
+        )}
+
+        {/* File metadata section */}
+        {'file' in encryptedAsset && encryptedAsset.file != null && (
+          <FileSection file={encryptedAsset.file} />
+        )}
+
+        {/* Chunks metadata section */}
+        {'chunks' in encryptedAsset && encryptedAsset.chunks != null && (
+          <ChunksSection chunks={encryptedAsset.chunks} />
+        )}
+
+        {/* Images via ImageList */}
+        {'images' in encryptedAsset &&
+          encryptedAsset.images != null &&
+          encryptedAsset.images.length > 0 && (
+            <ImageList
+              label={`Images (${encryptedAsset.images.length})`}
+              images={encryptedAsset.images}
+            />
+          )}
+
+        {/* Universal Profile via CollapsibleProfileSection */}
+        {universalProfile != null && (
+          <CollapsibleProfileSection label="Universal Profile" profile={universalProfile} />
+        )}
+
+        <RawJsonToggle data={encryptedAsset} label="encryptedAsset" />
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Encryption section — collapsible with method, ciphertext, and ACC list
+// ---------------------------------------------------------------------------
+
+function EncryptionSection({
+  encryption,
+}: {
+  encryption: NonNullable<EncryptedAsset['encryption']>;
+}): React.ReactNode {
+  const acc = encryption.accessControlConditions;
+
+  return (
+    <Collapsible>
+      <CollapsibleTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+          <ShieldCheck className="size-3.5" />
+          Encryption Details
+          <ChevronDown className="size-3.5" />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-2 space-y-3">
+        <dl className="space-y-1.5 text-sm">
+          {encryption.method && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Method</dt>
+              <dd className="font-mono text-xs">{encryption.method}</dd>
+            </div>
+          )}
+          {encryption.ciphertext && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Ciphertext</dt>
+              <dd className="font-mono text-xs break-all">
+                {encryption.ciphertext.length > 100
+                  ? `${encryption.ciphertext.slice(0, 100)}…`
+                  : encryption.ciphertext}
+              </dd>
+            </div>
+          )}
+          {encryption.dataToEncryptHash && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Data Hash</dt>
+              <dd className="font-mono text-xs break-all">{encryption.dataToEncryptHash}</dd>
+            </div>
+          )}
+          {encryption.decryptionCode && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Decrypt Code</dt>
+              <dd className="font-mono text-xs break-all">{encryption.decryptionCode}</dd>
+            </div>
+          )}
+        </dl>
+
+        {/* Access control conditions */}
+        {acc != null && acc.length > 0 && (
+          <div>
+            <h5 className="text-xs font-medium text-muted-foreground mb-1.5">
+              Access Control Conditions ({acc.length})
+            </h5>
+            <div className="space-y-2">
+              {acc.map((cond, i) => (
+                <div key={i} className="border rounded-md p-2.5 space-y-1 text-xs bg-muted/30">
+                  <div className="flex gap-2">
+                    <span className="text-muted-foreground w-28 shrink-0">Index</span>
+                    <span className="font-mono">{cond.conditionIndex}</span>
+                  </div>
+                  {cond.method && (
+                    <div className="flex gap-2">
+                      <span className="text-muted-foreground w-28 shrink-0">Method</span>
+                      <span className="font-mono">{cond.method}</span>
+                    </div>
+                  )}
+                  {cond.standardContractType && (
+                    <div className="flex gap-2">
+                      <span className="text-muted-foreground w-28 shrink-0">Contract Type</span>
+                      <span className="font-mono">{cond.standardContractType}</span>
+                    </div>
+                  )}
+                  {cond.contractAddress && (
+                    <div className="flex gap-2">
+                      <span className="text-muted-foreground w-28 shrink-0">Contract</span>
+                      <span className="font-mono break-all">{cond.contractAddress}</span>
+                    </div>
+                  )}
+                  {cond.comparator && (
+                    <div className="flex gap-2">
+                      <span className="text-muted-foreground w-28 shrink-0">Comparator</span>
+                      <span className="font-mono">{cond.comparator}</span>
+                    </div>
+                  )}
+                  {cond.value && (
+                    <div className="flex gap-2">
+                      <span className="text-muted-foreground w-28 shrink-0">Value</span>
+                      <span className="font-mono">{cond.value}</span>
+                    </div>
+                  )}
+                  {cond.chain && (
+                    <div className="flex gap-2">
+                      <span className="text-muted-foreground w-28 shrink-0">Chain</span>
+                      <span className="font-mono">{cond.chain}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// File section
+// ---------------------------------------------------------------------------
+
+function FileSection({ file }: { file: NonNullable<EncryptedAsset['file']> }): React.ReactNode {
+  return (
+    <div>
+      <h5 className="text-xs font-medium text-muted-foreground mb-1">File</h5>
+      <dl className="space-y-1 text-sm">
+        {file.name && (
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-28 shrink-0">Name</dt>
+            <dd className="text-xs break-all">{file.name}</dd>
+          </div>
+        )}
+        {file.type && (
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-28 shrink-0">Type</dt>
+            <dd className="font-mono text-xs">{file.type}</dd>
+          </div>
+        )}
+        {file.size != null && (
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-28 shrink-0">Size</dt>
+            <dd className="font-mono text-xs">{file.size.toLocaleString()} bytes</dd>
+          </div>
+        )}
+        {file.hash && (
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-28 shrink-0">Hash</dt>
+            <dd className="font-mono text-xs break-all">{file.hash}</dd>
+          </div>
+        )}
+        {file.lastModified != null && (
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-28 shrink-0">Last Modified</dt>
+            <dd className="text-xs">{new Date(file.lastModified).toLocaleString()}</dd>
+          </div>
+        )}
+      </dl>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Chunks section
+// ---------------------------------------------------------------------------
+
+function ChunksSection({
+  chunks,
+}: {
+  chunks: NonNullable<EncryptedAsset['chunks']>;
+}): React.ReactNode {
+  return (
+    <div>
+      <h5 className="text-xs font-medium text-muted-foreground mb-1">Chunks</h5>
+      <dl className="space-y-1 text-sm">
+        {chunks.totalSize != null && (
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-28 shrink-0">Total Size</dt>
+            <dd className="font-mono text-xs">{chunks.totalSize.toLocaleString()} bytes</dd>
+          </div>
+        )}
+        {chunks.iv && (
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-28 shrink-0">IV</dt>
+            <dd className="font-mono text-xs break-all">{chunks.iv}</dd>
+          </div>
+        )}
+        {chunks.cids != null && chunks.cids.length > 0 && (
+          <div>
+            <dt className="text-muted-foreground text-xs mb-1">CIDs ({chunks.cids.length})</dt>
+            <div className="space-y-0.5">
+              {chunks.cids.map((cid, i) => (
+                <dd key={i} className="font-mono text-xs break-all text-muted-foreground">
+                  {cid}
+                </dd>
+              ))}
+            </div>
+          </div>
+        )}
+      </dl>
+    </div>
+  );
+}
