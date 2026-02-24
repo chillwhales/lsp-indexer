@@ -1,5 +1,6 @@
 export * from './actions/creators';
 export * from './actions/digital-assets';
+export * from './actions/encrypted-assets';
 export * from './actions/followers';
 export * from './actions/issued-assets';
 export * from './actions/nfts';
@@ -8,6 +9,7 @@ export * from './actions/owned-tokens';
 export * from './actions/profiles';
 export * from './hooks/creators';
 export * from './hooks/digital-assets';
+export * from './hooks/encrypted-assets';
 export * from './hooks/followers';
 export * from './hooks/issued-assets';
 export * from './hooks/nfts';
