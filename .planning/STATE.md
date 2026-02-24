@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.9 (Encrypted Assets) — In progress
-- **Plan:** 3 of 4 in current sub-phase
-- **Status:** In progress — 09.9-03 complete (hooks + server action + build validation)
-- **Last activity:** 2026-02-24 — Completed 09.9-03-PLAN.md
-- **Progress:** ██████░░░░ 63% (19/30 requirements)
+- **Sub-phase:** 9.9 (Encrypted Assets) — Complete
+- **Plan:** 4 of 4 in current sub-phase
+- **Status:** Sub-phase 9.9 complete — all 4 plans delivered (QUERY-08 fulfilled)
+- **Last activity:** 2026-02-24 — Completed 09.9-04-PLAN.md
+- **Progress:** ██████░░░░ 67% (20/30 requirements)
 
 ## Milestone History
 
@@ -39,7 +39,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.6   | Generic Type Propagation           |     1/1      | Complete |
 | 9.7   | Creators                           |     1/1      | Complete |
 | 9.8   | Issued Assets                      |     1/1      | Complete |
-| 9.9   | Encrypted Feed                     |      1       | Pending  |
+| 9.9   | Encrypted Feed                     |     1/1      | Complete |
 | 9.10  | Data Changed Events                |      1       | Pending  |
 | 9.11  | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
@@ -47,14 +47,14 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 19/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
+**Total:** 20/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 80 (36 v1.0 + 44 v1.1)
+- **Plans completed:** 84 (36 v1.0 + 48 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 21 (11 v1.0 + 10 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 19/30 (v1.1)
+- **Phases completed:** 22 (11 v1.0 + 11 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 20/30 (v1.1)
 
 ## Accumulated Context
 
@@ -173,16 +173,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-24
-- **Activity:** Executed Phase 9.9 Plan 03 (Encrypted Asset hooks + server action + build validation)
-- **Outcome:** 2 tasks completed, 2 commits (9bf3d1d, 1af9f69). 2 React hooks, 1 server action, 2 Next.js hooks. All 4 packages build and typecheck.
+- **Activity:** Executed Phase 9.9 Plan 04 (ImageList + EncryptedAssetCard + playground page + backports)
+- **Outcome:** 3 tasks completed, 3 commits (6fdca71, 10161ed, bc02c8c). ImageList reusable component, EncryptedAssetCard, /encrypted-assets playground page, backported ImageList to 3 existing cards. next build succeeds.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.9 plan 03 complete** — hooks and server action ready
-- **Next step:** 09.9-04-PLAN.md (playground page + E2E verification)
-- **Remaining sub-phases in Phase 9:** 9.9 (Encrypted Assets, 1 plan remaining), 9.10 (Data Changed Events), 9.11 (Universal Receiver Events)
+- **Phase 9.9 complete** — all 4 plans delivered, QUERY-08 fulfilled
+- **Next step:** Phase 9.10 (Data Changed Events) or Phase 9.11 (Universal Receiver Events)
+- **Remaining sub-phases in Phase 9:** 9.10 (Data Changed Events), 9.11 (Universal Receiver Events)
 
 ---
 
-_Last updated: 2026-02-24 — Completed 09.9-03-PLAN.md (Encrypted Asset hooks + server action + build validation)_
+_Last updated: 2026-02-24 — Completed 09.9-04-PLAN.md (Phase 9.9 complete — QUERY-08 delivered)_

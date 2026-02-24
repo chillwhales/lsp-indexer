@@ -277,10 +277,10 @@ No implementation bodies change — only overload signatures and return type ann
 
 **Plans:** 4 plans
 
-- [ ] 09.9-01-PLAN.md — Encrypted Asset types (5 sub-schemas + conditional include with encryption sub-include) + GraphQL document + codegen
-- [ ] 09.9-02-PLAN.md — Encrypted Asset parser (title/description flattening, encryption/file/chunks/images sub-parsing) + service + query keys
-- [ ] 09.9-03-PLAN.md — Encrypted Asset hooks + server action + build validation
-- [ ] 09.9-04-PLAN.md — ImageList reusable component + EncryptedAssetCard + backport to existing cards + playground page + E2E verification
+- [x] 09.9-01-PLAN.md — Encrypted Asset types (5 sub-schemas + conditional include with encryption sub-include) + GraphQL document + codegen
+- [x] 09.9-02-PLAN.md — Encrypted Asset parser (title/description flattening, encryption/file/chunks/images sub-parsing) + service + query keys
+- [x] 09.9-03-PLAN.md — Encrypted Asset hooks + server action + build validation
+- [x] 09.9-04-PLAN.md — ImageList reusable component + EncryptedAssetCard + backport to existing cards + playground page + E2E verification
 
 ---
 
@@ -388,7 +388,7 @@ No implementation bodies change — only overload signatures and return type ann
 | 9.6   | Generic Type Propagation           |     1/1      | Complete |
 | 9.7   | Creators                           |     1/1      | Complete |
 | 9.8   | Issued Assets                      |     1/1      | Complete |
-| 9.9   | Encrypted Feed                     |      1       | Pending  |
+| 9.9   | Encrypted Feed                     |     1/1      | Complete |
 | 9.10  | Data Changed Events                |      1       | Pending  |
 | 9.11  | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
@@ -396,7 +396,7 @@ No implementation bodies change — only overload signatures and return type ann
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 19/30 requirements delivered (QUERY-07 complete)
+**Total:** 20/30 requirements delivered (QUERY-08 complete)
 
 ---
 
@@ -506,4 +506,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-23 — Phase 9.8 complete (Issued Assets — QUERY-07 delivered), 19/30 requirements delivered_
+_Last updated: 2026-02-24 — Phase 9.9 complete (Encrypted Assets — QUERY-08 delivered), 20/30 requirements delivered_
