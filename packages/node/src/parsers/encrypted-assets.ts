@@ -4,13 +4,13 @@ import type {
   EncryptedAssetChunks,
   EncryptedAssetEncryption,
   EncryptedAssetFile,
-  EncryptedAssetImage,
   EncryptedAssetInclude,
   EncryptedAssetResult,
   PartialEncryptedAsset,
 } from '@lsp-indexer/types';
 import { parseProfile } from './profiles';
 import { stripExcluded } from './strip';
+import { parseImage } from './utils';
 
 // ---------------------------------------------------------------------------
 // Sub-object parsers — helpers for each nested type
@@ -98,24 +98,8 @@ function parseChunks(raw: any): EncryptedAssetChunks {
   };
 }
 
-/**
- * Parse a raw Hasura `lsp29_encrypted_asset_image` into a clean `EncryptedAssetImage`.
- *
- * **NOTE:** This is NOT the shared `parseImage` from `parsers/utils.ts` — LSP29 images
- * have a different schema (imageIndex, verificationSource) than LSP4 images.
- * Uses a domain-specific parser.
- */
-function parseEncryptedAssetImage(raw: any): EncryptedAssetImage {
-  return {
-    imageIndex: raw.image_index,
-    url: raw.url ?? null,
-    width: raw.width ?? null,
-    height: raw.height ?? null,
-    verificationData: raw.verification_data ?? null,
-    verificationMethod: raw.verification_method ?? null,
-    verificationSource: raw.verification_source ?? null,
-  };
-}
+// Images reuse the shared `parseImage` from `parsers/utils.ts` — same shape as
+// LSP4 images (url, width, height, verification). No domain-specific parser needed.
 
 // ---------------------------------------------------------------------------
 // Main parser — parseEncryptedAsset
@@ -176,7 +160,7 @@ export function parseEncryptedAsset(
     encryption: isEncryptionIncluded && raw.encryption ? parseEncryption(raw.encryption) : null,
     file: raw.file ? parseFile(raw.file) : null,
     chunks: raw.chunks ? parseChunks(raw.chunks) : null,
-    images: raw.images ? raw.images.map(parseEncryptedAssetImage) : null,
+    images: raw.images ? raw.images.map(parseImage) : null,
 
     // Universal Profile — parsed as full Profile via parseProfile.
     // Sub-include stripping handled by stripExcluded nestedConfig below.

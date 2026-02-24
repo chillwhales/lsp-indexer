@@ -123,13 +123,11 @@ export const GetEncryptedAssetsDocument = graphql(`
       }
 
       images @include(if: $includeImages) {
-        image_index
         url
         width
         height
-        verification_data
         verification_method
-        verification_source
+        verification_data
       }
 
       universalProfile @include(if: $includeUniversalProfile) {

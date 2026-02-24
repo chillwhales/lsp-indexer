@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { SortDirectionSchema, SortNullsSchema } from './common';
+import { ImageSchema, SortDirectionSchema, SortNullsSchema } from './common';
 import type { IncludeResult, PartialExcept } from './include-types';
 import {
   ProfileIncludeSchema,
@@ -94,25 +94,10 @@ export const EncryptedAssetChunksSchema = z.object({
 /**
  * Image from the `lsp29_encrypted_asset_image` table.
  *
- * NOTE: LSP29 images differ from LSP4 images — they have `verificationSource`
- * and `imageIndex` which LSP4 images don't have.
+ * Reuses the shared `ImageSchema` (url, width, height, verification) — same
+ * shape as LSP4 images used by profiles, digital assets, and NFTs.
  */
-export const EncryptedAssetImageSchema = z.object({
-  /** Position in images array */
-  imageIndex: z.number(),
-  /** Image URL */
-  url: z.string().nullable(),
-  /** Image width in pixels */
-  width: z.number().nullable(),
-  /** Image height in pixels */
-  height: z.number().nullable(),
-  /** Verification data hash */
-  verificationData: z.string().nullable(),
-  /** Verification method */
-  verificationMethod: z.string().nullable(),
-  /** Verification source URL */
-  verificationSource: z.string().nullable(),
-});
+export const EncryptedAssetImageSchema = ImageSchema;
 
 // ---------------------------------------------------------------------------
 // Core domain schema
