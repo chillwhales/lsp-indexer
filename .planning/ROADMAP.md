@@ -269,18 +269,18 @@ No implementation bodies change — only overload signatures and return type ann
 
 ---
 
-### Phase 9.9 — Encrypted Feed
+### Phase 9.9 — Encrypted Assets
 
-**Goal:** Developer can use `useEncryptedAssetFeed`, `useInfiniteEncryptedAssetFeed` for LSP29 encrypted asset entry timeline data.
+**Goal:** Developer can use `useEncryptedAssets`, `useInfiniteEncryptedAssets` for LSP29 encrypted asset metadata — rich data from the `lsp29_encrypted_asset` table with encryption, file, chunks, images, and profile relations.
 
 **Requirement:** QUERY-08, PAGE-01
 
 **Plans:** 4 plans
 
-- [ ] 09.9-01-PLAN.md — Encrypted Feed types + GraphQL documents + codegen
-- [ ] 09.9-02-PLAN.md — Encrypted Feed parsers + services + query keys
-- [ ] 09.9-03-PLAN.md — Encrypted Feed hooks + server actions + build validation
-- [ ] 09.9-04-PLAN.md — Encrypted Feed playground page + E2E verification
+- [ ] 09.9-01-PLAN.md — Encrypted Asset types (5 sub-schemas + conditional include with encryption sub-include) + GraphQL document + codegen
+- [ ] 09.9-02-PLAN.md — Encrypted Asset parser (title/description flattening, encryption/file/chunks/images sub-parsing) + service + query keys
+- [ ] 09.9-03-PLAN.md — Encrypted Asset hooks + server action + build validation
+- [ ] 09.9-04-PLAN.md — ImageList reusable component + EncryptedAssetCard + backport to existing cards + playground page + E2E verification
 
 ---
 
