@@ -78,13 +78,13 @@ function buildCreatorWhere(filter?: CreatorFilter): Lsp4_Creator_Bool_Exp {
     });
   }
 
-  if (filter.timestampFrom) {
+  if (filter.timestampFrom != null) {
     conditions.push({
       timestamp: { _gte: normalizeTimestamp(filter.timestampFrom) },
     });
   }
 
-  if (filter.timestampTo) {
+  if (filter.timestampTo != null) {
     conditions.push({
       timestamp: { _lte: normalizeTimestamp(filter.timestampTo) },
     });

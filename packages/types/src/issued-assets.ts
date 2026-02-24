@@ -63,7 +63,7 @@ export const IssuedAssetFilterSchema = z.object({
   interfaceId: z.string().optional(),
   /** Case-insensitive match on issuer's profile name (nested via universalProfile.lsp3Profile.name) */
   issuerName: z.string().optional(),
-  /** Case-insensitive match on digital asset name (nested via issuedAsset.lsp4TokenName.name) */
+  /** Case-insensitive match on digital asset name (nested via issuedAsset.lsp4TokenName.value) */
   digitalAssetName: z.string().optional(),
   /** ISO timestamp or unix seconds lower bound (inclusive) */
   timestampFrom: z.union([z.string(), z.number()]).optional(),

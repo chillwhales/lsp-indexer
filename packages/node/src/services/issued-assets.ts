@@ -78,13 +78,13 @@ function buildIssuedAssetWhere(filter?: IssuedAssetFilter): Lsp12_Issued_Asset_B
     });
   }
 
-  if (filter.timestampFrom) {
+  if (filter.timestampFrom != null) {
     conditions.push({
       timestamp: { _gte: normalizeTimestamp(filter.timestampFrom) },
     });
   }
 
-  if (filter.timestampTo) {
+  if (filter.timestampTo != null) {
     conditions.push({
       timestamp: { _lte: normalizeTimestamp(filter.timestampTo) },
     });
