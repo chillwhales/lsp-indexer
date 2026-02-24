@@ -92,12 +92,13 @@ export const EncryptedAssetChunksSchema = z.object({
 });
 
 /**
- * Image from the `lsp29_encrypted_asset_image` table.
+ * Images matrix — array of arrays where each inner array groups image
+ * resolutions (different widths) for the same logical image, indexed by
+ * `image_index` from the Hasura table.
  *
- * Reuses the shared `ImageSchema` (url, width, height, verification) — same
- * shape as LSP4 images used by profiles, digital assets, and NFTs.
+ * Reuses the shared `Image` type (url, width, height, verification).
  */
-export const EncryptedAssetImageSchema = ImageSchema;
+export const EncryptedAssetImagesSchema = z.array(z.array(ImageSchema));
 
 // ---------------------------------------------------------------------------
 // Core domain schema
@@ -131,8 +132,8 @@ export const EncryptedAssetSchema = z.object({
   file: EncryptedAssetFileSchema.nullable(),
   /** Chunk information (null = not included) */
   chunks: EncryptedAssetChunksSchema.nullable(),
-  /** Image array (null = not included, [] = included but empty) */
-  images: z.array(EncryptedAssetImageSchema).nullable(),
+  /** Images matrix grouped by image_index (null = not included, [] = included but empty) */
+  images: EncryptedAssetImagesSchema.nullable(),
   /** Universal Profile of the owner (null = not included in query) */
   universalProfile: ProfileSchema.nullable(),
 });
@@ -314,7 +315,8 @@ export type EncryptedAssetFile = z.infer<typeof EncryptedAssetFileSchema>;
 export type EncryptedAssetFileInclude = z.infer<typeof EncryptedAssetFileIncludeSchema>;
 export type EncryptedAssetChunks = z.infer<typeof EncryptedAssetChunksSchema>;
 export type EncryptedAssetChunksInclude = z.infer<typeof EncryptedAssetChunksIncludeSchema>;
-export type EncryptedAssetImage = z.infer<typeof EncryptedAssetImageSchema>;
+/** Images matrix — `Image[][]` grouped by image_index */
+export type EncryptedAssetImages = z.infer<typeof EncryptedAssetImagesSchema>;
 export type EncryptedAsset = z.infer<typeof EncryptedAssetSchema>;
 export type EncryptedAssetFilter = z.infer<typeof EncryptedAssetFilterSchema>;
 export type EncryptedAssetSortField = z.infer<typeof EncryptedAssetSortFieldSchema>;

@@ -123,6 +123,7 @@ export const GetEncryptedAssetsDocument = graphql(`
       }
 
       images @include(if: $includeImages) {
+        image_index
         url
         width
         height

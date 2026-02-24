@@ -129,14 +129,19 @@ export function EncryptedAssetCard({
           <ChunksSection chunks={encryptedAsset.chunks} />
         )}
 
-        {/* Images via ImageList */}
+        {/* Images matrix — each inner array is one logical image with multiple resolutions */}
         {'images' in encryptedAsset &&
           encryptedAsset.images != null &&
-          encryptedAsset.images.length > 0 && (
-            <ImageList
-              label={`Images (${encryptedAsset.images.length})`}
-              images={encryptedAsset.images}
-            />
+          encryptedAsset.images.length > 0 &&
+          encryptedAsset.images.map(
+            (resolutions, idx) =>
+              resolutions.length > 0 && (
+                <ImageList
+                  key={idx}
+                  label={`Image ${idx} (${resolutions.length} resolution${resolutions.length > 1 ? 's' : ''})`}
+                  images={resolutions}
+                />
+              ),
           )}
 
         {/* Universal Profile via CollapsibleProfileSection */}
