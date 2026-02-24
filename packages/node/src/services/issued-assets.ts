@@ -1,15 +1,15 @@
 import type {
-  Creator,
-  CreatorFilter,
-  CreatorInclude,
-  CreatorResult,
-  CreatorSort,
-  PartialCreator,
+  IssuedAsset,
+  IssuedAssetFilter,
+  IssuedAssetInclude,
+  IssuedAssetResult,
+  IssuedAssetSort,
+  PartialIssuedAsset,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetCreatorsDocument } from '../documents/creators';
-import type { Lsp4_Creator_Bool_Exp, Lsp4_Creator_Order_By } from '../graphql/graphql';
-import { parseCreators } from '../parsers/creators';
+import { GetIssuedAssetsDocument } from '../documents/issued-assets';
+import type { Lsp12_Issued_Asset_Bool_Exp, Lsp12_Issued_Asset_Order_By } from '../graphql/graphql';
+import { parseIssuedAssets } from '../parsers/issued-assets';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
 import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';
@@ -19,7 +19,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
 // ---------------------------------------------------------------------------
 
 /**
- * Translate a flat `CreatorFilter` to a Hasura `lsp4_creator_bool_exp`.
+ * Translate a flat `IssuedAssetFilter` to a Hasura `lsp12_issued_asset_bool_exp`.
  *
  * All 7 filter fields — string fields use `_ilike` + `escapeLike` for
  * case-insensitive matching, timestamp fields use `_gte` / `_lte`.
@@ -27,28 +27,28 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
  * Multiple conditions combine with `_and`. Empty filter = empty object.
  *
  * Filter → Hasura mapping:
- * - `creatorAddress`    → `{ creator_address: { _ilike: '%escapeLike%' } }` (partial match)
- * - `digitalAssetAddress` → `{ address: { _ilike: '%escapeLike%' } }` (partial match)
- * - `interfaceId`       → `{ interface_id: { _ilike: '%escapeLike%' } }` (partial match)
- * - `creatorName`       → `{ creatorProfile: { lsp3Profile: { name: { value: { _ilike } } } } }` (nested)
- * - `digitalAssetName`  → `{ digitalAsset: { lsp4TokenName: { value: { _ilike } } } }` (nested)
- * - `timestampFrom`     → `{ timestamp: { _gte: normalizeTimestamp } }`
- * - `timestampTo`       → `{ timestamp: { _lte: normalizeTimestamp } }`
+ * - `issuerAddress`      → `{ address: { _ilike: '%escapeLike%' } }` (Hasura field is `address`, NOT `issuer_address`)
+ * - `assetAddress`       → `{ asset_address: { _ilike: '%escapeLike%' } }` (partial match)
+ * - `interfaceId`        → `{ interface_id: { _ilike: '%escapeLike%' } }` (partial match)
+ * - `issuerName`         → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike } } } } }` (nested, uses Hasura `universalProfile`)
+ * - `digitalAssetName`   → `{ issuedAsset: { lsp4TokenName: { value: { _ilike } } } }` (nested, uses Hasura `issuedAsset`)
+ * - `timestampFrom`      → `{ timestamp: { _gte: normalizeTimestamp } }`
+ * - `timestampTo`        → `{ timestamp: { _lte: normalizeTimestamp } }`
  */
-function buildCreatorWhere(filter?: CreatorFilter): Lsp4_Creator_Bool_Exp {
+function buildIssuedAssetWhere(filter?: IssuedAssetFilter): Lsp12_Issued_Asset_Bool_Exp {
   if (!filter) return {};
 
-  const conditions: Lsp4_Creator_Bool_Exp[] = [];
+  const conditions: Lsp12_Issued_Asset_Bool_Exp[] = [];
 
-  if (filter.creatorAddress) {
+  if (filter.issuerAddress) {
     conditions.push({
-      creator_address: { _ilike: `%${escapeLike(filter.creatorAddress)}%` },
+      address: { _ilike: `%${escapeLike(filter.issuerAddress)}%` },
     });
   }
 
-  if (filter.digitalAssetAddress) {
+  if (filter.assetAddress) {
     conditions.push({
-      address: { _ilike: `%${escapeLike(filter.digitalAssetAddress)}%` },
+      asset_address: { _ilike: `%${escapeLike(filter.assetAddress)}%` },
     });
   }
 
@@ -58,11 +58,11 @@ function buildCreatorWhere(filter?: CreatorFilter): Lsp4_Creator_Bool_Exp {
     });
   }
 
-  if (filter.creatorName) {
+  if (filter.issuerName) {
     conditions.push({
-      creatorProfile: {
+      universalProfile: {
         lsp3Profile: {
-          name: { value: { _ilike: `%${escapeLike(filter.creatorName)}%` } },
+          name: { value: { _ilike: `%${escapeLike(filter.issuerName)}%` } },
         },
       },
     });
@@ -70,7 +70,7 @@ function buildCreatorWhere(filter?: CreatorFilter): Lsp4_Creator_Bool_Exp {
 
   if (filter.digitalAssetName) {
     conditions.push({
-      digitalAsset: {
+      issuedAsset: {
         lsp4TokenName: {
           value: { _ilike: `%${escapeLike(filter.digitalAssetName)}%` },
         },
@@ -96,20 +96,22 @@ function buildCreatorWhere(filter?: CreatorFilter): Lsp4_Creator_Bool_Exp {
 }
 
 /**
- * Translate a flat `CreatorSort` to a Hasura `lsp4_creator_order_by` array.
+ * Translate a flat `IssuedAssetSort` to a Hasura `lsp12_issued_asset_order_by` array.
  *
  * Sort field → Hasura mapping:
  * - `'timestamp'`          → `[{ timestamp: dir }]`
- * - `'creatorAddress'`     → `[{ creator_address: dir }]`
- * - `'digitalAssetAddress'` → `[{ address: dir }]`
+ * - `'issuerAddress'`      → `[{ address: dir }]` (Hasura field is `address`)
+ * - `'assetAddress'`       → `[{ asset_address: dir }]`
  * - `'arrayIndex'`         → `[{ array_index: dir }]`
- * - `'creatorName'`        → `[{ creatorProfile: { lsp3Profile: { name: { value: dir } } } }]` (nested)
- * - `'digitalAssetName'`   → `[{ digitalAsset: { lsp4TokenName: { value: dir } } }]` (nested)
+ * - `'issuerName'`         → `[{ universalProfile: { lsp3Profile: { name: { value: dir } } } }]` (nested)
+ * - `'digitalAssetName'`   → `[{ issuedAsset: { lsp4TokenName: { value: dir } } }]` (nested)
  *
  * Name sorts default to `nulls: 'last'` when not specified (names without values sort last).
  * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
  */
-function buildCreatorOrderBy(sort?: CreatorSort): Lsp4_Creator_Order_By[] | undefined {
+function buildIssuedAssetOrderBy(
+  sort?: IssuedAssetSort,
+): Lsp12_Issued_Asset_Order_By[] | undefined {
   if (!sort) return undefined;
 
   const dir = orderDir(sort.direction, sort.nulls);
@@ -117,16 +119,16 @@ function buildCreatorOrderBy(sort?: CreatorSort): Lsp4_Creator_Order_By[] | unde
   switch (sort.field) {
     case 'timestamp':
       return [{ timestamp: dir }];
-    case 'creatorAddress':
-      return [{ creator_address: dir }];
-    case 'digitalAssetAddress':
+    case 'issuerAddress':
       return [{ address: dir }];
+    case 'assetAddress':
+      return [{ asset_address: dir }];
     case 'arrayIndex':
       return [{ array_index: dir }];
-    case 'creatorName':
+    case 'issuerName':
       return [
         {
-          creatorProfile: {
+          universalProfile: {
             lsp3Profile: {
               name: { value: orderDir(sort.direction, sort.nulls ?? 'last') },
             },
@@ -136,7 +138,7 @@ function buildCreatorOrderBy(sort?: CreatorSort): Lsp4_Creator_Order_By[] | unde
     case 'digitalAssetName':
       return [
         {
-          digitalAsset: {
+          issuedAsset: {
             lsp4TokenName: {
               value: orderDir(sort.direction, sort.nulls ?? 'last'),
             },
@@ -149,7 +151,7 @@ function buildCreatorOrderBy(sort?: CreatorSort): Lsp4_Creator_Order_By[] | unde
 }
 
 /**
- * Translate a `CreatorInclude` to GraphQL boolean variables for `@include` directives.
+ * Translate an `IssuedAssetInclude` to GraphQL boolean variables for `@include` directives.
  *
  * **Inverted default pattern:**
  * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
@@ -158,33 +160,33 @@ function buildCreatorOrderBy(sort?: CreatorSort): Lsp4_Creator_Order_By[] | unde
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
  *
  * **Profile sub-includes:** Reuses `buildProfileIncludeVars` with prefix replacement:
- * - `includeProfile*` → `includeCreatorProfile*` for creator profile sub-includes
+ * - `includeProfile*` → `includeIssuerProfile*` for issuer profile sub-includes
  *
  * **Digital asset sub-includes:** Reuses `buildDigitalAssetIncludeVars` with prefix replacement:
  * - `include*` → `includeDigitalAsset*` for digital asset sub-includes
  *
  * @param include - Optional include config; `undefined` = include everything
- * @returns Record of boolean variables for the GetCreators GraphQL document
+ * @returns Record of boolean variables for the GetIssuedAssets GraphQL document
  */
-export function buildCreatorIncludeVars(include?: CreatorInclude): Record<string, boolean> {
+export function buildIssuedAssetIncludeVars(include?: IssuedAssetInclude): Record<string, boolean> {
   if (!include) return {};
 
-  const activeCreatorProfile = hasActiveIncludes(include.creatorProfile);
+  const activeIssuerProfile = hasActiveIncludes(include.issuerProfile);
   const activeDigitalAsset = hasActiveIncludes(include.digitalAsset);
 
   const vars: Record<string, boolean> = {
     includeArrayIndex: include.arrayIndex ?? false,
     includeInterfaceId: include.interfaceId ?? false,
     includeTimestamp: include.timestamp ?? false,
-    includeCreatorProfile: activeCreatorProfile,
+    includeIssuerProfile: activeIssuerProfile,
     includeDigitalAsset: activeDigitalAsset,
   };
 
-  // Creator profile sub-includes: reuse profile include builder with "CreatorProfile" prefix
-  if (activeCreatorProfile) {
-    const profileVars = buildProfileIncludeVars(include.creatorProfile);
+  // Issuer profile sub-includes: reuse profile include builder with "IssuerProfile" prefix
+  if (activeIssuerProfile) {
+    const profileVars = buildProfileIncludeVars(include.issuerProfile);
     for (const [key, val] of Object.entries(profileVars)) {
-      vars[key.replace('includeProfile', 'includeCreatorProfile')] = val;
+      vars[key.replace('includeProfile', 'includeIssuerProfile')] = val;
     }
   }
 
@@ -204,26 +206,26 @@ export function buildCreatorIncludeVars(include?: CreatorInclude): Record<string
 // ---------------------------------------------------------------------------
 
 /**
- * Result shape for paginated creator list queries.
+ * Result shape for paginated issued asset list queries.
  *
- * When the include parameter is provided, the `creators` array contains
+ * When the include parameter is provided, the `issuedAssets` array contains
  * narrowed types with only base fields + included fields.
  */
-export interface FetchCreatorsResult<P = Creator> {
-  /** Parsed creator records for the current page (narrowed by include) */
-  creators: P[];
-  /** Total number of creator records matching the filter (for pagination UI) */
+export interface FetchIssuedAssetsResult<P = IssuedAsset> {
+  /** Parsed issued asset records for the current page (narrowed by include) */
+  issuedAssets: P[];
+  /** Total number of issued asset records matching the filter (for pagination UI) */
   totalCount: number;
 }
 
 /**
- * Fetch a paginated list of LSP4 creator records with filtering, sorting,
+ * Fetch a paginated list of LSP12 issued asset records with filtering, sorting,
  * total count, and optional include narrowing.
  *
- * Serves both `useCreators` (paginated) and `useInfiniteCreators` (infinite scroll) —
+ * Serves both `useIssuedAssets` (paginated) and `useInfiniteIssuedAssets` (infinite scroll) —
  * the difference is how the hook manages pagination, not the fetch function.
  *
- * No singular `fetchCreator` exists because creator records have no natural key
+ * No singular `fetchIssuedAsset` exists because issued asset records have no natural key
  * (opaque Hasura ID only). Developers query by filter instead.
  *
  * Translates flat filter/sort/include params to Hasura variables, executes the
@@ -231,52 +233,52 @@ export interface FetchCreatorsResult<P = Creator> {
  *
  * @param url - The GraphQL endpoint URL
  * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed creators (narrowed by include) and total count
+ * @returns Parsed issued assets (narrowed by include) and total count
  */
-export async function fetchCreators(
+export async function fetchIssuedAssets(
   url: string,
   params?: {
-    filter?: CreatorFilter;
-    sort?: CreatorSort;
+    filter?: IssuedAssetFilter;
+    sort?: IssuedAssetSort;
     limit?: number;
     offset?: number;
   },
-): Promise<FetchCreatorsResult>;
-export async function fetchCreators<const I extends CreatorInclude>(
+): Promise<FetchIssuedAssetsResult>;
+export async function fetchIssuedAssets<const I extends IssuedAssetInclude>(
   url: string,
   params: {
-    filter?: CreatorFilter;
-    sort?: CreatorSort;
+    filter?: IssuedAssetFilter;
+    sort?: IssuedAssetSort;
     limit?: number;
     offset?: number;
     include: I;
   },
-): Promise<FetchCreatorsResult<CreatorResult<I>>>;
-export async function fetchCreators(
+): Promise<FetchIssuedAssetsResult<IssuedAssetResult<I>>>;
+export async function fetchIssuedAssets(
   url: string,
   params: {
-    filter?: CreatorFilter;
-    sort?: CreatorSort;
+    filter?: IssuedAssetFilter;
+    sort?: IssuedAssetSort;
     limit?: number;
     offset?: number;
-    include?: CreatorInclude;
+    include?: IssuedAssetInclude;
   },
-): Promise<FetchCreatorsResult<PartialCreator>>;
-export async function fetchCreators(
+): Promise<FetchIssuedAssetsResult<PartialIssuedAsset>>;
+export async function fetchIssuedAssets(
   url: string,
   params: {
-    filter?: CreatorFilter;
-    sort?: CreatorSort;
+    filter?: IssuedAssetFilter;
+    sort?: IssuedAssetSort;
     limit?: number;
     offset?: number;
-    include?: CreatorInclude;
+    include?: IssuedAssetInclude;
   } = {},
-): Promise<FetchCreatorsResult<PartialCreator>> {
-  const where = buildCreatorWhere(params.filter);
-  const orderBy = buildCreatorOrderBy(params.sort);
-  const includeVars = buildCreatorIncludeVars(params.include);
+): Promise<FetchIssuedAssetsResult<PartialIssuedAsset>> {
+  const where = buildIssuedAssetWhere(params.filter);
+  const orderBy = buildIssuedAssetOrderBy(params.sort);
+  const includeVars = buildIssuedAssetIncludeVars(params.include);
 
-  const result = await execute(url, GetCreatorsDocument, {
+  const result = await execute(url, GetIssuedAssetsDocument, {
     where: Object.keys(where).length > 0 ? where : undefined,
     order_by: orderBy,
     limit: params.limit,
@@ -286,12 +288,12 @@ export async function fetchCreators(
 
   if (params.include) {
     return {
-      creators: parseCreators(result.lsp4_creator, params.include),
-      totalCount: result.lsp4_creator_aggregate?.aggregate?.count ?? 0,
+      issuedAssets: parseIssuedAssets(result.lsp12_issued_asset, params.include),
+      totalCount: result.lsp12_issued_asset_aggregate?.aggregate?.count ?? 0,
     };
   }
   return {
-    creators: parseCreators(result.lsp4_creator),
-    totalCount: result.lsp4_creator_aggregate?.aggregate?.count ?? 0,
+    issuedAssets: parseIssuedAssets(result.lsp12_issued_asset),
+    totalCount: result.lsp12_issued_asset_aggregate?.aggregate?.count ?? 0,
   };
 }

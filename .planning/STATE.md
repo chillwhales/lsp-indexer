@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.7 (Creators) — Complete
+- **Sub-phase:** 9.8 (Issued Assets) — Complete
 - **Plan:** 4 of 4 in current sub-phase
-- **Status:** Phase 9.7 complete — Creator playground + verification
-- **Last activity:** 2026-02-23 — Completed 09.7-04-PLAN.md
-- **Progress:** ██████░░░░ 60% (18/30 requirements)
+- **Status:** Phase 9.8 complete — ready for Phase 9.9 (Encrypted Feed)
+- **Last activity:** 2026-02-23 — Completed 09.8-04-PLAN.md
+- **Progress:** ██████░░░░ 63% (19/30 requirements)
 
 ## Milestone History
 
@@ -38,7 +38,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.5   | Social / Follows                   |     1/1      | Complete |
 | 9.6   | Generic Type Propagation           |     1/1      | Complete |
 | 9.7   | Creators                           |     1/1      | Complete |
-| 9.8   | Encrypted Assets                   |      1       | Pending  |
+| 9.8   | Issued Assets                      |     1/1      | Complete |
 | 9.9   | Encrypted Feed                     |      1       | Pending  |
 | 9.10  | Data Changed Events                |      1       | Pending  |
 | 9.11  | Universal Receiver Events          |      1       | Pending  |
@@ -47,14 +47,14 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 18/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
+**Total:** 19/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 74 (36 v1.0 + 38 v1.1)
+- **Plans completed:** 77 (36 v1.0 + 41 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 20 (11 v1.0 + 9 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 18/30 (v1.1)
+- **Phases completed:** 21 (11 v1.0 + 10 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 19/30 (v1.1)
 
 ## Accumulated Context
 
@@ -156,6 +156,9 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **Creator has no singular hook:** No natural key exists (opaque Hasura ID only) — only useCreators and useInfiniteCreators hooks
 - **GetCreatorsDocument 31 include variables:** 3 scalar (arrayIndex, interfaceId, timestamp) + 10 creator profile ($includeCreatorProfile*) + 18 digital asset ($includeDigitalAsset\*) — all Boolean! = true defaults
 - **Creator profile sub-fields:** followedBy_aggregate for follower count, following_aggregate for following count (matching established profile document pattern)
+- **IssuedAssetResult<I> with ResolveIssuerProfile and ResolveIssuedAssetDigitalAsset:** Same dual heterogeneous relation pattern as Creator. Base fields: issuerAddress, assetAddress. Hasura uses `universalProfile` (not issuerProfile) and `issuedAsset` (not digitalAsset) — parser maps to domain names.
+- **GetIssuedAssetsDocument 31 include variables:** 3 scalar (arrayIndex, interfaceId, timestamp) + 10 issuer profile ($includeIssuerProfile*) + 18 digital asset ($includeDigitalAsset\*) — all Boolean! = true defaults
+- **Issuer profile uses `followed_aggregate`** (not `following_aggregate`) for following count — schema field name difference from other profile sub-documents
 
 ### Discovered Todos
 
@@ -170,17 +173,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-23
-- **Activity:** Executed Phase 9.7 (all 4 plans across 4 waves) + verification
-- **Outcome:** 4 plans executed across 4 waves, 12 commits. Verifier confirmed 14/14 must-haves passed. QUERY-06 complete.
+- **Activity:** Executed Phase 9.8 Plan 04 (Issued Assets playground + E2E verification)
+- **Outcome:** 2 tasks completed, 2 commits (16cb30d, 2bc46dd). IssuedAssetCard + playground page at /issued-assets + nav update. next build succeeds.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.7 complete + verified** — QUERY-06 (Creators) delivered and verified (VERIFICATION.md created)
-- **Next step:** Plan Phase 9.8 (Encrypted Assets) — second of 4 remaining domain sub-phases
-- **Full vertical slice pattern verified:** types → parsers → services → hooks → playground across 7 domains
-- **Remaining sub-phases (9.8–9.11)** will follow the same 4-plan pattern with correct 3-overload `<const I>` pattern
+- **Phase 9.8 complete** — all 4 plans done, QUERY-07 delivered
+- **Next step:** Phase 9.9 (Encrypted Feed)
+- **Remaining sub-phases in Phase 9:** 9.9 (Encrypted Feed), 9.10 (Data Changed Events), 9.11 (Universal Receiver Events)
 
 ---
 
-_Last updated: 2026-02-23 — Phase 9.7 complete + verified (Creators — QUERY-06)_
+_Last updated: 2026-02-23 — Phase 9.8 complete (Issued Assets — QUERY-07 delivered)_

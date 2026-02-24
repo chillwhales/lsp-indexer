@@ -107,7 +107,7 @@ Plans:
 | QUERY-05 | Developer can use `useFollowers`, `useFollowing`, `useFollowCount` for social/follow data                                         | 9.5       |
 | DX-05    | All domain hooks/services/actions use 3-overload generic `<const I>` pattern with `XResult<I>` narrowing and zero type assertions | 9.6       |
 | QUERY-06 | Developer can use `useCreators`, `useInfiniteCreators` for LSP4 creator data                                                      | 9.7       |
-| QUERY-07 | Developer can use `useEncryptedAsset`, `useEncryptedAssets` for LSP29 encrypted asset data                                        | 9.8       |
+| QUERY-07 | Developer can use `useIssuedAssets`, `useInfiniteIssuedAssets` for LSP12 issued asset data                                        | 9.8       |
 | QUERY-08 | Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery                                                                | 9.9       |
 | QUERY-09 | Developer can use `useDataChangedEvents` for ERC725 data change events                                                            | 9.10      |
 | QUERY-10 | Developer can use `useUniversalReceiverEvents` for universal receiver events                                                      | 9.11      |
@@ -254,18 +254,18 @@ No implementation bodies change — only overload signatures and return type ann
 
 ---
 
-### Phase 9.8 — Encrypted Assets
+### Phase 9.8 — Issued Assets
 
-**Goal:** Developer can use `useEncryptedAsset`, `useEncryptedAssets`, `useInfiniteEncryptedAssets` for LSP29 encrypted asset container records.
+**Goal:** Developer can use `useIssuedAssets`, `useInfiniteIssuedAssets` for LSP12 issued asset data — querying which digital assets were issued by which addresses/profiles.
 
 **Requirement:** QUERY-07, PAGE-01
 
 **Plans:** 4 plans
 
-- [ ] 09.8-01-PLAN.md — Encrypted Asset types + GraphQL documents + codegen
-- [ ] 09.8-02-PLAN.md — Encrypted Asset parsers + services + query keys
-- [ ] 09.8-03-PLAN.md — Encrypted Asset hooks + server actions + build validation
-- [ ] 09.8-04-PLAN.md — Encrypted Assets playground page + E2E verification
+- [x] 09.8-01-PLAN.md — Issued Asset types + GraphQL documents + codegen
+- [x] 09.8-02-PLAN.md — Issued Asset parsers + services + query keys
+- [x] 09.8-03-PLAN.md — Issued Asset hooks + server actions + build validation
+- [x] 09.8-04-PLAN.md — Issued Assets playground page + E2E verification
 
 ---
 
@@ -387,7 +387,7 @@ No implementation bodies change — only overload signatures and return type ann
 | 9.5   | Social / Follows                   |     1/1      | Complete |
 | 9.6   | Generic Type Propagation           |     1/1      | Complete |
 | 9.7   | Creators                           |     1/1      | Complete |
-| 9.8   | Encrypted Assets                   |      1       | Pending  |
+| 9.8   | Issued Assets                      |     1/1      | Complete |
 | 9.9   | Encrypted Feed                     |      1       | Pending  |
 | 9.10  | Data Changed Events                |      1       | Pending  |
 | 9.11  | Universal Receiver Events          |      1       | Pending  |
@@ -396,7 +396,7 @@ No implementation bodies change — only overload signatures and return type ann
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 18/30 requirements delivered (QUERY-06 complete)
+**Total:** 19/30 requirements delivered (QUERY-07 complete)
 
 ---
 
@@ -413,7 +413,7 @@ Phase 7 (Package Foundation)
                 ├──→ 9.5 (Social / Follows) ←── built with DX-04 pattern from start
                 ├──→ 9.6 (Generic Type Propagation) ←── depends on 9.5 (applies followers pattern to 9.1–9.4 + profiles)
                 ├──→ 9.7 (Creators)
-                ├──→ 9.8 (Encrypted Assets)
+                ├──→ 9.8 (Issued Assets)
                 ├──→ 9.9 (Encrypted Feed)
                 ├──→ 9.10 (Data Changed Events)
                 └──→ 9.11 (Universal Receiver Events)
@@ -441,37 +441,37 @@ Phase 7 (Package Foundation)
 
 All 30 v1.1 requirements mapped to exactly one phase:
 
-| Requirement | Phase | Category       |
-| ----------- | ----- | -------------- |
-| FOUND-01    | 7     | Foundation     |
-| FOUND-02    | 7     | Foundation     |
-| FOUND-03    | 7     | Foundation     |
-| FOUND-04    | 7     | Foundation     |
-| FOUND-05    | 7     | Foundation     |
-| FOUND-06    | 7     | Foundation     |
-| FOUND-07    | 7     | Foundation     |
-| QUERY-01    | 8     | Query Domains  |
-| DX-01       | 8     | Developer Exp  |
-| DX-02       | 8     | Developer Exp  |
-| QUERY-02    | 9.1   | Query Domains  |
-| QUERY-03    | 9.2   | Query Domains  |
-| QUERY-04    | 9.3   | Query Domains  |
-| DX-04       | 9.4   | Developer Exp  |
-| QUERY-05    | 9.5   | Query Domains  |
-| DX-05       | 9.6   | Developer Exp  |
-| QUERY-06    | 9.7   | Query Domains  |
-| QUERY-07    | 9.8   | Query Domains  |
-| QUERY-08    | 9.9   | Query Domains  |
-| QUERY-09    | 9.10  | Query Domains  |
-| QUERY-10    | 9.11  | Query Domains  |
-| PAGE-01     | 9.\*  | Pagination     |
-| SUB-01      | 10    | Subscriptions  |
-| SUB-02      | 10    | Subscriptions  |
-| SUB-03      | 10    | Subscriptions  |
-| ACTION-01   | 11    | Server Actions |
-| ACTION-02   | 11    | Server Actions |
-| ACTION-03   | 11    | Server Actions |
-| DX-03       | 11    | Developer Exp  |
+| Requirement | Phase | Category                      |
+| ----------- | ----- | ----------------------------- |
+| FOUND-01    | 7     | Foundation                    |
+| FOUND-02    | 7     | Foundation                    |
+| FOUND-03    | 7     | Foundation                    |
+| FOUND-04    | 7     | Foundation                    |
+| FOUND-05    | 7     | Foundation                    |
+| FOUND-06    | 7     | Foundation                    |
+| FOUND-07    | 7     | Foundation                    |
+| QUERY-01    | 8     | Query Domains                 |
+| DX-01       | 8     | Developer Exp                 |
+| DX-02       | 8     | Developer Exp                 |
+| QUERY-02    | 9.1   | Query Domains                 |
+| QUERY-03    | 9.2   | Query Domains                 |
+| QUERY-04    | 9.3   | Query Domains                 |
+| DX-04       | 9.4   | Developer Exp                 |
+| QUERY-05    | 9.5   | Query Domains                 |
+| DX-05       | 9.6   | Developer Exp                 |
+| QUERY-06    | 9.7   | Query Domains                 |
+| QUERY-07    | 9.8   | Query Domains (Issued Assets) |
+| QUERY-08    | 9.9   | Query Domains                 |
+| QUERY-09    | 9.10  | Query Domains                 |
+| QUERY-10    | 9.11  | Query Domains                 |
+| PAGE-01     | 9.\*  | Pagination                    |
+| SUB-01      | 10    | Subscriptions                 |
+| SUB-02      | 10    | Subscriptions                 |
+| SUB-03      | 10    | Subscriptions                 |
+| ACTION-01   | 11    | Server Actions                |
+| ACTION-02   | 11    | Server Actions                |
+| ACTION-03   | 11    | Server Actions                |
+| DX-03       | 11    | Developer Exp                 |
 
 **Mapped: 30/30 ✓ — No orphans, no duplicates.**
 
@@ -506,4 +506,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-23 — Phase 9.7 complete (Creators — QUERY-06 verified), 18/30 requirements delivered_
+_Last updated: 2026-02-23 — Phase 9.8 complete (Issued Assets — QUERY-07 delivered), 19/30 requirements delivered_
