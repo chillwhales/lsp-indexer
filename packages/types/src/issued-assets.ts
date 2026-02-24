@@ -65,10 +65,10 @@ export const IssuedAssetFilterSchema = z.object({
   issuerName: z.string().optional(),
   /** Case-insensitive match on digital asset name (nested via issuedAsset.lsp4TokenName.name) */
   digitalAssetName: z.string().optional(),
-  /** ISO timestamp lower bound (inclusive) */
-  timestampFrom: z.string().optional(),
-  /** ISO timestamp upper bound (inclusive) */
-  timestampTo: z.string().optional(),
+  /** ISO timestamp or unix seconds lower bound (inclusive) */
+  timestampFrom: z.union([z.string(), z.number()]).optional(),
+  /** ISO timestamp or unix seconds upper bound (inclusive) */
+  timestampTo: z.union([z.string(), z.number()]).optional(),
 });
 
 // ---------------------------------------------------------------------------

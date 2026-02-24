@@ -52,6 +52,5 @@ export async function getIssuedAssets(params: {
   include?: IssuedAssetInclude;
 }): Promise<FetchIssuedAssetsResult<PartialIssuedAsset>> {
   const url = getServerUrl();
-  if (params.include) return fetchIssuedAssets(url, params);
   return fetchIssuedAssets(url, params);
 }

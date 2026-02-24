@@ -157,7 +157,7 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **GetCreatorsDocument 31 include variables:** 3 scalar (arrayIndex, interfaceId, timestamp) + 10 creator profile ($includeCreatorProfile*) + 18 digital asset ($includeDigitalAsset\*) — all Boolean! = true defaults
 - **Creator profile sub-fields:** followedBy_aggregate for follower count, following_aggregate for following count (matching established profile document pattern)
 - **IssuedAssetResult<I> with ResolveIssuerProfile and ResolveIssuedAssetDigitalAsset:** Same dual heterogeneous relation pattern as Creator. Base fields: issuerAddress, assetAddress. Hasura uses `universalProfile` (not issuerProfile) and `issuedAsset` (not digitalAsset) — parser maps to domain names.
-- **GetIssuedAssetsDocument 31 include variables:** 3 scalar (arrayIndex, verificationData, interfaceId) + 10 issuer profile ($includeIssuerProfile*) + 18 digital asset ($includeIssuedAssetDigitalAsset\*) — all Boolean! = true defaults
+- **GetIssuedAssetsDocument 31 include variables:** 3 scalar (arrayIndex, interfaceId, timestamp) + 10 issuer profile ($includeIssuerProfile*) + 18 digital asset ($includeDigitalAsset\*) — all Boolean! = true defaults
 - **Issuer profile uses `followed_aggregate`** (not `following_aggregate`) for following count — schema field name difference from other profile sub-documents
 
 ### Discovered Todos
