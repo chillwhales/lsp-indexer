@@ -45,25 +45,20 @@ function parseAccessControlCondition(raw: any): AccessControlCondition {
 /**
  * Parse a raw Hasura `lsp29_encrypted_asset_encryption` into a clean `EncryptedAssetEncryption`.
  *
- * Maps snake_case fields and conditionally includes access control conditions array.
- *
- * @param raw - Raw encryption object from Hasura
- * @param includeAccessControlConditions - Whether to parse the accessControlConditions array
+ * Maps snake_case fields to camelCase. Sub-field presence is controlled by
+ * `@include` directives in the GraphQL document — excluded fields are simply
+ * absent from `raw`, so `raw.field ?? null` naturally returns `null`.
  */
-function parseEncryption(
-  raw: any,
-  includeAccessControlConditions: boolean,
-): EncryptedAssetEncryption {
+function parseEncryption(raw: any): EncryptedAssetEncryption {
   return {
     ciphertext: raw.ciphertext ?? null,
     dataToEncryptHash: raw.data_to_encrypt_hash ?? null,
     decryptionCode: raw.decryption_code ?? null,
     decryptionParams: raw.decryption_params ?? null,
     method: raw.method ?? null,
-    accessControlConditions:
-      includeAccessControlConditions && raw.accessControlConditions
-        ? raw.accessControlConditions.map(parseAccessControlCondition)
-        : null,
+    accessControlConditions: raw.accessControlConditions
+      ? raw.accessControlConditions.map(parseAccessControlCondition)
+      : null,
   };
 }
 
@@ -73,6 +68,9 @@ function parseEncryption(
  * Converts Hasura `numeric` fields to JavaScript numbers:
  * - `last_modified` (numeric) → `lastModified` (number | null)
  * - `size` (numeric) → `size` (number | null)
+ *
+ * Sub-field presence is controlled by `@include` directives in the GraphQL
+ * document — excluded fields are absent from `raw`, so `?? null` handles them.
  */
 function parseFile(raw: any): EncryptedAssetFile {
   return {
@@ -88,6 +86,9 @@ function parseFile(raw: any): EncryptedAssetFile {
  * Parse a raw Hasura `lsp29_encrypted_asset_chunks` into a clean `EncryptedAssetChunks`.
  *
  * Converts `total_size` (numeric) → `totalSize` (number | null).
+ *
+ * Sub-field presence is controlled by `@include` directives in the GraphQL
+ * document — excluded fields are absent from `raw`, so `?? null` handles them.
  */
 function parseChunks(raw: any): EncryptedAssetChunks {
   return {
@@ -152,14 +153,9 @@ export function parseEncryptedAsset(
   raw: any,
   include?: EncryptedAssetInclude,
 ): EncryptedAsset | PartialEncryptedAsset {
-  // Determine if encryption is included and whether to include access control conditions
-  const encryptionInclude = include?.encryption;
-  const isEncryptionIncluded =
-    encryptionInclude === true ||
-    (typeof encryptionInclude === 'object' && encryptionInclude != null);
-  const includeAccessControlConditions =
-    encryptionInclude === true ||
-    (typeof encryptionInclude === 'object' && encryptionInclude?.accessControlConditions === true);
+  // Determine if encryption relation is included (boolean true or object form)
+  const encInc = include?.encryption;
+  const isEncryptionIncluded = encInc === true || (typeof encInc === 'object' && encInc != null);
 
   const result: EncryptedAsset = {
     // Base fields (always present)
@@ -175,11 +171,9 @@ export function parseEncryptedAsset(
     title: raw.title?.value ?? null,
     description: raw.description?.value ?? null,
 
-    // Nested objects
-    encryption:
-      isEncryptionIncluded && raw.encryption
-        ? parseEncryption(raw.encryption, includeAccessControlConditions)
-        : null,
+    // Nested objects — sub-field presence controlled by @include directives in the
+    // GraphQL document; parsers just map what Hasura returns (absent fields → null).
+    encryption: isEncryptionIncluded && raw.encryption ? parseEncryption(raw.encryption) : null,
     file: raw.file ? parseFile(raw.file) : null,
     chunks: raw.chunks ? parseChunks(raw.chunks) : null,
     images: raw.images ? raw.images.map(parseEncryptedAssetImage) : null,
@@ -193,13 +187,19 @@ export function parseEncryptedAsset(
   };
 
   if (include) {
-    // Normalize include for stripExcluded: encryption (boolean or object) should map
-    // to the 'encryption' field being included/excluded. Convert to boolean for strip.
+    // Normalize include for stripExcluded: dual-form fields (boolean or object) should map
+    // to the field being included/excluded. Convert object forms to boolean for strip.
     const normalizedInclude: Record<string, boolean | Record<string, unknown> | undefined> = {
       ...include,
     };
     if (typeof include.encryption === 'object' && include.encryption != null) {
       normalizedInclude.encryption = true; // Object form = included
+    }
+    if (typeof include.file === 'object' && include.file != null) {
+      normalizedInclude.file = true; // Object form = included
+    }
+    if (typeof include.chunks === 'object' && include.chunks != null) {
+      normalizedInclude.chunks = true; // Object form = included
     }
     return stripExcluded(
       result,

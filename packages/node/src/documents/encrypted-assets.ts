@@ -15,8 +15,10 @@ import { graphql } from '../graphql';
  * - `$limit` / `$offset` — Pagination
  * - `$includeArrayIndex`, `$includeTimestamp` — Scalar include toggles
  * - `$includeTitle`, `$includeDescription` — Title/description wrapper relation toggles
- * - `$includeEncryption`, `$includeEncryptionAccessControlConditions` — Encryption with nested sub-toggle
- * - `$includeFile`, `$includeChunks`, `$includeImages` — Relation boolean toggles
+ * - `$includeEncryption`, `$includeEncryption*` — Encryption with per-field sub-toggles
+ * - `$includeFile`, `$includeFile*` — File with per-field sub-toggles
+ * - `$includeChunks`, `$includeChunks*` — Chunks with per-field sub-toggles
+ * - `$includeImages` — Images boolean toggle
  * - `$includeUniversalProfile*` — Boolean flags for Universal Profile sub-includes
  *
  * All include variables default to `true` (inverted default — omit `include` = fetch everything).
@@ -43,9 +45,21 @@ export const GetEncryptedAssetsDocument = graphql(`
     $includeTitle: Boolean! = true
     $includeDescription: Boolean! = true
     $includeEncryption: Boolean! = true
+    $includeEncryptionMethod: Boolean! = true
+    $includeEncryptionCiphertext: Boolean! = true
+    $includeEncryptionDataToEncryptHash: Boolean! = true
+    $includeEncryptionDecryptionCode: Boolean! = true
+    $includeEncryptionDecryptionParams: Boolean! = true
     $includeEncryptionAccessControlConditions: Boolean! = true
     $includeFile: Boolean! = true
+    $includeFileType: Boolean! = true
+    $includeFileSize: Boolean! = true
+    $includeFileLastModified: Boolean! = true
+    $includeFileHash: Boolean! = true
     $includeChunks: Boolean! = true
+    $includeChunksCids: Boolean! = true
+    $includeChunksIv: Boolean! = true
+    $includeChunksTotalSize: Boolean! = true
     $includeImages: Boolean! = true
     $includeUniversalProfile: Boolean! = true
     $includeUniversalProfileName: Boolean! = true
@@ -75,11 +89,11 @@ export const GetEncryptedAssetsDocument = graphql(`
       }
 
       encryption @include(if: $includeEncryption) {
-        ciphertext
-        data_to_encrypt_hash
-        decryption_code
-        decryption_params
-        method
+        ciphertext @include(if: $includeEncryptionCiphertext)
+        data_to_encrypt_hash @include(if: $includeEncryptionDataToEncryptHash)
+        decryption_code @include(if: $includeEncryptionDecryptionCode)
+        decryption_params @include(if: $includeEncryptionDecryptionParams)
+        method @include(if: $includeEncryptionMethod)
         accessControlConditions @include(if: $includeEncryptionAccessControlConditions) {
           chain
           comparator
@@ -95,17 +109,17 @@ export const GetEncryptedAssetsDocument = graphql(`
       }
 
       file @include(if: $includeFile) {
-        hash
-        last_modified
+        hash @include(if: $includeFileHash)
+        last_modified @include(if: $includeFileLastModified)
         name
-        size
-        type
+        size @include(if: $includeFileSize)
+        type @include(if: $includeFileType)
       }
 
       chunks @include(if: $includeChunks) {
-        cids
-        iv
-        total_size
+        cids @include(if: $includeChunksCids)
+        iv @include(if: $includeChunksIv)
+        total_size @include(if: $includeChunksTotalSize)
       }
 
       images @include(if: $includeImages) {

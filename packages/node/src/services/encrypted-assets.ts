@@ -152,11 +152,11 @@ function buildEncryptedAssetOrderBy(
  * - When `include` is **provided** → each field defaults to `false` unless explicitly
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
  *
- * **Encryption dual form handling:**
- * - `encryption: true` → `includeEncryption: true, includeEncryptionAccessControlConditions: true`
- * - `encryption: { accessControlConditions: true }` → both true
- * - `encryption: { accessControlConditions: false }` or `encryption: {}` → encryption true, ACC false
- * - `encryption: false` / omitted → both false
+ * **Dual-form sub-include handling (encryption, file, chunks):**
+ * Each accepts `boolean | { subField: boolean }`:
+ * - `true` → include relation with ALL sub-fields
+ * - `{ subFieldA: true, subFieldB: false }` → include relation with selected sub-fields
+ * - `false` / omitted → don't include relation
  *
  * **Profile sub-includes:** Reuses `buildProfileIncludeVars` with prefix replacement:
  * - `includeProfile*` → `includeUniversalProfile*` for universal profile sub-includes
@@ -169,13 +169,21 @@ export function buildEncryptedAssetIncludeVars(
 ): Record<string, boolean> {
   if (!include) return {};
 
-  const encryptionInclude = include.encryption;
-  const isEncryptionIncluded =
-    encryptionInclude === true ||
-    (typeof encryptionInclude === 'object' && encryptionInclude != null);
-  const includeAccessControlConditions =
-    encryptionInclude === true ||
-    (typeof encryptionInclude === 'object' && encryptionInclude?.accessControlConditions === true);
+  // Encryption: boolean | object | undefined → inline dual-form resolution
+  const encInc = include.encryption;
+  const isEncIncluded = encInc === true || (typeof encInc === 'object' && encInc != null);
+  const encObj = typeof encInc === 'object' && encInc != null ? encInc : undefined;
+
+  // File: boolean | object | undefined
+  const fileInc = include.file;
+  const isFileIncluded = fileInc === true || (typeof fileInc === 'object' && fileInc != null);
+  const fileObj = typeof fileInc === 'object' && fileInc != null ? fileInc : undefined;
+
+  // Chunks: boolean | object | undefined
+  const chunksInc = include.chunks;
+  const isChunksIncluded =
+    chunksInc === true || (typeof chunksInc === 'object' && chunksInc != null);
+  const chunksObj = typeof chunksInc === 'object' && chunksInc != null ? chunksInc : undefined;
 
   const activeUniversalProfile = hasActiveIncludes(include.universalProfile);
 
@@ -187,13 +195,30 @@ export function buildEncryptedAssetIncludeVars(
     // Boolean relations
     includeTitle: include.title ?? false,
     includeDescription: include.description ?? false,
-    includeFile: include.file ?? false,
-    includeChunks: include.chunks ?? false,
     includeImages: include.images ?? false,
 
-    // Encryption — top-level + sub-toggle
-    includeEncryption: isEncryptionIncluded,
-    includeEncryptionAccessControlConditions: includeAccessControlConditions,
+    // Encryption — top-level + per-sub-field toggles
+    includeEncryption: isEncIncluded,
+    includeEncryptionMethod: encInc === true || (encObj?.method ?? false),
+    includeEncryptionCiphertext: encInc === true || (encObj?.ciphertext ?? false),
+    includeEncryptionDataToEncryptHash: encInc === true || (encObj?.dataToEncryptHash ?? false),
+    includeEncryptionDecryptionCode: encInc === true || (encObj?.decryptionCode ?? false),
+    includeEncryptionDecryptionParams: encInc === true || (encObj?.decryptionParams ?? false),
+    includeEncryptionAccessControlConditions:
+      encInc === true || (encObj?.accessControlConditions ?? false),
+
+    // File — top-level + per-sub-field toggles (name is always included, no toggle needed)
+    includeFile: isFileIncluded,
+    includeFileType: fileInc === true || (fileObj?.type ?? false),
+    includeFileSize: fileInc === true || (fileObj?.size ?? false),
+    includeFileLastModified: fileInc === true || (fileObj?.lastModified ?? false),
+    includeFileHash: fileInc === true || (fileObj?.hash ?? false),
+
+    // Chunks — top-level + per-sub-field toggles
+    includeChunks: isChunksIncluded,
+    includeChunksCids: chunksInc === true || (chunksObj?.cids ?? false),
+    includeChunksIv: chunksInc === true || (chunksObj?.iv ?? false),
+    includeChunksTotalSize: chunksInc === true || (chunksObj?.totalSize ?? false),
 
     // Universal Profile
     includeUniversalProfile: activeUniversalProfile,

@@ -81,18 +81,36 @@ export const ISSUED_ASSET_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'timestamp', label: 'Timestamp' },
 ];
 
-/** EncryptedAssetInclude — 7 boolean fields. encryption sub-include and universalProfile are SubIncludeSections. */
+/** EncryptedAssetInclude — 5 boolean fields. encryption/file/chunks are SubIncludeSections, universalProfile too. */
 export const ENCRYPTED_ASSET_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'arrayIndex', label: 'Array Index' },
   { key: 'timestamp', label: 'Timestamp' },
   { key: 'title', label: 'Title' },
   { key: 'description', label: 'Description' },
-  { key: 'file', label: 'File' },
-  { key: 'chunks', label: 'Chunks' },
   { key: 'images', label: 'Images' },
 ];
 
-/** EncryptedAssetEncryptionInclude — 1 field (accessControlConditions). Used in encryption sub-include. */
+/** EncryptedAssetEncryptionInclude — 6 fields. Used in encryption sub-include. */
 export const ENCRYPTED_ASSET_ENCRYPTION_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'method', label: 'Method' },
+  { key: 'ciphertext', label: 'Ciphertext' },
+  { key: 'dataToEncryptHash', label: 'Data To Encrypt Hash' },
+  { key: 'decryptionCode', label: 'Decryption Code' },
+  { key: 'decryptionParams', label: 'Decryption Params' },
   { key: 'accessControlConditions', label: 'Access Control Conditions' },
+];
+
+/** EncryptedAssetFileInclude — 4 fields (name is always included). Used in file sub-include. */
+export const ENCRYPTED_ASSET_FILE_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'type', label: 'Type' },
+  { key: 'size', label: 'Size' },
+  { key: 'lastModified', label: 'Last Modified' },
+  { key: 'hash', label: 'Hash' },
+];
+
+/** EncryptedAssetChunksInclude — 3 fields. Used in chunks sub-include. */
+export const ENCRYPTED_ASSET_CHUNKS_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'cids', label: 'CIDs' },
+  { key: 'iv', label: 'IV' },
+  { key: 'totalSize', label: 'Total Size' },
 ];

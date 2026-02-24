@@ -209,8 +209,41 @@ export const EncryptedAssetSortSchema = z.object({
 // Include schema — most complex due to encryption sub-include
 // ---------------------------------------------------------------------------
 
-/** Sub-include for encryption — controls whether access control conditions array is fetched */
+/** Sub-include for file — controls which file sub-fields are fetched */
+export const EncryptedAssetFileIncludeSchema = z.object({
+  /** Include file MIME type */
+  type: z.boolean().optional(),
+  /** Include file size in bytes */
+  size: z.boolean().optional(),
+  /** Include last modified timestamp */
+  lastModified: z.boolean().optional(),
+  /** Include file hash */
+  hash: z.boolean().optional(),
+});
+
+/** Sub-include for chunks — controls which chunk sub-fields are fetched */
+export const EncryptedAssetChunksIncludeSchema = z.object({
+  /** Include IPFS content identifiers */
+  cids: z.boolean().optional(),
+  /** Include initialization vector */
+  iv: z.boolean().optional(),
+  /** Include total size across all chunks */
+  totalSize: z.boolean().optional(),
+});
+
+/** Sub-include for encryption — controls which encryption sub-fields are fetched */
 export const EncryptedAssetEncryptionIncludeSchema = z.object({
+  /** Include encryption method identifier */
+  method: z.boolean().optional(),
+  /** Include encrypted ciphertext */
+  ciphertext: z.boolean().optional(),
+  /** Include hash of original data */
+  dataToEncryptHash: z.boolean().optional(),
+  /** Include decryption code */
+  decryptionCode: z.boolean().optional(),
+  /** Include decryption parameters (JSON string) */
+  decryptionParams: z.boolean().optional(),
+  /** Include access control conditions array */
   accessControlConditions: z.boolean().optional(),
 });
 
@@ -221,12 +254,12 @@ export const EncryptedAssetEncryptionIncludeSchema = z.object({
  * (opt-out rather than opt-in). When `include` is provided, only fields
  * set to `true` (or provided as sub-include objects) are included.
  *
- * **Encryption sub-include:** `encryption` accepts either a boolean or an
- * object with `accessControlConditions` toggle:
- * - `true` → fetch all encryption fields INCLUDING accessControlConditions
- * - `{ accessControlConditions: true }` → same as true
- * - `{ accessControlConditions: false }` or `{}` → encryption scalars only, NO access control conditions
- * - `false` / omitted → don't fetch encryption at all
+ * **Sub-include relations:** `encryption`, `file`, and `chunks` each accept either a
+ * boolean or an object with per-field toggles:
+ * - `true` → fetch the relation with ALL sub-fields
+ * - `{ fieldA: true, fieldB: false }` → fetch relation with only selected sub-fields
+ * - `{}` → fetch relation with no optional sub-fields (base only where applicable)
+ * - `false` / omitted → don't fetch the relation at all
  */
 export const EncryptedAssetIncludeSchema = z.object({
   /** Include array index */
@@ -240,15 +273,24 @@ export const EncryptedAssetIncludeSchema = z.object({
   /**
    * Include encryption details.
    * - `true` → fetch all encryption fields INCLUDING accessControlConditions
-   * - `{ accessControlConditions: true }` → same as true
-   * - `{ accessControlConditions: false }` or `{}` → fetch encryption scalars only, NO access control conditions
+   * - `{ field: true/false }` → fetch encryption with selected sub-fields
    * - `false` / omitted → don't fetch encryption at all
    */
   encryption: z.union([z.boolean(), EncryptedAssetEncryptionIncludeSchema]).optional(),
-  /** Include file metadata */
-  file: z.boolean().optional(),
-  /** Include chunks data */
-  chunks: z.boolean().optional(),
+  /**
+   * Include file metadata.
+   * - `true` → fetch all file fields (name always included)
+   * - `{ type: true, size: true }` → fetch file with selected sub-fields (name always included)
+   * - `false` / omitted → don't fetch file at all
+   */
+  file: z.union([z.boolean(), EncryptedAssetFileIncludeSchema]).optional(),
+  /**
+   * Include chunks data.
+   * - `true` → fetch all chunks fields
+   * - `{ cids: true, iv: false }` → fetch chunks with selected sub-fields
+   * - `false` / omitted → don't fetch chunks at all
+   */
+  chunks: z.union([z.boolean(), EncryptedAssetChunksIncludeSchema]).optional(),
   /** Include images array */
   images: z.boolean().optional(),
   /** Include Universal Profile — sub-fields control which profile attributes to fetch */
@@ -284,7 +326,9 @@ export type AccessControlCondition = z.infer<typeof AccessControlConditionSchema
 export type EncryptedAssetEncryption = z.infer<typeof EncryptedAssetEncryptionSchema>;
 export type EncryptedAssetEncryptionInclude = z.infer<typeof EncryptedAssetEncryptionIncludeSchema>;
 export type EncryptedAssetFile = z.infer<typeof EncryptedAssetFileSchema>;
+export type EncryptedAssetFileInclude = z.infer<typeof EncryptedAssetFileIncludeSchema>;
 export type EncryptedAssetChunks = z.infer<typeof EncryptedAssetChunksSchema>;
+export type EncryptedAssetChunksInclude = z.infer<typeof EncryptedAssetChunksIncludeSchema>;
 export type EncryptedAssetImage = z.infer<typeof EncryptedAssetImageSchema>;
 export type EncryptedAsset = z.infer<typeof EncryptedAssetSchema>;
 export type EncryptedAssetFilter = z.infer<typeof EncryptedAssetFilterSchema>;
@@ -302,39 +346,59 @@ export type UseInfiniteEncryptedAssetsParams = z.infer<
 
 /**
  * Scalar/boolean include fields: include key → EncryptedAsset field name.
- * Relations with sub-includes (encryption, universalProfile) handled by resolver types.
+ * Relations with sub-includes (encryption, file, chunks, universalProfile) handled by resolver types.
  */
 type EncryptedAssetScalarIncludeFieldMap = {
   arrayIndex: 'arrayIndex';
   timestamp: 'timestamp';
   title: 'title';
   description: 'description';
-  file: 'file';
-  chunks: 'chunks';
   images: 'images';
 };
 
 /**
- * Base encryption type WITHOUT accessControlConditions.
- * Used when encryption is included as an object without accessControlConditions: true.
- */
-type EncryptedAssetEncryptionBase = Omit<EncryptedAssetEncryption, 'accessControlConditions'>;
-
-/**
  * Resolve encryption based on include parameter.
- * - true → full EncryptedAssetEncryption (with accessControlConditions)
- * - { accessControlConditions: true } → full EncryptedAssetEncryption
- * - { accessControlConditions: false } or {} → base only (no accessControlConditions)
+ * - true → full EncryptedAssetEncryption (all sub-fields)
+ * - `{ field: true }` → only specified sub-fields present
  * - false/omitted → field absent from type
+ *
+ * When sub-include is an object, we keep the full type at runtime (fields
+ * are stripped to null by the parser) — the type narrows for DX.
  */
 type ResolveEncryption<I> = I extends { encryption: infer E }
   ? E extends true
     ? { encryption: EncryptedAssetEncryption | null }
-    : E extends { accessControlConditions: true }
+    : E extends Record<string, unknown>
       ? { encryption: EncryptedAssetEncryption | null }
-      : E extends Record<string, unknown>
-        ? { encryption: EncryptedAssetEncryptionBase | null }
-        : {}
+      : {}
+  : {};
+
+/**
+ * Resolve file based on include parameter.
+ * - true → full EncryptedAssetFile (all sub-fields)
+ * - `{ type: true, size: true }` → file with selected sub-fields (name always present)
+ * - false/omitted → field absent from type
+ */
+type ResolveFile<I> = I extends { file: infer E }
+  ? E extends true
+    ? { file: EncryptedAssetFile | null }
+    : E extends Record<string, unknown>
+      ? { file: EncryptedAssetFile | null }
+      : {}
+  : {};
+
+/**
+ * Resolve chunks based on include parameter.
+ * - true → full EncryptedAssetChunks (all sub-fields)
+ * - `{ cids: true }` → chunks with selected sub-fields
+ * - false/omitted → field absent from type
+ */
+type ResolveChunks<I> = I extends { chunks: infer E }
+  ? E extends true
+    ? { chunks: EncryptedAssetChunks | null }
+    : E extends Record<string, unknown>
+      ? { chunks: EncryptedAssetChunks | null }
+      : {}
   : {};
 
 /**
@@ -355,7 +419,9 @@ type ResolveUniversalProfile<I> = I extends { universalProfile: infer P }
  * - `EncryptedAssetResult<{}>` → `{ address; contentId; revision }` (base fields only)
  * - `EncryptedAssetResult<{ timestamp: true }>` → base + timestamp
  * - `EncryptedAssetResult<{ encryption: true }>` → base + full encryption (with access control conditions)
- * - `EncryptedAssetResult<{ encryption: { accessControlConditions: false } }>` → base + encryption scalars only
+ * - `EncryptedAssetResult<{ encryption: { accessControlConditions: true } }>` → base + encryption with ACC only
+ * - `EncryptedAssetResult<{ file: { type: true, size: true } }>` → base + file with type & size (name always included)
+ * - `EncryptedAssetResult<{ chunks: { cids: true } }>` → base + chunks with cids only
  * - `EncryptedAssetResult<{ universalProfile: { name: true } }>` → base + narrowed profile
  *
  * @example
@@ -363,7 +429,9 @@ type ResolveUniversalProfile<I> = I extends { universalProfile: infer P }
  * type Full = EncryptedAssetResult;                                                    // = EncryptedAsset (all fields)
  * type Minimal = EncryptedAssetResult<{}>;                                             // = { address; contentId; revision }
  * type WithEnc = EncryptedAssetResult<{ encryption: true }>;                           // = base + full encryption
- * type EncNoAcc = EncryptedAssetResult<{ encryption: {} }>;                            // = base + encryption scalars (no ACC)
+ * type EncSub = EncryptedAssetResult<{ encryption: { method: true } }>;                // = base + encryption (method only)
+ * type WithFile = EncryptedAssetResult<{ file: { type: true, size: true } }>;          // = base + file (type, size + name)
+ * type WithChunks = EncryptedAssetResult<{ chunks: { cids: true } }>;                  // = base + chunks (cids only)
  * type WithProf = EncryptedAssetResult<{ universalProfile: { name: true } }>;          // = base + narrowed profile
  * ```
  */
@@ -377,6 +445,8 @@ export type EncryptedAssetResult<I extends EncryptedAssetInclude | undefined = u
         I
       > &
         ResolveEncryption<NonNullable<I>> &
+        ResolveFile<NonNullable<I>> &
+        ResolveChunks<NonNullable<I>> &
         ResolveUniversalProfile<NonNullable<I>>;
 
 /**

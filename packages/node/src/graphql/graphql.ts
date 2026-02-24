@@ -21422,9 +21422,21 @@ export type GetEncryptedAssetsQueryVariables = Exact<{
   includeTitle?: Scalars['Boolean']['input'];
   includeDescription?: Scalars['Boolean']['input'];
   includeEncryption?: Scalars['Boolean']['input'];
+  includeEncryptionMethod?: Scalars['Boolean']['input'];
+  includeEncryptionCiphertext?: Scalars['Boolean']['input'];
+  includeEncryptionDataToEncryptHash?: Scalars['Boolean']['input'];
+  includeEncryptionDecryptionCode?: Scalars['Boolean']['input'];
+  includeEncryptionDecryptionParams?: Scalars['Boolean']['input'];
   includeEncryptionAccessControlConditions?: Scalars['Boolean']['input'];
   includeFile?: Scalars['Boolean']['input'];
+  includeFileType?: Scalars['Boolean']['input'];
+  includeFileSize?: Scalars['Boolean']['input'];
+  includeFileLastModified?: Scalars['Boolean']['input'];
+  includeFileHash?: Scalars['Boolean']['input'];
   includeChunks?: Scalars['Boolean']['input'];
+  includeChunksCids?: Scalars['Boolean']['input'];
+  includeChunksIv?: Scalars['Boolean']['input'];
+  includeChunksTotalSize?: Scalars['Boolean']['input'];
   includeImages?: Scalars['Boolean']['input'];
   includeUniversalProfile?: Scalars['Boolean']['input'];
   includeUniversalProfileName?: Scalars['Boolean']['input'];
@@ -22145,7 +22157,7 @@ export const GetDigitalAssetsDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<GetDigitalAssetsQuery, GetDigitalAssetsQueryVariables>;
 export const GetEncryptedAssetsDocument = new TypedDocumentString(`
-    query GetEncryptedAssets($where: lsp29_encrypted_asset_bool_exp, $order_by: [lsp29_encrypted_asset_order_by!], $limit: Int, $offset: Int, $includeArrayIndex: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTitle: Boolean! = true, $includeDescription: Boolean! = true, $includeEncryption: Boolean! = true, $includeEncryptionAccessControlConditions: Boolean! = true, $includeFile: Boolean! = true, $includeChunks: Boolean! = true, $includeImages: Boolean! = true, $includeUniversalProfile: Boolean! = true, $includeUniversalProfileName: Boolean! = true, $includeUniversalProfileDescription: Boolean! = true, $includeUniversalProfileTags: Boolean! = true, $includeUniversalProfileLinks: Boolean! = true, $includeUniversalProfileAvatar: Boolean! = true, $includeUniversalProfileImage: Boolean! = true, $includeUniversalProfileBackgroundImage: Boolean! = true, $includeUniversalProfileFollowerCount: Boolean! = true, $includeUniversalProfileFollowingCount: Boolean! = true) {
+    query GetEncryptedAssets($where: lsp29_encrypted_asset_bool_exp, $order_by: [lsp29_encrypted_asset_order_by!], $limit: Int, $offset: Int, $includeArrayIndex: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTitle: Boolean! = true, $includeDescription: Boolean! = true, $includeEncryption: Boolean! = true, $includeEncryptionMethod: Boolean! = true, $includeEncryptionCiphertext: Boolean! = true, $includeEncryptionDataToEncryptHash: Boolean! = true, $includeEncryptionDecryptionCode: Boolean! = true, $includeEncryptionDecryptionParams: Boolean! = true, $includeEncryptionAccessControlConditions: Boolean! = true, $includeFile: Boolean! = true, $includeFileType: Boolean! = true, $includeFileSize: Boolean! = true, $includeFileLastModified: Boolean! = true, $includeFileHash: Boolean! = true, $includeChunks: Boolean! = true, $includeChunksCids: Boolean! = true, $includeChunksIv: Boolean! = true, $includeChunksTotalSize: Boolean! = true, $includeImages: Boolean! = true, $includeUniversalProfile: Boolean! = true, $includeUniversalProfileName: Boolean! = true, $includeUniversalProfileDescription: Boolean! = true, $includeUniversalProfileTags: Boolean! = true, $includeUniversalProfileLinks: Boolean! = true, $includeUniversalProfileAvatar: Boolean! = true, $includeUniversalProfileImage: Boolean! = true, $includeUniversalProfileBackgroundImage: Boolean! = true, $includeUniversalProfileFollowerCount: Boolean! = true, $includeUniversalProfileFollowingCount: Boolean! = true) {
   lsp29_encrypted_asset(
     where: $where
     order_by: $order_by
@@ -22164,11 +22176,11 @@ export const GetEncryptedAssetsDocument = new TypedDocumentString(`
       value
     }
     encryption @include(if: $includeEncryption) {
-      ciphertext
-      data_to_encrypt_hash
-      decryption_code
-      decryption_params
-      method
+      ciphertext @include(if: $includeEncryptionCiphertext)
+      data_to_encrypt_hash @include(if: $includeEncryptionDataToEncryptHash)
+      decryption_code @include(if: $includeEncryptionDecryptionCode)
+      decryption_params @include(if: $includeEncryptionDecryptionParams)
+      method @include(if: $includeEncryptionMethod)
       accessControlConditions @include(if: $includeEncryptionAccessControlConditions) {
         chain
         comparator
@@ -22183,16 +22195,16 @@ export const GetEncryptedAssetsDocument = new TypedDocumentString(`
       }
     }
     file @include(if: $includeFile) {
-      hash
-      last_modified
+      hash @include(if: $includeFileHash)
+      last_modified @include(if: $includeFileLastModified)
       name
-      size
-      type
+      size @include(if: $includeFileSize)
+      type @include(if: $includeFileType)
     }
     chunks @include(if: $includeChunks) {
-      cids
-      iv
-      total_size
+      cids @include(if: $includeChunksCids)
+      iv @include(if: $includeChunksIv)
+      total_size @include(if: $includeChunksTotalSize)
     }
     images @include(if: $includeImages) {
       image_index

@@ -24,7 +24,9 @@ import { EncryptedAssetCard } from '@/components/encrypted-asset-card';
 import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
   buildNestedInclude,
+  ENCRYPTED_ASSET_CHUNKS_INCLUDE_FIELDS,
   ENCRYPTED_ASSET_ENCRYPTION_INCLUDE_FIELDS,
+  ENCRYPTED_ASSET_FILE_INCLUDE_FIELDS,
   ENCRYPTED_ASSET_INCLUDE_FIELDS,
   FilterFieldsRow,
   IncludeToggles,
@@ -174,6 +176,8 @@ function useListState() {
     ENCRYPTED_ASSET_INCLUDE_FIELDS,
   );
   const encryption = useSubInclude(ENCRYPTED_ASSET_ENCRYPTION_INCLUDE_FIELDS);
+  const file = useSubInclude(ENCRYPTED_ASSET_FILE_INCLUDE_FIELDS);
+  const chunks = useSubInclude(ENCRYPTED_ASSET_CHUNKS_INCLUDE_FIELDS);
   const universalProfile = useSubInclude(PROFILE_INCLUDE_FIELDS);
 
   const filter = buildFilter(debouncedValues);
@@ -184,11 +188,12 @@ function useListState() {
   };
   const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
 
-  // Build include with encryption sub-include handling:
-  // When encryption toggle is ON → include encryption (true or { accessControlConditions: ... })
-  // When encryption toggle is OFF → omit encryption
+  // Build include with sub-include handling for encryption, file, chunks:
+  // Each sub-include value is either undefined (excluded), or an object with per-field toggles
   const include = buildNestedInclude(includeValues, {
     encryption: encryption.value,
+    file: file.value,
+    chunks: chunks.value,
     universalProfile: universalProfile.value,
   }) as EncryptedAssetInclude | undefined;
 
@@ -208,6 +213,8 @@ function useListState() {
     toggleInclude,
     include,
     encryption,
+    file,
+    chunks,
     universalProfile,
   };
 }
@@ -220,6 +227,8 @@ function IncludeSections({
   includeValues,
   toggleInclude,
   encryption,
+  file,
+  chunks,
   universalProfile,
 }: ReturnType<typeof useListState>): React.ReactNode {
   return (
@@ -234,6 +243,18 @@ function IncludeSections({
         subtitle="Encryption sub-fields"
         configs={ENCRYPTED_ASSET_ENCRYPTION_INCLUDE_FIELDS}
         state={encryption}
+      />
+      <SubIncludeSection
+        label="File"
+        subtitle="File sub-fields (name always included)"
+        configs={ENCRYPTED_ASSET_FILE_INCLUDE_FIELDS}
+        state={file}
+      />
+      <SubIncludeSection
+        label="Chunks"
+        subtitle="Chunks sub-fields"
+        configs={ENCRYPTED_ASSET_CHUNKS_INCLUDE_FIELDS}
+        state={chunks}
       />
       <SubIncludeSection
         label="Universal Profile"
