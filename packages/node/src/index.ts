@@ -124,5 +124,18 @@ export { issuedAssetKeys } from './keys/issued-assets';
 // Issued asset GraphQL documents (for advanced usage / custom queries)
 export { GetIssuedAssetsDocument } from './documents/issued-assets';
 
+// Encrypted asset services (the core fetching layer)
+export { buildEncryptedAssetIncludeVars, fetchEncryptedAssets } from './services/encrypted-assets';
+export type { FetchEncryptedAssetsResult } from './services/encrypted-assets';
+
+// Encrypted asset parsers (Hasura → clean types)
+export { parseEncryptedAsset, parseEncryptedAssets } from './parsers/encrypted-assets';
+
+// Encrypted asset query key factory
+export { encryptedAssetKeys } from './keys/encrypted-assets';
+
+// Encrypted asset GraphQL documents (for advanced usage / custom queries)
+export { GetEncryptedAssetsDocument } from './documents/encrypted-assets';
+
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';
