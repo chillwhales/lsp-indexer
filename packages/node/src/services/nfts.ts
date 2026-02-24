@@ -190,8 +190,14 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
  * Only maps the 8 fields available in the owned-token NFT context
  * (excludes `collection` and `holder` which are sibling relations on owned_token).
  */
-export function buildNftIncludeVars(include?: OwnedTokenNftInclude): Record<string, boolean> {
+export function buildNftIncludeVars(
+  include?: boolean | OwnedTokenNftInclude,
+): Record<string, boolean> {
   if (!include) {
+    return {};
+  }
+  // true = include everything → return empty (GraphQL defaults all to true)
+  if (include === true) {
     return {};
   }
 

@@ -173,9 +173,12 @@ function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> 
  * Returns `{}` when include is undefined (GraphQL defaults all to true).
  */
 export function buildOwnedAssetIncludeVars(
-  include?: OwnedTokenOwnedAssetInclude,
+  include?: boolean | OwnedTokenOwnedAssetInclude,
 ): Record<string, boolean> {
   if (!include) {
+    return {};
+  }
+  if (include === true) {
     return {};
   }
 

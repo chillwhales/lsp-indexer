@@ -5,6 +5,7 @@ import type { IncludeResult, PartialExcept } from './include-types';
 import {
   ProfileIncludeSchema,
   ProfileSchema,
+  type Profile,
   type ProfileInclude,
   type ProfileResult,
 } from './profiles';
@@ -279,8 +280,8 @@ export const EncryptedAssetIncludeSchema = z.object({
   chunks: z.union([z.boolean(), EncryptedAssetChunksIncludeSchema]).optional(),
   /** Include images array */
   images: z.boolean().optional(),
-  /** Include Universal Profile — sub-fields control which profile attributes to fetch */
-  universalProfile: ProfileIncludeSchema.optional(),
+  /** Include Universal Profile — `true` for all fields, or object for per-field control */
+  universalProfile: z.union([z.boolean(), ProfileIncludeSchema]).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -344,47 +345,85 @@ type EncryptedAssetScalarIncludeFieldMap = {
 };
 
 /**
+ * Field map for encryption sub-include: include key → EncryptedAssetEncryption field name.
+ * No base fields — all fields are opt-in via sub-include.
+ */
+type EncryptionIncludeFieldMap = {
+  method: 'method';
+  ciphertext: 'ciphertext';
+  dataToEncryptHash: 'dataToEncryptHash';
+  decryptionCode: 'decryptionCode';
+  decryptionParams: 'decryptionParams';
+  accessControlConditions: 'accessControlConditions';
+};
+
+/**
+ * Field map for file sub-include: include key → EncryptedAssetFile field name.
+ * Base field `name` is always present when file is included.
+ */
+type FileIncludeFieldMap = {
+  type: 'type';
+  size: 'size';
+  lastModified: 'lastModified';
+  hash: 'hash';
+};
+
+/**
+ * Field map for chunks sub-include: include key → EncryptedAssetChunks field name.
+ * No base fields — all fields are opt-in via sub-include.
+ */
+type ChunksIncludeFieldMap = {
+  cids: 'cids';
+  iv: 'iv';
+  totalSize: 'totalSize';
+};
+
+/**
  * Resolve encryption based on include parameter.
  * - true → full EncryptedAssetEncryption (all sub-fields)
- * - `{ field: true }` → only specified sub-fields present
+ * - `{ method: true }` → only method present in type
  * - false/omitted → field absent from type
- *
- * When sub-include is an object, we keep the full type at runtime (fields
- * are stripped to null by the parser) — the type narrows for DX.
  */
 type ResolveEncryption<I> = I extends { encryption: infer E }
   ? E extends true
     ? { encryption: EncryptedAssetEncryption | null }
-    : E extends Record<string, unknown>
-      ? { encryption: EncryptedAssetEncryption | null }
+    : E extends EncryptedAssetEncryptionInclude
+      ? {
+          encryption: IncludeResult<
+            EncryptedAssetEncryption,
+            never,
+            EncryptionIncludeFieldMap,
+            E
+          > | null;
+        }
       : {}
   : {};
 
 /**
  * Resolve file based on include parameter.
  * - true → full EncryptedAssetFile (all sub-fields)
- * - `{ type: true, size: true }` → file with selected sub-fields (name always present)
+ * - `{ type: true, size: true }` → file with name (base) + type + size
  * - false/omitted → field absent from type
  */
 type ResolveFile<I> = I extends { file: infer E }
   ? E extends true
     ? { file: EncryptedAssetFile | null }
-    : E extends Record<string, unknown>
-      ? { file: EncryptedAssetFile | null }
+    : E extends EncryptedAssetFileInclude
+      ? { file: IncludeResult<EncryptedAssetFile, 'name', FileIncludeFieldMap, E> | null }
       : {}
   : {};
 
 /**
  * Resolve chunks based on include parameter.
  * - true → full EncryptedAssetChunks (all sub-fields)
- * - `{ cids: true }` → chunks with selected sub-fields
+ * - `{ cids: true }` → only cids present in type
  * - false/omitted → field absent from type
  */
 type ResolveChunks<I> = I extends { chunks: infer E }
   ? E extends true
     ? { chunks: EncryptedAssetChunks | null }
-    : E extends Record<string, unknown>
-      ? { chunks: EncryptedAssetChunks | null }
+    : E extends EncryptedAssetChunksInclude
+      ? { chunks: IncludeResult<EncryptedAssetChunks, never, ChunksIncludeFieldMap, E> | null }
       : {}
   : {};
 
@@ -394,9 +433,11 @@ type ResolveChunks<I> = I extends { chunks: infer E }
  * present and narrowed by sub-include. Otherwise absent from type.
  */
 type ResolveUniversalProfile<I> = I extends { universalProfile: infer P }
-  ? P extends ProfileInclude
-    ? { universalProfile: ProfileResult<P> | null }
-    : {}
+  ? P extends true
+    ? { universalProfile: Profile | null }
+    : P extends ProfileInclude
+      ? { universalProfile: ProfileResult<P> | null }
+      : {}
   : {};
 
 /**
