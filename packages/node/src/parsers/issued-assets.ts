@@ -64,9 +64,7 @@ export function parseIssuedAsset(
     arrayIndex: raw.array_index != null ? Number(raw.array_index) : null,
     interfaceId: raw.interface_id ?? null,
     timestamp: raw.timestamp != null ? String(raw.timestamp) : null,
-    issuerProfile: raw.universalProfile
-      ? parseProfile(raw.universalProfile as Parameters<typeof parseProfile>[0])
-      : null,
+    issuerProfile: raw.universalProfile ? parseProfile(raw.universalProfile) : null,
     digitalAsset: raw.issuedAsset ? parseDigitalAsset(raw.issuedAsset) : null,
   };
 
