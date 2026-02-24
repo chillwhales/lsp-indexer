@@ -10,7 +10,7 @@ import type {
 } from '@lsp-indexer/types';
 import { parseProfile } from './profiles';
 import { stripExcluded } from './strip';
-import { parseImage } from './utils';
+import { parseImages } from './utils';
 
 // ---------------------------------------------------------------------------
 // Sub-object parsers — helpers for each nested type
@@ -96,25 +96,6 @@ function parseChunks(raw: any): EncryptedAssetChunks {
     iv: raw.iv ?? null,
     totalSize: raw.total_size != null ? Number(raw.total_size) : null,
   };
-}
-
-/**
- * Parse raw Hasura encrypted asset images into a matrix grouped by `image_index`.
- *
- * Each `image_index` groups multiple resolutions of the same logical image.
- * Returns `Image[][]` where `result[0]` = all resolutions for image 0, etc.
- *
- * Reuses the shared `parseImage` for individual image parsing.
- */
-function parseImages(raw: any[] | null | undefined): import('@lsp-indexer/types').Image[][] | null {
-  if (!raw) return null;
-  const matrix: import('@lsp-indexer/types').Image[][] = [];
-  for (const item of raw) {
-    const idx = item.image_index ?? 0;
-    if (!matrix[idx]) matrix[idx] = [];
-    matrix[idx].push(parseImage(item));
-  }
-  return matrix;
 }
 
 // ---------------------------------------------------------------------------

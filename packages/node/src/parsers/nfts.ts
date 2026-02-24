@@ -3,7 +3,7 @@ import type { GetNftQuery } from '../graphql/graphql';
 import { parseDigitalAsset } from './digital-assets';
 import { parseProfile } from './profiles';
 import { stripExcluded } from './strip';
-import { parseAttributes, parseImage, parseLinks } from './utils';
+import { parseAttributes, parseImage, parseImages, parseLinks } from './utils';
 
 /**
  * Raw Hasura NFT type from the codegen-generated query result.
@@ -93,11 +93,7 @@ export function parseNft(raw: RawNft, include?: NftInclude): Nft | PartialNft {
       : baseUri?.icon
         ? baseUri.icon.map(parseImage)
         : null,
-    images: direct?.images
-      ? direct.images.map(parseImage)
-      : baseUri?.images
-        ? baseUri.images.map(parseImage)
-        : null,
+    images: parseImages(direct?.images) ?? parseImages(baseUri?.images),
     links: parseLinks(direct?.links) ?? parseLinks(baseUri?.links) ?? null,
     attributes: parseAttributes(direct?.attributes) ?? parseAttributes(baseUri?.attributes) ?? null,
   };

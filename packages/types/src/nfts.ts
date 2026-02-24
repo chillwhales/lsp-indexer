@@ -68,8 +68,8 @@ export const NftSchema = z.object({
   category: z.string().nullable(),
   /** NFT-specific metadata icon images */
   icons: z.array(ImageSchema).nullable(),
-  /** NFT-specific metadata images */
-  images: z.array(ImageSchema).nullable(),
+  /** NFT-specific metadata images grouped by image_index */
+  images: z.array(z.array(ImageSchema)).nullable(),
   /** NFT-specific metadata links */
   links: z.array(LinkSchema).nullable(),
   /** NFT-specific metadata attributes (traits) */

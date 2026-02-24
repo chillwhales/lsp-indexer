@@ -198,7 +198,10 @@ export function DigitalAssetCard({
               )}
 
               {images && images.length > 0 && (
-                <ImageList label={`Images (${images.length})`} images={images} />
+                <ImageList
+                  label={`Images (${images.length} group${images.length > 1 ? 's' : ''})`}
+                  images={images}
+                />
               )}
 
               {links && links.length > 0 && (
