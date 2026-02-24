@@ -27,8 +27,8 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 - [x] **QUERY-04**: Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data
 - [x] **QUERY-05**: Developer can use `useFollowers`, `useFollowing`, `useFollowCount` for social/follow data
 - [x] **QUERY-06**: Developer can use `useCreators`, `useInfiniteCreators` for LSP4 creator data
-- [ ] **QUERY-07**: Developer can use `useEncryptedAsset`, `useEncryptedAssets` for LSP29 encrypted asset data
-- [ ] **QUERY-08**: Developer can use `useEncryptedAssetFeed` for LSP29 feed discovery
+- [x] **QUERY-07**: Developer can use `useIssuedAssets`, `useInfiniteIssuedAssets` for LSP12 issued asset data
+- [x] **QUERY-08**: Developer can use `useEncryptedAssets`, `useInfiniteEncryptedAssets` for LSP29 encrypted asset data
 - [ ] **QUERY-09**: Developer can use `useDataChangedEvents` for ERC725 data change events
 - [ ] **QUERY-10**: Developer can use `useUniversalReceiverEvents` for universal receiver events
 
@@ -103,7 +103,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DX-05       | 9.6   | Complete |
 | QUERY-06    | 9.7   | Complete |
 | QUERY-07    | 9.8   | Complete |
-| QUERY-08    | 9.9   | Pending  |
+| QUERY-08    | 9.9   | Complete |
 | QUERY-09    | 9.10  | Pending  |
 | QUERY-10    | 9.11  | Pending  |
 | PAGE-01     | 9     | Pending  |
@@ -124,4 +124,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 ---
 
 _Requirements defined: 2026-02-16_
-_Last updated: 2026-02-23 — DX-05 marked Complete (phase 9.6 verified)_
+_Last updated: 2026-02-24 — QUERY-07/QUERY-08 marked Complete (phases 9.8/9.9 verified)_

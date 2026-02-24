@@ -150,6 +150,7 @@ export const GetCreatorsDocument = graphql(`
             url
             width
             height
+            image_index
             verification_method
             verification_data
           }

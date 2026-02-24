@@ -3,6 +3,7 @@ import React from 'react';
 
 import type { PartialExcept, Profile } from '@lsp-indexer/types';
 
+import { ImageList } from '@/components/image-list';
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -152,63 +153,14 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
         )}
 
         {profileImage != null && profileImage.length > 0 && (
-          <div>
-            <h5 className="text-xs font-medium text-muted-foreground mb-1">
-              Profile Image ({profileImage.length})
-            </h5>
-            <div className="space-y-1.5">
-              {profileImage.map((img, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  {isSafeUrl(img.url) ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={resolveUrl(img.url)}
-                      alt=""
-                      className="size-8 rounded object-cover shrink-0"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="size-8 rounded bg-muted shrink-0" />
-                  )}
-                  <span className="font-mono text-xs text-muted-foreground truncate">
-                    {img.url}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ImageList label={`Profile Image (${profileImage.length})`} images={profileImage} />
         )}
 
         {backgroundImage != null && backgroundImage.length > 0 && (
-          <div>
-            <h5 className="text-xs font-medium text-muted-foreground mb-1">
-              Background Image ({backgroundImage.length})
-            </h5>
-            <div className="space-y-1.5">
-              {backgroundImage.map((img, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  {isSafeUrl(img.url) ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={resolveUrl(img.url)}
-                      alt=""
-                      className="size-8 rounded object-cover shrink-0"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="size-8 rounded bg-muted shrink-0" />
-                  )}
-                  <span className="font-mono text-xs text-muted-foreground truncate">
-                    {img.url}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ImageList
+            label={`Background Image (${backgroundImage.length})`}
+            images={backgroundImage}
+          />
         )}
 
         <RawJsonToggle data={profile} label="profile" />

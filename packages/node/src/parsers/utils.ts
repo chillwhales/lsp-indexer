@@ -83,6 +83,28 @@ export function parseAttributes(
 }
 
 /**
+ * Parse raw Hasura metadata images into a matrix grouped by `image_index`.
+ *
+ * Each `image_index` groups multiple resolutions of the same logical image.
+ * Returns `Image[][]` where `result[0]` = all resolutions for image 0, etc.
+ *
+ * Reuses the shared `parseImage` for individual image parsing.
+ * Shared across digital-assets, nfts, encrypted-assets, and owned-tokens.
+ */
+export function parseImages(
+  raw: ReadonlyArray<RawImage & { image_index?: number | null }> | null | undefined,
+): Image[][] | null {
+  if (!raw) return null;
+  const matrix: Image[][] = [];
+  for (const item of raw) {
+    const idx = item.image_index ?? 0;
+    if (!matrix[idx]) matrix[idx] = [];
+    matrix[idx].push(parseImage(item));
+  }
+  return matrix;
+}
+
+/**
  * Convert a Hasura `numeric` value to a plain decimal string, safe to pass
  * to `BigInt()`, avoiding scientific notation.
  *

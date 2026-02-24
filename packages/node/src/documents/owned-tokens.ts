@@ -108,6 +108,7 @@ export const GetOwnedTokenDocument = graphql(`
             url
             width
             height
+            image_index
             verification_method
             verification_data
           }
@@ -391,6 +392,7 @@ export const GetOwnedTokensDocument = graphql(`
             url
             width
             height
+            image_index
             verification_method
             verification_data
           }

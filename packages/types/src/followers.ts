@@ -5,6 +5,7 @@ import type { IncludeResult, PartialExcept } from './include-types';
 import {
   ProfileIncludeSchema,
   ProfileSchema,
+  type Profile,
   type ProfileInclude,
   type ProfileResult,
 } from './profiles';
@@ -123,10 +124,10 @@ export const FollowerIncludeSchema = z.object({
   timestamp: z.boolean().optional(),
   /** Include contract address */
   address: z.boolean().optional(),
-  /** Include follower's Universal Profile — sub-fields control which profile attributes to fetch */
-  followerProfile: ProfileIncludeSchema.optional(),
-  /** Include followed's Universal Profile — sub-fields control which profile attributes to fetch */
-  followedProfile: ProfileIncludeSchema.optional(),
+  /** Include follower's Universal Profile — `true` for all fields, or object for per-field control */
+  followerProfile: z.union([z.boolean(), ProfileIncludeSchema]).optional(),
+  /** Include followed's Universal Profile — `true` for all fields, or object for per-field control */
+  followedProfile: z.union([z.boolean(), ProfileIncludeSchema]).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -205,9 +206,11 @@ type FollowerScalarIncludeFieldMap = {
  * present and narrowed by sub-include. Otherwise absent from type.
  */
 type ResolveFollowerProfile<I> = I extends { followerProfile: infer P }
-  ? P extends ProfileInclude
-    ? { followerProfile: ProfileResult<P> | null }
-    : {}
+  ? P extends true
+    ? { followerProfile: Profile | null }
+    : P extends ProfileInclude
+      ? { followerProfile: ProfileResult<P> | null }
+      : {}
   : {};
 
 /**
@@ -215,9 +218,11 @@ type ResolveFollowerProfile<I> = I extends { followerProfile: infer P }
  * Same pattern as ResolveFollowerProfile but for the followed side.
  */
 type ResolveFollowedProfile<I> = I extends { followedProfile: infer P }
-  ? P extends ProfileInclude
-    ? { followedProfile: ProfileResult<P> | null }
-    : {}
+  ? P extends true
+    ? { followedProfile: Profile | null }
+    : P extends ProfileInclude
+      ? { followedProfile: ProfileResult<P> | null }
+      : {}
   : {};
 
 /**

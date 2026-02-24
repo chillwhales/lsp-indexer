@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.8 (Issued Assets) — Complete
+- **Sub-phase:** 9.9 (Encrypted Assets) — Complete
 - **Plan:** 4 of 4 in current sub-phase
-- **Status:** Phase 9.8 complete — ready for Phase 9.9 (Encrypted Feed)
-- **Last activity:** 2026-02-23 — Completed 09.8-04-PLAN.md
-- **Progress:** ██████░░░░ 63% (19/30 requirements)
+- **Status:** Phase 9.9 complete — ready for Phase 9.10 (Data Changed Events)
+- **Last activity:** 2026-02-24 — Phase 9.9 verified (16/16 must-haves passed)
+- **Progress:** ██████░░░░ 67% (20/30 requirements)
 
 ## Milestone History
 
@@ -39,7 +39,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.6   | Generic Type Propagation           |     1/1      | Complete |
 | 9.7   | Creators                           |     1/1      | Complete |
 | 9.8   | Issued Assets                      |     1/1      | Complete |
-| 9.9   | Encrypted Feed                     |      1       | Pending  |
+| 9.9   | Encrypted Feed                     |     1/1      | Complete |
 | 9.10  | Data Changed Events                |      1       | Pending  |
 | 9.11  | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
@@ -47,14 +47,14 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 19/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
+**Total:** 20/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 77 (36 v1.0 + 41 v1.1)
+- **Plans completed:** 78 (36 v1.0 + 42 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 21 (11 v1.0 + 10 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 19/30 (v1.1)
+- **Phases completed:** 22 (11 v1.0 + 11 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 20/30 (v1.1)
 
 ## Accumulated Context
 
@@ -159,6 +159,17 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **IssuedAssetResult<I> with ResolveIssuerProfile and ResolveIssuedAssetDigitalAsset:** Same dual heterogeneous relation pattern as Creator. Base fields: issuerAddress, assetAddress. Hasura uses `universalProfile` (not issuerProfile) and `issuedAsset` (not digitalAsset) — parser maps to domain names.
 - **GetIssuedAssetsDocument 31 include variables:** 3 scalar (arrayIndex, interfaceId, timestamp) + 10 issuer profile ($includeIssuerProfile*) + 18 digital asset ($includeDigitalAsset\*) — all Boolean! = true defaults
 - **Issuer profile uses `followed_aggregate`** (not `following_aggregate`) for following count — schema field name difference from other profile sub-documents
+- **EncryptedAsset domain naming:** Type name `EncryptedAsset`, hooks `useEncryptedAssets`/`useInfiniteEncryptedAssets` — maps to Hasura `lsp29_encrypted_asset` table (rich metadata, NOT sparse `lsp29_encrypted_asset_entry`)
+- **EncryptedAsset no singular hook:** No `useEncryptedAsset`. No reliable natural key exists (user-introduced elements can share address + contentId + revision) — same pattern as creators/issued assets
+- **EncryptedAsset base fields:** `address`, `contentId`, `revision` — always present, everything else conditional via include
+- **EncryptedAsset encryption sub-include:** `z.union([z.boolean(), EncryptedAssetEncryptionIncludeSchema])` — `true` = full with accessControlConditions, object `{ accessControlConditions: false }` = encryption scalars only, `false`/omitted = skip encryption
+- **EncryptedAsset title/description flattening:** Hasura returns `{ title: { value: "..." } }` → parser flattens to `title: string | null`. Same for description.
+- **LSP29 images separate from LSP4 images:** `EncryptedAssetImageSchema` has `imageIndex`, `verificationSource` fields that LSP4 images lack — separate schema and parser
+- **ImageList reusable component:** Extracted duplicated image rendering from ProfileCard, DigitalAssetCard, NftCard. Accepts generic `{ url?: string | null; [key: string]: unknown }[]` shape. Backported to 3 existing cards.
+- **EncryptedAsset numeric fields:** `array_index`, `file.last_modified`, `file.size`, `chunks.total_size` all Hasura `numeric` → `Number()` conversion in parser
+- **EncryptedAsset 8 filter fields:** 3 nested relation filters (`universalProfile.lsp3Profile.name.value`, `encryption.method`, `file.type`), 1 numeric comparison (`file.size._gte`), 1 exact numeric (`revision._eq`), 1 timestamp (`_gte`), 2 string ilike
+- **buildEncryptedAssetIncludeVars prefix replacement:** Reuses `buildProfileIncludeVars` with `key.replace('includeProfile', 'includeUniversalProfile')` — same prefix pattern as other domains with nested profiles
+- **`followed_aggregate` for universalProfile following count:** Profile sub-document in encrypted assets uses `followed_aggregate` (matching issued assets pattern)
 
 ### Discovered Todos
 
@@ -172,17 +183,17 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-23
-- **Activity:** Executed Phase 9.8 Plan 04 (Issued Assets playground + E2E verification)
-- **Outcome:** 2 tasks completed, 2 commits (16cb30d, 2bc46dd). IssuedAssetCard + playground page at /issued-assets + nav update. next build succeeds.
+- **Date:** 2026-02-24
+- **Activity:** Executed Phase 9.9 (Encrypted Assets) — all 4 plans + verification
+- **Outcome:** 4 plans, 13 commits, 16/16 must-haves verified. ImageList reusable component extracted + backported. EncryptedAssetCard (most feature-rich card). Playground at /encrypted-assets. All packages build.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.8 complete** — all 4 plans done, QUERY-07 delivered
-- **Next step:** Phase 9.9 (Encrypted Feed)
-- **Remaining sub-phases in Phase 9:** 9.9 (Encrypted Feed), 9.10 (Data Changed Events), 9.11 (Universal Receiver Events)
+- **Phase 9.9 complete** — all 4 plans delivered, QUERY-08 fulfilled, verified 16/16
+- **Next step:** Phase 9.10 (Data Changed Events)
+- **Remaining sub-phases in Phase 9:** 9.10 (Data Changed Events), 9.11 (Universal Receiver Events)
 
 ---
 
-_Last updated: 2026-02-23 — Phase 9.8 complete (Issued Assets — QUERY-07 delivered)_
+_Last updated: 2026-02-24 — Phase 9.9 complete (Encrypted Assets — QUERY-08 delivered, verified 16/16)_

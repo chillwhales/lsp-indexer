@@ -158,8 +158,14 @@ function buildIncludeVars(include?: ProfileInclude): Record<string, boolean> {
  * - When `include` is **provided** → each field defaults to `false` unless explicitly
  *   set to `true`.
  */
-export function buildProfileIncludeVars(include?: ProfileInclude): Record<string, boolean> {
+export function buildProfileIncludeVars(
+  include?: boolean | ProfileInclude,
+): Record<string, boolean> {
   if (!include) {
+    return {};
+  }
+  // true = include everything → return empty (GraphQL defaults all to true)
+  if (include === true) {
     return {};
   }
 

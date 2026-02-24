@@ -4,6 +4,7 @@ import { SortDirectionSchema, SortNullsSchema } from './common';
 import {
   DigitalAssetIncludeSchema,
   DigitalAssetSchema,
+  type DigitalAsset,
   type DigitalAssetInclude,
   type DigitalAssetResult,
 } from './digital-assets';
@@ -13,6 +14,7 @@ import { OwnedAssetSchema, type OwnedAsset } from './owned-assets';
 import {
   ProfileIncludeSchema,
   ProfileSchema,
+  type Profile,
   type ProfileInclude,
   type ProfileResult,
 } from './profiles';
@@ -147,14 +149,14 @@ export const OwnedTokenIncludeSchema = z.object({
   block: z.boolean().optional(),
   /** Include timestamp */
   timestamp: z.boolean().optional(),
-  /** Include related digital asset details — sub-fields control which DA attributes to fetch */
-  digitalAsset: DigitalAssetIncludeSchema.optional(),
-  /** Include related NFT details — sub-fields control which NFT metadata to fetch */
-  nft: OwnedTokenNftIncludeSchema.optional(),
-  /** Include related owned asset — sub-fields control which owned asset attributes to fetch */
-  ownedAsset: OwnedTokenOwnedAssetIncludeSchema.optional(),
-  /** Include related holder profile details — sub-fields control which profile attributes to fetch */
-  holder: ProfileIncludeSchema.optional(),
+  /** Include related digital asset details — `true` for all fields, or object for per-field control */
+  digitalAsset: z.union([z.boolean(), DigitalAssetIncludeSchema]).optional(),
+  /** Include related NFT details — `true` for all fields, or object for per-field control */
+  nft: z.union([z.boolean(), OwnedTokenNftIncludeSchema]).optional(),
+  /** Include related owned asset — `true` for all fields, or object for per-field control */
+  ownedAsset: z.union([z.boolean(), OwnedTokenOwnedAssetIncludeSchema]).optional(),
+  /** Include related holder profile details — `true` for all fields, or object for per-field control */
+  holder: z.union([z.boolean(), ProfileIncludeSchema]).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -230,9 +232,11 @@ type OwnedTokenScalarIncludeFieldMap = {
  * field is present and narrowed by the sub-include. Otherwise, it's absent from the type.
  */
 type ResolveOwnedTokenDA<I> = I extends { digitalAsset: infer C }
-  ? C extends DigitalAssetInclude
-    ? { digitalAsset: DigitalAssetResult<C> | null }
-    : {}
+  ? C extends true
+    ? { digitalAsset: DigitalAsset | null }
+    : C extends DigitalAssetInclude
+      ? { digitalAsset: DigitalAssetResult<C> | null }
+      : {}
   : {};
 
 /**
@@ -260,16 +264,18 @@ type OwnedTokenNftScalarFieldMap = {
  * sub-include fields. Otherwise, it's absent from the type.
  */
 type ResolveOwnedTokenNft<I> = I extends { nft: infer N }
-  ? N extends OwnedTokenNftInclude
-    ? {
-        nft: IncludeResult<
-          Nft,
-          'address' | 'tokenId' | 'isBurned' | 'isMinted',
-          OwnedTokenNftScalarFieldMap,
-          N
-        > | null;
-      }
-    : {}
+  ? N extends true
+    ? { nft: Nft | null }
+    : N extends OwnedTokenNftInclude
+      ? {
+          nft: IncludeResult<
+            Nft,
+            'address' | 'tokenId' | 'isBurned' | 'isMinted',
+            OwnedTokenNftScalarFieldMap,
+            N
+          > | null;
+        }
+      : {}
   : {};
 
 /**
@@ -293,16 +299,18 @@ type OwnedTokenOwnedAssetFieldMap = {
  * OwnedAsset base fields + the 3 scalar sub-include fields.
  */
 type ResolveOwnedTokenOA<I> = I extends { ownedAsset: infer O }
-  ? O extends OwnedTokenOwnedAssetInclude
-    ? {
-        ownedAsset: IncludeResult<
-          OwnedAsset,
-          'id' | 'digitalAssetAddress' | 'holderAddress',
-          OwnedTokenOwnedAssetFieldMap,
-          O
-        > | null;
-      }
-    : {}
+  ? O extends true
+    ? { ownedAsset: OwnedAsset | null }
+    : O extends OwnedTokenOwnedAssetInclude
+      ? {
+          ownedAsset: IncludeResult<
+            OwnedAsset,
+            'id' | 'digitalAssetAddress' | 'holderAddress',
+            OwnedTokenOwnedAssetFieldMap,
+            O
+          > | null;
+        }
+      : {}
   : {};
 
 /**
@@ -314,9 +322,11 @@ type ResolveOwnedTokenOA<I> = I extends { ownedAsset: infer O }
  * OwnedToken holder is a plain Profile (no timestamp merge like NftHolder).
  */
 type ResolveOwnedTokenHolder<I> = I extends { holder: infer H }
-  ? H extends ProfileInclude
-    ? { holder: ProfileResult<H> | null }
-    : {}
+  ? H extends true
+    ? { holder: Profile | null }
+    : H extends ProfileInclude
+      ? { holder: ProfileResult<H> | null }
+      : {}
   : {};
 
 /**

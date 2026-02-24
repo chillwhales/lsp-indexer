@@ -4,6 +4,7 @@ import { SortDirectionSchema, SortNullsSchema } from './common';
 import {
   DigitalAssetIncludeSchema,
   DigitalAssetSchema,
+  type DigitalAsset,
   type DigitalAssetInclude,
   type DigitalAssetResult,
 } from './digital-assets';
@@ -11,6 +12,7 @@ import type { IncludeResult, PartialExcept } from './include-types';
 import {
   ProfileIncludeSchema,
   ProfileSchema,
+  type Profile,
   type ProfileInclude,
   type ProfileResult,
 } from './profiles';
@@ -116,10 +118,10 @@ export const OwnedAssetIncludeSchema = z.object({
   block: z.boolean().optional(),
   /** Include timestamp */
   timestamp: z.boolean().optional(),
-  /** Include related digital asset details — sub-fields control which DA attributes to fetch */
-  digitalAsset: DigitalAssetIncludeSchema.optional(),
-  /** Include related holder profile details — sub-fields control which profile attributes to fetch */
-  holder: ProfileIncludeSchema.optional(),
+  /** Include related digital asset details — `true` for all fields, or object for per-field control */
+  digitalAsset: z.union([z.boolean(), DigitalAssetIncludeSchema]).optional(),
+  /** Include related holder profile details — `true` for all fields, or object for per-field control */
+  holder: z.union([z.boolean(), ProfileIncludeSchema]).optional(),
   /** Include count of individual token IDs (tokenIds_aggregate) */
   tokenIdCount: z.boolean().optional(),
 });
@@ -197,9 +199,11 @@ type OwnedAssetScalarIncludeFieldMap = {
  * field is present and narrowed by the sub-include. Otherwise, it's absent from the type.
  */
 type ResolveOwnedAssetDA<I> = I extends { digitalAsset: infer C }
-  ? C extends DigitalAssetInclude
-    ? { digitalAsset: DigitalAssetResult<C> | null }
-    : {}
+  ? C extends true
+    ? { digitalAsset: DigitalAsset | null }
+    : C extends DigitalAssetInclude
+      ? { digitalAsset: DigitalAssetResult<C> | null }
+      : {}
   : {};
 
 /**
@@ -211,9 +215,11 @@ type ResolveOwnedAssetDA<I> = I extends { digitalAsset: infer C }
  * OwnedAsset holder is a plain Profile (no timestamp merge like NftHolder).
  */
 type ResolveOwnedAssetHolder<I> = I extends { holder: infer H }
-  ? H extends ProfileInclude
-    ? { holder: ProfileResult<H> | null }
-    : {}
+  ? H extends true
+    ? { holder: Profile | null }
+    : H extends ProfileInclude
+      ? { holder: ProfileResult<H> | null }
+      : {}
   : {};
 
 /**

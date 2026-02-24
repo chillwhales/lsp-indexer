@@ -7,7 +7,7 @@ import type {
 } from '@lsp-indexer/types';
 import type { GetDigitalAssetQuery } from '../graphql/graphql';
 import { stripExcluded } from './strip';
-import { numericToString, parseAttributes, parseImage, parseLinks } from './utils';
+import { numericToString, parseAttributes, parseImage, parseImages, parseLinks } from './utils';
 
 /**
  * Raw Hasura digital asset type from the codegen-generated query result.
@@ -90,7 +90,7 @@ export function parseDigitalAsset(
     description: lsp4?.description?.value ?? null,
     category: lsp4?.category?.value ?? null,
     icons: lsp4?.icon != null ? lsp4.icon.map(parseImage) : null,
-    images: lsp4?.images != null ? lsp4.images.map(parseImage) : null,
+    images: parseImages(lsp4?.images),
     links: parseLinks(lsp4?.links),
     attributes: parseAttributes(lsp4?.attributes),
     owner:

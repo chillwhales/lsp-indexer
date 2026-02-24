@@ -4,6 +4,7 @@ import { SortDirectionSchema, SortNullsSchema } from './common';
 import {
   DigitalAssetIncludeSchema,
   DigitalAssetSchema,
+  type DigitalAsset,
   type DigitalAssetInclude,
   type DigitalAssetResult,
 } from './digital-assets';
@@ -11,6 +12,7 @@ import type { IncludeResult, PartialExcept } from './include-types';
 import {
   ProfileIncludeSchema,
   ProfileSchema,
+  type Profile,
   type ProfileInclude,
   type ProfileResult,
 } from './profiles';
@@ -121,10 +123,10 @@ export const CreatorIncludeSchema = z.object({
   interfaceId: z.boolean().optional(),
   /** Include timestamp */
   timestamp: z.boolean().optional(),
-  /** Include creator's Universal Profile — sub-fields control which profile attributes to fetch */
-  creatorProfile: ProfileIncludeSchema.optional(),
-  /** Include digital asset details — sub-fields control which DA attributes to fetch */
-  digitalAsset: DigitalAssetIncludeSchema.optional(),
+  /** Include creator's Universal Profile — `true` for all fields, or object for per-field control */
+  creatorProfile: z.union([z.boolean(), ProfileIncludeSchema]).optional(),
+  /** Include digital asset details — `true` for all fields, or object for per-field control */
+  digitalAsset: z.union([z.boolean(), DigitalAssetIncludeSchema]).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -180,9 +182,11 @@ type CreatorScalarIncludeFieldMap = {
  * present and narrowed by sub-include. Otherwise absent from type.
  */
 type ResolveCreatorProfile<I> = I extends { creatorProfile: infer P }
-  ? P extends ProfileInclude
-    ? { creatorProfile: ProfileResult<P> | null }
-    : {}
+  ? P extends true
+    ? { creatorProfile: Profile | null }
+    : P extends ProfileInclude
+      ? { creatorProfile: ProfileResult<P> | null }
+      : {}
   : {};
 
 /**
@@ -191,9 +195,11 @@ type ResolveCreatorProfile<I> = I extends { creatorProfile: infer P }
  * present and narrowed by sub-include. Otherwise absent from type.
  */
 type ResolveCreatorDigitalAsset<I> = I extends { digitalAsset: infer D }
-  ? D extends DigitalAssetInclude
-    ? { digitalAsset: DigitalAssetResult<D> | null }
-    : {}
+  ? D extends true
+    ? { digitalAsset: DigitalAsset | null }
+    : D extends DigitalAssetInclude
+      ? { digitalAsset: DigitalAssetResult<D> | null }
+      : {}
   : {};
 
 /**

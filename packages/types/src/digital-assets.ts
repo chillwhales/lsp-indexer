@@ -63,8 +63,8 @@ export const DigitalAssetSchema = z.object({
   category: z.string().nullable(),
   /** Icon images from LSP4 metadata, or `null` if not included in query */
   icons: z.array(ImageSchema).nullable(),
-  /** Gallery/cover images from LSP4 metadata, or `null` if not included in query */
-  images: z.array(ImageSchema).nullable(),
+  /** Gallery/cover images from LSP4 metadata grouped by image_index, or `null` if not included in query */
+  images: z.array(z.array(ImageSchema)).nullable(),
   /** External links from LSP4 metadata, or `null` if not included in query */
   links: z.array(LinkSchema).nullable(),
   /** NFT metadata attributes/traits, or `null` if not included in query */

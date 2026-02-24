@@ -67,6 +67,7 @@ export const GetDigitalAssetDocument = graphql(`
           url
           width
           height
+          image_index
           verification_method
           verification_data
         }
@@ -179,6 +180,7 @@ export const GetDigitalAssetsDocument = graphql(`
           url
           width
           height
+          image_index
           verification_method
           verification_data
         }

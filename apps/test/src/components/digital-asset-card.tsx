@@ -3,6 +3,7 @@ import React from 'react';
 
 import type { DigitalAsset, PartialExcept } from '@lsp-indexer/types';
 
+import { ImageList } from '@/components/image-list';
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -193,63 +194,14 @@ export function DigitalAssetCard({
               )}
 
               {icons && icons.length > 0 && (
-                <div>
-                  <h5 className="text-xs font-medium text-muted-foreground mb-1">
-                    Icons ({icons.length})
-                  </h5>
-                  <div className="space-y-1.5">
-                    {icons.map((icon, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        {isSafeUrl(icon.url) ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={resolveUrl(icon.url)}
-                            alt=""
-                            className="size-8 rounded object-cover shrink-0"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="size-8 rounded bg-muted shrink-0" />
-                        )}
-                        <span className="font-mono text-xs text-muted-foreground truncate">
-                          {icon.url}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <ImageList label={`Icons (${icons.length})`} images={icons} />
               )}
 
               {images && images.length > 0 && (
-                <div>
-                  <h5 className="text-xs font-medium text-muted-foreground mb-1">
-                    Images ({images.length})
-                  </h5>
-                  <div className="space-y-1.5">
-                    {images.map((image, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        {isSafeUrl(image.url) ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={resolveUrl(image.url)}
-                            alt=""
-                            className="size-8 rounded object-cover shrink-0"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="size-8 rounded bg-muted shrink-0" />
-                        )}
-                        <span className="font-mono text-xs text-muted-foreground truncate">
-                          {image.url}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <ImageList
+                  label={`Images (${images.length} group${images.length > 1 ? 's' : ''})`}
+                  images={images}
+                />
               )}
 
               {links && links.length > 0 && (

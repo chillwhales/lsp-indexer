@@ -100,6 +100,7 @@ export const GetNftDocument = graphql(`
             url
             width
             height
+            image_index
             verification_method
             verification_data
           }
@@ -365,6 +366,7 @@ export const GetNftsDocument = graphql(`
             url
             width
             height
+            image_index
             verification_method
             verification_data
           }

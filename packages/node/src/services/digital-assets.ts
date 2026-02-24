@@ -141,10 +141,14 @@ function buildDigitalAssetOrderBy(sort?: DigitalAssetSort): Digital_Asset_Order_
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
  */
 export function buildDigitalAssetIncludeVars(
-  include?: DigitalAssetInclude,
+  include?: boolean | DigitalAssetInclude,
 ): Record<string, boolean> {
   if (!include) {
     // Omitted = include everything (GraphQL defaults all Boolean! = true)
+    return {};
+  }
+  // true = include everything → return empty (GraphQL defaults all to true)
+  if (include === true) {
     return {};
   }
 

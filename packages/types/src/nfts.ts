@@ -10,6 +10,7 @@ import {
 import {
   DigitalAssetIncludeSchema,
   DigitalAssetSchema,
+  type DigitalAsset,
   type DigitalAssetInclude,
   type DigitalAssetResult,
 } from './digital-assets';
@@ -17,6 +18,7 @@ import type { IncludeResult, PartialExcept } from './include-types';
 import {
   ProfileIncludeSchema,
   ProfileSchema,
+  type Profile,
   type ProfileInclude,
   type ProfileResult,
 } from './profiles';
@@ -68,8 +70,8 @@ export const NftSchema = z.object({
   category: z.string().nullable(),
   /** NFT-specific metadata icon images */
   icons: z.array(ImageSchema).nullable(),
-  /** NFT-specific metadata images */
-  images: z.array(ImageSchema).nullable(),
+  /** NFT-specific metadata images grouped by image_index */
+  images: z.array(z.array(ImageSchema)).nullable(),
   /** NFT-specific metadata links */
   links: z.array(LinkSchema).nullable(),
   /** NFT-specific metadata attributes (traits) */
@@ -138,10 +140,10 @@ export const NftIncludeSchema = z.object({
   formattedTokenId: z.boolean().optional(),
   /** Include NFT's own name from metadata */
   name: z.boolean().optional(),
-  /** Include parent collection as full DigitalAsset — sub-fields control which collection attributes to fetch */
-  collection: DigitalAssetIncludeSchema.optional(),
-  /** Include current holder data from owned_token — sub-fields control which profile attributes to fetch */
-  holder: ProfileIncludeSchema.optional(),
+  /** Include parent collection as full DigitalAsset — `true` for all fields, or object for per-field control */
+  collection: z.union([z.boolean(), DigitalAssetIncludeSchema]).optional(),
+  /** Include current holder data from owned_token — `true` for all fields, or object for per-field control */
+  holder: z.union([z.boolean(), ProfileIncludeSchema]).optional(),
   /** Include metadata description */
   description: z.boolean().optional(),
   /** Include metadata category */
@@ -242,9 +244,11 @@ type NftScalarIncludeFieldMap = {
  * field is present and narrowed by the sub-include. Otherwise, it's absent from the type.
  */
 type ResolveNftCollection<I> = I extends { collection: infer C }
-  ? C extends DigitalAssetInclude
-    ? { collection: DigitalAssetResult<C> | null }
-    : {}
+  ? C extends true
+    ? { collection: DigitalAsset | null }
+    : C extends DigitalAssetInclude
+      ? { collection: DigitalAssetResult<C> | null }
+      : {}
   : {};
 
 /**
@@ -257,9 +261,11 @@ type ResolveNftCollection<I> = I extends { collection: infer C }
  * `(ProfileResult<H> & { timestamp: string }) | null`
  */
 type ResolveNftHolder<I> = I extends { holder: infer H }
-  ? H extends ProfileInclude
-    ? { holder: (ProfileResult<H> & { timestamp: string }) | null }
-    : {}
+  ? H extends true
+    ? { holder: NftHolder | null }
+    : H extends ProfileInclude
+      ? { holder: (ProfileResult<H> & { timestamp: string }) | null }
+      : {}
   : {};
 
 /**

@@ -93,6 +93,7 @@ export const GetOwnedAssetDocument = graphql(`
             url
             width
             height
+            image_index
             verification_method
             verification_data
           }
@@ -284,6 +285,7 @@ export const GetOwnedAssetsDocument = graphql(`
             url
             width
             height
+            image_index
             verification_method
             verification_data
           }
