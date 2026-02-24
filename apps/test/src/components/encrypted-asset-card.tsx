@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, Lock, ShieldCheck } from 'lucide-react';
+import { ChevronDown, FileText, Layers, Lock, ShieldCheck } from 'lucide-react';
 import React from 'react';
 
 import type { EncryptedAsset, PartialExcept } from '@lsp-indexer/types';
@@ -262,51 +262,64 @@ function EncryptionSection({
 }
 
 // ---------------------------------------------------------------------------
-// File section
+// File section — collapsible with name, type, size, hash, lastModified
 // ---------------------------------------------------------------------------
 
 function FileSection({ file }: { file: NonNullable<EncryptedAsset['file']> }): React.ReactNode {
   return (
-    <div>
-      <h5 className="text-xs font-medium text-muted-foreground mb-1">File</h5>
-      <dl className="space-y-1 text-sm">
-        {file.name && (
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Name</dt>
-            <dd className="text-xs break-all">{file.name}</dd>
-          </div>
-        )}
-        {file.type && (
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Type</dt>
-            <dd className="font-mono text-xs">{file.type}</dd>
-          </div>
-        )}
-        {file.size != null && (
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Size</dt>
-            <dd className="font-mono text-xs">{file.size.toLocaleString()} bytes</dd>
-          </div>
-        )}
-        {file.hash && (
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Hash</dt>
-            <dd className="font-mono text-xs break-all">{file.hash}</dd>
-          </div>
-        )}
-        {file.lastModified != null && (
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Last Modified</dt>
-            <dd className="text-xs">{new Date(file.lastModified).toLocaleString()}</dd>
-          </div>
-        )}
-      </dl>
-    </div>
+    <Collapsible>
+      <CollapsibleTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+          <FileText className="size-3.5" />
+          File Details
+          {file.name && (
+            <span className="font-mono text-xs text-muted-foreground/70 truncate max-w-48">
+              {file.name}
+            </span>
+          )}
+          <ChevronDown className="size-3.5" />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-2">
+        <dl className="space-y-1.5 text-sm">
+          {file.name && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Name</dt>
+              <dd className="text-xs break-all">{file.name}</dd>
+            </div>
+          )}
+          {file.type && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Type</dt>
+              <dd className="font-mono text-xs">{file.type}</dd>
+            </div>
+          )}
+          {file.size != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Size</dt>
+              <dd className="font-mono text-xs">{file.size.toLocaleString()} bytes</dd>
+            </div>
+          )}
+          {file.hash && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Hash</dt>
+              <dd className="font-mono text-xs break-all">{file.hash}</dd>
+            </div>
+          )}
+          {file.lastModified != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Last Modified</dt>
+              <dd className="text-xs">{new Date(file.lastModified).toLocaleString()}</dd>
+            </div>
+          )}
+        </dl>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Chunks section
+// Chunks section — collapsible with totalSize, iv, and CID list
 // ---------------------------------------------------------------------------
 
 function ChunksSection({
@@ -315,34 +328,45 @@ function ChunksSection({
   chunks: NonNullable<EncryptedAsset['chunks']>;
 }): React.ReactNode {
   return (
-    <div>
-      <h5 className="text-xs font-medium text-muted-foreground mb-1">Chunks</h5>
-      <dl className="space-y-1 text-sm">
-        {chunks.totalSize != null && (
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">Total Size</dt>
-            <dd className="font-mono text-xs">{chunks.totalSize.toLocaleString()} bytes</dd>
-          </div>
-        )}
-        {chunks.iv && (
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-28 shrink-0">IV</dt>
-            <dd className="font-mono text-xs break-all">{chunks.iv}</dd>
-          </div>
-        )}
-        {chunks.cids != null && chunks.cids.length > 0 && (
-          <div>
-            <dt className="text-muted-foreground text-xs mb-1">CIDs ({chunks.cids.length})</dt>
-            <div className="space-y-0.5">
-              {chunks.cids.map((cid, i) => (
-                <dd key={i} className="font-mono text-xs break-all text-muted-foreground">
-                  {cid}
-                </dd>
-              ))}
+    <Collapsible>
+      <CollapsibleTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+          <Layers className="size-3.5" />
+          Chunks
+          {chunks.cids != null && chunks.cids.length > 0 && (
+            <span className="text-xs text-muted-foreground/70">({chunks.cids.length} CIDs)</span>
+          )}
+          <ChevronDown className="size-3.5" />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-2">
+        <dl className="space-y-1.5 text-sm">
+          {chunks.totalSize != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Total Size</dt>
+              <dd className="font-mono text-xs">{chunks.totalSize.toLocaleString()} bytes</dd>
             </div>
-          </div>
-        )}
-      </dl>
-    </div>
+          )}
+          {chunks.iv && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">IV</dt>
+              <dd className="font-mono text-xs break-all">{chunks.iv}</dd>
+            </div>
+          )}
+          {chunks.cids != null && chunks.cids.length > 0 && (
+            <div>
+              <dt className="text-muted-foreground text-xs mb-1">CIDs ({chunks.cids.length})</dt>
+              <div className="space-y-0.5">
+                {chunks.cids.map((cid, i) => (
+                  <dd key={i} className="font-mono text-xs break-all text-muted-foreground">
+                    {cid}
+                  </dd>
+                ))}
+              </div>
+            </div>
+          )}
+        </dl>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
