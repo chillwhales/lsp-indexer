@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.8 (Issued Assets) — Complete
-- **Plan:** 4 of 4 in current sub-phase
-- **Status:** Phase 9.8 complete — ready for Phase 9.9 (Encrypted Feed)
-- **Last activity:** 2026-02-23 — Completed 09.8-04-PLAN.md
+- **Sub-phase:** 9.9 (Encrypted Assets) — In progress
+- **Plan:** 1 of 4 in current sub-phase
+- **Status:** In progress — 09.9-01 complete (types + documents + codegen)
+- **Last activity:** 2026-02-24 — Completed 09.9-01-PLAN.md
 - **Progress:** ██████░░░░ 63% (19/30 requirements)
 
 ## Milestone History
@@ -51,7 +51,7 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 77 (36 v1.0 + 41 v1.1)
+- **Plans completed:** 78 (36 v1.0 + 42 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 21 (11 v1.0 + 10 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 19/30 (v1.1)
@@ -172,17 +172,17 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-23
-- **Activity:** Executed Phase 9.8 Plan 04 (Issued Assets playground + E2E verification)
-- **Outcome:** 2 tasks completed, 2 commits (16cb30d, 2bc46dd). IssuedAssetCard + playground page at /issued-assets + nav update. next build succeeds.
+- **Date:** 2026-02-24
+- **Activity:** Executed Phase 9.9 Plan 01 (Encrypted Asset types + GraphQL document + codegen)
+- **Outcome:** 2 tasks completed, 2 commits (83852cd, db405bf). EncryptedAsset types with 5 sub-schemas + conditional include types + GetEncryptedAssetsDocument (23 vars). All checks pass.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.8 complete** — all 4 plans done, QUERY-07 delivered
-- **Next step:** Phase 9.9 (Encrypted Feed)
-- **Remaining sub-phases in Phase 9:** 9.9 (Encrypted Feed), 9.10 (Data Changed Events), 9.11 (Universal Receiver Events)
+- **Phase 9.9 plan 01 complete** — types and document foundation ready
+- **Next step:** 09.9-02-PLAN.md (parsers + services + query keys)
+- **Remaining sub-phases in Phase 9:** 9.9 (Encrypted Assets, 3 plans remaining), 9.10 (Data Changed Events), 9.11 (Universal Receiver Events)
 
 ---
 
-_Last updated: 2026-02-23 — Phase 9.8 complete (Issued Assets — QUERY-07 delivered)_
+_Last updated: 2026-02-24 — Completed 09.9-01-PLAN.md (Encrypted Asset types + documents + codegen)_
