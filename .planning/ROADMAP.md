@@ -292,8 +292,6 @@ No implementation bodies change — only overload signatures and return type ann
 
 **Plans:** 4 plans
 
-Plans:
-
 - [ ] 09.10-01-PLAN.md — DataChangedEvent + TokenIdDataChangedEvent types (both domains) + GraphQL documents + codegen
 - [ ] 09.10-02-PLAN.md — Data key resolver utility (10 @lukso packages) + parsers + services + query keys for both domains
 - [ ] 09.10-03-PLAN.md — 4 React hooks + 2 server actions + 4 Next.js hooks + build validation
