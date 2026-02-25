@@ -1,0 +1,276 @@
+import { z } from 'zod';
+
+import { SortDirectionSchema, SortNullsSchema } from './common';
+import {
+  DigitalAssetIncludeSchema,
+  DigitalAssetSchema,
+  type DigitalAsset,
+  type DigitalAssetInclude,
+  type DigitalAssetResult,
+} from './digital-assets';
+import type { IncludeResult, PartialExcept } from './include-types';
+
+// ---------------------------------------------------------------------------
+// Sub-type schema — lightweight NFT type for event context
+// ---------------------------------------------------------------------------
+
+/**
+ * A lightweight NFT sub-type specific to the token ID data changed event context.
+ *
+ * This is NOT the full `Nft` type from the nfts domain — it contains only the
+ * fields relevant when fetching NFT info as part of a data change event.
+ */
+export const TokenIdDataChangedEventNftSchema = z.object({
+  /** NFT collection address */
+  address: z.string(),
+  /** Token ID within the collection */
+  tokenId: z.string(),
+  /** Whether the token has been burned */
+  isBurned: z.boolean(),
+  /** Whether the token has been minted */
+  isMinted: z.boolean(),
+  /** NFT name from lsp4Metadata (null if not set) */
+  name: z.string().nullable(),
+});
+
+// ---------------------------------------------------------------------------
+// Core domain schema
+// ---------------------------------------------------------------------------
+
+/**
+ * An ERC725Y data change event for a specific token ID from the
+ * `token_id_data_changed` Hasura table.
+ *
+ * Similar to `DataChangedEvent` but includes a `tokenId` field and has an
+ * `nft` relation instead of `universalProfile`. Base fields (`address`,
+ * `dataKey`, `dataValue`, `tokenId`, `dataKeyName`) are always present;
+ * other fields are controlled by the `include` parameter.
+ */
+export const TokenIdDataChangedEventSchema = z.object({
+  /** Emitting contract address (always present) */
+  address: z.string(),
+  /** Raw hex ERC725Y data key (always present) */
+  dataKey: z.string(),
+  /** Raw hex data value (always present, no decoding) */
+  dataValue: z.string(),
+  /** Token ID the data change applies to (always present) */
+  tokenId: z.string(),
+  /** Resolved human-readable name for known ERC725Y keys, null if unknown (always present) */
+  dataKeyName: z.string().nullable(),
+  /** Block number where event was emitted (null = not included) */
+  blockNumber: z.number().nullable(),
+  /** Timestamp when event was indexed (null = not included) */
+  timestamp: z.string().nullable(),
+  /** Log index within the transaction (null = not included) */
+  logIndex: z.number().nullable(),
+  /** Transaction index within the block (null = not included) */
+  transactionIndex: z.number().nullable(),
+  /** Digital Asset of the emitting address (null = not included) */
+  digitalAsset: DigitalAssetSchema.nullable(),
+  /** NFT details for the token (null = not included or no NFT record) */
+  nft: TokenIdDataChangedEventNftSchema.nullable(),
+});
+
+// ---------------------------------------------------------------------------
+// Filter schema — 7 filter fields (9 params due to range fields)
+// ---------------------------------------------------------------------------
+
+/**
+ * Filter for token ID data changed event queries.
+ *
+ * All 7 filter fields from CONTEXT.md — string fields use `_ilike` (case-insensitive),
+ * timestamp and blockNumber fields use `_gte` / `_lte` for range filtering.
+ */
+export const TokenIdDataChangedEventFilterSchema = z.object({
+  /** Case-insensitive match on emitting contract address (uses _ilike) */
+  address: z.string().optional(),
+  /** Case-insensitive match on data key hex (uses _ilike) */
+  dataKey: z.string().optional(),
+  /** Case-insensitive match on token ID (uses _ilike) */
+  tokenId: z.string().optional(),
+  /** Timestamp lower bound (inclusive, _gte) */
+  timestampFrom: z.union([z.string(), z.number()]).optional(),
+  /** Timestamp upper bound (inclusive, _lte) */
+  timestampTo: z.union([z.string(), z.number()]).optional(),
+  /** Block number lower bound (inclusive, _gte) */
+  blockNumberFrom: z.number().optional(),
+  /** Block number upper bound (inclusive, _lte) */
+  blockNumberTo: z.number().optional(),
+  /** Case-insensitive search on DA name (nested: digitalAsset.lsp4TokenName.value._ilike) */
+  digitalAssetName: z.string().optional(),
+  /** Case-insensitive NFT name filter (nested through nft relation) */
+  nftName: z.string().optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Sort schema — 4 sort fields
+// ---------------------------------------------------------------------------
+
+/**
+ * Fields available for sorting token ID data changed event lists.
+ *
+ * `digitalAssetName` is a nested sort via `digitalAsset.lsp4TokenName`.
+ * `nftName` is a nested sort via `nft.lsp4Metadata.name`.
+ * Both handled at service layer.
+ */
+export const TokenIdDataChangedEventSortFieldSchema = z.enum([
+  'timestamp',
+  'blockNumber',
+  'digitalAssetName',
+  'nftName',
+]);
+
+export const TokenIdDataChangedEventSortSchema = z.object({
+  /** Which field to sort by */
+  field: TokenIdDataChangedEventSortFieldSchema,
+  /** Sort direction */
+  direction: SortDirectionSchema,
+  /** Where nulls appear — omit to use Hasura default */
+  nulls: SortNullsSchema.optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Include schema (inverted default — omit = fetch everything)
+// ---------------------------------------------------------------------------
+
+/**
+ * Controls which optional fields are fetched for token ID data changed event queries.
+ *
+ * **Inverted default:** When `include` is omitted, ALL fields are fetched
+ * (opt-out rather than opt-in). When `include` is provided, only fields
+ * set to `true` (or provided as sub-include objects) are included.
+ *
+ * **Relation sub-includes:** `digitalAsset` accepts a sub-include object
+ * for full control over which nested fields to fetch. `nft` is boolean-only
+ * (true = fetch basic NFT info, false/omit = skip).
+ */
+export const TokenIdDataChangedEventIncludeSchema = z.object({
+  /** Include block number */
+  blockNumber: z.boolean().optional(),
+  /** Include timestamp */
+  timestamp: z.boolean().optional(),
+  /** Include log index */
+  logIndex: z.boolean().optional(),
+  /** Include transaction index */
+  transactionIndex: z.boolean().optional(),
+  /** Include Digital Asset — `true` for all fields, or object for per-field control */
+  digitalAsset: z.union([z.boolean(), DigitalAssetIncludeSchema]).optional(),
+  /** Include NFT relation — boolean only (true = fetch basic NFT info, false/omit = skip) */
+  nft: z.boolean().optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Hook parameter schemas — 2 hooks (no singular hook)
+// ---------------------------------------------------------------------------
+
+/** Params for useTokenIdDataChangedEvents — paginated list of token ID data changed events */
+export const UseTokenIdDataChangedEventsParamsSchema = z.object({
+  filter: TokenIdDataChangedEventFilterSchema.optional(),
+  sort: TokenIdDataChangedEventSortSchema.optional(),
+  limit: z.number().optional(),
+  offset: z.number().optional(),
+  include: TokenIdDataChangedEventIncludeSchema.optional(),
+});
+
+/** Params for useInfiniteTokenIdDataChangedEvents — infinite scroll variant */
+export const UseInfiniteTokenIdDataChangedEventsParamsSchema = z.object({
+  filter: TokenIdDataChangedEventFilterSchema.optional(),
+  sort: TokenIdDataChangedEventSortSchema.optional(),
+  pageSize: z.number().optional(),
+  include: TokenIdDataChangedEventIncludeSchema.optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Inferred types (single source of truth — derive from schemas)
+// ---------------------------------------------------------------------------
+
+export type TokenIdDataChangedEventNft = z.infer<typeof TokenIdDataChangedEventNftSchema>;
+export type TokenIdDataChangedEvent = z.infer<typeof TokenIdDataChangedEventSchema>;
+export type TokenIdDataChangedEventFilter = z.infer<typeof TokenIdDataChangedEventFilterSchema>;
+export type TokenIdDataChangedEventSortField = z.infer<
+  typeof TokenIdDataChangedEventSortFieldSchema
+>;
+export type TokenIdDataChangedEventSort = z.infer<typeof TokenIdDataChangedEventSortSchema>;
+export type TokenIdDataChangedEventInclude = z.infer<typeof TokenIdDataChangedEventIncludeSchema>;
+export type UseTokenIdDataChangedEventsParams = z.infer<
+  typeof UseTokenIdDataChangedEventsParamsSchema
+>;
+export type UseInfiniteTokenIdDataChangedEventsParams = z.infer<
+  typeof UseInfiniteTokenIdDataChangedEventsParamsSchema
+>;
+
+// ---------------------------------------------------------------------------
+// Conditional include result type (DX-04)
+// ---------------------------------------------------------------------------
+
+/**
+ * Scalar include fields: include schema key → TokenIdDataChangedEvent field name.
+ * Relations (digitalAsset, nft) handled by resolver types.
+ */
+type TokenIdDataChangedEventScalarIncludeFieldMap = {
+  blockNumber: 'blockNumber';
+  timestamp: 'timestamp';
+  logIndex: 'logIndex';
+  transactionIndex: 'transactionIndex';
+};
+
+/**
+ * Resolve nested `digitalAsset` relation based on include parameter.
+ * When include has `digitalAsset` as a DigitalAssetInclude object, the field is
+ * present and narrowed by sub-include. Otherwise absent from type.
+ */
+type ResolveTokenIdDataChangedEventDA<I> = I extends { digitalAsset: infer D }
+  ? D extends true
+    ? { digitalAsset: DigitalAsset | null }
+    : D extends DigitalAssetInclude
+      ? { digitalAsset: DigitalAssetResult<D> | null }
+      : {}
+  : {};
+
+/**
+ * Resolve nested `nft` relation based on include parameter.
+ * Boolean-only: when `nft: true`, the full NFT sub-type is present.
+ */
+type ResolveTokenIdDataChangedEventNft<I> = I extends { nft: true }
+  ? { nft: TokenIdDataChangedEventNft | null }
+  : {};
+
+/**
+ * TokenIdDataChangedEvent type narrowed by include parameter.
+ *
+ * - `TokenIdDataChangedEventResult` (no generic) → full `TokenIdDataChangedEvent` type (backward compatible)
+ * - `TokenIdDataChangedEventResult<{}>` → `{ address; dataKey; dataValue; tokenId; dataKeyName }` (base fields only)
+ * - `TokenIdDataChangedEventResult<{ timestamp: true }>` → base + timestamp
+ * - `TokenIdDataChangedEventResult<{ digitalAsset: { name: true } }>` → base + narrowed DA
+ * - `TokenIdDataChangedEventResult<{ nft: true }>` → base + NFT info
+ *
+ * @example
+ * ```ts
+ * type Full = TokenIdDataChangedEventResult;                                                  // = TokenIdDataChangedEvent (all fields)
+ * type Minimal = TokenIdDataChangedEventResult<{}>;                                           // = { address; dataKey; dataValue; tokenId; dataKeyName }
+ * type WithTime = TokenIdDataChangedEventResult<{ timestamp: true }>;                         // = base + timestamp
+ * type WithDA = TokenIdDataChangedEventResult<{ digitalAsset: { name: true } }>;              // = base + narrowed DA
+ * type WithNft = TokenIdDataChangedEventResult<{ nft: true }>;                                // = base + NFT info
+ * ```
+ */
+export type TokenIdDataChangedEventResult<
+  I extends TokenIdDataChangedEventInclude | undefined = undefined,
+> = I extends undefined
+  ? TokenIdDataChangedEvent
+  : IncludeResult<
+      TokenIdDataChangedEvent,
+      'address' | 'dataKey' | 'dataValue' | 'tokenId' | 'dataKeyName',
+      TokenIdDataChangedEventScalarIncludeFieldMap,
+      I
+    > &
+      ResolveTokenIdDataChangedEventDA<NonNullable<I>> &
+      ResolveTokenIdDataChangedEventNft<NonNullable<I>>;
+
+/**
+ * TokenIdDataChangedEvent with only base fields guaranteed — used for components
+ * that accept any include-narrowed TokenIdDataChangedEvent.
+ */
+export type PartialTokenIdDataChangedEvent = PartialExcept<
+  TokenIdDataChangedEvent,
+  'address' | 'dataKey' | 'dataValue' | 'tokenId' | 'dataKeyName'
+>;
