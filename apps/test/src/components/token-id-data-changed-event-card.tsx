@@ -9,6 +9,7 @@ import {
   CollapsibleDigitalAssetSection,
   CollapsibleNftSection,
 } from '@/components/collapsible-sections';
+import { ExpandableHex } from '@/components/expandable-hex';
 import { RawJsonToggle } from '@/components/playground';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatRelativeTime, truncateAddress } from '@/lib/utils';
@@ -97,11 +98,11 @@ export function TokenIdDataChangedEventCard({
             </div>
           )}
 
-          {/* Data Value — truncated hex */}
+          {/* Data Value — expandable hex */}
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-40 shrink-0">Data Value</dt>
-            <dd className="font-mono text-xs break-all">
-              {truncateDataValue(tokenIdDataChangedEvent.dataValue)}
+            <dd className="min-w-0">
+              <ExpandableHex value={tokenIdDataChangedEvent.dataValue} />
             </dd>
           </div>
 
@@ -110,7 +111,7 @@ export function TokenIdDataChangedEventCard({
             tokenIdDataChangedEvent.blockNumber != null && (
               <div className="flex gap-2">
                 <dt className="text-muted-foreground w-40 shrink-0">Block Number</dt>
-                <dd className="font-mono">{String(tokenIdDataChangedEvent.blockNumber)}</dd>
+                <dd className="font-mono text-xs">{String(tokenIdDataChangedEvent.blockNumber)}</dd>
               </div>
             )}
           {'timestamp' in tokenIdDataChangedEvent && tokenIdDataChangedEvent.timestamp != null && (
@@ -127,14 +128,16 @@ export function TokenIdDataChangedEventCard({
           {'logIndex' in tokenIdDataChangedEvent && tokenIdDataChangedEvent.logIndex != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Log Index</dt>
-              <dd className="font-mono">{String(tokenIdDataChangedEvent.logIndex)}</dd>
+              <dd className="font-mono text-xs">{String(tokenIdDataChangedEvent.logIndex)}</dd>
             </div>
           )}
           {'transactionIndex' in tokenIdDataChangedEvent &&
             tokenIdDataChangedEvent.transactionIndex != null && (
               <div className="flex gap-2">
                 <dt className="text-muted-foreground w-40 shrink-0">Tx Index</dt>
-                <dd className="font-mono">{String(tokenIdDataChangedEvent.transactionIndex)}</dd>
+                <dd className="font-mono text-xs">
+                  {String(tokenIdDataChangedEvent.transactionIndex)}
+                </dd>
               </div>
             )}
         </dl>
@@ -151,17 +154,4 @@ export function TokenIdDataChangedEventCard({
       </CardContent>
     </Card>
   );
-}
-
-// ---------------------------------------------------------------------------
-// Data value truncation helper
-// ---------------------------------------------------------------------------
-
-/**
- * Truncate a hex data value for display. Shows the first ~80 chars
- * (including 0x prefix) followed by ellipsis for long values.
- */
-function truncateDataValue(value: string): string {
-  if (value.length <= 80) return value;
-  return `${value.slice(0, 80)}…`;
 }

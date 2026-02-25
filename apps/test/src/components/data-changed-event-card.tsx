@@ -1,6 +1,6 @@
 'use client';
 
-import { Activity, ChevronDown } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import React from 'react';
 
 import type { DataChangedEvent, PartialExcept } from '@lsp-indexer/types';
@@ -9,10 +9,9 @@ import {
   CollapsibleDigitalAssetSection,
   CollapsibleProfileSection,
 } from '@/components/collapsible-sections';
+import { ExpandableHex } from '@/components/expandable-hex';
 import { RawJsonToggle } from '@/components/playground';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatRelativeTime, truncateAddress } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
@@ -89,11 +88,11 @@ export function DataChangedEventCard({
             </div>
           )}
 
-          {/* Data Value — truncated hex */}
+          {/* Data Value — expandable hex */}
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-40 shrink-0">Data Value</dt>
-            <dd className="font-mono text-xs break-all">
-              {truncateDataValue(dataChangedEvent.dataValue)}
+            <dd className="min-w-0">
+              <ExpandableHex value={dataChangedEvent.dataValue} />
             </dd>
           </div>
 
@@ -101,7 +100,7 @@ export function DataChangedEventCard({
           {'blockNumber' in dataChangedEvent && dataChangedEvent.blockNumber != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Block Number</dt>
-              <dd className="font-mono">{String(dataChangedEvent.blockNumber)}</dd>
+              <dd className="font-mono text-xs">{String(dataChangedEvent.blockNumber)}</dd>
             </div>
           )}
           {'timestamp' in dataChangedEvent && dataChangedEvent.timestamp != null && (
@@ -118,13 +117,13 @@ export function DataChangedEventCard({
           {'logIndex' in dataChangedEvent && dataChangedEvent.logIndex != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Log Index</dt>
-              <dd className="font-mono">{String(dataChangedEvent.logIndex)}</dd>
+              <dd className="font-mono text-xs">{String(dataChangedEvent.logIndex)}</dd>
             </div>
           )}
           {'transactionIndex' in dataChangedEvent && dataChangedEvent.transactionIndex != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Tx Index</dt>
-              <dd className="font-mono">{String(dataChangedEvent.transactionIndex)}</dd>
+              <dd className="font-mono text-xs">{String(dataChangedEvent.transactionIndex)}</dd>
             </div>
           )}
         </dl>
@@ -142,46 +141,5 @@ export function DataChangedEventCard({
         <RawJsonToggle data={dataChangedEvent} label="dataChangedEvent" />
       </CardContent>
     </Card>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Data value truncation helper
-// ---------------------------------------------------------------------------
-
-/**
- * Truncate a hex data value for display. Shows the first ~80 chars
- * (including 0x prefix) followed by ellipsis for long values.
- */
-function truncateDataValue(value: string): string {
-  if (value.length <= 80) return value;
-  return `${value.slice(0, 80)}…`;
-}
-
-// ---------------------------------------------------------------------------
-// Collapsible raw data section (for future extensibility)
-// ---------------------------------------------------------------------------
-
-/** Simple collapsible section with ghost button trigger — matches existing card patterns */
-export function CollapsibleSection({
-  label,
-  icon,
-  children,
-}: {
-  label: string;
-  icon?: React.ReactNode;
-  children: React.ReactNode;
-}): React.ReactNode {
-  return (
-    <Collapsible>
-      <CollapsibleTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-          {icon}
-          {label}
-          <ChevronDown className="size-3.5" />
-        </Button>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2">{children}</CollapsibleContent>
-    </Collapsible>
   );
 }
