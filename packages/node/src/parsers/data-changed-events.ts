@@ -28,7 +28,8 @@ type RawDataChangedEvent = GetDataChangedEventsQuery['data_changed'][number];
  * - `transaction_index` → `transactionIndex`
  * - `universalProfile` → parsed via `parseProfile`
  * - `digitalAsset` → parsed via `parseDigitalAsset`
- * - `dataKeyName` is derived via `resolveDataKeyName` (NOT from Hasura)
+ * - `dataKeyName` is derived via `resolveDataKeyName` (NOT from Hasura) — conditionally
+ *   included based on `include.dataKeyName` (not a base field)
  *
  * **Conditional include narrowing:**
  * When `include` is provided, `stripExcluded` removes fields not in the include map.
@@ -75,16 +76,10 @@ export function parseDataChangedEvent(
   };
 
   if (!include) return result;
-  return stripExcluded(
-    result,
-    include,
-    ['address', 'dataKey', 'dataValue', 'dataKeyName'],
-    undefined,
-    {
-      universalProfile: { baseFields: ['address'] },
-      digitalAsset: { baseFields: ['address'], derivedFields: { standard: 'decimals' } },
-    },
-  );
+  return stripExcluded(result, include, ['address', 'dataKey', 'dataValue'], undefined, {
+    universalProfile: { baseFields: ['address'] },
+    digitalAsset: { baseFields: ['address'], derivedFields: { standard: 'decimals' } },
+  });
 }
 
 /**

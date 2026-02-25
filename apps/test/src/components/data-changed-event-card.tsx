@@ -20,22 +20,19 @@ import { formatRelativeTime, truncateAddress } from '@/lib/utils';
 // ---------------------------------------------------------------------------
 
 export interface DataChangedEventCardProps {
-  dataChangedEvent: PartialExcept<
-    DataChangedEvent,
-    'address' | 'dataKey' | 'dataValue' | 'dataKeyName'
-  >;
+  dataChangedEvent: PartialExcept<DataChangedEvent, 'address' | 'dataKey' | 'dataValue'>;
 }
 
 /**
  * Card component for rendering a single ERC725Y DataChanged event.
  *
- * Base fields (always present): address, dataKey, dataValue, dataKeyName.
- * Conditional scalars: blockNumber, timestamp, logIndex, transactionIndex —
+ * Base fields (always present): address, dataKey, dataValue.
+ * Conditional scalars: dataKeyName, blockNumber, timestamp, logIndex, transactionIndex —
  * rendered via `'key' in obj` field-presence guards (DX-04 pattern).
  * Two collapsible relation sections: Universal Profile + Digital Asset.
  *
- * The dataKeyName field gets special treatment: bold resolved name when known,
- * "(Unknown Key)" in muted text when null. Raw hex always displayed in mono.
+ * The dataKeyName field (when included) gets special treatment: bold resolved name
+ * when known, "(Unknown Key)" in muted text when null. Raw hex always displayed in mono.
  */
 export function DataChangedEventCard({
   dataChangedEvent,
@@ -43,6 +40,8 @@ export function DataChangedEventCard({
   const universalProfile =
     'universalProfile' in dataChangedEvent ? dataChangedEvent.universalProfile : null;
   const digitalAsset = 'digitalAsset' in dataChangedEvent ? dataChangedEvent.digitalAsset : null;
+  const hasDataKeyName = 'dataKeyName' in dataChangedEvent;
+  const dataKeyName = hasDataKeyName ? dataChangedEvent.dataKeyName : undefined;
 
   return (
     <Card className="overflow-hidden">
@@ -52,12 +51,14 @@ export function DataChangedEventCard({
           <span className="font-mono text-xs truncate">
             {truncateAddress(dataChangedEvent.address)}
           </span>
-          <span className="text-muted-foreground shrink-0">·</span>
-          <span className="truncate">
-            {dataChangedEvent.dataKeyName ?? (
-              <span className="text-muted-foreground italic">Unknown Key</span>
-            )}
-          </span>
+          {hasDataKeyName && (
+            <>
+              <span className="text-muted-foreground shrink-0">·</span>
+              <span className="truncate">
+                {dataKeyName ?? <span className="text-muted-foreground italic">Unknown Key</span>}
+              </span>
+            </>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -68,10 +69,10 @@ export function DataChangedEventCard({
             <dd className="font-mono text-xs break-all">{dataChangedEvent.address}</dd>
           </div>
 
-          {/* Data Key with resolved name */}
+          {/* Data Key with optional resolved name */}
           <DataKeyDisplay
             dataKey={dataChangedEvent.dataKey}
-            dataKeyName={dataChangedEvent.dataKeyName}
+            dataKeyName={hasDataKeyName ? dataKeyName : undefined}
           />
 
           {/* Data Value — truncated hex */}
@@ -139,7 +140,8 @@ function DataKeyDisplay({
   dataKeyName,
 }: {
   dataKey: string;
-  dataKeyName: string | null;
+  /** undefined = field not included; null = included but unknown; string = resolved name */
+  dataKeyName: string | null | undefined;
 }): React.ReactNode {
   return (
     <div className="flex gap-2">
@@ -150,11 +152,13 @@ function DataKeyDisplay({
             <span className="font-semibold text-sm">{dataKeyName}</span>
             <div className="font-mono text-xs text-muted-foreground break-all">{dataKey}</div>
           </div>
-        ) : (
+        ) : dataKeyName === null ? (
           <div>
             <span className="text-muted-foreground text-xs italic">(Unknown Key)</span>
             <div className="font-mono text-xs break-all">{dataKey}</div>
           </div>
+        ) : (
+          <div className="font-mono text-xs break-all">{dataKey}</div>
         )}
       </dd>
     </div>

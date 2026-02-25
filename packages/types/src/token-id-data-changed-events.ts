@@ -23,8 +23,8 @@ import { OwnedTokenNftIncludeSchema, type OwnedTokenNftInclude } from './owned-t
  *
  * Similar to `DataChangedEvent` but includes a `tokenId` field and has an
  * `nft` relation instead of `universalProfile`. Base fields (`address`,
- * `dataKey`, `dataValue`, `tokenId`, `dataKeyName`) are always present;
- * other fields are controlled by the `include` parameter.
+ * `dataKey`, `dataValue`, `tokenId`) are always present; other fields
+ * (including `dataKeyName`) are controlled by the `include` parameter.
  *
  * The `nft` field uses the full `Nft` type from the nfts domain (same as
  * owned-tokens), with per-field include control via `OwnedTokenNftInclude`
@@ -39,7 +39,7 @@ export const TokenIdDataChangedEventSchema = z.object({
   dataValue: z.string(),
   /** Token ID the data change applies to (always present) */
   tokenId: z.string(),
-  /** Resolved human-readable name for known ERC725Y keys, null if unknown (always present) */
+  /** Resolved human-readable name for known ERC725Y keys, null if unknown (null = not included or key unknown) */
   dataKeyName: z.string().nullable(),
   /** Block number where event was emitted (null = not included) */
   blockNumber: z.number().nullable(),
@@ -132,6 +132,8 @@ export const TokenIdDataChangedEventSortSchema = z.object({
  * minus collection/holder — those aren't sub-relations in the event context).
  */
 export const TokenIdDataChangedEventIncludeSchema = z.object({
+  /** Include resolved human-readable data key name (parser-derived from dataKey) */
+  dataKeyName: z.boolean().optional(),
   /** Include block number */
   blockNumber: z.boolean().optional(),
   /** Include timestamp */
@@ -211,6 +213,7 @@ export type UseInfiniteTokenIdDataChangedEventsParams = z.infer<
  * Relations (digitalAsset, nft) handled by resolver types.
  */
 type TokenIdDataChangedEventScalarIncludeFieldMap = {
+  dataKeyName: 'dataKeyName';
   blockNumber: 'blockNumber';
   timestamp: 'timestamp';
   logIndex: 'logIndex';
@@ -247,7 +250,8 @@ type ResolveTokenIdDataChangedEventNft<I> = I extends { nft: infer N }
  * TokenIdDataChangedEvent type narrowed by include parameter.
  *
  * - `TokenIdDataChangedEventResult` (no generic) → full `TokenIdDataChangedEvent` type (backward compatible)
- * - `TokenIdDataChangedEventResult<{}>` → `{ address; dataKey; dataValue; tokenId; dataKeyName }` (base fields only)
+ * - `TokenIdDataChangedEventResult<{}>` → `{ address; dataKey; dataValue; tokenId }` (base fields only)
+ * - `TokenIdDataChangedEventResult<{ dataKeyName: true }>` → base + dataKeyName
  * - `TokenIdDataChangedEventResult<{ timestamp: true }>` → base + timestamp
  * - `TokenIdDataChangedEventResult<{ digitalAsset: { name: true } }>` → base + narrowed DA
  * - `TokenIdDataChangedEventResult<{ nft: true }>` → base + full NFT
@@ -256,7 +260,8 @@ type ResolveTokenIdDataChangedEventNft<I> = I extends { nft: infer N }
  * @example
  * ```ts
  * type Full = TokenIdDataChangedEventResult;                                                  // = TokenIdDataChangedEvent (all fields)
- * type Minimal = TokenIdDataChangedEventResult<{}>;                                           // = { address; dataKey; dataValue; tokenId; dataKeyName }
+ * type Minimal = TokenIdDataChangedEventResult<{}>;                                           // = { address; dataKey; dataValue; tokenId }
+ * type WithName = TokenIdDataChangedEventResult<{ dataKeyName: true }>;                       // = base + dataKeyName
  * type WithTime = TokenIdDataChangedEventResult<{ timestamp: true }>;                         // = base + timestamp
  * type WithDA = TokenIdDataChangedEventResult<{ digitalAsset: { name: true } }>;              // = base + narrowed DA
  * type WithNft = TokenIdDataChangedEventResult<{ nft: true }>;                                // = base + full NFT
@@ -269,7 +274,7 @@ export type TokenIdDataChangedEventResult<
   ? TokenIdDataChangedEvent
   : IncludeResult<
       TokenIdDataChangedEvent,
-      'address' | 'dataKey' | 'dataValue' | 'tokenId' | 'dataKeyName',
+      'address' | 'dataKey' | 'dataValue' | 'tokenId',
       TokenIdDataChangedEventScalarIncludeFieldMap,
       I
     > &
@@ -282,5 +287,5 @@ export type TokenIdDataChangedEventResult<
  */
 export type PartialTokenIdDataChangedEvent = PartialExcept<
   TokenIdDataChangedEvent,
-  'address' | 'dataKey' | 'dataValue' | 'tokenId' | 'dataKeyName'
+  'address' | 'dataKey' | 'dataValue' | 'tokenId'
 >;

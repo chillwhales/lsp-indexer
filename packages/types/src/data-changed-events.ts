@@ -26,9 +26,9 @@ import {
  * An ERC725Y data change event from the `data_changed` Hasura table.
  *
  * Represents a single `DataChanged` event emitted by a Universal Profile or
- * Digital Asset contract. Base fields (`address`, `dataKey`, `dataValue`,
- * `dataKeyName`) are always present; other fields are controlled by the
- * `include` parameter.
+ * Digital Asset contract. Base fields (`address`, `dataKey`, `dataValue`)
+ * are always present; other fields (including `dataKeyName`) are controlled
+ * by the `include` parameter.
  */
 export const DataChangedEventSchema = z.object({
   /** Emitting contract address — either a UP or DA (always present) */
@@ -37,7 +37,7 @@ export const DataChangedEventSchema = z.object({
   dataKey: z.string(),
   /** Raw hex data value (always present, no decoding) */
   dataValue: z.string(),
-  /** Resolved human-readable name for known ERC725Y keys, null if unknown (always present) */
+  /** Resolved human-readable name for known ERC725Y keys, null if unknown (null = not included or key unknown) */
   dataKeyName: z.string().nullable(),
   /** Block number where event was emitted (null = not included) */
   blockNumber: z.number().nullable(),
@@ -127,6 +127,8 @@ export const DataChangedEventSortSchema = z.object({
  * sub-include objects for full control over which nested fields to fetch.
  */
 export const DataChangedEventIncludeSchema = z.object({
+  /** Include resolved human-readable data key name (parser-derived from dataKey) */
+  dataKeyName: z.boolean().optional(),
   /** Include block number */
   blockNumber: z.boolean().optional(),
   /** Include timestamp */
@@ -200,6 +202,7 @@ export type UseInfiniteDataChangedEventsParams = z.infer<
  * Relations (universalProfile, digitalAsset) handled by resolver types.
  */
 type DataChangedEventScalarIncludeFieldMap = {
+  dataKeyName: 'dataKeyName';
   blockNumber: 'blockNumber';
   timestamp: 'timestamp';
   logIndex: 'logIndex';
@@ -236,7 +239,8 @@ type ResolveDataChangedEventDA<I> = I extends { digitalAsset: infer D }
  * DataChangedEvent type narrowed by include parameter.
  *
  * - `DataChangedEventResult` (no generic) → full `DataChangedEvent` type (backward compatible)
- * - `DataChangedEventResult<{}>` → `{ address; dataKey; dataValue; dataKeyName }` (base fields only)
+ * - `DataChangedEventResult<{}>` → `{ address; dataKey; dataValue }` (base fields only)
+ * - `DataChangedEventResult<{ dataKeyName: true }>` → base + dataKeyName
  * - `DataChangedEventResult<{ timestamp: true }>` → base + timestamp
  * - `DataChangedEventResult<{ universalProfile: { name: true } }>` → base + narrowed UP
  * - `DataChangedEventResult<{ digitalAsset: { name: true } }>` → base + narrowed DA
@@ -244,7 +248,8 @@ type ResolveDataChangedEventDA<I> = I extends { digitalAsset: infer D }
  * @example
  * ```ts
  * type Full = DataChangedEventResult;                                                  // = DataChangedEvent (all fields)
- * type Minimal = DataChangedEventResult<{}>;                                           // = { address; dataKey; dataValue; dataKeyName }
+ * type Minimal = DataChangedEventResult<{}>;                                           // = { address; dataKey; dataValue }
+ * type WithName = DataChangedEventResult<{ dataKeyName: true }>;                       // = base + dataKeyName
  * type WithTime = DataChangedEventResult<{ timestamp: true }>;                         // = base + timestamp
  * type WithUP = DataChangedEventResult<{ universalProfile: { name: true } }>;          // = base + narrowed UP
  * type WithDA = DataChangedEventResult<{ digitalAsset: { name: true } }>;              // = base + narrowed DA
@@ -255,7 +260,7 @@ export type DataChangedEventResult<I extends DataChangedEventInclude | undefined
     ? DataChangedEvent
     : IncludeResult<
         DataChangedEvent,
-        'address' | 'dataKey' | 'dataValue' | 'dataKeyName',
+        'address' | 'dataKey' | 'dataValue',
         DataChangedEventScalarIncludeFieldMap,
         I
       > &
@@ -268,5 +273,5 @@ export type DataChangedEventResult<I extends DataChangedEventInclude | undefined
  */
 export type PartialDataChangedEvent = PartialExcept<
   DataChangedEvent,
-  'address' | 'dataKey' | 'dataValue' | 'dataKeyName'
+  'address' | 'dataKey' | 'dataValue'
 >;

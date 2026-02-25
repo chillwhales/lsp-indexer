@@ -20,15 +20,15 @@ import { formatRelativeTime, truncateAddress } from '@/lib/utils';
 export interface TokenIdDataChangedEventCardProps {
   tokenIdDataChangedEvent: PartialExcept<
     TokenIdDataChangedEvent,
-    'address' | 'dataKey' | 'dataValue' | 'tokenId' | 'dataKeyName'
+    'address' | 'dataKey' | 'dataValue' | 'tokenId'
   >;
 }
 
 /**
  * Card component for rendering a single ERC725Y TokenIdDataChanged event.
  *
- * Base fields (always present): address, dataKey, dataValue, tokenId, dataKeyName.
- * Conditional scalars: blockNumber, timestamp, logIndex, transactionIndex —
+ * Base fields (always present): address, dataKey, dataValue, tokenId.
+ * Conditional scalars: dataKeyName, blockNumber, timestamp, logIndex, transactionIndex —
  * rendered via `'key' in obj` field-presence guards (DX-04 pattern).
  * Two collapsible relation sections: NFT (full NftCard) + Digital Asset.
  *
@@ -42,6 +42,8 @@ export function TokenIdDataChangedEventCard({
   const digitalAsset =
     'digitalAsset' in tokenIdDataChangedEvent ? tokenIdDataChangedEvent.digitalAsset : null;
   const nft = 'nft' in tokenIdDataChangedEvent ? tokenIdDataChangedEvent.nft : null;
+  const hasDataKeyName = 'dataKeyName' in tokenIdDataChangedEvent;
+  const dataKeyName = hasDataKeyName ? tokenIdDataChangedEvent.dataKeyName : undefined;
 
   return (
     <Card className="overflow-hidden">
@@ -51,12 +53,14 @@ export function TokenIdDataChangedEventCard({
           <span className="font-mono text-xs truncate">
             {truncateAddress(tokenIdDataChangedEvent.address)}
           </span>
-          <span className="text-muted-foreground shrink-0">·</span>
-          <span className="truncate">
-            {tokenIdDataChangedEvent.dataKeyName ?? (
-              <span className="text-muted-foreground italic">Unknown Key</span>
-            )}
-          </span>
+          {hasDataKeyName && (
+            <>
+              <span className="text-muted-foreground shrink-0">·</span>
+              <span className="truncate">
+                {dataKeyName ?? <span className="text-muted-foreground italic">Unknown Key</span>}
+              </span>
+            </>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -73,10 +77,10 @@ export function TokenIdDataChangedEventCard({
             <dd className="font-mono text-xs break-all">{tokenIdDataChangedEvent.tokenId}</dd>
           </div>
 
-          {/* Data Key with resolved name */}
+          {/* Data Key with optional resolved name */}
           <DataKeyDisplay
             dataKey={tokenIdDataChangedEvent.dataKey}
-            dataKeyName={tokenIdDataChangedEvent.dataKeyName}
+            dataKeyName={hasDataKeyName ? dataKeyName : undefined}
           />
 
           {/* Data Value — truncated hex */}
@@ -144,7 +148,8 @@ function DataKeyDisplay({
   dataKeyName,
 }: {
   dataKey: string;
-  dataKeyName: string | null;
+  /** undefined = field not included; null = included but unknown; string = resolved name */
+  dataKeyName: string | null | undefined;
 }): React.ReactNode {
   return (
     <div className="flex gap-2">
@@ -155,11 +160,13 @@ function DataKeyDisplay({
             <span className="font-semibold text-sm">{dataKeyName}</span>
             <div className="font-mono text-xs text-muted-foreground break-all">{dataKey}</div>
           </div>
-        ) : (
+        ) : dataKeyName === null ? (
           <div>
             <span className="text-muted-foreground text-xs italic">(Unknown Key)</span>
             <div className="font-mono text-xs break-all">{dataKey}</div>
           </div>
+        ) : (
+          <div className="font-mono text-xs break-all">{dataKey}</div>
         )}
       </dd>
     </div>

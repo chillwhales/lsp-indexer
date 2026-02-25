@@ -35,7 +35,8 @@ type RawTokenIdDataChangedEvent = GetTokenIdDataChangedEventsQuery['token_id_dat
  * - `transaction_index` → `transactionIndex`
  * - `digitalAsset` → parsed via `parseDigitalAsset`
  * - `nft` → parsed via `parseNft` (full Nft type with baseUri fallback)
- * - `dataKeyName` is derived via `resolveDataKeyName` (NOT from Hasura)
+ * - `dataKeyName` is derived via `resolveDataKeyName` (NOT from Hasura) — conditionally
+ *   included based on `include.dataKeyName` (not a base field)
  *
  * **Conditional include narrowing:**
  * When `include` is provided, `stripExcluded` removes fields not in the include map.
@@ -80,16 +81,10 @@ export function parseTokenIdDataChangedEvent(
   };
 
   if (!include) return result;
-  return stripExcluded(
-    result,
-    include,
-    ['address', 'dataKey', 'dataValue', 'tokenId', 'dataKeyName'],
-    undefined,
-    {
-      digitalAsset: { baseFields: ['address'], derivedFields: { standard: 'decimals' } },
-      nft: { baseFields: ['address', 'tokenId', 'isBurned', 'isMinted'] },
-    },
-  );
+  return stripExcluded(result, include, ['address', 'dataKey', 'dataValue', 'tokenId'], undefined, {
+    digitalAsset: { baseFields: ['address'], derivedFields: { standard: 'decimals' } },
+    nft: { baseFields: ['address', 'tokenId', 'isBurned', 'isMinted'] },
+  });
 }
 
 /**
