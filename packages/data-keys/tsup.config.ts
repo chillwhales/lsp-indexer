@@ -6,5 +6,5 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ['@lsp-indexer/data-keys', '@lsp-indexer/types', 'zod'],
+  external: ['zod'],
 });

@@ -292,10 +292,10 @@ No implementation bodies change — only overload signatures and return type ann
 
 **Plans:** 4 plans
 
-- [ ] 09.10-01-PLAN.md — DataChangedEvent + TokenIdDataChangedEvent types (both domains) + GraphQL documents + codegen
-- [ ] 09.10-02-PLAN.md — Data key resolver utility (10 @lukso packages) + parsers + services + query keys for both domains
-- [ ] 09.10-03-PLAN.md — 4 React hooks + 2 server actions + 4 Next.js hooks + build validation
-- [ ] 09.10-04-PLAN.md — DataChangedEventCard + TokenIdDataChangedEventCard + playground page (4 tabs) + E2E verification
+- [x] 09.10-01-PLAN.md — DataChangedEvent + TokenIdDataChangedEvent types (both domains) + GraphQL documents + codegen
+- [x] 09.10-02-PLAN.md — Data key resolver utility (10 @lukso packages) + parsers + services + query keys for both domains
+- [x] 09.10-03-PLAN.md — 4 React hooks + 2 server actions + 4 Next.js hooks + build validation
+- [x] 09.10-04-PLAN.md — DataChangedEventCard + TokenIdDataChangedEventCard + playground page (4 tabs) + E2E verification
 
 ---
 
@@ -389,14 +389,14 @@ No implementation bodies change — only overload signatures and return type ann
 | 9.7   | Creators                           |     1/1      | Complete |
 | 9.8   | Issued Assets                      |     1/1      | Complete |
 | 9.9   | Encrypted Feed                     |     1/1      | Complete |
-| 9.10  | Data Changed Events                |      1       | Pending  |
+| 9.10  | Data Changed Events                |     1/1      | Complete |
 | 9.11  | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 20/30 requirements delivered (QUERY-08 complete)
+**Total:** 21/30 requirements delivered (QUERY-09 complete)
 
 ---
 
@@ -506,4 +506,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-24 — Phase 9.9 complete (Encrypted Assets — QUERY-08 delivered), 20/30 requirements delivered_
+_Last updated: 2026-02-25 — Phase 9.10 complete (Data Changed Events — QUERY-09 delivered), 21/30 requirements delivered_

@@ -137,5 +137,45 @@ export { encryptedAssetKeys } from './keys/encrypted-assets';
 // Encrypted asset GraphQL documents (for advanced usage / custom queries)
 export { GetEncryptedAssetsDocument } from './documents/encrypted-assets';
 
+// Data changed event services (the core fetching layer)
+export {
+  buildDataChangedEventIncludeVars,
+  fetchDataChangedEvents,
+  fetchLatestDataChangedEvent,
+} from './services/data-changed-events';
+export type { FetchDataChangedEventsResult } from './services/data-changed-events';
+
+// Data changed event parsers (Hasura → clean types)
+export { parseDataChangedEvent, parseDataChangedEvents } from './parsers/data-changed-events';
+
+// Data key resolver — re-exported from @lsp-indexer/data-keys for convenience
+export { resolveDataKeyHex, resolveDataKeyName } from '@lsp-indexer/data-keys';
+
+// Data changed event query key factory
+export { dataChangedEventKeys } from './keys/data-changed-events';
+
+// Data changed event GraphQL documents (for advanced usage / custom queries)
+export { GetDataChangedEventsDocument } from './documents/data-changed-events';
+
+// Token ID data changed event services (the core fetching layer)
+export {
+  buildTokenIdDataChangedEventIncludeVars,
+  fetchLatestTokenIdDataChangedEvent,
+  fetchTokenIdDataChangedEvents,
+} from './services/token-id-data-changed-events';
+export type { FetchTokenIdDataChangedEventsResult } from './services/token-id-data-changed-events';
+
+// Token ID data changed event parsers (Hasura → clean types)
+export {
+  parseTokenIdDataChangedEvent,
+  parseTokenIdDataChangedEvents,
+} from './parsers/token-id-data-changed-events';
+
+// Token ID data changed event query key factory
+export { tokenIdDataChangedEventKeys } from './keys/token-id-data-changed-events';
+
+// Token ID data changed event GraphQL documents (for advanced usage / custom queries)
+export { GetTokenIdDataChangedEventsDocument } from './documents/token-id-data-changed-events';
+
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';

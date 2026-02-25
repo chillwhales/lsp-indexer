@@ -1,5 +1,6 @@
 export {
   CREATOR_INCLUDE_FIELDS,
+  DATA_CHANGED_EVENT_INCLUDE_FIELDS,
   DIGITAL_ASSET_INCLUDE_FIELDS,
   ENCRYPTED_ASSET_CHUNKS_INCLUDE_FIELDS,
   ENCRYPTED_ASSET_ENCRYPTION_INCLUDE_FIELDS,
@@ -10,6 +11,7 @@ export {
   NFT_INCLUDE_FIELDS,
   OWNED_ASSET_INCLUDE_FIELDS,
   PROFILE_INCLUDE_FIELDS,
+  TOKEN_ID_DATA_CHANGED_EVENT_INCLUDE_FIELDS,
 } from './constants';
 export { FilterField, FilterFieldsRow, useFilterFields } from './filter-field';
 export type { FilterFieldConfig } from './filter-field';

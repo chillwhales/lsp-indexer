@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.9 (Encrypted Assets) — Complete
+- **Sub-phase:** 9.10 (Data Changed Events) — Complete
 - **Plan:** 4 of 4 in current sub-phase
-- **Status:** Phase 9.9 complete — ready for Phase 9.10 (Data Changed Events)
-- **Last activity:** 2026-02-24 — Phase 9.9 verified (16/16 must-haves passed)
-- **Progress:** ██████░░░░ 67% (20/30 requirements)
+- **Status:** Phase 9.10 complete — ready for Phase 9.11 (Universal Receiver Events)
+- **Last activity:** 2026-02-25 — Phase 9.10 verified (17/17 must-haves passed)
+- **Progress:** ███████░░░ 70% (21/30 requirements)
 
 ## Milestone History
 
@@ -40,21 +40,21 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.7   | Creators                           |     1/1      | Complete |
 | 9.8   | Issued Assets                      |     1/1      | Complete |
 | 9.9   | Encrypted Feed                     |     1/1      | Complete |
-| 9.10  | Data Changed Events                |      1       | Pending  |
+| 9.10  | Data Changed Events                |     1/1      | Complete |
 | 9.11  | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 20/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
+**Total:** 21/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, QUERY-09, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 78 (36 v1.0 + 42 v1.1)
+- **Plans completed:** 82 (36 v1.0 + 46 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 22 (11 v1.0 + 11 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 20/30 (v1.1)
+- **Phases completed:** 23 (11 v1.0 + 12 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 21/30 (v1.1)
 
 ## Accumulated Context
 
@@ -170,6 +170,20 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **EncryptedAsset 8 filter fields:** 3 nested relation filters (`universalProfile.lsp3Profile.name.value`, `encryption.method`, `file.type`), 1 numeric comparison (`file.size._gte`), 1 exact numeric (`revision._eq`), 1 timestamp (`_gte`), 2 string ilike
 - **buildEncryptedAssetIncludeVars prefix replacement:** Reuses `buildProfileIncludeVars` with `key.replace('includeProfile', 'includeUniversalProfile')` — same prefix pattern as other domains with nested profiles
 - **`followed_aggregate` for universalProfile following count:** Profile sub-document in encrypted assets uses `followed_aggregate` (matching issued assets pattern)
+- **DataChangedEvent base fields:** address, dataKey, dataValue — dataKeyName is an includable field (parser-derived from resolveDataKeyName for known ERC725Y keys, null if unknown), NOT from Hasura
+- **TokenIdDataChangedEvent base fields:** address, dataKey, dataValue, tokenId — dataKeyName is an includable field, same parser-derived resolution
+- **TokenIdDataChangedEvent nft include:** `nft: z.union([z.boolean(), OwnedTokenNftIncludeSchema]).optional()` — accepts boolean for all fields or OwnedTokenNftInclude for per-field control. Full NftSchema used (not a lightweight sub-type)
+- **Latest hooks for data changed events:** `useLatestDataChangedEvent` and `useLatestTokenIdDataChangedEvent` fetch most recent event by filter (timestamp desc, limit 1)
+- **GetDataChangedEventsDocument 36 variables:** 4 pagination + 4 scalar + 10 UP ($includeUniversalProfile*) + 18 DA ($includeDigitalAsset\*)
+- **GetTokenIdDataChangedEventsDocument 27 variables:** 4 pagination + 4 scalar + 18 DA ($includeDigitalAsset*) + 1 nft ($includeNft)
+- **resolveDataKeyName utility:** In `@lsp-indexer/data-keys` package — reverse map from hex ERC725Y data key → human-readable name using 32 hardcoded built-in data keys. No @lukso/\* dependencies. Returns null for unknown keys. Prefix matching for array/mapping keys.
+- **@lsp-indexer/data-keys package:** Standalone read-only registry with constants, registry, schemas (DataKeyNameSchema z.enum), types. Only dependency is zod.
+- **NFT name filter in token-id-data-changed uses \_or pattern:** `{ nft: { _or: [{ lsp4Metadata: { name: { value: { _ilike } } } }, { lsp4MetadataBaseUri: { name: { value: { _ilike } } } }] } }` — matching nfts service pattern
+- **Data changed event UP prefix: includeProfile* → includeUniversalProfile*:** Matching encrypted-assets pattern for nested UP sub-includes
+  - **Data changed event DA prefix: include* → includeDigitalAsset*:** Matching issued-assets pattern for nested DA sub-includes
+  - **dataKeyName display pattern:** Bold resolved name when known, "(Unknown Key)" in muted italic when null, raw hex truncated to 20 chars in mono below
+  - **3-tab playground layout per domain:** Each domain has its own page (`/data-changed-events`, `/token-id-data-changed-events`) with 3 tabs (Latest, List, Infinite)
+  - **nft include in scalar include array:** TokenIdDataChangedEvent nft is a boolean toggle in the playground UI (schema supports union type but playground uses simple on/off)
 
 ### Discovered Todos
 
@@ -183,17 +197,17 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-24
-- **Activity:** Executed Phase 9.9 (Encrypted Assets) — all 4 plans + verification
-- **Outcome:** 4 plans, 13 commits, 16/16 must-haves verified. ImageList reusable component extracted + backported. EncryptedAssetCard (most feature-rich card). Playground at /encrypted-assets. All packages build.
+- **Date:** 2026-02-25
+- **Activity:** Executed Phase 9.10 (Data Changed Events) — all 4 plans + verification
+- **Outcome:** 4 plans, 12 commits, 17/17 must-haves verified. resolveDataKeyName utility (10 @lukso packages). Two domains (data_changed + token_id_data_changed). 4 React hooks + 2 server actions + 4 Next.js hooks. DataChangedEventCard + TokenIdDataChangedEventCard. Playground at /data-changed-events with 4 tabs. All packages build.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.9 complete** — all 4 plans delivered, QUERY-08 fulfilled, verified 16/16
-- **Next step:** Phase 9.10 (Data Changed Events)
-- **Remaining sub-phases in Phase 9:** 9.10 (Data Changed Events), 9.11 (Universal Receiver Events)
+- **Phase 9.10 complete** — all 4 plans delivered, QUERY-09 fulfilled, verified 17/17
+- **Next step:** Phase 9.11 (Universal Receiver Events)
+- **Remaining sub-phases in Phase 9:** 9.11 (Universal Receiver Events)
 
 ---
 
-_Last updated: 2026-02-24 — Phase 9.9 complete (Encrypted Assets — QUERY-08 delivered, verified 16/16)_
+_Last updated: 2026-02-25 — Phase 9.10 complete (Data Changed Events — QUERY-09 delivered, verified 17/17)_

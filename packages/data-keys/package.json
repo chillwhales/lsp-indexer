@@ -1,5 +1,5 @@
 {
-  "name": "@lsp-indexer/types",
+  "name": "@lsp-indexer/data-keys",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -27,7 +27,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lsp-indexer/data-keys": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {
