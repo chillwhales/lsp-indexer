@@ -3,7 +3,12 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { FetchDataChangedEventsResult } from '@lsp-indexer/node';
-import { dataChangedEventKeys, fetchDataChangedEvents, getClientUrl } from '@lsp-indexer/node';
+import {
+  dataChangedEventKeys,
+  fetchDataChangedEvents,
+  fetchLatestDataChangedEvent,
+  getClientUrl,
+} from '@lsp-indexer/node';
 import type {
   DataChangedEvent,
   DataChangedEventInclude,
@@ -11,6 +16,7 @@ import type {
   PartialDataChangedEvent,
   UseDataChangedEventsParams,
   UseInfiniteDataChangedEventsParams,
+  UseLatestDataChangedEventParams,
 } from '@lsp-indexer/types';
 
 /** Default number of data changed events per page for infinite scroll queries */

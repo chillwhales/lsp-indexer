@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 
 import type { FetchTokenIdDataChangedEventsResult } from '@lsp-indexer/node';
 import {
+  fetchLatestTokenIdDataChangedEvent,
   fetchTokenIdDataChangedEvents,
   getClientUrl,
   tokenIdDataChangedEventKeys,
@@ -14,6 +15,7 @@ import type {
   TokenIdDataChangedEventInclude,
   TokenIdDataChangedEventResult,
   UseInfiniteTokenIdDataChangedEventsParams,
+  UseLatestTokenIdDataChangedEventParams,
   UseTokenIdDataChangedEventsParams,
 } from '@lsp-indexer/types';
 

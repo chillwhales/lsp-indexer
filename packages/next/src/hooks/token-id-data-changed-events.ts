@@ -10,10 +10,14 @@ import type {
   TokenIdDataChangedEventInclude,
   TokenIdDataChangedEventResult,
   UseInfiniteTokenIdDataChangedEventsParams,
+  UseLatestTokenIdDataChangedEventParams,
   UseTokenIdDataChangedEventsParams,
 } from '@lsp-indexer/types';
 
-import { getTokenIdDataChangedEvents } from '../actions/token-id-data-changed-events';
+import {
+  getLatestTokenIdDataChangedEvent,
+  getTokenIdDataChangedEvents,
+} from '../actions/token-id-data-changed-events';
 
 /** Default number of token ID data changed events per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;

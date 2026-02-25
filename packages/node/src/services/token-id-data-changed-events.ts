@@ -12,6 +12,7 @@ import type {
   Token_Id_Data_Changed_Bool_Exp,
   Token_Id_Data_Changed_Order_By,
 } from '../graphql/graphql';
+import { resolveDataKeyHex } from '../parsers/data-key-resolver';
 import { parseTokenIdDataChangedEvents } from '../parsers/token-id-data-changed-events';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildNftIncludeVars } from './nfts';

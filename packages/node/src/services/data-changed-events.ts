@@ -10,6 +10,7 @@ import { execute } from '../client/execute';
 import { GetDataChangedEventsDocument } from '../documents/data-changed-events';
 import type { Data_Changed_Bool_Exp, Data_Changed_Order_By } from '../graphql/graphql';
 import { parseDataChangedEvents } from '../parsers/data-changed-events';
+import { resolveDataKeyHex } from '../parsers/data-key-resolver';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
 import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';

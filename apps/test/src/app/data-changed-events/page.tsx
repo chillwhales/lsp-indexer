@@ -1,15 +1,17 @@
 'use client';
 
-import { Infinity, List } from 'lucide-react';
+import { Clock, Infinity, List } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useDataChangedEvents as useDataChangedEventsNext,
   useInfiniteDataChangedEvents as useInfiniteDataChangedEventsNext,
+  useLatestDataChangedEvent as useLatestDataChangedEventNext,
 } from '@lsp-indexer/next';
 import {
   useDataChangedEvents as useDataChangedEventsReact,
   useInfiniteDataChangedEvents as useInfiniteDataChangedEventsReact,
+  useLatestDataChangedEvent as useLatestDataChangedEventReact,
 } from '@lsp-indexer/react';
 import type {
   DataChangedEventFilter,
@@ -25,6 +27,7 @@ import {
   buildNestedInclude,
   DATA_CHANGED_EVENT_INCLUDE_FIELDS,
   DIGITAL_ASSET_INCLUDE_FIELDS,
+  ErrorAlert,
   FilterFieldsRow,
   IncludeToggles,
   PlaygroundPageLayout,
@@ -36,9 +39,12 @@ import {
   useIncludeToggles,
   useSubInclude,
 } from '@/components/playground';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardHeader } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // ---------------------------------------------------------------------------
-// Domain config — Data Changed Events (8 filter params, 4 sort fields)
+// Domain config — Data Changed Events (9 filter params, 4 sort fields)
 // ---------------------------------------------------------------------------
 
 const ALL_FILTERS: FilterFieldConfig[] = [
@@ -55,6 +61,12 @@ const ALL_FILTERS: FilterFieldConfig[] = [
     placeholder: '0x... (hex data key)',
     mono: true,
     width: 'w-80',
+  },
+  {
+    key: 'dataKeyName',
+    label: 'Data Key Name',
+    placeholder: 'e.g. LSP3Profile',
+    width: 'w-52',
   },
   {
     key: 'timestampFrom',
@@ -97,7 +109,9 @@ const ALL_FILTERS: FilterFieldConfig[] = [
 ];
 
 /** Filter groups rendered as separate rows */
-const ROW1 = ALL_FILTERS.filter((f) => f.key === 'address' || f.key === 'dataKey');
+const ROW1 = ALL_FILTERS.filter(
+  (f) => f.key === 'address' || f.key === 'dataKey' || f.key === 'dataKeyName',
+);
 const ROW2 = ALL_FILTERS.filter(
   (f) =>
     f.key === 'timestampFrom' ||
@@ -108,6 +122,30 @@ const ROW2 = ALL_FILTERS.filter(
 const ROW3 = ALL_FILTERS.filter(
   (f) => f.key === 'universalProfileName' || f.key === 'digitalAssetName',
 );
+
+/** Filter fields for the Latest tab (simplified — address + data key identification) */
+const LATEST_FILTERS: FilterFieldConfig[] = [
+  {
+    key: 'address',
+    label: 'Address',
+    placeholder: '0x... (contract address)',
+    mono: true,
+    width: 'w-80',
+  },
+  {
+    key: 'dataKey',
+    label: 'Data Key',
+    placeholder: '0x... (hex data key)',
+    mono: true,
+    width: 'w-80',
+  },
+  {
+    key: 'dataKeyName',
+    label: 'Data Key Name',
+    placeholder: 'e.g. LSP3Profile',
+    width: 'w-52',
+  },
+];
 
 const SORT_OPTIONS: SortOption[] = [
   { value: 'timestamp', label: 'Timestamp' },
@@ -121,6 +159,7 @@ const SORT_OPTIONS: SortOption[] = [
 // ---------------------------------------------------------------------------
 
 type DataChangedHooks = {
+  useLatestDataChangedEvent: typeof useLatestDataChangedEventReact;
   useDataChangedEvents: typeof useDataChangedEventsReact;
   useInfiniteDataChangedEvents: typeof useInfiniteDataChangedEventsReact;
 };
@@ -128,11 +167,13 @@ type DataChangedHooks = {
 function useDataChangedHooks(mode: HookMode): DataChangedHooks {
   if (mode === 'server') {
     return {
+      useLatestDataChangedEvent: useLatestDataChangedEventNext,
       useDataChangedEvents: useDataChangedEventsNext,
       useInfiniteDataChangedEvents: useInfiniteDataChangedEventsNext,
     };
   }
   return {
+    useLatestDataChangedEvent: useLatestDataChangedEventReact,
     useDataChangedEvents: useDataChangedEventsReact,
     useInfiniteDataChangedEvents: useInfiniteDataChangedEventsReact,
   };
@@ -146,6 +187,7 @@ function buildFilter(vals: Record<string, string>): DataChangedEventFilter | und
   const f: DataChangedEventFilter = {};
   if (vals.address) f.address = vals.address;
   if (vals.dataKey) f.dataKey = vals.dataKey;
+  if (vals.dataKeyName) f.dataKeyName = vals.dataKeyName;
   if (vals.timestampFrom) f.timestampFrom = vals.timestampFrom;
   if (vals.timestampTo) f.timestampTo = vals.timestampTo;
   if (vals.blockNumberFrom) {
@@ -218,7 +260,10 @@ function DcIncludeSections({
   toggleInclude,
   universalProfile,
   digitalAsset,
-}: ReturnType<typeof useListState>): React.ReactNode {
+}: Pick<
+  ReturnType<typeof useListState>,
+  'includeValues' | 'toggleInclude' | 'universalProfile' | 'digitalAsset'
+>): React.ReactNode {
   return (
     <>
       <IncludeToggles
@@ -243,7 +288,67 @@ function DcIncludeSections({
 }
 
 // ---------------------------------------------------------------------------
-// Tab 1: List (paginated)
+// Tab 1: Latest (single item)
+// ---------------------------------------------------------------------------
+
+function LatestTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useLatestDataChangedEvent } = useDataChangedHooks(mode);
+  const { values, debouncedValues, setFieldValue } = useFilterFields(LATEST_FILTERS);
+  const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(
+    DATA_CHANGED_EVENT_INCLUDE_FIELDS,
+  );
+  const universalProfile = useSubInclude(PROFILE_INCLUDE_FIELDS);
+  const digitalAsset = useSubInclude(DIGITAL_ASSET_INCLUDE_FIELDS);
+
+  const filter = buildFilter(debouncedValues);
+  const include = buildNestedInclude(includeValues, {
+    universalProfile: universalProfile.value,
+    digitalAsset: digitalAsset.value,
+  });
+
+  const { dataChangedEvent, isLoading, error, isFetching } = useLatestDataChangedEvent({
+    filter,
+    include,
+  });
+
+  const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
+
+  return (
+    <div className="space-y-4">
+      <FilterFieldsRow configs={LATEST_FILTERS} values={values} onFieldChange={setFieldValue} />
+      <DcIncludeSections
+        includeValues={includeValues}
+        toggleInclude={toggleInclude}
+        universalProfile={universalProfile}
+        digitalAsset={digitalAsset}
+      />
+      {isLoading && (
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </CardHeader>
+        </Card>
+      )}
+      {error && <ErrorAlert error={error} />}
+      {dataChangedEvent && (
+        <div className={isFetching ? 'opacity-60' : undefined}>
+          <DataChangedEventCard dataChangedEvent={dataChangedEvent} />
+        </div>
+      )}
+      {hasActiveFilter && !isLoading && !error && !dataChangedEvent && (
+        <Alert>
+          <Clock className="h-4 w-4" />
+          <AlertTitle>No Event Found</AlertTitle>
+          <AlertDescription>No data changed event matches the current filter.</AlertDescription>
+        </Alert>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tab 2: List (paginated)
 // ---------------------------------------------------------------------------
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
@@ -295,7 +400,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
-// Tab 2: Infinite
+// Tab 3: Infinite
 // ---------------------------------------------------------------------------
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
@@ -362,12 +467,19 @@ export default function DataChangedEventsPage(): React.ReactNode {
       description={
         <>
           Exercise{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useDataChangedEvents</code> and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useLatestDataChangedEvent</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useDataChangedEvents</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteDataChangedEvents</code>{' '}
           hooks against ERC725Y contract-level data change events via Hasura (QUERY-09).
         </>
       }
       tabs={[
+        {
+          value: 'latest',
+          label: 'Latest',
+          icon: <Clock className="size-4" />,
+          render: (mode) => <LatestTab mode={mode} />,
+        },
         {
           value: 'list',
           label: 'List',

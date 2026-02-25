@@ -1,14 +1,16 @@
 'use client';
 
-import { Infinity, List } from 'lucide-react';
+import { Clock, Infinity, List } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useInfiniteTokenIdDataChangedEvents as useInfiniteTokenIdDataChangedEventsNext,
+  useLatestTokenIdDataChangedEvent as useLatestTokenIdDataChangedEventNext,
   useTokenIdDataChangedEvents as useTokenIdDataChangedEventsNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteTokenIdDataChangedEvents as useInfiniteTokenIdDataChangedEventsReact,
+  useLatestTokenIdDataChangedEvent as useLatestTokenIdDataChangedEventReact,
   useTokenIdDataChangedEvents as useTokenIdDataChangedEventsReact,
 } from '@lsp-indexer/react';
 import type {
@@ -23,6 +25,7 @@ import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playg
 import {
   buildNestedInclude,
   DIGITAL_ASSET_INCLUDE_FIELDS,
+  ErrorAlert,
   FilterFieldsRow,
   IncludeToggles,
   NFT_INCLUDE_FIELDS,
@@ -36,9 +39,12 @@ import {
   useSubInclude,
 } from '@/components/playground';
 import { TokenIdDataChangedEventCard } from '@/components/token-id-data-changed-event-card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardHeader } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // ---------------------------------------------------------------------------
-// Domain config — Token ID Data Changed Events (9 filter params, 4 sort fields)
+// Domain config — Token ID Data Changed Events (10 filter params, 4 sort fields)
 // ---------------------------------------------------------------------------
 
 const ALL_FILTERS: FilterFieldConfig[] = [
@@ -55,6 +61,12 @@ const ALL_FILTERS: FilterFieldConfig[] = [
     placeholder: '0x... (hex data key)',
     mono: true,
     width: 'w-80',
+  },
+  {
+    key: 'dataKeyName',
+    label: 'Data Key Name',
+    placeholder: 'e.g. LSP4Metadata',
+    width: 'w-52',
   },
   {
     key: 'tokenId',
@@ -105,7 +117,8 @@ const ALL_FILTERS: FilterFieldConfig[] = [
 
 /** Filter groups rendered as separate rows */
 const ROW1 = ALL_FILTERS.filter(
-  (f) => f.key === 'address' || f.key === 'dataKey' || f.key === 'tokenId',
+  (f) =>
+    f.key === 'address' || f.key === 'dataKey' || f.key === 'dataKeyName' || f.key === 'tokenId',
 );
 const ROW2 = ALL_FILTERS.filter(
   (f) =>
@@ -115,6 +128,37 @@ const ROW2 = ALL_FILTERS.filter(
     f.key === 'blockNumberTo',
 );
 const ROW3 = ALL_FILTERS.filter((f) => f.key === 'digitalAssetName' || f.key === 'nftName');
+
+/** Filter fields for the Latest tab (simplified — address + token + data key identification) */
+const LATEST_FILTERS: FilterFieldConfig[] = [
+  {
+    key: 'address',
+    label: 'Address',
+    placeholder: '0x... (contract address)',
+    mono: true,
+    width: 'w-80',
+  },
+  {
+    key: 'dataKey',
+    label: 'Data Key',
+    placeholder: '0x... (hex data key)',
+    mono: true,
+    width: 'w-80',
+  },
+  {
+    key: 'dataKeyName',
+    label: 'Data Key Name',
+    placeholder: 'e.g. LSP4Metadata',
+    width: 'w-52',
+  },
+  {
+    key: 'tokenId',
+    label: 'Token ID',
+    placeholder: '0x... (token ID)',
+    mono: true,
+    width: 'w-80',
+  },
+];
 
 const SORT_OPTIONS: SortOption[] = [
   { value: 'timestamp', label: 'Timestamp' },
@@ -128,6 +172,7 @@ const SORT_OPTIONS: SortOption[] = [
 // ---------------------------------------------------------------------------
 
 type TokenIdDataChangedHooks = {
+  useLatestTokenIdDataChangedEvent: typeof useLatestTokenIdDataChangedEventReact;
   useTokenIdDataChangedEvents: typeof useTokenIdDataChangedEventsReact;
   useInfiniteTokenIdDataChangedEvents: typeof useInfiniteTokenIdDataChangedEventsReact;
 };
@@ -135,11 +180,13 @@ type TokenIdDataChangedHooks = {
 function useTokenIdDataChangedHooks(mode: HookMode): TokenIdDataChangedHooks {
   if (mode === 'server') {
     return {
+      useLatestTokenIdDataChangedEvent: useLatestTokenIdDataChangedEventNext,
       useTokenIdDataChangedEvents: useTokenIdDataChangedEventsNext,
       useInfiniteTokenIdDataChangedEvents: useInfiniteTokenIdDataChangedEventsNext,
     };
   }
   return {
+    useLatestTokenIdDataChangedEvent: useLatestTokenIdDataChangedEventReact,
     useTokenIdDataChangedEvents: useTokenIdDataChangedEventsReact,
     useInfiniteTokenIdDataChangedEvents: useInfiniteTokenIdDataChangedEventsReact,
   };
@@ -153,6 +200,7 @@ function buildFilter(vals: Record<string, string>): TokenIdDataChangedEventFilte
   const f: TokenIdDataChangedEventFilter = {};
   if (vals.address) f.address = vals.address;
   if (vals.dataKey) f.dataKey = vals.dataKey;
+  if (vals.dataKeyName) f.dataKeyName = vals.dataKeyName;
   if (vals.tokenId) f.tokenId = vals.tokenId;
   if (vals.timestampFrom) f.timestampFrom = vals.timestampFrom;
   if (vals.timestampTo) f.timestampTo = vals.timestampTo;
@@ -226,7 +274,10 @@ function TidIncludeSections({
   toggleInclude,
   digitalAsset,
   nft,
-}: ReturnType<typeof useListState>): React.ReactNode {
+}: Pick<
+  ReturnType<typeof useListState>,
+  'includeValues' | 'toggleInclude' | 'digitalAsset' | 'nft'
+>): React.ReactNode {
   return (
     <>
       <IncludeToggles
@@ -251,7 +302,70 @@ function TidIncludeSections({
 }
 
 // ---------------------------------------------------------------------------
-// Tab 1: List (paginated)
+// Tab 1: Latest (single item)
+// ---------------------------------------------------------------------------
+
+function LatestTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useLatestTokenIdDataChangedEvent } = useTokenIdDataChangedHooks(mode);
+  const { values, debouncedValues, setFieldValue } = useFilterFields(LATEST_FILTERS);
+  const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(
+    TOKEN_ID_DATA_CHANGED_EVENT_INCLUDE_FIELDS,
+  );
+  const digitalAsset = useSubInclude(DIGITAL_ASSET_INCLUDE_FIELDS);
+  const nft = useSubInclude(NFT_INCLUDE_FIELDS);
+
+  const filter = buildFilter(debouncedValues);
+  const include = buildNestedInclude(includeValues, {
+    digitalAsset: digitalAsset.value,
+    nft: nft.value,
+  });
+
+  const { tokenIdDataChangedEvent, isLoading, error, isFetching } =
+    useLatestTokenIdDataChangedEvent({
+      filter,
+      include,
+    });
+
+  const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
+
+  return (
+    <div className="space-y-4">
+      <FilterFieldsRow configs={LATEST_FILTERS} values={values} onFieldChange={setFieldValue} />
+      <TidIncludeSections
+        includeValues={includeValues}
+        toggleInclude={toggleInclude}
+        digitalAsset={digitalAsset}
+        nft={nft}
+      />
+      {isLoading && (
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </CardHeader>
+        </Card>
+      )}
+      {error && <ErrorAlert error={error} />}
+      {tokenIdDataChangedEvent && (
+        <div className={isFetching ? 'opacity-60' : undefined}>
+          <TokenIdDataChangedEventCard tokenIdDataChangedEvent={tokenIdDataChangedEvent} />
+        </div>
+      )}
+      {hasActiveFilter && !isLoading && !error && !tokenIdDataChangedEvent && (
+        <Alert>
+          <Clock className="h-4 w-4" />
+          <AlertTitle>No Event Found</AlertTitle>
+          <AlertDescription>
+            No token ID data changed event matches the current filter.
+          </AlertDescription>
+        </Alert>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tab 2: List (paginated)
 // ---------------------------------------------------------------------------
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
@@ -306,7 +420,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
-// Tab 2: Infinite
+// Tab 3: Infinite
 // ---------------------------------------------------------------------------
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
@@ -375,7 +489,11 @@ export default function TokenIdDataChangedEventsPage(): React.ReactNode {
       description={
         <>
           Exercise{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useTokenIdDataChangedEvents</code>{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">
+            useLatestTokenIdDataChangedEvent
+          </code>
+          ,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useTokenIdDataChangedEvents</code>,
           and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">
             useInfiniteTokenIdDataChangedEvents
@@ -384,6 +502,12 @@ export default function TokenIdDataChangedEventsPage(): React.ReactNode {
         </>
       }
       tabs={[
+        {
+          value: 'latest',
+          label: 'Latest',
+          icon: <Clock className="size-4" />,
+          render: (mode) => <LatestTab mode={mode} />,
+        },
         {
           value: 'list',
           label: 'List',
