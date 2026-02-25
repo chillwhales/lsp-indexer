@@ -1,3 +1,4 @@
+import { DataKeyNameSchema } from '@lsp-indexer/data-keys';
 import { z } from 'zod';
 
 import { SortDirectionSchema, SortNullsSchema } from './common';
@@ -70,8 +71,8 @@ export const TokenIdDataChangedEventFilterSchema = z.object({
   address: z.string().optional(),
   /** Case-insensitive match on data key hex (uses _ilike) */
   dataKey: z.string().optional(),
-  /** Human-readable ERC725Y key name (e.g., 'LSP4Metadata') — resolved to hex at service layer */
-  dataKeyName: z.string().optional(),
+  /** Known ERC725Y key name (e.g., 'LSP4Metadata') — resolved to hex at service layer */
+  dataKeyName: DataKeyNameSchema.optional(),
   /** Case-insensitive match on token ID (uses _ilike) */
   tokenId: z.string().optional(),
   /** Timestamp lower bound (inclusive, _gte) */

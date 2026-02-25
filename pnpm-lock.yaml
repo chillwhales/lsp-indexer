@@ -39,6 +39,9 @@ importers:
 
   apps/test:
     dependencies:
+      '@lsp-indexer/data-keys':
+        specifier: workspace:*
+        version: link:../../packages/data-keys
       '@lsp-indexer/next':
         specifier: workspace:*
         version: link:../../packages/next
@@ -165,36 +168,6 @@ importers:
 
   packages/data-keys:
     dependencies:
-      '@lukso/lsp1-contracts':
-        specifier: ^0.15.5
-        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp10-contracts':
-        specifier: ^0.15.4
-        version: 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp12-contracts':
-        specifier: ^0.15.4
-        version: 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp17contractextension-contracts':
-        specifier: ^0.16.7
-        version: 0.16.7
-      '@lukso/lsp3-contracts':
-        specifier: 0.16.6
-        version: 0.16.6(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp4-contracts':
-        specifier: 0.16.7
-        version: 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp5-contracts':
-        specifier: ^0.15.4
-        version: 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp6-contracts':
-        specifier: 0.15.5
-        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp8-contracts':
-        specifier: 0.16.7
-        version: 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp9-contracts':
-        specifier: ^0.15.5
-        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -481,6 +454,9 @@ importers:
 
   packages/types:
     dependencies:
+      '@lsp-indexer/data-keys':
+        specifier: workspace:*
+        version: link:../data-keys
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -817,9 +793,6 @@ packages:
 
   '@erc725/erc725.js@0.28.1':
     resolution: {integrity: sha512-LKHZzHz7JeRHZzsPZjRqmu7UmCtGtalABm0eb1q6jQtmsEThEyMshdY5O4GbZuvUDLXS0fayRAlY3AF8TvuZ5A==}
-
-  '@erc725/smart-contracts@6.0.0':
-    resolution: {integrity: sha512-6okutGGL9xbg/MSgAof2FU1UcSNE/z3p9TORlROVGaM3gi1A6FQQ7fDqtBYkPtvHureX8yS9gP7xPt3PRbP43Q==}
 
   '@erc725/smart-contracts@7.0.0':
     resolution: {integrity: sha512-O/Ki+0JqRStPUHXjdU4JhDUzncLdC33c0xjTRiwWwBYbxL77LlWaPfG96fWp2hF2kdR0zNYvcsnZZds+uj2QMg==}
@@ -2025,9 +1998,6 @@ packages:
   '@lukso/lsp1-contracts@0.15.5':
     resolution: {integrity: sha512-w9FNsgaVUzai8ibNDntJlKSwof09WfjrplpYF3kSTMmmX3m3Y7Tuem9JpqR3vz7+oCJdWK8zUH1hHTjg/2Ve6Q==}
 
-  '@lukso/lsp10-contracts@0.15.4':
-    resolution: {integrity: sha512-f+XMOAryKTnJr6gBh0JUvF4ykik70lBwvWB+x0rvlcrdhb4p4tfAZ6iKHIIQFFlZWFpV8D5hSk6wOKLls1OUHw==}
-
   '@lukso/lsp12-contracts@0.15.4':
     resolution: {integrity: sha512-6cEr0dzokJmk/xiiJTQnlcUDYa03bz9wFGH6cRKgtozMnqch6HMoU6KY44iSgXaZcKG8/XqKNxoe0rzLF2DNVg==}
 
@@ -2078,9 +2048,6 @@ packages:
 
   '@lukso/lsp8-contracts@0.16.7':
     resolution: {integrity: sha512-fSNQOdTcVhIbbG2agvqU/nUvIgBlZJzyf27v1iQt3+fwYsrK4K7qIHp/eY94HdBs/60R2bfVM6iPGZTHHb+opQ==}
-
-  '@lukso/lsp9-contracts@0.15.5':
-    resolution: {integrity: sha512-7k3MUpJ8CrvLmrlFS8UdNKHwhutmGwsubj6FKrvMMVMEy5roCHpnC031+AwUyudhQlmczULuXn1zcNIYw6gbpQ==}
 
   '@lukso/universalprofile-contracts@0.15.5':
     resolution: {integrity: sha512-8JfML8yewIPzq3qUOkUc7W8Bfj2l4jl3xRBNQL78YzKIsopO05Se2Clzx/D+eTXtFaDOWyKGcKlRKjQg8R/nYw==}
@@ -8424,18 +8391,6 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@erc725/smart-contracts@6.0.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@openzeppelin/contracts': 4.9.6
-      '@openzeppelin/contracts-upgradeable': 4.9.6
-      solidity-bytes-utils: 0.8.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-    transitivePeerDependencies:
-      - '@babel/core'
-      - bufferutil
-      - encoding
-      - supports-color
-      - utf-8-validate
-
   '@erc725/smart-contracts@7.0.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@openzeppelin/contracts': 4.9.6
@@ -9916,17 +9871,6 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@lukso/lsp10-contracts@0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@erc725/smart-contracts': 6.0.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-    transitivePeerDependencies:
-      - '@babel/core'
-      - bufferutil
-      - encoding
-      - supports-color
-      - utf-8-validate
-
   '@lukso/lsp12-contracts@0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -10087,19 +10031,6 @@ snapshots:
       '@lukso/lsp17contractextension-contracts': 0.16.7
       '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp4-contracts': 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@openzeppelin/contracts': 4.9.6
-    transitivePeerDependencies:
-      - '@babel/core'
-      - bufferutil
-      - encoding
-      - supports-color
-      - utf-8-validate
-
-  '@lukso/lsp9-contracts@0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@erc725/smart-contracts': 7.0.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp1-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp6-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@openzeppelin/contracts': 4.9.6
     transitivePeerDependencies:
       - '@babel/core'

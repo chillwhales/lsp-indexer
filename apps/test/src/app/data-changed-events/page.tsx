@@ -1,5 +1,6 @@
 'use client';
 
+import { DATA_KEY_NAMES } from '@lsp-indexer/data-keys';
 import { Clock, Infinity, List } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -47,6 +48,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 // Domain config — Data Changed Events (9 filter params, 4 sort fields)
 // ---------------------------------------------------------------------------
 
+/** Data key name options for select dropdowns — built from the data-keys registry */
+const DATA_KEY_NAME_OPTIONS = DATA_KEY_NAMES.map((name) => ({ value: name, label: name }));
+
 const ALL_FILTERS: FilterFieldConfig[] = [
   {
     key: 'address',
@@ -65,8 +69,9 @@ const ALL_FILTERS: FilterFieldConfig[] = [
   {
     key: 'dataKeyName',
     label: 'Data Key Name',
-    placeholder: 'e.g. LSP3Profile',
-    width: 'w-52',
+    placeholder: 'All Data Keys',
+    options: DATA_KEY_NAME_OPTIONS,
+    width: 'w-64',
   },
   {
     key: 'timestampFrom',
@@ -142,8 +147,9 @@ const LATEST_FILTERS: FilterFieldConfig[] = [
   {
     key: 'dataKeyName',
     label: 'Data Key Name',
-    placeholder: 'e.g. LSP3Profile',
-    width: 'w-52',
+    placeholder: 'All Data Keys',
+    options: DATA_KEY_NAME_OPTIONS,
+    width: 'w-64',
   },
 ];
 
@@ -187,7 +193,7 @@ function buildFilter(vals: Record<string, string>): DataChangedEventFilter | und
   const f: DataChangedEventFilter = {};
   if (vals.address) f.address = vals.address;
   if (vals.dataKey) f.dataKey = vals.dataKey;
-  if (vals.dataKeyName) f.dataKeyName = vals.dataKeyName;
+  if (vals.dataKeyName) f.dataKeyName = vals.dataKeyName as DataChangedEventFilter['dataKeyName'];
   if (vals.timestampFrom) f.timestampFrom = vals.timestampFrom;
   if (vals.timestampTo) f.timestampTo = vals.timestampTo;
   if (vals.blockNumberFrom) {
