@@ -31,7 +31,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
  * Filter → Hasura mapping:
  * - `address`              → `{ address: { _ilike: '%escapeLike%' } }`
  * - `dataKey`              → `{ data_key: { _ilike: '%escapeLike%' } }` (Hasura field is `data_key`)
- * - `dataKeyName`          → resolved to hex via `resolveDataKeyHex`, then `{ data_key: { _ilike } }`
+ * - `dataKeyName`          → resolved to hex via `resolveDataKeyHex`; full keys use exact match, prefix keys use `hex%` wildcard
  * - `timestampFrom`        → `{ timestamp: { _gte: normalizeTimestamp } }`
  * - `timestampTo`          → `{ timestamp: { _lte: normalizeTimestamp } }`
  * - `blockNumberFrom`      → `{ block_number: { _gte: value } }` (Int comparison)
@@ -59,9 +59,12 @@ function buildDataChangedEventWhere(filter?: DataChangedEventFilter): Data_Chang
   if (filter.dataKeyName) {
     const hex = resolveDataKeyHex(filter.dataKeyName);
     if (hex) {
-      // Resolved known name → exact match on the hex key
+      // Full 32-byte keys (66 chars with 0x prefix) use exact match;
+      // shorter keys are prefixes (e.g., AddressPermissionsPrefix, LSP10VaultsMap,
+      // array index keys) and need wildcard suffix for prefix matching
+      const isPrefix = hex.length < 66;
       conditions.push({
-        data_key: { _ilike: hex },
+        data_key: { _ilike: isPrefix ? `${hex}%` : hex },
       });
     }
     // Unknown names are silently ignored — dataKeyName only accepts known ERC725Y key names
