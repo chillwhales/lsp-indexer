@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
 - **Sub-phase:** 9.10 (Data Changed Events) — In progress
-- **Plan:** 2 of 4 in current sub-phase
-- **Status:** Completed 09.10-02-PLAN.md (parsers + services + query keys for both DataChangedEvent and TokenIdDataChangedEvent)
-- **Last activity:** 2026-02-25 — Completed 09.10-02-PLAN.md
+- **Plan:** 3 of 4 in current sub-phase
+- **Status:** Completed 09.10-03-PLAN.md (React hooks + Next.js server actions + Next.js hooks for both domains)
+- **Last activity:** 2026-02-25 — Completed 09.10-03-PLAN.md
 - **Progress:** ██████░░░░ 67% (20/30 requirements)
 
 ## Milestone History
@@ -40,7 +40,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.7   | Creators                           |     1/1      | Complete |
 | 9.8   | Issued Assets                      |     1/1      | Complete |
 | 9.9   | Encrypted Feed                     |     1/1      | Complete |
-| 9.10  | Data Changed Events                |      1       | Plan 2/4 |
+| 9.10  | Data Changed Events                |      1       | Plan 3/4 |
 | 9.11  | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
@@ -51,7 +51,7 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 80 (36 v1.0 + 44 v1.1)
+- **Plans completed:** 81 (36 v1.0 + 45 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 22 (11 v1.0 + 11 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 20/30 (v1.1)
@@ -196,16 +196,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-25
-- **Activity:** Executed Phase 9.10 Plan 02 (Data Changed Events — parsers + services + query keys)
-- **Outcome:** 2 tasks, 2 commits. Data key resolver utility, dual domain parsers with dataKeyName derivation, service functions with filter/sort/include translation, query key factories, barrel exports. 10 @lukso packages added. Node package typechecks and builds.
+- **Activity:** Executed Phase 9.10 Plan 03 (Data Changed Events — React hooks + Next.js server actions + Next.js hooks)
+- **Outcome:** 2 tasks, 2 commits. 4 React hooks, 2 server actions, 4 Next.js hooks for DataChangedEvent + TokenIdDataChangedEvent domains. Barrel exports wired. All 4 packages build and typecheck.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.10 Plan 02 complete** — parsers + services + query keys delivered
-- **Next step:** Phase 9.10 Plan 03 (React hooks + Next.js server actions)
-- **Remaining sub-phases in Phase 9:** 9.10 (Data Changed Events, plan 3-4 remaining), 9.11 (Universal Receiver Events)
+- **Phase 9.10 Plan 03 complete** — consumer-facing API layer delivered for both domains
+- **Next step:** Phase 9.10 Plan 04 (playground / integration verification)
+- **Remaining sub-phases in Phase 9:** 9.10 (Data Changed Events, plan 4 remaining), 9.11 (Universal Receiver Events)
 
 ---
 
-_Last updated: 2026-02-25 — Phase 9.10 Plan 02 complete (Data Changed Events parsers + services + query keys)_
+_Last updated: 2026-02-25 — Phase 9.10 Plan 03 complete (Data Changed Events hooks + server actions)_
