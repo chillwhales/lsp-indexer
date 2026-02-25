@@ -123,11 +123,10 @@ export const DATA_CHANGED_EVENT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'transactionIndex', label: 'Transaction Index' },
 ];
 
-/** TokenIdDataChangedEventInclude — 4 scalar fields + nft boolean. digitalAsset is SubIncludeSection. */
+/** TokenIdDataChangedEventInclude — 4 scalar fields. digitalAsset and nft are SubIncludeSections (nft is boolean-only). */
 export const TOKEN_ID_DATA_CHANGED_EVENT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'blockNumber', label: 'Block Number' },
   { key: 'timestamp', label: 'Timestamp' },
   { key: 'logIndex', label: 'Log Index' },
   { key: 'transactionIndex', label: 'Transaction Index' },
-  { key: 'nft', label: 'NFT Info' },
 ];

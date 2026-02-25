@@ -5,6 +5,7 @@ import {
   Calendar,
   ChevronDown,
   FileOutput,
+  Hash,
   Heart,
   Home,
   Image,
@@ -49,6 +50,12 @@ const navLinks = [
   { href: '/issued-assets', label: 'Issued Assets', icon: FileOutput, available: true },
   { href: '/encrypted-assets', label: 'Encrypted Assets', icon: Lock, available: true },
   { href: '/data-changed-events', label: 'Data Changed Events', icon: Calendar, available: true },
+  {
+    href: '/token-id-data-changed-events',
+    label: 'Token ID Data Changed',
+    icon: Hash,
+    available: true,
+  },
   { href: '/stats', label: 'Stats', icon: BarChart3, available: false },
 ];
 
