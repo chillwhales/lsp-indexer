@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.9 (Encrypted Assets) — Complete
-- **Plan:** 4 of 4 in current sub-phase
-- **Status:** Phase 9.9 complete — ready for Phase 9.10 (Data Changed Events)
-- **Last activity:** 2026-02-24 — Phase 9.9 verified (16/16 must-haves passed)
+- **Sub-phase:** 9.10 (Data Changed Events) — In progress
+- **Plan:** 1 of 4 in current sub-phase
+- **Status:** Completed 09.10-01-PLAN.md (types + GraphQL documents for both DataChangedEvent and TokenIdDataChangedEvent)
+- **Last activity:** 2026-02-25 — Completed 09.10-01-PLAN.md
 - **Progress:** ██████░░░░ 67% (20/30 requirements)
 
 ## Milestone History
@@ -40,7 +40,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.7   | Creators                           |     1/1      | Complete |
 | 9.8   | Issued Assets                      |     1/1      | Complete |
 | 9.9   | Encrypted Feed                     |     1/1      | Complete |
-| 9.10  | Data Changed Events                |      1       | Pending  |
+| 9.10  | Data Changed Events                |      1       | Plan 1/4 |
 | 9.11  | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
@@ -51,7 +51,7 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 78 (36 v1.0 + 42 v1.1)
+- **Plans completed:** 79 (36 v1.0 + 43 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 22 (11 v1.0 + 11 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 20/30 (v1.1)
@@ -170,6 +170,13 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **EncryptedAsset 8 filter fields:** 3 nested relation filters (`universalProfile.lsp3Profile.name.value`, `encryption.method`, `file.type`), 1 numeric comparison (`file.size._gte`), 1 exact numeric (`revision._eq`), 1 timestamp (`_gte`), 2 string ilike
 - **buildEncryptedAssetIncludeVars prefix replacement:** Reuses `buildProfileIncludeVars` with `key.replace('includeProfile', 'includeUniversalProfile')` — same prefix pattern as other domains with nested profiles
 - **`followed_aggregate` for universalProfile following count:** Profile sub-document in encrypted assets uses `followed_aggregate` (matching issued assets pattern)
+- **DataChangedEvent base fields:** address, dataKey, dataValue, dataKeyName — dataKeyName is parser-derived (resolved name for known ERC725Y keys, null if unknown), NOT from Hasura
+- **TokenIdDataChangedEvent base fields:** address, dataKey, dataValue, tokenId, dataKeyName — same parser-derived dataKeyName plus tokenId
+- **TokenIdDataChangedEventNftSchema lightweight sub-type:** 5 fields (address, tokenId, isBurned, isMinted, name) — NOT the full Nft domain type, keeps event queries fast
+- **NFT include is boolean-only for data changed events:** `nft: z.boolean().optional()` — no NftInclude sub-include, fixed sub-selection of 5 fields
+- **No singular hooks for data changed events:** Both data_changed and token_id_data_changed have no natural single-entity key (opaque Hasura ID only)
+- **GetDataChangedEventsDocument 36 variables:** 4 pagination + 4 scalar + 10 UP ($includeUniversalProfile*) + 18 DA ($includeDigitalAsset\*)
+- **GetTokenIdDataChangedEventsDocument 27 variables:** 4 pagination + 4 scalar + 18 DA ($includeDigitalAsset*) + 1 nft ($includeNft)
 
 ### Discovered Todos
 
@@ -183,17 +190,17 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-24
-- **Activity:** Executed Phase 9.9 (Encrypted Assets) — all 4 plans + verification
-- **Outcome:** 4 plans, 13 commits, 16/16 must-haves verified. ImageList reusable component extracted + backported. EncryptedAssetCard (most feature-rich card). Playground at /encrypted-assets. All packages build.
+- **Date:** 2026-02-25
+- **Activity:** Executed Phase 9.10 Plan 01 (Data Changed Events — types + GraphQL documents)
+- **Outcome:** 2 tasks, 2 commits. Dual domain types (DataChangedEvent + TokenIdDataChangedEvent) with Zod schemas, conditional include types, and GraphQL documents. All packages typecheck and build.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.9 complete** — all 4 plans delivered, QUERY-08 fulfilled, verified 16/16
-- **Next step:** Phase 9.10 (Data Changed Events)
-- **Remaining sub-phases in Phase 9:** 9.10 (Data Changed Events), 9.11 (Universal Receiver Events)
+- **Phase 9.10 Plan 01 complete** — types + documents foundation delivered
+- **Next step:** Phase 9.10 Plan 02 (parsers + services + query keys)
+- **Remaining sub-phases in Phase 9:** 9.10 (Data Changed Events, plan 2-4 remaining), 9.11 (Universal Receiver Events)
 
 ---
 
-_Last updated: 2026-02-24 — Phase 9.9 complete (Encrypted Assets — QUERY-08 delivered, verified 16/16)_
+_Last updated: 2026-02-25 — Phase 9.10 Plan 01 complete (DataChangedEvent + TokenIdDataChangedEvent types and GraphQL documents)_
