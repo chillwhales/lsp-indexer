@@ -37,8 +37,9 @@ type UseInfiniteDataChangedEventsReturn<F> = {
  * Fetch a paginated list of ERC725Y DataChanged event records with filtering and sorting.
  *
  * Wraps `fetchDataChangedEvents` in a TanStack `useQuery` hook. Supports comprehensive
- * filtering (by address, dataKey, blockNumber, timestamp) and sorting (by timestamp,
- * address, dataKey, blockNumber).
+ * filtering (by address, dataKey, blockNumber, timestamp, universalProfileName,
+ * digitalAssetName) and sorting (by timestamp, blockNumber, universalProfileName,
+ * digitalAssetName).
  *
  * @param params - Optional filter, sort, pagination, and include config
  * @returns `{ dataChangedEvents, totalCount, isLoading, error, ...rest }` — full TanStack Query

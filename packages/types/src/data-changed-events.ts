@@ -53,13 +53,13 @@ export const DataChangedEventSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Filter schema — 6 filter fields (8 params due to range fields)
+// Filter schema — 8 filter fields (8 keys, 2 use range pairs)
 // ---------------------------------------------------------------------------
 
 /**
  * Filter for data changed event queries.
  *
- * All 6 filter fields from CONTEXT.md — string fields use `_ilike` (case-insensitive),
+ * All 8 filter fields — string fields use `_ilike` (case-insensitive),
  * timestamp and blockNumber fields use `_gte` / `_lte` for range filtering.
  */
 export const DataChangedEventFilterSchema = z.object({

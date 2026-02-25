@@ -21,7 +21,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
 /**
  * Translate a flat `DataChangedEventFilter` to a Hasura `data_changed_bool_exp`.
  *
- * All 6 filter fields (8 params due to range fields) — string fields use
+ * All 8 filter fields — string fields use
  * `_ilike` + `escapeLike` for case-insensitive matching, timestamp and
  * blockNumber fields use `_gte` / `_lte`.
  *

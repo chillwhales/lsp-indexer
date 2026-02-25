@@ -25,7 +25,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
  * Translate a flat `TokenIdDataChangedEventFilter` to a Hasura
  * `token_id_data_changed_bool_exp`.
  *
- * All 7 filter fields (9 params due to range fields) — string fields use
+ * All 9 filter fields — string fields use
  * `_ilike` + `escapeLike` for case-insensitive matching, timestamp and
  * blockNumber fields use `_gte` / `_lte`.
  *

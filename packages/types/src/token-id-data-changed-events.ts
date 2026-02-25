@@ -9,8 +9,8 @@ import {
   type DigitalAssetResult,
 } from './digital-assets';
 import type { IncludeResult, PartialExcept } from './include-types';
-import { NftSchema, type Nft, type NftResult, type OwnedTokenNftInclude } from './nfts';
-import { OwnedTokenNftIncludeSchema } from './owned-tokens';
+import { NftSchema, type Nft, type NftResult } from './nfts';
+import { OwnedTokenNftIncludeSchema, type OwnedTokenNftInclude } from './owned-tokens';
 
 // ---------------------------------------------------------------------------
 // Core domain schema
@@ -55,13 +55,13 @@ export const TokenIdDataChangedEventSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Filter schema — 7 filter fields (9 params due to range fields)
+// Filter schema — 9 filter fields (9 keys, 2 use range pairs)
 // ---------------------------------------------------------------------------
 
 /**
  * Filter for token ID data changed event queries.
  *
- * All 7 filter fields from CONTEXT.md — string fields use `_ilike` (case-insensitive),
+ * All 9 filter fields — string fields use `_ilike` (case-insensitive),
  * timestamp and blockNumber fields use `_gte` / `_lte` for range filtering.
  */
 export const TokenIdDataChangedEventFilterSchema = z.object({
