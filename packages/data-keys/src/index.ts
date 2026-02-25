@@ -129,11 +129,21 @@ const HEX_TO_NAME = new Map<string, string>();
 /** Forward map: lowercase name → lowercase hex data key */
 const NAME_TO_HEX = new Map<string, string>();
 
+/** Prefix keys (shorter than 66 chars) sorted longest-first for greedy matching */
+const PREFIX_KEYS: Array<{ hex: string; name: string }> = [];
+
 // Populate from built-in data keys at module load time
 for (const [name, hex] of BUILT_IN_DATA_KEYS) {
-  HEX_TO_NAME.set(hex.toLowerCase(), name);
-  NAME_TO_HEX.set(name.toLowerCase(), hex.toLowerCase());
+  const lowerHex = hex.toLowerCase();
+  HEX_TO_NAME.set(lowerHex, name);
+  NAME_TO_HEX.set(name.toLowerCase(), lowerHex);
+  if (lowerHex.length < 66) {
+    PREFIX_KEYS.push({ hex: lowerHex, name });
+  }
 }
+
+// Sort longest-first so the most specific prefix matches first
+PREFIX_KEYS.sort((a, b) => b.hex.length - a.hex.length);
 
 // ---------------------------------------------------------------------------
 // Types
@@ -176,8 +186,19 @@ export type DataKeyName = (typeof DATA_KEY_NAMES)[number] | (string & {});
  * ```
  */
 export function registerDataKey(name: string, hex: string): void {
-  HEX_TO_NAME.set(hex.toLowerCase(), name);
-  NAME_TO_HEX.set(name.toLowerCase(), hex.toLowerCase());
+  const lowerHex = hex.toLowerCase();
+  HEX_TO_NAME.set(lowerHex, name);
+  NAME_TO_HEX.set(name.toLowerCase(), lowerHex);
+  // If this is a prefix key, add to PREFIX_KEYS and re-sort
+  if (lowerHex.length < 66) {
+    const existing = PREFIX_KEYS.findIndex((p) => p.hex === lowerHex);
+    if (existing >= 0) {
+      PREFIX_KEYS[existing] = { hex: lowerHex, name };
+    } else {
+      PREFIX_KEYS.push({ hex: lowerHex, name });
+      PREFIX_KEYS.sort((a, b) => b.hex.length - a.hex.length);
+    }
+  }
 }
 
 /**
@@ -220,13 +241,33 @@ export function registerDataKeys(
 /**
  * Resolve a raw hex ERC725Y data key to its human-readable name.
  *
- * Case-insensitive. Returns `null` for unknown keys.
+ * First tries an exact match against the registry. If no exact match is found,
+ * checks whether the hex starts with any known prefix key (e.g., array index
+ * keys like `AddressPermissions[].index` are 16-byte prefixes, but the stored
+ * data key has the full 32 bytes with the index appended).
  *
- * @param hex - Raw hex data key (e.g., '0x5ef83ad9...')
- * @returns Human-readable name (e.g., 'LSP3Profile') or `null` if unknown
+ * Prefix matching is greedy — the longest matching prefix wins.
+ * Case-insensitive.
+ *
+ * @param hex - Raw hex data key (e.g., '0x5ef83ad9...' or '0xdf30dba0...00000001')
+ * @returns Human-readable name (e.g., 'LSP3Profile', 'AddressPermissions[].index') or `null` if unknown
  */
 export function resolveDataKeyName(hex: string): string | null {
-  return HEX_TO_NAME.get(hex.toLowerCase()) ?? null;
+  const lower = hex.toLowerCase();
+
+  // Exact match (full 32-byte keys and prefix keys registered directly)
+  const exact = HEX_TO_NAME.get(lower);
+  if (exact != null) return exact;
+
+  // Prefix match — check if the hex starts with any known prefix key
+  // PREFIX_KEYS is sorted longest-first for greedy matching
+  for (const prefix of PREFIX_KEYS) {
+    if (lower.startsWith(prefix.hex)) {
+      return prefix.name;
+    }
+  }
+
+  return null;
 }
 
 /**
