@@ -170,21 +170,20 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **EncryptedAsset 8 filter fields:** 3 nested relation filters (`universalProfile.lsp3Profile.name.value`, `encryption.method`, `file.type`), 1 numeric comparison (`file.size._gte`), 1 exact numeric (`revision._eq`), 1 timestamp (`_gte`), 2 string ilike
 - **buildEncryptedAssetIncludeVars prefix replacement:** Reuses `buildProfileIncludeVars` with `key.replace('includeProfile', 'includeUniversalProfile')` — same prefix pattern as other domains with nested profiles
 - **`followed_aggregate` for universalProfile following count:** Profile sub-document in encrypted assets uses `followed_aggregate` (matching issued assets pattern)
-- **DataChangedEvent base fields:** address, dataKey, dataValue, dataKeyName — dataKeyName is parser-derived (resolved name for known ERC725Y keys, null if unknown), NOT from Hasura
-- **TokenIdDataChangedEvent base fields:** address, dataKey, dataValue, tokenId, dataKeyName — same parser-derived dataKeyName plus tokenId
-- **TokenIdDataChangedEventNftSchema lightweight sub-type:** 5 fields (address, tokenId, isBurned, isMinted, name) — NOT the full Nft domain type, keeps event queries fast
-- **NFT include is boolean-only for data changed events:** `nft: z.boolean().optional()` — no NftInclude sub-include, fixed sub-selection of 5 fields
-- **No singular hooks for data changed events:** Both data_changed and token_id_data_changed have no natural single-entity key (opaque Hasura ID only)
+- **DataChangedEvent base fields:** address, dataKey, dataValue — dataKeyName is an includable field (parser-derived from resolveDataKeyName for known ERC725Y keys, null if unknown), NOT from Hasura
+- **TokenIdDataChangedEvent base fields:** address, dataKey, dataValue, tokenId — dataKeyName is an includable field, same parser-derived resolution
+- **TokenIdDataChangedEvent nft include:** `nft: z.union([z.boolean(), OwnedTokenNftIncludeSchema]).optional()` — accepts boolean for all fields or OwnedTokenNftInclude for per-field control. Full NftSchema used (not a lightweight sub-type)
+- **Latest hooks for data changed events:** `useLatestDataChangedEvent` and `useLatestTokenIdDataChangedEvent` fetch most recent event by filter (timestamp desc, limit 1)
 - **GetDataChangedEventsDocument 36 variables:** 4 pagination + 4 scalar + 10 UP ($includeUniversalProfile*) + 18 DA ($includeDigitalAsset\*)
 - **GetTokenIdDataChangedEventsDocument 27 variables:** 4 pagination + 4 scalar + 18 DA ($includeDigitalAsset*) + 1 nft ($includeNft)
-- **resolveDataKeyName utility:** Reverse map from hex ERC725Y data key → human-readable name using 10 @lukso/lsp\*-contracts packages. Built at module load time. Returns null for unknown keys. Array keys resolved as `.length` and `.index` sub-entries.
-- **10 @lukso/lsp\*-contracts as runtime dependencies:** Per CONTEXT.md locked decision — used for data key name resolution in parseDataChangedEvent/parseTokenIdDataChangedEvent
+- **resolveDataKeyName utility:** In `@lsp-indexer/data-keys` package — reverse map from hex ERC725Y data key → human-readable name using 32 hardcoded built-in data keys. No @lukso/\* dependencies. Returns null for unknown keys. Prefix matching for array/mapping keys.
+- **@lsp-indexer/data-keys package:** Standalone read-only registry with constants, registry, schemas (DataKeyNameSchema z.enum), types. Only dependency is zod.
 - **NFT name filter in token-id-data-changed uses \_or pattern:** `{ nft: { _or: [{ lsp4Metadata: { name: { value: { _ilike } } } }, { lsp4MetadataBaseUri: { name: { value: { _ilike } } } }] } }` — matching nfts service pattern
 - **Data changed event UP prefix: includeProfile* → includeUniversalProfile*:** Matching encrypted-assets pattern for nested UP sub-includes
   - **Data changed event DA prefix: include* → includeDigitalAsset*:** Matching issued-assets pattern for nested DA sub-includes
   - **dataKeyName display pattern:** Bold resolved name when known, "(Unknown Key)" in muted italic when null, raw hex truncated to 20 chars in mono below
-  - **4-tab playground layout for 2-domain phases:** Data Changed Events page has 4 tabs (2 domains × 2 scroll modes) in a single page
-  - **nft boolean include in scalar include array:** TokenIdDataChangedEvent nft include is boolean-only (no SubIncludeSection needed)
+  - **3-tab playground layout per domain:** Each domain has its own page (`/data-changed-events`, `/token-id-data-changed-events`) with 3 tabs (Latest, List, Infinite)
+  - **nft include in scalar include array:** TokenIdDataChangedEvent nft is a boolean toggle in the playground UI (schema supports union type but playground uses simple on/off)
 
 ### Discovered Todos
 

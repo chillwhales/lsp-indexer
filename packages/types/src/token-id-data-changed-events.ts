@@ -56,7 +56,7 @@ export const TokenIdDataChangedEventSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Filter schema — 9 filter fields (9 keys, 2 use range pairs)
+// Filter schema — 10 filter fields (10 keys, 2 use range pairs)
 // ---------------------------------------------------------------------------
 
 /**

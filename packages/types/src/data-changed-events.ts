@@ -54,7 +54,7 @@ export const DataChangedEventSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Filter schema — 8 filter fields (8 keys, 2 use range pairs)
+// Filter schema — 9 filter fields (9 keys, 2 use range pairs)
 // ---------------------------------------------------------------------------
 
 /**

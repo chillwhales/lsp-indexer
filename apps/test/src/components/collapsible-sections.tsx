@@ -111,7 +111,7 @@ export interface CollapsibleNftSectionProps {
 /**
  * Reusable collapsible section for displaying an NFT relation.
  *
- * Trigger shows: `{label}: {name ?? truncatedAddress}#{tokenId}`
+ * Trigger shows: `{label}: {name ?? truncatedAddress}`
  * Content renders the full `<NftCard>`.
  *
  * Used by: token-id-data-changed-event-card.
