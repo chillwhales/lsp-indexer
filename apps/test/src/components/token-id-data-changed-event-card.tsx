@@ -89,7 +89,7 @@ export function TokenIdDataChangedEventCard({
               <dt className="text-muted-foreground w-40 shrink-0">Data Key Name</dt>
               <dd>
                 {dataKeyName != null ? (
-                  <span className="font-semibold text-sm">{dataKeyName}</span>
+                  <span className="text-xs">{dataKeyName}</span>
                 ) : (
                   <span className="text-muted-foreground text-xs italic">(Unknown Key)</span>
                 )}
