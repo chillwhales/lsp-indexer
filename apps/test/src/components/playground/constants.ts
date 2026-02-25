@@ -114,3 +114,20 @@ export const ENCRYPTED_ASSET_CHUNKS_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'iv', label: 'IV' },
   { key: 'totalSize', label: 'Total Size' },
 ];
+
+/** DataChangedEventInclude — 4 scalar fields. universalProfile/digitalAsset are SubIncludeSections. */
+export const DATA_CHANGED_EVENT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'blockNumber', label: 'Block Number' },
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'logIndex', label: 'Log Index' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+];
+
+/** TokenIdDataChangedEventInclude — 4 scalar fields + nft boolean. digitalAsset is SubIncludeSection. */
+export const TOKEN_ID_DATA_CHANGED_EVENT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'blockNumber', label: 'Block Number' },
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'logIndex', label: 'Log Index' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'nft', label: 'NFT Info' },
+];
