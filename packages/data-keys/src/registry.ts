@@ -1,8 +1,8 @@
 /**
- * Internal bidirectional registry for ERC725Y data keys.
+ * Read-only bidirectional registry for ERC725Y data keys.
  *
- * Manages the hex↔name maps, prefix key index, and provides all
- * registration, resolution, existence-check, and enumeration functions.
+ * Manages the hex↔name maps and prefix key index. Provides resolution,
+ * existence-check, and enumeration functions.
  *
  * Pre-populated from {@link BUILT_IN_DATA_KEYS} at module load time.
  *
@@ -12,7 +12,7 @@
 import { BUILT_IN_DATA_KEYS } from './constants';
 
 // ---------------------------------------------------------------------------
-// Internal registry — bidirectional maps
+// Internal registry — bidirectional maps (read-only after initialization)
 // ---------------------------------------------------------------------------
 
 /** Reverse map: lowercase hex → human-readable name */
@@ -36,77 +36,6 @@ for (const [name, hex] of BUILT_IN_DATA_KEYS) {
 
 // Sort longest-first so the most specific prefix matches first
 PREFIX_KEYS.sort((a, b) => b.hex.length - a.hex.length);
-
-// ---------------------------------------------------------------------------
-// Registration — add custom data keys at runtime
-// ---------------------------------------------------------------------------
-
-/**
- * Register a custom ERC725Y data key.
- *
- * Adds a bidirectional mapping between a human-readable name and a hex data key.
- * Both directions (name→hex and hex→name) are registered. Lookups are
- * case-insensitive. If the name or hex already exists, it is overwritten.
- *
- * @param name - Human-readable data key name (e.g., 'MyAppSettings')
- * @param hex - Raw hex data key (e.g., '0xabcd1234...')
- *
- * @example
- * ```ts
- * import { registerDataKey, resolveDataKeyName } from '@lsp-indexer/data-keys';
- *
- * registerDataKey('MyAppSettings', '0xabcd1234...');
- * resolveDataKeyName('0xabcd1234...'); // → 'MyAppSettings'
- * ```
- */
-export function registerDataKey(name: string, hex: string): void {
-  const lowerHex = hex.toLowerCase();
-  HEX_TO_NAME.set(lowerHex, name);
-  NAME_TO_HEX.set(name.toLowerCase(), lowerHex);
-  // If this is a prefix key, add to PREFIX_KEYS and re-sort
-  if (lowerHex.length < 66) {
-    const existing = PREFIX_KEYS.findIndex((p) => p.hex === lowerHex);
-    if (existing >= 0) {
-      PREFIX_KEYS[existing] = { hex: lowerHex, name };
-    } else {
-      PREFIX_KEYS.push({ hex: lowerHex, name });
-      PREFIX_KEYS.sort((a, b) => b.hex.length - a.hex.length);
-    }
-  }
-}
-
-/**
- * Register multiple custom ERC725Y data keys at once.
- *
- * Convenience wrapper around {@link registerDataKey} for bulk registration.
- *
- * @param entries - Array of `[name, hex]` tuples or an object mapping names to hex keys
- *
- * @example
- * ```ts
- * import { registerDataKeys } from '@lsp-indexer/data-keys';
- *
- * // Array form
- * registerDataKeys([
- *   ['MyAppSettings', '0xabcd...'],
- *   ['MyAppPermissions', '0x1234...'],
- * ]);
- *
- * // Object form
- * registerDataKeys({
- *   MyAppSettings: '0xabcd...',
- *   MyAppPermissions: '0x1234...',
- * });
- * ```
- */
-export function registerDataKeys(
-  entries: [name: string, hex: string][] | Record<string, string>,
-): void {
-  const pairs = Array.isArray(entries) ? entries : Object.entries(entries);
-  for (const [name, hex] of pairs) {
-    registerDataKey(name, hex);
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Resolution — lookup data keys by name or hex
@@ -164,7 +93,7 @@ export function resolveDataKeyHex(name: string): string | null {
  * Check whether a human-readable data key name is registered.
  *
  * @param name - Human-readable data key name
- * @returns `true` if the name is known (built-in or custom-registered)
+ * @returns `true` if the name is known
  */
 export function isKnownDataKeyName(name: string): boolean {
   return NAME_TO_HEX.has(name.toLowerCase());
@@ -174,7 +103,7 @@ export function isKnownDataKeyName(name: string): boolean {
  * Check whether a hex data key is registered.
  *
  * @param hex - Raw hex data key
- * @returns `true` if the hex key is known (built-in or custom-registered)
+ * @returns `true` if the hex key is known
  */
 export function isKnownDataKeyHex(hex: string): boolean {
   return HEX_TO_NAME.has(hex.toLowerCase());
@@ -185,9 +114,7 @@ export function isKnownDataKeyHex(hex: string): boolean {
 // ---------------------------------------------------------------------------
 
 /**
- * Get all registered human-readable data key names.
- *
- * Includes both built-in LUKSO LSP names and any custom-registered names.
+ * Get all known human-readable data key names.
  *
  * @returns Array of known data key names
  */
@@ -196,7 +123,7 @@ export function getKnownDataKeyNames(): string[] {
 }
 
 /**
- * Get all registered hex data keys.
+ * Get all known hex data keys.
  *
  * @returns Array of known hex data keys (lowercase)
  */
@@ -205,14 +132,14 @@ export function getKnownDataKeyHexes(): string[] {
 }
 
 /**
- * Get the total number of registered data keys.
+ * Get the total number of known data keys.
  */
 export function getDataKeyCount(): number {
   return HEX_TO_NAME.size;
 }
 
 /**
- * Get all registered data keys as `[hex, name]` pairs.
+ * Get all known data keys as `[hex, name]` pairs.
  *
  * @returns Array of `[hex, name]` tuples
  */

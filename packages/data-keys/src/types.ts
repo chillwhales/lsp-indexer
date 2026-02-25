@@ -13,13 +13,13 @@ import type { DATA_KEY_NAMES } from './constants';
 /**
  * Union type of all built-in LUKSO LSP data key names.
  *
- * Provides autocomplete in TypeScript for filter fields. Custom keys registered
- * via {@link registerDataKey} are accepted at runtime via `(string & {})` widening.
+ * Provides autocomplete in TypeScript for filter fields while still
+ * accepting arbitrary strings via `(string & {})` widening.
  *
  * @example
  * ```ts
  * const name: DataKeyName = 'LSP3Profile'; // autocomplete works
- * const custom: DataKeyName = 'MyCustomKey'; // also valid (string & {})
+ * const custom: DataKeyName = 'SomeOtherKey'; // also valid (string & {})
  * ```
  */
 export type DataKeyName = (typeof DATA_KEY_NAMES)[number] | (string & {});
