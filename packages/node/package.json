@@ -31,17 +31,8 @@
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
-    "@lsp-indexer/types": "workspace:*",
-    "@lukso/lsp1-contracts": "^0.15.5",
-    "@lukso/lsp10-contracts": "^0.15.4",
-    "@lukso/lsp12-contracts": "^0.15.4",
-    "@lukso/lsp17contractextension-contracts": "^0.16.7",
-    "@lukso/lsp3-contracts": "0.16.6",
-    "@lukso/lsp4-contracts": "0.16.7",
-    "@lukso/lsp5-contracts": "^0.15.4",
-    "@lukso/lsp6-contracts": "0.15.5",
-    "@lukso/lsp8-contracts": "0.16.7",
-    "@lukso/lsp9-contracts": "^0.15.5"
+    "@lsp-indexer/data-keys": "workspace:*",
+    "@lsp-indexer/types": "workspace:*"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^6.1.1",

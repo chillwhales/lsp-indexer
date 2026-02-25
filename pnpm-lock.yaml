@@ -163,6 +163,49 @@ importers:
         specifier: ^5.9.2
         version: 5.9.2
 
+  packages/data-keys:
+    dependencies:
+      '@lukso/lsp1-contracts':
+        specifier: ^0.15.5
+        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp10-contracts':
+        specifier: ^0.15.4
+        version: 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp12-contracts':
+        specifier: ^0.15.4
+        version: 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp17contractextension-contracts':
+        specifier: ^0.16.7
+        version: 0.16.7
+      '@lukso/lsp3-contracts':
+        specifier: 0.16.6
+        version: 0.16.6(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp4-contracts':
+        specifier: 0.16.7
+        version: 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp5-contracts':
+        specifier: ^0.15.4
+        version: 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp6-contracts':
+        specifier: 0.15.5
+        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp8-contracts':
+        specifier: 0.16.7
+        version: 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp9-contracts':
+        specifier: ^0.15.5
+        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(@swc/core@1.13.3)(jiti@2.6.1)(postcss@8.5.6)(typescript@5.9.3)(yaml@2.8.2)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   packages/indexer:
     dependencies:
       '@chillwhales/abi':
@@ -357,39 +400,12 @@ importers:
       '@graphql-typed-document-node/core':
         specifier: ^3.2.0
         version: 3.2.0(graphql@16.12.0)
+      '@lsp-indexer/data-keys':
+        specifier: workspace:*
+        version: link:../data-keys
       '@lsp-indexer/types':
         specifier: workspace:*
         version: link:../types
-      '@lukso/lsp1-contracts':
-        specifier: ^0.15.5
-        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp10-contracts':
-        specifier: ^0.15.4
-        version: 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp12-contracts':
-        specifier: ^0.15.4
-        version: 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp17contractextension-contracts':
-        specifier: ^0.16.7
-        version: 0.16.7
-      '@lukso/lsp3-contracts':
-        specifier: 0.16.6
-        version: 0.16.6(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp4-contracts':
-        specifier: 0.16.7
-        version: 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp5-contracts':
-        specifier: ^0.15.4
-        version: 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp6-contracts':
-        specifier: 0.15.5
-        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp8-contracts':
-        specifier: 0.16.7
-        version: 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp9-contracts':
-        specifier: ^0.15.5
-        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     devDependencies:
       '@graphql-codegen/cli':
         specifier: ^6.1.1
@@ -1978,19 +1994,11 @@ packages:
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
 
-  '@jridgewell/gen-mapping@0.3.8':
-    resolution: {integrity: sha512-imAbBGkb+ebQyxKgzv5Hu2nmROxoDOXHh80evxdoXNOrvAnVx7zimzc1Oo5h9RlfV4vPXaE2iM5pOFbvOCClWA==}
-    engines: {node: '>=6.0.0'}
-
   '@jridgewell/remapping@2.3.5':
     resolution: {integrity: sha512-LI9u/+laYG4Ds1TDKSJW2YPrIlcVYOwi2fUC6xB43lueCjgxV4lffOCZCtYFiH6TNOX+tQKXx97T4IKHbhyHEQ==}
 
   '@jridgewell/resolve-uri@3.1.2':
     resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
-    engines: {node: '>=6.0.0'}
-
-  '@jridgewell/set-array@1.2.1':
-    resolution: {integrity: sha512-R8gLRTZeyp03ymzP/6Lil/28tGeGEzhx1q2k703KGWRAI1VdvPIXdG70VJc2pAMw3NA6JKL5hhFu1sJX0Mnn/A==}
     engines: {node: '>=6.0.0'}
 
   '@jridgewell/sourcemap-codec@1.5.0':
@@ -7944,8 +7952,8 @@ snapshots:
 
   '@ampproject/remapping@2.3.0':
     dependencies:
-      '@jridgewell/gen-mapping': 0.3.8
-      '@jridgewell/trace-mapping': 0.3.25
+      '@jridgewell/gen-mapping': 0.3.13
+      '@jridgewell/trace-mapping': 0.3.31
 
   '@antfu/ni@25.0.0':
     dependencies:
@@ -8111,7 +8119,7 @@ snapshots:
     dependencies:
       '@babel/parser': 7.27.1
       '@babel/types': 7.27.1
-      '@jridgewell/gen-mapping': 0.3.8
+      '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.25
       jsesc: 3.1.0
 
@@ -9844,20 +9852,12 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
       '@jridgewell/trace-mapping': 0.3.31
 
-  '@jridgewell/gen-mapping@0.3.8':
-    dependencies:
-      '@jridgewell/set-array': 1.2.1
-      '@jridgewell/sourcemap-codec': 1.5.5
-      '@jridgewell/trace-mapping': 0.3.25
-
   '@jridgewell/remapping@2.3.5':
     dependencies:
-      '@jridgewell/gen-mapping': 0.3.8
+      '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.25
 
   '@jridgewell/resolve-uri@3.1.2': {}
-
-  '@jridgewell/set-array@1.2.1': {}
 
   '@jridgewell/sourcemap-codec@1.5.0': {}
 

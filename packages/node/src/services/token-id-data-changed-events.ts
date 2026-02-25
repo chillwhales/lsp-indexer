@@ -1,3 +1,4 @@
+import { resolveDataKeyHex } from '@lsp-indexer/data-keys';
 import type {
   PartialTokenIdDataChangedEvent,
   TokenIdDataChangedEvent,
@@ -12,7 +13,6 @@ import type {
   Token_Id_Data_Changed_Bool_Exp,
   Token_Id_Data_Changed_Order_By,
 } from '../graphql/graphql';
-import { resolveDataKeyHex } from '../parsers/data-key-resolver';
 import { parseTokenIdDataChangedEvents } from '../parsers/token-id-data-changed-events';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildNftIncludeVars } from './nfts';
@@ -66,14 +66,12 @@ function buildTokenIdDataChangedEventWhere(
   if (filter.dataKeyName) {
     const hex = resolveDataKeyHex(filter.dataKeyName);
     if (hex) {
+      // Resolved known name → exact match on the hex key
       conditions.push({
         data_key: { _ilike: hex },
       });
-    } else {
-      conditions.push({
-        data_key: { _ilike: `%${escapeLike(filter.dataKeyName)}%` },
-      });
     }
+    // Unknown names are silently ignored — dataKeyName only accepts known ERC725Y key names
   }
 
   if (filter.tokenId) {

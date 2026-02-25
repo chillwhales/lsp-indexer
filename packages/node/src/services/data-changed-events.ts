@@ -1,3 +1,4 @@
+import { resolveDataKeyHex } from '@lsp-indexer/data-keys';
 import type {
   DataChangedEvent,
   DataChangedEventFilter,
@@ -10,7 +11,6 @@ import { execute } from '../client/execute';
 import { GetDataChangedEventsDocument } from '../documents/data-changed-events';
 import type { Data_Changed_Bool_Exp, Data_Changed_Order_By } from '../graphql/graphql';
 import { parseDataChangedEvents } from '../parsers/data-changed-events';
-import { resolveDataKeyHex } from '../parsers/data-key-resolver';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
 import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';
@@ -63,12 +63,8 @@ function buildDataChangedEventWhere(filter?: DataChangedEventFilter): Data_Chang
       conditions.push({
         data_key: { _ilike: hex },
       });
-    } else {
-      // Unknown name — pass through as substring match (best-effort)
-      conditions.push({
-        data_key: { _ilike: `%${escapeLike(filter.dataKeyName)}%` },
-      });
     }
+    // Unknown names are silently ignored — dataKeyName only accepts known ERC725Y key names
   }
 
   if (filter.timestampFrom != null) {

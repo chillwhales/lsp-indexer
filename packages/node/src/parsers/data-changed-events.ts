@@ -1,3 +1,4 @@
+import { resolveDataKeyName } from '@lsp-indexer/data-keys';
 import type {
   DataChangedEvent,
   DataChangedEventInclude,
@@ -5,7 +6,6 @@ import type {
   PartialDataChangedEvent,
 } from '@lsp-indexer/types';
 import type { GetDataChangedEventsQuery } from '../graphql/graphql';
-import { resolveDataKeyName } from './data-key-resolver';
 import { parseDigitalAsset } from './digital-assets';
 import { parseProfile } from './profiles';
 import { stripExcluded } from './strip';

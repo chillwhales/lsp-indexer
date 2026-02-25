@@ -148,8 +148,8 @@ export type { FetchDataChangedEventsResult } from './services/data-changed-event
 // Data changed event parsers (Hasura → clean types)
 export { parseDataChangedEvent, parseDataChangedEvents } from './parsers/data-changed-events';
 
-// Data key resolver utilities (bidirectional: hex ↔ human-readable name)
-export { resolveDataKeyHex, resolveDataKeyName } from './parsers/data-key-resolver';
+// Data key resolver — re-exported from @lsp-indexer/data-keys for convenience
+export { resolveDataKeyHex, resolveDataKeyName } from '@lsp-indexer/data-keys';
 
 // Data changed event query key factory
 export { dataChangedEventKeys } from './keys/data-changed-events';

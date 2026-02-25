@@ -1,3 +1,4 @@
+import { resolveDataKeyName } from '@lsp-indexer/data-keys';
 import type {
   PartialTokenIdDataChangedEvent,
   TokenIdDataChangedEvent,
@@ -5,7 +6,6 @@ import type {
   TokenIdDataChangedEventResult,
 } from '@lsp-indexer/types';
 import type { GetTokenIdDataChangedEventsQuery } from '../graphql/graphql';
-import { resolveDataKeyName } from './data-key-resolver';
 import { parseDigitalAsset } from './digital-assets';
 import { parseNft } from './nfts';
 import { stripExcluded } from './strip';
