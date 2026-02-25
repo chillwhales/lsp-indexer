@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
 - **Sub-phase:** 9.10 (Data Changed Events) — In progress
-- **Plan:** 1 of 4 in current sub-phase
-- **Status:** Completed 09.10-01-PLAN.md (types + GraphQL documents for both DataChangedEvent and TokenIdDataChangedEvent)
-- **Last activity:** 2026-02-25 — Completed 09.10-01-PLAN.md
+- **Plan:** 2 of 4 in current sub-phase
+- **Status:** Completed 09.10-02-PLAN.md (parsers + services + query keys for both DataChangedEvent and TokenIdDataChangedEvent)
+- **Last activity:** 2026-02-25 — Completed 09.10-02-PLAN.md
 - **Progress:** ██████░░░░ 67% (20/30 requirements)
 
 ## Milestone History
@@ -40,7 +40,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.7   | Creators                           |     1/1      | Complete |
 | 9.8   | Issued Assets                      |     1/1      | Complete |
 | 9.9   | Encrypted Feed                     |     1/1      | Complete |
-| 9.10  | Data Changed Events                |      1       | Plan 1/4 |
+| 9.10  | Data Changed Events                |      1       | Plan 2/4 |
 | 9.11  | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
@@ -51,7 +51,7 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 79 (36 v1.0 + 43 v1.1)
+- **Plans completed:** 80 (36 v1.0 + 44 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 22 (11 v1.0 + 11 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 20/30 (v1.1)
@@ -177,6 +177,11 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **No singular hooks for data changed events:** Both data_changed and token_id_data_changed have no natural single-entity key (opaque Hasura ID only)
 - **GetDataChangedEventsDocument 36 variables:** 4 pagination + 4 scalar + 10 UP ($includeUniversalProfile*) + 18 DA ($includeDigitalAsset\*)
 - **GetTokenIdDataChangedEventsDocument 27 variables:** 4 pagination + 4 scalar + 18 DA ($includeDigitalAsset*) + 1 nft ($includeNft)
+- **resolveDataKeyName utility:** Reverse map from hex ERC725Y data key → human-readable name using 10 @lukso/lsp\*-contracts packages. Built at module load time. Returns null for unknown keys. Array keys resolved as `.length` and `.index` sub-entries.
+- **10 @lukso/lsp\*-contracts as runtime dependencies:** Per CONTEXT.md locked decision — used for data key name resolution in parseDataChangedEvent/parseTokenIdDataChangedEvent
+- **NFT name filter in token-id-data-changed uses \_or pattern:** `{ nft: { _or: [{ lsp4Metadata: { name: { value: { _ilike } } } }, { lsp4MetadataBaseUri: { name: { value: { _ilike } } } }] } }` — matching nfts service pattern
+- **Data changed event UP prefix: includeProfile* → includeUniversalProfile*:** Matching encrypted-assets pattern for nested UP sub-includes
+- **Data changed event DA prefix: include* → includeDigitalAsset*:** Matching issued-assets pattern for nested DA sub-includes
 
 ### Discovered Todos
 
@@ -191,16 +196,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-25
-- **Activity:** Executed Phase 9.10 Plan 01 (Data Changed Events — types + GraphQL documents)
-- **Outcome:** 2 tasks, 2 commits. Dual domain types (DataChangedEvent + TokenIdDataChangedEvent) with Zod schemas, conditional include types, and GraphQL documents. All packages typecheck and build.
+- **Activity:** Executed Phase 9.10 Plan 02 (Data Changed Events — parsers + services + query keys)
+- **Outcome:** 2 tasks, 2 commits. Data key resolver utility, dual domain parsers with dataKeyName derivation, service functions with filter/sort/include translation, query key factories, barrel exports. 10 @lukso packages added. Node package typechecks and builds.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.10 Plan 01 complete** — types + documents foundation delivered
-- **Next step:** Phase 9.10 Plan 02 (parsers + services + query keys)
-- **Remaining sub-phases in Phase 9:** 9.10 (Data Changed Events, plan 2-4 remaining), 9.11 (Universal Receiver Events)
+- **Phase 9.10 Plan 02 complete** — parsers + services + query keys delivered
+- **Next step:** Phase 9.10 Plan 03 (React hooks + Next.js server actions)
+- **Remaining sub-phases in Phase 9:** 9.10 (Data Changed Events, plan 3-4 remaining), 9.11 (Universal Receiver Events)
 
 ---
 
-_Last updated: 2026-02-25 — Phase 9.10 Plan 01 complete (DataChangedEvent + TokenIdDataChangedEvent types and GraphQL documents)_
+_Last updated: 2026-02-25 — Phase 9.10 Plan 02 complete (Data Changed Events parsers + services + query keys)_
