@@ -185,6 +185,10 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
   - **3-tab playground layout per domain:** Each domain has its own page (`/data-changed-events`, `/token-id-data-changed-events`) with 3 tabs (Latest, List, Infinite)
   - **nft include in scalar include array:** TokenIdDataChangedEvent nft is a boolean toggle in the playground UI (schema supports union type but playground uses simple on/off)
 
+### Roadmap Evolution
+
+- Phase 9.12 inserted after Phase 9.11: Block-Ordered Sorting — deterministic event ordering by blockNumber → transactionIndex → logIndex instead of timestamp (URGENT). Affects 4 event domains: followers (9.5), data-changed (9.10), token-id-data-changed (9.10), universal-receiver (9.11).
+
 ### Discovered Todos
 
 _None currently._
