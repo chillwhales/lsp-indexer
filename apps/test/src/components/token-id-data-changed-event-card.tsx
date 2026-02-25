@@ -77,11 +77,25 @@ export function TokenIdDataChangedEventCard({
             <dd className="font-mono text-xs break-all">{tokenIdDataChangedEvent.tokenId}</dd>
           </div>
 
-          {/* Data Key with optional resolved name */}
-          <DataKeyDisplay
-            dataKey={tokenIdDataChangedEvent.dataKey}
-            dataKeyName={hasDataKeyName ? dataKeyName : undefined}
-          />
+          {/* Data Key — always present (base field) */}
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-40 shrink-0">Data Key</dt>
+            <dd className="font-mono text-xs break-all">{tokenIdDataChangedEvent.dataKey}</dd>
+          </div>
+
+          {/* Data Key Name — conditional include field */}
+          {hasDataKeyName && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Data Key Name</dt>
+              <dd>
+                {dataKeyName != null ? (
+                  <span className="font-semibold text-sm">{dataKeyName}</span>
+                ) : (
+                  <span className="text-muted-foreground text-xs italic">(Unknown Key)</span>
+                )}
+              </dd>
+            </div>
+          )}
 
           {/* Data Value — truncated hex */}
           <div className="flex gap-2">
@@ -136,40 +150,6 @@ export function TokenIdDataChangedEventCard({
         <RawJsonToggle data={tokenIdDataChangedEvent} label="tokenIdDataChangedEvent" />
       </CardContent>
     </Card>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// DataKeyDisplay — shows resolved name (bold) + raw hex (mono)
-// ---------------------------------------------------------------------------
-
-function DataKeyDisplay({
-  dataKey,
-  dataKeyName,
-}: {
-  dataKey: string;
-  /** undefined = field not included; null = included but unknown; string = resolved name */
-  dataKeyName: string | null | undefined;
-}): React.ReactNode {
-  return (
-    <div className="flex gap-2">
-      <dt className="text-muted-foreground w-40 shrink-0">Data Key</dt>
-      <dd className="min-w-0">
-        {dataKeyName != null ? (
-          <div>
-            <span className="font-semibold text-sm">{dataKeyName}</span>
-            <div className="font-mono text-xs text-muted-foreground break-all">{dataKey}</div>
-          </div>
-        ) : dataKeyName === null ? (
-          <div>
-            <span className="text-muted-foreground text-xs italic">(Unknown Key)</span>
-            <div className="font-mono text-xs break-all">{dataKey}</div>
-          </div>
-        ) : (
-          <div className="font-mono text-xs break-all">{dataKey}</div>
-        )}
-      </dd>
-    </div>
   );
 }
 
