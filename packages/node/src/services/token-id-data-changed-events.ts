@@ -14,6 +14,7 @@ import type {
 } from '../graphql/graphql';
 import { parseTokenIdDataChangedEvents } from '../parsers/token-id-data-changed-events';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
+import { buildNftIncludeVars } from './nfts';
 import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
@@ -182,8 +183,8 @@ function buildTokenIdDataChangedEventOrderBy(
  * **Digital asset sub-includes:** Reuses `buildDigitalAssetIncludeVars` with prefix replacement:
  * - `include*` → `includeDigitalAsset*` for digital asset sub-includes
  *
- * **NFT include:** Boolean-only (no sub-includes). When `nft: true`, the fixed
- * lightweight NFT sub-selection is fetched.
+ * **NFT sub-includes:** Reuses `buildNftIncludeVars` for per-field NFT include control.
+ * Same pattern as owned-tokens — 8 NFT metadata fields with individual `@include` toggles.
  *
  * @param include - Optional include config; `undefined` = include everything
  * @returns Record of boolean variables for the GetTokenIdDataChangedEvents GraphQL document
@@ -194,6 +195,7 @@ export function buildTokenIdDataChangedEventIncludeVars(
   if (!include) return {};
 
   const activeDA = hasActiveIncludes(include.digitalAsset);
+  const activeNft = hasActiveIncludes(include.nft);
 
   const vars: Record<string, boolean> = {
     includeBlockNumber: include.blockNumber ?? false,
@@ -201,7 +203,7 @@ export function buildTokenIdDataChangedEventIncludeVars(
     includeLogIndex: include.logIndex ?? false,
     includeTransactionIndex: include.transactionIndex ?? false,
     includeDigitalAsset: activeDA,
-    includeNft: include.nft ?? false,
+    includeNft: activeNft,
   };
 
   // DA sub-includes: reuse DA include builder with "DigitalAsset" prefix
@@ -210,6 +212,12 @@ export function buildTokenIdDataChangedEventIncludeVars(
     for (const [key, val] of Object.entries(daVars)) {
       vars[key.replace('include', 'includeDigitalAsset')] = val;
     }
+  }
+
+  // NFT sub-includes: reuse NFT include builder with includeNft* prefix
+  if (activeNft) {
+    const nftVars = buildNftIncludeVars(include.nft);
+    Object.assign(vars, nftVars);
   }
 
   return vars;

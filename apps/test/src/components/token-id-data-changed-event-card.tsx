@@ -1,16 +1,16 @@
 'use client';
 
-import { Activity, ChevronDown, Gem } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import React from 'react';
 
 import type { PartialExcept, TokenIdDataChangedEvent } from '@lsp-indexer/types';
 
-import { CollapsibleDigitalAssetSection } from '@/components/collapsible-sections';
+import {
+  CollapsibleDigitalAssetSection,
+  CollapsibleNftSection,
+} from '@/components/collapsible-sections';
 import { RawJsonToggle } from '@/components/playground';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatRelativeTime, truncateAddress } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
@@ -30,10 +30,11 @@ export interface TokenIdDataChangedEventCardProps {
  * Base fields (always present): address, dataKey, dataValue, tokenId, dataKeyName.
  * Conditional scalars: blockNumber, timestamp, logIndex, transactionIndex —
  * rendered via `'key' in obj` field-presence guards (DX-04 pattern).
- * Two collapsible relation sections: NFT Info + Digital Asset.
+ * Two collapsible relation sections: NFT (full NftCard) + Digital Asset.
  *
  * Very similar to DataChangedEventCard but adds tokenId prominently and
- * replaces the Universal Profile section with an NFT Info section.
+ * replaces the Universal Profile section with an NFT section using the
+ * full `Nft` type rendered via `CollapsibleNftSection` / `NftCard`.
  */
 export function TokenIdDataChangedEventCard({
   tokenIdDataChangedEvent,
@@ -120,8 +121,8 @@ export function TokenIdDataChangedEventCard({
             )}
         </dl>
 
-        {/* Collapsible section 1: NFT Info */}
-        {nft != null && <NftInfoSection nft={nft} />}
+        {/* Collapsible section 1: NFT (full NftCard) */}
+        {nft != null && <CollapsibleNftSection label="NFT" nft={nft as any} />}
 
         {/* Collapsible section 2: Digital Asset */}
         {digitalAsset != null && (
@@ -180,79 +181,4 @@ function DataKeyDisplay({
 function truncateDataValue(value: string): string {
   if (value.length <= 80) return value;
   return `${value.slice(0, 80)}…`;
-}
-
-// ---------------------------------------------------------------------------
-// NFT Info collapsible section
-// ---------------------------------------------------------------------------
-
-/**
- * Collapsible section showing lightweight NFT info from the
- * TokenIdDataChangedEventNft sub-type (address, tokenId, name, isBurned, isMinted).
- */
-function NftInfoSection({ nft }: { nft: Record<string, unknown> }): React.ReactNode {
-  const name = typeof nft.name === 'string' ? nft.name : null;
-  const address = typeof nft.address === 'string' ? nft.address : null;
-  const tokenId = typeof nft.tokenId === 'string' ? nft.tokenId : null;
-  const isBurned = typeof nft.isBurned === 'boolean' ? nft.isBurned : false;
-  const isMinted = typeof nft.isMinted === 'boolean' ? nft.isMinted : false;
-
-  return (
-    <Collapsible>
-      <CollapsibleTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-          <Gem className="size-3.5" />
-          NFT Info
-          {name && (
-            <span className="font-normal text-muted-foreground/70 truncate max-w-48">{name}</span>
-          )}
-          <ChevronDown className="size-3.5" />
-        </Button>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2">
-        <dl className="space-y-1.5 text-sm">
-          {name != null && (
-            <div className="flex gap-2">
-              <dt className="text-muted-foreground w-32 shrink-0">Name</dt>
-              <dd>{name}</dd>
-            </div>
-          )}
-          {address != null && (
-            <div className="flex gap-2">
-              <dt className="text-muted-foreground w-32 shrink-0">Address</dt>
-              <dd className="font-mono text-xs break-all">{address}</dd>
-            </div>
-          )}
-          {tokenId != null && (
-            <div className="flex gap-2">
-              <dt className="text-muted-foreground w-32 shrink-0">Token ID</dt>
-              <dd className="font-mono text-xs break-all">{tokenId}</dd>
-            </div>
-          )}
-          <div className="flex gap-2 items-center">
-            <dt className="text-muted-foreground w-32 shrink-0">Status</dt>
-            <dd className="flex gap-1.5">
-              {isMinted && (
-                <Badge
-                  variant="outline"
-                  className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
-                >
-                  Minted
-                </Badge>
-              )}
-              {isBurned && (
-                <Badge
-                  variant="outline"
-                  className="bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800"
-                >
-                  Burned
-                </Badge>
-              )}
-              {!isMinted && !isBurned && <span className="text-xs text-muted-foreground">—</span>}
-            </dd>
-          </div>
-        </dl>
-      </CollapsibleContent>
-    </Collapsible>
-  );
 }

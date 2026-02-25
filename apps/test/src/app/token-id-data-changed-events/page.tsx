@@ -15,7 +15,6 @@ import type {
   SortDirection,
   SortNulls,
   TokenIdDataChangedEventFilter,
-  TokenIdDataChangedEventInclude,
   TokenIdDataChangedEventSort,
   TokenIdDataChangedEventSortField,
 } from '@lsp-indexer/types';
@@ -26,6 +25,7 @@ import {
   DIGITAL_ASSET_INCLUDE_FIELDS,
   FilterFieldsRow,
   IncludeToggles,
+  NFT_INCLUDE_FIELDS,
   PlaygroundPageLayout,
   ResultsList,
   SortControls,
@@ -36,7 +36,6 @@ import {
   useSubInclude,
 } from '@/components/playground';
 import { TokenIdDataChangedEventCard } from '@/components/token-id-data-changed-event-card';
-import { Switch } from '@/components/ui/switch';
 
 // ---------------------------------------------------------------------------
 // Domain config — Token ID Data Changed Events (9 filter params, 4 sort fields)
@@ -171,41 +170,6 @@ function buildFilter(vals: Record<string, string>): TokenIdDataChangedEventFilte
 }
 
 // ---------------------------------------------------------------------------
-// Build include — merges scalar toggles, Digital Asset sub-include, and NFT boolean
-// ---------------------------------------------------------------------------
-
-/**
- * Build the TokenIdDataChangedEventInclude object.
- *
- * The `nft` field is boolean-only (no sub-field toggles) — `true` means
- * "fetch the lightweight NFT relation", `false` means "skip it".
- *
- * Returns `undefined` when everything is at defaults (all scalars ON,
- * Digital Asset ON with all sub-fields ON, NFT ON), which tells the
- * service to include everything.
- */
-function buildTidInclude(
-  baseValues: Record<string, boolean>,
-  digitalAssetValue: Record<string, boolean> | undefined,
-  nftEnabled: boolean,
-): TokenIdDataChangedEventInclude | undefined {
-  // When nft is ON, delegate to buildNestedInclude — if everything is defaults
-  // it returns undefined (= include everything, including nft).
-  const nested = buildNestedInclude(baseValues, {
-    digitalAsset: digitalAssetValue,
-  });
-
-  if (!nested && nftEnabled) return undefined; // All defaults
-
-  // Something is customized — build explicit include with nft boolean
-  const include: TokenIdDataChangedEventInclude = nested
-    ? { ...nested, nft: nftEnabled }
-    : { ...baseValues, digitalAsset: digitalAssetValue ?? {}, nft: nftEnabled };
-
-  return include;
-}
-
-// ---------------------------------------------------------------------------
 // Shared list state
 // ---------------------------------------------------------------------------
 
@@ -218,7 +182,7 @@ function useListState() {
     TOKEN_ID_DATA_CHANGED_EVENT_INCLUDE_FIELDS,
   );
   const digitalAsset = useSubInclude(DIGITAL_ASSET_INCLUDE_FIELDS);
-  const [nftEnabled, setNftEnabled] = useState(true);
+  const nft = useSubInclude(NFT_INCLUDE_FIELDS);
 
   const filter = buildFilter(debouncedValues);
   const sort: TokenIdDataChangedEventSort = {
@@ -228,7 +192,10 @@ function useListState() {
   };
   const hasActiveFilter = Object.values(debouncedValues).some(Boolean);
 
-  const include = buildTidInclude(includeValues, digitalAsset.value, nftEnabled);
+  const include = buildNestedInclude(includeValues, {
+    digitalAsset: digitalAsset.value,
+    nft: nft.value,
+  });
 
   return {
     values,
@@ -246,8 +213,7 @@ function useListState() {
     toggleInclude,
     include,
     digitalAsset,
-    nftEnabled,
-    setNftEnabled,
+    nft,
   };
 }
 
@@ -259,8 +225,7 @@ function TidIncludeSections({
   includeValues,
   toggleInclude,
   digitalAsset,
-  nftEnabled,
-  setNftEnabled,
+  nft,
 }: ReturnType<typeof useListState>): React.ReactNode {
   return (
     <>
@@ -275,22 +240,12 @@ function TidIncludeSections({
         configs={DIGITAL_ASSET_INCLUDE_FIELDS}
         state={digitalAsset}
       />
-      {/* NFT is a boolean-only sub-include — no nested sub-fields, just on/off */}
-      <div className="space-y-2">
-        <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
-          <Switch size="sm" checked={nftEnabled} onCheckedChange={setNftEnabled} />
-          <span className={nftEnabled ? 'text-foreground font-medium' : 'text-muted-foreground'}>
-            NFT Info
-          </span>
-        </label>
-        {nftEnabled && (
-          <div className="ml-6 pl-3 border-l">
-            <span className="text-xs text-muted-foreground">
-              Fetches lightweight NFT relation (address, tokenId, isBurned, isMinted, name)
-            </span>
-          </div>
-        )}
-      </div>
+      <SubIncludeSection
+        label="NFT"
+        subtitle="NFT metadata sub-fields"
+        configs={NFT_INCLUDE_FIELDS}
+        state={nft}
+      />
     </>
   );
 }

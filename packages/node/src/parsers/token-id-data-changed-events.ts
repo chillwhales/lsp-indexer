@@ -2,12 +2,12 @@ import type {
   PartialTokenIdDataChangedEvent,
   TokenIdDataChangedEvent,
   TokenIdDataChangedEventInclude,
-  TokenIdDataChangedEventNft,
   TokenIdDataChangedEventResult,
 } from '@lsp-indexer/types';
 import type { GetTokenIdDataChangedEventsQuery } from '../graphql/graphql';
 import { resolveDataKeyName } from './data-key-resolver';
 import { parseDigitalAsset } from './digital-assets';
+import { parseNft } from './nfts';
 import { stripExcluded } from './strip';
 
 /**
@@ -18,35 +18,13 @@ import { stripExcluded } from './strip';
 type RawTokenIdDataChangedEvent = GetTokenIdDataChangedEventsQuery['token_id_data_changed'][number];
 
 /**
- * Parse a raw Hasura NFT sub-object into a lightweight `TokenIdDataChangedEventNft`.
- *
- * This is NOT the full `Nft` type — it contains only 5 fields relevant in
- * the data change event context: address, tokenId, isBurned, isMinted, name.
- *
- * Maps Hasura snake_case to camelCase:
- * - `token_id` → `tokenId`
- * - `is_burned` → `isBurned`
- * - `is_minted` → `isMinted`
- * - `lsp4Metadata.name.value` → `name`
- */
-function parseTokenIdDataChangedEventNft(raw: any): TokenIdDataChangedEventNft {
-  return {
-    address: raw.address,
-    tokenId: raw.token_id,
-    isBurned: raw.is_burned,
-    isMinted: raw.is_minted,
-    name: raw.lsp4Metadata?.name?.value ?? null,
-  };
-}
-
-/**
  * Transform a raw Hasura token_id_data_changed response into a clean
  * `TokenIdDataChangedEvent` type.
  *
  * Very similar to `parseDataChangedEvent` with key differences:
  * 1. Has `tokenId` as additional base field (from `raw.token_id`)
  * 2. Has `nft` relation instead of `universalProfile`
- * 3. NFT is parsed to a lightweight `TokenIdDataChangedEventNft` type
+ * 3. NFT is parsed via the full `parseNft` from the nfts domain (same as owned-tokens)
  *
  * Handles all field mappings:
  * - `data_key` → `dataKey`
@@ -56,13 +34,12 @@ function parseTokenIdDataChangedEventNft(raw: any): TokenIdDataChangedEventNft {
  * - `log_index` → `logIndex`
  * - `transaction_index` → `transactionIndex`
  * - `digitalAsset` → parsed via `parseDigitalAsset`
- * - `nft` → parsed via `parseTokenIdDataChangedEventNft` (lightweight)
+ * - `nft` → parsed via `parseNft` (full Nft type with baseUri fallback)
  * - `dataKeyName` is derived via `resolveDataKeyName` (NOT from Hasura)
  *
  * **Conditional include narrowing:**
  * When `include` is provided, `stripExcluded` removes fields not in the include map.
- * Digital asset sub-includes are recursively stripped via nestedConfig.
- * NFT is boolean-only (no sub-includes).
+ * Digital asset and NFT sub-includes are recursively stripped via nestedConfig.
  *
  * @param raw - A single token_id_data_changed from the Hasura GraphQL response
  * @param include - Optional include config; when provided, excluded fields are stripped
@@ -99,7 +76,7 @@ export function parseTokenIdDataChangedEvent(
 
     // Relations
     digitalAsset: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset) : null,
-    nft: raw.nft ? parseTokenIdDataChangedEventNft(raw.nft) : null,
+    nft: raw.nft ? parseNft(raw.nft) : null,
   };
 
   if (!include) return result;
@@ -110,6 +87,7 @@ export function parseTokenIdDataChangedEvent(
     undefined,
     {
       digitalAsset: { baseFields: ['address'], derivedFields: { standard: 'decimals' } },
+      nft: { baseFields: ['address', 'tokenId', 'isBurned', 'isMinted'] },
     },
   );
 }

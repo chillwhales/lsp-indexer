@@ -9,29 +9,8 @@ import {
   type DigitalAssetResult,
 } from './digital-assets';
 import type { IncludeResult, PartialExcept } from './include-types';
-
-// ---------------------------------------------------------------------------
-// Sub-type schema — lightweight NFT type for event context
-// ---------------------------------------------------------------------------
-
-/**
- * A lightweight NFT sub-type specific to the token ID data changed event context.
- *
- * This is NOT the full `Nft` type from the nfts domain — it contains only the
- * fields relevant when fetching NFT info as part of a data change event.
- */
-export const TokenIdDataChangedEventNftSchema = z.object({
-  /** NFT collection address */
-  address: z.string(),
-  /** Token ID within the collection */
-  tokenId: z.string(),
-  /** Whether the token has been burned */
-  isBurned: z.boolean(),
-  /** Whether the token has been minted */
-  isMinted: z.boolean(),
-  /** NFT name from lsp4Metadata (null if not set) */
-  name: z.string().nullable(),
-});
+import { NftSchema, type Nft, type NftResult, type OwnedTokenNftInclude } from './nfts';
+import { OwnedTokenNftIncludeSchema } from './owned-tokens';
 
 // ---------------------------------------------------------------------------
 // Core domain schema
@@ -45,6 +24,10 @@ export const TokenIdDataChangedEventNftSchema = z.object({
  * `nft` relation instead of `universalProfile`. Base fields (`address`,
  * `dataKey`, `dataValue`, `tokenId`, `dataKeyName`) are always present;
  * other fields are controlled by the `include` parameter.
+ *
+ * The `nft` field uses the full `Nft` type from the nfts domain (same as
+ * owned-tokens), with per-field include control via `OwnedTokenNftInclude`
+ * (NftInclude minus collection/holder — those aren't sub-relations here).
  */
 export const TokenIdDataChangedEventSchema = z.object({
   /** Emitting contract address (always present) */
@@ -67,8 +50,8 @@ export const TokenIdDataChangedEventSchema = z.object({
   transactionIndex: z.number().nullable(),
   /** Digital Asset of the emitting address (null = not included) */
   digitalAsset: DigitalAssetSchema.nullable(),
-  /** NFT details for the token (null = not included or no NFT record) */
-  nft: TokenIdDataChangedEventNftSchema.nullable(),
+  /** Full NFT details for the token (null = not included or no NFT record) */
+  nft: NftSchema.nullable(),
 });
 
 // ---------------------------------------------------------------------------
@@ -140,9 +123,9 @@ export const TokenIdDataChangedEventSortSchema = z.object({
  * (opt-out rather than opt-in). When `include` is provided, only fields
  * set to `true` (or provided as sub-include objects) are included.
  *
- * **Relation sub-includes:** `digitalAsset` accepts a sub-include object
- * for full control over which nested fields to fetch. `nft` is boolean-only
- * (true = fetch basic NFT info, false/omit = skip).
+ * **Relation sub-includes:** Both `digitalAsset` and `nft` accept sub-include
+ * objects for per-field control. `nft` uses `OwnedTokenNftInclude` (NftInclude
+ * minus collection/holder — those aren't sub-relations in the event context).
  */
 export const TokenIdDataChangedEventIncludeSchema = z.object({
   /** Include block number */
@@ -155,8 +138,8 @@ export const TokenIdDataChangedEventIncludeSchema = z.object({
   transactionIndex: z.boolean().optional(),
   /** Include Digital Asset — `true` for all fields, or object for per-field control */
   digitalAsset: z.union([z.boolean(), DigitalAssetIncludeSchema]).optional(),
-  /** Include NFT relation — boolean only (true = fetch basic NFT info, false/omit = skip) */
-  nft: z.boolean().optional(),
+  /** Include NFT — `true` for all fields, or object for per-field control (8 metadata fields) */
+  nft: z.union([z.boolean(), OwnedTokenNftIncludeSchema]).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -184,7 +167,6 @@ export const UseInfiniteTokenIdDataChangedEventsParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
-export type TokenIdDataChangedEventNft = z.infer<typeof TokenIdDataChangedEventNftSchema>;
 export type TokenIdDataChangedEvent = z.infer<typeof TokenIdDataChangedEventSchema>;
 export type TokenIdDataChangedEventFilter = z.infer<typeof TokenIdDataChangedEventFilterSchema>;
 export type TokenIdDataChangedEventSortField = z.infer<
@@ -229,10 +211,15 @@ type ResolveTokenIdDataChangedEventDA<I> = I extends { digitalAsset: infer D }
 
 /**
  * Resolve nested `nft` relation based on include parameter.
- * Boolean-only: when `nft: true`, the full NFT sub-type is present.
+ * When `nft: true`, the full Nft type is present.
+ * When `nft` is an OwnedTokenNftInclude object, the Nft type is narrowed by sub-include.
  */
-type ResolveTokenIdDataChangedEventNft<I> = I extends { nft: true }
-  ? { nft: TokenIdDataChangedEventNft | null }
+type ResolveTokenIdDataChangedEventNft<I> = I extends { nft: infer N }
+  ? N extends true
+    ? { nft: Nft | null }
+    : N extends OwnedTokenNftInclude
+      ? { nft: NftResult<N> | null }
+      : {}
   : {};
 
 /**
@@ -242,7 +229,8 @@ type ResolveTokenIdDataChangedEventNft<I> = I extends { nft: true }
  * - `TokenIdDataChangedEventResult<{}>` → `{ address; dataKey; dataValue; tokenId; dataKeyName }` (base fields only)
  * - `TokenIdDataChangedEventResult<{ timestamp: true }>` → base + timestamp
  * - `TokenIdDataChangedEventResult<{ digitalAsset: { name: true } }>` → base + narrowed DA
- * - `TokenIdDataChangedEventResult<{ nft: true }>` → base + NFT info
+ * - `TokenIdDataChangedEventResult<{ nft: true }>` → base + full NFT
+ * - `TokenIdDataChangedEventResult<{ nft: { name: true } }>` → base + narrowed NFT
  *
  * @example
  * ```ts
@@ -250,7 +238,8 @@ type ResolveTokenIdDataChangedEventNft<I> = I extends { nft: true }
  * type Minimal = TokenIdDataChangedEventResult<{}>;                                           // = { address; dataKey; dataValue; tokenId; dataKeyName }
  * type WithTime = TokenIdDataChangedEventResult<{ timestamp: true }>;                         // = base + timestamp
  * type WithDA = TokenIdDataChangedEventResult<{ digitalAsset: { name: true } }>;              // = base + narrowed DA
- * type WithNft = TokenIdDataChangedEventResult<{ nft: true }>;                                // = base + NFT info
+ * type WithNft = TokenIdDataChangedEventResult<{ nft: true }>;                                // = base + full NFT
+ * type WithNarrowNft = TokenIdDataChangedEventResult<{ nft: { name: true } }>;                // = base + { nft: { address; tokenId; isBurned; isMinted; name } }
  * ```
  */
 export type TokenIdDataChangedEventResult<

@@ -17,7 +17,7 @@ import { graphql } from '../graphql';
  * - `$limit` / `$offset` — Pagination
  * - `$includeBlockNumber`, `$includeTimestamp`, `$includeLogIndex`, `$includeTransactionIndex` — Scalar include toggles
  * - `$includeDigitalAsset*` — Boolean flags for digital asset sub-includes
- * - `$includeNft` — Boolean flag for NFT relation (fixed sub-selection)
+ * - `$includeNft` + 8 NFT sub-variables — NFT relation with per-field include control
  *
  * All include variables default to `true` (inverted default — omit `include` = fetch everything).
  *
@@ -30,7 +30,7 @@ import { graphql } from '../graphql';
  * - `transaction_index` (Hasura) → `transactionIndex` (our domain type)
  *
  * Digital Asset sub-fields match what `parseDigitalAsset` expects.
- * NFT sub-selection is a fixed lightweight set (no per-field @include toggles).
+ * NFT sub-fields match what `parseNft` expects (full Nft type with baseUri fallback).
  */
 export const GetTokenIdDataChangedEventsDocument = graphql(`
   query GetTokenIdDataChangedEvents(
@@ -61,6 +61,14 @@ export const GetTokenIdDataChangedEventsDocument = graphql(`
     $includeDigitalAssetTokenIdFormat: Boolean! = true
     $includeDigitalAssetBaseUri: Boolean! = true
     $includeNft: Boolean! = true
+    $includeNftFormattedTokenId: Boolean! = true
+    $includeNftName: Boolean! = true
+    $includeNftDescription: Boolean! = true
+    $includeNftCategory: Boolean! = true
+    $includeNftIcons: Boolean! = true
+    $includeNftImages: Boolean! = true
+    $includeNftLinks: Boolean! = true
+    $includeNftAttributes: Boolean! = true
   ) {
     token_id_data_changed(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       address
@@ -146,11 +154,77 @@ export const GetTokenIdDataChangedEventsDocument = graphql(`
       nft @include(if: $includeNft) {
         address
         token_id
+        formatted_token_id @include(if: $includeNftFormattedTokenId)
         is_burned
         is_minted
         lsp4Metadata {
-          name {
+          name @include(if: $includeNftName) {
             value
+          }
+          description @include(if: $includeNftDescription) {
+            value
+          }
+          category @include(if: $includeNftCategory) {
+            value
+          }
+          icon @include(if: $includeNftIcons) {
+            url
+            width
+            height
+            verification_method
+            verification_data
+          }
+          images @include(if: $includeNftImages) {
+            url
+            width
+            height
+            image_index
+            verification_method
+            verification_data
+          }
+          links @include(if: $includeNftLinks) {
+            title
+            url
+          }
+          attributes @include(if: $includeNftAttributes) {
+            key
+            value
+            type
+          }
+        }
+        lsp4MetadataBaseUri {
+          name @include(if: $includeNftName) {
+            value
+          }
+          description @include(if: $includeNftDescription) {
+            value
+          }
+          category @include(if: $includeNftCategory) {
+            value
+          }
+          icon @include(if: $includeNftIcons) {
+            url
+            width
+            height
+            verification_method
+            verification_data
+          }
+          images @include(if: $includeNftImages) {
+            url
+            width
+            height
+            image_index
+            verification_method
+            verification_data
+          }
+          links @include(if: $includeNftLinks) {
+            title
+            url
+          }
+          attributes @include(if: $includeNftAttributes) {
+            key
+            value
+            type
           }
         }
       }
