@@ -53,14 +53,18 @@ for (const [_prefix, keys] of Object.entries(ALL_DATA_KEY_SOURCES)) {
     if (typeof value === 'string' && value.startsWith('0x')) {
       // Simple hex key (e.g., LSP3Profile → '0x5ef8...')
       DATA_KEY_MAP.set(value.toLowerCase(), name);
-    } else if (typeof value === 'object' && value != null) {
+    } else if (
+      typeof value === 'object' &&
+      value != null &&
+      'length' in value &&
+      'index' in value
+    ) {
       // Array key with { length, index } sub-keys (e.g., LSP4Creators[])
-      const obj = value as Record<string, unknown>;
-      if (typeof obj.length === 'string' && obj.length.startsWith('0x')) {
-        DATA_KEY_MAP.set(obj.length.toLowerCase(), `${name}.length`);
+      if (typeof value.length === 'string' && value.length.startsWith('0x')) {
+        DATA_KEY_MAP.set(value.length.toLowerCase(), `${name}.length`);
       }
-      if (typeof obj.index === 'string' && obj.index.startsWith('0x')) {
-        DATA_KEY_MAP.set(obj.index.toLowerCase(), `${name}.index`);
+      if (typeof value.index === 'string' && value.index.startsWith('0x')) {
+        DATA_KEY_MAP.set(value.index.toLowerCase(), `${name}.index`);
       }
     }
   }

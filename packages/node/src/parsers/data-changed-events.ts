@@ -70,12 +70,7 @@ export function parseDataChangedEvent(
     transactionIndex: raw.transaction_index ?? null,
 
     // Relations — delegate to existing parsers
-    // Uses `as any` cast for structural subtyping (sub-selection may omit fields
-    // that the primary parser expects, e.g., `id`). Safe because all parsers
-    // use optional chaining.
-    universalProfile: raw.universalProfile
-      ? parseProfile(raw.universalProfile as Parameters<typeof parseProfile>[0])
-      : null,
+    universalProfile: raw.universalProfile ? parseProfile(raw.universalProfile) : null,
     digitalAsset: raw.digitalAsset ? parseDigitalAsset(raw.digitalAsset) : null,
   };
 

@@ -122,7 +122,7 @@ export function TokenIdDataChangedEventCard({
         </dl>
 
         {/* Collapsible section 1: NFT (full NftCard) */}
-        {nft != null && <CollapsibleNftSection label="NFT" nft={nft as any} />}
+        {nft != null && <CollapsibleNftSection label="NFT" nft={nft} />}
 
         {/* Collapsible section 2: Digital Asset */}
         {digitalAsset != null && (
