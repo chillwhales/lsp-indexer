@@ -153,16 +153,12 @@ function DataKeyDisplay({
         {dataKeyName != null ? (
           <div>
             <span className="font-semibold text-sm">{dataKeyName}</span>
-            <div className="font-mono text-xs text-muted-foreground break-all">
-              {dataKey.length > 20 ? `${dataKey.slice(0, 20)}…` : dataKey}
-            </div>
+            <div className="font-mono text-xs text-muted-foreground break-all">{dataKey}</div>
           </div>
         ) : (
           <div>
             <span className="text-muted-foreground text-xs italic">(Unknown Key)</span>
-            <div className="font-mono text-xs break-all">
-              {dataKey.length > 20 ? `${dataKey.slice(0, 20)}…` : dataKey}
-            </div>
+            <div className="font-mono text-xs break-all">{dataKey}</div>
           </div>
         )}
       </dd>
