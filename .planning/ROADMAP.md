@@ -307,10 +307,10 @@ No implementation bodies change — only overload signatures and return type ann
 
 **Plans:** 4 plans
 
-- [ ] 09.11-01-PLAN.md — Universal Receiver Event types + GraphQL documents + codegen
-- [ ] 09.11-02-PLAN.md — Universal Receiver Event parsers + services + query keys
-- [ ] 09.11-03-PLAN.md — Universal Receiver Event hooks + server actions + build validation
-- [ ] 09.11-04-PLAN.md — Universal Receiver Events playground page + E2E verification
+- [ ] 09.11-01-PLAN.md — Universal Receiver Event types (6 base + 4 scalar + 3 relations) + GraphQL document (46 vars) + codegen
+- [ ] 09.11-02-PLAN.md — Universal Receiver Event parser (3-relation mapping) + service (3 prefix replacements) + query keys
+- [ ] 09.11-03-PLAN.md — 2 React hooks + server action + 2 Next.js hooks + build validation
+- [ ] 09.11-04-PLAN.md — UniversalReceiverEventCard (3 collapsible sections) + playground page (2 tabs) + nav update
 
 ---
 
