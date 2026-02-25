@@ -1,14 +1,47 @@
 'use server';
 
 import type { FetchDataChangedEventsResult } from '@lsp-indexer/node';
-import { fetchDataChangedEvents, getServerUrl } from '@lsp-indexer/node';
+import {
+  fetchDataChangedEvents,
+  fetchLatestDataChangedEvent,
+  getServerUrl,
+} from '@lsp-indexer/node';
 import type {
+  DataChangedEvent,
   DataChangedEventFilter,
   DataChangedEventInclude,
   DataChangedEventResult,
   DataChangedEventSort,
   PartialDataChangedEvent,
 } from '@lsp-indexer/types';
+
+/**
+ * Server action: Fetch the most recent ERC725Y DataChanged event matching the given filter.
+ *
+ * Runs on the Next.js server — routes `fetchLatestDataChangedEvent` through server-side
+ * execution using `getServerUrl()`.
+ *
+ * @param params - Query parameters (filter + optional include)
+ * @returns The latest matching event, or `null` if none found
+ */
+export async function getLatestDataChangedEvent(params: {
+  filter?: DataChangedEventFilter;
+}): Promise<DataChangedEvent | null>;
+export async function getLatestDataChangedEvent<const I extends DataChangedEventInclude>(params: {
+  filter?: DataChangedEventFilter;
+  include: I;
+}): Promise<DataChangedEventResult<I> | null>;
+export async function getLatestDataChangedEvent(params: {
+  filter?: DataChangedEventFilter;
+  include?: DataChangedEventInclude;
+}): Promise<PartialDataChangedEvent | null>;
+export async function getLatestDataChangedEvent(params: {
+  filter?: DataChangedEventFilter;
+  include?: DataChangedEventInclude;
+}): Promise<PartialDataChangedEvent | null> {
+  const url = getServerUrl();
+  return fetchLatestDataChangedEvent(url, params);
+}
 
 /**
  * Server action: Fetch a paginated list of ERC725Y DataChanged event records.

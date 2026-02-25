@@ -1,15 +1,16 @@
 /**
  * ERC725Y data key name resolver.
  *
- * Builds a reverse map from hex data key → human-readable name using official
- * LUKSO contract packages. The map is built once at module load time.
+ * Builds bidirectional maps between hex data keys and human-readable names
+ * using official LUKSO contract packages. Both maps are built once at
+ * module load time.
  *
  * @example
  * resolveDataKeyName('0x5ef83ad9559033e6e941db7d7c495acdce616347d28e90c7ce47cbfcfcad3bc5')
  * // → 'LSP3Profile'
  *
- * resolveDataKeyName('0xdeadbeef...')
- * // → null (unknown key)
+ * resolveDataKeyHex('LSP3Profile')
+ * // → '0x5ef83ad9559033e6e941db7d7c495acdce616347d28e90c7ce47cbfcfcad3bc5'
  *
  * @module
  */
@@ -70,6 +71,29 @@ for (const [_prefix, keys] of Object.entries(ALL_DATA_KEY_SOURCES)) {
   }
 }
 
+// Build forward map: lowercase name → hex data key
+const NAME_TO_HEX_MAP = new Map<string, string>();
+
+for (const [_prefix, keys] of Object.entries(ALL_DATA_KEY_SOURCES)) {
+  for (const [name, value] of Object.entries(keys)) {
+    if (typeof value === 'string' && value.startsWith('0x')) {
+      NAME_TO_HEX_MAP.set(name.toLowerCase(), value.toLowerCase());
+    } else if (
+      typeof value === 'object' &&
+      value != null &&
+      'length' in value &&
+      'index' in value
+    ) {
+      if (typeof value.length === 'string' && value.length.startsWith('0x')) {
+        NAME_TO_HEX_MAP.set(`${name}.length`.toLowerCase(), value.length.toLowerCase());
+      }
+      if (typeof value.index === 'string' && value.index.startsWith('0x')) {
+        NAME_TO_HEX_MAP.set(`${name}.index`.toLowerCase(), value.index.toLowerCase());
+      }
+    }
+  }
+}
+
 /**
  * Resolve a raw hex ERC725Y data key to its human-readable name.
  *
@@ -81,4 +105,24 @@ for (const [_prefix, keys] of Object.entries(ALL_DATA_KEY_SOURCES)) {
  */
 export function resolveDataKeyName(hexKey: string): string | null {
   return DATA_KEY_MAP.get(hexKey.toLowerCase()) ?? null;
+}
+
+/**
+ * Resolve a human-readable ERC725Y data key name to its raw hex value.
+ *
+ * Uses a pre-built forward map from all known LUKSO LSP data keys.
+ * Case-insensitive lookup. Returns null for unknown names.
+ *
+ * @param name - Human-readable data key name (e.g., 'LSP3Profile')
+ * @returns Hex data key (e.g., '0x5ef83ad9...') or null
+ *
+ * @example
+ * resolveDataKeyHex('LSP3Profile')
+ * // → '0x5ef83ad9559033e6e941db7d7c495acdce616347d28e90c7ce47cbfcfcad3bc5'
+ *
+ * resolveDataKeyHex('UnknownKey')
+ * // → null
+ */
+export function resolveDataKeyHex(name: string): string | null {
+  return NAME_TO_HEX_MAP.get(name.toLowerCase()) ?? null;
 }

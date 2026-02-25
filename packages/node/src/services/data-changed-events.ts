@@ -21,7 +21,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
 /**
  * Translate a flat `DataChangedEventFilter` to a Hasura `data_changed_bool_exp`.
  *
- * All 8 filter fields — string fields use
+ * All 9 filter fields — string fields use
  * `_ilike` + `escapeLike` for case-insensitive matching, timestamp and
  * blockNumber fields use `_gte` / `_lte`.
  *
@@ -30,6 +30,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
  * Filter → Hasura mapping:
  * - `address`              → `{ address: { _ilike: '%escapeLike%' } }`
  * - `dataKey`              → `{ data_key: { _ilike: '%escapeLike%' } }` (Hasura field is `data_key`)
+ * - `dataKeyName`          → resolved to hex via `resolveDataKeyHex`, then `{ data_key: { _ilike } }`
  * - `timestampFrom`        → `{ timestamp: { _gte: normalizeTimestamp } }`
  * - `timestampTo`          → `{ timestamp: { _lte: normalizeTimestamp } }`
  * - `blockNumberFrom`      → `{ block_number: { _gte: value } }` (Int comparison)
@@ -52,6 +53,21 @@ function buildDataChangedEventWhere(filter?: DataChangedEventFilter): Data_Chang
     conditions.push({
       data_key: { _ilike: `%${escapeLike(filter.dataKey)}%` },
     });
+  }
+
+  if (filter.dataKeyName) {
+    const hex = resolveDataKeyHex(filter.dataKeyName);
+    if (hex) {
+      // Resolved known name → exact match on the hex key
+      conditions.push({
+        data_key: { _ilike: hex },
+      });
+    } else {
+      // Unknown name — pass through as substring match (best-effort)
+      conditions.push({
+        data_key: { _ilike: `%${escapeLike(filter.dataKeyName)}%` },
+      });
+    }
   }
 
   if (filter.timestampFrom != null) {
@@ -303,4 +319,49 @@ export async function fetchDataChangedEvents(
     dataChangedEvents: parseDataChangedEvents(result.data_changed),
     totalCount: result.data_changed_aggregate?.aggregate?.count ?? 0,
   };
+}
+
+/**
+ * Fetch the most recent DataChanged event matching the given filter.
+ *
+ * Internally queries with `limit: 1` sorted by `timestamp desc` to return
+ * the latest event for a given address + data key combination.
+ *
+ * The `dataKeyName` filter field accepts human-readable ERC725Y key names
+ * (e.g., 'LSP3Profile') — the service layer resolves them to hex automatically.
+ *
+ * @param url - The GraphQL endpoint URL
+ * @param params - Query parameters (filter + optional include)
+ * @returns The latest matching event (narrowed by include), or `null` if none found
+ */
+export async function fetchLatestDataChangedEvent(
+  url: string,
+  params?: { filter?: DataChangedEventFilter },
+): Promise<DataChangedEvent | null>;
+export async function fetchLatestDataChangedEvent<const I extends DataChangedEventInclude>(
+  url: string,
+  params: { filter?: DataChangedEventFilter; include: I },
+): Promise<DataChangedEventResult<I> | null>;
+export async function fetchLatestDataChangedEvent(
+  url: string,
+  params: { filter?: DataChangedEventFilter; include?: DataChangedEventInclude },
+): Promise<PartialDataChangedEvent | null>;
+export async function fetchLatestDataChangedEvent(
+  url: string,
+  params: { filter?: DataChangedEventFilter; include?: DataChangedEventInclude } = {},
+): Promise<PartialDataChangedEvent | null> {
+  const result = params.include
+    ? await fetchDataChangedEvents(url, {
+        filter: params.filter,
+        sort: { field: 'timestamp', direction: 'desc' },
+        limit: 1,
+        include: params.include,
+      })
+    : await fetchDataChangedEvents(url, {
+        filter: params.filter,
+        sort: { field: 'timestamp', direction: 'desc' },
+        limit: 1,
+      });
+
+  return result.dataChangedEvents[0] ?? null;
 }

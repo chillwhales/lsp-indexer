@@ -20,6 +20,11 @@ import type {
 /** Default number of token ID data changed events per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
 
+/** Flat return shape for useLatestTokenIdDataChangedEvent — single event + query state */
+type UseLatestTokenIdDataChangedEventReturn<F> = {
+  tokenIdDataChangedEvent: F | null;
+} & Omit<UseQueryResult<F | null, Error>, 'data'>;
+
 /** Flat return shape for useTokenIdDataChangedEvents — tokenIdDataChangedEvents array + totalCount + query state */
 type UseTokenIdDataChangedEventsReturn<F> = {
   tokenIdDataChangedEvents: F[];
@@ -38,11 +43,75 @@ type UseInfiniteTokenIdDataChangedEventsReturn<F> = {
 >;
 
 /**
+ * Fetch the most recent ERC725Y TokenIdDataChanged event matching the given filter.
+ *
+ * Wraps `fetchLatestTokenIdDataChangedEvent` in a TanStack `useQuery` hook. Internally
+ * sorts by timestamp descending and returns the first result. Useful for getting
+ * the current value of a specific ERC725Y data key for a given token ID.
+ *
+ * Supports `dataKeyName` in the filter — pass a human-readable ERC725Y key name
+ * (e.g., 'LSP4Metadata') and the service layer resolves it to hex automatically.
+ *
+ * @param params - Filter and optional include config
+ * @returns `{ tokenIdDataChangedEvent, isLoading, error, ...rest }` — full TanStack Query result
+ *   with `data` renamed to `tokenIdDataChangedEvent`
+ *
+ * @example
+ * ```tsx
+ * import { useLatestTokenIdDataChangedEvent } from '@lsp-indexer/react';
+ *
+ * function LatestTokenMetadataChange({ address, tokenId }: { address: string; tokenId: string }) {
+ *   const { tokenIdDataChangedEvent, isLoading } = useLatestTokenIdDataChangedEvent({
+ *     filter: { address, tokenId, dataKeyName: 'LSP4Metadata' },
+ *   });
+ *
+ *   if (isLoading) return <Skeleton />;
+ *   if (!tokenIdDataChangedEvent) return <p>No data change found</p>;
+ *
+ *   return <p>Latest value: {tokenIdDataChangedEvent.dataValue}</p>;
+ * }
+ * ```
+ */
+export function useLatestTokenIdDataChangedEvent<const I extends TokenIdDataChangedEventInclude>(
+  params: UseLatestTokenIdDataChangedEventParams & { include: I },
+): UseLatestTokenIdDataChangedEventReturn<TokenIdDataChangedEventResult<I>>;
+export function useLatestTokenIdDataChangedEvent(
+  params?: Omit<UseLatestTokenIdDataChangedEventParams, 'include'> & { include?: never },
+): UseLatestTokenIdDataChangedEventReturn<TokenIdDataChangedEvent>;
+export function useLatestTokenIdDataChangedEvent(
+  params: UseLatestTokenIdDataChangedEventParams & {
+    include?: TokenIdDataChangedEventInclude;
+  },
+): UseLatestTokenIdDataChangedEventReturn<PartialTokenIdDataChangedEvent>;
+export function useLatestTokenIdDataChangedEvent(
+  params: UseLatestTokenIdDataChangedEventParams & {
+    include?: TokenIdDataChangedEventInclude;
+  } = {},
+): UseLatestTokenIdDataChangedEventReturn<PartialTokenIdDataChangedEvent> {
+  const url = getClientUrl();
+  const { filter, include } = params;
+
+  const { data, ...rest } = useQuery({
+    queryKey: tokenIdDataChangedEventKeys.latest(filter, include),
+    queryFn: () =>
+      include
+        ? fetchLatestTokenIdDataChangedEvent(url, { filter, include })
+        : fetchLatestTokenIdDataChangedEvent(url, { filter }),
+  });
+
+  const tokenIdDataChangedEvent = data ?? null;
+  return { tokenIdDataChangedEvent, ...rest };
+}
+
+/**
  * Fetch a paginated list of ERC725Y TokenIdDataChanged event records with filtering and sorting.
  *
  * Wraps `fetchTokenIdDataChangedEvents` in a TanStack `useQuery` hook. Supports comprehensive
- * filtering (by address, dataKey, tokenId, blockNumber, timestamp, digitalAssetName,
+ * filtering (by address, dataKey, dataKeyName, tokenId, blockNumber, timestamp, digitalAssetName,
  * nftName) and sorting (by timestamp, blockNumber, digitalAssetName, nftName).
+ *
+ * Supports `dataKeyName` in the filter — pass a human-readable ERC725Y key name
+ * (e.g., 'LSP4Metadata') and the service layer resolves it to hex automatically.
  *
  * @param params - Optional filter, sort, pagination, and include config
  * @returns `{ tokenIdDataChangedEvents, totalCount, isLoading, error, ...rest }` — full TanStack Query
@@ -54,7 +123,7 @@ type UseInfiniteTokenIdDataChangedEventsReturn<F> = {
  *
  * function TokenIdDataChangedEventList({ address }: { address: string }) {
  *   const { tokenIdDataChangedEvents, totalCount, isLoading } = useTokenIdDataChangedEvents({
- *     filter: { address },
+ *     filter: { address, dataKeyName: 'LSP4Metadata' },
  *     sort: { field: 'timestamp', direction: 'desc' },
  *     limit: 20,
  *   });
@@ -107,6 +176,9 @@ export function useTokenIdDataChangedEvents(
  * Uses a **separate query key namespace** from `useTokenIdDataChangedEvents` to prevent cache
  * corruption between standard and infinite query data structures.
  *
+ * Supports `dataKeyName` in the filter — pass a human-readable ERC725Y key name
+ * (e.g., 'LSP4Metadata') and the service layer resolves it to hex automatically.
+ *
  * @param params - Optional filter, sort, pageSize, and include config
  * @returns `{ tokenIdDataChangedEvents, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest }` —
  *   flattened tokenIdDataChangedEvents array with infinite scroll controls
@@ -123,7 +195,7 @@ export function useTokenIdDataChangedEvents(
  *     isFetchingNextPage,
  *     isLoading,
  *   } = useInfiniteTokenIdDataChangedEvents({
- *     filter: { address },
+ *     filter: { address, dataKeyName: 'LSP4Metadata' },
  *     sort: { field: 'timestamp', direction: 'desc' },
  *     pageSize: 20,
  *   });

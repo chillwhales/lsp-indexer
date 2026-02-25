@@ -14,22 +14,28 @@ import type {
  * **Hierarchy:**
  * ```
  * tokenIdDataChangedEventKeys.all                   → ['tokenIdDataChangedEvents']
+ * tokenIdDataChangedEventKeys.latests()             → ['tokenIdDataChangedEvents', 'latest']
+ * tokenIdDataChangedEventKeys.latest(f, i)          → ['tokenIdDataChangedEvents', 'latest', { filter, include }]
  * tokenIdDataChangedEventKeys.lists()               → ['tokenIdDataChangedEvents', 'list']
  * tokenIdDataChangedEventKeys.list(...)             → ['tokenIdDataChangedEvents', 'list', ...]
  * tokenIdDataChangedEventKeys.infinites()           → ['tokenIdDataChangedEvents', 'infinite']
  * tokenIdDataChangedEventKeys.infinite(...)         → ['tokenIdDataChangedEvents', 'infinite', ...]
  * ```
  *
- * **IMPORTANT:** `list` and `infinite` use separate namespaces to prevent
- * TanStack Query cache corruption between useQuery and useInfiniteQuery.
+ * **IMPORTANT:** `list`, `infinite`, and `latest` use separate namespaces to prevent
+ * TanStack Query cache corruption between different query data structures.
  *
- * Only 2 hooks: `useTokenIdDataChangedEvents` (paginated list) and
- * `useInfiniteTokenIdDataChangedEvents` (infinite scroll). No singular hook — no natural key.
+ * 3 hooks: `useLatestTokenIdDataChangedEvent` (single latest),
+ * `useTokenIdDataChangedEvents` (paginated list), and
+ * `useInfiniteTokenIdDataChangedEvents` (infinite scroll).
  *
  * **Cache invalidation examples:**
  * ```ts
- * // Invalidate ALL token ID data changed event queries (list + infinite)
+ * // Invalidate ALL token ID data changed event queries (latest + list + infinite)
  * queryClient.invalidateQueries({ queryKey: tokenIdDataChangedEventKeys.all });
+ *
+ * // Invalidate all latest queries
+ * queryClient.invalidateQueries({ queryKey: tokenIdDataChangedEventKeys.latests() });
  *
  * // Invalidate all paginated list queries
  * queryClient.invalidateQueries({ queryKey: tokenIdDataChangedEventKeys.lists() });
@@ -41,6 +47,13 @@ import type {
 export const tokenIdDataChangedEventKeys = {
   /** Base key for all token ID data changed event queries — invalidate this to clear the entire cache */
   all: ['tokenIdDataChangedEvents'] as const,
+
+  /** Parent key for all latest-single queries */
+  latests: () => [...tokenIdDataChangedEventKeys.all, 'latest'] as const,
+
+  /** Key for a specific latest token ID data changed event query */
+  latest: (filter?: TokenIdDataChangedEventFilter, include?: TokenIdDataChangedEventInclude) =>
+    [...tokenIdDataChangedEventKeys.latests(), { filter, include }] as const,
 
   /** Parent key for all paginated list queries */
   lists: () => [...tokenIdDataChangedEventKeys.all, 'list'] as const,

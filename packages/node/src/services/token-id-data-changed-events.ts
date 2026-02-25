@@ -25,7 +25,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
  * Translate a flat `TokenIdDataChangedEventFilter` to a Hasura
  * `token_id_data_changed_bool_exp`.
  *
- * All 9 filter fields — string fields use
+ * All 10 filter fields — string fields use
  * `_ilike` + `escapeLike` for case-insensitive matching, timestamp and
  * blockNumber fields use `_gte` / `_lte`.
  *
@@ -34,6 +34,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
  * Filter → Hasura mapping:
  * - `address`         → `{ address: { _ilike: '%escapeLike%' } }`
  * - `dataKey`         → `{ data_key: { _ilike: '%escapeLike%' } }`
+ * - `dataKeyName`     → resolved to hex via `resolveDataKeyHex`, then `{ data_key: { _ilike } }`
  * - `tokenId`         → `{ token_id: { _ilike: '%escapeLike%' } }`
  * - `timestampFrom`   → `{ timestamp: { _gte: normalizeTimestamp } }`
  * - `timestampTo`     → `{ timestamp: { _lte: normalizeTimestamp } }`
@@ -59,6 +60,19 @@ function buildTokenIdDataChangedEventWhere(
     conditions.push({
       data_key: { _ilike: `%${escapeLike(filter.dataKey)}%` },
     });
+  }
+
+  if (filter.dataKeyName) {
+    const hex = resolveDataKeyHex(filter.dataKeyName);
+    if (hex) {
+      conditions.push({
+        data_key: { _ilike: hex },
+      });
+    } else {
+      conditions.push({
+        data_key: { _ilike: `%${escapeLike(filter.dataKeyName)}%` },
+      });
+    }
   }
 
   if (filter.tokenId) {
@@ -322,4 +336,51 @@ export async function fetchTokenIdDataChangedEvents(
     tokenIdDataChangedEvents: parseTokenIdDataChangedEvents(result.token_id_data_changed),
     totalCount: result.token_id_data_changed_aggregate?.aggregate?.count ?? 0,
   };
+}
+
+/**
+ * Fetch the most recent TokenIdDataChanged event matching the given filter.
+ *
+ * Internally queries with `limit: 1` sorted by `timestamp desc` to return
+ * the latest event for a given address + tokenId + data key combination.
+ *
+ * The `dataKeyName` filter field accepts human-readable ERC725Y key names
+ * (e.g., 'LSP4Metadata') — the service layer resolves them to hex automatically.
+ *
+ * @param url - The GraphQL endpoint URL
+ * @param params - Query parameters (filter + optional include)
+ * @returns The latest matching event (narrowed by include), or `null` if none found
+ */
+export async function fetchLatestTokenIdDataChangedEvent(
+  url: string,
+  params?: { filter?: TokenIdDataChangedEventFilter },
+): Promise<TokenIdDataChangedEvent | null>;
+export async function fetchLatestTokenIdDataChangedEvent<
+  const I extends TokenIdDataChangedEventInclude,
+>(
+  url: string,
+  params: { filter?: TokenIdDataChangedEventFilter; include: I },
+): Promise<TokenIdDataChangedEventResult<I> | null>;
+export async function fetchLatestTokenIdDataChangedEvent(
+  url: string,
+  params: { filter?: TokenIdDataChangedEventFilter; include?: TokenIdDataChangedEventInclude },
+): Promise<PartialTokenIdDataChangedEvent | null>;
+export async function fetchLatestTokenIdDataChangedEvent(
+  url: string,
+  params: { filter?: TokenIdDataChangedEventFilter; include?: TokenIdDataChangedEventInclude } = {},
+): Promise<PartialTokenIdDataChangedEvent | null> {
+  const result = params.include
+    ? await fetchTokenIdDataChangedEvents(url, {
+        filter: params.filter,
+        sort: { field: 'timestamp', direction: 'desc' },
+        limit: 1,
+        include: params.include,
+      })
+    : await fetchTokenIdDataChangedEvents(url, {
+        filter: params.filter,
+        sort: { field: 'timestamp', direction: 'desc' },
+        limit: 1,
+      });
+
+  return result.tokenIdDataChangedEvents[0] ?? null;
 }

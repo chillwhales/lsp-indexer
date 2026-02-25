@@ -18,6 +18,12 @@ import { getDataChangedEvents } from '../actions/data-changed-events';
 /** Default number of data changed events per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
 
+/** Flat return shape for useLatestDataChangedEvent — single event + query state */
+type UseLatestDataChangedEventReturn<F> = { dataChangedEvent: F | null } & Omit<
+  UseQueryResult<F | null, Error>,
+  'data'
+>;
+
 /** Flat return shape for useDataChangedEvents — dataChangedEvents array + totalCount + query state */
 type UseDataChangedEventsReturn<F> = { dataChangedEvents: F[]; totalCount: number } & Omit<
   UseQueryResult<FetchDataChangedEventsResult<F>, Error>,
@@ -36,11 +42,69 @@ type UseInfiniteDataChangedEventsReturn<F> = {
 >;
 
 /**
+ * Fetch the most recent ERC725Y DataChanged event matching the given filter via Next.js server action.
+ *
+ * Identical API to `@lsp-indexer/react`'s `useLatestDataChangedEvent`, but routes the request
+ * through a server action instead of calling Hasura directly from the browser.
+ *
+ * Supports `dataKeyName` in the filter — pass a human-readable ERC725Y key name
+ * (e.g., 'LSP3Profile') and the service layer resolves it to hex automatically.
+ *
+ * @param params - Filter and optional include config
+ * @returns `{ dataChangedEvent, isLoading, error, ...rest }` — full TanStack Query result
+ *   with `data` renamed to `dataChangedEvent`
+ *
+ * @example
+ * ```tsx
+ * import { useLatestDataChangedEvent } from '@lsp-indexer/next';
+ *
+ * function LatestProfileChange({ address }: { address: string }) {
+ *   const { dataChangedEvent, isLoading } = useLatestDataChangedEvent({
+ *     filter: { address, dataKeyName: 'LSP3Profile' },
+ *   });
+ *
+ *   if (isLoading) return <Skeleton />;
+ *   if (!dataChangedEvent) return <p>No data change found</p>;
+ *
+ *   return <p>Latest value: {dataChangedEvent.dataValue}</p>;
+ * }
+ * ```
+ */
+export function useLatestDataChangedEvent<const I extends DataChangedEventInclude>(
+  params: UseLatestDataChangedEventParams & { include: I },
+): UseLatestDataChangedEventReturn<DataChangedEventResult<I>>;
+export function useLatestDataChangedEvent(
+  params?: Omit<UseLatestDataChangedEventParams, 'include'> & { include?: never },
+): UseLatestDataChangedEventReturn<DataChangedEvent>;
+export function useLatestDataChangedEvent(
+  params: UseLatestDataChangedEventParams & { include?: DataChangedEventInclude },
+): UseLatestDataChangedEventReturn<PartialDataChangedEvent>;
+export function useLatestDataChangedEvent(
+  params: UseLatestDataChangedEventParams & { include?: DataChangedEventInclude } = {},
+): UseLatestDataChangedEventReturn<PartialDataChangedEvent> {
+  const { filter, include } = params;
+
+  const { data, ...rest } = useQuery({
+    queryKey: dataChangedEventKeys.latest(filter, include),
+    queryFn: () =>
+      include
+        ? getLatestDataChangedEvent({ filter, include })
+        : getLatestDataChangedEvent({ filter }),
+  });
+
+  const dataChangedEvent = data ?? null;
+  return { dataChangedEvent, ...rest };
+}
+
+/**
  * Fetch a paginated list of ERC725Y DataChanged event records via Next.js server action.
  *
  * Identical API to `@lsp-indexer/react`'s `useDataChangedEvents`, but routes the request
  * through a server action instead of calling Hasura directly from the browser.
  * This keeps the GraphQL endpoint hidden from the client.
+ *
+ * Supports `dataKeyName` in the filter — pass a human-readable ERC725Y key name
+ * (e.g., 'LSP3Profile') and the service layer resolves it to hex automatically.
  *
  * @param params - Optional filter/sort/pagination/include
  * @returns `{ dataChangedEvents, totalCount, isLoading, error, ...rest }` — full TanStack Query
@@ -52,7 +116,7 @@ type UseInfiniteDataChangedEventsReturn<F> = {
  *
  * function DataChangedEventList({ address }: { address: string }) {
  *   const { dataChangedEvents, totalCount, isLoading } = useDataChangedEvents({
- *     filter: { address },
+ *     filter: { address, dataKeyName: 'LSP3Profile' },
  *     sort: { field: 'timestamp', direction: 'desc' },
  *     limit: 20,
  *   });
@@ -102,6 +166,9 @@ export function useDataChangedEvents(
  * Identical API to `@lsp-indexer/react`'s `useInfiniteDataChangedEvents`, but routes the
  * request through a server action instead of calling Hasura directly from the browser.
  *
+ * Supports `dataKeyName` in the filter — pass a human-readable ERC725Y key name
+ * (e.g., 'LSP3Profile') and the service layer resolves it to hex automatically.
+ *
  * @param params - Optional filter/sort/pageSize/include
  * @returns `{ dataChangedEvents, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest }` —
  *   flattened dataChangedEvents array with infinite scroll controls
@@ -117,7 +184,7 @@ export function useDataChangedEvents(
  *     fetchNextPage,
  *     isFetchingNextPage,
  *   } = useInfiniteDataChangedEvents({
- *     filter: { address },
+ *     filter: { address, dataKeyName: 'LSP3Profile' },
  *   });
  *
  *   return (

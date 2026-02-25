@@ -61,14 +61,17 @@ export const TokenIdDataChangedEventSchema = z.object({
 /**
  * Filter for token ID data changed event queries.
  *
- * All 9 filter fields — string fields use `_ilike` (case-insensitive),
+ * All 10 filter fields — string fields use `_ilike` (case-insensitive),
  * timestamp and blockNumber fields use `_gte` / `_lte` for range filtering.
+ * `dataKeyName` is resolved to a hex data key at the service layer.
  */
 export const TokenIdDataChangedEventFilterSchema = z.object({
   /** Case-insensitive match on emitting contract address (uses _ilike) */
   address: z.string().optional(),
   /** Case-insensitive match on data key hex (uses _ilike) */
   dataKey: z.string().optional(),
+  /** Human-readable ERC725Y key name (e.g., 'LSP4Metadata') — resolved to hex at service layer */
+  dataKeyName: z.string().optional(),
   /** Case-insensitive match on token ID (uses _ilike) */
   tokenId: z.string().optional(),
   /** Timestamp lower bound (inclusive, _gte) */
@@ -143,8 +146,22 @@ export const TokenIdDataChangedEventIncludeSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Hook parameter schemas — 2 hooks (no singular hook)
+// Hook parameter schemas — 3 hooks (latest single + paginated list + infinite)
 // ---------------------------------------------------------------------------
+
+/**
+ * Params for useLatestTokenIdDataChangedEvent — fetch the most recent
+ * TokenIdDataChanged event for a given address + tokenId + data key combination.
+ *
+ * Internally sorts by timestamp descending and returns the first result.
+ * The `dataKey` can be provided as a raw hex string OR the `dataKeyName` filter
+ * can be used with a human-readable name (e.g., 'LSP4Metadata') — the service
+ * layer resolves it to hex automatically.
+ */
+export const UseLatestTokenIdDataChangedEventParamsSchema = z.object({
+  filter: TokenIdDataChangedEventFilterSchema.optional(),
+  include: TokenIdDataChangedEventIncludeSchema.optional(),
+});
 
 /** Params for useTokenIdDataChangedEvents — paginated list of token ID data changed events */
 export const UseTokenIdDataChangedEventsParamsSchema = z.object({
@@ -174,6 +191,9 @@ export type TokenIdDataChangedEventSortField = z.infer<
 >;
 export type TokenIdDataChangedEventSort = z.infer<typeof TokenIdDataChangedEventSortSchema>;
 export type TokenIdDataChangedEventInclude = z.infer<typeof TokenIdDataChangedEventIncludeSchema>;
+export type UseLatestTokenIdDataChangedEventParams = z.infer<
+  typeof UseLatestTokenIdDataChangedEventParamsSchema
+>;
 export type UseTokenIdDataChangedEventsParams = z.infer<
   typeof UseTokenIdDataChangedEventsParamsSchema
 >;

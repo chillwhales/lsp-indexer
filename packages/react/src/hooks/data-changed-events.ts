@@ -16,6 +16,12 @@ import type {
 /** Default number of data changed events per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
 
+/** Flat return shape for useLatestDataChangedEvent — single event + query state */
+type UseLatestDataChangedEventReturn<F> = { dataChangedEvent: F | null } & Omit<
+  UseQueryResult<F | null, Error>,
+  'data'
+>;
+
 /** Flat return shape for useDataChangedEvents — dataChangedEvents array + totalCount + query state */
 type UseDataChangedEventsReturn<F> = { dataChangedEvents: F[]; totalCount: number } & Omit<
   UseQueryResult<FetchDataChangedEventsResult<F>, Error>,
@@ -34,12 +40,72 @@ type UseInfiniteDataChangedEventsReturn<F> = {
 >;
 
 /**
+ * Fetch the most recent ERC725Y DataChanged event matching the given filter.
+ *
+ * Wraps `fetchLatestDataChangedEvent` in a TanStack `useQuery` hook. Internally
+ * sorts by timestamp descending and returns the first result. Useful for getting
+ * the current value of a specific ERC725Y data key for a given address.
+ *
+ * Supports `dataKeyName` in the filter — pass a human-readable ERC725Y key name
+ * (e.g., 'LSP3Profile') and the service layer resolves it to hex automatically.
+ *
+ * @param params - Filter and optional include config
+ * @returns `{ dataChangedEvent, isLoading, error, ...rest }` — full TanStack Query result
+ *   with `data` renamed to `dataChangedEvent`
+ *
+ * @example
+ * ```tsx
+ * import { useLatestDataChangedEvent } from '@lsp-indexer/react';
+ *
+ * function LatestProfileChange({ address }: { address: string }) {
+ *   const { dataChangedEvent, isLoading } = useLatestDataChangedEvent({
+ *     filter: { address, dataKeyName: 'LSP3Profile' },
+ *   });
+ *
+ *   if (isLoading) return <Skeleton />;
+ *   if (!dataChangedEvent) return <p>No data change found</p>;
+ *
+ *   return <p>Latest value: {dataChangedEvent.dataValue}</p>;
+ * }
+ * ```
+ */
+export function useLatestDataChangedEvent<const I extends DataChangedEventInclude>(
+  params: UseLatestDataChangedEventParams & { include: I },
+): UseLatestDataChangedEventReturn<DataChangedEventResult<I>>;
+export function useLatestDataChangedEvent(
+  params?: Omit<UseLatestDataChangedEventParams, 'include'> & { include?: never },
+): UseLatestDataChangedEventReturn<DataChangedEvent>;
+export function useLatestDataChangedEvent(
+  params: UseLatestDataChangedEventParams & { include?: DataChangedEventInclude },
+): UseLatestDataChangedEventReturn<PartialDataChangedEvent>;
+export function useLatestDataChangedEvent(
+  params: UseLatestDataChangedEventParams & { include?: DataChangedEventInclude } = {},
+): UseLatestDataChangedEventReturn<PartialDataChangedEvent> {
+  const url = getClientUrl();
+  const { filter, include } = params;
+
+  const { data, ...rest } = useQuery({
+    queryKey: dataChangedEventKeys.latest(filter, include),
+    queryFn: () =>
+      include
+        ? fetchLatestDataChangedEvent(url, { filter, include })
+        : fetchLatestDataChangedEvent(url, { filter }),
+  });
+
+  const dataChangedEvent = data ?? null;
+  return { dataChangedEvent, ...rest };
+}
+
+/**
  * Fetch a paginated list of ERC725Y DataChanged event records with filtering and sorting.
  *
  * Wraps `fetchDataChangedEvents` in a TanStack `useQuery` hook. Supports comprehensive
- * filtering (by address, dataKey, blockNumber, timestamp, universalProfileName,
+ * filtering (by address, dataKey, dataKeyName, blockNumber, timestamp, universalProfileName,
  * digitalAssetName) and sorting (by timestamp, blockNumber, universalProfileName,
  * digitalAssetName).
+ *
+ * Supports `dataKeyName` in the filter — pass a human-readable ERC725Y key name
+ * (e.g., 'LSP3Profile') and the service layer resolves it to hex automatically.
  *
  * @param params - Optional filter, sort, pagination, and include config
  * @returns `{ dataChangedEvents, totalCount, isLoading, error, ...rest }` — full TanStack Query
@@ -51,7 +117,7 @@ type UseInfiniteDataChangedEventsReturn<F> = {
  *
  * function DataChangedEventList({ address }: { address: string }) {
  *   const { dataChangedEvents, totalCount, isLoading } = useDataChangedEvents({
- *     filter: { address },
+ *     filter: { address, dataKeyName: 'LSP3Profile' },
  *     sort: { field: 'timestamp', direction: 'desc' },
  *     limit: 20,
  *   });
@@ -104,6 +170,9 @@ export function useDataChangedEvents(
  * Uses a **separate query key namespace** from `useDataChangedEvents` to prevent cache
  * corruption between standard and infinite query data structures.
  *
+ * Supports `dataKeyName` in the filter — pass a human-readable ERC725Y key name
+ * (e.g., 'LSP3Profile') and the service layer resolves it to hex automatically.
+ *
  * @param params - Optional filter, sort, pageSize, and include config
  * @returns `{ dataChangedEvents, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest }` —
  *   flattened dataChangedEvents array with infinite scroll controls
@@ -120,7 +189,7 @@ export function useDataChangedEvents(
  *     isFetchingNextPage,
  *     isLoading,
  *   } = useInfiniteDataChangedEvents({
- *     filter: { address },
+ *     filter: { address, dataKeyName: 'LSP3Profile' },
  *     sort: { field: 'timestamp', direction: 'desc' },
  *     pageSize: 20,
  *   });

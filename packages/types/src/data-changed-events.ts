@@ -59,14 +59,17 @@ export const DataChangedEventSchema = z.object({
 /**
  * Filter for data changed event queries.
  *
- * All 8 filter fields — string fields use `_ilike` (case-insensitive),
+ * All 9 filter fields — string fields use `_ilike` (case-insensitive),
  * timestamp and blockNumber fields use `_gte` / `_lte` for range filtering.
+ * `dataKeyName` is resolved to a hex data key at the service layer.
  */
 export const DataChangedEventFilterSchema = z.object({
   /** Case-insensitive match on emitting contract address (uses _ilike) */
   address: z.string().optional(),
   /** Case-insensitive match on data key hex (uses _ilike) */
   dataKey: z.string().optional(),
+  /** Human-readable ERC725Y key name (e.g., 'LSP3Profile') — resolved to hex at service layer */
+  dataKeyName: z.string().optional(),
   /** Timestamp lower bound (inclusive, _gte) */
   timestampFrom: z.union([z.string(), z.number()]).optional(),
   /** Timestamp upper bound (inclusive, _lte) */
@@ -138,8 +141,22 @@ export const DataChangedEventIncludeSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Hook parameter schemas — 2 hooks (no singular hook)
+// Hook parameter schemas — 3 hooks (latest single + paginated list + infinite)
 // ---------------------------------------------------------------------------
+
+/**
+ * Params for useLatestDataChangedEvent — fetch the most recent DataChanged event
+ * for a given address + data key combination.
+ *
+ * Internally sorts by timestamp descending and returns the first result.
+ * The `dataKey` can be provided as a raw hex string OR the `dataKeyName` filter
+ * can be used with a human-readable name (e.g., 'LSP3Profile') — the service
+ * layer resolves it to hex automatically.
+ */
+export const UseLatestDataChangedEventParamsSchema = z.object({
+  filter: DataChangedEventFilterSchema.optional(),
+  include: DataChangedEventIncludeSchema.optional(),
+});
 
 /** Params for useDataChangedEvents — paginated list of data changed events */
 export const UseDataChangedEventsParamsSchema = z.object({
@@ -167,6 +184,7 @@ export type DataChangedEventFilter = z.infer<typeof DataChangedEventFilterSchema
 export type DataChangedEventSortField = z.infer<typeof DataChangedEventSortFieldSchema>;
 export type DataChangedEventSort = z.infer<typeof DataChangedEventSortSchema>;
 export type DataChangedEventInclude = z.infer<typeof DataChangedEventIncludeSchema>;
+export type UseLatestDataChangedEventParams = z.infer<typeof UseLatestDataChangedEventParamsSchema>;
 export type UseDataChangedEventsParams = z.infer<typeof UseDataChangedEventsParamsSchema>;
 export type UseInfiniteDataChangedEventsParams = z.infer<
   typeof UseInfiniteDataChangedEventsParamsSchema

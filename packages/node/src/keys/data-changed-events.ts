@@ -14,22 +14,27 @@ import type {
  * **Hierarchy:**
  * ```
  * dataChangedEventKeys.all                          → ['dataChangedEvents']
+ * dataChangedEventKeys.latests()                    → ['dataChangedEvents', 'latest']
+ * dataChangedEventKeys.latest(f, i)                 → ['dataChangedEvents', 'latest', { filter, include }]
  * dataChangedEventKeys.lists()                      → ['dataChangedEvents', 'list']
  * dataChangedEventKeys.list(...)                    → ['dataChangedEvents', 'list', ...]
  * dataChangedEventKeys.infinites()                  → ['dataChangedEvents', 'infinite']
  * dataChangedEventKeys.infinite(...)                → ['dataChangedEvents', 'infinite', ...]
  * ```
  *
- * **IMPORTANT:** `list` and `infinite` use separate namespaces to prevent
- * TanStack Query cache corruption between useQuery and useInfiniteQuery.
+ * **IMPORTANT:** `list`, `infinite`, and `latest` use separate namespaces to prevent
+ * TanStack Query cache corruption between different query data structures.
  *
- * Only 2 hooks: `useDataChangedEvents` (paginated list) and `useInfiniteDataChangedEvents`
- * (infinite scroll). No singular `useDataChangedEvent` — no natural key exists.
+ * 3 hooks: `useLatestDataChangedEvent` (single latest), `useDataChangedEvents` (paginated list),
+ * and `useInfiniteDataChangedEvents` (infinite scroll).
  *
  * **Cache invalidation examples:**
  * ```ts
- * // Invalidate ALL data changed event queries (list + infinite)
+ * // Invalidate ALL data changed event queries (latest + list + infinite)
  * queryClient.invalidateQueries({ queryKey: dataChangedEventKeys.all });
+ *
+ * // Invalidate all latest queries
+ * queryClient.invalidateQueries({ queryKey: dataChangedEventKeys.latests() });
  *
  * // Invalidate all paginated list queries
  * queryClient.invalidateQueries({ queryKey: dataChangedEventKeys.lists() });
@@ -41,6 +46,13 @@ import type {
 export const dataChangedEventKeys = {
   /** Base key for all data changed event queries — invalidate this to clear the entire cache */
   all: ['dataChangedEvents'] as const,
+
+  /** Parent key for all latest-single queries */
+  latests: () => [...dataChangedEventKeys.all, 'latest'] as const,
+
+  /** Key for a specific latest data changed event query */
+  latest: (filter?: DataChangedEventFilter, include?: DataChangedEventInclude) =>
+    [...dataChangedEventKeys.latests(), { filter, include }] as const,
 
   /** Parent key for all paginated list queries */
   lists: () => [...dataChangedEventKeys.all, 'list'] as const,
