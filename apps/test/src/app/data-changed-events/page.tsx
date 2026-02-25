@@ -1,6 +1,6 @@
 'use client';
 
-import { DATA_KEY_NAMES } from '@lsp-indexer/data-keys';
+import { DATA_KEY_NAMES, DataKeyNameSchema } from '@lsp-indexer/data-keys';
 import { Clock, Infinity, List } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -193,7 +193,7 @@ function buildFilter(vals: Record<string, string>): DataChangedEventFilter | und
   const f: DataChangedEventFilter = {};
   if (vals.address) f.address = vals.address;
   if (vals.dataKey) f.dataKey = vals.dataKey;
-  if (vals.dataKeyName) f.dataKeyName = vals.dataKeyName as DataChangedEventFilter['dataKeyName'];
+  if (vals.dataKeyName) f.dataKeyName = DataKeyNameSchema.parse(vals.dataKeyName);
   if (vals.timestampFrom) f.timestampFrom = vals.timestampFrom;
   if (vals.timestampTo) f.timestampTo = vals.timestampTo;
   if (vals.blockNumberFrom) {
