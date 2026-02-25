@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.10 (Data Changed Events) — In progress
-- **Plan:** 3 of 4 in current sub-phase
-- **Status:** Completed 09.10-03-PLAN.md (React hooks + Next.js server actions + Next.js hooks for both domains)
-- **Last activity:** 2026-02-25 — Completed 09.10-03-PLAN.md
-- **Progress:** ██████░░░░ 67% (20/30 requirements)
+- **Sub-phase:** 9.10 (Data Changed Events) — Complete
+- **Plan:** 4 of 4 in current sub-phase
+- **Status:** Completed 09.10-04-PLAN.md (Playground page + cards + nav + include constants)
+- **Last activity:** 2026-02-25 — Completed 09.10-04-PLAN.md
+- **Progress:** ███████░░░ 70% (21/30 requirements)
 
 ## Milestone History
 
@@ -40,21 +40,21 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.7   | Creators                           |     1/1      | Complete |
 | 9.8   | Issued Assets                      |     1/1      | Complete |
 | 9.9   | Encrypted Feed                     |     1/1      | Complete |
-| 9.10  | Data Changed Events                |      1       | Plan 3/4 |
+| 9.10  | Data Changed Events                |     1/1      | Complete |
 | 9.11  | Universal Receiver Events          |      1       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 20/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
+**Total:** 21/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, QUERY-09, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 81 (36 v1.0 + 45 v1.1)
+- **Plans completed:** 82 (36 v1.0 + 46 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 22 (11 v1.0 + 11 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 20/30 (v1.1)
+- **Phases completed:** 23 (11 v1.0 + 12 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 21/30 (v1.1)
 
 ## Accumulated Context
 
@@ -181,7 +181,10 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **10 @lukso/lsp\*-contracts as runtime dependencies:** Per CONTEXT.md locked decision — used for data key name resolution in parseDataChangedEvent/parseTokenIdDataChangedEvent
 - **NFT name filter in token-id-data-changed uses \_or pattern:** `{ nft: { _or: [{ lsp4Metadata: { name: { value: { _ilike } } } }, { lsp4MetadataBaseUri: { name: { value: { _ilike } } } }] } }` — matching nfts service pattern
 - **Data changed event UP prefix: includeProfile* → includeUniversalProfile*:** Matching encrypted-assets pattern for nested UP sub-includes
-- **Data changed event DA prefix: include* → includeDigitalAsset*:** Matching issued-assets pattern for nested DA sub-includes
+  - **Data changed event DA prefix: include* → includeDigitalAsset*:** Matching issued-assets pattern for nested DA sub-includes
+  - **dataKeyName display pattern:** Bold resolved name when known, "(Unknown Key)" in muted italic when null, raw hex truncated to 20 chars in mono below
+  - **4-tab playground layout for 2-domain phases:** Data Changed Events page has 4 tabs (2 domains × 2 scroll modes) in a single page
+  - **nft boolean include in scalar include array:** TokenIdDataChangedEvent nft include is boolean-only (no SubIncludeSection needed)
 
 ### Discovered Todos
 
@@ -196,16 +199,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-25
-- **Activity:** Executed Phase 9.10 Plan 03 (Data Changed Events — React hooks + Next.js server actions + Next.js hooks)
-- **Outcome:** 2 tasks, 2 commits. 4 React hooks, 2 server actions, 4 Next.js hooks for DataChangedEvent + TokenIdDataChangedEvent domains. Barrel exports wired. All 4 packages build and typecheck.
+- **Activity:** Executed Phase 9.10 Plan 04 (Data Changed Events — Playground page + cards + nav + include constants)
+- **Outcome:** 2 tasks, 2 commits. DataChangedEventCard + TokenIdDataChangedEventCard, /data-changed-events page with 4 tabs, nav updated, include constants added. next build passes.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.10 Plan 03 complete** — consumer-facing API layer delivered for both domains
-- **Next step:** Phase 9.10 Plan 04 (playground / integration verification)
-- **Remaining sub-phases in Phase 9:** 9.10 (Data Changed Events, plan 4 remaining), 9.11 (Universal Receiver Events)
+- **Phase 9.10 (Data Changed Events) COMPLETE** — all 4 plans delivered (types → services → hooks → playground)
+- **Next step:** Phase 9.11 (Universal Receiver Events)
+- **Remaining sub-phases in Phase 9:** 9.11 (Universal Receiver Events)
 
 ---
 
-_Last updated: 2026-02-25 — Phase 9.10 Plan 03 complete (Data Changed Events hooks + server actions)_
+_Last updated: 2026-02-25 — Phase 9.10 complete (Data Changed Events — all 4 plans delivered, QUERY-09 requirement met)_
