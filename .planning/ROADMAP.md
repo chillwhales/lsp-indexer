@@ -286,16 +286,16 @@ No implementation bodies change — only overload signatures and return type ann
 
 ### Phase 9.10 — Data Changed Events
 
-**Goal:** Developer can use `useDataChangedEvents`, `useInfiniteDataChangedEvents` for ERC725 data change event history.
+**Goal:** Developer can use `useDataChangedEvents`, `useInfiniteDataChangedEvents` for contract-level ERC725 data change events AND `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents` for per-token data change events — two distinct domains implemented together in one phase.
 
 **Requirement:** QUERY-09, PAGE-01
 
 **Plans:** 4 plans
 
-- [ ] 09.10-01-PLAN.md — Data Changed Event types + GraphQL documents + codegen
-- [ ] 09.10-02-PLAN.md — Data Changed Event parsers + services + query keys
-- [ ] 09.10-03-PLAN.md — Data Changed Event hooks + server actions + build validation
-- [ ] 09.10-04-PLAN.md — Data Changed Events playground page + E2E verification
+- [ ] 09.10-01-PLAN.md — DataChangedEvent + TokenIdDataChangedEvent types (both domains) + GraphQL documents + codegen
+- [ ] 09.10-02-PLAN.md — Data key resolver utility (10 @lukso packages) + parsers + services + query keys for both domains
+- [ ] 09.10-03-PLAN.md — 4 React hooks + 2 server actions + 4 Next.js hooks + build validation
+- [ ] 09.10-04-PLAN.md — DataChangedEventCard + TokenIdDataChangedEventCard + playground page (4 tabs) + E2E verification
 
 ---
 
