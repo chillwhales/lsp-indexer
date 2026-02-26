@@ -6,15 +6,15 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 9 restructured into 11 sub-phases (9.1–9.11, including 9.4 Conditional Include Types and 9.6 Generic Type Propagation)
+**Current focus:** v1.1 React Hooks Package — Phase 9 complete (all 12 sub-phases including 9.12 Block-Ordered Sorting), ready for Phase 10 (Subscriptions)
 
 ## Current Position
 
-- **Phase:** 9 of 11 (Remaining Query Domains + DX — 12 sub-phases)
-- **Sub-phase:** 9.12 (Block-Ordered Sorting) — Complete
+- **Phase:** 9 of 11 (Remaining Query Domains + DX — 12 sub-phases) — Complete
+- **Sub-phase:** 9.12 (Block-Ordered Sorting) — Complete (final sub-phase)
 - **Plan:** 3 of 3 in current sub-phase
-- **Status:** Phase 9.12 complete — all 3 plans executed
-- **Last activity:** 2026-02-26 — Completed 09.12-03-PLAN.md
+- **Status:** Phase 9 complete — all 12 sub-phases delivered, ready for Phase 10
+- **Last activity:** 2026-02-26 — Phase 9.12 verified (10/10 must-haves passed)
 - **Progress:** ███████░░░ 73% (22/30 requirements)
 
 ## Milestone History
@@ -52,9 +52,9 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 86 (36 v1.0 + 50 v1.1)
+- **Plans completed:** 87 (36 v1.0 + 51 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 25 (11 v1.0 + 14 v1.1)
+- **Phases completed:** 25 (11 v1.0 + 14 v1.1 including all Phase 9 sub-phases)
 - **Requirements delivered:** 45/45 (v1.0), 22/30 (v1.1)
 
 ## Accumulated Context
@@ -208,17 +208,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-26
-- **Activity:** Executed Phase 9.12 Plan 03 (Playground sort options + SortControls conditional hide/show)
-- **Outcome:** 2 tasks, 2 commits. SortControls gains hideDirectionAndNulls prop, all 4 event domain playgrounds updated with newest/oldest sort options, default sort 'newest', full build passes.
+- **Activity:** Executed Phase 9.12 (Block-Ordered Sorting) — all 3 plans + verification
+- **Outcome:** 3 plans, 9 commits (6 feat + 3 docs), 10/10 must-haves verified. buildBlockOrderSort utility, 4 event domain sort schemas updated, Follower document + parser with block fields, all services default to block-order desc, playground with newest/oldest + hideDirectionAndNulls.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.12 complete** — all 3 plans executed (utility + services + playground)
-- **All event domains have deterministic block-order sorting** through full stack (types → services → playground)
-- **Next step:** Phase 10 (Subscriptions) or Phase 11 (Server Actions & Publish Readiness)
-- **Ready for PR:** feat/block-ordered-sorting-types → refactor/indexer-v2-react
+- **Phase 9 complete** — all 12 sub-phases delivered (9.1–9.12)
+- **22/30 requirements delivered** — Phase 9 added QUERY-02 through QUERY-10, DX-04, DX-05, PAGE-01
+- **Next step:** Phase 10 (Subscriptions) — WebSocket connection, 11 domain subscription hooks, cache integration
+- **Remaining phases:** 10 (Subscriptions), 11 (Server Actions & Publish Readiness)
 
 ---
 
-_Last updated: 2026-02-26 — Phase 9.12 complete (Block-Ordered Sorting — all 3 plans, 4 event domains sorted by blockNumber)_
+_Last updated: 2026-02-26 — Phase 9.12 complete (Block-Ordered Sorting — 3 plans, 10/10 verified), Phase 9 fully complete_
