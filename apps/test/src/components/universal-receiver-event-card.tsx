@@ -12,7 +12,8 @@ import {
 import { ExpandableHex } from '@/components/expandable-hex';
 import { RawJsonToggle } from '@/components/playground';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatRelativeTime, truncateAddress } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { formatRelativeTime, formatTokenAmount, truncateAddress } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // UniversalReceiverEventCard
@@ -77,8 +78,18 @@ export function UniversalReceiverEventCard({
           {/* Conditional data fields via field-presence checks */}
           {'value' in evt && evt.value != null && (
             <div className="flex gap-2">
-              <dt className="text-muted-foreground w-40 shrink-0">Value (wei)</dt>
-              <dd className="font-mono text-xs">{evt.value}</dd>
+              <dt className="text-muted-foreground w-40 shrink-0">Value</dt>
+              <dd>
+                <Tooltip>
+                  <TooltipTrigger className="font-mono text-xs underline decoration-dashed underline-offset-2 cursor-default">
+                    {formatTokenAmount(evt.value, 18)}
+                    <span className="text-muted-foreground ml-1">LYX</span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="font-mono text-xs">{evt.value} wei</p>
+                  </TooltipContent>
+                </Tooltip>
+              </dd>
             </div>
           )}
           {'receivedData' in evt && typeof evt.receivedData === 'string' && (
