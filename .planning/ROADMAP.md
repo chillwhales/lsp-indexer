@@ -307,10 +307,40 @@ No implementation bodies change — only overload signatures and return type ann
 
 **Plans:** 4 plans
 
-- [ ] 09.11-01-PLAN.md — Universal Receiver Event types + GraphQL documents + codegen
-- [ ] 09.11-02-PLAN.md — Universal Receiver Event parsers + services + query keys
-- [ ] 09.11-03-PLAN.md — Universal Receiver Event hooks + server actions + build validation
-- [ ] 09.11-04-PLAN.md — Universal Receiver Events playground page + E2E verification
+- [ ] 09.11-01-PLAN.md — Universal Receiver Event types (6 base + 4 scalar + 3 relations) + GraphQL document (46 vars) + codegen
+- [ ] 09.11-02-PLAN.md — Universal Receiver Event parser (3-relation mapping) + service (3 prefix replacements) + query keys
+- [ ] 09.11-03-PLAN.md — 2 React hooks + server action + 2 Next.js hooks + build validation
+- [ ] 09.11-04-PLAN.md — UniversalReceiverEventCard (3 collapsible sections) + playground page (2 tabs) + nav update
+
+---
+
+### Phase 9.12 — Block-Ordered Sorting (INSERTED)
+
+**Goal:** All event domains sort by `blockNumber → transactionIndex → logIndex` instead of timestamp for deterministic ordering — multiple events can share the same block timestamp, so timestamp alone is not sufficient for first/last ordering. Extract a shared sorting utility and apply across all event domains.
+
+**Depends on:** Phase 9.11 (all event domains must exist)
+
+**Scope:**
+
+Cross-cutting refactor of 4 event domains that have `block_number`, `transaction_index`, and `log_index` fields:
+
+1. **Followers** (9.5) — `follower` table
+2. **Data Changed Events** (9.10) — `data_changed` table
+3. **Token ID Data Changed Events** (9.10) — `token_id_data_changed` table
+4. **Universal Receiver Events** (9.11) — `universal_receiver` table
+
+Entity tables (`lsp4_creator`, `owned_asset`, `owned_token`, `lsp29_encrypted_asset`, `issued_asset`) are NOT affected — they only have `timestamp`, no block-level ordering fields.
+
+**Key changes:**
+
+- Extract shared `buildBlockOrderSort()` utility in `@lsp-indexer/node` — produces Hasura `order_by` arrays like `[{ block_number: desc }, { transaction_index: desc }, { log_index: desc }]` (or asc) for deterministic event ordering at the DB/Hasura layer
+- Replace timestamp-based default sorting in all 4 event domain services with this block-based Hasura `order_by` sort
+- Update sort field schemas to expose camelCase sort fields (`blockNumber`, `transactionIndex`, `logIndex`) that map onto the internal snake_case Hasura ordering
+- Update playground sort controls for affected domains to use the camelCase sort fields while relying on the shared `buildBlockOrderSort()` under the hood
+
+**Plans:** TBD (run /gsd-plan-phase 9.12 to break down)
+
+- [ ] TBD
 
 ---
 
@@ -391,6 +421,7 @@ No implementation bodies change — only overload signatures and return type ann
 | 9.9   | Encrypted Feed                     |     1/1      | Complete |
 | 9.10  | Data Changed Events                |     1/1      | Complete |
 | 9.11  | Universal Receiver Events          |      1       | Pending  |
+| 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
@@ -416,7 +447,8 @@ Phase 7 (Package Foundation)
                 ├──→ 9.8 (Issued Assets)
                 ├──→ 9.9 (Encrypted Feed)
                 ├──→ 9.10 (Data Changed Events)
-                └──→ 9.11 (Universal Receiver Events)
+                ├──→ 9.11 (Universal Receiver Events)
+                └──→ 9.12 (Block-Ordered Sorting) ←── INSERTED: refactors 9.5, 9.10, 9.11 event domains
                        ↓ (all 9.x must complete)
                 ├──→ Phase 10 (Subscriptions)
                 └──→ Phase 11 (Server Actions & Publish Readiness) ←── also depends on Phase 10

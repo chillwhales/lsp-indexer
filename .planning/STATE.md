@@ -182,8 +182,12 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **Data changed event UP prefix: includeProfile* → includeUniversalProfile*:** Matching encrypted-assets pattern for nested UP sub-includes
   - **Data changed event DA prefix: include* → includeDigitalAsset*:** Matching issued-assets pattern for nested DA sub-includes
   - **dataKeyName display pattern:** Bold resolved name when known, "(Unknown Key)" in muted italic when null, raw hex truncated to 20 chars in mono below
-  - **3-tab playground layout per domain:** Each domain has its own page (`/data-changed-events`, `/token-id-data-changed-events`) with 3 tabs (Latest, List, Infinite)
+  - **Data changed events 3-tab playground layout:** Data changed events domains have 3 tabs each (Latest, List, Infinite) — other event domains use 2 tabs (List, Infinite) when no latest hook exists
   - **nft include in scalar include array:** TokenIdDataChangedEvent nft is a boolean toggle in the playground UI (schema supports union type but playground uses simple on/off)
+
+### Roadmap Evolution
+
+- Phase 9.12 inserted after Phase 9.11: Block-Ordered Sorting — deterministic event ordering by blockNumber → transactionIndex → logIndex instead of timestamp (URGENT). Affects 4 event domains: followers (9.5), data-changed (9.10), token-id-data-changed (9.10), universal-receiver (9.11).
 
 ### Discovered Todos
 
