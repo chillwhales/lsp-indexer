@@ -1,5 +1,6 @@
 'use client';
 
+import { TYPE_ID_NAMES, TypeIdNameSchema } from '@lsp-indexer/lsp1';
 import { Infinity, List } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -38,8 +39,11 @@ import {
 import { UniversalReceiverEventCard } from '@/components/universal-receiver-event-card';
 
 // ---------------------------------------------------------------------------
-// Domain config — Universal Receiver Events (10 filter params, 5 sort fields)
+// Domain config — Universal Receiver Events (11 filter params, 5 sort fields)
 // ---------------------------------------------------------------------------
+
+/** Type ID name options for select dropdowns — built from the data-keys registry */
+const TYPE_ID_NAME_OPTIONS = TYPE_ID_NAMES.map((name) => ({ value: name, label: name }));
 
 const ALL_FILTERS: FilterFieldConfig[] = [
   {
@@ -62,6 +66,13 @@ const ALL_FILTERS: FilterFieldConfig[] = [
     placeholder: '0x... (LSP1 type identifier)',
     mono: true,
     width: 'w-80',
+  },
+  {
+    key: 'typeIdName',
+    label: 'Type ID Name',
+    placeholder: 'All Type IDs',
+    options: TYPE_ID_NAME_OPTIONS,
+    width: 'w-72',
   },
   {
     key: 'timestampFrom',
@@ -111,7 +122,7 @@ const ALL_FILTERS: FilterFieldConfig[] = [
 
 /** Filter groups rendered as separate rows */
 const ROW1 = ALL_FILTERS.filter(
-  (f) => f.key === 'address' || f.key === 'from' || f.key === 'typeId',
+  (f) => f.key === 'address' || f.key === 'from' || f.key === 'typeId' || f.key === 'typeIdName',
 );
 const ROW2 = ALL_FILTERS.filter(
   (f) =>
@@ -126,8 +137,8 @@ const ROW3 = ALL_FILTERS.filter(
 );
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'timestamp', label: 'Timestamp' },
-  { value: 'blockNumber', label: 'Block Number' },
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
   { value: 'universalProfileName', label: 'Receiver Profile Name' },
   { value: 'fromProfileName', label: 'Sender Profile Name' },
   { value: 'fromAssetName', label: 'Sender Asset Name' },
@@ -164,6 +175,7 @@ function buildFilter(vals: Record<string, string>): UniversalReceiverEventFilter
   if (vals.address) f.address = vals.address;
   if (vals.from) f.from = vals.from;
   if (vals.typeId) f.typeId = vals.typeId;
+  if (vals.typeIdName) f.typeIdName = TypeIdNameSchema.parse(vals.typeIdName);
   if (vals.timestampFrom) f.timestampFrom = vals.timestampFrom;
   if (vals.timestampTo) f.timestampTo = vals.timestampTo;
   if (vals.blockNumberFrom) {
@@ -186,7 +198,7 @@ function buildFilter(vals: Record<string, string>): UniversalReceiverEventFilter
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
-  const [sortField, setSortField] = useState<UniversalReceiverEventSortField>('timestamp');
+  const [sortField, setSortField] = useState<UniversalReceiverEventSortField>('newest');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(
@@ -310,6 +322,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         }
         limit={limit}
         onLimitChange={setLimit}
+        hideDirectionAndNulls={state.sortField === 'newest' || state.sortField === 'oldest'}
       />
       <UreIncludeSections {...state} />
       <ResultsList
@@ -367,6 +380,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         onSortNullsChange={(v) =>
           state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
         }
+        hideDirectionAndNulls={state.sortField === 'newest' || state.sortField === 'oldest'}
       />
       <UreIncludeSections {...state} />
       <ResultsList

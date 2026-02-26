@@ -20,7 +20,7 @@ export default tseslint.config(
       'packages/indexer/',
 
       // Codegen output — auto-generated, don't lint
-      'packages/react/src/graphql/',
+      'packages/node/src/graphql/',
 
       // Config files — not source code
       '**/vitest.config.ts',

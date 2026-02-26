@@ -1,3 +1,4 @@
+import { resolveTypeIdHex } from '@lsp-indexer/lsp1';
 import type {
   PartialUniversalReceiverEvent,
   UniversalReceiverEvent,
@@ -12,7 +13,13 @@ import type { Universal_Receiver_Bool_Exp, Universal_Receiver_Order_By } from '.
 import { parseUniversalReceiverEvents } from '../parsers/universal-receiver-events';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';
+import {
+  buildBlockOrderSort,
+  escapeLike,
+  hasActiveIncludes,
+  normalizeTimestamp,
+  orderDir,
+} from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -31,6 +38,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
  * - `address`              → `{ address: { _ilike: '%escapeLike%' } }`
  * - `from`                 → `{ from: { _ilike: '%escapeLike%' } }`
  * - `typeId`               → `{ type_id: { _ilike: '%escapeLike%' } }`
+ * - `typeIdName`           → resolved to hex via `resolveTypeIdHex`; exact match on `type_id` (full bytes32 hash)
  * - `timestampFrom`        → `{ timestamp: { _gte: normalizeTimestamp } }`
  * - `timestampTo`          → `{ timestamp: { _lte: normalizeTimestamp } }`
  * - `blockNumberFrom`      → `{ block_number: { _gte: value } }` (Int comparison)
@@ -62,6 +70,17 @@ function buildUniversalReceiverEventWhere(
     conditions.push({
       type_id: { _ilike: `%${escapeLike(filter.typeId)}%` },
     });
+  }
+
+  if (filter.typeIdName) {
+    const hex = resolveTypeIdHex(filter.typeIdName);
+    if (hex) {
+      // Type IDs are always full 32-byte keccak256 hashes — exact match (case-insensitive)
+      conditions.push({
+        type_id: { _ilike: hex },
+      });
+    }
+    // Unknown names are silently ignored — typeIdName only accepts known LSP1 type ID names
   }
 
   if (filter.timestampFrom != null) {
@@ -127,27 +146,25 @@ function buildUniversalReceiverEventWhere(
  * Translate a flat `UniversalReceiverEventSort` to a Hasura `universal_receiver_order_by` array.
  *
  * Sort field → Hasura mapping:
- * - `'timestamp'`             → `[{ timestamp: dir }]`
- * - `'blockNumber'`           → `[{ block_number: dir }]`
+ * - `'newest'`                → `buildBlockOrderSort('desc')` (block_number → transaction_index → log_index desc)
+ * - `'oldest'`                → `buildBlockOrderSort('asc')` (block_number → transaction_index → log_index asc)
  * - `'universalProfileName'`  → `[{ universalProfile: { lsp3Profile: { name: { value: dir } } } }]` (nested)
  * - `'fromProfileName'`       → `[{ fromProfile: { lsp3Profile: { name: { value: dir } } } }]` (nested)
  * - `'fromAssetName'`         → `[{ fromAsset: { lsp4TokenName: { value: dir } } }]` (nested)
  *
  * Name sorts default to `nulls: 'last'` when not specified (names without values sort last).
- * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
+ * `direction` and `nulls` are ignored for `'newest'` and `'oldest'` (self-describing fields).
  */
 function buildUniversalReceiverEventOrderBy(
   sort?: UniversalReceiverEventSort,
 ): Universal_Receiver_Order_By[] | undefined {
   if (!sort) return undefined;
 
-  const dir = orderDir(sort.direction, sort.nulls);
-
   switch (sort.field) {
-    case 'timestamp':
-      return [{ timestamp: dir }];
-    case 'blockNumber':
-      return [{ block_number: dir }];
+    case 'newest':
+      return buildBlockOrderSort('desc');
+    case 'oldest':
+      return buildBlockOrderSort('asc');
     case 'universalProfileName':
       return [
         {
@@ -326,7 +343,7 @@ export async function fetchUniversalReceiverEvents(
   } = {},
 ): Promise<FetchUniversalReceiverEventsResult<PartialUniversalReceiverEvent>> {
   const where = buildUniversalReceiverEventWhere(params.filter);
-  const orderBy = buildUniversalReceiverEventOrderBy(params.sort);
+  const orderBy = buildUniversalReceiverEventOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildUniversalReceiverEventIncludeVars(params.include);
 
   const result = await execute(url, GetUniversalReceiverEventsDocument, {

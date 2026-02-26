@@ -140,6 +140,8 @@ No top-level arrow functions. Never use `export default function` — use named 
 
 ## Git & GitHub Workflow
 
+- **Never push directly to a PR base branch** — always create a feature branch and open a PR to it. This applies to `main`, epic branches, and any other branch that has an open PR.
+- **Check for existing open PRs** from the current branch before creating a new one: `gh pr list --head $(git branch --show-current) --state open`
 - **Branch naming**: `feat/indexer-v2-<name>` per issue
 - **All PRs target**: `refactor/indexer-v2` (not `main`)
 - **Commit format**: `feat(indexer-v2): description (#issue)` or `feat: description (closes #issue)`

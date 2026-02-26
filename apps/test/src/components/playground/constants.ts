@@ -61,10 +61,13 @@ export const NFT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'attributes', label: 'Attributes' },
 ];
 
-/** FollowerInclude — 2 scalar fields. followerProfile/followedProfile are SubIncludeSections. */
+/** FollowerInclude — 5 scalar fields. followerProfile/followedProfile are SubIncludeSections. */
 export const FOLLOWER_INCLUDE_FIELDS: IncludeToggleConfig[] = [
-  { key: 'timestamp', label: 'Timestamp' },
   { key: 'address', label: 'Contract Address' },
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'blockNumber', label: 'Block Number' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];
 
 /** CreatorInclude — 3 scalar fields. creatorProfile/digitalAsset are SubIncludeSections. */
@@ -118,28 +121,29 @@ export const ENCRYPTED_ASSET_CHUNKS_INCLUDE_FIELDS: IncludeToggleConfig[] = [
 /** DataChangedEventInclude — 5 scalar fields. universalProfile/digitalAsset are SubIncludeSections. */
 export const DATA_CHANGED_EVENT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'dataKeyName', label: 'Data Key Name' },
-  { key: 'blockNumber', label: 'Block Number' },
   { key: 'timestamp', label: 'Timestamp' },
-  { key: 'logIndex', label: 'Log Index' },
+  { key: 'blockNumber', label: 'Block Number' },
   { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];
 
 /** TokenIdDataChangedEventInclude — 5 scalar fields. digitalAsset is a SubIncludeSection. nft is a boolean toggle (included in scalar fields array). */
 export const TOKEN_ID_DATA_CHANGED_EVENT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'dataKeyName', label: 'Data Key Name' },
-  { key: 'blockNumber', label: 'Block Number' },
   { key: 'timestamp', label: 'Timestamp' },
-  { key: 'logIndex', label: 'Log Index' },
+  { key: 'blockNumber', label: 'Block Number' },
   { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];
 
-/** UniversalReceiverEventInclude — 7 scalar fields. universalProfile/fromProfile/fromAsset are SubIncludeSections. */
+/** UniversalReceiverEventInclude — 8 scalar fields. universalProfile/fromProfile/fromAsset are SubIncludeSections. */
 export const UNIVERSAL_RECEIVER_EVENT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'typeIdName', label: 'Type ID Name' },
   { key: 'value', label: 'Value (wei)' },
   { key: 'receivedData', label: 'Received Data' },
   { key: 'returnedValue', label: 'Returned Value' },
-  { key: 'blockNumber', label: 'Block Number' },
   { key: 'timestamp', label: 'Timestamp' },
-  { key: 'logIndex', label: 'Log Index' },
+  { key: 'blockNumber', label: 'Block Number' },
   { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];

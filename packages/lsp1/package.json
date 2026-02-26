@@ -1,5 +1,5 @@
 {
-  "name": "@lsp-indexer/types",
+  "name": "@lsp-indexer/lsp1",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -27,8 +27,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lsp-indexer/data-keys": "workspace:*",
-    "@lsp-indexer/lsp1": "workspace:*",
+    "@lukso/lsp0-contracts": "^0.15.5",
+    "@lukso/lsp7-contracts": "^0.16.8",
+    "@lukso/lsp8-contracts": "^0.16.7",
+    "@lukso/lsp9-contracts": "^0.15.5",
+    "@lukso/lsp14-contracts": "^0.15.5",
+    "@lukso/lsp26-contracts": "^0.1.7",
     "zod": "^4.3.6"
   },
   "devDependencies": {

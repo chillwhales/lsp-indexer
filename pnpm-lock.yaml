@@ -42,6 +42,9 @@ importers:
       '@lsp-indexer/data-keys':
         specifier: workspace:*
         version: link:../../packages/data-keys
+      '@lsp-indexer/lsp1':
+        specifier: workspace:*
+        version: link:../../packages/lsp1
       '@lsp-indexer/next':
         specifier: workspace:*
         version: link:../../packages/next
@@ -337,6 +340,37 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@24.2.0)(lightningcss@1.30.2)(msw@2.12.10(@types/node@24.2.0)(typescript@5.9.2))
 
+  packages/lsp1:
+    dependencies:
+      '@lukso/lsp0-contracts':
+        specifier: ^0.15.5
+        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp14-contracts':
+        specifier: ^0.15.5
+        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp26-contracts':
+        specifier: ^0.1.7
+        version: 0.1.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp7-contracts':
+        specifier: ^0.16.8
+        version: 0.16.8(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp8-contracts':
+        specifier: ^0.16.7
+        version: 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp9-contracts':
+        specifier: ^0.15.5
+        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(@swc/core@1.13.3)(jiti@2.6.1)(postcss@8.5.6)(typescript@5.9.3)(yaml@2.8.2)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   packages/next:
     dependencies:
       '@lsp-indexer/node':
@@ -376,6 +410,9 @@ importers:
       '@lsp-indexer/data-keys':
         specifier: workspace:*
         version: link:../data-keys
+      '@lsp-indexer/lsp1':
+        specifier: workspace:*
+        version: link:../lsp1
       '@lsp-indexer/types':
         specifier: workspace:*
         version: link:../types
@@ -457,6 +494,9 @@ importers:
       '@lsp-indexer/data-keys':
         specifier: workspace:*
         version: link:../data-keys
+      '@lsp-indexer/lsp1':
+        specifier: workspace:*
+        version: link:../lsp1
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -2048,6 +2088,9 @@ packages:
 
   '@lukso/lsp8-contracts@0.16.7':
     resolution: {integrity: sha512-fSNQOdTcVhIbbG2agvqU/nUvIgBlZJzyf27v1iQt3+fwYsrK4K7qIHp/eY94HdBs/60R2bfVM6iPGZTHHb+opQ==}
+
+  '@lukso/lsp9-contracts@0.15.5':
+    resolution: {integrity: sha512-7k3MUpJ8CrvLmrlFS8UdNKHwhutmGwsubj6FKrvMMVMEy5roCHpnC031+AwUyudhQlmczULuXn1zcNIYw6gbpQ==}
 
   '@lukso/universalprofile-contracts@0.15.5':
     resolution: {integrity: sha512-8JfML8yewIPzq3qUOkUc7W8Bfj2l4jl3xRBNQL78YzKIsopO05Se2Clzx/D+eTXtFaDOWyKGcKlRKjQg8R/nYw==}
@@ -10031,6 +10074,19 @@ snapshots:
       '@lukso/lsp17contractextension-contracts': 0.16.7
       '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp4-contracts': 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@openzeppelin/contracts': 4.9.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@lukso/lsp9-contracts@0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@erc725/smart-contracts': 7.0.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp1-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp6-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@openzeppelin/contracts': 4.9.6
     transitivePeerDependencies:
       - '@babel/core'

@@ -342,9 +342,9 @@ Entity tables (`lsp4_creator`, `owned_asset`, `owned_token`, `lsp29_encrypted_as
 
 Plans:
 
-- [ ] 09.12-01-PLAN.md — Shared utility + type schema updates (sort fields + Follower block fields)
-- [ ] 09.12-02-PLAN.md — Follower document/parser + all 4 service sort builders + default sort
-- [ ] 09.12-03-PLAN.md — Playground sort options + SortControls conditional hide/show + build validation
+- [x] 09.12-01-PLAN.md — Shared utility + type schema updates (sort fields + Follower block fields)
+- [x] 09.12-02-PLAN.md — Follower document/parser + all 4 service sort builders + default sort
+- [x] 09.12-03-PLAN.md — Playground sort options + SortControls conditional hide/show + build validation
 
 ---
 
@@ -425,7 +425,7 @@ Plans:
 | 9.9   | Encrypted Feed                     |     1/1      | Complete |
 | 9.10  | Data Changed Events                |     1/1      | Complete |
 | 9.11  | Universal Receiver Events          |     1/1      | Complete |
-| 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Pending  |
+| 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Complete |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
@@ -542,4 +542,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-26 — Phase 9.11 complete (Universal Receiver Events — all 4 plans, QUERY-10), 22/30 requirements delivered_
+_Last updated: 2026-02-26 — Phase 9.12 complete (Block-Ordered Sorting — all 3 plans, 10/10 verified), Phase 9 complete, 22/30 requirements delivered_

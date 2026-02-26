@@ -32,6 +32,7 @@
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
     "@lsp-indexer/data-keys": "workspace:*",
+    "@lsp-indexer/lsp1": "workspace:*",
     "@lsp-indexer/types": "workspace:*"
   },
   "devDependencies": {

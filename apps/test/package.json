@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@lsp-indexer/data-keys": "workspace:*",
+    "@lsp-indexer/lsp1": "workspace:*",
     "@lsp-indexer/next": "workspace:*",
     "@lsp-indexer/node": "workspace:*",
     "@lsp-indexer/react": "workspace:*",

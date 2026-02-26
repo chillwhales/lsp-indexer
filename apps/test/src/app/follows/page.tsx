@@ -99,7 +99,8 @@ const NAME_FILTERS = ALL_FILTERS.filter((f) => f.key.endsWith('Name'));
 const DATE_FILTERS = ALL_FILTERS.filter((f) => f.key.startsWith('timestamp'));
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'timestamp', label: 'Timestamp' },
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
   { value: 'followerAddress', label: 'Follower Address' },
   { value: 'followedAddress', label: 'Followed Address' },
   { value: 'followerName', label: 'Follower Name' },
@@ -163,7 +164,7 @@ function buildFilter(debouncedValues: Record<string, string>): FollowerFilter | 
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
-  const [sortField, setSortField] = useState<FollowerSortField>('timestamp');
+  const [sortField, setSortField] = useState<FollowerSortField>('newest');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } =
@@ -279,6 +280,7 @@ function FollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
         }
         limit={limit}
         onLimitChange={setLimit}
+        hideDirectionAndNulls={state.sortField === 'newest' || state.sortField === 'oldest'}
       />
       <IncludeSections {...state} />
       <ResultsList
@@ -341,6 +343,7 @@ function InfiniteFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
         onSortNullsChange={(v) =>
           state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
         }
+        hideDirectionAndNulls={state.sortField === 'newest' || state.sortField === 'oldest'}
       />
       <IncludeSections {...state} />
       <ResultsList
