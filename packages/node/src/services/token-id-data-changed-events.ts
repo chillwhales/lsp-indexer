@@ -321,7 +321,9 @@ export async function fetchTokenIdDataChangedEvents(
   } = {},
 ): Promise<FetchTokenIdDataChangedEventsResult<PartialTokenIdDataChangedEvent>> {
   const where = buildTokenIdDataChangedEventWhere(params.filter);
-  const orderBy = buildTokenIdDataChangedEventOrderBy(params.sort);
+  const orderBy =
+    buildTokenIdDataChangedEventOrderBy(params.sort) ??
+    (buildBlockOrderSort('desc') as Token_Id_Data_Changed_Order_By[]);
   const includeVars = buildTokenIdDataChangedEventIncludeVars(params.include);
 
   const result = await execute(url, GetTokenIdDataChangedEventsDocument, {

@@ -305,7 +305,9 @@ export async function fetchDataChangedEvents(
   } = {},
 ): Promise<FetchDataChangedEventsResult<PartialDataChangedEvent>> {
   const where = buildDataChangedEventWhere(params.filter);
-  const orderBy = buildDataChangedEventOrderBy(params.sort);
+  const orderBy =
+    buildDataChangedEventOrderBy(params.sort) ??
+    (buildBlockOrderSort('desc') as Data_Changed_Order_By[]);
   const includeVars = buildDataChangedEventIncludeVars(params.include);
 
   const result = await execute(url, GetDataChangedEventsDocument, {

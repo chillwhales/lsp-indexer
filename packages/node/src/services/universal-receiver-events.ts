@@ -333,7 +333,9 @@ export async function fetchUniversalReceiverEvents(
   } = {},
 ): Promise<FetchUniversalReceiverEventsResult<PartialUniversalReceiverEvent>> {
   const where = buildUniversalReceiverEventWhere(params.filter);
-  const orderBy = buildUniversalReceiverEventOrderBy(params.sort);
+  const orderBy =
+    buildUniversalReceiverEventOrderBy(params.sort) ??
+    (buildBlockOrderSort('desc') as Universal_Receiver_Order_By[]);
   const includeVars = buildUniversalReceiverEventIncludeVars(params.include);
 
   const result = await execute(url, GetUniversalReceiverEventsDocument, {

@@ -96,8 +96,6 @@ function buildFollowerWhere(filter: FollowerFilter | undefined): Follower_Bool_E
  * Translate a `FollowerSort` to a Hasura `follower_order_by` array.
  *
  * Sort field → Hasura mapping:
- * - `'timestamp'`       → `[{ timestamp: dir }]`
- * - `'followerAddress'` → `[{ follower_address: dir }]`
  * - `'newest'`          → `buildBlockOrderSort('desc')` (block_number → transaction_index → log_index desc)
  * - `'oldest'`          → `buildBlockOrderSort('asc')` (block_number → transaction_index → log_index asc)
  * - `'followerAddress'` → `[{ follower_address: dir }]`
@@ -169,6 +167,9 @@ export function buildFollowerIncludeVars(include?: FollowerInclude): Record<stri
   const vars: Record<string, boolean> = {
     includeTimestamp: include.timestamp ?? false,
     includeAddress: include.address ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
     includeFollowerProfile: activeFollowerProfile,
     includeFollowedProfile: activeFollowedProfile,
   };
@@ -265,7 +266,8 @@ export async function fetchFollows(
   },
 ): Promise<FetchFollowsResult<PartialFollower>> {
   const where = buildFollowerWhere(params.filter);
-  const orderBy = buildFollowerOrderBy(params.sort);
+  const orderBy =
+    buildFollowerOrderBy(params.sort) ?? (buildBlockOrderSort('desc') as Follower_Order_By[]);
   const includeVars = buildFollowerIncludeVars(params.include);
 
   const result = await execute(url, GetFollowersDocument, {
@@ -343,6 +345,9 @@ export async function fetchIsFollowing(
     // Disable all includes for efficiency — we only need to know if a record exists
     includeTimestamp: false,
     includeAddress: false,
+    includeBlockNumber: false,
+    includeTransactionIndex: false,
+    includeLogIndex: false,
     includeFollowerProfile: false,
     includeFollowerProfileName: false,
     includeFollowerProfileDescription: false,
