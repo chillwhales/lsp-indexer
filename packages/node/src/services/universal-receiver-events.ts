@@ -140,15 +140,12 @@ function buildUniversalReceiverEventWhere(
  * - `'fromAssetName'`         → `[{ fromAsset: { lsp4TokenName: { value: dir } } }]` (nested)
  *
  * Name sorts default to `nulls: 'last'` when not specified (names without values sort last).
- * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
  * `direction` and `nulls` are ignored for `'newest'` and `'oldest'` (self-describing fields).
  */
 function buildUniversalReceiverEventOrderBy(
   sort?: UniversalReceiverEventSort,
 ): Universal_Receiver_Order_By[] | undefined {
   if (!sort) return undefined;
-
-  const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
     case 'newest':
