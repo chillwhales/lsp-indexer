@@ -333,10 +333,10 @@ Entity tables (`lsp4_creator`, `owned_asset`, `owned_token`, `lsp29_encrypted_as
 
 **Key changes:**
 
-- Extract shared `buildBlockOrderSort()` utility in `@lsp-indexer/node` — produces `[{ block_number: desc }, { transaction_index: desc }, { log_index: desc }]` (or asc) for deterministic event ordering
-- Replace timestamp-based default sorting in all 4 event domain services
-- Update sort field schemas to expose block-ordered sorting to consumers
-- Update playground sort controls for affected domains
+- Extract shared `buildBlockOrderSort()` utility in `@lsp-indexer/node` — produces Hasura `order_by` arrays like `[{ block_number: desc }, { transaction_index: desc }, { log_index: desc }]` (or asc) for deterministic event ordering at the DB/Hasura layer
+- Replace timestamp-based default sorting in all 4 event domain services with this block-based Hasura `order_by` sort
+- Update sort field schemas to expose camelCase sort fields (`blockNumber`, `transactionIndex`, `logIndex`) that map onto the internal snake_case Hasura ordering
+- Update playground sort controls for affected domains to use the camelCase sort fields while relying on the shared `buildBlockOrderSort()` under the hood
 
 **Plans:** TBD (run /gsd-plan-phase 9.12 to break down)
 
@@ -447,7 +447,7 @@ Phase 7 (Package Foundation)
                 ├──→ 9.8 (Issued Assets)
                 ├──→ 9.9 (Encrypted Feed)
                 ├──→ 9.10 (Data Changed Events)
-                └──→ 9.11 (Universal Receiver Events)
+                ├──→ 9.11 (Universal Receiver Events)
                 └──→ 9.12 (Block-Ordered Sorting) ←── INSERTED: refactors 9.5, 9.10, 9.11 event domains
                        ↓ (all 9.x must complete)
                 ├──→ Phase 10 (Subscriptions)
