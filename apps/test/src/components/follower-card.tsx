@@ -64,6 +64,24 @@ export function FollowerCard({ follower, index }: FollowerCardProps): React.Reac
               <dd className="font-mono text-xs break-all">{obj.address}</dd>
             </div>
           )}
+          {'blockNumber' in obj && obj.blockNumber != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-36 shrink-0">Block Number</dt>
+              <dd className="font-mono text-xs">{String(obj.blockNumber)}</dd>
+            </div>
+          )}
+          {'logIndex' in obj && obj.logIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-36 shrink-0">Log Index</dt>
+              <dd className="font-mono text-xs">{String(obj.logIndex)}</dd>
+            </div>
+          )}
+          {'transactionIndex' in obj && obj.transactionIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-36 shrink-0">Tx Index</dt>
+              <dd className="font-mono text-xs">{String(obj.transactionIndex)}</dd>
+            </div>
+          )}
         </dl>
 
         {/* Collapsible section 1: Follower Profile */}

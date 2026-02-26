@@ -61,10 +61,13 @@ export const NFT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'attributes', label: 'Attributes' },
 ];
 
-/** FollowerInclude — 2 scalar fields. followerProfile/followedProfile are SubIncludeSections. */
+/** FollowerInclude — 5 scalar fields. followerProfile/followedProfile are SubIncludeSections. */
 export const FOLLOWER_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'timestamp', label: 'Timestamp' },
   { key: 'address', label: 'Contract Address' },
+  { key: 'blockNumber', label: 'Block Number' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];
 
 /** CreatorInclude — 3 scalar fields. creatorProfile/digitalAsset are SubIncludeSections. */
