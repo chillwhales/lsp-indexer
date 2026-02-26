@@ -147,9 +147,9 @@ function buildDataChangedEventOrderBy(
 
   switch (sort.field) {
     case 'newest':
-      return buildBlockOrderSort('desc') as Data_Changed_Order_By[];
+      return buildBlockOrderSort('desc');
     case 'oldest':
-      return buildBlockOrderSort('asc') as Data_Changed_Order_By[];
+      return buildBlockOrderSort('asc');
     case 'universalProfileName':
       return [
         {
@@ -305,9 +305,7 @@ export async function fetchDataChangedEvents(
   } = {},
 ): Promise<FetchDataChangedEventsResult<PartialDataChangedEvent>> {
   const where = buildDataChangedEventWhere(params.filter);
-  const orderBy =
-    buildDataChangedEventOrderBy(params.sort) ??
-    (buildBlockOrderSort('desc') as Data_Changed_Order_By[]);
+  const orderBy = buildDataChangedEventOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildDataChangedEventIncludeVars(params.include);
 
   const result = await execute(url, GetDataChangedEventsDocument, {

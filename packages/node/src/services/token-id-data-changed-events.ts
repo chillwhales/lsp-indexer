@@ -165,9 +165,9 @@ function buildTokenIdDataChangedEventOrderBy(
 
   switch (sort.field) {
     case 'newest':
-      return buildBlockOrderSort('desc') as Token_Id_Data_Changed_Order_By[];
+      return buildBlockOrderSort('desc');
     case 'oldest':
-      return buildBlockOrderSort('asc') as Token_Id_Data_Changed_Order_By[];
+      return buildBlockOrderSort('asc');
     case 'digitalAssetName':
       return [
         {
@@ -321,9 +321,7 @@ export async function fetchTokenIdDataChangedEvents(
   } = {},
 ): Promise<FetchTokenIdDataChangedEventsResult<PartialTokenIdDataChangedEvent>> {
   const where = buildTokenIdDataChangedEventWhere(params.filter);
-  const orderBy =
-    buildTokenIdDataChangedEventOrderBy(params.sort) ??
-    (buildBlockOrderSort('desc') as Token_Id_Data_Changed_Order_By[]);
+  const orderBy = buildTokenIdDataChangedEventOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildTokenIdDataChangedEventIncludeVars(params.include);
 
   const result = await execute(url, GetTokenIdDataChangedEventsDocument, {

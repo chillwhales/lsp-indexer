@@ -114,9 +114,9 @@ function buildFollowerOrderBy(sort?: FollowerSort): Follower_Order_By[] | undefi
 
   switch (sort.field) {
     case 'newest':
-      return buildBlockOrderSort('desc') as Follower_Order_By[];
+      return buildBlockOrderSort('desc');
     case 'oldest':
-      return buildBlockOrderSort('asc') as Follower_Order_By[];
+      return buildBlockOrderSort('asc');
     case 'followerAddress':
       return [{ follower_address: dir }];
     case 'followedAddress':
@@ -266,8 +266,7 @@ export async function fetchFollows(
   },
 ): Promise<FetchFollowsResult<PartialFollower>> {
   const where = buildFollowerWhere(params.filter);
-  const orderBy =
-    buildFollowerOrderBy(params.sort) ?? (buildBlockOrderSort('desc') as Follower_Order_By[]);
+  const orderBy = buildFollowerOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildFollowerIncludeVars(params.include);
 
   const result = await execute(url, GetFollowersDocument, {

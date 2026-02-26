@@ -152,9 +152,9 @@ function buildUniversalReceiverEventOrderBy(
 
   switch (sort.field) {
     case 'newest':
-      return buildBlockOrderSort('desc') as Universal_Receiver_Order_By[];
+      return buildBlockOrderSort('desc');
     case 'oldest':
-      return buildBlockOrderSort('asc') as Universal_Receiver_Order_By[];
+      return buildBlockOrderSort('asc');
     case 'universalProfileName':
       return [
         {
@@ -333,9 +333,7 @@ export async function fetchUniversalReceiverEvents(
   } = {},
 ): Promise<FetchUniversalReceiverEventsResult<PartialUniversalReceiverEvent>> {
   const where = buildUniversalReceiverEventWhere(params.filter);
-  const orderBy =
-    buildUniversalReceiverEventOrderBy(params.sort) ??
-    (buildBlockOrderSort('desc') as Universal_Receiver_Order_By[]);
+  const orderBy = buildUniversalReceiverEventOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildUniversalReceiverEventIncludeVars(params.include);
 
   const result = await execute(url, GetUniversalReceiverEventsDocument, {
