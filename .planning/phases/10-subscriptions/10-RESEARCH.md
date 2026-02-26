@@ -148,7 +148,7 @@ export class SubscriptionClient {
 
   constructor(url?: string) {
     // URL from explicit param, env var, or derived from HTTP URL
-    this.url = url ?? getClientWsUrl();
+    this.url = url ?? getClientWsUrlOrDerive();
   }
 
   /** Get or lazily create the graphql-ws client */
@@ -203,6 +203,11 @@ export class SubscriptionClient {
   /** Get current connection state snapshot (for useSyncExternalStore) */
   getSnapshot(): ConnectionState {
     return this.connectionState;
+  }
+
+  /** SSR fallback snapshot (for useSyncExternalStore) */
+  getServerSnapshot(): ConnectionState {
+    return 'disconnected';
   }
 
   get isConnected(): boolean {
@@ -329,17 +334,21 @@ export const ProfileSubscriptionDocument = `
 ```typescript
 // packages/react/src/subscriptions/use-subscription.ts
 import { useSyncExternalStore, useEffect, useRef, useCallback, useState } from 'react';
-import { useQueryClient, type QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import type { IndexerErrorOptions } from '@lsp-indexer/types';
 import { IndexerError } from '@lsp-indexer/node';
 
 interface UseSubscriptionOptions<TRaw, TParsed> {
   document: string;
+  /** The key in the GraphQL response object (e.g., 'universal_profile') */
+  dataKey: string;
   variables: Record<string, unknown>;
   parser: (raw: TRaw[]) => TParsed[];
   enabled?: boolean;
   invalidate?: boolean;
   invalidateKeys?: readonly (readonly unknown[])[];
+  /** QueryClient passed from domain hook (domain hook calls useQueryClient unconditionally) */
+  queryClient?: QueryClient;
   onData?: (data: TParsed[]) => void;
   onReconnect?: () => void;
 }
@@ -357,7 +366,7 @@ The hook uses:
 - `useSyncExternalStore` to read `isConnected` from `SubscriptionClient`
 - `useEffect` to establish/teardown the subscription when `enabled` changes or component mounts/unmounts
 - `useState` for `data`, `isSubscribed`, and `error`
-- `useQueryClient()` to get the `QueryClient` for cache invalidation when `invalidate: true`
+- `queryClient?: QueryClient` parameter received from domain hooks (domain hooks call `useQueryClient()` unconditionally and pass it through)
 - `useRef` for stable callback references
 
 ### Pattern 5: Domain Subscription Hook (Thin Wrapper)
@@ -372,9 +381,11 @@ The hook uses:
 ```typescript
 // packages/react/src/subscriptions/profiles.ts
 import type { Profile, ProfileFilter } from '@lsp-indexer/types';
-import { profileKeys, parseProfile } from '@lsp-indexer/node';
+import { buildProfileWhere, profileKeys, parseProfiles } from '@lsp-indexer/node';
+import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { ProfileSubscriptionDocument } from './documents';
 import { useSubscription } from './use-subscription';
+import type { UseSubscriptionReturn } from './use-subscription';
 
 const DEFAULT_LIMIT = 10;
 
@@ -400,19 +411,28 @@ export function useProfileSubscription(
   } = params;
 
   // Build Hasura where clause from filter
-  const variables = buildProfileSubscriptionVars(filter, limit);
+  const where = buildProfileWhere(filter);
+
+  // Always call useQueryClient unconditionally (Rules of Hooks), only pass when invalidate=true
+  let queryClient: QueryClient | undefined;
+  try {
+    queryClient = useQueryClient();
+  } catch {
+    // No QueryClientProvider — cache invalidation won't work but hook still functions
+  }
 
   return useSubscription({
     document: ProfileSubscriptionDocument,
-    variables,
-    parser: (raw) => raw.map((r) => parseProfile(r)),
+    dataKey: 'universal_profile',
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      limit,
+    },
+    parser: (raw) => parseProfiles(raw),
     enabled,
     invalidate,
-    invalidateKeys: invalidate
-      ? [
-          profileKeys.all, // Broad invalidation for all profile queries
-        ]
-      : undefined,
+    invalidateKeys: invalidate ? [profileKeys.all] : undefined,
+    queryClient: invalidate ? queryClient : undefined,
     onData,
     onReconnect,
   });
