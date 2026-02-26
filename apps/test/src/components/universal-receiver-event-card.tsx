@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDownToLine } from 'lucide-react';
+import { ArrowDownFromLine } from 'lucide-react';
 import React from 'react';
 
 import type { PartialExcept, UniversalReceiverEvent } from '@lsp-indexer/types';
@@ -50,7 +50,7 @@ export function UniversalReceiverEventCard({
     <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm">
-          <ArrowDownToLine className="size-4 text-muted-foreground" />
+          <ArrowDownFromLine className="size-4 text-muted-foreground" />
           <span className="font-mono text-xs truncate">{truncateAddress(evt.address)}</span>
           <span className="text-muted-foreground shrink-0">←</span>
           <span className="font-mono text-xs truncate">{truncateAddress(evt.from)}</span>

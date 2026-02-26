@@ -12,6 +12,7 @@ export {
   OWNED_ASSET_INCLUDE_FIELDS,
   PROFILE_INCLUDE_FIELDS,
   TOKEN_ID_DATA_CHANGED_EVENT_INCLUDE_FIELDS,
+  UNIVERSAL_RECEIVER_EVENT_INCLUDE_FIELDS,
 } from './constants';
 export { FilterField, FilterFieldsRow, useFilterFields } from './filter-field';
 export type { FilterFieldConfig } from './filter-field';

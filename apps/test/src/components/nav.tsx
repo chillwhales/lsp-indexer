@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ArrowDownFromLine,
   BarChart3,
   Calendar,
   ChevronDown,
@@ -54,6 +55,12 @@ const navLinks = [
     href: '/token-id-data-changed-events',
     label: 'Token ID Data Changed',
     icon: Hash,
+    available: true,
+  },
+  {
+    href: '/universal-receiver-events',
+    label: 'Universal Receiver',
+    icon: ArrowDownFromLine,
     available: true,
   },
   { href: '/stats', label: 'Stats', icon: BarChart3, available: false },
