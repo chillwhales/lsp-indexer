@@ -9,3 +9,4 @@ export * from './hooks/owned-assets';
 export * from './hooks/owned-tokens';
 export * from './hooks/profiles';
 export * from './hooks/token-id-data-changed-events';
+export * from './hooks/universal-receiver-events';
