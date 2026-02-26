@@ -107,13 +107,6 @@ export function TokenIdDataChangedEventCard({
           </div>
 
           {/* Conditional scalar fields via field-presence checks */}
-          {'blockNumber' in tokenIdDataChangedEvent &&
-            tokenIdDataChangedEvent.blockNumber != null && (
-              <div className="flex gap-2">
-                <dt className="text-muted-foreground w-40 shrink-0">Block Number</dt>
-                <dd className="font-mono text-xs">{String(tokenIdDataChangedEvent.blockNumber)}</dd>
-              </div>
-            )}
           {'timestamp' in tokenIdDataChangedEvent && tokenIdDataChangedEvent.timestamp != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Timestamp</dt>
@@ -125,12 +118,13 @@ export function TokenIdDataChangedEventCard({
               </dd>
             </div>
           )}
-          {'logIndex' in tokenIdDataChangedEvent && tokenIdDataChangedEvent.logIndex != null && (
-            <div className="flex gap-2">
-              <dt className="text-muted-foreground w-40 shrink-0">Log Index</dt>
-              <dd className="font-mono text-xs">{String(tokenIdDataChangedEvent.logIndex)}</dd>
-            </div>
-          )}
+          {'blockNumber' in tokenIdDataChangedEvent &&
+            tokenIdDataChangedEvent.blockNumber != null && (
+              <div className="flex gap-2">
+                <dt className="text-muted-foreground w-40 shrink-0">Block Number</dt>
+                <dd className="font-mono text-xs">{String(tokenIdDataChangedEvent.blockNumber)}</dd>
+              </div>
+            )}
           {'transactionIndex' in tokenIdDataChangedEvent &&
             tokenIdDataChangedEvent.transactionIndex != null && (
               <div className="flex gap-2">
@@ -140,6 +134,12 @@ export function TokenIdDataChangedEventCard({
                 </dd>
               </div>
             )}
+          {'logIndex' in tokenIdDataChangedEvent && tokenIdDataChangedEvent.logIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Log Index</dt>
+              <dd className="font-mono text-xs">{String(tokenIdDataChangedEvent.logIndex)}</dd>
+            </div>
+          )}
         </dl>
 
         {/* Collapsible section 1: NFT (full NftCard) */}

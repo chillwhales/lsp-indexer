@@ -159,12 +159,6 @@ export function UniversalReceiverEventCard({
           )}
 
           {/* Conditional scalar fields via field-presence checks */}
-          {'blockNumber' in evt && evt.blockNumber != null && (
-            <div className="flex gap-2">
-              <dt className="text-muted-foreground w-40 shrink-0">Block Number</dt>
-              <dd className="font-mono text-xs">{String(evt.blockNumber)}</dd>
-            </div>
-          )}
           {'timestamp' in evt && evt.timestamp != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Timestamp</dt>
@@ -174,16 +168,22 @@ export function UniversalReceiverEventCard({
               </dd>
             </div>
           )}
-          {'logIndex' in evt && evt.logIndex != null && (
+          {'blockNumber' in evt && evt.blockNumber != null && (
             <div className="flex gap-2">
-              <dt className="text-muted-foreground w-40 shrink-0">Log Index</dt>
-              <dd className="font-mono text-xs">{String(evt.logIndex)}</dd>
+              <dt className="text-muted-foreground w-40 shrink-0">Block Number</dt>
+              <dd className="font-mono text-xs">{String(evt.blockNumber)}</dd>
             </div>
           )}
           {'transactionIndex' in evt && evt.transactionIndex != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Tx Index</dt>
               <dd className="font-mono text-xs">{String(evt.transactionIndex)}</dd>
+            </div>
+          )}
+          {'logIndex' in evt && evt.logIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Log Index</dt>
+              <dd className="font-mono text-xs">{String(evt.logIndex)}</dd>
             </div>
           )}
         </dl>

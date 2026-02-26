@@ -97,12 +97,6 @@ export function DataChangedEventCard({
           </div>
 
           {/* Conditional scalar fields via field-presence checks */}
-          {'blockNumber' in dataChangedEvent && dataChangedEvent.blockNumber != null && (
-            <div className="flex gap-2">
-              <dt className="text-muted-foreground w-40 shrink-0">Block Number</dt>
-              <dd className="font-mono text-xs">{String(dataChangedEvent.blockNumber)}</dd>
-            </div>
-          )}
           {'timestamp' in dataChangedEvent && dataChangedEvent.timestamp != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Timestamp</dt>
@@ -114,16 +108,22 @@ export function DataChangedEventCard({
               </dd>
             </div>
           )}
-          {'logIndex' in dataChangedEvent && dataChangedEvent.logIndex != null && (
+          {'blockNumber' in dataChangedEvent && dataChangedEvent.blockNumber != null && (
             <div className="flex gap-2">
-              <dt className="text-muted-foreground w-40 shrink-0">Log Index</dt>
-              <dd className="font-mono text-xs">{String(dataChangedEvent.logIndex)}</dd>
+              <dt className="text-muted-foreground w-40 shrink-0">Block Number</dt>
+              <dd className="font-mono text-xs">{String(dataChangedEvent.blockNumber)}</dd>
             </div>
           )}
           {'transactionIndex' in dataChangedEvent && dataChangedEvent.transactionIndex != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Tx Index</dt>
               <dd className="font-mono text-xs">{String(dataChangedEvent.transactionIndex)}</dd>
+            </div>
+          )}
+          {'logIndex' in dataChangedEvent && dataChangedEvent.logIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Log Index</dt>
+              <dd className="font-mono text-xs">{String(dataChangedEvent.logIndex)}</dd>
             </div>
           )}
         </dl>
