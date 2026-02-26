@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 12 sub-phases)
 - **Sub-phase:** 9.12 (Block-Ordered Sorting) — In progress
-- **Plan:** 1 of 3 in current sub-phase
-- **Status:** In progress — Plan 01 complete, 2 plans remaining
-- **Last activity:** 2026-02-26 — Completed 09.12-01-PLAN.md
+- **Plan:** 2 of 3 in current sub-phase
+- **Status:** In progress — Plan 02 complete, 1 plan remaining
+- **Last activity:** 2026-02-26 — Completed 09.12-02-PLAN.md
 - **Progress:** ███████░░░ 73% (22/30 requirements)
 
 ## Milestone History
@@ -42,7 +42,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.9   | Encrypted Feed                     |     1/1      | Complete                |
 | 9.10  | Data Changed Events                |     1/1      | Complete                |
 | 9.11  | Universal Receiver Events          |     1/1      | Complete                |
-| 9.12  | Block-Ordered Sorting              |      0       | In progress (1/3 plans) |
+| 9.12  | Block-Ordered Sorting              |      0       | In progress (2/3 plans) |
 | 10    | Subscriptions                      |      3       | Pending                 |
 | 11    | Server Actions & Publish Readiness |      4       | Pending                 |
 
@@ -52,7 +52,7 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 84 (36 v1.0 + 48 v1.1)
+- **Plans completed:** 85 (36 v1.0 + 49 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 24 (11 v1.0 + 13 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 22/30 (v1.1)
@@ -207,16 +207,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-26
-- **Activity:** Executed Phase 9.12 Plan 01 (Shared utility + type schema updates)
-- **Outcome:** 2 tasks, 2 commits. buildBlockOrderSort utility added. All 4 event domain sort field schemas updated (newest/oldest replacing timestamp/blockNumber). Follower schema has block-level fields. 3 blocking deviations auto-fixed (service sort builders, parser, fetchLatest functions).
+- **Activity:** Executed Phase 9.12 Plan 02 (Follower document/parser + service default sort)
+- **Outcome:** 2 tasks, 2 commits. Follower document updated with 3 block @include vars, codegen regenerated, parser using typed access, all 4 services default to block-order desc, follower include vars + fetchIsFollowing disables added.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.12 Plan 01 complete** — types + utility foundation laid
-- **Next step:** Phase 9.12 Plan 02 — Follower document/parser + all 4 service default sort + document updates
-- **Note:** Playground pages have TypeScript errors until Plan 03 (sort field references still use 'timestamp'/'blockNumber')
-- **Remaining plans in Phase 9.12:** 02 (services + documents), 03 (playground)
+- **Phase 9.12 Plan 02 complete** — all services wired with default block-order sort
+- **Next step:** Phase 9.12 Plan 03 — Playground sort controls + SortControls conditional hide/show + build validation
+- **Note:** Playground pages still have TypeScript errors for sort field references (still use 'timestamp'/'blockNumber')
+- **Remaining plans in Phase 9.12:** 03 (playground)
 
 ---
 
