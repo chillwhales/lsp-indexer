@@ -177,5 +177,24 @@ export { tokenIdDataChangedEventKeys } from './keys/token-id-data-changed-events
 // Token ID data changed event GraphQL documents (for advanced usage / custom queries)
 export { GetTokenIdDataChangedEventsDocument } from './documents/token-id-data-changed-events';
 
+// Universal receiver event services (the core fetching layer)
+export {
+  buildUniversalReceiverEventIncludeVars,
+  fetchUniversalReceiverEvents,
+} from './services/universal-receiver-events';
+export type { FetchUniversalReceiverEventsResult } from './services/universal-receiver-events';
+
+// Universal receiver event parsers (Hasura → clean types)
+export {
+  parseUniversalReceiverEvent,
+  parseUniversalReceiverEvents,
+} from './parsers/universal-receiver-events';
+
+// Universal receiver event query key factory
+export { universalReceiverEventKeys } from './keys/universal-receiver-events';
+
+// Universal receiver event GraphQL documents (for advanced usage / custom queries)
+export { GetUniversalReceiverEventsDocument } from './documents/universal-receiver-events';
+
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';
