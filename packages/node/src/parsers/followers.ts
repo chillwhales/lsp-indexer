@@ -56,6 +56,9 @@ export function parseFollower(
     followedAddress: raw.followed_address,
     timestamp: raw.timestamp ?? null,
     address: raw.address ?? null,
+    blockNumber: ((raw as Record<string, unknown>).block_number as number | null) ?? null,
+    transactionIndex: ((raw as Record<string, unknown>).transaction_index as number | null) ?? null,
+    logIndex: ((raw as Record<string, unknown>).log_index as number | null) ?? null,
     followerProfile: raw.followerUniversalProfile
       ? parseProfile(raw.followerUniversalProfile)
       : null,

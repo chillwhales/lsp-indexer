@@ -16,7 +16,13 @@ import type {
 import { parseTokenIdDataChangedEvents } from '../parsers/token-id-data-changed-events';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildNftIncludeVars } from './nfts';
-import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';
+import {
+  buildBlockOrderSort,
+  escapeLike,
+  hasActiveIncludes,
+  normalizeTimestamp,
+  orderDir,
+} from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -141,13 +147,14 @@ function buildTokenIdDataChangedEventWhere(
  * `token_id_data_changed_order_by` array.
  *
  * Sort field → Hasura mapping:
- * - `'timestamp'`        → `[{ timestamp: dir }]`
- * - `'blockNumber'`      → `[{ block_number: dir }]`
+ * - `'newest'`           → `buildBlockOrderSort('desc')` (block_number → transaction_index → log_index desc)
+ * - `'oldest'`           → `buildBlockOrderSort('asc')` (block_number → transaction_index → log_index asc)
  * - `'digitalAssetName'` → `[{ digitalAsset: { lsp4TokenName: { value: dir } } }]` (nested)
  * - `'nftName'`          → `[{ nft: { lsp4Metadata: { name: { value: dir } } } }]` (nested)
  *
  * Name sorts default to `nulls: 'last'` when not specified (names without values sort last).
  * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
+ * `direction` and `nulls` are ignored for `'newest'` and `'oldest'` (self-describing fields).
  */
 function buildTokenIdDataChangedEventOrderBy(
   sort?: TokenIdDataChangedEventSort,
@@ -157,10 +164,10 @@ function buildTokenIdDataChangedEventOrderBy(
   const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
-    case 'timestamp':
-      return [{ timestamp: dir }];
-    case 'blockNumber':
-      return [{ block_number: dir }];
+    case 'newest':
+      return buildBlockOrderSort('desc') as Token_Id_Data_Changed_Order_By[];
+    case 'oldest':
+      return buildBlockOrderSort('asc') as Token_Id_Data_Changed_Order_By[];
     case 'digitalAssetName':
       return [
         {
@@ -374,13 +381,13 @@ export async function fetchLatestTokenIdDataChangedEvent(
   const result = params.include
     ? await fetchTokenIdDataChangedEvents(url, {
         filter: params.filter,
-        sort: { field: 'timestamp', direction: 'desc' },
+        sort: { field: 'newest', direction: 'desc' },
         limit: 1,
         include: params.include,
       })
     : await fetchTokenIdDataChangedEvents(url, {
         filter: params.filter,
-        sort: { field: 'timestamp', direction: 'desc' },
+        sort: { field: 'newest', direction: 'desc' },
         limit: 1,
       });
 

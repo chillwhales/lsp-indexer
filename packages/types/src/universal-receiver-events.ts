@@ -100,14 +100,18 @@ export const UniversalReceiverEventFilterSchema = z.object({
 /**
  * Fields available for sorting universal receiver event lists.
  *
+ * `newest` and `oldest` use deterministic block-order sorting
+ * (block_number → transaction_index → log_index). `direction` and `nulls`
+ * are ignored when these fields are selected.
+ *
  * `universalProfileName` is a nested sort via `universalProfile.lsp3Profile.name`.
  * `fromProfileName` is a nested sort via `fromProfile.lsp3Profile.name`.
  * `fromAssetName` is a nested sort via `fromAsset.lsp4TokenName`.
  * All handled at service layer.
  */
 export const UniversalReceiverEventSortFieldSchema = z.enum([
-  'timestamp',
-  'blockNumber',
+  'newest',
+  'oldest',
   'universalProfileName',
   'fromProfileName',
   'fromAssetName',

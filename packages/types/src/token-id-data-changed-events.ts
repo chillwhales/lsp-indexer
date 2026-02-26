@@ -96,13 +96,17 @@ export const TokenIdDataChangedEventFilterSchema = z.object({
 /**
  * Fields available for sorting token ID data changed event lists.
  *
+ * `newest` and `oldest` use deterministic block-order sorting
+ * (block_number → transaction_index → log_index). `direction` and `nulls`
+ * are ignored when these fields are selected.
+ *
  * `digitalAssetName` is a nested sort via `digitalAsset.lsp4TokenName`.
  * `nftName` is a nested sort via `nft.lsp4Metadata.name`.
  * Both handled at service layer.
  */
 export const TokenIdDataChangedEventSortFieldSchema = z.enum([
-  'timestamp',
-  'blockNumber',
+  'newest',
+  'oldest',
   'digitalAssetName',
   'nftName',
 ]);

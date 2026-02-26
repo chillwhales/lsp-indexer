@@ -92,13 +92,17 @@ export const DataChangedEventFilterSchema = z.object({
 /**
  * Fields available for sorting data changed event lists.
  *
+ * `newest` and `oldest` use deterministic block-order sorting
+ * (block_number → transaction_index → log_index). `direction` and `nulls`
+ * are ignored when these fields are selected.
+ *
  * `universalProfileName` is a nested sort via `universalProfile.lsp3Profile.name`.
  * `digitalAssetName` is a nested sort via `digitalAsset.lsp4TokenName`.
  * Both handled at service layer.
  */
 export const DataChangedEventSortFieldSchema = z.enum([
-  'timestamp',
-  'blockNumber',
+  'newest',
+  'oldest',
   'universalProfileName',
   'digitalAssetName',
 ]);

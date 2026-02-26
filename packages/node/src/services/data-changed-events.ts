@@ -13,7 +13,13 @@ import type { Data_Changed_Bool_Exp, Data_Changed_Order_By } from '../graphql/gr
 import { parseDataChangedEvents } from '../parsers/data-changed-events';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';
+import {
+  buildBlockOrderSort,
+  escapeLike,
+  hasActiveIncludes,
+  normalizeTimestamp,
+  orderDir,
+} from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -123,13 +129,14 @@ function buildDataChangedEventWhere(filter?: DataChangedEventFilter): Data_Chang
  * Translate a flat `DataChangedEventSort` to a Hasura `data_changed_order_by` array.
  *
  * Sort field → Hasura mapping:
- * - `'timestamp'`             → `[{ timestamp: dir }]`
- * - `'blockNumber'`           → `[{ block_number: dir }]`
+ * - `'newest'`                → `buildBlockOrderSort('desc')` (block_number → transaction_index → log_index desc)
+ * - `'oldest'`                → `buildBlockOrderSort('asc')` (block_number → transaction_index → log_index asc)
  * - `'universalProfileName'`  → `[{ universalProfile: { lsp3Profile: { name: { value: dir } } } }]` (nested)
  * - `'digitalAssetName'`      → `[{ digitalAsset: { lsp4TokenName: { value: dir } } }]` (nested)
  *
  * Name sorts default to `nulls: 'last'` when not specified (names without values sort last).
  * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
+ * `direction` and `nulls` are ignored for `'newest'` and `'oldest'` (self-describing fields).
  */
 function buildDataChangedEventOrderBy(
   sort?: DataChangedEventSort,
@@ -139,10 +146,10 @@ function buildDataChangedEventOrderBy(
   const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
-    case 'timestamp':
-      return [{ timestamp: dir }];
-    case 'blockNumber':
-      return [{ block_number: dir }];
+    case 'newest':
+      return buildBlockOrderSort('desc') as Data_Changed_Order_By[];
+    case 'oldest':
+      return buildBlockOrderSort('asc') as Data_Changed_Order_By[];
     case 'universalProfileName':
       return [
         {
@@ -353,13 +360,13 @@ export async function fetchLatestDataChangedEvent(
   const result = params.include
     ? await fetchDataChangedEvents(url, {
         filter: params.filter,
-        sort: { field: 'timestamp', direction: 'desc' },
+        sort: { field: 'newest', direction: 'desc' },
         limit: 1,
         include: params.include,
       })
     : await fetchDataChangedEvents(url, {
         filter: params.filter,
-        sort: { field: 'timestamp', direction: 'desc' },
+        sort: { field: 'newest', direction: 'desc' },
         limit: 1,
       });
 

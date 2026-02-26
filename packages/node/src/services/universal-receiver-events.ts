@@ -12,7 +12,13 @@ import type { Universal_Receiver_Bool_Exp, Universal_Receiver_Order_By } from '.
 import { parseUniversalReceiverEvents } from '../parsers/universal-receiver-events';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';
+import {
+  buildBlockOrderSort,
+  escapeLike,
+  hasActiveIncludes,
+  normalizeTimestamp,
+  orderDir,
+} from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -127,14 +133,15 @@ function buildUniversalReceiverEventWhere(
  * Translate a flat `UniversalReceiverEventSort` to a Hasura `universal_receiver_order_by` array.
  *
  * Sort field → Hasura mapping:
- * - `'timestamp'`             → `[{ timestamp: dir }]`
- * - `'blockNumber'`           → `[{ block_number: dir }]`
+ * - `'newest'`                → `buildBlockOrderSort('desc')` (block_number → transaction_index → log_index desc)
+ * - `'oldest'`                → `buildBlockOrderSort('asc')` (block_number → transaction_index → log_index asc)
  * - `'universalProfileName'`  → `[{ universalProfile: { lsp3Profile: { name: { value: dir } } } }]` (nested)
  * - `'fromProfileName'`       → `[{ fromProfile: { lsp3Profile: { name: { value: dir } } } }]` (nested)
  * - `'fromAssetName'`         → `[{ fromAsset: { lsp4TokenName: { value: dir } } }]` (nested)
  *
  * Name sorts default to `nulls: 'last'` when not specified (names without values sort last).
  * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
+ * `direction` and `nulls` are ignored for `'newest'` and `'oldest'` (self-describing fields).
  */
 function buildUniversalReceiverEventOrderBy(
   sort?: UniversalReceiverEventSort,
@@ -144,10 +151,10 @@ function buildUniversalReceiverEventOrderBy(
   const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
-    case 'timestamp':
-      return [{ timestamp: dir }];
-    case 'blockNumber':
-      return [{ block_number: dir }];
+    case 'newest':
+      return buildBlockOrderSort('desc') as Universal_Receiver_Order_By[];
+    case 'oldest':
+      return buildBlockOrderSort('asc') as Universal_Receiver_Order_By[];
     case 'universalProfileName':
       return [
         {
