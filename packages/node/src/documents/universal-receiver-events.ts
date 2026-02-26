@@ -14,13 +14,13 @@ import { graphql } from '../graphql';
  * - `$where` — Filter conditions (built by service layer from flat UniversalReceiverEventFilter)
  * - `$order_by` — Sort order (built by service layer from UniversalReceiverEventSort)
  * - `$limit` / `$offset` — Pagination
- * - `$includeReceivedData`, `$includeReturnedValue` — Data field include toggles
+ * - `$includeValue`, `$includeReceivedData`, `$includeReturnedValue` — Value/data field include toggles
  * - `$includeBlockNumber`, `$includeTimestamp`, `$includeLogIndex`, `$includeTransactionIndex` — Scalar include toggles
  * - `$includeUniversalProfile*` — Boolean flags for receiving UP sub-includes (10 variables)
  * - `$includeFromProfile*` — Boolean flags for sender UP sub-includes (10 variables)
  * - `$includeFromAsset*` — Boolean flags for sender DA sub-includes (18 variables)
  *
- * Total: 4 pagination + 6 scalar + 10 UP + 10 fromProfile + 18 fromAsset = 48 variables.
+ * Total: 4 pagination + 7 scalar + 10 UP + 10 fromProfile + 18 fromAsset = 49 variables.
  *
  * All include variables default to `true` (inverted default — omit `include` = fetch everything).
  *
@@ -46,6 +46,7 @@ export const GetUniversalReceiverEventsDocument = graphql(`
     $order_by: [universal_receiver_order_by!]
     $limit: Int
     $offset: Int
+    $includeValue: Boolean! = true
     $includeReceivedData: Boolean! = true
     $includeReturnedValue: Boolean! = true
     $includeBlockNumber: Boolean! = true
@@ -97,7 +98,7 @@ export const GetUniversalReceiverEventsDocument = graphql(`
       type_id
       received_data @include(if: $includeReceivedData)
       returned_value @include(if: $includeReturnedValue)
-      value
+      value @include(if: $includeValue)
       block_number @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
       log_index @include(if: $includeLogIndex)

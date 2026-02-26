@@ -22,7 +22,7 @@ type RawUniversalReceiverEvent = GetUniversalReceiverEventsQuery['universal_rece
  *
  * Handles all field mappings:
  * - `type_id` → `typeId`
- * - `value` (numeric) → `value` (string via numericToString for BigInt safety)
+ * - `value` (numeric) → `value` (includable — string via numericToString for BigInt safety)
  * - `received_data` → `receivedData` (includable — potentially large hex)
  * - `returned_value` → `returnedValue` (includable — potentially large hex)
  * - `block_number` → `blockNumber`
@@ -64,9 +64,9 @@ export function parseUniversalReceiverEvent(
     address: raw.address,
     from: raw.from,
     typeId: raw.type_id,
-    value: numericToString(raw.value),
 
     // Includable scalars
+    value: raw.value != null ? numericToString(raw.value) : null,
     receivedData: raw.received_data ?? null,
     returnedValue: raw.returned_value ?? null,
     blockNumber: raw.block_number ?? null,
@@ -85,7 +85,7 @@ export function parseUniversalReceiverEvent(
 
   if (!include) return result;
 
-  return stripExcluded(result, include, ['address', 'from', 'typeId', 'value']);
+  return stripExcluded(result, include, ['address', 'from', 'typeId']);
 }
 
 /**

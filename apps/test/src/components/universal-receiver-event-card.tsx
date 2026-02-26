@@ -19,17 +19,14 @@ import { formatRelativeTime, truncateAddress } from '@/lib/utils';
 // ---------------------------------------------------------------------------
 
 export interface UniversalReceiverEventCardProps {
-  universalReceiverEvent: PartialExcept<
-    UniversalReceiverEvent,
-    'address' | 'from' | 'typeId' | 'value'
-  >;
+  universalReceiverEvent: PartialExcept<UniversalReceiverEvent, 'address' | 'from' | 'typeId'>;
 }
 
 /**
  * Card component for rendering a single universal receiver event.
  *
- * Base fields (always present): address, from, typeId, value.
- * Includable data fields: receivedData, returnedValue — rendered via
+ * Base fields (always present): address, from, typeId.
+ * Includable data fields: value, receivedData, returnedValue — rendered via
  * `'key' in obj` field-presence guards (same DX-04 pattern as other scalars).
  * Conditional scalars: blockNumber, timestamp, logIndex, transactionIndex —
  * rendered via `'key' in obj` field-presence guards (DX-04 pattern).
@@ -77,12 +74,13 @@ export function UniversalReceiverEventCard({
             <dd className="font-mono text-xs break-all">{evt.typeId}</dd>
           </div>
 
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-40 shrink-0">Value (wei)</dt>
-            <dd className="font-mono text-xs">{evt.value}</dd>
-          </div>
-
           {/* Conditional data fields via field-presence checks */}
+          {'value' in evt && evt.value != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Value (wei)</dt>
+              <dd className="font-mono text-xs">{evt.value}</dd>
+            </div>
+          )}
           {'receivedData' in evt && typeof evt.receivedData === 'string' && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Received Data</dt>

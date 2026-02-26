@@ -212,6 +212,7 @@ export function buildUniversalReceiverEventIncludeVars(
   const activeFromAsset = hasActiveIncludes(include.fromAsset);
 
   const vars: Record<string, boolean> = {
+    includeValue: include.value ?? false,
     includeReceivedData: include.receivedData ?? false,
     includeReturnedValue: include.returnedValue ?? false,
     includeBlockNumber: include.blockNumber ?? false,

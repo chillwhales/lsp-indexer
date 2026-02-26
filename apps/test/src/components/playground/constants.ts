@@ -133,8 +133,9 @@ export const TOKEN_ID_DATA_CHANGED_EVENT_INCLUDE_FIELDS: IncludeToggleConfig[] =
   { key: 'transactionIndex', label: 'Transaction Index' },
 ];
 
-/** UniversalReceiverEventInclude — 6 scalar fields. universalProfile/fromProfile/fromAsset are SubIncludeSections. */
+/** UniversalReceiverEventInclude — 7 scalar fields. universalProfile/fromProfile/fromAsset are SubIncludeSections. */
 export const UNIVERSAL_RECEIVER_EVENT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
+  { key: 'value', label: 'Value (wei)' },
   { key: 'receivedData', label: 'Received Data' },
   { key: 'returnedValue', label: 'Returned Value' },
   { key: 'blockNumber', label: 'Block Number' },
