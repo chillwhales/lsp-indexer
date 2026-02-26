@@ -5,5 +5,7 @@ packages/abi/src/
 packages/typeorm/src/
 packages/typeorm/db/
 packages/typeorm/hasura_metadata.json
+packages/node/src/graphql/
+packages/react/src/graphql/
 .env
 pnpm-lock.yaml

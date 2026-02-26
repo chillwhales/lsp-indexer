@@ -20,6 +20,7 @@ export default tseslint.config(
       'packages/indexer/',
 
       // Codegen output — auto-generated, don't lint
+      'packages/node/src/graphql/',
       'packages/react/src/graphql/',
 
       // Config files — not source code
