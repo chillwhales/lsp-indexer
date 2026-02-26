@@ -126,8 +126,8 @@ const ROW3 = ALL_FILTERS.filter(
 );
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'timestamp', label: 'Timestamp' },
-  { value: 'blockNumber', label: 'Block Number' },
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
   { value: 'universalProfileName', label: 'Receiver Profile Name' },
   { value: 'fromProfileName', label: 'Sender Profile Name' },
   { value: 'fromAssetName', label: 'Sender Asset Name' },
@@ -186,7 +186,7 @@ function buildFilter(vals: Record<string, string>): UniversalReceiverEventFilter
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
-  const [sortField, setSortField] = useState<UniversalReceiverEventSortField>('timestamp');
+  const [sortField, setSortField] = useState<UniversalReceiverEventSortField>('newest');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(
@@ -310,6 +310,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         }
         limit={limit}
         onLimitChange={setLimit}
+        hideDirectionAndNulls={state.sortField === 'newest' || state.sortField === 'oldest'}
       />
       <UreIncludeSections {...state} />
       <ResultsList
@@ -367,6 +368,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         onSortNullsChange={(v) =>
           state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
         }
+        hideDirectionAndNulls={state.sortField === 'newest' || state.sortField === 'oldest'}
       />
       <UreIncludeSections {...state} />
       <ResultsList
