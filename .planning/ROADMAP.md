@@ -342,7 +342,7 @@ Entity tables (`lsp4_creator`, `owned_asset`, `owned_token`, `lsp29_encrypted_as
 
 Plans:
 
-- [ ] 09.12-01-PLAN.md — Shared utility + type schema updates (sort fields + Follower block fields)
+- [x] 09.12-01-PLAN.md — Shared utility + type schema updates (sort fields + Follower block fields)
 - [ ] 09.12-02-PLAN.md — Follower document/parser + all 4 service sort builders + default sort
 - [ ] 09.12-03-PLAN.md — Playground sort options + SortControls conditional hide/show + build validation
 
