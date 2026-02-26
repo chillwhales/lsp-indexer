@@ -56,6 +56,9 @@ export function parseFollower(
     followedAddress: raw.followed_address,
     timestamp: raw.timestamp ?? null,
     address: raw.address ?? null,
+    blockNumber: raw.block_number ?? null,
+    transactionIndex: raw.transaction_index ?? null,
+    logIndex: raw.log_index ?? null,
     followerProfile: raw.followerUniversalProfile
       ? parseProfile(raw.followerUniversalProfile)
       : null,

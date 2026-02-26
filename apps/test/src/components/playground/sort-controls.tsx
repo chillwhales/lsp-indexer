@@ -31,6 +31,8 @@ interface SortControlsProps {
   /** If provided, shows a limit input */
   limit?: number;
   onLimitChange?: (limit: number) => void;
+  /** When true, hide Direction and Nulls dropdowns (used for self-describing sort fields like 'newest'/'oldest') */
+  hideDirectionAndNulls?: boolean;
 }
 
 /**
@@ -47,6 +49,7 @@ export function SortControls({
   onSortNullsChange,
   limit,
   onLimitChange,
+  hideDirectionAndNulls,
 }: SortControlsProps): React.ReactNode {
   return (
     <div className="flex flex-wrap gap-3 items-end">
@@ -66,20 +69,22 @@ export function SortControls({
         </Select>
       </div>
 
-      <div className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground font-medium">Direction</Label>
-        <Select value={sortDirection} onValueChange={onSortDirectionChange}>
-          <SelectTrigger className="w-28">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="asc">Ascending</SelectItem>
-            <SelectItem value="desc">Descending</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {!hideDirectionAndNulls && (
+        <div className="flex flex-col gap-1">
+          <Label className="text-xs text-muted-foreground font-medium">Direction</Label>
+          <Select value={sortDirection} onValueChange={onSortDirectionChange}>
+            <SelectTrigger className="w-28">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="asc">Ascending</SelectItem>
+              <SelectItem value="desc">Descending</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
-      {onSortNullsChange && (
+      {!hideDirectionAndNulls && onSortNullsChange && (
         <div className="flex flex-col gap-1">
           <Label className="text-xs text-muted-foreground font-medium">Nulls</Label>
           <Select value={sortNulls || 'default'} onValueChange={onSortNullsChange}>

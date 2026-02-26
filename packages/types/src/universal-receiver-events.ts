@@ -1,3 +1,4 @@
+import { TypeIdNameSchema } from '@lsp-indexer/lsp1';
 import { z } from 'zod';
 
 import { SortDirectionSchema, SortNullsSchema } from './common';
@@ -38,6 +39,8 @@ export const UniversalReceiverEventSchema = z.object({
   from: z.string(),
   /** LSP1 type identifier — bytes32 hash identifying the operation type (always present) */
   typeId: z.string(),
+  /** Resolved human-readable name for known LSP1 type IDs, null if unknown (null = not included or type ID unknown) */
+  typeIdName: z.string().nullable(),
   /** Raw hex data received in the universalReceiver call (null = not included) */
   receivedData: z.string().nullable(),
   /** Raw hex return value from the universalReceiver call (null = not included) */
@@ -77,6 +80,8 @@ export const UniversalReceiverEventFilterSchema = z.object({
   from: z.string().optional(),
   /** Case-insensitive match on LSP1 type identifier (uses _ilike) */
   typeId: z.string().optional(),
+  /** Known LSP1 type ID name (e.g., 'LSP7Tokens_SenderNotification') — resolved to hex at service layer */
+  typeIdName: TypeIdNameSchema.optional(),
   /** Timestamp lower bound (inclusive, _gte) */
   timestampFrom: z.union([z.string(), z.number()]).optional(),
   /** Timestamp upper bound (inclusive, _lte) */
@@ -100,14 +105,18 @@ export const UniversalReceiverEventFilterSchema = z.object({
 /**
  * Fields available for sorting universal receiver event lists.
  *
+ * `newest` and `oldest` use deterministic block-order sorting
+ * (block_number → transaction_index → log_index). `direction` and `nulls`
+ * are ignored when these fields are selected.
+ *
  * `universalProfileName` is a nested sort via `universalProfile.lsp3Profile.name`.
  * `fromProfileName` is a nested sort via `fromProfile.lsp3Profile.name`.
  * `fromAssetName` is a nested sort via `fromAsset.lsp4TokenName`.
  * All handled at service layer.
  */
 export const UniversalReceiverEventSortFieldSchema = z.enum([
-  'timestamp',
-  'blockNumber',
+  'newest',
+  'oldest',
   'universalProfileName',
   'fromProfileName',
   'fromAssetName',
@@ -137,6 +146,8 @@ export const UniversalReceiverEventSortSchema = z.object({
  * ProfileInclude sub-objects, `fromAsset` accepts DigitalAssetInclude sub-objects.
  */
 export const UniversalReceiverEventIncludeSchema = z.object({
+  /** Include resolved human-readable type ID name (parser-derived from typeId) */
+  typeIdName: z.boolean().optional(),
   /** Include wei value transferred with the call */
   value: z.boolean().optional(),
   /** Include raw hex data received in the universalReceiver call */
@@ -205,6 +216,7 @@ export type UseInfiniteUniversalReceiverEventsParams = z.infer<
  * Relations (universalProfile, fromProfile, fromAsset) handled by resolver types.
  */
 type UniversalReceiverEventScalarIncludeFieldMap = {
+  typeIdName: 'typeIdName';
   value: 'value';
   receivedData: 'receivedData';
   returnedValue: 'returnedValue';

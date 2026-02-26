@@ -30,6 +30,12 @@ export const FollowerSchema = z.object({
   timestamp: z.string().nullable(),
   /** Contract address of the follow relationship (null when excluded via include) */
   address: z.string().nullable(),
+  /** Block number where follow event was emitted (null when excluded via include) */
+  blockNumber: z.number().nullable(),
+  /** Transaction index within the block (null when excluded via include) */
+  transactionIndex: z.number().nullable(),
+  /** Log index within the transaction (null when excluded via include) */
+  logIndex: z.number().nullable(),
   /** Universal Profile of the follower (null = not included in query or no UP) */
   followerProfile: ProfileSchema.nullable(),
   /** Universal Profile of the followed (null = not included in query or no UP) */
@@ -82,13 +88,18 @@ export const FollowerFilterSchema = z.object({
 /**
  * Fields available for sorting follower lists.
  *
+ * `newest` and `oldest` use deterministic block-order sorting
+ * (block_number → transaction_index → log_index). `direction` and `nulls`
+ * are ignored when these fields are selected.
+ *
  * `followerName` and `followedName` are nested sorts via
  * `followerUniversalProfile.lsp3Profile.name` and
  * `followedUniversalProfile.lsp3Profile.name` — handled at service layer
  * (same pattern as `digitalAssetName` in owned-assets).
  */
 export const FollowerSortFieldSchema = z.enum([
-  'timestamp',
+  'newest',
+  'oldest',
   'followerAddress',
   'followedAddress',
   'followerName',
@@ -124,6 +135,12 @@ export const FollowerIncludeSchema = z.object({
   timestamp: z.boolean().optional(),
   /** Include contract address */
   address: z.boolean().optional(),
+  /** Include block number */
+  blockNumber: z.boolean().optional(),
+  /** Include transaction index */
+  transactionIndex: z.boolean().optional(),
+  /** Include log index */
+  logIndex: z.boolean().optional(),
   /** Include follower's Universal Profile — `true` for all fields, or object for per-field control */
   followerProfile: z.union([z.boolean(), ProfileIncludeSchema]).optional(),
   /** Include followed's Universal Profile — `true` for all fields, or object for per-field control */
@@ -198,6 +215,9 @@ export type UseIsFollowingParams = z.infer<typeof UseIsFollowingParamsSchema>;
 type FollowerScalarIncludeFieldMap = {
   timestamp: 'timestamp';
   address: 'address';
+  blockNumber: 'blockNumber';
+  transactionIndex: 'transactionIndex';
+  logIndex: 'logIndex';
 };
 
 /**

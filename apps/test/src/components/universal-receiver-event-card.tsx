@@ -27,12 +27,17 @@ export interface UniversalReceiverEventCardProps {
  * Card component for rendering a single universal receiver event.
  *
  * Base fields (always present): address, from, typeId.
- * Includable data fields: value, receivedData, returnedValue — rendered via
+ * Includable data fields: typeIdName, value, receivedData, returnedValue — rendered via
  * `'key' in obj` field-presence guards (same DX-04 pattern as other scalars).
  * Conditional scalars: blockNumber, timestamp, logIndex, transactionIndex —
  * rendered via `'key' in obj` field-presence guards (DX-04 pattern).
  * Three collapsible relation sections: Receiving Profile (universalProfile),
  * Sender Profile (fromProfile), Sender Asset (fromAsset).
+ *
+ * **Card title shows names when available:**
+ * - Receiver: profile name from universalProfile relation, falls back to truncated address
+ * - Sender: profile name from fromProfile, or asset name from fromAsset, falls back to truncated address
+ * - Type: typeIdName when known, falls back to truncated hex
  *
  * Most relation-heavy card in the project (3 collapsible sections).
  */
@@ -44,19 +49,48 @@ export function UniversalReceiverEventCard({
   const universalProfile = 'universalProfile' in evt ? evt.universalProfile : null;
   const fromProfile = 'fromProfile' in evt ? evt.fromProfile : null;
   const fromAsset = 'fromAsset' in evt ? evt.fromAsset : null;
+  const hasTypeIdName = 'typeIdName' in evt;
+  const typeIdName = hasTypeIdName ? evt.typeIdName : undefined;
+
+  // Derive display names for the card title
+  const receiverName =
+    universalProfile && 'name' in universalProfile ? universalProfile.name : null;
+  const senderName = fromProfile && 'name' in fromProfile ? fromProfile.name : null;
+  const senderAssetName = fromAsset && 'name' in fromAsset ? fromAsset.name : null;
+  const senderDisplayName = senderName ?? senderAssetName;
 
   return (
     <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm">
           <ArrowDownFromLine className="size-4 text-muted-foreground" />
-          <span className="font-mono text-xs truncate">{truncateAddress(evt.address)}</span>
-          <span className="text-muted-foreground shrink-0">←</span>
-          <span className="font-mono text-xs truncate">{truncateAddress(evt.from)}</span>
-          <span className="text-muted-foreground shrink-0">·</span>
-          <span className="font-mono text-xs truncate">
-            {evt.typeId.length > 20 ? `${evt.typeId.slice(0, 20)}…` : evt.typeId}
+          <span className="truncate">
+            {receiverName ?? (
+              <span className="font-mono text-xs">{truncateAddress(evt.address)}</span>
+            )}
           </span>
+          <span className="text-muted-foreground shrink-0">←</span>
+          <span className="truncate">
+            {senderDisplayName ?? (
+              <span className="font-mono text-xs">{truncateAddress(evt.from)}</span>
+            )}
+          </span>
+          {hasTypeIdName && (
+            <>
+              <span className="text-muted-foreground shrink-0">·</span>
+              <span className="truncate">
+                {typeIdName ?? <span className="text-muted-foreground italic">Unknown Type</span>}
+              </span>
+            </>
+          )}
+          {!hasTypeIdName && (
+            <>
+              <span className="text-muted-foreground shrink-0">·</span>
+              <span className="font-mono text-xs truncate">
+                {evt.typeId.length > 20 ? `${evt.typeId.slice(0, 20)}…` : evt.typeId}
+              </span>
+            </>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -70,6 +104,21 @@ export function UniversalReceiverEventCard({
             <dt className="text-muted-foreground w-40 shrink-0">From</dt>
             <dd className="font-mono text-xs break-all">{evt.from}</dd>
           </div>
+
+          {/* Type ID Name — conditional include field (above Type ID, matching Data Key Name pattern) */}
+          {hasTypeIdName && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Type ID Name</dt>
+              <dd>
+                {typeIdName != null ? (
+                  <span className="text-xs">{typeIdName}</span>
+                ) : (
+                  <span className="text-muted-foreground text-xs italic">Unknown Type</span>
+                )}
+              </dd>
+            </div>
+          )}
+
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-40 shrink-0">Type ID</dt>
             <dd className="font-mono text-xs break-all">{evt.typeId}</dd>

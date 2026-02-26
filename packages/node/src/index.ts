@@ -151,6 +151,9 @@ export { parseDataChangedEvent, parseDataChangedEvents } from './parsers/data-ch
 // Data key resolver — re-exported from @lsp-indexer/data-keys for convenience
 export { resolveDataKeyHex, resolveDataKeyName } from '@lsp-indexer/data-keys';
 
+// Type ID resolver — re-exported from @lsp-indexer/lsp1 for convenience
+export { resolveTypeIdHex, resolveTypeIdName } from '@lsp-indexer/lsp1';
+
 // Data changed event query key factory
 export { dataChangedEventKeys } from './keys/data-changed-events';
 

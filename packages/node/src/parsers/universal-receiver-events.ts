@@ -1,3 +1,4 @@
+import { resolveTypeIdName } from '@lsp-indexer/lsp1';
 import type {
   PartialUniversalReceiverEvent,
   UniversalReceiverEvent,
@@ -64,6 +65,7 @@ export function parseUniversalReceiverEvent(
     address: raw.address,
     from: raw.from,
     typeId: raw.type_id,
+    typeIdName: resolveTypeIdName(raw.type_id),
 
     // Includable scalars
     value: raw.value != null ? BigInt(numericToString(raw.value)) : null,

@@ -154,8 +154,8 @@ const LATEST_FILTERS: FilterFieldConfig[] = [
 ];
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'timestamp', label: 'Timestamp' },
-  { value: 'blockNumber', label: 'Block Number' },
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
   { value: 'universalProfileName', label: 'UP Name' },
   { value: 'digitalAssetName', label: 'DA Name' },
 ];
@@ -215,7 +215,7 @@ function buildFilter(vals: Record<string, string>): DataChangedEventFilter | und
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
-  const [sortField, setSortField] = useState<DataChangedEventSortField>('timestamp');
+  const [sortField, setSortField] = useState<DataChangedEventSortField>('newest');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(
@@ -388,6 +388,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         }
         limit={limit}
         onLimitChange={setLimit}
+        hideDirectionAndNulls={state.sortField === 'newest' || state.sortField === 'oldest'}
       />
       <DcIncludeSections {...state} />
       <ResultsList
@@ -445,6 +446,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         onSortNullsChange={(v) =>
           state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
         }
+        hideDirectionAndNulls={state.sortField === 'newest' || state.sortField === 'oldest'}
       />
       <DcIncludeSections {...state} />
       <ResultsList

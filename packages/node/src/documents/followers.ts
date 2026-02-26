@@ -11,7 +11,7 @@ import { graphql } from '../graphql';
  * - `$where` — The service layer builds the Hasura bool_exp
  * - `$order_by` — Sort order (built by service layer from FollowerSort)
  * - `$limit` / `$offset` — Pagination
- * - `$includeTimestamp` / `$includeAddress` — Scalar include toggles
+ * - `$includeTimestamp` / `$includeAddress` / `$includeBlockNumber` / `$includeTransactionIndex` / `$includeLogIndex` — Scalar include toggles
  * - `$includeFollowerProfile*` — Boolean flags for follower's Universal Profile sub-includes
  * - `$includeFollowedProfile*` — Boolean flags for followed's Universal Profile sub-includes
  *
@@ -28,6 +28,9 @@ export const GetFollowersDocument = graphql(`
     $offset: Int
     $includeTimestamp: Boolean! = true
     $includeAddress: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeFollowerProfile: Boolean! = true
     $includeFollowerProfileName: Boolean! = true
     $includeFollowerProfileDescription: Boolean! = true
@@ -54,6 +57,9 @@ export const GetFollowersDocument = graphql(`
       followed_address
       timestamp @include(if: $includeTimestamp)
       address @include(if: $includeAddress)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       followerUniversalProfile @include(if: $includeFollowerProfile) {
         address
         lsp3Profile {

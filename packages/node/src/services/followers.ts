@@ -12,7 +12,13 @@ import { GetFollowCountDocument, GetFollowersDocument } from '../documents/follo
 import type { Follower_Bool_Exp, Follower_Order_By } from '../graphql/graphql';
 import { parseFollowers } from '../parsers/followers';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';
+import {
+  buildBlockOrderSort,
+  escapeLike,
+  hasActiveIncludes,
+  normalizeTimestamp,
+  orderDir,
+} from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -90,7 +96,8 @@ function buildFollowerWhere(filter: FollowerFilter | undefined): Follower_Bool_E
  * Translate a `FollowerSort` to a Hasura `follower_order_by` array.
  *
  * Sort field → Hasura mapping:
- * - `'timestamp'`       → `[{ timestamp: dir }]`
+ * - `'newest'`          → `buildBlockOrderSort('desc')` (block_number → transaction_index → log_index desc)
+ * - `'oldest'`          → `buildBlockOrderSort('asc')` (block_number → transaction_index → log_index asc)
  * - `'followerAddress'` → `[{ follower_address: dir }]`
  * - `'followedAddress'` → `[{ followed_address: dir }]`
  * - `'followerName'`    → `[{ followerUniversalProfile: { lsp3Profile: { name: { value: dir } } } }]`
@@ -98,6 +105,7 @@ function buildFollowerWhere(filter: FollowerFilter | undefined): Follower_Bool_E
  *
  * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
  * Name sorts default to `nulls: 'last'` when not specified (profiles without names sort last).
+ * `direction` and `nulls` are ignored for `'newest'` and `'oldest'` (self-describing fields).
  */
 function buildFollowerOrderBy(sort?: FollowerSort): Follower_Order_By[] | undefined {
   if (!sort) return undefined;
@@ -105,8 +113,10 @@ function buildFollowerOrderBy(sort?: FollowerSort): Follower_Order_By[] | undefi
   const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
-    case 'timestamp':
-      return [{ timestamp: dir }];
+    case 'newest':
+      return buildBlockOrderSort('desc');
+    case 'oldest':
+      return buildBlockOrderSort('asc');
     case 'followerAddress':
       return [{ follower_address: dir }];
     case 'followedAddress':
@@ -157,6 +167,9 @@ export function buildFollowerIncludeVars(include?: FollowerInclude): Record<stri
   const vars: Record<string, boolean> = {
     includeTimestamp: include.timestamp ?? false,
     includeAddress: include.address ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
     includeFollowerProfile: activeFollowerProfile,
     includeFollowedProfile: activeFollowedProfile,
   };
@@ -253,7 +266,7 @@ export async function fetchFollows(
   },
 ): Promise<FetchFollowsResult<PartialFollower>> {
   const where = buildFollowerWhere(params.filter);
-  const orderBy = buildFollowerOrderBy(params.sort);
+  const orderBy = buildFollowerOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildFollowerIncludeVars(params.include);
 
   const result = await execute(url, GetFollowersDocument, {
@@ -331,6 +344,9 @@ export async function fetchIsFollowing(
     // Disable all includes for efficiency — we only need to know if a record exists
     includeTimestamp: false,
     includeAddress: false,
+    includeBlockNumber: false,
+    includeTransactionIndex: false,
+    includeLogIndex: false,
     includeFollowerProfile: false,
     includeFollowerProfileName: false,
     includeFollowerProfileDescription: false,
