@@ -85,12 +85,7 @@ export function parseUniversalReceiverEvent(
 
   if (!include) return result;
 
-  return stripExcluded(result, include, [
-    'address',
-    'from',
-    'typeId',
-    'value',
-  ]) as PartialUniversalReceiverEvent;
+  return stripExcluded(result, include, ['address', 'from', 'typeId', 'value']);
 }
 
 /**
