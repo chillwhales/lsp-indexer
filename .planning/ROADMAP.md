@@ -372,6 +372,15 @@ Plans:
 | SUB-02 | Developer can use `use*Subscription` hooks for all 11 domains (live data via WebSocket)               |
 | SUB-03 | Subscription updates automatically invalidate/update relevant TanStack Query cache entries            |
 
+**Plans:** 4 plans
+
+Plans:
+
+- [ ] 10-01-PLAN.md — Foundation: export buildXWhere, getClientWsUrlOrDerive, install graphql-ws, subscription param types
+- [ ] 10-02-PLAN.md — Core subscription system: SubscriptionClient, context/provider, useSubscription, subscription documents
+- [ ] 10-03-PLAN.md — 11 domain subscription hooks + package exports + build validation
+- [ ] 10-04-PLAN.md — Subscription playground in test app + E2E verification
+
 **Success Criteria:**
 
 1. Developer can see a WebSocket connection established to Hasura's `ws://` endpoint when any subscription hook mounts — with automatic reconnection on disconnect visible in browser devtools
