@@ -86,7 +86,8 @@ export function parseDigitalAsset(
     symbol: raw.lsp4TokenSymbol?.value ?? null,
     tokenType: mapTokenType(raw.lsp4TokenType?.value),
     decimals: raw.decimals?.value ?? null,
-    totalSupply: raw.totalSupply?.value != null ? numericToString(raw.totalSupply.value) : null,
+    totalSupply:
+      raw.totalSupply?.value != null ? BigInt(numericToString(raw.totalSupply.value)) : null,
     description: lsp4?.description?.value ?? null,
     category: lsp4?.category?.value ?? null,
     icons: lsp4?.icon != null ? lsp4.icon.map(parseImage) : null,

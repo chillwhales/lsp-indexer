@@ -55,8 +55,8 @@ export const DigitalAssetSchema = z.object({
   tokenType: TokenTypeSchema.nullable(),
   /** Number of decimal places (LSP7 only), or `null` for LSP8 or if not included */
   decimals: z.number().nullable(),
-  /** Total supply of tokens (as string to handle large numbers), or `null` if not included */
-  totalSupply: z.string().nullable(),
+  /** Total supply of tokens (bigint for uint256 precision), or `null` if not included */
+  totalSupply: z.bigint().nullable(),
   /** Description from LSP4 metadata, or `null` if not set or not included */
   description: z.string().nullable(),
   /** Category from LSP4 metadata (free-text), or `null` if not set or not included */

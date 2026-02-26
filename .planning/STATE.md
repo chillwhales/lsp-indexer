@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 11 sub-phases)
-- **Sub-phase:** 9.10 (Data Changed Events) — Complete
+- **Sub-phase:** 9.11 (Universal Receiver Events) — Complete
 - **Plan:** 4 of 4 in current sub-phase
-- **Status:** Phase 9.10 complete — ready for Phase 9.11 (Universal Receiver Events)
-- **Last activity:** 2026-02-25 — Phase 9.10 verified (17/17 must-haves passed)
-- **Progress:** ███████░░░ 70% (21/30 requirements)
+- **Status:** Phase 9.11 complete — ready for Phase 9.12 (Block-Ordered Sorting)
+- **Last activity:** 2026-02-26 — Phase 9.11 verified (17/17 must-haves passed)
+- **Progress:** ███████░░░ 73% (22/30 requirements)
 
 ## Milestone History
 
@@ -41,20 +41,20 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.8   | Issued Assets                      |     1/1      | Complete |
 | 9.9   | Encrypted Feed                     |     1/1      | Complete |
 | 9.10  | Data Changed Events                |     1/1      | Complete |
-| 9.11  | Universal Receiver Events          |      1       | Pending  |
+| 9.11  | Universal Receiver Events          |     1/1      | Complete |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 21/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, QUERY-09, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
+**Total:** 22/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, QUERY-09, QUERY-10, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
 
 ## Performance Metrics
 
-- **Plans completed:** 82 (36 v1.0 + 46 v1.1)
+- **Plans completed:** 84 (36 v1.0 + 48 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 23 (11 v1.0 + 12 v1.1)
-- **Requirements delivered:** 45/45 (v1.0), 21/30 (v1.1)
+- **Phases completed:** 24 (11 v1.0 + 13 v1.1)
+- **Requirements delivered:** 45/45 (v1.0), 22/30 (v1.1)
 
 ## Accumulated Context
 
@@ -184,6 +184,10 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
   - **dataKeyName display pattern:** Bold resolved name when known, "(Unknown Key)" in muted italic when null, raw hex truncated to 20 chars in mono below
   - **Data changed events 3-tab playground layout:** Data changed events domains have 3 tabs each (Latest, List, Infinite) — other event domains use 2 tabs (List, Infinite) when no latest hook exists
   - **nft include in scalar include array:** TokenIdDataChangedEvent nft is a boolean toggle in the playground UI (schema supports union type but playground uses simple on/off)
+- **UniversalReceiverEvent 3-relation include pattern:** universalProfile (receiving UP), fromProfile (sender UP), fromAsset (sender DA) — most relation-heavy domain in the project (3 relations vs 2 for other dual-relation domains)
+- **46 GraphQL variables — highest count in project:** 4 pagination + 4 scalar + 10 receiving UP ($includeUniversalProfile*) + 10 sender UP ($includeFromProfile*) + 18 sender DA ($includeFromAsset*) — all Boolean! = true defaults
+- **Both UP sub-selections use `followed_aggregate`:** Receiving universalProfile and sender fromProfile both use `followed_aggregate` for following count — matching established pattern from data-changed-events, encrypted-assets, issued-assets
+- **`value` field is Hasura `numeric`:** codegen types as string, parsed via `numericToString` — same pattern as encrypted asset numeric fields
 
 ### Roadmap Evolution
 
@@ -201,17 +205,18 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-25
-- **Activity:** Executed Phase 9.10 (Data Changed Events) — all 4 plans + verification
-- **Outcome:** 4 plans, 12 commits, 17/17 must-haves verified. resolveDataKeyName utility (10 @lukso packages). Two domains (data_changed + token_id_data_changed). 4 React hooks + 2 server actions + 4 Next.js hooks. DataChangedEventCard + TokenIdDataChangedEventCard. Playground at /data-changed-events with 4 tabs. All packages build.
+- **Date:** 2026-02-26
+- **Activity:** Executed Phase 9.11 (Universal Receiver Events) — all 4 plans + verification
+- **Outcome:** 4 plans, 12 commits, 17/17 must-haves verified. 3-relation domain (universalProfile + fromProfile + fromAsset). 46-variable GraphQL document (highest count). 2 React hooks + 1 server action + 2 Next.js hooks. UniversalReceiverEventCard + playground at /universal-receiver-events. All packages build.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.10 complete** — all 4 plans delivered, QUERY-09 fulfilled, verified 17/17
-- **Next step:** Phase 9.11 (Universal Receiver Events)
-- **Remaining sub-phases in Phase 9:** 9.11 (Universal Receiver Events)
+- **Phase 9.11 complete** — all 4 plans delivered, verified 17/17
+- **QUERY-10 (Universal Receiver Events) delivered** — 22/30 requirements
+- **Next step:** Phase 9.12 (Block-Ordered Sorting) — cross-cutting refactor of event domain sorting
+- **Remaining sub-phases in Phase 9:** 9.12 (Block-Ordered Sorting)
 
 ---
 
-_Last updated: 2026-02-25 — Phase 9.10 complete (Data Changed Events — QUERY-09 delivered, verified 17/17)_
+_Last updated: 2026-02-26 — Phase 9.11 complete (Universal Receiver Events — QUERY-10 delivered, verified 17/17)_

@@ -307,10 +307,10 @@ No implementation bodies change — only overload signatures and return type ann
 
 **Plans:** 4 plans
 
-- [ ] 09.11-01-PLAN.md — Universal Receiver Event types (6 base + 4 scalar + 3 relations) + GraphQL document (46 vars) + codegen
-- [ ] 09.11-02-PLAN.md — Universal Receiver Event parser (3-relation mapping) + service (3 prefix replacements) + query keys
-- [ ] 09.11-03-PLAN.md — 2 React hooks + server action + 2 Next.js hooks + build validation
-- [ ] 09.11-04-PLAN.md — UniversalReceiverEventCard (3 collapsible sections) + playground page (2 tabs) + nav update
+- [x] 09.11-01-PLAN.md — Universal Receiver Event types (6 base + 4 scalar + 3 relations) + GraphQL document (46 vars) + codegen
+- [x] 09.11-02-PLAN.md — Universal Receiver Event parser (3-relation mapping) + service (3 prefix replacements) + query keys
+- [x] 09.11-03-PLAN.md — 2 React hooks + server action + 2 Next.js hooks + build validation
+- [x] 09.11-04-PLAN.md — UniversalReceiverEventCard (3 collapsible sections) + playground page (2 tabs) + nav update
 
 ---
 
@@ -420,14 +420,14 @@ Entity tables (`lsp4_creator`, `owned_asset`, `owned_token`, `lsp29_encrypted_as
 | 9.8   | Issued Assets                      |     1/1      | Complete |
 | 9.9   | Encrypted Feed                     |     1/1      | Complete |
 | 9.10  | Data Changed Events                |     1/1      | Complete |
-| 9.11  | Universal Receiver Events          |      1       | Pending  |
+| 9.11  | Universal Receiver Events          |     1/1      | Complete |
 | 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Pending  |
 | 10    | Subscriptions                      |      3       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 21/30 requirements delivered (QUERY-09 complete)
+**Total:** 22/30 requirements delivered (QUERY-10 complete)
 
 ---
 
@@ -538,4 +538,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-25 — Phase 9.10 complete (Data Changed Events — QUERY-09 delivered), 21/30 requirements delivered_
+_Last updated: 2026-02-26 — Phase 9.11 complete (Universal Receiver Events — all 4 plans, QUERY-10), 22/30 requirements delivered_
