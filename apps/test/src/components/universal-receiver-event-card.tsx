@@ -21,15 +21,16 @@ import { formatRelativeTime, truncateAddress } from '@/lib/utils';
 export interface UniversalReceiverEventCardProps {
   universalReceiverEvent: PartialExcept<
     UniversalReceiverEvent,
-    'address' | 'from' | 'typeId' | 'receivedData' | 'returnedValue' | 'value'
+    'address' | 'from' | 'typeId' | 'value'
   >;
 }
 
 /**
  * Card component for rendering a single universal receiver event.
  *
- * Base fields (always present): address, from, typeId, receivedData,
- * returnedValue, value.
+ * Base fields (always present): address, from, typeId, value.
+ * Includable data fields: receivedData, returnedValue — rendered via
+ * `'key' in obj` field-presence guards (same DX-04 pattern as other scalars).
  * Conditional scalars: blockNumber, timestamp, logIndex, transactionIndex —
  * rendered via `'key' in obj` field-presence guards (DX-04 pattern).
  * Three collapsible relation sections: Receiving Profile (universalProfile),
@@ -76,26 +77,28 @@ export function UniversalReceiverEventCard({
             <dd className="font-mono text-xs break-all">{evt.typeId}</dd>
           </div>
 
-          {/* Received Data — expandable hex */}
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-40 shrink-0">Received Data</dt>
-            <dd className="min-w-0">
-              <ExpandableHex value={evt.receivedData} />
-            </dd>
-          </div>
-
-          {/* Returned Value — expandable hex */}
-          <div className="flex gap-2">
-            <dt className="text-muted-foreground w-40 shrink-0">Returned Value</dt>
-            <dd className="min-w-0">
-              <ExpandableHex value={evt.returnedValue} />
-            </dd>
-          </div>
-
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-40 shrink-0">Value (wei)</dt>
             <dd className="font-mono text-xs">{evt.value}</dd>
           </div>
+
+          {/* Conditional data fields via field-presence checks */}
+          {'receivedData' in evt && typeof evt.receivedData === 'string' && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Received Data</dt>
+              <dd className="min-w-0">
+                <ExpandableHex value={evt.receivedData} />
+              </dd>
+            </div>
+          )}
+          {'returnedValue' in evt && typeof evt.returnedValue === 'string' && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Returned Value</dt>
+              <dd className="min-w-0">
+                <ExpandableHex value={evt.returnedValue} />
+              </dd>
+            </div>
+          )}
 
           {/* Conditional scalar fields via field-presence checks */}
           {'blockNumber' in evt && evt.blockNumber != null && (

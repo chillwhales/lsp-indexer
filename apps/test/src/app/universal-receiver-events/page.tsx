@@ -318,9 +318,7 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
         isFetching={isFetching}
         error={error}
         renderItem={(evt) => <UniversalReceiverEventCard universalReceiverEvent={evt} />}
-        getKey={(evt) =>
-          `${evt.address}-${evt.from}-${evt.typeId.slice(0, 16)}-${evt.receivedData.slice(0, 16)}`
-        }
+        getKey={(evt) => `${evt.address}-${evt.from}-${evt.typeId.slice(0, 16)}`}
         label="universal receiver events"
         totalCount={totalCount}
         hasActiveFilter={state.hasActiveFilter}
@@ -377,9 +375,7 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
         isFetching={isFetching}
         error={error}
         renderItem={(evt) => <UniversalReceiverEventCard universalReceiverEvent={evt} />}
-        getKey={(evt) =>
-          `${evt.address}-${evt.from}-${evt.typeId.slice(0, 16)}-${evt.receivedData.slice(0, 16)}`
-        }
+        getKey={(evt) => `${evt.address}-${evt.from}-${evt.typeId.slice(0, 16)}`}
         label="universal receiver events"
         hasActiveFilter={state.hasActiveFilter}
         infinite={{ hasNextPage, fetchNextPage, isFetchingNextPage }}

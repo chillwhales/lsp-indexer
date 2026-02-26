@@ -26,9 +26,10 @@ import {
  *
  * Represents a single `universalReceiver` call received by a Universal Profile
  * or other LSP1-compatible contract. Triggered whenever a UP receives tokens,
- * NFTs, or other value. Base fields (`address`, `from`, `typeId`,
- * `receivedData`, `returnedValue`, `value`) are always present; other fields
- * (including 3 relation includes) are controlled by the `include` parameter.
+ * NFTs, or other value. Base fields (`address`, `from`, `typeId`, `value`) are
+ * always present; `receivedData` and `returnedValue` are includable scalar
+ * fields (potentially large hex strings), and 3 relation includes are also
+ * controlled by the `include` parameter.
  */
 export const UniversalReceiverEventSchema = z.object({
   /** Receiving contract address — the UP that received the universalReceiver call (always present) */
@@ -37,10 +38,10 @@ export const UniversalReceiverEventSchema = z.object({
   from: z.string(),
   /** LSP1 type identifier — bytes32 hash identifying the operation type (always present) */
   typeId: z.string(),
-  /** Raw hex data received in the universalReceiver call (always present) */
-  receivedData: z.string(),
-  /** Raw hex return value from the universalReceiver call (always present) */
-  returnedValue: z.string(),
+  /** Raw hex data received in the universalReceiver call (null = not included) */
+  receivedData: z.string().nullable(),
+  /** Raw hex return value from the universalReceiver call (null = not included) */
+  returnedValue: z.string().nullable(),
   /** Wei value transferred with the call (always present, as string for BigInt safety) */
   value: z.string(),
   /** Block number where event was emitted (null = not included) */
@@ -136,6 +137,10 @@ export const UniversalReceiverEventSortSchema = z.object({
  * ProfileInclude sub-objects, `fromAsset` accepts DigitalAssetInclude sub-objects.
  */
 export const UniversalReceiverEventIncludeSchema = z.object({
+  /** Include raw hex data received in the universalReceiver call */
+  receivedData: z.boolean().optional(),
+  /** Include raw hex return value from the universalReceiver call */
+  returnedValue: z.boolean().optional(),
   /** Include block number */
   blockNumber: z.boolean().optional(),
   /** Include timestamp */
@@ -198,6 +203,8 @@ export type UseInfiniteUniversalReceiverEventsParams = z.infer<
  * Relations (universalProfile, fromProfile, fromAsset) handled by resolver types.
  */
 type UniversalReceiverEventScalarIncludeFieldMap = {
+  receivedData: 'receivedData';
+  returnedValue: 'returnedValue';
   blockNumber: 'blockNumber';
   timestamp: 'timestamp';
   logIndex: 'logIndex';
@@ -247,7 +254,8 @@ type ResolveUniversalReceiverEventFromAsset<I> = I extends { fromAsset: infer D 
  * UniversalReceiverEvent type narrowed by include parameter.
  *
  * - `UniversalReceiverEventResult` (no generic) → full `UniversalReceiverEvent` type (backward compatible)
- * - `UniversalReceiverEventResult<{}>` → `{ address; from; typeId; receivedData; returnedValue; value }` (base fields only)
+ * - `UniversalReceiverEventResult<{}>` → `{ address; from; typeId; value }` (base fields only)
+ * - `UniversalReceiverEventResult<{ receivedData: true }>` → base + receivedData
  * - `UniversalReceiverEventResult<{ timestamp: true }>` → base + timestamp
  * - `UniversalReceiverEventResult<{ universalProfile: { name: true } }>` → base + narrowed receiving UP
  * - `UniversalReceiverEventResult<{ fromProfile: true }>` → base + full sender UP
@@ -256,7 +264,8 @@ type ResolveUniversalReceiverEventFromAsset<I> = I extends { fromAsset: infer D 
  * @example
  * ```ts
  * type Full = UniversalReceiverEventResult;                                            // = UniversalReceiverEvent (all fields)
- * type Minimal = UniversalReceiverEventResult<{}>;                                     // = { address; from; typeId; receivedData; returnedValue; value }
+ * type Minimal = UniversalReceiverEventResult<{}>;                                     // = { address; from; typeId; value }
+ * type WithData = UniversalReceiverEventResult<{ receivedData: true }>;                // = base + receivedData
  * type WithTime = UniversalReceiverEventResult<{ timestamp: true }>;                   // = base + timestamp
  * type WithUP = UniversalReceiverEventResult<{ universalProfile: { name: true } }>;    // = base + narrowed UP
  * type WithDA = UniversalReceiverEventResult<{ fromAsset: { name: true } }>;           // = base + narrowed DA
@@ -268,7 +277,7 @@ export type UniversalReceiverEventResult<
   ? UniversalReceiverEvent
   : IncludeResult<
       UniversalReceiverEvent,
-      'address' | 'from' | 'typeId' | 'receivedData' | 'returnedValue' | 'value',
+      'address' | 'from' | 'typeId' | 'value',
       UniversalReceiverEventScalarIncludeFieldMap,
       I
     > &
@@ -282,5 +291,5 @@ export type UniversalReceiverEventResult<
  */
 export type PartialUniversalReceiverEvent = PartialExcept<
   UniversalReceiverEvent,
-  'address' | 'from' | 'typeId' | 'receivedData' | 'returnedValue' | 'value'
+  'address' | 'from' | 'typeId' | 'value'
 >;

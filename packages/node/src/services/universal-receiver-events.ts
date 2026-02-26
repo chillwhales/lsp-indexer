@@ -192,6 +192,8 @@ function buildUniversalReceiverEventOrderBy(
  * - When `include` is **provided** → each field defaults to `false` unless explicitly
  *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
  *
+ * **2 data field variables:** `includeReceivedData`, `includeReturnedValue` (direct mapping).
+ *
  * **3 relation prefix replacements (unique to this domain):**
  * - Receiving UP: `buildProfileIncludeVars` → `includeProfile*` → `includeUniversalProfile*`
  * - Sender UP: `buildProfileIncludeVars` → `includeProfile*` → `includeFromProfile*`
@@ -210,6 +212,8 @@ export function buildUniversalReceiverEventIncludeVars(
   const activeFromAsset = hasActiveIncludes(include.fromAsset);
 
   const vars: Record<string, boolean> = {
+    includeReceivedData: include.receivedData ?? false,
+    includeReturnedValue: include.returnedValue ?? false,
     includeBlockNumber: include.blockNumber ?? false,
     includeTimestamp: include.timestamp ?? false,
     includeLogIndex: include.logIndex ?? false,
