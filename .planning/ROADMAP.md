@@ -335,12 +335,16 @@ Entity tables (`lsp4_creator`, `owned_asset`, `owned_token`, `lsp29_encrypted_as
 
 - Extract shared `buildBlockOrderSort()` utility in `@lsp-indexer/node` — produces Hasura `order_by` arrays like `[{ block_number: desc }, { transaction_index: desc }, { log_index: desc }]` (or asc) for deterministic event ordering at the DB/Hasura layer
 - Replace timestamp-based default sorting in all 4 event domain services with this block-based Hasura `order_by` sort
-- Update sort field schemas to expose camelCase sort fields (`blockNumber`, `transactionIndex`, `logIndex`) that map onto the internal snake_case Hasura ordering
-- Update playground sort controls for affected domains to use the camelCase sort fields while relying on the shared `buildBlockOrderSort()` under the hood
+- Replace `timestamp` and `blockNumber` sort fields with consumer-friendly `newest` (block-order desc) and `oldest` (block-order asc) sort fields — abstracts away blockchain terminology so consumers never see `blockNumber`, `transactionIndex`, or `logIndex`
+- Update playground sort controls for affected domains to use `newest`/`oldest` sort fields, hiding Direction/Nulls dropdowns when selected
 
-**Plans:** TBD (run /gsd-plan-phase 9.12 to break down)
+**Plans:** 3 plans
 
-- [ ] TBD
+Plans:
+
+- [ ] 09.12-01-PLAN.md — Shared utility + type schema updates (sort fields + Follower block fields)
+- [ ] 09.12-02-PLAN.md — Follower document/parser + all 4 service sort builders + default sort
+- [ ] 09.12-03-PLAN.md — Playground sort options + SortControls conditional hide/show + build validation
 
 ---
 
