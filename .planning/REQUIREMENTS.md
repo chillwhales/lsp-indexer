@@ -30,7 +30,7 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 - [x] **QUERY-07**: Developer can use `useIssuedAssets`, `useInfiniteIssuedAssets` for LSP12 issued asset data
 - [x] **QUERY-08**: Developer can use `useEncryptedAssets`, `useInfiniteEncryptedAssets` for LSP29 encrypted asset data
 - [x] **QUERY-09**: Developer can use `useDataChangedEvents` for ERC725 data change events
-- [ ] **QUERY-10**: Developer can use `useUniversalReceiverEvents` for universal receiver events
+- [x] **QUERY-10**: Developer can use `useUniversalReceiverEvents` for universal receiver events
 
 ### Pagination
 
@@ -105,7 +105,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUERY-07    | 9.8   | Complete |
 | QUERY-08    | 9.9   | Complete |
 | QUERY-09    | 9.10  | Complete |
-| QUERY-10    | 9.11  | Pending  |
+| QUERY-10    | 9.11  | Complete |
 | PAGE-01     | 9     | Pending  |
 | SUB-01      | 10    | Pending  |
 | SUB-02      | 10    | Pending  |
