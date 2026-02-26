@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 9 of 11 (Remaining Query Domains + DX — 12 sub-phases)
-- **Sub-phase:** 9.12 (Block-Ordered Sorting) — In progress
-- **Plan:** 2 of 3 in current sub-phase
-- **Status:** In progress — Plan 02 complete, 1 plan remaining
-- **Last activity:** 2026-02-26 — Completed 09.12-02-PLAN.md
+- **Sub-phase:** 9.12 (Block-Ordered Sorting) — Complete
+- **Plan:** 3 of 3 in current sub-phase
+- **Status:** Phase 9.12 complete — all 3 plans executed
+- **Last activity:** 2026-02-26 — Completed 09.12-03-PLAN.md
 - **Progress:** ███████░░░ 73% (22/30 requirements)
 
 ## Milestone History
@@ -27,24 +27,24 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                               | Requirements | Status                  |
-| ----- | ---------------------------------- | :----------: | ----------------------- |
-| 7     | Package Foundation                 |     7/7      | Complete                |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete                |
-| 9.1   | Digital Assets                     |     1/1      | Complete                |
-| 9.2   | NFTs                               |     1/1      | Complete                |
-| 9.3   | Owned Assets                       |     1/1      | Complete                |
-| 9.4   | Conditional Include Types          |     1/1      | Complete                |
-| 9.5   | Social / Follows                   |     1/1      | Complete                |
-| 9.6   | Generic Type Propagation           |     1/1      | Complete                |
-| 9.7   | Creators                           |     1/1      | Complete                |
-| 9.8   | Issued Assets                      |     1/1      | Complete                |
-| 9.9   | Encrypted Feed                     |     1/1      | Complete                |
-| 9.10  | Data Changed Events                |     1/1      | Complete                |
-| 9.11  | Universal Receiver Events          |     1/1      | Complete                |
-| 9.12  | Block-Ordered Sorting              |      0       | In progress (2/3 plans) |
-| 10    | Subscriptions                      |      3       | Pending                 |
-| 11    | Server Actions & Publish Readiness |      4       | Pending                 |
+| Phase | Name                               | Requirements | Status   |
+| ----- | ---------------------------------- | :----------: | -------- |
+| 7     | Package Foundation                 |     7/7      | Complete |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
+| 9.1   | Digital Assets                     |     1/1      | Complete |
+| 9.2   | NFTs                               |     1/1      | Complete |
+| 9.3   | Owned Assets                       |     1/1      | Complete |
+| 9.4   | Conditional Include Types          |     1/1      | Complete |
+| 9.5   | Social / Follows                   |     1/1      | Complete |
+| 9.6   | Generic Type Propagation           |     1/1      | Complete |
+| 9.7   | Creators                           |     1/1      | Complete |
+| 9.8   | Issued Assets                      |     1/1      | Complete |
+| 9.9   | Encrypted Feed                     |     1/1      | Complete |
+| 9.10  | Data Changed Events                |     1/1      | Complete |
+| 9.11  | Universal Receiver Events          |     1/1      | Complete |
+| 9.12  | Block-Ordered Sorting              |      0       | Complete |
+| 10    | Subscriptions                      |      3       | Pending  |
+| 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
@@ -52,9 +52,9 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 85 (36 v1.0 + 49 v1.1)
+- **Plans completed:** 86 (36 v1.0 + 50 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 24 (11 v1.0 + 13 v1.1)
+- **Phases completed:** 25 (11 v1.0 + 14 v1.1)
 - **Requirements delivered:** 45/45 (v1.0), 22/30 (v1.1)
 
 ## Accumulated Context
@@ -189,6 +189,7 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **46 GraphQL variables — highest count in project:** 4 pagination + 4 scalar + 10 receiving UP ($includeUniversalProfile*) + 10 sender UP ($includeFromProfile*) + 18 sender DA ($includeFromAsset*) — all Boolean! = true defaults
 - **Both UP sub-selections use `followed_aggregate`:** Receiving universalProfile and sender fromProfile both use `followed_aggregate` for following count — matching established pattern from data-changed-events, encrypted-assets, issued-assets
 - **`value` field is Hasura `numeric`:** codegen types as string, parsed via `numericToString` — same pattern as encrypted asset numeric fields
+- **`hideDirectionAndNulls` SortControls prop:** Boolean computed at usage site (`sortField === 'newest' || sortField === 'oldest'`) — hides Direction/Nulls dropdowns for self-describing sort fields. Keeps SortControls generic for non-event domains.
 
 ### Roadmap Evolution
 
@@ -207,17 +208,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-02-26
-- **Activity:** Executed Phase 9.12 Plan 02 (Follower document/parser + service default sort)
-- **Outcome:** 2 tasks, 2 commits. Follower document updated with 3 block @include vars, codegen regenerated, parser using typed access, all 4 services default to block-order desc, follower include vars + fetchIsFollowing disables added.
+- **Activity:** Executed Phase 9.12 Plan 03 (Playground sort options + SortControls conditional hide/show)
+- **Outcome:** 2 tasks, 2 commits. SortControls gains hideDirectionAndNulls prop, all 4 event domain playgrounds updated with newest/oldest sort options, default sort 'newest', full build passes.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9.12 Plan 02 complete** — all services wired with default block-order sort
-- **Next step:** Phase 9.12 Plan 03 — Playground sort controls + SortControls conditional hide/show + build validation
-- **Note:** Playground pages still have TypeScript errors for sort field references (still use 'timestamp'/'blockNumber')
-- **Remaining plans in Phase 9.12:** 03 (playground)
+- **Phase 9.12 complete** — all 3 plans executed (utility + services + playground)
+- **All event domains have deterministic block-order sorting** through full stack (types → services → playground)
+- **Next step:** Phase 10 (Subscriptions) or Phase 11 (Server Actions & Publish Readiness)
+- **Ready for PR:** feat/block-ordered-sorting-types → refactor/indexer-v2-react
 
 ---
 
-_Last updated: 2026-02-26 — Phase 9.11 complete (Universal Receiver Events — QUERY-10 delivered, verified 17/17)_
+_Last updated: 2026-02-26 — Phase 9.12 complete (Block-Ordered Sorting — all 3 plans, 4 event domains sorted by blockNumber)_
