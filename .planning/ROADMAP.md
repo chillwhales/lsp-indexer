@@ -309,7 +309,7 @@ No implementation bodies change — only overload signatures and return type ann
 
 - [x] 09.11-01-PLAN.md — Universal Receiver Event types (6 base + 4 scalar + 3 relations) + GraphQL document (46 vars) + codegen
 - [x] 09.11-02-PLAN.md — Universal Receiver Event parser (3-relation mapping) + service (3 prefix replacements) + query keys
-- [ ] 09.11-03-PLAN.md — 2 React hooks + server action + 2 Next.js hooks + build validation
+- [x] 09.11-03-PLAN.md — 2 React hooks + server action + 2 Next.js hooks + build validation
 - [ ] 09.11-04-PLAN.md — UniversalReceiverEventCard (3 collapsible sections) + playground page (2 tabs) + nav update
 
 ---
@@ -420,7 +420,7 @@ Entity tables (`lsp4_creator`, `owned_asset`, `owned_token`, `lsp29_encrypted_as
 | 9.8   | Issued Assets                      |     1/1      | Complete          |
 | 9.9   | Encrypted Feed                     |     1/1      | Complete          |
 | 9.10  | Data Changed Events                |     1/1      | Complete          |
-| 9.11  | Universal Receiver Events          |      1       | In progress (2/4) |
+| 9.11  | Universal Receiver Events          |      1       | In progress (3/4) |
 | 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Pending           |
 | 10    | Subscriptions                      |      3       | Pending           |
 | 11    | Server Actions & Publish Readiness |      4       | Pending           |
@@ -538,4 +538,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-26 — Phase 9.11 plan 02 complete (Universal Receiver Event parser + service + keys), 21/30 requirements delivered_
+_Last updated: 2026-02-26 — Phase 9.11 plan 03 complete (Universal Receiver Event hooks + server action), 21/30 requirements delivered_
