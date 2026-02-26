@@ -82,11 +82,11 @@ export function UniversalReceiverEventCard({
               <dd>
                 <Tooltip>
                   <TooltipTrigger className="font-mono text-xs underline decoration-dashed underline-offset-2 cursor-default">
-                    {formatTokenAmount(evt.value, 18)}
+                    {formatTokenAmount(evt.value.toString(), 18)}
                     <span className="text-muted-foreground ml-1">LYX</span>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="font-mono text-xs">{evt.value} wei</p>
+                    <p className="font-mono text-xs">{evt.value.toLocaleString()} wei</p>
                   </TooltipContent>
                 </Tooltip>
               </dd>

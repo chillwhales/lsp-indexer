@@ -42,8 +42,8 @@ export const UniversalReceiverEventSchema = z.object({
   receivedData: z.string().nullable(),
   /** Raw hex return value from the universalReceiver call (null = not included) */
   returnedValue: z.string().nullable(),
-  /** Wei value transferred with the call (null = not included, as string for BigInt safety) */
-  value: z.string().nullable(),
+  /** Wei value transferred with the call (bigint for uint256 precision, null = not included) */
+  value: z.bigint().nullable(),
   /** Block number where event was emitted (null = not included) */
   blockNumber: z.number().nullable(),
   /** Timestamp when event was indexed (null = not included) */

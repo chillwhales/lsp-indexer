@@ -154,10 +154,10 @@ export function DigitalAssetCard({
               <dd>
                 <Tooltip>
                   <TooltipTrigger className="font-mono underline decoration-dashed underline-offset-2 cursor-default">
-                    {formatTokenAmount(totalSupply, decimals ?? 0)}
+                    {formatTokenAmount(totalSupply.toString(), decimals ?? 0)}
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="font-mono">{totalSupply}</p>
+                    <p className="font-mono">{totalSupply.toLocaleString()}</p>
                   </TooltipContent>
                 </Tooltip>
               </dd>
