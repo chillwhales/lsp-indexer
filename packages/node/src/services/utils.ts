@@ -57,3 +57,20 @@ export function normalizeTimestamp(value: string | number): string {
   }
   return value;
 }
+
+/**
+ * Build a deterministic block-order sort for event domains.
+ *
+ * Returns a 3-level tiebreaker: block_number → transaction_index → log_index.
+ * Multiple events can share the same block timestamp, so this 3-level sort
+ * guarantees deterministic ordering at the DB/Hasura layer.
+ *
+ * Used as default sort (newest first) when no sort is specified, and also
+ * when consumer selects 'newest' or 'oldest' sort fields.
+ *
+ * @param direction - 'asc' for oldest-first, 'desc' for newest-first
+ * @returns Hasura order_by array with 3 sort levels
+ */
+export function buildBlockOrderSort(direction: 'asc' | 'desc'): Record<string, Order_By>[] {
+  return [{ block_number: direction }, { transaction_index: direction }, { log_index: direction }];
+}
