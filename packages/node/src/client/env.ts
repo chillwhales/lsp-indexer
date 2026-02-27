@@ -117,3 +117,31 @@ export function getServerWsUrl(): string {
   }
   return url;
 }
+
+/**
+ * Get the public WebSocket endpoint URL for client-side subscriptions,
+ * falling back to auto-derivation from the HTTP URL.
+ *
+ * Priority:
+ * 1. `NEXT_PUBLIC_INDEXER_WS_URL` env var (explicit WS URL)
+ * 2. Derived from `NEXT_PUBLIC_INDEXER_URL` by swapping protocol:
+ *    - `https://` → `wss://`
+ *    - `http://` → `ws://`
+ *
+ * @returns WebSocket URL string
+ * @throws IndexerError if neither WS URL nor HTTP URL is configured
+ */
+export function getClientWsUrlOrDerive(): string {
+  const wsUrl = process.env.NEXT_PUBLIC_INDEXER_WS_URL;
+  if (wsUrl) {
+    try {
+      new URL(wsUrl);
+      return wsUrl;
+    } catch {
+      // Invalid WS URL — fall through to derivation
+    }
+  }
+  // Derive from HTTP URL (getClientUrl throws if not set)
+  const httpUrl = getClientUrl();
+  return httpUrl.replace(/^https:\/\//, 'wss://').replace(/^http:\/\//, 'ws://');
+}
