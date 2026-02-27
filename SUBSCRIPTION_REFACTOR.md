@@ -31,22 +31,18 @@ Current subscription architecture has several issues:
                             │
                             ▼
 ┌─────────────────────────────────────────────────┐
-│ Generic Subscription Engine (node)              │
-│ subscribe(client, config) → SubscriptionResult  │
-└─────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────┐
 │ Domain Config Builders (node)                   │
 │ createProfilesSubscription() → SubscriptionConfig│
 └─────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────┐
-│ Transport Clients (react/next)                  │
-│ SubscriptionClient interface implementations     │
+│ Subscription Client (react - shared)            │
+│ SubscriptionClient with state management        │
 └─────────────────────────────────────────────────┘
 ```
+
+**SIMPLIFIED:** Next.js client components can use the React `SubscriptionClient` directly since they run in the browser. No need for separate SSE transport - just WebSocket to GraphQL endpoint.
 
 ### Interface Design
 
@@ -114,25 +110,31 @@ interface SubscriptionSink {
 
 - [x] **1.1** Create `SubscriptionClient` interface in `@lsp-indexer/types`
 - [x] **1.2** ~~Create generic `subscribe()` function in `@lsp-indexer/node`~~ **REVISED:** State management moved to SubscriptionClient
-- [ ] **1.3** Update React `SubscriptionClient` to implement new interface
-- [ ] **1.4** Update Next `SubscriptionClient` to implement new interface
+- [x] **1.3** Update React `SubscriptionClient` to implement new interface
+- [x] **1.4** ~~Update Next `SubscriptionClient` to implement new interface~~ **REVISED:** Next.js will reuse React client directly
 - [ ] **1.5** Create thin `useSubscription` wrappers in both packages
 
-### Phase 2: Domain Migration
+### Phase 2: Simplify Next.js Package
 
-- [ ] **2.1** Add `createProfilesSubscription()` to `@lsp-indexer/node`
-- [ ] **2.2** Replace thick `useProfileSubscription` with thin wrapper in `@lsp-indexer/react`
-- [ ] **2.3** Replace thick `useProfileSubscription` with thin wrapper in `@lsp-indexer/next`
-- [ ] **2.4** Remove old thick `useSubscription` implementations
-- [ ] **2.5** Update exports and documentation
+- [ ] **2.1** Remove complex SSE implementation from `@lsp-indexer/next`
+- [ ] **2.2** Update `@lsp-indexer/next` to re-export React subscription client and hooks
+- [ ] **2.3** Create optional WebSocket proxy utility for server-side scenarios (future)
 
-### Phase 3: Validation & Cleanup
+### Phase 3: Domain Migration
 
-- [ ] **3.1** Test subscription behavior (connection, reconnection, error handling)
-- [ ] **3.2** Verify single WebSocket connection is shared across multiple hooks
-- [ ] **3.3** Confirm Next.js SSE implementation works correctly
-- [ ] **3.4** Clean up unused code and update types
-- [ ] **3.5** Document new architecture patterns
+- [ ] **3.1** Add `createProfilesSubscription()` to `@lsp-indexer/node`
+- [ ] **3.2** Create thin `useSubscription` wrapper in `@lsp-indexer/react`
+- [ ] **3.3** Replace thick `useProfileSubscription` with thin wrapper in both packages
+- [ ] **3.4** Remove old thick `useSubscription` implementation
+- [ ] **3.5** Update exports and documentation
+
+### Phase 4: Validation & Cleanup
+
+- [ ] **4.1** Test subscription behavior (connection, reconnection, error handling)
+- [ ] **4.2** Verify single WebSocket connection is shared across multiple hooks
+- [ ] **4.3** Test Next.js client components using React subscription client
+- [ ] **4.4** Clean up unused SSE code and update types
+- [ ] **4.5** Document new simplified architecture
 
 ## Current Status
 

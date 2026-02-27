@@ -24,5 +24,8 @@ export * from './hooks/token-id-data-changed-events';
 export * from './hooks/universal-receiver-events';
 
 // Subscription infrastructure
-export * from './subscriptions/handler';
+export * from './subscriptions/client';
+export * from './subscriptions/context';
+export * from './subscriptions/provider';
+export * from './subscriptions/proxy';
 export * from './subscriptions/use-subscription';
