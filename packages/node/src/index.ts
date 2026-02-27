@@ -193,5 +193,9 @@ export { universalReceiverEventKeys } from './keys/universal-receiver-events';
 // Universal receiver event GraphQL documents (for advanced usage / custom queries)
 export { GetUniversalReceiverEventsDocument } from './documents/universal-receiver-events';
 
+// Subscription infrastructure (shared between React and Next)
+export { GenericSubscriptionInstance } from './subscriptions/subscription-instance';
+export type { SubscriptionClientExecutor } from './subscriptions/subscription-instance';
+
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';

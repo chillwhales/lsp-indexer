@@ -1,4 +1,3 @@
-import { IndexerError } from '@lsp-indexer/node';
 import type {
   SubscriptionClient as ISubscriptionClient,
   SubscriptionConfig,
@@ -9,151 +8,9 @@ import type { Client, FormattedExecutionResult, Sink, SubscribePayload } from 'g
 import { createClient } from 'graphql-ws';
 import { ClientAuth } from './proxy';
 
-/**
- * Individual subscription instance within the Next.js SubscriptionClient.
- * Identical to React implementation but connects through the proxy.
- */
-class NextSubscriptionInstance<T> implements SubscriptionInstance<T> {
-  private _data: T[] | null = null;
-  private _error: unknown = null;
-  private _isSubscribed = false;
-  private listeners = new Set<() => void>();
-  private cleanup: (() => void) | null = null;
-  private reconnectCleanup: (() => void) | null = null;
-
-  constructor(
-    private client: SubscriptionClient,
-    private config: SubscriptionConfig<T>,
-    private options: SubscriptionHookOptions<T> = {},
-  ) {
-    this.start();
-  }
-
-  get data(): T[] | null {
-    return this._data;
-  }
-
-  get error(): unknown {
-    return this._error;
-  }
-
-  get isSubscribed(): boolean {
-    return this._isSubscribed;
-  }
-
-  subscribe(listener: () => void): () => void {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  }
-
-  dispose(): void {
-    this.stop();
-    this.listeners.clear();
-  }
-
-  private start(): void {
-    if (!this.options.enabled && this.options.enabled !== undefined) return;
-
-    // Register reconnect callback
-    this.reconnectCleanup = this.client.onReconnect(() => {
-      this.options.onReconnect?.();
-    });
-
-    // Execute the subscription
-    this.cleanup = this.client.executeSubscription(
-      { query: this.config.document, variables: this.config.variables },
-      {
-        next: (result) => {
-          const rawData = result.data?.[this.config.dataKey];
-          if (!rawData || !Array.isArray(rawData)) return;
-
-          try {
-            const parsed = this.config.parser(rawData);
-            this.setData(parsed);
-            this.setError(null);
-            this.options.onData?.(parsed);
-          } catch (parseError) {
-            this.setError(
-              new IndexerError({
-                category: 'PARSE',
-                code: 'PARSE_FAILED',
-                message: `Failed to parse subscription data for "${this.config.dataKey}": ${
-                  parseError instanceof Error ? parseError.message : String(parseError)
-                }`,
-                originalError: parseError instanceof Error ? parseError : undefined,
-              }),
-            );
-          }
-        },
-        error: (rawError: unknown) => {
-          if (rawError instanceof IndexerError) {
-            this.setError(rawError);
-          } else if (Array.isArray(rawError)) {
-            // GraphQL errors array
-            this.setError(
-              IndexerError.fromGraphQLErrors(
-                rawError.map(IndexerError.narrowGraphQLError),
-                this.config.document,
-              ),
-            );
-          } else {
-            this.setError(
-              new IndexerError({
-                category: 'NETWORK',
-                code: 'NETWORK_UNKNOWN',
-                message: `Subscription error for "${this.config.dataKey}": ${
-                  rawError instanceof Error ? rawError.message : String(rawError)
-                }`,
-                originalError: rawError instanceof Error ? rawError : undefined,
-              }),
-            );
-          }
-          this.setSubscribed(false);
-        },
-        complete: () => {
-          this.setSubscribed(false);
-        },
-      },
-    );
-
-    this.setSubscribed(true);
-  }
-
-  private stop(): void {
-    this.cleanup?.();
-    this.cleanup = null;
-    this.reconnectCleanup?.();
-    this.reconnectCleanup = null;
-    this.setSubscribed(false);
-  }
-
-  private setData(newData: T[] | null): void {
-    if (this._data !== newData) {
-      this._data = newData;
-      this.notifyListeners();
-    }
-  }
-
-  private setError(newError: unknown): void {
-    if (this._error !== newError) {
-      this._error = newError;
-      this.notifyListeners();
-    }
-  }
-
-  private setSubscribed(subscribed: boolean): void {
-    if (this._isSubscribed !== subscribed) {
-      this._isSubscribed = subscribed;
-      this.notifyListeners();
-    }
-  }
-
-  private notifyListeners(): void {
-    for (const listener of this.listeners) {
-      listener();
-    }
-  }
-}
+// Use the shared subscription instance from @lsp-indexer/node
+// This avoids code duplication between React and Next.js packages
+type NextSubscriptionInstance<T> = GenericSubscriptionInstance<T>;
 
 /**
  * Connection state for Next.js WebSocket proxy client.
@@ -169,7 +26,7 @@ export type ConnectionState = 'disconnected' | 'connecting' | 'connected';
  * 3. Uses the same interface as React client for consistency
  * 4. Manages multiple subscriptions over a single WebSocket connection
  */
-export class SubscriptionClient implements ISubscriptionClient {
+export class SubscriptionClient implements ISubscriptionClient, SubscriptionClientExecutor {
   private wsClient: Client | null = null;
   private readonly url: string;
   private readonly clientAuth: ClientAuth;
@@ -178,7 +35,7 @@ export class SubscriptionClient implements ISubscriptionClient {
   private reconnectCallbacks = new Set<() => void>();
   private abruptlyClosed = false;
   private hasConnectedBefore = false;
-  private subscriptions = new Set<NextSubscriptionInstance<any>>();
+  private subscriptions = new Set<GenericSubscriptionInstance<any>>();
 
   constructor(url = '/api/graphql', authSecret?: string) {
     this.url = url;
@@ -224,7 +81,7 @@ export class SubscriptionClient implements ISubscriptionClient {
     config: SubscriptionConfig<T>,
     options?: SubscriptionHookOptions<T>,
   ): SubscriptionInstance<T> {
-    const subscription = new NextSubscriptionInstance(this, config, options);
+    const subscription = new GenericSubscriptionInstance(this, config, options);
     this.subscriptions.add(subscription);
 
     // Remove from set when disposed
