@@ -1,17 +1,34 @@
-import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import type {
+  InfiniteData,
+  QueryClient,
+  UseInfiniteQueryResult,
+  UseQueryResult,
+} from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { FetchEncryptedAssetsResult } from '@lsp-indexer/node';
-import { encryptedAssetKeys, fetchEncryptedAssets, getClientUrl } from '@lsp-indexer/node';
+import {
+  buildEncryptedAssetIncludeVars,
+  buildEncryptedAssetWhere,
+  encryptedAssetKeys,
+  EncryptedAssetSubscriptionDocument,
+  fetchEncryptedAssets,
+  getClientUrl,
+  parseEncryptedAssets,
+} from '@lsp-indexer/node';
 import type {
   EncryptedAsset,
+  EncryptedAssetFilter,
   EncryptedAssetInclude,
   EncryptedAssetResult,
   PartialEncryptedAsset,
   UseEncryptedAssetsParams,
   UseInfiniteEncryptedAssetsParams,
 } from '@lsp-indexer/types';
+
+import type { UseSubscriptionReturn } from '../subscriptions/use-subscription';
+import { useSubscription } from '../subscriptions/use-subscription';
 
 /** Default number of encrypted assets per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -200,4 +217,63 @@ export function useInfiniteEncryptedAssets(
     isFetchingNextPage,
     ...rest,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription hook
+// ---------------------------------------------------------------------------
+
+const DEFAULT_SUBSCRIPTION_LIMIT = 10;
+
+interface UseEncryptedAssetSubscriptionParams {
+  filter?: EncryptedAssetFilter;
+  include?: EncryptedAssetInclude;
+  limit?: number;
+  enabled?: boolean;
+  invalidate?: boolean;
+  onData?: (data: EncryptedAsset[]) => void;
+  onReconnect?: () => void;
+}
+
+export function useEncryptedAssetSubscription(
+  params: UseEncryptedAssetSubscriptionParams = {},
+): UseSubscriptionReturn<EncryptedAsset> {
+  const {
+    filter,
+    include,
+    limit = DEFAULT_SUBSCRIPTION_LIMIT,
+    enabled = true,
+    invalidate = false,
+    onData,
+    onReconnect,
+  } = params;
+
+  const where = buildEncryptedAssetWhere(filter);
+  const includeVars = buildEncryptedAssetIncludeVars(include);
+
+  let queryClient: QueryClient | undefined;
+  try {
+    queryClient = useQueryClient();
+  } catch {
+    // No QueryClientProvider
+  }
+
+  return useSubscription({
+    document: EncryptedAssetSubscriptionDocument,
+    dataKey: 'lsp29_encrypted_asset',
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: undefined,
+      limit,
+      ...includeVars,
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parser: (raw: any[]) => parseEncryptedAssets(raw),
+    enabled,
+    invalidate,
+    invalidateKeys: invalidate ? [encryptedAssetKeys.all] : undefined,
+    queryClient: invalidate ? queryClient : undefined,
+    onData,
+    onReconnect,
+  });
 }

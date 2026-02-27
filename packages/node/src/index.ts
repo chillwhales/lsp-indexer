@@ -132,7 +132,11 @@ export { issuedAssetKeys } from './keys/issued-assets';
 export { GetIssuedAssetsDocument } from './documents/issued-assets';
 
 // Encrypted asset services (the core fetching layer)
-export { buildEncryptedAssetIncludeVars, fetchEncryptedAssets } from './services/encrypted-assets';
+export {
+  buildEncryptedAssetIncludeVars,
+  buildEncryptedAssetWhere,
+  fetchEncryptedAssets,
+} from './services/encrypted-assets';
 export type { FetchEncryptedAssetsResult } from './services/encrypted-assets';
 
 // Encrypted asset parsers (Hasura → clean types)
@@ -142,11 +146,15 @@ export { parseEncryptedAsset, parseEncryptedAssets } from './parsers/encrypted-a
 export { encryptedAssetKeys } from './keys/encrypted-assets';
 
 // Encrypted asset GraphQL documents (for advanced usage / custom queries)
-export { GetEncryptedAssetsDocument } from './documents/encrypted-assets';
+export {
+  EncryptedAssetSubscriptionDocument,
+  GetEncryptedAssetsDocument,
+} from './documents/encrypted-assets';
 
 // Data changed event services (the core fetching layer)
 export {
   buildDataChangedEventIncludeVars,
+  buildDataChangedEventWhere,
   fetchDataChangedEvents,
   fetchLatestDataChangedEvent,
 } from './services/data-changed-events';
@@ -159,7 +167,10 @@ export { parseDataChangedEvent, parseDataChangedEvents } from './parsers/data-ch
 export { dataChangedEventKeys } from './keys/data-changed-events';
 
 // Data changed event GraphQL documents (for advanced usage / custom queries)
-export { GetDataChangedEventsDocument } from './documents/data-changed-events';
+export {
+  DataChangedEventSubscriptionDocument,
+  GetDataChangedEventsDocument,
+} from './documents/data-changed-events';
 
 // Token ID data changed event services (the core fetching layer)
 export {
