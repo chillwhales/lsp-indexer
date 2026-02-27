@@ -146,6 +146,9 @@ export function useSubscription<TParsed>(
   const queryClientRef = useRef(queryClient);
   queryClientRef.current = queryClient;
 
+  const parserRef = useRef(parser);
+  parserRef.current = parser;
+
   // Stable variables string to avoid object reference churn in effect deps
   const stableVariables = JSON.stringify(variables);
 
@@ -174,7 +177,7 @@ export function useSubscription<TParsed>(
           if (!rawData || !Array.isArray(rawData)) return;
 
           try {
-            const parsed = parser(rawData);
+            const parsed = parserRef.current(rawData);
             setData(parsed);
             setError(null);
 

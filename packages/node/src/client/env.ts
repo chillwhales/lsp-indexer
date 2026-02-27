@@ -138,10 +138,14 @@ export function getClientWsUrlOrDerive(): string {
       new URL(wsUrl);
       return wsUrl;
     } catch {
-      // Invalid WS URL — fall through to derivation
+      throw new IndexerError({
+        category: 'CONFIGURATION',
+        code: 'INVALID_URL',
+        message: `NEXT_PUBLIC_INDEXER_WS_URL is not a valid URL: "${wsUrl}". Expected a full URL like wss://indexer.example.com/v1/graphql.`,
+      });
     }
   }
-  // Derive from HTTP URL (getClientUrl throws if not set)
+  // No explicit WS URL — derive from HTTP URL (getClientUrl throws if not set)
   const httpUrl = getClientUrl();
   return httpUrl.replace(/^https:\/\//, 'wss://').replace(/^http:\/\//, 'ws://');
 }
