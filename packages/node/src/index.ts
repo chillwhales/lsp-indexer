@@ -106,7 +106,7 @@ export { followerKeys } from './keys/followers';
 export { GetFollowCountDocument, GetFollowersDocument } from './documents/followers';
 
 // Creator services (the core fetching layer)
-export { buildCreatorIncludeVars, fetchCreators } from './services/creators';
+export { buildCreatorIncludeVars, buildCreatorWhere, fetchCreators } from './services/creators';
 export type { FetchCreatorsResult } from './services/creators';
 
 // Creator parsers (Hasura → clean types)
@@ -116,7 +116,7 @@ export { parseCreator, parseCreators } from './parsers/creators';
 export { creatorKeys } from './keys/creators';
 
 // Creator GraphQL documents (for advanced usage / custom queries)
-export { GetCreatorsDocument } from './documents/creators';
+export { CreatorSubscriptionDocument, GetCreatorsDocument } from './documents/creators';
 
 // Issued asset services (the core fetching layer)
 export { buildIssuedAssetIncludeVars, fetchIssuedAssets } from './services/issued-assets';
