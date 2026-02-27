@@ -4,21 +4,52 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useSubscriptionClient } from './context';
 
 /**
+ * Safely extract `{ message, extensions }` from an unknown GraphQL error object.
+ * graphql-ws types subscription errors as `unknown` to avoid DOM deps,
+ * so we narrow with runtime checks instead of type assertions.
+ */
+function toGraphQLError(e: unknown): {
+  message: string;
+  extensions: Record<string, unknown> | undefined;
+} {
+  if (typeof e !== 'object' || e === null) {
+    return { message: String(e), extensions: undefined };
+  }
+  const message = 'message' in e && typeof e.message === 'string' ? e.message : String(e);
+  let extensions: Record<string, unknown> | undefined;
+  if (
+    'extensions' in e &&
+    typeof e.extensions === 'object' &&
+    e.extensions !== null &&
+    !Array.isArray(e.extensions)
+  ) {
+    // e.extensions is narrowed to `object` here; spread into a fresh record
+    // to satisfy the Record<string, unknown> constraint without assertions.
+    extensions = Object.fromEntries(Object.entries(e.extensions));
+  }
+  return { message, extensions };
+}
+
+/**
  * Options for the generic useSubscription hook.
  *
  * This is the core engine that all domain subscription hooks wrap.
  * Domain hooks provide the document, dataKey, parser, and variables —
  * useSubscription handles the WebSocket lifecycle.
  */
-export interface UseSubscriptionOptions<TRaw, TParsed> {
+export interface UseSubscriptionOptions<TParsed> {
   /** GraphQL subscription document string */
   document: string;
   /** The key in the GraphQL response object (e.g., 'universal_profile') */
   dataKey: string;
   /** GraphQL variables (where, order_by, limit) */
   variables: Record<string, unknown>;
-  /** Parser function to transform raw Hasura data to clean types */
-  parser: (raw: TRaw[]) => TParsed[];
+  /**
+   * Parser function to transform raw Hasura data to clean types.
+   * Receives `unknown[]` because the GraphQL response is untyped at runtime;
+   * the parser is responsible for validating/coercing each element.
+   */
+  parser: (raw: unknown[]) => TParsed[];
   /** Enable/disable the subscription (default: true) */
   enabled?: boolean;
   /** Whether to invalidate TanStack Query cache on data (default: false) */
@@ -70,8 +101,8 @@ export interface UseSubscriptionReturn<T> {
  * });
  * ```
  */
-export function useSubscription<TRaw, TParsed>(
-  options: UseSubscriptionOptions<TRaw, TParsed>,
+export function useSubscription<TParsed>(
+  options: UseSubscriptionOptions<TParsed>,
 ): UseSubscriptionReturn<TParsed> {
   const {
     document,
@@ -136,14 +167,14 @@ export function useSubscription<TRaw, TParsed>(
     const cleanup = client.executeSubscription(
       { query: document, variables: JSON.parse(stableVariables) },
       {
-        next(result: { data?: Record<string, unknown> | null }) {
+        next(result) {
           if (cancelled) return;
 
           const rawData = result.data?.[dataKey];
           if (!rawData || !Array.isArray(rawData)) return;
 
           try {
-            const parsed = parser(rawData as TRaw[]);
+            const parsed = parser(rawData);
             setData(parsed);
             setError(null);
 
@@ -153,7 +184,7 @@ export function useSubscription<TRaw, TParsed>(
             // Cache invalidation
             if (invalidateRef.current && queryClientRef.current && invalidateKeysRef.current) {
               for (const key of invalidateKeysRef.current) {
-                queryClientRef.current.invalidateQueries({ queryKey: key as unknown[] });
+                queryClientRef.current.invalidateQueries({ queryKey: [...key] });
               }
             }
           } catch (parseError) {
@@ -176,21 +207,7 @@ export function useSubscription<TRaw, TParsed>(
             setError(rawError);
           } else if (Array.isArray(rawError)) {
             // GraphQL errors array
-            setError(
-              IndexerError.fromGraphQLErrors(
-                rawError.map((e: unknown) => ({
-                  message:
-                    typeof e === 'object' && e !== null && 'message' in e
-                      ? String((e as { message: unknown }).message)
-                      : String(e),
-                  extensions:
-                    typeof e === 'object' && e !== null && 'extensions' in e
-                      ? (e as { extensions: Record<string, unknown> }).extensions
-                      : undefined,
-                })),
-                document,
-              ),
-            );
+            setError(IndexerError.fromGraphQLErrors(rawError.map(toGraphQLError), document));
           } else {
             setError(
               new IndexerError({
@@ -231,7 +248,7 @@ export function useSubscription<TRaw, TParsed>(
       // Invalidate caches on reconnect (stale after disconnect)
       if (invalidateRef.current && queryClientRef.current && invalidateKeysRef.current) {
         for (const key of invalidateKeysRef.current) {
-          queryClientRef.current.invalidateQueries({ queryKey: key as unknown[] });
+          queryClientRef.current.invalidateQueries({ queryKey: [...key] });
         }
       }
     });

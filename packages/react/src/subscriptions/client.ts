@@ -1,5 +1,5 @@
 import { getClientWsUrlOrDerive } from '@lsp-indexer/node';
-import type { Client, Sink, SubscribePayload } from 'graphql-ws';
+import type { Client, FormattedExecutionResult, Sink, SubscribePayload } from 'graphql-ws';
 import { createClient } from 'graphql-ws';
 
 /**
@@ -87,15 +87,15 @@ export class SubscriptionClient {
    * Creates the graphql-ws client lazily on first call.
    *
    * @param payload - GraphQL subscription payload (query + variables)
-   * @param sink - Sink to receive next/error/complete events
+   * @param sink - Sink to receive next/error/complete events (FormattedExecutionResult from graphql-ws)
    * @returns Cleanup function to unsubscribe
    */
-  executeSubscription<TData = Record<string, unknown>>(
+  executeSubscription<Data = Record<string, unknown>, Extensions = unknown>(
     payload: SubscribePayload,
-    sink: Sink<TData>,
+    sink: Sink<FormattedExecutionResult<Data, Extensions>>,
   ): () => void {
     const client = this.getOrCreateClient();
-    return client.subscribe(payload, sink as unknown as Sink);
+    return client.subscribe(payload, sink);
   }
 
   /** Dispose of the WebSocket client and reset state */
@@ -110,6 +110,17 @@ export class SubscriptionClient {
   // ---------------------------------------------------------------------------
   // Private
   // ---------------------------------------------------------------------------
+
+  /**
+   * Extract the close code from a WebSocket close event.
+   * graphql-ws types `EventClosedListener` event as `unknown` to avoid DOM deps.
+   */
+  private static getCloseCode(event: unknown): number | undefined {
+    if (typeof event !== 'object' || event === null || !('code' in event)) {
+      return undefined;
+    }
+    return typeof event.code === 'number' ? event.code : undefined;
+  }
 
   private getOrCreateClient(): Client {
     if (this.wsClient) return this.wsClient;
@@ -133,7 +144,7 @@ export class SubscriptionClient {
           this.setState('connected');
         },
         closed: (event) => {
-          const closeCode = (event as { code?: number })?.code;
+          const closeCode = SubscriptionClient.getCloseCode(event);
           if (closeCode !== 1000) {
             this.abruptlyClosed = true;
           }
