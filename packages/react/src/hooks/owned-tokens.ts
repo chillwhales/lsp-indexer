@@ -1,18 +1,39 @@
-import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import type {
+  InfiniteData,
+  QueryClient,
+  UseInfiniteQueryResult,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useMemo } from "react";
 
-import type { FetchOwnedTokensResult } from '@lsp-indexer/node';
-import { fetchOwnedToken, fetchOwnedTokens, getClientUrl, ownedTokenKeys } from '@lsp-indexer/node';
+import type { FetchOwnedTokensResult } from "@lsp-indexer/node";
+import {
+  buildOwnedTokenWhere,
+  fetchOwnedToken,
+  fetchOwnedTokens,
+  getClientUrl,
+  OwnedTokenSubscriptionDocument,
+  ownedTokenKeys,
+  parseOwnedTokens,
+} from "@lsp-indexer/node";
 import type {
   OwnedToken,
+  OwnedTokenFilter,
   OwnedTokenInclude,
   OwnedTokenResult,
   PartialOwnedToken,
   UseInfiniteOwnedTokensParams,
   UseOwnedTokenParams,
   UseOwnedTokensParams,
-} from '@lsp-indexer/types';
+} from "@lsp-indexer/types";
+
+import type { UseSubscriptionReturn } from "../subscriptions/use-subscription";
+import { useSubscription } from "../subscriptions/use-subscription";
 
 /** Default number of owned tokens per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -20,24 +41,24 @@ const DEFAULT_PAGE_SIZE = 20;
 /** Flat return shape for useOwnedToken — ownedToken + query state */
 type UseOwnedTokenReturn<F> = { ownedToken: F | null } & Omit<
   UseQueryResult<F | null, Error>,
-  'data'
+  "data"
 >;
 
 /** Flat return shape for useOwnedTokens — ownedTokens array + totalCount + query state */
 type UseOwnedTokensReturn<F> = { ownedTokens: F[]; totalCount: number } & Omit<
   UseQueryResult<FetchOwnedTokensResult<F>, Error>,
-  'data'
+  "data"
 >;
 
 /** Flat return shape for useInfiniteOwnedTokens — ownedTokens array + infinite scroll controls + query state */
 type UseInfiniteOwnedTokensReturn<F> = {
   ownedTokens: F[];
   hasNextPage: boolean;
-  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  fetchNextPage: UseInfiniteQueryResult["fetchNextPage"];
   isFetchingNextPage: boolean;
 } & Omit<
   UseInfiniteQueryResult<InfiniteData<FetchOwnedTokensResult<F>>, Error>,
-  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+  "data" | "hasNextPage" | "fetchNextPage" | "isFetchingNextPage"
 >;
 
 /**
@@ -76,7 +97,7 @@ export function useOwnedToken<const I extends OwnedTokenInclude>(
   params: UseOwnedTokenParams & { include: I },
 ): UseOwnedTokenReturn<OwnedTokenResult<I>>;
 export function useOwnedToken(
-  params: Omit<UseOwnedTokenParams, 'include'> & { include?: never },
+  params: Omit<UseOwnedTokenParams, "include"> & { include?: never },
 ): UseOwnedTokenReturn<OwnedToken>;
 export function useOwnedToken(
   params: UseOwnedTokenParams & { include?: OwnedTokenInclude },
@@ -89,7 +110,10 @@ export function useOwnedToken(
 
   const { data, ...rest } = useQuery({
     queryKey: ownedTokenKeys.detail(id, include),
-    queryFn: () => (include ? fetchOwnedToken(url, { id, include }) : fetchOwnedToken(url, { id })),
+    queryFn: () =>
+      include
+        ? fetchOwnedToken(url, { id, include })
+        : fetchOwnedToken(url, { id }),
     enabled: Boolean(id),
   });
 
@@ -135,7 +159,7 @@ export function useOwnedTokens<const I extends OwnedTokenInclude>(
   params: UseOwnedTokensParams & { include: I },
 ): UseOwnedTokensReturn<OwnedTokenResult<I>>;
 export function useOwnedTokens(
-  params?: Omit<UseOwnedTokensParams, 'include'> & { include?: never },
+  params?: Omit<UseOwnedTokensParams, "include"> & { include?: never },
 ): UseOwnedTokensReturn<OwnedToken>;
 export function useOwnedTokens(
   params: UseOwnedTokensParams & { include?: OwnedTokenInclude },
@@ -206,7 +230,7 @@ export function useInfiniteOwnedTokens<const I extends OwnedTokenInclude>(
   params: UseInfiniteOwnedTokensParams & { include: I },
 ): UseInfiniteOwnedTokensReturn<OwnedTokenResult<I>>;
 export function useInfiniteOwnedTokens(
-  params?: Omit<UseInfiniteOwnedTokensParams, 'include'> & { include?: never },
+  params?: Omit<UseInfiniteOwnedTokensParams, "include"> & { include?: never },
 ): UseInfiniteOwnedTokensReturn<OwnedToken>;
 export function useInfiniteOwnedTokens(
   params: UseInfiniteOwnedTokensParams & { include?: OwnedTokenInclude },
@@ -247,7 +271,8 @@ export function useInfiniteOwnedTokens(
 
   // Flatten all pages into a single ownedTokens array (memoized to avoid re-flattening on every render)
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
-  const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } =
+    result;
   const ownedTokens = useMemo(
     () => data?.pages.flatMap((page) => page.ownedTokens) ?? [],
     [data?.pages],
@@ -260,4 +285,96 @@ export function useInfiniteOwnedTokens(
     isFetchingNextPage,
     ...rest,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription hook
+// ---------------------------------------------------------------------------
+
+const DEFAULT_SUBSCRIPTION_LIMIT = 10;
+
+interface UseOwnedTokenSubscriptionParams {
+  /** Filter criteria to narrow which owned tokens to subscribe to */
+  filter?: OwnedTokenFilter;
+  /** Maximum number of results per subscription update (default: 10) */
+  limit?: number;
+  /** Whether the subscription is active (default: true) */
+  enabled?: boolean;
+  /** Whether to invalidate TanStack Query cache on subscription data (default: false) */
+  invalidate?: boolean;
+  /** Callback fired when new subscription data arrives */
+  onData?: (data: OwnedToken[]) => void;
+  /** Callback fired when the WebSocket reconnects after a disconnect */
+  onReconnect?: () => void;
+}
+
+/**
+ * Subscribe to real-time owned token updates via WebSocket.
+ *
+ * Wraps the generic `useSubscription` hook with owned-token-specific document,
+ * parser, and filter logic. Mirrors `useOwnedTokens` query behavior
+ * but receives live updates instead of polling.
+ *
+ * @param params - Optional filter, limit, and callback config
+ * @returns `{ data, isConnected, isSubscribed, error }` — subscription state
+ *
+ * @example
+ * ```tsx
+ * import { useOwnedTokenSubscription } from '@lsp-indexer/react';
+ *
+ * function LiveOwnedTokens({ holderAddress }: { holderAddress: string }) {
+ *   const { data: ownedTokens, isConnected } = useOwnedTokenSubscription({
+ *     filter: { holderAddress },
+ *     limit: 10,
+ *   });
+ *
+ *   return (
+ *     <div>
+ *       <span>{isConnected ? 'Connected' : 'Disconnected'}</span>
+ *       {ownedTokens?.map((t) => (
+ *         <div key={t.id}>{t.digitalAssetAddress} — {t.tokenId}</div>
+ *       ))}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+export function useOwnedTokenSubscription(
+  params: UseOwnedTokenSubscriptionParams = {},
+): UseSubscriptionReturn<OwnedToken> {
+  const {
+    filter,
+    limit = DEFAULT_SUBSCRIPTION_LIMIT,
+    enabled = true,
+    invalidate = false,
+    onData,
+    onReconnect,
+  } = params;
+
+  const where = buildOwnedTokenWhere(filter);
+
+  let queryClient: QueryClient | undefined;
+  try {
+    queryClient = useQueryClient();
+  } catch {
+    // No QueryClientProvider — cache invalidation won't work but hook still functions
+  }
+
+  return useSubscription({
+    document: OwnedTokenSubscriptionDocument,
+    dataKey: "owned_token",
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: undefined,
+      limit,
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parser: (raw: any[]) => parseOwnedTokens(raw),
+    enabled,
+    invalidate,
+    invalidateKeys: invalidate ? [ownedTokenKeys.all] : undefined,
+    queryClient: invalidate ? queryClient : undefined,
+    onData,
+    onReconnect,
+  });
 }

@@ -75,7 +75,7 @@ export { ownedAssetKeys } from './keys/owned-assets';
 export { GetOwnedAssetDocument, GetOwnedAssetsDocument } from './documents/owned-assets';
 
 // Owned token services (the core fetching layer)
-export { fetchOwnedToken, fetchOwnedTokens } from './services/owned-tokens';
+export { buildOwnedTokenWhere, fetchOwnedToken, fetchOwnedTokens } from './services/owned-tokens';
 export type { FetchOwnedTokensResult } from './services/owned-tokens';
 
 // Owned token parsers (Hasura → clean types)
@@ -85,7 +85,7 @@ export { parseOwnedToken, parseOwnedTokens } from './parsers/owned-tokens';
 export { ownedTokenKeys } from './keys/owned-tokens';
 
 // Owned token GraphQL documents (for advanced usage / custom queries)
-export { GetOwnedTokenDocument, GetOwnedTokensDocument } from './documents/owned-tokens';
+export { GetOwnedTokenDocument, GetOwnedTokensDocument, OwnedTokenSubscriptionDocument } from './documents/owned-tokens';
 
 // Follower services (the core fetching layer)
 export {

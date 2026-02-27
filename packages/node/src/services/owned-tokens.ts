@@ -37,7 +37,7 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
  * All string fields use `_ilike` + `escapeLike` for case-insensitive matching
  * (EIP-55 mixed-case address prevention).
  */
-function buildOwnedTokenWhere(filter?: OwnedTokenFilter): Owned_Token_Bool_Exp {
+export function buildOwnedTokenWhere(filter?: OwnedTokenFilter): Owned_Token_Bool_Exp {
   if (!filter) return {};
 
   const conditions: Owned_Token_Bool_Exp[] = [];
