@@ -1,23 +1,31 @@
 import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { FetchTokenIdDataChangedEventsResult } from '@lsp-indexer/node';
 import {
+  TokenIdDataChangedEventSubscriptionDocument,
+  buildTokenIdDataChangedEventIncludeVars,
+  buildTokenIdDataChangedEventWhere,
   fetchLatestTokenIdDataChangedEvent,
   fetchTokenIdDataChangedEvents,
   getClientUrl,
+  parseTokenIdDataChangedEvents,
   tokenIdDataChangedEventKeys,
 } from '@lsp-indexer/node';
 import type {
   PartialTokenIdDataChangedEvent,
   TokenIdDataChangedEvent,
+  TokenIdDataChangedEventFilter,
   TokenIdDataChangedEventInclude,
   TokenIdDataChangedEventResult,
   UseInfiniteTokenIdDataChangedEventsParams,
   UseLatestTokenIdDataChangedEventParams,
   UseTokenIdDataChangedEventsParams,
 } from '@lsp-indexer/types';
+
+import type { UseSubscriptionReturn } from '../subscriptions/use-subscription';
+import { useSubscription } from '../subscriptions/use-subscription';
 
 /** Default number of token ID data changed events per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -279,4 +287,74 @@ export function useInfiniteTokenIdDataChangedEvents(
     isFetchingNextPage,
     ...rest,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription hook
+// ---------------------------------------------------------------------------
+
+/** Default number of token ID data changed events for subscription queries */
+const DEFAULT_SUBSCRIPTION_LIMIT = 10;
+
+/** Options for useTokenIdDataChangedEventSubscription */
+interface UseTokenIdDataChangedEventSubscriptionOptions {
+  filter?: TokenIdDataChangedEventFilter;
+  include?: TokenIdDataChangedEventInclude;
+  limit?: number;
+  enabled?: boolean;
+  invalidate?: boolean;
+  onData?: (data: PartialTokenIdDataChangedEvent[]) => void;
+  onReconnect?: () => void;
+}
+
+/**
+ * Subscribe to real-time token ID data changed event updates via WebSocket.
+ *
+ * Wraps the generic `useSubscription` hook with token ID data changed event-specific
+ * document, parser, and query key invalidation.
+ *
+ * @param options - Subscription options (filter, include, limit, enabled, callbacks)
+ * @returns `{ data, isConnected, isSubscribed, error }` — subscription state
+ */
+export function useTokenIdDataChangedEventSubscription(
+  options: UseTokenIdDataChangedEventSubscriptionOptions = {},
+): UseSubscriptionReturn<PartialTokenIdDataChangedEvent> {
+  const {
+    filter,
+    include,
+    limit = DEFAULT_SUBSCRIPTION_LIMIT,
+    enabled,
+    invalidate,
+    onData,
+    onReconnect,
+  } = options;
+
+  const where = buildTokenIdDataChangedEventWhere(filter);
+  const includeVars = buildTokenIdDataChangedEventIncludeVars(include);
+
+  let queryClient;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    queryClient = useQueryClient();
+  } catch {
+    // No QueryClientProvider — invalidation will be skipped
+  }
+
+  return useSubscription({
+    document: TokenIdDataChangedEventSubscriptionDocument,
+    dataKey: 'token_id_data_changed',
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: [{ block_number: 'desc' }, { transaction_index: 'desc' }, { log_index: 'desc' }],
+      limit,
+      ...includeVars,
+    },
+    parser: (raw: any[]) => parseTokenIdDataChangedEvents(raw),
+    enabled,
+    invalidate,
+    invalidateKeys: [tokenIdDataChangedEventKeys.all],
+    queryClient,
+    onData,
+    onReconnect,
+  });
 }

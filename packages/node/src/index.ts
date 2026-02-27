@@ -164,6 +164,7 @@ export { GetDataChangedEventsDocument } from './documents/data-changed-events';
 // Token ID data changed event services (the core fetching layer)
 export {
   buildTokenIdDataChangedEventIncludeVars,
+  buildTokenIdDataChangedEventWhere,
   fetchLatestTokenIdDataChangedEvent,
   fetchTokenIdDataChangedEvents,
 } from './services/token-id-data-changed-events';
@@ -179,7 +180,10 @@ export {
 export { tokenIdDataChangedEventKeys } from './keys/token-id-data-changed-events';
 
 // Token ID data changed event GraphQL documents (for advanced usage / custom queries)
-export { GetTokenIdDataChangedEventsDocument } from './documents/token-id-data-changed-events';
+export {
+  GetTokenIdDataChangedEventsDocument,
+  TokenIdDataChangedEventSubscriptionDocument,
+} from './documents/token-id-data-changed-events';
 
 // Universal receiver event services (the core fetching layer)
 export {
