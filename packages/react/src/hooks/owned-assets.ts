@@ -1,11 +1,21 @@
 import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { FetchOwnedAssetsResult } from '@lsp-indexer/node';
-import { fetchOwnedAsset, fetchOwnedAssets, getClientUrl, ownedAssetKeys } from '@lsp-indexer/node';
+import {
+  buildOwnedAssetIncludeVars,
+  buildOwnedAssetWhere,
+  fetchOwnedAsset,
+  fetchOwnedAssets,
+  getClientUrl,
+  ownedAssetKeys,
+  OwnedAssetSubscriptionDocument,
+  parseOwnedAssets,
+} from '@lsp-indexer/node';
 import type {
   OwnedAsset,
+  OwnedAssetFilter,
   OwnedAssetInclude,
   OwnedAssetResult,
   PartialOwnedAsset,
@@ -13,6 +23,9 @@ import type {
   UseOwnedAssetParams,
   UseOwnedAssetsParams,
 } from '@lsp-indexer/types';
+
+import type { UseSubscriptionReturn } from '../subscriptions/use-subscription';
+import { useSubscription } from '../subscriptions/use-subscription';
 
 /** Default number of owned assets per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -259,4 +272,101 @@ export function useInfiniteOwnedAssets(
     isFetchingNextPage,
     ...rest,
   };
+}
+// ---------------------------------------------------------------------------
+// Subscription hook
+// ---------------------------------------------------------------------------
+
+/** Default limit for owned asset subscriptions */
+const DEFAULT_SUBSCRIPTION_LIMIT = 10;
+
+/** Options for `useOwnedAssetSubscription` */
+export interface UseOwnedAssetSubscriptionParams {
+  /** Filter conditions (translated to Hasura `where` via `buildOwnedAssetWhere`) */
+  filter?: OwnedAssetFilter;
+  /** Include configuration for nested fields */
+  include?: OwnedAssetInclude;
+  /** Maximum number of owned assets to receive (default: 10) */
+  limit?: number;
+  /** Enable/disable the subscription (default: true) */
+  enabled?: boolean;
+  /** Whether to invalidate TanStack Query cache on data (default: false) */
+  invalidate?: boolean;
+  /** Callback when new data arrives */
+  onData?: (data: OwnedAsset[]) => void;
+  /** Callback on WebSocket reconnect */
+  onReconnect?: () => void;
+}
+
+/**
+ * Subscribe to real-time owned asset updates via WebSocket.
+ *
+ * Wraps the generic `useSubscription` hook with owned-asset-specific document,
+ * parser, and variable builders. Optionally invalidates TanStack Query
+ * caches when new data arrives.
+ *
+ * @param params - Subscription parameters (filter, include, limit, callbacks)
+ * @returns `{ data, isConnected, isSubscribed, error }` — subscription state
+ *
+ * @example
+ * ```tsx
+ * import { useOwnedAssetSubscription } from '@lsp-indexer/react';
+ *
+ * function LiveOwnedAssets({ owner }: { owner: string }) {
+ *   const { data: ownedAssets, isConnected } = useOwnedAssetSubscription({
+ *     filter: { holderAddress: owner },
+ *     limit: 20,
+ *   });
+ *
+ *   if (!ownedAssets) return <p>Waiting for data…</p>;
+ *   return (
+ *     <ul>
+ *       {ownedAssets.map((a) => (
+ *         <li key={a.id}>{a.address} — {a.balance?.toString()}</li>
+ *       ))}
+ *     </ul>
+ *   );
+ * }
+ * ```
+ */
+export function useOwnedAssetSubscription(
+  params: UseOwnedAssetSubscriptionParams = {},
+): UseSubscriptionReturn<OwnedAsset> {
+  const {
+    filter,
+    include,
+    limit = DEFAULT_SUBSCRIPTION_LIMIT,
+    enabled,
+    invalidate,
+    onData,
+    onReconnect,
+  } = params;
+
+  // Try to get QueryClient — may not be available if no QueryClientProvider wraps the tree
+  let queryClient: ReturnType<typeof useQueryClient> | undefined;
+  try {
+    queryClient = useQueryClient();
+  } catch {
+    // No QueryClientProvider — cache invalidation will be skipped
+  }
+
+  const where = buildOwnedAssetWhere(filter);
+  const includeVars = buildOwnedAssetIncludeVars(include as never);
+
+  return useSubscription({
+    document: OwnedAssetSubscriptionDocument,
+    dataKey: "owned_asset",
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      limit,
+      ...includeVars,
+    },
+    parser: (raw: any[]) => parseOwnedAssets(raw),
+    enabled,
+    invalidate,
+    invalidateKeys: [ownedAssetKeys.all],
+    onData,
+    onReconnect,
+    queryClient,
+  });
 }

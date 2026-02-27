@@ -60,6 +60,7 @@ export { GetNftDocument, GetNftsDocument } from './documents/nfts';
 // Owned asset services (the core fetching layer)
 export {
   buildOwnedAssetIncludeVars,
+  buildOwnedAssetWhere,
   fetchOwnedAsset,
   fetchOwnedAssets,
 } from './services/owned-assets';
@@ -72,7 +73,7 @@ export { parseOwnedAsset, parseOwnedAssets } from './parsers/owned-assets';
 export { ownedAssetKeys } from './keys/owned-assets';
 
 // Owned asset GraphQL documents (for advanced usage / custom queries)
-export { GetOwnedAssetDocument, GetOwnedAssetsDocument } from './documents/owned-assets';
+export { GetOwnedAssetDocument, GetOwnedAssetsDocument, OwnedAssetSubscriptionDocument } from './documents/owned-assets';
 
 // Owned token services (the core fetching layer)
 export { fetchOwnedToken, fetchOwnedTokens } from './services/owned-tokens';
