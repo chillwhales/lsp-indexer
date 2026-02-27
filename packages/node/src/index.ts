@@ -119,7 +119,7 @@ export { creatorKeys } from './keys/creators';
 export { GetCreatorsDocument } from './documents/creators';
 
 // Issued asset services (the core fetching layer)
-export { buildIssuedAssetIncludeVars, fetchIssuedAssets } from './services/issued-assets';
+export { buildIssuedAssetIncludeVars, buildIssuedAssetWhere, fetchIssuedAssets } from './services/issued-assets';
 export type { FetchIssuedAssetsResult } from './services/issued-assets';
 
 // Issued asset parsers (Hasura → clean types)
@@ -129,7 +129,7 @@ export { parseIssuedAsset, parseIssuedAssets } from './parsers/issued-assets';
 export { issuedAssetKeys } from './keys/issued-assets';
 
 // Issued asset GraphQL documents (for advanced usage / custom queries)
-export { GetIssuedAssetsDocument } from './documents/issued-assets';
+export { GetIssuedAssetsDocument, IssuedAssetSubscriptionDocument } from './documents/issued-assets';
 
 // Encrypted asset services (the core fetching layer)
 export { buildEncryptedAssetIncludeVars, fetchEncryptedAssets } from './services/encrypted-assets';

@@ -1,17 +1,34 @@
-import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import type {
+  InfiniteData,
+  QueryClient,
+  UseInfiniteQueryResult,
+  UseQueryResult,
+} from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { FetchIssuedAssetsResult } from '@lsp-indexer/node';
-import { fetchIssuedAssets, getClientUrl, issuedAssetKeys } from '@lsp-indexer/node';
+import {
+  buildIssuedAssetIncludeVars,
+  buildIssuedAssetWhere,
+  fetchIssuedAssets,
+  getClientUrl,
+  issuedAssetKeys,
+  IssuedAssetSubscriptionDocument,
+  parseIssuedAssets,
+} from '@lsp-indexer/node';
 import type {
   IssuedAsset,
+  IssuedAssetFilter,
   IssuedAssetInclude,
   IssuedAssetResult,
   PartialIssuedAsset,
   UseInfiniteIssuedAssetsParams,
   UseIssuedAssetsParams,
 } from '@lsp-indexer/types';
+
+import type { UseSubscriptionReturn } from '../subscriptions/use-subscription';
+import { useSubscription } from '../subscriptions/use-subscription';
 
 /** Default number of issued assets per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -200,4 +217,102 @@ export function useInfiniteIssuedAssets(
     isFetchingNextPage,
     ...rest,
   };
+}
+
+
+// ---------------------------------------------------------------------------
+// Subscription hook
+// ---------------------------------------------------------------------------
+
+const DEFAULT_SUBSCRIPTION_LIMIT = 10;
+
+interface UseIssuedAssetSubscriptionParams {
+  /** Filter criteria to narrow which issued assets to subscribe to */
+  filter?: IssuedAssetFilter;
+  /** Control which nested fields are included in subscription data */
+  include?: IssuedAssetInclude;
+  /** Maximum number of results per subscription update (default: 10) */
+  limit?: number;
+  /** Whether the subscription is active (default: true) */
+  enabled?: boolean;
+  /** Whether to invalidate TanStack Query cache on subscription data (default: false) */
+  invalidate?: boolean;
+  /** Callback fired when new subscription data arrives */
+  onData?: (data: IssuedAsset[]) => void;
+  /** Callback fired when the WebSocket reconnects after a disconnect */
+  onReconnect?: () => void;
+}
+
+/**
+ * Subscribe to real-time LSP12 issued asset updates via WebSocket.
+ *
+ * Wraps the generic `useSubscription` hook with issued asset-specific document,
+ * parser, and filter/include logic. Mirrors `useIssuedAssets` query behavior
+ * but receives live updates instead of polling.
+ *
+ * @param params - Optional filter, include, limit, and callback config
+ * @returns `{ data, isConnected, isSubscribed, error }` - subscription state
+ *
+ * @example
+ * ```tsx
+ * import { useIssuedAssetSubscription } from '@lsp-indexer/react';
+ *
+ * function LiveIssuedAssets() {
+ *   const { data: issuedAssets, isConnected } = useIssuedAssetSubscription({
+ *     filter: { issuerAddress: '0x...' },
+ *     limit: 5,
+ *   });
+ *
+ *   return (
+ *     <div>
+ *       <span>{isConnected ? 'connected' : 'disconnected'}</span>
+ *       {issuedAssets?.map((ia) => (
+ *         <div key={`${ia.issuerAddress}-${ia.assetAddress}`}>{ia.assetAddress}</div>
+ *       ))}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+export function useIssuedAssetSubscription(
+  params: UseIssuedAssetSubscriptionParams = {},
+): UseSubscriptionReturn<IssuedAsset> {
+  const {
+    filter,
+    include,
+    limit = DEFAULT_SUBSCRIPTION_LIMIT,
+    enabled = true,
+    invalidate = false,
+    onData,
+    onReconnect,
+  } = params;
+
+  const where = buildIssuedAssetWhere(filter);
+  const includeVars = buildIssuedAssetIncludeVars(include);
+
+  let queryClient: QueryClient | undefined;
+  try {
+    queryClient = useQueryClient();
+  } catch {
+    // No QueryClientProvider - cache invalidation won't work but hook still functions
+  }
+
+  return useSubscription({
+    document: IssuedAssetSubscriptionDocument,
+    dataKey: 'lsp12_issued_asset',
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: undefined,
+      limit,
+      ...includeVars,
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parser: (raw: any[]) => parseIssuedAssets(raw),
+    enabled,
+    invalidate,
+    invalidateKeys: invalidate ? [issuedAssetKeys.all] : undefined,
+    queryClient: invalidate ? queryClient : undefined,
+    onData,
+    onReconnect,
+  });
 }
