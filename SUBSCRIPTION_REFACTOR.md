@@ -141,6 +141,15 @@ interface SubscriptionSink {
 **Active Phase:** 3 - Domain Migration  
 **Next Step:** 3.1 - Add createProfilesSubscription() to node
 
+## Recent Improvements
+
+### ✅ Eliminated Code Duplication (Just Completed)
+
+- **Moved subscription instance to shared package**: `GenericSubscriptionInstance` in `@lsp-indexer/node`
+- **Removed duplicate classes**: `ReactSubscriptionInstance` and `NextSubscriptionInstance` (~140 lines eliminated)
+- **Added abstraction interface**: `SubscriptionClientExecutor` for client interaction
+- **Single source of truth**: All subscription state management now in one place
+
 ## Notes
 
 - This refactor affects existing subscription infrastructure in PR #227
