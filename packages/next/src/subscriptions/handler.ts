@@ -7,7 +7,7 @@ import WebSocket from 'ws';
  *
  * @example
  * ```ts
- * // Use defaults (reads INDEXER_WS_URL / NEXT_PUBLIC_INDEXER_WS_URL):
+ * // Use defaults (reads INDEXER_WS_URL, or derives from INDEXER_URL):
  * export const GET = createSubscriptionHandler();
  *
  * // Override WS URL:
@@ -18,7 +18,7 @@ interface SubscriptionHandlerOptions {
   /**
    * WebSocket URL for the Hasura GraphQL endpoint.
    * Defaults to `getServerWsUrl()` from `@lsp-indexer/node`
-   * (reads `INDEXER_WS_URL` / `NEXT_PUBLIC_INDEXER_WS_URL`).
+   * (reads `INDEXER_WS_URL`, or derives from `INDEXER_URL`).
    */
   wsUrl?: string;
 }
