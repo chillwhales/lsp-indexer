@@ -1,11 +1,21 @@
 import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { FetchNftsResult } from '@lsp-indexer/node';
-import { fetchNft, fetchNfts, getClientUrl, nftKeys } from '@lsp-indexer/node';
+import {
+  buildNftIncludeVars,
+  buildNftWhere,
+  fetchNft,
+  fetchNfts,
+  getClientUrl,
+  nftKeys,
+  NftSubscriptionDocument,
+  parseNfts,
+} from '@lsp-indexer/node';
 import type {
   Nft,
+  NftFilter,
   NftInclude,
   NftResult,
   PartialNft,
@@ -13,6 +23,9 @@ import type {
   UseNftParams,
   UseNftsParams,
 } from '@lsp-indexer/types';
+
+import type { UseSubscriptionReturn } from '../subscriptions/use-subscription';
+import { useSubscription } from '../subscriptions/use-subscription';
 
 /** Default number of NFTs per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -258,4 +271,101 @@ export function useInfiniteNfts(
     isFetchingNextPage,
     ...rest,
   };
+}
+// ---------------------------------------------------------------------------
+// Subscription hook
+// ---------------------------------------------------------------------------
+
+/** Default limit for NFT subscriptions */
+const DEFAULT_SUBSCRIPTION_LIMIT = 10;
+
+/** Options for `useNftSubscription` */
+export interface UseNftSubscriptionParams {
+  /** Filter conditions (translated to Hasura `where` via `buildNftWhere`) */
+  filter?: NftFilter;
+  /** Include configuration for nested fields */
+  include?: NftInclude;
+  /** Maximum number of NFTs to receive (default: 10) */
+  limit?: number;
+  /** Enable/disable the subscription (default: true) */
+  enabled?: boolean;
+  /** Whether to invalidate TanStack Query cache on data (default: false) */
+  invalidate?: boolean;
+  /** Callback when new data arrives */
+  onData?: (data: Nft[]) => void;
+  /** Callback on WebSocket reconnect */
+  onReconnect?: () => void;
+}
+
+/**
+ * Subscribe to real-time NFT updates via WebSocket.
+ *
+ * Wraps the generic `useSubscription` hook with NFT-specific document,
+ * parser, and variable builders. Optionally invalidates TanStack Query
+ * caches when new data arrives.
+ *
+ * @param params - Subscription parameters (filter, include, limit, callbacks)
+ * @returns `{ data, isConnected, isSubscribed, error }` — subscription state
+ *
+ * @example
+ * ```tsx
+ * import { useNftSubscription } from '@lsp-indexer/react';
+ *
+ * function LiveNfts({ collectionAddress }: { collectionAddress: string }) {
+ *   const { data: nfts, isConnected } = useNftSubscription({
+ *     filter: { collectionAddress },
+ *     limit: 20,
+ *   });
+ *
+ *   if (!nfts) return <p>Waiting for data…</p>;
+ *   return (
+ *     <ul>
+ *       {nfts.map((n) => (
+ *         <li key={n.id}>{n.name ?? n.tokenId}</li>
+ *       ))}
+ *     </ul>
+ *   );
+ * }
+ * ```
+ */
+export function useNftSubscription(
+  params: UseNftSubscriptionParams = {},
+): UseSubscriptionReturn<Nft> {
+  const {
+    filter,
+    include,
+    limit = DEFAULT_SUBSCRIPTION_LIMIT,
+    enabled,
+    invalidate,
+    onData,
+    onReconnect,
+  } = params;
+
+  // Try to get QueryClient — may not be available if no QueryClientProvider wraps the tree
+  let queryClient: ReturnType<typeof useQueryClient> | undefined;
+  try {
+    queryClient = useQueryClient();
+  } catch {
+    // No QueryClientProvider — cache invalidation will be skipped
+  }
+
+  const where = buildNftWhere(filter);
+  const includeVars = buildNftIncludeVars(include as never);
+
+  return useSubscription({
+    document: NftSubscriptionDocument,
+    dataKey: 'nft',
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      limit,
+      ...includeVars,
+    },
+    parser: (raw: any[]) => parseNfts(raw),
+    enabled,
+    invalidate,
+    invalidateKeys: [nftKeys.all],
+    onData,
+    onReconnect,
+    queryClient,
+  });
 }

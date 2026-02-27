@@ -45,7 +45,7 @@ export { digitalAssetKeys } from './keys/digital-assets';
 export { GetDigitalAssetDocument, GetDigitalAssetsDocument } from './documents/digital-assets';
 
 // NFT services (the core fetching layer)
-export { buildNftIncludeVars, fetchNft, fetchNfts } from './services/nfts';
+export { buildNftIncludeVars, buildNftWhere, fetchNft, fetchNfts } from './services/nfts';
 export type { FetchNftsResult } from './services/nfts';
 
 // NFT parsers (Hasura → clean types)
@@ -55,7 +55,7 @@ export { parseNft, parseNfts } from './parsers/nfts';
 export { nftKeys } from './keys/nfts';
 
 // NFT GraphQL documents (for advanced usage / custom queries)
-export { GetNftDocument, GetNftsDocument } from './documents/nfts';
+export { GetNftDocument, GetNftsDocument, NftSubscriptionDocument } from './documents/nfts';
 
 // Owned asset services (the core fetching layer)
 export {
