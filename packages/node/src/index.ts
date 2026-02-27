@@ -194,6 +194,8 @@ export { universalReceiverEventKeys } from './keys/universal-receiver-events';
 export { GetUniversalReceiverEventsDocument } from './documents/universal-receiver-events';
 
 // Subscription infrastructure (shared between React and Next)
+export { SubscriptionClient } from './subscriptions/client';
+export type { ConnectionState } from './subscriptions/client';
 export { GenericSubscriptionInstance } from './subscriptions/subscription-instance';
 export type { SubscriptionClientExecutor } from './subscriptions/subscription-instance';
 

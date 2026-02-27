@@ -1,4 +1,3 @@
-import { getClientWsUrl } from '@lsp-indexer/node';
 import type {
   SubscriptionClient as ISubscriptionClient,
   SubscriptionConfig,
@@ -7,6 +6,8 @@ import type {
 } from '@lsp-indexer/types';
 import type { Client, FormattedExecutionResult, Sink, SubscribePayload } from 'graphql-ws';
 import { createClient } from 'graphql-ws';
+import { getClientWsUrl } from '../client';
+import { GenericSubscriptionInstance, SubscriptionClientExecutor } from './subscription-instance';
 
 /**
  * WebSocket connection state for subscription client.
@@ -17,12 +18,8 @@ import { createClient } from 'graphql-ws';
  */
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 
-// Use the shared subscription instance from @lsp-indexer/node
-// This avoids code duplication between React and Next.js packages
-type ReactSubscriptionInstance<T> = GenericSubscriptionInstance<T>;
-
 /**
- * React WebSocket subscription client implementing the common SubscriptionClient interface.
+ * Base WebSocket subscription client implementing the common SubscriptionClient interface.
  *
  * Features:
  * 1. **Connection state tracking** — `disconnected` | `connecting` | `connected`
@@ -30,6 +27,9 @@ type ReactSubscriptionInstance<T> = GenericSubscriptionInstance<T>;
  * 3. **Reconnection detection** — fires callbacks when WebSocket reconnects after drop
  * 4. **Lazy connection** — WebSocket only connects on first subscription
  * 5. **Multiple subscription management** — each createSubscription() returns an independent instance
+ *
+ * This class is designed to be extended by React and Next.js specific implementations
+ * that can override URL and header generation.
  *
  * @example
  * ```ts
@@ -44,7 +44,7 @@ type ReactSubscriptionInstance<T> = GenericSubscriptionInstance<T>;
  */
 export class SubscriptionClient implements ISubscriptionClient, SubscriptionClientExecutor {
   private wsClient: Client | null = null;
-  private readonly url: string;
+  protected readonly url: string;
   private state: ConnectionState = 'disconnected';
   private listeners = new Set<() => void>();
   private reconnectCallbacks = new Set<() => void>();
@@ -53,7 +53,7 @@ export class SubscriptionClient implements ISubscriptionClient, SubscriptionClie
   private subscriptions = new Set<GenericSubscriptionInstance<any>>();
 
   constructor(url?: string) {
-    this.url = url ?? getClientWsUrl();
+    this.url = url ?? this.getConnectionUrl();
 
     // Bind methods for stable references (useSyncExternalStore needs stable function refs)
     this.subscribe = this.subscribe.bind(this);
@@ -123,7 +123,7 @@ export class SubscriptionClient implements ISubscriptionClient, SubscriptionClie
    * Execute a GraphQL subscription via the WebSocket connection.
    * Creates the graphql-ws client lazily on first call.
    *
-   * @internal Used by ReactSubscriptionInstance
+   * @internal Used by GenericSubscriptionInstance
    */
   executeSubscription<Data = Record<string, unknown>, Extensions = unknown>(
     payload: SubscribePayload,
@@ -152,6 +152,34 @@ export class SubscriptionClient implements ISubscriptionClient, SubscriptionClie
   }
 
   // ---------------------------------------------------------------------------
+  // Protected methods for subclasses to override
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Get the WebSocket URL for connections.
+   * Subclasses can override this to provide custom URLs (e.g., proxy URLs for Next.js).
+   */
+  protected getConnectionUrl(): string {
+    return getClientWsUrl();
+  }
+
+  /**
+   * Get the connection parameters for the WebSocket connection.
+   * Subclasses can override this to provide custom headers/auth (e.g., Next.js auth).
+   */
+  protected getConnectionParams(): Record<string, unknown> {
+    return {};
+  }
+
+  /**
+   * Transform the URL before creating the WebSocket connection.
+   * Subclasses can override this to convert relative URLs to absolute ones.
+   */
+  protected transformUrl(url: string): string {
+    return url;
+  }
+
+  // ---------------------------------------------------------------------------
   // Private
   // ---------------------------------------------------------------------------
 
@@ -169,8 +197,13 @@ export class SubscriptionClient implements ISubscriptionClient, SubscriptionClie
   private getOrCreateClient(): Client {
     if (this.wsClient) return this.wsClient;
 
+    const baseUrl = this.url;
+    const finalUrl = this.transformUrl(baseUrl);
+    const connectionParams = this.getConnectionParams();
+
     this.wsClient = createClient({
-      url: this.url,
+      url: finalUrl,
+      connectionParams,
       lazy: true,
       lazyCloseTimeout: 3000,
       retryAttempts: Infinity,
