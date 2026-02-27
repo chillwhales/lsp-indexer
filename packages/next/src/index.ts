@@ -1,3 +1,5 @@
+'use client';
+
 export * from './actions/creators';
 export * from './actions/data-changed-events';
 export * from './actions/digital-assets';

@@ -1,3 +1,5 @@
+'use client';
+
 import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
