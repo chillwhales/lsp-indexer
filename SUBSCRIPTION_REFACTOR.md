@@ -112,10 +112,10 @@ interface SubscriptionSink {
 
 ### Phase 1: Core Infrastructure ✋ **CURRENT**
 
-- [ ] **1.1** Create `SubscriptionClient` interface in `@lsp-indexer/types`
-- [ ] **1.2** Create generic `subscribe()` function in `@lsp-indexer/node`
-- [ ] **1.3** Update React `SubscriptionClient` to implement interface
-- [ ] **1.4** Create Next `SubscriptionClient` implementation
+- [x] **1.1** Create `SubscriptionClient` interface in `@lsp-indexer/types`
+- [x] **1.2** ~~Create generic `subscribe()` function in `@lsp-indexer/node`~~ **REVISED:** State management moved to SubscriptionClient
+- [ ] **1.3** Update React `SubscriptionClient` to implement new interface
+- [ ] **1.4** Update Next `SubscriptionClient` to implement new interface
 - [ ] **1.5** Create thin `useSubscription` wrappers in both packages
 
 ### Phase 2: Domain Migration

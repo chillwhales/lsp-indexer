@@ -12,22 +12,173 @@ import { createClient } from 'graphql-ws';
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 
 /**
- * Wrapper around `graphql-ws` `createClient` that adds:
+ * Individual subscription instance within the React SubscriptionClient.
+ * Manages state for a single subscription and provides React integration.
+ */
+class ReactSubscriptionInstance<T> implements SubscriptionInstance<T> {
+  private _data: T[] | null = null;
+  private _error: unknown = null;
+  private _isSubscribed = false;
+  private listeners = new Set<() => void>();
+  private cleanup: (() => void) | null = null;
+  private reconnectCleanup: (() => void) | null = null;
+
+  constructor(
+    private client: SubscriptionClient,
+    private config: SubscriptionConfig<T>,
+    private options: SubscriptionHookOptions<T> = {},
+  ) {
+    this.start();
+  }
+
+  get data(): T[] | null {
+    return this._data;
+  }
+
+  get error(): unknown {
+    return this._error;
+  }
+
+  get isSubscribed(): boolean {
+    return this._isSubscribed;
+  }
+
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  dispose(): void {
+    this.stop();
+    this.listeners.clear();
+  }
+
+  private start(): void {
+    if (!this.options.enabled && this.options.enabled !== undefined) return;
+
+    // Register reconnect callback
+    this.reconnectCleanup = this.client.onReconnect(() => {
+      this.options.onReconnect?.();
+    });
+
+    // Execute the subscription
+    this.cleanup = this.client.executeSubscription(
+      { query: this.config.document, variables: this.config.variables },
+      {
+        next: (result) => {
+          const rawData = result.data?.[this.config.dataKey];
+          if (!rawData || !Array.isArray(rawData)) return;
+
+          try {
+            const parsed = this.config.parser(rawData);
+            this.setData(parsed);
+            this.setError(null);
+            this.options.onData?.(parsed);
+          } catch (parseError) {
+            this.setError(
+              new IndexerError({
+                category: 'PARSE',
+                code: 'PARSE_FAILED',
+                message: `Failed to parse subscription data for "${this.config.dataKey}": ${
+                  parseError instanceof Error ? parseError.message : String(parseError)
+                }`,
+                originalError: parseError instanceof Error ? parseError : undefined,
+              }),
+            );
+          }
+        },
+        error: (rawError: unknown) => {
+          if (rawError instanceof IndexerError) {
+            this.setError(rawError);
+          } else if (Array.isArray(rawError)) {
+            // GraphQL errors array
+            this.setError(
+              IndexerError.fromGraphQLErrors(
+                rawError.map(IndexerError.narrowGraphQLError),
+                this.config.document,
+              ),
+            );
+          } else {
+            this.setError(
+              new IndexerError({
+                category: 'NETWORK',
+                code: 'NETWORK_UNKNOWN',
+                message: `Subscription error for "${this.config.dataKey}": ${
+                  rawError instanceof Error ? rawError.message : String(rawError)
+                }`,
+                originalError: rawError instanceof Error ? rawError : undefined,
+              }),
+            );
+          }
+          this.setSubscribed(false);
+        },
+        complete: () => {
+          this.setSubscribed(false);
+        },
+      },
+    );
+
+    this.setSubscribed(true);
+  }
+
+  private stop(): void {
+    this.cleanup?.();
+    this.cleanup = null;
+    this.reconnectCleanup?.();
+    this.reconnectCleanup = null;
+    this.setSubscribed(false);
+  }
+
+  private setData(newData: T[] | null): void {
+    if (this._data !== newData) {
+      this._data = newData;
+      this.notifyListeners();
+    }
+  }
+
+  private setError(newError: unknown): void {
+    if (this._error !== newError) {
+      this._error = newError;
+      this.notifyListeners();
+    }
+  }
+
+  private setSubscribed(subscribed: boolean): void {
+    if (this._isSubscribed !== subscribed) {
+      this._isSubscribed = subscribed;
+      this.notifyListeners();
+    }
+  }
+
+  private notifyListeners(): void {
+    for (const listener of this.listeners) {
+      listener();
+    }
+  }
+}
+
+/**
+ * React WebSocket subscription client implementing the common SubscriptionClient interface.
  *
+ * Features:
  * 1. **Connection state tracking** — `disconnected` | `connecting` | `connected`
  * 2. **useSyncExternalStore API** — `subscribe()` / `getSnapshot()` for React integration
  * 3. **Reconnection detection** — fires callbacks when WebSocket reconnects after drop
  * 4. **Lazy connection** — WebSocket only connects on first subscription
+ * 5. **Multiple subscription management** — each createSubscription() returns an independent instance
  *
  * @example
  * ```ts
  * const client = new SubscriptionClient('wss://indexer.example.com/v1/graphql');
  *
- * // Use with useSyncExternalStore
- * const state = useSyncExternalStore(client.subscribe, client.getSnapshot, client.getServerSnapshot);
+ * // Use with useSyncExternalStore for connection state
+ * const connectionState = useSyncExternalStore(client.subscribe, client.getSnapshot, client.getServerSnapshot);
+ *
+ * // Create individual subscriptions
+ * const subscription = client.createSubscription(config, options);
  * ```
  */
-export class SubscriptionClient {
+export class SubscriptionClient implements ISubscriptionClient {
   private wsClient: Client | null = null;
   private readonly url: string;
   private state: ConnectionState = 'disconnected';
@@ -35,6 +186,7 @@ export class SubscriptionClient {
   private reconnectCallbacks = new Set<() => void>();
   private abruptlyClosed = false;
   private hasConnectedBefore = false;
+  private subscriptions = new Set<ReactSubscriptionInstance<any>>();
 
   constructor(url?: string) {
     this.url = url ?? getClientWsUrl();
@@ -83,12 +235,31 @@ export class SubscriptionClient {
   }
 
   /**
+   * Create and start a subscription using this client's WebSocket transport.
+   * Returns a subscription instance that manages the subscription's state.
+   */
+  createSubscription<T>(
+    config: SubscriptionConfig<T>,
+    options?: SubscriptionHookOptions<T>,
+  ): SubscriptionInstance<T> {
+    const subscription = new ReactSubscriptionInstance(this, config, options);
+    this.subscriptions.add(subscription);
+
+    // Remove from set when disposed
+    const originalDispose = subscription.dispose.bind(subscription);
+    subscription.dispose = () => {
+      originalDispose();
+      this.subscriptions.delete(subscription);
+    };
+
+    return subscription;
+  }
+
+  /**
    * Execute a GraphQL subscription via the WebSocket connection.
    * Creates the graphql-ws client lazily on first call.
    *
-   * @param payload - GraphQL subscription payload (query + variables)
-   * @param sink - Sink to receive next/error/complete events (FormattedExecutionResult from graphql-ws)
-   * @returns Cleanup function to unsubscribe
+   * @internal Used by ReactSubscriptionInstance
    */
   executeSubscription<Data = Record<string, unknown>, Extensions = unknown>(
     payload: SubscribePayload,
@@ -98,8 +269,15 @@ export class SubscriptionClient {
     return client.subscribe(payload, sink);
   }
 
-  /** Dispose of the WebSocket client and reset state */
+  /** Dispose of all subscriptions and close the WebSocket connection */
   dispose(): void {
+    // Dispose all active subscriptions first
+    for (const subscription of this.subscriptions) {
+      subscription.dispose();
+    }
+    this.subscriptions.clear();
+
+    // Then dispose the WebSocket client
     this.wsClient?.dispose();
     this.wsClient = null;
     this.setState('disconnected');
