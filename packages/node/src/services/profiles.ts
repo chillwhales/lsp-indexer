@@ -31,7 +31,7 @@ import { escapeLike, orderDir } from './utils';
  * - `tokenOwned` → `{ ownedAssets: { address: { _ilike }, balance: { _gt } } }`
  *                   and/or `{ ownedTokens: { address: { _ilike }, token_id: { _ilike } } }`
  */
-function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Bool_Exp {
+export function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Bool_Exp {
   if (!filter) return {};
 
   const conditions: Universal_Profile_Bool_Exp[] = [];
