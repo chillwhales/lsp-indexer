@@ -1,16 +1,26 @@
-import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import type {
+  InfiniteData,
+  QueryClient,
+  UseInfiniteQueryResult,
+  UseQueryResult,
+} from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { FetchDataChangedEventsResult } from '@lsp-indexer/node';
 import {
+  buildDataChangedEventIncludeVars,
+  buildDataChangedEventWhere,
   dataChangedEventKeys,
+  DataChangedEventSubscriptionDocument,
   fetchDataChangedEvents,
   fetchLatestDataChangedEvent,
   getClientUrl,
+  parseDataChangedEvents,
 } from '@lsp-indexer/node';
 import type {
   DataChangedEvent,
+  DataChangedEventFilter,
   DataChangedEventInclude,
   DataChangedEventResult,
   PartialDataChangedEvent,
@@ -18,6 +28,9 @@ import type {
   UseInfiniteDataChangedEventsParams,
   UseLatestDataChangedEventParams,
 } from '@lsp-indexer/types';
+
+import type { UseSubscriptionReturn } from '../subscriptions/use-subscription';
+import { useSubscription } from '../subscriptions/use-subscription';
 
 /** Default number of data changed events per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -275,4 +288,63 @@ export function useInfiniteDataChangedEvents(
     isFetchingNextPage,
     ...rest,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription hook
+// ---------------------------------------------------------------------------
+
+const DEFAULT_SUBSCRIPTION_LIMIT = 10;
+
+interface UseDataChangedEventSubscriptionParams {
+  filter?: DataChangedEventFilter;
+  include?: DataChangedEventInclude;
+  limit?: number;
+  enabled?: boolean;
+  invalidate?: boolean;
+  onData?: (data: DataChangedEvent[]) => void;
+  onReconnect?: () => void;
+}
+
+export function useDataChangedEventSubscription(
+  params: UseDataChangedEventSubscriptionParams = {},
+): UseSubscriptionReturn<DataChangedEvent> {
+  const {
+    filter,
+    include,
+    limit = DEFAULT_SUBSCRIPTION_LIMIT,
+    enabled = true,
+    invalidate = false,
+    onData,
+    onReconnect,
+  } = params;
+
+  const where = buildDataChangedEventWhere(filter);
+  const includeVars = buildDataChangedEventIncludeVars(include);
+
+  let queryClient: QueryClient | undefined;
+  try {
+    queryClient = useQueryClient();
+  } catch {
+    // No QueryClientProvider
+  }
+
+  return useSubscription({
+    document: DataChangedEventSubscriptionDocument,
+    dataKey: 'data_changed',
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: undefined,
+      limit,
+      ...includeVars,
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parser: (raw: any[]) => parseDataChangedEvents(raw),
+    enabled,
+    invalidate,
+    invalidateKeys: invalidate ? [dataChangedEventKeys.all] : undefined,
+    queryClient: invalidate ? queryClient : undefined,
+    onData,
+    onReconnect,
+  });
 }

@@ -45,7 +45,7 @@ import {
  * - `universalProfileName` → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike } } } } }` (nested)
  * - `digitalAssetName`     → `{ digitalAsset: { lsp4TokenName: { value: { _ilike } } } }` (nested)
  */
-function buildDataChangedEventWhere(filter?: DataChangedEventFilter): Data_Changed_Bool_Exp {
+export function buildDataChangedEventWhere(filter?: DataChangedEventFilter): Data_Changed_Bool_Exp {
   if (!filter) return {};
 
   const conditions: Data_Changed_Bool_Exp[] = [];

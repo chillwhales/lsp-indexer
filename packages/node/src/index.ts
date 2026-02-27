@@ -147,6 +147,7 @@ export { GetEncryptedAssetsDocument } from './documents/encrypted-assets';
 // Data changed event services (the core fetching layer)
 export {
   buildDataChangedEventIncludeVars,
+  buildDataChangedEventWhere,
   fetchDataChangedEvents,
   fetchLatestDataChangedEvent,
 } from './services/data-changed-events';
@@ -159,7 +160,10 @@ export { parseDataChangedEvent, parseDataChangedEvents } from './parsers/data-ch
 export { dataChangedEventKeys } from './keys/data-changed-events';
 
 // Data changed event GraphQL documents (for advanced usage / custom queries)
-export { GetDataChangedEventsDocument } from './documents/data-changed-events';
+export {
+  DataChangedEventSubscriptionDocument,
+  GetDataChangedEventsDocument,
+} from './documents/data-changed-events';
 
 // Token ID data changed event services (the core fetching layer)
 export {
