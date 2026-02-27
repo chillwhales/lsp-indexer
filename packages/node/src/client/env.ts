@@ -147,5 +147,14 @@ export function getClientWsUrlOrDerive(): string {
   }
   // No explicit WS URL — derive from HTTP URL (getClientUrl throws if not set)
   const httpUrl = getClientUrl();
-  return httpUrl.replace(/^https:\/\//, 'wss://').replace(/^http:\/\//, 'ws://');
+  const parsed = new URL(httpUrl);
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new IndexerError({
+      category: 'CONFIGURATION',
+      code: 'INVALID_URL',
+      message: `NEXT_PUBLIC_INDEXER_URL must use http or https to derive a WebSocket URL, but got "${httpUrl}". Expected a URL like https://indexer.example.com/v1/graphql.`,
+    });
+  }
+  parsed.protocol = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
+  return parsed.toString();
 }

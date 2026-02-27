@@ -36,7 +36,8 @@ export type IndexerErrorCode =
   | 'INVALID_URL'
   // Parse errors
   | 'RESPONSE_NOT_JSON'
-  | 'EMPTY_RESPONSE';
+  | 'EMPTY_RESPONSE'
+  | 'PARSE_FAILED';
 
 /**
  * Options for constructing an IndexerError.

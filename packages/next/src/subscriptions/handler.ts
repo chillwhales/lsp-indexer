@@ -35,8 +35,8 @@ const SSE_HEADERS: HeadersInit = {
  * GraphQL subscriptions to the browser via Server-Sent Events (SSE).
  *
  * **How it works:**
- * 1. The client sends a `GET` request with `query` and `variables` search params
- *    (both JSON-encoded strings).
+ * 1. The client sends a `GET` request with `query` (a GraphQL document string)
+ *    and `variables` (a JSON-encoded string) as URL search parameters.
  * 2. The handler opens a `graphql-ws` WebSocket connection to Hasura (server-side only).
  * 3. Subscription results are forwarded to the client as SSE `data:` frames.
  * 4. When the client disconnects (or the subscription completes/errors), both the

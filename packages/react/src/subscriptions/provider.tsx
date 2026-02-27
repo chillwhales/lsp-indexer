@@ -5,7 +5,14 @@ import { SubscriptionClient } from './client';
 import { SubscriptionClientContext } from './context';
 
 interface IndexerSubscriptionProviderProps {
-  /** Optional explicit WebSocket URL. If omitted, derived from NEXT_PUBLIC_INDEXER_WS_URL or NEXT_PUBLIC_INDEXER_URL */
+  /**
+   * Optional explicit WebSocket URL. If omitted, derived from
+   * NEXT_PUBLIC_INDEXER_WS_URL or NEXT_PUBLIC_INDEXER_URL.
+   *
+   * **Must be stable for the provider's lifetime.** Changing `wsUrl` after
+   * mount has no effect — the client is created once and reused. To connect
+   * to a different URL, remount the provider with a new `key`.
+   */
   wsUrl?: string;
   children: ReactNode;
 }

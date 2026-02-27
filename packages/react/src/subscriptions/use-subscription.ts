@@ -194,7 +194,7 @@ export function useSubscription<TParsed>(
             setError(
               new IndexerError({
                 category: 'PARSE',
-                code: 'EMPTY_RESPONSE',
+                code: 'PARSE_FAILED',
                 message: `Failed to parse subscription data for "${dataKey}": ${
                   parseError instanceof Error ? parseError.message : String(parseError)
                 }`,

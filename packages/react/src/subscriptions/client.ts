@@ -145,7 +145,7 @@ export class SubscriptionClient {
         },
         closed: (event) => {
           const closeCode = SubscriptionClient.getCloseCode(event);
-          if (closeCode !== 1000) {
+          if (closeCode !== undefined && closeCode !== 1000) {
             this.abruptlyClosed = true;
           }
           this.setState('disconnected');
