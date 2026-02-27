@@ -1,21 +1,29 @@
 import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { FetchUniversalReceiverEventsResult } from '@lsp-indexer/node';
 import {
+  UniversalReceiverEventSubscriptionDocument,
+  buildUniversalReceiverEventIncludeVars,
+  buildUniversalReceiverEventWhere,
   fetchUniversalReceiverEvents,
   getClientUrl,
+  parseUniversalReceiverEvents,
   universalReceiverEventKeys,
 } from '@lsp-indexer/node';
 import type {
   PartialUniversalReceiverEvent,
   UniversalReceiverEvent,
+  UniversalReceiverEventFilter,
   UniversalReceiverEventInclude,
   UniversalReceiverEventResult,
   UseInfiniteUniversalReceiverEventsParams,
   UseUniversalReceiverEventsParams,
 } from '@lsp-indexer/types';
+
+import type { UseSubscriptionReturn } from '../subscriptions/use-subscription';
+import { useSubscription } from '../subscriptions/use-subscription';
 
 /** Default number of universal receiver events per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -206,4 +214,74 @@ export function useInfiniteUniversalReceiverEvents(
     isFetchingNextPage,
     ...rest,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription hook
+// ---------------------------------------------------------------------------
+
+/** Default number of universal receiver events for subscription queries */
+const DEFAULT_SUBSCRIPTION_LIMIT = 10;
+
+/** Options for useUniversalReceiverEventSubscription */
+interface UseUniversalReceiverEventSubscriptionOptions {
+  filter?: UniversalReceiverEventFilter;
+  include?: UniversalReceiverEventInclude;
+  limit?: number;
+  enabled?: boolean;
+  invalidate?: boolean;
+  onData?: (data: PartialUniversalReceiverEvent[]) => void;
+  onReconnect?: () => void;
+}
+
+/**
+ * Subscribe to real-time universal receiver event updates via WebSocket.
+ *
+ * Wraps the generic `useSubscription` hook with universal receiver event-specific
+ * document, parser, and query key invalidation.
+ *
+ * @param options - Subscription options (filter, include, limit, enabled, callbacks)
+ * @returns `{ data, isConnected, isSubscribed, error }` — subscription state
+ */
+export function useUniversalReceiverEventSubscription(
+  options: UseUniversalReceiverEventSubscriptionOptions = {},
+): UseSubscriptionReturn<PartialUniversalReceiverEvent> {
+  const {
+    filter,
+    include,
+    limit = DEFAULT_SUBSCRIPTION_LIMIT,
+    enabled,
+    invalidate,
+    onData,
+    onReconnect,
+  } = options;
+
+  const where = buildUniversalReceiverEventWhere(filter);
+  const includeVars = buildUniversalReceiverEventIncludeVars(include);
+
+  let queryClient;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    queryClient = useQueryClient();
+  } catch {
+    // No QueryClientProvider — invalidation will be skipped
+  }
+
+  return useSubscription({
+    document: UniversalReceiverEventSubscriptionDocument,
+    dataKey: 'universal_receiver',
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: [{ block_number: 'desc' }, { transaction_index: 'desc' }, { log_index: 'desc' }],
+      limit,
+      ...includeVars,
+    },
+    parser: (raw: any[]) => parseUniversalReceiverEvents(raw),
+    enabled,
+    invalidate,
+    invalidateKeys: [universalReceiverEventKeys.all],
+    queryClient,
+    onData,
+    onReconnect,
+  });
 }

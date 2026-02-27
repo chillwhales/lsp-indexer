@@ -184,6 +184,7 @@ export { GetTokenIdDataChangedEventsDocument } from './documents/token-id-data-c
 // Universal receiver event services (the core fetching layer)
 export {
   buildUniversalReceiverEventIncludeVars,
+  buildUniversalReceiverEventWhere,
   fetchUniversalReceiverEvents,
 } from './services/universal-receiver-events';
 export type { FetchUniversalReceiverEventsResult } from './services/universal-receiver-events';
@@ -198,7 +199,10 @@ export {
 export { universalReceiverEventKeys } from './keys/universal-receiver-events';
 
 // Universal receiver event GraphQL documents (for advanced usage / custom queries)
-export { GetUniversalReceiverEventsDocument } from './documents/universal-receiver-events';
+export {
+  GetUniversalReceiverEventsDocument,
+  UniversalReceiverEventSubscriptionDocument,
+} from './documents/universal-receiver-events';
 
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';
