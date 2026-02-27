@@ -114,11 +114,11 @@ interface SubscriptionSink {
 - [x] **1.4** ~~Update Next `SubscriptionClient` to implement new interface~~ **REVISED:** Next.js will reuse React client directly
 - [ ] **1.5** Create thin `useSubscription` wrappers in both packages
 
-### Phase 2: Simplify Next.js Package
+### Phase 2: Simplify Next.js Package ✅ **COMPLETE**
 
-- [ ] **2.1** Remove complex SSE implementation from `@lsp-indexer/next`
-- [ ] **2.2** Update `@lsp-indexer/next` to re-export React subscription client and hooks
-- [ ] **2.3** Create optional WebSocket proxy utility for server-side scenarios (future)
+- [x] **2.1** Remove complex SSE implementation from `@lsp-indexer/next`
+- [x] **2.2** ~~Update `@lsp-indexer/next` to re-export React subscription client and hooks~~ **REVISED:** Created WebSocket proxy with auth
+- [x] **2.3** Create WebSocket proxy at `/api/graphql` with client authentication to hide GraphQL URL
 
 ### Phase 3: Domain Migration
 
@@ -138,8 +138,8 @@ interface SubscriptionSink {
 
 ## Current Status
 
-**Active Phase:** 1 - Core Infrastructure  
-**Next Step:** 1.1 - Create SubscriptionClient interface
+**Active Phase:** 3 - Domain Migration  
+**Next Step:** 3.1 - Add createProfilesSubscription() to node
 
 ## Notes
 
