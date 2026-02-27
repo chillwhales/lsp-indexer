@@ -12,6 +12,8 @@ export default defineConfig({
     '@tanstack/react-query',
     '@lsp-indexer/node',
     '@lsp-indexer/types',
+    'graphql-ws',
+    'ws',
     'zod',
   ],
 });

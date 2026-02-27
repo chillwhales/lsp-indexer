@@ -22,3 +22,11 @@ export * from './hooks/owned-tokens';
 export * from './hooks/profiles';
 export * from './hooks/token-id-data-changed-events';
 export * from './hooks/universal-receiver-events';
+
+// Subscription infrastructure
+export { createSubscriptionHandler } from './subscriptions/handler';
+export { useSubscription } from './subscriptions/use-subscription';
+export type {
+  UseSubscriptionOptions,
+  UseSubscriptionReturn,
+} from './subscriptions/use-subscription';
