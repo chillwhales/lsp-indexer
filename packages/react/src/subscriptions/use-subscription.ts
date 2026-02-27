@@ -1,228 +1,133 @@
-import { IndexerError } from '@lsp-indexer/node';
 import type {
-  BaseSubscriptionOptions,
-  UseSubscriptionReturn as BaseSubscriptionReturn,
+  SubscriptionConfig,
+  SubscriptionHookOptions,
+  UseSubscriptionReturn,
 } from '@lsp-indexer/types';
 import type { QueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useSubscriptionClient } from './context';
 
 /**
- * Options for the generic useSubscription hook.
+ * Thin wrapper around SubscriptionClient for React applications.
  *
- * This is the core engine that all domain subscription hooks wrap.
- * Domain hooks provide the document, dataKey, parser, and variables —
- * useSubscription handles the WebSocket lifecycle.
+ * This hook:
+ * 1. Creates a subscription instance using the client from context
+ * 2. Syncs React state with the subscription instance state
+ * 3. Handles framework-specific concerns like QueryClient invalidation
+ * 4. Provides the same API as the Next.js package for consistency
+ *
+ * The heavy lifting (connection management, parsing, error handling) is done
+ * by the SubscriptionClient and subscription instances.
  */
-export interface UseSubscriptionOptions<TParsed> extends BaseSubscriptionOptions<TParsed> {
-  /**
-   * TanStack QueryClient for cache invalidation.
-   * Passed by domain hooks (they call useQueryClient in try/catch and pass through).
-   * The generic hook does NOT call useQueryClient itself — avoiding conditional hook issues.
-   */
-  queryClient?: QueryClient;
-}
-
-/** Return type for useSubscription */
-export interface UseSubscriptionReturn<T> extends Omit<BaseSubscriptionReturn<T>, 'error'> {
-  /** Error from the subscription, if any */
-  error: IndexerError | null;
-}
-
-/**
- * Generic subscription hook — the core engine for all domain subscription hooks.
- *
- * Manages the full subscription lifecycle:
- * 1. Connection state via useSyncExternalStore (reading from SubscriptionClient)
- * 2. Subscription creation/destruction via useEffect
- * 3. Data state, error state, subscribed state
- * 4. Cache invalidation via optional QueryClient
- * 5. Callbacks for onData and onReconnect
- *
- * @example
- * ```ts
- * // Domain hooks wrap this with their specific document, dataKey, and parser:
- * const result = useSubscription({
- *   document: ProfileSubscriptionDocument,
- *   dataKey: 'universal_profile',
- *   variables: { where: { address: { _ilike: '0x...' } }, limit: 10 },
- *   parser: parseProfiles,
- * });
- * ```
- */
-export function useSubscription<TParsed>(
-  options: UseSubscriptionOptions<TParsed>,
-): UseSubscriptionReturn<TParsed> {
-  const {
-    document,
-    dataKey,
-    variables,
-    parser,
-    enabled = true,
-    invalidate = false,
-    invalidateKeys,
-    queryClient,
-  } = options;
-
+export function useSubscription<T>(
+  config: SubscriptionConfig<T>,
+  options: SubscriptionHookOptions<T> & {
+    /** TanStack QueryClient for cache invalidation */
+    queryClient?: QueryClient;
+    /** Query keys to invalidate when data arrives */
+    invalidateKeys?: readonly (readonly unknown[])[];
+    /** Whether to invalidate caches on data arrival */
+    invalidate?: boolean;
+  } = {},
+): UseSubscriptionReturn<T> {
   const client = useSubscriptionClient();
+  const subscriptionRef = useRef<ReturnType<typeof client.createSubscription> | null>(null);
 
-  // Connection state via useSyncExternalStore
-  const connectionState = useSyncExternalStore(
-    client.subscribe,
-    client.getSnapshot,
-    client.getServerSnapshot,
-  );
-  const isConnected = connectionState === 'connected';
-
-  // Data, subscribed, and error state
-  const [data, setData] = useState<TParsed[] | null>(null);
+  // React state that syncs with subscription instance
+  const [data, setData] = useState<T[] | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [error, setError] = useState<IndexerError | null>(null);
 
-  // Stable refs for callbacks (avoid stale closures and unnecessary effect re-runs)
-  const onDataRef = useRef(options.onData);
-  onDataRef.current = options.onData;
+  // Connection state from client (useSyncExternalStore for external state)
+  const isConnected =
+    useSyncExternalStore(client.subscribe, client.getSnapshot, client.getServerSnapshot) ===
+    'connected';
 
-  const onReconnectRef = useRef(options.onReconnect);
-  onReconnectRef.current = options.onReconnect;
+  // Stable refs for callbacks to avoid stale closures
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
-  const invalidateRef = useRef(invalidate);
-  invalidateRef.current = invalidate;
-
-  const invalidateKeysRef = useRef(invalidateKeys);
-  invalidateKeysRef.current = invalidateKeys;
-
-  const queryClientRef = useRef(queryClient);
-  queryClientRef.current = queryClient;
-
-  const parserRef = useRef(parser);
-  parserRef.current = parser;
-
-  // Stable variables string to avoid object reference churn in effect deps
-  const stableVariables = JSON.stringify(variables);
-
-  // Reset state when disabled
+  // Create/dispose subscription based on enabled state
   useEffect(() => {
+    const {
+      enabled = true,
+      onData,
+      onReconnect,
+      queryClient,
+      invalidateKeys,
+      invalidate,
+    } = optionsRef.current;
+
     if (!enabled) {
-      setData(null);
-      setError(null);
-      setIsSubscribed(false);
+      // Dispose existing subscription if disabled
+      if (subscriptionRef.current) {
+        subscriptionRef.current.dispose();
+        subscriptionRef.current = null;
+        setData(null);
+        setError(null);
+        setIsSubscribed(false);
+      }
+      return;
     }
-  }, [enabled]);
 
-  // Subscription lifecycle
-  useEffect(() => {
-    if (!enabled) return;
-
-    let cancelled = false;
-
-    const cleanup = client.executeSubscription(
-      { query: document, variables: JSON.parse(stableVariables) },
-      {
-        next(result) {
-          if (cancelled) return;
-
-          const rawData = result.data?.[dataKey];
-          if (!rawData || !Array.isArray(rawData)) return;
-
-          try {
-            const parsed = parserRef.current(rawData);
-            setData(parsed);
-            setError(null);
-
-            // Fire onData callback
-            onDataRef.current?.(parsed);
-
-            // Cache invalidation
-            invalidateCaches(
-              invalidateRef.current,
-              queryClientRef.current,
-              invalidateKeysRef.current,
-            );
-          } catch (parseError) {
-            setError(
-              new IndexerError({
-                category: 'PARSE',
-                code: 'PARSE_FAILED',
-                message: `Failed to parse subscription data for "${dataKey}": ${
-                  parseError instanceof Error ? parseError.message : String(parseError)
-                }`,
-                originalError: parseError instanceof Error ? parseError : undefined,
-              }),
-            );
+    // Create new subscription
+    const subscription = client.createSubscription(config, {
+      enabled,
+      onData: (newData: T[]) => {
+        // Cache invalidation
+        if (invalidate && queryClient && invalidateKeys) {
+          for (const key of invalidateKeys) {
+            queryClient.invalidateQueries({ queryKey: [...key] });
           }
-        },
-        error(rawError: unknown) {
-          if (cancelled) return;
+        }
 
-          if (rawError instanceof IndexerError) {
-            setError(rawError);
-          } else if (Array.isArray(rawError)) {
-            // GraphQL errors array
-            setError(
-              IndexerError.fromGraphQLErrors(
-                rawError.map(IndexerError.narrowGraphQLError),
-                document,
-              ),
-            );
-          } else {
-            setError(
-              new IndexerError({
-                category: 'NETWORK',
-                code: 'NETWORK_UNKNOWN',
-                message: `Subscription error for "${dataKey}": ${
-                  rawError instanceof Error ? rawError.message : String(rawError)
-                }`,
-                originalError: rawError instanceof Error ? rawError : undefined,
-              }),
-            );
-          }
-          setIsSubscribed(false);
-        },
-        complete() {
-          if (cancelled) return;
-          setIsSubscribed(false);
-        },
+        // User callback
+        onData?.(newData);
       },
-    );
+      onReconnect: () => {
+        // Cache invalidation on reconnect (data may be stale after disconnect)
+        if (invalidate && queryClient && invalidateKeys) {
+          for (const key of invalidateKeys) {
+            queryClient.invalidateQueries({ queryKey: [...key] });
+          }
+        }
 
-    setIsSubscribed(true);
-
-    return () => {
-      cancelled = true;
-      cleanup();
-      setIsSubscribed(false);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client, document, stableVariables, dataKey, enabled]);
-
-  // Reconnect callback registration
-  useEffect(() => {
-    const unregister = client.onReconnect(() => {
-      // Fire user's onReconnect callback
-      onReconnectRef.current?.();
-
-      // Invalidate caches on reconnect (stale after disconnect)
-      invalidateCaches(invalidateRef.current, queryClientRef.current, invalidateKeysRef.current);
+        // User callback
+        onReconnect?.();
+      },
     });
 
-    return unregister;
-  }, [client]);
+    subscriptionRef.current = subscription;
 
-  return { data, isConnected, isSubscribed, error };
-}
+    // Sync React state with subscription instance state
+    const unsubscribe = subscription.subscribe(() => {
+      setData(subscription.data);
+      setError(subscription.error);
+      setIsSubscribed(subscription.isSubscribed);
+    });
 
-/**
- * Invalidate TanStack Query caches if configured.
- * Shared between data arrival and reconnect paths.
- */
-function invalidateCaches(
-  shouldInvalidate: boolean,
-  client: QueryClient | undefined,
-  keys: readonly (readonly unknown[])[] | undefined,
-): void {
-  if (!shouldInvalidate || !client || !keys) return;
-  for (const key of keys) {
-    client.invalidateQueries({ queryKey: [...key] });
-  }
+    // Set initial state
+    setData(subscription.data);
+    setError(subscription.error);
+    setIsSubscribed(subscription.isSubscribed);
+
+    return () => {
+      unsubscribe();
+      subscription.dispose();
+      subscriptionRef.current = null;
+    };
+  }, [
+    config.document,
+    config.dataKey,
+    JSON.stringify(config.variables), // Stable variables comparison
+    options.enabled,
+    client,
+  ]);
+
+  return {
+    data,
+    isConnected,
+    isSubscribed,
+    error,
+  };
 }
