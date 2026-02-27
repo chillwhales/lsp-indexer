@@ -1,17 +1,31 @@
-import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
-
-import type { FetchFollowsResult } from '@lsp-indexer/node';
+import type {
+  InfiniteData,
+  QueryClient,
+  UseInfiniteQueryResult,
+  UseQueryResult,
+} from "@tanstack/react-query";
 import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useMemo } from "react";
+
+import type { FetchFollowsResult } from "@lsp-indexer/node";
+import {
+  buildFollowerWhere,
+  buildFollowerIncludeVars,
   fetchFollowCount,
   fetchFollows,
   fetchIsFollowing,
+  FollowerSubscriptionDocument,
   followerKeys,
   getClientUrl,
-} from '@lsp-indexer/node';
+  parseFollowers,
+} from "@lsp-indexer/node";
 import type {
   Follower,
+  FollowerFilter,
   FollowerInclude,
   FollowerResult,
   PartialFollower,
@@ -19,7 +33,10 @@ import type {
   UseFollowsParams,
   UseInfiniteFollowsParams,
   UseIsFollowingParams,
-} from '@lsp-indexer/types';
+} from "@lsp-indexer/types";
+
+import type { UseSubscriptionReturn } from "../subscriptions/use-subscription";
+import { useSubscription } from "../subscriptions/use-subscription";
 
 /** Default number of follows per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -27,18 +44,18 @@ const DEFAULT_PAGE_SIZE = 20;
 /** Flat return shape for useFollows — follows array + totalCount + query state */
 type UseFollowsReturn<F> = { follows: F[]; totalCount: number } & Omit<
   UseQueryResult<FetchFollowsResult<F>, Error>,
-  'data'
+  "data"
 >;
 
 /** Flat return shape for useInfiniteFollows — follows array + infinite scroll controls + query state */
 type UseInfiniteFollowsReturn<F> = {
   follows: F[];
   hasNextPage: boolean;
-  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  fetchNextPage: UseInfiniteQueryResult["fetchNextPage"];
   isFetchingNextPage: boolean;
 } & Omit<
   UseInfiniteQueryResult<InfiniteData<FetchFollowsResult<F>>, Error>,
-  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+  "data" | "hasNextPage" | "fetchNextPage" | "isFetchingNextPage"
 >;
 
 /**
@@ -46,8 +63,8 @@ type UseInfiniteFollowsReturn<F> = {
  *
  * Wraps `fetchFollows` in a TanStack `useQuery` hook. Consumers scope results
  * via filter fields:
- * - "who follows X?" → `filter: { followedAddress: X }`
- * - "who does X follow?" → `filter: { followerAddress: X }`
+ * - "who follows X?" -> `filter: { followedAddress: X }`
+ * - "who does X follow?" -> `filter: { followerAddress: X }`
  *
  * Supports filtering, sorting, pagination, and optional include for field
  * narrowing (DX-04).
@@ -82,7 +99,7 @@ export function useFollows<const I extends FollowerInclude>(
   params: UseFollowsParams & { include: I },
 ): UseFollowsReturn<FollowerResult<I>>;
 export function useFollows(
-  params: Omit<UseFollowsParams, 'include'> & { include?: never },
+  params: Omit<UseFollowsParams, "include"> & { include?: never },
 ): UseFollowsReturn<Follower>;
 export function useFollows(
   params: UseFollowsParams & { include?: FollowerInclude },
@@ -155,7 +172,7 @@ export function useInfiniteFollows<const I extends FollowerInclude>(
   params: UseInfiniteFollowsParams & { include: I },
 ): UseInfiniteFollowsReturn<FollowerResult<I>>;
 export function useInfiniteFollows(
-  params: Omit<UseInfiniteFollowsParams, 'include'> & { include?: never },
+  params: Omit<UseInfiniteFollowsParams, "include"> & { include?: never },
 ): UseInfiniteFollowsReturn<Follower>;
 export function useInfiniteFollows(
   params: UseInfiniteFollowsParams & { include?: FollowerInclude },
@@ -194,8 +211,12 @@ export function useInfiniteFollows(
 
   // Flatten all pages into a single follows array (memoized to avoid re-flattening on every render)
   // Destructure infinite query properties before rest spread to avoid TS2783 duplicate property errors
-  const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } = result;
-  const follows = useMemo(() => data?.pages.flatMap((page) => page.follows) ?? [], [data?.pages]);
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest } =
+    result;
+  const follows = useMemo(
+    () => data?.pages.flatMap((page) => page.follows) ?? [],
+    [data?.pages],
+  );
 
   return {
     follows,
@@ -298,4 +319,101 @@ export function useIsFollowing(params: UseIsFollowingParams) {
     isFollowing: data ?? false,
     ...rest,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription hook
+// ---------------------------------------------------------------------------
+
+const DEFAULT_SUBSCRIPTION_LIMIT = 10;
+
+interface UseFollowerSubscriptionParams {
+  /** Filter criteria to narrow which followers to subscribe to */
+  filter?: FollowerFilter;
+  /** Control which nested fields are included in subscription data */
+  include?: FollowerInclude;
+  /** Maximum number of results per subscription update (default: 10) */
+  limit?: number;
+  /** Whether the subscription is active (default: true) */
+  enabled?: boolean;
+  /** Whether to invalidate TanStack Query cache on subscription data (default: false) */
+  invalidate?: boolean;
+  /** Callback fired when new subscription data arrives */
+  onData?: (data: Follower[]) => void;
+  /** Callback fired when the WebSocket reconnects after a disconnect */
+  onReconnect?: () => void;
+}
+
+/**
+ * Subscribe to real-time follower updates via WebSocket.
+ *
+ * Wraps the generic `useSubscription` hook with follower-specific document,
+ * parser, and filter/include logic. Mirrors `useFollows` query behavior
+ * but receives live updates instead of polling.
+ *
+ * @param params - Optional filter, include, limit, and callback config
+ * @returns `{ data, isConnected, isSubscribed, error }` — subscription state
+ *
+ * @example
+ * ```tsx
+ * import { useFollowerSubscription } from '@lsp-indexer/react';
+ *
+ * function LiveFollowers({ address }: { address: string }) {
+ *   const { data: followers, isConnected } = useFollowerSubscription({
+ *     filter: { followedAddress: address },
+ *     limit: 10,
+ *   });
+ *
+ *   return (
+ *     <div>
+ *       <span>{isConnected ? 'Connected' : 'Disconnected'}</span>
+ *       {followers?.map((f) => (
+ *         <div key={f.followerAddress}>{f.followerAddress}</div>
+ *       ))}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+export function useFollowerSubscription(
+  params: UseFollowerSubscriptionParams = {},
+): UseSubscriptionReturn<Follower> {
+  const {
+    filter,
+    include,
+    limit = DEFAULT_SUBSCRIPTION_LIMIT,
+    enabled = true,
+    invalidate = false,
+    onData,
+    onReconnect,
+  } = params;
+
+  const where = buildFollowerWhere(filter);
+  const includeVars = buildFollowerIncludeVars(include);
+
+  let queryClient: QueryClient | undefined;
+  try {
+    queryClient = useQueryClient();
+  } catch {
+    // No QueryClientProvider — cache invalidation won't work but hook still functions
+  }
+
+  return useSubscription({
+    document: FollowerSubscriptionDocument,
+    dataKey: "follower",
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: undefined,
+      limit,
+      ...includeVars,
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parser: (raw: any[]) => parseFollowers(raw),
+    enabled,
+    invalidate,
+    invalidateKeys: invalidate ? [followerKeys.all] : undefined,
+    queryClient: invalidate ? queryClient : undefined,
+    onData,
+    onReconnect,
+  });
 }

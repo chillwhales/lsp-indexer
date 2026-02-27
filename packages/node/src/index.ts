@@ -90,6 +90,7 @@ export { GetOwnedTokenDocument, GetOwnedTokensDocument } from './documents/owned
 // Follower services (the core fetching layer)
 export {
   buildFollowerIncludeVars,
+  buildFollowerWhere,
   fetchFollowCount,
   fetchFollows,
   fetchIsFollowing,
@@ -103,7 +104,7 @@ export { parseFollower, parseFollowers } from './parsers/followers';
 export { followerKeys } from './keys/followers';
 
 // Follower GraphQL documents (for advanced usage / custom queries)
-export { GetFollowCountDocument, GetFollowersDocument } from './documents/followers';
+export { GetFollowCountDocument, GetFollowersDocument, FollowerSubscriptionDocument } from './documents/followers';
 
 // Creator services (the core fetching layer)
 export { buildCreatorIncludeVars, fetchCreators } from './services/creators';
