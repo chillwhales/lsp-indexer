@@ -33,7 +33,7 @@ import { escapeLike, orderDir } from './utils';
  * - `ownerAddress`  → `{ owner: { address: { _ilike: escapeLike(ownerAddress) } } }`
  *                     (assets whose contract controller is the given address)
  */
-function buildDigitalAssetWhere(filter?: DigitalAssetFilter): Digital_Asset_Bool_Exp {
+export function buildDigitalAssetWhere(filter?: DigitalAssetFilter): Digital_Asset_Bool_Exp {
   if (!filter) return {};
 
   const conditions: Digital_Asset_Bool_Exp[] = [];

@@ -1,16 +1,21 @@
 import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { FetchDigitalAssetsResult } from '@lsp-indexer/node';
 import {
+  buildDigitalAssetIncludeVars,
+  buildDigitalAssetWhere,
   digitalAssetKeys,
   fetchDigitalAsset,
   fetchDigitalAssets,
   getClientUrl,
+  parseDigitalAssets,
+  DigitalAssetSubscriptionDocument,
 } from '@lsp-indexer/node';
 import type {
   DigitalAsset,
+  DigitalAssetFilter,
   DigitalAssetInclude,
   DigitalAssetResult,
   PartialDigitalAsset,
@@ -18,6 +23,9 @@ import type {
   UseDigitalAssetsParams,
   UseInfiniteDigitalAssetsParams,
 } from '@lsp-indexer/types';
+
+import { useSubscription } from '../subscriptions/use-subscription';
+import type { UseSubscriptionReturn } from '../subscriptions/use-subscription';
 
 /** Default number of digital assets per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -241,11 +249,9 @@ export function useInfiniteDigitalAssets(
           }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
-      // If the last page returned fewer results than requested, there are no more pages
       if (lastPage.digitalAssets.length < pageSize) {
         return undefined;
       }
-      // Next offset = current offset + page size
       return lastPageParam + pageSize;
     },
   });
@@ -265,4 +271,99 @@ export function useInfiniteDigitalAssets(
     isFetchingNextPage,
     ...rest,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription hook
+// ---------------------------------------------------------------------------
+
+const DEFAULT_SUBSCRIPTION_LIMIT = 10;
+
+interface UseDigitalAssetSubscriptionParams {
+  /** Filter criteria to narrow which digital assets to subscribe to */
+  filter?: DigitalAssetFilter;
+  /** Control which nested fields are included in subscription data */
+  include?: DigitalAssetInclude;
+  /** Maximum number of results per subscription update (default: 10) */
+  limit?: number;
+  /** Whether the subscription is active (default: true) */
+  enabled?: boolean;
+  /** Whether to invalidate TanStack Query cache on subscription data (default: false) */
+  invalidate?: boolean;
+  /** Callback fired when new subscription data arrives */
+  onData?: (data: DigitalAsset[]) => void;
+  /** Callback fired when the WebSocket reconnects after a disconnect */
+  onReconnect?: () => void;
+}
+
+/**
+ * Subscribe to real-time digital asset updates via WebSocket.
+ *
+ * Wraps the generic `useSubscription` hook with digital-asset-specific document,
+ * parser, and filter/include logic. Mirrors `useDigitalAssets` query behavior
+ * but receives live updates instead of polling.
+ *
+ * @param params - Optional filter, include, limit, and callback config
+ * @returns `{ data, isConnected, isSubscribed, error }` — subscription state
+ *
+ * @example
+ * ```tsx
+ * import { useDigitalAssetSubscription } from '@lsp-indexer/react';
+ *
+ * function LiveAssets() {
+ *   const { data: assets, isConnected } = useDigitalAssetSubscription({
+ *     filter: { tokenType: 'TOKEN' },
+ *     limit: 5,
+ *   });
+ *
+ *   return (
+ *     <div>
+ *       <span>{isConnected ? '🟢' : '🔴'}</span>
+ *       {assets?.map((a) => <div key={a.address}>{a.name}</div>)}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+export function useDigitalAssetSubscription(
+  params: UseDigitalAssetSubscriptionParams = {},
+): UseSubscriptionReturn<DigitalAsset> {
+  const {
+    filter,
+    include,
+    limit = DEFAULT_SUBSCRIPTION_LIMIT,
+    enabled = true,
+    invalidate = false,
+    onData,
+    onReconnect,
+  } = params;
+
+  const where = buildDigitalAssetWhere(filter);
+  const includeVars = buildDigitalAssetIncludeVars(include);
+
+  let queryClient: QueryClient | undefined;
+  try {
+    queryClient = useQueryClient();
+  } catch {
+    // No QueryClientProvider — cache invalidation won't work but hook still functions
+  }
+
+  return useSubscription({
+    document: DigitalAssetSubscriptionDocument,
+    dataKey: 'digital_asset',
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: undefined,
+      limit,
+      ...includeVars,
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parser: (raw: any[]) => parseDigitalAssets(raw),
+    enabled,
+    invalidate,
+    invalidateKeys: invalidate ? [digitalAssetKeys.all] : undefined,
+    queryClient: invalidate ? queryClient : undefined,
+    onData,
+    onReconnect,
+  });
 }

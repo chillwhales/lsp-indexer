@@ -30,6 +30,7 @@ export { GetProfileDocument, GetProfilesDocument } from './documents/profiles';
 // Digital asset services (the core fetching layer)
 export {
   buildDigitalAssetIncludeVars,
+  buildDigitalAssetWhere,
   fetchDigitalAsset,
   fetchDigitalAssets,
 } from './services/digital-assets';
@@ -42,7 +43,7 @@ export { parseDigitalAsset, parseDigitalAssets } from './parsers/digital-assets'
 export { digitalAssetKeys } from './keys/digital-assets';
 
 // Digital asset GraphQL documents (for advanced usage / custom queries)
-export { GetDigitalAssetDocument, GetDigitalAssetsDocument } from './documents/digital-assets';
+export { DigitalAssetSubscriptionDocument, GetDigitalAssetDocument, GetDigitalAssetsDocument } from './documents/digital-assets';
 
 // NFT services (the core fetching layer)
 export { buildNftIncludeVars, fetchNft, fetchNfts } from './services/nfts';
