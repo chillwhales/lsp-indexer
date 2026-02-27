@@ -1,33 +1,10 @@
 import { IndexerError } from '@lsp-indexer/node';
+import type {
+  BaseSubscriptionOptions,
+  UseSubscriptionReturn as BaseSubscriptionReturn,
+} from '@lsp-indexer/types';
 import type { QueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-
-/**
- * Safely extract `{ message, extensions }` from an unknown GraphQL error object.
- * graphql-ws types subscription errors as `unknown` to avoid DOM deps,
- * so we narrow with runtime checks instead of type assertions.
- */
-function toGraphQLError(e: unknown): {
-  message: string;
-  extensions: Record<string, unknown> | undefined;
-} {
-  if (typeof e !== 'object' || e === null) {
-    return { message: String(e), extensions: undefined };
-  }
-  const message = 'message' in e && typeof e.message === 'string' ? e.message : String(e);
-  let extensions: Record<string, unknown> | undefined;
-  if (
-    'extensions' in e &&
-    typeof e.extensions === 'object' &&
-    e.extensions !== null &&
-    !Array.isArray(e.extensions)
-  ) {
-    // e.extensions is narrowed to `object` here; spread into a fresh record
-    // to satisfy the Record<string, unknown> constraint without assertions.
-    extensions = Object.fromEntries(Object.entries(e.extensions));
-  }
-  return { message, extensions };
-}
 
 /**
  * Options for the SSE-based `useSubscription` hook.
@@ -40,29 +17,7 @@ function toGraphQLError(e: unknown): {
  * transport is SSE instead of a direct WebSocket. The Next.js server proxies the
  * WebSocket connection to Hasura, keeping the GraphQL endpoint hidden from the client.
  */
-export interface UseSubscriptionOptions<TParsed> {
-  /** GraphQL subscription document string */
-  document: string;
-  /** The key in the GraphQL response object (e.g., 'universal_profile') */
-  dataKey: string;
-  /** GraphQL variables (where, order_by, limit) */
-  variables: Record<string, unknown>;
-  /**
-   * Parser function to transform raw Hasura data to clean types.
-   * Receives `unknown[]` because the GraphQL response is untyped at runtime;
-   * the parser is responsible for validating/coercing each element.
-   */
-  parser: (raw: unknown[]) => TParsed[];
-  /** Enable/disable the subscription (default: true) */
-  enabled?: boolean;
-  /** Whether to invalidate TanStack Query cache on data (default: false) */
-  invalidate?: boolean;
-  /** Query keys to invalidate when data arrives */
-  invalidateKeys?: readonly (readonly unknown[])[];
-  /** Callback when new data arrives */
-  onData?: (data: TParsed[]) => void;
-  /** Callback on SSE reconnect (EventSource auto-reconnects on disconnect) */
-  onReconnect?: () => void;
+export interface UseSubscriptionOptions<TParsed> extends BaseSubscriptionOptions<TParsed> {
   /**
    * TanStack QueryClient for cache invalidation.
    * Passed by domain hooks (they call useQueryClient in try/catch and pass through).
@@ -82,13 +37,7 @@ export interface UseSubscriptionOptions<TParsed> {
  * Mirrors `@lsp-indexer/react`'s `UseSubscriptionReturn` so domain hooks
  * can share the same consumer-facing API regardless of transport.
  */
-export interface UseSubscriptionReturn<T> {
-  /** Latest subscription data, or null if no data received yet */
-  data: T[] | null;
-  /** Whether the SSE connection is currently open */
-  isConnected: boolean;
-  /** Whether this specific subscription is currently active */
-  isSubscribed: boolean;
+export interface UseSubscriptionReturn<T> extends Omit<BaseSubscriptionReturn<T>, 'error'> {
   /** Error from the subscription, if any */
   error: IndexerError | null;
 }
@@ -249,9 +198,14 @@ export function useSubscription<TParsed>(
         const payload: unknown = JSON.parse(event.data);
         if (typeof payload !== 'object' || payload === null) return;
 
-        if (Array.isArray(payload)) {
-          // GraphQL errors array
-          setError(IndexerError.fromGraphQLErrors(payload.map(toGraphQLError), document));
+        if ('errors' in payload && Array.isArray(payload.errors)) {
+          // GraphQL errors array forwarded by the handler
+          setError(
+            IndexerError.fromGraphQLErrors(
+              payload.errors.map(IndexerError.narrowGraphQLError),
+              document,
+            ),
+          );
         } else if ('message' in payload && typeof payload.message === 'string') {
           setError(
             new IndexerError({

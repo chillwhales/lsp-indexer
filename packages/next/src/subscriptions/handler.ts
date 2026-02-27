@@ -14,7 +14,7 @@ import WebSocket from 'ws';
  * export const GET = createSubscriptionHandler({ wsUrl: 'wss://custom.hasura.io/v1/graphql' });
  * ```
  */
-interface SubscriptionHandlerOptions {
+export interface SubscriptionHandlerOptions {
   /**
    * WebSocket URL for the Hasura GraphQL endpoint.
    * Defaults to `getServerWsUrl()` from `@lsp-indexer/node`
@@ -161,17 +161,15 @@ export function createSubscriptionHandler(
         );
 
         // Clean up when the client disconnects (request aborted)
-        if (request.signal) {
-          request.signal.addEventListener(
-            'abort',
-            () => {
-              unsubscribe();
-              closeStream();
-              client.dispose();
-            },
-            { once: true },
-          );
-        }
+        request.signal.addEventListener(
+          'abort',
+          () => {
+            unsubscribe();
+            closeStream();
+            client.dispose();
+          },
+          { once: true },
+        );
       },
     });
 
@@ -193,37 +191,46 @@ export function createSubscriptionHandler(
  * - An array of GraphQL errors
  * - Something else entirely
  */
-function serializeSubscriptionError(rawError: unknown): { message: string; code?: string } {
+function serializeSubscriptionError(rawError: unknown): Record<string, unknown> {
   if (rawError instanceof Error) {
     return { message: rawError.message };
   }
 
   if (Array.isArray(rawError)) {
-    const messages = rawError
-      .map((e: unknown) => {
-        if (
-          typeof e === 'object' &&
-          e !== null &&
-          'message' in e &&
-          typeof e.message === 'string'
-        ) {
-          return e.message;
+    // Preserve individual GraphQL errors so the client can reconstruct
+    // IndexerError with per-error extensions and codes.
+    return {
+      errors: rawError.map((e: unknown) => {
+        if (typeof e !== 'object' || e === null) {
+          return { message: String(e) };
         }
-        return String(e);
-      })
-      .join('; ');
-    return { message: messages, code: 'GRAPHQL_ERROR' };
+        const result: Record<string, unknown> = {};
+        if ('message' in e && typeof e.message === 'string') {
+          result['message'] = e.message;
+        } else {
+          result['message'] = String(e);
+        }
+        if (
+          'extensions' in e &&
+          typeof e.extensions === 'object' &&
+          e.extensions !== null &&
+          !Array.isArray(e.extensions)
+        ) {
+          result['extensions'] = Object.fromEntries(Object.entries(e.extensions));
+        }
+        return result;
+      }),
+    };
   }
 
   if (typeof rawError === 'object' && rawError !== null) {
-    // CloseEvent-like: { code: number, reason: string }
     if ('code' in rawError && 'reason' in rawError) {
       const code = typeof rawError.code === 'number' ? String(rawError.code) : undefined;
       const reason =
         'reason' in rawError && typeof rawError.reason === 'string'
           ? rawError.reason
           : 'WebSocket closed';
-      return { message: reason, code };
+      return { message: reason, ...(code ? { code } : {}) };
     }
 
     if ('message' in rawError && typeof rawError.message === 'string') {

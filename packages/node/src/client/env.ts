@@ -60,32 +60,24 @@ export function getServerUrl(): string {
 }
 
 /**
- * Get the public WebSocket endpoint URL for client-side subscriptions.
+ * Derive a WebSocket URL from an HTTP URL by swapping protocol.
+ * Validates that the source URL uses http or https before swapping.
  *
- * Reads from `NEXT_PUBLIC_INDEXER_WS_URL` environment variable.
- * Throws `IndexerError` with `MISSING_ENV_VAR` if not set, or
- * `INVALID_URL` if the value is not a valid URL.
+ * @param httpUrl - The HTTP URL to derive from
+ * @param envVarName - Name of the env var (for error messages)
+ * @returns The derived WebSocket URL
  */
-export function getClientWsUrl(): string {
-  const url = process.env.NEXT_PUBLIC_INDEXER_WS_URL;
-  if (!url) {
-    throw new IndexerError({
-      category: 'CONFIGURATION',
-      code: 'MISSING_ENV_VAR',
-      message:
-        'NEXT_PUBLIC_INDEXER_WS_URL is not set. Set this environment variable to your Hasura GraphQL WebSocket endpoint (e.g., wss://indexer.example.com/v1/graphql).',
-    });
-  }
-  try {
-    new URL(url);
-  } catch {
+function deriveWsUrl(httpUrl: string, envVarName: string): string {
+  const parsed = new URL(httpUrl);
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
     throw new IndexerError({
       category: 'CONFIGURATION',
       code: 'INVALID_URL',
-      message: `NEXT_PUBLIC_INDEXER_WS_URL is not a valid URL: "${url}". Expected a full URL like wss://indexer.example.com/v1/graphql.`,
+      message: `${envVarName} must use http or https to derive a WebSocket URL, but got "${httpUrl}". Expected a URL like https://indexer.example.com/v1/graphql.`,
     });
   }
-  return url;
+  parsed.protocol = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
+  return parsed.toString();
 }
 
 /**
@@ -118,17 +110,7 @@ export function getServerWsUrl(): string {
     }
   }
   // No explicit WS URL — derive from HTTP URL (getServerUrl throws if not set)
-  const httpUrl = getServerUrl();
-  const parsed = new URL(httpUrl);
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new IndexerError({
-      category: 'CONFIGURATION',
-      code: 'INVALID_URL',
-      message: `INDEXER_URL must use http or https to derive a WebSocket URL, but got "${httpUrl}". Expected a URL like https://indexer.example.com/v1/graphql.`,
-    });
-  }
-  parsed.protocol = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
-  return parsed.toString();
+  return deriveWsUrl(getServerUrl(), 'INDEXER_URL');
 }
 
 /**
@@ -144,7 +126,7 @@ export function getServerWsUrl(): string {
  * @returns WebSocket URL string
  * @throws IndexerError if neither WS URL nor HTTP URL is configured
  */
-export function getClientWsUrlOrDerive(): string {
+export function getClientWsUrl(): string {
   const wsUrl = process.env.NEXT_PUBLIC_INDEXER_WS_URL;
   if (wsUrl) {
     try {
@@ -159,15 +141,5 @@ export function getClientWsUrlOrDerive(): string {
     }
   }
   // No explicit WS URL — derive from HTTP URL (getClientUrl throws if not set)
-  const httpUrl = getClientUrl();
-  const parsed = new URL(httpUrl);
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new IndexerError({
-      category: 'CONFIGURATION',
-      code: 'INVALID_URL',
-      message: `NEXT_PUBLIC_INDEXER_URL must use http or https to derive a WebSocket URL, but got "${httpUrl}". Expected a URL like https://indexer.example.com/v1/graphql.`,
-    });
-  }
-  parsed.protocol = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
-  return parsed.toString();
+  return deriveWsUrl(getClientUrl(), 'NEXT_PUBLIC_INDEXER_URL');
 }

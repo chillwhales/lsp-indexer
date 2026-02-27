@@ -1,4 +1,4 @@
-import { getClientWsUrlOrDerive } from '@lsp-indexer/node';
+import { getClientWsUrl } from '@lsp-indexer/node';
 import type { Client, FormattedExecutionResult, Sink, SubscribePayload } from 'graphql-ws';
 import { createClient } from 'graphql-ws';
 
@@ -37,7 +37,7 @@ export class SubscriptionClient {
   private hasConnectedBefore = false;
 
   constructor(url?: string) {
-    this.url = url ?? getClientWsUrlOrDerive();
+    this.url = url ?? getClientWsUrl();
 
     // Bind methods for stable references (useSyncExternalStore needs stable function refs)
     this.subscribe = this.subscribe.bind(this);
@@ -103,6 +103,8 @@ export class SubscriptionClient {
     this.wsClient?.dispose();
     this.wsClient = null;
     this.setState('disconnected');
+    this.listeners.clear();
+    this.reconnectCallbacks.clear();
     this.abruptlyClosed = false;
     this.hasConnectedBefore = false;
   }

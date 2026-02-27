@@ -1,34 +1,11 @@
 import { IndexerError } from '@lsp-indexer/node';
+import type {
+  BaseSubscriptionOptions,
+  UseSubscriptionReturn as BaseSubscriptionReturn,
+} from '@lsp-indexer/types';
 import type { QueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useSubscriptionClient } from './context';
-
-/**
- * Safely extract `{ message, extensions }` from an unknown GraphQL error object.
- * graphql-ws types subscription errors as `unknown` to avoid DOM deps,
- * so we narrow with runtime checks instead of type assertions.
- */
-function toGraphQLError(e: unknown): {
-  message: string;
-  extensions: Record<string, unknown> | undefined;
-} {
-  if (typeof e !== 'object' || e === null) {
-    return { message: String(e), extensions: undefined };
-  }
-  const message = 'message' in e && typeof e.message === 'string' ? e.message : String(e);
-  let extensions: Record<string, unknown> | undefined;
-  if (
-    'extensions' in e &&
-    typeof e.extensions === 'object' &&
-    e.extensions !== null &&
-    !Array.isArray(e.extensions)
-  ) {
-    // e.extensions is narrowed to `object` here; spread into a fresh record
-    // to satisfy the Record<string, unknown> constraint without assertions.
-    extensions = Object.fromEntries(Object.entries(e.extensions));
-  }
-  return { message, extensions };
-}
 
 /**
  * Options for the generic useSubscription hook.
@@ -37,29 +14,7 @@ function toGraphQLError(e: unknown): {
  * Domain hooks provide the document, dataKey, parser, and variables —
  * useSubscription handles the WebSocket lifecycle.
  */
-export interface UseSubscriptionOptions<TParsed> {
-  /** GraphQL subscription document string */
-  document: string;
-  /** The key in the GraphQL response object (e.g., 'universal_profile') */
-  dataKey: string;
-  /** GraphQL variables (where, order_by, limit) */
-  variables: Record<string, unknown>;
-  /**
-   * Parser function to transform raw Hasura data to clean types.
-   * Receives `unknown[]` because the GraphQL response is untyped at runtime;
-   * the parser is responsible for validating/coercing each element.
-   */
-  parser: (raw: unknown[]) => TParsed[];
-  /** Enable/disable the subscription (default: true) */
-  enabled?: boolean;
-  /** Whether to invalidate TanStack Query cache on data (default: false) */
-  invalidate?: boolean;
-  /** Query keys to invalidate when data arrives */
-  invalidateKeys?: readonly (readonly unknown[])[];
-  /** Callback when new data arrives */
-  onData?: (data: TParsed[]) => void;
-  /** Callback on WebSocket reconnect */
-  onReconnect?: () => void;
+export interface UseSubscriptionOptions<TParsed> extends BaseSubscriptionOptions<TParsed> {
   /**
    * TanStack QueryClient for cache invalidation.
    * Passed by domain hooks (they call useQueryClient in try/catch and pass through).
@@ -69,13 +24,7 @@ export interface UseSubscriptionOptions<TParsed> {
 }
 
 /** Return type for useSubscription */
-export interface UseSubscriptionReturn<T> {
-  /** Latest subscription data, or null if no data received yet */
-  data: T[] | null;
-  /** Whether the WebSocket is currently connected */
-  isConnected: boolean;
-  /** Whether this specific subscription is currently active */
-  isSubscribed: boolean;
+export interface UseSubscriptionReturn<T> extends Omit<BaseSubscriptionReturn<T>, 'error'> {
   /** Error from the subscription, if any */
   error: IndexerError | null;
 }
@@ -185,11 +134,11 @@ export function useSubscription<TParsed>(
             onDataRef.current?.(parsed);
 
             // Cache invalidation
-            if (invalidateRef.current && queryClientRef.current && invalidateKeysRef.current) {
-              for (const key of invalidateKeysRef.current) {
-                queryClientRef.current.invalidateQueries({ queryKey: [...key] });
-              }
-            }
+            invalidateCaches(
+              invalidateRef.current,
+              queryClientRef.current,
+              invalidateKeysRef.current,
+            );
           } catch (parseError) {
             setError(
               new IndexerError({
@@ -210,7 +159,12 @@ export function useSubscription<TParsed>(
             setError(rawError);
           } else if (Array.isArray(rawError)) {
             // GraphQL errors array
-            setError(IndexerError.fromGraphQLErrors(rawError.map(toGraphQLError), document));
+            setError(
+              IndexerError.fromGraphQLErrors(
+                rawError.map(IndexerError.narrowGraphQLError),
+                document,
+              ),
+            );
           } else {
             setError(
               new IndexerError({
@@ -249,15 +203,26 @@ export function useSubscription<TParsed>(
       onReconnectRef.current?.();
 
       // Invalidate caches on reconnect (stale after disconnect)
-      if (invalidateRef.current && queryClientRef.current && invalidateKeysRef.current) {
-        for (const key of invalidateKeysRef.current) {
-          queryClientRef.current.invalidateQueries({ queryKey: [...key] });
-        }
-      }
+      invalidateCaches(invalidateRef.current, queryClientRef.current, invalidateKeysRef.current);
     });
 
     return unregister;
   }, [client]);
 
   return { data, isConnected, isSubscribed, error };
+}
+
+/**
+ * Invalidate TanStack Query caches if configured.
+ * Shared between data arrival and reconnect paths.
+ */
+function invalidateCaches(
+  shouldInvalidate: boolean,
+  client: QueryClient | undefined,
+  keys: readonly (readonly unknown[])[] | undefined,
+): void {
+  if (!shouldInvalidate || !client || !keys) return;
+  for (const key of keys) {
+    client.invalidateQueries({ queryKey: [...key] });
+  }
 }

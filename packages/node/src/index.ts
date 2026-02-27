@@ -2,14 +2,7 @@
 export { IndexerError } from './errors';
 
 // Client utilities (execute, env helpers)
-export {
-  execute,
-  getClientUrl,
-  getClientWsUrl,
-  getClientWsUrlOrDerive,
-  getServerUrl,
-  getServerWsUrl,
-} from './client';
+export { execute, getClientUrl, getClientWsUrl, getServerUrl, getServerWsUrl } from './client';
 
 // Profile services (the core fetching layer)
 export { buildProfileIncludeVars, fetchProfile, fetchProfiles } from './services/profiles';
