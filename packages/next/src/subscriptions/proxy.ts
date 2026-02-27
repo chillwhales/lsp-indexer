@@ -138,7 +138,7 @@ export function createProxyServer(options: ProxyHandlerOptions = {}) {
   const server = createServer();
   const wss = new WebSocketServer({
     server,
-    verifyClient: (info) => {
+    verifyClient: (info: { req: any }) => {
       const url = new URL(info.req.url || '', `http://${info.req.headers.host}`);
 
       // Only allow connections to /api/graphql
