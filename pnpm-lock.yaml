@@ -379,6 +379,12 @@ importers:
       '@lsp-indexer/types':
         specifier: workspace:*
         version: link:../types
+      graphql-ws:
+        specifier: ^6.0.4
+        version: 6.0.7(graphql@16.12.0)(ws@8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      ws:
+        specifier: ^8.18.0
+        version: 8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     devDependencies:
       '@tanstack/react-query':
         specifier: ^5.90.21
@@ -386,6 +392,9 @@ importers:
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.18.1
       next:
         specifier: ^16.1.6
         version: 16.1.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -444,6 +453,9 @@ importers:
       '@lsp-indexer/types':
         specifier: workspace:*
         version: link:../types
+      graphql-ws:
+        specifier: ^6.0.4
+        version: 6.0.7(graphql@16.12.0)(ws@8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
     devDependencies:
       '@tanstack/react-query':
         specifier: ^5.90.21
@@ -9391,10 +9403,10 @@ snapshots:
       '@whatwg-node/fetch': 0.10.13
       '@whatwg-node/promise-helpers': 1.3.1
       graphql: 16.12.0
-      isomorphic-ws: 5.0.0(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      isomorphic-ws: 5.0.0(ws@8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       sync-fetch: 0.6.0-2
       tslib: 2.8.1
-      ws: 8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - '@fastify/websocket'
       - '@types/node'
@@ -11211,7 +11223,7 @@ snapshots:
       graphql-ws: 5.16.2(graphql@15.10.1)
       inflected: 2.1.0
       pg: 8.15.6
-      ws: 8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     optionalDependencies:
       '@subsquid/big-decimal': 1.0.0
     transitivePeerDependencies:
@@ -14005,10 +14017,6 @@ snapshots:
   isexe@2.0.0: {}
 
   isexe@3.1.5: {}
-
-  isomorphic-ws@5.0.0(ws@8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
-    dependencies:
-      ws: 8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
 
   isomorphic-ws@5.0.0(ws@8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
     dependencies:

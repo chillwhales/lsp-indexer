@@ -38,11 +38,14 @@
   },
   "dependencies": {
     "@lsp-indexer/node": "workspace:*",
-    "@lsp-indexer/types": "workspace:*"
+    "@lsp-indexer/types": "workspace:*",
+    "graphql-ws": "^6.0.4",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@tanstack/react-query": "^5.90.21",
     "@types/react": "^19.2.14",
+    "@types/ws": "^8.5.13",
     "next": "^16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

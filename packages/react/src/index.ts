@@ -10,3 +10,9 @@ export * from './hooks/owned-tokens';
 export * from './hooks/profiles';
 export * from './hooks/token-id-data-changed-events';
 export * from './hooks/universal-receiver-events';
+
+// Subscription infrastructure
+export * from './subscriptions/client';
+export * from './subscriptions/context';
+export * from './subscriptions/provider';
+export * from './subscriptions/use-subscription';

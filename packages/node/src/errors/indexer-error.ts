@@ -154,6 +154,33 @@ export class IndexerError extends Error {
   }
 
   /**
+   * Narrow an unknown value into the shape expected by `fromGraphQLErrors`.
+   *
+   * graphql-ws and SSE error payloads type errors as `unknown` to avoid DOM deps.
+   * This method safely extracts `message` and `extensions` using runtime checks
+   * without type assertions.
+   */
+  static narrowGraphQLError(e: unknown): {
+    message: string;
+    extensions: Record<string, unknown> | undefined;
+  } {
+    if (typeof e !== 'object' || e === null) {
+      return { message: String(e), extensions: undefined };
+    }
+    const message = 'message' in e && typeof e.message === 'string' ? e.message : String(e);
+    let extensions: Record<string, unknown> | undefined;
+    if (
+      'extensions' in e &&
+      typeof e.extensions === 'object' &&
+      e.extensions !== null &&
+      !Array.isArray(e.extensions)
+    ) {
+      extensions = Object.fromEntries(Object.entries(e.extensions));
+    }
+    return { message, extensions };
+  }
+
+  /**
    * Factory: create an IndexerError from a network fetch error.
    *
    * Detects timeout/abort errors vs generic network failures.
