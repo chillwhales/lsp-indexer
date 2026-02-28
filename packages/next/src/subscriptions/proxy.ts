@@ -71,7 +71,7 @@ export interface ProxyOptions {
 
   /**
    * Maximum concurrent client connections.
-   * New connections beyond this limit are rejected with code 1013 (Try Again Later).
+   * New connections beyond this limit are rejected with HTTP 503 (Service Unavailable).
    * @default 100
    */
   maxConnections?: number;
@@ -218,7 +218,7 @@ export function createProxyServer(options: ProxyOptions = {}) {
         return;
       }
       if (activeConnections >= maxConnections) {
-        callback(false, 1013, 'Too many connections');
+        callback(false, 503, 'Too many connections');
         return;
       }
       callback(true);

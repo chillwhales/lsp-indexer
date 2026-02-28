@@ -105,6 +105,12 @@ export class GenericSubscriptionInstance<T> implements SubscriptionInstance<T> {
       this.options.onReconnect?.();
     });
 
+    // Mark as subscribed BEFORE executing so that synchronous error/complete
+    // callbacks from graphql-ws don't get overwritten. If executeSubscription
+    // fires error() or complete() synchronously (e.g. validation errors),
+    // their setSubscribed(false) will correctly take precedence.
+    this.setSubscribed(true);
+
     // Execute the subscription
     this.cleanup = this.client.executeSubscription(
       { query: this.config.document, variables: this.config.variables },
@@ -161,8 +167,6 @@ export class GenericSubscriptionInstance<T> implements SubscriptionInstance<T> {
         },
       },
     );
-
-    this.setSubscribed(true);
   }
 
   private stop(): void {
