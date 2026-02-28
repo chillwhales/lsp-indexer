@@ -1,7 +1,7 @@
 'use client';
 
+import { SubscriptionClient } from '@lsp-indexer/node';
 import { useEffect, useRef, type ReactNode } from 'react';
-import { SubscriptionClient } from './client';
 import { SubscriptionClientContext } from './context';
 
 interface IndexerSubscriptionProviderProps {
