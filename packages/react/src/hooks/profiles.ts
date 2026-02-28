@@ -1,22 +1,22 @@
-import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import {
+  type InfiniteData,
+  type UseInfiniteQueryResult,
+  type UseQueryResult,
+  useInfiniteQuery,
+  useQuery,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { FetchProfilesResult } from '@lsp-indexer/node';
 import {
-  buildProfileIncludeVars,
-  buildProfileWhere,
+  type FetchProfilesResult,
   fetchProfile,
   fetchProfiles,
   getClientUrl,
-  parseProfiles,
   profileKeys,
-  ProfileSubscriptionDocument,
 } from '@lsp-indexer/node';
 import type {
   PartialProfile,
   Profile,
-  ProfileFilter,
   ProfileInclude,
   ProfileResult,
   UseInfiniteProfilesParams,
@@ -24,8 +24,8 @@ import type {
   UseProfilesParams,
 } from '@lsp-indexer/types';
 
+import { createProfileSubscription } from '../subscriptions/create-profile-subscription';
 import { useSubscription } from '../subscriptions/use-subscription';
-import type { UseSubscriptionReturn } from '../subscriptions/use-subscription';
 
 /** Default number of profiles per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -258,93 +258,13 @@ export function useInfiniteProfiles(
 // Subscription hook
 // ---------------------------------------------------------------------------
 
-const DEFAULT_SUBSCRIPTION_LIMIT = 10;
-
-interface UseProfileSubscriptionParams {
-  /** Filter criteria to narrow which profiles to subscribe to */
-  filter?: ProfileFilter;
-  /** Control which nested fields are included in subscription data */
-  include?: ProfileInclude;
-  /** Maximum number of results per subscription update (default: 10) */
-  limit?: number;
-  /** Whether the subscription is active (default: true) */
-  enabled?: boolean;
-  /** Whether to invalidate TanStack Query cache on subscription data (default: false) */
-  invalidate?: boolean;
-  /** Callback fired when new subscription data arrives */
-  onData?: (data: Profile[]) => void;
-  /** Callback fired when the WebSocket reconnects after a disconnect */
-  onReconnect?: () => void;
-}
-
 /**
  * Subscribe to real-time Universal Profile updates via WebSocket.
  *
- * Wraps the generic `useSubscription` hook with profile-specific document,
- * parser, and filter/include logic. Mirrors `useProfiles` query behavior
- * but receives live updates instead of polling.
+ * Created by `createProfileSubscription` — all domain logic (document,
+ * variable builders, parser) and framework wiring (QueryClient invalidation)
+ * are encapsulated in the factory.
  *
- * @param params - Optional filter, include, limit, and callback config
- * @returns `{ data, isConnected, isSubscribed, error }` — subscription state
- *
- * @example
- * ```tsx
- * import { useProfileSubscription } from '@lsp-indexer/react';
- *
- * function LiveProfiles() {
- *   const { data: profiles, isConnected } = useProfileSubscription({
- *     filter: { name: 'alice' },
- *     limit: 5,
- *   });
- *
- *   return (
- *     <div>
- *       <span>{isConnected ? '🟢' : '🔴'}</span>
- *       {profiles?.map((p) => <div key={p.address}>{p.name}</div>)}
- *     </div>
- *   );
- * }
- * ```
+ * @see {@link createProfileSubscription} for full documentation and examples
  */
-export function useProfileSubscription(
-  params: UseProfileSubscriptionParams = {},
-): UseSubscriptionReturn<Profile> {
-  const {
-    filter,
-    include,
-    limit = DEFAULT_SUBSCRIPTION_LIMIT,
-    enabled = true,
-    invalidate = false,
-    onData,
-    onReconnect,
-  } = params;
-
-  const where = buildProfileWhere(filter);
-  const includeVars = buildProfileIncludeVars(include);
-
-  let queryClient: QueryClient | undefined;
-  try {
-    queryClient = useQueryClient();
-  } catch {
-    // No QueryClientProvider — cache invalidation won't work but hook still functions
-  }
-
-  return useSubscription({
-    document: ProfileSubscriptionDocument,
-    dataKey: 'universal_profile',
-    variables: {
-      where: Object.keys(where).length > 0 ? where : undefined,
-      order_by: undefined,
-      limit,
-      ...includeVars,
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    parser: (raw: any[]) => parseProfiles(raw),
-    enabled,
-    invalidate,
-    invalidateKeys: invalidate ? [profileKeys.all] : undefined,
-    queryClient: invalidate ? queryClient : undefined,
-    onData,
-    onReconnect,
-  });
-}
+export const useProfileSubscription = createProfileSubscription(useSubscription);

@@ -12,7 +12,7 @@ import { parseAsset, parseImage, parseLinks } from './utils';
  * from other domains (owned-assets, nfts, owned-tokens) which don't select `id`.
  * TypeScript structural subtyping means types WITH `id` still satisfy this.
  */
-type RawProfile = Omit<GetProfileQuery['universal_profile'][number], 'id'>;
+export type RawProfile = Omit<GetProfileQuery['universal_profile'][number], 'id'>;
 
 /**
  * Transform a raw Hasura Universal Profile response into a clean `Profile` type.

@@ -5,7 +5,7 @@ export { IndexerError } from './errors';
 export { execute, getClientUrl, getClientWsUrl, getServerUrl, getServerWsUrl } from './client';
 
 // Profile services (the core fetching layer)
-export { buildProfileIncludeVars, buildProfileWhere, fetchProfile, fetchProfiles } from './services/profiles';
+export { buildProfileIncludeVars, fetchProfile, fetchProfiles } from './services/profiles';
 export type { FetchProfilesResult } from './services/profiles';
 
 // Profile parsers (Hasura → clean types)
@@ -18,7 +18,11 @@ export { stripExcluded } from './parsers/strip';
 export { profileKeys } from './keys/profiles';
 
 // GraphQL documents (for advanced usage / custom queries)
-export { GetProfileDocument, GetProfilesDocument, ProfileSubscriptionDocument } from './documents/profiles';
+export {
+  GetProfileDocument,
+  GetProfilesDocument,
+  ProfileSubscriptionDocument,
+} from './documents/profiles';
 
 // Digital asset services (the core fetching layer)
 export {
@@ -201,6 +205,13 @@ export type {
   SubscriptionClientExecutor,
   SubscriptionInstanceInit,
 } from './subscriptions/subscription-instance';
+
+// Subscription config utilities
+export { createSubscriptionConfig } from './subscriptions/create-subscription-config';
+
+// Subscription config factories (domain → SubscriptionConfig)
+export { createProfileSubscriptionConfig } from './subscriptions/profiles';
+export type { ProfileSubscriptionParams } from './subscriptions/profiles';
 
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';

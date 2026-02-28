@@ -128,7 +128,7 @@ function buildProfileOrderBy(sort?: ProfileSort): Universal_Profile_Order_By[] |
  * When `include` is provided, each field defaults to `false` unless explicitly set
  * to `true`. This implements the "opt-in when specified" contract.
  */
-function buildIncludeVars(include?: ProfileInclude): Record<string, boolean> {
+export function buildIncludeVars(include?: ProfileInclude): Record<string, boolean> {
   if (!include) {
     // Omitted = include everything (GraphQL defaults all to true)
     return {};

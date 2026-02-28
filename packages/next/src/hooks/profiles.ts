@@ -1,11 +1,16 @@
 'use client';
 
-import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import {
+  type InfiniteData,
+  type UseInfiniteQueryResult,
+  type UseQueryResult,
+  useInfiniteQuery,
+  useQuery,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { FetchProfilesResult } from '@lsp-indexer/node';
-import { profileKeys } from '@lsp-indexer/node';
+import { type FetchProfilesResult, profileKeys } from '@lsp-indexer/node';
+import { createProfileSubscription } from '@lsp-indexer/react';
 import type {
   PartialProfile,
   Profile,
@@ -17,6 +22,7 @@ import type {
 } from '@lsp-indexer/types';
 
 import { getProfile, getProfiles } from '../actions/profiles';
+import { useSubscription } from '../subscriptions/use-subscription';
 
 /** Default number of profiles per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -238,3 +244,19 @@ export function useInfiniteProfiles(
     ...rest,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Subscription hook
+// ---------------------------------------------------------------------------
+
+/**
+ * Subscribe to real-time Universal Profile updates via WebSocket.
+ *
+ * Next.js variant — uses the WebSocket proxy transport (`/api/graphql`)
+ * instead of a direct connection. Created by `createProfileSubscription`
+ * from `@lsp-indexer/react` — all domain logic and framework wiring are
+ * encapsulated in the factory.
+ *
+ * @see {@link createProfileSubscription} for full documentation and examples
+ */
+export const useProfileSubscription = createProfileSubscription(useSubscription);

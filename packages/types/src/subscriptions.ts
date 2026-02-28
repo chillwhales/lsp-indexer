@@ -33,8 +33,10 @@ export interface UseSubscriptionReturn<T> {
 
 /**
  * Configuration for a domain subscription — what domain functions like
- * `createProfilesSubscription()` return. Contains all the domain-specific
+ * `createProfileSubscriptionConfig()` return. Contains all the domain-specific
  * logic (document, variables, parsing) but no transport concerns.
+ *
+ * @typeParam T - The clean output type (e.g., `Profile`)
  */
 export interface SubscriptionConfig<T> {
   /** GraphQL subscription document string */
