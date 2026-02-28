@@ -1,5 +1,3 @@
-'use client';
-
 export * from './actions/creators';
 export * from './actions/data-changed-events';
 export * from './actions/digital-assets';
@@ -25,9 +23,7 @@ export * from './hooks/profiles';
 export * from './hooks/token-id-data-changed-events';
 export * from './hooks/universal-receiver-events';
 
-// Subscription infrastructure
 export * from './subscriptions/client';
 export * from './subscriptions/context';
 export * from './subscriptions/provider';
-export * from './subscriptions/proxy';
 export * from './subscriptions/use-subscription';

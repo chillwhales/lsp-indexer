@@ -1,9 +1,9 @@
 /**
  * Base options for subscription hooks across all packages.
  *
- * Both `@lsp-indexer/react` (WebSocket) and `@lsp-indexer/next` (SSE) extend
- * or use this interface directly. Transport-specific options (e.g., `url` for SSE)
- * are added by each package.
+ * Both `@lsp-indexer/react` and `@lsp-indexer/next` extend or use this
+ * interface directly. Transport details (direct WebSocket vs. WebSocket
+ * proxy) are handled internally by each package.
  */
 export interface BaseSubscriptionOptions<TParsed> {
   /** GraphQL subscription document string */
@@ -26,7 +26,7 @@ export interface BaseSubscriptionOptions<TParsed> {
   invalidateKeys?: readonly (readonly unknown[])[];
   /** Callback when new data arrives */
   onData?: (data: TParsed[]) => void;
-  /** Callback on reconnect (WebSocket reconnect or SSE reconnect) */
+  /** Callback on reconnect */
   onReconnect?: () => void;
 }
 
@@ -39,7 +39,7 @@ export interface BaseSubscriptionOptions<TParsed> {
 export interface UseSubscriptionReturn<T> {
   /** Latest subscription data, or null if no data received yet */
   data: T[] | null;
-  /** Whether the connection (WebSocket or SSE) is currently open */
+  /** Whether the WebSocket connection is currently open */
   isConnected: boolean;
   /** Whether this specific subscription is currently active */
   isSubscribed: boolean;
@@ -85,7 +85,7 @@ export interface SubscriptionHookOptions<T> {
   invalidateKeys?: readonly (readonly unknown[])[];
   /** Callback when new data arrives */
   onData?: (data: T[]) => void;
-  /** Callback on reconnect (WebSocket reconnect or SSE reconnect) */
+  /** Callback on reconnect */
   onReconnect?: () => void;
 }
 
@@ -96,7 +96,7 @@ export interface SubscriptionHookOptions<T> {
 export interface SubscriptionResult<T> {
   /** Latest subscription data, or null if no data received yet */
   data: T[] | null;
-  /** Whether the connection (WebSocket or SSE) is currently open */
+  /** Whether the WebSocket connection is currently open */
   isConnected: boolean;
   /** Whether this specific subscription is currently active */
   isSubscribed: boolean;
@@ -108,7 +108,7 @@ export interface SubscriptionResult<T> {
 
 /**
  * Sink interface for subscription events.
- * Both React (WebSocket) and Next (SSE) clients implement this callback pattern.
+ * Both React and Next clients implement this callback pattern.
  */
 export interface SubscriptionSink {
   /** Called when new subscription data arrives */
@@ -137,9 +137,9 @@ export interface SubscriptionInstance<T> {
 }
 
 /**
- * Common interface that both React (WebSocket) and Next (SSE) subscription
- * clients must implement. The client manages multiple subscriptions and
- * their individual state.
+ * Common interface that both React and Next subscription clients must
+ * implement. The client manages multiple subscriptions and their
+ * individual state.
  */
 export interface SubscriptionClient {
   /**

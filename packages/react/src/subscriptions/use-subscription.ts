@@ -49,14 +49,7 @@ export function useSubscription<T>(
 
   // Create/dispose subscription based on enabled state
   useEffect(() => {
-    const {
-      enabled = true,
-      onData,
-      onReconnect,
-      queryClient,
-      invalidateKeys,
-      invalidate,
-    } = optionsRef.current;
+    const { enabled = true } = optionsRef.current;
 
     if (!enabled) {
       // Dispose existing subscription if disabled
@@ -71,29 +64,39 @@ export function useSubscription<T>(
     }
 
     // Create new subscription
+    // Callbacks read from optionsRef.current at invocation time to
+    // avoid stale closures when options change while enabled stays true.
     const subscription = client.createSubscription(config, {
       enabled,
       onData: (newData: T[]) => {
         // Cache invalidation
-        if (invalidate && queryClient && invalidateKeys) {
-          for (const key of invalidateKeys) {
-            queryClient.invalidateQueries({ queryKey: [...key] });
+        if (
+          optionsRef.current.invalidate &&
+          optionsRef.current.queryClient &&
+          optionsRef.current.invalidateKeys
+        ) {
+          for (const key of optionsRef.current.invalidateKeys) {
+            optionsRef.current.queryClient.invalidateQueries({ queryKey: [...key] });
           }
         }
 
         // User callback
-        onData?.(newData);
+        optionsRef.current.onData?.(newData);
       },
       onReconnect: () => {
         // Cache invalidation on reconnect (data may be stale after disconnect)
-        if (invalidate && queryClient && invalidateKeys) {
-          for (const key of invalidateKeys) {
-            queryClient.invalidateQueries({ queryKey: [...key] });
+        if (
+          optionsRef.current.invalidate &&
+          optionsRef.current.queryClient &&
+          optionsRef.current.invalidateKeys
+        ) {
+          for (const key of optionsRef.current.invalidateKeys) {
+            optionsRef.current.queryClient.invalidateQueries({ queryKey: [...key] });
           }
         }
 
         // User callback
-        onReconnect?.();
+        optionsRef.current.onReconnect?.();
       },
     });
 
