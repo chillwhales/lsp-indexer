@@ -13,5 +13,6 @@ export * from './hooks/universal-receiver-events';
 
 // Subscription infrastructure
 export * from './subscriptions/context';
+export * from './subscriptions/create-use-subscription';
 export * from './subscriptions/provider';
 export * from './subscriptions/use-subscription';

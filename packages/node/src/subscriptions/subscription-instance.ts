@@ -9,6 +9,8 @@ import { IndexerError } from '../errors';
  * Internal interface for the client that subscription instances use.
  * This allows the instance to work with any client implementation (React, Next, etc.)
  * without importing the full SubscriptionClient interface.
+ *
+ * Uses plain types — no `graphql-ws` types leak through this boundary.
  */
 export interface SubscriptionClientExecutor {
   executeSubscription(
@@ -21,6 +23,24 @@ export interface SubscriptionClientExecutor {
   ): () => void;
 
   onReconnect(callback: () => void): () => void;
+}
+
+/**
+ * Options for constructing a GenericSubscriptionInstance.
+ */
+export interface SubscriptionInstanceInit<T> {
+  /** The client executor for running subscriptions */
+  client: SubscriptionClientExecutor;
+  /** Domain configuration (document, variables, parser) */
+  config: SubscriptionConfig<T>;
+  /** Hook-level options (enabled, callbacks) */
+  options?: SubscriptionHookOptions<T>;
+  /**
+   * Called when this instance is disposed.
+   * Used by SubscriptionClient to track active subscriptions without
+   * monkey-patching the dispose method.
+   */
+  onDispose?: () => void;
 }
 
 /**
@@ -40,12 +60,17 @@ export class GenericSubscriptionInstance<T> implements SubscriptionInstance<T> {
   private listeners = new Set<() => void>();
   private cleanup: (() => void) | null = null;
   private reconnectCleanup: (() => void) | null = null;
+  private readonly onDisposeCallback: (() => void) | undefined;
 
-  constructor(
-    private client: SubscriptionClientExecutor,
-    private config: SubscriptionConfig<T>,
-    private options: SubscriptionHookOptions<T> = {},
-  ) {
+  private readonly client: SubscriptionClientExecutor;
+  private readonly config: SubscriptionConfig<T>;
+  private readonly options: SubscriptionHookOptions<T>;
+
+  constructor(init: SubscriptionInstanceInit<T>) {
+    this.client = init.client;
+    this.config = init.config;
+    this.options = init.options ?? {};
+    this.onDisposeCallback = init.onDispose;
     this.start();
   }
 
@@ -69,10 +94,11 @@ export class GenericSubscriptionInstance<T> implements SubscriptionInstance<T> {
   dispose(): void {
     this.stop();
     this.listeners.clear();
+    this.onDisposeCallback?.();
   }
 
   private start(): void {
-    if (!this.options.enabled && this.options.enabled !== undefined) return;
+    if (this.options.enabled === false) return;
 
     // Register reconnect callback
     this.reconnectCleanup = this.client.onReconnect(() => {

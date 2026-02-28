@@ -2,6 +2,7 @@ import type { SubscriptionClient } from '@lsp-indexer/node';
 import { createContext, useContext } from 'react';
 
 const SubscriptionClientContext = createContext<SubscriptionClient | null>(null);
+SubscriptionClientContext.displayName = 'SubscriptionClientContext';
 
 export { SubscriptionClientContext };
 

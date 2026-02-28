@@ -1,12 +1,6 @@
 'use client';
 
-import type {
-  SubscriptionConfig,
-  SubscriptionHookOptions,
-  UseSubscriptionReturn,
-} from '@lsp-indexer/types';
-import type { QueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { createUseSubscription } from '@lsp-indexer/react';
 import { useSubscriptionClient } from './context';
 
 /**
@@ -20,119 +14,7 @@ import { useSubscriptionClient } from './context';
  *
  * The heavy lifting (connection management, parsing, error handling) is done
  * by the SubscriptionClient and subscription instances.
+ *
+ * @see createUseSubscription — shared hook factory in `@lsp-indexer/react`
  */
-export function useSubscription<T>(
-  config: SubscriptionConfig<T>,
-  options: SubscriptionHookOptions<T> & {
-    /** TanStack QueryClient for cache invalidation */
-    queryClient?: QueryClient;
-    /** Query keys to invalidate when data arrives */
-    invalidateKeys?: readonly (readonly unknown[])[];
-    /** Whether to invalidate caches on data arrival */
-    invalidate?: boolean;
-  } = {},
-): UseSubscriptionReturn<T> {
-  const client = useSubscriptionClient();
-  const subscriptionRef = useRef<ReturnType<typeof client.createSubscription> | null>(null);
-
-  // React state that syncs with subscription instance
-  const [data, setData] = useState<T[] | null>(null);
-  const [error, setError] = useState<unknown>(null);
-  const [isSubscribed, setIsSubscribed] = useState(false);
-
-  // Connection state from client (useSyncExternalStore for external state)
-  const isConnected =
-    useSyncExternalStore(client.subscribe, client.getSnapshot, client.getServerSnapshot) ===
-    'connected';
-
-  // Stable refs for callbacks to avoid stale closures
-  const optionsRef = useRef(options);
-  optionsRef.current = options;
-
-  // Create/dispose subscription based on enabled state
-  useEffect(() => {
-    const { enabled = true } = optionsRef.current;
-
-    if (!enabled) {
-      // Dispose existing subscription if disabled
-      if (subscriptionRef.current) {
-        subscriptionRef.current.dispose();
-        subscriptionRef.current = null;
-        setData(null);
-        setError(null);
-        setIsSubscribed(false);
-      }
-      return;
-    }
-
-    // Create new subscription
-    // Callbacks read from optionsRef.current at invocation time to
-    // avoid stale closures when options change while enabled stays true.
-    const subscription = client.createSubscription(config, {
-      enabled,
-      onData: (newData: T[]) => {
-        // Cache invalidation
-        if (
-          optionsRef.current.invalidate &&
-          optionsRef.current.queryClient &&
-          optionsRef.current.invalidateKeys
-        ) {
-          for (const key of optionsRef.current.invalidateKeys) {
-            optionsRef.current.queryClient.invalidateQueries({ queryKey: [...key] });
-          }
-        }
-
-        // User callback
-        optionsRef.current.onData?.(newData);
-      },
-      onReconnect: () => {
-        // Cache invalidation on reconnect (data may be stale after disconnect)
-        if (
-          optionsRef.current.invalidate &&
-          optionsRef.current.queryClient &&
-          optionsRef.current.invalidateKeys
-        ) {
-          for (const key of optionsRef.current.invalidateKeys) {
-            optionsRef.current.queryClient.invalidateQueries({ queryKey: [...key] });
-          }
-        }
-
-        // User callback
-        optionsRef.current.onReconnect?.();
-      },
-    });
-
-    subscriptionRef.current = subscription;
-
-    // Sync React state with subscription instance state
-    const unsubscribe = subscription.subscribe(() => {
-      setData(subscription.data);
-      setError(subscription.error);
-      setIsSubscribed(subscription.isSubscribed);
-    });
-
-    // Set initial state
-    setData(subscription.data);
-    setError(subscription.error);
-    setIsSubscribed(subscription.isSubscribed);
-
-    return () => {
-      unsubscribe();
-      subscription.dispose();
-      subscriptionRef.current = null;
-    };
-  }, [
-    config.document,
-    config.dataKey,
-    JSON.stringify(config.variables), // Stable variables comparison
-    options.enabled,
-    client,
-  ]);
-
-  return {
-    data,
-    isConnected,
-    isSubscribed,
-    error,
-  };
-}
+export const useSubscription = createUseSubscription(useSubscriptionClient);

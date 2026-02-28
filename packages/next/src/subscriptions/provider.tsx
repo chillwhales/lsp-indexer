@@ -12,7 +12,11 @@ interface IndexerSubscriptionProviderProps {
    *
    * **Must be stable for the provider's lifetime.** Changing `proxyUrl` after
    * mount has no effect — the client is created once and reused. To connect
-   * to a different URL, remount the provider with a new `key`.
+   * to a different URL, remount the provider with a new `key`:
+   *
+   * ```tsx
+   * <IndexerSubscriptionProvider key={proxyUrl} proxyUrl={proxyUrl}>
+   * ```
    */
   proxyUrl?: string;
 
@@ -43,8 +47,19 @@ export function IndexerSubscriptionProvider({
   children,
 }: IndexerSubscriptionProviderProps) {
   const clientRef = useRef<SubscriptionClient | null>(null);
+  const initialUrlRef = useRef(proxyUrl);
+
   if (!clientRef.current) {
     clientRef.current = new SubscriptionClient(proxyUrl);
+  }
+
+  // Warn in development if proxyUrl changes after mount (it has no effect).
+  if (process.env.NODE_ENV !== 'production' && proxyUrl !== initialUrlRef.current) {
+    console.warn(
+      '[IndexerSubscriptionProvider] proxyUrl changed after mount ' +
+        `("${initialUrlRef.current}" → "${proxyUrl}"). This has no effect — ` +
+        'the client is created once. To change URLs, remount with a new `key` prop.',
+    );
   }
 
   // Dispose the WebSocket client on unmount to avoid connection/timer leaks

@@ -48,8 +48,8 @@
   },
   "dependencies": {
     "@lsp-indexer/node": "workspace:*",
+    "@lsp-indexer/react": "workspace:*",
     "@lsp-indexer/types": "workspace:*",
-    "graphql-ws": "^6.0.4",
     "ws": "^8.18.0"
   },
   "devDependencies": {

@@ -16,13 +16,6 @@ export class SubscriptionClient extends BaseSubscriptionClient {
   }
 
   /**
-   * Return the proxy URL passed to the constructor.
-   */
-  protected getConnectionUrl(): string {
-    return this.url;
-  }
-
-  /**
    * Convert relative URLs to absolute WebSocket URLs in the browser.
    * Absolute URLs are returned as-is.
    */

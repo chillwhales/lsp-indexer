@@ -197,7 +197,10 @@ export { GetUniversalReceiverEventsDocument } from './documents/universal-receiv
 export { SubscriptionClient } from './subscriptions/client';
 export type { ConnectionState } from './subscriptions/client';
 export { GenericSubscriptionInstance } from './subscriptions/subscription-instance';
-export type { SubscriptionClientExecutor } from './subscriptions/subscription-instance';
+export type {
+  SubscriptionClientExecutor,
+  SubscriptionInstanceInit,
+} from './subscriptions/subscription-instance';
 
 // Re-export codegen TypedDocumentString for advanced users
 export type { TypedDocumentString } from './graphql/graphql';

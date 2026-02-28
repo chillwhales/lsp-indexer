@@ -376,12 +376,12 @@ importers:
       '@lsp-indexer/node':
         specifier: workspace:*
         version: link:../node
+      '@lsp-indexer/react':
+        specifier: workspace:*
+        version: link:../react
       '@lsp-indexer/types':
         specifier: workspace:*
         version: link:../types
-      graphql-ws:
-        specifier: ^6.0.4
-        version: 6.0.7(graphql@16.12.0)(ws@8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       ws:
         specifier: ^8.18.0
         version: 8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -456,9 +456,6 @@ importers:
       '@lsp-indexer/types':
         specifier: workspace:*
         version: link:../types
-      graphql-ws:
-        specifier: ^6.0.4
-        version: 6.0.7(graphql@16.12.0)(ws@8.19.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
     devDependencies:
       '@tanstack/react-query':
         specifier: ^5.90.21

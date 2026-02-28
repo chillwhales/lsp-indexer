@@ -1,36 +1,4 @@
 /**
- * Base options for subscription hooks across all packages.
- *
- * Both `@lsp-indexer/react` and `@lsp-indexer/next` extend or use this
- * interface directly. Transport details (direct WebSocket vs. WebSocket
- * proxy) are handled internally by each package.
- */
-export interface BaseSubscriptionOptions<TParsed> {
-  /** GraphQL subscription document string */
-  document: string;
-  /** The key in the GraphQL response object (e.g., 'universal_profile') */
-  dataKey: string;
-  /** GraphQL variables (where, order_by, limit) */
-  variables: Record<string, unknown>;
-  /**
-   * Parser function to transform raw Hasura data to clean types.
-   * Receives `unknown[]` because the GraphQL response is untyped at runtime;
-   * the parser is responsible for validating/coercing each element.
-   */
-  parser: (raw: unknown[]) => TParsed[];
-  /** Enable/disable the subscription (default: true) */
-  enabled?: boolean;
-  /** Whether to invalidate TanStack Query cache on data (default: false) */
-  invalidate?: boolean;
-  /** Query keys to invalidate when data arrives */
-  invalidateKeys?: readonly (readonly unknown[])[];
-  /** Callback when new data arrives */
-  onData?: (data: TParsed[]) => void;
-  /** Callback on reconnect */
-  onReconnect?: () => void;
-}
-
-/**
  * Return type for subscription hooks across all packages.
  *
  * Shared between `@lsp-indexer/react` and `@lsp-indexer/next` so domain hooks
@@ -43,16 +11,28 @@ export interface UseSubscriptionReturn<T> {
   isConnected: boolean;
   /** Whether this specific subscription is currently active */
   isSubscribed: boolean;
-  /** Error from the subscription, if any */
+  /**
+   * Error from the subscription, if any.
+   *
+   * At runtime this will be an `IndexerError` instance (from `@lsp-indexer/node`)
+   * for all errors surfaced by the subscription infrastructure. Typed as `unknown`
+   * here because the `types` package must not depend on `node`.
+   *
+   * Consumers can narrow with:
+   * ```ts
+   * import { IndexerError } from '@lsp-indexer/node';
+   * if (error instanceof IndexerError) { ... }
+   * ```
+   */
   error: unknown;
 }
 
 // ---------------------------------------------------------------------------
-// New Architecture Interfaces (Refactor)
+// Architecture Interfaces
 // ---------------------------------------------------------------------------
 
 /**
- * Configuration for a domain subscription - what domain functions like
+ * Configuration for a domain subscription — what domain functions like
  * `createProfilesSubscription()` return. Contains all the domain-specific
  * logic (document, variables, parsing) but no transport concerns.
  */
@@ -72,7 +52,7 @@ export interface SubscriptionConfig<T> {
 }
 
 /**
- * Hook-level subscription options - concerns that are specific to the
+ * Hook-level subscription options — concerns that are specific to the
  * React/Next hook usage, not the domain logic. These are passed separately
  * to the generic `subscribe()` function.
  */
@@ -87,36 +67,6 @@ export interface SubscriptionHookOptions<T> {
   onData?: (data: T[]) => void;
   /** Callback on reconnect */
   onReconnect?: () => void;
-}
-
-/**
- * Return type for the generic `subscribe()` function in `@lsp-indexer/node`.
- * Contains all the state needed by hooks but in a framework-agnostic way.
- */
-export interface SubscriptionResult<T> {
-  /** Latest subscription data, or null if no data received yet */
-  data: T[] | null;
-  /** Whether the WebSocket connection is currently open */
-  isConnected: boolean;
-  /** Whether this specific subscription is currently active */
-  isSubscribed: boolean;
-  /** Error from the subscription, if any (IndexerError type) */
-  error: unknown;
-  /** Function to dispose of the subscription and clean up resources */
-  dispose: () => void;
-}
-
-/**
- * Sink interface for subscription events.
- * Both React and Next clients implement this callback pattern.
- */
-export interface SubscriptionSink {
-  /** Called when new subscription data arrives */
-  next: (result: { data?: Record<string, unknown> }) => void;
-  /** Called when the subscription encounters an error */
-  error: (error: unknown) => void;
-  /** Called when the subscription completes normally */
-  complete: () => void;
 }
 
 /**
