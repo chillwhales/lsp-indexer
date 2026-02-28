@@ -1,7 +1,4 @@
-import {
-  SubscriptionClient as BaseSubscriptionClient,
-  type ConnectionState,
-} from '@lsp-indexer/node';
+import { SubscriptionClient as BaseSubscriptionClient } from '@lsp-indexer/node';
 import { ClientAuth } from './proxy';
 
 /**
@@ -59,6 +56,3 @@ export class SubscriptionClient extends BaseSubscriptionClient {
     return process.env.NEXT_PUBLIC_LSP_INDEXER_CLIENT_SECRET || 'need-to-configure-auth-secret';
   }
 }
-
-// Re-export ConnectionState for convenience
-export type { ConnectionState };

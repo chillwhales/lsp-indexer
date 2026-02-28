@@ -15,7 +15,3 @@ export * from './hooks/universal-receiver-events';
 export * from './subscriptions/context';
 export * from './subscriptions/provider';
 export * from './subscriptions/use-subscription';
-
-// Re-export SubscriptionClient from node package for convenience
-export { SubscriptionClient } from '@lsp-indexer/node';
-export type { ConnectionState } from '@lsp-indexer/node';
