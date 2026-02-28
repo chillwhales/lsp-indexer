@@ -104,10 +104,12 @@ export function createUseSubscription(useSubscriptionClient: () => UseSubscripti
         if (subscriptionRef.current) {
           subscriptionRef.current.dispose();
           subscriptionRef.current = null;
-          setData(null);
-          setError(null);
-          setIsSubscribed(false);
         }
+        // Always reset state — even if cleanup already nulled the ref,
+        // the hook's output should reflect "no active subscription".
+        setData(null);
+        setError(null);
+        setIsSubscribed(false);
         return;
       }
 
