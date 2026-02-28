@@ -181,13 +181,15 @@ export function createProxyServer(options: ProxyOptions = {}) {
   const maxConnections = options.maxConnections ?? DEFAULT_MAX_CONNECTIONS;
   const log: ProxyLogger = options.logger ?? console;
 
-  let activeConnections = 0;
+  /** Track live client sockets in a Set so the count is always correct by
+   *  construction — no manual increment/decrement that can drift on error paths. */
+  const activeClients = new Set<WebSocket>();
 
   const server = createServer((req, res) => {
     // Health check endpoint for load balancers / monitoring
     if (req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ status: 'ok', connections: activeConnections }));
+      res.end(JSON.stringify({ status: 'ok', connections: activeClients.size }));
       return;
     }
 
@@ -217,7 +219,7 @@ export function createProxyServer(options: ProxyOptions = {}) {
         callback(false, 403, 'Origin not allowed');
         return;
       }
-      if (activeConnections >= maxConnections) {
+      if (activeClients.size >= maxConnections) {
         callback(false, 503, 'Too many connections');
         return;
       }
@@ -226,7 +228,7 @@ export function createProxyServer(options: ProxyOptions = {}) {
   });
 
   wss.on('connection', (clientWs) => {
-    activeConnections++;
+    activeClients.add(clientWs);
 
     // Open upstream connection with the same subprotocol the client negotiated.
     const upstream = new WebSocket(wsUrl, clientWs.protocol || undefined, {
@@ -275,16 +277,21 @@ export function createProxyServer(options: ProxyOptions = {}) {
       }
     });
 
-    // Close propagation — sanitize codes to avoid sending reserved values
+    // Close propagation — sanitize codes to avoid sending reserved values.
+    // Set.delete() is idempotent, so the count stays correct regardless of
+    // how many times close fires or which side triggers it.
     clientWs.on('close', (code, reason) => {
       clearTimeout(connectTimeout);
-      activeConnections--;
+      activeClients.delete(clientWs);
       upstream.close(sanitizeCloseCode(code), reason);
     });
 
-    upstream.on('close', (code, reason) => {
+    upstream.on('close', (code) => {
       clearTimeout(connectTimeout);
-      clientWs.close(sanitizeCloseCode(code), reason);
+      activeClients.delete(clientWs);
+      // Redact upstream close reason — it may contain internal details
+      // (table names, connection strings) from the upstream service.
+      clientWs.close(sanitizeCloseCode(code), 'Upstream closed');
     });
 
     // Error handling: close the other side with a private-use code
