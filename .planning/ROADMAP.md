@@ -376,13 +376,15 @@ Plans:
 
 ### Phase 10.1 — Subscription Foundation & Type Safety
 
-**Goal:** Type-safe subscription infrastructure with zero type assertions, exported where-clause builders, codegen-typed subscription documents for all 12 domains, and test app wired with subscription provider.
+**Goal:** Type-safe subscription infrastructure with zero type assertions, exported where-clause builders, and test app wired with subscription provider — the foundation all 12 domain sub-phases build on.
 
 **Requirement:** SUB-01
 
 **Plans:** 1 plan
 
-- [ ] 10.1-01-PLAN.md — Type-safety revamp + export buildXWhere + subscription documents + codegen + provider wiring
+Plans:
+
+- [ ] 10.1-01-PLAN.md — Type-safety revamp (4-generic SubscriptionConfig) + export 12 buildXWhere functions + wire provider + playground skeleton
 
 ---
 
