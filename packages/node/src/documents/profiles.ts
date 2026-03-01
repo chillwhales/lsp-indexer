@@ -160,3 +160,79 @@ export const GetProfilesDocument = graphql(`
     }
   }
 `);
+
+/**
+ * GraphQL subscription document for real-time Universal Profile updates.
+ *
+ * Mirrors `GetProfilesDocument` field selections and `@include` directives exactly.
+ * Differences from query: `subscription` keyword, no `$offset`, no `_aggregate`.
+ *
+ * Plain string (not codegen `graphql()` tag) because subscriptions use
+ * runtime WebSocket transport, not build-time codegen.
+ */
+export const ProfileSubscriptionDocument = graphql(`
+  subscription ProfileSubscription(
+    $where: universal_profile_bool_exp
+    $order_by: [universal_profile_order_by!]
+    $limit: Int
+    $includeName: Boolean! = true
+    $includeDescription: Boolean! = true
+    $includeTags: Boolean! = true
+    $includeLinks: Boolean! = true
+    $includeAvatar: Boolean! = true
+    $includeProfileImage: Boolean! = true
+    $includeBackgroundImage: Boolean! = true
+    $includeFollowerCount: Boolean! = true
+    $includeFollowingCount: Boolean! = true
+  ) {
+    universal_profile(where: $where, order_by: $order_by, limit: $limit) {
+      id
+      address
+      lsp3Profile {
+        name @include(if: $includeName) {
+          value
+        }
+        description @include(if: $includeDescription) {
+          value
+        }
+        tags @include(if: $includeTags) {
+          value
+        }
+        links @include(if: $includeLinks) {
+          title
+          url
+        }
+        avatar @include(if: $includeAvatar) {
+          url
+          file_type
+          verification_method
+          verification_data
+        }
+        profileImage @include(if: $includeProfileImage) {
+          url
+          width
+          height
+          verification_method
+          verification_data
+        }
+        backgroundImage @include(if: $includeBackgroundImage) {
+          url
+          width
+          height
+          verification_method
+          verification_data
+        }
+      }
+      followedBy_aggregate @include(if: $includeFollowerCount) {
+        aggregate {
+          count
+        }
+      }
+      followed_aggregate @include(if: $includeFollowingCount) {
+        aggregate {
+          count
+        }
+      }
+    }
+  }
+`);

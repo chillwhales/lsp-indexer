@@ -21887,6 +21887,24 @@ export type GetProfilesQueryVariables = Exact<{
 
 export type GetProfilesQuery = { __typename?: 'query_root', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }>, universal_profile_aggregate: { __typename?: 'universal_profile_aggregate', aggregate?: { __typename?: 'universal_profile_aggregate_fields', count: number } | null } };
 
+export type ProfileSubscriptionSubscriptionVariables = Exact<{
+  where?: InputMaybe<Universal_Profile_Bool_Exp>;
+  order_by?: InputMaybe<Array<Universal_Profile_Order_By> | Universal_Profile_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  includeName?: Scalars['Boolean']['input'];
+  includeDescription?: Scalars['Boolean']['input'];
+  includeTags?: Scalars['Boolean']['input'];
+  includeLinks?: Scalars['Boolean']['input'];
+  includeAvatar?: Scalars['Boolean']['input'];
+  includeProfileImage?: Scalars['Boolean']['input'];
+  includeBackgroundImage?: Scalars['Boolean']['input'];
+  includeFollowerCount?: Scalars['Boolean']['input'];
+  includeFollowingCount?: Scalars['Boolean']['input'];
+}>;
+
+
+export type ProfileSubscriptionSubscription = { __typename?: 'subscription_root', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }> };
+
 export type GetTokenIdDataChangedEventsQueryVariables = Exact<{
   where?: InputMaybe<Token_Id_Data_Changed_Bool_Exp>;
   order_by?: InputMaybe<Array<Token_Id_Data_Changed_Order_By> | Token_Id_Data_Changed_Order_By>;
@@ -24072,6 +24090,59 @@ export const GetProfilesDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<GetProfilesQuery, GetProfilesQueryVariables>;
+export const ProfileSubscriptionDocument = new TypedDocumentString(`
+    subscription ProfileSubscription($where: universal_profile_bool_exp, $order_by: [universal_profile_order_by!], $limit: Int, $includeName: Boolean! = true, $includeDescription: Boolean! = true, $includeTags: Boolean! = true, $includeLinks: Boolean! = true, $includeAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeBackgroundImage: Boolean! = true, $includeFollowerCount: Boolean! = true, $includeFollowingCount: Boolean! = true) {
+  universal_profile(where: $where, order_by: $order_by, limit: $limit) {
+    id
+    address
+    lsp3Profile {
+      name @include(if: $includeName) {
+        value
+      }
+      description @include(if: $includeDescription) {
+        value
+      }
+      tags @include(if: $includeTags) {
+        value
+      }
+      links @include(if: $includeLinks) {
+        title
+        url
+      }
+      avatar @include(if: $includeAvatar) {
+        url
+        file_type
+        verification_method
+        verification_data
+      }
+      profileImage @include(if: $includeProfileImage) {
+        url
+        width
+        height
+        verification_method
+        verification_data
+      }
+      backgroundImage @include(if: $includeBackgroundImage) {
+        url
+        width
+        height
+        verification_method
+        verification_data
+      }
+    }
+    followedBy_aggregate @include(if: $includeFollowerCount) {
+      aggregate {
+        count
+      }
+    }
+    followed_aggregate @include(if: $includeFollowingCount) {
+      aggregate {
+        count
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<ProfileSubscriptionSubscription, ProfileSubscriptionSubscriptionVariables>;
 export const GetTokenIdDataChangedEventsDocument = new TypedDocumentString(`
     query GetTokenIdDataChangedEvents($where: token_id_data_changed_bool_exp, $order_by: [token_id_data_changed_order_by!], $limit: Int, $offset: Int, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeLogIndex: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeDigitalAssetName: Boolean! = true, $includeDigitalAssetSymbol: Boolean! = true, $includeDigitalAssetTokenType: Boolean! = true, $includeDigitalAssetDecimals: Boolean! = true, $includeDigitalAssetTotalSupply: Boolean! = true, $includeDigitalAssetDescription: Boolean! = true, $includeDigitalAssetCategory: Boolean! = true, $includeDigitalAssetIcons: Boolean! = true, $includeDigitalAssetImages: Boolean! = true, $includeDigitalAssetLinks: Boolean! = true, $includeDigitalAssetAttributes: Boolean! = true, $includeDigitalAssetOwner: Boolean! = true, $includeDigitalAssetHolderCount: Boolean! = true, $includeDigitalAssetCreatorCount: Boolean! = true, $includeDigitalAssetReferenceContract: Boolean! = true, $includeDigitalAssetTokenIdFormat: Boolean! = true, $includeDigitalAssetBaseUri: Boolean! = true, $includeNft: Boolean! = true, $includeNftFormattedTokenId: Boolean! = true, $includeNftName: Boolean! = true, $includeNftDescription: Boolean! = true, $includeNftCategory: Boolean! = true, $includeNftIcons: Boolean! = true, $includeNftImages: Boolean! = true, $includeNftLinks: Boolean! = true, $includeNftAttributes: Boolean! = true) {
   token_id_data_changed(
