@@ -372,14 +372,15 @@ Plans:
 | SUB-02 | Developer can use `use*Subscription` hooks for all 11 domains (live data via WebSocket)               |
 | SUB-03 | Subscription updates automatically invalidate/update relevant TanStack Query cache entries            |
 
-**Plans:** 4 plans
+**Plans:** 3 plans
 
 Plans:
 
-- [ ] 10-01-PLAN.md — Foundation: export buildXWhere, getClientWsUrlOrDerive, install graphql-ws, subscription param types
-- [ ] 10-02-PLAN.md — Core subscription system: SubscriptionClient, context/provider, useSubscription, subscription documents
-- [ ] 10-03-PLAN.md — 11 domain subscription hooks + package exports + build validation
-- [ ] 10-04-PLAN.md — Subscription playground in test app + E2E verification
+- [ ] 10-01-PLAN.md — Commit type-safety refactor + export buildXWhere + add subscription documents for all 12 domains + codegen
+- [ ] 10-02-PLAN.md — 12 domain subscription hooks + package exports + build validation
+- [ ] 10-03-PLAN.md — Subscription playground in test app + E2E verification
+
+_Note: Core subscription infrastructure (SubscriptionClient, context, provider, useSubscription hook, WebSocket proxy) already exists from prior work. The type-safety refactor (uncommitted) upgraded SubscriptionConfig from `<T>` with string `dataKey` to `<TResult, TVariables, TRaw, TParsed>` with typed `extract` function._
 
 **Success Criteria:**
 
