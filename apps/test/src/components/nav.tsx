@@ -15,6 +15,7 @@ import {
   Monitor,
   Moon,
   Paintbrush,
+  Radio,
   Sun,
   Tag,
   User,
