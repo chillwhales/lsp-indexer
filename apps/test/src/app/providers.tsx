@@ -21,7 +21,9 @@ export function Providers({ children }: { children: ReactNode }): ReactNode {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>{children}</TooltipProvider>
+        <IndexerSubscriptionProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </IndexerSubscriptionProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

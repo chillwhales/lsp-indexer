@@ -47,7 +47,7 @@ import {
  * - `fromProfileName`      → `{ fromProfile: { lsp3Profile: { name: { value: { _ilike } } } } }` (nested)
  * - `fromAssetName`        → `{ fromAsset: { lsp4TokenName: { value: { _ilike } } } }` (nested)
  */
-function buildUniversalReceiverEventWhere(
+export function buildUniversalReceiverEventWhere(
   filter?: UniversalReceiverEventFilter,
 ): Universal_Receiver_Bool_Exp {
   if (!filter) return {};

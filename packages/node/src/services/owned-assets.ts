@@ -34,7 +34,7 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
  * All string fields use `_ilike` + `escapeLike` for case-insensitive matching
  * (EIP-55 mixed-case address prevention).
  */
-function buildOwnedAssetWhere(filter?: OwnedAssetFilter): Owned_Asset_Bool_Exp {
+export function buildOwnedAssetWhere(filter?: OwnedAssetFilter): Owned_Asset_Bool_Exp {
   if (!filter) return {};
 
   const conditions: Owned_Asset_Bool_Exp[] = [];

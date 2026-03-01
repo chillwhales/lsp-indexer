@@ -42,7 +42,7 @@ import {
  * - `filter.timestampFrom` → `{ timestamp: { _gte: timestampFrom } }`
  * - `filter.timestampTo` → `{ timestamp: { _lte: timestampTo } }`
  */
-function buildFollowerWhere(filter: FollowerFilter | undefined): Follower_Bool_Exp {
+export function buildFollowerWhere(filter: FollowerFilter | undefined): Follower_Bool_Exp {
   if (!filter) return {};
 
   const conditions: Follower_Bool_Exp[] = [];

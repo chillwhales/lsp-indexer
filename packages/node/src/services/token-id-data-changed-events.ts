@@ -50,7 +50,7 @@ import {
  * - `digitalAssetName` → `{ digitalAsset: { lsp4TokenName: { value: { _ilike } } } }` (nested)
  * - `nftName`         → `{ nft: { _or: [lsp4Metadata.name, lsp4MetadataBaseUri.name] } }` (nested, dual source)
  */
-function buildTokenIdDataChangedEventWhere(
+export function buildTokenIdDataChangedEventWhere(
   filter?: TokenIdDataChangedEventFilter,
 ): Token_Id_Data_Changed_Bool_Exp {
   if (!filter) return {};

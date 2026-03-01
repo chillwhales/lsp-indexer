@@ -38,7 +38,9 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
  * - `fileSize`             → `{ file: { size: { _gte: String(value) } } }` (numeric, minimum size)
  * - `timestamp`            → `{ timestamp: { _gte: normalizeTimestamp(value) } }` (lower bound)
  */
-function buildEncryptedAssetWhere(filter?: EncryptedAssetFilter): Lsp29_Encrypted_Asset_Bool_Exp {
+export function buildEncryptedAssetWhere(
+  filter?: EncryptedAssetFilter,
+): Lsp29_Encrypted_Asset_Bool_Exp {
   if (!filter) return {};
 
   const conditions: Lsp29_Encrypted_Asset_Bool_Exp[] = [];
