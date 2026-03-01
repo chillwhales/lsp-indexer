@@ -1,3 +1,18 @@
+---
+gsd_state_version: 1.0
+milestone: v1.1
+milestone_name: milestone
+status: planning
+last_updated: "2026-03-01T21:41:17.265Z"
+last_activity: 2026-03-01 — Phase 10.1 plan 01 complete (SUB-01)
+progress:
+  total_phases: 40
+  completed_phases: 22
+  total_plans: 105
+  completed_plans: 84
+  percent: 77
+---
+
 # State: LSP Indexer
 
 ## Project Reference
@@ -13,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 - **Phase:** 10.1 of 11 (Subscription Foundation)
 - **Sub-phase:** 10.1 (Subscription Foundation) — Complete (1/1 plans)
 - **Plan:** 1 of 1 in current sub-phase
-- **Status:** Phase 10.1 complete — type-safe subscription config, 12 buildXWhere exports, test app wired
+- **Status:** Ready to plan
 - **Last activity:** 2026-03-01 — Phase 10.1 plan 01 complete (SUB-01)
 - **Progress:** ████████░░ 77% (23/30 requirements)
 
