@@ -1,6 +1,5 @@
 import type {
   SubscriptionClient as ISubscriptionClient,
-  SubscriptionConfig,
   SubscriptionHookOptions,
   SubscriptionInstance,
 } from '@lsp-indexer/types';
@@ -11,6 +10,7 @@ import {
   GenericSubscriptionInstance,
   type SubscriptionClientExecutor,
 } from './subscription-instance';
+import type { SubscriptionConfig } from './types';
 
 /**
  * WebSocket connection state for subscription client.
@@ -54,7 +54,7 @@ export class SubscriptionClient implements ISubscriptionClient, SubscriptionClie
   private reconnectCallbacks = new Set<() => void>();
   private abruptlyClosed = false;
   private hasConnectedBefore = false;
-  private subscriptions = new Set<GenericSubscriptionInstance<any>>();
+  private subscriptions = new Set<GenericSubscriptionInstance<any, any, any, any>>();
 
   /**
    * @param url - WebSocket URL. Defaults to `getClientWsUrl()` which reads
@@ -117,11 +117,11 @@ export class SubscriptionClient implements ISubscriptionClient, SubscriptionClie
    * The instance is tracked internally and removed on dispose via the
    * `onDispose` callback — no method monkey-patching required.
    */
-  createSubscription<T>(
-    config: SubscriptionConfig<T>,
-    options?: SubscriptionHookOptions<T>,
-  ): SubscriptionInstance<T> {
-    const subscription = new GenericSubscriptionInstance<T>({
+  createSubscription<TResult, TVariables extends Record<string, unknown>, TRaw, TParsed>(
+    config: SubscriptionConfig<TResult, TVariables, TRaw, TParsed>,
+    options?: SubscriptionHookOptions<TParsed>,
+  ): SubscriptionInstance<TParsed> {
+    const subscription = new GenericSubscriptionInstance<TResult, TVariables, TRaw, TParsed>({
       client: this,
       config,
       options,
@@ -138,18 +138,22 @@ export class SubscriptionClient implements ISubscriptionClient, SubscriptionClie
    * Execute a GraphQL subscription via the WebSocket connection.
    * Creates the graphql-ws client lazily on first call.
    *
+   * The `TResult` generic threads through to `graphql-ws` `Client.subscribe<Data>()`
+   * so the sink receives fully typed `ExecutionResult<TResult>` — no casts needed.
+   *
    * @internal Used by GenericSubscriptionInstance via SubscriptionClientExecutor.
    */
-  executeSubscription(
+  executeSubscription<TResult>(
     payload: { query: string; variables?: Record<string, unknown> },
     sink: {
-      next: (result: { data?: Record<string, unknown> }) => void;
+      next: (result: { data?: TResult }) => void;
       error: (error: unknown) => void;
       complete: () => void;
     },
   ): () => void {
     const client = this.getOrCreateClient();
-    return client.subscribe(payload, sink);
+    // graphql-ws Client.subscribe<Data>() is generic — TResult flows through
+    return client.subscribe<TResult>(payload, sink);
   }
 
   /** Dispose of all subscriptions and close the WebSocket connection */

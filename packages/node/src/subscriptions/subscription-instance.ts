@@ -1,9 +1,6 @@
-import type {
-  SubscriptionConfig,
-  SubscriptionHookOptions,
-  SubscriptionInstance,
-} from '@lsp-indexer/types';
+import type { SubscriptionHookOptions, SubscriptionInstance } from '@lsp-indexer/types';
 import { IndexerError } from '../errors';
+import type { SubscriptionConfig } from './types';
 
 /**
  * Internal interface for the client that subscription instances use.
@@ -11,12 +8,14 @@ import { IndexerError } from '../errors';
  * without importing the full SubscriptionClient interface.
  *
  * Uses plain types — no `graphql-ws` types leak through this boundary.
+ * The `TResult` generic on `executeSubscription` threads the result type
+ * through to the sink so `config.extract(result.data)` is fully typed.
  */
 export interface SubscriptionClientExecutor {
-  executeSubscription(
+  executeSubscription<TResult>(
     payload: { query: string; variables?: Record<string, unknown> },
     sink: {
-      next: (result: { data?: Record<string, unknown> }) => void;
+      next: (result: { data?: TResult }) => void;
       error: (error: unknown) => void;
       complete: () => void;
     },
@@ -28,13 +27,18 @@ export interface SubscriptionClientExecutor {
 /**
  * Options for constructing a GenericSubscriptionInstance.
  */
-export interface SubscriptionInstanceInit<T> {
+export interface SubscriptionInstanceInit<
+  TResult,
+  TVariables extends Record<string, unknown>,
+  TRaw,
+  TParsed,
+> {
   /** The client executor for running subscriptions */
   client: SubscriptionClientExecutor;
-  /** Domain configuration (document, variables, parser) */
-  config: SubscriptionConfig<T>;
+  /** Domain configuration (document, variables, extract, parser) */
+  config: SubscriptionConfig<TResult, TVariables, TRaw, TParsed>;
   /** Hook-level options (enabled, callbacks) */
-  options?: SubscriptionHookOptions<T>;
+  options?: SubscriptionHookOptions<TParsed>;
   /**
    * Called when this instance is disposed.
    * Used by SubscriptionClient to track active subscriptions without
@@ -53,8 +57,14 @@ export interface SubscriptionInstanceInit<T> {
  * - State change notifications
  * - User callback invocation
  */
-export class GenericSubscriptionInstance<T> implements SubscriptionInstance<T> {
-  private _data: T[] | null = null;
+export class GenericSubscriptionInstance<
+  TResult,
+  TVariables extends Record<string, unknown>,
+  TRaw,
+  TParsed,
+> implements SubscriptionInstance<TParsed>
+{
+  private _data: TParsed[] | null = null;
   private _error: unknown = null;
   private _isSubscribed = false;
   private listeners = new Set<() => void>();
@@ -63,10 +73,10 @@ export class GenericSubscriptionInstance<T> implements SubscriptionInstance<T> {
   private readonly onDisposeCallback: (() => void) | undefined;
 
   private readonly client: SubscriptionClientExecutor;
-  private readonly config: SubscriptionConfig<T>;
-  private readonly options: SubscriptionHookOptions<T>;
+  private readonly config: SubscriptionConfig<TResult, TVariables, TRaw, TParsed>;
+  private readonly options: SubscriptionHookOptions<TParsed>;
 
-  constructor(init: SubscriptionInstanceInit<T>) {
+  constructor(init: SubscriptionInstanceInit<TResult, TVariables, TRaw, TParsed>) {
     this.client = init.client;
     this.config = init.config;
     this.options = init.options ?? {};
@@ -74,7 +84,7 @@ export class GenericSubscriptionInstance<T> implements SubscriptionInstance<T> {
     this.start();
   }
 
-  get data(): T[] | null {
+  get data(): TParsed[] | null {
     return this._data;
   }
 
@@ -111,13 +121,15 @@ export class GenericSubscriptionInstance<T> implements SubscriptionInstance<T> {
     // their setSubscribed(false) will correctly take precedence.
     this.setSubscribed(true);
 
-    // Execute the subscription
-    this.cleanup = this.client.executeSubscription(
-      { query: this.config.document, variables: this.config.variables },
+    // Execute the subscription — TResult threads through executeSubscription
+    // so that result.data is typed as TResult (no casts needed).
+    this.cleanup = this.client.executeSubscription<TResult>(
+      { query: this.config.document.toString(), variables: this.config.variables },
       {
         next: (result) => {
-          const rawData = result.data?.[this.config.dataKey];
-          if (!rawData || !Array.isArray(rawData)) return;
+          if (!result.data) return;
+          const rawData = this.config.extract(result.data);
+          if (!Array.isArray(rawData) || rawData.length === 0) return;
 
           try {
             const parsed = this.config.parser(rawData);
@@ -129,7 +141,7 @@ export class GenericSubscriptionInstance<T> implements SubscriptionInstance<T> {
               new IndexerError({
                 category: 'PARSE',
                 code: 'PARSE_FAILED',
-                message: `Failed to parse subscription data for "${this.config.dataKey}": ${
+                message: `Failed to parse subscription data: ${
                   parseError instanceof Error ? parseError.message : String(parseError)
                 }`,
                 originalError: parseError instanceof Error ? parseError : undefined,
@@ -145,7 +157,7 @@ export class GenericSubscriptionInstance<T> implements SubscriptionInstance<T> {
             this.setError(
               IndexerError.fromGraphQLErrors(
                 rawError.map(IndexerError.narrowGraphQLError),
-                this.config.document,
+                this.config.document.toString(),
               ),
             );
           } else {
@@ -153,7 +165,7 @@ export class GenericSubscriptionInstance<T> implements SubscriptionInstance<T> {
               new IndexerError({
                 category: 'NETWORK',
                 code: 'NETWORK_UNKNOWN',
-                message: `Subscription error for "${this.config.dataKey}": ${
+                message: `Subscription error: ${
                   rawError instanceof Error ? rawError.message : String(rawError)
                 }`,
                 originalError: rawError instanceof Error ? rawError : undefined,
@@ -177,7 +189,7 @@ export class GenericSubscriptionInstance<T> implements SubscriptionInstance<T> {
     this.setSubscribed(false);
   }
 
-  private setData(newData: T[] | null): void {
+  private setData(newData: TParsed[] | null): void {
     if (this._data !== newData) {
       this._data = newData;
       this.notifyListeners();
