@@ -364,30 +364,179 @@ Plans:
 
 **Dependencies:** Phase 9 (all domain services and query hooks must exist for cache integration)
 
+**Structure:** 13 sub-phases — 1 foundation sub-phase (10.1) plus 12 domain sub-phases (10.2–10.13, one per domain). Core subscription infrastructure (SubscriptionClient, context, provider, useSubscription hook, WebSocket proxy) already exists from prior work. The foundation sub-phase commits a type-safety revamp and adds subscription documents. Each domain sub-phase creates its subscription hook + playground demo.
+
 **Requirements:**
 
 | ID     | Requirement                                                                                           |
 | ------ | ----------------------------------------------------------------------------------------------------- |
 | SUB-01 | Developer can establish WebSocket connection to Hasura with `graphql-ws`, with automatic reconnection |
-| SUB-02 | Developer can use `use*Subscription` hooks for all 11 domains (live data via WebSocket)               |
+| SUB-02 | Developer can use `use*Subscription` hooks for all 12 domains (live data via WebSocket)               |
 | SUB-03 | Subscription updates automatically invalidate/update relevant TanStack Query cache entries            |
 
-**Plans:** 3 plans
+### Phase 10.1 — Subscription Foundation & Type Safety
 
-Plans:
+**Goal:** Type-safe subscription infrastructure with zero type assertions, exported where-clause builders, codegen-typed subscription documents for all 12 domains, and test app wired with subscription provider.
 
-- [ ] 10-01-PLAN.md — Commit type-safety refactor + export buildXWhere + add subscription documents for all 12 domains + codegen
-- [ ] 10-02-PLAN.md — 12 domain subscription hooks + package exports + build validation
-- [ ] 10-03-PLAN.md — Subscription playground in test app + E2E verification
+**Requirement:** SUB-01
 
-_Note: Core subscription infrastructure (SubscriptionClient, context, provider, useSubscription hook, WebSocket proxy) already exists from prior work. The type-safety refactor (uncommitted) upgraded SubscriptionConfig from `<T>` with string `dataKey` to `<TResult, TVariables, TRaw, TParsed>` with typed `extract` function._
+**Plans:** 1 plan
 
-**Success Criteria:**
+- [ ] 10.1-01-PLAN.md — Type-safety revamp + export buildXWhere + subscription documents + codegen + provider wiring
+
+---
+
+### Phase 10.2 — Profiles Subscription
+
+**Goal:** Developer can use `useProfileSubscription` with full type inference from TypedDocumentString through to consumer.
+
+**Requirement:** SUB-02, SUB-03
+
+**Plans:** 1 plan
+
+- [ ] 10.2-01-PLAN.md — useProfileSubscription hook + playground demo
+
+---
+
+### Phase 10.3 — Digital Assets Subscription
+
+**Goal:** Developer can use `useDigitalAssetSubscription` for live digital asset data.
+
+**Requirement:** SUB-02, SUB-03
+
+**Plans:** 1 plan
+
+- [ ] 10.3-01-PLAN.md — useDigitalAssetSubscription hook + playground demo
+
+---
+
+### Phase 10.4 — NFTs Subscription
+
+**Goal:** Developer can use `useNftSubscription` for live NFT data.
+
+**Requirement:** SUB-02, SUB-03
+
+**Plans:** 1 plan
+
+- [ ] 10.4-01-PLAN.md — useNftSubscription hook + playground demo
+
+---
+
+### Phase 10.5 — Owned Assets Subscription
+
+**Goal:** Developer can use `useOwnedAssetSubscription` for live owned asset data.
+
+**Requirement:** SUB-02, SUB-03
+
+**Plans:** 1 plan
+
+- [ ] 10.5-01-PLAN.md — useOwnedAssetSubscription hook + playground demo
+
+---
+
+### Phase 10.6 — Owned Tokens Subscription
+
+**Goal:** Developer can use `useOwnedTokenSubscription` for live owned token data.
+
+**Requirement:** SUB-02, SUB-03
+
+**Plans:** 1 plan
+
+- [ ] 10.6-01-PLAN.md — useOwnedTokenSubscription hook + playground demo
+
+---
+
+### Phase 10.7 — Followers Subscription
+
+**Goal:** Developer can use `useFollowerSubscription` for live follower events with block-order desc sorting.
+
+**Requirement:** SUB-02, SUB-03
+
+**Plans:** 1 plan
+
+- [ ] 10.7-01-PLAN.md — useFollowerSubscription hook + playground demo
+
+---
+
+### Phase 10.8 — Creators Subscription
+
+**Goal:** Developer can use `useCreatorSubscription` for live creator data.
+
+**Requirement:** SUB-02, SUB-03
+
+**Plans:** 1 plan
+
+- [ ] 10.8-01-PLAN.md — useCreatorSubscription hook + playground demo
+
+---
+
+### Phase 10.9 — Issued Assets Subscription
+
+**Goal:** Developer can use `useIssuedAssetSubscription` for live issued asset data.
+
+**Requirement:** SUB-02, SUB-03
+
+**Plans:** 1 plan
+
+- [ ] 10.9-01-PLAN.md — useIssuedAssetSubscription hook + playground demo
+
+---
+
+### Phase 10.10 — Encrypted Assets Subscription
+
+**Goal:** Developer can use `useEncryptedAssetSubscription` for live encrypted asset feed — the primary use case from CONTEXT.md.
+
+**Requirement:** SUB-02, SUB-03
+
+**Plans:** 1 plan
+
+- [ ] 10.10-01-PLAN.md — useEncryptedAssetSubscription hook + playground demo
+
+---
+
+### Phase 10.11 — Data Changed Events Subscription
+
+**Goal:** Developer can use `useDataChangedEventSubscription` for live ERC725Y data change events with block-order desc sorting.
+
+**Requirement:** SUB-02, SUB-03
+
+**Plans:** 1 plan
+
+- [ ] 10.11-01-PLAN.md — useDataChangedEventSubscription hook + playground demo
+
+---
+
+### Phase 10.12 — Token ID Data Changed Events Subscription
+
+**Goal:** Developer can use `useTokenIdDataChangedEventSubscription` for live token ID data change events with block-order desc sorting.
+
+**Requirement:** SUB-02, SUB-03
+
+**Plans:** 1 plan
+
+- [ ] 10.12-01-PLAN.md — useTokenIdDataChangedEventSubscription hook + playground demo
+
+---
+
+### Phase 10.13 — Universal Receiver Events Subscription
+
+**Goal:** Developer can use `useUniversalReceiverEventSubscription` for live universal receiver events with block-order desc sorting.
+
+**Requirement:** SUB-02, SUB-03
+
+**Plans:** 1 plan
+
+- [ ] 10.13-01-PLAN.md — useUniversalReceiverEventSubscription hook + playground demo
+
+---
+
+**Phase 10 overall success criteria:**
 
 1. Developer can see a WebSocket connection established to Hasura's `ws://` endpoint when any subscription hook mounts — with automatic reconnection on disconnect visible in browser devtools
 2. Developer can call `useProfileSubscription({ address })` and see the component re-render within seconds when that profile's on-chain data changes — without manual refetch
 3. Developer can observe that when a subscription fires, the corresponding TanStack Query cache entry is invalidated or updated (e.g., `useProfile` returns fresh data after `useProfileSubscription` receives an update)
-4. Developer can see subscription hooks for all 11 domains following a consistent pattern — each has a subscription document, hook, and cache integration
+4. Developer can see subscription hooks for all 12 domains following a consistent pattern — each has a subscription document, hook, and cache integration
+5. Zero type assertions (`as`), zero `unknown`, zero `any` in the subscription data path — full end-to-end type inference from TypedDocumentString through extract/parser to consumer
 
 ---
 
@@ -436,7 +585,19 @@ _Note: Core subscription infrastructure (SubscriptionClient, context, provider, 
 | 9.10  | Data Changed Events                |     1/1      | Complete |
 | 9.11  | Universal Receiver Events          |     1/1      | Complete |
 | 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Complete |
-| 10    | Subscriptions                      |      3       | Pending  |
+| 10.1  | Subscription Foundation            |      1       | Pending  |
+| 10.2  | Profiles Subscription              |      0       | Pending  |
+| 10.3  | Digital Assets Subscription        |      0       | Pending  |
+| 10.4  | NFTs Subscription                  |      0       | Pending  |
+| 10.5  | Owned Assets Subscription          |      0       | Pending  |
+| 10.6  | Owned Tokens Subscription          |      0       | Pending  |
+| 10.7  | Followers Subscription             |      0       | Pending  |
+| 10.8  | Creators Subscription              |      0       | Pending  |
+| 10.9  | Issued Assets Subscription         |      0       | Pending  |
+| 10.10 | Encrypted Assets Subscription      |      0       | Pending  |
+| 10.11 | Data Changed Events Subscription   |      0       | Pending  |
+| 10.12 | Token ID Data Changed Subscription |      0       | Pending  |
+| 10.13 | Universal Receiver Subscription    |      0       | Pending  |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
@@ -464,7 +625,9 @@ Phase 7 (Package Foundation)
                 ├──→ 9.11 (Universal Receiver Events)
                 └──→ 9.12 (Block-Ordered Sorting) ←── INSERTED: refactors 9.5, 9.10, 9.11 event domains
                        ↓ (all 9.x must complete)
-                ├──→ Phase 10 (Subscriptions)
+                ├──→ Phase 10 (Subscriptions — 13 sub-phases)
+                │      └──→ 10.1 (Subscription Foundation & Type Safety)
+                │             └──→ 10.2–10.13 (one per domain — hook + playground demo)
                 └──→ Phase 11 (Server Actions & Publish Readiness) ←── also depends on Phase 10
 ```
 
