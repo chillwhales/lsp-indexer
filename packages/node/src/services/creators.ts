@@ -35,7 +35,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
  * - `timestampFrom`     → `{ timestamp: { _gte: normalizeTimestamp } }`
  * - `timestampTo`       → `{ timestamp: { _lte: normalizeTimestamp } }`
  */
-function buildCreatorWhere(filter?: CreatorFilter): Lsp4_Creator_Bool_Exp {
+export function buildCreatorWhere(filter?: CreatorFilter): Lsp4_Creator_Bool_Exp {
   if (!filter) return {};
 
   const conditions: Lsp4_Creator_Bool_Exp[] = [];

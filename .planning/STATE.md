@@ -1,3 +1,18 @@
+---
+gsd_state_version: 1.0
+milestone: v1.1
+milestone_name: milestone
+status: planning
+last_updated: "2026-03-01T21:41:17.265Z"
+last_activity: 2026-03-01 — Phase 10.1 plan 01 complete (SUB-01)
+progress:
+  total_phases: 40
+  completed_phases: 22
+  total_plans: 105
+  completed_plans: 84
+  percent: 77
+---
+
 # State: LSP Indexer
 
 ## Project Reference
@@ -6,16 +21,16 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 9 complete (all 12 sub-phases including 9.12 Block-Ordered Sorting), ready for Phase 10 (Subscriptions)
+**Current focus:** v1.1 React Hooks Package — Phase 10.1 (Subscription Foundation) plan 01 complete, ready for domain sub-phases 10.2–10.13
 
 ## Current Position
 
-- **Phase:** 9 of 11 (Remaining Query Domains + DX — 12 sub-phases) — Complete
-- **Sub-phase:** 9.12 (Block-Ordered Sorting) — Complete (final sub-phase)
-- **Plan:** 3 of 3 in current sub-phase
-- **Status:** Phase 9 complete — all 12 sub-phases delivered, ready for Phase 10
-- **Last activity:** 2026-02-26 — Phase 9.12 verified (10/10 must-haves passed)
-- **Progress:** ███████░░░ 73% (22/30 requirements)
+- **Phase:** 10.1 of 11 (Subscription Foundation)
+- **Sub-phase:** 10.1 (Subscription Foundation) — Complete (1/1 plans)
+- **Plan:** 1 of 1 in current sub-phase
+- **Status:** Ready to plan
+- **Last activity:** 2026-03-01 — Phase 10.1 plan 01 complete (SUB-01)
+- **Progress:** ████████░░ 77% (23/30 requirements)
 
 ## Milestone History
 
@@ -43,19 +58,20 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 9.10  | Data Changed Events                |     1/1      | Complete |
 | 9.11  | Universal Receiver Events          |     1/1      | Complete |
 | 9.12  | Block-Ordered Sorting              |      0       | Complete |
-| 10    | Subscriptions                      |      3       | Pending  |
+| 10.1  | Subscription Foundation            |     1/1      | Complete |
+| 10    | Subscriptions                      |      3       | Active   |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 22/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, QUERY-09, QUERY-10, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental)
+**Total:** 23/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, QUERY-09, QUERY-10, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental, SUB-01)
 
 ## Performance Metrics
 
-- **Plans completed:** 87 (36 v1.0 + 51 v1.1)
+- **Plans completed:** 88 (36 v1.0 + 52 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 25 (11 v1.0 + 14 v1.1 including all Phase 9 sub-phases)
-- **Requirements delivered:** 45/45 (v1.0), 22/30 (v1.1)
+- **Phases completed:** 26 (11 v1.0 + 15 v1.1 including all Phase 9 sub-phases + Phase 10.1)
+- **Requirements delivered:** 45/45 (v1.0), 23/30 (v1.1)
 
 ## Accumulated Context
 
@@ -190,6 +206,8 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **Both UP sub-selections use `followed_aggregate`:** Receiving universalProfile and sender fromProfile both use `followed_aggregate` for following count — matching established pattern from data-changed-events, encrypted-assets, issued-assets
 - **`value` field is Hasura `numeric`:** codegen types as string, parsed via `numericToString` — same pattern as encrypted asset numeric fields
 - **`hideDirectionAndNulls` SortControls prop:** Boolean computed at usage site (`sortField === 'newest' || sortField === 'oldest'`) — hides Direction/Nulls dropdowns for self-describing sort fields. Keeps SortControls generic for non-event domains.
+- **4-generic SubscriptionConfig<TResult, TVariables, TRaw, TParsed>:** Replaces old `SubscriptionConfig<T>` with typed `extract` function instead of string `dataKey`. TypedDocumentString carries type information from codegen through the entire data path. Config lives in `@lsp-indexer/node` (depends on TypedDocumentString); types package uses structural `{ toString(): string }` to avoid import.
+- **graphql-ws generic threading:** `Client.subscribe<TResult>()` threads result type through sink — zero `as` casts in the subscription data path.
 
 ### Roadmap Evolution
 
@@ -207,18 +225,19 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-02-26
-- **Activity:** Executed Phase 9.12 (Block-Ordered Sorting) — all 3 plans + verification
-- **Outcome:** 3 plans, 9 commits (6 feat + 3 docs), 10/10 must-haves verified. buildBlockOrderSort utility, 4 event domain sort schemas updated, Follower document + parser with block fields, all services default to block-order desc, playground with newest/oldest + hideDirectionAndNulls.
+- **Date:** 2026-03-01
+- **Activity:** Executed Phase 10.1 (Subscription Foundation) — plan 01 (2 tasks, 2 commits)
+- **Outcome:** Type-safe 4-generic SubscriptionConfig with extract function, 12 exported buildXWhere functions, test app wired with IndexerSubscriptionProvider, playground skeleton at /subscriptions. SUB-01 delivered.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 9 complete** — all 12 sub-phases delivered (9.1–9.12)
-- **22/30 requirements delivered** — Phase 9 added QUERY-02 through QUERY-10, DX-04, DX-05, PAGE-01
-- **Next step:** Phase 10 (Subscriptions) — WebSocket connection, 11 domain subscription hooks, cache integration
-- **Remaining phases:** 10 (Subscriptions), 11 (Server Actions & Publish Readiness)
+- **Phase 10.1 complete** — subscription foundation delivered
+- **23/30 requirements delivered** — SUB-01 added
+- **Next step:** Phase 10.2–10.13 domain subscription sub-phases (each creates typed subscription document + hook + playground section)
+- **Remaining phases:** 10.2–10.13 (domain subscriptions), 11 (Server Actions & Publish Readiness)
+- **Pre-existing issue:** test app `next build` fails with `'use client'` directive errors from `@lsp-indexer/next` package — not caused by Phase 10.1 changes
 
 ---
 
-_Last updated: 2026-02-26 — Phase 9.12 complete (Block-Ordered Sorting — 3 plans, 10/10 verified), Phase 9 fully complete_
+_Last updated: 2026-03-01 — Phase 10.1 complete (Subscription Foundation — 1 plan, 2 tasks, SUB-01 delivered)_

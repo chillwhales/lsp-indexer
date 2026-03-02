@@ -15,6 +15,7 @@ import {
   Monitor,
   Moon,
   Paintbrush,
+  Radio,
   Sun,
   Tag,
   User,
@@ -63,6 +64,7 @@ const navLinks = [
     icon: ArrowDownFromLine,
     available: true,
   },
+  { href: '/subscriptions', label: 'Subscriptions', icon: Radio, available: true },
   { href: '/stats', label: 'Stats', icon: BarChart3, available: false },
 ];
 

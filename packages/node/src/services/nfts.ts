@@ -35,7 +35,7 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
  * - `isBurned`          → `{ is_burned: { _eq: isBurned } }`
  * - `isMinted`          → `{ is_minted: { _eq: isMinted } }`
  */
-function buildNftWhere(filter?: NftFilter): Nft_Bool_Exp {
+export function buildNftWhere(filter?: NftFilter): Nft_Bool_Exp {
   if (!filter) return {};
 
   const conditions: Nft_Bool_Exp[] = [];

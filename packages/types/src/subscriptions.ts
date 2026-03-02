@@ -32,26 +32,6 @@ export interface UseSubscriptionReturn<T> {
 // ---------------------------------------------------------------------------
 
 /**
- * Configuration for a domain subscription — what domain functions like
- * `createProfilesSubscription()` return. Contains all the domain-specific
- * logic (document, variables, parsing) but no transport concerns.
- */
-export interface SubscriptionConfig<T> {
-  /** GraphQL subscription document string */
-  document: string;
-  /** The key in the GraphQL response object (e.g., 'universal_profile') */
-  dataKey: string;
-  /** GraphQL variables (where, order_by, limit) */
-  variables: Record<string, unknown>;
-  /**
-   * Parser function to transform raw Hasura data to clean types.
-   * Receives `unknown[]` because GraphQL responses are untyped at runtime;
-   * the parser validates/coerces each element to the domain type.
-   */
-  parser: (raw: unknown[]) => T[];
-}
-
-/**
  * Hook-level subscription options — concerns that are specific to the
  * React/Next hook usage, not the domain logic. These are passed separately
  * to the generic `subscribe()` function.
@@ -83,40 +63,5 @@ export interface SubscriptionInstance<T> {
   /** Subscribe to state changes for this subscription */
   subscribe(listener: () => void): () => void;
   /** Stop this subscription */
-  dispose(): void;
-}
-
-/**
- * Common interface that both React and Next subscription clients must
- * implement. The client manages multiple subscriptions and their
- * individual state.
- */
-export interface SubscriptionClient {
-  /**
-   * Create and start a subscription using this client's transport.
-   * Returns a subscription instance that manages the subscription's state.
-   *
-   * @param config - Domain subscription configuration
-   * @param options - Hook-level options (callbacks, enabled state)
-   * @returns Subscription instance with state management
-   */
-  createSubscription<T>(
-    config: SubscriptionConfig<T>,
-    options?: SubscriptionHookOptions<T>,
-  ): SubscriptionInstance<T>;
-
-  /**
-   * Register a callback to fire when the connection reconnects after a disconnect.
-   * Used for cache invalidation and user notifications.
-   *
-   * @param callback - Function to call on reconnect
-   * @returns Function to unregister the callback
-   */
-  onReconnect(callback: () => void): () => void;
-
-  /** Whether the connection (WebSocket or SSE) is currently open */
-  readonly isConnected: boolean;
-
-  /** Dispose of all subscriptions and close the connection */
   dispose(): void;
 }

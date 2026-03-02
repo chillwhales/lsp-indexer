@@ -6,9 +6,8 @@
  * package-specific `useSubscription`. This eliminates the ~130-line
  * duplication between the two packages.
  */
-import type { ConnectionState } from '@lsp-indexer/node';
+import type { ConnectionState, SubscriptionConfig } from '@lsp-indexer/node';
 import type {
-  SubscriptionConfig,
   SubscriptionHookOptions,
   SubscriptionInstance,
   UseSubscriptionReturn,
@@ -38,10 +37,10 @@ interface UseSubscriptionClient {
   subscribe: (listener: () => void) => () => void;
   getSnapshot: () => ConnectionState;
   getServerSnapshot: () => ConnectionState;
-  createSubscription: <T>(
-    config: SubscriptionConfig<T>,
-    options?: SubscriptionHookOptions<T>,
-  ) => SubscriptionInstance<T>;
+  createSubscription: <TResult, TVariables extends Record<string, unknown>, TRaw, TParsed>(
+    config: SubscriptionConfig<TResult, TVariables, TRaw, TParsed>,
+    options?: SubscriptionHookOptions<TParsed>,
+  ) => SubscriptionInstance<TParsed>;
 }
 
 /**
@@ -59,15 +58,20 @@ interface UseSubscriptionClient {
  * ```
  */
 export function createUseSubscription(useSubscriptionClient: () => UseSubscriptionClient) {
-  return function useSubscription<T>(
-    config: SubscriptionConfig<T>,
-    options: UseSubscriptionOptions<T> = {},
-  ): UseSubscriptionReturn<T> {
+  return function useSubscription<
+    TResult,
+    TVariables extends Record<string, unknown>,
+    TRaw,
+    TParsed,
+  >(
+    config: SubscriptionConfig<TResult, TVariables, TRaw, TParsed>,
+    options: UseSubscriptionOptions<TParsed> = {},
+  ): UseSubscriptionReturn<TParsed> {
     const client = useSubscriptionClient();
-    const subscriptionRef = useRef<SubscriptionInstance<T> | null>(null);
+    const subscriptionRef = useRef<SubscriptionInstance<TParsed> | null>(null);
 
     // React state that syncs with subscription instance
-    const [data, setData] = useState<T[] | null>(null);
+    const [data, setData] = useState<TParsed[] | null>(null);
     const [error, setError] = useState<unknown>(null);
     const [isSubscribed, setIsSubscribed] = useState(false);
 
@@ -117,14 +121,15 @@ export function createUseSubscription(useSubscriptionClient: () => UseSubscripti
       // Wrap parser and callbacks via refs so the subscription always
       // uses the latest version without needing to tear down and recreate
       // when only the parser or callbacks change.
-      const subscription = client.createSubscription<T>(
+      const currentConfig = configRef.current;
+      const subscription = client.createSubscription<TResult, TVariables, TRaw, TParsed>(
         {
-          ...config,
-          parser: (raw: unknown[]) => configRef.current.parser(raw),
+          ...currentConfig,
+          parser: (raw: TRaw[]) => configRef.current.parser(raw),
         },
         {
           enabled,
-          onData: (newData: T[]) => {
+          onData: (newData: TParsed[]) => {
             // Cache invalidation
             const opts = optionsRef.current;
             if (opts.invalidate && opts.queryClient && opts.invalidateKeys) {
@@ -170,7 +175,7 @@ export function createUseSubscription(useSubscriptionClient: () => UseSubscripti
         subscription.dispose();
         subscriptionRef.current = null;
       };
-    }, [config.document, config.dataKey, stableVariables, options.enabled, client]);
+    }, [config.document, stableVariables, options.enabled, client]);
 
     return {
       data,

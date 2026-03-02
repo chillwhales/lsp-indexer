@@ -380,7 +380,7 @@ Plans:
 
 **Requirement:** SUB-01
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 
@@ -587,7 +587,7 @@ Plans:
 | 9.10  | Data Changed Events                |     1/1      | Complete |
 | 9.11  | Universal Receiver Events          |     1/1      | Complete |
 | 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Complete |
-| 10.1  | Subscription Foundation            |      1       | Pending  |
+| 10.1  | 1/1 | Complete    | 2026-03-01 |
 | 10.2  | Profiles Subscription              |      0       | Pending  |
 | 10.3  | Digital Assets Subscription        |      0       | Pending  |
 | 10.4  | NFTs Subscription                  |      0       | Pending  |

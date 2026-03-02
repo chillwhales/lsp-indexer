@@ -64,6 +64,7 @@ export * from './documents/universal-receiver-events';
 // Subscription infrastructure
 export * from './subscriptions/client';
 export * from './subscriptions/subscription-instance';
+export * from './subscriptions/types';
 
 // Codegen — only re-export TypedDocumentString (the rest are Hasura internals)
 export type { TypedDocumentString } from './graphql/graphql';

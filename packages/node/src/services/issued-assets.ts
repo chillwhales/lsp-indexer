@@ -35,7 +35,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
  * - `timestampFrom`      → `{ timestamp: { _gte: normalizeTimestamp } }`
  * - `timestampTo`        → `{ timestamp: { _lte: normalizeTimestamp } }`
  */
-function buildIssuedAssetWhere(filter?: IssuedAssetFilter): Lsp12_Issued_Asset_Bool_Exp {
+export function buildIssuedAssetWhere(filter?: IssuedAssetFilter): Lsp12_Issued_Asset_Bool_Exp {
   if (!filter) return {};
 
   const conditions: Lsp12_Issued_Asset_Bool_Exp[] = [];
