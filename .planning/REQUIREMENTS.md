@@ -39,8 +39,8 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 ### Subscriptions
 
 - [x] **SUB-01**: Developer can establish WebSocket connection to Hasura with `graphql-ws`, with automatic reconnection
-- [ ] **SUB-02**: Developer can use `use*Subscription` hooks for all 11 domains (live data via WebSocket)
-- [ ] **SUB-03**: Subscription updates automatically invalidate/update relevant TanStack Query cache entries
+- [x] **SUB-02**: Developer can use `use*Subscription` hooks for all 11 domains (live data via WebSocket)
+- [x] **SUB-03**: Subscription updates automatically invalidate/update relevant TanStack Query cache entries
 
 ### Server Actions
 
@@ -108,8 +108,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUERY-10    | 9.11  | Complete |
 | PAGE-01     | 9     | Pending  |
 | SUB-01      | 10    | Complete |
-| SUB-02      | 10    | Pending  |
-| SUB-03      | 10    | Pending  |
+| SUB-02      | 10.2  | Complete |
+| SUB-03      | 10.2  | Complete |
 | ACTION-01   | 11    | Pending  |
 | ACTION-02   | 11    | Pending  |
 | ACTION-03   | 11    | Pending  |
