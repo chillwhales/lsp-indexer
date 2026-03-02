@@ -394,7 +394,7 @@ Plans:
 
 **Requirement:** SUB-02, SUB-03
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 - [x] 10.2-01-PLAN.md — useProfileSubscription hook + playground demo
 
@@ -588,7 +588,7 @@ Plans:
 | 9.11  | Universal Receiver Events          |     1/1      | Complete |
 | 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Complete |
 | 10.1  | Subscription Foundation            |     1/1      | Complete |
-| 10.2  | Profiles Subscription              |     2/2      | Complete |
+| 10.2  | Profiles Subscription              | Complete    | 2026-03-02 |
 | 10.3  | Digital Assets Subscription        |      0       | Pending  |
 | 10.4  | NFTs Subscription                  |      0       | Pending  |
 | 10.5  | Owned Assets Subscription          |      0       | Pending  |
