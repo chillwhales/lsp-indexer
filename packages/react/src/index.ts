@@ -16,3 +16,6 @@ export * from './subscriptions/context';
 export * from './subscriptions/create-use-subscription';
 export * from './subscriptions/provider';
 export * from './subscriptions/use-subscription';
+
+// Domain subscription hooks
+export * from './subscriptions/profiles';
