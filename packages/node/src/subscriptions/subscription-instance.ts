@@ -4,16 +4,7 @@ import { TypedDocumentString } from '../graphql/graphql';
 
 /**
  * Internal interface for the client that subscription instances use.
- * This allows the instance to work with any client implementation (React, Next, etc.)
- * without importing the full SubscriptionClient interface.
- *
- * Uses plain types — no `graphql-ws` types leak through this boundary.
- * The `TResult` generic on `executeSubscription` threads the result type
- * through to the sink so `config.extract(result.data)` is fully typed.
- *
- * `query` is `{ toString(): string }` — accepts `TypedDocumentString` without
- * importing it. The `.toString()` call happens inside the client implementation,
- * at the last moment before handing to graphql-ws.
+ * Decouples the instance from the concrete SubscriptionClient class.
  */
 export interface SubscriptionClientExecutor {
   executeSubscription<TResult, TVariables extends Record<string, unknown>>(
@@ -29,17 +20,10 @@ export interface SubscriptionClientExecutor {
 }
 
 /**
- * Generic subscription instance that manages state for a single subscription.
+ * Manages state for a single subscription.
  *
- * This class is used by both React and Next.js SubscriptionClient implementations
- * to avoid code duplication. It handles:
- * - Subscription lifecycle (start/stop)
- * - Data parsing and error handling
- * - State change notifications
- * - User callback invocation
- *
- * The constructor takes an `execute` closure and a `documentString`. The closure
- * delivers `TParsed[]` directly — no intermediate types or casts needed.
+ * Takes an `execute` closure (built by `SubscriptionClient.createSubscription`)
+ * that delivers `TParsed[]` directly — extract and parse happen inside the closure.
  */
 export class GenericSubscriptionInstance<TParsed> implements SubscriptionInstance<TParsed> {
   private _data: TParsed[] | null = null;
@@ -110,9 +94,7 @@ export class GenericSubscriptionInstance<TParsed> implements SubscriptionInstanc
     });
 
     // Mark as subscribed BEFORE executing so that synchronous error/complete
-    // callbacks from graphql-ws don't get overwritten. If executeSubscription
-    // fires error() or complete() synchronously (e.g. validation errors),
-    // their setSubscribed(false) will correctly take precedence.
+    // callbacks don't get overwritten.
     this.setSubscribed(true);
 
     // Execute the subscription — the closure delivers TParsed[] directly;

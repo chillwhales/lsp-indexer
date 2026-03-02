@@ -3,6 +3,7 @@ import type { Client } from 'graphql-ws';
 import { createClient } from 'graphql-ws';
 import { getClientWsUrl } from '../client';
 import { IndexerError } from '../errors';
+import { TypedDocumentString } from '../graphql/graphql';
 import {
   GenericSubscriptionInstance,
   type SubscriptionClientExecutor,
@@ -19,29 +20,11 @@ import type { SubscriptionConfig } from './types';
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 
 /**
- * Base WebSocket subscription client implementing the common SubscriptionClient interface.
+ * WebSocket subscription client. Manages connection state, reconnection
+ * detection, and multiple independent subscription instances.
  *
- * Features:
- * 1. **Connection state tracking** — `disconnected` | `connecting` | `connected`
- * 2. **useSyncExternalStore API** — `subscribe()` / `getSnapshot()` for React integration
- * 3. **Reconnection detection** — fires callbacks when WebSocket reconnects after drop
- * 4. **Lazy connection** — WebSocket only connects on first subscription
- * 5. **Multiple subscription management** — each createSubscription() returns an independent instance
- *
- * To customize the connection URL or parameters, pass the desired URL to the
- * constructor. For Next.js, the subclass provides `transformUrl()` to convert
- * relative proxy paths to absolute WebSocket URLs.
- *
- * @example
- * ```ts
- * const client = new SubscriptionClient('wss://indexer.example.com/v1/graphql');
- *
- * // Use with useSyncExternalStore for connection state
- * const connectionState = useSyncExternalStore(client.subscribe, client.getSnapshot, client.getServerSnapshot);
- *
- * // Create individual subscriptions
- * const subscription = client.createSubscription(config, options);
- * ```
+ * Subclasses (e.g. Next.js) can override `transformUrl()` and
+ * `getConnectionParams()` to customise the WebSocket connection.
  */
 export class SubscriptionClient implements SubscriptionClientExecutor {
   private wsClient: Client | null = null;
@@ -130,7 +113,7 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
       error: (error: unknown) => void;
       complete: () => void;
     }) =>
-      this.executeSubscription<TResult>(
+      this.executeSubscription(
         { query: config.document, variables: config.variables },
         {
           next: (result) => {
@@ -183,10 +166,10 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
    * `.toString()` is called HERE — the last possible moment before the graphql-ws
    * wire. `TypedDocumentString` flows all the way to this point unchanged.
    *
-   * @internal Used by GenericSubscriptionInstance via SubscriptionClientExecutor.
+   * @internal Called by the execute closure built in `createSubscription`.
    */
-  executeSubscription<TResult>(
-    payload: { query: { toString(): string }; variables?: Record<string, unknown> },
+  executeSubscription<TResult, TVariables extends Record<string, unknown>>(
+    payload: { query: TypedDocumentString<TResult, TVariables>; variables?: TVariables },
     sink: {
       next: (result: { data?: TResult | null }) => void;
       error: (error: unknown) => void;
@@ -237,9 +220,7 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
   /**
    * Transform the URL before creating the WebSocket connection.
    * Subclasses can override this to convert relative URLs to absolute ones.
-   *
-   * Unlike `getConnectionUrl()` (removed), this is NOT called from the
-   * constructor — it runs lazily when the first subscription is created.
+   * Called lazily when the first subscription is created.
    */
   protected transformUrl(url: string): string {
     return url;
