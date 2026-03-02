@@ -1,6 +1,6 @@
 import type { SubscriptionHookOptions, SubscriptionInstance } from '@lsp-indexer/types';
 import { IndexerError } from '../errors';
-import type { SubscriptionConfig } from './types';
+import { TypedDocumentString } from '../graphql/graphql';
 
 /**
  * Internal interface for the client that subscription instances use.
@@ -10,41 +10,22 @@ import type { SubscriptionConfig } from './types';
  * Uses plain types — no `graphql-ws` types leak through this boundary.
  * The `TResult` generic on `executeSubscription` threads the result type
  * through to the sink so `config.extract(result.data)` is fully typed.
+ *
+ * `query` is `{ toString(): string }` — accepts `TypedDocumentString` without
+ * importing it. The `.toString()` call happens inside the client implementation,
+ * at the last moment before handing to graphql-ws.
  */
 export interface SubscriptionClientExecutor {
-  executeSubscription<TResult>(
-    payload: { query: string; variables?: Record<string, unknown> },
+  executeSubscription<TResult, TVariables extends Record<string, unknown>>(
+    payload: { query: TypedDocumentString<TResult, TVariables>; variables?: TVariables },
     sink: {
-      next: (result: { data?: TResult }) => void;
+      next: (result: { data?: TResult | null }) => void;
       error: (error: unknown) => void;
       complete: () => void;
     },
   ): () => void;
 
   onReconnect(callback: () => void): () => void;
-}
-
-/**
- * Options for constructing a GenericSubscriptionInstance.
- */
-export interface SubscriptionInstanceInit<
-  TResult,
-  TVariables extends Record<string, unknown>,
-  TRaw,
-  TParsed,
-> {
-  /** The client executor for running subscriptions */
-  client: SubscriptionClientExecutor;
-  /** Domain configuration (document, variables, extract, parser) */
-  config: SubscriptionConfig<TResult, TVariables, TRaw, TParsed>;
-  /** Hook-level options (enabled, callbacks) */
-  options?: SubscriptionHookOptions<TParsed>;
-  /**
-   * Called when this instance is disposed.
-   * Used by SubscriptionClient to track active subscriptions without
-   * monkey-patching the dispose method.
-   */
-  onDispose?: () => void;
 }
 
 /**
@@ -56,14 +37,11 @@ export interface SubscriptionInstanceInit<
  * - Data parsing and error handling
  * - State change notifications
  * - User callback invocation
+ *
+ * The constructor takes an `execute` closure and a `documentString`. The closure
+ * delivers `TParsed[]` directly — no intermediate types or casts needed.
  */
-export class GenericSubscriptionInstance<
-  TResult,
-  TVariables extends Record<string, unknown>,
-  TRaw,
-  TParsed,
-> implements SubscriptionInstance<TParsed>
-{
+export class GenericSubscriptionInstance<TParsed> implements SubscriptionInstance<TParsed> {
   private _data: TParsed[] | null = null;
   private _error: unknown = null;
   private _isSubscribed = false;
@@ -73,12 +51,28 @@ export class GenericSubscriptionInstance<
   private readonly onDisposeCallback: (() => void) | undefined;
 
   private readonly client: SubscriptionClientExecutor;
-  private readonly config: SubscriptionConfig<TResult, TVariables, TRaw, TParsed>;
+  private readonly execute: (sink: {
+    next: (parsed: TParsed[]) => void;
+    error: (error: unknown) => void;
+    complete: () => void;
+  }) => () => void;
+  private readonly documentString: string;
   private readonly options: SubscriptionHookOptions<TParsed>;
 
-  constructor(init: SubscriptionInstanceInit<TResult, TVariables, TRaw, TParsed>) {
+  constructor(init: {
+    client: SubscriptionClientExecutor;
+    execute: (sink: {
+      next: (parsed: TParsed[]) => void;
+      error: (error: unknown) => void;
+      complete: () => void;
+    }) => () => void;
+    documentString: string;
+    options?: SubscriptionHookOptions<TParsed>;
+    onDispose?: () => void;
+  }) {
     this.client = init.client;
-    this.config = init.config;
+    this.execute = init.execute;
+    this.documentString = init.documentString;
     this.options = init.options ?? {};
     this.onDisposeCallback = init.onDispose;
     this.start();
@@ -121,64 +115,43 @@ export class GenericSubscriptionInstance<
     // their setSubscribed(false) will correctly take precedence.
     this.setSubscribed(true);
 
-    // Execute the subscription — TResult threads through executeSubscription
-    // so that result.data is typed as TResult (no casts needed).
-    this.cleanup = this.client.executeSubscription<TResult>(
-      { query: this.config.document.toString(), variables: this.config.variables },
-      {
-        next: (result) => {
-          if (!result.data) return;
-          const rawData = this.config.extract(result.data);
-          if (!Array.isArray(rawData) || rawData.length === 0) return;
-
-          try {
-            const parsed = this.config.parser(rawData);
-            this.setData(parsed);
-            this.setError(null);
-            this.options.onData?.(parsed);
-          } catch (parseError) {
-            this.setError(
-              new IndexerError({
-                category: 'PARSE',
-                code: 'PARSE_FAILED',
-                message: `Failed to parse subscription data: ${
-                  parseError instanceof Error ? parseError.message : String(parseError)
-                }`,
-                originalError: parseError instanceof Error ? parseError : undefined,
-              }),
-            );
-          }
-        },
-        error: (rawError: unknown) => {
-          if (rawError instanceof IndexerError) {
-            this.setError(rawError);
-          } else if (Array.isArray(rawError)) {
-            // GraphQL errors array
-            this.setError(
-              IndexerError.fromGraphQLErrors(
-                rawError.map(IndexerError.narrowGraphQLError),
-                this.config.document.toString(),
-              ),
-            );
-          } else {
-            this.setError(
-              new IndexerError({
-                category: 'NETWORK',
-                code: 'NETWORK_UNKNOWN',
-                message: `Subscription error: ${
-                  rawError instanceof Error ? rawError.message : String(rawError)
-                }`,
-                originalError: rawError instanceof Error ? rawError : undefined,
-              }),
-            );
-          }
-          this.setSubscribed(false);
-        },
-        complete: () => {
-          this.setSubscribed(false);
-        },
+    // Execute the subscription — the closure delivers TParsed[] directly;
+    // extract + parse already happened inside the closure.
+    this.cleanup = this.execute({
+      next: (parsed) => {
+        this.setData(parsed);
+        this.setError(null);
+        this.options.onData?.(parsed);
       },
-    );
+      error: (rawError: unknown) => {
+        if (rawError instanceof IndexerError) {
+          this.setError(rawError);
+        } else if (Array.isArray(rawError)) {
+          // GraphQL errors array
+          this.setError(
+            IndexerError.fromGraphQLErrors(
+              rawError.map(IndexerError.narrowGraphQLError),
+              this.documentString,
+            ),
+          );
+        } else {
+          this.setError(
+            new IndexerError({
+              category: 'NETWORK',
+              code: 'NETWORK_UNKNOWN',
+              message: `Subscription error: ${
+                rawError instanceof Error ? rawError.message : String(rawError)
+              }`,
+              originalError: rawError instanceof Error ? rawError : undefined,
+            }),
+          );
+        }
+        this.setSubscribed(false);
+      },
+      complete: () => {
+        this.setSubscribed(false);
+      },
+    });
   }
 
   private stop(): void {

@@ -1,11 +1,8 @@
-import type {
-  SubscriptionClient as ISubscriptionClient,
-  SubscriptionHookOptions,
-  SubscriptionInstance,
-} from '@lsp-indexer/types';
+import type { SubscriptionHookOptions, SubscriptionInstance } from '@lsp-indexer/types';
 import type { Client } from 'graphql-ws';
 import { createClient } from 'graphql-ws';
 import { getClientWsUrl } from '../client';
+import { IndexerError } from '../errors';
 import {
   GenericSubscriptionInstance,
   type SubscriptionClientExecutor,
@@ -46,7 +43,7 @@ export type ConnectionState = 'disconnected' | 'connecting' | 'connected';
  * const subscription = client.createSubscription(config, options);
  * ```
  */
-export class SubscriptionClient implements ISubscriptionClient, SubscriptionClientExecutor {
+export class SubscriptionClient implements SubscriptionClientExecutor {
   private wsClient: Client | null = null;
   protected readonly url: string;
   private state: ConnectionState = 'disconnected';
@@ -54,7 +51,7 @@ export class SubscriptionClient implements ISubscriptionClient, SubscriptionClie
   private reconnectCallbacks = new Set<() => void>();
   private abruptlyClosed = false;
   private hasConnectedBefore = false;
-  private subscriptions = new Set<GenericSubscriptionInstance<any, any, any, any>>();
+  private subscriptions = new Set<{ dispose(): void }>();
 
   /**
    * @param url - WebSocket URL. Defaults to `getClientWsUrl()` which reads
@@ -116,14 +113,56 @@ export class SubscriptionClient implements ISubscriptionClient, SubscriptionClie
    *
    * The instance is tracked internally and removed on dispose via the
    * `onDispose` callback — no method monkey-patching required.
+   *
+   * All 4 generics are alive here, so the execute closure captures the
+   * fully-typed extract/parse pipeline. The instance only needs `<TParsed>`.
    */
   createSubscription<TResult, TVariables extends Record<string, unknown>, TRaw, TParsed>(
     config: SubscriptionConfig<TResult, TVariables, TRaw, TParsed>,
     options?: SubscriptionHookOptions<TParsed>,
   ): SubscriptionInstance<TParsed> {
-    const subscription = new GenericSubscriptionInstance<TResult, TVariables, TRaw, TParsed>({
+    const documentString = config.document.toString();
+
+    // Build the execute closure while all 4 generics are in scope.
+    // extract + parse happen inside the closure; the instance only sees TParsed[].
+    const execute = (sink: {
+      next: (parsed: TParsed[]) => void;
+      error: (error: unknown) => void;
+      complete: () => void;
+    }) =>
+      this.executeSubscription<TResult>(
+        { query: config.document, variables: config.variables },
+        {
+          next: (result) => {
+            if (!result.data) return;
+            const rawData = config.extract(result.data);
+            if (!Array.isArray(rawData) || rawData.length === 0) return;
+
+            try {
+              const parsed = config.parser(rawData);
+              sink.next(parsed);
+            } catch (parseError) {
+              sink.error(
+                new IndexerError({
+                  category: 'PARSE',
+                  code: 'PARSE_FAILED',
+                  message: `Failed to parse subscription data: ${
+                    parseError instanceof Error ? parseError.message : String(parseError)
+                  }`,
+                  originalError: parseError instanceof Error ? parseError : undefined,
+                }),
+              );
+            }
+          },
+          error: sink.error,
+          complete: sink.complete,
+        },
+      );
+
+    const subscription = new GenericSubscriptionInstance<TParsed>({
       client: this,
-      config,
+      execute,
+      documentString,
       options,
       onDispose: () => {
         this.subscriptions.delete(subscription);
@@ -141,19 +180,26 @@ export class SubscriptionClient implements ISubscriptionClient, SubscriptionClie
    * The `TResult` generic threads through to `graphql-ws` `Client.subscribe<Data>()`
    * so the sink receives fully typed `ExecutionResult<TResult>` — no casts needed.
    *
+   * `.toString()` is called HERE — the last possible moment before the graphql-ws
+   * wire. `TypedDocumentString` flows all the way to this point unchanged.
+   *
    * @internal Used by GenericSubscriptionInstance via SubscriptionClientExecutor.
    */
   executeSubscription<TResult>(
-    payload: { query: string; variables?: Record<string, unknown> },
+    payload: { query: { toString(): string }; variables?: Record<string, unknown> },
     sink: {
-      next: (result: { data?: TResult }) => void;
+      next: (result: { data?: TResult | null }) => void;
       error: (error: unknown) => void;
       complete: () => void;
     },
   ): () => void {
     const client = this.getOrCreateClient();
-    // graphql-ws Client.subscribe<Data>() is generic — TResult flows through
-    return client.subscribe<TResult>(payload, sink);
+    // graphql-ws Client.subscribe<Data>() is generic — TResult flows through.
+    // .toString() is called here — the only place where the document becomes a string.
+    return client.subscribe<TResult>(
+      { query: payload.query.toString(), variables: payload.variables },
+      sink,
+    );
   }
 
   /** Dispose of all subscriptions and close the WebSocket connection */
