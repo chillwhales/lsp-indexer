@@ -102,7 +102,7 @@ export function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Boo
  *
  * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
  */
-function buildProfileOrderBy(sort?: ProfileSort): Universal_Profile_Order_By[] | undefined {
+export function buildProfileOrderBy(sort?: ProfileSort): Universal_Profile_Order_By[] | undefined {
   if (!sort) return undefined;
 
   const dir = orderDir(sort.direction, sort.nulls);
@@ -128,7 +128,7 @@ function buildProfileOrderBy(sort?: ProfileSort): Universal_Profile_Order_By[] |
  * When `include` is provided, each field defaults to `false` unless explicitly set
  * to `true`. This implements the "opt-in when specified" contract.
  */
-function buildIncludeVars(include?: ProfileInclude): Record<string, boolean> {
+export function buildProfileIncludeDirectives(include?: ProfileInclude): Record<string, boolean> {
   if (!include) {
     // Omitted = include everything (GraphQL defaults all to true)
     return {};
@@ -217,7 +217,7 @@ export async function fetchProfile(
   url: string,
   params: { address: string; include?: ProfileInclude },
 ): Promise<PartialProfile | null> {
-  const includeVars = buildIncludeVars(params.include);
+  const includeVars = buildProfileIncludeDirectives(params.include);
 
   const result = await execute(url, GetProfileDocument, {
     where: { address: { _ilike: params.address } },
@@ -292,7 +292,7 @@ export async function fetchProfiles(
 ): Promise<FetchProfilesResult<PartialProfile>> {
   const where = buildProfileWhere(params.filter);
   const orderBy = buildProfileOrderBy(params.sort);
-  const includeVars = buildIncludeVars(params.include);
+  const includeVars = buildProfileIncludeDirectives(params.include);
 
   const result = await execute(url, GetProfilesDocument, {
     where: Object.keys(where).length > 0 ? where : undefined,
