@@ -45,4 +45,4 @@ import { getProfiles } from '../../actions/profiles';
  * }
  * ```
  */
-export const useInfiniteProfiles = createUseInfiniteProfiles((params) => getProfiles(params));
+export const useInfiniteProfiles = createUseInfiniteProfiles(getProfiles);

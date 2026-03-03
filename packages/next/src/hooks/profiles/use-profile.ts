@@ -34,4 +34,4 @@ import { getProfile } from '../../actions/profiles';
  * }
  * ```
  */
-export const useProfile = createUseProfile((params) => getProfile(params.address, params.include));
+export const useProfile = createUseProfile(getProfile);
