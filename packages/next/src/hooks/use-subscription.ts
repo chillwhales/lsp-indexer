@@ -1,7 +1,7 @@
 'use client';
 
 import { createUseSubscription } from '@lsp-indexer/react';
-import { useSubscriptionClient } from './context';
+import { useSubscriptionClient } from '../subscriptions/context';
 
 /**
  * Thin wrapper around SubscriptionClient for Next.js applications.
