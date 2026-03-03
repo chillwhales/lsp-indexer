@@ -9,42 +9,16 @@
  */
 'use client';
 
-import type { SubscriptionConfig } from '@lsp-indexer/node';
 import {
   buildProfileWhere,
   parseProfiles,
   profileKeys,
   ProfileSubscriptionDocument,
 } from '@lsp-indexer/node';
-import type { Profile, ProfileFilter, UseSubscriptionReturn } from '@lsp-indexer/types';
-import type { UseSubscriptionOptions } from './create-use-subscription';
-
-const DEFAULT_LIMIT = 10;
-
-export interface UseProfileSubscriptionParams {
-  /** Filter criteria (optional — omit for all profiles) */
-  filter?: ProfileFilter;
-  /** Maximum profiles in subscription result (default: 10) */
-  limit?: number;
-  /** Enable/disable subscription (default: true) */
-  enabled?: boolean;
-  /** Invalidate TanStack Query cache on subscription data (default: false) */
-  invalidate?: boolean;
-  /** Callback when subscription receives new data */
-  onData?: (data: Profile[]) => void;
-  /** Callback when WebSocket reconnects after a drop */
-  onReconnect?: () => void;
-}
-
-/**
- * The `useSubscription` function signature that domain factories depend on.
- * Both `@lsp-indexer/react` and `@lsp-indexer/next` produce a function with
- * this shape via `createUseSubscription`.
- */
-type UseSubscriptionFn = <TResult, TVariables extends Record<string, unknown>, TRaw, TParsed>(
-  config: SubscriptionConfig<TResult, TVariables, TRaw, TParsed>,
-  options?: UseSubscriptionOptions<TParsed>,
-) => UseSubscriptionReturn<TParsed>;
+import type { Profile, UseSubscriptionReturn } from '@lsp-indexer/types';
+import { QueryClient } from '@tanstack/react-query';
+import { DEFAULT_SUBSCRIPTION_LIMIT } from '../../../constants';
+import { UseProfileSubscriptionParams, UseSubscriptionFn } from '../../types';
 
 /**
  * Create a `useProfileSubscription` hook bound to a specific `useSubscription`.
@@ -62,14 +36,14 @@ type UseSubscriptionFn = <TResult, TVariables extends Record<string, unknown>, T
  */
 export function createUseProfileSubscription(
   useSubscription: UseSubscriptionFn,
-  useQueryClient?: () => import('@tanstack/react-query').QueryClient,
+  useQueryClient?: () => QueryClient,
 ) {
   return function useProfileSubscription(
     params: UseProfileSubscriptionParams = {},
   ): UseSubscriptionReturn<Profile> {
     const {
       filter,
-      limit = DEFAULT_LIMIT,
+      limit = DEFAULT_SUBSCRIPTION_LIMIT,
       enabled = true,
       invalidate = false,
       onData,

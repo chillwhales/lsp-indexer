@@ -1,3 +1,7 @@
+// Hooks factories
+export * from './hooks/factories';
+
+// Hooks
 export * from './hooks/creators';
 export * from './hooks/data-changed-events';
 export * from './hooks/digital-assets';
@@ -10,13 +14,8 @@ export * from './hooks/owned-tokens';
 export * from './hooks/profiles';
 export * from './hooks/token-id-data-changed-events';
 export * from './hooks/universal-receiver-events';
+export * from './hooks/use-subscription';
 
 // Subscription infrastructure
 export * from './subscriptions/context';
-export * from './subscriptions/create-use-subscription';
 export * from './subscriptions/provider';
-export * from './subscriptions/use-subscription';
-
-// Domain subscription hook factories + hooks
-export * from './subscriptions/create-use-profile-subscription';
-export * from './subscriptions/profiles';

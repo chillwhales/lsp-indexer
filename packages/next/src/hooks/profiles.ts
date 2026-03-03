@@ -1,7 +1,7 @@
 'use client';
 
 import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { FetchProfilesResult } from '@lsp-indexer/node';
@@ -16,7 +16,9 @@ import type {
   UseProfilesParams,
 } from '@lsp-indexer/types';
 
+import { createUseProfileSubscription } from '@lsp-indexer/react';
 import { getProfile, getProfiles } from '../actions/profiles';
+import { useSubscription } from '../subscriptions/use-subscription';
 
 /** Default number of profiles per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
@@ -238,3 +240,15 @@ export function useInfiniteProfiles(
     ...rest,
   };
 }
+
+/**
+ * Profile subscription hook for `@lsp-indexer/next`.
+ *
+ * Thin wrapper — calls the shared factory with the Next.js-specific
+ * `useSubscription` (bound to the Next.js IndexerSubscriptionProvider
+ * context with WebSocket proxy support) and TanStack Query's
+ * `useQueryClient` for cache invalidation.
+ *
+ * @see createUseProfileSubscription — shared factory in `@lsp-indexer/react`
+ */
+export const useProfileSubscription = createUseProfileSubscription(useSubscription, useQueryClient);

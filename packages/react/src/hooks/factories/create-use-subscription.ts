@@ -6,42 +6,10 @@
  * package-specific `useSubscription`. This eliminates the ~130-line
  * duplication between the two packages.
  */
-import type { ConnectionState, SubscriptionConfig } from '@lsp-indexer/node';
-import type {
-  SubscriptionHookOptions,
-  SubscriptionInstance,
-  UseSubscriptionReturn,
-} from '@lsp-indexer/types';
-import type { QueryClient } from '@tanstack/react-query';
+import type { SubscriptionConfig } from '@lsp-indexer/node';
+import type { SubscriptionInstance, UseSubscriptionReturn } from '@lsp-indexer/types';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-
-/**
- * Extended options for the hook (adds TanStack Query integration on top
- * of the base SubscriptionHookOptions).
- */
-export interface UseSubscriptionOptions<T> extends SubscriptionHookOptions<T> {
-  /** TanStack QueryClient for cache invalidation */
-  queryClient?: QueryClient;
-  /** Query keys to invalidate when data arrives */
-  invalidateKeys?: readonly (readonly unknown[])[];
-  /** Whether to invalidate caches on data arrival */
-  invalidate?: boolean;
-}
-
-/**
- * Minimal interface for the subscription client expected by the hook.
- * Avoids coupling to the concrete SubscriptionClient class so any
- * implementation (React direct-WS, Next.js proxy) can be used.
- */
-interface UseSubscriptionClient {
-  subscribe: (listener: () => void) => () => void;
-  getSnapshot: () => ConnectionState;
-  getServerSnapshot: () => ConnectionState;
-  createSubscription: <TResult, TVariables extends Record<string, unknown>, TRaw, TParsed>(
-    config: SubscriptionConfig<TResult, TVariables, TRaw, TParsed>,
-    options?: SubscriptionHookOptions<TParsed>,
-  ) => SubscriptionInstance<TParsed>;
-}
+import { UseSubscriptionClient, UseSubscriptionOptions } from '../types';
 
 /**
  * Create a `useSubscription` hook bound to a specific context.

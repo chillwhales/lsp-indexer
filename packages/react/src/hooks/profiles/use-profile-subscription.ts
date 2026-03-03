@@ -1,8 +1,6 @@
-'use client';
-
 import { useQueryClient } from '@tanstack/react-query';
-import { createUseProfileSubscription } from './create-use-profile-subscription';
-import { useSubscription } from './use-subscription';
+import { createUseProfileSubscription } from '../factories';
+import { useSubscription } from '../use-subscription';
 
 /**
  * Profile subscription hook for `@lsp-indexer/react`.
