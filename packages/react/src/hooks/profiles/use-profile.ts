@@ -1,13 +1,5 @@
-import { fetchProfile, getClientUrl, profileKeys } from '@lsp-indexer/node';
-import {
-  PartialProfile,
-  Profile,
-  ProfileInclude,
-  ProfileResult,
-  UseProfileParams,
-} from '@lsp-indexer/types';
-import { useQuery } from '@tanstack/react-query';
-import { UseProfileReturn } from '../types';
+import { fetchProfile, getClientUrl } from '@lsp-indexer/node';
+import { createUseProfile } from '../factories';
 
 /**
  * Fetch a single Universal Profile by address.
@@ -40,28 +32,4 @@ import { UseProfileReturn } from '../types';
  * }
  * ```
  */
-export function useProfile<const I extends ProfileInclude>(
-  params: UseProfileParams & { include: I },
-): UseProfileReturn<ProfileResult<I>>;
-export function useProfile(
-  params: Omit<UseProfileParams, 'include'> & { include?: never },
-): UseProfileReturn<Profile>;
-export function useProfile(
-  params: UseProfileParams & { include?: ProfileInclude },
-): UseProfileReturn<PartialProfile>;
-export function useProfile(
-  params: UseProfileParams & { include?: ProfileInclude },
-): UseProfileReturn<PartialProfile> {
-  const url = getClientUrl();
-  const { address, include } = params;
-
-  const { data, ...rest } = useQuery({
-    queryKey: profileKeys.detail(address, include),
-    queryFn: () =>
-      include ? fetchProfile(url, { address, include }) : fetchProfile(url, { address }),
-    enabled: Boolean(address),
-  });
-
-  const profile = data ?? null;
-  return { profile, ...rest };
-}
+export const useProfile = createUseProfile((params) => fetchProfile(getClientUrl(), params));

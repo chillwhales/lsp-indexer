@@ -1,13 +1,5 @@
-import { fetchProfiles, getClientUrl, profileKeys } from '@lsp-indexer/node';
-import {
-  PartialProfile,
-  Profile,
-  ProfileInclude,
-  ProfileResult,
-  UseProfilesParams,
-} from '@lsp-indexer/types';
-import { useQuery } from '@tanstack/react-query';
-import { UseProfilesReturn } from '../types';
+import { fetchProfiles, getClientUrl } from '@lsp-indexer/node';
+import { createUseProfiles } from '../factories';
 
 /**
  * Fetch a paginated list of Universal Profiles with filtering and sorting.
@@ -43,29 +35,4 @@ import { UseProfilesReturn } from '../types';
  * }
  * ```
  */
-export function useProfiles<const I extends ProfileInclude>(
-  params: UseProfilesParams & { include: I },
-): UseProfilesReturn<ProfileResult<I>>;
-export function useProfiles(
-  params?: Omit<UseProfilesParams, 'include'> & { include?: never },
-): UseProfilesReturn<Profile>;
-export function useProfiles(
-  params: UseProfilesParams & { include?: ProfileInclude },
-): UseProfilesReturn<PartialProfile>;
-export function useProfiles(
-  params: UseProfilesParams & { include?: ProfileInclude } = {},
-): UseProfilesReturn<PartialProfile> {
-  const url = getClientUrl();
-  const { filter, sort, limit, offset, include } = params;
-
-  const { data, ...rest } = useQuery({
-    queryKey: profileKeys.list(filter, sort, limit, offset, include),
-    queryFn: () =>
-      include
-        ? fetchProfiles(url, { filter, sort, limit, offset, include })
-        : fetchProfiles(url, { filter, sort, limit, offset }),
-  });
-
-  const profiles = data?.profiles ?? [];
-  return { profiles, totalCount: data?.totalCount ?? 0, ...rest };
-}
+export const useProfiles = createUseProfiles((params) => fetchProfiles(getClientUrl(), params));
