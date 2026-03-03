@@ -22,6 +22,7 @@ import { IndexerError } from './indexer-error';
  * ```
  */
 export function narrowSubscriptionError(error: unknown): string {
+  if (error == null) return '';
   if (error instanceof IndexerError) return error.message;
   if (error instanceof Error) return error.message;
   return String(error);

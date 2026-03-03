@@ -31,6 +31,12 @@ export interface CreateUseDetailConfig<TParams extends Record<string, unknown>, 
   queryFn: (params: TParams) => Promise<TData | null>;
   /** Derive the `enabled` flag from params (e.g., `Boolean(p.address)`) */
   enabled: (params: TParams) => boolean;
+  /**
+   * Time in ms that data is considered fresh. During this period, the query
+   * will not refetch on mount or window focus. Defaults to TanStack Query's
+   * global default (0 = always stale) when omitted.
+   */
+  staleTime?: number;
 }
 
 /**
@@ -67,6 +73,7 @@ export function createUseDetail<TParams extends Record<string, unknown>, TData>(
       queryKey: config.queryKey(params),
       queryFn: () => config.queryFn(params),
       enabled: config.enabled(params),
+      staleTime: config.staleTime,
     });
 
     return { data: rawData ?? null, ...rest };

@@ -53,6 +53,14 @@ export interface CreateUseInfiniteConfig<
   extractItems: (result: TResult) => TData[];
   /** Default page size if not specified in params (default: 20) */
   defaultPageSize?: number;
+  /** Derive the `enabled` flag from params (default: always enabled) */
+  enabled?: (params: TParams) => boolean;
+  /**
+   * Time in ms that data is considered fresh. During this period, the query
+   * will not refetch on mount or window focus. Defaults to TanStack Query's
+   * global default (0 = always stale) when omitted.
+   */
+  staleTime?: number;
 }
 
 /**
@@ -99,21 +107,29 @@ export function createUseInfinite<
   return function useInfiniteImpl(params: TParams) {
     const effectivePageSize = params.pageSize ?? pageSize;
 
-    const result = useInfiniteQuery<TResult, Error, InfiniteData<TResult>>({
+    const result = useInfiniteQuery<
+      TResult,
+      Error,
+      InfiniteData<TResult>,
+      readonly unknown[],
+      number
+    >({
       queryKey: config.queryKey(params),
       queryFn: ({ pageParam }) =>
         config.queryFn({
           ...params,
           limit: effectivePageSize,
-          offset: pageParam as number,
+          offset: pageParam,
         }),
       initialPageParam: 0,
+      enabled: config.enabled ? config.enabled(params) : undefined,
+      staleTime: config.staleTime,
       getNextPageParam: (lastPage, _allPages, lastPageParam) => {
         const items = config.extractItems(lastPage);
         if (items.length < effectivePageSize) {
           return undefined;
         }
-        return (lastPageParam as number) + effectivePageSize;
+        return lastPageParam + effectivePageSize;
       },
     });
 

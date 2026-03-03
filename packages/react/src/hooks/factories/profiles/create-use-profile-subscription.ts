@@ -47,12 +47,12 @@ export function createUseProfileSubscription(
   useSubscription: UseSubscriptionFn,
   useQueryClient: () => QueryClient,
 ) {
-  function useProfileSubscription(
-    params?: Omit<UseProfileSubscriptionParams, 'include'> & { include?: never },
-  ): UseSubscriptionReturn<Profile>;
   function useProfileSubscription<const I extends ProfileInclude>(
     params: UseProfileSubscriptionParams & { include: I },
   ): UseSubscriptionReturn<ProfileResult<I>>;
+  function useProfileSubscription(
+    params?: Omit<UseProfileSubscriptionParams, 'include'> & { include?: never },
+  ): UseSubscriptionReturn<Profile>;
   function useProfileSubscription(
     params: UseProfileSubscriptionParams & { include?: ProfileInclude },
   ): UseSubscriptionReturn<PartialProfile>;

@@ -34,6 +34,14 @@ export interface CreateUseListConfig<
    * (e.g., `(r) => r.profiles`, `(r) => r.nfts`)
    */
   extractItems: (result: TResult) => TData[];
+  /** Derive the `enabled` flag from params (default: always enabled) */
+  enabled?: (params: TParams) => boolean;
+  /**
+   * Time in ms that data is considered fresh. During this period, the query
+   * will not refetch on mount or window focus. Defaults to TanStack Query's
+   * global default (0 = always stale) when omitted.
+   */
+  staleTime?: number;
 }
 
 /**
@@ -71,6 +79,8 @@ export function createUseList<
     const { data, ...rest } = useQuery<TResult, Error>({
       queryKey: config.queryKey(params),
       queryFn: () => config.queryFn(params),
+      enabled: config.enabled ? config.enabled(params) : undefined,
+      staleTime: config.staleTime,
     });
 
     const items = data ? config.extractItems(data) : [];
