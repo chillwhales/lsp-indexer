@@ -11,11 +11,10 @@
  *
  * @see createUseList — same pattern for paginated (non-infinite) list hooks
  */
-import type { InfiniteData } from '@tanstack/react-query';
+import type { InfiniteData, UseInfiniteQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-
-const DEFAULT_PAGE_SIZE = 20;
+import { DEFAULT_PAGE_SIZE } from '../../constants';
 
 /**
  * Params shape for infinite hooks. All infinite hooks accept these fields,
@@ -59,17 +58,19 @@ export interface CreateUseInfiniteConfig<
 /**
  * The raw return shape from the factory — `{ items, hasNextPage, ... }`.
  * Domain wrappers remap `items` to a named key (e.g., `profiles`, `nfts`).
+ *
+ * Uses `Omit` over `UseInfiniteQueryResult` to preserve all TanStack Query
+ * fields with precise types, matching the pattern in `UseListRawReturn`.
  */
-export interface UseInfiniteRawReturn<TData> {
+export type UseInfiniteRawReturn<TData, TResult extends { totalCount: number }> = {
   items: TData[];
   hasNextPage: boolean;
-  fetchNextPage: () => void;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
   isFetchingNextPage: boolean;
-  // All remaining TanStack Query infinite result fields are spread via ...rest
-  // in the domain wrapper. We type this loosely here; the domain's overloaded
-  // function provides the precise return type to consumers.
-  [key: string]: unknown;
-}
+} & Omit<
+  UseInfiniteQueryResult<InfiniteData<TResult>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;
 
 /**
  * Create an infinite scroll hook implementation.

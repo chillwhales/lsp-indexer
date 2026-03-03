@@ -32,12 +32,12 @@ const upcomingDomains = [
 ];
 
 function ProfilesSubscriptionDemo() {
-  const [addressFilter, setAddressFilter] = useState('');
+  const [nameFilter, setNameFilter] = useState('');
   const [limit, setLimit] = useState(10);
   const [invalidate, setInvalidate] = useState(false);
 
   const { data, isConnected, isSubscribed, error } = useProfileSubscription({
-    filter: addressFilter ? { name: addressFilter } : undefined,
+    filter: nameFilter ? { name: nameFilter } : undefined,
     limit,
     invalidate,
   });
@@ -72,8 +72,8 @@ function ProfilesSubscriptionDemo() {
             <Input
               id="profile-name-filter"
               placeholder="Search by name..."
-              value={addressFilter}
-              onChange={(e) => setAddressFilter(e.target.value)}
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
             />
           </div>
           <div className="space-y-2">

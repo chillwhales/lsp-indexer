@@ -90,6 +90,16 @@ export function createUseSubscription(useSubscriptionClient: () => UseSubscripti
       // uses the latest version without needing to tear down and recreate
       // when only the parser or callbacks change.
       const currentConfig = configRef.current;
+      /** Invalidate all configured TanStack Query cache keys (shared by onData + onReconnect). */
+      const invalidateCaches = () => {
+        const opts = optionsRef.current;
+        if (opts.invalidate && opts.queryClient && opts.invalidateKeys) {
+          for (const key of opts.invalidateKeys) {
+            opts.queryClient.invalidateQueries({ queryKey: [...key] });
+          }
+        }
+      };
+
       const subscription = client.createSubscription<TResult, TVariables, TRaw, TParsed>(
         {
           ...currentConfig,
@@ -98,28 +108,13 @@ export function createUseSubscription(useSubscriptionClient: () => UseSubscripti
         {
           enabled,
           onData: (newData: TParsed[]) => {
-            // Cache invalidation
-            const opts = optionsRef.current;
-            if (opts.invalidate && opts.queryClient && opts.invalidateKeys) {
-              for (const key of opts.invalidateKeys) {
-                opts.queryClient.invalidateQueries({ queryKey: [...key] });
-              }
-            }
-
-            // User callback
-            opts.onData?.(newData);
+            invalidateCaches();
+            optionsRef.current.onData?.(newData);
           },
           onReconnect: () => {
-            // Cache invalidation on reconnect (data may be stale after disconnect)
-            const opts = optionsRef.current;
-            if (opts.invalidate && opts.queryClient && opts.invalidateKeys) {
-              for (const key of opts.invalidateKeys) {
-                opts.queryClient.invalidateQueries({ queryKey: [...key] });
-              }
-            }
-
-            // User callback
-            opts.onReconnect?.();
+            // Invalidate on reconnect — data may be stale after disconnect
+            invalidateCaches();
+            optionsRef.current.onReconnect?.();
           },
         },
       );

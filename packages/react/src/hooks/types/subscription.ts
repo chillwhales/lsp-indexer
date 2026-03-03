@@ -13,10 +13,6 @@ import { QueryClient } from '@tanstack/react-query';
 export interface UseSubscriptionOptions<T> extends SubscriptionHookOptions<T> {
   /** TanStack QueryClient for cache invalidation */
   queryClient?: QueryClient;
-  /** Query keys to invalidate when data arrives */
-  invalidateKeys?: readonly (readonly unknown[])[];
-  /** Whether to invalidate caches on data arrival */
-  invalidate?: boolean;
 }
 
 /**

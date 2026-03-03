@@ -1,5 +1,5 @@
 // Error handling
-export { IndexerError } from './errors';
+export * from './errors';
 
 // Client utilities (execute, env helpers)
 export * from './client';

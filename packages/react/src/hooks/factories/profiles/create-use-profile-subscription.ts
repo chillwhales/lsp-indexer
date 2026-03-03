@@ -7,8 +7,6 @@
  *
  * @see createUseSubscription — the lower-level factory this mirrors
  */
-'use client';
-
 import {
   buildProfileWhere,
   parseProfiles,
@@ -24,19 +22,20 @@ import { UseProfileSubscriptionParams, UseSubscriptionFn } from '../../types';
  * Create a `useProfileSubscription` hook bound to a specific `useSubscription`.
  *
  * @param useSubscription - The package-specific useSubscription hook
- * @param useQueryClient - Optional TanStack Query client hook for cache invalidation
+ * @param useQueryClient - TanStack Query client hook for cache invalidation
  *
  * @example
  * ```ts
  * // packages/react/src/subscriptions/profiles.ts
  * import { createUseProfileSubscription } from './create-use-profile-subscription';
  * import { useSubscription } from './use-subscription';
- * export const useProfileSubscription = createUseProfileSubscription(useSubscription);
+ * import { useQueryClient } from '@tanstack/react-query';
+ * export const useProfileSubscription = createUseProfileSubscription(useSubscription, useQueryClient);
  * ```
  */
 export function createUseProfileSubscription(
   useSubscription: UseSubscriptionFn,
-  useQueryClient?: () => QueryClient,
+  useQueryClient: () => QueryClient,
 ) {
   return function useProfileSubscription(
     params: UseProfileSubscriptionParams = {},
@@ -51,17 +50,7 @@ export function createUseProfileSubscription(
     } = params;
 
     const where = buildProfileWhere(filter);
-
-    // Call useQueryClient unconditionally (Rules of Hooks) if provided.
-    // The result is only passed to useSubscription when invalidate is true.
-    let queryClient: import('@tanstack/react-query').QueryClient | undefined;
-    if (useQueryClient) {
-      try {
-        queryClient = useQueryClient();
-      } catch {
-        // No QueryClientProvider — hook still functions without cache invalidation
-      }
-    }
+    const queryClient = useQueryClient();
 
     // All 4 type params inferred from the config — zero explicit type arguments.
     return useSubscription(
