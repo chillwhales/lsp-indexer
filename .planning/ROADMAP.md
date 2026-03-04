@@ -454,9 +454,9 @@ Plans:
 
 **Requirement:** SUB-02, SUB-03
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
-- [ ] 10.7-01-PLAN.md — useFollowerSubscription hook + playground demo
+- [ ] 10.7-01-PLAN.md — Factory refactoring + useFollowerSubscription (include/sort/3-overload/event-domain-sort) + dual-package export + playground
 
 ---
 
@@ -571,36 +571,36 @@ Plans:
 
 ## Progress
 
-| Phase | Name                               | Requirements | Status   |
-| ----- | ---------------------------------- | :----------: | -------- |
-| 7     | Package Foundation                 |     7/7      | Complete |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
-| 9.1   | Digital Assets                     |     1/1      | Complete |
-| 9.2   | NFTs                               |     1/1      | Complete |
-| 9.3   | Owned Assets                       |     1/1      | Complete |
-| 9.4   | Conditional Include Types          |     1/1      | Complete |
-| 9.5   | Social / Follows                   |     1/1      | Complete |
-| 9.6   | Generic Type Propagation           |     1/1      | Complete |
-| 9.7   | Creators                           |     1/1      | Complete |
-| 9.8   | Issued Assets                      |     1/1      | Complete |
-| 9.9   | Encrypted Feed                     |     1/1      | Complete |
-| 9.10  | Data Changed Events                |     1/1      | Complete |
-| 9.11  | Universal Receiver Events          |     1/1      | Complete |
-| 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Complete |
-| 10.1  | Subscription Foundation            |     1/1      | Complete |
-| 10.2  | Profiles Subscription              |     1/1      | Complete |
-| 10.3  | Digital Assets Subscription        |     1/1      | Complete |
-| 10.4  | NFTs Subscription                  |     1/1      | Complete |
-| 10.5  | Owned Assets Subscription          |     1/1      | Complete |
-| 10.6  | 1/1 | Complete    | 2026-03-04 |
-| 10.7  | Followers Subscription             |      0       | Pending  |
-| 10.8  | Creators Subscription              |      0       | Pending  |
-| 10.9  | Issued Assets Subscription         |      0       | Pending  |
-| 10.10 | Encrypted Assets Subscription      |      0       | Pending  |
-| 10.11 | Data Changed Events Subscription   |      0       | Pending  |
-| 10.12 | Token ID Data Changed Subscription |      0       | Pending  |
-| 10.13 | Universal Receiver Subscription    |      0       | Pending  |
-| 11    | Server Actions & Publish Readiness |      4       | Pending  |
+| Phase | Name                               | Requirements | Status     |
+| ----- | ---------------------------------- | :----------: | ---------- |
+| 7     | Package Foundation                 |     7/7      | Complete   |
+| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete   |
+| 9.1   | Digital Assets                     |     1/1      | Complete   |
+| 9.2   | NFTs                               |     1/1      | Complete   |
+| 9.3   | Owned Assets                       |     1/1      | Complete   |
+| 9.4   | Conditional Include Types          |     1/1      | Complete   |
+| 9.5   | Social / Follows                   |     1/1      | Complete   |
+| 9.6   | Generic Type Propagation           |     1/1      | Complete   |
+| 9.7   | Creators                           |     1/1      | Complete   |
+| 9.8   | Issued Assets                      |     1/1      | Complete   |
+| 9.9   | Encrypted Feed                     |     1/1      | Complete   |
+| 9.10  | Data Changed Events                |     1/1      | Complete   |
+| 9.11  | Universal Receiver Events          |     1/1      | Complete   |
+| 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Complete   |
+| 10.1  | Subscription Foundation            |     1/1      | Complete   |
+| 10.2  | Profiles Subscription              |     1/1      | Complete   |
+| 10.3  | Digital Assets Subscription        |     1/1      | Complete   |
+| 10.4  | NFTs Subscription                  |     1/1      | Complete   |
+| 10.5  | Owned Assets Subscription          |     1/1      | Complete   |
+| 10.6  | 1/1                                |   Complete   | 2026-03-04 |
+| 10.7  | 1/1 | Complete    | 2026-03-04 |
+| 10.8  | Creators Subscription              |      0       | Pending    |
+| 10.9  | Issued Assets Subscription         |      0       | Pending    |
+| 10.10 | Encrypted Assets Subscription      |      0       | Pending    |
+| 10.11 | Data Changed Events Subscription   |      0       | Pending    |
+| 10.12 | Token ID Data Changed Subscription |      0       | Pending    |
+| 10.13 | Universal Receiver Subscription    |      0       | Pending    |
+| 11    | Server Actions & Publish Readiness |      4       | Pending    |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 

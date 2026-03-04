@@ -1,16 +1,18 @@
 'use client';
 
-import { Hash, Infinity, UserCheck, Users } from 'lucide-react';
+import { Hash, Infinity, Radio, UserCheck, Users, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useFollowCount as useFollowCountNext,
+  useFollowerSubscription as useFollowerSubscriptionNext,
   useFollows as useFollowsNext,
   useInfiniteFollows as useInfiniteFollowsNext,
   useIsFollowing as useIsFollowingNext,
 } from '@lsp-indexer/next';
 import {
   useFollowCount as useFollowCountReact,
+  useFollowerSubscription as useFollowerSubscriptionReact,
   useFollows as useFollowsReact,
   useInfiniteFollows as useInfiniteFollowsReact,
   useIsFollowing as useIsFollowingReact,
@@ -28,6 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 
 import { FollowerCard } from '@/components/follower-card';
 import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
@@ -117,6 +120,7 @@ type FollowerHooks = {
   useInfiniteFollows: typeof useInfiniteFollowsReact;
   useFollowCount: typeof useFollowCountReact;
   useIsFollowing: typeof useIsFollowingReact;
+  useFollowerSubscription: typeof useFollowerSubscriptionReact;
 };
 
 function useFollowerHooks(mode: HookMode): FollowerHooks {
@@ -126,6 +130,7 @@ function useFollowerHooks(mode: HookMode): FollowerHooks {
       useInfiniteFollows: useInfiniteFollowsNext,
       useFollowCount: useFollowCountNext,
       useIsFollowing: useIsFollowingNext,
+      useFollowerSubscription: useFollowerSubscriptionNext,
     };
   }
   return {
@@ -133,6 +138,7 @@ function useFollowerHooks(mode: HookMode): FollowerHooks {
     useInfiniteFollows: useInfiniteFollowsReact,
     useFollowCount: useFollowCountReact,
     useIsFollowing: useIsFollowingReact,
+    useFollowerSubscription: useFollowerSubscriptionReact,
   };
 }
 
@@ -490,6 +496,94 @@ function IsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
+// Tab 5: Subscription (real-time)
+// ---------------------------------------------------------------------------
+
+function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useFollowerSubscription } = useFollowerHooks(mode);
+  const state = useListState();
+  const [limit, setLimit] = useState(10);
+  const [invalidate, setInvalidate] = useState(false);
+
+  const { data, isConnected, isSubscribed, error } = useFollowerSubscription({
+    filter: state.filter,
+    sort: state.sort,
+    limit,
+    include: state.include,
+    invalidate,
+  });
+
+  // Map subscription shape to ResultsList expectations
+  const followers = data ?? [];
+  const isLoading = data === null && isSubscribed;
+  const normalizedError =
+    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Connection status + invalidate toggle */}
+      <div className="flex items-center gap-3">
+        <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
+          {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </Badge>
+        <Badge variant={isSubscribed ? 'default' : 'secondary'}>
+          {isSubscribed ? 'Subscribed' : 'Idle'}
+        </Badge>
+        <div className="ml-auto flex items-center space-x-2">
+          <Switch id="sub-invalidate" checked={invalidate} onCheckedChange={setInvalidate} />
+          <Label htmlFor="sub-invalidate">Invalidate Cache</Label>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <FilterFieldsRow
+          configs={ADDRESS_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+        <FilterFieldsRow
+          configs={NAME_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+        <FilterFieldsRow
+          configs={DATE_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+      </div>
+      <SortControls
+        options={SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as FollowerSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
+        limit={limit}
+        onLimitChange={setLimit}
+        hideDirectionAndNulls={state.sortField === 'newest' || state.sortField === 'oldest'}
+      />
+      <IncludeSections {...state} />
+      <ResultsList
+        items={followers}
+        isLoading={isLoading}
+        isFetching={false}
+        error={normalizedError}
+        renderItem={(f, i) => <FollowerCard follower={f} index={i} />}
+        getKey={(f) => `${f.followerAddress}-${f.followedAddress}`}
+        label="follows"
+        totalCount={followers.length}
+        hasActiveFilter={state.hasActiveFilter}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -500,9 +594,10 @@ export default function FollowsPage(): React.ReactNode {
       description={
         <>
           Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollows</code>,{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowCount</code>, and{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useIsFollowing</code> hooks against
-          live Hasura data (QUERY-05).
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowCount</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useIsFollowing</code>, and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowerSubscription</code>{' '}
+          hooks against live Hasura data (QUERY-05, SUB-02).
         </>
       }
       tabs={[
@@ -529,6 +624,12 @@ export default function FollowsPage(): React.ReactNode {
           label: 'Is Following',
           icon: <UserCheck className="size-4" />,
           render: (mode) => <IsFollowingTab mode={mode} />,
+        },
+        {
+          value: 'subscription',
+          label: 'Subscription',
+          icon: <Radio className="size-4" />,
+          render: (mode) => <SubscriptionTab mode={mode} />,
         },
       ]}
     />
