@@ -7,8 +7,16 @@ import type {
   PartialDigitalAsset,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetDigitalAssetDocument, GetDigitalAssetsDocument } from '../documents/digital-assets';
-import type { Digital_Asset_Bool_Exp, Digital_Asset_Order_By } from '../graphql/graphql';
+import {
+  DigitalAssetSubscriptionDocument,
+  GetDigitalAssetDocument,
+  GetDigitalAssetsDocument,
+} from '../documents/digital-assets';
+import type {
+  DigitalAssetSubscriptionSubscription,
+  Digital_Asset_Bool_Exp,
+  Digital_Asset_Order_By,
+} from '../graphql/graphql';
 import { parseDigitalAsset, parseDigitalAssets } from '../parsers/digital-assets';
 import { escapeLike, orderDir } from './utils';
 
@@ -108,7 +116,9 @@ export function buildDigitalAssetWhere(filter?: DigitalAssetFilter): Digital_Ass
  *
  * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
  */
-function buildDigitalAssetOrderBy(sort?: DigitalAssetSort): Digital_Asset_Order_By[] | undefined {
+export function buildDigitalAssetOrderBy(
+  sort?: DigitalAssetSort,
+): Digital_Asset_Order_By[] | undefined {
   if (!sort) return undefined;
 
   const dir = orderDir(sort.direction, sort.nulls);
@@ -170,6 +180,53 @@ export function buildDigitalAssetIncludeVars(
     includeReferenceContract: include.referenceContract ?? false,
     includeTokenIdFormat: include.tokenIdFormat ?? false,
     includeBaseUri: include.baseUri ?? false,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription config builder
+// ---------------------------------------------------------------------------
+
+/**
+ * Raw Hasura row type from the subscription codegen result.
+ *
+ * Structurally compatible with the query-side raw rows (both select
+ * the same fields), but derived from the subscription codegen type to
+ * keep the generic chain `TResult → TRaw` precise.
+ */
+type RawDigitalAssetSubscriptionRow = DigitalAssetSubscriptionSubscription['digital_asset'][number];
+
+/**
+ * Build a digital asset subscription config (document, variables, extract, parser).
+ *
+ * Encapsulates the domain-specific assembly that `createUseDigitalAssetSubscription`
+ * needs — mirroring how `fetchDigitalAssets` encapsulates query assembly. Keeps the
+ * React hook factory focused on hook lifecycle rather than domain plumbing.
+ *
+ * @param params - Filter, sort, limit, and include configuration
+ * @returns A config object consumable by `useSubscription`
+ */
+export function buildDigitalAssetSubscriptionConfig(params: {
+  filter?: DigitalAssetFilter;
+  sort?: DigitalAssetSort;
+  limit?: number;
+  include?: DigitalAssetInclude;
+}) {
+  const where = buildDigitalAssetWhere(params.filter);
+  const orderBy = buildDigitalAssetOrderBy(params.sort);
+  const includeVars = buildDigitalAssetIncludeVars(params.include);
+
+  return {
+    document: DigitalAssetSubscriptionDocument,
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: orderBy,
+      limit: params.limit,
+      ...includeVars,
+    },
+    extract: (result: DigitalAssetSubscriptionSubscription) => result.digital_asset,
+    parser: (raw: RawDigitalAssetSubscriptionRow[]) =>
+      params.include ? parseDigitalAssets(raw, params.include) : parseDigitalAssets(raw),
   };
 }
 

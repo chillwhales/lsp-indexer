@@ -23,22 +23,21 @@ import type {
  * @param include - Optional field inclusion config
  * @returns The parsed digital asset, or `null` if not found
  */
-export async function getDigitalAsset(address: string): Promise<DigitalAsset | null>;
-export async function getDigitalAsset<const I extends DigitalAssetInclude>(
-  address: string,
-  include: I,
-): Promise<DigitalAssetResult<I> | null>;
-export async function getDigitalAsset(
-  address: string,
-  include?: DigitalAssetInclude,
-): Promise<PartialDigitalAsset | null>;
-export async function getDigitalAsset(
-  address: string,
-  include?: DigitalAssetInclude,
-): Promise<PartialDigitalAsset | null> {
+export async function getDigitalAsset(params: { address: string }): Promise<DigitalAsset | null>;
+export async function getDigitalAsset<const I extends DigitalAssetInclude>(params: {
+  address: string;
+  include: I;
+}): Promise<DigitalAssetResult<I> | null>;
+export async function getDigitalAsset(params: {
+  address: string;
+  include?: DigitalAssetInclude;
+}): Promise<PartialDigitalAsset | null>;
+export async function getDigitalAsset(params: {
+  address: string;
+  include?: DigitalAssetInclude;
+}): Promise<PartialDigitalAsset | null> {
   const url = getServerUrl();
-  if (include) return fetchDigitalAsset(url, { address, include });
-  return fetchDigitalAsset(url, { address });
+  return fetchDigitalAsset(url, params);
 }
 
 /**
