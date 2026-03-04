@@ -15,8 +15,4 @@ import { getNft } from '../../actions/nfts';
  * @returns `{ nft, isLoading, error, ...rest }` — full TanStack Query result
  *   with `data` renamed to `nft`
  */
-export const useNft = createUseNft(({ address, tokenId, formattedTokenId, include }) =>
-  include
-    ? getNft(address, tokenId, formattedTokenId, include)
-    : getNft(address, tokenId, formattedTokenId),
-);
+export const useNft = createUseNft(getNft);

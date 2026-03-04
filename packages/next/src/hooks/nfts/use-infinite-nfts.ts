@@ -13,6 +13,4 @@ import { getNfts } from '../../actions/nfts';
  * @returns `{ nfts, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest }` —
  *   flattened NFTs array with infinite scroll controls
  */
-export const useInfiniteNfts = createUseInfiniteNfts((params) =>
-  params.include ? getNfts(params) : getNfts(params),
-);
+export const useInfiniteNfts = createUseInfiniteNfts(getNfts);

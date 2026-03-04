@@ -36,8 +36,7 @@ export async function getDigitalAsset(params: {
   address: string;
   include?: DigitalAssetInclude;
 }): Promise<PartialDigitalAsset | null> {
-  const url = getServerUrl();
-  return fetchDigitalAsset(url, params);
+  return fetchDigitalAsset(getServerUrl(), params);
 }
 
 /**
@@ -77,7 +76,5 @@ export async function getDigitalAssets(params?: {
   offset?: number;
   include?: DigitalAssetInclude;
 }): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>> {
-  const url = getServerUrl();
-  if (params?.include) return fetchDigitalAssets(url, params);
-  return fetchDigitalAssets(url, params ?? {});
+  return fetchDigitalAssets(getServerUrl(), params);
 }

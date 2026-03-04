@@ -13,6 +13,4 @@ import { getNfts } from '../../actions/nfts';
  * @returns `{ nfts, totalCount, isLoading, error, ...rest }` — full TanStack Query
  *   result with `data` flattened to `nfts` and `totalCount`
  */
-export const useNfts = createUseNfts((params) =>
-  params.include ? getNfts(params) : getNfts(params),
-);
+export const useNfts = createUseNfts(getNfts);
