@@ -14,4 +14,4 @@ import { getOwnedToken } from '../../actions/owned-tokens';
  * @returns `{ ownedToken, isLoading, error, ...rest }` — full TanStack Query result
  *   with `data` renamed to `ownedToken`
  */
-export const useOwnedToken = createUseOwnedToken((p) => getOwnedToken(p.id, p.include));
+export const useOwnedToken = createUseOwnedToken(getOwnedToken);

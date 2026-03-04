@@ -23,22 +23,20 @@ import type {
  * @param include - Optional field inclusion config
  * @returns The parsed owned token (narrowed by include), or `null` if not found
  */
-export async function getOwnedToken(id: string): Promise<OwnedToken | null>;
-export async function getOwnedToken<const I extends OwnedTokenInclude>(
-  id: string,
-  include: I,
-): Promise<OwnedTokenResult<I> | null>;
-export async function getOwnedToken(
-  id: string,
-  include?: OwnedTokenInclude,
-): Promise<PartialOwnedToken | null>;
-export async function getOwnedToken(
-  id: string,
-  include?: OwnedTokenInclude,
-): Promise<PartialOwnedToken | null> {
-  const url = getServerUrl();
-  if (include) return fetchOwnedToken(url, { id, include });
-  return fetchOwnedToken(url, { id });
+export async function getOwnedToken(params: { id: string }): Promise<OwnedToken | null>;
+export async function getOwnedToken<const I extends OwnedTokenInclude>(params: {
+  id: string;
+  include: I;
+}): Promise<OwnedTokenResult<I> | null>;
+export async function getOwnedToken(params: {
+  id: string;
+  include?: OwnedTokenInclude;
+}): Promise<PartialOwnedToken | null>;
+export async function getOwnedToken(params: {
+  id: string;
+  include?: OwnedTokenInclude;
+}): Promise<PartialOwnedToken | null> {
+  return fetchOwnedToken(getServerUrl(), params);
 }
 
 /**
@@ -78,7 +76,5 @@ export async function getOwnedTokens(params?: {
   offset?: number;
   include?: OwnedTokenInclude;
 }): Promise<FetchOwnedTokensResult<PartialOwnedToken>> {
-  const url = getServerUrl();
-  if (params?.include) return fetchOwnedTokens(url, params);
-  return fetchOwnedTokens(url, params ?? {});
+  return fetchOwnedTokens(getServerUrl(), params);
 }
