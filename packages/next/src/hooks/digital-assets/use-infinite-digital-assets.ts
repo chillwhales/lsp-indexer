@@ -13,4 +13,4 @@ import { getDigitalAssets } from '../../actions/digital-assets';
  * @returns `{ digitalAssets, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest }` —
  *   flattened digital assets array with infinite scroll controls
  */
-export const useInfiniteDigitalAssets = createUseInfiniteDigitalAssets((p) => getDigitalAssets(p));
+export const useInfiniteDigitalAssets = createUseInfiniteDigitalAssets(getDigitalAssets);

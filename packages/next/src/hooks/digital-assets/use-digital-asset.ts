@@ -14,6 +14,4 @@ import { getDigitalAsset } from '../../actions/digital-assets';
  * @returns `{ digitalAsset, isLoading, error, ...rest }` — full TanStack Query result
  *   with `data` renamed to `digitalAsset`
  */
-export const useDigitalAsset = createUseDigitalAsset((p) =>
-  p.include ? getDigitalAsset(p.address, p.include) : getDigitalAsset(p.address),
-);
+export const useDigitalAsset = createUseDigitalAsset(getDigitalAsset);

@@ -13,4 +13,4 @@ import { getDigitalAssets } from '../../actions/digital-assets';
  * @returns `{ digitalAssets, totalCount, isLoading, error, ...rest }` — full TanStack Query
  *   result with `data` flattened to `digitalAssets` and `totalCount`
  */
-export const useDigitalAssets = createUseDigitalAssets((p) => getDigitalAssets(p));
+export const useDigitalAssets = createUseDigitalAssets(getDigitalAssets);
