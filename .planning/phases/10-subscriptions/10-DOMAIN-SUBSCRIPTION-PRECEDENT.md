@@ -24,24 +24,28 @@ These deviations are now the established precedent. All subsequent phases follow
 
 ### The Factory Pattern (3 Layers)
 
+All paths below are relative to `packages/react/src/` (React) or `packages/next/src/` (Next).
+
 ```
-Layer 1: Generic factories (shared across ALL domains)
+Layer 1: Generic factories (shared across ALL domains) — packages/react/src/
   hooks/factories/create-use-detail.ts      — single-entity query hooks
   hooks/factories/create-use-list.ts        — paginated list query hooks
   hooks/factories/create-use-infinite.ts    — infinite scroll query hooks
   hooks/factories/create-use-subscription.ts — subscription hooks
 
-Layer 2: Domain factories (one set per domain, in hooks/factories/{domain}/)
+Layer 2: Domain factories (one set per domain) — packages/react/src/
   hooks/factories/profiles/create-use-profile.ts
   hooks/factories/profiles/create-use-profiles.ts
   hooks/factories/profiles/create-use-infinite-profiles.ts
   hooks/factories/profiles/create-use-profile-subscription.ts
 
 Layer 3: Thin wrappers (one-liner per hook per package)
-  React:  hooks/profiles/use-profile.ts            — calls factory with fetchProfile
-  React:  hooks/profiles/use-profile-subscription.ts — calls factory with useSubscription
-  Next:   hooks/profiles/use-profile.ts            — calls factory with getProfile (server action)
-  Next:   hooks/profiles/use-profile-subscription.ts — calls factory with useSubscription
+  React (packages/react/src/):
+    hooks/profiles/use-profile.ts            — calls factory with fetchProfile
+    hooks/profiles/use-profile-subscription.ts — calls factory with useSubscription
+  Next  (packages/next/src/):
+    hooks/profiles/use-profile.ts            — calls factory with getProfile (server action)
+    hooks/profiles/use-profile-subscription.ts — calls factory with useSubscription
 ```
 
 ### Key Difference: Query vs Subscription Factories
@@ -424,7 +428,7 @@ packages/next/src/hooks/digital-assets/
 
 ## Domain Classification
 
-### Entity Domains (sort optional, Hasura default ordering)
+### Entity Domains (sort optional; results unordered unless sort/order_by provided)
 
 | Phase | Domain           | Hasura Table            | Hook Name                       | Sort Support                  |
 | ----- | ---------------- | ----------------------- | ------------------------------- | ----------------------------- |
@@ -445,7 +449,7 @@ packages/next/src/hooks/digital-assets/
 | 10.12 | Token ID Data Changed | `token_id_data_changed_event` | `useTokenIdDataChangedEventSubscription` | `block_number desc, transaction_index desc, log_index desc` |
 | 10.13 | Universal Receiver    | `universal_receiver_event`    | `useUniversalReceiverEventSubscription`  | `block_number desc, transaction_index desc, log_index desc` |
 
-**Event domains:** Sort param should still be accepted but default to block-order desc. The `buildXOrderBy` function handles this.
+**Event domains:** Sort param should still be accepted but default to block-order desc. The default is applied inside `buildXSubscriptionConfig` — when `buildXOrderBy(sort)` returns `undefined` (no sort provided), the config falls back to `buildBlockOrderSort('desc')`. The `buildXOrderBy` function itself only translates an explicit sort; it does NOT apply the default.
 
 ---
 
@@ -488,7 +492,7 @@ These special hooks DON'T need subscription counterparts but DO need factory ref
 
 ## Existing Plan Deficiencies (10.3–10.13)
 
-The current plans in `.planning/phases/10.{3-13}-*/10.X-01-PLAN.md` have these issues:
+The current plans in the per-phase plan files (e.g. `.planning/phases/10.3-digital-assets-subscription/10.3-01-PLAN.md` through `.planning/phases/10.13-universal-receiver-events-subscription/10.13-01-PLAN.md`) have these issues:
 
 1. **Wrong file locations:** Plans put hooks in `packages/react/src/subscriptions/` — should be `packages/react/src/hooks/`
 2. **No factory pattern:** Plans create monolithic hooks — should use `createUseXSubscription` factory
