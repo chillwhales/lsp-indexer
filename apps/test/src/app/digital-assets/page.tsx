@@ -1,16 +1,18 @@
 'use client';
 
-import { Coins, Infinity, Layers, Search } from 'lucide-react';
+import { Coins, Infinity, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useDigitalAsset as useDigitalAssetNext,
   useDigitalAssets as useDigitalAssetsNext,
+  useDigitalAssetSubscription as useDigitalAssetSubscriptionNext,
   useInfiniteDigitalAssets as useInfiniteDigitalAssetsNext,
 } from '@lsp-indexer/next';
 import {
   useDigitalAsset as useDigitalAssetReact,
   useDigitalAssets as useDigitalAssetsReact,
+  useDigitalAssetSubscription as useDigitalAssetSubscriptionReact,
   useInfiniteDigitalAssets as useInfiniteDigitalAssetsReact,
 } from '@lsp-indexer/react';
 import type {
@@ -23,10 +25,13 @@ import type {
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
 import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
@@ -89,12 +94,14 @@ function useHooks(mode: HookMode) {
       useDigitalAsset: useDigitalAssetNext,
       useDigitalAssets: useDigitalAssetsNext,
       useInfiniteDigitalAssets: useInfiniteDigitalAssetsNext,
+      useDigitalAssetSubscription: useDigitalAssetSubscriptionNext,
     };
   }
   return {
     useDigitalAsset: useDigitalAssetReact,
     useDigitalAssets: useDigitalAssetsReact,
     useInfiniteDigitalAssets: useInfiniteDigitalAssetsReact,
+    useDigitalAssetSubscription: useDigitalAssetSubscriptionReact,
   };
 }
 
@@ -341,6 +348,85 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
+// Tab 4: Subscription (real-time)
+// ---------------------------------------------------------------------------
+
+function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useDigitalAssetSubscription } = useHooks(mode);
+  const state = useListState();
+  const [limit, setLimit] = useState(10);
+  const [invalidate, setInvalidate] = useState(false);
+
+  const { data, isConnected, isSubscribed, error } = useDigitalAssetSubscription({
+    filter: state.filter,
+    sort: state.sort,
+    limit,
+    include: state.include,
+    invalidate,
+  });
+
+  // Map subscription shape to ResultsList expectations
+  const digitalAssets = data ?? [];
+  const isLoading = data === null && isSubscribed;
+  const normalizedError =
+    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Connection status + invalidate toggle */}
+      <div className="flex items-center gap-3">
+        <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
+          {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </Badge>
+        <Badge variant={isSubscribed ? 'default' : 'secondary'}>
+          {isSubscribed ? 'Subscribed' : 'Idle'}
+        </Badge>
+        <div className="ml-auto flex items-center space-x-2">
+          <Switch id="sub-invalidate" checked={invalidate} onCheckedChange={setInvalidate} />
+          <Label htmlFor="sub-invalidate">Invalidate Cache</Label>
+        </div>
+      </div>
+
+      <FilterFieldsRow
+        configs={FILTERS}
+        values={state.values}
+        onFieldChange={state.setFieldValue}
+      />
+      <SortControls
+        options={SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as DigitalAssetSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
+        limit={limit}
+        onLimitChange={setLimit}
+      />
+      <IncludeToggles
+        configs={DIGITAL_ASSET_INCLUDE_FIELDS}
+        values={state.includeValues}
+        onToggle={state.toggleInclude}
+      />
+      <ResultsList
+        items={digitalAssets}
+        isLoading={isLoading}
+        isFetching={false}
+        error={normalizedError}
+        renderItem={(asset) => <DigitalAssetCard digitalAsset={asset} />}
+        getKey={(a) => a.address}
+        label="digital assets"
+        totalCount={digitalAssets.length}
+        hasActiveFilter={state.hasActiveFilter}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -351,8 +437,10 @@ export default function DigitalAssetsPage(): React.ReactNode {
       description={
         <>
           Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useDigitalAsset</code>,{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useDigitalAssets</code>, and{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteDigitalAssets</code>{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useDigitalAssets</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteDigitalAssets</code>,
+          and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useDigitalAssetSubscription</code>{' '}
           hooks against live Hasura data.
         </>
       }
@@ -374,6 +462,12 @@ export default function DigitalAssetsPage(): React.ReactNode {
           label: 'Infinite Scroll',
           icon: <Infinity className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
+        },
+        {
+          value: 'subscription',
+          label: 'Subscription',
+          icon: <Radio className="size-4" />,
+          render: (mode) => <SubscriptionTab mode={mode} />,
         },
       ]}
     />
