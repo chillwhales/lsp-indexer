@@ -589,7 +589,7 @@ Plans:
 | 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Complete   |
 | 10.1  | Subscription Foundation            |     1/1      | Complete   |
 | 10.2  | Profiles Subscription              |   Complete   | 2026-03-02 |
-| 10.3  | Digital Assets Subscription        |   Complete   | 2026-03-04 |
+| 10.3  | Digital Assets Subscription        | Complete    | 2026-03-04 |
 | 10.4  | NFTs Subscription                  |      0       | Pending    |
 | 10.5  | Owned Assets Subscription          |      0       | Pending    |
 | 10.6  | Owned Tokens Subscription          |      0       | Pending    |
