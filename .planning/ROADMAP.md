@@ -430,7 +430,7 @@ Plans:
 
 **Requirement:** SUB-02, SUB-03
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 - [x] 10.5-01-PLAN.md — useOwnedAssetSubscription hook + playground demo
 
@@ -591,7 +591,7 @@ Plans:
 | 10.2  | Profiles Subscription              |     1/1      | Complete |
 | 10.3  | Digital Assets Subscription        |     1/1      | Complete |
 | 10.4  | NFTs Subscription                  |     1/1      | Complete |
-| 10.5  | Owned Assets Subscription          |     1/1      | Complete |
+| 10.5  | Owned Assets Subscription          | Complete    | 2026-03-04 |
 | 10.6  | Owned Tokens Subscription          |      0       | Pending  |
 | 10.7  | Followers Subscription             |      0       | Pending  |
 | 10.8  | Creators Subscription              |      0       | Pending  |
