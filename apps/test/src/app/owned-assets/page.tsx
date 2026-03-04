@@ -1,17 +1,19 @@
 'use client';
 
-import { Infinity, Layers, Search, Wallet } from 'lucide-react';
+import { Infinity, Layers, Radio, Search, Wallet, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useInfiniteOwnedAssets as useInfiniteOwnedAssetsNext,
   useOwnedAsset as useOwnedAssetNext,
   useOwnedAssets as useOwnedAssetsNext,
+  useOwnedAssetSubscription as useOwnedAssetSubscriptionNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteOwnedAssets as useInfiniteOwnedAssetsReact,
   useOwnedAsset as useOwnedAssetReact,
   useOwnedAssets as useOwnedAssetsReact,
+  useOwnedAssetSubscription as useOwnedAssetSubscriptionReact,
 } from '@lsp-indexer/react';
 import type {
   OwnedAssetFilter,
@@ -22,11 +24,13 @@ import type {
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 
 import { OwnedAssetCard } from '@/components/owned-asset-card';
 import type {
@@ -114,12 +118,14 @@ function useHooks(mode: HookMode) {
       useOwnedAsset: useOwnedAssetNext,
       useOwnedAssets: useOwnedAssetsNext,
       useInfiniteOwnedAssets: useInfiniteOwnedAssetsNext,
+      useOwnedAssetSubscription: useOwnedAssetSubscriptionNext,
     };
   }
   return {
     useOwnedAsset: useOwnedAssetReact,
     useOwnedAssets: useOwnedAssetsReact,
     useInfiniteOwnedAssets: useInfiniteOwnedAssetsReact,
+    useOwnedAssetSubscription: useOwnedAssetSubscriptionReact,
   };
 }
 
@@ -438,6 +444,86 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
+// Tab 4: Subscription (real-time)
+// ---------------------------------------------------------------------------
+
+function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useOwnedAssetSubscription } = useHooks(mode);
+  const state = useListState();
+  const [limit, setLimit] = useState(10);
+  const [invalidate, setInvalidate] = useState(false);
+
+  const { data, isConnected, isSubscribed, error } = useOwnedAssetSubscription({
+    filter: state.filter,
+    sort: state.sort,
+    limit,
+    include: state.include,
+    invalidate,
+  });
+
+  // Map subscription shape to ResultsList expectations
+  const ownedAssets = data ?? [];
+  const isLoading = data === null && isSubscribed;
+  const normalizedError =
+    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Connection status + invalidate toggle */}
+      <div className="flex items-center gap-3">
+        <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
+          {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </Badge>
+        <Badge variant={isSubscribed ? 'default' : 'secondary'}>
+          {isSubscribed ? 'Subscribed' : 'Idle'}
+        </Badge>
+        <div className="ml-auto flex items-center space-x-2">
+          <Switch id="sub-invalidate" checked={invalidate} onCheckedChange={setInvalidate} />
+          <Label htmlFor="sub-invalidate">Invalidate Cache</Label>
+        </div>
+      </div>
+
+      <FilterFieldsRow
+        configs={ADDRESS_FILTERS}
+        values={state.values}
+        onFieldChange={state.setFieldValue}
+      />
+      <FilterFieldsRow
+        configs={NAME_FILTERS}
+        values={state.values}
+        onFieldChange={state.setFieldValue}
+      />
+      <SortControls
+        options={SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as OwnedAssetSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
+        limit={limit}
+        onLimitChange={setLimit}
+      />
+      <IncludeSections {...state} />
+      <ResultsList
+        items={ownedAssets}
+        isLoading={isLoading}
+        isFetching={false}
+        error={normalizedError}
+        renderItem={(ownedAsset) => <OwnedAssetCard ownedAsset={ownedAsset} />}
+        getKey={(a) => a.id}
+        label="owned assets"
+        totalCount={ownedAssets.length}
+        hasActiveFilter={state.hasActiveFilter}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -448,10 +534,11 @@ export default function OwnedAssetsPage(): React.ReactNode {
       description={
         <>
           Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedAsset</code>,{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedAssets</code>, and{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteOwnedAssets</code> hooks
-          against live Hasura data. Filter by holder to find token balances for a specific address
-          (QUERY-04).
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedAssets</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteOwnedAssets</code>, and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedAssetSubscription</code>{' '}
+          hooks against live Hasura data. Filter by holder to find token balances for a specific
+          address (QUERY-04, SUB-02).
         </>
       }
       tabs={[
@@ -472,6 +559,12 @@ export default function OwnedAssetsPage(): React.ReactNode {
           label: 'Infinite Scroll',
           icon: <Infinity className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
+        },
+        {
+          value: 'subscription',
+          label: 'Subscription',
+          icon: <Radio className="size-4" />,
+          render: (mode) => <SubscriptionTab mode={mode} />,
         },
       ]}
     />

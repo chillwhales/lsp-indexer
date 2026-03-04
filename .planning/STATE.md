@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: planning
-last_updated: "2026-03-04T11:02:48.165Z"
-last_activity: 2026-03-04 — Phase 10.4 plan 01 complete (SUB-02, SUB-03)
+last_updated: "2026-03-04T13:41:40.078Z"
+last_activity: 2026-03-04 — Phase 10.5 plan 01 complete (SUB-02, SUB-03)
 progress:
   total_phases: 40
-  completed_phases: 25
+  completed_phases: 26
   total_plans: 105
-  completed_plans: 87
+  completed_plans: 88
   percent: 83
 ---
 
@@ -21,15 +21,15 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 10.4 (NFTs Subscription) plan 01 complete, ready for domain sub-phases 10.5–10.13
+**Current focus:** v1.1 React Hooks Package — Phase 10.5 (Owned Assets Subscription) plan 01 complete, ready for domain sub-phases 10.6–10.13
 
 ## Current Position
 
-- **Phase:** 10.4 of 11 (NFTs Subscription)
-- **Sub-phase:** 10.4 (NFTs Subscription) — Complete (1/1 plans)
+- **Phase:** 10.5 of 11 (Owned Assets Subscription)
+- **Sub-phase:** 10.5 (Owned Assets Subscription) — Complete (1/1 plans)
 - **Plan:** 1 of 1 in current sub-phase
 - **Status:** Ready to plan
-- **Last activity:** 2026-03-04 — Phase 10.4 plan 01 complete (SUB-02, SUB-03)
+- **Last activity:** 2026-03-04 — Phase 10.5 plan 01 complete (SUB-02, SUB-03)
 - **Progress:** ████████░░ 83% (25/30 requirements)
 
 ## Milestone History
@@ -62,6 +62,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 10.2  | Profiles Subscription              |     2/2      | Complete |
 | 10.3  | Digital Assets Subscription        |     2/2      | Complete |
 | 10.4  | NFTs Subscription                  |     2/2      | Complete |
+| 10.5  | Owned Assets Subscription          |     2/2      | Complete |
 | 10    | Subscriptions                      |      1       | Active   |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
@@ -71,9 +72,9 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 91 (36 v1.0 + 55 v1.1)
+- **Plans completed:** 92 (36 v1.0 + 56 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 29 (11 v1.0 + 18 v1.1 including all Phase 9 sub-phases + Phase 10.1 + Phase 10.2 + Phase 10.3 + Phase 10.4)
+- **Phases completed:** 30 (11 v1.0 + 19 v1.1 including all Phase 9 sub-phases + Phase 10.1 + Phase 10.2 + Phase 10.3 + Phase 10.4 + Phase 10.5)
 - **Requirements delivered:** 45/45 (v1.0), 25/30 (v1.1)
 
 ## Accumulated Context
@@ -229,18 +230,18 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-04
-- **Activity:** Executed Phase 10.4 (NFTs Subscription) — plan 01 (2 tasks, 2 commits)
-- **Outcome:** useNftSubscription hook with 3-overload type narrowing, factory refactoring of all NFT hooks, subscription tab in playground. SUB-02 + SUB-03 requirements continue.
+- **Activity:** Executed Phase 10.5 (Owned Assets Subscription) — plan 01 (1 task, 1 commit)
+- **Outcome:** useOwnedAssetSubscription hook with 3-overload type narrowing, directory refactoring of owned-assets hooks, subscription tab in playground. SUB-02 + SUB-03 requirements continue.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 10.4 complete** — NFTs subscription + factory refactoring done
+- **Phase 10.5 complete** — Owned assets subscription + directory refactoring done
 - **25/30 requirements delivered** — SUB-02, SUB-03 incremental across domain phases
-- **Next step:** Phase 10.5–10.13 domain subscription sub-phases (replicate pattern for each domain)
-- **Remaining phases:** 10.5–10.13 (domain subscriptions), 11 (Server Actions & Publish Readiness)
-- **Pre-existing issue:** test app `next build` fails with `'use client'` directive errors from `@lsp-indexer/next` package — not caused by Phase 10.4 changes
+- **Next step:** Phase 10.6–10.13 domain subscription sub-phases (replicate pattern for each domain)
+- **Remaining phases:** 10.6–10.13 (domain subscriptions), 11 (Server Actions & Publish Readiness)
+- **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
 
 ---
 
-_Last updated: 2026-03-04 — Phase 10.4 complete (NFTs Subscription — 1 plan, 2 tasks, factory refactoring + subscription hook)_
+_Last updated: 2026-03-04 — Phase 10.5 complete (Owned Assets Subscription — 1 plan, 1 task, directory refactoring + subscription hook)_
