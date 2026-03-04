@@ -1,16 +1,18 @@
 'use client';
 
-import { Loader2, Search, User, Users } from 'lucide-react';
+import { Loader2, Radio, Search, User, Users, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useInfiniteProfiles as useInfiniteProfilesNext,
   useProfile as useProfileNext,
+  useProfileSubscription as useProfileSubscriptionNext,
   useProfiles as useProfilesNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteProfiles as useInfiniteProfilesReact,
   useProfile as useProfileReact,
+  useProfileSubscription as useProfileSubscriptionReact,
   useProfiles as useProfilesReact,
 } from '@lsp-indexer/react';
 import type {
@@ -22,19 +24,22 @@ import type {
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 
 import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
   ErrorAlert,
   FilterFieldsRow,
   IncludeToggles,
+  PROFILE_INCLUDE_FIELDS,
   PlaygroundPageLayout,
   PresetButtons,
-  PROFILE_INCLUDE_FIELDS,
   ResultsList,
   SortControls,
   useFilterFields,
@@ -71,12 +76,14 @@ function useHooks(mode: HookMode) {
       useProfile: useProfileNext,
       useProfiles: useProfilesNext,
       useInfiniteProfiles: useInfiniteProfilesNext,
+      useProfileSubscription: useProfileSubscriptionNext,
     };
   }
   return {
     useProfile: useProfileReact,
     useProfiles: useProfilesReact,
     useInfiniteProfiles: useInfiniteProfilesReact,
+    useProfileSubscription: useProfileSubscriptionReact,
   };
 }
 
@@ -311,6 +318,85 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
+// Tab 4: Subscription (real-time)
+// ---------------------------------------------------------------------------
+
+function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useProfileSubscription } = useHooks(mode);
+  const state = useListState();
+  const [limit, setLimit] = useState(10);
+  const [invalidate, setInvalidate] = useState(false);
+
+  const { data, isConnected, isSubscribed, error } = useProfileSubscription({
+    filter: state.filter,
+    sort: state.sort,
+    limit,
+    include: state.include,
+    invalidate,
+  });
+
+  // Map subscription shape to ResultsList expectations
+  const profiles = data ?? [];
+  const isLoading = data === null && isSubscribed;
+  const normalizedError =
+    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Connection status + invalidate toggle */}
+      <div className="flex items-center gap-3">
+        <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
+          {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </Badge>
+        <Badge variant={isSubscribed ? 'default' : 'secondary'}>
+          {isSubscribed ? 'Subscribed' : 'Idle'}
+        </Badge>
+        <div className="ml-auto flex items-center space-x-2">
+          <Switch id="sub-invalidate" checked={invalidate} onCheckedChange={setInvalidate} />
+          <Label htmlFor="sub-invalidate">Invalidate Cache</Label>
+        </div>
+      </div>
+
+      <FilterFieldsRow
+        configs={FILTERS}
+        values={state.values}
+        onFieldChange={state.setFieldValue}
+      />
+      <SortControls
+        options={SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as ProfileSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
+        limit={limit}
+        onLimitChange={setLimit}
+      />
+      <IncludeToggles
+        configs={PROFILE_INCLUDE_FIELDS}
+        values={state.includeValues}
+        onToggle={state.toggleInclude}
+      />
+      <ResultsList
+        items={profiles}
+        isLoading={isLoading}
+        isFetching={false}
+        error={normalizedError}
+        renderItem={(profile) => <ProfileCard profile={profile} />}
+        getKey={(p) => p.address}
+        label="profiles"
+        totalCount={profiles.length}
+        hasActiveFilter={state.hasActiveFilter}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -321,8 +407,9 @@ export default function ProfilesPage(): React.ReactNode {
       description={
         <>
           Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useProfile</code>,{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useProfiles</code>, and{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteProfiles</code> hooks
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useProfiles</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteProfiles</code>, and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useProfileSubscription</code> hooks
           against live Hasura data.
         </>
       }
@@ -344,6 +431,12 @@ export default function ProfilesPage(): React.ReactNode {
           label: 'Infinite Scroll',
           icon: <Loader2 className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
+        },
+        {
+          value: 'subscription',
+          label: 'Subscription',
+          icon: <Radio className="size-4" />,
+          render: (mode) => <SubscriptionTab mode={mode} />,
         },
       ]}
     />
