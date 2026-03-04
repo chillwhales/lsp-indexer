@@ -1,8 +1,6 @@
-import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { FetchOwnedTokensResult } from '@lsp-indexer/node';
 import { fetchOwnedToken, fetchOwnedTokens, getClientUrl, ownedTokenKeys } from '@lsp-indexer/node';
 import type {
   OwnedToken,
@@ -13,32 +11,12 @@ import type {
   UseOwnedTokenParams,
   UseOwnedTokensParams,
 } from '@lsp-indexer/types';
-
-/** Default number of owned tokens per page for infinite scroll queries */
-const DEFAULT_PAGE_SIZE = 20;
-
-/** Flat return shape for useOwnedToken — ownedToken + query state */
-type UseOwnedTokenReturn<F> = { ownedToken: F | null } & Omit<
-  UseQueryResult<F | null, Error>,
-  'data'
->;
-
-/** Flat return shape for useOwnedTokens — ownedTokens array + totalCount + query state */
-type UseOwnedTokensReturn<F> = { ownedTokens: F[]; totalCount: number } & Omit<
-  UseQueryResult<FetchOwnedTokensResult<F>, Error>,
-  'data'
->;
-
-/** Flat return shape for useInfiniteOwnedTokens — ownedTokens array + infinite scroll controls + query state */
-type UseInfiniteOwnedTokensReturn<F> = {
-  ownedTokens: F[];
-  hasNextPage: boolean;
-  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
-  isFetchingNextPage: boolean;
-} & Omit<
-  UseInfiniteQueryResult<InfiniteData<FetchOwnedTokensResult<F>>, Error>,
-  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
->;
+import { DEFAULT_PAGE_SIZE } from '../../constants';
+import type {
+  UseInfiniteOwnedTokensReturn,
+  UseOwnedTokenReturn,
+  UseOwnedTokensReturn,
+} from '../types';
 
 /**
  * Fetch a single owned token by unique ID.

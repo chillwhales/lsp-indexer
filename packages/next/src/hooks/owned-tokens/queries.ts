@@ -16,7 +16,7 @@ import type {
   UseOwnedTokensParams,
 } from '@lsp-indexer/types';
 
-import { getOwnedToken, getOwnedTokens } from '../actions/owned-tokens';
+import { getOwnedToken, getOwnedTokens } from '../../actions/owned-tokens';
 
 /** Default number of owned tokens per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;

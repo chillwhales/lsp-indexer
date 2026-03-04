@@ -7,8 +7,16 @@ import type {
   PartialOwnedToken,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetOwnedTokenDocument, GetOwnedTokensDocument } from '../documents/owned-tokens';
-import type { Owned_Token_Bool_Exp, Owned_Token_Order_By } from '../graphql/graphql';
+import {
+  GetOwnedTokenDocument,
+  GetOwnedTokensDocument,
+  OwnedTokenSubscriptionDocument,
+} from '../documents/owned-tokens';
+import type {
+  OwnedTokenSubscriptionSubscription,
+  Owned_Token_Bool_Exp,
+  Owned_Token_Order_By,
+} from '../graphql/graphql';
 import { parseOwnedToken, parseOwnedTokens } from '../parsers/owned-tokens';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildNftIncludeVars } from './nfts';
@@ -319,5 +327,50 @@ export async function fetchOwnedTokens(
   return {
     ownedTokens: parseOwnedTokens(result.owned_token),
     totalCount: result.owned_token_aggregate?.aggregate?.count ?? 0,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription config builder
+// ---------------------------------------------------------------------------
+
+/** Raw subscription row type extracted from codegen. */
+type RawOwnedTokenSubscriptionRow = OwnedTokenSubscriptionSubscription['owned_token'][number];
+
+/**
+ * Build an owned token subscription config (document, variables, extract, parser).
+ *
+ * Encapsulates the domain-specific assembly that `createUseOwnedTokenSubscription`
+ * needs — mirroring how `fetchOwnedTokens` encapsulates query assembly. Keeps the
+ * React hook factory focused on hook lifecycle rather than domain plumbing.
+ *
+ * The return type is inferred so the 4-generic chain
+ * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
+ * `useSubscription` without any casts or `unknown` holes.
+ *
+ * @param params - Filter, sort, limit, and include configuration
+ * @returns A config object consumable by `useSubscription`
+ */
+export function buildOwnedTokenSubscriptionConfig(params: {
+  filter?: OwnedTokenFilter;
+  sort?: OwnedTokenSort;
+  limit?: number;
+  include?: OwnedTokenInclude;
+}) {
+  const where = buildOwnedTokenWhere(params.filter);
+  const orderBy = buildOwnedTokenOrderBy(params.sort);
+  const includeVars = buildIncludeVars(params.include);
+
+  return {
+    document: OwnedTokenSubscriptionDocument,
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: orderBy,
+      limit: params.limit,
+      ...includeVars,
+    },
+    extract: (result: OwnedTokenSubscriptionSubscription) => result.owned_token,
+    parser: (raw: RawOwnedTokenSubscriptionRow[]) =>
+      params.include ? parseOwnedTokens(raw, params.include) : parseOwnedTokens(raw),
   };
 }

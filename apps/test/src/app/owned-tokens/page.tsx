@@ -1,17 +1,19 @@
 'use client';
 
-import { Infinity, Layers, Search, Tag } from 'lucide-react';
+import { Infinity, Layers, Radio, Search, Tag, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useInfiniteOwnedTokens as useInfiniteOwnedTokensNext,
   useOwnedToken as useOwnedTokenNext,
   useOwnedTokens as useOwnedTokensNext,
+  useOwnedTokenSubscription as useOwnedTokenSubscriptionNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteOwnedTokens as useInfiniteOwnedTokensReact,
   useOwnedToken as useOwnedTokenReact,
   useOwnedTokens as useOwnedTokensReact,
+  useOwnedTokenSubscription as useOwnedTokenSubscriptionReact,
 } from '@lsp-indexer/react';
 import type {
   OwnedTokenFilter,
@@ -22,11 +24,13 @@ import type {
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 
 import { OwnedTokenCard } from '@/components/owned-token-card';
 import type {
@@ -111,12 +115,14 @@ function useHooks(mode: HookMode) {
       useOwnedToken: useOwnedTokenNext,
       useOwnedTokens: useOwnedTokensNext,
       useInfiniteOwnedTokens: useInfiniteOwnedTokensNext,
+      useOwnedTokenSubscription: useOwnedTokenSubscriptionNext,
     };
   }
   return {
     useOwnedToken: useOwnedTokenReact,
     useOwnedTokens: useOwnedTokensReact,
     useInfiniteOwnedTokens: useInfiniteOwnedTokensReact,
+    useOwnedTokenSubscription: useOwnedTokenSubscriptionReact,
   };
 }
 
@@ -498,6 +504,86 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
+// Tab 4: Subscription (real-time)
+// ---------------------------------------------------------------------------
+
+function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useOwnedTokenSubscription } = useHooks(mode);
+  const state = useListState();
+  const [limit, setLimit] = useState(10);
+  const [invalidate, setInvalidate] = useState(false);
+
+  const { data, isConnected, isSubscribed, error } = useOwnedTokenSubscription({
+    filter: state.filter,
+    sort: state.sort,
+    limit,
+    include: state.include,
+    invalidate,
+  });
+
+  // Map subscription shape to ResultsList expectations
+  const ownedTokens = data ?? [];
+  const isLoading = data === null && isSubscribed;
+  const normalizedError =
+    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Connection status + invalidate toggle */}
+      <div className="flex items-center gap-3">
+        <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
+          {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </Badge>
+        <Badge variant={isSubscribed ? 'default' : 'secondary'}>
+          {isSubscribed ? 'Subscribed' : 'Idle'}
+        </Badge>
+        <div className="ml-auto flex items-center space-x-2">
+          <Switch id="sub-invalidate" checked={invalidate} onCheckedChange={setInvalidate} />
+          <Label htmlFor="sub-invalidate">Invalidate Cache</Label>
+        </div>
+      </div>
+
+      <FilterFieldsRow
+        configs={ADDRESS_FILTERS}
+        values={state.values}
+        onFieldChange={state.setFieldValue}
+      />
+      <FilterFieldsRow
+        configs={NAME_FILTERS}
+        values={state.values}
+        onFieldChange={state.setFieldValue}
+      />
+      <SortControls
+        options={SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as OwnedTokenSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
+        limit={limit}
+        onLimitChange={setLimit}
+      />
+      <IncludeSections {...state} />
+      <ResultsList
+        items={ownedTokens}
+        isLoading={isLoading}
+        isFetching={false}
+        error={normalizedError}
+        renderItem={(ownedToken) => <OwnedTokenCard ownedToken={ownedToken} />}
+        getKey={(t) => t.id}
+        label="owned tokens"
+        totalCount={ownedTokens.length}
+        hasActiveFilter={state.hasActiveFilter}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -508,10 +594,11 @@ export default function OwnedTokensPage(): React.ReactNode {
       description={
         <>
           Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedToken</code>,{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedTokens</code>, and{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteOwnedTokens</code> hooks
-          against live Hasura data. Filter by holder to find individual NFT ownership records
-          (QUERY-04).
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedTokens</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteOwnedTokens</code>, and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedTokenSubscription</code>{' '}
+          hooks against live Hasura data. Filter by holder to find individual NFT ownership records
+          (QUERY-04, SUB-02).
         </>
       }
       tabs={[
@@ -532,6 +619,12 @@ export default function OwnedTokensPage(): React.ReactNode {
           label: 'Infinite Scroll',
           icon: <Infinity className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
+        },
+        {
+          value: 'subscription',
+          label: 'Subscription',
+          icon: <Radio className="size-4" />,
+          render: (mode) => <SubscriptionTab mode={mode} />,
         },
       ]}
     />
