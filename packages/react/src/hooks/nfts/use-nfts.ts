@@ -35,6 +35,4 @@ import { createUseNfts } from '../factories';
  * }
  * ```
  */
-export const useNfts = createUseNfts((params) =>
-  params.include ? fetchNfts(getClientUrl(), params) : fetchNfts(getClientUrl(), params),
-);
+export const useNfts = createUseNfts((params) => fetchNfts(getClientUrl(), params));

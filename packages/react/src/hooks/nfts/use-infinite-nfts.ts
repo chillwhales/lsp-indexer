@@ -45,6 +45,4 @@ import { createUseInfiniteNfts } from '../factories';
  * }
  * ```
  */
-export const useInfiniteNfts = createUseInfiniteNfts((params) =>
-  params.include ? fetchNfts(getClientUrl(), params) : fetchNfts(getClientUrl(), params),
-);
+export const useInfiniteNfts = createUseInfiniteNfts((params) => fetchNfts(getClientUrl(), params));
