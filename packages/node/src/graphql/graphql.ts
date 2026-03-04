@@ -21694,6 +21694,51 @@ export type GetNftsQueryVariables = Exact<{
 
 export type GetNftsQuery = { __typename?: 'query_root', nft: Array<{ __typename?: 'nft', id: string, address: string, token_id: string, is_burned: boolean, is_minted: boolean, formatted_token_id?: string | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, ownedToken?: { __typename?: 'owned_token', owner: string, timestamp: any, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null }>, nft_aggregate: { __typename?: 'nft_aggregate', aggregate?: { __typename?: 'nft_aggregate_fields', count: number } | null } };
 
+export type NftSubscriptionSubscriptionVariables = Exact<{
+  where?: InputMaybe<Nft_Bool_Exp>;
+  order_by?: InputMaybe<Array<Nft_Order_By> | Nft_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  includeFormattedTokenId?: Scalars['Boolean']['input'];
+  includeName?: Scalars['Boolean']['input'];
+  includeCollection?: Scalars['Boolean']['input'];
+  includeHolder?: Scalars['Boolean']['input'];
+  includeDescription?: Scalars['Boolean']['input'];
+  includeCategory?: Scalars['Boolean']['input'];
+  includeIcons?: Scalars['Boolean']['input'];
+  includeImages?: Scalars['Boolean']['input'];
+  includeLinks?: Scalars['Boolean']['input'];
+  includeAttributes?: Scalars['Boolean']['input'];
+  includeCollectionName?: Scalars['Boolean']['input'];
+  includeCollectionSymbol?: Scalars['Boolean']['input'];
+  includeCollectionTokenType?: Scalars['Boolean']['input'];
+  includeCollectionDecimals?: Scalars['Boolean']['input'];
+  includeCollectionTotalSupply?: Scalars['Boolean']['input'];
+  includeCollectionDescription?: Scalars['Boolean']['input'];
+  includeCollectionCategory?: Scalars['Boolean']['input'];
+  includeCollectionIcons?: Scalars['Boolean']['input'];
+  includeCollectionImages?: Scalars['Boolean']['input'];
+  includeCollectionLinks?: Scalars['Boolean']['input'];
+  includeCollectionAttributes?: Scalars['Boolean']['input'];
+  includeCollectionOwner?: Scalars['Boolean']['input'];
+  includeCollectionHolderCount?: Scalars['Boolean']['input'];
+  includeCollectionCreatorCount?: Scalars['Boolean']['input'];
+  includeCollectionReferenceContract?: Scalars['Boolean']['input'];
+  includeCollectionTokenIdFormat?: Scalars['Boolean']['input'];
+  includeCollectionBaseUri?: Scalars['Boolean']['input'];
+  includeHolderName?: Scalars['Boolean']['input'];
+  includeHolderDescription?: Scalars['Boolean']['input'];
+  includeHolderTags?: Scalars['Boolean']['input'];
+  includeHolderLinks?: Scalars['Boolean']['input'];
+  includeHolderAvatar?: Scalars['Boolean']['input'];
+  includeHolderImage?: Scalars['Boolean']['input'];
+  includeHolderBackgroundImage?: Scalars['Boolean']['input'];
+  includeHolderFollowerCount?: Scalars['Boolean']['input'];
+  includeHolderFollowingCount?: Scalars['Boolean']['input'];
+}>;
+
+
+export type NftSubscriptionSubscription = { __typename?: 'subscription_root', nft: Array<{ __typename?: 'nft', id: string, address: string, token_id: string, is_burned: boolean, is_minted: boolean, formatted_token_id?: string | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, ownedToken?: { __typename?: 'owned_token', owner: string, timestamp: any, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null }> };
+
 export type GetOwnedAssetQueryVariables = Exact<{
   where: Owned_Asset_Bool_Exp;
   includeBalance?: Scalars['Boolean']['input'];
@@ -23358,6 +23403,212 @@ export const GetNftsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<GetNftsQuery, GetNftsQueryVariables>;
+export const NftSubscriptionDocument = new TypedDocumentString(`
+    subscription NftSubscription($where: nft_bool_exp, $order_by: [nft_order_by!], $limit: Int, $includeFormattedTokenId: Boolean! = true, $includeName: Boolean! = true, $includeCollection: Boolean! = true, $includeHolder: Boolean! = true, $includeDescription: Boolean! = true, $includeCategory: Boolean! = true, $includeIcons: Boolean! = true, $includeImages: Boolean! = true, $includeLinks: Boolean! = true, $includeAttributes: Boolean! = true, $includeCollectionName: Boolean! = true, $includeCollectionSymbol: Boolean! = true, $includeCollectionTokenType: Boolean! = true, $includeCollectionDecimals: Boolean! = true, $includeCollectionTotalSupply: Boolean! = true, $includeCollectionDescription: Boolean! = true, $includeCollectionCategory: Boolean! = true, $includeCollectionIcons: Boolean! = true, $includeCollectionImages: Boolean! = true, $includeCollectionLinks: Boolean! = true, $includeCollectionAttributes: Boolean! = true, $includeCollectionOwner: Boolean! = true, $includeCollectionHolderCount: Boolean! = true, $includeCollectionCreatorCount: Boolean! = true, $includeCollectionReferenceContract: Boolean! = true, $includeCollectionTokenIdFormat: Boolean! = true, $includeCollectionBaseUri: Boolean! = true, $includeHolderName: Boolean! = true, $includeHolderDescription: Boolean! = true, $includeHolderTags: Boolean! = true, $includeHolderLinks: Boolean! = true, $includeHolderAvatar: Boolean! = true, $includeHolderImage: Boolean! = true, $includeHolderBackgroundImage: Boolean! = true, $includeHolderFollowerCount: Boolean! = true, $includeHolderFollowingCount: Boolean! = true) {
+  nft(where: $where, order_by: $order_by, limit: $limit) {
+    id
+    address
+    token_id
+    is_burned
+    is_minted
+    formatted_token_id @include(if: $includeFormattedTokenId)
+    digitalAsset @include(if: $includeCollection) {
+      id
+      address
+      lsp4TokenName @include(if: $includeCollectionName) {
+        value
+      }
+      lsp4TokenSymbol @include(if: $includeCollectionSymbol) {
+        value
+      }
+      lsp4TokenType @include(if: $includeCollectionTokenType) {
+        value
+      }
+      decimals @include(if: $includeCollectionDecimals) {
+        value
+      }
+      totalSupply @include(if: $includeCollectionTotalSupply) {
+        value
+      }
+      lsp4Metadata {
+        description @include(if: $includeCollectionDescription) {
+          value
+        }
+        category @include(if: $includeCollectionCategory) {
+          value
+        }
+        icon @include(if: $includeCollectionIcons) {
+          url
+          width
+          height
+          verification_method
+          verification_data
+        }
+        images @include(if: $includeCollectionImages) {
+          url
+          width
+          height
+          image_index
+          verification_method
+          verification_data
+        }
+        links @include(if: $includeCollectionLinks) {
+          title
+          url
+        }
+        attributes @include(if: $includeCollectionAttributes) {
+          key
+          value
+          type
+        }
+      }
+      owner @include(if: $includeCollectionOwner) {
+        address
+        timestamp
+      }
+      ownedAssets_aggregate @include(if: $includeCollectionHolderCount) {
+        aggregate {
+          count
+        }
+      }
+      lsp4CreatorsLength @include(if: $includeCollectionCreatorCount) {
+        value
+      }
+      lsp8ReferenceContract @include(if: $includeCollectionReferenceContract) {
+        value
+      }
+      lsp8TokenIdFormat @include(if: $includeCollectionTokenIdFormat) {
+        value
+      }
+      lsp8TokenMetadataBaseUri @include(if: $includeCollectionBaseUri) {
+        value
+      }
+    }
+    ownedToken @include(if: $includeHolder) {
+      owner
+      timestamp
+      universalProfile {
+        address
+        lsp3Profile {
+          name @include(if: $includeHolderName) {
+            value
+          }
+          description @include(if: $includeHolderDescription) {
+            value
+          }
+          tags @include(if: $includeHolderTags) {
+            value
+          }
+          links @include(if: $includeHolderLinks) {
+            title
+            url
+          }
+          avatar @include(if: $includeHolderAvatar) {
+            url
+            file_type
+            verification_method
+            verification_data
+          }
+          profileImage @include(if: $includeHolderImage) {
+            url
+            width
+            height
+            verification_method
+            verification_data
+          }
+          backgroundImage @include(if: $includeHolderBackgroundImage) {
+            url
+            width
+            height
+            verification_method
+            verification_data
+          }
+        }
+        followedBy_aggregate @include(if: $includeHolderFollowerCount) {
+          aggregate {
+            count
+          }
+        }
+        followed_aggregate @include(if: $includeHolderFollowingCount) {
+          aggregate {
+            count
+          }
+        }
+      }
+    }
+    lsp4Metadata {
+      name @include(if: $includeName) {
+        value
+      }
+      description @include(if: $includeDescription) {
+        value
+      }
+      category @include(if: $includeCategory) {
+        value
+      }
+      icon @include(if: $includeIcons) {
+        url
+        width
+        height
+        verification_method
+        verification_data
+      }
+      images @include(if: $includeImages) {
+        url
+        width
+        height
+        image_index
+        verification_method
+        verification_data
+      }
+      links @include(if: $includeLinks) {
+        title
+        url
+      }
+      attributes @include(if: $includeAttributes) {
+        key
+        value
+        type
+      }
+    }
+    lsp4MetadataBaseUri {
+      name @include(if: $includeName) {
+        value
+      }
+      description @include(if: $includeDescription) {
+        value
+      }
+      category @include(if: $includeCategory) {
+        value
+      }
+      icon @include(if: $includeIcons) {
+        url
+        width
+        height
+        verification_method
+        verification_data
+      }
+      images @include(if: $includeImages) {
+        url
+        width
+        height
+        image_index
+        verification_method
+        verification_data
+      }
+      links @include(if: $includeLinks) {
+        title
+        url
+      }
+      attributes @include(if: $includeAttributes) {
+        key
+        value
+        type
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<NftSubscriptionSubscription, NftSubscriptionSubscriptionVariables>;
 export const GetOwnedAssetDocument = new TypedDocumentString(`
     query GetOwnedAsset($where: owned_asset_bool_exp!, $includeBalance: Boolean! = true, $includeBlock: Boolean! = true, $includeTimestamp: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeName: Boolean! = true, $includeSymbol: Boolean! = true, $includeTokenType: Boolean! = true, $includeDecimals: Boolean! = true, $includeTotalSupply: Boolean! = true, $includeDescription: Boolean! = true, $includeCategory: Boolean! = true, $includeIcons: Boolean! = true, $includeImages: Boolean! = true, $includeLinks: Boolean! = true, $includeAttributes: Boolean! = true, $includeOwner: Boolean! = true, $includeHolderCount: Boolean! = true, $includeCreatorCount: Boolean! = true, $includeReferenceContract: Boolean! = true, $includeTokenIdFormat: Boolean! = true, $includeBaseUri: Boolean! = true, $includeHolder: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeTokenIdCount: Boolean! = true) {
   owned_asset(where: $where, limit: 1) {

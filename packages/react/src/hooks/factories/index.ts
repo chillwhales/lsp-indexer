@@ -6,4 +6,5 @@ export * from './create-use-subscription';
 
 // Domain factories
 export * from './digital-assets';
+export * from './nfts';
 export * from './profiles';

@@ -203,6 +203,10 @@ type RawDigitalAssetSubscriptionRow = DigitalAssetSubscriptionSubscription['digi
  * needs — mirroring how `fetchDigitalAssets` encapsulates query assembly. Keeps the
  * React hook factory focused on hook lifecycle rather than domain plumbing.
  *
+ * The return type is inferred so the 4-generic chain
+ * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
+ * `useSubscription` without any casts or `unknown` holes.
+ *
  * @param params - Filter, sort, limit, and include configuration
  * @returns A config object consumable by `useSubscription`
  */

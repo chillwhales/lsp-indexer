@@ -1,17 +1,19 @@
 'use client';
 
-import { Gem, Infinity, Layers, Search } from 'lucide-react';
+import { Gem, Infinity, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useInfiniteNfts as useInfiniteNftsNext,
   useNft as useNftNext,
   useNfts as useNftsNext,
+  useNftSubscription as useNftSubscriptionNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteNfts as useInfiniteNftsReact,
   useNft as useNftReact,
   useNfts as useNftsReact,
+  useNftSubscription as useNftSubscriptionReact,
 } from '@lsp-indexer/react';
 import type {
   NftFilter,
@@ -22,11 +24,13 @@ import type {
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 
 import { NftCard } from '@/components/nft-card';
 import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
@@ -113,9 +117,19 @@ const PRESETS = [
 
 function useHooks(mode: HookMode) {
   if (mode === 'server') {
-    return { useNft: useNftNext, useNfts: useNftsNext, useInfiniteNfts: useInfiniteNftsNext };
+    return {
+      useNft: useNftNext,
+      useNfts: useNftsNext,
+      useInfiniteNfts: useInfiniteNftsNext,
+      useNftSubscription: useNftSubscriptionNext,
+    };
   }
-  return { useNft: useNftReact, useNfts: useNftsReact, useInfiniteNfts: useInfiniteNftsReact };
+  return {
+    useNft: useNftReact,
+    useNfts: useNftsReact,
+    useInfiniteNfts: useInfiniteNftsReact,
+    useNftSubscription: useNftSubscriptionReact,
+  };
 }
 
 function buildFilter(debouncedValues: Record<string, string>): NftFilter | undefined {
@@ -176,7 +190,7 @@ function useListState() {
 }
 
 // ---------------------------------------------------------------------------
-// Sub-include sections (shared between all 3 tabs)
+// Sub-include sections (shared between all tabs)
 // ---------------------------------------------------------------------------
 
 function IncludeSections({
@@ -456,6 +470,81 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
+// Tab 4: Subscription (real-time)
+// ---------------------------------------------------------------------------
+
+function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useNftSubscription } = useHooks(mode);
+  const state = useListState();
+  const [limit, setLimit] = useState(10);
+  const [invalidate, setInvalidate] = useState(false);
+
+  const { data, isConnected, isSubscribed, error } = useNftSubscription({
+    filter: state.filter,
+    sort: state.sort,
+    limit,
+    include: state.include,
+    invalidate,
+  });
+
+  // Map subscription shape to ResultsList expectations
+  const nfts = data ?? [];
+  const isLoading = data === null && isSubscribed;
+  const normalizedError =
+    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Connection status + invalidate toggle */}
+      <div className="flex items-center gap-3">
+        <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
+          {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </Badge>
+        <Badge variant={isSubscribed ? 'default' : 'secondary'}>
+          {isSubscribed ? 'Subscribed' : 'Idle'}
+        </Badge>
+        <div className="ml-auto flex items-center space-x-2">
+          <Switch id="sub-invalidate" checked={invalidate} onCheckedChange={setInvalidate} />
+          <Label htmlFor="sub-invalidate">Invalidate Cache</Label>
+        </div>
+      </div>
+
+      <FilterFieldsRow
+        configs={FILTERS}
+        values={state.values}
+        onFieldChange={state.setFieldValue}
+      />
+      <SortControls
+        options={SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as NftSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
+        limit={limit}
+        onLimitChange={setLimit}
+      />
+      <IncludeSections {...state} />
+      <ResultsList
+        items={nfts}
+        isLoading={isLoading}
+        isFetching={false}
+        error={normalizedError}
+        renderItem={(nft) => <NftCard nft={nft} />}
+        getKey={(n) => `${n.address}-${n.tokenId}`}
+        label="NFTs"
+        totalCount={nfts.length}
+        hasActiveFilter={state.hasActiveFilter}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -466,8 +555,9 @@ export default function NftsPage(): React.ReactNode {
       description={
         <>
           Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useNft</code>,{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useNfts</code>, and{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteNfts</code> hooks
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useNfts</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteNfts</code>, and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useNftSubscription</code> hooks
           against live Hasura data. Filter by collection address to exercise the{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useNftsByCollection</code> pattern
           (QUERY-03).
@@ -491,6 +581,12 @@ export default function NftsPage(): React.ReactNode {
           label: 'Infinite Scroll',
           icon: <Infinity className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
+        },
+        {
+          value: 'subscription',
+          label: 'Subscription',
+          icon: <Radio className="size-4" />,
+          render: (mode) => <SubscriptionTab mode={mode} />,
         },
       ]}
     />

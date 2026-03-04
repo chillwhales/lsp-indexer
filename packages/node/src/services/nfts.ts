@@ -8,8 +8,8 @@ import type {
   PartialNft,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetNftDocument, GetNftsDocument } from '../documents/nfts';
-import type { Nft_Bool_Exp, Nft_Order_By } from '../graphql/graphql';
+import { GetNftDocument, GetNftsDocument, NftSubscriptionDocument } from '../documents/nfts';
+import type { NftSubscriptionSubscription, Nft_Bool_Exp, Nft_Order_By } from '../graphql/graphql';
 import { parseNft, parseNfts } from '../parsers/nfts';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
@@ -103,7 +103,7 @@ export function buildNftWhere(filter?: NftFilter): Nft_Bool_Exp {
  *
  * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
  */
-function buildNftOrderBy(sort?: NftSort): Nft_Order_By[] | undefined {
+export function buildNftOrderBy(sort?: NftSort): Nft_Order_By[] | undefined {
   if (!sort) return undefined;
 
   switch (sort.field) {
@@ -210,6 +210,57 @@ export function buildNftIncludeVars(
     includeNftImages: include.images ?? false,
     includeNftLinks: include.links ?? false,
     includeNftAttributes: include.attributes ?? false,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription config builder
+// ---------------------------------------------------------------------------
+
+/**
+ * Raw Hasura row type from the subscription codegen result.
+ *
+ * Structurally compatible with the query-side raw rows (both select
+ * the same fields), but derived from the subscription codegen type to
+ * keep the generic chain `TResult → TRaw` precise.
+ */
+type RawNftSubscriptionRow = NftSubscriptionSubscription['nft'][number];
+
+/**
+ * Build an NFT subscription config (document, variables, extract, parser).
+ *
+ * Encapsulates the domain-specific assembly that `createUseNftSubscription`
+ * needs — mirroring how `fetchNfts` encapsulates query assembly. Keeps the
+ * React hook factory focused on hook lifecycle rather than domain plumbing.
+ *
+ * The return type is inferred so the 4-generic chain
+ * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
+ * `useSubscription` without any casts or `unknown` holes.
+ *
+ * @param params - Filter, sort, limit, and include configuration
+ * @returns A config object consumable by `useSubscription`
+ */
+export function buildNftSubscriptionConfig(params: {
+  filter?: NftFilter;
+  sort?: NftSort;
+  limit?: number;
+  include?: NftInclude;
+}) {
+  const where = buildNftWhere(params.filter);
+  const orderBy = buildNftOrderBy(params.sort);
+  const includeVars = buildIncludeVars(params.include);
+
+  return {
+    document: NftSubscriptionDocument,
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: orderBy,
+      limit: params.limit,
+      ...includeVars,
+    },
+    extract: (result: NftSubscriptionSubscription) => result.nft,
+    parser: (raw: RawNftSubscriptionRow[]) =>
+      params.include ? parseNfts(raw, params.include) : parseNfts(raw),
   };
 }
 

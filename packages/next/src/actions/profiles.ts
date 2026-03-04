@@ -36,8 +36,7 @@ export async function getProfile(params: {
   address: string;
   include?: ProfileInclude;
 }): Promise<PartialProfile | null> {
-  const url = getServerUrl();
-  return fetchProfile(url, params);
+  return fetchProfile(getServerUrl(), params);
 }
 
 /**
@@ -77,6 +76,5 @@ export async function getProfiles(params?: {
   offset?: number;
   include?: ProfileInclude;
 }): Promise<FetchProfilesResult<PartialProfile>> {
-  const url = getServerUrl();
-  return fetchProfiles(url, params ?? {});
+  return fetchProfiles(getServerUrl(), params ?? {});
 }
