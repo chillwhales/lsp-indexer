@@ -593,7 +593,7 @@ Plans:
 | 10.4  | NFTs Subscription                  |     1/1      | Complete   |
 | 10.5  | Owned Assets Subscription          |     1/1      | Complete   |
 | 10.6  | 1/1                                |   Complete   | 2026-03-04 |
-| 10.7  | 1/1 | Complete   | 2026-03-04 |
+| 10.7  | 1/1 | Complete    | 2026-03-04 |
 | 10.8  | Creators Subscription              |      0       | Pending    |
 | 10.9  | Issued Assets Subscription         |      0       | Pending    |
 | 10.10 | Encrypted Assets Subscription      |      0       | Pending    |
