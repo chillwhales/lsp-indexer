@@ -406,9 +406,9 @@ Plans:
 
 **Requirement:** SUB-02, SUB-03
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
-- [ ] 10.3-01-PLAN.md — Factory refactoring + useDigitalAssetSubscription (include/sort/3-overload) + dual-package export + playground
+- [x] 10.3-01-PLAN.md — Factory refactoring + useDigitalAssetSubscription (include/sort/3-overload) + dual-package export + playground
 
 ---
 
@@ -589,7 +589,7 @@ Plans:
 | 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Complete   |
 | 10.1  | Subscription Foundation            |     1/1      | Complete   |
 | 10.2  | Profiles Subscription              |   Complete   | 2026-03-02 |
-| 10.3  | Digital Assets Subscription        |      0       | Pending    |
+| 10.3  | Digital Assets Subscription        |   Complete   | 2026-03-04 |
 | 10.4  | NFTs Subscription                  |      0       | Pending    |
 | 10.5  | Owned Assets Subscription          |      0       | Pending    |
 | 10.6  | Owned Tokens Subscription          |      0       | Pending    |
@@ -604,7 +604,7 @@ Plans:
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 25/30 requirements delivered (SUB-02, SUB-03 complete via Phase 10.2)
+**Total:** 25/30 requirements delivered (SUB-02, SUB-03 incremental via Phases 10.2–10.3)
 
 ---
 
@@ -717,4 +717,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-03-02 — Phase 10.2 complete (Profiles Subscription — 1 plan, 1 task, SUB-02 + SUB-03 delivered), 25/30 requirements delivered_
+_Last updated: 2026-03-04 — Phase 10.3 complete (Digital Assets Subscription — 1 plan, 2 tasks, factory refactoring + subscription hook), 25/30 requirements delivered_
