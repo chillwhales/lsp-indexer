@@ -1,5 +1,5 @@
-import { useSubscriptionClient } from './context';
-import { createUseSubscription } from './create-use-subscription';
+import { useSubscriptionClient } from '../subscriptions/context';
+import { createUseSubscription } from './factories/create-use-subscription';
 
 /**
  * Thin wrapper around SubscriptionClient for React applications.

@@ -384,7 +384,7 @@ Plans:
 
 Plans:
 
-- [ ] 10.1-01-PLAN.md — Type-safety revamp (4-generic SubscriptionConfig) + export 12 buildXWhere functions + wire provider + playground skeleton
+- [x] 10.1-01-PLAN.md — Type-safety revamp (4-generic SubscriptionConfig) + export 12 buildXWhere functions + wire provider + playground skeleton
 
 ---
 
@@ -394,9 +394,9 @@ Plans:
 
 **Requirement:** SUB-02, SUB-03
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
-- [ ] 10.2-01-PLAN.md — useProfileSubscription hook + playground demo
+- [x] 10.2-01-PLAN.md — useProfileSubscription hook + playground demo
 
 ---
 
@@ -587,8 +587,8 @@ Plans:
 | 9.10  | Data Changed Events                |     1/1      | Complete |
 | 9.11  | Universal Receiver Events          |     1/1      | Complete |
 | 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Complete |
-| 10.1  | 1/1 | Complete    | 2026-03-01 |
-| 10.2  | Profiles Subscription              |      0       | Pending  |
+| 10.1  | Subscription Foundation            |     1/1      | Complete |
+| 10.2  | Profiles Subscription              | Complete    | 2026-03-02 |
 | 10.3  | Digital Assets Subscription        |      0       | Pending  |
 | 10.4  | NFTs Subscription                  |      0       | Pending  |
 | 10.5  | Owned Assets Subscription          |      0       | Pending  |
@@ -604,7 +604,7 @@ Plans:
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 22/30 requirements delivered (QUERY-10 complete)
+**Total:** 25/30 requirements delivered (SUB-02, SUB-03 complete via Phase 10.2)
 
 ---
 
@@ -717,4 +717,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-02-26 — Phase 9.12 complete (Block-Ordered Sorting — all 3 plans, 10/10 verified), Phase 9 complete, 22/30 requirements delivered_
+_Last updated: 2026-03-02 — Phase 10.2 complete (Profiles Subscription — 1 plan, 1 task, SUB-02 + SUB-03 delivered), 25/30 requirements delivered_

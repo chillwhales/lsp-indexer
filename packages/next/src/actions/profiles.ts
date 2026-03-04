@@ -23,22 +23,21 @@ import type {
  * @param include - Optional field inclusion config
  * @returns The parsed profile, or `null` if not found
  */
-export async function getProfile(address: string): Promise<Profile | null>;
-export async function getProfile<const I extends ProfileInclude>(
-  address: string,
-  include: I,
-): Promise<ProfileResult<I> | null>;
-export async function getProfile(
-  address: string,
-  include?: ProfileInclude,
-): Promise<PartialProfile | null>;
-export async function getProfile(
-  address: string,
-  include?: ProfileInclude,
-): Promise<PartialProfile | null> {
+export async function getProfile(params: { address: string }): Promise<Profile | null>;
+export async function getProfile<const I extends ProfileInclude>(params: {
+  address: string;
+  include: I;
+}): Promise<ProfileResult<I> | null>;
+export async function getProfile(params: {
+  address: string;
+  include?: ProfileInclude;
+}): Promise<PartialProfile | null>;
+export async function getProfile(params: {
+  address: string;
+  include?: ProfileInclude;
+}): Promise<PartialProfile | null> {
   const url = getServerUrl();
-  if (include) return fetchProfile(url, { address, include });
-  return fetchProfile(url, { address });
+  return fetchProfile(url, params);
 }
 
 /**
@@ -79,6 +78,5 @@ export async function getProfiles(params?: {
   include?: ProfileInclude;
 }): Promise<FetchProfilesResult<PartialProfile>> {
   const url = getServerUrl();
-  if (params?.include) return fetchProfiles(url, params);
   return fetchProfiles(url, params ?? {});
 }

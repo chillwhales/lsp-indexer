@@ -1,1 +1,2 @@
-export { IndexerError } from './indexer-error';
+export * from './indexer-error';
+export * from './narrow-subscription-error';
