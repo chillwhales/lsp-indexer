@@ -1,5 +1,10 @@
 import type { FetchFollowsResult } from '@lsp-indexer/node';
-import type { FollowerFilter, FollowerInclude, FollowerSort } from '@lsp-indexer/types';
+import type {
+  FollowCount,
+  FollowerFilter,
+  FollowerInclude,
+  FollowerSort,
+} from '@lsp-indexer/types';
 import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 
 /** Flat return shape for useFollows — follows array + totalCount + query state */
@@ -18,6 +23,17 @@ export type UseInfiniteFollowsReturn<F> = {
   UseInfiniteQueryResult<InfiniteData<FetchFollowsResult<F>>, Error>,
   'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
 >;
+
+/** Flat return shape for useFollowCount — follower + following counts + query state */
+export type UseFollowCountReturn = {
+  followerCount: number;
+  followingCount: number;
+} & Omit<UseQueryResult<FollowCount, Error>, 'data'>;
+
+/** Flat return shape for useIsFollowing — boolean result + query state */
+export type UseIsFollowingReturn = {
+  isFollowing: boolean;
+} & Omit<UseQueryResult<boolean, Error>, 'data'>;
 
 /**
  * Base params for `useFollowerSubscription`.
