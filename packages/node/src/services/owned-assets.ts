@@ -8,8 +8,16 @@ import type {
   PartialOwnedAsset,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetOwnedAssetDocument, GetOwnedAssetsDocument } from '../documents/owned-assets';
-import type { Owned_Asset_Bool_Exp, Owned_Asset_Order_By } from '../graphql/graphql';
+import {
+  GetOwnedAssetDocument,
+  GetOwnedAssetsDocument,
+  OwnedAssetSubscriptionDocument,
+} from '../documents/owned-assets';
+import type {
+  OwnedAssetSubscriptionSubscription,
+  Owned_Asset_Bool_Exp,
+  Owned_Asset_Order_By,
+} from '../graphql/graphql';
 import { parseOwnedAsset, parseOwnedAssets } from '../parsers/owned-assets';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
@@ -186,6 +194,51 @@ export function buildOwnedAssetIncludeVars(
     includeOwnedAssetBalance: include.balance ?? false,
     includeOwnedAssetBlock: include.block ?? false,
     includeOwnedAssetTimestamp: include.timestamp ?? false,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription config builder
+// ---------------------------------------------------------------------------
+
+/** Raw subscription row type extracted from codegen. */
+type RawOwnedAssetSubscriptionRow = OwnedAssetSubscriptionSubscription['owned_asset'][number];
+
+/**
+ * Build an owned asset subscription config (document, variables, extract, parser).
+ *
+ * Encapsulates the domain-specific assembly that `createUseOwnedAssetSubscription`
+ * needs — mirroring how `fetchOwnedAssets` encapsulates query assembly. Keeps the
+ * React hook factory focused on hook lifecycle rather than domain plumbing.
+ *
+ * The return type is inferred so the 4-generic chain
+ * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
+ * `useSubscription` without any casts or `unknown` holes.
+ *
+ * @param params - Filter, sort, limit, and include configuration
+ * @returns A config object consumable by `useSubscription`
+ */
+export function buildOwnedAssetSubscriptionConfig(params: {
+  filter?: OwnedAssetFilter;
+  sort?: OwnedAssetSort;
+  limit?: number;
+  include?: OwnedAssetInclude;
+}) {
+  const where = buildOwnedAssetWhere(params.filter);
+  const orderBy = buildOwnedAssetOrderBy(params.sort);
+  const includeVars = buildIncludeVars(params.include);
+
+  return {
+    document: OwnedAssetSubscriptionDocument,
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: orderBy,
+      limit: params.limit,
+      ...includeVars,
+    },
+    extract: (result: OwnedAssetSubscriptionSubscription) => result.owned_asset,
+    parser: (raw: RawOwnedAssetSubscriptionRow[]) =>
+      params.include ? parseOwnedAssets(raw, params.include) : parseOwnedAssets(raw),
   };
 }
 

@@ -16,7 +16,7 @@ import type {
   UseOwnedAssetsParams,
 } from '@lsp-indexer/types';
 
-import { getOwnedAsset, getOwnedAssets } from '../actions/owned-assets';
+import { getOwnedAsset, getOwnedAssets } from '../../actions/owned-assets';
 
 /** Default number of owned assets per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;
