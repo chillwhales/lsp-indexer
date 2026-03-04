@@ -34,8 +34,8 @@ export async function getNft(params: {
 }): Promise<Nft | null>;
 export async function getNft<const I extends NftInclude>(params: {
   address: string;
-  tokenId: string | undefined;
-  formattedTokenId: string | undefined;
+  tokenId?: string;
+  formattedTokenId?: string;
   include: I;
 }): Promise<NftResult<I> | null>;
 export async function getNft(params: {
