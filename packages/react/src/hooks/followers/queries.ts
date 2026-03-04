@@ -1,11 +1,13 @@
-'use client';
-
-import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { FetchFollowsResult } from '@lsp-indexer/node';
-import { followerKeys } from '@lsp-indexer/node';
+import {
+  fetchFollowCount,
+  fetchFollows,
+  fetchIsFollowing,
+  followerKeys,
+  getClientUrl,
+} from '@lsp-indexer/node';
 import type {
   Follower,
   FollowerInclude,
@@ -16,35 +18,19 @@ import type {
   UseInfiniteFollowsParams,
   UseIsFollowingParams,
 } from '@lsp-indexer/types';
-
-import { getFollowCount, getFollows, getIsFollowing } from '../actions/followers';
-
-/** Default number of follows per page for infinite scroll queries */
-const DEFAULT_PAGE_SIZE = 20;
-
-/** Flat return shape for useFollows — follows array + totalCount + query state */
-type UseFollowsReturn<F> = { follows: F[]; totalCount: number } & Omit<
-  UseQueryResult<FetchFollowsResult<F>, Error>,
-  'data'
->;
-
-/** Flat return shape for useInfiniteFollows — follows array + infinite scroll controls + query state */
-type UseInfiniteFollowsReturn<F> = {
-  follows: F[];
-  hasNextPage: boolean;
-  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
-  isFetchingNextPage: boolean;
-} & Omit<
-  UseInfiniteQueryResult<InfiniteData<FetchFollowsResult<F>>, Error>,
-  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
->;
+import { DEFAULT_PAGE_SIZE } from '../../constants';
+import type { UseFollowsReturn, UseInfiniteFollowsReturn } from '../types';
 
 /**
- * Fetch a paginated list of follow relationships via Next.js server action.
+ * Fetch a paginated list of follow relationships.
  *
- * Identical API to `@lsp-indexer/react`'s `useFollows`, but routes the request
- * through a server action instead of calling Hasura directly from the browser.
- * This keeps the GraphQL endpoint hidden from the client.
+ * Wraps `fetchFollows` in a TanStack `useQuery` hook. Consumers scope results
+ * via filter fields:
+ * - "who follows X?" → `filter: { followedAddress: X }`
+ * - "who does X follow?" → `filter: { followerAddress: X }`
+ *
+ * Supports filtering, sorting, pagination, and optional include for field
+ * narrowing (DX-04).
  *
  * @param params - Optional filter/sort/pagination/include
  * @returns `{ follows, totalCount, isLoading, error, ...rest }` — full TanStack Query
@@ -52,7 +38,7 @@ type UseInfiniteFollowsReturn<F> = {
  *
  * @example
  * ```tsx
- * import { useFollows } from '@lsp-indexer/next';
+ * import { useFollows } from '@lsp-indexer/react';
  *
  * function FollowerList({ address }: { address: string }) {
  *   const { follows, totalCount, isLoading } = useFollows({
@@ -84,14 +70,15 @@ export function useFollows(
 export function useFollows(
   params: UseFollowsParams & { include?: FollowerInclude },
 ): UseFollowsReturn<PartialFollower> {
+  const url = getClientUrl();
   const { filter, sort, limit, offset, include } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: followerKeys.list(filter, sort, limit, offset, include),
     queryFn: () =>
       include
-        ? getFollows({ filter, sort, limit, offset, include })
-        : getFollows({ filter, sort, limit, offset }),
+        ? fetchFollows(url, { filter, sort, limit, offset, include })
+        : fetchFollows(url, { filter, sort, limit, offset }),
   });
 
   const follows = data?.follows ?? [];
@@ -103,10 +90,12 @@ export function useFollows(
 }
 
 /**
- * Fetch follow relationships with infinite scroll pagination via Next.js server action.
+ * Fetch follow relationships with infinite scroll pagination.
  *
- * Identical API to `@lsp-indexer/react`'s `useInfiniteFollows`, but routes the
- * request through a server action instead of calling Hasura directly from the browser.
+ * Wraps `fetchFollows` in a TanStack `useInfiniteQuery` hook with offset-based
+ * pagination. Pages are automatically flattened into a single `follows` array.
+ * Uses a **separate query key namespace** from `useFollows` to prevent cache
+ * corruption between standard and infinite query data structures.
  *
  * @param params - Optional filter/sort/pageSize/include
  * @returns `{ follows, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest }` —
@@ -114,7 +103,7 @@ export function useFollows(
  *
  * @example
  * ```tsx
- * import { useInfiniteFollows } from '@lsp-indexer/next';
+ * import { useInfiniteFollows } from '@lsp-indexer/react';
  *
  * function InfiniteFollowerList({ address }: { address: string }) {
  *   const {
@@ -122,6 +111,7 @@ export function useFollows(
  *     hasNextPage,
  *     fetchNextPage,
  *     isFetchingNextPage,
+ *     isLoading,
  *   } = useInfiniteFollows({
  *     filter: { followedAddress: address },
  *   });
@@ -153,20 +143,21 @@ export function useInfiniteFollows(
 export function useInfiniteFollows(
   params: UseInfiniteFollowsParams & { include?: FollowerInclude },
 ): UseInfiniteFollowsReturn<PartialFollower> {
+  const url = getClientUrl();
   const { filter, sort, pageSize = DEFAULT_PAGE_SIZE, include } = params;
 
   const result = useInfiniteQuery({
     queryKey: followerKeys.infinite(filter, sort, include),
     queryFn: ({ pageParam }) =>
       include
-        ? getFollows({
+        ? fetchFollows(url, {
             filter,
             sort,
             limit: pageSize,
             offset: pageParam,
             include,
           })
-        : getFollows({
+        : fetchFollows(url, {
             filter,
             sort,
             limit: pageSize,
@@ -196,10 +187,13 @@ export function useInfiniteFollows(
 }
 
 /**
- * Fetch follower and following counts for an address via Next.js server action.
+ * Fetch follower and following counts for an address.
  *
- * Identical API to `@lsp-indexer/react`'s `useFollowCount`, but routes the request
- * through a server action instead of calling Hasura directly from the browser.
+ * Wraps `fetchFollowCount` in a TanStack `useQuery` hook. Returns two numbers:
+ * - `followerCount` — how many profiles follow this address
+ * - `followingCount` — how many profiles this address follows
+ *
+ * The query is disabled when `address` is falsy.
  *
  * @param params - Address whose follow counts to fetch
  * @returns `{ followerCount, followingCount, isLoading, error, ...rest }` — follow counts
@@ -207,7 +201,7 @@ export function useInfiniteFollows(
  *
  * @example
  * ```tsx
- * import { useFollowCount } from '@lsp-indexer/next';
+ * import { useFollowCount } from '@lsp-indexer/react';
  *
  * function FollowStats({ address }: { address: string }) {
  *   const { followerCount, followingCount, isLoading } = useFollowCount({ address });
@@ -224,11 +218,12 @@ export function useInfiniteFollows(
  * ```
  */
 export function useFollowCount(params: UseFollowCountParams) {
+  const url = getClientUrl();
   const { address } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: followerKeys.count(address),
-    queryFn: () => getFollowCount(address),
+    queryFn: () => fetchFollowCount(url, { address }),
     enabled: Boolean(address),
   });
 
@@ -240,10 +235,12 @@ export function useFollowCount(params: UseFollowCountParams) {
 }
 
 /**
- * Check if one address follows another via Next.js server action.
+ * Check if one address follows another.
  *
- * Identical API to `@lsp-indexer/react`'s `useIsFollowing`, but routes the request
- * through a server action instead of calling Hasura directly from the browser.
+ * Wraps `fetchIsFollowing` in a TanStack `useQuery` hook. Returns a boolean
+ * indicating whether `followerAddress` follows `followedAddress`.
+ *
+ * The query is disabled when either address is falsy.
  *
  * @param params - Two addresses to check the follow relationship between
  * @returns `{ isFollowing, isLoading, error, ...rest }` — boolean result
@@ -251,7 +248,7 @@ export function useFollowCount(params: UseFollowCountParams) {
  *
  * @example
  * ```tsx
- * import { useIsFollowing } from '@lsp-indexer/next';
+ * import { useIsFollowing } from '@lsp-indexer/react';
  *
  * function FollowButton({ viewer, profile }: { viewer: string; profile: string }) {
  *   const { isFollowing, isLoading } = useIsFollowing({
@@ -268,11 +265,12 @@ export function useFollowCount(params: UseFollowCountParams) {
  * ```
  */
 export function useIsFollowing(params: UseIsFollowingParams) {
+  const url = getClientUrl();
   const { followerAddress, followedAddress } = params;
 
   const { data, ...rest } = useQuery({
     queryKey: followerKeys.isFollowing(followerAddress, followedAddress),
-    queryFn: () => getIsFollowing(followerAddress, followedAddress),
+    queryFn: () => fetchIsFollowing(url, { followerAddress, followedAddress }),
     enabled: Boolean(followerAddress) && Boolean(followedAddress),
   });
 

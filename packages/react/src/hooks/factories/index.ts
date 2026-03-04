@@ -6,6 +6,7 @@ export * from './create-use-subscription';
 
 // Domain factories
 export * from './digital-assets';
+export * from './followers';
 export * from './nfts';
 export * from './owned-assets';
 export * from './owned-tokens';

@@ -21556,6 +21556,40 @@ export type GetFollowersQueryVariables = Exact<{
 
 export type GetFollowersQuery = { __typename?: 'query_root', follower: Array<{ __typename?: 'follower', follower_address: string, followed_address: string, timestamp?: any, address?: string, block_number?: number, transaction_index?: number, log_index?: number, followerUniversalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, followedUniversalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }>, follower_aggregate: { __typename?: 'follower_aggregate', aggregate?: { __typename?: 'follower_aggregate_fields', count: number } | null } };
 
+export type FollowerSubscriptionSubscriptionVariables = Exact<{
+  where?: InputMaybe<Follower_Bool_Exp>;
+  order_by?: InputMaybe<Array<Follower_Order_By> | Follower_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  includeTimestamp?: Scalars['Boolean']['input'];
+  includeAddress?: Scalars['Boolean']['input'];
+  includeBlockNumber?: Scalars['Boolean']['input'];
+  includeTransactionIndex?: Scalars['Boolean']['input'];
+  includeLogIndex?: Scalars['Boolean']['input'];
+  includeFollowerProfile?: Scalars['Boolean']['input'];
+  includeFollowerProfileName?: Scalars['Boolean']['input'];
+  includeFollowerProfileDescription?: Scalars['Boolean']['input'];
+  includeFollowerProfileTags?: Scalars['Boolean']['input'];
+  includeFollowerProfileLinks?: Scalars['Boolean']['input'];
+  includeFollowerProfileAvatar?: Scalars['Boolean']['input'];
+  includeFollowerProfileImage?: Scalars['Boolean']['input'];
+  includeFollowerProfileBackgroundImage?: Scalars['Boolean']['input'];
+  includeFollowerProfileFollowerCount?: Scalars['Boolean']['input'];
+  includeFollowerProfileFollowingCount?: Scalars['Boolean']['input'];
+  includeFollowedProfile?: Scalars['Boolean']['input'];
+  includeFollowedProfileName?: Scalars['Boolean']['input'];
+  includeFollowedProfileDescription?: Scalars['Boolean']['input'];
+  includeFollowedProfileTags?: Scalars['Boolean']['input'];
+  includeFollowedProfileLinks?: Scalars['Boolean']['input'];
+  includeFollowedProfileAvatar?: Scalars['Boolean']['input'];
+  includeFollowedProfileImage?: Scalars['Boolean']['input'];
+  includeFollowedProfileBackgroundImage?: Scalars['Boolean']['input'];
+  includeFollowedProfileFollowerCount?: Scalars['Boolean']['input'];
+  includeFollowedProfileFollowingCount?: Scalars['Boolean']['input'];
+}>;
+
+
+export type FollowerSubscriptionSubscription = { __typename?: 'subscription_root', follower: Array<{ __typename?: 'follower', id: string, follower_address: string, followed_address: string, timestamp?: any, address?: string, block_number?: number, transaction_index?: number, log_index?: number, followerUniversalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, followedUniversalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
+
 export type GetFollowCountQueryVariables = Exact<{
   followerWhere: Follower_Bool_Exp;
   followingWhere: Follower_Bool_Exp;
@@ -22924,6 +22958,116 @@ export const GetFollowersDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<GetFollowersQuery, GetFollowersQueryVariables>;
+export const FollowerSubscriptionDocument = new TypedDocumentString(`
+    subscription FollowerSubscription($where: follower_bool_exp, $order_by: [follower_order_by!], $limit: Int, $includeTimestamp: Boolean! = true, $includeAddress: Boolean! = true, $includeBlockNumber: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeFollowerProfile: Boolean! = true, $includeFollowerProfileName: Boolean! = true, $includeFollowerProfileDescription: Boolean! = true, $includeFollowerProfileTags: Boolean! = true, $includeFollowerProfileLinks: Boolean! = true, $includeFollowerProfileAvatar: Boolean! = true, $includeFollowerProfileImage: Boolean! = true, $includeFollowerProfileBackgroundImage: Boolean! = true, $includeFollowerProfileFollowerCount: Boolean! = true, $includeFollowerProfileFollowingCount: Boolean! = true, $includeFollowedProfile: Boolean! = true, $includeFollowedProfileName: Boolean! = true, $includeFollowedProfileDescription: Boolean! = true, $includeFollowedProfileTags: Boolean! = true, $includeFollowedProfileLinks: Boolean! = true, $includeFollowedProfileAvatar: Boolean! = true, $includeFollowedProfileImage: Boolean! = true, $includeFollowedProfileBackgroundImage: Boolean! = true, $includeFollowedProfileFollowerCount: Boolean! = true, $includeFollowedProfileFollowingCount: Boolean! = true) {
+  follower(where: $where, order_by: $order_by, limit: $limit) {
+    id
+    follower_address
+    followed_address
+    timestamp @include(if: $includeTimestamp)
+    address @include(if: $includeAddress)
+    block_number @include(if: $includeBlockNumber)
+    transaction_index @include(if: $includeTransactionIndex)
+    log_index @include(if: $includeLogIndex)
+    followerUniversalProfile @include(if: $includeFollowerProfile) {
+      address
+      lsp3Profile {
+        name @include(if: $includeFollowerProfileName) {
+          value
+        }
+        description @include(if: $includeFollowerProfileDescription) {
+          value
+        }
+        tags @include(if: $includeFollowerProfileTags) {
+          value
+        }
+        links @include(if: $includeFollowerProfileLinks) {
+          title
+          url
+        }
+        avatar @include(if: $includeFollowerProfileAvatar) {
+          url
+          file_type
+          verification_method
+          verification_data
+        }
+        profileImage @include(if: $includeFollowerProfileImage) {
+          url
+          width
+          height
+          verification_method
+          verification_data
+        }
+        backgroundImage @include(if: $includeFollowerProfileBackgroundImage) {
+          url
+          width
+          height
+          verification_method
+          verification_data
+        }
+      }
+      followedBy_aggregate @include(if: $includeFollowerProfileFollowerCount) {
+        aggregate {
+          count
+        }
+      }
+      followed_aggregate @include(if: $includeFollowerProfileFollowingCount) {
+        aggregate {
+          count
+        }
+      }
+    }
+    followedUniversalProfile @include(if: $includeFollowedProfile) {
+      address
+      lsp3Profile {
+        name @include(if: $includeFollowedProfileName) {
+          value
+        }
+        description @include(if: $includeFollowedProfileDescription) {
+          value
+        }
+        tags @include(if: $includeFollowedProfileTags) {
+          value
+        }
+        links @include(if: $includeFollowedProfileLinks) {
+          title
+          url
+        }
+        avatar @include(if: $includeFollowedProfileAvatar) {
+          url
+          file_type
+          verification_method
+          verification_data
+        }
+        profileImage @include(if: $includeFollowedProfileImage) {
+          url
+          width
+          height
+          verification_method
+          verification_data
+        }
+        backgroundImage @include(if: $includeFollowedProfileBackgroundImage) {
+          url
+          width
+          height
+          verification_method
+          verification_data
+        }
+      }
+      followedBy_aggregate @include(if: $includeFollowedProfileFollowerCount) {
+        aggregate {
+          count
+        }
+      }
+      followed_aggregate @include(if: $includeFollowedProfileFollowingCount) {
+        aggregate {
+          count
+        }
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<FollowerSubscriptionSubscription, FollowerSubscriptionSubscriptionVariables>;
 export const GetFollowCountDocument = new TypedDocumentString(`
     query GetFollowCount($followerWhere: follower_bool_exp!, $followingWhere: follower_bool_exp!) {
   followerCount: follower_aggregate(where: $followerWhere) {

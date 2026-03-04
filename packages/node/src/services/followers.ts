@@ -8,8 +8,16 @@ import type {
   PartialFollower,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetFollowCountDocument, GetFollowersDocument } from '../documents/followers';
-import type { Follower_Bool_Exp, Follower_Order_By } from '../graphql/graphql';
+import {
+  FollowerSubscriptionDocument,
+  GetFollowCountDocument,
+  GetFollowersDocument,
+} from '../documents/followers';
+import type {
+  Follower_Bool_Exp,
+  Follower_Order_By,
+  FollowerSubscriptionSubscription,
+} from '../graphql/graphql';
 import { parseFollowers } from '../parsers/followers';
 import { buildProfileIncludeVars } from './profiles';
 import {
@@ -370,4 +378,44 @@ export async function fetchIsFollowing(
   });
 
   return result.follower.length > 0;
+}
+
+// ---------------------------------------------------------------------------
+// Subscription config builder
+// ---------------------------------------------------------------------------
+
+/** Raw subscription row type extracted from codegen. */
+type RawFollowerSubscriptionRow = FollowerSubscriptionSubscription['follower'][number];
+
+/**
+ * Build a follower subscription config (document, variables, extract, parser).
+ *
+ * EVENT domain — defaults to block-order desc sort when no sort is provided
+ * (block_number desc → transaction_index desc → log_index desc).
+ *
+ * @param params - Filter, sort, limit, and include configuration
+ * @returns A config object consumable by `useSubscription`
+ */
+export function buildFollowerSubscriptionConfig(params: {
+  filter?: FollowerFilter;
+  sort?: FollowerSort;
+  limit?: number;
+  include?: FollowerInclude;
+}) {
+  const where = buildFollowerWhere(params.filter);
+  const orderBy = buildFollowerOrderBy(params.sort) ?? buildBlockOrderSort('desc');
+  const includeVars = buildFollowerIncludeVars(params.include);
+
+  return {
+    document: FollowerSubscriptionDocument,
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: orderBy,
+      limit: params.limit,
+      ...includeVars,
+    },
+    extract: (result: FollowerSubscriptionSubscription) => result.follower,
+    parser: (raw: RawFollowerSubscriptionRow[]) =>
+      params.include ? parseFollowers(raw, params.include) : parseFollowers(raw),
+  };
 }
