@@ -23,22 +23,20 @@ import type {
  * @param include - Optional field inclusion config
  * @returns The parsed owned asset (narrowed by include), or `null` if not found
  */
-export async function getOwnedAsset(id: string): Promise<OwnedAsset | null>;
-export async function getOwnedAsset<const I extends OwnedAssetInclude>(
-  id: string,
-  include: I,
-): Promise<OwnedAssetResult<I> | null>;
-export async function getOwnedAsset(
-  id: string,
-  include?: OwnedAssetInclude,
-): Promise<PartialOwnedAsset | null>;
-export async function getOwnedAsset(
-  id: string,
-  include?: OwnedAssetInclude,
-): Promise<PartialOwnedAsset | null> {
-  const url = getServerUrl();
-  if (include) return fetchOwnedAsset(url, { id, include });
-  return fetchOwnedAsset(url, { id });
+export async function getOwnedAsset(params: { id: string }): Promise<OwnedAsset | null>;
+export async function getOwnedAsset<const I extends OwnedAssetInclude>(params: {
+  id: string;
+  include: I;
+}): Promise<OwnedAssetResult<I> | null>;
+export async function getOwnedAsset(params: {
+  id: string;
+  include?: OwnedAssetInclude;
+}): Promise<PartialOwnedAsset | null>;
+export async function getOwnedAsset(params: {
+  id: string;
+  include?: OwnedAssetInclude;
+}): Promise<PartialOwnedAsset | null> {
+  return fetchOwnedAsset(getServerUrl(), params);
 }
 
 /**
@@ -78,7 +76,5 @@ export async function getOwnedAssets(params?: {
   offset?: number;
   include?: OwnedAssetInclude;
 }): Promise<FetchOwnedAssetsResult<PartialOwnedAsset>> {
-  const url = getServerUrl();
-  if (params?.include) return fetchOwnedAssets(url, params);
-  return fetchOwnedAssets(url, params ?? {});
+  return fetchOwnedAssets(getServerUrl(), params);
 }

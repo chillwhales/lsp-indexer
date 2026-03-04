@@ -1,4 +1,29 @@
+import { FetchOwnedAssetsResult } from '@lsp-indexer/node';
 import type { OwnedAssetFilter, OwnedAssetInclude, OwnedAssetSort } from '@lsp-indexer/types';
+import { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
+
+/** Flat return shape for useOwnedAsset — ownedAsset + query state */
+export type UseOwnedAssetReturn<F> = { ownedAsset: F | null } & Omit<
+  UseQueryResult<F | null, Error>,
+  'data'
+>;
+
+/** Flat return shape for useOwnedAssets — ownedAssets array + totalCount + query state */
+export type UseOwnedAssetsReturn<F> = { ownedAssets: F[]; totalCount: number } & Omit<
+  UseQueryResult<FetchOwnedAssetsResult<F>, Error>,
+  'data'
+>;
+
+/** Flat return shape for useInfiniteOwnedAssets — ownedAssets array + infinite scroll controls + query state */
+export type UseInfiniteOwnedAssetsReturn<F> = {
+  ownedAssets: F[];
+  hasNextPage: boolean;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  isFetchingNextPage: boolean;
+} & Omit<
+  UseInfiniteQueryResult<InfiniteData<FetchOwnedAssetsResult<F>>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;
 
 /**
  * Base params for `useOwnedAssetSubscription`.
