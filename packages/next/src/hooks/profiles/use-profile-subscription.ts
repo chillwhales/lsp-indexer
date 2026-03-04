@@ -1,7 +1,6 @@
 'use client';
 
 import { createUseProfileSubscription } from '@lsp-indexer/react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useSubscription } from '../use-subscription';
 
 /**
@@ -9,9 +8,8 @@ import { useSubscription } from '../use-subscription';
  *
  * Thin wrapper — calls the shared factory with the Next.js-specific
  * `useSubscription` (bound to the Next.js IndexerSubscriptionProvider
- * context with WebSocket proxy support) and TanStack Query's
- * `useQueryClient` for cache invalidation.
+ * context with WebSocket proxy support).
  *
  * @see createUseProfileSubscription — shared factory in `@lsp-indexer/react`
  */
-export const useProfileSubscription = createUseProfileSubscription(useSubscription, useQueryClient);
+export const useProfileSubscription = createUseProfileSubscription(useSubscription);

@@ -9,6 +9,7 @@
 import type { SubscriptionConfig } from '@lsp-indexer/node';
 import type { SubscriptionInstance, UseSubscriptionReturn } from '@lsp-indexer/types';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { stableStringify } from '../../utils';
 import { UseSubscriptionClient, UseSubscriptionOptions } from '../types';
 
 /**
@@ -61,11 +62,11 @@ export function createUseSubscription(useSubscriptionClient: () => UseSubscripti
     // Extracted as a local variable (not inline in deps) to satisfy the
     // react-hooks/exhaustive-deps lint rule.
     //
-    // NOTE: JSON.stringify is called on every render, but for typical
-    // GraphQL variables (plain JSON objects) this is fast and deterministic.
-    // Variables containing non-JSON values (Date, BigInt, undefined) are
-    // not supported — GraphQL variables should be plain JSON.
-    const stableVariables = JSON.stringify(config.variables);
+    // Uses stableStringify (sorted keys) instead of plain JSON.stringify
+    // to guarantee deterministic output regardless of property insertion
+    // order. GraphQL variables should be plain JSON — non-JSON values
+    // (Date, BigInt, undefined) are not supported.
+    const stableVariables = stableStringify(config.variables);
 
     // Create/dispose subscription based on enabled state
     useEffect(() => {

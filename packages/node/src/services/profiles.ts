@@ -7,8 +7,16 @@ import type {
   ProfileSort,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetProfileDocument, GetProfilesDocument } from '../documents/profiles';
-import type { Universal_Profile_Bool_Exp, Universal_Profile_Order_By } from '../graphql/graphql';
+import {
+  GetProfileDocument,
+  GetProfilesDocument,
+  ProfileSubscriptionDocument,
+} from '../documents/profiles';
+import type {
+  ProfileSubscriptionSubscription,
+  Universal_Profile_Bool_Exp,
+  Universal_Profile_Order_By,
+} from '../graphql/graphql';
 import { parseProfile, parseProfiles } from '../parsers/profiles';
 import { escapeLike, orderDir } from './utils';
 
@@ -179,6 +187,57 @@ export function buildProfileIncludeVars(
     includeProfileBackgroundImage: include.backgroundImage ?? false,
     includeProfileFollowerCount: include.followerCount ?? false,
     includeProfileFollowingCount: include.followingCount ?? false,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription config builder
+// ---------------------------------------------------------------------------
+
+/**
+ * Raw Hasura row type from the subscription codegen result.
+ *
+ * Structurally compatible with the query-side `RawProfile` (both select
+ * the same fields), but derived from the subscription codegen type to
+ * keep the generic chain `TResult → TRaw` precise.
+ */
+type RawProfileSubscriptionRow = ProfileSubscriptionSubscription['universal_profile'][number];
+
+/**
+ * Build a profile subscription config (document, variables, extract, parser).
+ *
+ * Encapsulates the domain-specific assembly that `createUseProfileSubscription`
+ * needs — mirroring how `fetchProfiles` encapsulates query assembly. Keeps the
+ * React hook factory focused on hook lifecycle rather than domain plumbing.
+ *
+ * The return type is inferred so the 4-generic chain
+ * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
+ * `useSubscription` without any casts or `unknown` holes.
+ *
+ * @param params - Filter, sort, limit, and include configuration
+ * @returns A config object consumable by `useSubscription`
+ */
+export function buildProfileSubscriptionConfig(params: {
+  filter?: ProfileFilter;
+  sort?: ProfileSort;
+  limit?: number;
+  include?: ProfileInclude;
+}) {
+  const where = buildProfileWhere(params.filter);
+  const orderBy = buildProfileOrderBy(params.sort);
+  const includeVars = buildProfileIncludeDirectives(params.include);
+
+  return {
+    document: ProfileSubscriptionDocument,
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: orderBy,
+      limit: params.limit,
+      ...includeVars,
+    },
+    extract: (result: ProfileSubscriptionSubscription) => result.universal_profile,
+    parser: (raw: RawProfileSubscriptionRow[]) =>
+      params.include ? parseProfiles(raw, params.include) : parseProfiles(raw),
   };
 }
 

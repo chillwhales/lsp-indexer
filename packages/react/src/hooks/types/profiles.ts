@@ -1,10 +1,5 @@
 import { FetchProfilesResult } from '@lsp-indexer/node';
-import type {
-  PartialProfile,
-  ProfileFilter,
-  ProfileInclude,
-  ProfileSort,
-} from '@lsp-indexer/types';
+import type { ProfileFilter, ProfileInclude, ProfileSort } from '@lsp-indexer/types';
 import { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
 
 /** Flat return shape for useProfile — profile + query state */
@@ -30,6 +25,15 @@ export type UseInfiniteProfilesReturn<F> = {
   'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
 >;
 
+/**
+ * Base params for `useProfileSubscription`.
+ *
+ * `onData` is intentionally omitted here — it is added per-overload in the
+ * factory so the callback receives the correctly-narrowed type:
+ * - No `include` → `onData(data: Profile[])`
+ * - `include: I` → `onData(data: ProfileResult<I>[])`
+ * - Widest   → `onData(data: PartialProfile[])`
+ */
 export interface UseProfileSubscriptionParams {
   /** Filter criteria (optional — omit for all profiles) */
   filter?: ProfileFilter;
@@ -43,14 +47,6 @@ export interface UseProfileSubscriptionParams {
   enabled?: boolean;
   /** Invalidate TanStack Query cache on subscription data (default: false) */
   invalidate?: boolean;
-  /**
-   * Callback when subscription receives new data.
-   *
-   * Typed as `PartialProfile[]` at the params level because the implementation
-   * signature uses the widest type. The overloaded call signatures narrow the
-   * return type based on `include`; consumers without `include` get `Profile[]`.
-   */
-  onData?: (data: PartialProfile[]) => void;
   /** Callback when WebSocket reconnects after a drop */
   onReconnect?: () => void;
 }
