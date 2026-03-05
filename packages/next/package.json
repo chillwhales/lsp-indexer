@@ -27,6 +27,16 @@
       }
     }
   },
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./dist/index.d.ts"
+      ],
+      "server": [
+        "./dist/server.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist"
   ],
