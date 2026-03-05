@@ -16,7 +16,7 @@ import type {
   UseLatestDataChangedEventParams,
 } from '@lsp-indexer/types';
 
-import { getDataChangedEvents, getLatestDataChangedEvent } from '../actions/data-changed-events';
+import { getDataChangedEvents, getLatestDataChangedEvent } from '../../actions/data-changed-events';
 
 /** Default number of data changed events per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;

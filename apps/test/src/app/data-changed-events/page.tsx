@@ -1,16 +1,18 @@
 'use client';
 
 import { DATA_KEY_NAMES, DataKeyNameSchema } from '@lsp-indexer/data-keys';
-import { Clock, Infinity, List } from 'lucide-react';
+import { Clock, Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useDataChangedEvents as useDataChangedEventsNext,
+  useDataChangedEventSubscription as useDataChangedEventSubscriptionNext,
   useInfiniteDataChangedEvents as useInfiniteDataChangedEventsNext,
   useLatestDataChangedEvent as useLatestDataChangedEventNext,
 } from '@lsp-indexer/next';
 import {
   useDataChangedEvents as useDataChangedEventsReact,
+  useDataChangedEventSubscription as useDataChangedEventSubscriptionReact,
   useInfiniteDataChangedEvents as useInfiniteDataChangedEventsReact,
   useLatestDataChangedEvent as useLatestDataChangedEventReact,
 } from '@lsp-indexer/react';
@@ -41,8 +43,11 @@ import {
   useSubInclude,
 } from '@/components/playground';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 
 // ---------------------------------------------------------------------------
 // Domain config — Data Changed Events (9 filter params, 4 sort fields)
@@ -168,6 +173,7 @@ type DataChangedHooks = {
   useLatestDataChangedEvent: typeof useLatestDataChangedEventReact;
   useDataChangedEvents: typeof useDataChangedEventsReact;
   useInfiniteDataChangedEvents: typeof useInfiniteDataChangedEventsReact;
+  useDataChangedEventSubscription: typeof useDataChangedEventSubscriptionReact;
 };
 
 function useDataChangedHooks(mode: HookMode): DataChangedHooks {
@@ -176,12 +182,14 @@ function useDataChangedHooks(mode: HookMode): DataChangedHooks {
       useLatestDataChangedEvent: useLatestDataChangedEventNext,
       useDataChangedEvents: useDataChangedEventsNext,
       useInfiniteDataChangedEvents: useInfiniteDataChangedEventsNext,
+      useDataChangedEventSubscription: useDataChangedEventSubscriptionNext,
     };
   }
   return {
     useLatestDataChangedEvent: useLatestDataChangedEventReact,
     useDataChangedEvents: useDataChangedEventsReact,
     useInfiniteDataChangedEvents: useInfiniteDataChangedEventsReact,
+    useDataChangedEventSubscription: useDataChangedEventSubscriptionReact,
   };
 }
 
@@ -465,6 +473,82 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
+// Tab 4: Subscription (real-time)
+// ---------------------------------------------------------------------------
+
+function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useDataChangedEventSubscription } = useDataChangedHooks(mode);
+  const state = useListState();
+  const [limit, setLimit] = useState(10);
+  const [invalidate, setInvalidate] = useState(false);
+
+  const { data, isConnected, isSubscribed, error } = useDataChangedEventSubscription({
+    filter: state.filter,
+    sort: state.sort,
+    limit,
+    include: state.include,
+    invalidate,
+  });
+
+  // Map subscription shape to ResultsList expectations
+  const dataChangedEvents = data ?? [];
+  const isLoading = data === null && isSubscribed;
+  const normalizedError =
+    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Connection status + invalidate toggle */}
+      <div className="flex items-center gap-3">
+        <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
+          {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </Badge>
+        <Badge variant={isSubscribed ? 'default' : 'secondary'}>
+          {isSubscribed ? 'Subscribed' : 'Idle'}
+        </Badge>
+        <div className="ml-auto flex items-center space-x-2">
+          <Switch id="sub-invalidate" checked={invalidate} onCheckedChange={setInvalidate} />
+          <Label htmlFor="sub-invalidate">Invalidate Cache</Label>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <FilterFieldsRow configs={ROW1} values={state.values} onFieldChange={state.setFieldValue} />
+        <FilterFieldsRow configs={ROW2} values={state.values} onFieldChange={state.setFieldValue} />
+        <FilterFieldsRow configs={ROW3} values={state.values} onFieldChange={state.setFieldValue} />
+      </div>
+      <SortControls
+        options={SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as DataChangedEventSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
+        limit={limit}
+        onLimitChange={setLimit}
+        hideDirectionAndNulls={state.sortField === 'newest' || state.sortField === 'oldest'}
+      />
+      <DcIncludeSections {...state} />
+      <ResultsList
+        items={dataChangedEvents}
+        isLoading={isLoading}
+        isFetching={false}
+        error={normalizedError}
+        renderItem={(evt) => <DataChangedEventCard dataChangedEvent={evt} />}
+        getKey={(evt) => `${evt.address}-${evt.dataKey}-${evt.dataValue.slice(0, 16)}`}
+        label="data changed events"
+        totalCount={dataChangedEvents.length}
+        hasActiveFilter={state.hasActiveFilter}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -476,9 +560,13 @@ export default function DataChangedEventsPage(): React.ReactNode {
         <>
           Exercise{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useLatestDataChangedEvent</code>,{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useDataChangedEvents</code>, and{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteDataChangedEvents</code>{' '}
-          hooks against ERC725Y contract-level data change events via Hasura (QUERY-09).
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useDataChangedEvents</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteDataChangedEvents</code>
+          , and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">
+            useDataChangedEventSubscription
+          </code>{' '}
+          hooks against ERC725Y contract-level data change events via Hasura (QUERY-09, SUB-02).
         </>
       }
       tabs={[
@@ -499,6 +587,12 @@ export default function DataChangedEventsPage(): React.ReactNode {
           label: 'Infinite',
           icon: <Infinity className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
+        },
+        {
+          value: 'subscription',
+          label: 'Subscription',
+          icon: <Radio className="size-4" />,
+          render: (mode) => <SubscriptionTab mode={mode} />,
         },
       ]}
     />
