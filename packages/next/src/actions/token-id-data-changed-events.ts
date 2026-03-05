@@ -41,8 +41,7 @@ export async function getLatestTokenIdDataChangedEvent(params: {
   filter?: TokenIdDataChangedEventFilter;
   include?: TokenIdDataChangedEventInclude;
 }): Promise<PartialTokenIdDataChangedEvent | null> {
-  const url = getServerUrl();
-  return fetchLatestTokenIdDataChangedEvent(url, params);
+  return fetchLatestTokenIdDataChangedEvent(getServerUrl(), params);
 }
 
 /**
@@ -85,6 +84,5 @@ export async function getTokenIdDataChangedEvents(params: {
   offset?: number;
   include?: TokenIdDataChangedEventInclude;
 }): Promise<FetchTokenIdDataChangedEventsResult<PartialTokenIdDataChangedEvent>> {
-  const url = getServerUrl();
-  return fetchTokenIdDataChangedEvents(url, params);
+  return fetchTokenIdDataChangedEvents(getServerUrl(), params);
 }

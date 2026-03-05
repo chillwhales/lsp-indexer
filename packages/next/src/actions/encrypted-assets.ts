@@ -52,6 +52,5 @@ export async function getEncryptedAssets(params: {
   offset?: number;
   include?: EncryptedAssetInclude;
 }): Promise<FetchEncryptedAssetsResult<PartialEncryptedAsset>> {
-  const url = getServerUrl();
-  return fetchEncryptedAssets(url, params);
+  return fetchEncryptedAssets(getServerUrl(), params);
 }

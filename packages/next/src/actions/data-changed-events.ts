@@ -39,8 +39,7 @@ export async function getLatestDataChangedEvent(params: {
   filter?: DataChangedEventFilter;
   include?: DataChangedEventInclude;
 }): Promise<PartialDataChangedEvent | null> {
-  const url = getServerUrl();
-  return fetchLatestDataChangedEvent(url, params);
+  return fetchLatestDataChangedEvent(getServerUrl(), params);
 }
 
 /**
@@ -81,6 +80,5 @@ export async function getDataChangedEvents(params: {
   offset?: number;
   include?: DataChangedEventInclude;
 }): Promise<FetchDataChangedEventsResult<PartialDataChangedEvent>> {
-  const url = getServerUrl();
-  return fetchDataChangedEvents(url, params);
+  return fetchDataChangedEvents(getServerUrl(), params);
 }

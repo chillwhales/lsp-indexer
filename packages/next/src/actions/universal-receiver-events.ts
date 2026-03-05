@@ -53,6 +53,5 @@ export async function getUniversalReceiverEvents(params: {
   offset?: number;
   include?: UniversalReceiverEventInclude;
 }): Promise<FetchUniversalReceiverEventsResult<PartialUniversalReceiverEvent>> {
-  const url = getServerUrl();
-  return fetchUniversalReceiverEvents(url, params);
+  return fetchUniversalReceiverEvents(getServerUrl(), params);
 }
