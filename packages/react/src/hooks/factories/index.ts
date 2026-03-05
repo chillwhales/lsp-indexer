@@ -6,6 +6,7 @@ export * from './create-use-subscription';
 
 // Domain factories
 export * from './creators';
+export * from './data-changed-events';
 export * from './digital-assets';
 export * from './encrypted-assets';
 export * from './followers';

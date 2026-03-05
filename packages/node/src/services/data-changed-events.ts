@@ -8,8 +8,15 @@ import type {
   PartialDataChangedEvent,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetDataChangedEventsDocument } from '../documents/data-changed-events';
-import type { Data_Changed_Bool_Exp, Data_Changed_Order_By } from '../graphql/graphql';
+import {
+  DataChangedEventSubscriptionDocument,
+  GetDataChangedEventsDocument,
+} from '../documents/data-changed-events';
+import type {
+  Data_Changed_Bool_Exp,
+  Data_Changed_Order_By,
+  DataChangedEventSubscriptionSubscription,
+} from '../graphql/graphql';
 import { parseDataChangedEvents } from '../parsers/data-changed-events';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
@@ -137,7 +144,7 @@ export function buildDataChangedEventWhere(filter?: DataChangedEventFilter): Dat
  * Name sorts default to `nulls: 'last'` when not specified (names without values sort last).
  * `direction` and `nulls` are ignored for `'newest'` and `'oldest'` (self-describing fields).
  */
-function buildDataChangedEventOrderBy(
+export function buildDataChangedEventOrderBy(
   sort?: DataChangedEventSort,
 ): Data_Changed_Order_By[] | undefined {
   if (!sort) return undefined;
@@ -368,4 +375,45 @@ export async function fetchLatestDataChangedEvent(
       });
 
   return result.dataChangedEvents[0] ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// Subscription config builder
+// ---------------------------------------------------------------------------
+
+/** Raw subscription row type extracted from codegen. */
+type RawDataChangedEventSubscriptionRow =
+  DataChangedEventSubscriptionSubscription['data_changed'][number];
+
+/**
+ * Build a data changed event subscription config (document, variables, extract, parser).
+ *
+ * EVENT domain — defaults to block-order desc sort when no sort is provided
+ * (block_number desc → transaction_index desc → log_index desc).
+ *
+ * @param params - Filter, sort, limit, and include configuration
+ * @returns A config object consumable by `useSubscription`
+ */
+export function buildDataChangedEventSubscriptionConfig(params: {
+  filter?: DataChangedEventFilter;
+  sort?: DataChangedEventSort;
+  limit?: number;
+  include?: DataChangedEventInclude;
+}) {
+  const where = buildDataChangedEventWhere(params.filter);
+  const orderBy = buildDataChangedEventOrderBy(params.sort) ?? buildBlockOrderSort('desc');
+  const includeVars = buildDataChangedEventIncludeVars(params.include);
+
+  return {
+    document: DataChangedEventSubscriptionDocument,
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: orderBy,
+      limit: params.limit,
+      ...includeVars,
+    },
+    extract: (result: DataChangedEventSubscriptionSubscription) => result.data_changed,
+    parser: (raw: RawDataChangedEventSubscriptionRow[]) =>
+      params.include ? parseDataChangedEvents(raw, params.include) : parseDataChangedEvents(raw),
+  };
 }
