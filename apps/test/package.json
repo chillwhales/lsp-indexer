@@ -8,8 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
-    "@lsp-indexer/data-keys": "workspace:*",
-    "@lsp-indexer/lsp1": "workspace:*",
+    "@chillwhales/erc725": "^0.1.0",
+    "@chillwhales/lsp1": "^0.1.0",
     "@lsp-indexer/next": "workspace:*",
     "@lsp-indexer/node": "workspace:*",
     "@lsp-indexer/react": "workspace:*",

@@ -6,5 +6,5 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ['@lsp-indexer/data-keys', 'zod'],
+  external: ['@chillwhales/erc725', '@chillwhales/lsp1', 'zod'],
 });

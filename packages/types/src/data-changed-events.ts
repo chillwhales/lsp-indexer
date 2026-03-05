@@ -1,5 +1,6 @@
-import { DataKeyNameSchema } from '@lsp-indexer/data-keys';
 import { z } from 'zod';
+
+import { DataKeyNameSchema } from './registry-schemas';
 
 import { SortDirectionSchema, SortNullsSchema } from './common';
 import {

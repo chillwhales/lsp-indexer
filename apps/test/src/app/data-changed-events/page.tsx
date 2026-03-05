@@ -1,6 +1,6 @@
 'use client';
 
-import { DATA_KEY_NAMES, DataKeyNameSchema } from '@lsp-indexer/data-keys';
+import { DATA_KEY_NAMES } from '@chillwhales/erc725';
 import { Clock, Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -23,6 +23,7 @@ import type {
   SortDirection,
   SortNulls,
 } from '@lsp-indexer/types';
+import { DataKeyNameSchema } from '@lsp-indexer/types';
 
 import { DataChangedEventCard } from '@/components/data-changed-event-card';
 import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';

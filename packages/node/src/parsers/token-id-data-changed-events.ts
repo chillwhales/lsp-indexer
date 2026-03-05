@@ -1,4 +1,4 @@
-import { resolveDataKeyName } from '@lsp-indexer/data-keys';
+import { resolveDataKeyName } from '@chillwhales/erc725';
 import type {
   PartialTokenIdDataChangedEvent,
   TokenIdDataChangedEvent,
