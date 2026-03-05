@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: planning
-last_updated: "2026-03-05T11:13:27.292Z"
-last_activity: 2026-03-05 — Phase 10.12 plan 01 complete (SUB-02, SUB-03)
+status: executing
+last_updated: '2026-03-05T12:16:48Z'
+last_activity: 2026-03-05 — Phase 10.13 plan 01 complete (SUB-02, SUB-03)
 progress:
   total_phases: 40
-  completed_phases: 33
-  total_plans: 108
-  completed_plans: 95
-  percent: 87
+  completed_phases: 34
+  total_plans: 109
+  completed_plans: 96
+  percent: 88
 ---
 
 # State: LSP Indexer
@@ -21,16 +21,16 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 10.12 (Token ID Data Changed Events Subscription) plan 01 complete, ready for domain sub-phase 10.13
+**Current focus:** v1.1 React Hooks Package — Phase 10.13 (Universal Receiver Events Subscription) plan 01 complete, all domain subscriptions done
 
 ## Current Position
 
-- **Phase:** 10.12 of 11 (Token ID Data Changed Events Subscription)
-- **Sub-phase:** 10.12 (Token ID Data Changed Events Subscription) — Complete (1/1 plans)
+- **Phase:** 10.13 of 11 (Universal Receiver Events Subscription)
+- **Sub-phase:** 10.13 (Universal Receiver Events Subscription) — Complete (1/1 plans)
 - **Plan:** 1 of 1 in current sub-phase
 - **Status:** Ready to plan
-- **Last activity:** 2026-03-05 — Phase 10.12 plan 01 complete (SUB-02, SUB-03)
-- **Progress:** [█████████░] 87%
+- **Last activity:** 2026-03-05 — Phase 10.13 plan 01 complete (SUB-02, SUB-03)
+- **Progress:** [█████████░] 88%
 
 ## Milestone History
 
@@ -70,6 +70,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 10.10 | Encrypted Assets Subscription      |     2/2      | Complete |
 | 10.11 | Data Changed Events Subscription   |     2/2      | Complete |
 | 10.12 | Token ID Data Changed Events Sub.  |     2/2      | Complete |
+| 10.13 | Universal Receiver Events Sub.     |     2/2      | Complete |
 | 10    | Subscriptions                      |      1       | Active   |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
@@ -79,9 +80,9 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 99 (36 v1.0 + 63 v1.1)
+- **Plans completed:** 100 (36 v1.0 + 64 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 37 (11 v1.0 + 26 v1.1 including all Phase 9 sub-phases + Phase 10.1 + Phase 10.2 + Phase 10.3 + Phase 10.4 + Phase 10.5 + Phase 10.6 + Phase 10.7 + Phase 10.8 + Phase 10.9 + Phase 10.10 + Phase 10.11 + Phase 10.12)
+- **Phases completed:** 38 (11 v1.0 + 27 v1.1 including all Phase 9 sub-phases + Phase 10.1 through Phase 10.13)
 - **Requirements delivered:** 45/45 (v1.0), 25/30 (v1.1)
 
 ## Accumulated Context
@@ -237,18 +238,19 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-05
-- **Activity:** Executed Phase 10.12 (Token ID Data Changed Events Subscription) — plan 01 (1 task, 1 commit)
-- **Outcome:** useTokenIdDataChangedEventSubscription hook with 3-overload type narrowing, directory migration of token-id-data-changed-events hooks (react + next) to factory pattern, subscription tab in playground. EVENT DOMAIN with block-order desc default sort. SUB-02 + SUB-03 requirements continue.
+- **Activity:** Executed Phase 10.13 (Universal Receiver Events Subscription) — plan 01 (1 task, 1 commit)
+- **Outcome:** useUniversalReceiverEventSubscription hook with 3-overload type narrowing, directory migration of universal-receiver-events hooks (react + next) to factory pattern, subscription tab in playground. EVENT DOMAIN with block-order desc default sort (~45 variables, 3 nested relations). SUB-02 + SUB-03 requirements continue. Last domain subscription — all 12 domain subscriptions complete.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 10.12 complete** — Token ID data changed events subscription + directory migration + factory refactoring done (event domain with block-order desc default sort, ~31 include variables, DA + NFT nested relations)
+- **Phase 10.13 complete** — Universal receiver events subscription + directory migration done (event domain with block-order desc default sort, ~45 include variables, 3 nested relations: UP + fromProfile + fromAsset)
+- **All 12 domain subscription hooks complete** — profiles, digital-assets, nfts, owned-assets, owned-tokens, followers, creators, issued-assets, encrypted-assets, data-changed-events, token-id-data-changed-events, universal-receiver-events
 - **25/30 requirements delivered** — SUB-02, SUB-03 incremental across domain phases
-- **Next step:** Phase 10.13 domain subscription sub-phase (universal receiver events — last domain subscription)
-- **Remaining phases:** 10.13 (universal receiver events subscription), 11 (Server Actions & Publish Readiness)
+- **Next step:** Phase 11 (Server Actions & Publish Readiness)
+- **Remaining phases:** 11 (Server Actions & Publish Readiness)
 - **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
 
 ---
 
-_Last updated: 2026-03-05 — Phase 10.12 complete (Token ID Data Changed Events Subscription — 1 plan, 1 task, directory migration + factory refactoring + subscription hook + event domain block-order desc default sort)_
+_Last updated: 2026-03-05 — Phase 10.13 complete (Universal Receiver Events Subscription — 1 plan, 1 task, directory migration + factory + subscription hook + event domain block-order desc default sort, last domain subscription)_
