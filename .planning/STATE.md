@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: planning
-last_updated: "2026-03-05T06:10:07.743Z"
-last_activity: 2026-03-05 — Phase 10.8 plan 01 complete (SUB-02, SUB-03)
+last_updated: "2026-03-05T07:09:57.262Z"
+last_activity: 2026-03-05 — Phase 10.9 plan 01 complete (SUB-02, SUB-03)
 progress:
   total_phases: 40
-  completed_phases: 29
-  total_plans: 106
-  completed_plans: 91
-  percent: 87
+  completed_phases: 30
+  total_plans: 107
+  completed_plans: 92
+  percent: 88
 ---
 
 # State: LSP Indexer
@@ -21,16 +21,16 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 10.8 (Creators Subscription) plan 01 complete, ready for domain sub-phases 10.9–10.13
+**Current focus:** v1.1 React Hooks Package — Phase 10.9 (Issued Assets Subscription) plan 01 complete, ready for domain sub-phases 10.10–10.13
 
 ## Current Position
 
-- **Phase:** 10.8 of 11 (Creators Subscription)
-- **Sub-phase:** 10.8 (Creators Subscription) — Complete (1/1 plans)
+- **Phase:** 10.9 of 11 (Issued Assets Subscription)
+- **Sub-phase:** 10.9 (Issued Assets Subscription) — Complete (1/1 plans)
 - **Plan:** 1 of 1 in current sub-phase
 - **Status:** Ready to plan
-- **Last activity:** 2026-03-05 — Phase 10.8 plan 01 complete (SUB-02, SUB-03)
-- **Progress:** [█████████░] 87%
+- **Last activity:** 2026-03-05 — Phase 10.9 plan 01 complete (SUB-02, SUB-03)
+- **Progress:** [█████████░] 88%
 
 ## Milestone History
 
@@ -66,6 +66,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 10.6  | Owned Tokens Subscription          |     2/2      | Complete |
 | 10.7  | Followers Subscription             |     2/2      | Complete |
 | 10.8  | Creators Subscription              |     2/2      | Complete |
+| 10.9  | Issued Assets Subscription         |     2/2      | Complete |
 | 10    | Subscriptions                      |      1       | Active   |
 | 11    | Server Actions & Publish Readiness |      4       | Pending  |
 
@@ -75,9 +76,9 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 95 (36 v1.0 + 59 v1.1)
+- **Plans completed:** 96 (36 v1.0 + 60 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 33 (11 v1.0 + 22 v1.1 including all Phase 9 sub-phases + Phase 10.1 + Phase 10.2 + Phase 10.3 + Phase 10.4 + Phase 10.5 + Phase 10.6 + Phase 10.7 + Phase 10.8)
+- **Phases completed:** 34 (11 v1.0 + 23 v1.1 including all Phase 9 sub-phases + Phase 10.1 + Phase 10.2 + Phase 10.3 + Phase 10.4 + Phase 10.5 + Phase 10.6 + Phase 10.7 + Phase 10.8 + Phase 10.9)
 - **Requirements delivered:** 45/45 (v1.0), 25/30 (v1.1)
 
 ## Accumulated Context
@@ -233,18 +234,18 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-05
-- **Activity:** Executed Phase 10.8 (Creators Subscription) — plan 01 (1 task, 1 commit)
-- **Outcome:** useCreatorSubscription hook with 3-overload type narrowing, directory refactoring of creators hooks (react + next), subscription tab in playground. SUB-02 + SUB-03 requirements continue.
+- **Activity:** Executed Phase 10.9 (Issued Assets Subscription) — plan 01 (1 task, 1 commit)
+- **Outcome:** useIssuedAssetSubscription hook with 3-overload type narrowing, directory migration of issued-assets hooks (react + next), subscription tab in playground. SUB-02 + SUB-03 requirements continue.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 10.8 complete** — Creators subscription + directory refactoring done (entity domain with Hasura default ordering, 31 include variables, 2 nested relations)
+- **Phase 10.9 complete** — Issued assets subscription + directory migration done (entity domain with Hasura default ordering, 31 include variables, 2 nested relations)
 - **25/30 requirements delivered** — SUB-02, SUB-03 incremental across domain phases
-- **Next step:** Phase 10.9–10.13 domain subscription sub-phases (replicate pattern for each domain)
-- **Remaining phases:** 10.9–10.13 (domain subscriptions), 11 (Server Actions & Publish Readiness)
+- **Next step:** Phase 10.10–10.13 domain subscription sub-phases (replicate pattern for each domain)
+- **Remaining phases:** 10.10–10.13 (domain subscriptions), 11 (Server Actions & Publish Readiness)
 - **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
 
 ---
 
-_Last updated: 2026-03-05 — Phase 10.8 complete (Creators Subscription — 1 plan, 1 task, directory refactoring + subscription hook + entity domain default sort)_
+_Last updated: 2026-03-05 — Phase 10.9 complete (Issued Assets Subscription — 1 plan, 1 task, directory migration + subscription hook + entity domain default sort)_

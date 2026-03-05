@@ -478,9 +478,9 @@ Plans:
 
 **Requirement:** SUB-02, SUB-03
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
-- [ ] 10.9-01-PLAN.md — useIssuedAssetSubscription hook + playground demo
+- [x] 10.9-01-PLAN.md — Factory refactoring + useIssuedAssetSubscription (include/sort/3-overload) + dual-package export + playground
 
 ---
 
@@ -594,8 +594,8 @@ Plans:
 | 10.5  | Owned Assets Subscription          |     1/1      | Complete   |
 | 10.6  | 1/1                                |   Complete   | 2026-03-04 |
 | 10.7  | 1/1                                |   Complete   | 2026-03-04 |
-| 10.8  | 1/1 | Complete    | 2026-03-05 |
-| 10.9  | Issued Assets Subscription         |      0       | Pending    |
+| 10.8  | 1/1                                |   Complete   | 2026-03-05 |
+| 10.9  | 1/1                                | Complete    | 2026-03-05 |
 | 10.10 | Encrypted Assets Subscription      |      0       | Pending    |
 | 10.11 | Data Changed Events Subscription   |      0       | Pending    |
 | 10.12 | Token ID Data Changed Subscription |      0       | Pending    |
@@ -717,4 +717,4 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-03-04 — Phase 10.5 complete (Owned Assets Subscription — 1 plan, 1 task, directory refactoring + subscription hook), 25/30 requirements delivered_
+_Last updated: 2026-03-05 — Phase 10.9 complete (Issued Assets Subscription — 1 plan, 1 task, directory migration + subscription hook), 25/30 requirements delivered_

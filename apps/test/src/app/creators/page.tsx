@@ -15,7 +15,6 @@ import {
 } from '@lsp-indexer/react';
 import type {
   CreatorFilter,
-  CreatorInclude,
   CreatorSort,
   CreatorSortField,
   SortDirection,
@@ -174,7 +173,7 @@ function useListState() {
   const include = buildNestedInclude(includeValues, {
     creatorProfile: creatorProfile.value,
     digitalAsset: digitalAsset.value,
-  }) as CreatorInclude | undefined;
+  });
 
   return {
     values,
