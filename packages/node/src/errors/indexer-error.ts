@@ -33,6 +33,7 @@ export class IndexerError extends Error {
   readonly graphqlErrors:
     | Array<{ message: string; extensions?: Record<string, unknown> }>
     | undefined;
+  readonly validationErrors: Array<{ path: string; message: string }> | undefined;
 
   constructor(options: IndexerErrorOptions) {
     super(options.message);
@@ -43,6 +44,7 @@ export class IndexerError extends Error {
     this.originalError = options.originalError;
     this.query = options.query;
     this.graphqlErrors = options.graphqlErrors;
+    this.validationErrors = options.validationErrors;
   }
 
   /**
@@ -58,6 +60,7 @@ export class IndexerError extends Error {
       statusCode: this.statusCode,
       query: this.query,
       graphqlErrors: this.graphqlErrors,
+      validationErrors: this.validationErrors,
     };
   }
 
@@ -196,6 +199,31 @@ export class IndexerError extends Error {
       code,
       message: `${code}: ${error.message}. Check your network connection and that the Hasura endpoint is reachable.`,
       originalError: error,
+    });
+  }
+
+  /**
+   * Factory: create an IndexerError from Zod validation issues.
+   *
+   * Formats field-level errors into a developer-friendly message showing
+   * which inputs were invalid and why.
+   */
+  static fromValidationError(
+    issues: Array<{ path: PropertyKey[]; message: string }>,
+    actionName: string,
+  ): IndexerError {
+    const validationErrors = issues.map((issue) => ({
+      path: issue.path.map(String).join('.') || '(root)',
+      message: issue.message,
+    }));
+
+    const details = validationErrors.map((e) => `  ${e.path}: ${e.message}`).join('\n');
+
+    return new IndexerError({
+      category: 'VALIDATION',
+      code: 'VALIDATION_FAILED',
+      message: `VALIDATION_FAILED: Invalid input for ${actionName}.\n${details}`,
+      validationErrors,
     });
   }
 }
