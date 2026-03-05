@@ -599,7 +599,7 @@ Plans:
 | 10.8  | 1/1                                |   Complete   | 2026-03-05 |
 | 10.9  | 1/1                                |   Complete   | 2026-03-05 |
 | 10.10 | Encrypted Assets Subscription      | Complete    | 2026-03-05 |
-| 10.11 | 1/1 | Complete   | 2026-03-05 |
+| 10.11 | 1/1 | Complete    | 2026-03-05 |
 | 10.12 | Token ID Data Changed Subscription |      0       | Pending    |
 | 10.13 | Universal Receiver Subscription    |      0       | Pending    |
 | 11    | Server Actions & Publish Readiness |      4       | Pending    |
