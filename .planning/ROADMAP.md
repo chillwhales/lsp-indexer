@@ -612,7 +612,7 @@ Plans:
 | 10.12 | Token ID Data Changed Sub.        |     1/1      | Complete    |
 | 10.13 | Universal Receiver Events Sub.    |     1/1      | Complete    |
 | 11    | Server Actions & Publish Ready    |     4/4      | Complete    |
-| 12    | Replace Local Pkgs → @chillwhales |      4       | Not started |
+| 12    | 1/2 | In Progress|  |
 | 13    | Indexer v1 Cleanup                |      4       | Not started |
 | 14    | Comments Cleanup & Release Prep   |      4       | Not started |
 | 15    | CI/CD Workflows & Shared Infra    |      4       | Not started |
@@ -765,7 +765,7 @@ Subscriptions (Phase 10) add cache integration logic that affects the query laye
 | MIGRATE-03 | Utility functions in this repo that are generic enough for the LUKSO ecosystem are identified, extracted, and contributed as PRs to `chillwhales/LSPs`         |
 | MIGRATE-04 | All 4 publishable packages (`@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`) build and pass validation after migration    |
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 

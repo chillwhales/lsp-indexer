@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: completed
-last_updated: "2026-03-05T17:29:26.422Z"
-last_activity: 2026-03-05 — Phase 11 plan 02 complete (ACTION-02, DX-03)
+status: executing
+last_updated: "2026-03-05T22:23:07.728Z"
+last_activity: 2026-03-05 — Phase 12 plan 01 complete (MIGRATE-01, MIGRATE-02, MIGRATE-04)
 progress:
   total_phases: 45
   completed_phases: 35
-  total_plans: 111
-  completed_plans: 98
-  percent: 88
+  total_plans: 113
+  completed_plans: 99
+  percent: 89
 ---
 
 # State: LSP Indexer
@@ -21,15 +21,15 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 11 complete, all 4 packages publish-ready (publint + attw zero errors)
+**Current focus:** v1.1 React Hooks Package — Phase 12 in progress, replacing local packages with @chillwhales npm packages
 
 ## Current Position
 
-- **Phase:** 11 of 11 (Server Actions & Publish Readiness)
-- **Plan:** 2 of 2 in current phase (complete)
-- **Status:** Milestone complete
-- **Last activity:** 2026-03-05 — Phase 11 plan 02 complete (ACTION-02, DX-03)
-- **Progress:** [████████▉░] 88%
+- **Phase:** 12 of 15 (Replace Local Packages with @chillwhales NPM)
+- **Plan:** 1 of 2 in current phase (complete)
+- **Status:** In Progress
+- **Last activity:** 2026-03-05 — Phase 12 plan 01 complete (MIGRATE-01, MIGRATE-02, MIGRATE-04)
+- **Progress:** [████████▉░] 89%
 
 ## Milestone History
 
@@ -242,18 +242,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-05
-- **Activity:** Executed Phase 11 plan 02 (Publish Validation & Bundle Audit) — 2 tasks, 1 commit
-- **Outcome:** publint + attw installed and all 4 packages pass with zero errors. npm pack audit confirms clean dist/ output. Server/client bundle separation verified. typesVersions added to @lsp-indexer/next for node10 resolution. ACTION-02 + DX-03 requirements complete.
-- **Resume file:** .planning/phases/12-replace-local-packages-with-chillwhales-npm/12-CONTEXT.md
+- **Activity:** Executed Phase 12 plan 01 (Replace local packages with @chillwhales npm) — 2 tasks, 2 commits
+- **Outcome:** Replaced local packages/data-keys/ and packages/lsp1/ with @chillwhales/erc725 and @chillwhales/lsp1 from npm. Created local Zod 4 schemas bridging Zod 3/4 incompatibility. All 4 publishable packages build, pass publint + attw. Test app compiles. MIGRATE-01, MIGRATE-02, MIGRATE-04 complete.
+- **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 11 complete** — All 4 packages npm publish-ready (publint + attw zero errors)
-- **29/30 requirements delivered** — ACTION-02 (bundle separation), DX-03 (publish validation)
-- **Phase 11 was last planned phase** — milestone nearly complete
-- **Remaining:** Phase 10 subscription consolidation (SUB-04) still active
+- **Phase 12 plan 01 complete** — Local packages deleted, @chillwhales deps installed
+- **Ready for plan 12-02** — Upstream contribution audit
 - **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
 
 ---
 
-_Last updated: 2026-03-05 — Phase 11 plan 02 complete (Publish Validation & Bundle Audit — 2 tasks, publint + attw zero errors on all 4 packages, typesVersions fix for @lsp-indexer/next/server node10 resolution)_
+_Last updated: 2026-03-05 — Phase 12 plan 01 complete (Replace local packages — 2 tasks, @chillwhales/erc725 + @chillwhales/lsp1 from npm, local Zod 4 schemas, all builds pass)_
