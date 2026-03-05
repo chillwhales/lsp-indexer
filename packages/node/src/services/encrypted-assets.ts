@@ -7,8 +7,12 @@ import type {
   PartialEncryptedAsset,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetEncryptedAssetsDocument } from '../documents/encrypted-assets';
+import {
+  EncryptedAssetSubscriptionDocument,
+  GetEncryptedAssetsDocument,
+} from '../documents/encrypted-assets';
 import type {
+  EncryptedAssetSubscriptionSubscription,
   Lsp29_Encrypted_Asset_Bool_Exp,
   Lsp29_Encrypted_Asset_Order_By,
 } from '../graphql/graphql';
@@ -236,6 +240,50 @@ export function buildEncryptedAssetIncludeVars(
   }
 
   return vars;
+}
+
+// ---------------------------------------------------------------------------
+// Subscription config builder
+// ---------------------------------------------------------------------------
+
+/** Raw row type extracted from the subscription result for type-safe parser wiring. */
+type RawEncryptedAssetSubscriptionRow =
+  EncryptedAssetSubscriptionSubscription['lsp29_encrypted_asset'][number];
+
+/**
+ * Build a fully-typed `SubscriptionConfig` for encrypted asset subscriptions.
+ *
+ * Assembles document, variables, extract function, and parser into a single
+ * config object that the `useSubscription` hook can consume via
+ * `useSubscription` without any casts or `unknown` holes.
+ *
+ * Entity domain — uses Hasura default ordering (`order_by: undefined` when no sort).
+ *
+ * @param params - Filter, sort, limit, and include configuration
+ * @returns A config object consumable by `useSubscription`
+ */
+export function buildEncryptedAssetSubscriptionConfig(params: {
+  filter?: EncryptedAssetFilter;
+  sort?: EncryptedAssetSort;
+  limit?: number;
+  include?: EncryptedAssetInclude;
+}) {
+  const where = buildEncryptedAssetWhere(params.filter);
+  const orderBy = buildEncryptedAssetOrderBy(params.sort);
+  const includeVars = buildEncryptedAssetIncludeVars(params.include);
+
+  return {
+    document: EncryptedAssetSubscriptionDocument,
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: orderBy,
+      limit: params.limit,
+      ...includeVars,
+    },
+    extract: (result: EncryptedAssetSubscriptionSubscription) => result.lsp29_encrypted_asset,
+    parser: (raw: RawEncryptedAssetSubscriptionRow[]) =>
+      params.include ? parseEncryptedAssets(raw, params.include) : parseEncryptedAssets(raw),
+  };
 }
 
 // ---------------------------------------------------------------------------

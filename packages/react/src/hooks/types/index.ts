@@ -1,5 +1,6 @@
 export * from './creators';
 export * from './digital-assets';
+export * from './encrypted-assets';
 export * from './followers';
 export * from './issued-assets';
 export * from './nfts';
