@@ -1,4 +1,23 @@
+import type { FetchIssuedAssetsResult } from '@lsp-indexer/node';
 import type { IssuedAssetFilter, IssuedAssetInclude, IssuedAssetSort } from '@lsp-indexer/types';
+import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
+
+/** Flat return shape for useIssuedAssets — issuedAssets array + totalCount + query state */
+export type UseIssuedAssetsReturn<F> = { issuedAssets: F[]; totalCount: number } & Omit<
+  UseQueryResult<FetchIssuedAssetsResult<F>, Error>,
+  'data'
+>;
+
+/** Flat return shape for useInfiniteIssuedAssets — issuedAssets array + infinite scroll controls + query state */
+export type UseInfiniteIssuedAssetsReturn<F> = {
+  issuedAssets: F[];
+  hasNextPage: boolean;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  isFetchingNextPage: boolean;
+} & Omit<
+  UseInfiniteQueryResult<InfiniteData<FetchIssuedAssetsResult<F>>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;
 
 /**
  * Base params for `useIssuedAssetSubscription`.

@@ -15,7 +15,6 @@ import {
 } from '@lsp-indexer/react';
 import type {
   IssuedAssetFilter,
-  IssuedAssetInclude,
   IssuedAssetSort,
   IssuedAssetSortField,
   SortDirection,
@@ -174,7 +173,7 @@ function useListState() {
   const include = buildNestedInclude(includeValues, {
     issuerProfile: issuerProfile.value,
     digitalAsset: digitalAsset.value,
-  }) as IssuedAssetInclude | undefined;
+  });
 
   return {
     values,
