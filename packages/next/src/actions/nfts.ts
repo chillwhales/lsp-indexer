@@ -69,14 +69,14 @@ export async function getNfts(params?: {
   limit?: number;
   offset?: number;
 }): Promise<FetchNftsResult>;
-export async function getNfts<const I extends NftInclude>(params: {
+export async function getNfts<const I extends NftInclude>(params?: {
   filter?: NftFilter;
   sort?: NftSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchNftsResult<NftResult<I>>>;
-export async function getNfts(params: {
+export async function getNfts(params?: {
   filter?: NftFilter;
   sort?: NftSort;
   limit?: number;

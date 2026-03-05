@@ -55,14 +55,14 @@ export async function getOwnedTokens(params?: {
   limit?: number;
   offset?: number;
 }): Promise<FetchOwnedTokensResult>;
-export async function getOwnedTokens<const I extends OwnedTokenInclude>(params: {
+export async function getOwnedTokens<const I extends OwnedTokenInclude>(params?: {
   filter?: OwnedTokenFilter;
   sort?: OwnedTokenSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchOwnedTokensResult<OwnedTokenResult<I>>>;
-export async function getOwnedTokens(params: {
+export async function getOwnedTokens(params?: {
   filter?: OwnedTokenFilter;
   sort?: OwnedTokenSort;
   limit?: number;

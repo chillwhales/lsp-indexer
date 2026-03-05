@@ -55,14 +55,14 @@ export async function getDigitalAssets(params?: {
   limit?: number;
   offset?: number;
 }): Promise<FetchDigitalAssetsResult>;
-export async function getDigitalAssets<const I extends DigitalAssetInclude>(params: {
+export async function getDigitalAssets<const I extends DigitalAssetInclude>(params?: {
   filter?: DigitalAssetFilter;
   sort?: DigitalAssetSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchDigitalAssetsResult<DigitalAssetResult<I>>>;
-export async function getDigitalAssets(params: {
+export async function getDigitalAssets(params?: {
   filter?: DigitalAssetFilter;
   sort?: DigitalAssetSort;
   limit?: number;

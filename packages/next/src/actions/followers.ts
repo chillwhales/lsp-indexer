@@ -53,9 +53,7 @@ export async function getFollows(params: {
   offset?: number;
   include?: FollowerInclude;
 }): Promise<FetchFollowsResult<PartialFollower>> {
-  const url = getServerUrl();
-  if (params.include) return fetchFollows(url, params);
-  return fetchFollows(url, params);
+  return fetchFollows(getServerUrl(), params);
 }
 
 /**
@@ -68,8 +66,7 @@ export async function getFollows(params: {
  * @returns FollowCount with followerCount and followingCount
  */
 export async function getFollowCount(address: string): Promise<FollowCount> {
-  const url = getServerUrl();
-  return fetchFollowCount(url, { address });
+  return fetchFollowCount(getServerUrl(), { address });
 }
 
 /**
@@ -86,6 +83,5 @@ export async function getIsFollowing(
   followerAddress: string,
   followedAddress: string,
 ): Promise<boolean> {
-  const url = getServerUrl();
-  return fetchIsFollowing(url, { followerAddress, followedAddress });
+  return fetchIsFollowing(getServerUrl(), { followerAddress, followedAddress });
 }

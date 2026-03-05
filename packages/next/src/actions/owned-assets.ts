@@ -55,14 +55,14 @@ export async function getOwnedAssets(params?: {
   limit?: number;
   offset?: number;
 }): Promise<FetchOwnedAssetsResult>;
-export async function getOwnedAssets<const I extends OwnedAssetInclude>(params: {
+export async function getOwnedAssets<const I extends OwnedAssetInclude>(params?: {
   filter?: OwnedAssetFilter;
   sort?: OwnedAssetSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchOwnedAssetsResult<OwnedAssetResult<I>>>;
-export async function getOwnedAssets(params: {
+export async function getOwnedAssets(params?: {
   filter?: OwnedAssetFilter;
   sort?: OwnedAssetSort;
   limit?: number;

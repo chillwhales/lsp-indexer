@@ -25,27 +25,27 @@ import type {
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed encrypted assets and total count
  */
-export async function getEncryptedAssets(params: {
+export async function getEncryptedAssets(params?: {
   filter?: EncryptedAssetFilter;
   sort?: EncryptedAssetSort;
   limit?: number;
   offset?: number;
 }): Promise<FetchEncryptedAssetsResult>;
-export async function getEncryptedAssets<const I extends EncryptedAssetInclude>(params: {
+export async function getEncryptedAssets<const I extends EncryptedAssetInclude>(params?: {
   filter?: EncryptedAssetFilter;
   sort?: EncryptedAssetSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchEncryptedAssetsResult<EncryptedAssetResult<I>>>;
-export async function getEncryptedAssets(params: {
+export async function getEncryptedAssets(params?: {
   filter?: EncryptedAssetFilter;
   sort?: EncryptedAssetSort;
   limit?: number;
   offset?: number;
   include?: EncryptedAssetInclude;
 }): Promise<FetchEncryptedAssetsResult<PartialEncryptedAsset>>;
-export async function getEncryptedAssets(params: {
+export async function getEncryptedAssets(params?: {
   filter?: EncryptedAssetFilter;
   sort?: EncryptedAssetSort;
   limit?: number;

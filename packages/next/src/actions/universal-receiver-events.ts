@@ -24,7 +24,7 @@ import type {
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed universal receiver events and total count
  */
-export async function getUniversalReceiverEvents(params: {
+export async function getUniversalReceiverEvents(params?: {
   filter?: UniversalReceiverEventFilter;
   sort?: UniversalReceiverEventSort;
   limit?: number;
@@ -32,21 +32,21 @@ export async function getUniversalReceiverEvents(params: {
 }): Promise<FetchUniversalReceiverEventsResult>;
 export async function getUniversalReceiverEvents<
   const I extends UniversalReceiverEventInclude,
->(params: {
+>(params?: {
   filter?: UniversalReceiverEventFilter;
   sort?: UniversalReceiverEventSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchUniversalReceiverEventsResult<UniversalReceiverEventResult<I>>>;
-export async function getUniversalReceiverEvents(params: {
+export async function getUniversalReceiverEvents(params?: {
   filter?: UniversalReceiverEventFilter;
   sort?: UniversalReceiverEventSort;
   limit?: number;
   offset?: number;
   include?: UniversalReceiverEventInclude;
 }): Promise<FetchUniversalReceiverEventsResult<PartialUniversalReceiverEvent>>;
-export async function getUniversalReceiverEvents(params: {
+export async function getUniversalReceiverEvents(params?: {
   filter?: UniversalReceiverEventFilter;
   sort?: UniversalReceiverEventSort;
   limit?: number;

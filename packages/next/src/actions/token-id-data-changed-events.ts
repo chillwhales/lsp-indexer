@@ -24,20 +24,20 @@ import type {
  * @param params - Query parameters (filter + optional include)
  * @returns The latest matching event, or `null` if none found
  */
-export async function getLatestTokenIdDataChangedEvent(params: {
+export async function getLatestTokenIdDataChangedEvent(params?: {
   filter?: TokenIdDataChangedEventFilter;
 }): Promise<TokenIdDataChangedEvent | null>;
 export async function getLatestTokenIdDataChangedEvent<
   const I extends TokenIdDataChangedEventInclude,
->(params: {
+>(params?: {
   filter?: TokenIdDataChangedEventFilter;
   include: I;
 }): Promise<TokenIdDataChangedEventResult<I> | null>;
-export async function getLatestTokenIdDataChangedEvent(params: {
+export async function getLatestTokenIdDataChangedEvent(params?: {
   filter?: TokenIdDataChangedEventFilter;
   include?: TokenIdDataChangedEventInclude;
 }): Promise<PartialTokenIdDataChangedEvent | null>;
-export async function getLatestTokenIdDataChangedEvent(params: {
+export async function getLatestTokenIdDataChangedEvent(params?: {
   filter?: TokenIdDataChangedEventFilter;
   include?: TokenIdDataChangedEventInclude;
 }): Promise<PartialTokenIdDataChangedEvent | null> {
@@ -55,7 +55,7 @@ export async function getLatestTokenIdDataChangedEvent(params: {
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed token ID data changed events and total count
  */
-export async function getTokenIdDataChangedEvents(params: {
+export async function getTokenIdDataChangedEvents(params?: {
   filter?: TokenIdDataChangedEventFilter;
   sort?: TokenIdDataChangedEventSort;
   limit?: number;
@@ -63,21 +63,21 @@ export async function getTokenIdDataChangedEvents(params: {
 }): Promise<FetchTokenIdDataChangedEventsResult>;
 export async function getTokenIdDataChangedEvents<
   const I extends TokenIdDataChangedEventInclude,
->(params: {
+>(params?: {
   filter?: TokenIdDataChangedEventFilter;
   sort?: TokenIdDataChangedEventSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchTokenIdDataChangedEventsResult<TokenIdDataChangedEventResult<I>>>;
-export async function getTokenIdDataChangedEvents(params: {
+export async function getTokenIdDataChangedEvents(params?: {
   filter?: TokenIdDataChangedEventFilter;
   sort?: TokenIdDataChangedEventSort;
   limit?: number;
   offset?: number;
   include?: TokenIdDataChangedEventInclude;
 }): Promise<FetchTokenIdDataChangedEventsResult<PartialTokenIdDataChangedEvent>>;
-export async function getTokenIdDataChangedEvents(params: {
+export async function getTokenIdDataChangedEvents(params?: {
   filter?: TokenIdDataChangedEventFilter;
   sort?: TokenIdDataChangedEventSort;
   limit?: number;
