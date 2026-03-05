@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-last_updated: "2026-03-05T22:23:07.728Z"
-last_activity: 2026-03-05 — Phase 12 plan 01 complete (MIGRATE-01, MIGRATE-02, MIGRATE-04)
+last_updated: '2026-03-05T22:34:21.592Z'
+last_activity: 2026-03-05 — Phase 12 complete (plan 02: upstream audit, MIGRATE-03)
 progress:
   total_phases: 45
-  completed_phases: 35
+  completed_phases: 36
   total_plans: 113
-  completed_plans: 99
-  percent: 89
+  completed_plans: 100
+  percent: 88
 ---
 
 # State: LSP Indexer
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 ## Current Position
 
-- **Phase:** 12 of 15 (Replace Local Packages with @chillwhales NPM)
-- **Plan:** 1 of 2 in current phase (complete)
-- **Status:** In Progress
-- **Last activity:** 2026-03-05 — Phase 12 plan 01 complete (MIGRATE-01, MIGRATE-02, MIGRATE-04)
-- **Progress:** [████████▉░] 89%
+- **Phase:** 12 of 15 (Replace Local Packages with @chillwhales NPM) — **Complete**
+- **Plan:** 2 of 2 in current phase (complete)
+- **Status:** Phase Complete
+- **Last activity:** 2026-03-05 — Phase 12 plan 02 complete (MIGRATE-03 — upstream audit, no PRs warranted)
+- **Progress:** [█████████░] 88%
 
 ## Milestone History
 
@@ -41,48 +41,49 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 
 ## v1.1 Progress
 
-| Phase | Name                               | Requirements | Status   |
-| ----- | ---------------------------------- | :----------: | -------- |
-| 7     | Package Foundation                 |     7/7      | Complete |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete |
-| 9.1   | Digital Assets                     |     1/1      | Complete |
-| 9.2   | NFTs                               |     1/1      | Complete |
-| 9.3   | Owned Assets                       |     1/1      | Complete |
-| 9.4   | Conditional Include Types          |     1/1      | Complete |
-| 9.5   | Social / Follows                   |     1/1      | Complete |
-| 9.6   | Generic Type Propagation           |     1/1      | Complete |
-| 9.7   | Creators                           |     1/1      | Complete |
-| 9.8   | Issued Assets                      |     1/1      | Complete |
-| 9.9   | Encrypted Feed                     |     1/1      | Complete |
-| 9.10  | Data Changed Events                |     1/1      | Complete |
-| 9.11  | Universal Receiver Events          |     1/1      | Complete |
-| 9.12  | Block-Ordered Sorting              |      0       | Complete |
-| 10.1  | Subscription Foundation            |     1/1      | Complete |
-| 10.2  | Profiles Subscription              |     2/2      | Complete |
-| 10.3  | Digital Assets Subscription        |     2/2      | Complete |
-| 10.4  | NFTs Subscription                  |     2/2      | Complete |
-| 10.5  | Owned Assets Subscription          |     2/2      | Complete |
-| 10.6  | Owned Tokens Subscription          |     2/2      | Complete |
-| 10.7  | Followers Subscription             |     2/2      | Complete |
-| 10.8  | Creators Subscription              |     2/2      | Complete |
-| 10.9  | Issued Assets Subscription         |     2/2      | Complete |
-| 10.10 | Encrypted Assets Subscription      |     2/2      | Complete |
-| 10.11 | Data Changed Events Subscription   |     2/2      | Complete |
-| 10.12 | Token ID Data Changed Events Sub.  |     2/2      | Complete |
-| 10.13 | Universal Receiver Events Sub.     |     2/2      | Complete |
-| 10    | Subscriptions                      |      1       | Active   |
-| 11    | Server Actions & Publish Readiness |     4/4      | Complete |
+| Phase | Name                                         | Requirements | Status   |
+| ----- | -------------------------------------------- | :----------: | -------- |
+| 7     | Package Foundation                           |     7/7      | Complete |
+| 8     | First Vertical Slice (Profiles)              |     3/3      | Complete |
+| 9.1   | Digital Assets                               |     1/1      | Complete |
+| 9.2   | NFTs                                         |     1/1      | Complete |
+| 9.3   | Owned Assets                                 |     1/1      | Complete |
+| 9.4   | Conditional Include Types                    |     1/1      | Complete |
+| 9.5   | Social / Follows                             |     1/1      | Complete |
+| 9.6   | Generic Type Propagation                     |     1/1      | Complete |
+| 9.7   | Creators                                     |     1/1      | Complete |
+| 9.8   | Issued Assets                                |     1/1      | Complete |
+| 9.9   | Encrypted Feed                               |     1/1      | Complete |
+| 9.10  | Data Changed Events                          |     1/1      | Complete |
+| 9.11  | Universal Receiver Events                    |     1/1      | Complete |
+| 9.12  | Block-Ordered Sorting                        |      0       | Complete |
+| 10.1  | Subscription Foundation                      |     1/1      | Complete |
+| 10.2  | Profiles Subscription                        |     2/2      | Complete |
+| 10.3  | Digital Assets Subscription                  |     2/2      | Complete |
+| 10.4  | NFTs Subscription                            |     2/2      | Complete |
+| 10.5  | Owned Assets Subscription                    |     2/2      | Complete |
+| 10.6  | Owned Tokens Subscription                    |     2/2      | Complete |
+| 10.7  | Followers Subscription                       |     2/2      | Complete |
+| 10.8  | Creators Subscription                        |     2/2      | Complete |
+| 10.9  | Issued Assets Subscription                   |     2/2      | Complete |
+| 10.10 | Encrypted Assets Subscription                |     2/2      | Complete |
+| 10.11 | Data Changed Events Subscription             |     2/2      | Complete |
+| 10.12 | Token ID Data Changed Events Sub.            |     2/2      | Complete |
+| 10.13 | Universal Receiver Events Sub.               |     2/2      | Complete |
+| 10    | Subscriptions                                |      1       | Active   |
+| 11    | Server Actions & Publish Readiness           |     4/4      | Complete |
+| 12    | Replace Local Packages with @chillwhales NPM |     4/4      | Complete |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 29/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, QUERY-09, QUERY-10, DX-01, DX-02, DX-03, DX-04, DX-05, PAGE-01 incremental, SUB-01, SUB-02, SUB-03, ACTION-01, ACTION-02, ACTION-03)
+**Total:** 30/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, QUERY-09, QUERY-10, DX-01, DX-02, DX-03, DX-04, DX-05, PAGE-01 incremental, SUB-01, SUB-02, SUB-03, ACTION-01, ACTION-02, ACTION-03, MIGRATE-01, MIGRATE-02, MIGRATE-03, MIGRATE-04)
 
 ## Performance Metrics
 
-- **Plans completed:** 102 (36 v1.0 + 66 v1.1)
+- **Plans completed:** 103 (36 v1.0 + 67 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 39 (11 v1.0 + 28 v1.1 including all Phase 9 sub-phases + Phase 10.1 through Phase 10.13 + Phase 11)
-- **Requirements delivered:** 45/45 (v1.0), 29/30 (v1.1)
+- **Phases completed:** 40 (11 v1.0 + 29 v1.1 including all Phase 9 sub-phases + Phase 10.1 through Phase 10.13 + Phase 11 + Phase 12)
+- **Requirements delivered:** 45/45 (v1.0), 30/30 (v1.1)
 
 ## Accumulated Context
 
@@ -242,16 +243,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-05
-- **Activity:** Executed Phase 12 plan 01 (Replace local packages with @chillwhales npm) — 2 tasks, 2 commits
-- **Outcome:** Replaced local packages/data-keys/ and packages/lsp1/ with @chillwhales/erc725 and @chillwhales/lsp1 from npm. Created local Zod 4 schemas bridging Zod 3/4 incompatibility. All 4 publishable packages build, pass publint + attw. Test app compiles. MIGRATE-01, MIGRATE-02, MIGRATE-04 complete.
+- **Activity:** Executed Phase 12 plan 02 (Cross-check audit & upstream contribution) — 2 tasks, 1 commit
+- **Outcome:** Cross-checked all 16 @chillwhales/\* packages against lsp-indexer codebase. No additional swap opportunities found (different stack layers). No upstream PRs warranted (all local utilities are Hasura-specific or already covered). MIGRATE-03 complete. Phase 12 complete.
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 12 plan 01 complete** — Local packages deleted, @chillwhales deps installed
-- **Ready for plan 12-02** — Upstream contribution audit
+- **Phase 12 complete** — All @chillwhales package swaps done (Plan 01), upstream audit done (Plan 02)
+- **Ready for Phase 13** — Indexer v1 cleanup
 - **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
 
 ---
 
-_Last updated: 2026-03-05 — Phase 12 plan 01 complete (Replace local packages — 2 tasks, @chillwhales/erc725 + @chillwhales/lsp1 from npm, local Zod 4 schemas, all builds pass)_
+_Last updated: 2026-03-05 — Phase 12 complete (Plan 02: upstream audit — no additional swaps, no PRs warranted, MIGRATE-03 done)_
