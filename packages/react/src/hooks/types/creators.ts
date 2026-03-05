@@ -1,4 +1,23 @@
+import type { FetchCreatorsResult } from '@lsp-indexer/node';
 import type { CreatorFilter, CreatorInclude, CreatorSort } from '@lsp-indexer/types';
+import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
+
+/** Flat return shape for useCreators — creators array + totalCount + query state */
+export type UseCreatorsReturn<F> = { creators: F[]; totalCount: number } & Omit<
+  UseQueryResult<FetchCreatorsResult<F>, Error>,
+  'data'
+>;
+
+/** Flat return shape for useInfiniteCreators — creators array + infinite scroll controls + query state */
+export type UseInfiniteCreatorsReturn<F> = {
+  creators: F[];
+  hasNextPage: boolean;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  isFetchingNextPage: boolean;
+} & Omit<
+  UseInfiniteQueryResult<InfiniteData<FetchCreatorsResult<F>>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;
 
 /**
  * Base params for `useCreatorSubscription`.
