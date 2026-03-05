@@ -41,7 +41,5 @@ import { createUseDataChangedEvents } from '../factories';
  * ```
  */
 export const useDataChangedEvents = createUseDataChangedEvents((params) =>
-  params.include
-    ? fetchDataChangedEvents(getClientUrl(), params)
-    : fetchDataChangedEvents(getClientUrl(), params),
+  fetchDataChangedEvents(getClientUrl(), params),
 );

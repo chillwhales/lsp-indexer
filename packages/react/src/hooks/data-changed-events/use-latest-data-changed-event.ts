@@ -32,10 +32,5 @@ import { createUseLatestDataChangedEvent } from '../factories';
  * ```
  */
 export const useLatestDataChangedEvent = createUseLatestDataChangedEvent((params) =>
-  params.include
-    ? fetchLatestDataChangedEvent(getClientUrl(), {
-        filter: params.filter,
-        include: params.include,
-      })
-    : fetchLatestDataChangedEvent(getClientUrl(), { filter: params.filter }),
+  fetchLatestDataChangedEvent(getClientUrl(), params),
 );

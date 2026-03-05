@@ -51,7 +51,5 @@ import { createUseInfiniteDataChangedEvents } from '../factories';
  * ```
  */
 export const useInfiniteDataChangedEvents = createUseInfiniteDataChangedEvents((params) =>
-  params.include
-    ? fetchDataChangedEvents(getClientUrl(), params)
-    : fetchDataChangedEvents(getClientUrl(), params),
+  fetchDataChangedEvents(getClientUrl(), params),
 );
