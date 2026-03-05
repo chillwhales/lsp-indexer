@@ -15,7 +15,7 @@ import type {
   UseInfiniteEncryptedAssetsParams,
 } from '@lsp-indexer/types';
 
-import { getEncryptedAssets } from '../actions/encrypted-assets';
+import { getEncryptedAssets } from '../../actions/encrypted-assets';
 
 /** Default number of encrypted assets per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;

@@ -1,14 +1,16 @@
 'use client';
 
-import { Infinity, List } from 'lucide-react';
+import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useEncryptedAssets as useEncryptedAssetsNext,
+  useEncryptedAssetSubscription as useEncryptedAssetSubscriptionNext,
   useInfiniteEncryptedAssets as useInfiniteEncryptedAssetsNext,
 } from '@lsp-indexer/next';
 import {
   useEncryptedAssets as useEncryptedAssetsReact,
+  useEncryptedAssetSubscription as useEncryptedAssetSubscriptionReact,
   useInfiniteEncryptedAssets as useInfiniteEncryptedAssetsReact,
 } from '@lsp-indexer/react';
 import type {
@@ -18,6 +20,10 @@ import type {
   SortDirection,
   SortNulls,
 } from '@lsp-indexer/types';
+
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 import { EncryptedAssetCard } from '@/components/encrypted-asset-card';
 import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
@@ -123,6 +129,7 @@ const SORT_OPTIONS: SortOption[] = [
 type EncryptedAssetHooks = {
   useEncryptedAssets: typeof useEncryptedAssetsReact;
   useInfiniteEncryptedAssets: typeof useInfiniteEncryptedAssetsReact;
+  useEncryptedAssetSubscription: typeof useEncryptedAssetSubscriptionReact;
 };
 
 function useEncryptedAssetHooks(mode: HookMode): EncryptedAssetHooks {
@@ -130,11 +137,13 @@ function useEncryptedAssetHooks(mode: HookMode): EncryptedAssetHooks {
     return {
       useEncryptedAssets: useEncryptedAssetsNext,
       useInfiniteEncryptedAssets: useInfiniteEncryptedAssetsNext,
+      useEncryptedAssetSubscription: useEncryptedAssetSubscriptionNext,
     };
   }
   return {
     useEncryptedAssets: useEncryptedAssetsReact,
     useInfiniteEncryptedAssets: useInfiniteEncryptedAssetsReact,
+    useEncryptedAssetSubscription: useEncryptedAssetSubscriptionReact,
   };
 }
 
@@ -399,6 +408,93 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
+// Tab 3: Subscription (real-time)
+// ---------------------------------------------------------------------------
+
+function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useEncryptedAssetSubscription } = useEncryptedAssetHooks(mode);
+  const state = useListState();
+  const [limit, setLimit] = useState(10);
+  const [invalidate, setInvalidate] = useState(false);
+
+  const { data, isConnected, isSubscribed, error } = useEncryptedAssetSubscription({
+    filter: state.filter,
+    sort: state.sort,
+    limit,
+    include: state.include,
+    invalidate,
+  });
+
+  // Map subscription shape to ResultsList expectations
+  const encryptedAssets = data ?? [];
+  const isLoading = data === null && isSubscribed;
+  const normalizedError =
+    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Connection status + invalidate toggle */}
+      <div className="flex items-center gap-3">
+        <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
+          {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </Badge>
+        <Badge variant={isSubscribed ? 'default' : 'secondary'}>
+          {isSubscribed ? 'Subscribed' : 'Idle'}
+        </Badge>
+        <div className="ml-auto flex items-center space-x-2">
+          <Switch id="sub-invalidate" checked={invalidate} onCheckedChange={setInvalidate} />
+          <Label htmlFor="sub-invalidate">Invalidate Cache</Label>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <FilterFieldsRow
+          configs={ROW1_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+        <FilterFieldsRow
+          configs={ROW2_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+        <FilterFieldsRow
+          configs={ROW3_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+      </div>
+      <SortControls
+        options={SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as EncryptedAssetSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
+        limit={limit}
+        onLimitChange={setLimit}
+      />
+      <IncludeSections {...state} />
+      <ResultsList
+        items={encryptedAssets}
+        isLoading={isLoading}
+        isFetching={false}
+        error={normalizedError}
+        renderItem={(ea) => <EncryptedAssetCard encryptedAsset={ea} />}
+        getKey={(ea) => `${ea.address}-${ea.contentId ?? ''}-${ea.revision ?? ''}`}
+        label="encrypted assets"
+        totalCount={encryptedAssets.length}
+        hasActiveFilter={state.hasActiveFilter}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -408,12 +504,15 @@ export default function EncryptedAssetsPage(): React.ReactNode {
       title="Encrypted Assets"
       description={
         <>
-          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useEncryptedAssets</code>{' '}
+          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useEncryptedAssets</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteEncryptedAssets</code>,
           and{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteEncryptedAssets</code>{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">
+            useEncryptedAssetSubscription
+          </code>{' '}
           hooks against the{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">lsp29_encrypted_asset</code> table
-          via Hasura (QUERY-08).
+          via Hasura (QUERY-08, SUB-02, SUB-03).
         </>
       }
       tabs={[
@@ -428,6 +527,12 @@ export default function EncryptedAssetsPage(): React.ReactNode {
           label: 'Infinite',
           icon: <Infinity className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
+        },
+        {
+          value: 'subscription',
+          label: 'Subscription',
+          icon: <Radio className="size-4" />,
+          render: (mode) => <SubscriptionTab mode={mode} />,
         },
       ]}
     />
