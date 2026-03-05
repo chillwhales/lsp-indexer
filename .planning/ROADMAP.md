@@ -583,7 +583,7 @@ Plans:
 ## Progress
 
 | Phase | Name                              | Requirements | Status      |
-| ----- | --------------------------------- | :----------: | ----------- | --- |
+| ----- | --------------------------------- | :----------: | ----------- |
 | 7     | Package Foundation                |     7/7      | Complete    |
 | 8     | First Vertical Slice (Profiles)   |     3/3      | Complete    |
 | 9.1   | Digital Assets                    |     1/1      | Complete    |
@@ -603,19 +603,19 @@ Plans:
 | 10.3  | Digital Assets Subscription       |     1/1      | Complete    |
 | 10.4  | NFTs Subscription                 |     1/1      | Complete    |
 | 10.5  | Owned Assets Subscription         |     1/1      | Complete    |
-| 10.6  | 1/1                               |   Complete   | 2026-03-04  |
-| 10.7  | 1/1                               |   Complete   | 2026-03-04  |
-| 10.8  | 1/1                               |   Complete   | 2026-03-05  |
-| 10.9  | 1/1                               |   Complete   | 2026-03-05  |
-| 10.10 | Encrypted Assets Subscription     |   Complete   | 2026-03-05  |
-| 10.11 | 1/1                               |   Complete   | 2026-03-05  |
-| 10.12 | 1/1                               |   Complete   | 2026-03-05  |
-| 10.13 | 1/1                               |   Complete   | 2026-03-05  |
-| 11    | 2/2                               |   Complete   | 2026-03-05  |
-| 12    | Replace Local Pkgs → @chillwhales |      4       | Not started | -   |
-| 13    | Indexer v1 Cleanup                |      4       | Not started | -   |
-| 14    | Comments Cleanup & Release Prep   |      4       | Not started | -   |
-| 15    | CI/CD Workflows & Shared Infra    |      4       | Not started | -   |
+| 10.6  | Owned Tokens Subscription         |     1/1      | Complete    |
+| 10.7  | Followers Subscription            |     1/1      | Complete    |
+| 10.8  | Creators Subscription             |     1/1      | Complete    |
+| 10.9  | Issued Assets Subscription        |     1/1      | Complete    |
+| 10.10 | Encrypted Assets Subscription     |     1/1      | Complete    |
+| 10.11 | Data Changed Events Subscription  |     1/1      | Complete    |
+| 10.12 | Token ID Data Changed Sub.        |     1/1      | Complete    |
+| 10.13 | Universal Receiver Events Sub.    |     1/1      | Complete    |
+| 11    | Server Actions & Publish Ready    |     4/4      | Complete    |
+| 12    | Replace Local Pkgs → @chillwhales |      4       | Not started |
+| 13    | Indexer v1 Cleanup                |      4       | Not started |
+| 14    | Comments Cleanup & Release Prep   |      4       | Not started |
+| 15    | CI/CD Workflows & Shared Infra    |      4       | Not started |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 

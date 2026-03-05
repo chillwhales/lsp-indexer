@@ -44,7 +44,7 @@ Replace local `packages/data-keys/` and `packages/lsp1/` with published `@chillw
 
 ### Build validation gate
 
-- `pnpm build` passes across all packages
+- All 4 publishable packages build successfully (`@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`) — built individually via `pnpm --filter` since pre-existing indexer build errors prevent repo-wide `pnpm build`
 - `publint` and `arethetypeswrong` pass on all 4 publishable packages
 - Test app `next build` compiles successfully with the swapped deps
 - All three must be green before phase is complete
