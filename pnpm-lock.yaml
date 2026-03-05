@@ -45,12 +45,12 @@ importers:
 
   apps/test:
     dependencies:
-      '@lsp-indexer/data-keys':
-        specifier: workspace:*
-        version: link:../../packages/data-keys
-      '@lsp-indexer/lsp1':
-        specifier: workspace:*
-        version: link:../../packages/lsp1
+      '@chillwhales/erc725':
+        specifier: ^0.1.0
+        version: 0.1.0(@babel/core@7.29.0)
+      '@chillwhales/lsp1':
+        specifier: ^0.1.0
+        version: 0.1.0(@babel/core@7.29.0)
       '@lsp-indexer/next':
         specifier: workspace:*
         version: link:../../packages/next
@@ -174,19 +174,6 @@ importers:
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
-
-  packages/data-keys:
-    dependencies:
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      tsup:
-        specifier: ^8.5.1
-        version: 8.5.1(@swc/core@1.13.3)(jiti@2.6.1)(postcss@8.5.6)(typescript@5.9.3)(yaml@2.8.2)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
 
   packages/indexer:
     dependencies:
@@ -346,37 +333,6 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@24.2.0)(lightningcss@1.30.2)(msw@2.12.10(@types/node@24.2.0)(typescript@5.9.2))
 
-  packages/lsp1:
-    dependencies:
-      '@lukso/lsp0-contracts':
-        specifier: ^0.15.5
-        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp14-contracts':
-        specifier: ^0.15.5
-        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp26-contracts':
-        specifier: ^0.1.7
-        version: 0.1.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp7-contracts':
-        specifier: ^0.16.8
-        version: 0.16.8(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp8-contracts':
-        specifier: ^0.16.7
-        version: 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp9-contracts':
-        specifier: ^0.15.5
-        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      tsup:
-        specifier: ^8.5.1
-        version: 8.5.1(@swc/core@1.13.3)(jiti@2.6.1)(postcss@8.5.6)(typescript@5.9.3)(yaml@2.8.2)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
   packages/next:
     dependencies:
       '@lsp-indexer/node':
@@ -422,15 +378,15 @@ importers:
 
   packages/node:
     dependencies:
+      '@chillwhales/erc725':
+        specifier: ^0.1.0
+        version: 0.1.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@chillwhales/lsp1':
+        specifier: ^0.1.0
+        version: 0.1.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@graphql-typed-document-node/core':
         specifier: ^3.2.0
         version: 3.2.0(graphql@16.12.0)
-      '@lsp-indexer/data-keys':
-        specifier: workspace:*
-        version: link:../data-keys
-      '@lsp-indexer/lsp1':
-        specifier: workspace:*
-        version: link:../lsp1
       '@lsp-indexer/types':
         specifier: workspace:*
         version: link:../types
@@ -512,12 +468,12 @@ importers:
 
   packages/types:
     dependencies:
-      '@lsp-indexer/data-keys':
-        specifier: workspace:*
-        version: link:../data-keys
-      '@lsp-indexer/lsp1':
-        specifier: workspace:*
-        version: link:../lsp1
+      '@chillwhales/erc725':
+        specifier: ^0.1.0
+        version: 0.1.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@chillwhales/lsp1':
+        specifier: ^0.1.0
+        version: 0.1.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -838,6 +794,14 @@ packages:
   '@braidai/lang@1.1.2':
     resolution: {integrity: sha512-qBcknbBufNHlui137Hft8xauQMTZDKdophmLFv05r2eNmdIv/MlPuP4TdUknHG68UdWLgVZwgxVe735HzJNIwA==}
 
+  '@chillwhales/erc725@0.1.0':
+    resolution: {integrity: sha512-3RaJj+4RFo1jB9POz+By+XjrPvsm/n6ivj7IGg2l2e3xR5+nr6sz9Vi/gX3dMhviyAxnVCv4ecfgvcVGWSE9JA==}
+    engines: {node: '>=22'}
+
+  '@chillwhales/lsp1@0.1.0':
+    resolution: {integrity: sha512-PrZZos/Zita1cPttibkqXhdzz8uOS5KLq/s7ck9YMmFiIvriY+aRexuldWyyPVC8kxZ0gGfd+DnMR4zP9W54TA==}
+    engines: {node: '>=22'}
+
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
@@ -873,6 +837,9 @@ packages:
 
   '@erc725/erc725.js@0.28.1':
     resolution: {integrity: sha512-LKHZzHz7JeRHZzsPZjRqmu7UmCtGtalABm0eb1q6jQtmsEThEyMshdY5O4GbZuvUDLXS0fayRAlY3AF8TvuZ5A==}
+
+  '@erc725/smart-contracts@6.0.0':
+    resolution: {integrity: sha512-6okutGGL9xbg/MSgAof2FU1UcSNE/z3p9TORlROVGaM3gi1A6FQQ7fDqtBYkPtvHureX8yS9gP7xPt3PRbP43Q==}
 
   '@erc725/smart-contracts@7.0.0':
     resolution: {integrity: sha512-O/Ki+0JqRStPUHXjdU4JhDUzncLdC33c0xjTRiwWwBYbxL77LlWaPfG96fWp2hF2kdR0zNYvcsnZZds+uj2QMg==}
@@ -2080,6 +2047,9 @@ packages:
 
   '@lukso/lsp1-contracts@0.15.5':
     resolution: {integrity: sha512-w9FNsgaVUzai8ibNDntJlKSwof09WfjrplpYF3kSTMmmX3m3Y7Tuem9JpqR3vz7+oCJdWK8zUH1hHTjg/2Ve6Q==}
+
+  '@lukso/lsp10-contracts@0.15.4':
+    resolution: {integrity: sha512-f+XMOAryKTnJr6gBh0JUvF4ykik70lBwvWB+x0rvlcrdhb4p4tfAZ6iKHIIQFFlZWFpV8D5hSk6wOKLls1OUHw==}
 
   '@lukso/lsp12-contracts@0.15.4':
     resolution: {integrity: sha512-6cEr0dzokJmk/xiiJTQnlcUDYa03bz9wFGH6cRKgtozMnqch6HMoU6KY44iSgXaZcKG8/XqKNxoe0rzLF2DNVg==}
@@ -8346,6 +8316,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@babel/helper-define-polyfill-provider@0.6.4(@babel/core@7.27.1)':
+    dependencies:
+      '@babel/core': 7.27.1
+      '@babel/helper-compilation-targets': 7.28.6
+      '@babel/helper-plugin-utils': 7.28.6
+      debug: 4.4.3
+      lodash.debounce: 4.0.8
+      resolve: 1.22.10
+    transitivePeerDependencies:
+      - supports-color
+
   '@babel/helper-define-polyfill-provider@0.6.4(@babel/core@7.29.0)':
     dependencies:
       '@babel/core': 7.29.0
@@ -8471,6 +8452,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@babel/plugin-transform-runtime@7.27.1(@babel/core@7.27.1)':
+    dependencies:
+      '@babel/core': 7.27.1
+      '@babel/helper-module-imports': 7.28.6
+      '@babel/helper-plugin-utils': 7.28.6
+      babel-plugin-polyfill-corejs2: 0.4.13(@babel/core@7.27.1)
+      babel-plugin-polyfill-corejs3: 0.11.1(@babel/core@7.27.1)
+      babel-plugin-polyfill-regenerator: 0.6.4(@babel/core@7.27.1)
+      semver: 6.3.1
+    transitivePeerDependencies:
+      - supports-color
+
   '@babel/plugin-transform-runtime@7.27.1(@babel/core@7.29.0)':
     dependencies:
       '@babel/core': 7.29.0
@@ -8555,6 +8548,78 @@ snapshots:
 
   '@braidai/lang@1.1.2': {}
 
+  '@chillwhales/erc725@0.1.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@lukso/lsp1-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp10-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp12-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp17contractextension-contracts': 0.16.7
+      '@lukso/lsp3-contracts': 0.16.6(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp4-contracts': 0.16.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp5-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp6-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp8-contracts': 0.16.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp9-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      zod: 3.24.3
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@chillwhales/erc725@0.1.0(@babel/core@7.29.0)':
+    dependencies:
+      '@lukso/lsp1-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp10-contracts': 0.15.4(@babel/core@7.29.0)
+      '@lukso/lsp12-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp17contractextension-contracts': 0.16.7
+      '@lukso/lsp3-contracts': 0.16.6(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp4-contracts': 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp5-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp6-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp8-contracts': 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp9-contracts': 0.15.5(@babel/core@7.29.0)
+      zod: 3.24.3
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@chillwhales/lsp1@0.1.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@lukso/lsp0-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp14-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp26-contracts': 0.1.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp7-contracts': 0.16.8(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp8-contracts': 0.16.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp9-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      zod: 3.24.3
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@chillwhales/lsp1@0.1.0(@babel/core@7.29.0)':
+    dependencies:
+      '@lukso/lsp0-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp14-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp26-contracts': 0.1.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp7-contracts': 0.16.8(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp8-contracts': 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp9-contracts': 0.15.5(@babel/core@7.29.0)
+      zod: 3.24.3
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
   '@colors/colors@1.5.0':
     optional: true
 
@@ -8611,11 +8676,59 @@ snapshots:
       - utf-8-validate
       - zod
 
+  '@erc725/smart-contracts@6.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@openzeppelin/contracts': 4.9.6
+      '@openzeppelin/contracts-upgradeable': 4.9.6
+      solidity-bytes-utils: 0.8.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@erc725/smart-contracts@6.0.0(@babel/core@7.29.0)':
+    dependencies:
+      '@openzeppelin/contracts': 4.9.6
+      '@openzeppelin/contracts-upgradeable': 4.9.6
+      solidity-bytes-utils: 0.8.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@erc725/smart-contracts@7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@openzeppelin/contracts': 4.9.6
+      '@openzeppelin/contracts-upgradeable': 4.9.6
+      solidity-bytes-utils: 0.8.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
   '@erc725/smart-contracts@7.0.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@openzeppelin/contracts': 4.9.6
       '@openzeppelin/contracts-upgradeable': 4.9.6
       solidity-bytes-utils: 0.8.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@erc725/smart-contracts@8.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@openzeppelin/contracts': 4.9.6
+      '@openzeppelin/contracts-upgradeable': 4.9.6
+      solidity-bytes-utils: 0.8.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil
@@ -10057,6 +10170,22 @@ snapshots:
     dependencies:
       '@braidai/lang': 1.1.2
 
+  '@lukso/lsp0-contracts@0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp1-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp14-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp17contractextension-contracts': 0.15.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp20-contracts': 0.15.1
+      '@openzeppelin/contracts': 4.9.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
   '@lukso/lsp0-contracts@0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@erc725/smart-contracts': 7.0.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -10065,6 +10194,17 @@ snapshots:
       '@lukso/lsp17contractextension-contracts': 0.15.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp20-contracts': 0.15.1
+      '@openzeppelin/contracts': 4.9.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@lukso/lsp1-contracts@0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@openzeppelin/contracts': 4.9.6
     transitivePeerDependencies:
       - '@babel/core'
@@ -10084,10 +10224,53 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@lukso/lsp1-contracts@0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@openzeppelin/contracts': 4.9.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
   '@lukso/lsp1-contracts@0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@openzeppelin/contracts': 4.9.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@lukso/lsp10-contracts@0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@erc725/smart-contracts': 6.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@lukso/lsp10-contracts@0.15.4(@babel/core@7.29.0)':
+    dependencies:
+      '@erc725/smart-contracts': 6.0.0(@babel/core@7.29.0)
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@lukso/lsp12-contracts@0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil
@@ -10105,10 +10288,32 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@lukso/lsp14-contracts@0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp1-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
   '@lukso/lsp14-contracts@0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@erc725/smart-contracts': 7.0.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp1-contracts': 0.15.1(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@lukso/lsp17contractextension-contracts@0.15.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@openzeppelin/contracts': 4.9.6
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil
@@ -10134,6 +10339,17 @@ snapshots:
   '@lukso/lsp17contractextension-contracts@0.16.7':
     dependencies:
       '@openzeppelin/contracts': 4.9.6
+
+  '@lukso/lsp2-contracts@0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@openzeppelin/contracts': 4.9.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
 
   '@lukso/lsp2-contracts@0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
@@ -10164,6 +10380,18 @@ snapshots:
     dependencies:
       '@openzeppelin/contracts': 4.9.6
 
+  '@lukso/lsp26-contracts@0.1.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@lukso/lsp0-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp1-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@openzeppelin/contracts': 4.9.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
   '@lukso/lsp26-contracts@0.1.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@lukso/lsp0-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -10186,9 +10414,30 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@lukso/lsp3-contracts@0.16.6(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
   '@lukso/lsp3-contracts@0.16.6(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@lukso/lsp4-contracts@0.16.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@erc725/smart-contracts-v8': '@erc725/smart-contracts@8.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)'
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil
@@ -10207,10 +10456,38 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@lukso/lsp5-contracts@0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
   '@lukso/lsp5-contracts@0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@erc725/smart-contracts': 7.0.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@lukso/lsp6-contracts@0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp1-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp14-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp17contractextension-contracts': 0.15.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp20-contracts': 0.15.1
+      '@lukso/lsp25-contracts': 0.15.5
+      '@openzeppelin/contracts': 4.9.6
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil
@@ -10235,12 +10512,40 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@lukso/lsp7-contracts@0.16.8(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@lukso/lsp1-contracts': 0.15.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp17contractextension-contracts': 0.16.3
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp4-contracts': 0.16.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@openzeppelin/contracts': 4.9.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
   '@lukso/lsp7-contracts@0.16.8(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@lukso/lsp1-contracts': 0.15.1(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp17contractextension-contracts': 0.16.3
       '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp4-contracts': 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@openzeppelin/contracts': 4.9.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@lukso/lsp8-contracts@0.16.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@lukso/lsp1-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp17contractextension-contracts': 0.16.7
+      '@lukso/lsp2-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp4-contracts': 0.16.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@openzeppelin/contracts': 4.9.6
     transitivePeerDependencies:
       - '@babel/core'
@@ -10263,7 +10568,20 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@lukso/lsp9-contracts@0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@lukso/lsp9-contracts@0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@erc725/smart-contracts': 7.0.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp1-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp6-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@openzeppelin/contracts': 4.9.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
+  '@lukso/lsp9-contracts@0.15.5(@babel/core@7.29.0)':
     dependencies:
       '@erc725/smart-contracts': 7.0.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp1-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -11685,6 +12003,27 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@truffle/hdwallet-provider@2.1.15(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@ethereumjs/common': 2.6.5
+      '@ethereumjs/tx': 3.5.2
+      '@metamask/eth-sig-util': 4.0.1
+      '@truffle/hdwallet': 0.1.4
+      '@types/ethereum-protocol': 1.0.5
+      '@types/web3': 1.0.20
+      '@types/web3-provider-engine': 14.0.4
+      ethereum-cryptography: 1.1.2
+      ethereum-protocol: 1.0.1
+      ethereumjs-util: 7.1.5
+      web3: 1.10.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      web3-provider-engine: 16.0.3(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
   '@truffle/hdwallet-provider@2.1.15(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@ethereumjs/common': 2.6.5
@@ -12260,6 +12599,15 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
+  babel-plugin-polyfill-corejs2@0.4.13(@babel/core@7.27.1):
+    dependencies:
+      '@babel/compat-data': 7.29.0
+      '@babel/core': 7.27.1
+      '@babel/helper-define-polyfill-provider': 0.6.4(@babel/core@7.27.1)
+      semver: 6.3.1
+    transitivePeerDependencies:
+      - supports-color
+
   babel-plugin-polyfill-corejs2@0.4.13(@babel/core@7.29.0):
     dependencies:
       '@babel/compat-data': 7.29.0
@@ -12269,11 +12617,26 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  babel-plugin-polyfill-corejs3@0.11.1(@babel/core@7.27.1):
+    dependencies:
+      '@babel/core': 7.27.1
+      '@babel/helper-define-polyfill-provider': 0.6.4(@babel/core@7.27.1)
+      core-js-compat: 3.42.0
+    transitivePeerDependencies:
+      - supports-color
+
   babel-plugin-polyfill-corejs3@0.11.1(@babel/core@7.29.0):
     dependencies:
       '@babel/core': 7.29.0
       '@babel/helper-define-polyfill-provider': 0.6.4(@babel/core@7.29.0)
       core-js-compat: 3.42.0
+    transitivePeerDependencies:
+      - supports-color
+
+  babel-plugin-polyfill-regenerator@0.6.4(@babel/core@7.27.1):
+    dependencies:
+      '@babel/core': 7.27.1
+      '@babel/helper-define-polyfill-provider': 0.6.4(@babel/core@7.27.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -13185,6 +13548,18 @@ snapshots:
   esutils@2.0.3: {}
 
   etag@1.8.1: {}
+
+  eth-block-tracker@4.4.3(@babel/core@7.27.1):
+    dependencies:
+      '@babel/plugin-transform-runtime': 7.27.1(@babel/core@7.27.1)
+      '@babel/runtime': 7.27.1
+      eth-query: 2.1.2
+      json-rpc-random-id: 1.0.1
+      pify: 3.0.0
+      safe-event-emitter: 1.0.1
+    transitivePeerDependencies:
+      - '@babel/core'
+      - supports-color
 
   eth-block-tracker@4.4.3(@babel/core@7.29.0):
     dependencies:
@@ -15839,6 +16214,16 @@ snapshots:
       dot-case: 3.0.4
       tslib: 2.8.1
 
+  solidity-bytes-utils@0.8.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+    dependencies:
+      '@truffle/hdwallet-provider': 2.1.15(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+
   solidity-bytes-utils@0.8.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     dependencies:
       '@truffle/hdwallet-provider': 2.1.15(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -16649,6 +17034,37 @@ snapshots:
     transitivePeerDependencies:
       - encoding
       - supports-color
+
+  web3-provider-engine@16.0.3(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+    dependencies:
+      '@ethereumjs/tx': 3.5.2
+      async: 2.6.4
+      backoff: 2.5.0
+      clone: 2.1.2
+      cross-fetch: 2.2.6
+      eth-block-tracker: 4.4.3(@babel/core@7.27.1)
+      eth-json-rpc-filters: 4.2.2
+      eth-json-rpc-infura: 5.1.0
+      eth-json-rpc-middleware: 6.0.0
+      eth-rpc-errors: 3.0.0
+      eth-sig-util: 1.4.2
+      ethereumjs-block: 1.7.1
+      ethereumjs-util: 5.2.1
+      ethereumjs-vm: 2.6.0
+      json-stable-stringify: 1.3.0
+      promise-to-callback: 1.0.0
+      readable-stream: 2.3.8
+      request: 2.88.2
+      semaphore: 1.1.0
+      ws: 5.2.4(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      xhr: 2.6.0
+      xtend: 4.0.2
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
 
   web3-provider-engine@16.0.3(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     dependencies:
