@@ -14,6 +14,11 @@ import type {
   DataChangedEventSort,
   PartialDataChangedEvent,
 } from '@lsp-indexer/types';
+import {
+  UseDataChangedEventsParamsSchema,
+  UseLatestDataChangedEventParamsSchema,
+} from '@lsp-indexer/types';
+import { validateInput } from './validate';
 
 /**
  * Server action: Fetch the most recent ERC725Y DataChanged event matching the given filter.
@@ -39,6 +44,8 @@ export async function getLatestDataChangedEvent(params?: {
   filter?: DataChangedEventFilter;
   include?: DataChangedEventInclude;
 }): Promise<PartialDataChangedEvent | null> {
+  if (params)
+    validateInput(UseLatestDataChangedEventParamsSchema, params, 'getLatestDataChangedEvent');
   return fetchLatestDataChangedEvent(getServerUrl(), params);
 }
 
@@ -80,5 +87,6 @@ export async function getDataChangedEvents(params?: {
   offset?: number;
   include?: DataChangedEventInclude;
 }): Promise<FetchDataChangedEventsResult<PartialDataChangedEvent>> {
+  if (params) validateInput(UseDataChangedEventsParamsSchema, params, 'getDataChangedEvents');
   return fetchDataChangedEvents(getServerUrl(), params);
 }

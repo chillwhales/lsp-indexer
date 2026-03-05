@@ -10,6 +10,8 @@ import type {
   DigitalAssetSort,
   PartialDigitalAsset,
 } from '@lsp-indexer/types';
+import { UseDigitalAssetParamsSchema, UseDigitalAssetsParamsSchema } from '@lsp-indexer/types';
+import { validateInput } from './validate';
 
 /**
  * Server action: Fetch a single digital asset by address.
@@ -36,6 +38,7 @@ export async function getDigitalAsset(params: {
   address: string;
   include?: DigitalAssetInclude;
 }): Promise<PartialDigitalAsset | null> {
+  validateInput(UseDigitalAssetParamsSchema, params, 'getDigitalAsset');
   return fetchDigitalAsset(getServerUrl(), params);
 }
 
@@ -76,5 +79,6 @@ export async function getDigitalAssets(params?: {
   offset?: number;
   include?: DigitalAssetInclude;
 }): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>> {
+  if (params) validateInput(UseDigitalAssetsParamsSchema, params, 'getDigitalAssets');
   return fetchDigitalAssets(getServerUrl(), params);
 }

@@ -10,6 +10,8 @@ import type {
   OwnedTokenSort,
   PartialOwnedToken,
 } from '@lsp-indexer/types';
+import { UseOwnedTokenParamsSchema, UseOwnedTokensParamsSchema } from '@lsp-indexer/types';
+import { validateInput } from './validate';
 
 /**
  * Server action: Fetch a single owned token by unique ID.
@@ -36,6 +38,7 @@ export async function getOwnedToken(params: {
   id: string;
   include?: OwnedTokenInclude;
 }): Promise<PartialOwnedToken | null> {
+  validateInput(UseOwnedTokenParamsSchema, params, 'getOwnedToken');
   return fetchOwnedToken(getServerUrl(), params);
 }
 
@@ -76,5 +79,6 @@ export async function getOwnedTokens(params?: {
   offset?: number;
   include?: OwnedTokenInclude;
 }): Promise<FetchOwnedTokensResult<PartialOwnedToken>> {
+  if (params) validateInput(UseOwnedTokensParamsSchema, params, 'getOwnedTokens');
   return fetchOwnedTokens(getServerUrl(), params);
 }

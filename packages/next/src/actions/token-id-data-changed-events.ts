@@ -14,6 +14,11 @@ import type {
   TokenIdDataChangedEventResult,
   TokenIdDataChangedEventSort,
 } from '@lsp-indexer/types';
+import {
+  UseLatestTokenIdDataChangedEventParamsSchema,
+  UseTokenIdDataChangedEventsParamsSchema,
+} from '@lsp-indexer/types';
+import { validateInput } from './validate';
 
 /**
  * Server action: Fetch the most recent ERC725Y TokenIdDataChanged event matching the given filter.
@@ -41,6 +46,12 @@ export async function getLatestTokenIdDataChangedEvent(params?: {
   filter?: TokenIdDataChangedEventFilter;
   include?: TokenIdDataChangedEventInclude;
 }): Promise<PartialTokenIdDataChangedEvent | null> {
+  if (params)
+    validateInput(
+      UseLatestTokenIdDataChangedEventParamsSchema,
+      params,
+      'getLatestTokenIdDataChangedEvent',
+    );
   return fetchLatestTokenIdDataChangedEvent(getServerUrl(), params);
 }
 
@@ -84,5 +95,7 @@ export async function getTokenIdDataChangedEvents(params?: {
   offset?: number;
   include?: TokenIdDataChangedEventInclude;
 }): Promise<FetchTokenIdDataChangedEventsResult<PartialTokenIdDataChangedEvent>> {
+  if (params)
+    validateInput(UseTokenIdDataChangedEventsParamsSchema, params, 'getTokenIdDataChangedEvents');
   return fetchTokenIdDataChangedEvents(getServerUrl(), params);
 }

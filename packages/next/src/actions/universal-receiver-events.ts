@@ -9,6 +9,8 @@ import type {
   UniversalReceiverEventResult,
   UniversalReceiverEventSort,
 } from '@lsp-indexer/types';
+import { UseUniversalReceiverEventsParamsSchema } from '@lsp-indexer/types';
+import { validateInput } from './validate';
 
 /**
  * Server action: Fetch a paginated list of universal receiver event records.
@@ -53,5 +55,7 @@ export async function getUniversalReceiverEvents(params?: {
   offset?: number;
   include?: UniversalReceiverEventInclude;
 }): Promise<FetchUniversalReceiverEventsResult<PartialUniversalReceiverEvent>> {
+  if (params)
+    validateInput(UseUniversalReceiverEventsParamsSchema, params, 'getUniversalReceiverEvents');
   return fetchUniversalReceiverEvents(getServerUrl(), params);
 }
