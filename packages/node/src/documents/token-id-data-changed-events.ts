@@ -236,3 +236,213 @@ export const GetTokenIdDataChangedEventsDocument = graphql(`
     }
   }
 `);
+
+/**
+ * GraphQL subscription document for real-time ERC725Y per-token data changed events.
+ *
+ * Mirrors `GetTokenIdDataChangedEventsDocument` exactly (same field selection, same `@include`
+ * directives, same variables) but as a `subscription` operation — no `$offset` variable
+ * (subscriptions don't paginate) and no `token_id_data_changed_aggregate` field.
+ *
+ * Used by `useTokenIdDataChangedEventSubscription` via `buildTokenIdDataChangedEventSubscriptionConfig`.
+ *
+ * Variables: ~31 total (3 pagination/filter + 4 scalar + 18 DA + 1 NFT + 8 NFT sub include toggles)
+ */
+export const TokenIdDataChangedEventSubscriptionDocument = graphql(`
+  subscription TokenIdDataChangedEventSubscription(
+    $where: token_id_data_changed_bool_exp
+    $order_by: [token_id_data_changed_order_by!]
+    $limit: Int
+    $includeBlockNumber: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeLogIndex: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeDigitalAsset: Boolean! = true
+    $includeDigitalAssetName: Boolean! = true
+    $includeDigitalAssetSymbol: Boolean! = true
+    $includeDigitalAssetTokenType: Boolean! = true
+    $includeDigitalAssetDecimals: Boolean! = true
+    $includeDigitalAssetTotalSupply: Boolean! = true
+    $includeDigitalAssetDescription: Boolean! = true
+    $includeDigitalAssetCategory: Boolean! = true
+    $includeDigitalAssetIcons: Boolean! = true
+    $includeDigitalAssetImages: Boolean! = true
+    $includeDigitalAssetLinks: Boolean! = true
+    $includeDigitalAssetAttributes: Boolean! = true
+    $includeDigitalAssetOwner: Boolean! = true
+    $includeDigitalAssetHolderCount: Boolean! = true
+    $includeDigitalAssetCreatorCount: Boolean! = true
+    $includeDigitalAssetReferenceContract: Boolean! = true
+    $includeDigitalAssetTokenIdFormat: Boolean! = true
+    $includeDigitalAssetBaseUri: Boolean! = true
+    $includeNft: Boolean! = true
+    $includeNftFormattedTokenId: Boolean! = true
+    $includeNftName: Boolean! = true
+    $includeNftDescription: Boolean! = true
+    $includeNftCategory: Boolean! = true
+    $includeNftIcons: Boolean! = true
+    $includeNftImages: Boolean! = true
+    $includeNftLinks: Boolean! = true
+    $includeNftAttributes: Boolean! = true
+  ) {
+    token_id_data_changed(where: $where, order_by: $order_by, limit: $limit) {
+      address
+      data_key
+      data_value
+      token_id
+      block_number @include(if: $includeBlockNumber)
+      timestamp @include(if: $includeTimestamp)
+      log_index @include(if: $includeLogIndex)
+      transaction_index @include(if: $includeTransactionIndex)
+      digitalAsset @include(if: $includeDigitalAsset) {
+        id
+        address
+        lsp4TokenName @include(if: $includeDigitalAssetName) {
+          value
+        }
+        lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
+          value
+        }
+        lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
+          value
+        }
+        decimals @include(if: $includeDigitalAssetDecimals) {
+          value
+        }
+        totalSupply @include(if: $includeDigitalAssetTotalSupply) {
+          value
+        }
+        lsp4Metadata {
+          description @include(if: $includeDigitalAssetDescription) {
+            value
+          }
+          category @include(if: $includeDigitalAssetCategory) {
+            value
+          }
+          icon @include(if: $includeDigitalAssetIcons) {
+            url
+            width
+            height
+            verification_method
+            verification_data
+          }
+          images @include(if: $includeDigitalAssetImages) {
+            url
+            width
+            height
+            image_index
+            verification_method
+            verification_data
+          }
+          links @include(if: $includeDigitalAssetLinks) {
+            title
+            url
+          }
+          attributes @include(if: $includeDigitalAssetAttributes) {
+            key
+            value
+            type
+          }
+        }
+        owner @include(if: $includeDigitalAssetOwner) {
+          address
+          timestamp
+        }
+        ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
+          aggregate {
+            count
+          }
+        }
+        lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
+          value
+        }
+        lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
+          value
+        }
+        lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
+          value
+        }
+        lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
+          value
+        }
+      }
+      nft @include(if: $includeNft) {
+        address
+        token_id
+        formatted_token_id @include(if: $includeNftFormattedTokenId)
+        is_burned
+        is_minted
+        lsp4Metadata {
+          name @include(if: $includeNftName) {
+            value
+          }
+          description @include(if: $includeNftDescription) {
+            value
+          }
+          category @include(if: $includeNftCategory) {
+            value
+          }
+          icon @include(if: $includeNftIcons) {
+            url
+            width
+            height
+            verification_method
+            verification_data
+          }
+          images @include(if: $includeNftImages) {
+            url
+            width
+            height
+            image_index
+            verification_method
+            verification_data
+          }
+          links @include(if: $includeNftLinks) {
+            title
+            url
+          }
+          attributes @include(if: $includeNftAttributes) {
+            key
+            value
+            type
+          }
+        }
+        lsp4MetadataBaseUri {
+          name @include(if: $includeNftName) {
+            value
+          }
+          description @include(if: $includeNftDescription) {
+            value
+          }
+          category @include(if: $includeNftCategory) {
+            value
+          }
+          icon @include(if: $includeNftIcons) {
+            url
+            width
+            height
+            verification_method
+            verification_data
+          }
+          images @include(if: $includeNftImages) {
+            url
+            width
+            height
+            image_index
+            verification_method
+            verification_data
+          }
+          links @include(if: $includeNftLinks) {
+            title
+            url
+          }
+          attributes @include(if: $includeNftAttributes) {
+            key
+            value
+            type
+          }
+        }
+      }
+    }
+  }
+`);

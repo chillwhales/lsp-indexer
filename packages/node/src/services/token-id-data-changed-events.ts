@@ -8,10 +8,14 @@ import type {
   TokenIdDataChangedEventSort,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetTokenIdDataChangedEventsDocument } from '../documents/token-id-data-changed-events';
+import {
+  GetTokenIdDataChangedEventsDocument,
+  TokenIdDataChangedEventSubscriptionDocument,
+} from '../documents/token-id-data-changed-events';
 import type {
   Token_Id_Data_Changed_Bool_Exp,
   Token_Id_Data_Changed_Order_By,
+  TokenIdDataChangedEventSubscriptionSubscription,
 } from '../graphql/graphql';
 import { parseTokenIdDataChangedEvents } from '../parsers/token-id-data-changed-events';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
@@ -155,7 +159,7 @@ export function buildTokenIdDataChangedEventWhere(
  * Name sorts default to `nulls: 'last'` when not specified (names without values sort last).
  * `direction` and `nulls` are ignored for `'newest'` and `'oldest'` (self-describing fields).
  */
-function buildTokenIdDataChangedEventOrderBy(
+export function buildTokenIdDataChangedEventOrderBy(
   sort?: TokenIdDataChangedEventSort,
 ): Token_Id_Data_Changed_Order_By[] | undefined {
   if (!sort) return undefined;
@@ -389,4 +393,48 @@ export async function fetchLatestTokenIdDataChangedEvent(
       });
 
   return result.tokenIdDataChangedEvents[0] ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// Subscription config builder
+// ---------------------------------------------------------------------------
+
+/** Raw subscription row type extracted from codegen. */
+type RawTokenIdDataChangedEventSubscriptionRow =
+  TokenIdDataChangedEventSubscriptionSubscription['token_id_data_changed'][number];
+
+/**
+ * Build a token ID data changed event subscription config (document, variables, extract, parser).
+ *
+ * EVENT domain — defaults to block-order desc sort when no sort is provided
+ * (block_number desc → transaction_index desc → log_index desc).
+ *
+ * @param params - Filter, sort, limit, and include configuration
+ * @returns A config object consumable by `useSubscription`
+ */
+export function buildTokenIdDataChangedEventSubscriptionConfig(params: {
+  filter?: TokenIdDataChangedEventFilter;
+  sort?: TokenIdDataChangedEventSort;
+  limit?: number;
+  include?: TokenIdDataChangedEventInclude;
+}) {
+  const where = buildTokenIdDataChangedEventWhere(params.filter);
+  const orderBy = buildTokenIdDataChangedEventOrderBy(params.sort) ?? buildBlockOrderSort('desc');
+  const includeVars = buildTokenIdDataChangedEventIncludeVars(params.include);
+
+  return {
+    document: TokenIdDataChangedEventSubscriptionDocument,
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: orderBy,
+      limit: params.limit,
+      ...includeVars,
+    },
+    extract: (result: TokenIdDataChangedEventSubscriptionSubscription) =>
+      result.token_id_data_changed,
+    parser: (raw: RawTokenIdDataChangedEventSubscriptionRow[]) =>
+      params.include
+        ? parseTokenIdDataChangedEvents(raw, params.include)
+        : parseTokenIdDataChangedEvents(raw),
+  };
 }

@@ -1,18 +1,20 @@
 'use client';
 
 import { DATA_KEY_NAMES, DataKeyNameSchema } from '@lsp-indexer/data-keys';
-import { Clock, Infinity, List } from 'lucide-react';
+import { Clock, Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useInfiniteTokenIdDataChangedEvents as useInfiniteTokenIdDataChangedEventsNext,
   useLatestTokenIdDataChangedEvent as useLatestTokenIdDataChangedEventNext,
   useTokenIdDataChangedEvents as useTokenIdDataChangedEventsNext,
+  useTokenIdDataChangedEventSubscription as useTokenIdDataChangedEventSubscriptionNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteTokenIdDataChangedEvents as useInfiniteTokenIdDataChangedEventsReact,
   useLatestTokenIdDataChangedEvent as useLatestTokenIdDataChangedEventReact,
   useTokenIdDataChangedEvents as useTokenIdDataChangedEventsReact,
+  useTokenIdDataChangedEventSubscription as useTokenIdDataChangedEventSubscriptionReact,
 } from '@lsp-indexer/react';
 import type {
   SortDirection,
@@ -41,8 +43,11 @@ import {
 } from '@/components/playground';
 import { TokenIdDataChangedEventCard } from '@/components/token-id-data-changed-event-card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 
 // ---------------------------------------------------------------------------
 // Domain config — Token ID Data Changed Events (10 filter params, 4 sort fields)
@@ -181,6 +186,7 @@ type TokenIdDataChangedHooks = {
   useLatestTokenIdDataChangedEvent: typeof useLatestTokenIdDataChangedEventReact;
   useTokenIdDataChangedEvents: typeof useTokenIdDataChangedEventsReact;
   useInfiniteTokenIdDataChangedEvents: typeof useInfiniteTokenIdDataChangedEventsReact;
+  useTokenIdDataChangedEventSubscription: typeof useTokenIdDataChangedEventSubscriptionReact;
 };
 
 function useTokenIdDataChangedHooks(mode: HookMode): TokenIdDataChangedHooks {
@@ -189,12 +195,14 @@ function useTokenIdDataChangedHooks(mode: HookMode): TokenIdDataChangedHooks {
       useLatestTokenIdDataChangedEvent: useLatestTokenIdDataChangedEventNext,
       useTokenIdDataChangedEvents: useTokenIdDataChangedEventsNext,
       useInfiniteTokenIdDataChangedEvents: useInfiniteTokenIdDataChangedEventsNext,
+      useTokenIdDataChangedEventSubscription: useTokenIdDataChangedEventSubscriptionNext,
     };
   }
   return {
     useLatestTokenIdDataChangedEvent: useLatestTokenIdDataChangedEventReact,
     useTokenIdDataChangedEvents: useTokenIdDataChangedEventsReact,
     useInfiniteTokenIdDataChangedEvents: useInfiniteTokenIdDataChangedEventsReact,
+    useTokenIdDataChangedEventSubscription: useTokenIdDataChangedEventSubscriptionReact,
   };
 }
 
@@ -487,6 +495,84 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
+// Tab 4: Subscription (real-time)
+// ---------------------------------------------------------------------------
+
+function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useTokenIdDataChangedEventSubscription } = useTokenIdDataChangedHooks(mode);
+  const state = useListState();
+  const [limit, setLimit] = useState(10);
+  const [invalidate, setInvalidate] = useState(false);
+
+  const { data, isConnected, isSubscribed, error } = useTokenIdDataChangedEventSubscription({
+    filter: state.filter,
+    sort: state.sort,
+    limit,
+    include: state.include,
+    invalidate,
+  });
+
+  // Map subscription shape to ResultsList expectations
+  const tokenIdDataChangedEvents = data ?? [];
+  const isLoading = data === null && isSubscribed;
+  const normalizedError =
+    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Connection status + invalidate toggle */}
+      <div className="flex items-center gap-3">
+        <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
+          {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </Badge>
+        <Badge variant={isSubscribed ? 'default' : 'secondary'}>
+          {isSubscribed ? 'Subscribed' : 'Idle'}
+        </Badge>
+        <div className="ml-auto flex items-center space-x-2">
+          <Switch id="sub-invalidate" checked={invalidate} onCheckedChange={setInvalidate} />
+          <Label htmlFor="sub-invalidate">Invalidate Cache</Label>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <FilterFieldsRow configs={ROW1} values={state.values} onFieldChange={state.setFieldValue} />
+        <FilterFieldsRow configs={ROW2} values={state.values} onFieldChange={state.setFieldValue} />
+        <FilterFieldsRow configs={ROW3} values={state.values} onFieldChange={state.setFieldValue} />
+      </div>
+      <SortControls
+        options={SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as TokenIdDataChangedEventSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
+        limit={limit}
+        onLimitChange={setLimit}
+        hideDirectionAndNulls={state.sortField === 'newest' || state.sortField === 'oldest'}
+      />
+      <TidIncludeSections {...state} />
+      <ResultsList
+        items={tokenIdDataChangedEvents}
+        isLoading={isLoading}
+        isFetching={false}
+        error={normalizedError}
+        renderItem={(evt) => <TokenIdDataChangedEventCard tokenIdDataChangedEvent={evt} />}
+        getKey={(evt) =>
+          `${evt.address}-${evt.tokenId}-${evt.dataKey}-${evt.dataValue.slice(0, 16)}`
+        }
+        label="token ID data changed events"
+        totalCount={tokenIdDataChangedEvents.length}
+        hasActiveFilter={state.hasActiveFilter}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -501,12 +587,15 @@ export default function TokenIdDataChangedEventsPage(): React.ReactNode {
             useLatestTokenIdDataChangedEvent
           </code>
           ,{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useTokenIdDataChangedEvents</code>,
-          and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useTokenIdDataChangedEvents</code>,{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">
             useInfiniteTokenIdDataChangedEvents
+          </code>
+          , and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">
+            useTokenIdDataChangedEventSubscription
           </code>{' '}
-          hooks against ERC725Y per-token data change events via Hasura (QUERY-09).
+          hooks against ERC725Y per-token data change events via Hasura (QUERY-09, SUB-02).
         </>
       }
       tabs={[
@@ -527,6 +616,12 @@ export default function TokenIdDataChangedEventsPage(): React.ReactNode {
           label: 'Infinite',
           icon: <Infinity className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
+        },
+        {
+          value: 'subscription',
+          label: 'Subscription',
+          icon: <Radio className="size-4" />,
+          render: (mode) => <SubscriptionTab mode={mode} />,
         },
       ]}
     />
