@@ -558,7 +558,7 @@ Plans:
 
 Plans:
 
-- [ ] 11-01-PLAN.md — Zod input validation: VALIDATION error types + validate utility + wire all 12 action files
+- [ ] 11-01-PLAN.md — Zod input validation: VALIDATION error types + validate utility + wire all 11 domain action files
 - [ ] 11-02-PLAN.md — Publish readiness: publint + arethetypeswrong + bundle separation + npm pack audit
 
 **Requirements:**

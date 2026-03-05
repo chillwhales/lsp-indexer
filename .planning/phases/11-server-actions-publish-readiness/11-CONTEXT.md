@@ -8,7 +8,7 @@
 
 Add Zod input validation to all existing server actions in `@lsp-indexer/next`, verify server/client bundle separation, and validate all 4 packages (`@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`) for npm publish readiness with `publint` and `arethetypeswrong`.
 
-Server actions for all 12 domains already exist with `'use server'` directives and 3-overload generic patterns. Zod schemas for all domain inputs already exist in `@lsp-indexer/types`. This phase wires validation into the actions and validates the packages for publishing.
+Server actions for all 11 domains already exist with `'use server'` directives and 3-overload generic patterns. Zod schemas for all domain inputs already exist in `@lsp-indexer/types`. This phase wires validation into the actions and validates the packages for publishing.
 
 </domain>
 
