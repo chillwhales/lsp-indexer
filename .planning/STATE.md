@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-05T15:02:42.740Z"
+last_updated: "2026-03-05T17:29:26.422Z"
 last_activity: 2026-03-05 — Phase 11 plan 02 complete (ACTION-02, DX-03)
 progress:
-  total_phases: 41
+  total_phases: 45
   completed_phases: 35
   total_plans: 111
   completed_plans: 98
@@ -224,6 +224,10 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 ### Roadmap Evolution
 
 - Phase 9.12 inserted after Phase 9.11: Block-Ordered Sorting — deterministic event ordering by blockNumber → transactionIndex → logIndex instead of timestamp (URGENT). Affects 4 event domains: followers (9.5), data-changed (9.10), token-id-data-changed (9.10), universal-receiver (9.11).
+- Phase 12 added: Replace local `packages/data-keys/` and `packages/lsp1/` with `@chillwhales/erc725` and `@chillwhales/lsp1` npm packages. Extract reusable utilities as PRs to `chillwhales/LSPs`. Reduces local codebase, aligns with shared LUKSO Standards ecosystem.
+- Phase 13 added: Indexer v1 cleanup — remove `packages/indexer/` (v1), promote `packages/indexer-v2/` to `packages/indexer/`, remove `docker/v1/`, update root scripts and configs. Eliminates all v1 remnants.
+- Phase 14 added: Code comments cleanup & release prep — remove dead/outdated/.planning comments, add consumer-facing JSDoc to all public APIs, clean up test app documentation, final publish validation. Last phase before npm release.
+- Phase 15 added: CI/CD workflows & shared infra — mirror `chillwhales/LSPs` CI pipeline (layered CI, changesets release, preview releases), investigate abstracting shared workflow patterns into a reusable third repo for cross-repo consistency.
 
 ### Discovered Todos
 
@@ -240,7 +244,7 @@ _None currently._
 - **Date:** 2026-03-05
 - **Activity:** Executed Phase 11 plan 02 (Publish Validation & Bundle Audit) — 2 tasks, 1 commit
 - **Outcome:** publint + attw installed and all 4 packages pass with zero errors. npm pack audit confirms clean dist/ output. Server/client bundle separation verified. typesVersions added to @lsp-indexer/next for node10 resolution. ACTION-02 + DX-03 requirements complete.
-- **Resume file:** None
+- **Resume file:** .planning/phases/12-replace-local-packages-with-chillwhales-npm/12-CONTEXT.md
 
 ### Context for Next Session
 
