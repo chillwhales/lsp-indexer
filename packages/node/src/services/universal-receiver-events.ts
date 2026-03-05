@@ -8,8 +8,15 @@ import type {
   UniversalReceiverEventSort,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetUniversalReceiverEventsDocument } from '../documents/universal-receiver-events';
-import type { Universal_Receiver_Bool_Exp, Universal_Receiver_Order_By } from '../graphql/graphql';
+import {
+  GetUniversalReceiverEventsDocument,
+  UniversalReceiverEventSubscriptionDocument,
+} from '../documents/universal-receiver-events';
+import type {
+  UniversalReceiverEventSubscriptionSubscription,
+  Universal_Receiver_Bool_Exp,
+  Universal_Receiver_Order_By,
+} from '../graphql/graphql';
 import { parseUniversalReceiverEvents } from '../parsers/universal-receiver-events';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
@@ -366,5 +373,55 @@ export async function fetchUniversalReceiverEvents(
   return {
     universalReceiverEvents: parseUniversalReceiverEvents(result.universal_receiver),
     totalCount: result.universal_receiver_aggregate?.aggregate?.count ?? 0,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Subscription config builder
+// ---------------------------------------------------------------------------
+
+/**
+ * Raw subscription row type — extracted from the codegen subscription result.
+ */
+type RawUniversalReceiverEventSubscriptionRow =
+  UniversalReceiverEventSubscriptionSubscription['universal_receiver'][number];
+
+/**
+ * Build a `SubscriptionConfig` for universal receiver events.
+ *
+ * Assembles the document, variables, extract function, and parser into a config
+ * object consumable by `useSubscription`. The resulting config enables
+ * `useUniversalReceiverEventSubscription` in both `@lsp-indexer/react` and
+ * `@lsp-indexer/next`.
+ *
+ * EVENT domain — defaults to block-order desc sort when no sort is provided
+ * (block_number desc → transaction_index desc → log_index desc).
+ *
+ * @param params - Filter, sort, limit, and include configuration
+ * @returns A config object consumable by `useSubscription`
+ */
+export function buildUniversalReceiverEventSubscriptionConfig(params: {
+  filter?: UniversalReceiverEventFilter;
+  sort?: UniversalReceiverEventSort;
+  limit?: number;
+  include?: UniversalReceiverEventInclude;
+}) {
+  const where = buildUniversalReceiverEventWhere(params.filter);
+  const orderBy = buildUniversalReceiverEventOrderBy(params.sort) ?? buildBlockOrderSort('desc');
+  const includeVars = buildUniversalReceiverEventIncludeVars(params.include);
+
+  return {
+    document: UniversalReceiverEventSubscriptionDocument,
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: orderBy,
+      limit: params.limit,
+      ...includeVars,
+    },
+    extract: (result: UniversalReceiverEventSubscriptionSubscription) => result.universal_receiver,
+    parser: (raw: RawUniversalReceiverEventSubscriptionRow[]) =>
+      params.include
+        ? parseUniversalReceiverEvents(raw, params.include)
+        : parseUniversalReceiverEvents(raw),
   };
 }
