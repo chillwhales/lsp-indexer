@@ -55,14 +55,14 @@ export async function getProfiles(params?: {
   limit?: number;
   offset?: number;
 }): Promise<FetchProfilesResult>;
-export async function getProfiles<const I extends ProfileInclude>(params: {
+export async function getProfiles<const I extends ProfileInclude>(params?: {
   filter?: ProfileFilter;
   sort?: ProfileSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchProfilesResult<ProfileResult<I>>>;
-export async function getProfiles(params: {
+export async function getProfiles(params?: {
   filter?: ProfileFilter;
   sort?: ProfileSort;
   limit?: number;

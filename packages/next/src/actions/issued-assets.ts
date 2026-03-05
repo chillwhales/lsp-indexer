@@ -24,33 +24,32 @@ import type {
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed issued assets and total count
  */
-export async function getIssuedAssets(params: {
+export async function getIssuedAssets(params?: {
   filter?: IssuedAssetFilter;
   sort?: IssuedAssetSort;
   limit?: number;
   offset?: number;
 }): Promise<FetchIssuedAssetsResult>;
-export async function getIssuedAssets<const I extends IssuedAssetInclude>(params: {
+export async function getIssuedAssets<const I extends IssuedAssetInclude>(params?: {
   filter?: IssuedAssetFilter;
   sort?: IssuedAssetSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchIssuedAssetsResult<IssuedAssetResult<I>>>;
-export async function getIssuedAssets(params: {
+export async function getIssuedAssets(params?: {
   filter?: IssuedAssetFilter;
   sort?: IssuedAssetSort;
   limit?: number;
   offset?: number;
   include?: IssuedAssetInclude;
 }): Promise<FetchIssuedAssetsResult<PartialIssuedAsset>>;
-export async function getIssuedAssets(params: {
+export async function getIssuedAssets(params?: {
   filter?: IssuedAssetFilter;
   sort?: IssuedAssetSort;
   limit?: number;
   offset?: number;
   include?: IssuedAssetInclude;
 }): Promise<FetchIssuedAssetsResult<PartialIssuedAsset>> {
-  const url = getServerUrl();
-  return fetchIssuedAssets(url, params);
+  return fetchIssuedAssets(getServerUrl(), params);
 }

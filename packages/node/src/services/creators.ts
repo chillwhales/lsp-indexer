@@ -7,8 +7,12 @@ import type {
   PartialCreator,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetCreatorsDocument } from '../documents/creators';
-import type { Lsp4_Creator_Bool_Exp, Lsp4_Creator_Order_By } from '../graphql/graphql';
+import { CreatorSubscriptionDocument, GetCreatorsDocument } from '../documents/creators';
+import type {
+  CreatorSubscriptionSubscription,
+  Lsp4_Creator_Bool_Exp,
+  Lsp4_Creator_Order_By,
+} from '../graphql/graphql';
 import { parseCreators } from '../parsers/creators';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
@@ -197,6 +201,50 @@ export function buildCreatorIncludeVars(include?: CreatorInclude): Record<string
   }
 
   return vars;
+}
+
+// ---------------------------------------------------------------------------
+// Subscription config builder
+// ---------------------------------------------------------------------------
+
+/** Raw subscription row type — reuses the same shape from the subscription codegen. */
+type RawCreatorSubscriptionRow = CreatorSubscriptionSubscription['lsp4_creator'][number];
+
+/**
+ * Build a type-safe `SubscriptionConfig` for creator subscriptions.
+ *
+ * Assembles domain-specific config (document, variables, extract, parser) that
+ * `useSubscription` consumes. The return type is inferred so the 4-generic chain
+ * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
+ * `useSubscription` without any casts or `unknown` holes.
+ *
+ * Entity domain — uses Hasura default ordering (`order_by: undefined` when no sort).
+ *
+ * @param params - Filter, sort, limit, and include configuration
+ * @returns A config object consumable by `useSubscription`
+ */
+export function buildCreatorSubscriptionConfig(params: {
+  filter?: CreatorFilter;
+  sort?: CreatorSort;
+  limit?: number;
+  include?: CreatorInclude;
+}) {
+  const where = buildCreatorWhere(params.filter);
+  const orderBy = buildCreatorOrderBy(params.sort);
+  const includeVars = buildCreatorIncludeVars(params.include);
+
+  return {
+    document: CreatorSubscriptionDocument,
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: orderBy,
+      limit: params.limit,
+      ...includeVars,
+    },
+    extract: (result: CreatorSubscriptionSubscription) => result.lsp4_creator,
+    parser: (raw: RawCreatorSubscriptionRow[]) =>
+      params.include ? parseCreators(raw, params.include) : parseCreators(raw),
+  };
 }
 
 // ---------------------------------------------------------------------------

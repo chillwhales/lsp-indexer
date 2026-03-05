@@ -24,34 +24,32 @@ import type {
  * @param params - Query parameters (filter, sort, pagination, include)
  * @returns Parsed creators and total count
  */
-export async function getCreators(params: {
+export async function getCreators(params?: {
   filter?: CreatorFilter;
   sort?: CreatorSort;
   limit?: number;
   offset?: number;
 }): Promise<FetchCreatorsResult>;
-export async function getCreators<const I extends CreatorInclude>(params: {
+export async function getCreators<const I extends CreatorInclude>(params?: {
   filter?: CreatorFilter;
   sort?: CreatorSort;
   limit?: number;
   offset?: number;
   include: I;
 }): Promise<FetchCreatorsResult<CreatorResult<I>>>;
-export async function getCreators(params: {
+export async function getCreators(params?: {
   filter?: CreatorFilter;
   sort?: CreatorSort;
   limit?: number;
   offset?: number;
   include?: CreatorInclude;
 }): Promise<FetchCreatorsResult<PartialCreator>>;
-export async function getCreators(params: {
+export async function getCreators(params?: {
   filter?: CreatorFilter;
   sort?: CreatorSort;
   limit?: number;
   offset?: number;
   include?: CreatorInclude;
 }): Promise<FetchCreatorsResult<PartialCreator>> {
-  const url = getServerUrl();
-  if (params.include) return fetchCreators(url, params);
-  return fetchCreators(url, params);
+  return fetchCreators(getServerUrl(), params);
 }

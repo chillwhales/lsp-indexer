@@ -1,14 +1,16 @@
 'use client';
 
-import { Infinity, List } from 'lucide-react';
+import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useCreators as useCreatorsNext,
+  useCreatorSubscription as useCreatorSubscriptionNext,
   useInfiniteCreators as useInfiniteCreatorsNext,
 } from '@lsp-indexer/next';
 import {
   useCreators as useCreatorsReact,
+  useCreatorSubscription as useCreatorSubscriptionReact,
   useInfiniteCreators as useInfiniteCreatorsReact,
 } from '@lsp-indexer/react';
 import type {
@@ -19,6 +21,10 @@ import type {
   SortDirection,
   SortNulls,
 } from '@lsp-indexer/types';
+
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 import { CreatorCard } from '@/components/creator-card';
 import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
@@ -113,6 +119,7 @@ const SORT_OPTIONS: SortOption[] = [
 type CreatorHooks = {
   useCreators: typeof useCreatorsReact;
   useInfiniteCreators: typeof useInfiniteCreatorsReact;
+  useCreatorSubscription: typeof useCreatorSubscriptionReact;
 };
 
 function useCreatorHooks(mode: HookMode): CreatorHooks {
@@ -120,11 +127,13 @@ function useCreatorHooks(mode: HookMode): CreatorHooks {
     return {
       useCreators: useCreatorsNext,
       useInfiniteCreators: useInfiniteCreatorsNext,
+      useCreatorSubscription: useCreatorSubscriptionNext,
     };
   }
   return {
     useCreators: useCreatorsReact,
     useInfiniteCreators: useInfiniteCreatorsReact,
+    useCreatorSubscription: useCreatorSubscriptionReact,
   };
 }
 
@@ -347,6 +356,93 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
+// Tab 3: Subscription (real-time)
+// ---------------------------------------------------------------------------
+
+function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useCreatorSubscription } = useCreatorHooks(mode);
+  const state = useListState();
+  const [limit, setLimit] = useState(10);
+  const [invalidate, setInvalidate] = useState(false);
+
+  const { data, isConnected, isSubscribed, error } = useCreatorSubscription({
+    filter: state.filter,
+    sort: state.sort,
+    limit,
+    include: state.include,
+    invalidate,
+  });
+
+  // Map subscription shape to ResultsList expectations
+  const creators = data ?? [];
+  const isLoading = data === null && isSubscribed;
+  const normalizedError =
+    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Connection status + invalidate toggle */}
+      <div className="flex items-center gap-3">
+        <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
+          {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </Badge>
+        <Badge variant={isSubscribed ? 'default' : 'secondary'}>
+          {isSubscribed ? 'Subscribed' : 'Idle'}
+        </Badge>
+        <div className="ml-auto flex items-center space-x-2">
+          <Switch id="sub-invalidate" checked={invalidate} onCheckedChange={setInvalidate} />
+          <Label htmlFor="sub-invalidate">Invalidate Cache</Label>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <FilterFieldsRow
+          configs={ADDRESS_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+        <FilterFieldsRow
+          configs={NAME_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+        <FilterFieldsRow
+          configs={DATE_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+      </div>
+      <SortControls
+        options={SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as CreatorSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
+        limit={limit}
+        onLimitChange={setLimit}
+      />
+      <IncludeSections {...state} />
+      <ResultsList
+        items={creators}
+        isLoading={isLoading}
+        isFetching={false}
+        error={normalizedError}
+        renderItem={(c, i) => <CreatorCard creator={c} index={i} />}
+        getKey={(c) => `${c.creatorAddress}-${c.digitalAssetAddress}`}
+        label="creators"
+        totalCount={creators.length}
+        hasActiveFilter={state.hasActiveFilter}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -356,10 +452,11 @@ export default function CreatorsPage(): React.ReactNode {
       title="Creators"
       description={
         <>
-          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useCreators</code> and{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteCreators</code> hooks
+          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useCreators</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteCreators</code>, and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useCreatorSubscription</code> hooks
           against the <code className="text-xs bg-muted px-1 py-0.5 rounded">lsp4_creator</code>{' '}
-          table via Hasura (QUERY-06).
+          table via Hasura (QUERY-06, SUB-02, SUB-03).
         </>
       }
       tabs={[
@@ -374,6 +471,12 @@ export default function CreatorsPage(): React.ReactNode {
           label: 'Infinite',
           icon: <Infinity className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
+        },
+        {
+          value: 'subscription',
+          label: 'Subscription',
+          icon: <Radio className="size-4" />,
+          render: (mode) => <SubscriptionTab mode={mode} />,
         },
       ]}
     />
