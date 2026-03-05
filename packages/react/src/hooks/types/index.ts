@@ -9,3 +9,4 @@ export * from './owned-assets';
 export * from './owned-tokens';
 export * from './profiles';
 export * from './subscription';
+export * from './token-id-data-changed-events';
