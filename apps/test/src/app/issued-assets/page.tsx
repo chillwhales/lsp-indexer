@@ -1,23 +1,30 @@
 'use client';
 
-import { Infinity, List } from 'lucide-react';
+import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useInfiniteIssuedAssets as useInfiniteIssuedAssetsNext,
   useIssuedAssets as useIssuedAssetsNext,
+  useIssuedAssetSubscription as useIssuedAssetSubscriptionNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteIssuedAssets as useInfiniteIssuedAssetsReact,
   useIssuedAssets as useIssuedAssetsReact,
+  useIssuedAssetSubscription as useIssuedAssetSubscriptionReact,
 } from '@lsp-indexer/react';
 import type {
   IssuedAssetFilter,
+  IssuedAssetInclude,
   IssuedAssetSort,
   IssuedAssetSortField,
   SortDirection,
   SortNulls,
 } from '@lsp-indexer/types';
+
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 import { IssuedAssetCard } from '@/components/issued-asset-card';
 import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
@@ -112,6 +119,7 @@ const SORT_OPTIONS: SortOption[] = [
 type IssuedAssetHooks = {
   useIssuedAssets: typeof useIssuedAssetsReact;
   useInfiniteIssuedAssets: typeof useInfiniteIssuedAssetsReact;
+  useIssuedAssetSubscription: typeof useIssuedAssetSubscriptionReact;
 };
 
 function useIssuedAssetHooks(mode: HookMode): IssuedAssetHooks {
@@ -119,11 +127,13 @@ function useIssuedAssetHooks(mode: HookMode): IssuedAssetHooks {
     return {
       useIssuedAssets: useIssuedAssetsNext,
       useInfiniteIssuedAssets: useInfiniteIssuedAssetsNext,
+      useIssuedAssetSubscription: useIssuedAssetSubscriptionNext,
     };
   }
   return {
     useIssuedAssets: useIssuedAssetsReact,
     useInfiniteIssuedAssets: useInfiniteIssuedAssetsReact,
+    useIssuedAssetSubscription: useIssuedAssetSubscriptionReact,
   };
 }
 
@@ -164,7 +174,7 @@ function useListState() {
   const include = buildNestedInclude(includeValues, {
     issuerProfile: issuerProfile.value,
     digitalAsset: digitalAsset.value,
-  });
+  }) as IssuedAssetInclude | undefined;
 
   return {
     values,
@@ -353,6 +363,93 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
+// Tab 3: Subscription (real-time)
+// ---------------------------------------------------------------------------
+
+function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useIssuedAssetSubscription } = useIssuedAssetHooks(mode);
+  const state = useListState();
+  const [limit, setLimit] = useState(10);
+  const [invalidate, setInvalidate] = useState(false);
+
+  const { data, isConnected, isSubscribed, error } = useIssuedAssetSubscription({
+    filter: state.filter,
+    sort: state.sort,
+    limit,
+    include: state.include,
+    invalidate,
+  });
+
+  // Map subscription shape to ResultsList expectations
+  const issuedAssets = data ?? [];
+  const isLoading = data === null && isSubscribed;
+  const normalizedError =
+    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Connection status + invalidate toggle */}
+      <div className="flex items-center gap-3">
+        <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
+          {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </Badge>
+        <Badge variant={isSubscribed ? 'default' : 'secondary'}>
+          {isSubscribed ? 'Subscribed' : 'Idle'}
+        </Badge>
+        <div className="ml-auto flex items-center space-x-2">
+          <Switch id="sub-invalidate" checked={invalidate} onCheckedChange={setInvalidate} />
+          <Label htmlFor="sub-invalidate">Invalidate Cache</Label>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <FilterFieldsRow
+          configs={ADDRESS_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+        <FilterFieldsRow
+          configs={NAME_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+        <FilterFieldsRow
+          configs={DATE_FILTERS}
+          values={state.values}
+          onFieldChange={state.setFieldValue}
+        />
+      </div>
+      <SortControls
+        options={SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as IssuedAssetSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
+        limit={limit}
+        onLimitChange={setLimit}
+      />
+      <IncludeSections {...state} />
+      <ResultsList
+        items={issuedAssets}
+        isLoading={isLoading}
+        isFetching={false}
+        error={normalizedError}
+        renderItem={(ia, i) => <IssuedAssetCard issuedAsset={ia} index={i} />}
+        getKey={(ia) => `${ia.issuerAddress}-${ia.assetAddress}`}
+        label="issued assets"
+        totalCount={issuedAssets.length}
+        hasActiveFilter={state.hasActiveFilter}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -362,11 +459,12 @@ export default function IssuedAssetsPage(): React.ReactNode {
       title="Issued Assets"
       description={
         <>
-          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useIssuedAssets</code> and{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteIssuedAssets</code>{' '}
+          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useIssuedAssets</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteIssuedAssets</code>, and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useIssuedAssetSubscription</code>{' '}
           hooks against the{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">lsp12_issued_asset</code> table via
-          Hasura (QUERY-07).
+          Hasura (QUERY-07, SUB-02, SUB-03).
         </>
       }
       tabs={[
@@ -381,6 +479,12 @@ export default function IssuedAssetsPage(): React.ReactNode {
           label: 'Infinite',
           icon: <Infinity className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
+        },
+        {
+          value: 'subscription',
+          label: 'Subscription',
+          icon: <Radio className="size-4" />,
+          render: (mode) => <SubscriptionTab mode={mode} />,
         },
       ]}
     />

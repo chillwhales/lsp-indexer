@@ -15,7 +15,7 @@ import type {
   UseIssuedAssetsParams,
 } from '@lsp-indexer/types';
 
-import { getIssuedAssets } from '../actions/issued-assets';
+import { getIssuedAssets } from '../../actions/issued-assets';
 
 /** Default number of issued assets per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;

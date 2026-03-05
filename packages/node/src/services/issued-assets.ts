@@ -7,8 +7,15 @@ import type {
   PartialIssuedAsset,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
-import { GetIssuedAssetsDocument } from '../documents/issued-assets';
-import type { Lsp12_Issued_Asset_Bool_Exp, Lsp12_Issued_Asset_Order_By } from '../graphql/graphql';
+import {
+  GetIssuedAssetsDocument,
+  IssuedAssetSubscriptionDocument,
+} from '../documents/issued-assets';
+import type {
+  IssuedAssetSubscriptionSubscription,
+  Lsp12_Issued_Asset_Bool_Exp,
+  Lsp12_Issued_Asset_Order_By,
+} from '../graphql/graphql';
 import { parseIssuedAssets } from '../parsers/issued-assets';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
@@ -199,6 +206,51 @@ export function buildIssuedAssetIncludeVars(include?: IssuedAssetInclude): Recor
   }
 
   return vars;
+}
+
+// ---------------------------------------------------------------------------
+// Subscription config builder
+// ---------------------------------------------------------------------------
+
+/** Raw subscription row type — reuses the same shape from the subscription codegen. */
+type RawIssuedAssetSubscriptionRow =
+  IssuedAssetSubscriptionSubscription['lsp12_issued_asset'][number];
+
+/**
+ * Build a type-safe `SubscriptionConfig` for issued asset subscriptions.
+ *
+ * Assembles domain-specific config (document, variables, extract, parser) that
+ * `useSubscription` consumes. The return type is inferred so the 4-generic chain
+ * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
+ * `useSubscription` without any casts or `unknown` holes.
+ *
+ * Entity domain — uses Hasura default ordering (`order_by: undefined` when no sort).
+ *
+ * @param params - Filter, sort, limit, and include configuration
+ * @returns A config object consumable by `useSubscription`
+ */
+export function buildIssuedAssetSubscriptionConfig(params: {
+  filter?: IssuedAssetFilter;
+  sort?: IssuedAssetSort;
+  limit?: number;
+  include?: IssuedAssetInclude;
+}) {
+  const where = buildIssuedAssetWhere(params.filter);
+  const orderBy = buildIssuedAssetOrderBy(params.sort);
+  const includeVars = buildIssuedAssetIncludeVars(params.include);
+
+  return {
+    document: IssuedAssetSubscriptionDocument,
+    variables: {
+      where: Object.keys(where).length > 0 ? where : undefined,
+      order_by: orderBy,
+      limit: params.limit,
+      ...includeVars,
+    },
+    extract: (result: IssuedAssetSubscriptionSubscription) => result.lsp12_issued_asset,
+    parser: (raw: RawIssuedAssetSubscriptionRow[]) =>
+      params.include ? parseIssuedAssets(raw, params.include) : parseIssuedAssets(raw),
+  };
 }
 
 // ---------------------------------------------------------------------------

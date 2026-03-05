@@ -8,6 +8,7 @@ export * from './create-use-subscription';
 export * from './creators';
 export * from './digital-assets';
 export * from './followers';
+export * from './issued-assets';
 export * from './nfts';
 export * from './owned-assets';
 export * from './owned-tokens';
