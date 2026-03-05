@@ -1,8 +1,27 @@
+import type { FetchEncryptedAssetsResult } from '@lsp-indexer/node';
 import type {
   EncryptedAssetFilter,
   EncryptedAssetInclude,
   EncryptedAssetSort,
 } from '@lsp-indexer/types';
+import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
+
+/** Flat return shape for useEncryptedAssets — encryptedAssets array + totalCount + query state */
+export type UseEncryptedAssetsReturn<F> = { encryptedAssets: F[]; totalCount: number } & Omit<
+  UseQueryResult<FetchEncryptedAssetsResult<F>, Error>,
+  'data'
+>;
+
+/** Flat return shape for useInfiniteEncryptedAssets — encryptedAssets array + infinite scroll controls + query state */
+export type UseInfiniteEncryptedAssetsReturn<F> = {
+  encryptedAssets: F[];
+  hasNextPage: boolean;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  isFetchingNextPage: boolean;
+} & Omit<
+  UseInfiniteQueryResult<InfiniteData<FetchEncryptedAssetsResult<F>>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;
 
 /**
  * Base params for `useEncryptedAssetSubscription`.
