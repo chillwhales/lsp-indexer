@@ -595,7 +595,7 @@ Plans:
 | 10.6  | 1/1                                |   Complete   | 2026-03-04 |
 | 10.7  | 1/1                                |   Complete   | 2026-03-04 |
 | 10.8  | 1/1                                |   Complete   | 2026-03-05 |
-| 10.9  | 1/1                                |   Complete   | 2026-03-05 |
+| 10.9  | 1/1                                | Complete    | 2026-03-05 |
 | 10.10 | Encrypted Assets Subscription      |      0       | Pending    |
 | 10.11 | Data Changed Events Subscription   |      0       | Pending    |
 | 10.12 | Token ID Data Changed Subscription |      0       | Pending    |
