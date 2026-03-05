@@ -21361,6 +21361,46 @@ export type GetCreatorsQueryVariables = Exact<{
 
 export type GetCreatorsQuery = { __typename?: 'query_root', lsp4_creator: Array<{ __typename?: 'lsp4_creator', creator_address: string, address: string, array_index?: string | null, interface_id?: string | null, timestamp?: any, creatorProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null }>, lsp4_creator_aggregate: { __typename?: 'lsp4_creator_aggregate', aggregate?: { __typename?: 'lsp4_creator_aggregate_fields', count: number } | null } };
 
+export type CreatorSubscriptionSubscriptionVariables = Exact<{
+  where?: InputMaybe<Lsp4_Creator_Bool_Exp>;
+  order_by?: InputMaybe<Array<Lsp4_Creator_Order_By> | Lsp4_Creator_Order_By>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  includeArrayIndex?: Scalars['Boolean']['input'];
+  includeInterfaceId?: Scalars['Boolean']['input'];
+  includeTimestamp?: Scalars['Boolean']['input'];
+  includeCreatorProfile?: Scalars['Boolean']['input'];
+  includeCreatorProfileName?: Scalars['Boolean']['input'];
+  includeCreatorProfileDescription?: Scalars['Boolean']['input'];
+  includeCreatorProfileTags?: Scalars['Boolean']['input'];
+  includeCreatorProfileLinks?: Scalars['Boolean']['input'];
+  includeCreatorProfileAvatar?: Scalars['Boolean']['input'];
+  includeCreatorProfileImage?: Scalars['Boolean']['input'];
+  includeCreatorProfileBackgroundImage?: Scalars['Boolean']['input'];
+  includeCreatorProfileFollowerCount?: Scalars['Boolean']['input'];
+  includeCreatorProfileFollowingCount?: Scalars['Boolean']['input'];
+  includeDigitalAsset?: Scalars['Boolean']['input'];
+  includeDigitalAssetName?: Scalars['Boolean']['input'];
+  includeDigitalAssetSymbol?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenType?: Scalars['Boolean']['input'];
+  includeDigitalAssetDecimals?: Scalars['Boolean']['input'];
+  includeDigitalAssetTotalSupply?: Scalars['Boolean']['input'];
+  includeDigitalAssetDescription?: Scalars['Boolean']['input'];
+  includeDigitalAssetCategory?: Scalars['Boolean']['input'];
+  includeDigitalAssetIcons?: Scalars['Boolean']['input'];
+  includeDigitalAssetImages?: Scalars['Boolean']['input'];
+  includeDigitalAssetLinks?: Scalars['Boolean']['input'];
+  includeDigitalAssetAttributes?: Scalars['Boolean']['input'];
+  includeDigitalAssetOwner?: Scalars['Boolean']['input'];
+  includeDigitalAssetHolderCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetCreatorCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetReferenceContract?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenIdFormat?: Scalars['Boolean']['input'];
+  includeDigitalAssetBaseUri?: Scalars['Boolean']['input'];
+}>;
+
+
+export type CreatorSubscriptionSubscription = { __typename?: 'subscription_root', lsp4_creator: Array<{ __typename?: 'lsp4_creator', creator_address: string, address: string, array_index?: string | null, interface_id?: string | null, timestamp?: any, creatorProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null }> };
+
 export type GetDataChangedEventsQueryVariables = Exact<{
   where?: InputMaybe<Data_Changed_Bool_Exp>;
   order_by?: InputMaybe<Array<Data_Changed_Order_By> | Data_Changed_Order_By>;
@@ -22354,6 +22394,137 @@ export const GetCreatorsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<GetCreatorsQuery, GetCreatorsQueryVariables>;
+export const CreatorSubscriptionDocument = new TypedDocumentString(`
+    subscription CreatorSubscription($where: lsp4_creator_bool_exp, $order_by: [lsp4_creator_order_by!], $limit: Int, $includeArrayIndex: Boolean! = true, $includeInterfaceId: Boolean! = true, $includeTimestamp: Boolean! = true, $includeCreatorProfile: Boolean! = true, $includeCreatorProfileName: Boolean! = true, $includeCreatorProfileDescription: Boolean! = true, $includeCreatorProfileTags: Boolean! = true, $includeCreatorProfileLinks: Boolean! = true, $includeCreatorProfileAvatar: Boolean! = true, $includeCreatorProfileImage: Boolean! = true, $includeCreatorProfileBackgroundImage: Boolean! = true, $includeCreatorProfileFollowerCount: Boolean! = true, $includeCreatorProfileFollowingCount: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeDigitalAssetName: Boolean! = true, $includeDigitalAssetSymbol: Boolean! = true, $includeDigitalAssetTokenType: Boolean! = true, $includeDigitalAssetDecimals: Boolean! = true, $includeDigitalAssetTotalSupply: Boolean! = true, $includeDigitalAssetDescription: Boolean! = true, $includeDigitalAssetCategory: Boolean! = true, $includeDigitalAssetIcons: Boolean! = true, $includeDigitalAssetImages: Boolean! = true, $includeDigitalAssetLinks: Boolean! = true, $includeDigitalAssetAttributes: Boolean! = true, $includeDigitalAssetOwner: Boolean! = true, $includeDigitalAssetHolderCount: Boolean! = true, $includeDigitalAssetCreatorCount: Boolean! = true, $includeDigitalAssetReferenceContract: Boolean! = true, $includeDigitalAssetTokenIdFormat: Boolean! = true, $includeDigitalAssetBaseUri: Boolean! = true) {
+  lsp4_creator(where: $where, order_by: $order_by, limit: $limit) {
+    creator_address
+    address
+    array_index @include(if: $includeArrayIndex)
+    interface_id @include(if: $includeInterfaceId)
+    timestamp @include(if: $includeTimestamp)
+    creatorProfile @include(if: $includeCreatorProfile) {
+      address
+      lsp3Profile {
+        name @include(if: $includeCreatorProfileName) {
+          value
+        }
+        description @include(if: $includeCreatorProfileDescription) {
+          value
+        }
+        tags @include(if: $includeCreatorProfileTags) {
+          value
+        }
+        links @include(if: $includeCreatorProfileLinks) {
+          title
+          url
+        }
+        avatar @include(if: $includeCreatorProfileAvatar) {
+          url
+          file_type
+          verification_method
+          verification_data
+        }
+        profileImage @include(if: $includeCreatorProfileImage) {
+          url
+          width
+          height
+          verification_method
+          verification_data
+        }
+        backgroundImage @include(if: $includeCreatorProfileBackgroundImage) {
+          url
+          width
+          height
+          verification_method
+          verification_data
+        }
+      }
+      followedBy_aggregate @include(if: $includeCreatorProfileFollowerCount) {
+        aggregate {
+          count
+        }
+      }
+      followed_aggregate @include(if: $includeCreatorProfileFollowingCount) {
+        aggregate {
+          count
+        }
+      }
+    }
+    digitalAsset @include(if: $includeDigitalAsset) {
+      id
+      address
+      lsp4TokenName @include(if: $includeDigitalAssetName) {
+        value
+      }
+      lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
+        value
+      }
+      lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
+        value
+      }
+      decimals @include(if: $includeDigitalAssetDecimals) {
+        value
+      }
+      totalSupply @include(if: $includeDigitalAssetTotalSupply) {
+        value
+      }
+      lsp4Metadata {
+        description @include(if: $includeDigitalAssetDescription) {
+          value
+        }
+        category @include(if: $includeDigitalAssetCategory) {
+          value
+        }
+        icon @include(if: $includeDigitalAssetIcons) {
+          url
+          width
+          height
+          verification_method
+          verification_data
+        }
+        images @include(if: $includeDigitalAssetImages) {
+          url
+          width
+          height
+          image_index
+          verification_method
+          verification_data
+        }
+        links @include(if: $includeDigitalAssetLinks) {
+          title
+          url
+        }
+        attributes @include(if: $includeDigitalAssetAttributes) {
+          key
+          value
+          type
+        }
+      }
+      owner @include(if: $includeDigitalAssetOwner) {
+        address
+        timestamp
+      }
+      ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
+        aggregate {
+          count
+        }
+      }
+      lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
+        value
+      }
+      lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
+        value
+      }
+      lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
+        value
+      }
+      lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
+        value
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<CreatorSubscriptionSubscription, CreatorSubscriptionSubscriptionVariables>;
 export const GetDataChangedEventsDocument = new TypedDocumentString(`
     query GetDataChangedEvents($where: data_changed_bool_exp, $order_by: [data_changed_order_by!], $limit: Int, $offset: Int, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeLogIndex: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeUniversalProfile: Boolean! = true, $includeUniversalProfileName: Boolean! = true, $includeUniversalProfileDescription: Boolean! = true, $includeUniversalProfileTags: Boolean! = true, $includeUniversalProfileLinks: Boolean! = true, $includeUniversalProfileAvatar: Boolean! = true, $includeUniversalProfileImage: Boolean! = true, $includeUniversalProfileBackgroundImage: Boolean! = true, $includeUniversalProfileFollowerCount: Boolean! = true, $includeUniversalProfileFollowingCount: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeDigitalAssetName: Boolean! = true, $includeDigitalAssetSymbol: Boolean! = true, $includeDigitalAssetTokenType: Boolean! = true, $includeDigitalAssetDecimals: Boolean! = true, $includeDigitalAssetTotalSupply: Boolean! = true, $includeDigitalAssetDescription: Boolean! = true, $includeDigitalAssetCategory: Boolean! = true, $includeDigitalAssetIcons: Boolean! = true, $includeDigitalAssetImages: Boolean! = true, $includeDigitalAssetLinks: Boolean! = true, $includeDigitalAssetAttributes: Boolean! = true, $includeDigitalAssetOwner: Boolean! = true, $includeDigitalAssetHolderCount: Boolean! = true, $includeDigitalAssetCreatorCount: Boolean! = true, $includeDigitalAssetReferenceContract: Boolean! = true, $includeDigitalAssetTokenIdFormat: Boolean! = true, $includeDigitalAssetBaseUri: Boolean! = true) {
   data_changed(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
