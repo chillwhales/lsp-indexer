@@ -15,7 +15,7 @@ import type {
   UseUniversalReceiverEventsParams,
 } from '@lsp-indexer/types';
 
-import { getUniversalReceiverEvents } from '../actions/universal-receiver-events';
+import { getUniversalReceiverEvents } from '../../actions/universal-receiver-events';
 
 /** Default number of universal receiver events per page for infinite scroll queries */
 const DEFAULT_PAGE_SIZE = 20;

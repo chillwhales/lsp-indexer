@@ -1,16 +1,18 @@
 'use client';
 
 import { TYPE_ID_NAMES, TypeIdNameSchema } from '@lsp-indexer/lsp1';
-import { Infinity, List } from 'lucide-react';
+import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useInfiniteUniversalReceiverEvents as useInfiniteUniversalReceiverEventsNext,
   useUniversalReceiverEvents as useUniversalReceiverEventsNext,
+  useUniversalReceiverEventSubscription as useUniversalReceiverEventSubscriptionNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteUniversalReceiverEvents as useInfiniteUniversalReceiverEventsReact,
   useUniversalReceiverEvents as useUniversalReceiverEventsReact,
+  useUniversalReceiverEventSubscription as useUniversalReceiverEventSubscriptionReact,
 } from '@lsp-indexer/react';
 import type {
   SortDirection,
@@ -36,6 +38,9 @@ import {
   useIncludeToggles,
   useSubInclude,
 } from '@/components/playground';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { UniversalReceiverEventCard } from '@/components/universal-receiver-event-card';
 
 // ---------------------------------------------------------------------------
@@ -151,6 +156,7 @@ const SORT_OPTIONS: SortOption[] = [
 type UniversalReceiverEventHooks = {
   useUniversalReceiverEvents: typeof useUniversalReceiverEventsReact;
   useInfiniteUniversalReceiverEvents: typeof useInfiniteUniversalReceiverEventsReact;
+  useUniversalReceiverEventSubscription: typeof useUniversalReceiverEventSubscriptionReact;
 };
 
 function useUniversalReceiverEventHooks(mode: HookMode): UniversalReceiverEventHooks {
@@ -158,11 +164,13 @@ function useUniversalReceiverEventHooks(mode: HookMode): UniversalReceiverEventH
     return {
       useUniversalReceiverEvents: useUniversalReceiverEventsNext,
       useInfiniteUniversalReceiverEvents: useInfiniteUniversalReceiverEventsNext,
+      useUniversalReceiverEventSubscription: useUniversalReceiverEventSubscriptionNext,
     };
   }
   return {
     useUniversalReceiverEvents: useUniversalReceiverEventsReact,
     useInfiniteUniversalReceiverEvents: useInfiniteUniversalReceiverEventsReact,
+    useUniversalReceiverEventSubscription: useUniversalReceiverEventSubscriptionReact,
   };
 }
 
@@ -399,6 +407,82 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
 }
 
 // ---------------------------------------------------------------------------
+// Tab 3: Subscription (real-time)
+// ---------------------------------------------------------------------------
+
+function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useUniversalReceiverEventSubscription } = useUniversalReceiverEventHooks(mode);
+  const state = useListState();
+  const [limit, setLimit] = useState(10);
+  const [invalidate, setInvalidate] = useState(false);
+
+  const { data, isConnected, isSubscribed, error } = useUniversalReceiverEventSubscription({
+    filter: state.filter,
+    sort: state.sort,
+    limit,
+    include: state.include,
+    invalidate,
+  });
+
+  // Map subscription shape to ResultsList expectations
+  const universalReceiverEvents = data ?? [];
+  const isLoading = data === null && isSubscribed;
+  const normalizedError =
+    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Connection status + invalidate toggle */}
+      <div className="flex items-center gap-3">
+        <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
+          {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </Badge>
+        <Badge variant={isSubscribed ? 'default' : 'secondary'}>
+          {isSubscribed ? 'Subscribed' : 'Idle'}
+        </Badge>
+        <div className="ml-auto flex items-center space-x-2">
+          <Switch id="sub-invalidate" checked={invalidate} onCheckedChange={setInvalidate} />
+          <Label htmlFor="sub-invalidate">Invalidate Cache</Label>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <FilterFieldsRow configs={ROW1} values={state.values} onFieldChange={state.setFieldValue} />
+        <FilterFieldsRow configs={ROW2} values={state.values} onFieldChange={state.setFieldValue} />
+        <FilterFieldsRow configs={ROW3} values={state.values} onFieldChange={state.setFieldValue} />
+      </div>
+      <SortControls
+        options={SORT_OPTIONS}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        onSortFieldChange={(v) => state.setSortField(v as UniversalReceiverEventSortField)}
+        onSortDirectionChange={(v) => state.setSortDirection(v as SortDirection)}
+        sortNulls={state.sortNulls ?? ''}
+        onSortNullsChange={(v) =>
+          state.setSortNulls(v === 'default' ? undefined : (v as SortNulls))
+        }
+        limit={limit}
+        onLimitChange={setLimit}
+        hideDirectionAndNulls={state.sortField === 'newest' || state.sortField === 'oldest'}
+      />
+      <UreIncludeSections {...state} />
+      <ResultsList
+        items={universalReceiverEvents}
+        isLoading={isLoading}
+        isFetching={false}
+        error={normalizedError}
+        renderItem={(evt) => <UniversalReceiverEventCard universalReceiverEvent={evt} />}
+        getKey={(evt) => `${evt.address}-${evt.from}-${evt.typeId.slice(0, 16)}`}
+        label="universal receiver events"
+        totalCount={universalReceiverEvents.length}
+        hasActiveFilter={state.hasActiveFilter}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -409,14 +493,17 @@ export default function UniversalReceiverEventsPage(): React.ReactNode {
       description={
         <>
           Exercise{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useUniversalReceiverEvents</code>{' '}
-          and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useUniversalReceiverEvents</code>,{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">
             useInfiniteUniversalReceiverEvents
+          </code>
+          , and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">
+            useUniversalReceiverEventSubscription
           </code>{' '}
           hooks against the{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">universal_receiver</code> table via
-          Hasura (QUERY-10).
+          Hasura (QUERY-10, SUB-02).
         </>
       }
       tabs={[
@@ -431,6 +518,12 @@ export default function UniversalReceiverEventsPage(): React.ReactNode {
           label: 'Infinite',
           icon: <Infinity className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
+        },
+        {
+          value: 'subscription',
+          label: 'Subscription',
+          icon: <Radio className="size-4" />,
+          render: (mode) => <SubscriptionTab mode={mode} />,
         },
       ]}
     />
