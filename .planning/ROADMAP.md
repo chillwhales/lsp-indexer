@@ -554,7 +554,7 @@ Plans:
 
 **Note:** Profile domain server actions (`getProfile`, `getProfiles`) and corresponding hooks (`useProfile`, `useProfiles`, `useInfiniteProfiles`) already exist in `@lsp-indexer/next` from Phase 8. Phase 11 replicates this pattern to the remaining 10 domains and adds Zod input validation + publish readiness checks.
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 
@@ -611,7 +611,7 @@ Plans:
 | 10.11 | 1/1                                |   Complete   | 2026-03-05 |
 | 10.12 | 1/1                                |   Complete   | 2026-03-05 |
 | 10.13 | 1/1                                |   Complete   | 2026-03-05 |
-| 11    | Server Actions & Publish Readiness |      4       | Pending    |
+| 11    | 1/2 | In Progress|  |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 

@@ -44,9 +44,9 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 
 ### Server Actions
 
-- [ ] **ACTION-01**: Developer can use `@lsp-indexer/next` server actions for all 11 domains
+- [x] **ACTION-01**: Developer can use `@lsp-indexer/next` server actions for all 11 domains
 - [ ] **ACTION-02**: Developer can import from `@lsp-indexer/node` (server) without client code leaking
-- [ ] **ACTION-03**: All server action inputs are validated with Zod schemas from `@lsp-indexer/types`
+- [x] **ACTION-03**: All server action inputs are validated with Zod schemas from `@lsp-indexer/types`
 
 ### Developer Experience
 
@@ -110,9 +110,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SUB-01      | 10    | Complete |
 | SUB-02      | 10.2  | Complete |
 | SUB-03      | 10.2  | Complete |
-| ACTION-01   | 11    | Pending  |
+| ACTION-01   | 11    | Complete |
 | ACTION-02   | 11    | Pending  |
-| ACTION-03   | 11    | Pending  |
+| ACTION-03   | 11    | Complete |
 | DX-03       | 11    | Pending  |
 
 **Coverage:**
