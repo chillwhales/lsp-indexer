@@ -45,14 +45,14 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 ### Server Actions
 
 - [x] **ACTION-01**: Developer can use `@lsp-indexer/next` server actions for all 11 domains
-- [ ] **ACTION-02**: Developer can import from `@lsp-indexer/node` (server) without client code leaking
+- [x] **ACTION-02**: Developer can import from `@lsp-indexer/node` (server) without client code leaking
 - [x] **ACTION-03**: All server action inputs are validated with Zod schemas from `@lsp-indexer/types`
 
 ### Developer Experience
 
 - [x] **DX-01**: Developer can import all clean camelCase domain types from `@lsp-indexer/types`
 - [x] **DX-02**: Developer can import query key factories for cache invalidation and prefetching
-- [ ] **DX-03**: All 4 packages pass `publint` and `arethetypeswrong` validation for publish readiness
+- [x] **DX-03**: All 4 packages pass `publint` and `arethetypeswrong` validation for publish readiness
 - [x] **DX-04**: Developer gets TypeScript return types narrowed by `include` parameter — excluded fields are absent from the type, not `null`
 - [x] **DX-05**: All domain hooks/services/actions use 3-overload generic `<const I>` pattern with `XResult<I>` narrowing and zero type assertions
 
@@ -111,9 +111,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SUB-02      | 10.2  | Complete |
 | SUB-03      | 10.2  | Complete |
 | ACTION-01   | 11    | Complete |
-| ACTION-02   | 11    | Pending  |
+| ACTION-02   | 11    | Complete |
 | ACTION-03   | 11    | Complete |
-| DX-03       | 11    | Pending  |
+| DX-03       | 11    | Complete |
 
 **Coverage:**
 
