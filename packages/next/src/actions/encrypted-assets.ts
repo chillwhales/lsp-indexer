@@ -9,6 +9,8 @@ import type {
   EncryptedAssetSort,
   PartialEncryptedAsset,
 } from '@lsp-indexer/types';
+import { UseEncryptedAssetsParamsSchema } from '@lsp-indexer/types';
+import { validateInput } from './validate';
 
 /**
  * Server action: Fetch a paginated list of LSP29 encrypted asset records.
@@ -52,5 +54,6 @@ export async function getEncryptedAssets(params?: {
   offset?: number;
   include?: EncryptedAssetInclude;
 }): Promise<FetchEncryptedAssetsResult<PartialEncryptedAsset>> {
+  if (params) validateInput(UseEncryptedAssetsParamsSchema, params, 'getEncryptedAssets');
   return fetchEncryptedAssets(getServerUrl(), params);
 }

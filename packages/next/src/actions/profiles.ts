@@ -10,6 +10,8 @@ import type {
   ProfileResult,
   ProfileSort,
 } from '@lsp-indexer/types';
+import { UseProfileParamsSchema, UseProfilesParamsSchema } from '@lsp-indexer/types';
+import { validateInput } from './validate';
 
 /**
  * Server action: Fetch a single Universal Profile by address.
@@ -36,6 +38,7 @@ export async function getProfile(params: {
   address: string;
   include?: ProfileInclude;
 }): Promise<PartialProfile | null> {
+  validateInput(UseProfileParamsSchema, params, 'getProfile');
   return fetchProfile(getServerUrl(), params);
 }
 
@@ -76,5 +79,6 @@ export async function getProfiles(params?: {
   offset?: number;
   include?: ProfileInclude;
 }): Promise<FetchProfilesResult<PartialProfile>> {
+  if (params) validateInput(UseProfilesParamsSchema, params, 'getProfiles');
   return fetchProfiles(getServerUrl(), params ?? {});
 }

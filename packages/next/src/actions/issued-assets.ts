@@ -9,6 +9,8 @@ import type {
   IssuedAssetSort,
   PartialIssuedAsset,
 } from '@lsp-indexer/types';
+import { UseIssuedAssetsParamsSchema } from '@lsp-indexer/types';
+import { validateInput } from './validate';
 
 /**
  * Server action: Fetch a paginated list of LSP12 issued asset records.
@@ -51,5 +53,6 @@ export async function getIssuedAssets(params?: {
   offset?: number;
   include?: IssuedAssetInclude;
 }): Promise<FetchIssuedAssetsResult<PartialIssuedAsset>> {
+  if (params) validateInput(UseIssuedAssetsParamsSchema, params, 'getIssuedAssets');
   return fetchIssuedAssets(getServerUrl(), params);
 }

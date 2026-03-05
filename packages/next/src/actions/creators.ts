@@ -9,6 +9,8 @@ import type {
   CreatorSort,
   PartialCreator,
 } from '@lsp-indexer/types';
+import { UseCreatorsParamsSchema } from '@lsp-indexer/types';
+import { validateInput } from './validate';
 
 /**
  * Server action: Fetch a paginated list of LSP4 creator records.
@@ -51,5 +53,6 @@ export async function getCreators(params?: {
   offset?: number;
   include?: CreatorInclude;
 }): Promise<FetchCreatorsResult<PartialCreator>> {
+  if (params) validateInput(UseCreatorsParamsSchema, params, 'getCreators');
   return fetchCreators(getServerUrl(), params);
 }

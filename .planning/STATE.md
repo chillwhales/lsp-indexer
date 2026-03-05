@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-05T13:39:25.459Z"
-last_activity: 2026-03-05 — Phase 10.13 plan 01 complete (SUB-02, SUB-03)
+last_updated: "2026-03-05T15:02:42.740Z"
+last_activity: 2026-03-05 — Phase 11 plan 02 complete (ACTION-02, DX-03)
 progress:
   total_phases: 41
-  completed_phases: 34
-  total_plans: 109
-  completed_plans: 96
+  completed_phases: 35
+  total_plans: 111
+  completed_plans: 98
   percent: 88
 ---
 
@@ -21,16 +21,15 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.1 React Hooks Package — Phase 10.13 (Universal Receiver Events Subscription) plan 01 complete, all domain subscriptions done
+**Current focus:** v1.1 React Hooks Package — Phase 11 complete, all 4 packages publish-ready (publint + attw zero errors)
 
 ## Current Position
 
-- **Phase:** 10.13 of 11 (Universal Receiver Events Subscription)
-- **Sub-phase:** 10.13 (Universal Receiver Events Subscription) — Complete (1/1 plans)
-- **Plan:** 1 of 1 in current sub-phase
+- **Phase:** 11 of 11 (Server Actions & Publish Readiness)
+- **Plan:** 2 of 2 in current phase (complete)
 - **Status:** Milestone complete
-- **Last activity:** 2026-03-05 — Phase 10.13 plan 01 complete (SUB-02, SUB-03)
-- **Progress:** [█████████░] 88%
+- **Last activity:** 2026-03-05 — Phase 11 plan 02 complete (ACTION-02, DX-03)
+- **Progress:** [████████▉░] 88%
 
 ## Milestone History
 
@@ -72,18 +71,18 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 10.12 | Token ID Data Changed Events Sub.  |     2/2      | Complete |
 | 10.13 | Universal Receiver Events Sub.     |     2/2      | Complete |
 | 10    | Subscriptions                      |      1       | Active   |
-| 11    | Server Actions & Publish Readiness |      4       | Pending  |
+| 11    | Server Actions & Publish Readiness |     4/4      | Complete |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 25/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, QUERY-09, QUERY-10, DX-01, DX-02, DX-04, DX-05, PAGE-01 incremental, SUB-01, SUB-02, SUB-03)
+**Total:** 29/30 requirements delivered (FOUND-01–07, QUERY-01, QUERY-02, QUERY-03, QUERY-04, QUERY-05, QUERY-06, QUERY-07, QUERY-08, QUERY-09, QUERY-10, DX-01, DX-02, DX-03, DX-04, DX-05, PAGE-01 incremental, SUB-01, SUB-02, SUB-03, ACTION-01, ACTION-02, ACTION-03)
 
 ## Performance Metrics
 
-- **Plans completed:** 100 (36 v1.0 + 64 v1.1)
+- **Plans completed:** 102 (36 v1.0 + 66 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 38 (11 v1.0 + 27 v1.1 including all Phase 9 sub-phases + Phase 10.1 through Phase 10.13)
-- **Requirements delivered:** 45/45 (v1.0), 25/30 (v1.1)
+- **Phases completed:** 39 (11 v1.0 + 28 v1.1 including all Phase 9 sub-phases + Phase 10.1 through Phase 10.13 + Phase 11)
+- **Requirements delivered:** 45/45 (v1.0), 29/30 (v1.1)
 
 ## Accumulated Context
 
@@ -220,6 +219,7 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - **`hideDirectionAndNulls` SortControls prop:** Boolean computed at usage site (`sortField === 'newest' || sortField === 'oldest'`) — hides Direction/Nulls dropdowns for self-describing sort fields. Keeps SortControls generic for non-event domains.
 - **4-generic SubscriptionConfig<TResult, TVariables, TRaw, TParsed>:** Replaces old `SubscriptionConfig<T>` with typed `extract` function instead of string `dataKey`. TypedDocumentString carries type information from codegen through the entire data path. Config lives in `@lsp-indexer/node` (depends on TypedDocumentString); types package uses structural `{ toString(): string }` to avoid import.
 - **graphql-ws generic threading:** `Client.subscribe<TResult>()` threads result type through sink — zero `as` casts in the subscription data path.
+- **typesVersions for multi-entry packages:** @lsp-indexer/next needs typesVersions for node10 resolution of ./server sub-path entry — attw flagged NoResolution without it. Single-entry packages resolve via top-level `types` field.
 
 ### Roadmap Evolution
 
@@ -238,19 +238,18 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-05
-- **Activity:** Executed Phase 10.13 (Universal Receiver Events Subscription) — plan 01 (1 task, 1 commit)
-- **Outcome:** useUniversalReceiverEventSubscription hook with 3-overload type narrowing, directory migration of universal-receiver-events hooks (react + next) to factory pattern, subscription tab in playground. EVENT DOMAIN with block-order desc default sort (~45 variables, 3 nested relations). SUB-02 + SUB-03 requirements continue. Last domain subscription — all 12 domain subscriptions complete.
-- **Resume file:** .planning/phases/11-server-actions-publish-readiness/11-CONTEXT.md
+- **Activity:** Executed Phase 11 plan 02 (Publish Validation & Bundle Audit) — 2 tasks, 1 commit
+- **Outcome:** publint + attw installed and all 4 packages pass with zero errors. npm pack audit confirms clean dist/ output. Server/client bundle separation verified. typesVersions added to @lsp-indexer/next for node10 resolution. ACTION-02 + DX-03 requirements complete.
+- **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 10.13 complete** — Universal receiver events subscription + directory migration done (event domain with block-order desc default sort, ~45 include variables, 3 nested relations: UP + fromProfile + fromAsset)
-- **All 12 domain subscription hooks complete** — profiles, digital-assets, nfts, owned-assets, owned-tokens, followers, creators, issued-assets, encrypted-assets, data-changed-events, token-id-data-changed-events, universal-receiver-events
-- **25/30 requirements delivered** — SUB-02, SUB-03 incremental across domain phases
-- **Next step:** Phase 11 (Server Actions & Publish Readiness)
-- **Remaining phases:** 11 (Server Actions & Publish Readiness)
+- **Phase 11 complete** — All 4 packages npm publish-ready (publint + attw zero errors)
+- **29/30 requirements delivered** — ACTION-02 (bundle separation), DX-03 (publish validation)
+- **Phase 11 was last planned phase** — milestone nearly complete
+- **Remaining:** Phase 10 subscription consolidation (SUB-04) still active
 - **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
 
 ---
 
-_Last updated: 2026-03-05 — Phase 10.13 complete (Universal Receiver Events Subscription — 1 plan, 1 task, directory migration + factory + subscription hook + event domain block-order desc default sort, last domain subscription)_
+_Last updated: 2026-03-05 — Phase 11 plan 02 complete (Publish Validation & Bundle Audit — 2 tasks, publint + attw zero errors on all 4 packages, typesVersions fix for @lsp-indexer/next/server node10 resolution)_

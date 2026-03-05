@@ -7,7 +7,8 @@ export type IndexerErrorCategory =
   | 'HTTP' // Non-2xx HTTP response
   | 'GRAPHQL' // GraphQL-level errors in response
   | 'CONFIGURATION' // Missing/invalid env vars, bad setup
-  | 'PARSE'; // Response JSON parse failure
+  | 'PARSE' // Response JSON parse failure
+  | 'VALIDATION'; // Input validation failure
 
 /**
  * Fine-grained error codes grouped by category.
@@ -37,7 +38,9 @@ export type IndexerErrorCode =
   // Parse errors
   | 'RESPONSE_NOT_JSON'
   | 'EMPTY_RESPONSE'
-  | 'PARSE_FAILED';
+  | 'PARSE_FAILED'
+  // Validation errors
+  | 'VALIDATION_FAILED';
 
 /**
  * Options for constructing an IndexerError.
@@ -53,4 +56,6 @@ export interface IndexerErrorOptions {
     message: string;
     extensions?: Record<string, unknown>;
   }>;
+  /** Zod validation error details — field paths and messages */
+  validationErrors?: Array<{ path: string; message: string }>;
 }

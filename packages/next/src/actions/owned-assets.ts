@@ -10,6 +10,8 @@ import type {
   OwnedAssetSort,
   PartialOwnedAsset,
 } from '@lsp-indexer/types';
+import { UseOwnedAssetParamsSchema, UseOwnedAssetsParamsSchema } from '@lsp-indexer/types';
+import { validateInput } from './validate';
 
 /**
  * Server action: Fetch a single owned asset by unique ID.
@@ -36,6 +38,7 @@ export async function getOwnedAsset(params: {
   id: string;
   include?: OwnedAssetInclude;
 }): Promise<PartialOwnedAsset | null> {
+  validateInput(UseOwnedAssetParamsSchema, params, 'getOwnedAsset');
   return fetchOwnedAsset(getServerUrl(), params);
 }
 
@@ -76,5 +79,6 @@ export async function getOwnedAssets(params?: {
   offset?: number;
   include?: OwnedAssetInclude;
 }): Promise<FetchOwnedAssetsResult<PartialOwnedAsset>> {
+  if (params) validateInput(UseOwnedAssetsParamsSchema, params, 'getOwnedAssets');
   return fetchOwnedAssets(getServerUrl(), params);
 }

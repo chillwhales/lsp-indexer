@@ -10,6 +10,8 @@ import type {
   NftSort,
   PartialNft,
 } from '@lsp-indexer/types';
+import { UseNftParamsSchema, UseNftsParamsSchema } from '@lsp-indexer/types';
+import { validateInput } from './validate';
 
 /**
  * Server action: Fetch a single NFT by collection address and token ID (or formatted token ID).
@@ -50,6 +52,7 @@ export async function getNft(params: {
   formattedTokenId?: string;
   include?: NftInclude;
 }): Promise<PartialNft | null> {
+  validateInput(UseNftParamsSchema, params, 'getNft');
   return fetchNft(getServerUrl(), params);
 }
 
@@ -90,5 +93,6 @@ export async function getNfts(params?: {
   offset?: number;
   include?: NftInclude;
 }): Promise<FetchNftsResult<PartialNft>> {
+  if (params) validateInput(UseNftsParamsSchema, params, 'getNfts');
   return fetchNfts(getServerUrl(), params);
 }

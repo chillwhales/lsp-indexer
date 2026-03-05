@@ -10,6 +10,12 @@ import type {
   FollowerSort,
   PartialFollower,
 } from '@lsp-indexer/types';
+import {
+  UseFollowCountParamsSchema,
+  UseFollowsParamsSchema,
+  UseIsFollowingParamsSchema,
+} from '@lsp-indexer/types';
+import { validateInput } from './validate';
 
 /**
  * Server action: Fetch a paginated list of follow relationships.
@@ -53,6 +59,7 @@ export async function getFollows(params: {
   offset?: number;
   include?: FollowerInclude;
 }): Promise<FetchFollowsResult<PartialFollower>> {
+  validateInput(UseFollowsParamsSchema, params, 'getFollows');
   return fetchFollows(getServerUrl(), params);
 }
 
@@ -66,6 +73,7 @@ export async function getFollows(params: {
  * @returns FollowCount with followerCount and followingCount
  */
 export async function getFollowCount(address: string): Promise<FollowCount> {
+  validateInput(UseFollowCountParamsSchema, { address }, 'getFollowCount');
   return fetchFollowCount(getServerUrl(), { address });
 }
 
@@ -83,5 +91,6 @@ export async function getIsFollowing(
   followerAddress: string,
   followedAddress: string,
 ): Promise<boolean> {
+  validateInput(UseIsFollowingParamsSchema, { followerAddress, followedAddress }, 'getIsFollowing');
   return fetchIsFollowing(getServerUrl(), { followerAddress, followedAddress });
 }
