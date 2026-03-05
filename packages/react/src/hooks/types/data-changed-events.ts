@@ -1,8 +1,33 @@
+import type { FetchDataChangedEventsResult } from '@lsp-indexer/node';
 import type {
   DataChangedEventFilter,
   DataChangedEventInclude,
   DataChangedEventSort,
 } from '@lsp-indexer/types';
+import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query';
+
+/** Flat return shape for useLatestDataChangedEvent — single event + query state */
+export type UseLatestDataChangedEventReturn<F> = { dataChangedEvent: F | null } & Omit<
+  UseQueryResult<F | null, Error>,
+  'data'
+>;
+
+/** Flat return shape for useDataChangedEvents — dataChangedEvents array + totalCount + query state */
+export type UseDataChangedEventsReturn<F> = { dataChangedEvents: F[]; totalCount: number } & Omit<
+  UseQueryResult<FetchDataChangedEventsResult<F>, Error>,
+  'data'
+>;
+
+/** Flat return shape for useInfiniteDataChangedEvents — dataChangedEvents array + infinite scroll controls + query state */
+export type UseInfiniteDataChangedEventsReturn<F> = {
+  dataChangedEvents: F[];
+  hasNextPage: boolean;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  isFetchingNextPage: boolean;
+} & Omit<
+  UseInfiniteQueryResult<InfiniteData<FetchDataChangedEventsResult<F>>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;
 
 /**
  * Base params for `useDataChangedEventSubscription`.
