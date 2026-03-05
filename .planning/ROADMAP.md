@@ -2,8 +2,8 @@
 
 **Created:** 2026-02-16
 **Depth:** Standard
-**Phases:** 5 (Phase 7–11, continuing from v1.0)
-**Coverage:** 30/30 v1.1 requirements mapped
+**Phases:** 9 (Phase 7–15, continuing from v1.0)
+**Coverage:** 46/46 v1.1 requirements mapped
 
 ## Overview
 
@@ -582,36 +582,40 @@ Plans:
 
 ## Progress
 
-| Phase | Name                               | Requirements | Status     |
-| ----- | ---------------------------------- | :----------: | ---------- |
-| 7     | Package Foundation                 |     7/7      | Complete   |
-| 8     | First Vertical Slice (Profiles)    |     3/3      | Complete   |
-| 9.1   | Digital Assets                     |     1/1      | Complete   |
-| 9.2   | NFTs                               |     1/1      | Complete   |
-| 9.3   | Owned Assets                       |     1/1      | Complete   |
-| 9.4   | Conditional Include Types          |     1/1      | Complete   |
-| 9.5   | Social / Follows                   |     1/1      | Complete   |
-| 9.6   | Generic Type Propagation           |     1/1      | Complete   |
-| 9.7   | Creators                           |     1/1      | Complete   |
-| 9.8   | Issued Assets                      |     1/1      | Complete   |
-| 9.9   | Encrypted Feed                     |     1/1      | Complete   |
-| 9.10  | Data Changed Events                |     1/1      | Complete   |
-| 9.11  | Universal Receiver Events          |     1/1      | Complete   |
-| 9.12  | Block-Ordered Sorting (INSERTED)   |      0       | Complete   |
-| 10.1  | Subscription Foundation            |     1/1      | Complete   |
-| 10.2  | Profiles Subscription              |     1/1      | Complete   |
-| 10.3  | Digital Assets Subscription        |     1/1      | Complete   |
-| 10.4  | NFTs Subscription                  |     1/1      | Complete   |
-| 10.5  | Owned Assets Subscription          |     1/1      | Complete   |
-| 10.6  | 1/1                                |   Complete   | 2026-03-04 |
-| 10.7  | 1/1                                |   Complete   | 2026-03-04 |
-| 10.8  | 1/1                                |   Complete   | 2026-03-05 |
-| 10.9  | 1/1                                |   Complete   | 2026-03-05 |
-| 10.10 | Encrypted Assets Subscription      |   Complete   | 2026-03-05 |
-| 10.11 | 1/1                                |   Complete   | 2026-03-05 |
-| 10.12 | 1/1                                |   Complete   | 2026-03-05 |
-| 10.13 | 1/1                                |   Complete   | 2026-03-05 |
-| 11    | 2/2 | Complete    | 2026-03-05 |
+| Phase | Name                              | Requirements | Status      |
+| ----- | --------------------------------- | :----------: | ----------- |
+| 7     | Package Foundation                |     7/7      | Complete    |
+| 8     | First Vertical Slice (Profiles)   |     3/3      | Complete    |
+| 9.1   | Digital Assets                    |     1/1      | Complete    |
+| 9.2   | NFTs                              |     1/1      | Complete    |
+| 9.3   | Owned Assets                      |     1/1      | Complete    |
+| 9.4   | Conditional Include Types         |     1/1      | Complete    |
+| 9.5   | Social / Follows                  |     1/1      | Complete    |
+| 9.6   | Generic Type Propagation          |     1/1      | Complete    |
+| 9.7   | Creators                          |     1/1      | Complete    |
+| 9.8   | Issued Assets                     |     1/1      | Complete    |
+| 9.9   | Encrypted Feed                    |     1/1      | Complete    |
+| 9.10  | Data Changed Events               |     1/1      | Complete    |
+| 9.11  | Universal Receiver Events         |     1/1      | Complete    |
+| 9.12  | Block-Ordered Sorting (INSERTED)  |      0       | Complete    |
+| 10.1  | Subscription Foundation           |     1/1      | Complete    |
+| 10.2  | Profiles Subscription             |     1/1      | Complete    |
+| 10.3  | Digital Assets Subscription       |     1/1      | Complete    |
+| 10.4  | NFTs Subscription                 |     1/1      | Complete    |
+| 10.5  | Owned Assets Subscription         |     1/1      | Complete    |
+| 10.6  | Owned Tokens Subscription         |     1/1      | Complete    |
+| 10.7  | Followers Subscription            |     1/1      | Complete    |
+| 10.8  | Creators Subscription             |     1/1      | Complete    |
+| 10.9  | Issued Assets Subscription        |     1/1      | Complete    |
+| 10.10 | Encrypted Assets Subscription     |     1/1      | Complete    |
+| 10.11 | Data Changed Events Subscription  |     1/1      | Complete    |
+| 10.12 | Token ID Data Changed Sub.        |     1/1      | Complete    |
+| 10.13 | Universal Receiver Events Sub.    |     1/1      | Complete    |
+| 11    | Server Actions & Publish Ready    |     4/4      | Complete    |
+| 12    | Replace Local Pkgs → @chillwhales |      4       | Not started |
+| 13    | Indexer v1 Cleanup                |      4       | Not started |
+| 14    | Comments Cleanup & Release Prep   |      4       | Not started |
+| 15    | CI/CD Workflows & Shared Infra    |      4       | Not started |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
@@ -642,6 +646,10 @@ Phase 7 (Package Foundation)
                 │      └──→ 10.1 (Subscription Foundation & Type Safety)
                 │             └──→ 10.2–10.13 (one per domain — hook + playground demo)
                 └──→ Phase 11 (Server Actions & Publish Readiness) ←── also depends on Phase 10
+                       └──→ Phase 12 (Replace Local Packages → @chillwhales NPM) ←── stable codebase required
+                              └──→ Phase 13 (Indexer v1 Cleanup — remove v1, promote v2) ←── migrations complete
+                                     └──→ Phase 14 (Code Comments Cleanup & Release Prep) ←── final codebase shape
+                                            └──→ Phase 15 (CI/CD Workflows & Shared Infra) ←── release-ready code
 ```
 
 **Package dependency graph:**
@@ -661,7 +669,7 @@ Phase 7 (Package Foundation)
 
 ## Coverage Validation
 
-All 30 v1.1 requirements mapped to exactly one phase:
+All 46 v1.1 requirements mapped to exactly one phase:
 
 | Requirement | Phase | Category                      |
 | ----------- | ----- | ----------------------------- |
@@ -695,7 +703,24 @@ All 30 v1.1 requirements mapped to exactly one phase:
 | ACTION-03   | 11    | Server Actions                |
 | DX-03       | 11    | Developer Exp                 |
 
-**Mapped: 30/30 ✓ — No orphans, no duplicates.**
+| MIGRATE-01 | 12 | Migration (data-keys → erc725) |
+| MIGRATE-02 | 12 | Migration (lsp1 → @chillwhales/lsp1) |
+| MIGRATE-03 | 12 | Migration (upstream PRs) |
+| MIGRATE-04 | 12 | Migration (build validation) |
+| CLEAN-01 | 13 | Cleanup (v1 removal + v2 rename) |
+| CLEAN-02 | 13 | Cleanup (Docker v1 removal) |
+| CLEAN-03 | 13 | Cleanup (root scripts) |
+| CLEAN-04 | 13 | Cleanup (config files) |
+| RELEASE-01 | 14 | Release (dead comments removal) |
+| RELEASE-02 | 14 | Release (API JSDoc) |
+| RELEASE-03 | 14 | Release (test app docs) |
+| RELEASE-04 | 14 | Release (publish validation) |
+| CICD-01 | 15 | CI/CD (layered CI pipeline) |
+| CICD-02 | 15 | CI/CD (changesets release) |
+| CICD-03 | 15 | CI/CD (preview releases) |
+| CICD-04 | 15 | CI/CD (shared infra investigation) |
+
+**Mapped: 46/46 ✓ — No orphans, no duplicates.**
 
 ---
 
@@ -725,7 +750,124 @@ Generic type propagation (DX-05) updates all 5 existing domains to use the 3-ove
 
 Subscriptions (Phase 10) add cache integration logic that affects the query layer from Phase 9. Server actions in `@lsp-indexer/next` (Phase 11) are isolated wrappers around `@lsp-indexer/node` services — they don't affect the query/subscription layer. Building subscriptions first means the full client-side story (queries + subscriptions) is complete before expanding the server-side layer to all domains.
 
+## Phase 12 — Replace Local Packages with @chillwhales NPM Packages
+
+**Goal:** Codebase uses `@chillwhales/erc725` and `@chillwhales/lsp1` from npm instead of local `packages/data-keys/` and `packages/lsp1/` — reducing maintained code and aligning with the shared LUKSO Standards ecosystem. Any extractable utilities from this repo are contributed upstream via PRs to `chillwhales/LSPs`.
+
+**Dependencies:** Phase 11 (all packages publish-ready — migration happens on a stable, fully-functional codebase)
+
+**Requirements:**
+
+| ID         | Requirement                                                                                                                                                    |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MIGRATE-01 | `packages/data-keys/` removed and all imports replaced with `@chillwhales/erc725` equivalents (`resolveDataKeyName`, `resolveDataKeyHex`, `DataKeyNameSchema`) |
+| MIGRATE-02 | `packages/lsp1/` removed and all imports replaced with `@chillwhales/lsp1` equivalents (`resolveTypeIdName`, `resolveTypeIdHex`, `TypeIdNameSchema`)           |
+| MIGRATE-03 | Utility functions in this repo that are generic enough for the LUKSO ecosystem are identified, extracted, and contributed as PRs to `chillwhales/LSPs`         |
+| MIGRATE-04 | All 4 publishable packages (`@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`) build and pass validation after migration    |
+
+**Plans:** 2 plans
+
+Plans:
+
+- [ ] 12-01-PLAN.md — Dependency swap (data-keys → @chillwhales/erc725, lsp1 → @chillwhales/lsp1) + build validation
+- [ ] 12-02-PLAN.md — Cross-check audit of @chillwhales packages + upstream contribution PR
+
+**Success Criteria:**
+
+1. Developer can `pnpm build` all packages and see zero errors — `@chillwhales/erc725` and `@chillwhales/lsp1` are resolved from `node_modules`, not local workspace packages
+2. `packages/data-keys/` and `packages/lsp1/` directories no longer exist in the repo — no local data-key or type-ID registry code is maintained
+3. All existing functionality (data key name resolution in parsers, type ID resolution in universal receiver events, Zod schemas in types package) works identically with the npm packages
+4. At least one PR is opened to `chillwhales/LSPs` with utility functions extracted from this repo that benefit the broader ecosystem
+5. `publint` and `arethetypeswrong` still pass on all 4 publishable packages after the dependency swap
+
+## Phase 13 — Indexer v1 Cleanup
+
+**Goal:** The repo has one indexer (`packages/indexer/`, currently `indexer-v2`) and one Docker setup — all v1 code, Docker images, scripts, and root-level v1 commands are gone. `packages/indexer-v2/` becomes the canonical `packages/indexer/`.
+
+**Dependencies:** Phase 12 (dependency migrations complete — cleanup happens on a fully migrated codebase)
+
+**Requirements:**
+
+| ID       | Requirement                                                                                                                                             |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CLEAN-01 | `packages/indexer/` (v1) removed and `packages/indexer-v2/` renamed to `packages/indexer/` as the canonical indexer                                     |
+| CLEAN-02 | `docker/v1/` removed — only the v2 Docker setup (`docker/v2/` or promoted to `docker/`) remains                                                         |
+| CLEAN-03 | Root `package.json` scripts updated: v1 `start` removed, `start:v2` promoted to `start`, no dead references to `@chillwhales/indexer` (v1 package name) |
+| CLEAN-04 | All config files (ESLint ignores, workspace config, tsconfig references) updated to reflect the renamed package — zero stale paths                      |
+
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run `/gsd-plan-phase 13` to break down)
+
+**Success Criteria:**
+
+1. `packages/indexer/` contains the v2 indexer code (plugin architecture, pino logging, vitest tests) — no `packages/indexer-v2/` exists
+2. `docker/v1/` directory no longer exists — only one Docker configuration remains for the current indexer
+3. `pnpm start` in the repo root runs the (formerly v2) indexer — no `start:v2` script exists
+4. `pnpm build` completes without errors — no broken workspace references to removed packages
+5. ESLint, TypeScript, and workspace configs have zero references to the old v1 package paths
+
+## Phase 14 — Code Comments Cleanup & Release Prep
+
+**Goal:** Every published package has clean, consumer-facing JSDoc/TSDoc comments — no dead comments, no `.planning` references, no outdated implementation notes. The test app is easy to navigate for hook consumers. All packages are ready for public npm release.
+
+**Dependencies:** Phase 13 (repo structure finalized — comments cleanup happens on the final codebase shape)
+
+**Requirements:**
+
+| ID         | Requirement                                                                                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| RELEASE-01 | All dead, outdated, and `.planning`-referencing comments removed from all packages (`types`, `node`, `react`, `next`) and the test app                             |
+| RELEASE-02 | All public API exports have concise JSDoc/TSDoc comments explaining purpose, params, and return types — oriented toward package consumers, not internal developers |
+| RELEASE-03 | Test app (`apps/test`) has clear page-level comments and component documentation making it easy for hook consumers to understand usage patterns                    |
+| RELEASE-04 | All 4 publishable packages pass final validation (`publint`, `arethetypeswrong`, `pnpm build`) and are ready for `npm publish`                                     |
+
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run `/gsd-plan-phase 14` to break down)
+
+**Success Criteria:**
+
+1. Zero comments in any `.ts`/`.tsx` file reference `.planning`, `PLAN`, `Phase`, `TODO` (planning artifacts), or contain stale implementation notes that no longer match the code
+2. Developer can hover over any exported hook, type, service, or action in their IDE and see a concise JSDoc description with `@param` and `@returns` — no "TODO" or "FIXME" in any public API doc
+3. Test app pages have clear header comments explaining what each page demonstrates — a new developer can understand the hook usage patterns within minutes
+4. `pnpm build && pnpm validate:publish` passes with zero errors across all 4 packages — ready for `npm publish`
+5. `pnpm lint` passes with zero warnings related to unused code or dead comments
+
+## Phase 15 — CI/CD Workflows & Shared Infra
+
+**Goal:** This repo has the same CI/CD workflow quality as `chillwhales/LSPs` — layered CI (lint, typecheck, build, test, package verification), changesets-based release, and preview releases. Shared workflow logic is abstracted into a reusable third repo so both repos (and future repos) use identical pipeline patterns.
+
+**Dependencies:** Phase 14 (code is clean and release-ready — CI/CD is the delivery mechanism)
+
+**Requirements:**
+
+| ID      | Requirement                                                                                                                                                                       |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CICD-01 | CI workflow matches LSPs pattern: layered install → (lint, typecheck, build in parallel) → (test with coverage, package verification with publint+attw) → coverage PR report      |
+| CICD-02 | Release workflow using changesets: automated version PRs on main push, npm publish on merge, GitHub Releases created                                                              |
+| CICD-03 | Preview release workflow for pre-release npm tags from non-main branches                                                                                                          |
+| CICD-04 | Investigation completed on abstracting shared workflow patterns into a reusable third repo (e.g., `chillwhales/.github` or `chillwhales/ci-workflows`) — with decision documented |
+
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run `/gsd-plan-phase 15` to break down)
+
+**Success Criteria:**
+
+1. PRs to this repo trigger a multi-layer CI pipeline that runs lint, typecheck, build, test, publint+attw in parallel layers — matching the `chillwhales/LSPs` CI pattern
+2. Merging to main triggers a changesets-based release flow: either creates a "Version Packages" PR or publishes to npm with GitHub Releases — zero manual `npm publish` steps
+3. A documented decision exists on whether shared workflows live in a third repo (reusable workflows) or are copied — with rationale for the chosen approach
+4. If shared workflows are feasible, at least one reusable workflow is extracted and consumed by both repos
+5. `pnpm test:coverage` runs in CI with coverage reports posted as PR comments on pull requests
+
 ---
 
 _Created: 2026-02-16_
-_Last updated: 2026-03-05 — Phase 10.10 complete (Encrypted Assets Subscription — 1 plan, 1 task, directory migration + subscription hook), 25/30 requirements delivered_
+_Last updated: 2026-03-05 — Phase 15 added (CI/CD workflows & shared infra)_
