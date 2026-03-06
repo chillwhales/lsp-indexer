@@ -34,30 +34,27 @@ re_verification: false
 
 ### Required Artifacts
 
-| Artifact                                 | Expected                                                       | Status     | Details                                                                                                  |
-| ---------------------------------------- | -------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------- |
-| `packages/types/src/registry-schemas.ts` | Local Zod 4 schemas for DataKeyNameSchema and TypeIdNameSchema | ✓ VERIFIED | 33 lines, exports both schemas via `z.enum()` from upstream tuples, with JSDoc explaining Zod 3/4 bridge |
-| `packages/types/package.json`            | `@chillwhales/erc725` and `@chillwhales/lsp1` as dependencies  | ✓ VERIFIED | Both deps present as `"^0.1.0"`, no `@lsp-indexer/data-keys` or `@lsp-indexer/lsp1`                      |
-| `packages/node/package.json`             | `@chillwhales/erc725` and `@chillwhales/lsp1` as dependencies  | ✓ VERIFIED | Both deps present as `"^0.1.0"`, no `@lsp-indexer/data-keys` or `@lsp-indexer/lsp1`                      |
-| `apps/test/package.json`                 | `@chillwhales/erc725` and `@chillwhales/lsp1` as dependencies  | ✓ VERIFIED | Both deps present as `"^0.1.0"`, no `@lsp-indexer/data-keys` or `@lsp-indexer/lsp1`                      |
-| `packages/types/tsup.config.ts`          | Updated externals                                              | ✓ VERIFIED | `external: ['@chillwhales/erc725', '@chillwhales/lsp1', 'zod']`                                          |
-| `packages/node/tsup.config.ts`           | Updated externals                                              | ✓ VERIFIED | `external: ['@chillwhales/erc725', '@chillwhales/lsp1', '@lsp-indexer/types', 'zod']`                    |
-| `packages/types/src/index.ts`            | Exports registry-schemas                                       | ✓ VERIFIED | `export * from './registry-schemas';` present (line 14)                                                  |
-| `.planning/phases/12-.../12-02-audit.md` | Cross-check results and extraction candidates                  | ✓ VERIFIED | 119 lines with package overlap table, utility analysis, and "Why No PRs" justification                   |
+| Artifact                                 | Expected                                                      | Status     | Details                                                                                |
+| ---------------------------------------- | ------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------- |
+| `packages/types/package.json`            | `@chillwhales/erc725` and `@chillwhales/lsp1` as dependencies | ✓ VERIFIED | Both deps present as `"^0.1.1"`, no `@lsp-indexer/data-keys` or `@lsp-indexer/lsp1`    |
+| `packages/node/package.json`             | `@chillwhales/erc725` and `@chillwhales/lsp1` as dependencies | ✓ VERIFIED | Both deps present as `"^0.1.1"`, no `@lsp-indexer/data-keys` or `@lsp-indexer/lsp1`    |
+| `apps/test/package.json`                 | `@chillwhales/erc725` and `@chillwhales/lsp1` as dependencies | ✓ VERIFIED | Both deps present as `"^0.1.1"`, no `@lsp-indexer/data-keys` or `@lsp-indexer/lsp1`    |
+| `packages/types/tsup.config.ts`          | Updated externals                                             | ✓ VERIFIED | `external: ['@chillwhales/erc725', '@chillwhales/lsp1', 'zod']`                        |
+| `packages/node/tsup.config.ts`           | Updated externals                                             | ✓ VERIFIED | `external: ['@chillwhales/erc725', '@chillwhales/lsp1', '@lsp-indexer/types', 'zod']`  |
+| `.planning/phases/12-.../12-02-audit.md` | Cross-check results and extraction candidates                 | ✓ VERIFIED | 119 lines with package overlap table, utility analysis, and "Why No PRs" justification |
 
 ### Key Link Verification
 
-| From                                                      | To                    | Via                         | Status       | Details                                                             |
-| --------------------------------------------------------- | --------------------- | --------------------------- | ------------ | ------------------------------------------------------------------- |
-| `packages/types/src/registry-schemas.ts`                  | `@chillwhales/erc725` | `import DATA_KEY_NAMES`     | ✓ WIRED      | Line 13: `import { DATA_KEY_NAMES } from '@chillwhales/erc725';`    |
-| `packages/types/src/registry-schemas.ts`                  | `@chillwhales/lsp1`   | `import TYPE_ID_NAMES`      | ✓ WIRED      | Line 14: `import { TYPE_ID_NAMES } from '@chillwhales/lsp1';`       |
-| `packages/node/src/parsers/data-changed-events.ts`        | `@chillwhales/erc725` | `import resolveDataKeyName` | ✓ WIRED      | Line 1: `import { resolveDataKeyName } from '@chillwhales/erc725';` |
-| `packages/node/src/services/universal-receiver-events.ts` | `@chillwhales/lsp1`   | `import resolveTypeIdHex`   | ✓ WIRED      | Line 1: `import { resolveTypeIdHex } from '@chillwhales/lsp1';`     |
-| `packages/types/src/data-changed-events.ts`               | `./registry-schemas`  | `import DataKeyNameSchema`  | ✓ WIRED      | Line 3: `import { DataKeyNameSchema } from './registry-schemas';`   |
-| `packages/types/src/universal-receiver-events.ts`         | `./registry-schemas`  | `import TypeIdNameSchema`   | ✓ WIRED      | Line 3: `import { TypeIdNameSchema } from './registry-schemas';`    |
-| `apps/test/.../data-changed-events/page.tsx`              | `@chillwhales/erc725` | `import DATA_KEY_NAMES`     | ✓ WIRED      | Line 3: `import { DATA_KEY_NAMES } from '@chillwhales/erc725';`     |
-| `apps/test/.../universal-receiver-events/page.tsx`        | `@chillwhales/lsp1`   | `import TYPE_ID_NAMES`      | ✓ WIRED      | Line 3: `import { TYPE_ID_NAMES } from '@chillwhales/lsp1';`        |
-| `12-02-audit.md`                                          | `chillwhales/LSPs`    | GitHub PR                   | ✓ DOCUMENTED | "Why No PRs" section justifies absence with three categories        |
+| From                                                      | To                    | Via                              | Status       | Details                                                                    |
+| --------------------------------------------------------- | --------------------- | -------------------------------- | ------------ | -------------------------------------------------------------------------- |
+| `packages/types/src/data-changed-events.ts`               | `@chillwhales/erc725` | `import DataKeyNameSchema`       | ✓ WIRED      | `import { DataKeyNameSchema } from '@chillwhales/erc725';`                 |
+| `packages/types/src/token-id-data-changed-events.ts`      | `@chillwhales/erc725` | `import DataKeyNameSchema`       | ✓ WIRED      | `import { DataKeyNameSchema } from '@chillwhales/erc725';`                 |
+| `packages/types/src/universal-receiver-events.ts`         | `@chillwhales/lsp1`   | `import TypeIdNameSchema`        | ✓ WIRED      | `import { TypeIdNameSchema } from '@chillwhales/lsp1';`                    |
+| `packages/node/src/parsers/data-changed-events.ts`        | `@chillwhales/erc725` | `import resolveDataKeyName`      | ✓ WIRED      | `import { resolveDataKeyName } from '@chillwhales/erc725';`                |
+| `packages/node/src/services/universal-receiver-events.ts` | `@chillwhales/lsp1`   | `import resolveTypeIdHex`        | ✓ WIRED      | `import { resolveTypeIdHex } from '@chillwhales/lsp1';`                    |
+| `apps/test/.../data-changed-events/page.tsx`              | `@chillwhales/erc725` | `import DATA_KEY_NAMES + schema` | ✓ WIRED      | `import { DATA_KEY_NAMES, DataKeyNameSchema } from '@chillwhales/erc725';` |
+| `apps/test/.../universal-receiver-events/page.tsx`        | `@chillwhales/lsp1`   | `import TYPE_ID_NAMES + schema`  | ✓ WIRED      | `import { TYPE_ID_NAMES, TypeIdNameSchema } from '@chillwhales/lsp1';`     |
+| `12-02-audit.md`                                          | `chillwhales/LSPs`    | GitHub PR                        | ✓ DOCUMENTED | "Why No PRs" section justifies absence with three categories               |
 
 ### Requirements Coverage
 

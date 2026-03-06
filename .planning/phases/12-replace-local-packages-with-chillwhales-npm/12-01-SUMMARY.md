@@ -10,18 +10,17 @@ requires:
     provides: 4 publishable packages with publint + attw validation
 provides:
   - '@chillwhales/erc725 and @chillwhales/lsp1 as npm dependencies replacing local packages'
-  - 'Local Zod 4 DataKeyNameSchema and TypeIdNameSchema in registry-schemas.ts'
+  - 'DataKeyNameSchema and TypeIdNameSchema imported directly from upstream (Zod 4 compatible)'
   - 'packages/data-keys/ and packages/lsp1/ directories removed'
 affects: [12-02, 13-indexer-v1-cleanup, 14-code-comments-cleanup]
 
 # Tech tracking
 tech-stack:
-  added: ['@chillwhales/erc725@^0.1.0', '@chillwhales/lsp1@^0.1.0']
-  patterns: ['Local Zod 4 schema creation from upstream Zod 3 constant tuples']
+  added: ['@chillwhales/erc725@^0.1.1', '@chillwhales/lsp1@^0.1.1']
+  patterns: ['Direct schema import from upstream @chillwhales packages']
 
 key-files:
-  created:
-    - packages/types/src/registry-schemas.ts
+  created: []
   modified:
     - packages/types/package.json
     - packages/types/tsup.config.ts
@@ -43,11 +42,10 @@ key-files:
     - apps/test/src/app/universal-receiver-events/page.tsx
 
 key-decisions:
-  - 'Created local Zod 4 schemas from upstream DATA_KEY_NAMES/TYPE_ID_NAMES tuples to avoid Zod 3/4 incompatibility'
-  - 'Used `as readonly [string, ...string[]]` cast for upstream tuple types that widen in .d.mts'
+  - 'Import DataKeyNameSchema and TypeIdNameSchema directly from @chillwhales/erc725 and @chillwhales/lsp1 (both use Zod 4, same as this repo)'
 
 patterns-established:
-  - 'Zod version bridge: import constants from upstream, create local Zod schemas when upstream uses different Zod major version'
+  - 'Direct schema import from upstream @chillwhales packages — no local wrappers needed when Zod versions match'
 
 requirements-completed: [MIGRATE-01, MIGRATE-02, MIGRATE-04]
 
@@ -58,7 +56,7 @@ completed: 2026-03-05
 
 # Phase 12 Plan 01: Replace Local Packages with @chillwhales NPM Summary
 
-**Replaced local packages/data-keys/ and packages/lsp1/ with @chillwhales/erc725 and @chillwhales/lsp1 from npm, with Zod 4 schema bridge for cross-version compatibility**
+**Replaced local packages/data-keys/ and packages/lsp1/ with @chillwhales/erc725@^0.1.1 and @chillwhales/lsp1@^0.1.1 from npm — direct schema and function imports, no local wrappers**
 
 ## Performance
 
@@ -66,12 +64,12 @@ completed: 2026-03-05
 - **Started:** 2026-03-05T22:16:10Z
 - **Completed:** 2026-03-05T22:21:24Z
 - **Tasks:** 2
-- **Files modified:** 19 modified, 1 created, 16 deleted
+- **Files modified:** 19 modified, 16 deleted
 
 ## Accomplishments
 
 - All imports swapped from @lsp-indexer/data-keys → @chillwhales/erc725 and @lsp-indexer/lsp1 → @chillwhales/lsp1 across types, node, and test app packages
-- Created registry-schemas.ts with local Zod 4 DataKeyNameSchema and TypeIdNameSchema from upstream constant tuples (bridging Zod 3/4 incompatibility)
+- DataKeyNameSchema and TypeIdNameSchema imported directly from upstream (both packages use Zod 4)
 - Deleted packages/data-keys/ and packages/lsp1/ directories (16 files removed)
 - All 4 publishable packages build, pass publint and attw with zero errors
 - Test app next build compiles successfully
@@ -85,11 +83,9 @@ Each task was committed atomically:
 
 ## Files Created/Modified
 
-- `packages/types/src/registry-schemas.ts` - Local Zod 4 schemas for DataKeyNameSchema and TypeIdNameSchema
-- `packages/types/src/index.ts` - Added registry-schemas export
-- `packages/types/src/data-changed-events.ts` - Swapped to local registry-schemas import
-- `packages/types/src/token-id-data-changed-events.ts` - Swapped to local registry-schemas import
-- `packages/types/src/universal-receiver-events.ts` - Swapped to local registry-schemas import
+- `packages/types/src/data-changed-events.ts` - Import DataKeyNameSchema from @chillwhales/erc725
+- `packages/types/src/token-id-data-changed-events.ts` - Import DataKeyNameSchema from @chillwhales/erc725
+- `packages/types/src/universal-receiver-events.ts` - Import TypeIdNameSchema from @chillwhales/lsp1
 - `packages/types/package.json` - @chillwhales/erc725 + @chillwhales/lsp1 deps
 - `packages/types/tsup.config.ts` - Updated externals
 - `packages/node/src/parsers/data-changed-events.ts` - @chillwhales/erc725 import
@@ -108,8 +104,7 @@ Each task was committed atomically:
 
 ## Decisions Made
 
-- Created local Zod 4 schemas in registry-schemas.ts instead of importing Zod 3 schemas from upstream — prevents runtime incompatibility between Zod 3 and Zod 4 schema composition
-- Used `as readonly [string, ...string[]]` cast on upstream tuple types since the .d.mts may widen the const tuple type
+- Import DataKeyNameSchema and TypeIdNameSchema directly from upstream — both @chillwhales packages use Zod 4 (zod@^4.3.6), same as this repo
 
 ## Deviations from Plan
 
