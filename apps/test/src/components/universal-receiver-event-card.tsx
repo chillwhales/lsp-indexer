@@ -15,32 +15,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatRelativeTime, formatTokenAmount, truncateAddress } from '@/lib/utils';
 
-// ---------------------------------------------------------------------------
-// UniversalReceiverEventCard
-// ---------------------------------------------------------------------------
-
 export interface UniversalReceiverEventCardProps {
   universalReceiverEvent: PartialExcept<UniversalReceiverEvent, 'address' | 'from' | 'typeId'>;
 }
 
-/**
- * Card component for rendering a single universal receiver event.
- *
- * Base fields (always present): address, from, typeId.
- * Includable data fields: typeIdName, value, receivedData, returnedValue — rendered via
- * `'key' in obj` field-presence guards.
- * Conditional scalars: blockNumber, timestamp, logIndex, transactionIndex —
- * rendered via `'key' in obj` field-presence guards.
- * Three collapsible relation sections: Receiving Profile (universalProfile),
- * Sender Profile (fromProfile), Sender Asset (fromAsset).
- *
- * **Card title shows names when available:**
- * - Receiver: profile name from universalProfile relation, falls back to truncated address
- * - Sender: profile name from fromProfile, or asset name from fromAsset, falls back to truncated address
- * - Type: typeIdName when known, falls back to truncated hex
- *
- * Most relation-heavy card in the project (3 collapsible sections).
- */
+/** Universal receiver event card. Shows receiver/sender with 3 collapsible relation sections. */
 export function UniversalReceiverEventCard({
   universalReceiverEvent,
 }: UniversalReceiverEventCardProps): React.ReactNode {
@@ -94,7 +73,6 @@ export function UniversalReceiverEventCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Base fields — always present */}
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-40 shrink-0">Receiver</dt>
@@ -104,8 +82,6 @@ export function UniversalReceiverEventCard({
             <dt className="text-muted-foreground w-40 shrink-0">From</dt>
             <dd className="font-mono text-xs break-all">{evt.from}</dd>
           </div>
-
-          {/* Type ID Name — conditional include field (above Type ID, matching Data Key Name pattern) */}
           {hasTypeIdName && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Type ID Name</dt>
@@ -123,8 +99,6 @@ export function UniversalReceiverEventCard({
             <dt className="text-muted-foreground w-40 shrink-0">Type ID</dt>
             <dd className="font-mono text-xs break-all">{evt.typeId}</dd>
           </div>
-
-          {/* Conditional data fields via field-presence checks */}
           {'value' in evt && evt.value != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Value</dt>
@@ -157,8 +131,6 @@ export function UniversalReceiverEventCard({
               </dd>
             </div>
           )}
-
-          {/* Conditional scalar fields via field-presence checks */}
           {'timestamp' in evt && evt.timestamp != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Timestamp</dt>
@@ -187,18 +159,12 @@ export function UniversalReceiverEventCard({
             </div>
           )}
         </dl>
-
-        {/* Collapsible section 1: Receiving Profile (universalProfile) */}
         {universalProfile != null && (
           <CollapsibleProfileSection label="Receiving Profile" profile={universalProfile} />
         )}
-
-        {/* Collapsible section 2: Sender Profile (fromProfile) */}
         {fromProfile != null && (
           <CollapsibleProfileSection label="Sender Profile" profile={fromProfile} />
         )}
-
-        {/* Collapsible section 3: Sender Asset (fromAsset) */}
         {fromAsset != null && (
           <CollapsibleDigitalAssetSection label="Sender Asset" digitalAsset={fromAsset} />
         )}

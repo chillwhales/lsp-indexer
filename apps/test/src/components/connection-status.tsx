@@ -1,14 +1,6 @@
 'use client';
 
-/**
- * Client-side import validation component.
- *
- * Mounted as a client component on the home page to verify that `@lsp-indexer/node`
- * imports resolve correctly in a browser (client component) context. Imports
- * `IndexerError` and validates it's a function at runtime.
- *
- * Complements the server-side import validation done in the RSC home page.
- */
+/** Client-side import validation. Verifies @lsp-indexer/node resolves in browser context. */
 import { CheckCircle2 } from 'lucide-react';
 import React from 'react';
 

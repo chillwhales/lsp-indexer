@@ -1,22 +1,6 @@
 'use client';
 
-/**
- * Creators Playground — demonstrates @lsp-indexer hook usage for LSP4 creator attestations.
- *
- * **Hooks demonstrated:**
- * - `useCreators` / `useCreators` (next) — Filtered, sorted, paginated creator list
- * - `useInfiniteCreators` / `useInfiniteCreators` (next) — Infinite scroll with fetchNextPage
- * - `useCreatorSubscription` / `useCreatorSubscription` (next) — Real-time WebSocket updates
- *
- * **Patterns shown:**
- * - No singular hook (no natural key — only opaque Hasura IDs)
- * - Dual heterogeneous relation includes: creatorProfile (ProfileResult) + digitalAsset (DigitalAssetResult)
- * - 31 include variables: 3 scalar + 10 profile + 18 digital asset
- * - 3-tab layout: List, Infinite, Subscription
- * - Creator → profile and creator → digital asset collapsible sections
- *
- * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
- */
+/** Creators playground — LSP4 creator attestations with profile and digital asset sub-includes. */
 import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -59,10 +43,6 @@ import {
   useIncludeToggles,
   useSubInclude,
 } from '@/components/playground';
-
-// ---------------------------------------------------------------------------
-// Domain config
-// ---------------------------------------------------------------------------
 
 const ALL_FILTERS: FilterFieldConfig[] = [
   {
@@ -128,10 +108,6 @@ const SORT_OPTIONS: SortOption[] = [
   { value: 'digitalAssetName', label: 'Digital Asset Name' },
 ];
 
-// ---------------------------------------------------------------------------
-// Hook resolution by mode
-// ---------------------------------------------------------------------------
-
 type CreatorHooks = {
   useCreators: typeof useCreatorsReact;
   useInfiniteCreators: typeof useInfiniteCreatorsReact;
@@ -153,10 +129,6 @@ function useCreatorHooks(mode: HookMode): CreatorHooks {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Build filter from debounced values
-// ---------------------------------------------------------------------------
-
 function buildFilter(debouncedValues: Record<string, string>): CreatorFilter | undefined {
   const f: CreatorFilter = {};
   if (debouncedValues.creatorAddress) f.creatorAddress = debouncedValues.creatorAddress;
@@ -169,10 +141,6 @@ function buildFilter(debouncedValues: Record<string, string>): CreatorFilter | u
   if (debouncedValues.timestampTo) f.timestampTo = debouncedValues.timestampTo;
   return Object.keys(f).length > 0 ? f : undefined;
 }
-
-// ---------------------------------------------------------------------------
-// Shared list state for list/infinite tabs
-// ---------------------------------------------------------------------------
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
@@ -212,10 +180,6 @@ function useListState() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Include sections (shared between tabs)
-// ---------------------------------------------------------------------------
-
 function IncludeSections({
   includeValues,
   toggleInclude,
@@ -244,10 +208,6 @@ function IncludeSections({
     </>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: List — paginated list of creators
-// ---------------------------------------------------------------------------
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useCreators } = useCreatorHooks(mode);
@@ -309,10 +269,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 2: Infinite — infinite scroll creators
-// ---------------------------------------------------------------------------
-
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteCreators } = useCreatorHooks(mode);
   const state = useListState();
@@ -371,10 +327,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 3: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useCreatorSubscription } = useCreatorHooks(mode);
   const state = useListState();
@@ -388,8 +340,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const creators = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -397,7 +347,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -457,10 +406,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
 
 export default function CreatorsPage(): React.ReactNode {
   return (

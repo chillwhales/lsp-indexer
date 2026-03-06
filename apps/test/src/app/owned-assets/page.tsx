@@ -1,24 +1,6 @@
 'use client';
 
-/**
- * Owned Assets Playground — demonstrates @lsp-indexer hook usage for LSP7 fungible token ownership.
- *
- * **Hooks demonstrated:**
- * - `useOwnedAsset` / `useOwnedAsset` (next) — Single owned asset lookup by holder+asset address
- * - `useOwnedAssets` / `useOwnedAssets` (next) — Filtered, sorted, paginated list
- * - `useInfiniteOwnedAssets` / `useInfiniteOwnedAssets` (next) — Infinite scroll with fetchNextPage
- * - `useOwnedAssetSubscription` / `useOwnedAssetSubscription` (next) — Real-time WebSocket updates
- *
- * **Patterns shown:**
- * - Natural key lookup: holder+asset address via `useOwnedAssets({ filter, limit: 1 })` (no opaque IDs)
- * - Balance display with BigInt formatting via `formatTokenAmount`
- * - Nested DigitalAsset relation with 17 sub-include toggles
- * - Nested UniversalProfile (holder) relation with 9 sub-include toggles
- * - 4 string filter fields: owner, address, digitalAssetId, universalProfileId
- * - Nested sort fields: `digitalAssetName` → `digitalAsset.lsp4TokenName`
- *
- * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
- */
+/** Owned Assets playground — LSP7 fungible token ownership with balance and nested relations. */
 import { Infinity, Layers, Radio, Search, Wallet, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -74,10 +56,6 @@ import {
   useIncludeToggles,
   useSubInclude,
 } from '@/components/playground';
-
-// ---------------------------------------------------------------------------
-// Domain config
-// ---------------------------------------------------------------------------
 
 const ADDRESS_FILTERS: FilterFieldConfig[] = [
   {
@@ -158,10 +136,6 @@ function buildFilter(debouncedValues: Record<string, string>): OwnedAssetFilter 
   return Object.keys(f).length > 0 ? f : undefined;
 }
 
-// ---------------------------------------------------------------------------
-// Shared list state
-// ---------------------------------------------------------------------------
-
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
   const [sortField, setSortField] = useState<OwnedAssetSortField>('timestamp');
@@ -199,10 +173,6 @@ function useListState() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Sub-include sections (shared between all 3 tabs)
-// ---------------------------------------------------------------------------
-
 function IncludeSections({
   includeValues,
   toggleInclude,
@@ -227,10 +197,6 @@ function IncludeSections({
     </>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: Single Owned Asset
-// ---------------------------------------------------------------------------
 
 function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useOwnedAssets } = useHooks(mode);
@@ -343,10 +309,6 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 2: Owned Asset List
-// ---------------------------------------------------------------------------
-
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useOwnedAssets } = useHooks(mode);
   const state = useListState();
@@ -399,10 +361,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 3: Infinite Scroll
-// ---------------------------------------------------------------------------
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteOwnedAssets } = useHooks(mode);
@@ -462,10 +420,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 4: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useOwnedAssetSubscription } = useHooks(mode);
   const state = useListState();
@@ -479,8 +433,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const ownedAssets = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -488,7 +440,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -541,10 +492,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
 
 export default function OwnedAssetsPage(): React.ReactNode {
   return (

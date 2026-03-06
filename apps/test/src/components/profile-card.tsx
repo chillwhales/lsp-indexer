@@ -1,20 +1,4 @@
-/**
- * Renders a single Universal Profile (LSP3) entity card.
- *
- * Props use `PartialExcept<Profile, 'address'>` — only `address` is required;
- * all other fields are optional so the card gracefully handles include-narrowed
- * results where some fields are absent.
- *
- * **Sections:**
- * - Header: address (always), name, follower/following counts
- * - Description: profile bio text
- * - Tags: LSP3 profile tags as badges
- * - Links: external links with safe-URL validation
- * - Avatar: avatar image assets with file type badges
- * - Profile Image: via `<ImageList>` component
- * - Background Image: via `<ImageList>` component
- * - Raw JSON toggle
- */
+/** Universal Profile card. Shows LSP3 metadata with collapsible image/social sections. */
 import { ExternalLink, Hash, Loader2, User } from 'lucide-react';
 import React from 'react';
 
@@ -26,18 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
-// ---------------------------------------------------------------------------
-// Profile Card
-// ---------------------------------------------------------------------------
-
 export interface ProfileCardProps {
-  /** Accepts any shape of Profile — full, narrowed via include, or partial from nested relations */
   profile: PartialExcept<Profile, 'address'>;
   isFetching?: boolean;
 }
 
 export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.ReactNode {
-  // Destructure — address is always present, everything else may be undefined
   const {
     address,
     name,

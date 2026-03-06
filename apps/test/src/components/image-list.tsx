@@ -4,43 +4,21 @@ import React from 'react';
 
 import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
-// ---------------------------------------------------------------------------
-// ImageList — reusable component for rendering flat or matrix image arrays
-// ---------------------------------------------------------------------------
+/** Image list supporting flat arrays and matrix (grouped by index) layouts. */
 
-/** A single image object — must have at least a `url` field */
 type ImageItem = { url?: string | null; [key: string]: unknown };
 
 type FlatImages = ReadonlyArray<ImageItem>;
 type MatrixImages = ReadonlyArray<ReadonlyArray<ImageItem>>;
 
-/** Type guard — detects matrix format by checking if the first element is an array. */
 function isMatrix(images: FlatImages | MatrixImages): images is MatrixImages {
   return images.length > 0 && Array.isArray(images[0]);
 }
 
 export interface ImageListProps {
-  /** Section label, e.g. "Images (3)" or "Icons (2)" */
   label: string;
-  /**
-   * Images to render. Accepts either:
-   * - **Flat array** (`Image[]`) — icons, profileImage, backgroundImage
-   * - **Matrix** (`Image[][]`) — images grouped by `image_index` (digital assets, NFTs, encrypted assets)
-   *
-   * When a matrix is provided, each inner array is rendered as an indented group
-   * labelled by its index, making the resolution grouping explicit.
-   */
   images: FlatImages | MatrixImages;
 }
-
-/**
- * Renders a list of images with thumbnails and URLs.
- *
- * Supports two layouts:
- * 1. **Flat** — simple list of images (icons, profile images, background images)
- * 2. **Matrix** — grouped by image_index with indented resolution sub-lists
- *    (digital asset images, NFT images, encrypted asset images)
- */
 export function ImageList({ label, images }: ImageListProps): React.ReactNode {
   if (images.length === 0) return null;
 
@@ -80,10 +58,6 @@ export function ImageList({ label, images }: ImageListProps): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// ImageRow — single image thumbnail + URL
-// ---------------------------------------------------------------------------
 
 function ImageRow({ image }: { image: ImageItem }): React.ReactNode {
   return (

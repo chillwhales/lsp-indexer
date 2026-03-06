@@ -1,17 +1,4 @@
-/**
- * Renders a single Owned Asset (LSP7 fungible token ownership) entity card.
- *
- * Props use `PartialExcept<OwnedAsset, 'id' | 'digitalAssetAddress' | 'holderAddress'>` —
- * the 3 base fields are always required; all other fields (balance, timestamp,
- * digitalAsset, universalProfile) are optional for include-narrowed results.
- *
- * **Sections:**
- * - Header: holder address, digital asset address, balance with BigInt formatting
- * - Timestamp: relative time display
- * - Digital Asset: collapsible `<CollapsibleDigitalAssetSection>` for the owned token contract
- * - Holder Profile: collapsible `<CollapsibleProfileSection>` for the owner UP
- * - Raw JSON toggle
- */
+/** Owned Asset card (LSP7 fungible ownership). Shows balance, holder, and digital asset. */
 import { Loader2, Wallet } from 'lucide-react';
 import React from 'react';
 
@@ -26,10 +13,6 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatRelativeTime, formatTokenAmount } from '@/lib/utils';
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 /**
  * Format balance: use formatTokenAmount when digital asset decimals are available,
@@ -55,18 +38,12 @@ function balanceTooltip(balance: bigint, decimals: number | null | undefined): s
   return `Raw: ${raw}`;
 }
 
-// ---------------------------------------------------------------------------
-// Owned Asset Card
-// ---------------------------------------------------------------------------
-
 export interface OwnedAssetCardProps {
-  /** Accepts any shape of OwnedAsset — full, narrowed via include, or partial from nested relations */
   ownedAsset: PartialExcept<OwnedAsset, 'id' | 'digitalAssetAddress' | 'holderAddress'>;
   isFetching?: boolean;
 }
 
 export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps): React.ReactNode {
-  // Destructure — base fields always present, everything else may be undefined
   const {
     id,
     digitalAssetAddress,
@@ -114,7 +91,6 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Core ownership details */}
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Holder</dt>
@@ -158,11 +134,7 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
             </div>
           )}
         </dl>
-
-        {/* Holder Profile section */}
         {holder != null && <CollapsibleProfileSection label="Holder Profile" profile={holder} />}
-
-        {/* Digital Asset section */}
         {digitalAsset != null && (
           <CollapsibleDigitalAssetSection label="Digital Asset" digitalAsset={digitalAsset} />
         )}

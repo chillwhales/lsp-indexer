@@ -1,18 +1,4 @@
-/**
- * Renders a single Owned Token (LSP8 NFT ownership) entity card — the most complex
- * domain card in the project with 4 nested relation sections.
- *
- * Props use `PartialExcept<OwnedToken, 'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId'>` —
- * the 4 base fields are always required; all relations are optional for include-narrowed results.
- *
- * **Sections:**
- * - Header: holder address, digital asset address, tokenId, timestamp
- * - Digital Asset: collapsible `<CollapsibleDigitalAssetSection>`
- * - NFT: collapsible section rendering a nested `<NftCard>`
- * - Owned Asset: collapsible section rendering a nested `<OwnedAssetCard>`
- * - Holder Profile: collapsible `<CollapsibleProfileSection>`
- * - Raw JSON toggle
- */
+/** Owned Token card (LSP8 NFT ownership). Nests NFT, digital asset, owned asset, and holder. */
 import { ChevronDown, Gem, Loader2, Tag, Wallet } from 'lucide-react';
 import React from 'react';
 
@@ -31,18 +17,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatRelativeTime, truncateAddress } from '@/lib/utils';
 
-// ---------------------------------------------------------------------------
-// Owned Token Card
-// ---------------------------------------------------------------------------
-
 export interface OwnedTokenCardProps {
-  /** Accepts any shape of OwnedToken — full, narrowed via include, or partial from nested relations */
   ownedToken: PartialExcept<OwnedToken, 'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId'>;
   isFetching?: boolean;
 }
 
 export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps): React.ReactNode {
-  // Destructure — base fields always present, everything else may be undefined
   const {
     id,
     digitalAssetAddress,
@@ -101,7 +81,6 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Core ownership details */}
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-28 shrink-0">Holder</dt>
@@ -131,11 +110,7 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
             </div>
           )}
         </dl>
-
-        {/* Holder Profile section */}
         {holder != null && <CollapsibleProfileSection label="Holder Profile" profile={holder} />}
-
-        {/* NFT section (collapsible) */}
         {nft != null && (
           <Collapsible>
             <CollapsibleTrigger asChild>
@@ -150,13 +125,9 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
             </CollapsibleContent>
           </Collapsible>
         )}
-
-        {/* Digital Asset section */}
         {digitalAsset != null && (
           <CollapsibleDigitalAssetSection label="Digital Asset" digitalAsset={digitalAsset} />
         )}
-
-        {/* Owned Asset section (collapsible) */}
         {ownedAsset != null && (
           <Collapsible>
             <CollapsibleTrigger asChild>

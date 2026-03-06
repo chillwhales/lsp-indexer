@@ -1,17 +1,4 @@
-/**
- * Renders a single NFT (LSP8 token) entity card with collapsible relation sections.
- *
- * Props use `PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>` —
- * the 4 base fields are always required; all other fields are optional so the card
- * gracefully handles include-narrowed results.
- *
- * **Sections:**
- * - Header: address, tokenId, burn/mint status badges
- * - NFT Metadata: name, description, links, icons, images (from lsp4Metadata or baseUri)
- * - Holder Profile: collapsible `<CollapsibleProfileSection>` for the token holder
- * - Collection: collapsible `<CollapsibleDigitalAssetSection>` for the parent LSP8 collection
- * - Raw JSON toggle
- */
+/** NFT (LSP8 token) card. Shows metadata, holder profile, and parent collection. */
 import { ExternalLink, Gem, Loader2 } from 'lucide-react';
 import React from 'react';
 
@@ -27,18 +14,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
-// ---------------------------------------------------------------------------
-// NFT Card
-// ---------------------------------------------------------------------------
-
 export interface NftCardProps {
-  /** Accepts any shape of Nft — full, narrowed via include, or partial from nested relations */
   nft: PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;
   isFetching?: boolean;
 }
 
 export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
-  // Destructure — base fields always present, everything else may be undefined
   const {
     address,
     tokenId,
@@ -106,7 +87,6 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Core token details */}
         <dl className="space-y-1.5 text-sm">
           {formattedTokenId && (
             <div className="flex gap-2">
@@ -125,8 +105,6 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
             </div>
           )}
         </dl>
-
-        {/* Holder section */}
         {holder != null && (
           <CollapsibleProfileSection
             label="Holder"
@@ -143,8 +121,6 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
             }
           />
         )}
-
-        {/* LSP4 Metadata */}
         {(description ||
           (icons && icons.length > 0) ||
           (images && images.length > 0) ||
@@ -221,8 +197,6 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
             </div>
           </div>
         )}
-
-        {/* Collection (full DigitalAsset) */}
         {collection != null && (
           <CollapsibleDigitalAssetSection label="Collection" digitalAsset={collection} />
         )}

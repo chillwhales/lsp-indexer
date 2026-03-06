@@ -5,16 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-/**
- * Format a raw uint256 token supply string into a human-readable amount.
- *
- * Uses pure BigInt arithmetic throughout to avoid Number overflow or precision
- * loss on large uint256 values (e.g. LSP7 tokens with 18 decimals).
- *
- * - Divides by `10^decimals` (LSP7 tokens store supply as raw wei-like value)
- * - Compact notation for large numbers (1.2K, 3.4M, 5B, 7.8T)
- * - Falls back to the raw string if BigInt conversion fails
- */
+/** Format a raw uint256 token supply into human-readable amount using pure BigInt arithmetic. */
 export function formatTokenAmount(rawSupply: string, decimals: number): string {
   try {
     const raw = BigInt(rawSupply);
@@ -38,12 +29,7 @@ export function formatTokenAmount(rawSupply: string, decimals: number): string {
   }
 }
 
-/**
- * Format a BigInt fixed-point value to a decimal string with `fractionDigits`
- * places, using only BigInt arithmetic (no Number conversion).
- *
- * Rounds to nearest (half-up).
- */
+/** BigInt fixed-point to decimal string, rounded half-up. */
 function bigintFixed(raw: bigint, divisor: bigint, fractionDigits: number): string {
   const scale = 10n ** BigInt(fractionDigits);
   // Multiply first, then divide with rounding to get scaled integer
@@ -54,10 +40,7 @@ function bigintFixed(raw: bigint, divisor: bigint, fractionDigits: number): stri
   return fracStr ? `${intPart}.${fracStr}` : intPart.toString();
 }
 
-/**
- * Format a whole-unit BigInt with compact K/M/B/T suffix, keeping one
- * fractional digit, using only BigInt arithmetic.
- */
+/** Compact format with K/M/B/T suffix using BigInt arithmetic. */
 function bigintCompact(wholeUnits: bigint): string {
   const tiers: Array<[bigint, string]> = [
     [1_000_000_000_000n, 'T'],
@@ -106,23 +89,13 @@ export function formatRelativeTime(timestamp: string): string {
   return `${years}y ago`;
 }
 
-// ---------------------------------------------------------------------------
-// Display label helpers — shared across domain card components
-// ---------------------------------------------------------------------------
-
-/** Truncate an address to 0x1234…abcd format */
+/** Truncate an address to 0x1234...abcd format. */
 export function truncateAddress(address: string): string {
   if (address.length <= 12) return address;
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
 
-/**
- * Extract a display label from a profile-like object.
- * Returns the profile name when available, otherwise truncates the address.
- *
- * @param profile - Any object with optional `name` and `address` fields
- * @param fallbackAddress - Used when profile is null/undefined or has no address
- */
+/** Profile display label: name if available, otherwise truncated address. */
 export function getProfileLabel(
   profile: { name?: string | null; address?: string } | null | undefined,
   fallbackAddress: string,
@@ -132,13 +105,7 @@ export function getProfileLabel(
   return truncateAddress(fallbackAddress);
 }
 
-/**
- * Extract display label info from a digital-asset-like object.
- * Returns name (or truncated address) and symbol.
- *
- * @param da - Any object with optional `name`, `symbol`, and `address` fields
- * @param fallbackAddress - Used when da is null/undefined or has no address
- */
+/** Digital asset display label and symbol. */
 export function getDigitalAssetLabel(
   da: { name?: string | null; symbol?: string | null; address?: string } | null | undefined,
   fallbackAddress: string,
@@ -150,11 +117,7 @@ export function getDigitalAssetLabel(
   };
 }
 
-// ---------------------------------------------------------------------------
-// URL helpers
-// ---------------------------------------------------------------------------
-
-/** Validate that a URL uses a safe protocol (prevents javascript: / data: XSS) */
+/** Validate that a URL uses a safe protocol (prevents javascript: / data: XSS). */
 export function isSafeUrl(url: string): boolean {
   try {
     const parsed = new URL(url);

@@ -9,10 +9,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 import { RawJsonToggle } from './shared';
 
-// ---------------------------------------------------------------------------
-// Card skeleton — generic loading placeholder
-// ---------------------------------------------------------------------------
-
 /** Skeleton loading placeholder card matching the size of a typical domain card. */
 export function CardSkeleton(): React.ReactNode {
   return (
@@ -28,10 +24,6 @@ export function CardSkeleton(): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Results header — shows count + loading indicator
-// ---------------------------------------------------------------------------
 
 interface ResultsHeaderProps {
   isLoading: boolean;
@@ -66,10 +58,6 @@ export function ResultsHeader({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Results list — generic list rendering with all states
-// ---------------------------------------------------------------------------
-
 interface ResultsListProps<T> {
   items: T[];
   isLoading: boolean;
@@ -95,19 +83,7 @@ interface ResultsListProps<T> {
   skeletonCount?: number;
 }
 
-/**
- * Generic paginated results display with loading, error, empty, and infinite scroll states.
- *
- * Handles all result display patterns across the test app:
- * - Loading: skeleton cards
- * - Error: destructive alert
- * - Empty: contextual message (filter vs no-filter)
- * - Items: grid of rendered cards via `renderItem`
- * - Infinite: "Load More" button with `fetchNextPage`
- * - Raw JSON: collapsible toggle for debugging
- *
- * @typeParam T - The domain entity type (inferred from `items` prop)
- */
+/** Generic paginated results list with loading, error, empty, and infinite scroll states. */
 export function ResultsList<T>({
   items,
   isLoading,
@@ -123,7 +99,6 @@ export function ResultsList<T>({
 }: ResultsListProps<T>): React.ReactNode {
   return (
     <div className="space-y-4">
-      {/* Results header */}
       <ResultsHeader
         isLoading={isLoading}
         isFetching={infinite ? isFetching && !infinite.isFetchingNextPage : isFetching}
@@ -131,8 +106,6 @@ export function ResultsList<T>({
         loadedCount={infinite ? items.length : undefined}
         label={label}
       />
-
-      {/* Error state */}
       {error && (
         <Alert variant="destructive">
           <Search className="h-4 w-4" />
@@ -140,8 +113,6 @@ export function ResultsList<T>({
           <AlertDescription>{error.message}</AlertDescription>
         </Alert>
       )}
-
-      {/* Loading state */}
       {isLoading && (
         <div className="grid gap-3">
           {Array.from({ length: skeletonCount }).map((_, i) => (
@@ -149,8 +120,6 @@ export function ResultsList<T>({
           ))}
         </div>
       )}
-
-      {/* Items grid */}
       {!isLoading && items.length > 0 && (
         <div className="grid gap-3">
           {items.map((item, i) => (
@@ -158,8 +127,6 @@ export function ResultsList<T>({
           ))}
         </div>
       )}
-
-      {/* Load more (infinite only) */}
       {infinite?.hasNextPage && (
         <div className="flex justify-center pt-2">
           <Button
@@ -178,15 +145,11 @@ export function ResultsList<T>({
           </Button>
         </div>
       )}
-
-      {/* All loaded (infinite only) */}
       {infinite && !infinite.hasNextPage && items.length > 0 && !isLoading && (
         <p className="text-center text-sm text-muted-foreground pt-2">
           All {label} loaded ({items.length} total)
         </p>
       )}
-
-      {/* Empty state */}
       {!isLoading && !error && items.length === 0 && (
         <Alert>
           <Search className="h-4 w-4" />
@@ -198,8 +161,6 @@ export function ResultsList<T>({
           </AlertDescription>
         </Alert>
       )}
-
-      {/* Raw JSON toggle */}
       {items.length > 0 && <RawJsonToggle data={items} label={`${items.length} ${label}`} />}
     </div>
   );

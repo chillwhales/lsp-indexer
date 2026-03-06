@@ -1,25 +1,6 @@
 'use client';
 
-/**
- * Follows Playground — demonstrates @lsp-indexer hook usage for LSP26 social graph (followers/following).
- *
- * **Hooks demonstrated:**
- * - `useFollows` / `useFollows` (next) — Filtered, sorted, paginated follower/following list
- * - `useInfiniteFollows` / `useInfiniteFollows` (next) — Infinite scroll with fetchNextPage
- * - `useFollowCount` / `useFollowCount` (next) — Aggregate follower + following counts for an address
- * - `useIsFollowing` / `useIsFollowing` (next) — Check if address A follows address B
- * - `useFollowerSubscription` / `useFollowerSubscription` (next) — Real-time WebSocket updates
- *
- * **Patterns shown:**
- * - Bidirectional follow graph: same hook serves both "followers of X" and "X follows" via direction param
- * - FollowCount uses two aliased `follower_aggregate` queries in one document
- * - IsFollowing reuses list document with `limit: 1` for existence check
- * - Two nested profile sub-includes: followerProfile and followedProfile (independently toggleable)
- * - Block-ordered sorting (blockNumber, transactionIndex, logIndex) for deterministic event ordering
- * - 5 tabs: Followers, Following, Follow Count, Is Following, Subscription
- *
- * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
- */
+/** Follows playground — LSP26 social graph: list, infinite, count, is-following, and subscriptions. */
 import { Hash, Infinity, Radio, UserCheck, Users, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -69,10 +50,6 @@ import {
   useIncludeToggles,
   useSubInclude,
 } from '@/components/playground';
-
-// ---------------------------------------------------------------------------
-// Domain config
-// ---------------------------------------------------------------------------
 
 /** All filter configs — used by useFilterFields for state management */
 const ALL_FILTERS: FilterFieldConfig[] = [
@@ -130,10 +107,6 @@ const SORT_OPTIONS: SortOption[] = [
   { value: 'followedName', label: 'Followed Name' },
 ];
 
-// ---------------------------------------------------------------------------
-// Hook resolution by mode
-// ---------------------------------------------------------------------------
-
 /** Canonical hooks type — resolves to React overload signatures (Next has identical shapes) */
 type FollowerHooks = {
   useFollows: typeof useFollowsReact;
@@ -162,10 +135,6 @@ function useFollowerHooks(mode: HookMode): FollowerHooks {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Build filter from debounced values
-// ---------------------------------------------------------------------------
-
 /** Parse a timestamp input — pure digits → unix seconds (number), otherwise ISO string */
 function parseTimestamp(value: string): string | number {
   if (/^\d+$/.test(value)) return Number(value);
@@ -183,10 +152,6 @@ function buildFilter(debouncedValues: Record<string, string>): FollowerFilter | 
   if (debouncedValues.timestampTo) f.timestampTo = parseTimestamp(debouncedValues.timestampTo);
   return Object.keys(f).length > 0 ? f : undefined;
 }
-
-// ---------------------------------------------------------------------------
-// Shared list state for list/infinite tabs
-// ---------------------------------------------------------------------------
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
@@ -226,10 +191,6 @@ function useListState() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Sub-include sections (shared between list tabs)
-// ---------------------------------------------------------------------------
-
 function IncludeSections({
   includeValues,
   toggleInclude,
@@ -258,10 +219,6 @@ function IncludeSections({
     </>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: Follows — paginated list of follow relationships
-// ---------------------------------------------------------------------------
 
 function FollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useFollows } = useFollowerHooks(mode);
@@ -324,10 +281,6 @@ function FollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 2: Infinite Follows
-// ---------------------------------------------------------------------------
-
 function InfiniteFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteFollows } = useFollowerHooks(mode);
   const state = useListState();
@@ -387,10 +340,6 @@ function InfiniteFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 3: Count — simplified, just address → followerCount + followingCount
-// ---------------------------------------------------------------------------
-
 function CountTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useFollowCount } = useFollowerHooks(mode);
   const [address, setAddress] = useState('');
@@ -442,10 +391,6 @@ function CountTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 4: Is Following — two address inputs → boolean result
-// ---------------------------------------------------------------------------
 
 function IsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useIsFollowing } = useFollowerHooks(mode);
@@ -515,10 +460,6 @@ function IsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 5: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useFollowerSubscription } = useFollowerHooks(mode);
   const state = useListState();
@@ -532,8 +473,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const followers = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -541,7 +480,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -602,10 +540,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
 
 export default function FollowsPage(): React.ReactNode {
   return (

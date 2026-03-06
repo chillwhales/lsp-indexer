@@ -1,18 +1,6 @@
 'use client';
 
-/**
- * Client Providers — configures QueryClient and dual SubscriptionProviders for the test app.
- *
- * **Provider stack (outer → inner):**
- * 1. `ThemeProvider` — next-themes for dark/light mode
- * 2. `QueryClientProvider` — TanStack Query with 1-minute stale time
- * 3. `ReactSubscriptionProvider` — `@lsp-indexer/react` WebSocket context (direct client)
- * 4. `NextSubscriptionProvider` — `@lsp-indexer/next` WebSocket context (via proxy URL)
- * 5. `TooltipProvider` — shadcn/ui tooltip context
- *
- * Both subscription providers are mounted so pages can toggle between
- * `@lsp-indexer/react` (direct WebSocket) and `@lsp-indexer/next` (proxy) modes.
- */
+/** Client providers — mounts both react and next subscription providers for package toggling. */
 import { IndexerSubscriptionProvider as NextSubscriptionProvider } from '@lsp-indexer/next';
 import { IndexerSubscriptionProvider as ReactSubscriptionProvider } from '@lsp-indexer/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -27,7 +15,7 @@ export function Providers({ children }: { children: ReactNode }): ReactNode {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60_000, // 1 minute — blockchain data doesn't change rapidly
+            staleTime: 60_000,
           },
         },
       }),

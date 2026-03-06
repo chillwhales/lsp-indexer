@@ -1,24 +1,6 @@
 'use client';
 
-/**
- * Encrypted Assets Playground — demonstrates @lsp-indexer hook usage for LSP29 encrypted metadata.
- *
- * **Hooks demonstrated:**
- * - `useEncryptedAssets` / `useEncryptedAssets` (next) — Filtered, sorted, paginated encrypted asset list
- * - `useInfiniteEncryptedAssets` / `useInfiniteEncryptedAssets` (next) — Infinite scroll with fetchNextPage
- * - `useEncryptedAssetSubscription` / `useEncryptedAssetSubscription` (next) — Real-time WebSocket updates
- *
- * **Patterns shown:**
- * - No singular hook (user-introduced elements can share address + contentId + revision)
- * - Encryption sub-include with union type: `true` = full, `{ accessControlConditions: false }` = scalars only
- * - File and chunks sub-includes for nested file metadata
- * - 8 filter fields including nested relation filters (profile name, encryption method, file type)
- * - Title/description flattening: Hasura `{ title: { value: "..." } }` → parsed `title: string | null`
- * - LSP29-specific image schema (imageIndex, verificationSource)
- * - 3-tab layout: List, Infinite, Subscription
- *
- * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
- */
+/** Encrypted Assets playground — LSP29 encrypted metadata with encryption, file, and chunks sub-includes. */
 import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -63,10 +45,6 @@ import {
   useIncludeToggles,
   useSubInclude,
 } from '@/components/playground';
-
-// ---------------------------------------------------------------------------
-// Domain config — 8 filter fields, 5 sort options
-// ---------------------------------------------------------------------------
 
 const ALL_FILTERS: FilterFieldConfig[] = [
   {
@@ -141,10 +119,6 @@ const SORT_OPTIONS: SortOption[] = [
   { value: 'arrayIndex', label: 'Array Index' },
 ];
 
-// ---------------------------------------------------------------------------
-// Hook resolution by mode
-// ---------------------------------------------------------------------------
-
 type EncryptedAssetHooks = {
   useEncryptedAssets: typeof useEncryptedAssetsReact;
   useInfiniteEncryptedAssets: typeof useInfiniteEncryptedAssetsReact;
@@ -166,10 +140,6 @@ function useEncryptedAssetHooks(mode: HookMode): EncryptedAssetHooks {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Build filter from debounced values — numeric conversion for revision/fileSize
-// ---------------------------------------------------------------------------
-
 function buildFilter(debouncedValues: Record<string, string>): EncryptedAssetFilter | undefined {
   const f: EncryptedAssetFilter = {};
   if (debouncedValues.address) f.address = debouncedValues.address;
@@ -189,10 +159,6 @@ function buildFilter(debouncedValues: Record<string, string>): EncryptedAssetFil
   if (debouncedValues.timestamp) f.timestamp = debouncedValues.timestamp;
   return Object.keys(f).length > 0 ? f : undefined;
 }
-
-// ---------------------------------------------------------------------------
-// Shared list state for list/infinite tabs
-// ---------------------------------------------------------------------------
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
@@ -246,10 +212,6 @@ function useListState() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Include sections (shared between tabs)
-// ---------------------------------------------------------------------------
-
 function IncludeSections({
   includeValues,
   toggleInclude,
@@ -292,10 +254,6 @@ function IncludeSections({
     </>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: List — paginated list of encrypted assets
-// ---------------------------------------------------------------------------
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useEncryptedAssets } = useEncryptedAssetHooks(mode);
@@ -356,10 +314,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 2: Infinite — infinite scroll encrypted assets
-// ---------------------------------------------------------------------------
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteEncryptedAssets } = useEncryptedAssetHooks(mode);
@@ -426,10 +380,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 3: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useEncryptedAssetSubscription } = useEncryptedAssetHooks(mode);
   const state = useListState();
@@ -443,8 +393,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const encryptedAssets = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -452,7 +400,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -512,10 +459,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
 
 export default function EncryptedAssetsPage(): React.ReactNode {
   return (

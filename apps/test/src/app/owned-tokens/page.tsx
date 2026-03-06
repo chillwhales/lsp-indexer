@@ -1,23 +1,6 @@
 'use client';
 
-/**
- * Owned Tokens Playground — demonstrates @lsp-indexer hook usage for LSP8 NFT ownership.
- *
- * **Hooks demonstrated:**
- * - `useOwnedToken` / `useOwnedToken` (next) — Single owned token lookup by holder+asset+tokenId
- * - `useOwnedTokens` / `useOwnedTokens` (next) — Filtered, sorted, paginated list
- * - `useInfiniteOwnedTokens` / `useInfiniteOwnedTokens` (next) — Infinite scroll with fetchNextPage
- * - `useOwnedTokenSubscription` / `useOwnedTokenSubscription` (next) — Real-time WebSocket updates
- *
- * **Patterns shown:**
- * - Most complex domain: 4 nested relations (digitalAsset, nft, ownedAsset, holder)
- * - Each relation has independent sub-include toggles
- * - `OwnedTokenNftIncludeSchema` with 8 per-field toggles for NFT metadata
- * - Nested sort fields: `digitalAssetName` → `digitalAsset.lsp4TokenName`
- * - Cards render NftCard and OwnedAssetCard as nested collapsible sections
- *
- * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
- */
+/** Owned Tokens playground — LSP8 NFT ownership with 4 nested relations. */
 import { Infinity, Layers, Radio, Search, Tag, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -75,10 +58,6 @@ import {
   useIncludeToggles,
   useSubInclude,
 } from '@/components/playground';
-
-// ---------------------------------------------------------------------------
-// Domain config
-// ---------------------------------------------------------------------------
 
 const ADDRESS_FILTERS: FilterFieldConfig[] = [
   { key: 'holderAddress', label: 'Holder Address', placeholder: '0x... (holder)', mono: true },
@@ -156,10 +135,6 @@ function buildFilter(debouncedValues: Record<string, string>): OwnedTokenFilter 
   return Object.keys(f).length > 0 ? f : undefined;
 }
 
-// ---------------------------------------------------------------------------
-// Shared list state
-// ---------------------------------------------------------------------------
-
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
   const [sortField, setSortField] = useState<OwnedTokenSortField>('timestamp');
@@ -203,10 +178,6 @@ function useListState() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Sub-include sections (shared between all 3 tabs)
-// ---------------------------------------------------------------------------
-
 function IncludeSections({
   includeValues,
   toggleInclude,
@@ -245,10 +216,6 @@ function IncludeSections({
     </>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: Single Owned Token
-// ---------------------------------------------------------------------------
 
 function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useOwnedTokens } = useHooks(mode);
@@ -402,10 +369,6 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 2: Owned Token List
-// ---------------------------------------------------------------------------
-
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useOwnedTokens } = useHooks(mode);
   const state = useListState();
@@ -458,10 +421,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 3: Infinite Scroll
-// ---------------------------------------------------------------------------
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteOwnedTokens } = useHooks(mode);
@@ -521,10 +480,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 4: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useOwnedTokenSubscription } = useHooks(mode);
   const state = useListState();
@@ -538,8 +493,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const ownedTokens = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -547,7 +500,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -600,10 +552,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
 
 export default function OwnedTokensPage(): React.ReactNode {
   return (

@@ -1,25 +1,6 @@
 'use client';
 
-/**
- * Profiles Playground — demonstrates @lsp-indexer hook usage for Universal Profiles (LSP3).
- *
- * **Hooks demonstrated:**
- * - `useProfile` / `useProfile` (next) — Single profile lookup by address
- * - `useProfiles` / `useProfiles` (next) — Filtered, sorted, paginated list
- * - `useInfiniteProfiles` / `useInfiniteProfiles` (next) — Infinite scroll with fetchNextPage
- * - `useProfileSubscription` / `useProfileSubscription` (next) — Real-time WebSocket updates
- *
- * **Patterns shown:**
- * - 4-tab layout: Single, List, Infinite, Subscription
- * - Filter fields with debounced search (name, followedBy, following, tokenOwned)
- * - Sort controls with field/direction/nulls configuration (name, followerCount, followingCount)
- * - Include toggles for conditional field inclusion (type narrowing)
- * - Package toggle (react vs next) to compare client-direct vs server-action routing
- * - Preset buttons for quick single-profile lookups
- * - Subscription tab with WebSocket connection status and cache invalidation toggle
- *
- * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
- */
+/** Profiles playground — single lookup, list, infinite scroll, and subscription demos. */
 import { Loader2, Radio, Search, User, Users, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -67,10 +48,6 @@ import {
 } from '@/components/playground';
 import { ProfileCard } from '@/components/profile-card';
 
-// ---------------------------------------------------------------------------
-// Domain config
-// ---------------------------------------------------------------------------
-
 const FILTERS: FilterFieldConfig[] = [
   { key: 'name', label: 'Name', placeholder: 'Search by name...' },
   { key: 'followedBy', label: 'Followed by', placeholder: '0x... (address)', mono: true },
@@ -116,10 +93,6 @@ function buildFilter(debouncedValues: Record<string, string>): ProfileFilter | u
   return Object.keys(f).length > 0 ? f : undefined;
 }
 
-// ---------------------------------------------------------------------------
-// Shared list state
-// ---------------------------------------------------------------------------
-
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
   const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
@@ -152,10 +125,6 @@ function useListState() {
     include,
   };
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: Single Profile
-// ---------------------------------------------------------------------------
 
 function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useProfile } = useHooks(mode);
@@ -227,10 +196,6 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 2: Profile List
-// ---------------------------------------------------------------------------
-
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useProfiles } = useHooks(mode);
   const state = useListState();
@@ -283,10 +248,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 3: Infinite Scroll
-// ---------------------------------------------------------------------------
-
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteProfiles } = useHooks(mode);
   const state = useListState();
@@ -337,10 +298,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 4: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useProfileSubscription } = useHooks(mode);
   const state = useListState();
@@ -354,8 +311,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const profiles = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -363,7 +318,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -415,10 +369,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
 
 export default function ProfilesPage(): React.ReactNode {
   return (

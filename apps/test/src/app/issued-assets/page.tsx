@@ -1,22 +1,6 @@
 'use client';
 
-/**
- * Issued Assets Playground — demonstrates @lsp-indexer hook usage for LSP12 asset issuance.
- *
- * **Hooks demonstrated:**
- * - `useIssuedAssets` / `useIssuedAssets` (next) — Filtered, sorted, paginated issued asset list
- * - `useInfiniteIssuedAssets` / `useInfiniteIssuedAssets` (next) — Infinite scroll with fetchNextPage
- * - `useIssuedAssetSubscription` / `useIssuedAssetSubscription` (next) — Real-time WebSocket updates
- *
- * **Patterns shown:**
- * - No singular hook (no natural key — same pattern as creators)
- * - Dual heterogeneous relation includes: issuerProfile (ProfileResult) + digitalAsset (DigitalAssetResult)
- * - 31 include variables: 3 scalar + 10 issuer profile + 18 digital asset
- * - 3-tab layout: List, Infinite, Subscription
- * - Issuer profile uses `followed_aggregate` for following count (schema field name difference)
- *
- * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
- */
+/** Issued Assets playground — LSP12 asset issuance with issuer profile and digital asset sub-includes. */
 import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -59,10 +43,6 @@ import {
   useIncludeToggles,
   useSubInclude,
 } from '@/components/playground';
-
-// ---------------------------------------------------------------------------
-// Domain config
-// ---------------------------------------------------------------------------
 
 const ALL_FILTERS: FilterFieldConfig[] = [
   {
@@ -128,10 +108,6 @@ const SORT_OPTIONS: SortOption[] = [
   { value: 'digitalAssetName', label: 'Digital Asset Name' },
 ];
 
-// ---------------------------------------------------------------------------
-// Hook resolution by mode
-// ---------------------------------------------------------------------------
-
 type IssuedAssetHooks = {
   useIssuedAssets: typeof useIssuedAssetsReact;
   useInfiniteIssuedAssets: typeof useInfiniteIssuedAssetsReact;
@@ -153,10 +129,6 @@ function useIssuedAssetHooks(mode: HookMode): IssuedAssetHooks {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Build filter from debounced values
-// ---------------------------------------------------------------------------
-
 function buildFilter(debouncedValues: Record<string, string>): IssuedAssetFilter | undefined {
   const f: IssuedAssetFilter = {};
   if (debouncedValues.issuerAddress) f.issuerAddress = debouncedValues.issuerAddress;
@@ -168,10 +140,6 @@ function buildFilter(debouncedValues: Record<string, string>): IssuedAssetFilter
   if (debouncedValues.timestampTo) f.timestampTo = debouncedValues.timestampTo;
   return Object.keys(f).length > 0 ? f : undefined;
 }
-
-// ---------------------------------------------------------------------------
-// Shared list state for list/infinite tabs
-// ---------------------------------------------------------------------------
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
@@ -212,10 +180,6 @@ function useListState() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Include sections (shared between tabs)
-// ---------------------------------------------------------------------------
-
 function IncludeSections({
   includeValues,
   toggleInclude,
@@ -244,10 +208,6 @@ function IncludeSections({
     </>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: List — paginated list of issued assets
-// ---------------------------------------------------------------------------
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useIssuedAssets } = useIssuedAssetHooks(mode);
@@ -308,10 +268,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 2: Infinite — infinite scroll issued assets
-// ---------------------------------------------------------------------------
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteIssuedAssets } = useIssuedAssetHooks(mode);
@@ -378,10 +334,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 3: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useIssuedAssetSubscription } = useIssuedAssetHooks(mode);
   const state = useListState();
@@ -395,8 +347,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const issuedAssets = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -404,7 +354,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -464,10 +413,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
 
 export default function IssuedAssetsPage(): React.ReactNode {
   return (

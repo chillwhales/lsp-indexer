@@ -1,14 +1,6 @@
 'use client';
 
-/**
- * Sidebar navigation component for the test app.
- *
- * Uses shadcn/ui `Sidebar` with `SidebarMenu` to render navigation links
- * for all 13 domain playground pages. Includes a collapsible theme switcher
- * (light/dark/system) in the footer.
- *
- * Links marked `available: false` render as disabled with a "Soon" badge.
- */
+/** Sidebar navigation with domain playground links and theme switcher. */
 import {
   ArrowDownFromLine,
   BarChart3,
