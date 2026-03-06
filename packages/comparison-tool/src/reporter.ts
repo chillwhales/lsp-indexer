@@ -1,5 +1,5 @@
-import { ENTITY_REGISTRY, getKnownDivergences } from './entityRegistry';
-import { ComparisonReport, type KnownDivergence, RowDiff } from './types';
+import { ENTITY_REGISTRY } from './entityRegistry';
+import { ComparisonReport, RowDiff } from './types';
 
 const GREEN = '\x1b[32m';
 const RED = '\x1b[31m';
@@ -77,15 +77,6 @@ export function printReport(report: ComparisonReport): void {
     const tgtStr = formatNumber(count.targetCount);
     const diffStr = count.match ? '' : formatPercent(count.diffPercent);
 
-    // Check if this entity has a known count-level divergence
-    const knownCountDivergences: KnownDivergence[] = getKnownDivergences(
-      count.entityName,
-      report.mode,
-    );
-    const hasKnownCountDivergence = knownCountDivergences.some(
-      (d: KnownDivergence) => d.field === 'count',
-    );
-
     let statusSymbol: string;
     let statusColor: string;
 
@@ -97,9 +88,6 @@ export function printReport(report: ComparisonReport): void {
       statusColor = YELLOW;
     } else if (count.withinTolerance) {
       statusSymbol = '≈ TOLERANCE';
-      statusColor = YELLOW;
-    } else if (hasKnownCountDivergence) {
-      statusSymbol = '~ KNOWN';
       statusColor = YELLOW;
     } else {
       statusSymbol = '✗ MISMATCH';
@@ -122,62 +110,27 @@ export function printReport(report: ComparisonReport): void {
       diffsByEntity.set(diff.entityName, existing);
     }
 
-    const entitiesWithUnexpectedDiffs = Array.from(diffsByEntity.entries()).filter(([, diffs]) =>
-      diffs.some((d) => d.unexpectedDiffs.length > 0),
-    );
+    console.info(`${BOLD}${RED}Content Differences:${RESET}`);
 
-    const entitiesWithKnownOnly = Array.from(diffsByEntity.entries()).filter(([, diffs]) =>
-      diffs.every((d) => d.unexpectedDiffs.length === 0),
-    );
+    for (const [entityName, diffs] of diffsByEntity) {
+      console.info(
+        `\n${BOLD}${RED}─── ${entityName} (${diffs.length} row${diffs.length === 1 ? '' : 's'} with diffs) ───${RESET}`,
+      );
 
-    if (entitiesWithUnexpectedDiffs.length > 0) {
-      console.info(`${BOLD}${RED}Unexpected Content Differences:${RESET}`);
-
-      for (const [entityName, diffs] of entitiesWithUnexpectedDiffs) {
-        const diffsWithUnexpected = diffs.filter((d) => d.unexpectedDiffs.length > 0);
-        console.info(
-          `\n${BOLD}${RED}─── ${entityName} (${diffsWithUnexpected.length} row${diffsWithUnexpected.length === 1 ? '' : 's'} with diffs) ───${RESET}`,
-        );
-
-        for (const diff of diffsWithUnexpected.slice(0, 5)) {
-          console.info(`\n  ${DIM}Row: ${diff.rowId}${RESET}`);
-          for (const fieldDiff of diff.unexpectedDiffs) {
-            const srcStr = truncateValue(fieldDiff.sourceValue);
-            const tgtStr = truncateValue(fieldDiff.targetValue);
-            console.info(`    ${fieldDiff.field}: ${srcStr} ${RED}→${RESET} ${tgtStr}`);
-          }
-        }
-
-        if (diffsWithUnexpected.length > 5) {
-          console.info(`  ${DIM}... and ${diffsWithUnexpected.length - 5} more rows${RESET}`);
+      for (const diff of diffs.slice(0, 5)) {
+        console.info(`\n  ${DIM}Row: ${diff.rowId}${RESET}`);
+        for (const fieldDiff of diff.diffs) {
+          const srcStr = truncateValue(fieldDiff.sourceValue);
+          const tgtStr = truncateValue(fieldDiff.targetValue);
+          console.info(`    ${fieldDiff.field}: ${srcStr} ${RED}→${RESET} ${tgtStr}`);
         }
       }
-      console.info();
-    }
 
-    if (entitiesWithKnownOnly.length > 0) {
-      console.info(`${BOLD}${DIM}Known Divergences:${RESET}`);
-
-      for (const [entityName, diffs] of entitiesWithKnownOnly) {
-        console.info(
-          `\n${DIM}─── ${entityName} (${diffs.length} row${diffs.length === 1 ? '' : 's'}) ───${RESET}`,
-        );
-
-        for (const diff of diffs.slice(0, 3)) {
-          console.info(`\n  ${DIM}Row: ${diff.rowId}${RESET}`);
-          for (const fieldDiff of diff.knownDivergences) {
-            const srcStr = truncateValue(fieldDiff.sourceValue);
-            const tgtStr = truncateValue(fieldDiff.targetValue);
-            console.info(`    ${fieldDiff.field}: ${srcStr} → ${tgtStr}`);
-          }
-        }
-
-        if (diffs.length > 3) {
-          console.info(`  ${DIM}... and ${diffs.length - 3} more rows${RESET}`);
-        }
+      if (diffs.length > 5) {
+        console.info(`  ${DIM}... and ${diffs.length - 5} more rows${RESET}`);
       }
-      console.info();
     }
+    console.info();
   }
 
   // FK Coverage
@@ -240,38 +193,19 @@ export function printReport(report: ComparisonReport): void {
     const e = ENTITY_REGISTRY.find((ent) => ent.name === c.entityName);
     return e?.isMetadataSub ?? false;
   }).length;
-  const knownCountDivergences = report.counts.filter((c) => {
-    if (c.match) return false;
-    const divs: KnownDivergence[] = getKnownDivergences(c.entityName, report.mode);
-    return divs.some((d: KnownDivergence) => d.field === 'count');
-  }).length;
 
-  const totalUnexpectedDiffs = report.sampleDiffs.reduce(
-    (sum, diff) => sum + diff.unexpectedDiffs.length,
-    0,
-  );
-  const totalKnownDivergences = report.sampleDiffs.reduce(
-    (sum, diff) => sum + diff.knownDivergences.length,
-    0,
-  );
+  const totalDiffs = report.sampleDiffs.reduce((sum, diff) => sum + diff.diffs.length, 0);
 
-  console.info(`Mode: ${report.mode}`);
   console.info(`Entity types compared: ${entityTypesCompared}`);
   console.info(
     `Row count exact matches: ${exactMatches}/${entityTypesCompared}` +
       (toleranceMatches > 0 ? `  (+${toleranceMatches} within tolerance)` : '') +
-      (metadataTimingDiffs > 0 ? `  (${metadataTimingDiffs} metadata timing)` : '') +
-      (knownCountDivergences > 0 ? `  (${knownCountDivergences} known divergences)` : ''),
+      (metadataTimingDiffs > 0 ? `  (${metadataTimingDiffs} metadata timing)` : ''),
   );
   if (report.tolerancePercent > 0) {
     console.info(`Tolerance: ${report.tolerancePercent}%`);
   }
-  console.info(
-    `Unexpected diffs: ${totalUnexpectedDiffs > 0 ? `${RED}${totalUnexpectedDiffs}${RESET}` : '0'}`,
-  );
-  if (report.mode === 'v1-v2') {
-    console.info(`Known divergences: ${DIM}${totalKnownDivergences}${RESET}`);
-  }
+  console.info(`Content diffs: ${totalDiffs > 0 ? `${RED}${totalDiffs}${RESET}` : '0'}`);
 
   const totalOrphans = report.fkCoverage.reduce((sum, r) => sum + r.orphanedNullCount, 0);
   console.info(
