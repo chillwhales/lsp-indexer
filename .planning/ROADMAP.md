@@ -614,7 +614,7 @@ Plans:
 | 11    | Server Actions & Publish Ready    |     4/4      | Complete    |
 | 12    | Replace Local Pkgs → @chillwhales |     2/2      | Complete    |
 | 13    | Indexer v1 Cleanup                |     4/4      | Complete    |
-| 14    | 2/2 | Complete   | 2026-03-06 |
+| 14    | 2/2 | Complete    | 2026-03-06 |
 | 15    | CI/CD Workflows & Shared Infra    |      4       | Not started |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
