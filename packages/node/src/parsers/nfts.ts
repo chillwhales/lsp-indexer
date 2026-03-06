@@ -5,42 +5,10 @@ import { parseProfile } from './profiles';
 import { stripExcluded } from './strip';
 import { parseAttributes, parseImage, parseImages, parseLinks } from './utils';
 
-/**
- * Raw Hasura NFT type from the codegen-generated query result.
- *
- * Uses `Omit<..., 'id'>` because the parser never reads `id` — it only needs
- * `address`, `token_id`, and metadata fields. This allows the same parser
- * to accept both primary query results (which include `id`) and sub-selections
- * from owned-tokens (which don't select `id`).
- * TypeScript structural subtyping means types WITH `id` still satisfy this.
- */
+/** Omits `id` so sub-selections from other domains also satisfy this type. */
 type RawNft = Omit<GetNftQuery['nft'][number], 'id'>;
 
-/**
- * Transform a raw Hasura NFT response into a clean `Nft` type.
- *
- * Handles all edge cases:
- * - **BaseUri fallback:** For each metadata field, checks direct `lsp4Metadata` first,
- *   falls back to `lsp4MetadataBaseUri`, then `null`. Only returns null if BOTH are absent.
- * - **`@include(if: false)` omitted fields:** Won't be present in the response —
- *   uses optional chaining; omitted arrays become `null`, included-but-empty arrays become `[]`.
- * - **Holder mapping:** Spreads profile fields flat into holder (no nested
- *   `universalProfile` wrapper). When holder has no UP, profile fields get safe defaults.
- * - **Collection info:** Full DigitalAsset from digitalAsset relation, parsed via `parseDigitalAsset`.
- * - **Name field:** NFT's own name from `lsp4Metadata.name` with baseUri fallback.
- *
- * **Array field convention (T[] | null):**
- * - `null` = field not included in query OR metadata absent
- * - `[]` = fetched but legitimately empty
- *
- * Uses function overloads for type-safe return types:
- * - No `include` → returns full `Nft` (all fields guaranteed)
- * - With `include` → returns `PartialNft` (only base fields guaranteed, rest optional)
- *
- * @param raw - A single nft from the Hasura GraphQL response
- * @param include - Optional include config; when provided, excluded fields are stripped at runtime
- * @returns A clean, camelCase `Nft` (full or partial depending on include)
- */
+/** Parse a raw Hasura row into a clean `Nft`. */
 export function parseNft(raw: RawNft): Nft;
 export function parseNft<const I extends NftInclude>(raw: RawNft, include: I): NftResult<I>;
 export function parseNft(raw: RawNft, include?: NftInclude): Nft | PartialNft {
@@ -105,15 +73,7 @@ export function parseNft(raw: RawNft, include?: NftInclude): Nft | PartialNft {
   });
 }
 
-/**
- * Transform an array of raw Hasura NFT responses into clean `Nft[]`.
- *
- * Convenience wrapper around `parseNft` for batch results.
- *
- * @param raw - Array of nft from the Hasura GraphQL response
- * @param include - Optional include config; forwarded to each `parseNft` call
- * @returns Array of clean, camelCase `Nft` objects (full or partial depending on include)
- */
+/** Batch variant of parseNft. */
 export function parseNfts(raw: RawNft[]): Nft[];
 export function parseNfts<const I extends NftInclude>(raw: RawNft[], include: I): NftResult<I>[];
 export function parseNfts(raw: RawNft[], include?: NftInclude): (Nft | PartialNft)[] {

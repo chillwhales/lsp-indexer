@@ -18,28 +18,7 @@ import { stripExcluded } from './strip';
  */
 type RawOwnedAsset = GetOwnedAssetQuery['owned_asset'][number];
 
-/**
- * Transform a raw Hasura owned asset response into a clean `OwnedAsset` type.
- *
- * Handles all edge cases:
- * - **Field renames:** Hasura `address` → `digitalAssetAddress`, `owner` → `holderAddress`,
- *   `universalProfile` → `holder` for developer clarity.
- * - **`balance` → `bigint`:** Hasura returns `numeric` as a string; we convert
- *   with `BigInt()` for uint256 precision. Nullable when excluded via `@include`.
- * - **`@include(if: false)` omitted fields:** Won't be present in the response —
- *   uses optional chaining; omitted relations/fields become `null`.
- * - **Nested `digitalAsset`:** Parsed via `parseDigitalAsset` for full DA details.
- * - **Nested `universalProfile` (→ `holder`):** Parsed via `parseProfile` for LSP3 profile data.
- * - **`tokenIdCount`:** Extracted from `tokenIds_aggregate.aggregate.count`.
- *
- * Uses function overloads for type-safe return types:
- * - No `include` → returns full `OwnedAsset` (all fields guaranteed)
- * - With `include` → returns `PartialOwnedAsset` (only base fields guaranteed, rest optional)
- *
- * @param raw - A single owned_asset from the Hasura GraphQL response
- * @param include - Optional include config; when provided, excluded fields are stripped at runtime
- * @returns A clean, camelCase `OwnedAsset` with bigint balance (full or partial depending on include)
- */
+/** Parse a raw Hasura row into a clean `OwnedAsset`. */
 export function parseOwnedAsset(raw: RawOwnedAsset): OwnedAsset;
 export function parseOwnedAsset<const I extends OwnedAssetInclude>(
   raw: RawOwnedAsset,
@@ -68,15 +47,7 @@ export function parseOwnedAsset(
   });
 }
 
-/**
- * Transform an array of raw Hasura owned asset responses into clean `OwnedAsset[]`.
- *
- * Convenience wrapper around `parseOwnedAsset` for batch results.
- *
- * @param raw - Array of owned_asset from the Hasura GraphQL response
- * @param include - Optional include config; forwarded to each `parseOwnedAsset` call
- * @returns Array of clean, camelCase `OwnedAsset` objects with bigint balances (full or partial depending on include)
- */
+/** Batch variant of parseOwnedAsset. */
 export function parseOwnedAssets(raw: RawOwnedAsset[]): OwnedAsset[];
 export function parseOwnedAssets<const I extends OwnedAssetInclude>(
   raw: RawOwnedAsset[],

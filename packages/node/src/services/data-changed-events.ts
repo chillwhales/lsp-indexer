@@ -32,26 +32,7 @@ import {
 // Internal builders — translate flat params to Hasura variables
 // ---------------------------------------------------------------------------
 
-/**
- * Translate a flat `DataChangedEventFilter` to a Hasura `data_changed_bool_exp`.
- *
- * All 9 filter fields — string fields use
- * `_ilike` + `escapeLike` for case-insensitive matching, timestamp and
- * blockNumber fields use `_gte` / `_lte`.
- *
- * Multiple conditions combine with `_and`. Empty filter = empty object.
- *
- * Filter → Hasura mapping:
- * - `address`              → `{ address: { _ilike: '%escapeLike%' } }`
- * - `dataKey`              → `{ data_key: { _ilike: '%escapeLike%' } }` (Hasura field is `data_key`)
- * - `dataKeyName`          → resolved to hex via `resolveDataKeyHex`; full keys use exact match, prefix keys use `hex%` wildcard
- * - `timestampFrom`        → `{ timestamp: { _gte: normalizeTimestamp } }`
- * - `timestampTo`          → `{ timestamp: { _lte: normalizeTimestamp } }`
- * - `blockNumberFrom`      → `{ block_number: { _gte: value } }` (Int comparison)
- * - `blockNumberTo`        → `{ block_number: { _lte: value } }`
- * - `universalProfileName` → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike } } } } }` (nested)
- * - `digitalAssetName`     → `{ digitalAsset: { lsp4TokenName: { value: { _ilike } } } }` (nested)
- */
+/** Translate DataChangedEventFilter to a Hasura _bool_exp. */
 export function buildDataChangedEventWhere(filter?: DataChangedEventFilter): Data_Changed_Bool_Exp {
   if (!filter) return {};
 
@@ -132,18 +113,7 @@ export function buildDataChangedEventWhere(filter?: DataChangedEventFilter): Dat
   return { _and: conditions };
 }
 
-/**
- * Translate a flat `DataChangedEventSort` to a Hasura `data_changed_order_by` array.
- *
- * Sort field → Hasura mapping:
- * - `'newest'`                → `buildBlockOrderSort('desc')` (block_number → transaction_index → log_index desc)
- * - `'oldest'`                → `buildBlockOrderSort('asc')` (block_number → transaction_index → log_index asc)
- * - `'universalProfileName'`  → `[{ universalProfile: { lsp3Profile: { name: { value: dir } } } }]` (nested)
- * - `'digitalAssetName'`      → `[{ digitalAsset: { lsp4TokenName: { value: dir } } }]` (nested)
- *
- * Name sorts default to `nulls: 'last'` when not specified (names without values sort last).
- * `direction` and `nulls` are ignored for `'newest'` and `'oldest'` (self-describing fields).
- */
+/** Translate DataChangedEventSort to a Hasura order_by. */
 export function buildDataChangedEventOrderBy(
   sort?: DataChangedEventSort,
 ): Data_Changed_Order_By[] | undefined {
@@ -179,24 +149,7 @@ export function buildDataChangedEventOrderBy(
   }
 }
 
-/**
- * Translate a `DataChangedEventInclude` to GraphQL boolean variables for `@include` directives.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
- *
- * **Profile sub-includes:** Reuses `buildProfileIncludeVars` with prefix replacement:
- * - `includeProfile*` → `includeUniversalProfile*` for universal profile sub-includes
- *
- * **Digital asset sub-includes:** Reuses `buildDigitalAssetIncludeVars` with prefix replacement:
- * - `include*` → `includeDigitalAsset*` for digital asset sub-includes
- *
- * @param include - Optional include config; `undefined` = include everything
- * @returns Record of boolean variables for the GetDataChangedEvents GraphQL document
- */
+/** Build @include directive variables from include config. */
 export function buildDataChangedEventIncludeVars(
   include?: DataChangedEventInclude,
 ): Record<string, boolean> {
@@ -238,12 +191,6 @@ export function buildDataChangedEventIncludeVars(
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Result shape for paginated data changed event list queries.
- *
- * When the include parameter is provided, the `dataChangedEvents` array contains
- * narrowed types with only base fields + included fields.
- */
 export interface FetchDataChangedEventsResult<P = DataChangedEvent> {
   /** Parsed data changed event records for the current page (narrowed by include) */
   dataChangedEvents: P[];
@@ -251,24 +198,8 @@ export interface FetchDataChangedEventsResult<P = DataChangedEvent> {
   totalCount: number;
 }
 
-/**
- * Fetch a paginated list of ERC725Y data changed event records with filtering, sorting,
- * total count, and optional include narrowing.
- *
- * Serves both `useDataChangedEvents` (paginated) and `useInfiniteDataChangedEvents`
- * (infinite scroll) — the difference is how the hook manages pagination, not the
- * fetch function.
- *
- * No singular `fetchDataChangedEvent` exists because event records have no natural key
- * (opaque Hasura ID only). Developers query by filter instead.
- *
- * Translates flat filter/sort/include params to Hasura variables, executes the
- * query, and returns parsed results with a total count for pagination.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed data changed events (narrowed by include) and total count
- */
+/** Fetch a paginated list of ERC725Y data changed event records. No singular `fetchDataChangedEvent` — event records have no natural key
+ * (opaque Hasura ID only). */
 export async function fetchDataChangedEvents(
   url: string,
   params?: {
@@ -341,9 +272,6 @@ export async function fetchDataChangedEvents(
  * The `dataKeyName` filter field accepts human-readable ERC725Y key names
  * (e.g., 'LSP3Profile') — the service layer resolves them to hex automatically.
  *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (filter + optional include)
- * @returns The latest matching event (narrowed by include), or `null` if none found
  */
 export async function fetchLatestDataChangedEvent(
   url: string,
@@ -391,8 +319,6 @@ type RawDataChangedEventSubscriptionRow =
  * EVENT domain — defaults to block-order desc sort when no sort is provided
  * (block_number desc → transaction_index desc → log_index desc).
  *
- * @param params - Filter, sort, limit, and include configuration
- * @returns A config object consumable by `useSubscription`
  */
 export function buildDataChangedEventSubscriptionConfig(params: {
   filter?: DataChangedEventFilter;

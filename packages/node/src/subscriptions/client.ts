@@ -10,13 +10,6 @@ import {
 } from './subscription-instance';
 import type { SubscriptionConfig } from './types';
 
-/**
- * WebSocket connection state for subscription client.
- *
- * - `disconnected` — No active WebSocket connection
- * - `connecting` — WebSocket is establishing a connection
- * - `connected` — WebSocket connection is open and acknowledged
- */
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 
 /**
@@ -36,12 +29,7 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
   private hasConnectedBefore = false;
   private subscriptions = new Set<{ dispose(): void }>();
 
-  /**
-   * @param url - WebSocket URL. Defaults to `getClientWsUrl()` which reads
-   *              `NEXT_PUBLIC_INDEXER_WS_URL` or derives from `NEXT_PUBLIC_INDEXER_URL`.
-   *              Subclasses should pass their desired URL to `super(url)` rather
-   *              than relying on the default.
-   */
+  /** @param url - WebSocket URL. Defaults to `getClientWsUrl()`. */
   constructor(url?: string) {
     // Resolve URL eagerly — no virtual method call from the constructor.
     // Subclasses must pass their URL via super(url).
@@ -53,15 +41,11 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
     this.getServerSnapshot = this.getServerSnapshot.bind(this);
   }
 
-  /** Whether the WebSocket is currently connected */
   get isConnected(): boolean {
     return this.state === 'connected';
   }
 
-  /**
-   * Subscribe to connection state changes (useSyncExternalStore pattern).
-   * Returns an unsubscribe function.
-   */
+  /** Subscribe to connection state changes (useSyncExternalStore). */
   subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
     return () => {
@@ -69,20 +53,17 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
     };
   }
 
-  /** Get current connection state snapshot (useSyncExternalStore pattern) */
+  /** Current connection state snapshot (useSyncExternalStore). */
   getSnapshot(): ConnectionState {
     return this.state;
   }
 
-  /** Server-side snapshot — always disconnected (SSR fallback) */
+  /** Always 'disconnected' — SSR fallback for useSyncExternalStore. */
   getServerSnapshot(): ConnectionState {
     return 'disconnected';
   }
 
-  /**
-   * Register a callback to fire when the WebSocket reconnects after a disconnect.
-   * Returns an unregister function.
-   */
+  /** Register a callback for reconnection events. Returns unregister function. */
   onReconnect(cb: () => void): () => void {
     this.reconnectCallbacks.add(cb);
     return () => {
@@ -91,14 +72,8 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
   }
 
   /**
-   * Create and start a subscription using this client's WebSocket transport.
-   * Returns a subscription instance that manages the subscription's state.
-   *
-   * The instance is tracked internally and removed on dispose via the
-   * `onDispose` callback — no method monkey-patching required.
-   *
-   * All 4 generics are alive here, so the execute closure captures the
-   * fully-typed extract/parse pipeline. The instance only needs `<TParsed>`.
+   * Create and start a subscription. The execute closure captures the fully-typed
+   * extract/parse pipeline; the returned instance only needs `<TParsed>`.
    */
   createSubscription<TResult, TVariables extends Record<string, unknown>, TRaw, TParsed>(
     config: SubscriptionConfig<TResult, TVariables, TRaw, TParsed>,
@@ -158,15 +133,9 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
 
   /**
    * Execute a GraphQL subscription via the WebSocket connection.
-   * Creates the graphql-ws client lazily on first call.
-   *
-   * The `TResult` generic threads through to `graphql-ws` `Client.subscribe<Data>()`
-   * so the sink receives fully typed `ExecutionResult<TResult>` — no casts needed.
-   *
-   * `.toString()` is called HERE — the last possible moment before the graphql-ws
-   * wire. `TypedDocumentString` flows all the way to this point unchanged.
-   *
-   * @internal Called by the execute closure built in `createSubscription`.
+   * Lazily creates the graphql-ws client. `.toString()` is called here —
+   * the last moment before the wire.
+   * @internal
    */
   executeSubscription<TResult, TVariables extends Record<string, unknown>>(
     payload: { query: TypedDocumentString<TResult, TVariables>; variables?: TVariables },
@@ -185,7 +154,7 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
     );
   }
 
-  /** Dispose of all subscriptions and close the WebSocket connection */
+  /** Dispose all subscriptions and close the WebSocket connection. */
   dispose(): void {
     // Collect into array first to avoid mutating the Set during iteration
     // (each subscription.dispose() calls onDispose which deletes from the Set).
@@ -209,19 +178,12 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
   // Protected methods for subclasses to override
   // ---------------------------------------------------------------------------
 
-  /**
-   * Get the connection parameters for the WebSocket connection.
-   * Subclasses can override this to provide custom headers/auth (e.g., Next.js auth).
-   */
+  /** Override to provide custom headers/auth for the WebSocket connection. */
   protected getConnectionParams(): Record<string, unknown> {
     return {};
   }
 
-  /**
-   * Transform the URL before creating the WebSocket connection.
-   * Subclasses can override this to convert relative URLs to absolute ones.
-   * Called lazily when the first subscription is created.
-   */
+  /** Override to transform the URL (e.g. relative → absolute). Called lazily. */
   protected transformUrl(url: string): string {
     return url;
   }
@@ -230,10 +192,7 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
   // Private
   // ---------------------------------------------------------------------------
 
-  /**
-   * Extract the close code from a WebSocket close event.
-   * graphql-ws types `EventClosedListener` event as `unknown` to avoid DOM deps.
-   */
+  /** Extract close code — graphql-ws types the event as `unknown` to avoid DOM deps. */
   private static getCloseCode(event: unknown): number | undefined {
     if (typeof event !== 'object' || event === null || !('code' in event)) {
       return undefined;

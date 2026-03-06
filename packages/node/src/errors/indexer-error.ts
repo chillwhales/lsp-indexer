@@ -4,26 +4,7 @@ import type {
   IndexerErrorOptions,
 } from '@lsp-indexer/types';
 
-/**
- * Typed error class for all indexer-related failures.
- *
- * Errors are categorized by origin (network, HTTP, GraphQL, configuration, parse)
- * with fine-grained codes for each failure mode. Each error includes a recovery
- * hint in its message to help developers fix the issue.
- *
- * @example
- * ```ts
- * try {
- *   const data = await execute(url, SomeDocument, { id: '123' });
- * } catch (error) {
- *   if (error instanceof IndexerError) {
- *     console.log(error.category); // 'GRAPHQL'
- *     console.log(error.code);     // 'PERMISSION_DENIED'
- *     console.log(error.toJSON()); // serializable for logging
- *   }
- * }
- * ```
- */
+/** Typed error for all indexer failures — categorized with recovery hints. */
 export class IndexerError extends Error {
   readonly category: IndexerErrorCategory;
   readonly code: IndexerErrorCode;
@@ -47,10 +28,7 @@ export class IndexerError extends Error {
     this.validationErrors = options.validationErrors;
   }
 
-  /**
-   * Returns a serializable representation for server-side logging.
-   * Excludes `originalError` since Error instances are not JSON-serializable.
-   */
+  /** Serializable representation — excludes non-serializable `originalError`. */
   toJSON(): Record<string, unknown> {
     return {
       name: this.name,
@@ -64,16 +42,7 @@ export class IndexerError extends Error {
     };
   }
 
-  /**
-   * Factory: create an IndexerError from an HTTP response with a non-2xx status.
-   *
-   * Maps common HTTP status codes to specific error codes with recovery hints:
-   * - 401 → HTTP_UNAUTHORIZED (check auth headers)
-   * - 403 → HTTP_FORBIDDEN (check Hasura role permissions)
-   * - 404 → HTTP_NOT_FOUND (check endpoint URL)
-   * - 429 → HTTP_TOO_MANY_REQUESTS (rate limited)
-   * - 5xx → HTTP_SERVER_ERROR (server issue)
-   */
+  /** Create from a non-2xx HTTP response. Maps status codes to error codes. */
   static fromHttpResponse(response: Response): IndexerError {
     const codeMap: Record<number, IndexerErrorCode> = {
       401: 'HTTP_UNAUTHORIZED',
@@ -105,15 +74,7 @@ export class IndexerError extends Error {
     });
   }
 
-  /**
-   * Factory: create an IndexerError from a GraphQL errors array.
-   *
-   * Detects Hasura-specific error patterns:
-   * - `extensions.code === 'access-denied'` → PERMISSION_DENIED
-   * - `extensions.code === 'validation-failed'` → GRAPHQL_VALIDATION
-   * - Messages containing 'not allowed' or 'permission' → PERMISSION_DENIED
-   * - Messages referencing missing fields → GRAPHQL_VALIDATION
-   */
+  /** Create from a GraphQL errors array. Detects Hasura permission/validation patterns. */
   static fromGraphQLErrors(
     errors: Array<{
       message: string;
@@ -156,13 +117,7 @@ export class IndexerError extends Error {
     });
   }
 
-  /**
-   * Narrow an unknown value into the shape expected by `fromGraphQLErrors`.
-   *
-   * graphql-ws and SSE error payloads type errors as `unknown` to avoid DOM deps.
-   * This method safely extracts `message` and `extensions` using runtime checks
-   * without type assertions.
-   */
+  /** Narrow an unknown error payload into the shape expected by `fromGraphQLErrors`. */
   static narrowGraphQLError(e: unknown): {
     message: string;
     extensions: Record<string, unknown> | undefined;
@@ -183,12 +138,7 @@ export class IndexerError extends Error {
     return { message, extensions };
   }
 
-  /**
-   * Factory: create an IndexerError from a network fetch error.
-   *
-   * Detects timeout/abort errors vs generic network failures.
-   * Provides a recovery hint about checking network connectivity and endpoint.
-   */
+  /** Create from a network fetch error. Detects timeout/abort vs generic failures. */
   static fromNetworkError(error: Error): IndexerError {
     const isTimeout = error.name === 'AbortError' || error.message.includes('timeout');
 
@@ -202,12 +152,7 @@ export class IndexerError extends Error {
     });
   }
 
-  /**
-   * Factory: create an IndexerError from Zod validation issues.
-   *
-   * Formats field-level errors into a developer-friendly message showing
-   * which inputs were invalid and why.
-   */
+  /** Create from Zod validation issues with field-level error details. */
   static fromValidationError(
     issues: Array<{ path: PropertyKey[]; message: string }>,
     actionName: string,

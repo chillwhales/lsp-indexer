@@ -1,45 +1,6 @@
 import { graphql } from '../graphql';
 
-/**
- * GraphQL document for fetching a paginated list of universal receiver events with total count.
- *
- * Used by both `useUniversalReceiverEvents` (offset-based pagination) and
- * `useInfiniteUniversalReceiverEvents` (infinite scroll) — the difference is
- * how the hook manages pagination, not the document.
- *
- * No singular `useUniversalReceiverEvent` hook exists because event records have
- * no natural key (opaque Hasura ID only). Developers query by filter instead.
- *
- * Variables:
- * - `$where` — Filter conditions (built by service layer from flat UniversalReceiverEventFilter)
- * - `$order_by` — Sort order (built by service layer from UniversalReceiverEventSort)
- * - `$limit` / `$offset` — Pagination
- * - `$includeValue`, `$includeReceivedData`, `$includeReturnedValue` — Value/data field include toggles
- * - `$includeBlockNumber`, `$includeTimestamp`, `$includeLogIndex`, `$includeTransactionIndex` — Scalar include toggles
- * - `$includeUniversalProfile*` — Boolean flags for receiving UP sub-includes (10 variables)
- * - `$includeFromProfile*` — Boolean flags for sender UP sub-includes (10 variables)
- * - `$includeFromAsset*` — Boolean flags for sender DA sub-includes (18 variables)
- *
- * Total: 4 pagination + 7 scalar + 10 UP + 10 fromProfile + 18 fromAsset = 49 variables.
- *
- * All include variables default to `true` (inverted default — omit `include` = fetch everything).
- *
- * **CRITICAL Hasura field names:**
- * - `type_id` (Hasura) → `typeId` (our domain type)
- * - `received_data` (Hasura) → `receivedData` (our domain type)
- * - `returned_value` (Hasura) → `returnedValue` (our domain type)
- * - `block_number` (Hasura) → `blockNumber` (our domain type)
- * - `log_index` (Hasura) → `logIndex` (our domain type)
- * - `transaction_index` (Hasura) → `transactionIndex` (our domain type)
- * - `value` (Hasura numeric) → `value` (our domain type, as string via numericToString)
- * - `universalProfile` (Hasura) → `universalProfile` (receiving UP)
- * - `fromProfile` (Hasura) → `fromProfile` (sender UP)
- * - `fromAsset` (Hasura) → `fromAsset` (sender DA)
- *
- * Receiving UP sub-fields match what `parseProfile` expects.
- * Sender UP sub-fields match what `parseProfile` expects.
- * Sender DA sub-fields match what `parseDigitalAsset` expects.
- */
+/** Paginated list of universal receiver events with total count. */
 export const GetUniversalReceiverEventsDocument = graphql(`
   query GetUniversalReceiverEvents(
     $where: universal_receiver_bool_exp
@@ -280,17 +241,7 @@ export const GetUniversalReceiverEventsDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL subscription document for real-time universal receiver events.
- *
- * Mirrors `GetUniversalReceiverEventsDocument` exactly (same field selection, same `@include`
- * directives, same variables) but as a `subscription` operation — no `$offset` variable
- * (subscriptions don't paginate) and no `universal_receiver_aggregate` field.
- *
- * Used by `useUniversalReceiverEventSubscription` via `buildUniversalReceiverEventSubscriptionConfig`.
- *
- * Variables: ~45 total (3 pagination/filter + 7 scalar + 10 UP + 10 fromProfile + 18 fromAsset)
- */
+/** Subscription variant of GetUniversalReceiverEventsDocument. */
 export const UniversalReceiverEventSubscriptionDocument = graphql(`
   subscription UniversalReceiverEventSubscription(
     $where: universal_receiver_bool_exp

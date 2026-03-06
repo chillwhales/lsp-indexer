@@ -102,29 +102,7 @@ function parseChunks(raw: any): EncryptedAssetChunks {
 // Main parser — parseEncryptedAsset
 // ---------------------------------------------------------------------------
 
-/**
- * Transform a raw Hasura `lsp29_encrypted_asset` response into a clean `EncryptedAsset` type.
- *
- * This is the most complex parser of any domain due to:
- * 1. **Title/description flattening:** Hasura returns `{ title: { value: "..." } }` → we
- *    flatten to `title: "..."`. If title relation is null (not included), set to null.
- * 2. **5 nested sub-objects:** encryption, file, chunks, images, accessControlConditions —
- *    each with its own camelCase mapping.
- * 3. **Encryption include handling:** `include?.encryption` can be `true` (boolean),
- *    `{ accessControlConditions: boolean }` (object), or falsy. When boolean `true`,
- *    include accessControlConditions. When object, check `accessControlConditions` field.
- * 4. **Numeric field conversion:** `array_index`, `file.last_modified`, `file.size`,
- *    `chunks.total_size` — all Hasura `numeric` type → `Number()` conversion.
- *
- * Uses function overloads for type-safe return types:
- * - No `include` → returns full `EncryptedAsset` (all fields guaranteed)
- * - With `<const I>` → returns `EncryptedAssetResult<I>` (narrowed by include)
- * - With optional `include` → returns `PartialEncryptedAsset`
- *
- * @param raw - A single lsp29_encrypted_asset from the Hasura GraphQL response
- * @param include - Optional include config; when provided, excluded fields are stripped at runtime
- * @returns A clean, camelCase `EncryptedAsset` (full or partial depending on include)
- */
+/** Parse a raw Hasura row into a clean domain type. */
 export function parseEncryptedAsset(raw: any): EncryptedAsset;
 export function parseEncryptedAsset<const I extends EncryptedAssetInclude>(
   raw: any,
@@ -193,15 +171,7 @@ export function parseEncryptedAsset(
   return result;
 }
 
-/**
- * Transform an array of raw Hasura `lsp29_encrypted_asset` responses into clean `EncryptedAsset[]`.
- *
- * Convenience wrapper around `parseEncryptedAsset` for batch results.
- *
- * @param raw - Array of lsp29_encrypted_asset from the Hasura GraphQL response
- * @param include - Optional include config; forwarded to each `parseEncryptedAsset` call
- * @returns Array of clean, camelCase `EncryptedAsset` objects (full or partial depending on include)
- */
+/** Batch variant of parseEncryptedAsset. */
 export function parseEncryptedAssets(raw: any[]): EncryptedAsset[];
 export function parseEncryptedAssets<const I extends EncryptedAssetInclude>(
   raw: any[],

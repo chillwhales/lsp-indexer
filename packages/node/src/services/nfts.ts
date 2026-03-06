@@ -19,22 +19,7 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
 // Internal builders — translate flat params to Hasura variables
 // ---------------------------------------------------------------------------
 
-/**
- * Translate a flat `NftFilter` to a Hasura `nft_bool_exp`.
- *
- * Multiple filters combine with `_and`. An empty or undefined filter
- * returns an empty object (no filtering).
- *
- * Filter → Hasura mapping:
- * - `collectionAddress` → `{ address: { _ilike: escapeLike(collectionAddress) } }`
- *   (case-insensitive exact match — the nft.address IS the collection address)
- * - `tokenId`           → `{ token_id: { _ilike: escapeLike(tokenId) } }`
- * - `formattedTokenId`  → `{ formatted_token_id: { _ilike: escapeLike(formattedTokenId) } }`
- * - `name`              → `{ _or: [lsp4Metadata.name, lsp4MetadataBaseUri.name] }` (search both)
- * - `holderAddress`     → `{ ownedToken: { owner: { _ilike: escapeLike(holderAddress) } } }`
- * - `isBurned`          → `{ is_burned: { _eq: isBurned } }`
- * - `isMinted`          → `{ is_minted: { _eq: isMinted } }`
- */
+/** Translate NftFilter to a Hasura _bool_exp. */
 export function buildNftWhere(filter?: NftFilter): Nft_Bool_Exp {
   if (!filter) return {};
 
@@ -93,16 +78,7 @@ export function buildNftWhere(filter?: NftFilter): Nft_Bool_Exp {
   return { _and: conditions };
 }
 
-/**
- * Translate a flat `NftSort` to a Hasura `order_by` array.
- *
- * Sort field → Hasura mapping:
- * - `'tokenId'`          → `[{ token_id: dir }]`
- * - `'formattedTokenId'` → `[{ formatted_token_id: dir }]` — defaults nulls last
- *                           since formatted_token_id can be null
- *
- * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
- */
+/** Translate NftSort to a Hasura order_by. */
 export function buildNftOrderBy(sort?: NftSort): Nft_Order_By[] | undefined {
   if (!sort) return undefined;
 
@@ -176,20 +152,7 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
   return vars;
 }
 
-/**
- * Build NFT sub-include variables for use as a **nested relation** in the owned-token
- * domain. Uses `includeNft*` prefix to avoid colliding with digital asset `include*`
- * and profile `includeProfile*` variables which share the same query.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`.
- *
- * Only maps the 8 fields available in the owned-token NFT context
- * (excludes `collection` and `holder` which are sibling relations on owned_token).
- */
+/** Build NFT sub-include variables for owned-token nested relations (includeNft* prefix). */
 export function buildNftIncludeVars(
   include?: boolean | OwnedTokenNftInclude,
 ): Record<string, boolean> {
@@ -217,29 +180,9 @@ export function buildNftIncludeVars(
 // Subscription config builder
 // ---------------------------------------------------------------------------
 
-/**
- * Raw Hasura row type from the subscription codegen result.
- *
- * Structurally compatible with the query-side raw rows (both select
- * the same fields), but derived from the subscription codegen type to
- * keep the generic chain `TResult → TRaw` precise.
- */
 type RawNftSubscriptionRow = NftSubscriptionSubscription['nft'][number];
 
-/**
- * Build an NFT subscription config (document, variables, extract, parser).
- *
- * Encapsulates the domain-specific assembly that `createUseNftSubscription`
- * needs — mirroring how `fetchNfts` encapsulates query assembly. Keeps the
- * React hook factory focused on hook lifecycle rather than domain plumbing.
- *
- * The return type is inferred so the 4-generic chain
- * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
- * `useSubscription` without any casts or `unknown` holes.
- *
- * @param params - Filter, sort, limit, and include configuration
- * @returns A config object consumable by `useSubscription`
- */
+/** Build NFT subscription config (document, variables, extract, parser). */
 export function buildNftSubscriptionConfig(params: {
   filter?: NftFilter;
   sort?: NftSort;
@@ -276,9 +219,6 @@ export function buildNftSubscriptionConfig(params: {
  *
  * Supports searching by either `tokenId` or `formattedTokenId` (or both).
  *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (address + tokenId/formattedTokenId + optional include)
- * @returns The parsed NFT, or `null` if not found
  */
 export async function fetchNft(
   url: string,
@@ -325,29 +265,12 @@ export async function fetchNft(
   return parseNft(raw);
 }
 
-/**
- * Result shape for paginated NFT list queries.
- *
- * When the include parameter `I` is provided, the `nfts` array contains
- * narrowed types with only base fields + included fields.
- */
 export interface FetchNftsResult<P = Nft> {
-  /** Parsed NFTs for the current page (narrowed by include) */
   nfts: P[];
-  /** Total number of NFTs matching the filter (for pagination UI) */
   totalCount: number;
 }
 
-/**
- * Fetch a paginated list of NFTs with filtering, sorting, and total count.
- *
- * Translates flat filter/sort/include params to Hasura variables, executes the
- * query, and returns parsed results with a total count for pagination.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed NFTs and total count
- */
+/** Fetch a paginated list of NFTs. */
 export async function fetchNfts(
   url: string,
   params?: { filter?: NftFilter; sort?: NftSort; limit?: number; offset?: number },

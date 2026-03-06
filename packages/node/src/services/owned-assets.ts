@@ -27,21 +27,7 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
 // Internal builders — translate flat params to Hasura variables
 // ---------------------------------------------------------------------------
 
-/**
- * Translate a flat `OwnedAssetFilter` to a Hasura `owned_asset_bool_exp`.
- *
- * Multiple filters combine with `_and`. An empty or undefined filter
- * returns an empty object (no filtering).
- *
- * Filter → Hasura mapping:
- * - `holderAddress`       → `{ owner: { _ilike: '%holder%' } }`
- * - `digitalAssetAddress` → `{ address: { _ilike: '%address%' } }`
- * - `holderName`          → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike: '%name%' } } } } }`
- * - `assetName`           → `{ digitalAsset: { lsp4TokenName: { value: { _ilike: '%name%' } } } }`
- *
- * All string fields use `_ilike` + `escapeLike` for case-insensitive matching
- * (EIP-55 mixed-case address prevention).
- */
+/** Translate OwnedAssetFilter to a Hasura _bool_exp. */
 export function buildOwnedAssetWhere(filter?: OwnedAssetFilter): Owned_Asset_Bool_Exp {
   if (!filter) return {};
 
@@ -80,21 +66,7 @@ export function buildOwnedAssetWhere(filter?: OwnedAssetFilter): Owned_Asset_Boo
   return { _and: conditions };
 }
 
-/**
- * Translate a flat `OwnedAssetSort` to a Hasura `order_by` array.
- *
- * Sort field → Hasura mapping:
- * - Direct columns: `balance`, `timestamp`, `block`
- *   → `[{ [field]: dir }]`
- * - Renamed: `digitalAssetAddress` → `[{ address: dir }]`
- * - Renamed: `holderAddress` → `[{ owner: dir }]`
- * - Nested `digitalAssetName`
- *   → `[{ digitalAsset: { lsp4TokenName: { value: dir } } }]`
- * - Nested `tokenIdCount`
- *   → `[{ tokenIds_aggregate: { count: dir } }]`
- *
- * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
- */
+/** Translate OwnedAssetSort to a Hasura order_by. */
 function buildOwnedAssetOrderBy(sort?: OwnedAssetSort): Owned_Asset_Order_By[] | undefined {
   if (!sort) return undefined;
 
@@ -215,8 +187,6 @@ type RawOwnedAssetSubscriptionRow = OwnedAssetSubscriptionSubscription['owned_as
  * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
  * `useSubscription` without any casts or `unknown` holes.
  *
- * @param params - Filter, sort, limit, and include configuration
- * @returns A config object consumable by `useSubscription`
  */
 export function buildOwnedAssetSubscriptionConfig(params: {
   filter?: OwnedAssetFilter;
@@ -253,9 +223,6 @@ export function buildOwnedAssetSubscriptionConfig(params: {
  * and returns the first result parsed as a clean `OwnedAsset`, or `null` if
  * the ID doesn't exist.
  *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (id + optional include)
- * @returns The parsed owned asset, or `null` if not found
  */
 export async function fetchOwnedAsset(
   url: string,
@@ -286,12 +253,6 @@ export async function fetchOwnedAsset(
   return parseOwnedAsset(raw);
 }
 
-/**
- * Result shape for paginated owned asset list queries.
- *
- * When the include parameter `I` is provided, the `ownedAssets` array contains
- * narrowed types with only base fields + included fields.
- */
 export interface FetchOwnedAssetsResult<P = OwnedAsset> {
   /** Parsed owned assets for the current page (narrowed by include) */
   ownedAssets: P[];
@@ -299,16 +260,7 @@ export interface FetchOwnedAssetsResult<P = OwnedAsset> {
   totalCount: number;
 }
 
-/**
- * Fetch a paginated list of owned assets with filtering, sorting, and total count.
- *
- * Translates flat filter/sort/include params to Hasura variables, executes the
- * query, and returns parsed results with a total count for pagination.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed owned assets and total count
- */
+/** Fetch a paginated list of owned assets. */
 export async function fetchOwnedAssets(
   url: string,
   params?: {

@@ -9,56 +9,16 @@ import type { GetDigitalAssetQuery } from '../graphql/graphql';
 import { stripExcluded } from './strip';
 import { numericToString, parseAttributes, parseImage, parseImages, parseLinks } from './utils';
 
-/**
- * Raw Hasura digital asset type from the codegen-generated query result.
- *
- * Uses `Omit<..., 'id'>` because the parser never reads `id` — it only needs
- * `address` and metadata fields. This allows the same parser to accept both
- * primary query results (which include `id`) and sub-selections from other
- * domains (nfts, owned-assets, owned-tokens) which may not select `id`.
- * TypeScript structural subtyping means types WITH `id` still satisfy this.
- */
+/** Omits `id` so sub-selections from other domains also satisfy this type. */
 type RawDigitalAsset = Omit<GetDigitalAssetQuery['digital_asset'][number], 'id'>;
 
-/**
- * Validate and return a raw Hasura tokenType string as a clean TokenType.
- *
- * The indexer stores the decoded string value directly:
- * - `"TOKEN"` — fungible token (LSP4 tokenType 0)
- * - `"NFT"` — non-fungible token (LSP4 tokenType 1)
- * - `"COLLECTION"` — collection of NFTs (LSP4 tokenType 2)
- *
- * Returns `null` if the value is absent or unrecognized.
- */
+/** Validate raw tokenType string → `TokenType | null`. */
 function mapTokenType(raw: string | null | undefined): TokenType | null {
   if (raw === 'TOKEN' || raw === 'NFT' || raw === 'COLLECTION') return raw;
   return null;
 }
 
-/**
- * Transform a raw Hasura digital asset response into a clean `DigitalAsset` type.
- *
- * Handles all edge cases:
- * - `@include(if: false)` omitted fields won't be present in the response —
- *   uses optional chaining; omitted arrays become `null`, included-but-empty arrays become `[]`
- * - `decimals` presence is used to derive `standard` (LSP7 when present, LSP8 when absent)
- * - Raw tokenType string values ("TOKEN"/"NFT"/"COLLECTION") are validated and passed through
- * - Aggregate counts may have `null` aggregate — defaults to `null`
- * - Owner field may be omitted if not included
- *
- * **Standard derivation (LOCKED):**
- * - If `decimals` has a value → `"LSP7"` (only LSP7 contracts have decimals)
- * - If `decimals` is null/undefined → `"LSP8"`
- * - When decimals is not included at all (undefined), standard is `null`
- *
- * Uses function overloads for type-safe return types:
- * - No `include` → returns full `DigitalAsset` (all fields guaranteed)
- * - With `include` → returns `PartialDigitalAsset` (only `address` guaranteed, rest optional)
- *
- * @param raw - A single digital_asset from the Hasura GraphQL response
- * @param include - Optional include config; when provided, excluded fields are stripped at runtime
- * @returns A clean, camelCase `DigitalAsset` (full or partial depending on include)
- */
+/** Parse a raw Hasura row into a clean `DigitalAsset`. */
 export function parseDigitalAsset(raw: RawDigitalAsset): DigitalAsset;
 export function parseDigitalAsset<const I extends DigitalAssetInclude>(
   raw: RawDigitalAsset,
@@ -113,15 +73,7 @@ export function parseDigitalAsset(
   return stripExcluded(result, include, ['address'], { standard: 'decimals' });
 }
 
-/**
- * Transform an array of raw Hasura digital asset responses into clean `DigitalAsset[]`.
- *
- * Convenience wrapper around `parseDigitalAsset` for batch results.
- *
- * @param raw - Array of digital_asset from the Hasura GraphQL response
- * @param include - Optional include config; forwarded to each `parseDigitalAsset` call
- * @returns Array of clean, camelCase `DigitalAsset` objects (full or partial depending on include)
- */
+/** Batch variant of parseDigitalAsset. */
 export function parseDigitalAssets(raw: RawDigitalAsset[]): DigitalAsset[];
 export function parseDigitalAssets<const I extends DigitalAssetInclude>(
   raw: RawDigitalAsset[],

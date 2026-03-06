@@ -1,34 +1,6 @@
 import { graphql } from '../graphql';
 
-/**
- * GraphQL document for fetching a paginated list of ERC725Y data changed events with total count.
- *
- * Used by both `useDataChangedEvents` (offset-based pagination) and `useInfiniteDataChangedEvents`
- * (infinite scroll) — the difference is how the hook manages pagination, not the document.
- *
- * No singular `useDataChangedEvent` hook exists because event records have no natural key
- * (opaque Hasura ID only). Developers query by filter instead.
- *
- * Variables:
- * - `$where` — Filter conditions (built by service layer from flat DataChangedEventFilter)
- * - `$order_by` — Sort order (built by service layer from DataChangedEventSort)
- * - `$limit` / `$offset` — Pagination
- * - `$includeBlockNumber`, `$includeTimestamp`, `$includeLogIndex`, `$includeTransactionIndex` — Scalar include toggles
- * - `$includeUniversalProfile*` — Boolean flags for Universal Profile sub-includes
- * - `$includeDigitalAsset*` — Boolean flags for digital asset sub-includes
- *
- * All include variables default to `true` (inverted default — omit `include` = fetch everything).
- *
- * **CRITICAL Hasura field names:**
- * - `data_key` (Hasura) → `dataKey` (our domain type) — parser does the mapping
- * - `data_value` (Hasura) → `dataValue` (our domain type)
- * - `block_number` (Hasura) → `blockNumber` (our domain type)
- * - `log_index` (Hasura) → `logIndex` (our domain type)
- * - `transaction_index` (Hasura) → `transactionIndex` (our domain type)
- *
- * Universal Profile sub-fields match what `parseProfile` expects.
- * Digital Asset sub-fields match what `parseDigitalAsset` expects.
- */
+/** Paginated list of ERC725Y data changed events with total count. */
 export const GetDataChangedEventsDocument = graphql(`
   query GetDataChangedEvents(
     $where: data_changed_bool_exp
@@ -205,17 +177,7 @@ export const GetDataChangedEventsDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL subscription document for real-time ERC725Y data changed events.
- *
- * Mirrors `GetDataChangedEventsDocument` exactly (same field selection, same `@include`
- * directives, same variables) but as a `subscription` operation — no `$offset` variable
- * (subscriptions don't paginate) and no `data_changed_aggregate` field.
- *
- * Used by `useDataChangedEventSubscription` via `buildDataChangedEventSubscriptionConfig`.
- *
- * Variables: ~35 total (3 pagination/filter + 4 scalar + 10 UP + 18 DA include toggles)
- */
+/** Subscription variant of GetDataChangedEventsDocument. */
 export const DataChangedEventSubscriptionDocument = graphql(`
   subscription DataChangedEventSubscription(
     $where: data_changed_bool_exp

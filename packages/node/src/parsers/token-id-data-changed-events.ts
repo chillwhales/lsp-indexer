@@ -17,35 +17,7 @@ import { stripExcluded } from './strip';
  */
 type RawTokenIdDataChangedEvent = GetTokenIdDataChangedEventsQuery['token_id_data_changed'][number];
 
-/**
- * Transform a raw Hasura token_id_data_changed response into a clean
- * `TokenIdDataChangedEvent` type.
- *
- * Very similar to `parseDataChangedEvent` with key differences:
- * 1. Has `tokenId` as additional base field (from `raw.token_id`)
- * 2. Has `nft` relation instead of `universalProfile`
- * 3. NFT is parsed via the full `parseNft` from the nfts domain (same as owned-tokens)
- *
- * Handles all field mappings:
- * - `data_key` → `dataKey`
- * - `data_value` → `dataValue`
- * - `token_id` → `tokenId`
- * - `block_number` → `blockNumber`
- * - `log_index` → `logIndex`
- * - `transaction_index` → `transactionIndex`
- * - `digitalAsset` → parsed via `parseDigitalAsset`
- * - `nft` → parsed via `parseNft` (full Nft type with baseUri fallback)
- * - `dataKeyName` is derived via `resolveDataKeyName` (NOT from Hasura) — conditionally
- *   included based on `include.dataKeyName` (not a base field)
- *
- * **Conditional include narrowing:**
- * When `include` is provided, `stripExcluded` removes fields not in the include map.
- * Digital asset and NFT sub-includes are recursively stripped via nestedConfig.
- *
- * @param raw - A single token_id_data_changed from the Hasura GraphQL response
- * @param include - Optional include config; when provided, excluded fields are stripped
- * @returns A clean, camelCase `TokenIdDataChangedEvent`
- */
+/** Parse a raw Hasura row into a clean domain type. */
 export function parseTokenIdDataChangedEvent(
   raw: RawTokenIdDataChangedEvent,
 ): TokenIdDataChangedEvent;
@@ -87,16 +59,7 @@ export function parseTokenIdDataChangedEvent(
   });
 }
 
-/**
- * Transform an array of raw Hasura token_id_data_changed responses into clean
- * `TokenIdDataChangedEvent[]`.
- *
- * Convenience wrapper around `parseTokenIdDataChangedEvent` for batch results.
- *
- * @param raw - Array of token_id_data_changed from the Hasura GraphQL response
- * @param include - Optional include config; forwarded to each parser call
- * @returns Array of clean, camelCase `TokenIdDataChangedEvent` objects
- */
+/** Batch variant of parseTokenIdDataChangedEvent. */
 export function parseTokenIdDataChangedEvents(
   raw: RawTokenIdDataChangedEvent[],
 ): TokenIdDataChangedEvent[];

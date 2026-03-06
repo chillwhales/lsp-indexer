@@ -1,39 +1,6 @@
 import { graphql } from '../graphql';
 
-/**
- * GraphQL document for fetching a paginated list of LSP29 encrypted assets with total count.
- *
- * Used by both `useEncryptedAssets` (offset-based pagination) and `useInfiniteEncryptedAssets`
- * (infinite scroll) — the difference is how the hook manages pagination, not the document.
- *
- * No singular `useEncryptedAsset` hook exists because no reliable natural key exists
- * (user-introduced elements can share address + contentId + revision).
- *
- * Variables:
- * - `$where` — Filter conditions (built by service layer from flat EncryptedAssetFilter)
- * - `$order_by` — Sort order (built by service layer from EncryptedAssetSort)
- * - `$limit` / `$offset` — Pagination
- * - `$includeArrayIndex`, `$includeTimestamp` — Scalar include toggles
- * - `$includeTitle`, `$includeDescription` — Title/description wrapper relation toggles
- * - `$includeEncryption`, `$includeEncryption*` — Encryption with per-field sub-toggles
- * - `$includeFile`, `$includeFile*` — File with per-field sub-toggles
- * - `$includeChunks`, `$includeChunks*` — Chunks with per-field sub-toggles
- * - `$includeImages` — Images boolean toggle
- * - `$includeUniversalProfile*` — Boolean flags for Universal Profile sub-includes
- *
- * All include variables default to `true` (inverted default — omit `include` = fetch everything).
- *
- * **CRITICAL Hasura field names:**
- * - `title.value` → flattened to `title: string | null` by parser
- * - `description.value` → flattened to `description: string | null` by parser
- * - `content_id` → `contentId` (camelCase)
- * - `array_index` → `arrayIndex`
- * - `universalProfile` → `universalProfile` (same name in domain type)
- *
- * Title and description sub-selections only fetch `.value` (no `.id`).
- * Access control conditions exclude `id`, `encryption_id`, `lsp29_encrypted_asset_id`.
- * File, chunks, images sub-selections exclude `id` and back-reference fields.
- */
+/** Paginated list of LSP29 encrypted assets with total count. */
 export const GetEncryptedAssetsDocument = graphql(`
   query GetEncryptedAssets(
     $where: lsp29_encrypted_asset_bool_exp
@@ -189,19 +156,7 @@ export const GetEncryptedAssetsDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL subscription document for real-time LSP29 encrypted asset updates.
- *
- * Mirrors `GetEncryptedAssetsDocument` but uses `subscription` instead of `query`
- * and omits `$offset` (subscriptions don't paginate) and the aggregate count.
- *
- * Used by `useEncryptedAssetSubscription` in both `@lsp-indexer/react` and
- * `@lsp-indexer/next` via the `buildEncryptedAssetSubscriptionConfig` service.
- *
- * Entity domain — uses Hasura default ordering (`order_by: undefined` when no sort).
- *
- * All include variables default to `true` (inverted default — omit = fetch everything).
- */
+/** Subscription variant of GetEncryptedAssetsDocument. */
 export const EncryptedAssetSubscriptionDocument = graphql(`
   subscription EncryptedAssetSubscription(
     $where: lsp29_encrypted_asset_bool_exp

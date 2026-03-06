@@ -25,23 +25,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
 // Internal builders — translate flat params to Hasura variables
 // ---------------------------------------------------------------------------
 
-/**
- * Translate a flat `IssuedAssetFilter` to a Hasura `lsp12_issued_asset_bool_exp`.
- *
- * All 7 filter fields — string fields use `_ilike` + `escapeLike` for
- * case-insensitive matching, timestamp fields use `_gte` / `_lte`.
- *
- * Multiple conditions combine with `_and`. Empty filter = empty object.
- *
- * Filter → Hasura mapping:
- * - `issuerAddress`      → `{ address: { _ilike: '%escapeLike%' } }` (Hasura field is `address`, NOT `issuer_address`)
- * - `assetAddress`       → `{ asset_address: { _ilike: '%escapeLike%' } }` (partial match)
- * - `interfaceId`        → `{ interface_id: { _ilike: '%escapeLike%' } }` (partial match)
- * - `issuerName`         → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike } } } } }` (nested, uses Hasura `universalProfile`)
- * - `digitalAssetName`   → `{ issuedAsset: { lsp4TokenName: { value: { _ilike } } } }` (nested, uses Hasura `issuedAsset`)
- * - `timestampFrom`      → `{ timestamp: { _gte: normalizeTimestamp } }`
- * - `timestampTo`        → `{ timestamp: { _lte: normalizeTimestamp } }`
- */
+/** Translate IssuedAssetFilter to a Hasura _bool_exp. */
 export function buildIssuedAssetWhere(filter?: IssuedAssetFilter): Lsp12_Issued_Asset_Bool_Exp {
   if (!filter) return {};
 
@@ -102,20 +86,7 @@ export function buildIssuedAssetWhere(filter?: IssuedAssetFilter): Lsp12_Issued_
   return { _and: conditions };
 }
 
-/**
- * Translate a flat `IssuedAssetSort` to a Hasura `lsp12_issued_asset_order_by` array.
- *
- * Sort field → Hasura mapping:
- * - `'timestamp'`          → `[{ timestamp: dir }]`
- * - `'issuerAddress'`      → `[{ address: dir }]` (Hasura field is `address`)
- * - `'assetAddress'`       → `[{ asset_address: dir }]`
- * - `'arrayIndex'`         → `[{ array_index: dir }]`
- * - `'issuerName'`         → `[{ universalProfile: { lsp3Profile: { name: { value: dir } } } }]` (nested)
- * - `'digitalAssetName'`   → `[{ issuedAsset: { lsp4TokenName: { value: dir } } }]` (nested)
- *
- * Name sorts default to `nulls: 'last'` when not specified (names without values sort last).
- * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
- */
+/** Translate IssuedAssetSort to a Hasura order_by. */
 function buildIssuedAssetOrderBy(
   sort?: IssuedAssetSort,
 ): Lsp12_Issued_Asset_Order_By[] | undefined {
@@ -172,8 +143,6 @@ function buildIssuedAssetOrderBy(
  * **Digital asset sub-includes:** Reuses `buildDigitalAssetIncludeVars` with prefix replacement:
  * - `include*` → `includeDigitalAsset*` for digital asset sub-includes
  *
- * @param include - Optional include config; `undefined` = include everything
- * @returns Record of boolean variables for the GetIssuedAssets GraphQL document
  */
 export function buildIssuedAssetIncludeVars(include?: IssuedAssetInclude): Record<string, boolean> {
   if (!include) return {};
@@ -212,23 +181,10 @@ export function buildIssuedAssetIncludeVars(include?: IssuedAssetInclude): Recor
 // Subscription config builder
 // ---------------------------------------------------------------------------
 
-/** Raw subscription row type — reuses the same shape from the subscription codegen. */
 type RawIssuedAssetSubscriptionRow =
   IssuedAssetSubscriptionSubscription['lsp12_issued_asset'][number];
 
-/**
- * Build a type-safe `SubscriptionConfig` for issued asset subscriptions.
- *
- * Assembles domain-specific config (document, variables, extract, parser) that
- * `useSubscription` consumes. The return type is inferred so the 4-generic chain
- * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
- * `useSubscription` without any casts or `unknown` holes.
- *
- * Entity domain — uses Hasura default ordering (`order_by: undefined` when no sort).
- *
- * @param params - Filter, sort, limit, and include configuration
- * @returns A config object consumable by `useSubscription`
- */
+/** Build subscription config for useSubscription. */
 export function buildIssuedAssetSubscriptionConfig(params: {
   filter?: IssuedAssetFilter;
   sort?: IssuedAssetSort;
@@ -257,12 +213,6 @@ export function buildIssuedAssetSubscriptionConfig(params: {
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Result shape for paginated issued asset list queries.
- *
- * When the include parameter is provided, the `issuedAssets` array contains
- * narrowed types with only base fields + included fields.
- */
 export interface FetchIssuedAssetsResult<P = IssuedAsset> {
   /** Parsed issued asset records for the current page (narrowed by include) */
   issuedAssets: P[];
@@ -270,23 +220,8 @@ export interface FetchIssuedAssetsResult<P = IssuedAsset> {
   totalCount: number;
 }
 
-/**
- * Fetch a paginated list of LSP12 issued asset records with filtering, sorting,
- * total count, and optional include narrowing.
- *
- * Serves both `useIssuedAssets` (paginated) and `useInfiniteIssuedAssets` (infinite scroll) —
- * the difference is how the hook manages pagination, not the fetch function.
- *
- * No singular `fetchIssuedAsset` exists because issued asset records have no natural key
- * (opaque Hasura ID only). Developers query by filter instead.
- *
- * Translates flat filter/sort/include params to Hasura variables, executes the
- * query, and returns parsed results with a total count for pagination.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed issued assets (narrowed by include) and total count
- */
+/** Fetch a paginated list of LSP12 issued asset records. No singular `fetchIssuedAsset` — issued asset records have no natural key
+ * (opaque Hasura ID only). */
 export async function fetchIssuedAssets(
   url: string,
   params?: {
