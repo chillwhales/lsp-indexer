@@ -19,32 +19,16 @@ import {
   type ProfileResult,
 } from './profiles';
 
-/**
- * NFT sub-include schema for the owned-token context.
- *
- * Omits `collection` and `holder` because those are sibling relations on
- * owned_token itself (digitalAsset / universalProfile), not nested within
- * the NFT block. The 8 remaining fields control which NFT metadata to fetch.
- */
+/** Omits `collection`/`holder` — those are sibling relations on owned_token, not nested in NFT. */
 export const OwnedTokenNftIncludeSchema = NftIncludeSchema.omit({
   collection: true,
   holder: true,
 });
 
-/**
- * Owned Asset sub-include schema for the owned-token context.
- *
- * Controls which fields of the parent owned_asset record to fetch.
- * Only includes the direct scalar fields — nested relations (digitalAsset,
- * holder, tokenIdCount) are not available in this sub-selection context
- * because they are sibling relations on the owned_token itself.
- */
+/** Scalar fields only — nested relations are siblings on owned_token itself. */
 export const OwnedTokenOwnedAssetIncludeSchema = z.object({
-  /** Include token balance (bigint) */
   balance: z.boolean().optional(),
-  /** Include block number */
   block: z.boolean().optional(),
-  /** Include timestamp */
   timestamp: z.boolean().optional(),
 });
 
@@ -53,15 +37,8 @@ export const OwnedTokenOwnedAssetIncludeSchema = z.object({
 // ---------------------------------------------------------------------------
 
 /**
- * Owned Token — represents LSP8 individual NFT ownership.
- *
- * Each record represents which specific token (identified by token_id) an
- * address holds within a particular collection.
- *
- * Fields renamed for developer clarity:
- * - `digitalAssetAddress` (Hasura: `address`) — the asset contract address
- * - `holderAddress` (Hasura: `owner`) — the holder's address
- * - `holder` (Hasura: `universalProfile`) — the holder's profile
+ * LSP8 individual NFT ownership — which specific token an address holds.
+ * Renamed from Hasura: `address` → `digitalAssetAddress`, `owner` → `holderAddress`.
  */
 export const OwnedTokenSchema = z.object({
   /** Unique identifier */
@@ -90,12 +67,6 @@ export const OwnedTokenSchema = z.object({
 // Filter & sort schemas
 // ---------------------------------------------------------------------------
 
-/**
- * Filter criteria for owned token queries.
- *
- * All string fields use case-insensitive `_ilike` matching at the service layer.
- * Name filters use nested relation filtering through Hasura.
- */
 export const OwnedTokenFilterSchema = z.object({
   /** Case-insensitive match on holder address (Hasura column: owner) */
   holderAddress: z.string().optional(),
@@ -120,31 +91,13 @@ export const OwnedTokenSortFieldSchema = z.enum([
   'tokenId',
 ]);
 
-/** Zod schema for owned token sort configuration — validates field, direction, and null ordering. */
 export const OwnedTokenSortSchema = z.object({
-  /** Which field to sort by */
   field: OwnedTokenSortFieldSchema,
-  /** Sort direction */
   direction: SortDirectionSchema,
-  /** Where nulls appear — omit to use Hasura default */
   nulls: SortNullsSchema.optional(),
 });
 
-/**
- * Control which fields to include in an owned token query.
- *
- * **Behavior (inverted default):**
- * - When `include` is **omitted** entirely → all fields are fetched (opt-out model).
- *   GraphQL variables default to `true`, so all `@include(if:)` directives pass.
- * - When `include` is **provided** → only fields explicitly set/provided are included;
- *   unspecified fields default to `false` (opt-in when provided).
- *
- * The `digitalAsset` field accepts a `DigitalAssetIncludeSchema` for nested 17-field
- * sub-includes — controlling exactly which digital asset attributes to fetch.
- *
- * The `nft` field accepts an `OwnedTokenNftIncludeSchema` (NftInclude minus collection/holder)
- * for nested 8-field sub-includes — controlling exactly which NFT metadata to fetch.
- */
+/** Omit = fetch all fields; set individual fields to opt-in. */
 export const OwnedTokenIncludeSchema = z.object({
   /** Include block number */
   block: z.boolean().optional(),
@@ -199,28 +152,18 @@ export const UseInfiniteOwnedTokensParamsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Inferred types (single source of truth — derive from schemas)
+// Inferred types
 // ---------------------------------------------------------------------------
 
-/** Clean camelCase owned token after parsing from Hasura. See {@link OwnedTokenSchema}. */
 export type OwnedToken = z.infer<typeof OwnedTokenSchema>;
-/** Owned token query filter parameters. See {@link OwnedTokenFilterSchema}. */
 export type OwnedTokenFilter = z.infer<typeof OwnedTokenFilterSchema>;
-/** Available fields for sorting owned tokens. See {@link OwnedTokenSortFieldSchema}. */
 export type OwnedTokenSortField = z.infer<typeof OwnedTokenSortFieldSchema>;
-/** Owned token sort configuration. See {@link OwnedTokenSortSchema}. */
 export type OwnedTokenSort = z.infer<typeof OwnedTokenSortSchema>;
-/** Field inclusion config for owned token queries. See {@link OwnedTokenIncludeSchema}. */
 export type OwnedTokenInclude = z.infer<typeof OwnedTokenIncludeSchema>;
-/** NFT sub-include for owned token context (NftInclude minus collection/holder). See {@link OwnedTokenNftIncludeSchema}. */
 export type OwnedTokenNftInclude = z.infer<typeof OwnedTokenNftIncludeSchema>;
-/** Owned asset sub-include for owned token context. See {@link OwnedTokenOwnedAssetIncludeSchema}. */
 export type OwnedTokenOwnedAssetInclude = z.infer<typeof OwnedTokenOwnedAssetIncludeSchema>;
-/** Parameters for the `useOwnedToken` hook. See {@link UseOwnedTokenParamsSchema}. */
 export type UseOwnedTokenParams = z.infer<typeof UseOwnedTokenParamsSchema>;
-/** Parameters for the `useOwnedTokens` hook. See {@link UseOwnedTokensParamsSchema}. */
 export type UseOwnedTokensParams = z.infer<typeof UseOwnedTokensParamsSchema>;
-/** Parameters for the `useInfiniteOwnedTokens` hook. See {@link UseInfiniteOwnedTokensParamsSchema}. */
 export type UseInfiniteOwnedTokensParams = z.infer<typeof UseInfiniteOwnedTokensParamsSchema>;
 
 // ---------------------------------------------------------------------------

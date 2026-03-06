@@ -23,14 +23,7 @@ import {
 // Core domain schema
 // ---------------------------------------------------------------------------
 
-/**
- * An ERC725Y data change event from the `data_changed` Hasura table.
- *
- * Represents a single `DataChanged` event emitted by a Universal Profile or
- * Digital Asset contract. Base fields (`address`, `dataKey`, `dataValue`)
- * are always present; other fields (including `dataKeyName`) are controlled
- * by the `include` parameter.
- */
+/** ERC725Y DataChanged event — emitted by a UP or DA contract. */
 export const DataChangedEventSchema = z.object({
   /** Emitting contract address — either a UP or DA (always present) */
   address: z.string(),
@@ -55,16 +48,9 @@ export const DataChangedEventSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Filter schema — 9 filter fields (9 keys, 2 use range pairs)
+// Filter schema
 // ---------------------------------------------------------------------------
 
-/**
- * Filter for data changed event queries.
- *
- * All 9 filter fields — string fields use `_ilike` (case-insensitive),
- * timestamp and blockNumber fields use `_gte` / `_lte` for range filtering.
- * `dataKeyName` is resolved to a hex data key at the service layer.
- */
 export const DataChangedEventFilterSchema = z.object({
   /** Case-insensitive match on emitting contract address (uses _ilike) */
   address: z.string().optional(),
@@ -87,20 +73,10 @@ export const DataChangedEventFilterSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Sort schema — 4 sort fields
+// Sort schema
 // ---------------------------------------------------------------------------
 
-/**
- * Fields available for sorting data changed event lists.
- *
- * `newest` and `oldest` use deterministic block-order sorting
- * (block_number → transaction_index → log_index). `direction` and `nulls`
- * are ignored when these fields are selected.
- *
- * `universalProfileName` is a nested sort via `universalProfile.lsp3Profile.name`.
- * `digitalAssetName` is a nested sort via `digitalAsset.lsp4TokenName`.
- * Both handled at service layer.
- */
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
 export const DataChangedEventSortFieldSchema = z.enum([
   'newest',
   'oldest',
@@ -108,30 +84,17 @@ export const DataChangedEventSortFieldSchema = z.enum([
   'digitalAssetName',
 ]);
 
-/** Zod schema for data changed event sort configuration — validates field, direction, and null ordering. */
 export const DataChangedEventSortSchema = z.object({
-  /** Which field to sort by */
   field: DataChangedEventSortFieldSchema,
-  /** Sort direction */
   direction: SortDirectionSchema,
-  /** Where nulls appear — omit to use Hasura default */
   nulls: SortNullsSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------
-// Include schema (inverted default — omit = fetch everything)
+// Include schema
 // ---------------------------------------------------------------------------
 
-/**
- * Controls which optional fields are fetched for data changed event queries.
- *
- * **Inverted default:** When `include` is omitted, ALL fields are fetched
- * (opt-out rather than opt-in). When `include` is provided, only fields
- * set to `true` (or provided as sub-include objects) are included.
- *
- * **Relation sub-includes:** `universalProfile` and `digitalAsset` accept
- * sub-include objects for full control over which nested fields to fetch.
- */
+/** Omit = fetch all fields; set individual fields to opt-in. */
 export const DataChangedEventIncludeSchema = z.object({
   /** Include resolved human-readable data key name (parser-derived from dataKey) */
   dataKeyName: z.boolean().optional(),
@@ -185,24 +148,16 @@ export const UseInfiniteDataChangedEventsParamsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Inferred types (single source of truth — derive from schemas)
+// Inferred types
 // ---------------------------------------------------------------------------
 
-/** Clean camelCase data changed event after parsing from Hasura. See {@link DataChangedEventSchema}. */
 export type DataChangedEvent = z.infer<typeof DataChangedEventSchema>;
-/** Data changed event query filter parameters. See {@link DataChangedEventFilterSchema}. */
 export type DataChangedEventFilter = z.infer<typeof DataChangedEventFilterSchema>;
-/** Available fields for sorting data changed events. See {@link DataChangedEventSortFieldSchema}. */
 export type DataChangedEventSortField = z.infer<typeof DataChangedEventSortFieldSchema>;
-/** Data changed event sort configuration. See {@link DataChangedEventSortSchema}. */
 export type DataChangedEventSort = z.infer<typeof DataChangedEventSortSchema>;
-/** Field inclusion config for data changed event queries. See {@link DataChangedEventIncludeSchema}. */
 export type DataChangedEventInclude = z.infer<typeof DataChangedEventIncludeSchema>;
-/** Parameters for the `useLatestDataChangedEvent` hook. See {@link UseLatestDataChangedEventParamsSchema}. */
 export type UseLatestDataChangedEventParams = z.infer<typeof UseLatestDataChangedEventParamsSchema>;
-/** Parameters for the `useDataChangedEvents` hook. See {@link UseDataChangedEventsParamsSchema}. */
 export type UseDataChangedEventsParams = z.infer<typeof UseDataChangedEventsParamsSchema>;
-/** Parameters for the `useInfiniteDataChangedEvents` hook. See {@link UseInfiniteDataChangedEventsParamsSchema}. */
 export type UseInfiniteDataChangedEventsParams = z.infer<
   typeof UseInfiniteDataChangedEventsParamsSchema
 >;

@@ -26,13 +26,7 @@ import {
 // Core domain schemas
 // ---------------------------------------------------------------------------
 
-/**
- * Holder of an individual NFT token (from owned_token table).
- *
- * Profile fields are spread flat into the holder object — the `universalProfile`
- * Hasura relation is merged, not nested. When the holder has no UP, profile
- * fields will be `null` / `0` / `[]`.
- */
+/** NFT holder — profile fields merged flat (not nested) from the UP relation. */
 export const NftHolderSchema = z
   .object({
     /** When this holder acquired the token (ISO timestamp) */
@@ -40,12 +34,7 @@ export const NftHolderSchema = z
   })
   .merge(ProfileSchema);
 
-/**
- * Individual NFT token within an LSP8 collection.
- *
- * Identified by (address, tokenId) pair where `address` is the collection
- * contract address and `tokenId` is the specific token within that collection.
- */
+/** Individual NFT token — identified by (address, tokenId). */
 export const NftSchema = z.object({
   /** Collection contract address — always present */
   address: z.string(),
@@ -81,11 +70,6 @@ export const NftSchema = z.object({
 // Filter schema
 // ---------------------------------------------------------------------------
 
-/**
- * Filter for NFT queries.
- *
- * `collectionAddress` enables the `useNftsByCollection` pattern (filter NFTs by collection).
- */
 export const NftFilterSchema = z.object({
   /** Case-insensitive match on collection contract address — key filter for useNftsByCollection */
   collectionAddress: z.string().optional(),
@@ -110,31 +94,17 @@ export const NftFilterSchema = z.object({
 /** Fields available for sorting NFT lists */
 export const NftSortFieldSchema = z.enum(['tokenId', 'formattedTokenId']);
 
-/** Zod schema for NFT sort configuration — validates field, direction, and null ordering. */
 export const NftSortSchema = z.object({
-  /** Which field to sort by */
   field: NftSortFieldSchema,
-  /** Sort direction */
   direction: SortDirectionSchema,
-  /** Where nulls appear — omit to use Hasura default */
   nulls: SortNullsSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------
-// Include schema (inverted default — omit = fetch everything)
+// Include schema
 // ---------------------------------------------------------------------------
 
-/**
- * Controls which optional fields are fetched for NFT queries.
- *
- * **Inverted default:** When `include` is omitted, ALL fields are fetched
- * (opt-out rather than opt-in). When `include` is provided, only fields
- * set to `true` are included.
- *
- * **Collection sub-includes:** When `collection` is provided (even as `{}`),
- * the collection data is included. The sub-fields within `collection` control
- * which collection attributes to fetch (using DigitalAssetIncludeSchema).
- */
+/** Omit = fetch all fields; set individual fields to opt-in. */
 export const NftIncludeSchema = z.object({
   /** Include human-readable formatted token ID */
   formattedTokenId: z.boolean().optional(),
@@ -205,26 +175,17 @@ export const UseInfiniteNftsParamsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Inferred types (single source of truth — derive from schemas)
+// Inferred types
 // ---------------------------------------------------------------------------
 
-/** NFT holder (current token possessor) with profile and timestamp. See {@link NftHolderSchema}. */
 export type NftHolder = z.infer<typeof NftHolderSchema>;
-/** Clean camelCase NFT after parsing from Hasura. See {@link NftSchema}. */
 export type Nft = z.infer<typeof NftSchema>;
-/** NFT query filter parameters. See {@link NftFilterSchema}. */
 export type NftFilter = z.infer<typeof NftFilterSchema>;
-/** Available fields for sorting NFTs. See {@link NftSortFieldSchema}. */
 export type NftSortField = z.infer<typeof NftSortFieldSchema>;
-/** NFT sort configuration. See {@link NftSortSchema}. */
 export type NftSort = z.infer<typeof NftSortSchema>;
-/** Field inclusion config for NFT queries. See {@link NftIncludeSchema}. */
 export type NftInclude = z.infer<typeof NftIncludeSchema>;
-/** Parameters for the `useNft` hook. See {@link UseNftParamsSchema}. */
 export type UseNftParams = z.infer<typeof UseNftParamsSchema>;
-/** Parameters for the `useNfts` hook. See {@link UseNftsParamsSchema}. */
 export type UseNftsParams = z.infer<typeof UseNftsParamsSchema>;
-/** Parameters for the `useInfiniteNfts` hook. See {@link UseInfiniteNftsParamsSchema}. */
 export type UseInfiniteNftsParams = z.infer<typeof UseInfiniteNftsParamsSchema>;
 
 // ---------------------------------------------------------------------------

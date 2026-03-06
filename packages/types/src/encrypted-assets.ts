@@ -14,12 +14,7 @@ import {
 // Sub-type schemas — nested object schemas for encrypted asset relations
 // ---------------------------------------------------------------------------
 
-/**
- * An access control condition from the `lsp29_access_control_condition` table.
- *
- * Conditions define who can decrypt the encrypted asset (e.g., token holders,
- * address owners, follower relationships).
- */
+/** Access control condition — defines who can decrypt the asset. */
 export const AccessControlConditionSchema = z.object({
   /** Blockchain chain identifier */
   chain: z.string().nullable(),
@@ -43,12 +38,7 @@ export const AccessControlConditionSchema = z.object({
   value: z.string().nullable(),
 });
 
-/**
- * Encryption details from the `lsp29_encrypted_asset_encryption` table.
- *
- * Contains the ciphertext, decryption parameters, and optionally the
- * access control conditions array.
- */
+/** Encryption details — ciphertext, decryption params, and access control conditions. */
 export const EncryptedAssetEncryptionSchema = z.object({
   /** Encrypted ciphertext */
   ciphertext: z.string().nullable(),
@@ -64,9 +54,7 @@ export const EncryptedAssetEncryptionSchema = z.object({
   accessControlConditions: z.array(AccessControlConditionSchema).nullable(),
 });
 
-/**
- * File metadata from the `lsp29_encrypted_asset_file` table.
- */
+/** File metadata for an encrypted asset. */
 export const EncryptedAssetFileSchema = z.object({
   /** File hash */
   hash: z.string().nullable(),
@@ -80,9 +68,7 @@ export const EncryptedAssetFileSchema = z.object({
   type: z.string().nullable(),
 });
 
-/**
- * Chunk information from the `lsp29_encrypted_asset_chunks` table.
- */
+/** Chunk information for an encrypted asset. */
 export const EncryptedAssetChunksSchema = z.object({
   /** IPFS content identifiers for each chunk */
   cids: z.array(z.string()).nullable(),
@@ -92,26 +78,14 @@ export const EncryptedAssetChunksSchema = z.object({
   totalSize: z.number().nullable(),
 });
 
-/**
- * Images matrix — array of arrays where each inner array groups image
- * resolutions (different widths) for the same logical image, indexed by
- * `image_index` from the Hasura table.
- *
- * Reuses the shared `Image` type (url, width, height, verification).
- */
+/** Images grouped by image_index — inner arrays are resolution variants. */
 export const EncryptedAssetImagesSchema = z.array(z.array(ImageSchema));
 
 // ---------------------------------------------------------------------------
 // Core domain schema
 // ---------------------------------------------------------------------------
 
-/**
- * An LSP29 encrypted asset from the `lsp29_encrypted_asset` Hasura table.
- *
- * Represents rich encrypted asset metadata with nested relations (encryption,
- * file, chunks, images, title/description wrappers, universal profile).
- * Base fields (`address`, `contentId`, `revision`) are always present.
- */
+/** LSP29 encrypted asset with nested relations. */
 export const EncryptedAssetSchema = z.object({
   /** Universal Profile address that owns this encrypted asset (always present) */
   address: z.string(),
@@ -140,15 +114,9 @@ export const EncryptedAssetSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Filter schema — all 8 filter fields
+// Filter schema
 // ---------------------------------------------------------------------------
 
-/**
- * Filter for encrypted asset queries.
- *
- * All 8 filter fields — string fields use `_ilike` (case-insensitive).
- * `fileSize` and `timestamp` use `_gte` for range filtering; `revision` is exact-match.
- */
 export const EncryptedAssetFilterSchema = z.object({
   /** Case-insensitive match on UP address (uses _ilike) */
   address: z.string().optional(),
@@ -172,9 +140,6 @@ export const EncryptedAssetFilterSchema = z.object({
 // Sort schema
 // ---------------------------------------------------------------------------
 
-/**
- * Fields available for sorting encrypted asset lists.
- */
 export const EncryptedAssetSortFieldSchema = z.enum([
   'timestamp',
   'address',
@@ -183,105 +148,49 @@ export const EncryptedAssetSortFieldSchema = z.enum([
   'arrayIndex',
 ]);
 
-/** Zod schema for encrypted asset sort configuration — validates field, direction, and null ordering. */
 export const EncryptedAssetSortSchema = z.object({
-  /** Which field to sort by */
   field: EncryptedAssetSortFieldSchema,
-  /** Sort direction */
   direction: SortDirectionSchema,
-  /** Where nulls appear — omit to use Hasura default */
   nulls: SortNullsSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------
-// Include schema — most complex due to encryption sub-include
+// Include schema
 // ---------------------------------------------------------------------------
 
-/** Sub-include for file — controls which file sub-fields are fetched */
 export const EncryptedAssetFileIncludeSchema = z.object({
-  /** Include file MIME type */
   type: z.boolean().optional(),
-  /** Include file size in bytes */
   size: z.boolean().optional(),
-  /** Include last modified timestamp */
   lastModified: z.boolean().optional(),
-  /** Include file hash */
   hash: z.boolean().optional(),
 });
 
-/** Sub-include for chunks — controls which chunk sub-fields are fetched */
 export const EncryptedAssetChunksIncludeSchema = z.object({
-  /** Include IPFS content identifiers */
   cids: z.boolean().optional(),
-  /** Include initialization vector */
   iv: z.boolean().optional(),
-  /** Include total size across all chunks */
   totalSize: z.boolean().optional(),
 });
 
-/** Sub-include for encryption — controls which encryption sub-fields are fetched */
 export const EncryptedAssetEncryptionIncludeSchema = z.object({
-  /** Include encryption method identifier */
   method: z.boolean().optional(),
-  /** Include encrypted ciphertext */
   ciphertext: z.boolean().optional(),
-  /** Include hash of original data */
   dataToEncryptHash: z.boolean().optional(),
-  /** Include decryption code */
   decryptionCode: z.boolean().optional(),
-  /** Include decryption parameters (JSON string) */
   decryptionParams: z.boolean().optional(),
-  /** Include access control conditions array */
   accessControlConditions: z.boolean().optional(),
 });
 
-/**
- * Controls which optional fields are fetched for encrypted asset queries.
- *
- * **Inverted default:** When `include` is omitted, ALL fields are fetched
- * (opt-out rather than opt-in). When `include` is provided, only fields
- * set to `true` (or provided as sub-include objects) are included.
- *
- * **Sub-include relations:** `encryption`, `file`, and `chunks` each accept either a
- * boolean or an object with per-field toggles:
- * - `true` → fetch the relation with ALL sub-fields
- * - `{ fieldA: true, fieldB: false }` → fetch relation with only selected sub-fields
- * - `{}` → fetch relation with no optional sub-fields (base only where applicable)
- * - `false` / omitted → don't fetch the relation at all
- */
+/** Omit = fetch all fields; set individual fields to opt-in. Sub-relations accept boolean or per-field object. */
 export const EncryptedAssetIncludeSchema = z.object({
-  /** Include array index */
   arrayIndex: z.boolean().optional(),
-  /** Include timestamp */
   timestamp: z.boolean().optional(),
-  /** Include title text (flattened from title.value) */
   title: z.boolean().optional(),
-  /** Include description text (flattened from description.value) */
   description: z.boolean().optional(),
-  /**
-   * Include encryption details.
-   * - `true` → fetch all encryption fields INCLUDING accessControlConditions
-   * - `{ field: true/false }` → fetch encryption with selected sub-fields
-   * - `false` / omitted → don't fetch encryption at all
-   */
   encryption: z.union([z.boolean(), EncryptedAssetEncryptionIncludeSchema]).optional(),
-  /**
-   * Include file metadata.
-   * - `true` → fetch all file fields (name always included)
-   * - `{ type: true, size: true }` → fetch file with selected sub-fields (name always included)
-   * - `false` / omitted → don't fetch file at all
-   */
+  /** `name` always included when file is fetched. */
   file: z.union([z.boolean(), EncryptedAssetFileIncludeSchema]).optional(),
-  /**
-   * Include chunks data.
-   * - `true` → fetch all chunks fields
-   * - `{ cids: true, iv: false }` → fetch chunks with selected sub-fields
-   * - `false` / omitted → don't fetch chunks at all
-   */
   chunks: z.union([z.boolean(), EncryptedAssetChunksIncludeSchema]).optional(),
-  /** Include images array */
   images: z.boolean().optional(),
-  /** Include Universal Profile — `true` for all fields, or object for per-field control */
   universalProfile: z.union([z.boolean(), ProfileIncludeSchema]).optional(),
 });
 
@@ -307,38 +216,23 @@ export const UseInfiniteEncryptedAssetsParamsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Inferred types (single source of truth — derive from schemas)
+// Inferred types
 // ---------------------------------------------------------------------------
 
-/** Access control condition for LSP29 encrypted content. See {@link AccessControlConditionSchema}. */
 export type AccessControlCondition = z.infer<typeof AccessControlConditionSchema>;
-/** Encryption metadata for an encrypted asset. See {@link EncryptedAssetEncryptionSchema}. */
 export type EncryptedAssetEncryption = z.infer<typeof EncryptedAssetEncryptionSchema>;
-/** Sub-include for encryption fields. See {@link EncryptedAssetEncryptionIncludeSchema}. */
 export type EncryptedAssetEncryptionInclude = z.infer<typeof EncryptedAssetEncryptionIncludeSchema>;
-/** File metadata for an encrypted asset. See {@link EncryptedAssetFileSchema}. */
 export type EncryptedAssetFile = z.infer<typeof EncryptedAssetFileSchema>;
-/** Sub-include for file metadata fields. See {@link EncryptedAssetFileIncludeSchema}. */
 export type EncryptedAssetFileInclude = z.infer<typeof EncryptedAssetFileIncludeSchema>;
-/** Chunk data for an encrypted asset. See {@link EncryptedAssetChunksSchema}. */
 export type EncryptedAssetChunks = z.infer<typeof EncryptedAssetChunksSchema>;
-/** Sub-include for chunk fields. See {@link EncryptedAssetChunksIncludeSchema}. */
 export type EncryptedAssetChunksInclude = z.infer<typeof EncryptedAssetChunksIncludeSchema>;
-/** Images matrix — `Image[][]` grouped by image_index. See {@link EncryptedAssetImagesSchema}. */
 export type EncryptedAssetImages = z.infer<typeof EncryptedAssetImagesSchema>;
-/** Clean camelCase encrypted asset after parsing from Hasura. See {@link EncryptedAssetSchema}. */
 export type EncryptedAsset = z.infer<typeof EncryptedAssetSchema>;
-/** Encrypted asset query filter parameters. See {@link EncryptedAssetFilterSchema}. */
 export type EncryptedAssetFilter = z.infer<typeof EncryptedAssetFilterSchema>;
-/** Available fields for sorting encrypted assets. See {@link EncryptedAssetSortFieldSchema}. */
 export type EncryptedAssetSortField = z.infer<typeof EncryptedAssetSortFieldSchema>;
-/** Encrypted asset sort configuration. See {@link EncryptedAssetSortSchema}. */
 export type EncryptedAssetSort = z.infer<typeof EncryptedAssetSortSchema>;
-/** Field inclusion config for encrypted asset queries. See {@link EncryptedAssetIncludeSchema}. */
 export type EncryptedAssetInclude = z.infer<typeof EncryptedAssetIncludeSchema>;
-/** Parameters for the `useEncryptedAssets` hook. See {@link UseEncryptedAssetsParamsSchema}. */
 export type UseEncryptedAssetsParams = z.infer<typeof UseEncryptedAssetsParamsSchema>;
-/** Parameters for the `useInfiniteEncryptedAssets` hook. See {@link UseInfiniteEncryptedAssetsParamsSchema}. */
 export type UseInfiniteEncryptedAssetsParams = z.infer<
   typeof UseInfiniteEncryptedAssetsParamsSchema
 >;

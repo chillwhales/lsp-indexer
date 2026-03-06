@@ -21,14 +21,7 @@ import {
 // Core domain schemas
 // ---------------------------------------------------------------------------
 
-/**
- * An entry in a profile's LSP12 issued assets array.
- *
- * Represents a single record in the `lsp12_issued_asset` Hasura table — one per
- * unique issuer↔digital-asset pair. Base fields (`issuerAddress`,
- * `assetAddress`) are always present; other fields are controlled by
- * the `include` parameter.
- */
+/** LSP12 issued asset — one per unique issuer↔digital-asset pair. */
 export const IssuedAssetSchema = z.object({
   /** Address that issued the digital asset (always present) */
   issuerAddress: z.string(),
@@ -50,12 +43,6 @@ export const IssuedAssetSchema = z.object({
 // Filter schema
 // ---------------------------------------------------------------------------
 
-/**
- * Filter for issued asset queries.
- *
- * All 7 filter fields — string fields use `_ilike` (case-insensitive),
- * timestamp fields use `_gte` / `_lte` for range filtering.
- */
 export const IssuedAssetFilterSchema = z.object({
   /** Case-insensitive match on issuer address */
   issuerAddress: z.string().optional(),
@@ -77,13 +64,7 @@ export const IssuedAssetFilterSchema = z.object({
 // Sort schema
 // ---------------------------------------------------------------------------
 
-/**
- * Fields available for sorting issued asset lists.
- *
- * `issuerName` is a nested sort via `universalProfile.lsp3Profile.name`.
- * `digitalAssetName` is a nested sort via `issuedAsset.lsp4TokenName.name`.
- * Both handled at service layer.
- */
+/** `issuerName` / `digitalAssetName` are nested sorts handled at service layer. */
 export const IssuedAssetSortFieldSchema = z.enum([
   'timestamp',
   'issuerAddress',
@@ -93,30 +74,17 @@ export const IssuedAssetSortFieldSchema = z.enum([
   'digitalAssetName',
 ]);
 
-/** Zod schema for issued asset sort configuration — validates field, direction, and null ordering. */
 export const IssuedAssetSortSchema = z.object({
-  /** Which field to sort by */
   field: IssuedAssetSortFieldSchema,
-  /** Sort direction */
   direction: SortDirectionSchema,
-  /** Where nulls appear — omit to use Hasura default */
   nulls: SortNullsSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------
-// Include schema (inverted default — omit = fetch everything)
+// Include schema
 // ---------------------------------------------------------------------------
 
-/**
- * Controls which optional fields are fetched for issued asset queries.
- *
- * **Inverted default:** When `include` is omitted, ALL fields are fetched
- * (opt-out rather than opt-in). When `include` is provided, only fields
- * set to `true` (or provided as sub-include objects) are included.
- *
- * **Relation sub-includes:** `issuerProfile` and `digitalAsset` accept
- * sub-include objects for full control over which nested fields to fetch.
- */
+/** Omit = fetch all fields; set individual fields to opt-in. */
 export const IssuedAssetIncludeSchema = z.object({
   /** Include array index position */
   arrayIndex: z.boolean().optional(),
@@ -152,22 +120,15 @@ export const UseInfiniteIssuedAssetsParamsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Inferred types (single source of truth — derive from schemas)
+// Inferred types
 // ---------------------------------------------------------------------------
 
-/** Clean camelCase issued asset after parsing from Hasura. See {@link IssuedAssetSchema}. */
 export type IssuedAsset = z.infer<typeof IssuedAssetSchema>;
-/** Issued asset query filter parameters. See {@link IssuedAssetFilterSchema}. */
 export type IssuedAssetFilter = z.infer<typeof IssuedAssetFilterSchema>;
-/** Available fields for sorting issued assets. See {@link IssuedAssetSortFieldSchema}. */
 export type IssuedAssetSortField = z.infer<typeof IssuedAssetSortFieldSchema>;
-/** Issued asset sort configuration. See {@link IssuedAssetSortSchema}. */
 export type IssuedAssetSort = z.infer<typeof IssuedAssetSortSchema>;
-/** Field inclusion config for issued asset queries. See {@link IssuedAssetIncludeSchema}. */
 export type IssuedAssetInclude = z.infer<typeof IssuedAssetIncludeSchema>;
-/** Parameters for the `useIssuedAssets` hook. See {@link UseIssuedAssetsParamsSchema}. */
 export type UseIssuedAssetsParams = z.infer<typeof UseIssuedAssetsParamsSchema>;
-/** Parameters for the `useInfiniteIssuedAssets` hook. See {@link UseInfiniteIssuedAssetsParamsSchema}. */
 export type UseInfiniteIssuedAssetsParams = z.infer<typeof UseInfiniteIssuedAssetsParamsSchema>;
 
 // ---------------------------------------------------------------------------

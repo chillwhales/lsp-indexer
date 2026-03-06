@@ -21,14 +21,7 @@ import {
 // Core domain schemas
 // ---------------------------------------------------------------------------
 
-/**
- * An entry in a digital asset's LSP4 creators array.
- *
- * Represents a single record in the `lsp4_creator` Hasura table — one per
- * unique creator↔digital-asset pair. Base fields (`creatorAddress`,
- * `digitalAssetAddress`) are always present; other fields are controlled by
- * the `include` parameter.
- */
+/** LSP4 creator — one per unique creator↔digital-asset pair. */
 export const CreatorSchema = z.object({
   /** Address that created the digital asset (always present) */
   creatorAddress: z.string(),
@@ -50,12 +43,6 @@ export const CreatorSchema = z.object({
 // Filter schema
 // ---------------------------------------------------------------------------
 
-/**
- * Filter for creator queries.
- *
- * All 7 filter fields — string fields use `_ilike` (case-insensitive),
- * timestamp fields use `_gte` / `_lte` for range filtering.
- */
 export const CreatorFilterSchema = z.object({
   /** Case-insensitive match on creator address */
   creatorAddress: z.string().optional(),
@@ -77,13 +64,7 @@ export const CreatorFilterSchema = z.object({
 // Sort schema
 // ---------------------------------------------------------------------------
 
-/**
- * Fields available for sorting creator lists.
- *
- * `creatorName` is a nested sort via `creatorProfile.lsp3Profile.name`.
- * `digitalAssetName` is a nested sort via `digitalAsset.lsp4TokenName.name`.
- * Both handled at service layer.
- */
+/** `creatorName` / `digitalAssetName` are nested sorts handled at service layer. */
 export const CreatorSortFieldSchema = z.enum([
   'timestamp',
   'creatorAddress',
@@ -93,30 +74,17 @@ export const CreatorSortFieldSchema = z.enum([
   'digitalAssetName',
 ]);
 
-/** Zod schema for creator sort configuration — validates field, direction, and null ordering. */
 export const CreatorSortSchema = z.object({
-  /** Which field to sort by */
   field: CreatorSortFieldSchema,
-  /** Sort direction */
   direction: SortDirectionSchema,
-  /** Where nulls appear — omit to use Hasura default */
   nulls: SortNullsSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------
-// Include schema (inverted default — omit = fetch everything)
+// Include schema
 // ---------------------------------------------------------------------------
 
-/**
- * Controls which optional fields are fetched for creator queries.
- *
- * **Inverted default:** When `include` is omitted, ALL fields are fetched
- * (opt-out rather than opt-in). When `include` is provided, only fields
- * set to `true` (or provided as sub-include objects) are included.
- *
- * **Relation sub-includes:** `creatorProfile` and `digitalAsset` accept
- * sub-include objects for full control over which nested fields to fetch.
- */
+/** Omit = fetch all fields; set individual fields to opt-in. */
 export const CreatorIncludeSchema = z.object({
   /** Include array index position */
   arrayIndex: z.boolean().optional(),
@@ -152,22 +120,15 @@ export const UseInfiniteCreatorsParamsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Inferred types (single source of truth — derive from schemas)
+// Inferred types
 // ---------------------------------------------------------------------------
 
-/** Clean camelCase creator after parsing from Hasura. See {@link CreatorSchema}. */
 export type Creator = z.infer<typeof CreatorSchema>;
-/** Creator query filter parameters. See {@link CreatorFilterSchema}. */
 export type CreatorFilter = z.infer<typeof CreatorFilterSchema>;
-/** Available fields for sorting creators. See {@link CreatorSortFieldSchema}. */
 export type CreatorSortField = z.infer<typeof CreatorSortFieldSchema>;
-/** Creator sort configuration. See {@link CreatorSortSchema}. */
 export type CreatorSort = z.infer<typeof CreatorSortSchema>;
-/** Field inclusion config for creator queries. See {@link CreatorIncludeSchema}. */
 export type CreatorInclude = z.infer<typeof CreatorIncludeSchema>;
-/** Parameters for the `useCreators` hook. See {@link UseCreatorsParamsSchema}. */
 export type UseCreatorsParams = z.infer<typeof UseCreatorsParamsSchema>;
-/** Parameters for the `useInfiniteCreators` hook. See {@link UseInfiniteCreatorsParamsSchema}. */
 export type UseInfiniteCreatorsParams = z.infer<typeof UseInfiniteCreatorsParamsSchema>;
 
 // ---------------------------------------------------------------------------

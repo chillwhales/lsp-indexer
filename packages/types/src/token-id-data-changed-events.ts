@@ -18,19 +18,7 @@ import { OwnedTokenNftIncludeSchema, type OwnedTokenNftInclude } from './owned-t
 // Core domain schema
 // ---------------------------------------------------------------------------
 
-/**
- * An ERC725Y data change event for a specific token ID from the
- * `token_id_data_changed` Hasura table.
- *
- * Similar to `DataChangedEvent` but includes a `tokenId` field and has an
- * `nft` relation instead of `universalProfile`. Base fields (`address`,
- * `dataKey`, `dataValue`, `tokenId`) are always present; other fields
- * (including `dataKeyName`) are controlled by the `include` parameter.
- *
- * The `nft` field uses the full `Nft` type from the nfts domain (same as
- * owned-tokens), with per-field include control via `OwnedTokenNftInclude`
- * (NftInclude minus collection/holder — those aren't sub-relations here).
- */
+/** Like DataChangedEvent but per-token — has `tokenId` and `nft` relation instead of UP. */
 export const TokenIdDataChangedEventSchema = z.object({
   /** Emitting contract address (always present) */
   address: z.string(),
@@ -57,16 +45,9 @@ export const TokenIdDataChangedEventSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Filter schema — 10 filter fields (10 keys, 2 use range pairs)
+// Filter schema
 // ---------------------------------------------------------------------------
 
-/**
- * Filter for token ID data changed event queries.
- *
- * All 10 filter fields — string fields use `_ilike` (case-insensitive),
- * timestamp and blockNumber fields use `_gte` / `_lte` for range filtering.
- * `dataKeyName` is resolved to a hex data key at the service layer.
- */
 export const TokenIdDataChangedEventFilterSchema = z.object({
   /** Case-insensitive match on emitting contract address (uses _ilike) */
   address: z.string().optional(),
@@ -91,20 +72,10 @@ export const TokenIdDataChangedEventFilterSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Sort schema — 4 sort fields
+// Sort schema
 // ---------------------------------------------------------------------------
 
-/**
- * Fields available for sorting token ID data changed event lists.
- *
- * `newest` and `oldest` use deterministic block-order sorting
- * (block_number → transaction_index → log_index). `direction` and `nulls`
- * are ignored when these fields are selected.
- *
- * `digitalAssetName` is a nested sort via `digitalAsset.lsp4TokenName`.
- * `nftName` is a nested sort via `nft.lsp4Metadata.name`.
- * Both handled at service layer.
- */
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
 export const TokenIdDataChangedEventSortFieldSchema = z.enum([
   'newest',
   'oldest',
@@ -112,31 +83,17 @@ export const TokenIdDataChangedEventSortFieldSchema = z.enum([
   'nftName',
 ]);
 
-/** Zod schema for token ID data changed event sort configuration — validates field, direction, and null ordering. */
 export const TokenIdDataChangedEventSortSchema = z.object({
-  /** Which field to sort by */
   field: TokenIdDataChangedEventSortFieldSchema,
-  /** Sort direction */
   direction: SortDirectionSchema,
-  /** Where nulls appear — omit to use Hasura default */
   nulls: SortNullsSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------
-// Include schema (inverted default — omit = fetch everything)
+// Include schema
 // ---------------------------------------------------------------------------
 
-/**
- * Controls which optional fields are fetched for token ID data changed event queries.
- *
- * **Inverted default:** When `include` is omitted, ALL fields are fetched
- * (opt-out rather than opt-in). When `include` is provided, only fields
- * set to `true` (or provided as sub-include objects) are included.
- *
- * **Relation sub-includes:** Both `digitalAsset` and `nft` accept sub-include
- * objects for per-field control. `nft` uses `OwnedTokenNftInclude` (NftInclude
- * minus collection/holder — those aren't sub-relations in the event context).
- */
+/** Omit = fetch all fields; set individual fields to opt-in. */
 export const TokenIdDataChangedEventIncludeSchema = z.object({
   /** Include resolved human-readable data key name (parser-derived from dataKey) */
   dataKeyName: z.boolean().optional(),
@@ -190,30 +147,22 @@ export const UseInfiniteTokenIdDataChangedEventsParamsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Inferred types (single source of truth — derive from schemas)
+// Inferred types
 // ---------------------------------------------------------------------------
 
-/** Clean camelCase token ID data changed event after parsing from Hasura. See {@link TokenIdDataChangedEventSchema}. */
 export type TokenIdDataChangedEvent = z.infer<typeof TokenIdDataChangedEventSchema>;
-/** Token ID data changed event query filter parameters. See {@link TokenIdDataChangedEventFilterSchema}. */
 export type TokenIdDataChangedEventFilter = z.infer<typeof TokenIdDataChangedEventFilterSchema>;
-/** Available fields for sorting token ID data changed events. See {@link TokenIdDataChangedEventSortFieldSchema}. */
 export type TokenIdDataChangedEventSortField = z.infer<
   typeof TokenIdDataChangedEventSortFieldSchema
 >;
-/** Token ID data changed event sort configuration. See {@link TokenIdDataChangedEventSortSchema}. */
 export type TokenIdDataChangedEventSort = z.infer<typeof TokenIdDataChangedEventSortSchema>;
-/** Field inclusion config for token ID data changed event queries. See {@link TokenIdDataChangedEventIncludeSchema}. */
 export type TokenIdDataChangedEventInclude = z.infer<typeof TokenIdDataChangedEventIncludeSchema>;
-/** Parameters for the `useLatestTokenIdDataChangedEvent` hook. See {@link UseLatestTokenIdDataChangedEventParamsSchema}. */
 export type UseLatestTokenIdDataChangedEventParams = z.infer<
   typeof UseLatestTokenIdDataChangedEventParamsSchema
 >;
-/** Parameters for the `useTokenIdDataChangedEvents` hook. See {@link UseTokenIdDataChangedEventsParamsSchema}. */
 export type UseTokenIdDataChangedEventsParams = z.infer<
   typeof UseTokenIdDataChangedEventsParamsSchema
 >;
-/** Parameters for the `useInfiniteTokenIdDataChangedEvents` hook. See {@link UseInfiniteTokenIdDataChangedEventsParamsSchema}. */
 export type UseInfiniteTokenIdDataChangedEventsParams = z.infer<
   typeof UseInfiniteTokenIdDataChangedEventsParamsSchema
 >;
