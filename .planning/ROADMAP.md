@@ -795,11 +795,12 @@ Plans:
 | CLEAN-03 | Root `package.json` scripts updated: v1 `start` removed, `start:v2` promoted to `start`, no dead references to `@chillwhales/indexer` (v1 package name) |
 | CLEAN-04 | All config files (ESLint ignores, workspace config, tsconfig references) updated to reflect the renamed package — zero stale paths                      |
 
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] TBD (run `/gsd-plan-phase 13` to break down)
+- [ ] 13-01-PLAN.md — Delete v1 package + Docker, rename v2 → canonical, update all configs + CI
+- [ ] 13-02-PLAN.md — Comparison tool v1 mode removal + documentation sweep
 
 **Success Criteria:**
 
