@@ -46,11 +46,11 @@ importers:
   apps/test:
     dependencies:
       '@chillwhales/erc725':
-        specifier: ^0.1.0
-        version: 0.1.0(@babel/core@7.29.0)
+        specifier: ^0.1.1
+        version: 0.1.1(@babel/core@7.29.0)
       '@chillwhales/lsp1':
-        specifier: ^0.1.0
-        version: 0.1.0(@babel/core@7.29.0)
+        specifier: ^0.1.1
+        version: 0.1.1(@babel/core@7.29.0)
       '@lsp-indexer/next':
         specifier: workspace:*
         version: link:../../packages/next
@@ -379,11 +379,11 @@ importers:
   packages/node:
     dependencies:
       '@chillwhales/erc725':
-        specifier: ^0.1.0
-        version: 0.1.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        specifier: ^0.1.1
+        version: 0.1.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@chillwhales/lsp1':
-        specifier: ^0.1.0
-        version: 0.1.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        specifier: ^0.1.1
+        version: 0.1.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@graphql-typed-document-node/core':
         specifier: ^3.2.0
         version: 3.2.0(graphql@16.12.0)
@@ -469,11 +469,11 @@ importers:
   packages/types:
     dependencies:
       '@chillwhales/erc725':
-        specifier: ^0.1.0
-        version: 0.1.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        specifier: ^0.1.1
+        version: 0.1.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@chillwhales/lsp1':
-        specifier: ^0.1.0
-        version: 0.1.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        specifier: ^0.1.1
+        version: 0.1.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -794,12 +794,12 @@ packages:
   '@braidai/lang@1.1.2':
     resolution: {integrity: sha512-qBcknbBufNHlui137Hft8xauQMTZDKdophmLFv05r2eNmdIv/MlPuP4TdUknHG68UdWLgVZwgxVe735HzJNIwA==}
 
-  '@chillwhales/erc725@0.1.0':
-    resolution: {integrity: sha512-3RaJj+4RFo1jB9POz+By+XjrPvsm/n6ivj7IGg2l2e3xR5+nr6sz9Vi/gX3dMhviyAxnVCv4ecfgvcVGWSE9JA==}
+  '@chillwhales/erc725@0.1.1':
+    resolution: {integrity: sha512-LMdeHyLLxfaCpbOpgIczeJcNXiBE8AStfA0mCQhs6uWr7z+QkGPkGRJNeGSQ9Uhol7RvAcyxnc9rU8hBF7M1zg==}
     engines: {node: '>=22'}
 
-  '@chillwhales/lsp1@0.1.0':
-    resolution: {integrity: sha512-PrZZos/Zita1cPttibkqXhdzz8uOS5KLq/s7ck9YMmFiIvriY+aRexuldWyyPVC8kxZ0gGfd+DnMR4zP9W54TA==}
+  '@chillwhales/lsp1@0.1.1':
+    resolution: {integrity: sha512-HYc/uope/PGz4HdRMP4zvLSEI+BoMJNo8FaChSzZi6yRXgO4n+figQn9hOgS9ehsCwWsvvZjc4RL6kfZHoq1Tw==}
     engines: {node: '>=22'}
 
   '@colors/colors@1.5.0':
@@ -8548,7 +8548,7 @@ snapshots:
 
   '@braidai/lang@1.1.2': {}
 
-  '@chillwhales/erc725@0.1.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@chillwhales/erc725@0.1.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@lukso/lsp1-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp10-contracts': 0.15.4(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -8560,7 +8560,7 @@ snapshots:
       '@lukso/lsp6-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp8-contracts': 0.16.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp9-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      zod: 3.24.3
+      zod: 4.3.6
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil
@@ -8568,7 +8568,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@chillwhales/erc725@0.1.0(@babel/core@7.29.0)':
+  '@chillwhales/erc725@0.1.1(@babel/core@7.29.0)':
     dependencies:
       '@lukso/lsp1-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp10-contracts': 0.15.4(@babel/core@7.29.0)
@@ -8580,7 +8580,7 @@ snapshots:
       '@lukso/lsp6-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp8-contracts': 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp9-contracts': 0.15.5(@babel/core@7.29.0)
-      zod: 3.24.3
+      zod: 4.3.6
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil
@@ -8588,7 +8588,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@chillwhales/lsp1@0.1.0(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@chillwhales/lsp1@0.1.1(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@lukso/lsp0-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp14-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -8596,7 +8596,7 @@ snapshots:
       '@lukso/lsp7-contracts': 0.16.8(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp8-contracts': 0.16.7(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp9-contracts': 0.15.5(@babel/core@7.27.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      zod: 3.24.3
+      zod: 4.3.6
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil
@@ -8604,7 +8604,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@chillwhales/lsp1@0.1.0(@babel/core@7.29.0)':
+  '@chillwhales/lsp1@0.1.1(@babel/core@7.29.0)':
     dependencies:
       '@lukso/lsp0-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp14-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -8612,7 +8612,7 @@ snapshots:
       '@lukso/lsp7-contracts': 0.16.8(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp8-contracts': 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp9-contracts': 0.15.5(@babel/core@7.29.0)
-      zod: 3.24.3
+      zod: 4.3.6
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil

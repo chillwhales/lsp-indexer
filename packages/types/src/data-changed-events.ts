@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { DataKeyNameSchema } from './registry-schemas';
+import { DataKeyNameSchema } from '@chillwhales/erc725';
 
 import { SortDirectionSchema, SortNullsSchema } from './common';
 import {

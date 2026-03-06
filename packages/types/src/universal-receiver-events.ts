@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { TypeIdNameSchema } from './registry-schemas';
+import { TypeIdNameSchema } from '@chillwhales/lsp1';
 
 import { SortDirectionSchema, SortNullsSchema } from './common';
 import {

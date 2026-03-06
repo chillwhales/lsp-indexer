@@ -1,6 +1,6 @@
 'use client';
 
-import { TYPE_ID_NAMES } from '@chillwhales/lsp1';
+import { TYPE_ID_NAMES, TypeIdNameSchema } from '@chillwhales/lsp1';
 import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -21,7 +21,6 @@ import type {
   UniversalReceiverEventSort,
   UniversalReceiverEventSortField,
 } from '@lsp-indexer/types';
-import { TypeIdNameSchema } from '@lsp-indexer/types';
 
 import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
