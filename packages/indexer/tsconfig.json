@@ -1,10 +1,9 @@
 {
   "ts-node": {
-    // Do not forget to `npm i -D tsconfig-paths`
-    "transpileOnly": true, // Speeds up development
+    "transpileOnly": true,
     "require": ["tsconfig-paths/register"]
   },
-  "include": ["src", "tsup.config.ts"],
+  "include": ["src"],
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "lib",
