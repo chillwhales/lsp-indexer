@@ -582,40 +582,40 @@ Plans:
 
 ## Progress
 
-| Phase | Name                              | Requirements | Status      |
-| ----- | --------------------------------- | :----------: | ----------- |
-| 7     | Package Foundation                |     7/7      | Complete    |
-| 8     | First Vertical Slice (Profiles)   |     3/3      | Complete    |
-| 9.1   | Digital Assets                    |     1/1      | Complete    |
-| 9.2   | NFTs                              |     1/1      | Complete    |
-| 9.3   | Owned Assets                      |     1/1      | Complete    |
-| 9.4   | Conditional Include Types         |     1/1      | Complete    |
-| 9.5   | Social / Follows                  |     1/1      | Complete    |
-| 9.6   | Generic Type Propagation          |     1/1      | Complete    |
-| 9.7   | Creators                          |     1/1      | Complete    |
-| 9.8   | Issued Assets                     |     1/1      | Complete    |
-| 9.9   | Encrypted Feed                    |     1/1      | Complete    |
-| 9.10  | Data Changed Events               |     1/1      | Complete    |
-| 9.11  | Universal Receiver Events         |     1/1      | Complete    |
-| 9.12  | Block-Ordered Sorting (INSERTED)  |      0       | Complete    |
-| 10.1  | Subscription Foundation           |     1/1      | Complete    |
-| 10.2  | Profiles Subscription             |     1/1      | Complete    |
-| 10.3  | Digital Assets Subscription       |     1/1      | Complete    |
-| 10.4  | NFTs Subscription                 |     1/1      | Complete    |
-| 10.5  | Owned Assets Subscription         |     1/1      | Complete    |
-| 10.6  | Owned Tokens Subscription         |     1/1      | Complete    |
-| 10.7  | Followers Subscription            |     1/1      | Complete    |
-| 10.8  | Creators Subscription             |     1/1      | Complete    |
-| 10.9  | Issued Assets Subscription        |     1/1      | Complete    |
-| 10.10 | Encrypted Assets Subscription     |     1/1      | Complete    |
-| 10.11 | Data Changed Events Subscription  |     1/1      | Complete    |
-| 10.12 | Token ID Data Changed Sub.        |     1/1      | Complete    |
-| 10.13 | Universal Receiver Events Sub.    |     1/1      | Complete    |
-| 11    | Server Actions & Publish Ready    |     4/4      | Complete    |
-| 12    | Replace Local Pkgs → @chillwhales |     2/2      | Complete    |
-| 13    | Indexer v1 Cleanup                |     4/4      | Complete    |
-| 14    | 2/2 | Complete    | 2026-03-06 |
-| 15    | CI/CD Workflows & Shared Infra    |      4       | Not started |
+| Phase | Name                                 | Requirements | Status      |
+| ----- | ------------------------------------ | :----------: | ----------- |
+| 7     | Package Foundation                   |     7/7      | Complete    |
+| 8     | First Vertical Slice (Profiles)      |     3/3      | Complete    |
+| 9.1   | Digital Assets                       |     1/1      | Complete    |
+| 9.2   | NFTs                                 |     1/1      | Complete    |
+| 9.3   | Owned Assets                         |     1/1      | Complete    |
+| 9.4   | Conditional Include Types            |     1/1      | Complete    |
+| 9.5   | Social / Follows                     |     1/1      | Complete    |
+| 9.6   | Generic Type Propagation             |     1/1      | Complete    |
+| 9.7   | Creators                             |     1/1      | Complete    |
+| 9.8   | Issued Assets                        |     1/1      | Complete    |
+| 9.9   | Encrypted Feed                       |     1/1      | Complete    |
+| 9.10  | Data Changed Events                  |     1/1      | Complete    |
+| 9.11  | Universal Receiver Events            |     1/1      | Complete    |
+| 9.12  | Block-Ordered Sorting (INSERTED)     |      0       | Complete    |
+| 10.1  | Subscription Foundation              |     1/1      | Complete    |
+| 10.2  | Profiles Subscription                |     1/1      | Complete    |
+| 10.3  | Digital Assets Subscription          |     1/1      | Complete    |
+| 10.4  | NFTs Subscription                    |     1/1      | Complete    |
+| 10.5  | Owned Assets Subscription            |     1/1      | Complete    |
+| 10.6  | Owned Tokens Subscription            |     1/1      | Complete    |
+| 10.7  | Followers Subscription               |     1/1      | Complete    |
+| 10.8  | Creators Subscription                |     1/1      | Complete    |
+| 10.9  | Issued Assets Subscription           |     1/1      | Complete    |
+| 10.10 | Encrypted Assets Subscription        |     1/1      | Complete    |
+| 10.11 | Data Changed Events Subscription     |     1/1      | Complete    |
+| 10.12 | Token ID Data Changed Sub.           |     1/1      | Complete    |
+| 10.13 | Universal Receiver Events Sub.       |     1/1      | Complete    |
+| 11    | Server Actions & Publish Ready       |     4/4      | Complete    |
+| 12    | Replace Local Pkgs → @chillwhales    |     2/2      | Complete    |
+| 13    | Indexer v1 Cleanup                   |     4/4      | Complete    |
+| 14    | Code Comments Cleanup & Release Prep |     2/2      | Complete    |
+| 15    | CI/CD Workflows & Shared Infra       |      4       | Not started |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
