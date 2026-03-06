@@ -616,7 +616,7 @@ export default function TokenIdDataChangedEventsPage(): React.ReactNode {
           <code className="text-xs bg-muted px-1 py-0.5 rounded">
             useTokenIdDataChangedEventSubscription
           </code>{' '}
-          hooks against ERC725Y per-token data change events via Hasura (QUERY-09, SUB-02).
+          hooks against ERC725Y per-token data change events via Hasura.
         </>
       }
       tabs={[

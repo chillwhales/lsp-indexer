@@ -557,7 +557,7 @@ export default function OwnedAssetsPage(): React.ReactNode {
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteOwnedAssets</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedAssetSubscription</code>{' '}
           hooks against live Hasura data. Filter by holder to find token balances for a specific
-          address (QUERY-04, SUB-02).
+          address.
         </>
       }
       tabs={[

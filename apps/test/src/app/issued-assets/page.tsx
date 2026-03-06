@@ -480,7 +480,7 @@ export default function IssuedAssetsPage(): React.ReactNode {
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useIssuedAssetSubscription</code>{' '}
           hooks against the{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">lsp12_issued_asset</code> table via
-          Hasura (QUERY-07, SUB-02, SUB-03).
+          Hasura.
         </>
       }
       tabs={[

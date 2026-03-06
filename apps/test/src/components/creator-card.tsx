@@ -27,7 +27,7 @@ export interface CreatorCardProps {
  *
  * Base fields (always present): creatorAddress, digitalAssetAddress.
  * Conditional scalars: arrayIndex, interfaceId, timestamp — rendered via
- * `'key' in obj` field-presence guards (DX-04 pattern).
+ * `'key' in obj` field-presence guards.
  * Two collapsible relation sections: Creator Profile + Digital Asset.
  */
 export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNode {

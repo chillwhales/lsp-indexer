@@ -472,7 +472,7 @@ export default function CreatorsPage(): React.ReactNode {
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteCreators</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useCreatorSubscription</code> hooks
           against the <code className="text-xs bg-muted px-1 py-0.5 rounded">lsp4_creator</code>{' '}
-          table via Hasura (QUERY-06, SUB-02, SUB-03).
+          table via Hasura.
         </>
       }
       tabs={[

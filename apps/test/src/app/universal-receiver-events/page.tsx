@@ -522,7 +522,7 @@ export default function UniversalReceiverEventsPage(): React.ReactNode {
           </code>{' '}
           hooks against the{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">universal_receiver</code> table via
-          Hasura (QUERY-10, SUB-02).
+          Hasura.
         </>
       }
       tabs={[

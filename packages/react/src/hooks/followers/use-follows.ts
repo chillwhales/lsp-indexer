@@ -10,7 +10,7 @@ import { createUseFollows } from '../factories';
  * - "who does X follow?" → `filter: { followerAddress: X }`
  *
  * Supports filtering, sorting, pagination, and optional include for field
- * narrowing (DX-04).
+ * narrowing.
  *
  * @param params - Optional filter/sort/pagination/include
  * @returns `{ follows, totalCount, isLoading, error, ...rest }` — full TanStack Query

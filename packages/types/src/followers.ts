@@ -63,7 +63,7 @@ export const FollowCountSchema = z.object({
 /**
  * Filter for follower queries.
  *
- * All 6 filter fields from CONTEXT.md — string fields use `_ilike` (case-insensitive),
+ * All 6 filter fields — string fields use `_ilike` (case-insensitive),
  * timestamp fields use `_gte` / `_lte` for range filtering.
  */
 export const FollowerFilterSchema = z.object({
@@ -216,7 +216,7 @@ export type UseFollowCountParams = z.infer<typeof UseFollowCountParamsSchema>;
 export type UseIsFollowingParams = z.infer<typeof UseIsFollowingParamsSchema>;
 
 // ---------------------------------------------------------------------------
-// Conditional include result type (DX-04)
+// Conditional include result type
 // ---------------------------------------------------------------------------
 
 /**

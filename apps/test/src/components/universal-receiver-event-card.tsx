@@ -28,9 +28,9 @@ export interface UniversalReceiverEventCardProps {
  *
  * Base fields (always present): address, from, typeId.
  * Includable data fields: typeIdName, value, receivedData, returnedValue — rendered via
- * `'key' in obj` field-presence guards (same DX-04 pattern as other scalars).
+ * `'key' in obj` field-presence guards.
  * Conditional scalars: blockNumber, timestamp, logIndex, transactionIndex —
- * rendered via `'key' in obj` field-presence guards (DX-04 pattern).
+ * rendered via `'key' in obj` field-presence guards.
  * Three collapsible relation sections: Receiving Profile (universalProfile),
  * Sender Profile (fromProfile), Sender Asset (fromAsset).
  *

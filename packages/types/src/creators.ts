@@ -53,7 +53,7 @@ export const CreatorSchema = z.object({
 /**
  * Filter for creator queries.
  *
- * All 7 filter fields from CONTEXT.md — string fields use `_ilike` (case-insensitive),
+ * All 7 filter fields — string fields use `_ilike` (case-insensitive),
  * timestamp fields use `_gte` / `_lte` for range filtering.
  */
 export const CreatorFilterSchema = z.object({
@@ -171,7 +171,7 @@ export type UseCreatorsParams = z.infer<typeof UseCreatorsParamsSchema>;
 export type UseInfiniteCreatorsParams = z.infer<typeof UseInfiniteCreatorsParamsSchema>;
 
 // ---------------------------------------------------------------------------
-// Conditional include result type (DX-04)
+// Conditional include result type
 // ---------------------------------------------------------------------------
 
 /**

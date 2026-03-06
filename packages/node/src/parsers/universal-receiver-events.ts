@@ -38,7 +38,7 @@ type RawUniversalReceiverEvent = GetUniversalReceiverEventsQuery['universal_rece
  * Profile and digital asset sub-includes are passed through to their respective
  * parsers for recursive nested stripping.
  *
- * Uses function overloads for type-safe return types (DX-05):
+ * Uses function overloads for type-safe return types:
  * - No `include` → returns full `UniversalReceiverEvent` (all fields guaranteed)
  * - With `<const I>` → returns `UniversalReceiverEventResult<I>` (narrowed by include)
  * - With optional `include` → returns `PartialUniversalReceiverEvent`

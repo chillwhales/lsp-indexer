@@ -30,7 +30,7 @@ export interface TokenIdDataChangedEventCardProps {
  *
  * Base fields (always present): address, dataKey, dataValue, tokenId.
  * Conditional scalars: dataKeyName, blockNumber, timestamp, logIndex, transactionIndex —
- * rendered via `'key' in obj` field-presence guards (DX-04 pattern).
+ * rendered via `'key' in obj` field-presence guards.
  * Two collapsible relation sections: NFT (full NftCard) + Digital Asset.
  *
  * Very similar to DataChangedEventCard but adds tokenId prominently and

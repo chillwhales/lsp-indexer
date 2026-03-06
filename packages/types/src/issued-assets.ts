@@ -53,7 +53,7 @@ export const IssuedAssetSchema = z.object({
 /**
  * Filter for issued asset queries.
  *
- * All 7 filter fields from CONTEXT.md — string fields use `_ilike` (case-insensitive),
+ * All 7 filter fields — string fields use `_ilike` (case-insensitive),
  * timestamp fields use `_gte` / `_lte` for range filtering.
  */
 export const IssuedAssetFilterSchema = z.object({
@@ -171,7 +171,7 @@ export type UseIssuedAssetsParams = z.infer<typeof UseIssuedAssetsParamsSchema>;
 export type UseInfiniteIssuedAssetsParams = z.infer<typeof UseInfiniteIssuedAssetsParamsSchema>;
 
 // ---------------------------------------------------------------------------
-// Conditional include result type (DX-04)
+// Conditional include result type
 // ---------------------------------------------------------------------------
 
 /**

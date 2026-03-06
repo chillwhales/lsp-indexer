@@ -140,13 +140,13 @@ export const EncryptedAssetSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Filter schema — all 8 filter fields from CONTEXT.md
+// Filter schema — all 8 filter fields
 // ---------------------------------------------------------------------------
 
 /**
  * Filter for encrypted asset queries.
  *
- * All 8 filter fields from CONTEXT.md — string fields use `_ilike` (case-insensitive).
+ * All 8 filter fields — string fields use `_ilike` (case-insensitive).
  * `fileSize` and `timestamp` use `_gte` for range filtering; `revision` is exact-match.
  */
 export const EncryptedAssetFilterSchema = z.object({
@@ -344,7 +344,7 @@ export type UseInfiniteEncryptedAssetsParams = z.infer<
 >;
 
 // ---------------------------------------------------------------------------
-// Conditional include result type (DX-04)
+// Conditional include result type
 // ---------------------------------------------------------------------------
 
 /**

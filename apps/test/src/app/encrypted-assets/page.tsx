@@ -531,7 +531,7 @@ export default function EncryptedAssetsPage(): React.ReactNode {
           </code>{' '}
           hooks against the{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">lsp29_encrypted_asset</code> table
-          via Hasura (QUERY-08, SUB-02, SUB-03).
+          via Hasura.
         </>
       }
       tabs={[

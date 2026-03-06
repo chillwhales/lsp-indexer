@@ -13,7 +13,7 @@
  * - 4-tab layout: Single, List, Infinite, Subscription
  * - Filter fields with debounced search (name, followedBy, following, tokenOwned)
  * - Sort controls with field/direction/nulls configuration (name, followerCount, followingCount)
- * - Include toggles for conditional field inclusion (DX-04 type narrowing)
+ * - Include toggles for conditional field inclusion (type narrowing)
  * - Package toggle (react vs next) to compare client-direct vs server-action routing
  * - Preset buttons for quick single-profile lookups
  * - Subscription tab with WebSocket connection status and cache invalidation toggle

@@ -27,7 +27,7 @@ export interface IssuedAssetCardProps {
  *
  * Base fields (always present): issuerAddress, assetAddress.
  * Conditional scalars: arrayIndex, interfaceId, timestamp — rendered via
- * `'key' in obj` field-presence guards (DX-04 pattern).
+ * `'key' in obj` field-presence guards.
  * Two collapsible relation sections: Issuer Profile + Digital Asset.
  */
 export function IssuedAssetCard({ issuedAsset, index }: IssuedAssetCardProps): React.ReactNode {

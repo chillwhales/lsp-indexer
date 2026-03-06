@@ -217,7 +217,7 @@ export type UseInfiniteUniversalReceiverEventsParams = z.infer<
 >;
 
 // ---------------------------------------------------------------------------
-// Conditional include result type (DX-04)
+// Conditional include result type
 // ---------------------------------------------------------------------------
 
 /**

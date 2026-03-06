@@ -616,7 +616,7 @@ export default function OwnedTokensPage(): React.ReactNode {
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteOwnedTokens</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedTokenSubscription</code>{' '}
           hooks against live Hasura data. Filter by holder to find individual NFT ownership records
-          (QUERY-04, SUB-02).
+          records.
         </>
       }
       tabs={[

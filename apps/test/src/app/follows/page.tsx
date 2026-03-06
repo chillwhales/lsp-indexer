@@ -617,7 +617,7 @@ export default function FollowsPage(): React.ReactNode {
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowCount</code>,{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useIsFollowing</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowerSubscription</code>{' '}
-          hooks against live Hasura data (QUERY-05, SUB-02).
+          hooks against live Hasura data.
         </>
       }
       tabs={[

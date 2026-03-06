@@ -84,7 +84,7 @@ export const NftSchema = z.object({
 /**
  * Filter for NFT queries.
  *
- * `collectionAddress` enables the `useNftsByCollection` pattern from QUERY-03.
+ * `collectionAddress` enables the `useNftsByCollection` pattern (filter NFTs by collection).
  */
 export const NftFilterSchema = z.object({
   /** Case-insensitive match on collection contract address — key filter for useNftsByCollection */

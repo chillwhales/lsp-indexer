@@ -27,7 +27,7 @@ export interface DataChangedEventCardProps {
  *
  * Base fields (always present): address, dataKey, dataValue.
  * Conditional scalars: dataKeyName, blockNumber, timestamp, logIndex, transactionIndex —
- * rendered via `'key' in obj` field-presence guards (DX-04 pattern).
+ * rendered via `'key' in obj` field-presence guards.
  * Two collapsible relation sections: Universal Profile + Digital Asset.
  *
  * The dataKeyName field (when included) gets special treatment: bold resolved name
