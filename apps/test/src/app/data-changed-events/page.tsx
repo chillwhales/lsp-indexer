@@ -1,6 +1,6 @@
 'use client';
 
-import { DATA_KEY_NAMES, DataKeyNameSchema } from '@lsp-indexer/data-keys';
+import { DATA_KEY_NAMES, DataKeyNameSchema } from '@chillwhales/erc725';
 import { Clock, Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 

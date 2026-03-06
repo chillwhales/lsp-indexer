@@ -1,5 +1,6 @@
-import { DataKeyNameSchema } from '@lsp-indexer/data-keys';
 import { z } from 'zod';
+
+import { DataKeyNameSchema } from '@chillwhales/erc725';
 
 import { SortDirectionSchema, SortNullsSchema } from './common';
 import {

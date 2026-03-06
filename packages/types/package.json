@@ -27,8 +27,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lsp-indexer/data-keys": "workspace:*",
-    "@lsp-indexer/lsp1": "workspace:*",
+    "@chillwhales/erc725": "^0.1.1",
+    "@chillwhales/lsp1": "^0.1.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {

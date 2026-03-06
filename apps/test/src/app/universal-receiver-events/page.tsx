@@ -1,6 +1,6 @@
 'use client';
 
-import { TYPE_ID_NAMES, TypeIdNameSchema } from '@lsp-indexer/lsp1';
+import { TYPE_ID_NAMES, TypeIdNameSchema } from '@chillwhales/lsp1';
 import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 

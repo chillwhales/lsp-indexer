@@ -1,4 +1,4 @@
-import { resolveDataKeyHex } from '@lsp-indexer/data-keys';
+import { resolveDataKeyHex } from '@chillwhales/erc725';
 import type {
   PartialTokenIdDataChangedEvent,
   TokenIdDataChangedEvent,

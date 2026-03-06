@@ -1,5 +1,6 @@
-import { TypeIdNameSchema } from '@lsp-indexer/lsp1';
 import { z } from 'zod';
+
+import { TypeIdNameSchema } from '@chillwhales/lsp1';
 
 import { SortDirectionSchema, SortNullsSchema } from './common';
 import {

@@ -1,4 +1,4 @@
-import { resolveTypeIdName } from '@lsp-indexer/lsp1';
+import { resolveTypeIdName } from '@chillwhales/lsp1';
 import type {
   PartialUniversalReceiverEvent,
   UniversalReceiverEvent,

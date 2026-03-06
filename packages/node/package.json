@@ -31,8 +31,8 @@
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
-    "@lsp-indexer/data-keys": "workspace:*",
-    "@lsp-indexer/lsp1": "workspace:*",
+    "@chillwhales/erc725": "^0.1.1",
+    "@chillwhales/lsp1": "^0.1.1",
     "@lsp-indexer/types": "workspace:*",
     "graphql-ws": "^6.0.7"
   },
