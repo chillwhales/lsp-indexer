@@ -1,7 +1,7 @@
 {
   "name": "@chillwhales/comparison-tool",
   "version": "1.0.0",
-  "description": "Compare two Hasura GraphQL endpoints for data parity (v1-v2 or v2-v2)",
+  "description": "Compare two Hasura GraphQL endpoints for data parity",
   "keywords": [],
   "author": "b00ste",
   "license": "MIT",

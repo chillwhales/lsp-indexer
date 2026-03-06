@@ -26,14 +26,13 @@ Welcome to the LSP Indexer documentation.
 - **[Package Documentation](../packages/)** — Individual package docs
   - [abi](../packages/abi/) — Contract ABIs
   - [typeorm](../packages/typeorm/) — Database entities and migrations
-  - [indexer](../packages/indexer/) — Legacy indexer (v1)
-  - [indexer-v2](../packages/indexer-v2/) — Current indexer with plugin architecture
+  - [indexer](../packages/indexer/) — Blockchain indexer with plugin architecture
 
 ## Quick Links
 
 | Topic                 | Link                                           |
 | --------------------- | ---------------------------------------------- |
-| Docker v2 Setup       | [docker/QUICKSTART.md](./docker/QUICKSTART.md) |
+| Docker Setup          | [docker/QUICKSTART.md](./docker/QUICKSTART.md) |
 | Architecture Overview | [ARCHITECTURE.md](./ARCHITECTURE.md)           |
 | How to Contribute     | [CONTRIBUTING.md](./CONTRIBUTING.md)           |
 | AI Agent Guidelines   | [AGENTS.md](./AGENTS.md)                       |

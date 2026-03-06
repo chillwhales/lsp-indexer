@@ -16,9 +16,6 @@ export default tseslint.config(
       'packages/typeorm/src/',
       'packages/typeorm/db/',
 
-      // Legacy v1 indexer — read-only reference, not actively maintained
-      'packages/indexer/',
-
       // Codegen output — auto-generated, don't lint
       'packages/node/src/graphql/',
 
@@ -45,7 +42,7 @@ export default tseslint.config(
         project: [
           './tsconfig.json',
           './packages/*/tsconfig.json',
-          './packages/indexer-v2/tsconfig.eslint.json',
+          './packages/indexer/tsconfig.eslint.json',
           './apps/*/tsconfig.json',
         ],
         tsconfigRootDir: import.meta.dirname,

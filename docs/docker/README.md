@@ -11,52 +11,40 @@ Complete guides for deploying LSP Indexer with Docker.
 
 Docker configurations are in `../../docker/`:
 
-- **v2/** — Current production setup (indexer-v2)
+- `Dockerfile` — Multi-stage optimized build
+- `docker-compose.yml` — Orchestration with postgres
+- `manage.sh` — Management script (35+ commands)
+- `entrypoint.sh` — Container entrypoint
 
-  - `Dockerfile` — Multi-stage optimized build
-  - `docker-compose.yml` — Orchestration with postgres
-  - `docker-v2.sh` — Management script (35+ commands)
-
-- **v1/** — Legacy setup (indexer v1)
-  - `Dockerfile` — Single-stage build
-  - `docker-compose.yml` — Basic orchestration
-  - `start.sh` — Startup script
-
-## Quick Start (v2)
+## Quick Start
 
 ```bash
 # 1. Setup environment
-cd docker/v2
-cp ../../.env.example .env
-nano .env  # Set RPC_URL
+cd docker
+cp ../.env.example ../.env
+nano ../.env  # Set RPC_URL
 
 # 2. Start services
-./docker-v2.sh start
+./manage.sh start
 
 # 3. Monitor logs
-./docker-v2.sh logs indexer-v2 all
+./manage.sh logs indexer all
 
 # 4. Export logs
-./docker-v2.sh logs-export ./my-logs
+./manage.sh logs-export ./my-logs
 ```
 
 See [QUICKSTART.md](./QUICKSTART.md) for details.
 
 ## Features
 
-### Indexer V2 (Current)
-
-✅ Multi-stage optimized build (~400MB)  
-✅ Dual logging (Docker + pino JSON files)  
-✅ Health monitoring (postgres + process)  
-✅ Auto-restart policies  
-✅ Resource limits (4GB indexer, 2GB postgres)  
-✅ Management script (35+ commands)  
+✅ Multi-stage optimized build (~400MB)
+✅ Dual logging (Docker + pino JSON files)
+✅ Health monitoring (postgres + process)
+✅ Auto-restart policies
+✅ Resource limits (4GB indexer, 2GB postgres)
+✅ Management script (35+ commands)
 ✅ Production-ready configuration
-
-### Indexer V1 (Legacy)
-
-Basic Docker setup for v1 indexer with Hasura. See `../../docker/v1/` for configs.
 
 ## Documentation Overview
 
@@ -68,47 +56,37 @@ Basic Docker setup for v1 indexer with Hasura. See `../../docker/v1/` for config
 ## Common Operations
 
 ```bash
-# Navigate to v2 config
-cd ../../docker/v2
+# Navigate to docker config
+cd ../../docker
 
 # Service management
-./docker-v2.sh start
-./docker-v2.sh stop
-./docker-v2.sh restart
-./docker-v2.sh status
+./manage.sh start
+./manage.sh stop
+./manage.sh restart
+./manage.sh status
 
 # Logs
-./docker-v2.sh logs indexer-v2 100
-./docker-v2.sh logs-export ./logs
-./docker-v2.sh logs-cleanup 7
+./manage.sh logs indexer 100
+./manage.sh logs-export ./logs
+./manage.sh logs-cleanup 7
 
 # Database
-./docker-v2.sh db
-./docker-v2.sh db-query 'SELECT count(*) FROM transfer;'
-./docker-v2.sh db-dump
+./manage.sh db
+./manage.sh db-query 'SELECT count(*) FROM transfer;'
+./manage.sh db-dump
 
 # Health & monitoring
-./docker-v2.sh health
-./docker-v2.sh stats
+./manage.sh health
+./manage.sh stats
 
 # Help
-./docker-v2.sh help
+./manage.sh help
 ```
 
 ## Support
 
 - **Issues:** Check [REFERENCE.md](./REFERENCE.md) troubleshooting section
-- **Logs:** Export with `./docker-v2.sh logs-export`
-- **Health:** Run `./docker-v2.sh health` for diagnostics
+- **Logs:** Export with `./manage.sh logs-export`
+- **Health:** Run `./manage.sh health` for diagnostics
 
-## Migration from V1
-
-Key differences between v1 and v2:
-
-- Multi-stage build (faster, smaller)
-- Dual logging (complete visibility)
-- Helper script (easier operations)
-- Health checks (better reliability)
-- Resource limits (production-ready)
-
-See [../../docker/README.md](../../docker/README.md) for detailed comparison.
+See [../../docker/README.md](../../docker/README.md) for additional details.

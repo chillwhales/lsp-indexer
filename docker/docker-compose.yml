@@ -1,5 +1,5 @@
 # ==============================================================================
-# Docker Compose for indexer-v2 — Fully Unattended Operation
+# Docker Compose for indexer — Fully Unattended Operation
 # ==============================================================================
 #
 # Features:
@@ -12,14 +12,14 @@
 # - Proper service dependencies and startup ordering
 #
 # Usage:
-#   cd docker/v2
-#   docker compose --env-file ../../.env up -d
-#   docker compose --env-file ../../.env logs -f indexer-v2
-#   docker compose --env-file ../../.env down
+#   cd docker
+#   docker compose --env-file ../.env up -d
+#   docker compose --env-file ../.env logs -f indexer
+#   docker compose --env-file ../.env down
 #
 # Environment:
-#   Copy ../../.env.example to ../../.env and configure before running
-#   The .env file MUST be in the repository root (../../.env)
+#   Copy ../.env.example to ../.env and configure before running
+#   The .env file MUST be in the repository root (../.env)
 #
 # ==============================================================================
 
@@ -75,18 +75,18 @@ services:
           memory: 512M
 
   # ----------------------------------------------------------------------------
-  # Indexer V2 — LUKSO Blockchain Indexer
+  # Indexer — LUKSO Blockchain Indexer
   # ----------------------------------------------------------------------------
-  indexer-v2:
+  indexer:
     build:
-      context: ../..
-      dockerfile: ./docker/v2/Dockerfile
+      context: ..
+      dockerfile: ./docker/Dockerfile
       # Cache build stages for faster rebuilds
       cache_from:
-        - lsp-indexer-v2:latest
+        - lsp-indexer:latest
 
-    image: lsp-indexer-v2:latest
-    container_name: lsp-indexer-v2
+    image: lsp-indexer:latest
+    container_name: lsp-indexer
     restart: unless-stopped
 
     # Wait for PostgreSQL to be healthy before starting
@@ -106,7 +106,7 @@ services:
 
     # Mount logs directory for persistent storage
     volumes:
-      - indexer-logs:/app/packages/indexer-v2/logs
+      - indexer-logs:/app/packages/indexer/logs
 
     # All environment variables from .env
     environment:
@@ -129,7 +129,7 @@ services:
       # Logging
       NODE_ENV: ${NODE_ENV:-production}
       LOG_LEVEL: ${LOG_LEVEL:-info}
-      LOG_DIR: /app/packages/indexer-v2/logs
+      LOG_DIR: /app/packages/indexer/logs
       INDEXER_ENABLE_FILE_LOGGER: ${INDEXER_ENABLE_FILE_LOGGER:-true}
 
       # Hasura configuration (for entrypoint script)

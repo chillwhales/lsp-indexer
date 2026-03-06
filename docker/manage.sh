@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # ==============================================================================
-# Docker Management Script for Indexer V2
+# Docker Management Script for Indexer
 # ==============================================================================
 # Convenient wrapper for common Docker operations
-# Usage: ./docker-v2.sh [command]
+# Usage: ./manage.sh [command]
 # ==============================================================================
 
 set -e
 
 COMPOSE_FILE="docker-compose.yml"
 PROJECT_NAME="lsp-indexer"
-ENV_FILE="../../.env"
+ENV_FILE="../.env"
 
 # Safely read a value from .env without executing it
 read_env_value() {
@@ -75,7 +75,7 @@ check_env() {
   if [ ! -f "$ENV_FILE" ]; then
     log_warning ".env file not found at $ENV_FILE"
     log_info "Creating from .env.example..."
-    cp ../../.env.example "$ENV_FILE"
+    cp ../.env.example "$ENV_FILE"
     log_warning "Please edit $ENV_FILE with your configuration before starting"
     exit 1
   fi
@@ -104,8 +104,8 @@ cmd_start() {
     log_info "Hasura admin secret: check .env HASURA_GRAPHQL_ADMIN_SECRET"
   fi
   
-  log_info "View logs: ./docker-v2.sh logs"
-  log_info "Check status: ./docker-v2.sh status"
+  log_info "View logs: ./manage.sh logs"
+  log_info "Check status: ./manage.sh status"
 }
 
 cmd_stop() {
@@ -139,7 +139,7 @@ cmd_down() {
 }
 
 cmd_logs() {
-  SERVICE="${1:-indexer-v2}"
+  SERVICE="${1:-indexer}"
   TAIL="${2:-100}"
   COMPOSE_OPTS=$(get_compose_opts)
   
@@ -158,14 +158,14 @@ cmd_status() {
   docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS ps
   echo
   log_info "Resource usage:"
-  docker stats --no-stream lsp-indexer-v2 lsp-indexer-postgres 2>/dev/null || log_warning "Containers not running"
+  docker stats --no-stream lsp-indexer lsp-indexer-postgres 2>/dev/null || log_warning "Containers not running"
 }
 
 cmd_build() {
   COMPOSE_OPTS=$(get_compose_opts)
-  log_info "Building indexer-v2 image..."
+  log_info "Building indexer image..."
   # shellcheck disable=SC2086
-  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS build --no-cache indexer-v2
+  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS build --no-cache indexer
   log_success "Build complete"
 }
 
@@ -174,12 +174,12 @@ cmd_rebuild() {
   PROFILES=$(get_compose_profiles)
   log_info "Rebuilding and restarting..."
   # shellcheck disable=SC2086
-  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS $PROFILES up -d --build --force-recreate indexer-v2
+  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS $PROFILES up -d --build --force-recreate indexer
   log_success "Rebuild complete"
 }
 
 cmd_shell() {
-  SERVICE="${1:-indexer-v2}"
+  SERVICE="${1:-indexer}"
   log_info "Opening shell in $SERVICE..."
   docker exec -it "lsp-$SERVICE" sh
 }
@@ -192,7 +192,7 @@ cmd_db() {
 cmd_db_query() {
   QUERY="$1"
   if [ -z "$QUERY" ]; then
-    log_error "Usage: ./docker-v2.sh db-query 'SELECT count(*) FROM transfer;'"
+    log_error "Usage: ./manage.sh db-query 'SELECT count(*) FROM transfer;'"
     exit 1
   fi
   docker exec lsp-indexer-postgres psql -U postgres -d postgres -c "$QUERY"
@@ -208,7 +208,7 @@ cmd_db_dump() {
 cmd_db_restore() {
   FILENAME="$1"
   if [ -z "$FILENAME" ]; then
-    log_error "Usage: ./docker-v2.sh db-restore backup.sql"
+    log_error "Usage: ./manage.sh db-restore backup.sql"
     exit 1
   fi
   
@@ -234,7 +234,7 @@ cmd_db_reset() {
   fi
   
   log_info "Stopping indexer..."
-  docker compose -f "$COMPOSE_FILE" stop indexer-v2
+  docker compose -f "$COMPOSE_FILE" stop indexer
   
   log_info "Dropping database..."
   docker exec lsp-indexer-postgres psql -U postgres -c "DROP DATABASE postgres;"
@@ -243,7 +243,7 @@ cmd_db_reset() {
   docker exec lsp-indexer-postgres psql -U postgres -c "CREATE DATABASE postgres;"
   
   log_info "Restarting indexer..."
-  docker compose -f "$COMPOSE_FILE" start indexer-v2
+  docker compose -f "$COMPOSE_FILE" start indexer
   
   log_success "Database reset complete"
 }
@@ -252,14 +252,14 @@ cmd_logs_export() {
   DEST="${1:-./exported-logs}"
   log_info "Exporting logs to $DEST..."
   mkdir -p "$DEST"
-  docker cp lsp-indexer-v2:/app/packages/indexer-v2/logs/. "$DEST/"
+  docker cp lsp-indexer:/app/packages/indexer/logs/. "$DEST/"
   log_success "Logs exported to $DEST"
 }
 
 cmd_logs_cleanup() {
   DAYS="${1:-7}"
   log_info "Removing logs older than $DAYS days..."
-  docker exec lsp-indexer-v2 find /app/packages/indexer-v2/logs -name "*.log" -mtime +"$DAYS" -delete
+  docker exec lsp-indexer find /app/packages/indexer/logs -name "*.log" -mtime +"$DAYS" -delete
   log_success "Old logs removed"
 }
 
@@ -268,7 +268,7 @@ cmd_health() {
   echo
   
   # Indexer health
-  if docker exec lsp-indexer-v2 pgrep -f "ts-node.*lib/app/index.js" > /dev/null 2>&1; then
+  if docker exec lsp-indexer pgrep -f "ts-node.*lib/app/index.js" > /dev/null 2>&1; then
     echo -e "${GREEN}✓${NC} Indexer process running"
   else
     echo -e "${RED}✗${NC} Indexer process NOT running"
@@ -294,13 +294,13 @@ cmd_health() {
   fi
   
   # Container health
-  INDEXER_HEALTH=$(docker inspect lsp-indexer-v2 --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+  INDEXER_HEALTH=$(docker inspect lsp-indexer --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
   POSTGRES_HEALTH=$(docker inspect lsp-indexer-postgres --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
   HASURA_HEALTH=$(docker inspect lsp-indexer-hasura --format='{{.State.Health.Status}}' 2>/dev/null || echo "not running")
   
   echo
   echo "Container health status:"
-  echo "  indexer-v2: $INDEXER_HEALTH"
+  echo "  indexer:    $INDEXER_HEALTH"
   echo "  postgres:   $POSTGRES_HEALTH"
   if [ "$HASURA_HEALTH" != "not running" ]; then
     echo "  hasura:     $HASURA_HEALTH"
@@ -319,12 +319,12 @@ cmd_volumes() {
 
 cmd_stats() {
   log_info "Real-time container statistics (press Ctrl+C to exit)..."
-  docker stats lsp-indexer-v2 lsp-indexer-postgres
+  docker stats lsp-indexer lsp-indexer-postgres
 }
 
 cmd_env() {
-  log_info "Environment variables (indexer-v2):"
-  docker exec lsp-indexer-v2 env | grep -E "(DB_URL|RPC_URL|LOG_|NODE_ENV|FETCH_|METADATA_)" | sort
+  log_info "Environment variables (indexer):"
+  docker exec lsp-indexer env | grep -E "(DB_URL|RPC_URL|LOG_|NODE_ENV|FETCH_|METADATA_)" | sort
 }
 
 cmd_clean() {
@@ -350,22 +350,22 @@ cmd_clean() {
 
 cmd_help() {
   cat << EOF
-Docker Management Script for Indexer V2
+Docker Management Script for Indexer
 
-Usage: ./docker-v2.sh [command] [args]
+Usage: ./manage.sh [command] [args]
 
 Service Management:
   start              Start all services (checks ENABLE_HASURA in .env)
   stop               Stop all services (keeps containers)
   restart            Restart all services
   down               Stop and remove containers (keeps volumes)
-  build              Build indexer-v2 image
-  rebuild            Rebuild and restart indexer-v2
+  build              Build indexer image
+  rebuild            Rebuild and restart indexer
   status             Show service status and resource usage
   health             Run health checks on all services
 
 Logs:
-  logs [service] [lines]   View logs (default: indexer-v2, last 100 lines)
+  logs [service] [lines]   View logs (default: indexer, last 100 lines)
                            Use 'all' for lines to follow from start
   logs-export [dest]       Export log files to directory
   logs-cleanup [days]      Remove logs older than N days (default: 7)
@@ -378,18 +378,18 @@ Database:
   db-reset           Drop and recreate database (DESTRUCTIVE!)
 
 System:
-  shell [service]    Open shell in container (default: indexer-v2)
+  shell [service]    Open shell in container (default: indexer)
   env                Show environment variables
   stats              Show real-time resource statistics
   volumes            Show volume information
   clean              Clean up Docker resources
 
 Hasura (Optional GraphQL API):
-  To enable Hasura, add to ../../.env:
+  To enable Hasura, add to ../.env:
     ENABLE_HASURA=true
   
   Then start services normally:
-    ./docker-v2.sh start
+    ./manage.sh start
   
   Hasura console will be available at:
     http://localhost:8080
@@ -398,13 +398,13 @@ Hasura (Optional GraphQL API):
   (Change HASURA_GRAPHQL_ADMIN_SECRET in .env)
 
 Examples:
-  ./docker-v2.sh start
-  ./docker-v2.sh logs indexer-v2 50
-  ./docker-v2.sh logs postgres all
-  ./docker-v2.sh db-query 'SELECT count(*) FROM transfer;'
-  ./docker-v2.sh logs-export ./backup-logs
-  ./docker-v2.sh shell postgres
-  ./docker-v2.sh health
+  ./manage.sh start
+  ./manage.sh logs indexer 50
+  ./manage.sh logs postgres all
+  ./manage.sh db-query 'SELECT count(*) FROM transfer;'
+  ./manage.sh logs-export ./backup-logs
+  ./manage.sh shell postgres
+  ./manage.sh health
 
 EOF
 }

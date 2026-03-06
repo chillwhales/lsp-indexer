@@ -4,14 +4,13 @@ Guidelines for AI coding agents working in this repository.
 
 ## Project Overview
 
-LUKSO blockchain indexer — pnpm monorepo with 4 packages:
+LUKSO blockchain indexer — pnpm monorepo with 3 packages:
 
-| Package                   | Purpose                                  | Build                                         |
-| ------------------------- | ---------------------------------------- | --------------------------------------------- |
-| `@chillwhales/abi`        | ABI codegen (Subsquid typegen)           | `pnpm --filter=@chillwhales/abi build`        |
-| `@chillwhales/typeorm`    | Entity codegen from `schema.graphql`     | `pnpm --filter=@chillwhales/typeorm build`    |
-| `@chillwhales/indexer`    | v1 indexer (legacy, read-only reference) | `pnpm --filter=@chillwhales/indexer build`    |
-| `@chillwhales/indexer-v2` | v2 indexer (active development)          | `pnpm --filter=@chillwhales/indexer-v2 build` |
+| Package                | Purpose                              | Build                                      |
+| ---------------------- | ------------------------------------ | ------------------------------------------ |
+| `@chillwhales/abi`     | ABI codegen (Subsquid typegen)       | `pnpm --filter=@chillwhales/abi build`     |
+| `@chillwhales/typeorm` | Entity codegen from `schema.graphql` | `pnpm --filter=@chillwhales/typeorm build` |
+| `@chillwhales/indexer` | Blockchain indexer (active)          | `pnpm --filter=@chillwhales/indexer build` |
 
 Stack: TypeScript, Subsquid framework, TypeORM, Hasura GraphQL, LUKSO LSP standards.
 
@@ -19,7 +18,7 @@ Stack: TypeScript, Subsquid framework, TypeORM, Hasura GraphQL, LUKSO LSP standa
 
 ```bash
 # Build specific package (most common)
-pnpm --filter=@chillwhales/indexer-v2 build
+pnpm --filter=@chillwhales/indexer build
 
 # Build all packages
 pnpm build
@@ -31,7 +30,7 @@ pnpm --filter=@chillwhales/typeorm build
 pnpm format
 ```
 
-**Important**: If `Follower` or other entity imports fail in indexer-v2, rebuild typeorm first — codegen generates entities from `packages/typeorm/schema.graphql`.
+**Important**: If `Follower` or other entity imports fail in indexer, rebuild typeorm first — codegen generates entities from `packages/typeorm/schema.graphql`.
 
 There are no tests, no ESLint, and no git hooks configured. The only code quality tool is Prettier.
 
@@ -142,9 +141,9 @@ No top-level arrow functions. Never use `export default function` — use named 
 
 - **Never push directly to a PR base branch** — always create a feature branch and open a PR to it. This applies to `main`, epic branches, and any other branch that has an open PR.
 - **Check for existing open PRs** from the current branch before creating a new one: `gh pr list --head $(git branch --show-current) --state open`
-- **Branch naming**: `feat/indexer-v2-<name>` per issue
-- **All PRs target**: `refactor/indexer-v2` (not `main`)
-- **Commit format**: `feat(indexer-v2): description (#issue)` or `feat: description (closes #issue)`
+- **Branch naming**: `feat/indexer-<name>` per issue
+- **All PRs target**: `refactor/indexer-v2-react` (not `main`)
+- **Commit format**: `feat(indexer): description (#issue)` or `feat: description (closes #issue)`
 - **After merge**: delete local + remote branch, `git fetch --prune`
 - **Never merge PRs** without user review
 
@@ -152,7 +151,7 @@ No top-level arrow functions. Never use `export default function` — use named 
 
 Before starting work: check for existing issue (`gh issue list --search "..."`), create if missing, label `in-progress`. After completing: close with commit reference or `gh issue close`. Use epic + sub-task structure for large features.
 
-## Key Architecture Patterns (indexer-v2)
+## Key Architecture Patterns (indexer)
 
 ### Enrichment Queue Architecture
 
@@ -271,7 +270,7 @@ After verification, the pipeline batch-updates entities with valid FK references
 ### File Structure
 
 ```
-packages/indexer-v2/src/
+packages/indexer/src/
 ├── core/
 │   ├── types.ts              # EventPlugin, EntityHandler, EnrichmentRequest interfaces
 │   ├── batchContext.ts       # Shared entity bag + enrichment queue

@@ -1,5 +1,5 @@
 # ==============================================================================
-# Multi-stage Dockerfile for indexer-v2
+# Multi-stage Dockerfile for indexer
 # Optimized for production with proper layer caching and minimal image size
 # ==============================================================================
 
@@ -27,7 +27,6 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/abi/package.json ./packages/abi/
 COPY packages/typeorm/package.json ./packages/typeorm/
 COPY packages/indexer/package.json ./packages/indexer/
-COPY packages/indexer-v2/package.json ./packages/indexer-v2/
 
 # Install all dependencies (production + dev for build)
 # Using --no-frozen-lockfile temporarily until lockfile is updated locally
@@ -47,20 +46,19 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/abi/node_modules ./packages/abi/node_modules
 COPY --from=deps /app/packages/typeorm/node_modules ./packages/typeorm/node_modules
 COPY --from=deps /app/packages/indexer/node_modules ./packages/indexer/node_modules
-COPY --from=deps /app/packages/indexer-v2/node_modules ./packages/indexer-v2/node_modules
 
 # Copy workspace configuration
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 
-# Copy source code for packages needed by indexer-v2
+# Copy source code for packages needed by indexer
 COPY packages/abi ./packages/abi
 COPY packages/typeorm ./packages/typeorm
-COPY packages/indexer-v2 ./packages/indexer-v2
+COPY packages/indexer ./packages/indexer
 
-# Build only packages needed for indexer-v2 (skip indexer v1)
+# Build all packages
 RUN pnpm --filter=@chillwhales/abi build && \
     pnpm --filter=@chillwhales/typeorm build && \
-    pnpm --filter=@chillwhales/indexer-v2 build
+    pnpm --filter=@chillwhales/indexer build
 
 # ==============================================================================
 # Stage 3: Runtime
@@ -77,31 +75,31 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 # Copy package.json files for workspace structure
 COPY packages/abi/package.json ./packages/abi/
 COPY packages/typeorm/package.json ./packages/typeorm/
-COPY packages/indexer-v2/package.json ./packages/indexer-v2/
+COPY packages/indexer/package.json ./packages/indexer/
 
 # Copy built artifacts from builder stage
 COPY --from=builder /app/packages/abi/lib ./packages/abi/lib
 COPY --from=builder /app/packages/typeorm/lib ./packages/typeorm/lib
 COPY --from=builder /app/packages/typeorm/schema.graphql ./packages/typeorm/
-COPY --from=builder /app/packages/indexer-v2/lib ./packages/indexer-v2/lib
+COPY --from=builder /app/packages/indexer/lib ./packages/indexer/lib
 
 # Note: packages/typeorm/db is NOT copied - it's generated at runtime by TypeORM migrations
 # The db/ directory is gitignored and created automatically by @subsquid/typeorm-store
 
 # Copy runtime source files needed by ts-node
-COPY --from=builder /app/packages/indexer-v2/src ./packages/indexer-v2/src
-COPY --from=builder /app/packages/indexer-v2/tsconfig.json ./packages/indexer-v2/
+COPY --from=builder /app/packages/indexer/src ./packages/indexer/src
+COPY --from=builder /app/packages/indexer/tsconfig.json ./packages/indexer/
 
 # Install production dependencies only
 # Using --no-frozen-lockfile temporarily until lockfile is updated locally
 RUN pnpm install --prod --no-frozen-lockfile
 
 # Copy entrypoint script for running migrations before starting indexer
-COPY docker/v2/entrypoint.sh /app/entrypoint.sh
+COPY docker/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # Create logs directory with proper permissions
-RUN mkdir -p /app/packages/indexer-v2/logs && \
+RUN mkdir -p /app/packages/indexer/logs && \
     chown -R node:node /app && \
     chown node:node /app/entrypoint.sh
 
@@ -113,7 +111,7 @@ WORKDIR /app
 
 # Environment variables (can be overridden by docker-compose)
 ENV NODE_ENV=production \
-    LOG_DIR=/app/packages/indexer-v2/logs \
+    LOG_DIR=/app/packages/indexer/logs \
     INDEXER_ENABLE_FILE_LOGGER=true \
     LOG_LEVEL=info
 
