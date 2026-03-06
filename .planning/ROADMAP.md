@@ -613,7 +613,7 @@ Plans:
 | 10.13 | Universal Receiver Events Sub.    |     1/1      | Complete    |
 | 11    | Server Actions & Publish Ready    |     4/4      | Complete    |
 | 12    | Replace Local Pkgs → @chillwhales |     2/2      | Complete    |
-| 13    | 2/2 | Complete   | 2026-03-06 |
+| 13    | 2/2 | Complete    | 2026-03-06 |
 | 14    | Comments Cleanup & Release Prep   |      4       | Not started |
 | 15    | CI/CD Workflows & Shared Infra    |      4       | Not started |
 
