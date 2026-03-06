@@ -6,6 +6,7 @@ import type { SubscriptionClient } from './client';
 const SubscriptionClientContext = createContext<SubscriptionClient | null>(null);
 SubscriptionClientContext.displayName = 'SubscriptionClientContext';
 
+/** React context holding the Next.js SubscriptionClient instance for subscription hooks. */
 export { SubscriptionClientContext };
 
 /**
