@@ -13,6 +13,7 @@ import { RawJsonToggle } from './shared';
 // Card skeleton — generic loading placeholder
 // ---------------------------------------------------------------------------
 
+/** Skeleton loading placeholder card matching the size of a typical domain card. */
 export function CardSkeleton(): React.ReactNode {
   return (
     <div className="rounded-lg border bg-card p-6 space-y-3">
@@ -42,6 +43,7 @@ interface ResultsHeaderProps {
   label?: string;
 }
 
+/** Displays result count with loading indicator. Shows "X found" (list mode) or "X loaded" (infinite mode). */
 export function ResultsHeader({
   isLoading,
   isFetching,
@@ -93,6 +95,19 @@ interface ResultsListProps<T> {
   skeletonCount?: number;
 }
 
+/**
+ * Generic paginated results display with loading, error, empty, and infinite scroll states.
+ *
+ * Handles all result display patterns across the test app:
+ * - Loading: skeleton cards
+ * - Error: destructive alert
+ * - Empty: contextual message (filter vs no-filter)
+ * - Items: grid of rendered cards via `renderItem`
+ * - Infinite: "Load More" button with `fetchNextPage`
+ * - Raw JSON: collapsible toggle for debugging
+ *
+ * @typeParam T - The domain entity type (inferred from `items` prop)
+ */
 export function ResultsList<T>({
   items,
   isLoading,

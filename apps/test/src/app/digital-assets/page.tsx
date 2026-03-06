@@ -1,5 +1,24 @@
 'use client';
 
+/**
+ * Digital Assets Playground — demonstrates @lsp-indexer hook usage for LSP7/LSP8 metadata.
+ *
+ * **Hooks demonstrated:**
+ * - `useDigitalAsset` / `useDigitalAsset` (next) — Single digital asset lookup by address
+ * - `useDigitalAssets` / `useDigitalAssets` (next) — Filtered, sorted, paginated list
+ * - `useInfiniteDigitalAssets` / `useInfiniteDigitalAssets` (next) — Infinite scroll with fetchNextPage
+ * - `useDigitalAssetSubscription` / `useDigitalAssetSubscription` (next) — Real-time WebSocket updates
+ *
+ * **Patterns shown:**
+ * - 4-tab layout: Single, List, Infinite, Subscription
+ * - Token type filter with Select dropdown (TOKEN, NFT, COLLECTION)
+ * - Standard derivation display (LSP7 vs LSP8 badges derived from decimals field)
+ * - 17 include toggles for conditional field inclusion (name, symbol, totalSupply, images, etc.)
+ * - Rich card rendering with token metadata, images, descriptions, creators, and links
+ * - Package toggle (react vs next) to compare client-direct vs server-action routing
+ *
+ * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
+ */
 import { Coins, Infinity, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 

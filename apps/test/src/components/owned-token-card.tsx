@@ -1,3 +1,18 @@
+/**
+ * Renders a single Owned Token (LSP8 NFT ownership) entity card — the most complex
+ * domain card in the project with 4 nested relation sections.
+ *
+ * Props use `PartialExcept<OwnedToken, 'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId'>` —
+ * the 4 base fields are always required; all relations are optional for include-narrowed results.
+ *
+ * **Sections:**
+ * - Header: holder address, digital asset address, tokenId, timestamp
+ * - Digital Asset: collapsible `<CollapsibleDigitalAssetSection>`
+ * - NFT: collapsible section rendering a nested `<NftCard>`
+ * - Owned Asset: collapsible section rendering a nested `<OwnedAssetCard>`
+ * - Holder Profile: collapsible `<CollapsibleProfileSection>`
+ * - Raw JSON toggle
+ */
 import { ChevronDown, Gem, Loader2, Tag, Wallet } from 'lucide-react';
 import React from 'react';
 

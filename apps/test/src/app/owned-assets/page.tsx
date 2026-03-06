@@ -1,5 +1,24 @@
 'use client';
 
+/**
+ * Owned Assets Playground — demonstrates @lsp-indexer hook usage for LSP7 fungible token ownership.
+ *
+ * **Hooks demonstrated:**
+ * - `useOwnedAsset` / `useOwnedAsset` (next) — Single owned asset lookup by holder+asset address
+ * - `useOwnedAssets` / `useOwnedAssets` (next) — Filtered, sorted, paginated list
+ * - `useInfiniteOwnedAssets` / `useInfiniteOwnedAssets` (next) — Infinite scroll with fetchNextPage
+ * - `useOwnedAssetSubscription` / `useOwnedAssetSubscription` (next) — Real-time WebSocket updates
+ *
+ * **Patterns shown:**
+ * - Natural key lookup: holder+asset address via `useOwnedAssets({ filter, limit: 1 })` (no opaque IDs)
+ * - Balance display with BigInt formatting via `formatTokenAmount`
+ * - Nested DigitalAsset relation with 17 sub-include toggles
+ * - Nested UniversalProfile (holder) relation with 9 sub-include toggles
+ * - 4 string filter fields: owner, address, digitalAssetId, universalProfileId
+ * - Nested sort fields: `digitalAssetName` → `digitalAsset.lsp4TokenName`
+ *
+ * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
+ */
 import { Infinity, Layers, Radio, Search, Wallet, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 

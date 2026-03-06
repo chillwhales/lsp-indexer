@@ -1,5 +1,25 @@
 'use client';
 
+/**
+ * Follows Playground — demonstrates @lsp-indexer hook usage for LSP26 social graph (followers/following).
+ *
+ * **Hooks demonstrated:**
+ * - `useFollows` / `useFollows` (next) — Filtered, sorted, paginated follower/following list
+ * - `useInfiniteFollows` / `useInfiniteFollows` (next) — Infinite scroll with fetchNextPage
+ * - `useFollowCount` / `useFollowCount` (next) — Aggregate follower + following counts for an address
+ * - `useIsFollowing` / `useIsFollowing` (next) — Check if address A follows address B
+ * - `useFollowerSubscription` / `useFollowerSubscription` (next) — Real-time WebSocket updates
+ *
+ * **Patterns shown:**
+ * - Bidirectional follow graph: same hook serves both "followers of X" and "X follows" via direction param
+ * - FollowCount uses two aliased `follower_aggregate` queries in one document
+ * - IsFollowing reuses list document with `limit: 1` for existence check
+ * - Two nested profile sub-includes: followerProfile and followedProfile (independently toggleable)
+ * - Block-ordered sorting (blockNumber, transactionIndex, logIndex) for deterministic event ordering
+ * - 5 tabs: Followers, Following, Follow Count, Is Following, Subscription
+ *
+ * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
+ */
 import { Hash, Infinity, Radio, UserCheck, Users, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 

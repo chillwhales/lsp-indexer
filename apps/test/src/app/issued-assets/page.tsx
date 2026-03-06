@@ -1,5 +1,22 @@
 'use client';
 
+/**
+ * Issued Assets Playground — demonstrates @lsp-indexer hook usage for LSP12 asset issuance.
+ *
+ * **Hooks demonstrated:**
+ * - `useIssuedAssets` / `useIssuedAssets` (next) — Filtered, sorted, paginated issued asset list
+ * - `useInfiniteIssuedAssets` / `useInfiniteIssuedAssets` (next) — Infinite scroll with fetchNextPage
+ * - `useIssuedAssetSubscription` / `useIssuedAssetSubscription` (next) — Real-time WebSocket updates
+ *
+ * **Patterns shown:**
+ * - No singular hook (no natural key — same pattern as creators)
+ * - Dual heterogeneous relation includes: issuerProfile (ProfileResult) + digitalAsset (DigitalAssetResult)
+ * - 31 include variables: 3 scalar + 10 issuer profile + 18 digital asset
+ * - 3-tab layout: List, Infinite, Subscription
+ * - Issuer profile uses `followed_aggregate` for following count (schema field name difference)
+ *
+ * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
+ */
 import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 

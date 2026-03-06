@@ -1,5 +1,22 @@
 'use client';
 
+/**
+ * Creators Playground — demonstrates @lsp-indexer hook usage for LSP4 creator attestations.
+ *
+ * **Hooks demonstrated:**
+ * - `useCreators` / `useCreators` (next) — Filtered, sorted, paginated creator list
+ * - `useInfiniteCreators` / `useInfiniteCreators` (next) — Infinite scroll with fetchNextPage
+ * - `useCreatorSubscription` / `useCreatorSubscription` (next) — Real-time WebSocket updates
+ *
+ * **Patterns shown:**
+ * - No singular hook (no natural key — only opaque Hasura IDs)
+ * - Dual heterogeneous relation includes: creatorProfile (ProfileResult) + digitalAsset (DigitalAssetResult)
+ * - 31 include variables: 3 scalar + 10 profile + 18 digital asset
+ * - 3-tab layout: List, Infinite, Subscription
+ * - Creator → profile and creator → digital asset collapsible sections
+ *
+ * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
+ */
 import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 

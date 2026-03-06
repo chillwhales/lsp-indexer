@@ -1,5 +1,24 @@
 'use client';
 
+/**
+ * Universal Receiver Events Playground — demonstrates @lsp-indexer hook usage for
+ * LSP1 UniversalReceiver events (the most relation-heavy domain in the project).
+ *
+ * **Hooks demonstrated:**
+ * - `useUniversalReceiverEvents` / `useUniversalReceiverEvents` (next) — Filtered, sorted, paginated list
+ * - `useInfiniteUniversalReceiverEvents` / `useInfiniteUniversalReceiverEvents` (next) — Infinite scroll
+ * - `useUniversalReceiverEventSubscription` / `useUniversalReceiverEventSubscription` (next) — Real-time updates
+ *
+ * **Patterns shown:**
+ * - 3 nested relations: universalProfile (receiver UP), fromProfile (sender UP), fromAsset (sender DA)
+ * - 46 GraphQL variables — highest count in the project (4 pagination + 4 scalar + 10 receiver UP + 10 sender UP + 18 sender DA)
+ * - Type ID name resolution: `@chillwhales/lsp1` `TypeIdNameSchema` select dropdown for known LSP type IDs
+ * - 3-tab layout: List, Infinite, Subscription (no Latest tab)
+ * - Block-ordered sorting for deterministic event ordering
+ * - `value` field parsed via `numericToString` (Hasura numeric → string)
+ *
+ * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
+ */
 import { TYPE_ID_NAMES, TypeIdNameSchema } from '@chillwhales/lsp1';
 import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';

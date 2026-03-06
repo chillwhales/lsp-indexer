@@ -1,5 +1,26 @@
 'use client';
 
+/**
+ * Token ID Data Changed Events Playground — demonstrates @lsp-indexer hook usage for ERC725Y
+ * TokenIdDataChanged events (per-token data key changes on LSP8 NFTs).
+ *
+ * **Hooks demonstrated:**
+ * - `useLatestTokenIdDataChangedEvent` / `useLatestTokenIdDataChangedEvent` (next) — Most recent event by filter
+ * - `useTokenIdDataChangedEvents` / `useTokenIdDataChangedEvents` (next) — Filtered, sorted, paginated list
+ * - `useInfiniteTokenIdDataChangedEvents` / `useInfiniteTokenIdDataChangedEvents` (next) — Infinite scroll
+ * - `useTokenIdDataChangedEventSubscription` / `useTokenIdDataChangedEventSubscription` (next) — Real-time updates
+ *
+ * **Patterns shown:**
+ * - 4-tab layout: Latest, List, Infinite, Subscription
+ * - tokenId field in filters (additional field vs DataChangedEvents)
+ * - NFT sub-include with `OwnedTokenNftIncludeSchema` (8 per-field toggles)
+ * - DA sub-include with 18 nested toggles (same as data-changed-events)
+ * - NFT name filter uses `_or` pattern (searches both lsp4Metadata and lsp4MetadataBaseUri)
+ * - Block-ordered sorting for deterministic event ordering
+ * - 27 GraphQL variables: 4 pagination + 4 scalar + 18 DA + 1 nft
+ *
+ * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
+ */
 import { DATA_KEY_NAMES, DataKeyNameSchema } from '@chillwhales/erc725';
 import { Clock, Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';

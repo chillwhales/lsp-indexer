@@ -1,4 +1,22 @@
-// Server component — validates all 4 package entry points work in RSC context
+/**
+ * Home Page — package entry point validation and environment status dashboard.
+ *
+ * This is the only **server component** page in the test app. It validates that
+ * all 4 `@lsp-indexer` packages resolve correctly in an RSC (React Server Component)
+ * context by importing a representative export from each:
+ *
+ * - `@lsp-indexer/types` — `Profile` type (compile-time import check)
+ * - `@lsp-indexer/node` — `profileKeys`, `getServerUrl` (runtime reference check)
+ * - `@lsp-indexer/react` — `useProfile`, `IndexerError` (runtime reference check)
+ * - `@lsp-indexer/next` — `getProfile` (runtime reference check)
+ *
+ * **Patterns shown:**
+ * - RSC-compatible imports (no 'use client' — proves packages work server-side)
+ * - Environment variable inspection (`NEXT_PUBLIC_INDEXER_URL`, `INDEXER_URL`, WS variants)
+ * - Client-side import validation via `<ConnectionStatus>` child component
+ *
+ * @see {@link ConnectionStatus} for client-side import validation
+ */
 import { CheckCircle2, XCircle } from 'lucide-react';
 import React from 'react';
 

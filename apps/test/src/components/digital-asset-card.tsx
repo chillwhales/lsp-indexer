@@ -1,3 +1,19 @@
+/**
+ * Renders a single Digital Asset (LSP7/LSP8) entity card with metadata sections.
+ *
+ * Props use `PartialExcept<DigitalAsset, 'address'>` — only `address` is required;
+ * all other fields are optional so the card gracefully handles include-narrowed
+ * results where some fields are absent.
+ *
+ * **Sections:**
+ * - Header: address (always), name, standard badge (LSP7 TOKEN / LSP8 NFT / LSP8 COLLECTION)
+ * - Token metadata: symbol, decimals, totalSupply with formatted display
+ * - Description: LSP4 description text
+ * - Links: external links with safe-URL validation
+ * - Icons: LSP4 icon images via `<ImageList>`
+ * - Images: LSP4 image matrix (grouped by image_index) via `<ImageList>`
+ * - Raw JSON toggle
+ */
 import { Coins, ExternalLink, Loader2 } from 'lucide-react';
 import React from 'react';
 

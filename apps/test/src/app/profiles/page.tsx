@@ -1,5 +1,25 @@
 'use client';
 
+/**
+ * Profiles Playground — demonstrates @lsp-indexer hook usage for Universal Profiles (LSP3).
+ *
+ * **Hooks demonstrated:**
+ * - `useProfile` / `useProfile` (next) — Single profile lookup by address
+ * - `useProfiles` / `useProfiles` (next) — Filtered, sorted, paginated list
+ * - `useInfiniteProfiles` / `useInfiniteProfiles` (next) — Infinite scroll with fetchNextPage
+ * - `useProfileSubscription` / `useProfileSubscription` (next) — Real-time WebSocket updates
+ *
+ * **Patterns shown:**
+ * - 4-tab layout: Single, List, Infinite, Subscription
+ * - Filter fields with debounced search (name, followedBy, following, tokenOwned)
+ * - Sort controls with field/direction/nulls configuration (name, followerCount, followingCount)
+ * - Include toggles for conditional field inclusion (DX-04 type narrowing)
+ * - Package toggle (react vs next) to compare client-direct vs server-action routing
+ * - Preset buttons for quick single-profile lookups
+ * - Subscription tab with WebSocket connection status and cache invalidation toggle
+ *
+ * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
+ */
 import { Loader2, Radio, Search, User, Users, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 

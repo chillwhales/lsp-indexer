@@ -1,5 +1,23 @@
 'use client';
 
+/**
+ * Owned Tokens Playground — demonstrates @lsp-indexer hook usage for LSP8 NFT ownership.
+ *
+ * **Hooks demonstrated:**
+ * - `useOwnedToken` / `useOwnedToken` (next) — Single owned token lookup by holder+asset+tokenId
+ * - `useOwnedTokens` / `useOwnedTokens` (next) — Filtered, sorted, paginated list
+ * - `useInfiniteOwnedTokens` / `useInfiniteOwnedTokens` (next) — Infinite scroll with fetchNextPage
+ * - `useOwnedTokenSubscription` / `useOwnedTokenSubscription` (next) — Real-time WebSocket updates
+ *
+ * **Patterns shown:**
+ * - Most complex domain: 4 nested relations (digitalAsset, nft, ownedAsset, holder)
+ * - Each relation has independent sub-include toggles
+ * - `OwnedTokenNftIncludeSchema` with 8 per-field toggles for NFT metadata
+ * - Nested sort fields: `digitalAssetName` → `digitalAsset.lsp4TokenName`
+ * - Cards render NftCard and OwnedAssetCard as nested collapsible sections
+ *
+ * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
+ */
 import { Infinity, Layers, Radio, Search, Tag, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 

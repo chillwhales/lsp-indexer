@@ -1,3 +1,13 @@
+/**
+ * Root Layout — app shell with sidebar navigation and provider tree.
+ *
+ * Server component that wraps all pages with:
+ * - `<Providers>` — QueryClient, SubscriptionProviders, ThemeProvider
+ * - `<AppSidebar>` — shadcn/ui sidebar with domain navigation links
+ * - `<SidebarInset>` — content area with header breadcrumb and main content slot
+ *
+ * Uses Next.js metadata API for page title and description.
+ */
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 

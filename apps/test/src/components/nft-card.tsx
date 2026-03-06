@@ -1,3 +1,17 @@
+/**
+ * Renders a single NFT (LSP8 token) entity card with collapsible relation sections.
+ *
+ * Props use `PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>` —
+ * the 4 base fields are always required; all other fields are optional so the card
+ * gracefully handles include-narrowed results.
+ *
+ * **Sections:**
+ * - Header: address, tokenId, burn/mint status badges
+ * - NFT Metadata: name, description, links, icons, images (from lsp4Metadata or baseUri)
+ * - Holder Profile: collapsible `<CollapsibleProfileSection>` for the token holder
+ * - Collection: collapsible `<CollapsibleDigitalAssetSection>` for the parent LSP8 collection
+ * - Raw JSON toggle
+ */
 import { ExternalLink, Gem, Loader2 } from 'lucide-react';
 import React from 'react';
 

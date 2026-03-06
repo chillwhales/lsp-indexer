@@ -1,5 +1,24 @@
 'use client';
 
+/**
+ * Encrypted Assets Playground — demonstrates @lsp-indexer hook usage for LSP29 encrypted metadata.
+ *
+ * **Hooks demonstrated:**
+ * - `useEncryptedAssets` / `useEncryptedAssets` (next) — Filtered, sorted, paginated encrypted asset list
+ * - `useInfiniteEncryptedAssets` / `useInfiniteEncryptedAssets` (next) — Infinite scroll with fetchNextPage
+ * - `useEncryptedAssetSubscription` / `useEncryptedAssetSubscription` (next) — Real-time WebSocket updates
+ *
+ * **Patterns shown:**
+ * - No singular hook (user-introduced elements can share address + contentId + revision)
+ * - Encryption sub-include with union type: `true` = full, `{ accessControlConditions: false }` = scalars only
+ * - File and chunks sub-includes for nested file metadata
+ * - 8 filter fields including nested relation filters (profile name, encryption method, file type)
+ * - Title/description flattening: Hasura `{ title: { value: "..." } }` → parsed `title: string | null`
+ * - LSP29-specific image schema (imageIndex, verificationSource)
+ * - 3-tab layout: List, Infinite, Subscription
+ *
+ * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
+ */
 import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 

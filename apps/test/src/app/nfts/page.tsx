@@ -1,5 +1,24 @@
 'use client';
 
+/**
+ * NFTs Playground — demonstrates @lsp-indexer hook usage for LSP8 individual tokens.
+ *
+ * **Hooks demonstrated:**
+ * - `useNft` / `useNft` (next) — Single NFT lookup by address + tokenId (composite key)
+ * - `useNfts` / `useNfts` (next) — Filtered, sorted, paginated list
+ * - `useInfiniteNfts` / `useInfiniteNfts` (next) — Infinite scroll with fetchNextPage
+ * - `useNftSubscription` / `useNftSubscription` (next) — Real-time WebSocket updates
+ *
+ * **Patterns shown:**
+ * - Composite key lookup: address + tokenId (or formattedTokenId) in Single tab
+ * - NFT name filter uses `_or` pattern (searches both lsp4Metadata and lsp4MetadataBaseUri)
+ * - Collection sub-include: full DigitalAsset relation with 17 nested include toggles
+ * - Holder sub-include: Profile relation (UP that holds the token)
+ * - Collapsible card sections: Holder Profile, NFT Metadata, Collection
+ * - `isBurned`/`isMinted` boolean filters with `!== undefined` guard
+ *
+ * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
+ */
 import { Gem, Infinity, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 

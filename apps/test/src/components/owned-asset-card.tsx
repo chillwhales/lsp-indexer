@@ -1,3 +1,17 @@
+/**
+ * Renders a single Owned Asset (LSP7 fungible token ownership) entity card.
+ *
+ * Props use `PartialExcept<OwnedAsset, 'id' | 'digitalAssetAddress' | 'holderAddress'>` —
+ * the 3 base fields are always required; all other fields (balance, timestamp,
+ * digitalAsset, universalProfile) are optional for include-narrowed results.
+ *
+ * **Sections:**
+ * - Header: holder address, digital asset address, balance with BigInt formatting
+ * - Timestamp: relative time display
+ * - Digital Asset: collapsible `<CollapsibleDigitalAssetSection>` for the owned token contract
+ * - Holder Profile: collapsible `<CollapsibleProfileSection>` for the owner UP
+ * - Raw JSON toggle
+ */
 import { Loader2, Wallet } from 'lucide-react';
 import React from 'react';
 

@@ -1,3 +1,17 @@
+/**
+ * Renders a single Follower/Following (LSP26) relationship card.
+ *
+ * Props use `PartialExcept<Follower, 'followerAddress' | 'followedAddress'>` — the two
+ * address fields are always required; profile relations and scalars are optional for
+ * include-narrowed results.
+ *
+ * **Sections:**
+ * - Header: follower → followed arrow display with profile name resolution
+ * - Timestamp: relative time display
+ * - Follower Profile: collapsible `<CollapsibleProfileSection>` (who follows)
+ * - Followed Profile: collapsible `<CollapsibleProfileSection>` (who is followed)
+ * - Raw JSON toggle
+ */
 import { ArrowRight, User } from 'lucide-react';
 import React from 'react';
 

@@ -1,3 +1,15 @@
+/**
+ * Shared collapsible section wrappers for nested domain relations.
+ *
+ * Provides three reusable collapsible components that render a trigger button
+ * with label + icon and expand to show the full domain card:
+ * - `CollapsibleProfileSection` — wraps `<ProfileCard>` (used by 5 card components)
+ * - `CollapsibleDigitalAssetSection` — wraps `<DigitalAssetCard>` (used by 4 card components)
+ * - `CollapsibleNftSection` — wraps `<NftCard>` (used by token-id-data-changed-event-card)
+ *
+ * All use `<Button variant="ghost" size="sm">` triggers with ChevronDown icon,
+ * matching the unified collapsible trigger pattern across all cards.
+ */
 import { ChevronDown, Coins, Gem, User } from 'lucide-react';
 import React from 'react';
 

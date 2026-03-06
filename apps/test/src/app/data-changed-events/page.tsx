@@ -1,5 +1,25 @@
 'use client';
 
+/**
+ * Data Changed Events Playground — demonstrates @lsp-indexer hook usage for ERC725Y DataChanged events.
+ *
+ * **Hooks demonstrated:**
+ * - `useLatestDataChangedEvent` / `useLatestDataChangedEvent` (next) — Most recent event by filter (timestamp desc, limit 1)
+ * - `useDataChangedEvents` / `useDataChangedEvents` (next) — Filtered, sorted, paginated event list
+ * - `useInfiniteDataChangedEvents` / `useInfiniteDataChangedEvents` (next) — Infinite scroll with fetchNextPage
+ * - `useDataChangedEventSubscription` / `useDataChangedEventSubscription` (next) — Real-time WebSocket updates
+ *
+ * **Patterns shown:**
+ * - 4-tab layout: Latest, List, Infinite, Subscription (3+1 — "Latest" is unique to event domains)
+ * - Data key name resolution: `@chillwhales/erc725` `DataKeyNameSchema` select dropdown for known ERC725Y keys
+ * - Nested UP + DA sub-includes with independent toggle groups
+ * - Block-ordered sorting (blockNumber, transactionIndex, logIndex) for deterministic event ordering
+ * - `hideDirectionAndNulls` on SortControls for self-describing sort fields (newest/oldest)
+ * - ExpandableHex component for long dataKey/dataValue hex strings
+ * - 36 GraphQL variables: 4 pagination + 4 scalar + 10 UP + 18 DA
+ *
+ * @see {@link https://github.com/chillwhales/lsp-indexer} for package documentation
+ */
 import { DATA_KEY_NAMES, DataKeyNameSchema } from '@chillwhales/erc725';
 import { Clock, Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';

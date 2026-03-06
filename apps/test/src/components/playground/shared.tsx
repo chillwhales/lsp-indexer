@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
+/** Renders an error message in a destructive alert banner. Used across all playground pages. */
 export function ErrorAlert({ error }: { error: Error }): React.ReactNode {
   return (
     <Alert variant="destructive">
@@ -45,6 +46,11 @@ export function PresetButtons<T extends { label: string }>({
   );
 }
 
+/**
+ * Collapsible raw JSON viewer. Renders `JSON.stringify(data, null, 2)` in a `<pre>` block.
+ * Handles BigInt values via a custom replacer to prevent JSON.stringify errors.
+ * Used on every domain card component for debugging include-narrowed results.
+ */
 export function RawJsonToggle({ data, label }: { data: unknown; label: string }): React.ReactNode {
   return (
     <Collapsible>
