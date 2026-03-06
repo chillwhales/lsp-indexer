@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, refactor/indexer-v2]
+    branches: [main, refactor/indexer-v2-react]
   pull_request:
-    branches: [main, refactor/indexer-v2]
+    branches: [main, refactor/indexer-v2-react]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -60,7 +60,6 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # Build — active packages across Node versions
-  # (v1 indexer is legacy/read-only and excluded)
   # ---------------------------------------------------------------------------
   build:
     name: Build (Node ${{ matrix.node-version }})
@@ -86,5 +85,5 @@ jobs:
       - name: Build typeorm
         run: pnpm --filter=@chillwhales/typeorm build
 
-      - name: Build indexer-v2
-        run: pnpm --filter=@chillwhales/indexer-v2 build
+      - name: Build indexer
+        run: pnpm --filter=@chillwhales/indexer build
