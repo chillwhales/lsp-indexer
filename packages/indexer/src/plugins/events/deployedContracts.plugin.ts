@@ -10,9 +10,6 @@
  *
  * The primaryContract address is queued for verification as a UniversalProfile.
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
- *
- * Port from v1:
- *   - scanner.ts L491-524 (inline extraction, no separate extract/populate)
  */
 import { LSP23_ADDRESS } from '@/constants';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';

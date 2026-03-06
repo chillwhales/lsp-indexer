@@ -4,10 +4,6 @@
  * Subscribes to DataChanged events and creates LSP4TokenSymbol entities
  * for events matching the LSP4TokenSymbol data key. Decodes the hex-encoded
  * token symbol string from the data value.
- *
- * Port from v1:
- *   - plugins/datakeys/lsp4TokenSymbol.plugin.ts (extract + populate + persist)
- *   - utils/dataChanged/lsp4TokenSymbol.ts (extract logic)
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { DataChanged, LSP4TokenSymbol } from '@chillwhales/typeorm';

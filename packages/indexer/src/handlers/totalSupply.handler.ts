@@ -13,9 +13,6 @@
  *   logs a warning.
  * - Queues enrichment for digitalAsset FK — never sets FKs directly.
  * - Uses the contract address as the entity ID (one TotalSupply per contract).
- *
- * Port from v1:
- *   - core/handlerHelpers.ts → updateTotalSupply() (deleted in 01-04)
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';

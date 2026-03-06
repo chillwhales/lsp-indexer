@@ -10,10 +10,6 @@
  *
  * UniversalProfileOwner and DigitalAssetOwner updates will be implemented
  * as EntityHandlers in future issues (see #105: Transfer-derived entity handlers).
- *
- * Port from v1:
- *   - scanner.ts L563-568 (event matching)
- *   - utils/ownershipTransferred/index.ts (extract + populate)
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { isNullAddress } from '@/utils';

@@ -4,10 +4,6 @@
  * Subscribes to DataChanged events and creates LSP4TokenType entities
  * for events matching the LSP4TokenType data key. Decodes the token type
  * enum value (0 = TOKEN, 1 = NFT, 2 = COLLECTION) from the data value.
- *
- * Port from v1:
- *   - plugins/datakeys/lsp4TokenType.plugin.ts (extract + populate + persist)
- *   - utils/dataChanged/lsp4TokenType.ts (extract logic)
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { decodeTokenType } from '@/utils';

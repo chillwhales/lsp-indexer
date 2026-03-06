@@ -1,5 +1,5 @@
 /**
- * Main entry point for V2 indexer.
+ * Main entry point for the indexer.
  *
  * Bootstraps the application by:
  * 1. Discovering all EventPlugins and EntityHandlers via PluginRegistry
@@ -49,8 +49,8 @@ logger.info('Processor configured with log subscriptions from registry');
 const pipelineConfig = createPipelineConfig(registry);
 logger.info('Pipeline configuration created');
 
-// Start processor — V2 indexer ready
-logger.info('Starting processor — V2 indexer ready');
+// Start processor
+logger.info('Starting processor — indexer ready');
 
 processor.run(new TypeormDatabase(), async (ctx) => {
   await processBatch(ctx, pipelineConfig);

@@ -16,10 +16,6 @@
  * NFT entity creation is handled by the NFT EntityHandler (issue #104).
  * The emitting address is queued for verification as a DigitalAsset.
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
- *
- * Port from v1:
- *   - scanner.ts L454-471 (event matching)
- *   - utils/tokenIdDataChanged/index.ts (extract + populate)
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';

@@ -102,8 +102,8 @@ export type StoredClearRequest = Omit<ClearRequest<Entity>, 'fkField'> & {
 /**
  * BatchContext interface — shared entity bag for a single batch.
  *
- * This replaces the 60+ destructured Maps/arrays/Sets that were manually
- * threaded through scanner → entityPopulation → index.ts in v1.
+ * Consolidates entity storage and enrichment tracking into a single
+ * container threaded through all pipeline steps.
  *
  * EventPlugins add entities and queue enrichment requests during Step 1 (EXTRACT).
  * The pipeline persists raw entities in Step 2 (PERSIST RAW).

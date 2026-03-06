@@ -34,12 +34,6 @@
  *
  * Invalid Item entries (dataValue not a valid 20-byte address) are skipped
  * entirely — no garbage entities to clean up later.
- *
- * Port from v1:
- *   - plugins/datakeys/lsp5ReceivedAssets.plugin.ts (extract + populate + persist)
- *   - utils/dataChanged/lsp5ReceivedAssetsLength.ts
- *   - utils/dataChanged/lsp5ReceivedAssetsItem.ts
- *   - utils/dataChanged/lsp5ReceivedAssetsMap.ts
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';

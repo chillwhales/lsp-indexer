@@ -5,7 +5,7 @@
  * (both Universal Profiles and Digital Assets).
  *
  * Creates the raw `DataChanged` entity for every DataChanged event
- * (append-only event log, same as v1).
+ * (append-only event log).
  *
  * The emitting address is queued for verification as both UniversalProfile
  * and DigitalAsset (contract type cannot be determined at scan time).
@@ -16,10 +16,6 @@
  * closure for DataKey routing during extraction. DataKey routing is now
  * deferred to EntityHandlers (see #103: DataKey handler architecture).
  * As a plain export, this plugin is auto-discovered by PluginRegistry.discover().
- *
- * Port from v1:
- *   - scanner.ts L166-421 (DataChanged case block)
- *   - utils/dataChanged/index.ts (extract + populate)
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { ERC725Y } from '@chillwhales/abi';

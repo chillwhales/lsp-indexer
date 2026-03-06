@@ -11,10 +11,6 @@
  *
  * Note: clearSubEntities logic is deferred to the metadata fetch handler since
  * that handler re-creates the sub-entities.
- *
- * Port from v1:
- *   - plugins/datakeys/lsp3Profile.plugin.ts (extract + populate + persist)
- *   - utils/dataChanged/lsp3Profile.ts (extract logic)
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { decodeVerifiableUri } from '@/utils';

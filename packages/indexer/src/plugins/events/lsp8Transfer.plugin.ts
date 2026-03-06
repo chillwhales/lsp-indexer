@@ -16,10 +16,6 @@
  *
  * TotalSupply and OwnedAssets updates will be implemented as EntityHandlers
  * in future issues (see #105: Transfer-derived entity handlers).
- *
- * Port from v1:
- *   - scanner.ts L440-452 (event matching + NFT extraction)
- *   - utils/transfer/index.ts (extract LSP8 branch + populate)
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { isNullAddress } from '@/utils';

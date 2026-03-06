@@ -12,7 +12,7 @@ import { Context } from './types';
 
 /**
  * Execute a Multicall3.aggregate3Static call against the latest block
- * using raw eth_call (same as v1).
+ * using raw eth_call.
  *
  * @param context - Subsquid batch context (for chain RPC access)
  * @param calls   - Array of target/callData/allowFailure tuples

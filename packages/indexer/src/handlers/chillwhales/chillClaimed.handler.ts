@@ -9,10 +9,6 @@
  *   - `ChillClaimed` — tracks which Chillwhale NFTs have claimed their CHILL tokens
  *
  * Phase 1 runs on every batch. Phase 2 only runs at chain head to avoid wasteful RPC calls.
- *
- * Port from v1:
- *   - app/handlers/chillClaimedHandler.ts (mint detection + head verification)
- *   - utils/chillClaimed/index.ts (multicall batch logic)
  */
 import { CHILL_ADDRESS, CHILLWHALES_ADDRESS } from '@/constants/chillwhales';
 import { aggregate3StaticLatest } from '@/core/multicall';
@@ -26,7 +22,7 @@ import { getAddress, hexToBool, isAddressEqual, isHex } from 'viem';
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'ChillClaimed';
 
-// Multicall batch size (matching V1)
+// Multicall batch size
 const BATCH_SIZE = 500;
 
 const ChillClaimedHandler: EntityHandler = {
@@ -149,7 +145,7 @@ const ChillClaimedHandler: EntityHandler = {
 
       batchIndex++;
 
-      // Rate limiting: 1 second delay between batches (matching V1)
+      // Rate limiting: 1 second delay between batches
       if (batchIndex < batchesCount) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }

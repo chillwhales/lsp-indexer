@@ -2,7 +2,7 @@
  * Follower entity handler.
  *
  * Subscribes to both Follow and Unfollow entity bags. For Follow events,
- * creates derived `Follower` entities with deterministic IDs matching V1's
+ * creates derived `Follower` entities with deterministic IDs using
  * `generateFollowId` format ("{followerAddress} - {followedAddress}").
  * For Unfollow events, queues deletion of `Follower` entities.
  *
@@ -12,10 +12,7 @@
  * - CRITICAL: Unfollow uses `unfollow.unfollowedAddress` (not `followedAddress`)
  *   when generating the ID for deletion
  * - FKs set to null, enrichment queued for both follower and followed UP FKs
- * - No direct `store.*` calls — follows V2 pipeline conventions
- *
- * Port from v1:
- *   - handlers/followerSystemHandler.ts
+ * - No direct `store.*` calls — follows pipeline conventions
  */
 import { EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';
 import { generateFollowId } from '@/utils';

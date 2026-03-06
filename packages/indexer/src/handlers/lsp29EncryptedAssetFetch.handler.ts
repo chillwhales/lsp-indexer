@@ -20,12 +20,6 @@
  *
  * Empty value path: when url === null, all sub-entities are cleared via queueClear.
  * Head-only gating: IPFS/HTTP fetches only run at chain head.
- *
- * Port from v1:
- *   - utils/dataChanged/lsp29EncryptedAsset.ts (extractSubEntities + clearSubEntities)
- *   - Deletion note: V1 extractSubEntities() directly fetched + parsed.
- *     V2 delegates fetching to handleMetadataFetch() and only provides the
- *     parsing callback.
  */
 import { createComponentLogger } from '@/core/logger';
 import { EntityHandler, HandlerContext } from '@/core/types';
@@ -94,8 +88,6 @@ const SUB_ENTITY_DESCRIPTORS: SubEntityDescriptor[] = [
 
 /**
  * Parse fetched LSP29 encrypted asset JSON into 7 sub-entity types.
- *
- * Port from v1: utils/dataChanged/lsp29EncryptedAsset.ts extractSubEntities()
  */
 function parseAndAddSubEntities(
   entity: LSP29EncryptedAsset,

@@ -94,9 +94,6 @@ export interface MetadataFetchConfig<TEntity extends MetadataEntity> {
 /**
  * Query unfetched entities from the DB with 3-tier priority.
  *
- * Port from V1's lsp3ProfileHandler/lsp4MetadataHandler/lsp29EncryptedAssetHandler.
- * All three V1 handlers use identical priority logic.
- *
  * Priority 1: Never fetched, no errors (fresh entities)
  * Priority 2: Retryable HTTP status codes (408, 429, 5xx)
  * Priority 3: Retryable network error codes (ETIMEDOUT, EPROTO)
@@ -260,7 +257,7 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
     entityById.set(config.getId(entity), entity);
   }
 
-  // Split requests into batches to prevent memory pressure (same pattern as v1)
+  // Split requests into batches to prevent memory pressure
   const batchCount = Math.ceil(requests.length / FETCH_BATCH_SIZE);
   let totalProcessed = 0;
   let totalFailed = 0;

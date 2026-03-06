@@ -31,8 +31,8 @@ export const FETCH_LIMIT = isNumeric(process.env.FETCH_LIMIT)
 /**
  * Number of entities to process in each worker pool batch.
  * Balances memory usage vs throughput. Too large causes OOM, too small is inefficient.
- * V1 uses 1,000 successfully in production, but V2 worker pool appears to hang with
- * large batches. Reduced to 100 to prevent worker pool deadlock/OOM.
+ * Worker pool appears to hang with large batches. Reduced to 100 to prevent
+ * worker pool deadlock/OOM.
  */
 export const FETCH_BATCH_SIZE = isNumeric(process.env.FETCH_BATCH_SIZE)
   ? parseInt(process.env.FETCH_BATCH_SIZE)

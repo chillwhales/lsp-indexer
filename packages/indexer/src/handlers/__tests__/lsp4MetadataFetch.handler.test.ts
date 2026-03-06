@@ -358,7 +358,7 @@ describe('LSP4MetadataFetchHandler - Successful fetch (META-02)', () => {
     expect((catCalls[0][2] as LSP4MetadataCategory).value).toBe('Collectible');
   });
 
-  it('creates Category even when category value is undefined (V1 behavior)', async () => {
+  it('creates Category even when category value is undefined', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx, { isHead: true });
 
