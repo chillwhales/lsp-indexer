@@ -106,6 +106,7 @@ export const FollowerSortFieldSchema = z.enum([
   'followedName',
 ]);
 
+/** Zod schema for follower sort configuration — validates field, direction, and null ordering. */
 export const FollowerSortSchema = z.object({
   /** Which field to sort by */
   field: FollowerSortFieldSchema,
@@ -193,15 +194,25 @@ export const UseIsFollowingParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
+/** Clean camelCase follower relationship after parsing from Hasura. See {@link FollowerSchema}. */
 export type Follower = z.infer<typeof FollowerSchema>;
+/** Follower and following count for an address. See {@link FollowCountSchema}. */
 export type FollowCount = z.infer<typeof FollowCountSchema>;
+/** Follower query filter parameters. See {@link FollowerFilterSchema}. */
 export type FollowerFilter = z.infer<typeof FollowerFilterSchema>;
+/** Available fields for sorting followers. See {@link FollowerSortFieldSchema}. */
 export type FollowerSortField = z.infer<typeof FollowerSortFieldSchema>;
+/** Follower sort configuration. See {@link FollowerSortSchema}. */
 export type FollowerSort = z.infer<typeof FollowerSortSchema>;
+/** Field inclusion config for follower queries. See {@link FollowerIncludeSchema}. */
 export type FollowerInclude = z.infer<typeof FollowerIncludeSchema>;
+/** Parameters for the `useFollows` hook. See {@link UseFollowsParamsSchema}. */
 export type UseFollowsParams = z.infer<typeof UseFollowsParamsSchema>;
+/** Parameters for the `useInfiniteFollows` hook. See {@link UseInfiniteFollowsParamsSchema}. */
 export type UseInfiniteFollowsParams = z.infer<typeof UseInfiniteFollowsParamsSchema>;
+/** Parameters for the `useFollowCount` hook. See {@link UseFollowCountParamsSchema}. */
 export type UseFollowCountParams = z.infer<typeof UseFollowCountParamsSchema>;
+/** Parameters for the `useIsFollowing` hook. See {@link UseIsFollowingParamsSchema}. */
 export type UseIsFollowingParams = z.infer<typeof UseIsFollowingParamsSchema>;
 
 // ---------------------------------------------------------------------------

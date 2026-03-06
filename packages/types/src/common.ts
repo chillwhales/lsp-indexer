@@ -77,9 +77,15 @@ export const Lsp4AttributeSchema = z.object({
 // Inferred types
 // ---------------------------------------------------------------------------
 
+/** Sort direction — `'asc'` or `'desc'`. See {@link SortDirectionSchema}. */
 export type SortDirection = z.infer<typeof SortDirectionSchema>;
+/** Null ordering — `'first'` or `'last'`. See {@link SortNullsSchema}. */
 export type SortNulls = z.infer<typeof SortNullsSchema>;
+/** Metadata image with optional dimensions and verification. See {@link ImageSchema}. */
 export type Image = z.infer<typeof ImageSchema>;
+/** External link with title and URL. See {@link LinkSchema}. */
 export type Link = z.infer<typeof LinkSchema>;
+/** LSP4 metadata attribute (trait/property). See {@link Lsp4AttributeSchema}. */
 export type Lsp4Attribute = z.infer<typeof Lsp4AttributeSchema>;
+/** Asset file (3D model, media) with URL, file type, and verification. See {@link AssetSchema}. */
 export type Asset = z.infer<typeof AssetSchema>;

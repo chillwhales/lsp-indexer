@@ -326,6 +326,12 @@ export const FollowerSubscriptionDocument = graphql(`
   }
 `);
 
+/**
+ * GraphQL document for fetching follower + following counts for an address.
+ *
+ * Uses two aliased `follower_aggregate` queries — one scoped to `followed_address`
+ * (follower count) and one scoped to `follower_address` (following count).
+ */
 export const GetFollowCountDocument = graphql(`
   query GetFollowCount($followerWhere: follower_bool_exp!, $followingWhere: follower_bool_exp!) {
     followerCount: follower_aggregate(where: $followerWhere) {

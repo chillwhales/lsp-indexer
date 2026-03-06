@@ -108,6 +108,7 @@ export const DataChangedEventSortFieldSchema = z.enum([
   'digitalAssetName',
 ]);
 
+/** Zod schema for data changed event sort configuration — validates field, direction, and null ordering. */
 export const DataChangedEventSortSchema = z.object({
   /** Which field to sort by */
   field: DataChangedEventSortFieldSchema,
@@ -187,13 +188,21 @@ export const UseInfiniteDataChangedEventsParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
+/** Clean camelCase data changed event after parsing from Hasura. See {@link DataChangedEventSchema}. */
 export type DataChangedEvent = z.infer<typeof DataChangedEventSchema>;
+/** Data changed event query filter parameters. See {@link DataChangedEventFilterSchema}. */
 export type DataChangedEventFilter = z.infer<typeof DataChangedEventFilterSchema>;
+/** Available fields for sorting data changed events. See {@link DataChangedEventSortFieldSchema}. */
 export type DataChangedEventSortField = z.infer<typeof DataChangedEventSortFieldSchema>;
+/** Data changed event sort configuration. See {@link DataChangedEventSortSchema}. */
 export type DataChangedEventSort = z.infer<typeof DataChangedEventSortSchema>;
+/** Field inclusion config for data changed event queries. See {@link DataChangedEventIncludeSchema}. */
 export type DataChangedEventInclude = z.infer<typeof DataChangedEventIncludeSchema>;
+/** Parameters for the `useLatestDataChangedEvent` hook. See {@link UseLatestDataChangedEventParamsSchema}. */
 export type UseLatestDataChangedEventParams = z.infer<typeof UseLatestDataChangedEventParamsSchema>;
+/** Parameters for the `useDataChangedEvents` hook. See {@link UseDataChangedEventsParamsSchema}. */
 export type UseDataChangedEventsParams = z.infer<typeof UseDataChangedEventsParamsSchema>;
+/** Parameters for the `useInfiniteDataChangedEvents` hook. See {@link UseInfiniteDataChangedEventsParamsSchema}. */
 export type UseInfiniteDataChangedEventsParams = z.infer<
   typeof UseInfiniteDataChangedEventsParamsSchema
 >;

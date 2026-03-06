@@ -120,6 +120,7 @@ export const OwnedTokenSortFieldSchema = z.enum([
   'tokenId',
 ]);
 
+/** Zod schema for owned token sort configuration — validates field, direction, and null ordering. */
 export const OwnedTokenSortSchema = z.object({
   /** Which field to sort by */
   field: OwnedTokenSortFieldSchema,
@@ -201,15 +202,25 @@ export const UseInfiniteOwnedTokensParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
+/** Clean camelCase owned token after parsing from Hasura. See {@link OwnedTokenSchema}. */
 export type OwnedToken = z.infer<typeof OwnedTokenSchema>;
+/** Owned token query filter parameters. See {@link OwnedTokenFilterSchema}. */
 export type OwnedTokenFilter = z.infer<typeof OwnedTokenFilterSchema>;
+/** Available fields for sorting owned tokens. See {@link OwnedTokenSortFieldSchema}. */
 export type OwnedTokenSortField = z.infer<typeof OwnedTokenSortFieldSchema>;
+/** Owned token sort configuration. See {@link OwnedTokenSortSchema}. */
 export type OwnedTokenSort = z.infer<typeof OwnedTokenSortSchema>;
+/** Field inclusion config for owned token queries. See {@link OwnedTokenIncludeSchema}. */
 export type OwnedTokenInclude = z.infer<typeof OwnedTokenIncludeSchema>;
+/** NFT sub-include for owned token context (NftInclude minus collection/holder). See {@link OwnedTokenNftIncludeSchema}. */
 export type OwnedTokenNftInclude = z.infer<typeof OwnedTokenNftIncludeSchema>;
+/** Owned asset sub-include for owned token context. See {@link OwnedTokenOwnedAssetIncludeSchema}. */
 export type OwnedTokenOwnedAssetInclude = z.infer<typeof OwnedTokenOwnedAssetIncludeSchema>;
+/** Parameters for the `useOwnedToken` hook. See {@link UseOwnedTokenParamsSchema}. */
 export type UseOwnedTokenParams = z.infer<typeof UseOwnedTokenParamsSchema>;
+/** Parameters for the `useOwnedTokens` hook. See {@link UseOwnedTokensParamsSchema}. */
 export type UseOwnedTokensParams = z.infer<typeof UseOwnedTokensParamsSchema>;
+/** Parameters for the `useInfiniteOwnedTokens` hook. See {@link UseInfiniteOwnedTokensParamsSchema}. */
 export type UseInfiniteOwnedTokensParams = z.infer<typeof UseInfiniteOwnedTokensParamsSchema>;
 
 // ---------------------------------------------------------------------------

@@ -112,6 +112,7 @@ export const TokenIdDataChangedEventSortFieldSchema = z.enum([
   'nftName',
 ]);
 
+/** Zod schema for token ID data changed event sort configuration — validates field, direction, and null ordering. */
 export const TokenIdDataChangedEventSortSchema = z.object({
   /** Which field to sort by */
   field: TokenIdDataChangedEventSortFieldSchema,
@@ -192,19 +193,27 @@ export const UseInfiniteTokenIdDataChangedEventsParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
+/** Clean camelCase token ID data changed event after parsing from Hasura. See {@link TokenIdDataChangedEventSchema}. */
 export type TokenIdDataChangedEvent = z.infer<typeof TokenIdDataChangedEventSchema>;
+/** Token ID data changed event query filter parameters. See {@link TokenIdDataChangedEventFilterSchema}. */
 export type TokenIdDataChangedEventFilter = z.infer<typeof TokenIdDataChangedEventFilterSchema>;
+/** Available fields for sorting token ID data changed events. See {@link TokenIdDataChangedEventSortFieldSchema}. */
 export type TokenIdDataChangedEventSortField = z.infer<
   typeof TokenIdDataChangedEventSortFieldSchema
 >;
+/** Token ID data changed event sort configuration. See {@link TokenIdDataChangedEventSortSchema}. */
 export type TokenIdDataChangedEventSort = z.infer<typeof TokenIdDataChangedEventSortSchema>;
+/** Field inclusion config for token ID data changed event queries. See {@link TokenIdDataChangedEventIncludeSchema}. */
 export type TokenIdDataChangedEventInclude = z.infer<typeof TokenIdDataChangedEventIncludeSchema>;
+/** Parameters for the `useLatestTokenIdDataChangedEvent` hook. See {@link UseLatestTokenIdDataChangedEventParamsSchema}. */
 export type UseLatestTokenIdDataChangedEventParams = z.infer<
   typeof UseLatestTokenIdDataChangedEventParamsSchema
 >;
+/** Parameters for the `useTokenIdDataChangedEvents` hook. See {@link UseTokenIdDataChangedEventsParamsSchema}. */
 export type UseTokenIdDataChangedEventsParams = z.infer<
   typeof UseTokenIdDataChangedEventsParamsSchema
 >;
+/** Parameters for the `useInfiniteTokenIdDataChangedEvents` hook. See {@link UseInfiniteTokenIdDataChangedEventsParamsSchema}. */
 export type UseInfiniteTokenIdDataChangedEventsParams = z.infer<
   typeof UseInfiniteTokenIdDataChangedEventsParamsSchema
 >;

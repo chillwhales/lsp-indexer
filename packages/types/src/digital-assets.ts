@@ -113,6 +113,7 @@ export const DigitalAssetSortFieldSchema = z.enum([
   'createdAt',
 ]);
 
+/** Zod schema for digital asset sort configuration — validates field, direction, and null ordering. */
 export const DigitalAssetSortSchema = z.object({
   /** Which field to sort by */
   field: DigitalAssetSortFieldSchema,
@@ -184,6 +185,7 @@ export const DigitalAssetIncludeSchema = z.object({
 // Hook parameter schemas
 // ---------------------------------------------------------------------------
 
+/** Zod schema for `useDigitalAsset` hook parameters — validates address and optional include config. */
 export const UseDigitalAssetParamsSchema = z.object({
   /** The digital asset contract address to fetch */
   address: z.string(),
@@ -191,6 +193,7 @@ export const UseDigitalAssetParamsSchema = z.object({
   include: DigitalAssetIncludeSchema.optional(),
 });
 
+/** Zod schema for `useDigitalAssets` hook parameters — validates filter, sort, pagination, and include. */
 export const UseDigitalAssetsParamsSchema = z.object({
   /** Filter criteria (all combine with AND logic) */
   filter: DigitalAssetFilterSchema.optional(),
@@ -204,6 +207,7 @@ export const UseDigitalAssetsParamsSchema = z.object({
   include: DigitalAssetIncludeSchema.optional(),
 });
 
+/** Zod schema for `useInfiniteDigitalAssets` hook parameters — validates filter, sort, page size, and include. */
 export const UseInfiniteDigitalAssetsParamsSchema = z.object({
   /** Filter criteria (all combine with AND logic) */
   filter: DigitalAssetFilterSchema.optional(),
@@ -219,16 +223,27 @@ export const UseInfiniteDigitalAssetsParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
+/** LSP7/LSP8 standard derived from decimals — `'LSP7'` or `'LSP8'`. See {@link StandardSchema}. */
 export type Standard = z.infer<typeof StandardSchema>;
+/** Token type — `'TOKEN'`, `'NFT'`, or `'COLLECTION'`. See {@link TokenTypeSchema}. */
 export type TokenType = z.infer<typeof TokenTypeSchema>;
+/** Digital asset contract owner (controller). See {@link DigitalAssetOwnerSchema}. */
 export type DigitalAssetOwner = z.infer<typeof DigitalAssetOwnerSchema>;
+/** Clean camelCase digital asset after parsing from Hasura. See {@link DigitalAssetSchema}. */
 export type DigitalAsset = z.infer<typeof DigitalAssetSchema>;
+/** Digital asset query filter parameters. See {@link DigitalAssetFilterSchema}. */
 export type DigitalAssetFilter = z.infer<typeof DigitalAssetFilterSchema>;
+/** Available fields for sorting digital assets. See {@link DigitalAssetSortFieldSchema}. */
 export type DigitalAssetSortField = z.infer<typeof DigitalAssetSortFieldSchema>;
+/** Digital asset sort configuration. See {@link DigitalAssetSortSchema}. */
 export type DigitalAssetSort = z.infer<typeof DigitalAssetSortSchema>;
+/** Field inclusion config for digital asset queries. See {@link DigitalAssetIncludeSchema}. */
 export type DigitalAssetInclude = z.infer<typeof DigitalAssetIncludeSchema>;
+/** Parameters for the `useDigitalAsset` hook. See {@link UseDigitalAssetParamsSchema}. */
 export type UseDigitalAssetParams = z.infer<typeof UseDigitalAssetParamsSchema>;
+/** Parameters for the `useDigitalAssets` hook. See {@link UseDigitalAssetsParamsSchema}. */
 export type UseDigitalAssetsParams = z.infer<typeof UseDigitalAssetsParamsSchema>;
+/** Parameters for the `useInfiniteDigitalAssets` hook. See {@link UseInfiniteDigitalAssetsParamsSchema}. */
 export type UseInfiniteDigitalAssetsParams = z.infer<typeof UseInfiniteDigitalAssetsParamsSchema>;
 
 // ---------------------------------------------------------------------------

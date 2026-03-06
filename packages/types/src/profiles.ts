@@ -7,6 +7,7 @@ import type { IncludeResult, PartialExcept } from './include-types';
 // Core domain schemas
 // ---------------------------------------------------------------------------
 
+/** Zod schema for a Universal Profile — validates all fields from the Hasura response after parsing. */
 export const ProfileSchema = z.object({
   /** The Universal Profile contract address (checksummed or lowercase hex) */
   address: z.string(),
@@ -34,6 +35,7 @@ export const ProfileSchema = z.object({
 // Filter & sort schemas
 // ---------------------------------------------------------------------------
 
+/** Zod schema for profile query filters — validates name search, follow relations, and token ownership. */
 export const ProfileFilterSchema = z.object({
   /** Case-insensitive partial match on profile name */
   name: z.string().optional(),
@@ -57,6 +59,7 @@ export const ProfileFilterSchema = z.object({
 /** Fields available for sorting profile lists */
 export const ProfileSortFieldSchema = z.enum(['name', 'followerCount', 'followingCount']);
 
+/** Zod schema for profile sort configuration — validates field, direction, and null ordering. */
 export const ProfileSortSchema = z.object({
   /** Which field to sort by */
   field: ProfileSortFieldSchema,
@@ -108,6 +111,7 @@ export const ProfileIncludeSchema = z.object({
 // Hook parameter schemas
 // ---------------------------------------------------------------------------
 
+/** Zod schema for `useProfile` hook parameters — validates address and optional include config. */
 export const UseProfileParamsSchema = z.object({
   /** The Universal Profile contract address to fetch */
   address: z.string(),
@@ -115,6 +119,7 @@ export const UseProfileParamsSchema = z.object({
   include: ProfileIncludeSchema.optional(),
 });
 
+/** Zod schema for `useProfiles` hook parameters — validates filter, sort, pagination, and include. */
 export const UseProfilesParamsSchema = z.object({
   /** Filter criteria (all combine with AND logic) */
   filter: ProfileFilterSchema.optional(),
@@ -128,6 +133,7 @@ export const UseProfilesParamsSchema = z.object({
   include: ProfileIncludeSchema.optional(),
 });
 
+/** Zod schema for `useInfiniteProfiles` hook parameters — validates filter, sort, page size, and include. */
 export const UseInfiniteProfilesParamsSchema = z.object({
   /** Filter criteria (all combine with AND logic) */
   filter: ProfileFilterSchema.optional(),
@@ -143,13 +149,21 @@ export const UseInfiniteProfilesParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
+/** Clean camelCase Universal Profile after parsing from Hasura. See {@link ProfileSchema}. */
 export type Profile = z.infer<typeof ProfileSchema>;
+/** Profile query filter parameters. See {@link ProfileFilterSchema}. */
 export type ProfileFilter = z.infer<typeof ProfileFilterSchema>;
+/** Profile sort configuration. See {@link ProfileSortSchema}. */
 export type ProfileSort = z.infer<typeof ProfileSortSchema>;
+/** Available fields for sorting profiles. See {@link ProfileSortFieldSchema}. */
 export type ProfileSortField = z.infer<typeof ProfileSortFieldSchema>;
+/** Field inclusion config for profile queries. See {@link ProfileIncludeSchema}. */
 export type ProfileInclude = z.infer<typeof ProfileIncludeSchema>;
+/** Parameters for the `useProfile` hook. See {@link UseProfileParamsSchema}. */
 export type UseProfileParams = z.infer<typeof UseProfileParamsSchema>;
+/** Parameters for the `useProfiles` hook. See {@link UseProfilesParamsSchema}. */
 export type UseProfilesParams = z.infer<typeof UseProfilesParamsSchema>;
+/** Parameters for the `useInfiniteProfiles` hook. See {@link UseInfiniteProfilesParamsSchema}. */
 export type UseInfiniteProfilesParams = z.infer<typeof UseInfiniteProfilesParamsSchema>;
 
 // ---------------------------------------------------------------------------

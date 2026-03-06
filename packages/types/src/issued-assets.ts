@@ -93,6 +93,7 @@ export const IssuedAssetSortFieldSchema = z.enum([
   'digitalAssetName',
 ]);
 
+/** Zod schema for issued asset sort configuration — validates field, direction, and null ordering. */
 export const IssuedAssetSortSchema = z.object({
   /** Which field to sort by */
   field: IssuedAssetSortFieldSchema,
@@ -154,12 +155,19 @@ export const UseInfiniteIssuedAssetsParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
+/** Clean camelCase issued asset after parsing from Hasura. See {@link IssuedAssetSchema}. */
 export type IssuedAsset = z.infer<typeof IssuedAssetSchema>;
+/** Issued asset query filter parameters. See {@link IssuedAssetFilterSchema}. */
 export type IssuedAssetFilter = z.infer<typeof IssuedAssetFilterSchema>;
+/** Available fields for sorting issued assets. See {@link IssuedAssetSortFieldSchema}. */
 export type IssuedAssetSortField = z.infer<typeof IssuedAssetSortFieldSchema>;
+/** Issued asset sort configuration. See {@link IssuedAssetSortSchema}. */
 export type IssuedAssetSort = z.infer<typeof IssuedAssetSortSchema>;
+/** Field inclusion config for issued asset queries. See {@link IssuedAssetIncludeSchema}. */
 export type IssuedAssetInclude = z.infer<typeof IssuedAssetIncludeSchema>;
+/** Parameters for the `useIssuedAssets` hook. See {@link UseIssuedAssetsParamsSchema}. */
 export type UseIssuedAssetsParams = z.infer<typeof UseIssuedAssetsParamsSchema>;
+/** Parameters for the `useInfiniteIssuedAssets` hook. See {@link UseInfiniteIssuedAssetsParamsSchema}. */
 export type UseInfiniteIssuedAssetsParams = z.infer<typeof UseInfiniteIssuedAssetsParamsSchema>;
 
 // ---------------------------------------------------------------------------

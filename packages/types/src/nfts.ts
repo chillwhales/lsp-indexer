@@ -18,7 +18,6 @@ import type { IncludeResult, PartialExcept } from './include-types';
 import {
   ProfileIncludeSchema,
   ProfileSchema,
-  type Profile,
   type ProfileInclude,
   type ProfileResult,
 } from './profiles';
@@ -111,6 +110,7 @@ export const NftFilterSchema = z.object({
 /** Fields available for sorting NFT lists */
 export const NftSortFieldSchema = z.enum(['tokenId', 'formattedTokenId']);
 
+/** Zod schema for NFT sort configuration — validates field, direction, and null ordering. */
 export const NftSortSchema = z.object({
   /** Which field to sort by */
   field: NftSortFieldSchema,
@@ -208,14 +208,23 @@ export const UseInfiniteNftsParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
+/** NFT holder (current token possessor) with profile and timestamp. See {@link NftHolderSchema}. */
 export type NftHolder = z.infer<typeof NftHolderSchema>;
+/** Clean camelCase NFT after parsing from Hasura. See {@link NftSchema}. */
 export type Nft = z.infer<typeof NftSchema>;
+/** NFT query filter parameters. See {@link NftFilterSchema}. */
 export type NftFilter = z.infer<typeof NftFilterSchema>;
+/** Available fields for sorting NFTs. See {@link NftSortFieldSchema}. */
 export type NftSortField = z.infer<typeof NftSortFieldSchema>;
+/** NFT sort configuration. See {@link NftSortSchema}. */
 export type NftSort = z.infer<typeof NftSortSchema>;
+/** Field inclusion config for NFT queries. See {@link NftIncludeSchema}. */
 export type NftInclude = z.infer<typeof NftIncludeSchema>;
+/** Parameters for the `useNft` hook. See {@link UseNftParamsSchema}. */
 export type UseNftParams = z.infer<typeof UseNftParamsSchema>;
+/** Parameters for the `useNfts` hook. See {@link UseNftsParamsSchema}. */
 export type UseNftsParams = z.infer<typeof UseNftsParamsSchema>;
+/** Parameters for the `useInfiniteNfts` hook. See {@link UseInfiniteNftsParamsSchema}. */
 export type UseInfiniteNftsParams = z.infer<typeof UseInfiniteNftsParamsSchema>;
 
 // ---------------------------------------------------------------------------

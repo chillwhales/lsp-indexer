@@ -93,6 +93,7 @@ export const CreatorSortFieldSchema = z.enum([
   'digitalAssetName',
 ]);
 
+/** Zod schema for creator sort configuration — validates field, direction, and null ordering. */
 export const CreatorSortSchema = z.object({
   /** Which field to sort by */
   field: CreatorSortFieldSchema,
@@ -154,12 +155,19 @@ export const UseInfiniteCreatorsParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
+/** Clean camelCase creator after parsing from Hasura. See {@link CreatorSchema}. */
 export type Creator = z.infer<typeof CreatorSchema>;
+/** Creator query filter parameters. See {@link CreatorFilterSchema}. */
 export type CreatorFilter = z.infer<typeof CreatorFilterSchema>;
+/** Available fields for sorting creators. See {@link CreatorSortFieldSchema}. */
 export type CreatorSortField = z.infer<typeof CreatorSortFieldSchema>;
+/** Creator sort configuration. See {@link CreatorSortSchema}. */
 export type CreatorSort = z.infer<typeof CreatorSortSchema>;
+/** Field inclusion config for creator queries. See {@link CreatorIncludeSchema}. */
 export type CreatorInclude = z.infer<typeof CreatorIncludeSchema>;
+/** Parameters for the `useCreators` hook. See {@link UseCreatorsParamsSchema}. */
 export type UseCreatorsParams = z.infer<typeof UseCreatorsParamsSchema>;
+/** Parameters for the `useInfiniteCreators` hook. See {@link UseInfiniteCreatorsParamsSchema}. */
 export type UseInfiniteCreatorsParams = z.infer<typeof UseInfiniteCreatorsParamsSchema>;
 
 // ---------------------------------------------------------------------------

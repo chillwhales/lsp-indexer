@@ -123,6 +123,7 @@ export const UniversalReceiverEventSortFieldSchema = z.enum([
   'fromAssetName',
 ]);
 
+/** Zod schema for universal receiver event sort configuration — validates field, direction, and null ordering. */
 export const UniversalReceiverEventSortSchema = z.object({
   /** Which field to sort by */
   field: UniversalReceiverEventSortFieldSchema,
@@ -196,14 +197,21 @@ export const UseInfiniteUniversalReceiverEventsParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
+/** Clean camelCase universal receiver event after parsing from Hasura. See {@link UniversalReceiverEventSchema}. */
 export type UniversalReceiverEvent = z.infer<typeof UniversalReceiverEventSchema>;
+/** Universal receiver event query filter parameters. See {@link UniversalReceiverEventFilterSchema}. */
 export type UniversalReceiverEventFilter = z.infer<typeof UniversalReceiverEventFilterSchema>;
+/** Available fields for sorting universal receiver events. See {@link UniversalReceiverEventSortFieldSchema}. */
 export type UniversalReceiverEventSortField = z.infer<typeof UniversalReceiverEventSortFieldSchema>;
+/** Universal receiver event sort configuration. See {@link UniversalReceiverEventSortSchema}. */
 export type UniversalReceiverEventSort = z.infer<typeof UniversalReceiverEventSortSchema>;
+/** Field inclusion config for universal receiver event queries. See {@link UniversalReceiverEventIncludeSchema}. */
 export type UniversalReceiverEventInclude = z.infer<typeof UniversalReceiverEventIncludeSchema>;
+/** Parameters for the `useUniversalReceiverEvents` hook. See {@link UseUniversalReceiverEventsParamsSchema}. */
 export type UseUniversalReceiverEventsParams = z.infer<
   typeof UseUniversalReceiverEventsParamsSchema
 >;
+/** Parameters for the `useInfiniteUniversalReceiverEvents` hook. See {@link UseInfiniteUniversalReceiverEventsParamsSchema}. */
 export type UseInfiniteUniversalReceiverEventsParams = z.infer<
   typeof UseInfiniteUniversalReceiverEventsParamsSchema
 >;

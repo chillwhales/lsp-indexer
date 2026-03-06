@@ -90,6 +90,7 @@ export const OwnedAssetSortFieldSchema = z.enum([
   'tokenIdCount',
 ]);
 
+/** Zod schema for owned asset sort configuration — validates field, direction, and null ordering. */
 export const OwnedAssetSortSchema = z.object({
   /** Which field to sort by */
   field: OwnedAssetSortFieldSchema,
@@ -168,13 +169,21 @@ export const UseInfiniteOwnedAssetsParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
+/** Clean camelCase owned asset after parsing from Hasura. See {@link OwnedAssetSchema}. */
 export type OwnedAsset = z.infer<typeof OwnedAssetSchema>;
+/** Owned asset query filter parameters. See {@link OwnedAssetFilterSchema}. */
 export type OwnedAssetFilter = z.infer<typeof OwnedAssetFilterSchema>;
+/** Available fields for sorting owned assets. See {@link OwnedAssetSortFieldSchema}. */
 export type OwnedAssetSortField = z.infer<typeof OwnedAssetSortFieldSchema>;
+/** Owned asset sort configuration. See {@link OwnedAssetSortSchema}. */
 export type OwnedAssetSort = z.infer<typeof OwnedAssetSortSchema>;
+/** Field inclusion config for owned asset queries. See {@link OwnedAssetIncludeSchema}. */
 export type OwnedAssetInclude = z.infer<typeof OwnedAssetIncludeSchema>;
+/** Parameters for the `useOwnedAsset` hook. See {@link UseOwnedAssetParamsSchema}. */
 export type UseOwnedAssetParams = z.infer<typeof UseOwnedAssetParamsSchema>;
+/** Parameters for the `useOwnedAssets` hook. See {@link UseOwnedAssetsParamsSchema}. */
 export type UseOwnedAssetsParams = z.infer<typeof UseOwnedAssetsParamsSchema>;
+/** Parameters for the `useInfiniteOwnedAssets` hook. See {@link UseInfiniteOwnedAssetsParamsSchema}. */
 export type UseInfiniteOwnedAssetsParams = z.infer<typeof UseInfiniteOwnedAssetsParamsSchema>;
 
 // ---------------------------------------------------------------------------

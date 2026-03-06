@@ -183,6 +183,7 @@ export const EncryptedAssetSortFieldSchema = z.enum([
   'arrayIndex',
 ]);
 
+/** Zod schema for encrypted asset sort configuration — validates field, direction, and null ordering. */
 export const EncryptedAssetSortSchema = z.object({
   /** Which field to sort by */
   field: EncryptedAssetSortFieldSchema,
@@ -309,21 +310,35 @@ export const UseInfiniteEncryptedAssetsParamsSchema = z.object({
 // Inferred types (single source of truth — derive from schemas)
 // ---------------------------------------------------------------------------
 
+/** Access control condition for LSP29 encrypted content. See {@link AccessControlConditionSchema}. */
 export type AccessControlCondition = z.infer<typeof AccessControlConditionSchema>;
+/** Encryption metadata for an encrypted asset. See {@link EncryptedAssetEncryptionSchema}. */
 export type EncryptedAssetEncryption = z.infer<typeof EncryptedAssetEncryptionSchema>;
+/** Sub-include for encryption fields. See {@link EncryptedAssetEncryptionIncludeSchema}. */
 export type EncryptedAssetEncryptionInclude = z.infer<typeof EncryptedAssetEncryptionIncludeSchema>;
+/** File metadata for an encrypted asset. See {@link EncryptedAssetFileSchema}. */
 export type EncryptedAssetFile = z.infer<typeof EncryptedAssetFileSchema>;
+/** Sub-include for file metadata fields. See {@link EncryptedAssetFileIncludeSchema}. */
 export type EncryptedAssetFileInclude = z.infer<typeof EncryptedAssetFileIncludeSchema>;
+/** Chunk data for an encrypted asset. See {@link EncryptedAssetChunksSchema}. */
 export type EncryptedAssetChunks = z.infer<typeof EncryptedAssetChunksSchema>;
+/** Sub-include for chunk fields. See {@link EncryptedAssetChunksIncludeSchema}. */
 export type EncryptedAssetChunksInclude = z.infer<typeof EncryptedAssetChunksIncludeSchema>;
-/** Images matrix — `Image[][]` grouped by image_index */
+/** Images matrix — `Image[][]` grouped by image_index. See {@link EncryptedAssetImagesSchema}. */
 export type EncryptedAssetImages = z.infer<typeof EncryptedAssetImagesSchema>;
+/** Clean camelCase encrypted asset after parsing from Hasura. See {@link EncryptedAssetSchema}. */
 export type EncryptedAsset = z.infer<typeof EncryptedAssetSchema>;
+/** Encrypted asset query filter parameters. See {@link EncryptedAssetFilterSchema}. */
 export type EncryptedAssetFilter = z.infer<typeof EncryptedAssetFilterSchema>;
+/** Available fields for sorting encrypted assets. See {@link EncryptedAssetSortFieldSchema}. */
 export type EncryptedAssetSortField = z.infer<typeof EncryptedAssetSortFieldSchema>;
+/** Encrypted asset sort configuration. See {@link EncryptedAssetSortSchema}. */
 export type EncryptedAssetSort = z.infer<typeof EncryptedAssetSortSchema>;
+/** Field inclusion config for encrypted asset queries. See {@link EncryptedAssetIncludeSchema}. */
 export type EncryptedAssetInclude = z.infer<typeof EncryptedAssetIncludeSchema>;
+/** Parameters for the `useEncryptedAssets` hook. See {@link UseEncryptedAssetsParamsSchema}. */
 export type UseEncryptedAssetsParams = z.infer<typeof UseEncryptedAssetsParamsSchema>;
+/** Parameters for the `useInfiniteEncryptedAssets` hook. See {@link UseInfiniteEncryptedAssetsParamsSchema}. */
 export type UseInfiniteEncryptedAssetsParams = z.infer<
   typeof UseInfiniteEncryptedAssetsParamsSchema
 >;
