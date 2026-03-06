@@ -613,8 +613,8 @@ Plans:
 | 10.13 | Universal Receiver Events Sub.    |     1/1      | Complete    |
 | 11    | Server Actions & Publish Ready    |     4/4      | Complete    |
 | 12    | Replace Local Pkgs → @chillwhales |     2/2      | Complete    |
-| 13    | 2/2 | Complete    | 2026-03-06 |
-| 14    | Comments Cleanup & Release Prep   |      4       | Not started |
+| 13    | Indexer v1 Cleanup                |     4/4      | Complete    |
+| 14    | Comments Cleanup & Release Prep   |     0/4      | Planned     |
 | 15    | CI/CD Workflows & Shared Infra    |      4       | Not started |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
@@ -825,11 +825,12 @@ Plans:
 | RELEASE-03 | Test app (`apps/test`) has clear page-level comments and component documentation making it easy for hook consumers to understand usage patterns                    |
 | RELEASE-04 | All 4 publishable packages pass final validation (`publint`, `arethetypeswrong`, `pnpm build`) and are ready for `npm publish`                                     |
 
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] TBD (run `/gsd-plan-phase 14` to break down)
+- [ ] 14-01-PLAN.md — Dead comments sweep + JSDoc completeness audit across all 4 packages
+- [ ] 14-02-PLAN.md — Test app page/component documentation + final build/publish validation
 
 **Success Criteria:**
 
