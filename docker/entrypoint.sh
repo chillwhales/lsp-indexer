@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "🚀 Indexer v2 starting..."
+echo "🚀 Indexer starting..."
 
 # Navigate to typeorm package to run migrations
 cd /app/packages/typeorm
@@ -45,8 +45,8 @@ pnpm hasura:apply
 
 echo "✅ Hasura configured successfully"
 
-# Navigate to indexer-v2 and start
-cd /app/packages/indexer-v2
+# Navigate to indexer and start
+cd /app/packages/indexer
 
 echo "🏃 Starting indexer..."
 exec pnpm start:simple
