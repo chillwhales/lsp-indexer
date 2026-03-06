@@ -1,13 +1,4 @@
-/**
- * Factory for useInfiniteOwnedTokens — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseInfiniteOwnedTokens(queryFn)` with its own fetch:
- * - React: `(p) => fetchOwnedTokens(getClientUrl(), p)`
- * - Next:  `(p) => getOwnedTokens(p)`
- *
- * @see createUseInfinite — the generic factory this wraps
- */
+/** @see createUseInfinite */
 import type { FetchOwnedTokensResult } from '@lsp-indexer/node';
 import { ownedTokenKeys } from '@lsp-indexer/node';
 import type {
@@ -20,16 +11,10 @@ import type {
 import type { UseInfiniteOwnedTokensReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
-/** Params passed to the factory — matches UseInfiniteOwnedTokensParams with optional include */
 type OwnedTokenInfiniteParams = UseInfiniteOwnedTokensParams & {
   include?: OwnedTokenInclude;
 };
 
-/**
- * Create a `useInfiniteOwnedTokens` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for owned token lists (with limit + offset)
- */
 export function createUseInfiniteOwnedTokens(
   queryFn: (
     params: OwnedTokenInfiniteParams & { limit: number; offset: number },

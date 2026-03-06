@@ -1,13 +1,4 @@
-/**
- * Factory for useInfiniteCreators — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseInfiniteCreators(queryFn)` with its own fetch:
- * - React: `(p) => fetchCreators(getClientUrl(), p)`
- * - Next:  `(p) => getCreators(p)`
- *
- * @see createUseInfinite — the generic factory this wraps
- */
+/** @see createUseInfinite */
 import type { FetchCreatorsResult } from '@lsp-indexer/node';
 import { creatorKeys } from '@lsp-indexer/node';
 import type {
@@ -20,16 +11,10 @@ import type {
 import type { UseInfiniteCreatorsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
-/** Params passed to the factory — matches UseInfiniteCreatorsParams with optional include */
 type CreatorsInfiniteParams = UseInfiniteCreatorsParams & {
   include?: CreatorInclude;
 };
 
-/**
- * Create a `useInfiniteCreators` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for creator lists (with limit + offset)
- */
 export function createUseInfiniteCreators(
   queryFn: (
     params: CreatorsInfiniteParams & { limit: number; offset: number },

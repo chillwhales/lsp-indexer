@@ -1,13 +1,4 @@
-/**
- * Factory for useInfiniteOwnedAssets — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseInfiniteOwnedAssets(queryFn)` with its own fetch:
- * - React: `(p) => fetchOwnedAssets(getClientUrl(), p)`
- * - Next:  `(p) => getOwnedAssets(p)`
- *
- * @see createUseInfinite — the generic factory this wraps
- */
+/** @see createUseInfinite */
 import type { FetchOwnedAssetsResult } from '@lsp-indexer/node';
 import { ownedAssetKeys } from '@lsp-indexer/node';
 import type {
@@ -20,16 +11,10 @@ import type {
 import type { UseInfiniteOwnedAssetsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
-/** Params passed to the factory — matches UseInfiniteOwnedAssetsParams with optional include */
 type OwnedAssetInfiniteParams = UseInfiniteOwnedAssetsParams & {
   include?: OwnedAssetInclude;
 };
 
-/**
- * Create a `useInfiniteOwnedAssets` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for owned asset lists (with limit + offset)
- */
 export function createUseInfiniteOwnedAssets(
   queryFn: (
     params: OwnedAssetInfiniteParams & { limit: number; offset: number },

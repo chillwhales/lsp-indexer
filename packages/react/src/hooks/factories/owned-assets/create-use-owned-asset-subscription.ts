@@ -1,16 +1,4 @@
-/**
- * Factory for useOwnedAssetSubscription — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseOwnedAssetSubscription(useSubscription)` with its
- * own hook (bound to the package-specific context).
- *
- * Domain-specific config assembly (document, variables, extract, parser) is
- * delegated to `buildOwnedAssetSubscriptionConfig` in the node service layer.
- *
- * @see createUseSubscription — produces the `useSubscription` hook this factory consumes
- * @see buildOwnedAssetSubscriptionConfig — node service that builds the subscription config
- */
+/** @see createUseSubscription */
 import { buildOwnedAssetSubscriptionConfig, ownedAssetKeys } from '@lsp-indexer/node';
 import type {
   OwnedAsset,
@@ -23,11 +11,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DEFAULT_SUBSCRIPTION_LIMIT } from '../../../constants';
 import { UseOwnedAssetSubscriptionParams, UseSubscriptionFn } from '../../types';
 
-/**
- * Create a `useOwnedAssetSubscription` hook bound to a specific `useSubscription`.
- *
- * @param useSubscription - The package-specific useSubscription hook
- */
 export function createUseOwnedAssetSubscription(useSubscription: UseSubscriptionFn) {
   function useOwnedAssetSubscription<const I extends OwnedAssetInclude>(
     params: UseOwnedAssetSubscriptionParams & {

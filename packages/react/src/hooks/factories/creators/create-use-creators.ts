@@ -1,12 +1,4 @@
-/**
- * Factory for useCreators — shared between `@lsp-indexer/react` and `@lsp-indexer/next`.
- *
- * Each package calls `createUseCreators(queryFn)` with its own fetch function:
- * - React: `(p) => fetchCreators(getClientUrl(), p)`
- * - Next:  `(p) => getCreators(p)`
- *
- * @see createUseList — the generic factory this wraps
- */
+/** @see createUseList */
 import type { FetchCreatorsResult } from '@lsp-indexer/node';
 import { creatorKeys } from '@lsp-indexer/node';
 import type {
@@ -19,14 +11,8 @@ import type {
 import type { UseCreatorsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
-/** Params passed to the factory's queryFn */
 type CreatorsListParams = UseCreatorsParams & { include?: CreatorInclude };
 
-/**
- * Create a `useCreators` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for creator lists
- */
 export function createUseCreators(
   queryFn: (params: CreatorsListParams) => Promise<FetchCreatorsResult<PartialCreator>>,
 ) {

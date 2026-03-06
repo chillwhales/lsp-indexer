@@ -1,13 +1,4 @@
-/**
- * Factory for useInfiniteNfts — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseInfiniteNfts(queryFn)` with its own fetch:
- * - React: `(p) => fetchNfts(getClientUrl(), p)`
- * - Next:  `(p) => getNfts(p)`
- *
- * @see createUseInfinite — the generic factory this wraps
- */
+/** @see createUseInfinite */
 import type { FetchNftsResult } from '@lsp-indexer/node';
 import { nftKeys } from '@lsp-indexer/node';
 import type {
@@ -20,14 +11,8 @@ import type {
 import type { UseInfiniteNftsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
-/** Params passed to the factory — matches UseInfiniteNftsParams with optional include */
 type NftInfiniteParams = UseInfiniteNftsParams & { include?: NftInclude };
 
-/**
- * Create a `useInfiniteNfts` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for NFT lists (with limit + offset)
- */
 export function createUseInfiniteNfts(
   queryFn: (
     params: NftInfiniteParams & { limit: number; offset: number },

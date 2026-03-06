@@ -1,13 +1,4 @@
-/**
- * Factory for useLatestDataChangedEvent — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseLatestDataChangedEvent(queryFn)` with its own fetch:
- * - React: `(p) => fetchLatestDataChangedEvent(getClientUrl(), p)`
- * - Next:  `(p) => getLatestDataChangedEvent(p)`
- *
- * @see createUseDetail — the generic factory this wraps
- */
+/** @see createUseDetail */
 import { dataChangedEventKeys } from '@lsp-indexer/node';
 import type {
   DataChangedEvent,
@@ -19,16 +10,10 @@ import type {
 import type { UseLatestDataChangedEventReturn } from '../../types';
 import { createUseDetail } from '../create-use-detail';
 
-/** Params passed to the factory's queryFn — filter + optional include */
 type LatestDataChangedEventParams = UseLatestDataChangedEventParams & {
   include?: DataChangedEventInclude;
 };
 
-/**
- * Create a `useLatestDataChangedEvent` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for the latest data changed event
- */
 export function createUseLatestDataChangedEvent(
   queryFn: (params: LatestDataChangedEventParams) => Promise<PartialDataChangedEvent | null>,
 ) {

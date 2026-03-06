@@ -1,16 +1,4 @@
-/**
- * Factory for useEncryptedAssetSubscription — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseEncryptedAssetSubscription(useSubscription)` with its
- * own hook (bound to the package-specific context).
- *
- * Domain-specific config assembly (document, variables, extract, parser) is
- * delegated to `buildEncryptedAssetSubscriptionConfig` in the node service layer.
- *
- * @see createUseSubscription — produces the `useSubscription` hook this factory consumes
- * @see buildEncryptedAssetSubscriptionConfig — node service that builds the subscription config
- */
+/** @see createUseSubscription */
 import { buildEncryptedAssetSubscriptionConfig, encryptedAssetKeys } from '@lsp-indexer/node';
 import type {
   EncryptedAsset,
@@ -23,11 +11,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DEFAULT_SUBSCRIPTION_LIMIT } from '../../../constants';
 import { UseEncryptedAssetSubscriptionParams, UseSubscriptionFn } from '../../types';
 
-/**
- * Create a `useEncryptedAssetSubscription` hook bound to a specific `useSubscription`.
- *
- * @param useSubscription - The package-specific useSubscription hook
- */
 export function createUseEncryptedAssetSubscription(useSubscription: UseSubscriptionFn) {
   function useEncryptedAssetSubscription<const I extends EncryptedAssetInclude>(
     params: UseEncryptedAssetSubscriptionParams & {

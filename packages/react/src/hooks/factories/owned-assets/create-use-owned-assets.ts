@@ -1,12 +1,4 @@
-/**
- * Factory for useOwnedAssets — shared between `@lsp-indexer/react` and `@lsp-indexer/next`.
- *
- * Each package calls `createUseOwnedAssets(queryFn)` with its own fetch function:
- * - React: `(p) => fetchOwnedAssets(getClientUrl(), p)`
- * - Next:  `(p) => getOwnedAssets(p)`
- *
- * @see createUseList — the generic factory this wraps
- */
+/** @see createUseList */
 import type { FetchOwnedAssetsResult } from '@lsp-indexer/node';
 import { ownedAssetKeys } from '@lsp-indexer/node';
 import type {
@@ -19,14 +11,8 @@ import type {
 import type { UseOwnedAssetsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
-/** Params passed to the factory's queryFn */
 type OwnedAssetListParams = UseOwnedAssetsParams & { include?: OwnedAssetInclude };
 
-/**
- * Create a `useOwnedAssets` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for owned asset lists
- */
 export function createUseOwnedAssets(
   queryFn: (params: OwnedAssetListParams) => Promise<FetchOwnedAssetsResult<PartialOwnedAsset>>,
 ) {

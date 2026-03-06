@@ -1,12 +1,4 @@
-/**
- * Factory for useEncryptedAssets — shared between `@lsp-indexer/react` and `@lsp-indexer/next`.
- *
- * Each package calls `createUseEncryptedAssets(queryFn)` with its own fetch function:
- * - React: `(p) => fetchEncryptedAssets(getClientUrl(), p)`
- * - Next:  `(p) => getEncryptedAssets(p)`
- *
- * @see createUseList — the generic factory this wraps
- */
+/** @see createUseList */
 import type { FetchEncryptedAssetsResult } from '@lsp-indexer/node';
 import { encryptedAssetKeys } from '@lsp-indexer/node';
 import type {
@@ -19,14 +11,8 @@ import type {
 import type { UseEncryptedAssetsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
-/** Params passed to the factory's queryFn */
 type EncryptedAssetsListParams = UseEncryptedAssetsParams & { include?: EncryptedAssetInclude };
 
-/**
- * Create a `useEncryptedAssets` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for encrypted asset lists
- */
 export function createUseEncryptedAssets(
   queryFn: (
     params: EncryptedAssetsListParams,

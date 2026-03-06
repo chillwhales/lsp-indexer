@@ -1,16 +1,4 @@
-/**
- * Factory for useOwnedTokenSubscription — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseOwnedTokenSubscription(useSubscription)` with its
- * own hook (bound to the package-specific context).
- *
- * Domain-specific config assembly (document, variables, extract, parser) is
- * delegated to `buildOwnedTokenSubscriptionConfig` in the node service layer.
- *
- * @see createUseSubscription — produces the `useSubscription` hook this factory consumes
- * @see buildOwnedTokenSubscriptionConfig — node service that builds the subscription config
- */
+/** @see createUseSubscription */
 import { buildOwnedTokenSubscriptionConfig, ownedTokenKeys } from '@lsp-indexer/node';
 import type {
   OwnedToken,
@@ -23,11 +11,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DEFAULT_SUBSCRIPTION_LIMIT } from '../../../constants';
 import { UseOwnedTokenSubscriptionParams, UseSubscriptionFn } from '../../types';
 
-/**
- * Create a `useOwnedTokenSubscription` hook bound to a specific `useSubscription`.
- *
- * @param useSubscription - The package-specific useSubscription hook
- */
 export function createUseOwnedTokenSubscription(useSubscription: UseSubscriptionFn) {
   function useOwnedTokenSubscription<const I extends OwnedTokenInclude>(
     params: UseOwnedTokenSubscriptionParams & {

@@ -1,10 +1,9 @@
 /**
- * Shared useSubscription hook factory.
+ * Generic factory for subscription hooks.
  *
- * Both `@lsp-indexer/react` and `@lsp-indexer/next` import this factory
- * and pass their own `useSubscriptionClient` context hook to produce a
- * package-specific `useSubscription`. This eliminates the ~130-line
- * duplication between the two packages.
+ * Domain subscription factories accept the already-instantiated `useSubscription` hook
+ * rather than wrapping this factory directly, because `useSubscription` is context-bound
+ * (React uses direct WebSocket context, Next.js uses a proxy context).
  */
 import type { SubscriptionConfig } from '@lsp-indexer/node';
 import type { SubscriptionInstance, UseSubscriptionReturn } from '@lsp-indexer/types';

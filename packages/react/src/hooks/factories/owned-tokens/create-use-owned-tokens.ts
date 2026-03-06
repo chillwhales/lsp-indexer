@@ -1,12 +1,4 @@
-/**
- * Factory for useOwnedTokens — shared between `@lsp-indexer/react` and `@lsp-indexer/next`.
- *
- * Each package calls `createUseOwnedTokens(queryFn)` with its own fetch function:
- * - React: `(p) => fetchOwnedTokens(getClientUrl(), p)`
- * - Next:  `(p) => getOwnedTokens(p)`
- *
- * @see createUseList — the generic factory this wraps
- */
+/** @see createUseList */
 import type { FetchOwnedTokensResult } from '@lsp-indexer/node';
 import { ownedTokenKeys } from '@lsp-indexer/node';
 import type {
@@ -19,14 +11,8 @@ import type {
 import type { UseOwnedTokensReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
-/** Params passed to the factory's queryFn */
 type OwnedTokenListParams = UseOwnedTokensParams & { include?: OwnedTokenInclude };
 
-/**
- * Create a `useOwnedTokens` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for owned token lists
- */
 export function createUseOwnedTokens(
   queryFn: (params: OwnedTokenListParams) => Promise<FetchOwnedTokensResult<PartialOwnedToken>>,
 ) {

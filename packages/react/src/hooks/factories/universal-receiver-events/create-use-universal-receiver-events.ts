@@ -1,13 +1,4 @@
-/**
- * Factory for useUniversalReceiverEvents — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseUniversalReceiverEvents(queryFn)` with its own fetch:
- * - React: `(p) => fetchUniversalReceiverEvents(getClientUrl(), p)`
- * - Next:  `(p) => getUniversalReceiverEvents(p)`
- *
- * @see createUseList — the generic factory this wraps
- */
+/** @see createUseList */
 import type { FetchUniversalReceiverEventsResult } from '@lsp-indexer/node';
 import { universalReceiverEventKeys } from '@lsp-indexer/node';
 import type {
@@ -20,16 +11,10 @@ import type {
 import type { UseUniversalReceiverEventsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
-/** Params passed to the factory's queryFn */
 type UniversalReceiverEventsListParams = UseUniversalReceiverEventsParams & {
   include?: UniversalReceiverEventInclude;
 };
 
-/**
- * Create a `useUniversalReceiverEvents` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for universal receiver event lists
- */
 export function createUseUniversalReceiverEvents(
   queryFn: (
     params: UniversalReceiverEventsListParams,

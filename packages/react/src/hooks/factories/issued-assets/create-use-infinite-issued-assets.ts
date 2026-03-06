@@ -1,13 +1,4 @@
-/**
- * Factory for useInfiniteIssuedAssets — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseInfiniteIssuedAssets(queryFn)` with its own fetch:
- * - React: `(p) => fetchIssuedAssets(getClientUrl(), p)`
- * - Next:  `(p) => getIssuedAssets(p)`
- *
- * @see createUseInfinite — the generic factory this wraps
- */
+/** @see createUseInfinite */
 import type { FetchIssuedAssetsResult } from '@lsp-indexer/node';
 import { issuedAssetKeys } from '@lsp-indexer/node';
 import type {
@@ -20,16 +11,10 @@ import type {
 import type { UseInfiniteIssuedAssetsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
-/** Params passed to the factory — matches UseInfiniteIssuedAssetsParams with optional include */
 type IssuedAssetsInfiniteParams = UseInfiniteIssuedAssetsParams & {
   include?: IssuedAssetInclude;
 };
 
-/**
- * Create a `useInfiniteIssuedAssets` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for issued asset lists (with limit + offset)
- */
 export function createUseInfiniteIssuedAssets(
   queryFn: (
     params: IssuedAssetsInfiniteParams & { limit: number; offset: number },
