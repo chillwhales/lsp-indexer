@@ -79,11 +79,5 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Build abi
-        run: pnpm --filter=@chillwhales/abi build
-
-      - name: Build typeorm
-        run: pnpm --filter=@chillwhales/typeorm build
-
-      - name: Build indexer
-        run: pnpm --filter=@chillwhales/indexer build
+      - name: Build all packages
+        run: pnpm build
