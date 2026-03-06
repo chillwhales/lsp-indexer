@@ -613,7 +613,7 @@ Plans:
 | 10.13 | Universal Receiver Events Sub.    |     1/1      | Complete    |
 | 11    | Server Actions & Publish Ready    |     4/4      | Complete    |
 | 12    | Replace Local Pkgs → @chillwhales |     2/2      | Complete    |
-| 13    | 1/2 | In Progress|  |
+| 13    | 2/2 | Complete   | 2026-03-06 |
 | 14    | Comments Cleanup & Release Prep   |      4       | Not started |
 | 15    | CI/CD Workflows & Shared Infra    |      4       | Not started |
 
@@ -795,7 +795,7 @@ Plans:
 | CLEAN-03 | Root `package.json` scripts updated: v1 `start` removed, `start:v2` promoted to `start`, no dead references to `@chillwhales/indexer` (v1 package name) |
 | CLEAN-04 | All config files (ESLint ignores, workspace config, tsconfig references) updated to reflect the renamed package — zero stale paths                      |
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 

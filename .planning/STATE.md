@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-last_updated: '2026-03-06T09:38:56Z'
-last_activity: 2026-03-06 — Phase 13 plan 01 complete (delete v1, rename v2 to canonical, update configs)
+last_updated: '2026-03-06T09:50:59Z'
+last_activity: 2026-03-06 — Phase 13 plan 02 complete (comparison-tool cleanup, documentation sweep)
 progress:
   total_phases: 45
   completed_phases: 36
   total_plans: 113
-  completed_plans: 101
-  percent: 89
+  completed_plans: 102
+  percent: 91
 ---
 
 # State: LSP Indexer
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 ## Current Position
 
-- **Phase:** 13 of 15 (Indexer v1 Cleanup) — **In Progress**
-- **Plan:** 1 of 2 in current phase
-- **Status:** Executing
-- **Last activity:** 2026-03-06 — Phase 13 plan 01 complete (delete v1, rename v2 to canonical, update configs)
-- **Progress:** [█████████░] 89%
+- **Phase:** 13 of 15 (Indexer v1 Cleanup) — **Complete**
+- **Plan:** 2 of 2 in current phase
+- **Status:** Phase Complete
+- **Last activity:** 2026-03-06 — Phase 13 plan 02 complete (comparison-tool cleanup, documentation sweep)
+- **Progress:** [█████████░] 91%
 
 ## Milestone History
 
@@ -73,7 +73,7 @@ Archives: `.planning/milestones/v1.0-ROADMAP.md`, `.planning/milestones/v1.0-REQ
 | 10    | Subscriptions                                |      1       | Active   |
 | 11    | Server Actions & Publish Readiness           |     4/4      | Complete |
 | 12    | Replace Local Packages with @chillwhales NPM |     4/4      | Complete |
-| 13    | Indexer v1 Cleanup                           |     4/4      | Active   |
+| 13    | Indexer v1 Cleanup                           |     4/4      | Complete |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
@@ -81,9 +81,9 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 104 (36 v1.0 + 68 v1.1)
+- **Plans completed:** 105 (36 v1.0 + 69 v1.1)
 - **Plans failed:** 0
-- **Phases completed:** 40 (11 v1.0 + 29 v1.1 including all Phase 9 sub-phases + Phase 10.1 through Phase 10.13 + Phase 11 + Phase 12)
+- **Phases completed:** 41 (11 v1.0 + 30 v1.1 including all Phase 9 sub-phases + Phase 10.1 through Phase 10.13 + Phase 11 + Phase 12 + Phase 13)
 - **Requirements delivered:** 45/45 (v1.0), 30/30 (v1.1)
 
 ## Accumulated Context
@@ -244,16 +244,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-06
-- **Activity:** Executed Phase 13 plan 01 (delete v1, rename v2 to canonical, update configs) — 3 tasks, 3 commits
-- **Outcome:** Deleted v1 indexer + Docker, renamed v2 to canonical packages/indexer/ with @chillwhales/indexer, promoted Docker to flat docker/, updated root scripts/eslint/CI/.env.example. Build validates.
-- **Resume file:** .planning/phases/13-indexer-v1-cleanup/13-01-SUMMARY.md
+- **Activity:** Executed Phase 13 plan 02 (comparison-tool cleanup, documentation sweep) — 2 tasks, 2 commits
+- **Outcome:** Removed v1-v2 mode from comparison-tool (~400 lines deleted), swept all docs to eliminate v1/v2 refs, deleted legacy planning artifacts. Phase 13 complete.
+- **Resume file:** .planning/phases/13-indexer-v1-cleanup/13-02-SUMMARY.md
 
 ### Context for Next Session
 
-- **Phase 13 plan 01 complete** — All v1 code/Docker deleted, v2 promoted to canonical
-- **Ready for Phase 13 plan 02** — Documentation cleanup across docs/ and .planning references
+- **Phase 13 complete** — All v1 code, Docker, comparison-tool mode, and documentation cleaned up
+- **Ready for Phase 14** — Code comments cleanup & release prep
 - **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
 
 ---
 
-_Last updated: 2026-03-06 — Phase 13 plan 01 complete (delete v1, rename v2 to canonical, update configs, CLEAN-01–04)_
+_Last updated: 2026-03-06 — Phase 13 complete (plan 02: comparison-tool cleanup, documentation sweep)_
