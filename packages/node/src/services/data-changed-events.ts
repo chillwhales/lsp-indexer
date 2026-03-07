@@ -109,7 +109,7 @@ export function buildDataChangedEventWhere(filter?: DataChangedEventFilter): Dat
   }
 
   if (conditions.length === 0) return {};
-  if (conditions.length === 1) return conditions[0]!;
+  if (conditions.length === 1) return conditions[0];
   return { _and: conditions };
 }
 

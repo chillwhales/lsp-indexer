@@ -21,7 +21,7 @@ export async function register() {
     });
 
     server.listen(port, () => {
-      console.log(`[ws-proxy] WebSocket proxy listening on :${port}`);
+      console.info(`[ws-proxy] WebSocket proxy listening on :${port}`);
     });
   }
 }

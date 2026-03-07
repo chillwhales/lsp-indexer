@@ -165,7 +165,7 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
     this.subscriptions.clear();
 
     // Then dispose the WebSocket client
-    this.wsClient?.dispose();
+    void this.wsClient?.dispose();
     this.wsClient = null;
     this.setState('disconnected');
     this.listeners.clear();

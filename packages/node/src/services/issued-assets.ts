@@ -82,7 +82,7 @@ export function buildIssuedAssetWhere(filter?: IssuedAssetFilter): Lsp12_Issued_
   }
 
   if (conditions.length === 0) return {};
-  if (conditions.length === 1) return conditions[0]!;
+  if (conditions.length === 1) return conditions[0];
   return { _and: conditions };
 }
 

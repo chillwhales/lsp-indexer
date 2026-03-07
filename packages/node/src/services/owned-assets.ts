@@ -62,7 +62,7 @@ export function buildOwnedAssetWhere(filter?: OwnedAssetFilter): Owned_Asset_Boo
   }
 
   if (conditions.length === 0) return {};
-  if (conditions.length === 1) return conditions[0]!;
+  if (conditions.length === 1) return conditions[0];
   return { _and: conditions };
 }
 

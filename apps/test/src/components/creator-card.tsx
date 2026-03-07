@@ -19,7 +19,7 @@ export interface CreatorCardProps {
 }
 
 /** LSP4 creator record card. Shows creator-to-asset relationship. */
-export function CreatorCard({ creator, index }: CreatorCardProps): React.ReactNode {
+export function CreatorCard({ creator, index: _index }: CreatorCardProps): React.ReactNode {
   const creatorProfile = 'creatorProfile' in creator ? creator.creatorProfile : null;
   const digitalAsset = 'digitalAsset' in creator ? creator.digitalAsset : null;
 

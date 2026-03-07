@@ -74,7 +74,7 @@ export function buildNftWhere(filter?: NftFilter): Nft_Bool_Exp {
   }
 
   if (conditions.length === 0) return {};
-  if (conditions.length === 1) return conditions[0]!;
+  if (conditions.length === 1) return conditions[0];
   return { _and: conditions };
 }
 
@@ -231,7 +231,7 @@ export async function fetchNft(
   }
 
   const result = await execute(url, GetNftDocument, {
-    where: conditions.length === 1 ? conditions[0]! : { _and: conditions },
+    where: conditions.length === 1 ? conditions[0] : { _and: conditions },
     ...includeVars,
   });
 
