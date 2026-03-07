@@ -548,6 +548,7 @@ export default function FollowsPage(): React.ReactNode {
       description={
         <>
           Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollows</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteFollows</code>,{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowCount</code>,{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useIsFollowing</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowerSubscription</code>{' '}

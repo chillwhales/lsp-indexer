@@ -525,8 +525,7 @@ export default function NftsPage(): React.ReactNode {
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteNfts</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useNftSubscription</code> hooks
           against live Hasura data. Filter by collection address to exercise the{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useNftsByCollection</code> pattern
-          pattern.
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useNftsByCollection</code> pattern.
         </>
       }
       tabs={[
