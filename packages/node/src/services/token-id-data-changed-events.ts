@@ -201,13 +201,11 @@ export function buildTokenIdDataChangedEventIncludeVars(
 // ---------------------------------------------------------------------------
 
 export interface FetchTokenIdDataChangedEventsResult<P = TokenIdDataChangedEvent> {
-  /** Parsed token ID data changed event records for the current page (narrowed by include) */
   tokenIdDataChangedEvents: P[];
-  /** Total number of token ID data changed event records matching the filter (for pagination UI) */
   totalCount: number;
 }
 
-/** Fetch a paginated list of ERC725Y per-token data changed event records with filtering,. */
+/** Fetch a paginated list of ERC725Y per-token data changed event records. */
 export async function fetchTokenIdDataChangedEvents(
   url: string,
   params?: {
@@ -274,16 +272,7 @@ export async function fetchTokenIdDataChangedEvents(
   };
 }
 
-/**
- * Fetch the most recent TokenIdDataChanged event matching the given filter.
- *
- * Internally queries with `limit: 1` sorted by `timestamp desc` to return
- * the latest event for a given address + tokenId + data key combination.
- *
- * The `dataKeyName` filter field accepts human-readable ERC725Y key names
- * (e.g., 'LSP4Metadata') — the service layer resolves them to hex automatically.
- *
- */
+/** Fetch the most recent TokenIdDataChanged event matching the given filter. */
 export async function fetchLatestTokenIdDataChangedEvent(
   url: string,
   params?: { filter?: TokenIdDataChangedEventFilter },
@@ -326,13 +315,7 @@ export async function fetchLatestTokenIdDataChangedEvent(
 type RawTokenIdDataChangedEventSubscriptionRow =
   TokenIdDataChangedEventSubscriptionSubscription['token_id_data_changed'][number];
 
-/**
- * Build a token ID data changed event subscription config (document, variables, extract, parser).
- *
- * EVENT domain — defaults to block-order desc sort when no sort is provided
- * (block_number desc → transaction_index desc → log_index desc).
- *
- */
+/** Build subscription config for useSubscription. */
 export function buildTokenIdDataChangedEventSubscriptionConfig(params: {
   filter?: TokenIdDataChangedEventFilter;
   sort?: TokenIdDataChangedEventSort;

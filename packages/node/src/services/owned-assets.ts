@@ -90,27 +90,7 @@ function buildOwnedAssetOrderBy(sort?: OwnedAssetSort): Owned_Asset_Order_By[] |
   }
 }
 
-/**
- * Translate an `OwnedAssetInclude` to GraphQL boolean variables for `@include` directives.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
- *
- * **Direct column includes:**
- * - `balance`, `block`, `timestamp` map to `includeBalance`, `includeBlock`, `includeTimestamp`.
- *
- * **Digital asset sub-includes:**
- * - When `include.digitalAsset` has at least one truthy sub-field → `includeDigitalAsset: true`
- *   with sub-include variables from `buildDigitalAssetIncludeVars`.
- * - When `include.digitalAsset` is `undefined`, `{}`, or all-false → `includeDigitalAsset: false`.
- *
- * **Holder (universal profile) sub-includes:**
- * - Same pattern as digital asset — only included when at least one sub-field is truthy.
- *   Variable name: `includeHolder` (maps to `$includeHolder` in GraphQL document).
- */
+/** Build @include directive variables from include config. */
 function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> {
   if (!include) {
     // Omitted = include everything (GraphQL defaults all Boolean! = true)
@@ -144,14 +124,7 @@ function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> 
   return vars;
 }
 
-/**
- * Build owned-asset sub-include variables for use in cross-domain contexts.
- *
- * Used by owned-tokens when building include variables for the nested `ownedAsset` relation.
- * Maps `OwnedTokenOwnedAssetInclude` fields to `includeOwnedAsset*` prefixed variables.
- *
- * Returns `{}` when include is undefined (GraphQL defaults all to true).
- */
+/** Build owned-asset sub-include variables for cross-domain contexts. */
 export function buildOwnedAssetIncludeVars(
   include?: boolean | OwnedTokenOwnedAssetInclude,
 ): Record<string, boolean> {
@@ -176,18 +149,7 @@ export function buildOwnedAssetIncludeVars(
 /** Raw subscription row type extracted from codegen. */
 type RawOwnedAssetSubscriptionRow = OwnedAssetSubscriptionSubscription['owned_asset'][number];
 
-/**
- * Build an owned asset subscription config (document, variables, extract, parser).
- *
- * Encapsulates the domain-specific assembly that `createUseOwnedAssetSubscription`
- * needs — mirroring how `fetchOwnedAssets` encapsulates query assembly. Keeps the
- * React hook factory focused on hook lifecycle rather than domain plumbing.
- *
- * The return type is inferred so the 4-generic chain
- * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
- * `useSubscription` without any casts or `unknown` holes.
- *
- */
+/** Build subscription config for useSubscription. */
 export function buildOwnedAssetSubscriptionConfig(params: {
   filter?: OwnedAssetFilter;
   sort?: OwnedAssetSort;
@@ -216,14 +178,7 @@ export function buildOwnedAssetSubscriptionConfig(params: {
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Fetch a single owned asset by ID.
- *
- * Translates the ID to a Hasura `where` clause, executes the query,
- * and returns the first result parsed as a clean `OwnedAsset`, or `null` if
- * the ID doesn't exist.
- *
- */
+/** Fetch a single owned asset by ID. */
 export async function fetchOwnedAsset(
   url: string,
   params: { id: string },
@@ -254,9 +209,7 @@ export async function fetchOwnedAsset(
 }
 
 export interface FetchOwnedAssetsResult<P = OwnedAsset> {
-  /** Parsed owned assets for the current page (narrowed by include) */
   ownedAssets: P[];
-  /** Total number of owned assets matching the filter (for pagination UI) */
   totalCount: number;
 }
 

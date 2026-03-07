@@ -192,14 +192,11 @@ export function buildDataChangedEventIncludeVars(
 // ---------------------------------------------------------------------------
 
 export interface FetchDataChangedEventsResult<P = DataChangedEvent> {
-  /** Parsed data changed event records for the current page (narrowed by include) */
   dataChangedEvents: P[];
-  /** Total number of data changed event records matching the filter (for pagination UI) */
   totalCount: number;
 }
 
-/** Fetch a paginated list of ERC725Y data changed event records. No singular `fetchDataChangedEvent` — event records have no natural key
- * (opaque Hasura ID only). */
+/** Fetch a paginated list of ERC725Y data changed event records. */
 export async function fetchDataChangedEvents(
   url: string,
   params?: {
@@ -263,16 +260,7 @@ export async function fetchDataChangedEvents(
   };
 }
 
-/**
- * Fetch the most recent DataChanged event matching the given filter.
- *
- * Internally queries with `limit: 1` sorted by `timestamp desc` to return
- * the latest event for a given address + data key combination.
- *
- * The `dataKeyName` filter field accepts human-readable ERC725Y key names
- * (e.g., 'LSP3Profile') — the service layer resolves them to hex automatically.
- *
- */
+/** Fetch the most recent DataChanged event for a given data key. */
 export async function fetchLatestDataChangedEvent(
   url: string,
   params?: { filter?: DataChangedEventFilter },
@@ -313,13 +301,7 @@ export async function fetchLatestDataChangedEvent(
 type RawDataChangedEventSubscriptionRow =
   DataChangedEventSubscriptionSubscription['data_changed'][number];
 
-/**
- * Build a data changed event subscription config (document, variables, extract, parser).
- *
- * EVENT domain — defaults to block-order desc sort when no sort is provided
- * (block_number desc → transaction_index desc → log_index desc).
- *
- */
+/** Build subscription config for useSubscription. */
 export function buildDataChangedEventSubscriptionConfig(params: {
   filter?: DataChangedEventFilter;
   sort?: DataChangedEventSort;

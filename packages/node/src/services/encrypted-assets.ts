@@ -120,25 +120,7 @@ function buildEncryptedAssetOrderBy(
   }
 }
 
-/**
- * Translate an `EncryptedAssetInclude` to GraphQL boolean variables for `@include` directives.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
- *
- * **Dual-form sub-include handling (encryption, file, chunks):**
- * Each accepts `boolean | { subField: boolean }`:
- * - `true` → include relation with ALL sub-fields
- * - `{ subFieldA: true, subFieldB: false }` → include relation with selected sub-fields
- * - `false` / omitted → don't include relation
- *
- * **Profile sub-includes:** Reuses `buildProfileIncludeVars` with prefix replacement:
- * - `includeProfile*` → `includeUniversalProfile*` for universal profile sub-includes
- *
- */
+/** Build @include directive variables from include config. */
 export function buildEncryptedAssetIncludeVars(
   include?: EncryptedAssetInclude,
 ): Record<string, boolean> {
@@ -215,20 +197,11 @@ export function buildEncryptedAssetIncludeVars(
 // Subscription config builder
 // ---------------------------------------------------------------------------
 
-/** Raw row type extracted from the subscription result for type-safe parser wiring. */
+/** Raw subscription row type extracted from codegen. */
 type RawEncryptedAssetSubscriptionRow =
   EncryptedAssetSubscriptionSubscription['lsp29_encrypted_asset'][number];
 
-/**
- * Build a fully-typed `SubscriptionConfig` for encrypted asset subscriptions.
- *
- * Assembles document, variables, extract function, and parser into a single
- * config object that the `useSubscription` hook can consume via
- * `useSubscription` without any casts or `unknown` holes.
- *
- * Entity domain — uses Hasura default ordering (`order_by: undefined` when no sort).
- *
- */
+/** Build subscription config for useSubscription. */
 export function buildEncryptedAssetSubscriptionConfig(params: {
   filter?: EncryptedAssetFilter;
   sort?: EncryptedAssetSort;
@@ -258,15 +231,11 @@ export function buildEncryptedAssetSubscriptionConfig(params: {
 // ---------------------------------------------------------------------------
 
 export interface FetchEncryptedAssetsResult<P = EncryptedAsset> {
-  /** Parsed encrypted asset records for the current page (narrowed by include) */
   encryptedAssets: P[];
-  /** Total number of encrypted asset records matching the filter (for pagination UI) */
   totalCount: number;
 }
 
-/** Fetch a paginated list of LSP29 encrypted asset records. No singular `fetchEncryptedAsset` — encrypted asset records have no
- * reliable natural key (user-introduced elements can share address + contentId +
- * revision). */
+/** Fetch a paginated list of LSP29 encrypted asset records. */
 export async function fetchEncryptedAssets(
   url: string,
   params?: {

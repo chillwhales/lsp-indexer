@@ -29,20 +29,28 @@ export const DigitalAssetSchema = z.object({
   standard: StandardSchema.nullable(),
   name: z.string().nullable(),
   symbol: z.string().nullable(),
+  /** TOKEN, NFT, or COLLECTION classification. */
   tokenType: TokenTypeSchema.nullable(),
   /** LSP7 only — null for LSP8. */
   decimals: z.number().nullable(),
   /** bigint for uint256 precision. */
   totalSupply: z.bigint().nullable(),
   description: z.string().nullable(),
+  /** Free-form tag from LSP4 metadata (e.g. "DeFi", "Collectible"). */
   category: z.string().nullable(),
+  /** Icon images from LSP4 metadata. */
   icons: z.array(ImageSchema).nullable(),
   /** Grouped by image_index. */
   images: z.array(z.array(ImageSchema)).nullable(),
+  /** External links from LSP4 metadata. */
   links: z.array(LinkSchema).nullable(),
+  /** Key-value attributes from LSP4 metadata. */
   attributes: z.array(Lsp4AttributeSchema).nullable(),
+  /** Current owner address and timestamp of last ownership transfer. */
   owner: DigitalAssetOwnerSchema.nullable(),
+  /** Number of unique addresses holding this token. */
   holderCount: z.number().nullable(),
+  /** Number of addresses listed as creators. */
   creatorCount: z.number().nullable(),
   /** LSP8-only. */
   referenceContract: z.string().nullable(),
@@ -57,11 +65,17 @@ export const DigitalAssetSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export const DigitalAssetFilterSchema = z.object({
+  /** Case-insensitive partial match on token name */
   name: z.string().optional(),
+  /** Case-insensitive partial match on token symbol */
   symbol: z.string().optional(),
+  /** Filter by token type (TOKEN, NFT, or COLLECTION) */
   tokenType: TokenTypeSchema.optional(),
+  /** Filter by LSP4 metadata category */
   category: z.string().optional(),
+  /** Return tokens held by the given address */
   holderAddress: z.string().optional(),
+  /** Return tokens owned by the given address */
   ownerAddress: z.string().optional(),
 });
 
@@ -82,22 +96,39 @@ export const DigitalAssetSortSchema = z.object({
 
 /** Omit = fetch all fields; set individual fields to opt-in. */
 export const DigitalAssetIncludeSchema = z.object({
+  /** Include token name */
   name: z.boolean().optional(),
+  /** Include token symbol */
   symbol: z.boolean().optional(),
+  /** Include token type classification */
   tokenType: z.boolean().optional(),
+  /** Include decimals (also enables derived `standard` field) */
   decimals: z.boolean().optional(),
+  /** Include total supply */
   totalSupply: z.boolean().optional(),
+  /** Include description */
   description: z.boolean().optional(),
+  /** Include LSP4 category */
   category: z.boolean().optional(),
+  /** Include icon images */
   icons: z.boolean().optional(),
+  /** Include grouped images */
   images: z.boolean().optional(),
+  /** Include external links */
   links: z.boolean().optional(),
+  /** Include key-value attributes */
   attributes: z.boolean().optional(),
+  /** Include current owner */
   owner: z.boolean().optional(),
+  /** Include holder count aggregate */
   holderCount: z.boolean().optional(),
+  /** Include creator count aggregate */
   creatorCount: z.boolean().optional(),
+  /** Include LSP8 reference contract address */
   referenceContract: z.boolean().optional(),
+  /** Include LSP8 token ID format */
   tokenIdFormat: z.boolean().optional(),
+  /** Include LSP8 base URI */
   baseUri: z.boolean().optional(),
 });
 

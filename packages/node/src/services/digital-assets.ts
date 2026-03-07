@@ -153,18 +153,7 @@ export function buildDigitalAssetIncludeVars(
 
 type RawDigitalAssetSubscriptionRow = DigitalAssetSubscriptionSubscription['digital_asset'][number];
 
-/**
- * Build a digital asset subscription config (document, variables, extract, parser).
- *
- * Encapsulates the domain-specific assembly that `createUseDigitalAssetSubscription`
- * needs — mirroring how `fetchDigitalAssets` encapsulates query assembly. Keeps the
- * React hook factory focused on hook lifecycle rather than domain plumbing.
- *
- * The return type is inferred so the 4-generic chain
- * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
- * `useSubscription` without any casts or `unknown` holes.
- *
- */
+/** Build subscription config for useSubscription. */
 export function buildDigitalAssetSubscriptionConfig(params: {
   filter?: DigitalAssetFilter;
   sort?: DigitalAssetSort;
@@ -193,18 +182,7 @@ export function buildDigitalAssetSubscriptionConfig(params: {
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Fetch a single digital asset by address.
- *
- * Translates the address to a Hasura `where` clause, executes the query,
- * and returns the first result parsed as a clean `DigitalAsset`, or `null` if
- * the address doesn't exist.
- *
- * When `include` is provided, the return type is narrowed to only contain
- * base fields + included fields (e.g., `DigitalAssetResult<{ name: true }>` =
- * `{ address: string; name: string | null }`).
- *
- */
+/** Fetch a single digital asset by address. */
 export async function fetchDigitalAsset(
   url: string,
   params: { address: string },
@@ -235,9 +213,7 @@ export async function fetchDigitalAsset(
 }
 
 export interface FetchDigitalAssetsResult<P = DigitalAsset> {
-  /** Parsed digital assets for the current page (narrowed by include) */
   digitalAssets: P[];
-  /** Total number of digital assets matching the filter (for pagination UI) */
   totalCount: number;
 }
 

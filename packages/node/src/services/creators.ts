@@ -197,8 +197,7 @@ export interface FetchCreatorsResult<P = Creator> {
   totalCount: number;
 }
 
-/** Fetch a paginated list of LSP4 creator records. No singular `fetchCreator` — creator records have no natural key
- * (opaque Hasura ID only). */
+/** Fetch a paginated list of LSP4 creator records. */
 export async function fetchCreators(
   url: string,
   params?: {

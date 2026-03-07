@@ -20,15 +20,7 @@ import {
 } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
-/**
- * Server action: Fetch the most recent ERC725Y TokenIdDataChanged event matching the given filter.
- *
- * Runs on the Next.js server — routes `fetchLatestTokenIdDataChangedEvent` through server-side
- * execution using `getServerUrl()`.
- *
- * @param params - Query parameters (filter + optional include)
- * @returns The latest matching event, or `null` if none found
- */
+/** Server action: fetch the most recent TokenIdDataChanged event. */
 export async function getLatestTokenIdDataChangedEvent(params?: {
   filter?: TokenIdDataChangedEventFilter;
 }): Promise<TokenIdDataChangedEvent | null>;
@@ -55,17 +47,7 @@ export async function getLatestTokenIdDataChangedEvent(params?: {
   return fetchLatestTokenIdDataChangedEvent(getServerUrl(), params);
 }
 
-/**
- * Server action: Fetch a paginated list of ERC725Y TokenIdDataChanged event records.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchTokenIdDataChangedEvents` server-side using the URL returned by `getServerUrl()`
- * (`INDEXER_URL`, falling back to `NEXT_PUBLIC_INDEXER_URL`). This keeps the
- * GraphQL endpoint invisible to the client.
- *
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed token ID data changed events and total count
- */
+/** Server action: fetch a paginated list of TokenIdDataChanged events. */
 export async function getTokenIdDataChangedEvents(params?: {
   filter?: TokenIdDataChangedEventFilter;
   sort?: TokenIdDataChangedEventSort;

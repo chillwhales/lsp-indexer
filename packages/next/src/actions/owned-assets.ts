@@ -13,18 +13,7 @@ import type {
 import { UseOwnedAssetParamsSchema, UseOwnedAssetsParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
-/**
- * Server action: Fetch a single owned asset by unique ID.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchOwnedAsset` server-side using the URL returned by `getServerUrl()`
- * (`INDEXER_URL`, falling back to `NEXT_PUBLIC_INDEXER_URL`). This keeps the
- * GraphQL endpoint invisible to the client.
- *
- * @param id - The owned asset unique ID
- * @param include - Optional field inclusion config
- * @returns The parsed owned asset (narrowed by include), or `null` if not found
- */
+/** Server action: fetch a single owned asset by ID. */
 export async function getOwnedAsset(params: { id: string }): Promise<OwnedAsset | null>;
 export async function getOwnedAsset<const I extends OwnedAssetInclude>(params: {
   id: string;
@@ -42,16 +31,7 @@ export async function getOwnedAsset(params: {
   return fetchOwnedAsset(getServerUrl(), params);
 }
 
-/**
- * Server action: Fetch a paginated list of owned assets.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchOwnedAssets` server-side. Supports filtering, sorting, pagination, and
- * field inclusion.
- *
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed owned assets and total count
- */
+/** Server action: fetch a paginated list of owned assets. */
 export async function getOwnedAssets(params?: {
   filter?: OwnedAssetFilter;
   sort?: OwnedAssetSort;

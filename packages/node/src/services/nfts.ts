@@ -92,23 +92,7 @@ export function buildNftOrderBy(sort?: NftSort): Nft_Order_By[] | undefined {
   }
 }
 
-/**
- * Translate a `NftInclude` to GraphQL boolean variables for `@include` directives.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
- *
- * **Collection sub-includes:**
- * - When `include.collection` has at least one truthy sub-field → `includeCollection: true`
- *   with sub-include variables from the DigitalAssetInclude schema.
- * - When `include.collection` is `undefined`, `{}`, or all-false → `includeCollection: false`.
- *
- * **Holder sub-includes:**
- * - Same pattern as collection — only included when at least one sub-field is truthy.
- */
+/** Build @include directive variables from include config. */
 function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
   if (!include) {
     // Omitted = include everything (GraphQL defaults all Boolean! = true)
@@ -182,7 +166,7 @@ export function buildNftIncludeVars(
 
 type RawNftSubscriptionRow = NftSubscriptionSubscription['nft'][number];
 
-/** Build NFT subscription config (document, variables, extract, parser). */
+/** Build subscription config for useSubscription. */
 export function buildNftSubscriptionConfig(params: {
   filter?: NftFilter;
   sort?: NftSort;
@@ -211,15 +195,7 @@ export function buildNftSubscriptionConfig(params: {
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Fetch a single NFT by collection address and token ID (or formatted token ID).
- *
- * Translates the composite key to a Hasura `where` clause, executes the query,
- * and returns the first result parsed as a clean `Nft`, or `null` if not found.
- *
- * Supports searching by either `tokenId` or `formattedTokenId` (or both).
- *
- */
+/** Fetch a single NFT by collection address and token ID. */
 export async function fetchNft(
   url: string,
   params: { address: string; tokenId?: string; formattedTokenId?: string },

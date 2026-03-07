@@ -32,24 +32,7 @@ import {
 // Internal builders — translate flat params to Hasura variables
 // ---------------------------------------------------------------------------
 
-/**
- * Translate a `FollowerFilter` to a Hasura `follower_bool_exp`.
- *
- * All filter fields are optional — consumers scope results by setting
- * `followerAddress` and/or `followedAddress` in the filter:
- * - "who follows X?" → `filter: { followedAddress: X }`
- * - "who does X follow?" → `filter: { followerAddress: X }`
- *
- * Multiple conditions combine with `_and`. Empty filter = empty object.
- *
- * Filter → Hasura mapping:
- * - `filter.followerAddress` → `{ follower_address: { _ilike: '%escapeLike%' } }` (partial match)
- * - `filter.followedAddress` → `{ followed_address: { _ilike: '%escapeLike%' } }` (partial match)
- * - `filter.followerName` → nested profile name search via followerUniversalProfile
- * - `filter.followedName` → nested profile name search via followedUniversalProfile
- * - `filter.timestampFrom` → `{ timestamp: { _gte: timestampFrom } }`
- * - `filter.timestampTo` → `{ timestamp: { _lte: timestampTo } }`
- */
+/** Translate FollowerFilter to a Hasura _bool_exp. */
 export function buildFollowerWhere(filter: FollowerFilter | undefined): Follower_Bool_Exp {
   if (!filter) return {};
 
@@ -100,21 +83,7 @@ export function buildFollowerWhere(filter: FollowerFilter | undefined): Follower
   return { _and: conditions };
 }
 
-/**
- * Translate a `FollowerSort` to a Hasura `follower_order_by` array.
- *
- * Sort field → Hasura mapping:
- * - `'newest'`          → `buildBlockOrderSort('desc')` (block_number → transaction_index → log_index desc)
- * - `'oldest'`          → `buildBlockOrderSort('asc')` (block_number → transaction_index → log_index asc)
- * - `'followerAddress'` → `[{ follower_address: dir }]`
- * - `'followedAddress'` → `[{ followed_address: dir }]`
- * - `'followerName'`    → `[{ followerUniversalProfile: { lsp3Profile: { name: { value: dir } } } }]`
- * - `'followedName'`    → `[{ followedUniversalProfile: { lsp3Profile: { name: { value: dir } } } }]`
- *
- * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
- * Name sorts default to `nulls: 'last'` when not specified (profiles without names sort last).
- * `direction` and `nulls` are ignored for `'newest'` and `'oldest'` (self-describing fields).
- */
+/** Translate FollowerSort to a Hasura order_by. */
 function buildFollowerOrderBy(sort?: FollowerSort): Follower_Order_By[] | undefined {
   if (!sort) return undefined;
 
@@ -191,9 +160,7 @@ export function buildFollowerIncludeVars(include?: FollowerInclude): Record<stri
 // ---------------------------------------------------------------------------
 
 export interface FetchFollowsResult<P = Follower> {
-  /** Parsed follow relationships for the current page (narrowed by include) */
   follows: P[];
-  /** Total number of follow relationships matching the filter (for pagination UI) */
   totalCount: number;
 }
 
@@ -261,16 +228,7 @@ export async function fetchFollows(
   };
 }
 
-/**
- * Fetch follow counts (follower + following) for an address.
- *
- * Uses two aliased `follower_aggregate` queries via `GetFollowCountDocument`:
- * - `followerCount` = count where `followed_address = address` (how many follow this address)
- * - `followingCount` = count where `follower_address = address` (how many this address follows)
- *
- * Uses exact-match `_ilike` (no `%` wrapping) for case-insensitive address matching.
- *
- */
+/** Fetch follower and following counts for an address. */
 export async function fetchFollowCount(
   url: string,
   params: { address: string },
@@ -288,13 +246,7 @@ export async function fetchFollowCount(
   };
 }
 
-/**
- * Check if one address follows another.
- *
- * Reuses `GetFollowersDocument` with all includes disabled and `limit: 1` for efficiency.
- * Returns `true` if at least one follower record exists matching both addresses.
- *
- */
+/** Check if one address follows another. */
 export async function fetchIsFollowing(
   url: string,
   params: { followerAddress: string; followedAddress: string },

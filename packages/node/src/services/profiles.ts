@@ -104,15 +104,7 @@ export function buildProfileOrderBy(sort?: ProfileSort): Universal_Profile_Order
   }
 }
 
-/**
- * Translate a `ProfileInclude` to GraphQL boolean variables for `@include` directives.
- *
- * When `include` is undefined (omitted), returns an empty object — the GraphQL
- * document defaults all `@include` booleans to `true`, so everything is included.
- *
- * When `include` is provided, each field defaults to `false` unless explicitly set
- * to `true`. This implements the "opt-in when specified" contract.
- */
+/** Build @include directive variables from include config. */
 export function buildProfileIncludeDirectives(include?: ProfileInclude): Record<string, boolean> {
   if (!include) {
     return {};
@@ -131,17 +123,7 @@ export function buildProfileIncludeDirectives(include?: ProfileInclude): Record<
   };
 }
 
-/**
- * Build profile sub-include variables for use as a **nested relation** in other domains
- * (owned-assets, owned-tokens). Uses `includeProfile*` prefix to avoid colliding with
- * digital asset `include*` variables which share the same query.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`.
- */
+/** Build profile sub-include variables for nested relations (includeProfile* prefix). */
 export function buildProfileIncludeVars(
   include?: boolean | ProfileInclude,
 ): Record<string, boolean> {
@@ -201,18 +183,7 @@ export function buildProfileSubscriptionConfig(params: {
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Fetch a single Universal Profile by address.
- *
- * Translates the address to a Hasura `where` clause, executes the query,
- * and returns the first result parsed as a clean `Profile`, or `null` if
- * the address doesn't exist.
- *
- * When `include` is provided, the return type is narrowed to only contain
- * base fields + included fields (e.g., `ProfileResult<{ name: true }>` =
- * `{ address: string; name: string | null }`).
- *
- */
+/** Fetch a single Universal Profile by address. */
 export async function fetchProfile(
   url: string,
   params: { address: string },

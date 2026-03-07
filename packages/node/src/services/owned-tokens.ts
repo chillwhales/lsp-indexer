@@ -106,27 +106,7 @@ function buildOwnedTokenOrderBy(sort?: OwnedTokenSort): Owned_Token_Order_By[] |
   }
 }
 
-/**
- * Translate an `OwnedTokenInclude` to GraphQL boolean variables for `@include` directives.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
- *
- * **Direct column includes:**
- * - `block`, `timestamp` map to `includeBlock`, `includeTimestamp`.
- *
- * **Nested relation sub-includes:**
- * - `digitalAsset`: Only included when at least one sub-field is truthy → 17 DA sub-variables.
- * - `nft`: Only included when at least one sub-field is truthy → 8 NFT sub-variables.
- * - `ownedAsset`: Only included when at least one sub-field is truthy → 3 owned asset sub-variables.
- * - `holder` (universal profile): Only included when at least one sub-field is truthy → 9 profile sub-variables.
- *   Variable name: `includeHolder` (maps to `$includeHolder` in GraphQL document).
- *
- * `undefined`, `{}`, and all-false objects all resolve to `false` for the parent relation.
- */
+/** Build @include directive variables from include config. */
 function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> {
   if (!include) {
     // Omitted = include everything (GraphQL defaults all Boolean! = true)
@@ -178,14 +158,7 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Fetch a single owned token by ID.
- *
- * Translates the ID to a Hasura `where` clause, executes the query,
- * and returns the first result parsed as a clean `OwnedToken`, or `null` if
- * the ID doesn't exist.
- *
- */
+/** Fetch a single owned token by ID. */
 export async function fetchOwnedToken(
   url: string,
   params: { id: string },
@@ -216,9 +189,7 @@ export async function fetchOwnedToken(
 }
 
 export interface FetchOwnedTokensResult<P = OwnedToken> {
-  /** Parsed owned tokens for the current page (narrowed by include) */
   ownedTokens: P[];
-  /** Total number of owned tokens matching the filter (for pagination UI) */
   totalCount: number;
 }
 
@@ -293,18 +264,7 @@ export async function fetchOwnedTokens(
 /** Raw subscription row type extracted from codegen. */
 type RawOwnedTokenSubscriptionRow = OwnedTokenSubscriptionSubscription['owned_token'][number];
 
-/**
- * Build an owned token subscription config (document, variables, extract, parser).
- *
- * Encapsulates the domain-specific assembly that `createUseOwnedTokenSubscription`
- * needs — mirroring how `fetchOwnedTokens` encapsulates query assembly. Keeps the
- * React hook factory focused on hook lifecycle rather than domain plumbing.
- *
- * The return type is inferred so the 4-generic chain
- * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
- * `useSubscription` without any casts or `unknown` holes.
- *
- */
+/** Build subscription config for useSubscription. */
 export function buildOwnedTokenSubscriptionConfig(params: {
   filter?: OwnedTokenFilter;
   sort?: OwnedTokenSort;

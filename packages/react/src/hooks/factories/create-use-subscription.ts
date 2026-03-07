@@ -11,20 +11,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { stableStringify } from '../../utils';
 import { UseSubscriptionClient, UseSubscriptionOptions } from '../types';
 
-/**
- * Create a `useSubscription` hook bound to a specific context.
- *
- * @param useSubscriptionClient - Context hook that returns the SubscriptionClient.
- *        Each package (React / Next.js) provides its own.
- *
- * @example
- * ```ts
- * // packages/react/src/subscriptions/use-subscription.ts
- * import { createUseSubscription } from './create-use-subscription';
- * import { useSubscriptionClient } from './context';
- * export const useSubscription = createUseSubscription(useSubscriptionClient);
- * ```
- */
+/** Create a real-time subscription hook from the given config. */
 export function createUseSubscription(useSubscriptionClient: () => UseSubscriptionClient) {
   return function useSubscription<
     TResult,

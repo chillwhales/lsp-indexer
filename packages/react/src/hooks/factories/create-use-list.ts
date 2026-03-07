@@ -35,6 +35,7 @@ export type UseListRawReturn<TData, TResult extends { totalCount: number }> = {
   totalCount: number;
 } & Omit<ReturnType<typeof useQuery<TResult, Error>>, 'data'>;
 
+/** Create a paginated list hook from the given config. */
 export function createUseList<
   TParams extends Record<string, unknown>,
   TData,

@@ -30,6 +30,7 @@ export type UseDetailRawReturn<TData> = {
   data: TData | null;
 } & Omit<ReturnType<typeof useQuery<TData | null, Error>>, 'data'>;
 
+/** Create a single-entity detail hook from the given config. */
 export function createUseDetail<TParams extends Record<string, unknown>, TData>(
   config: CreateUseDetailConfig<TParams, TData>,
 ) {

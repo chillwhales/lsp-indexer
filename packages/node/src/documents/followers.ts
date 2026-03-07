@@ -146,17 +146,6 @@ export const GetFollowersDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL document for fetching follow counts (follower + following) for an address.
- *
- * Uses two aliased `follower_aggregate` queries:
- * - `followerCount`: count where `followed_address = address` (how many follow this address)
- * - `followingCount`: count where `follower_address = address` (how many this address follows)
- *
- * The service layer passes:
- * - `$followerWhere: { followed_address: { _ilike: address } }`
- * - `$followingWhere: { follower_address: { _ilike: address } }`
- */
 /** Real-time subscription variant. */
 export const FollowerSubscriptionDocument = graphql(`
   subscription FollowerSubscription(
@@ -298,12 +287,7 @@ export const FollowerSubscriptionDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL document for fetching follower + following counts for an address.
- *
- * Uses two aliased `follower_aggregate` queries — one scoped to `followed_address`
- * (follower count) and one scoped to `follower_address` (following count).
- */
+/** Follower + following counts for a single address. */
 export const GetFollowCountDocument = graphql(`
   query GetFollowCount($followerWhere: follower_bool_exp!, $followingWhere: follower_bool_exp!) {
     followerCount: follower_aggregate(where: $followerWhere) {

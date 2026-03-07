@@ -128,22 +128,7 @@ function buildIssuedAssetOrderBy(
   }
 }
 
-/**
- * Translate an `IssuedAssetInclude` to GraphQL boolean variables for `@include` directives.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
- *
- * **Profile sub-includes:** Reuses `buildProfileIncludeVars` with prefix replacement:
- * - `includeProfile*` → `includeIssuerProfile*` for issuer profile sub-includes
- *
- * **Digital asset sub-includes:** Reuses `buildDigitalAssetIncludeVars` with prefix replacement:
- * - `include*` → `includeDigitalAsset*` for digital asset sub-includes
- *
- */
+/** Build @include directive variables from include config. */
 export function buildIssuedAssetIncludeVars(include?: IssuedAssetInclude): Record<string, boolean> {
   if (!include) return {};
 
@@ -214,14 +199,11 @@ export function buildIssuedAssetSubscriptionConfig(params: {
 // ---------------------------------------------------------------------------
 
 export interface FetchIssuedAssetsResult<P = IssuedAsset> {
-  /** Parsed issued asset records for the current page (narrowed by include) */
   issuedAssets: P[];
-  /** Total number of issued asset records matching the filter (for pagination UI) */
   totalCount: number;
 }
 
-/** Fetch a paginated list of LSP12 issued asset records. No singular `fetchIssuedAsset` — issued asset records have no natural key
- * (opaque Hasura ID only). */
+/** Fetch a paginated list of LSP12 issued asset records. */
 export async function fetchIssuedAssets(
   url: string,
   params?: {

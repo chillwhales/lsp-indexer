@@ -53,6 +53,7 @@ export type UseInfiniteRawReturn<TData, TResult extends { totalCount: number }> 
   'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
 >;
 
+/** Create an infinite scroll hook from the given config. */
 export function createUseInfinite<
   TParams extends InfiniteBaseParams,
   TData,

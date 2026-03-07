@@ -13,18 +13,7 @@ import type {
 import { UseDigitalAssetParamsSchema, UseDigitalAssetsParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
-/**
- * Server action: Fetch a single digital asset by address.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchDigitalAsset` server-side using the URL returned by `getServerUrl()`
- * (`INDEXER_URL`, falling back to `NEXT_PUBLIC_INDEXER_URL`). This keeps the
- * GraphQL endpoint invisible to the client.
- *
- * @param address - The digital asset contract address
- * @param include - Optional field inclusion config
- * @returns The parsed digital asset, or `null` if not found
- */
+/** Server action: fetch a single digital asset by address. */
 export async function getDigitalAsset(params: { address: string }): Promise<DigitalAsset | null>;
 export async function getDigitalAsset<const I extends DigitalAssetInclude>(params: {
   address: string;
@@ -42,16 +31,7 @@ export async function getDigitalAsset(params: {
   return fetchDigitalAsset(getServerUrl(), params);
 }
 
-/**
- * Server action: Fetch a paginated list of digital assets.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchDigitalAssets` server-side. Supports filtering, sorting, pagination, and
- * field inclusion.
- *
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed digital assets and total count
- */
+/** Server action: fetch a paginated list of digital assets. */
 export async function getDigitalAssets(params?: {
   filter?: DigitalAssetFilter;
   sort?: DigitalAssetSort;

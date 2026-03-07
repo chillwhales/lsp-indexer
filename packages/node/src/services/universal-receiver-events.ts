@@ -229,14 +229,11 @@ export function buildUniversalReceiverEventIncludeVars(
 // ---------------------------------------------------------------------------
 
 export interface FetchUniversalReceiverEventsResult<P = UniversalReceiverEvent> {
-  /** Parsed universal receiver event records for the current page (narrowed by include) */
   universalReceiverEvents: P[];
-  /** Total number of universal receiver event records matching the filter (for pagination UI) */
   totalCount: number;
 }
 
-/** Fetch a paginated list of universal receiver event records. No singular `fetchUniversalReceiverEvent` — event records have no natural key
- * (opaque Hasura ID only). */
+/** Fetch a paginated list of universal receiver event records. */
 export async function fetchUniversalReceiverEvents(
   url: string,
   params?: {
@@ -307,9 +304,7 @@ export async function fetchUniversalReceiverEvents(
 // Subscription config builder
 // ---------------------------------------------------------------------------
 
-/**
- * Raw subscription row type — extracted from the codegen subscription result.
- */
+/** Raw subscription row type extracted from codegen. */
 type RawUniversalReceiverEventSubscriptionRow =
   UniversalReceiverEventSubscriptionSubscription['universal_receiver'][number];
 
