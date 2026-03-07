@@ -1,14 +1,13 @@
 /** @see createUseInfinite */
-import type { FetchIssuedAssetsResult } from '@lsp-indexer/node';
-import { issuedAssetKeys } from '@lsp-indexer/node';
-import type {
-  IssuedAsset,
-  IssuedAssetInclude,
-  IssuedAssetResult,
-  PartialIssuedAsset,
-  UseInfiniteIssuedAssetsParams,
+import { type FetchIssuedAssetsResult, issuedAssetKeys } from '@lsp-indexer/node';
+import {
+  type IssuedAsset,
+  type IssuedAssetInclude,
+  type IssuedAssetResult,
+  type PartialIssuedAsset,
+  type UseInfiniteIssuedAssetsParams,
 } from '@lsp-indexer/types';
-import type { UseInfiniteIssuedAssetsReturn } from '../../types';
+import { type UseInfiniteIssuedAssetsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
 type IssuedAssetsInfiniteParams = UseInfiniteIssuedAssetsParams & {

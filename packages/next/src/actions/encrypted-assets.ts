@@ -1,15 +1,18 @@
 'use server';
 
-import type { FetchEncryptedAssetsResult } from '@lsp-indexer/node';
-import { fetchEncryptedAssets, getServerUrl } from '@lsp-indexer/node';
-import type {
-  EncryptedAssetFilter,
-  EncryptedAssetInclude,
-  EncryptedAssetResult,
-  EncryptedAssetSort,
-  PartialEncryptedAsset,
+import {
+  type FetchEncryptedAssetsResult,
+  fetchEncryptedAssets,
+  getServerUrl,
+} from '@lsp-indexer/node';
+import {
+  type EncryptedAssetFilter,
+  type EncryptedAssetInclude,
+  type EncryptedAssetResult,
+  type EncryptedAssetSort,
+  type PartialEncryptedAsset,
+  UseEncryptedAssetsParamsSchema,
 } from '@lsp-indexer/types';
-import { UseEncryptedAssetsParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
 /** Server action: fetch a paginated list of encrypted assets. */

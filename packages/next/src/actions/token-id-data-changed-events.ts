@@ -1,20 +1,18 @@
 'use server';
 
-import type { FetchTokenIdDataChangedEventsResult } from '@lsp-indexer/node';
 import {
+  type FetchTokenIdDataChangedEventsResult,
   fetchLatestTokenIdDataChangedEvent,
   fetchTokenIdDataChangedEvents,
   getServerUrl,
 } from '@lsp-indexer/node';
-import type {
-  PartialTokenIdDataChangedEvent,
-  TokenIdDataChangedEvent,
-  TokenIdDataChangedEventFilter,
-  TokenIdDataChangedEventInclude,
-  TokenIdDataChangedEventResult,
-  TokenIdDataChangedEventSort,
-} from '@lsp-indexer/types';
 import {
+  type PartialTokenIdDataChangedEvent,
+  type TokenIdDataChangedEvent,
+  type TokenIdDataChangedEventFilter,
+  type TokenIdDataChangedEventInclude,
+  type TokenIdDataChangedEventResult,
+  type TokenIdDataChangedEventSort,
   UseLatestTokenIdDataChangedEventParamsSchema,
   UseTokenIdDataChangedEventsParamsSchema,
 } from '@lsp-indexer/types';

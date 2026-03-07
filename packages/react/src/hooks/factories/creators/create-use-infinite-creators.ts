@@ -1,14 +1,13 @@
 /** @see createUseInfinite */
-import type { FetchCreatorsResult } from '@lsp-indexer/node';
-import { creatorKeys } from '@lsp-indexer/node';
-import type {
-  Creator,
-  CreatorInclude,
-  CreatorResult,
-  PartialCreator,
-  UseInfiniteCreatorsParams,
+import { type FetchCreatorsResult, creatorKeys } from '@lsp-indexer/node';
+import {
+  type Creator,
+  type CreatorInclude,
+  type CreatorResult,
+  type PartialCreator,
+  type UseInfiniteCreatorsParams,
 } from '@lsp-indexer/types';
-import type { UseInfiniteCreatorsReturn } from '../../types';
+import { type UseInfiniteCreatorsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
 type CreatorsInfiniteParams = UseInfiniteCreatorsParams & {

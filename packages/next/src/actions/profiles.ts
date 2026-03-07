@@ -1,16 +1,21 @@
 'use server';
 
-import type { FetchProfilesResult } from '@lsp-indexer/node';
-import { fetchProfile, fetchProfiles, getServerUrl } from '@lsp-indexer/node';
-import type {
-  PartialProfile,
-  Profile,
-  ProfileFilter,
-  ProfileInclude,
-  ProfileResult,
-  ProfileSort,
+import {
+  type FetchProfilesResult,
+  fetchProfile,
+  fetchProfiles,
+  getServerUrl,
+} from '@lsp-indexer/node';
+import {
+  type PartialProfile,
+  type Profile,
+  type ProfileFilter,
+  type ProfileInclude,
+  type ProfileResult,
+  type ProfileSort,
+  UseProfileParamsSchema,
+  UseProfilesParamsSchema,
 } from '@lsp-indexer/types';
-import { UseProfileParamsSchema, UseProfilesParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
 /** Server action: fetch a single profile by address. */

@@ -14,12 +14,12 @@ import {
   useIssuedAssets as useIssuedAssetsReact,
   useIssuedAssetSubscription as useIssuedAssetSubscriptionReact,
 } from '@lsp-indexer/react';
-import type {
-  IssuedAssetFilter,
-  IssuedAssetSort,
-  IssuedAssetSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type IssuedAssetFilter,
+  type IssuedAssetSort,
+  type IssuedAssetSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Badge } from '@/components/ui/badge';
@@ -27,8 +27,10 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
 import { IssuedAssetCard } from '@/components/issued-asset-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   DIGITAL_ASSET_INCLUDE_FIELDS,
   FilterFieldsRow,

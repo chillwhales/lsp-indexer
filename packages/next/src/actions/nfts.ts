@@ -1,16 +1,16 @@
 'use server';
 
-import type { FetchNftsResult } from '@lsp-indexer/node';
-import { fetchNft, fetchNfts, getServerUrl } from '@lsp-indexer/node';
-import type {
-  Nft,
-  NftFilter,
-  NftInclude,
-  NftResult,
-  NftSort,
-  PartialNft,
+import { type FetchNftsResult, fetchNft, fetchNfts, getServerUrl } from '@lsp-indexer/node';
+import {
+  type Nft,
+  type NftFilter,
+  type NftInclude,
+  type NftResult,
+  type NftSort,
+  type PartialNft,
+  UseNftParamsSchema,
+  UseNftsParamsSchema,
 } from '@lsp-indexer/types';
-import { UseNftParamsSchema, UseNftsParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
 /** Server action: fetch a single NFT by address and token ID. */

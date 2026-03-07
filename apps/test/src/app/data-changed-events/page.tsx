@@ -17,17 +17,19 @@ import {
   useInfiniteDataChangedEvents as useInfiniteDataChangedEventsReact,
   useLatestDataChangedEvent as useLatestDataChangedEventReact,
 } from '@lsp-indexer/react';
-import type {
-  DataChangedEventFilter,
-  DataChangedEventSort,
-  DataChangedEventSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type DataChangedEventFilter,
+  type DataChangedEventSort,
+  type DataChangedEventSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { DataChangedEventCard } from '@/components/data-changed-event-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   DATA_CHANGED_EVENT_INCLUDE_FIELDS,
   DIGITAL_ASSET_INCLUDE_FIELDS,

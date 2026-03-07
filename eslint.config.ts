@@ -126,9 +126,7 @@ export default tseslint.config(
       // -- General quality rules ------------------------------------------------
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
       eqeqeq: ['error', 'smart'],
-      // Disabled — doesn't understand TypeScript `import type` vs `import` from same module.
-      // prettier-plugin-organize-imports handles import organization.
-      'no-duplicate-imports': 'off',
+      'no-duplicate-imports': 'error',
       'prefer-const': 'error',
     },
   },

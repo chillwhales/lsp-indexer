@@ -1,14 +1,13 @@
 /** @see createUseList */
-import type { FetchOwnedAssetsResult } from '@lsp-indexer/node';
-import { ownedAssetKeys } from '@lsp-indexer/node';
-import type {
-  OwnedAsset,
-  OwnedAssetInclude,
-  OwnedAssetResult,
-  PartialOwnedAsset,
-  UseOwnedAssetsParams,
+import { type FetchOwnedAssetsResult, ownedAssetKeys } from '@lsp-indexer/node';
+import {
+  type OwnedAsset,
+  type OwnedAssetInclude,
+  type OwnedAssetResult,
+  type PartialOwnedAsset,
+  type UseOwnedAssetsParams,
 } from '@lsp-indexer/types';
-import type { UseOwnedAssetsReturn } from '../../types';
+import { type UseOwnedAssetsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
 type OwnedAssetListParams = UseOwnedAssetsParams & { include?: OwnedAssetInclude };

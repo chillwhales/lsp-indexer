@@ -1,15 +1,14 @@
 'use server';
 
-import type { FetchCreatorsResult } from '@lsp-indexer/node';
-import { fetchCreators, getServerUrl } from '@lsp-indexer/node';
-import type {
-  CreatorFilter,
-  CreatorInclude,
-  CreatorResult,
-  CreatorSort,
-  PartialCreator,
+import { type FetchCreatorsResult, fetchCreators, getServerUrl } from '@lsp-indexer/node';
+import {
+  type CreatorFilter,
+  type CreatorInclude,
+  type CreatorResult,
+  type CreatorSort,
+  type PartialCreator,
+  UseCreatorsParamsSchema,
 } from '@lsp-indexer/types';
-import { UseCreatorsParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
 /** Server action: fetch a paginated list of creators. */

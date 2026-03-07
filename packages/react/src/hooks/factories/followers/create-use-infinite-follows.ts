@@ -1,14 +1,13 @@
 /** @see createUseInfinite */
-import type { FetchFollowsResult } from '@lsp-indexer/node';
-import { followerKeys } from '@lsp-indexer/node';
-import type {
-  Follower,
-  FollowerInclude,
-  FollowerResult,
-  PartialFollower,
-  UseInfiniteFollowsParams,
+import { type FetchFollowsResult, followerKeys } from '@lsp-indexer/node';
+import {
+  type Follower,
+  type FollowerInclude,
+  type FollowerResult,
+  type PartialFollower,
+  type UseInfiniteFollowsParams,
 } from '@lsp-indexer/types';
-import type { UseInfiniteFollowsReturn } from '../../types';
+import { type UseInfiniteFollowsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
 type FollowsInfiniteParams = UseInfiniteFollowsParams & {

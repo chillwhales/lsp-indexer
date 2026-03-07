@@ -16,12 +16,12 @@ import {
   useNfts as useNftsReact,
   useNftSubscription as useNftSubscriptionReact,
 } from '@lsp-indexer/react';
-import type {
-  NftFilter,
-  NftSort,
-  NftSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type NftFilter,
+  type NftSort,
+  type NftSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -34,8 +34,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 
 import { NftCard } from '@/components/nft-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   DIGITAL_ASSET_INCLUDE_FIELDS,
   ErrorAlert,

@@ -1,16 +1,19 @@
 'use server';
 
-import type { FetchFollowsResult } from '@lsp-indexer/node';
-import { fetchFollowCount, fetchFollows, fetchIsFollowing, getServerUrl } from '@lsp-indexer/node';
-import type {
-  FollowCount,
-  FollowerFilter,
-  FollowerInclude,
-  FollowerResult,
-  FollowerSort,
-  PartialFollower,
-} from '@lsp-indexer/types';
 import {
+  type FetchFollowsResult,
+  fetchFollowCount,
+  fetchFollows,
+  fetchIsFollowing,
+  getServerUrl,
+} from '@lsp-indexer/node';
+import {
+  type FollowCount,
+  type FollowerFilter,
+  type FollowerInclude,
+  type FollowerResult,
+  type FollowerSort,
+  type PartialFollower,
   UseFollowCountParamsSchema,
   UseFollowsParamsSchema,
   UseIsFollowingParamsSchema,

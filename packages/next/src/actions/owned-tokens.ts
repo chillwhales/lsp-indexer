@@ -1,16 +1,21 @@
 'use server';
 
-import type { FetchOwnedTokensResult } from '@lsp-indexer/node';
-import { fetchOwnedToken, fetchOwnedTokens, getServerUrl } from '@lsp-indexer/node';
-import type {
-  OwnedToken,
-  OwnedTokenFilter,
-  OwnedTokenInclude,
-  OwnedTokenResult,
-  OwnedTokenSort,
-  PartialOwnedToken,
+import {
+  type FetchOwnedTokensResult,
+  fetchOwnedToken,
+  fetchOwnedTokens,
+  getServerUrl,
+} from '@lsp-indexer/node';
+import {
+  type OwnedToken,
+  type OwnedTokenFilter,
+  type OwnedTokenInclude,
+  type OwnedTokenResult,
+  type OwnedTokenSort,
+  type PartialOwnedToken,
+  UseOwnedTokenParamsSchema,
+  UseOwnedTokensParamsSchema,
 } from '@lsp-indexer/types';
-import { UseOwnedTokenParamsSchema, UseOwnedTokensParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
 /** Server action: fetch a single owned token by ID. */

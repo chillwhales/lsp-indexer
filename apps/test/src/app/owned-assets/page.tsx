@@ -16,12 +16,12 @@ import {
   useOwnedAssets as useOwnedAssetsReact,
   useOwnedAssetSubscription as useOwnedAssetSubscriptionReact,
 } from '@lsp-indexer/react';
-import type {
-  OwnedAssetFilter,
-  OwnedAssetSort,
-  OwnedAssetSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type OwnedAssetFilter,
+  type OwnedAssetSort,
+  type OwnedAssetSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -34,13 +34,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 
 import { OwnedAssetCard } from '@/components/owned-asset-card';
-import type {
-  FilterFieldConfig,
-  HookMode,
-  IncludeToggleConfig,
-  SortOption,
-} from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type IncludeToggleConfig,
+  type SortOption,
   buildNestedInclude,
   DIGITAL_ASSET_INCLUDE_FIELDS,
   ErrorAlert,

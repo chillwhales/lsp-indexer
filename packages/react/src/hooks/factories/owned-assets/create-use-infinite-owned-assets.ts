@@ -1,14 +1,13 @@
 /** @see createUseInfinite */
-import type { FetchOwnedAssetsResult } from '@lsp-indexer/node';
-import { ownedAssetKeys } from '@lsp-indexer/node';
-import type {
-  OwnedAsset,
-  OwnedAssetInclude,
-  OwnedAssetResult,
-  PartialOwnedAsset,
-  UseInfiniteOwnedAssetsParams,
+import { type FetchOwnedAssetsResult, ownedAssetKeys } from '@lsp-indexer/node';
+import {
+  type OwnedAsset,
+  type OwnedAssetInclude,
+  type OwnedAssetResult,
+  type PartialOwnedAsset,
+  type UseInfiniteOwnedAssetsParams,
 } from '@lsp-indexer/types';
-import type { UseInfiniteOwnedAssetsReturn } from '../../types';
+import { type UseInfiniteOwnedAssetsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
 type OwnedAssetInfiniteParams = UseInfiniteOwnedAssetsParams & {

@@ -1,14 +1,13 @@
 /** @see createUseInfinite */
-import type { FetchOwnedTokensResult } from '@lsp-indexer/node';
-import { ownedTokenKeys } from '@lsp-indexer/node';
-import type {
-  OwnedToken,
-  OwnedTokenInclude,
-  OwnedTokenResult,
-  PartialOwnedToken,
-  UseInfiniteOwnedTokensParams,
+import { type FetchOwnedTokensResult, ownedTokenKeys } from '@lsp-indexer/node';
+import {
+  type OwnedToken,
+  type OwnedTokenInclude,
+  type OwnedTokenResult,
+  type PartialOwnedToken,
+  type UseInfiniteOwnedTokensParams,
 } from '@lsp-indexer/types';
-import type { UseInfiniteOwnedTokensReturn } from '../../types';
+import { type UseInfiniteOwnedTokensReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
 type OwnedTokenInfiniteParams = UseInfiniteOwnedTokensParams & {

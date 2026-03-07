@@ -16,13 +16,13 @@ import {
   useDigitalAssetSubscription as useDigitalAssetSubscriptionReact,
   useInfiniteDigitalAssets as useInfiniteDigitalAssetsReact,
 } from '@lsp-indexer/react';
-import type {
-  DigitalAssetFilter,
-  DigitalAssetSort,
-  DigitalAssetSortField,
-  SortDirection,
-  SortNulls,
-  TokenType,
+import {
+  type DigitalAssetFilter,
+  type DigitalAssetSort,
+  type DigitalAssetSortField,
+  type SortDirection,
+  type SortNulls,
+  type TokenType,
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -35,8 +35,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   DIGITAL_ASSET_INCLUDE_FIELDS,
   ErrorAlert,
   FilterFieldsRow,

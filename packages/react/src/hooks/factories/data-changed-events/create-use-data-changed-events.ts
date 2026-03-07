@@ -1,14 +1,13 @@
 /** @see createUseList */
-import type { FetchDataChangedEventsResult } from '@lsp-indexer/node';
-import { dataChangedEventKeys } from '@lsp-indexer/node';
-import type {
-  DataChangedEvent,
-  DataChangedEventInclude,
-  DataChangedEventResult,
-  PartialDataChangedEvent,
-  UseDataChangedEventsParams,
+import { type FetchDataChangedEventsResult, dataChangedEventKeys } from '@lsp-indexer/node';
+import {
+  type DataChangedEvent,
+  type DataChangedEventInclude,
+  type DataChangedEventResult,
+  type PartialDataChangedEvent,
+  type UseDataChangedEventsParams,
 } from '@lsp-indexer/types';
-import type { UseDataChangedEventsReturn } from '../../types';
+import { type UseDataChangedEventsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
 type DataChangedEventsListParams = UseDataChangedEventsParams & {

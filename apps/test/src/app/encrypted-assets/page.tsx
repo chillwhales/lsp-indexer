@@ -14,12 +14,12 @@ import {
   useEncryptedAssetSubscription as useEncryptedAssetSubscriptionReact,
   useInfiniteEncryptedAssets as useInfiniteEncryptedAssetsReact,
 } from '@lsp-indexer/react';
-import type {
-  EncryptedAssetFilter,
-  EncryptedAssetSort,
-  EncryptedAssetSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type EncryptedAssetFilter,
+  type EncryptedAssetSort,
+  type EncryptedAssetSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Badge } from '@/components/ui/badge';
@@ -27,8 +27,10 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
 import { EncryptedAssetCard } from '@/components/encrypted-asset-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   ENCRYPTED_ASSET_CHUNKS_INCLUDE_FIELDS,
   ENCRYPTED_ASSET_ENCRYPTION_INCLUDE_FIELDS,

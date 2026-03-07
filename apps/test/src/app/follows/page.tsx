@@ -18,12 +18,12 @@ import {
   useInfiniteFollows as useInfiniteFollowsReact,
   useIsFollowing as useIsFollowingReact,
 } from '@lsp-indexer/react';
-import type {
-  FollowerFilter,
-  FollowerSort,
-  FollowerSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type FollowerFilter,
+  type FollowerSort,
+  type FollowerSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Badge } from '@/components/ui/badge';
@@ -34,8 +34,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 
 import { FollowerCard } from '@/components/follower-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   ErrorAlert,
   FilterFieldsRow,

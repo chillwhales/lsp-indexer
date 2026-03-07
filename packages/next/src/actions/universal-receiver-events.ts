@@ -1,15 +1,18 @@
 'use server';
 
-import type { FetchUniversalReceiverEventsResult } from '@lsp-indexer/node';
-import { fetchUniversalReceiverEvents, getServerUrl } from '@lsp-indexer/node';
-import type {
-  PartialUniversalReceiverEvent,
-  UniversalReceiverEventFilter,
-  UniversalReceiverEventInclude,
-  UniversalReceiverEventResult,
-  UniversalReceiverEventSort,
+import {
+  type FetchUniversalReceiverEventsResult,
+  fetchUniversalReceiverEvents,
+  getServerUrl,
+} from '@lsp-indexer/node';
+import {
+  type PartialUniversalReceiverEvent,
+  type UniversalReceiverEventFilter,
+  type UniversalReceiverEventInclude,
+  type UniversalReceiverEventResult,
+  type UniversalReceiverEventSort,
+  UseUniversalReceiverEventsParamsSchema,
 } from '@lsp-indexer/types';
-import { UseUniversalReceiverEventsParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
 /** Server action: fetch a paginated list of universal receiver events. */

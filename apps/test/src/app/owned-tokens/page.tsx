@@ -16,12 +16,12 @@ import {
   useOwnedTokens as useOwnedTokensReact,
   useOwnedTokenSubscription as useOwnedTokenSubscriptionReact,
 } from '@lsp-indexer/react';
-import type {
-  OwnedTokenFilter,
-  OwnedTokenSort,
-  OwnedTokenSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type OwnedTokenFilter,
+  type OwnedTokenSort,
+  type OwnedTokenSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -34,13 +34,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 
 import { OwnedTokenCard } from '@/components/owned-token-card';
-import type {
-  FilterFieldConfig,
-  HookMode,
-  IncludeToggleConfig,
-  SortOption,
-} from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type IncludeToggleConfig,
+  type SortOption,
   buildNestedInclude,
   DIGITAL_ASSET_INCLUDE_FIELDS,
   ErrorAlert,

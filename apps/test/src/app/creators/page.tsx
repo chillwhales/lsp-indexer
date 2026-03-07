@@ -14,12 +14,12 @@ import {
   useCreatorSubscription as useCreatorSubscriptionReact,
   useInfiniteCreators as useInfiniteCreatorsReact,
 } from '@lsp-indexer/react';
-import type {
-  CreatorFilter,
-  CreatorSort,
-  CreatorSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type CreatorFilter,
+  type CreatorSort,
+  type CreatorSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Badge } from '@/components/ui/badge';
@@ -27,8 +27,10 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
 import { CreatorCard } from '@/components/creator-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   CREATOR_INCLUDE_FIELDS,
   DIGITAL_ASSET_INCLUDE_FIELDS,

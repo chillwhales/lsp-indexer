@@ -1,20 +1,18 @@
 'use server';
 
-import type { FetchDataChangedEventsResult } from '@lsp-indexer/node';
 import {
+  type FetchDataChangedEventsResult,
   fetchDataChangedEvents,
   fetchLatestDataChangedEvent,
   getServerUrl,
 } from '@lsp-indexer/node';
-import type {
-  DataChangedEvent,
-  DataChangedEventFilter,
-  DataChangedEventInclude,
-  DataChangedEventResult,
-  DataChangedEventSort,
-  PartialDataChangedEvent,
-} from '@lsp-indexer/types';
 import {
+  type DataChangedEvent,
+  type DataChangedEventFilter,
+  type DataChangedEventInclude,
+  type DataChangedEventResult,
+  type DataChangedEventSort,
+  type PartialDataChangedEvent,
   UseDataChangedEventsParamsSchema,
   UseLatestDataChangedEventParamsSchema,
 } from '@lsp-indexer/types';

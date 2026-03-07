@@ -1,14 +1,13 @@
 /** @see createUseList */
-import type { FetchFollowsResult } from '@lsp-indexer/node';
-import { followerKeys } from '@lsp-indexer/node';
-import type {
-  Follower,
-  FollowerInclude,
-  FollowerResult,
-  PartialFollower,
-  UseFollowsParams,
+import { type FetchFollowsResult, followerKeys } from '@lsp-indexer/node';
+import {
+  type Follower,
+  type FollowerInclude,
+  type FollowerResult,
+  type PartialFollower,
+  type UseFollowsParams,
 } from '@lsp-indexer/types';
-import type { UseFollowsReturn } from '../../types';
+import { type UseFollowsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
 type FollowsListParams = UseFollowsParams & { include?: FollowerInclude };

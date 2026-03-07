@@ -1,14 +1,13 @@
 /** @see createUseList */
-import type { FetchEncryptedAssetsResult } from '@lsp-indexer/node';
-import { encryptedAssetKeys } from '@lsp-indexer/node';
-import type {
-  EncryptedAsset,
-  EncryptedAssetInclude,
-  EncryptedAssetResult,
-  PartialEncryptedAsset,
-  UseEncryptedAssetsParams,
+import { type FetchEncryptedAssetsResult, encryptedAssetKeys } from '@lsp-indexer/node';
+import {
+  type EncryptedAsset,
+  type EncryptedAssetInclude,
+  type EncryptedAssetResult,
+  type PartialEncryptedAsset,
+  type UseEncryptedAssetsParams,
 } from '@lsp-indexer/types';
-import type { UseEncryptedAssetsReturn } from '../../types';
+import { type UseEncryptedAssetsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
 type EncryptedAssetsListParams = UseEncryptedAssetsParams & { include?: EncryptedAssetInclude };

@@ -1,6 +1,5 @@
-import type { SubscriptionHookOptions, SubscriptionInstance } from '@lsp-indexer/types';
-import type { Client } from 'graphql-ws';
-import { createClient } from 'graphql-ws';
+import { type SubscriptionHookOptions, type SubscriptionInstance } from '@lsp-indexer/types';
+import { type Client, createClient } from 'graphql-ws';
 import { getClientWsUrl } from '../client';
 import { IndexerError } from '../errors';
 import { TypedDocumentString } from '../graphql/graphql';
@@ -8,7 +7,7 @@ import {
   GenericSubscriptionInstance,
   type SubscriptionClientExecutor,
 } from './subscription-instance';
-import type { SubscriptionConfig } from './types';
+import { type SubscriptionConfig } from './types';
 
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 

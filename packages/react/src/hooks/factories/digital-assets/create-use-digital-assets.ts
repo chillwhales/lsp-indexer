@@ -1,14 +1,13 @@
 /** @see createUseList */
-import type { FetchDigitalAssetsResult } from '@lsp-indexer/node';
-import { digitalAssetKeys } from '@lsp-indexer/node';
-import type {
-  DigitalAsset,
-  DigitalAssetInclude,
-  DigitalAssetResult,
-  PartialDigitalAsset,
-  UseDigitalAssetsParams,
+import { type FetchDigitalAssetsResult, digitalAssetKeys } from '@lsp-indexer/node';
+import {
+  type DigitalAsset,
+  type DigitalAssetInclude,
+  type DigitalAssetResult,
+  type PartialDigitalAsset,
+  type UseDigitalAssetsParams,
 } from '@lsp-indexer/types';
-import type { UseDigitalAssetsReturn } from '../../types';
+import { type UseDigitalAssetsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
 type DigitalAssetListParams = UseDigitalAssetsParams & { include?: DigitalAssetInclude };
