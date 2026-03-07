@@ -1,7 +1,7 @@
 'use client';
 
 /** Encrypted Assets playground — LSP29 encrypted metadata with encryption, file, and chunks sub-includes. */
-import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -487,7 +487,7 @@ export default function EncryptedAssetsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

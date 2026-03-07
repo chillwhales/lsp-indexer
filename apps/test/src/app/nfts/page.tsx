@@ -1,7 +1,7 @@
 'use client';
 
 /** NFTs playground — composite key lookup (address+tokenId), list, infinite scroll, and subscriptions. */
-import { Gem, Infinity, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
+import { Gem, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -544,7 +544,7 @@ export default function NftsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite Scroll',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

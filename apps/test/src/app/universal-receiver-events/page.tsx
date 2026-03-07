@@ -2,7 +2,7 @@
 
 /** Universal Receiver Events playground — LSP1 events with 3 nested relations. */
 import { TYPE_ID_NAMES, TypeIdNameSchema } from '@chillwhales/lsp1';
-import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -478,7 +478,7 @@ export default function UniversalReceiverEventsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

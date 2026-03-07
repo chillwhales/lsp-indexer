@@ -107,7 +107,7 @@ export class GenericSubscriptionInstance<TParsed> implements SubscriptionInstanc
           // GraphQL errors array
           this.setError(
             IndexerError.fromGraphQLErrors(
-              rawError.map(IndexerError.narrowGraphQLError),
+              rawError.map((e) => IndexerError.narrowGraphQLError(e)),
               this.documentString,
             ),
           );

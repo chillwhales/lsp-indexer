@@ -2,7 +2,7 @@
 
 /** Token ID Data Changed Events playground — per-token ERC725Y data key changes on LSP8 NFTs. */
 import { DATA_KEY_NAMES, DataKeyNameSchema } from '@chillwhales/erc725';
-import { Clock, Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { Clock, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -572,7 +572,7 @@ export default function TokenIdDataChangedEventsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

@@ -1,7 +1,7 @@
 'use client';
 
 /** Digital Assets playground — LSP7/LSP8 metadata lookup, list, infinite scroll, and subscriptions. */
-import { Coins, Infinity, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
+import { Coins, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -430,7 +430,7 @@ export default function DigitalAssetsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite Scroll',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

@@ -1,7 +1,7 @@
 'use client';
 
 /** Owned Assets playground — LSP7 fungible token ownership with balance and nested relations. */
-import { Infinity, Layers, Radio, Search, Wallet, Wifi, WifiOff } from 'lucide-react';
+import { Layers, Radio, Search, Wallet, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -523,7 +523,7 @@ export default function OwnedAssetsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite Scroll',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

@@ -1,7 +1,7 @@
 'use client';
 
 /** Follows playground — LSP26 social graph: list, infinite, count, is-following, and subscriptions. */
-import { Hash, Infinity, Radio, UserCheck, Users, Wifi, WifiOff } from 'lucide-react';
+import { Hash, Radio, UserCheck, Users, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -565,7 +565,7 @@ export default function FollowsPage(): React.ReactNode {
         {
           value: 'infinite-follows',
           label: 'Infinite Follows',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteFollowsTab mode={mode} />,
         },
         {

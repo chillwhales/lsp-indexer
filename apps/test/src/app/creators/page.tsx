@@ -1,7 +1,7 @@
 'use client';
 
 /** Creators playground — LSP4 creator attestations with profile and digital asset sub-includes. */
-import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -430,7 +430,7 @@ export default function CreatorsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

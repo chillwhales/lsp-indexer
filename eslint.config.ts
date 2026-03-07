@@ -24,6 +24,15 @@ export default tseslint.config(
       '**/vitest.setup.ts',
       '**/tsup.config.ts',
       '**/codegen.ts',
+
+      // Next.js build output — generated code, not source
+      '**/.next/',
+
+      // GSD planning docs — not source code
+      '**/.planning/',
+
+      // PostCSS config — not in any tsconfig project
+      '**/postcss.config.mjs',
     ],
   },
 
@@ -84,8 +93,18 @@ export default tseslint.config(
       // Floating promises — critical for async indexer code
       '@typescript-eslint/no-floating-promises': 'error',
 
-      // No misused promises
-      '@typescript-eslint/no-misused-promises': 'error',
+      // No misused promises — allow Promise-returning functions in React event handler props
+      // and object properties (e.g., { fetchNextPage } passed to component props)
+      '@typescript-eslint/no-misused-promises': [
+        'error',
+        { checksVoidReturn: { attributes: false, properties: false } },
+      ],
+
+      // Allow {} in conditional types (common in packages/types/src/ for type algebra)
+      '@typescript-eslint/no-empty-object-type': ['error', { allowObjectTypes: 'always' }],
+
+      // Demote to warning — String(error) pattern in subscription error normalization is intentional
+      '@typescript-eslint/no-base-to-string': 'warn',
 
       // Allow empty functions (common in interface stubs)
       '@typescript-eslint/no-empty-function': 'off',
@@ -107,7 +126,9 @@ export default tseslint.config(
       // -- General quality rules ------------------------------------------------
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
       eqeqeq: ['error', 'smart'],
-      'no-duplicate-imports': 'error',
+      // Disabled — doesn't understand TypeScript `import type` vs `import` from same module.
+      // prettier-plugin-organize-imports handles import organization.
+      'no-duplicate-imports': 'off',
       'prefer-const': 'error',
     },
   },

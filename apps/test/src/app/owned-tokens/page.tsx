@@ -1,7 +1,7 @@
 'use client';
 
 /** Owned Tokens playground — LSP8 NFT ownership with 4 nested relations. */
-import { Infinity, Layers, Radio, Search, Tag, Wifi, WifiOff } from 'lucide-react';
+import { Layers, Radio, Search, Tag, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -582,7 +582,7 @@ export default function OwnedTokensPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite Scroll',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

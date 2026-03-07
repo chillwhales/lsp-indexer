@@ -2,7 +2,7 @@
 
 /** Data Changed Events playground — ERC725Y DataChanged events with data key name resolution. */
 import { DATA_KEY_NAMES, DataKeyNameSchema } from '@chillwhales/erc725';
-import { Clock, Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { Clock, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -543,7 +543,7 @@ export default function DataChangedEventsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

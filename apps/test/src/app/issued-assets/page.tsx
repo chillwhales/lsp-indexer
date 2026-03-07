@@ -1,7 +1,7 @@
 'use client';
 
 /** Issued Assets playground — LSP12 asset issuance with issuer profile and digital asset sub-includes. */
-import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -438,7 +438,7 @@ export default function IssuedAssetsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

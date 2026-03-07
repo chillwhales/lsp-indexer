@@ -91,7 +91,6 @@ export function DigitalAssetCard({
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2">
               {firstIcon && isSafeUrl(firstIcon.url) ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={resolveUrl(firstIcon.url)}
                   alt={name ?? 'icon'}
