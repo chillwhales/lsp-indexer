@@ -1,7 +1,7 @@
 'use client';
 
 /** Issued Assets playground — LSP12 asset issuance with issuer profile and digital asset sub-includes. */
-import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { InfinityIcon, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -14,12 +14,12 @@ import {
   useIssuedAssets as useIssuedAssetsReact,
   useIssuedAssetSubscription as useIssuedAssetSubscriptionReact,
 } from '@lsp-indexer/react';
-import type {
-  IssuedAssetFilter,
-  IssuedAssetSort,
-  IssuedAssetSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type IssuedAssetFilter,
+  type IssuedAssetSort,
+  type IssuedAssetSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Badge } from '@/components/ui/badge';
@@ -27,8 +27,10 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
 import { IssuedAssetCard } from '@/components/issued-asset-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   DIGITAL_ASSET_INCLUDE_FIELDS,
   FilterFieldsRow,
@@ -350,7 +352,11 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const issuedAssets = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
-    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+    error instanceof Error
+      ? error
+      : error != null
+        ? new Error(typeof error === 'string' ? error : 'Unknown error')
+        : null;
 
   return (
     <div className="space-y-4">
@@ -438,7 +444,7 @@ export default function IssuedAssetsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

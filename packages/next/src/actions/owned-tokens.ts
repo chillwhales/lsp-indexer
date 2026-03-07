@@ -1,16 +1,21 @@
 'use server';
 
-import type { FetchOwnedTokensResult } from '@lsp-indexer/node';
-import { fetchOwnedToken, fetchOwnedTokens, getServerUrl } from '@lsp-indexer/node';
-import type {
-  OwnedToken,
-  OwnedTokenFilter,
-  OwnedTokenInclude,
-  OwnedTokenResult,
-  OwnedTokenSort,
-  PartialOwnedToken,
+import {
+  type FetchOwnedTokensResult,
+  fetchOwnedToken,
+  fetchOwnedTokens,
+  getServerUrl,
+} from '@lsp-indexer/node';
+import {
+  type OwnedToken,
+  type OwnedTokenFilter,
+  type OwnedTokenInclude,
+  type OwnedTokenResult,
+  type OwnedTokenSort,
+  type PartialOwnedToken,
+  UseOwnedTokenParamsSchema,
+  UseOwnedTokensParamsSchema,
 } from '@lsp-indexer/types';
-import { UseOwnedTokenParamsSchema, UseOwnedTokensParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
 /** Server action: fetch a single owned token by ID. */
@@ -28,7 +33,7 @@ export async function getOwnedToken(params: {
   include?: OwnedTokenInclude;
 }): Promise<PartialOwnedToken | null> {
   validateInput(UseOwnedTokenParamsSchema, params, 'getOwnedToken');
-  return fetchOwnedToken(getServerUrl(), params);
+  return await fetchOwnedToken(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of owned tokens. */
@@ -60,5 +65,5 @@ export async function getOwnedTokens(params?: {
   include?: OwnedTokenInclude;
 }): Promise<FetchOwnedTokensResult<PartialOwnedToken>> {
   if (params) validateInput(UseOwnedTokensParamsSchema, params, 'getOwnedTokens');
-  return fetchOwnedTokens(getServerUrl(), params);
+  return await fetchOwnedTokens(getServerUrl(), params);
 }

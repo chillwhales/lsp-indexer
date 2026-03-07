@@ -1,7 +1,7 @@
 'use client';
 
 /** Encrypted Assets playground — LSP29 encrypted metadata with encryption, file, and chunks sub-includes. */
-import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { InfinityIcon, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -14,12 +14,12 @@ import {
   useEncryptedAssetSubscription as useEncryptedAssetSubscriptionReact,
   useInfiniteEncryptedAssets as useInfiniteEncryptedAssetsReact,
 } from '@lsp-indexer/react';
-import type {
-  EncryptedAssetFilter,
-  EncryptedAssetSort,
-  EncryptedAssetSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type EncryptedAssetFilter,
+  type EncryptedAssetSort,
+  type EncryptedAssetSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Badge } from '@/components/ui/badge';
@@ -27,8 +27,10 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
 import { EncryptedAssetCard } from '@/components/encrypted-asset-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   ENCRYPTED_ASSET_CHUNKS_INCLUDE_FIELDS,
   ENCRYPTED_ASSET_ENCRYPTION_INCLUDE_FIELDS,
@@ -396,7 +398,11 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const encryptedAssets = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
-    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+    error instanceof Error
+      ? error
+      : error != null
+        ? new Error(typeof error === 'string' ? error : 'Unknown error')
+        : null;
 
   return (
     <div className="space-y-4">
@@ -487,7 +493,7 @@ export default function EncryptedAssetsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

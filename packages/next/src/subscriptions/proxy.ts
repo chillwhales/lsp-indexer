@@ -1,6 +1,5 @@
 import { getServerWsUrl } from '@lsp-indexer/node';
-import type { IncomingMessage } from 'http';
-import { createServer } from 'http';
+import { type IncomingMessage, createServer } from 'http';
 import WebSocket, { WebSocketServer } from 'ws';
 
 // ---------------------------------------------------------------------------

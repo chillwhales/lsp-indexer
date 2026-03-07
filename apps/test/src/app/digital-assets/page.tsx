@@ -1,7 +1,7 @@
 'use client';
 
 /** Digital Assets playground — LSP7/LSP8 metadata lookup, list, infinite scroll, and subscriptions. */
-import { Coins, Infinity, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
+import { Coins, InfinityIcon, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -16,13 +16,13 @@ import {
   useDigitalAssetSubscription as useDigitalAssetSubscriptionReact,
   useInfiniteDigitalAssets as useInfiniteDigitalAssetsReact,
 } from '@lsp-indexer/react';
-import type {
-  DigitalAssetFilter,
-  DigitalAssetSort,
-  DigitalAssetSortField,
-  SortDirection,
-  SortNulls,
-  TokenType,
+import {
+  type DigitalAssetFilter,
+  type DigitalAssetSort,
+  type DigitalAssetSortField,
+  type SortDirection,
+  type SortNulls,
+  type TokenType,
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -35,8 +35,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 
 import { DigitalAssetCard } from '@/components/digital-asset-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   DIGITAL_ASSET_INCLUDE_FIELDS,
   ErrorAlert,
   FilterFieldsRow,
@@ -344,7 +346,11 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const digitalAssets = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
-    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+    error instanceof Error
+      ? error
+      : error != null
+        ? new Error(typeof error === 'string' ? error : 'Unknown error')
+        : null;
 
   return (
     <div className="space-y-4">
@@ -430,7 +436,7 @@ export default function DigitalAssetsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite Scroll',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

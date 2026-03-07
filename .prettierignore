@@ -8,3 +8,6 @@ packages/typeorm/hasura_metadata.json
 packages/node/src/graphql/
 .env
 pnpm-lock.yaml
+.next/
+.planning/
+dist/

@@ -1,14 +1,13 @@
 /** @see createUseInfinite */
-import type { FetchNftsResult } from '@lsp-indexer/node';
-import { nftKeys } from '@lsp-indexer/node';
-import type {
-  Nft,
-  NftInclude,
-  NftResult,
-  PartialNft,
-  UseInfiniteNftsParams,
+import { type FetchNftsResult, nftKeys } from '@lsp-indexer/node';
+import {
+  type Nft,
+  type NftInclude,
+  type NftResult,
+  type PartialNft,
+  type UseInfiniteNftsParams,
 } from '@lsp-indexer/types';
-import type { UseInfiniteNftsReturn } from '../../types';
+import { type UseInfiniteNftsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
 type NftInfiniteParams = UseInfiniteNftsParams & { include?: NftInclude };

@@ -1,14 +1,16 @@
 /** @see createUseList */
-import type { FetchUniversalReceiverEventsResult } from '@lsp-indexer/node';
-import { universalReceiverEventKeys } from '@lsp-indexer/node';
-import type {
-  PartialUniversalReceiverEvent,
-  UniversalReceiverEvent,
-  UniversalReceiverEventInclude,
-  UniversalReceiverEventResult,
-  UseUniversalReceiverEventsParams,
+import {
+  type FetchUniversalReceiverEventsResult,
+  universalReceiverEventKeys,
+} from '@lsp-indexer/node';
+import {
+  type PartialUniversalReceiverEvent,
+  type UniversalReceiverEvent,
+  type UniversalReceiverEventInclude,
+  type UniversalReceiverEventResult,
+  type UseUniversalReceiverEventsParams,
 } from '@lsp-indexer/types';
-import type { UseUniversalReceiverEventsReturn } from '../../types';
+import { type UseUniversalReceiverEventsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
 type UniversalReceiverEventsListParams = UseUniversalReceiverEventsParams & {

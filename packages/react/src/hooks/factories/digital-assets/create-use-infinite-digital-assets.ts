@@ -1,14 +1,13 @@
 /** @see createUseInfinite */
-import type { FetchDigitalAssetsResult } from '@lsp-indexer/node';
-import { digitalAssetKeys } from '@lsp-indexer/node';
-import type {
-  DigitalAsset,
-  DigitalAssetInclude,
-  DigitalAssetResult,
-  PartialDigitalAsset,
-  UseInfiniteDigitalAssetsParams,
+import { type FetchDigitalAssetsResult, digitalAssetKeys } from '@lsp-indexer/node';
+import {
+  type DigitalAsset,
+  type DigitalAssetInclude,
+  type DigitalAssetResult,
+  type PartialDigitalAsset,
+  type UseInfiniteDigitalAssetsParams,
 } from '@lsp-indexer/types';
-import type { UseInfiniteDigitalAssetsReturn } from '../../types';
+import { type UseInfiniteDigitalAssetsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
 type DigitalAssetInfiniteParams = UseInfiniteDigitalAssetsParams & {

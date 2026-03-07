@@ -2,7 +2,7 @@
 
 /** Token ID Data Changed Events playground — per-token ERC725Y data key changes on LSP8 NFTs. */
 import { DATA_KEY_NAMES, DataKeyNameSchema } from '@chillwhales/erc725';
-import { Clock, Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { Clock, InfinityIcon, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -17,16 +17,18 @@ import {
   useTokenIdDataChangedEvents as useTokenIdDataChangedEventsReact,
   useTokenIdDataChangedEventSubscription as useTokenIdDataChangedEventSubscriptionReact,
 } from '@lsp-indexer/react';
-import type {
-  SortDirection,
-  SortNulls,
-  TokenIdDataChangedEventFilter,
-  TokenIdDataChangedEventSort,
-  TokenIdDataChangedEventSortField,
+import {
+  type SortDirection,
+  type SortNulls,
+  type TokenIdDataChangedEventFilter,
+  type TokenIdDataChangedEventSort,
+  type TokenIdDataChangedEventSortField,
 } from '@lsp-indexer/types';
 
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   DIGITAL_ASSET_INCLUDE_FIELDS,
   ErrorAlert,
@@ -479,7 +481,11 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const tokenIdDataChangedEvents = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
-    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+    error instanceof Error
+      ? error
+      : error != null
+        ? new Error(typeof error === 'string' ? error : 'Unknown error')
+        : null;
 
   return (
     <div className="space-y-4">
@@ -572,7 +578,7 @@ export default function TokenIdDataChangedEventsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

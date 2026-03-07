@@ -19,7 +19,10 @@ export interface IssuedAssetCardProps {
 }
 
 /** LSP12 issued asset card. Shows issuer-to-asset relationship. */
-export function IssuedAssetCard({ issuedAsset, index }: IssuedAssetCardProps): React.ReactNode {
+export function IssuedAssetCard({
+  issuedAsset,
+  index: _index,
+}: IssuedAssetCardProps): React.ReactNode {
   const issuerProfile = 'issuerProfile' in issuedAsset ? issuedAsset.issuerProfile : null;
   const digitalAsset = 'digitalAsset' in issuedAsset ? issuedAsset.digitalAsset : null;
 

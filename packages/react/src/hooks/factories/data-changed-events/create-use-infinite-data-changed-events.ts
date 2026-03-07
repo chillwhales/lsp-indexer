@@ -1,14 +1,13 @@
 /** @see createUseInfinite */
-import type { FetchDataChangedEventsResult } from '@lsp-indexer/node';
-import { dataChangedEventKeys } from '@lsp-indexer/node';
-import type {
-  DataChangedEvent,
-  DataChangedEventInclude,
-  DataChangedEventResult,
-  PartialDataChangedEvent,
-  UseInfiniteDataChangedEventsParams,
+import { type FetchDataChangedEventsResult, dataChangedEventKeys } from '@lsp-indexer/node';
+import {
+  type DataChangedEvent,
+  type DataChangedEventInclude,
+  type DataChangedEventResult,
+  type PartialDataChangedEvent,
+  type UseInfiniteDataChangedEventsParams,
 } from '@lsp-indexer/types';
-import type { UseInfiniteDataChangedEventsReturn } from '../../types';
+import { type UseInfiniteDataChangedEventsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
 type DataChangedEventsInfiniteParams = UseInfiniteDataChangedEventsParams & {

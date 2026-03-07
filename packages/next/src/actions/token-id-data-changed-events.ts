@@ -1,20 +1,18 @@
 'use server';
 
-import type { FetchTokenIdDataChangedEventsResult } from '@lsp-indexer/node';
 import {
+  type FetchTokenIdDataChangedEventsResult,
   fetchLatestTokenIdDataChangedEvent,
   fetchTokenIdDataChangedEvents,
   getServerUrl,
 } from '@lsp-indexer/node';
-import type {
-  PartialTokenIdDataChangedEvent,
-  TokenIdDataChangedEvent,
-  TokenIdDataChangedEventFilter,
-  TokenIdDataChangedEventInclude,
-  TokenIdDataChangedEventResult,
-  TokenIdDataChangedEventSort,
-} from '@lsp-indexer/types';
 import {
+  type PartialTokenIdDataChangedEvent,
+  type TokenIdDataChangedEvent,
+  type TokenIdDataChangedEventFilter,
+  type TokenIdDataChangedEventInclude,
+  type TokenIdDataChangedEventResult,
+  type TokenIdDataChangedEventSort,
   UseLatestTokenIdDataChangedEventParamsSchema,
   UseTokenIdDataChangedEventsParamsSchema,
 } from '@lsp-indexer/types';
@@ -44,7 +42,7 @@ export async function getLatestTokenIdDataChangedEvent(params?: {
       params,
       'getLatestTokenIdDataChangedEvent',
     );
-  return fetchLatestTokenIdDataChangedEvent(getServerUrl(), params);
+  return await fetchLatestTokenIdDataChangedEvent(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of TokenIdDataChanged events. */
@@ -79,5 +77,5 @@ export async function getTokenIdDataChangedEvents(params?: {
 }): Promise<FetchTokenIdDataChangedEventsResult<PartialTokenIdDataChangedEvent>> {
   if (params)
     validateInput(UseTokenIdDataChangedEventsParamsSchema, params, 'getTokenIdDataChangedEvents');
-  return fetchTokenIdDataChangedEvents(getServerUrl(), params);
+  return await fetchTokenIdDataChangedEvents(getServerUrl(), params);
 }

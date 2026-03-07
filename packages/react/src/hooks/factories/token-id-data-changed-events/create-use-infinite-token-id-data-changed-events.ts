@@ -1,14 +1,16 @@
 /** @see createUseInfinite */
-import type { FetchTokenIdDataChangedEventsResult } from '@lsp-indexer/node';
-import { tokenIdDataChangedEventKeys } from '@lsp-indexer/node';
-import type {
-  PartialTokenIdDataChangedEvent,
-  TokenIdDataChangedEvent,
-  TokenIdDataChangedEventInclude,
-  TokenIdDataChangedEventResult,
-  UseInfiniteTokenIdDataChangedEventsParams,
+import {
+  type FetchTokenIdDataChangedEventsResult,
+  tokenIdDataChangedEventKeys,
+} from '@lsp-indexer/node';
+import {
+  type PartialTokenIdDataChangedEvent,
+  type TokenIdDataChangedEvent,
+  type TokenIdDataChangedEventInclude,
+  type TokenIdDataChangedEventResult,
+  type UseInfiniteTokenIdDataChangedEventsParams,
 } from '@lsp-indexer/types';
-import type { UseInfiniteTokenIdDataChangedEventsReturn } from '../../types';
+import { type UseInfiniteTokenIdDataChangedEventsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
 type TokenIdDataChangedEventsInfiniteParams = UseInfiniteTokenIdDataChangedEventsParams & {

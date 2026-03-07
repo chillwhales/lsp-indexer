@@ -1,16 +1,16 @@
 'use server';
 
-import type { FetchNftsResult } from '@lsp-indexer/node';
-import { fetchNft, fetchNfts, getServerUrl } from '@lsp-indexer/node';
-import type {
-  Nft,
-  NftFilter,
-  NftInclude,
-  NftResult,
-  NftSort,
-  PartialNft,
+import { type FetchNftsResult, fetchNft, fetchNfts, getServerUrl } from '@lsp-indexer/node';
+import {
+  type Nft,
+  type NftFilter,
+  type NftInclude,
+  type NftResult,
+  type NftSort,
+  type PartialNft,
+  UseNftParamsSchema,
+  UseNftsParamsSchema,
 } from '@lsp-indexer/types';
-import { UseNftParamsSchema, UseNftsParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
 /** Server action: fetch a single NFT by address and token ID. */
@@ -38,7 +38,7 @@ export async function getNft(params: {
   include?: NftInclude;
 }): Promise<PartialNft | null> {
   validateInput(UseNftParamsSchema, params, 'getNft');
-  return fetchNft(getServerUrl(), params);
+  return await fetchNft(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of NFTs. */
@@ -70,5 +70,5 @@ export async function getNfts(params?: {
   include?: NftInclude;
 }): Promise<FetchNftsResult<PartialNft>> {
   if (params) validateInput(UseNftsParamsSchema, params, 'getNfts');
-  return fetchNfts(getServerUrl(), params);
+  return await fetchNfts(getServerUrl(), params);
 }

@@ -1,7 +1,7 @@
 'use client';
 
 /** Creators playground — LSP4 creator attestations with profile and digital asset sub-includes. */
-import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { InfinityIcon, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -14,12 +14,12 @@ import {
   useCreatorSubscription as useCreatorSubscriptionReact,
   useInfiniteCreators as useInfiniteCreatorsReact,
 } from '@lsp-indexer/react';
-import type {
-  CreatorFilter,
-  CreatorSort,
-  CreatorSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type CreatorFilter,
+  type CreatorSort,
+  type CreatorSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Badge } from '@/components/ui/badge';
@@ -27,8 +27,10 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
 import { CreatorCard } from '@/components/creator-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   CREATOR_INCLUDE_FIELDS,
   DIGITAL_ASSET_INCLUDE_FIELDS,
@@ -343,7 +345,11 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const creators = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
-    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+    error instanceof Error
+      ? error
+      : error != null
+        ? new Error(typeof error === 'string' ? error : 'Unknown error')
+        : null;
 
   return (
     <div className="space-y-4">
@@ -430,7 +436,7 @@ export default function CreatorsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

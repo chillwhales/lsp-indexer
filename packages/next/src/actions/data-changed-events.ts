@@ -1,20 +1,18 @@
 'use server';
 
-import type { FetchDataChangedEventsResult } from '@lsp-indexer/node';
 import {
+  type FetchDataChangedEventsResult,
   fetchDataChangedEvents,
   fetchLatestDataChangedEvent,
   getServerUrl,
 } from '@lsp-indexer/node';
-import type {
-  DataChangedEvent,
-  DataChangedEventFilter,
-  DataChangedEventInclude,
-  DataChangedEventResult,
-  DataChangedEventSort,
-  PartialDataChangedEvent,
-} from '@lsp-indexer/types';
 import {
+  type DataChangedEvent,
+  type DataChangedEventFilter,
+  type DataChangedEventInclude,
+  type DataChangedEventResult,
+  type DataChangedEventSort,
+  type PartialDataChangedEvent,
   UseDataChangedEventsParamsSchema,
   UseLatestDataChangedEventParamsSchema,
 } from '@lsp-indexer/types';
@@ -38,7 +36,7 @@ export async function getLatestDataChangedEvent(params?: {
 }): Promise<PartialDataChangedEvent | null> {
   if (params)
     validateInput(UseLatestDataChangedEventParamsSchema, params, 'getLatestDataChangedEvent');
-  return fetchLatestDataChangedEvent(getServerUrl(), params);
+  return await fetchLatestDataChangedEvent(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of DataChanged events. */
@@ -70,5 +68,5 @@ export async function getDataChangedEvents(params?: {
   include?: DataChangedEventInclude;
 }): Promise<FetchDataChangedEventsResult<PartialDataChangedEvent>> {
   if (params) validateInput(UseDataChangedEventsParamsSchema, params, 'getDataChangedEvents');
-  return fetchDataChangedEvents(getServerUrl(), params);
+  return await fetchDataChangedEvents(getServerUrl(), params);
 }

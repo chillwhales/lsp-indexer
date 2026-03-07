@@ -2,7 +2,7 @@
 
 /** Data Changed Events playground — ERC725Y DataChanged events with data key name resolution. */
 import { DATA_KEY_NAMES, DataKeyNameSchema } from '@chillwhales/erc725';
-import { Clock, Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { Clock, InfinityIcon, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -17,17 +17,19 @@ import {
   useInfiniteDataChangedEvents as useInfiniteDataChangedEventsReact,
   useLatestDataChangedEvent as useLatestDataChangedEventReact,
 } from '@lsp-indexer/react';
-import type {
-  DataChangedEventFilter,
-  DataChangedEventSort,
-  DataChangedEventSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type DataChangedEventFilter,
+  type DataChangedEventSort,
+  type DataChangedEventSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { DataChangedEventCard } from '@/components/data-changed-event-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   DATA_CHANGED_EVENT_INCLUDE_FIELDS,
   DIGITAL_ASSET_INCLUDE_FIELDS,
@@ -457,7 +459,11 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const dataChangedEvents = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
-    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+    error instanceof Error
+      ? error
+      : error != null
+        ? new Error(typeof error === 'string' ? error : 'Unknown error')
+        : null;
 
   return (
     <div className="space-y-4">
@@ -543,7 +549,7 @@ export default function DataChangedEventsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

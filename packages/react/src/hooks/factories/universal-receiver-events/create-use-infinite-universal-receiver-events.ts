@@ -1,14 +1,16 @@
 /** @see createUseInfinite */
-import type { FetchUniversalReceiverEventsResult } from '@lsp-indexer/node';
-import { universalReceiverEventKeys } from '@lsp-indexer/node';
-import type {
-  PartialUniversalReceiverEvent,
-  UniversalReceiverEvent,
-  UniversalReceiverEventInclude,
-  UniversalReceiverEventResult,
-  UseInfiniteUniversalReceiverEventsParams,
+import {
+  type FetchUniversalReceiverEventsResult,
+  universalReceiverEventKeys,
+} from '@lsp-indexer/node';
+import {
+  type PartialUniversalReceiverEvent,
+  type UniversalReceiverEvent,
+  type UniversalReceiverEventInclude,
+  type UniversalReceiverEventResult,
+  type UseInfiniteUniversalReceiverEventsParams,
 } from '@lsp-indexer/types';
-import type { UseInfiniteUniversalReceiverEventsReturn } from '../../types';
+import { type UseInfiniteUniversalReceiverEventsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
 type UniversalReceiverEventsInfiniteParams = UseInfiniteUniversalReceiverEventsParams & {

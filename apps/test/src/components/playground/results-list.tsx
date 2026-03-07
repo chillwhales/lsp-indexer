@@ -74,7 +74,7 @@ interface ResultsListProps<T> {
   /** Infinite scroll props — if provided, shows Load More */
   infinite?: {
     hasNextPage: boolean;
-    fetchNextPage: () => void;
+    fetchNextPage: () => Promise<unknown>;
     isFetchingNextPage: boolean;
   };
   /** Whether any filter is active (for empty state message) */
@@ -131,7 +131,7 @@ export function ResultsList<T>({
         <div className="flex justify-center pt-2">
           <Button
             variant="outline"
-            onClick={() => infinite.fetchNextPage()}
+            onClick={() => void infinite.fetchNextPage()}
             disabled={infinite.isFetchingNextPage}
           >
             {infinite.isFetchingNextPage ? (

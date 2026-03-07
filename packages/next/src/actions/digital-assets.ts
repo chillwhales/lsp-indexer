@@ -1,16 +1,21 @@
 'use server';
 
-import type { FetchDigitalAssetsResult } from '@lsp-indexer/node';
-import { fetchDigitalAsset, fetchDigitalAssets, getServerUrl } from '@lsp-indexer/node';
-import type {
-  DigitalAsset,
-  DigitalAssetFilter,
-  DigitalAssetInclude,
-  DigitalAssetResult,
-  DigitalAssetSort,
-  PartialDigitalAsset,
+import {
+  type FetchDigitalAssetsResult,
+  fetchDigitalAsset,
+  fetchDigitalAssets,
+  getServerUrl,
+} from '@lsp-indexer/node';
+import {
+  type DigitalAsset,
+  type DigitalAssetFilter,
+  type DigitalAssetInclude,
+  type DigitalAssetResult,
+  type DigitalAssetSort,
+  type PartialDigitalAsset,
+  UseDigitalAssetParamsSchema,
+  UseDigitalAssetsParamsSchema,
 } from '@lsp-indexer/types';
-import { UseDigitalAssetParamsSchema, UseDigitalAssetsParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
 /** Server action: fetch a single digital asset by address. */
@@ -28,7 +33,7 @@ export async function getDigitalAsset(params: {
   include?: DigitalAssetInclude;
 }): Promise<PartialDigitalAsset | null> {
   validateInput(UseDigitalAssetParamsSchema, params, 'getDigitalAsset');
-  return fetchDigitalAsset(getServerUrl(), params);
+  return await fetchDigitalAsset(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of digital assets. */
@@ -60,5 +65,5 @@ export async function getDigitalAssets(params?: {
   include?: DigitalAssetInclude;
 }): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>> {
   if (params) validateInput(UseDigitalAssetsParamsSchema, params, 'getDigitalAssets');
-  return fetchDigitalAssets(getServerUrl(), params);
+  return await fetchDigitalAssets(getServerUrl(), params);
 }

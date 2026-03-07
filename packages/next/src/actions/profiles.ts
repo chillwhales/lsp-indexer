@@ -1,16 +1,21 @@
 'use server';
 
-import type { FetchProfilesResult } from '@lsp-indexer/node';
-import { fetchProfile, fetchProfiles, getServerUrl } from '@lsp-indexer/node';
-import type {
-  PartialProfile,
-  Profile,
-  ProfileFilter,
-  ProfileInclude,
-  ProfileResult,
-  ProfileSort,
+import {
+  type FetchProfilesResult,
+  fetchProfile,
+  fetchProfiles,
+  getServerUrl,
+} from '@lsp-indexer/node';
+import {
+  type PartialProfile,
+  type Profile,
+  type ProfileFilter,
+  type ProfileInclude,
+  type ProfileResult,
+  type ProfileSort,
+  UseProfileParamsSchema,
+  UseProfilesParamsSchema,
 } from '@lsp-indexer/types';
-import { UseProfileParamsSchema, UseProfilesParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
 /** Server action: fetch a single profile by address. */
@@ -28,7 +33,7 @@ export async function getProfile(params: {
   include?: ProfileInclude;
 }): Promise<PartialProfile | null> {
   validateInput(UseProfileParamsSchema, params, 'getProfile');
-  return fetchProfile(getServerUrl(), params);
+  return await fetchProfile(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of profiles. */
@@ -60,5 +65,5 @@ export async function getProfiles(params?: {
   include?: ProfileInclude;
 }): Promise<FetchProfilesResult<PartialProfile>> {
   if (params) validateInput(UseProfilesParamsSchema, params, 'getProfiles');
-  return fetchProfiles(getServerUrl(), params ?? {});
+  return await fetchProfiles(getServerUrl(), params ?? {});
 }

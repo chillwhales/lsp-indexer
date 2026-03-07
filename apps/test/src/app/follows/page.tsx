@@ -1,7 +1,7 @@
 'use client';
 
 /** Follows playground — LSP26 social graph: list, infinite, count, is-following, and subscriptions. */
-import { Hash, Infinity, Radio, UserCheck, Users, Wifi, WifiOff } from 'lucide-react';
+import { Hash, InfinityIcon, Radio, UserCheck, Users, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -18,12 +18,12 @@ import {
   useInfiniteFollows as useInfiniteFollowsReact,
   useIsFollowing as useIsFollowingReact,
 } from '@lsp-indexer/react';
-import type {
-  FollowerFilter,
-  FollowerSort,
-  FollowerSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type FollowerFilter,
+  type FollowerSort,
+  type FollowerSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Badge } from '@/components/ui/badge';
@@ -34,8 +34,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 
 import { FollowerCard } from '@/components/follower-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   ErrorAlert,
   FilterFieldsRow,
@@ -476,7 +478,11 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const followers = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
-    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+    error instanceof Error
+      ? error
+      : error != null
+        ? new Error(typeof error === 'string' ? error : 'Unknown error')
+        : null;
 
   return (
     <div className="space-y-4">
@@ -565,7 +571,7 @@ export default function FollowsPage(): React.ReactNode {
         {
           value: 'infinite-follows',
           label: 'Infinite Follows',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteFollowsTab mode={mode} />,
         },
         {

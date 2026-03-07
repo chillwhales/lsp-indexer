@@ -1,14 +1,13 @@
 /** @see createUseList */
-import type { FetchProfilesResult } from '@lsp-indexer/node';
-import { profileKeys } from '@lsp-indexer/node';
-import type {
-  PartialProfile,
-  Profile,
-  ProfileInclude,
-  ProfileResult,
-  UseProfilesParams,
+import { type FetchProfilesResult, profileKeys } from '@lsp-indexer/node';
+import {
+  type PartialProfile,
+  type Profile,
+  type ProfileInclude,
+  type ProfileResult,
+  type UseProfilesParams,
 } from '@lsp-indexer/types';
-import type { UseProfilesReturn } from '../../types';
+import { type UseProfilesReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
 type ProfileListParams = UseProfilesParams & { include?: ProfileInclude };

@@ -82,7 +82,7 @@ export function createUseSubscription(useSubscriptionClient: () => UseSubscripti
         const opts = optionsRef.current;
         if (opts.invalidate && opts.queryClient && opts.invalidateKeys) {
           for (const key of opts.invalidateKeys) {
-            opts.queryClient.invalidateQueries({ queryKey: [...key] });
+            void opts.queryClient.invalidateQueries({ queryKey: [...key] });
           }
         }
       };

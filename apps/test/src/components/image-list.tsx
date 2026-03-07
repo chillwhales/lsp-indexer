@@ -63,7 +63,6 @@ function ImageRow({ image }: { image: ImageItem }): React.ReactNode {
   return (
     <div className="flex items-center gap-2">
       {image.url && isSafeUrl(image.url) ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={resolveUrl(image.url)}
           alt=""

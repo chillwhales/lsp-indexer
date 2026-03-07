@@ -1,14 +1,13 @@
 /** @see createUseList */
-import type { FetchCreatorsResult } from '@lsp-indexer/node';
-import { creatorKeys } from '@lsp-indexer/node';
-import type {
-  Creator,
-  CreatorInclude,
-  CreatorResult,
-  PartialCreator,
-  UseCreatorsParams,
+import { type FetchCreatorsResult, creatorKeys } from '@lsp-indexer/node';
+import {
+  type Creator,
+  type CreatorInclude,
+  type CreatorResult,
+  type PartialCreator,
+  type UseCreatorsParams,
 } from '@lsp-indexer/types';
-import type { UseCreatorsReturn } from '../../types';
+import { type UseCreatorsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
 type CreatorsListParams = UseCreatorsParams & { include?: CreatorInclude };

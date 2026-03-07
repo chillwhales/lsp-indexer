@@ -1,14 +1,13 @@
 /** @see createUseList */
-import type { FetchOwnedTokensResult } from '@lsp-indexer/node';
-import { ownedTokenKeys } from '@lsp-indexer/node';
-import type {
-  OwnedToken,
-  OwnedTokenInclude,
-  OwnedTokenResult,
-  PartialOwnedToken,
-  UseOwnedTokensParams,
+import { type FetchOwnedTokensResult, ownedTokenKeys } from '@lsp-indexer/node';
+import {
+  type OwnedToken,
+  type OwnedTokenInclude,
+  type OwnedTokenResult,
+  type PartialOwnedToken,
+  type UseOwnedTokensParams,
 } from '@lsp-indexer/types';
-import type { UseOwnedTokensReturn } from '../../types';
+import { type UseOwnedTokensReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
 type OwnedTokenListParams = UseOwnedTokensParams & { include?: OwnedTokenInclude };

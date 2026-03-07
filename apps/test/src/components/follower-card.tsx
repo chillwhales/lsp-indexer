@@ -14,7 +14,7 @@ export interface FollowerCardProps {
   index: number;
 }
 
-export function FollowerCard({ follower, index }: FollowerCardProps): React.ReactNode {
+export function FollowerCard({ follower, index: _index }: FollowerCardProps): React.ReactNode {
   const obj = follower;
 
   const followerProfile = 'followerProfile' in obj ? obj.followerProfile : null;

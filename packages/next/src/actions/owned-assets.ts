@@ -1,16 +1,21 @@
 'use server';
 
-import type { FetchOwnedAssetsResult } from '@lsp-indexer/node';
-import { fetchOwnedAsset, fetchOwnedAssets, getServerUrl } from '@lsp-indexer/node';
-import type {
-  OwnedAsset,
-  OwnedAssetFilter,
-  OwnedAssetInclude,
-  OwnedAssetResult,
-  OwnedAssetSort,
-  PartialOwnedAsset,
+import {
+  type FetchOwnedAssetsResult,
+  fetchOwnedAsset,
+  fetchOwnedAssets,
+  getServerUrl,
+} from '@lsp-indexer/node';
+import {
+  type OwnedAsset,
+  type OwnedAssetFilter,
+  type OwnedAssetInclude,
+  type OwnedAssetResult,
+  type OwnedAssetSort,
+  type PartialOwnedAsset,
+  UseOwnedAssetParamsSchema,
+  UseOwnedAssetsParamsSchema,
 } from '@lsp-indexer/types';
-import { UseOwnedAssetParamsSchema, UseOwnedAssetsParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
 /** Server action: fetch a single owned asset by ID. */
@@ -28,7 +33,7 @@ export async function getOwnedAsset(params: {
   include?: OwnedAssetInclude;
 }): Promise<PartialOwnedAsset | null> {
   validateInput(UseOwnedAssetParamsSchema, params, 'getOwnedAsset');
-  return fetchOwnedAsset(getServerUrl(), params);
+  return await fetchOwnedAsset(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of owned assets. */
@@ -60,5 +65,5 @@ export async function getOwnedAssets(params?: {
   include?: OwnedAssetInclude;
 }): Promise<FetchOwnedAssetsResult<PartialOwnedAsset>> {
   if (params) validateInput(UseOwnedAssetsParamsSchema, params, 'getOwnedAssets');
-  return fetchOwnedAssets(getServerUrl(), params);
+  return await fetchOwnedAssets(getServerUrl(), params);
 }

@@ -1,8 +1,13 @@
 /** @see createUseList */
-import type { FetchNftsResult } from '@lsp-indexer/node';
-import { nftKeys } from '@lsp-indexer/node';
-import type { Nft, NftInclude, NftResult, PartialNft, UseNftsParams } from '@lsp-indexer/types';
-import type { UseNftsReturn } from '../../types';
+import { type FetchNftsResult, nftKeys } from '@lsp-indexer/node';
+import {
+  type Nft,
+  type NftInclude,
+  type NftResult,
+  type PartialNft,
+  type UseNftsParams,
+} from '@lsp-indexer/types';
+import { type UseNftsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
 type NftListParams = UseNftsParams & { include?: NftInclude };

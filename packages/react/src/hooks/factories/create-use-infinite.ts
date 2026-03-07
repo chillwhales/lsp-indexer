@@ -1,6 +1,9 @@
 /** Generic factory for infinite scroll hooks (useInfiniteProfiles, useInfiniteNfts, etc.). */
-import type { InfiniteData, UseInfiniteQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import {
+  type InfiniteData,
+  type UseInfiniteQueryResult,
+  useInfiniteQuery,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { DEFAULT_PAGE_SIZE } from '../../constants';
 

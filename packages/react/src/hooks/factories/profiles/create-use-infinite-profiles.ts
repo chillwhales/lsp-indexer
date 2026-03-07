@@ -1,14 +1,13 @@
 /** @see createUseInfinite */
-import type { FetchProfilesResult } from '@lsp-indexer/node';
-import { profileKeys } from '@lsp-indexer/node';
-import type {
-  PartialProfile,
-  Profile,
-  ProfileInclude,
-  ProfileResult,
-  UseInfiniteProfilesParams,
+import { type FetchProfilesResult, profileKeys } from '@lsp-indexer/node';
+import {
+  type PartialProfile,
+  type Profile,
+  type ProfileInclude,
+  type ProfileResult,
+  type UseInfiniteProfilesParams,
 } from '@lsp-indexer/types';
-import type { UseInfiniteProfilesReturn } from '../../types';
+import { type UseInfiniteProfilesReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
 type ProfileInfiniteParams = UseInfiniteProfilesParams & { include?: ProfileInclude };

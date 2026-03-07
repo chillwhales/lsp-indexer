@@ -1,14 +1,13 @@
 /** @see createUseInfinite */
-import type { FetchEncryptedAssetsResult } from '@lsp-indexer/node';
-import { encryptedAssetKeys } from '@lsp-indexer/node';
-import type {
-  EncryptedAsset,
-  EncryptedAssetInclude,
-  EncryptedAssetResult,
-  PartialEncryptedAsset,
-  UseInfiniteEncryptedAssetsParams,
+import { type FetchEncryptedAssetsResult, encryptedAssetKeys } from '@lsp-indexer/node';
+import {
+  type EncryptedAsset,
+  type EncryptedAssetInclude,
+  type EncryptedAssetResult,
+  type PartialEncryptedAsset,
+  type UseInfiniteEncryptedAssetsParams,
 } from '@lsp-indexer/types';
-import type { UseInfiniteEncryptedAssetsReturn } from '../../types';
+import { type UseInfiniteEncryptedAssetsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
 type EncryptedAssetsInfiniteParams = UseInfiniteEncryptedAssetsParams & {

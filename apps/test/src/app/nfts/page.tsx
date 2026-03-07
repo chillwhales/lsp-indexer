@@ -1,7 +1,7 @@
 'use client';
 
 /** NFTs playground — composite key lookup (address+tokenId), list, infinite scroll, and subscriptions. */
-import { Gem, Infinity, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
+import { Gem, InfinityIcon, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -16,12 +16,12 @@ import {
   useNfts as useNftsReact,
   useNftSubscription as useNftSubscriptionReact,
 } from '@lsp-indexer/react';
-import type {
-  NftFilter,
-  NftSort,
-  NftSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type NftFilter,
+  type NftSort,
+  type NftSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -34,8 +34,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 
 import { NftCard } from '@/components/nft-card';
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   DIGITAL_ASSET_INCLUDE_FIELDS,
   ErrorAlert,
@@ -462,7 +464,11 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const nfts = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
-    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+    error instanceof Error
+      ? error
+      : error != null
+        ? new Error(typeof error === 'string' ? error : 'Unknown error')
+        : null;
 
   return (
     <div className="space-y-4">
@@ -544,7 +550,7 @@ export default function NftsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite Scroll',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {

@@ -16,12 +16,12 @@ import {
   useProfileSubscription as useProfileSubscriptionReact,
   useProfiles as useProfilesReact,
 } from '@lsp-indexer/react';
-import type {
-  ProfileFilter,
-  ProfileSort,
-  ProfileSortField,
-  SortDirection,
-  SortNulls,
+import {
+  type ProfileFilter,
+  type ProfileSort,
+  type ProfileSortField,
+  type SortDirection,
+  type SortNulls,
 } from '@lsp-indexer/types';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -33,8 +33,10 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   ErrorAlert,
   FilterFieldsRow,
   IncludeToggles,
@@ -314,7 +316,11 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const profiles = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
-    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+    error instanceof Error
+      ? error
+      : error != null
+        ? new Error(typeof error === 'string' ? error : 'Unknown error')
+        : null;
 
   return (
     <div className="space-y-4">

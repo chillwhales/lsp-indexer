@@ -2,7 +2,7 @@
 
 /** Universal Receiver Events playground — LSP1 events with 3 nested relations. */
 import { TYPE_ID_NAMES, TypeIdNameSchema } from '@chillwhales/lsp1';
-import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { InfinityIcon, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -15,16 +15,18 @@ import {
   useUniversalReceiverEvents as useUniversalReceiverEventsReact,
   useUniversalReceiverEventSubscription as useUniversalReceiverEventSubscriptionReact,
 } from '@lsp-indexer/react';
-import type {
-  SortDirection,
-  SortNulls,
-  UniversalReceiverEventFilter,
-  UniversalReceiverEventSort,
-  UniversalReceiverEventSortField,
+import {
+  type SortDirection,
+  type SortNulls,
+  type UniversalReceiverEventFilter,
+  type UniversalReceiverEventSort,
+  type UniversalReceiverEventSortField,
 } from '@lsp-indexer/types';
 
-import type { FilterFieldConfig, HookMode, SortOption } from '@/components/playground';
 import {
+  type FilterFieldConfig,
+  type HookMode,
+  type SortOption,
   buildNestedInclude,
   DIGITAL_ASSET_INCLUDE_FIELDS,
   FilterFieldsRow,
@@ -395,7 +397,11 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const universalReceiverEvents = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
-    error instanceof Error ? error : error != null ? new Error(String(error)) : null;
+    error instanceof Error
+      ? error
+      : error != null
+        ? new Error(typeof error === 'string' ? error : 'Unknown error')
+        : null;
 
   return (
     <div className="space-y-4">
@@ -478,7 +484,7 @@ export default function UniversalReceiverEventsPage(): React.ReactNode {
         {
           value: 'infinite',
           label: 'Infinite',
-          icon: <Infinity className="size-4" />,
+          icon: <InfinityIcon className="size-4" />,
           render: (mode) => <InfiniteTab mode={mode} />,
         },
         {
