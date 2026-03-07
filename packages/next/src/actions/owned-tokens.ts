@@ -33,7 +33,7 @@ export async function getOwnedToken(params: {
   include?: OwnedTokenInclude;
 }): Promise<PartialOwnedToken | null> {
   validateInput(UseOwnedTokenParamsSchema, params, 'getOwnedToken');
-  return fetchOwnedToken(getServerUrl(), params);
+  return await fetchOwnedToken(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of owned tokens. */
@@ -65,5 +65,5 @@ export async function getOwnedTokens(params?: {
   include?: OwnedTokenInclude;
 }): Promise<FetchOwnedTokensResult<PartialOwnedToken>> {
   if (params) validateInput(UseOwnedTokensParamsSchema, params, 'getOwnedTokens');
-  return fetchOwnedTokens(getServerUrl(), params);
+  return await fetchOwnedTokens(getServerUrl(), params);
 }

@@ -40,5 +40,5 @@ export async function getCreators(params?: {
   include?: CreatorInclude;
 }): Promise<FetchCreatorsResult<PartialCreator>> {
   if (params) validateInput(UseCreatorsParamsSchema, params, 'getCreators');
-  return fetchCreators(getServerUrl(), params);
+  return await fetchCreators(getServerUrl(), params);
 }

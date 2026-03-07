@@ -33,7 +33,7 @@ export async function getOwnedAsset(params: {
   include?: OwnedAssetInclude;
 }): Promise<PartialOwnedAsset | null> {
   validateInput(UseOwnedAssetParamsSchema, params, 'getOwnedAsset');
-  return fetchOwnedAsset(getServerUrl(), params);
+  return await fetchOwnedAsset(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of owned assets. */
@@ -65,5 +65,5 @@ export async function getOwnedAssets(params?: {
   include?: OwnedAssetInclude;
 }): Promise<FetchOwnedAssetsResult<PartialOwnedAsset>> {
   if (params) validateInput(UseOwnedAssetsParamsSchema, params, 'getOwnedAssets');
-  return fetchOwnedAssets(getServerUrl(), params);
+  return await fetchOwnedAssets(getServerUrl(), params);
 }

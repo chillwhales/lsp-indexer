@@ -38,7 +38,7 @@ export async function getNft(params: {
   include?: NftInclude;
 }): Promise<PartialNft | null> {
   validateInput(UseNftParamsSchema, params, 'getNft');
-  return fetchNft(getServerUrl(), params);
+  return await fetchNft(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of NFTs. */
@@ -70,5 +70,5 @@ export async function getNfts(params?: {
   include?: NftInclude;
 }): Promise<FetchNftsResult<PartialNft>> {
   if (params) validateInput(UseNftsParamsSchema, params, 'getNfts');
-  return fetchNfts(getServerUrl(), params);
+  return await fetchNfts(getServerUrl(), params);
 }

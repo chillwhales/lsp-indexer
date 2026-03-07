@@ -36,7 +36,7 @@ export async function getLatestDataChangedEvent(params?: {
 }): Promise<PartialDataChangedEvent | null> {
   if (params)
     validateInput(UseLatestDataChangedEventParamsSchema, params, 'getLatestDataChangedEvent');
-  return fetchLatestDataChangedEvent(getServerUrl(), params);
+  return await fetchLatestDataChangedEvent(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of DataChanged events. */
@@ -68,5 +68,5 @@ export async function getDataChangedEvents(params?: {
   include?: DataChangedEventInclude;
 }): Promise<FetchDataChangedEventsResult<PartialDataChangedEvent>> {
   if (params) validateInput(UseDataChangedEventsParamsSchema, params, 'getDataChangedEvents');
-  return fetchDataChangedEvents(getServerUrl(), params);
+  return await fetchDataChangedEvents(getServerUrl(), params);
 }

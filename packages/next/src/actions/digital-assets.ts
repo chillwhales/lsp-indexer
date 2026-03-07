@@ -33,7 +33,7 @@ export async function getDigitalAsset(params: {
   include?: DigitalAssetInclude;
 }): Promise<PartialDigitalAsset | null> {
   validateInput(UseDigitalAssetParamsSchema, params, 'getDigitalAsset');
-  return fetchDigitalAsset(getServerUrl(), params);
+  return await fetchDigitalAsset(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of digital assets. */
@@ -65,5 +65,5 @@ export async function getDigitalAssets(params?: {
   include?: DigitalAssetInclude;
 }): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>> {
   if (params) validateInput(UseDigitalAssetsParamsSchema, params, 'getDigitalAssets');
-  return fetchDigitalAssets(getServerUrl(), params);
+  return await fetchDigitalAssets(getServerUrl(), params);
 }

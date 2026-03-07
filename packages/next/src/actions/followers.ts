@@ -49,13 +49,13 @@ export async function getFollows(params: {
   include?: FollowerInclude;
 }): Promise<FetchFollowsResult<PartialFollower>> {
   validateInput(UseFollowsParamsSchema, params, 'getFollows');
-  return fetchFollows(getServerUrl(), params);
+  return await fetchFollows(getServerUrl(), params);
 }
 
 /** Server action: fetch follower and following counts for an address. */
 export async function getFollowCount(address: string): Promise<FollowCount> {
   validateInput(UseFollowCountParamsSchema, { address }, 'getFollowCount');
-  return fetchFollowCount(getServerUrl(), { address });
+  return await fetchFollowCount(getServerUrl(), { address });
 }
 
 /** Server action: check if one address follows another. */
@@ -64,5 +64,5 @@ export async function getIsFollowing(
   followedAddress: string,
 ): Promise<boolean> {
   validateInput(UseIsFollowingParamsSchema, { followerAddress, followedAddress }, 'getIsFollowing');
-  return fetchIsFollowing(getServerUrl(), { followerAddress, followedAddress });
+  return await fetchIsFollowing(getServerUrl(), { followerAddress, followedAddress });
 }

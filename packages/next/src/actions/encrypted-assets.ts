@@ -44,5 +44,5 @@ export async function getEncryptedAssets(params?: {
   include?: EncryptedAssetInclude;
 }): Promise<FetchEncryptedAssetsResult<PartialEncryptedAsset>> {
   if (params) validateInput(UseEncryptedAssetsParamsSchema, params, 'getEncryptedAssets');
-  return fetchEncryptedAssets(getServerUrl(), params);
+  return await fetchEncryptedAssets(getServerUrl(), params);
 }

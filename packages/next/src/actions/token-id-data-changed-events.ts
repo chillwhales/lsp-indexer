@@ -42,7 +42,7 @@ export async function getLatestTokenIdDataChangedEvent(params?: {
       params,
       'getLatestTokenIdDataChangedEvent',
     );
-  return fetchLatestTokenIdDataChangedEvent(getServerUrl(), params);
+  return await fetchLatestTokenIdDataChangedEvent(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of TokenIdDataChanged events. */
@@ -77,5 +77,5 @@ export async function getTokenIdDataChangedEvents(params?: {
 }): Promise<FetchTokenIdDataChangedEventsResult<PartialTokenIdDataChangedEvent>> {
   if (params)
     validateInput(UseTokenIdDataChangedEventsParamsSchema, params, 'getTokenIdDataChangedEvents');
-  return fetchTokenIdDataChangedEvents(getServerUrl(), params);
+  return await fetchTokenIdDataChangedEvents(getServerUrl(), params);
 }

@@ -40,5 +40,5 @@ export async function getIssuedAssets(params?: {
   include?: IssuedAssetInclude;
 }): Promise<FetchIssuedAssetsResult<PartialIssuedAsset>> {
   if (params) validateInput(UseIssuedAssetsParamsSchema, params, 'getIssuedAssets');
-  return fetchIssuedAssets(getServerUrl(), params);
+  return await fetchIssuedAssets(getServerUrl(), params);
 }

@@ -47,5 +47,5 @@ export async function getUniversalReceiverEvents(params?: {
 }): Promise<FetchUniversalReceiverEventsResult<PartialUniversalReceiverEvent>> {
   if (params)
     validateInput(UseUniversalReceiverEventsParamsSchema, params, 'getUniversalReceiverEvents');
-  return fetchUniversalReceiverEvents(getServerUrl(), params);
+  return await fetchUniversalReceiverEvents(getServerUrl(), params);
 }

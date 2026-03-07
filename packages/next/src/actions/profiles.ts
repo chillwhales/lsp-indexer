@@ -33,7 +33,7 @@ export async function getProfile(params: {
   include?: ProfileInclude;
 }): Promise<PartialProfile | null> {
   validateInput(UseProfileParamsSchema, params, 'getProfile');
-  return fetchProfile(getServerUrl(), params);
+  return await fetchProfile(getServerUrl(), params);
 }
 
 /** Server action: fetch a paginated list of profiles. */
@@ -65,5 +65,5 @@ export async function getProfiles(params?: {
   include?: ProfileInclude;
 }): Promise<FetchProfilesResult<PartialProfile>> {
   if (params) validateInput(UseProfilesParamsSchema, params, 'getProfiles');
-  return fetchProfiles(getServerUrl(), params ?? {});
+  return await fetchProfiles(getServerUrl(), params ?? {});
 }
