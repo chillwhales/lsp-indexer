@@ -1,5 +1,6 @@
 'use client';
 
+/** Data Changed Events playground — ERC725Y DataChanged events with data key name resolution. */
 import { DATA_KEY_NAMES, DataKeyNameSchema } from '@chillwhales/erc725';
 import { Clock, Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
@@ -48,10 +49,6 @@ import { Card, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-
-// ---------------------------------------------------------------------------
-// Domain config — Data Changed Events (9 filter params, 4 sort fields)
-// ---------------------------------------------------------------------------
 
 /** Data key name options for select dropdowns — built from the data-keys registry */
 const DATA_KEY_NAME_OPTIONS = DATA_KEY_NAMES.map((name) => ({ value: name, label: name }));
@@ -165,10 +162,6 @@ const SORT_OPTIONS: SortOption[] = [
   { value: 'digitalAssetName', label: 'DA Name' },
 ];
 
-// ---------------------------------------------------------------------------
-// Hook resolution by mode
-// ---------------------------------------------------------------------------
-
 type DataChangedHooks = {
   useLatestDataChangedEvent: typeof useLatestDataChangedEventReact;
   useDataChangedEvents: typeof useDataChangedEventsReact;
@@ -193,10 +186,6 @@ function useDataChangedHooks(mode: HookMode): DataChangedHooks {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Build filter
-// ---------------------------------------------------------------------------
-
 function buildFilter(vals: Record<string, string>): DataChangedEventFilter | undefined {
   const f: DataChangedEventFilter = {};
   if (vals.address) f.address = vals.address;
@@ -216,10 +205,6 @@ function buildFilter(vals: Record<string, string>): DataChangedEventFilter | und
   if (vals.digitalAssetName) f.digitalAssetName = vals.digitalAssetName;
   return Object.keys(f).length > 0 ? f : undefined;
 }
-
-// ---------------------------------------------------------------------------
-// Shared list state
-// ---------------------------------------------------------------------------
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
@@ -265,10 +250,6 @@ function useListState() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Include sections
-// ---------------------------------------------------------------------------
-
 function DcIncludeSections({
   includeValues,
   toggleInclude,
@@ -300,10 +281,6 @@ function DcIncludeSections({
     </>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: Latest (single item)
-// ---------------------------------------------------------------------------
 
 function LatestTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useLatestDataChangedEvent } = useDataChangedHooks(mode);
@@ -361,10 +338,6 @@ function LatestTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 2: List (paginated)
-// ---------------------------------------------------------------------------
-
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useDataChangedEvents } = useDataChangedHooks(mode);
   const state = useListState();
@@ -413,10 +386,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 3: Infinite
-// ---------------------------------------------------------------------------
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteDataChangedEvents } = useDataChangedHooks(mode);
@@ -472,10 +441,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 4: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useDataChangedEventSubscription } = useDataChangedHooks(mode);
   const state = useListState();
@@ -489,8 +454,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const dataChangedEvents = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -498,7 +461,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -548,10 +510,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
-
 export default function DataChangedEventsPage(): React.ReactNode {
   return (
     <PlaygroundPageLayout
@@ -566,7 +524,7 @@ export default function DataChangedEventsPage(): React.ReactNode {
           <code className="text-xs bg-muted px-1 py-0.5 rounded">
             useDataChangedEventSubscription
           </code>{' '}
-          hooks against ERC725Y contract-level data change events via Hasura (QUERY-09, SUB-02).
+          hooks against ERC725Y contract-level data change events via Hasura.
         </>
       }
       tabs={[

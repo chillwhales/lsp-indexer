@@ -1,4 +1,4 @@
-// Server component — validates all 4 package entry points work in RSC context
+/** Home page — validates all 4 @lsp-indexer packages resolve in an RSC context and shows env config. */
 import { CheckCircle2, XCircle } from 'lucide-react';
 import React from 'react';
 
@@ -71,7 +71,6 @@ export default function HomePage(): React.ReactNode {
         </p>
       </div>
 
-      {/* Package Entry Point Validation */}
       <Card>
         <CardHeader>
           <CardTitle>Package Status</CardTitle>
@@ -101,7 +100,6 @@ export default function HomePage(): React.ReactNode {
         </CardContent>
       </Card>
 
-      {/* Environment Status */}
       <Card>
         <CardHeader>
           <CardTitle>Environment</CardTitle>
@@ -118,7 +116,6 @@ export default function HomePage(): React.ReactNode {
         </CardContent>
       </Card>
 
-      {/* Client-side import validation */}
       <ConnectionStatus />
     </div>
   );

@@ -1,13 +1,4 @@
-/**
- * Factory for useInfiniteDigitalAssets — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseInfiniteDigitalAssets(queryFn)` with its own fetch:
- * - React: `(p) => fetchDigitalAssets(getClientUrl(), p)`
- * - Next:  `(p) => getDigitalAssets(p)`
- *
- * @see createUseInfinite — the generic factory this wraps
- */
+/** @see createUseInfinite */
 import type { FetchDigitalAssetsResult } from '@lsp-indexer/node';
 import { digitalAssetKeys } from '@lsp-indexer/node';
 import type {
@@ -20,16 +11,10 @@ import type {
 import type { UseInfiniteDigitalAssetsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
-/** Params passed to the factory — matches UseInfiniteDigitalAssetsParams with optional include */
 type DigitalAssetInfiniteParams = UseInfiniteDigitalAssetsParams & {
   include?: DigitalAssetInclude;
 };
 
-/**
- * Create a `useInfiniteDigitalAssets` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for digital asset lists (with limit + offset)
- */
 export function createUseInfiniteDigitalAssets(
   queryFn: (
     params: DigitalAssetInfiniteParams & { limit: number; offset: number },

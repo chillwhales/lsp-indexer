@@ -24,21 +24,7 @@ import { escapeLike, orderDir } from './utils';
 // Internal builders — translate flat params to Hasura variables
 // ---------------------------------------------------------------------------
 
-/**
- * Translate a flat `ProfileFilter` to a Hasura `universal_profile_bool_exp`.
- *
- * Multiple filters combine with `_and`. An empty or undefined filter
- * returns an empty object (no filtering).
- *
- * Filter → Hasura mapping:
- * - `name`       → `{ lsp3Profile: { name: { value: { _ilike: '%name%' } } } }`
- * - `followedBy` → `{ followedBy: { follower_address: { _ilike: address } } }`
- *                   ("profiles that address X follows" = X is the follower)
- * - `following`  → `{ followed: { followed_address: { _ilike: address } } }`
- *                   ("profiles that follow address X" = X is the followed)
- * - `tokenOwned` → `{ ownedAssets: { address: { _ilike }, balance: { _gt } } }`
- *                   and/or `{ ownedTokens: { address: { _ilike }, token_id: { _ilike } } }`
- */
+/** Translate ProfileFilter to a Hasura _bool_exp. */
 export function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Bool_Exp {
   if (!filter) return {};
 
@@ -100,16 +86,7 @@ export function buildProfileWhere(filter?: ProfileFilter): Universal_Profile_Boo
   return { _and: conditions };
 }
 
-/**
- * Translate a flat `ProfileSort` to a Hasura `order_by` array.
- *
- * Sort field → Hasura mapping:
- * - `'name'`           → `[{ lsp3Profile: { name: { value: dir } } }]`
- * - `'followerCount'`  → `[{ followedBy_aggregate: { count: dir } }]`
- * - `'followingCount'` → `[{ followed_aggregate: { count: dir } }]`
- *
- * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
- */
+/** Translate ProfileSort to a Hasura order_by. */
 export function buildProfileOrderBy(sort?: ProfileSort): Universal_Profile_Order_By[] | undefined {
   if (!sort) return undefined;
 
@@ -127,18 +104,9 @@ export function buildProfileOrderBy(sort?: ProfileSort): Universal_Profile_Order
   }
 }
 
-/**
- * Translate a `ProfileInclude` to GraphQL boolean variables for `@include` directives.
- *
- * When `include` is undefined (omitted), returns an empty object — the GraphQL
- * document defaults all `@include` booleans to `true`, so everything is included.
- *
- * When `include` is provided, each field defaults to `false` unless explicitly set
- * to `true`. This implements the "opt-in when specified" contract.
- */
+/** Build @include directive variables from include config. */
 export function buildProfileIncludeDirectives(include?: ProfileInclude): Record<string, boolean> {
   if (!include) {
-    // Omitted = include everything (GraphQL defaults all to true)
     return {};
   }
 
@@ -155,17 +123,7 @@ export function buildProfileIncludeDirectives(include?: ProfileInclude): Record<
   };
 }
 
-/**
- * Build profile sub-include variables for use as a **nested relation** in other domains
- * (owned-assets, owned-tokens). Uses `includeProfile*` prefix to avoid colliding with
- * digital asset `include*` variables which share the same query.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`.
- */
+/** Build profile sub-include variables for nested relations (includeProfile* prefix). */
 export function buildProfileIncludeVars(
   include?: boolean | ProfileInclude,
 ): Record<string, boolean> {
@@ -194,29 +152,9 @@ export function buildProfileIncludeVars(
 // Subscription config builder
 // ---------------------------------------------------------------------------
 
-/**
- * Raw Hasura row type from the subscription codegen result.
- *
- * Structurally compatible with the query-side `RawProfile` (both select
- * the same fields), but derived from the subscription codegen type to
- * keep the generic chain `TResult → TRaw` precise.
- */
 type RawProfileSubscriptionRow = ProfileSubscriptionSubscription['universal_profile'][number];
 
-/**
- * Build a profile subscription config (document, variables, extract, parser).
- *
- * Encapsulates the domain-specific assembly that `createUseProfileSubscription`
- * needs — mirroring how `fetchProfiles` encapsulates query assembly. Keeps the
- * React hook factory focused on hook lifecycle rather than domain plumbing.
- *
- * The return type is inferred so the 4-generic chain
- * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
- * `useSubscription` without any casts or `unknown` holes.
- *
- * @param params - Filter, sort, limit, and include configuration
- * @returns A config object consumable by `useSubscription`
- */
+/** Build subscription config for useSubscription. */
 export function buildProfileSubscriptionConfig(params: {
   filter?: ProfileFilter;
   sort?: ProfileSort;
@@ -245,21 +183,7 @@ export function buildProfileSubscriptionConfig(params: {
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Fetch a single Universal Profile by address.
- *
- * Translates the address to a Hasura `where` clause, executes the query,
- * and returns the first result parsed as a clean `Profile`, or `null` if
- * the address doesn't exist.
- *
- * When `include` is provided, the return type is narrowed to only contain
- * base fields + included fields (e.g., `ProfileResult<{ name: true }>` =
- * `{ address: string; name: string | null }`).
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (address + optional include)
- * @returns The parsed profile (narrowed by include), or `null` if not found
- */
+/** Fetch a single Universal Profile by address. */
 export async function fetchProfile(
   url: string,
   params: { address: string },
@@ -289,32 +213,12 @@ export async function fetchProfile(
   return parseProfile(raw);
 }
 
-/**
- * Result shape for paginated profile list queries.
- *
- * When the include parameter `I` is provided, the `profiles` array contains
- * narrowed types with only base fields + included fields.
- */
 export interface FetchProfilesResult<P = Profile> {
-  /** Parsed profiles for the current page (narrowed by include) */
   profiles: P[];
-  /** Total number of profiles matching the filter (for pagination UI) */
   totalCount: number;
 }
 
-/**
- * Fetch a paginated list of Universal Profiles with filtering, sorting, and total count.
- *
- * Translates flat filter/sort/include params to Hasura variables, executes the
- * query, and returns parsed results with a total count for pagination.
- *
- * When `include` is provided, the returned `profiles` array contains narrowed types
- * with only base fields + included fields.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed profiles (narrowed by include) and total count
- */
+/** Fetch a paginated list of Universal Profiles. */
 export async function fetchProfiles(
   url: string,
   params?: { filter?: ProfileFilter; sort?: ProfileSort; limit?: number; offset?: number },

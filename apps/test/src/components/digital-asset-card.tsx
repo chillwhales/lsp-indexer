@@ -1,3 +1,4 @@
+/** Digital Asset (LSP7/LSP8) card. Shows token metadata and LSP4 details. */
 import { Coins, ExternalLink, Loader2 } from 'lucide-react';
 import React from 'react';
 
@@ -9,10 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatTokenAmount, isSafeUrl, resolveUrl } from '@/lib/utils';
-
-// ---------------------------------------------------------------------------
-// Standard badge
-// ---------------------------------------------------------------------------
 
 function StandardBadge({
   standard,
@@ -54,12 +51,7 @@ function StandardBadge({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Digital Asset Card
-// ---------------------------------------------------------------------------
-
 export interface DigitalAssetCardProps {
-  /** Accepts any shape of DigitalAsset — full, narrowed via include, or partial from nested relations */
   digitalAsset: PartialExcept<DigitalAsset, 'address'>;
   isFetching?: boolean;
 }
@@ -68,7 +60,6 @@ export function DigitalAssetCard({
   digitalAsset,
   isFetching,
 }: DigitalAssetCardProps): React.ReactNode {
-  // Destructure — address is always present, everything else may be undefined
   const {
     address,
     name,
@@ -140,7 +131,6 @@ export function DigitalAssetCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Core token details */}
         <dl className="space-y-1.5 text-sm">
           {decimals != null && (
             <div className="flex gap-2">
@@ -176,8 +166,6 @@ export function DigitalAssetCard({
             </div>
           )}
         </dl>
-
-        {/* LSP4 Metadata */}
         {(description ||
           (icons && icons.length > 0) ||
           (images && images.length > 0) ||
@@ -254,8 +242,6 @@ export function DigitalAssetCard({
             </div>
           </div>
         )}
-
-        {/* LSP8 Section — shown when any LSP8 field was fetched and has a value */}
         {(referenceContract !== undefined ||
           tokenIdFormat !== undefined ||
           baseUri !== undefined) &&

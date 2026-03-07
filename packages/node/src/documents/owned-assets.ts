@@ -1,19 +1,6 @@
 import { graphql } from '../graphql';
 
-/**
- * GraphQL document for fetching a single Owned Asset (LSP7 fungible token ownership).
- *
- * Variables:
- * - `$where` — The service layer builds the Hasura bool_exp (e.g., `{ id: { _eq: "..." } }`)
- * - `$includeBalance` / `$includeBlock` / `$includeTimestamp` — Direct column toggles
- * - `$includeDigitalAsset` — Include related digital asset details (with 17 DA sub-variables)
- * - `$include[Name|Symbol|...]` — 17 digital asset sub-include toggles
- * - `$includeHolder` — Include related holder universal profile details
- * - `$includeTokenIdCount` — Include count of individual token IDs (tokenIds_aggregate)
- *
- * Uses `@include(if:)` directives so omitted data is never sent over the wire.
- * When `include` is omitted by the caller, all variables default to `true` → everything fetched.
- */
+/** Single item query. */
 export const GetOwnedAssetDocument = graphql(`
   query GetOwnedAsset(
     $where: owned_asset_bool_exp!
@@ -186,23 +173,7 @@ export const GetOwnedAssetDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL document for fetching a paginated list of Owned Assets with total count.
- *
- * Used by both `useOwnedAssets` (offset-based pagination) and `useInfiniteOwnedAssets`
- * (infinite scroll) — the difference is how the hook manages pagination, not the document.
- *
- * Variables:
- * - `$where` — Filter conditions (built by service layer from flat OwnedAssetFilter)
- * - `$order_by` — Sort order (built by service layer from OwnedAssetSort)
- * - `$limit` / `$offset` — Pagination
- * - `$includeBalance` / `$includeBlock` / `$includeTimestamp` — Direct column toggles
- * - `$includeDigitalAsset` + 17 DA sub-variables — Digital asset nested include toggles
- * - `$includeHolder` + 9 profile sub-variables — Holder profile nested include toggles
- * - `$includeTokenIdCount` — Token ID count aggregate toggle
- *
- * Includes `owned_asset_aggregate` for total count (used for "X of Y results" UI).
- */
+/** Paginated list of Owned Assets with total count. */
 export const GetOwnedAssetsDocument = graphql(`
   query GetOwnedAssets(
     $where: owned_asset_bool_exp
@@ -383,23 +354,7 @@ export const GetOwnedAssetsDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL subscription document for real-time Owned Asset updates.
- *
- * Mirrors `GetOwnedAssetsDocument` query shape but as a subscription —
- * Hasura pushes updates whenever owned_asset rows matching the filter change.
- *
- * Variables:
- * - `$where` — Filter conditions (built by service layer from flat OwnedAssetFilter)
- * - `$order_by` — Sort order (built by service layer from OwnedAssetSort)
- * - `$limit` — Maximum results
- * - `$includeBalance` / `$includeBlock` / `$includeTimestamp` — Direct column toggles
- * - `$includeDigitalAsset` + 17 DA sub-variables — Digital asset nested include toggles
- * - `$includeHolder` + 9 profile sub-variables — Holder profile nested include toggles
- * - `$includeTokenIdCount` — Token ID count aggregate toggle
- *
- * No `$offset` or `_aggregate` — subscriptions are live streams, not paginated.
- */
+/** Subscription variant of GetOwnedAssetsDocument. */
 export const OwnedAssetSubscriptionDocument = graphql(`
   subscription OwnedAssetSubscription(
     $where: owned_asset_bool_exp

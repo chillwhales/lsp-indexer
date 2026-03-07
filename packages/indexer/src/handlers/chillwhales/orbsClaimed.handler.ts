@@ -12,10 +12,6 @@
  *
  * **Key difference from ChillClaimed:** Uses ORBS contract and getChillwhaleClaimStatus function
  * instead of CHILL contract and getClaimedStatusFor.
- *
- * Port from v1:
- *   - app/handlers/orbsClaimedHandler.ts (mint detection + head verification)
- *   - utils/orbsClaimed/index.ts (multicall batch logic)
  */
 import { CHILLWHALES_ADDRESS, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { aggregate3StaticLatest } from '@/core/multicall';
@@ -29,7 +25,7 @@ import { getAddress, hexToBool, isAddressEqual, isHex } from 'viem';
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'OrbsClaimed';
 
-// Multicall batch size (matching V1)
+// Multicall batch size
 const BATCH_SIZE = 500;
 
 const OrbsClaimedHandler: EntityHandler = {
@@ -152,7 +148,7 @@ const OrbsClaimedHandler: EntityHandler = {
 
       batchIndex++;
 
-      // Rate limiting: 1 second delay between batches (matching V1)
+      // Rate limiting: 1 second delay between batches
       if (batchIndex < batchesCount) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }

@@ -1,25 +1,6 @@
 import { graphql } from '../graphql';
 
-/**
- * GraphQL document for fetching a paginated list of followers with total count.
- *
- * Used by `useFollowers`, `useInfiniteFollowers`, `useFollowing`, `useInfiniteFollowing`,
- * and `useIsFollowing` (with `limit: 1`) — the difference is how the service layer
- * builds the `$where` filter and how the hook manages pagination.
- *
- * Variables:
- * - `$where` — The service layer builds the Hasura bool_exp
- * - `$order_by` — Sort order (built by service layer from FollowerSort)
- * - `$limit` / `$offset` — Pagination
- * - `$includeTimestamp` / `$includeAddress` / `$includeBlockNumber` / `$includeTransactionIndex` / `$includeLogIndex` — Scalar include toggles
- * - `$includeFollowerProfile*` — Boolean flags for follower's Universal Profile sub-includes
- * - `$includeFollowedProfile*` — Boolean flags for followed's Universal Profile sub-includes
- *
- * All include variables default to `true` (inverted default — omit `include` = fetch everything).
- *
- * Profile sub-fields match what `parseProfile` expects: name, description, tags, links,
- * avatar (with file_type), profileImage, backgroundImage, followedBy_aggregate, followed_aggregate.
- */
+/** Paginated list of followers with total count. */
 export const GetFollowersDocument = graphql(`
   query GetFollowers(
     $where: follower_bool_exp
@@ -165,27 +146,7 @@ export const GetFollowersDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL document for fetching follow counts (follower + following) for an address.
- *
- * Uses two aliased `follower_aggregate` queries:
- * - `followerCount`: count where `followed_address = address` (how many follow this address)
- * - `followingCount`: count where `follower_address = address` (how many this address follows)
- *
- * The service layer passes:
- * - `$followerWhere: { followed_address: { _ilike: address } }`
- * - `$followingWhere: { follower_address: { _ilike: address } }`
- */
-/**
- * GraphQL subscription document for live Follower data.
- *
- * Same field selection as GetFollowersDocument but as a subscription:
- * - No $offset (subscriptions are live streams, not paginated)
- * - No follower_aggregate (no total count in subscriptions)
- *
- * 26 variables: 3 pagination (where, order_by, limit) + 23 include toggles
- * (5 scalar + 9 follower profile + 9 followed profile).
- */
+/** Real-time subscription variant. */
 export const FollowerSubscriptionDocument = graphql(`
   subscription FollowerSubscription(
     $where: follower_bool_exp
@@ -326,6 +287,7 @@ export const FollowerSubscriptionDocument = graphql(`
   }
 `);
 
+/** Follower + following counts for a single address. */
 export const GetFollowCountDocument = graphql(`
   query GetFollowCount($followerWhere: follower_bool_exp!, $followingWhere: follower_bool_exp!) {
     followerCount: follower_aggregate(where: $followerWhere) {

@@ -14,10 +14,6 @@
  *
  * `Follower` current-state entity removal is implemented by the FollowerHandler
  * EntityHandler.
- *
- * Port from v1:
- *   - scanner.ts L482-489 (event matching)
- *   - utils/unfollow/index.ts (extract + populate)
  */
 import { LSP26_ADDRESS } from '@/constants';
 import {

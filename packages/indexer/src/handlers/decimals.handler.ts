@@ -1,5 +1,5 @@
 /**
- * Decimals Entity Handler (V2 — postVerification).
+ * Decimals Entity Handler (postVerification).
  *
  * Reads the `decimals()` value for newly verified Digital Assets via
  * Multicall3. Runs in Step 5.5 (post-verification) because it needs
@@ -12,8 +12,6 @@
  *   - Batches `decimals()` calls via Multicall3.aggregate3Static (100 per batch)
  *   - Creates Decimals entities in BatchContext + queues enrichment for digitalAsset FK
  *   - Handles Multicall3 failures gracefully (some assets may not have decimals)
- *
- * Port from v1: packages/indexer/src/app/handlers/decimalsHandler.ts
  */
 
 import { aggregate3StaticLatest } from '@/core/multicall';
@@ -26,7 +24,7 @@ import { hexToNumber, isHex } from 'viem';
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'Decimals';
 
-// Match V1 batch size for Multicall3 calls
+// Multicall3 batch size
 const BATCH_SIZE = 100;
 
 const DecimalsHandler: EntityHandler = {
@@ -44,7 +42,7 @@ const DecimalsHandler: EntityHandler = {
     const newDAsList = [...newDAs.values()];
     const batchesCount = Math.ceil(newDAsList.length / BATCH_SIZE);
 
-    // Process in batches of 100 (same as V1)
+    // Process in batches of 100
     for (let index = 0; index < batchesCount; index++) {
       const start = index * BATCH_SIZE;
       const batch = newDAsList.slice(start, start + BATCH_SIZE);

@@ -1,16 +1,4 @@
-/**
- * Factory for useFollowerSubscription — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseFollowerSubscription(useSubscription)` with its
- * own hook (bound to the package-specific context).
- *
- * Domain-specific config assembly (document, variables, extract, parser) is
- * delegated to `buildFollowerSubscriptionConfig` in the node service layer.
- *
- * @see createUseSubscription — produces the `useSubscription` hook this factory consumes
- * @see buildFollowerSubscriptionConfig — node service that builds the subscription config
- */
+/** @see createUseSubscription */
 import { buildFollowerSubscriptionConfig, followerKeys } from '@lsp-indexer/node';
 import type {
   Follower,
@@ -23,11 +11,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DEFAULT_SUBSCRIPTION_LIMIT } from '../../../constants';
 import type { UseFollowerSubscriptionParams, UseSubscriptionFn } from '../../types';
 
-/**
- * Create a `useFollowerSubscription` hook bound to a specific `useSubscription`.
- *
- * @param useSubscription - The package-specific useSubscription hook
- */
 export function createUseFollowerSubscription(useSubscription: UseSubscriptionFn) {
   function useFollowerSubscription<const I extends FollowerInclude>(
     params: UseFollowerSubscriptionParams & {

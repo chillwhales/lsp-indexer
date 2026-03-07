@@ -11,10 +11,6 @@
  *
  * The formattedTokenId field is left null — formatting is handled by the
  * FormattedTokenId handler (issue #113) which runs after NFT creation.
- *
- * Port from v1:
- *   - utils/transfer/index.ts (NFT extraction from LSP8 Transfer)
- *   - utils/tokenIdDataChanged/index.ts (NFT stub creation)
  */
 import { ZERO_ADDRESS } from '@/constants';
 import { resolveEntities } from '@/core/handlerHelpers';

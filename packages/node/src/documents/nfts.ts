@@ -1,22 +1,6 @@
 import { graphql } from '../graphql';
 
-/**
- * GraphQL document for fetching a single NFT.
- *
- * NFTs are identified by (address, tokenId) pair — the service layer builds
- * the `$where` filter (e.g., `{ address: { _ilike: "0x..." }, token_id: { _eq: "..." } }`).
- *
- * Variables:
- * - `$where` — The service layer builds the Hasura bool_exp
- * - `$include*` — Boolean flags controlling nested data, all default to `true` (inverted default)
- * - `$includeCollection*` — Boolean flags for collection sub-includes (DigitalAsset fields)
- *
- * Uses `@include(if:)` directives so omitted nested data is never sent over the wire.
- * When `include` is omitted by the caller, all variables default to `true` → everything fetched.
- *
- * Both `lsp4Metadata` (direct) and `lsp4MetadataBaseUri` (fallback) are always fetched;
- * the parser applies the fallback logic (direct first, baseUri second, null if both absent).
- */
+/** Single NFT query. */
 export const GetNftDocument = graphql(`
   query GetNft(
     $where: nft_bool_exp!
@@ -262,24 +246,7 @@ export const GetNftDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL document for fetching a paginated list of NFTs with total count.
- *
- * Used by both `useNfts` (offset-based pagination) and `useInfiniteNfts`
- * (infinite scroll) — the difference is how the hook manages pagination, not the document.
- *
- * Variables:
- * - `$where` — Filter conditions (built by service layer from flat NftFilter)
- * - `$order_by` — Sort order (built by service layer from NftSort)
- * - `$limit` / `$offset` — Pagination
- * - `$include*` — Boolean flags controlling nested data, all default to `true` (inverted default)
- * - `$includeCollection*` — Boolean flags for collection sub-includes (DigitalAsset fields)
- *
- * Includes `nft_aggregate` for total count (used for "X of Y results" UI).
- *
- * Both `lsp4Metadata` (direct) and `lsp4MetadataBaseUri` (fallback) are always fetched;
- * the parser applies the fallback logic (direct first, baseUri second, null if both absent).
- */
+/** Paginated list of NFTs with total count. */
 export const GetNftsDocument = graphql(`
   query GetNfts(
     $where: nft_bool_exp

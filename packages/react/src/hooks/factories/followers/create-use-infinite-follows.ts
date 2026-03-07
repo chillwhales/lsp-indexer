@@ -1,13 +1,4 @@
-/**
- * Factory for useInfiniteFollows — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseInfiniteFollows(queryFn)` with its own fetch:
- * - React: `(p) => fetchFollows(getClientUrl(), p)`
- * - Next:  `(p) => getFollows(p)`
- *
- * @see createUseInfinite — the generic factory this wraps
- */
+/** @see createUseInfinite */
 import type { FetchFollowsResult } from '@lsp-indexer/node';
 import { followerKeys } from '@lsp-indexer/node';
 import type {
@@ -20,16 +11,10 @@ import type {
 import type { UseInfiniteFollowsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
-/** Params passed to the factory — matches UseInfiniteFollowsParams with optional include */
 type FollowsInfiniteParams = UseInfiniteFollowsParams & {
   include?: FollowerInclude;
 };
 
-/**
- * Create a `useInfiniteFollows` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for follow lists (with limit + offset)
- */
 export function createUseInfiniteFollows(
   queryFn: (
     params: FollowsInfiniteParams & { limit: number; offset: number },

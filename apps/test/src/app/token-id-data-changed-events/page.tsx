@@ -1,5 +1,6 @@
 'use client';
 
+/** Token ID Data Changed Events playground — per-token ERC725Y data key changes on LSP8 NFTs. */
 import { DATA_KEY_NAMES, DataKeyNameSchema } from '@chillwhales/erc725';
 import { Clock, Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
@@ -48,10 +49,6 @@ import { Card, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-
-// ---------------------------------------------------------------------------
-// Domain config — Token ID Data Changed Events (10 filter params, 4 sort fields)
-// ---------------------------------------------------------------------------
 
 /** Data key name options for select dropdowns — built from the data-keys registry */
 const DATA_KEY_NAME_OPTIONS = DATA_KEY_NAMES.map((name) => ({ value: name, label: name }));
@@ -178,10 +175,6 @@ const SORT_OPTIONS: SortOption[] = [
   { value: 'nftName', label: 'NFT Name' },
 ];
 
-// ---------------------------------------------------------------------------
-// Hook resolution by mode
-// ---------------------------------------------------------------------------
-
 type TokenIdDataChangedHooks = {
   useLatestTokenIdDataChangedEvent: typeof useLatestTokenIdDataChangedEventReact;
   useTokenIdDataChangedEvents: typeof useTokenIdDataChangedEventsReact;
@@ -206,10 +199,6 @@ function useTokenIdDataChangedHooks(mode: HookMode): TokenIdDataChangedHooks {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Build filter
-// ---------------------------------------------------------------------------
-
 function buildFilter(vals: Record<string, string>): TokenIdDataChangedEventFilter | undefined {
   const f: TokenIdDataChangedEventFilter = {};
   if (vals.address) f.address = vals.address;
@@ -230,10 +219,6 @@ function buildFilter(vals: Record<string, string>): TokenIdDataChangedEventFilte
   if (vals.nftName) f.nftName = vals.nftName;
   return Object.keys(f).length > 0 ? f : undefined;
 }
-
-// ---------------------------------------------------------------------------
-// Shared list state
-// ---------------------------------------------------------------------------
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
@@ -279,10 +264,6 @@ function useListState() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Include sections
-// ---------------------------------------------------------------------------
-
 function TidIncludeSections({
   includeValues,
   toggleInclude,
@@ -314,10 +295,6 @@ function TidIncludeSections({
     </>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: Latest (single item)
-// ---------------------------------------------------------------------------
 
 function LatestTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useLatestTokenIdDataChangedEvent } = useTokenIdDataChangedHooks(mode);
@@ -378,10 +355,6 @@ function LatestTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 2: List (paginated)
-// ---------------------------------------------------------------------------
-
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useTokenIdDataChangedEvents } = useTokenIdDataChangedHooks(mode);
   const state = useListState();
@@ -433,10 +406,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 3: Infinite
-// ---------------------------------------------------------------------------
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteTokenIdDataChangedEvents } = useTokenIdDataChangedHooks(mode);
@@ -494,10 +463,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 4: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useTokenIdDataChangedEventSubscription } = useTokenIdDataChangedHooks(mode);
   const state = useListState();
@@ -511,8 +476,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const tokenIdDataChangedEvents = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -520,7 +483,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -572,10 +534,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
-
 export default function TokenIdDataChangedEventsPage(): React.ReactNode {
   return (
     <PlaygroundPageLayout
@@ -595,7 +553,7 @@ export default function TokenIdDataChangedEventsPage(): React.ReactNode {
           <code className="text-xs bg-muted px-1 py-0.5 rounded">
             useTokenIdDataChangedEventSubscription
           </code>{' '}
-          hooks against ERC725Y per-token data change events via Hasura (QUERY-09, SUB-02).
+          hooks against ERC725Y per-token data change events via Hasura.
         </>
       }
       tabs={[

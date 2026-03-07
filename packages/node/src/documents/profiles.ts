@@ -1,14 +1,6 @@
 import { graphql } from '../graphql';
 
-/**
- * GraphQL document for fetching a single Universal Profile.
- *
- * Variables:
- * - `$where` — The service layer builds the Hasura bool_exp (e.g., `{ address: { _ilike: "0x..." } }` for case-insensitive matching)
- * - `$include*` — Boolean flags controlling nested data, all default to `true`
- *
- * Uses `@include(if:)` directives so omitted nested data is never sent over the wire.
- */
+/** Single Universal Profile query. */
 export const GetProfileDocument = graphql(`
   query GetProfile(
     $where: universal_profile_bool_exp!
@@ -74,20 +66,7 @@ export const GetProfileDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL document for fetching a paginated list of Universal Profiles with total count.
- *
- * Used by both `useProfiles` (offset-based pagination) and `useInfiniteProfiles`
- * (infinite scroll) — the difference is how the hook manages pagination, not the document.
- *
- * Variables:
- * - `$where` — Filter conditions (built by service layer from flat ProfileFilter)
- * - `$order_by` — Sort order (built by service layer from ProfileSort)
- * - `$limit` / `$offset` — Pagination
- * - `$include*` — Boolean flags controlling nested data, all default to `true`
- *
- * Includes `universal_profile_aggregate` for total count (used for "X of Y results" UI).
- */
+/** Paginated list of Universal Profiles with total count. */
 export const GetProfilesDocument = graphql(`
   query GetProfiles(
     $where: universal_profile_bool_exp
@@ -161,15 +140,7 @@ export const GetProfilesDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL subscription document for real-time Universal Profile updates.
- *
- * Mirrors `GetProfilesDocument` field selections and `@include` directives exactly.
- * Differences from query: `subscription` keyword, no `$offset`, no `_aggregate`.
- *
- * Plain string (not codegen `graphql()` tag) because subscriptions use
- * runtime WebSocket transport, not build-time codegen.
- */
+/** Subscription variant of GetProfilesDocument. */
 export const ProfileSubscriptionDocument = graphql(`
   subscription ProfileSubscription(
     $where: universal_profile_bool_exp

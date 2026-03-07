@@ -13,73 +13,50 @@ import type { IncludeResult, PartialExcept } from './include-types';
 // Core domain schemas
 // ---------------------------------------------------------------------------
 
-/** LSP7 or LSP8 standard — derived by parser from presence of `decimals` field */
+/** Derived from presence of `decimals` field at parse time. */
 export const StandardSchema = z.enum(['LSP7', 'LSP8']);
 
-/**
- * Token type for a digital asset.
- * The indexer stores these as decoded strings directly.
- * - TOKEN: Fungible token (LSP4 tokenType 0)
- * - NFT: Non-fungible token (LSP4 tokenType 1)
- * - COLLECTION: Collection of NFTs (LSP4 tokenType 2)
- */
 export const TokenTypeSchema = z.enum(['TOKEN', 'NFT', 'COLLECTION']);
 
-/** Contract owner (controller) of the digital asset */
 export const DigitalAssetOwnerSchema = z.object({
-  /** Owner contract address */
   address: z.string(),
-  /** Timestamp when ownership was last set */
   timestamp: z.string(),
 });
 
-/** Full digital asset domain type with all includable fields */
 export const DigitalAssetSchema = z.object({
-  /** The digital asset contract address (checksummed or lowercase hex) — always present */
   address: z.string(),
-  /**
-   * Derived standard — LSP7 (fungible) or LSP8 (non-fungible).
-   * Parser derives this from presence of the `decimals` field (LSP7 only).
-   */
+  /** Derived from `decimals` — LSP7 when present, LSP8 when null. */
   standard: StandardSchema.nullable(),
-  /** Token name from LSP4 metadata, or `null` if not set or not included */
   name: z.string().nullable(),
-  /** Token symbol from LSP4 metadata (e.g., "CHILL"), or `null` if not set or not included */
   symbol: z.string().nullable(),
-  /**
-   * Token type — decoded string stored directly by the indexer.
-   * - TOKEN: Fungible token
-   * - NFT: Non-fungible token
-   * - COLLECTION: Collection of NFTs
-   */
+  /** TOKEN, NFT, or COLLECTION classification. */
   tokenType: TokenTypeSchema.nullable(),
-  /** Number of decimal places (LSP7 only), or `null` for LSP8 or if not included */
+  /** LSP7 only — null for LSP8. */
   decimals: z.number().nullable(),
-  /** Total supply of tokens (bigint for uint256 precision), or `null` if not included */
+  /** bigint for uint256 precision. */
   totalSupply: z.bigint().nullable(),
-  /** Description from LSP4 metadata, or `null` if not set or not included */
   description: z.string().nullable(),
-  /** Category from LSP4 metadata (free-text), or `null` if not set or not included */
+  /** Free-form tag from LSP4 metadata (e.g. "DeFi", "Collectible"). */
   category: z.string().nullable(),
-  /** Icon images from LSP4 metadata, or `null` if not included in query */
+  /** Icon images from LSP4 metadata. */
   icons: z.array(ImageSchema).nullable(),
-  /** Gallery/cover images from LSP4 metadata grouped by image_index, or `null` if not included in query */
+  /** Grouped by image_index. */
   images: z.array(z.array(ImageSchema)).nullable(),
-  /** External links from LSP4 metadata, or `null` if not included in query */
+  /** External links from LSP4 metadata. */
   links: z.array(LinkSchema).nullable(),
-  /** NFT metadata attributes/traits, or `null` if not included in query */
+  /** Key-value attributes from LSP4 metadata. */
   attributes: z.array(Lsp4AttributeSchema).nullable(),
-  /** Contract owner (controller), or `null` if not included or not set */
+  /** Current owner address and timestamp of last ownership transfer. */
   owner: DigitalAssetOwnerSchema.nullable(),
-  /** Number of unique token holders, or `null` if not included */
+  /** Number of unique addresses holding this token. */
   holderCount: z.number().nullable(),
-  /** Number of creators registered on the asset, or `null` if not included */
+  /** Number of addresses listed as creators. */
   creatorCount: z.number().nullable(),
-  /** LSP8-only: Reference contract address, or `null` for LSP7 or if not included */
+  /** LSP8-only. */
   referenceContract: z.string().nullable(),
-  /** LSP8-only: Token ID format identifier, or `null` for LSP7 or if not included */
+  /** LSP8-only. */
   tokenIdFormat: z.string().nullable(),
-  /** LSP8-only: Base URI for token metadata, or `null` for LSP7 or if not included */
+  /** LSP8-only. */
   baseUri: z.string().nullable(),
 });
 
@@ -87,23 +64,21 @@ export const DigitalAssetSchema = z.object({
 // Filter & sort schemas
 // ---------------------------------------------------------------------------
 
-/** Filter criteria for digital asset queries */
 export const DigitalAssetFilterSchema = z.object({
   /** Case-insensitive partial match on token name */
   name: z.string().optional(),
   /** Case-insensitive partial match on token symbol */
   symbol: z.string().optional(),
-  /** Filter by token type */
+  /** Filter by token type (TOKEN, NFT, or COLLECTION) */
   tokenType: TokenTypeSchema.optional(),
-  /** Case-insensitive partial match on LSP4 metadata category */
+  /** Filter by LSP4 metadata category */
   category: z.string().optional(),
-  /** Return assets held by the given address (token holder) */
+  /** Return tokens held by the given address */
   holderAddress: z.string().optional(),
-  /** Return assets owned (controlled) by the given address */
+  /** Return tokens owned by the given address */
   ownerAddress: z.string().optional(),
 });
 
-/** Fields available for sorting digital asset lists */
 export const DigitalAssetSortFieldSchema = z.enum([
   'name',
   'symbol',
@@ -114,69 +89,46 @@ export const DigitalAssetSortFieldSchema = z.enum([
 ]);
 
 export const DigitalAssetSortSchema = z.object({
-  /** Which field to sort by */
   field: DigitalAssetSortFieldSchema,
-  /** Sort direction */
   direction: SortDirectionSchema,
-  /** Where nulls appear — omit to use Hasura default (nulls last for asc, nulls first for desc) */
   nulls: SortNullsSchema.optional(),
 });
 
-/**
- * Control which nested fields to include in a digital asset query.
- *
- * **Behavior (inverted default):**
- * - When `include` is **omitted** entirely → all fields are fetched (opt-out model).
- *   GraphQL variables default to `true`, so all `@include(if:)` directives pass.
- * - When `include` is **provided** → only fields explicitly set to `true` are included;
- *   unspecified fields default to `false` (opt-in when provided).
- *
- * This is the opposite of the profile include pattern — digital assets default to
- * fetch-everything for a richer out-of-the-box experience.
- *
- * @example
- * ```ts
- * // Fetch everything (default)
- * useDigitalAsset({ address: '0x...' });
- *
- * // Fetch only name, symbol, and token type
- * useDigitalAsset({ address: '0x...', include: { name: true, symbol: true, tokenType: true } });
- * ```
- */
+/** Omit = fetch all fields; set individual fields to opt-in. */
 export const DigitalAssetIncludeSchema = z.object({
   /** Include token name */
   name: z.boolean().optional(),
   /** Include token symbol */
   symbol: z.boolean().optional(),
-  /** Include token type (TOKEN/NFT/COLLECTION) */
+  /** Include token type classification */
   tokenType: z.boolean().optional(),
-  /** Include decimal places (LSP7 only) */
+  /** Include decimals (also enables derived `standard` field) */
   decimals: z.boolean().optional(),
   /** Include total supply */
   totalSupply: z.boolean().optional(),
-  /** Include description from LSP4 metadata */
+  /** Include description */
   description: z.boolean().optional(),
-  /** Include category from LSP4 metadata */
+  /** Include LSP4 category */
   category: z.boolean().optional(),
-  /** Include icon images from LSP4 metadata */
+  /** Include icon images */
   icons: z.boolean().optional(),
-  /** Include gallery images from LSP4 metadata */
+  /** Include grouped images */
   images: z.boolean().optional(),
-  /** Include external links from LSP4 metadata */
+  /** Include external links */
   links: z.boolean().optional(),
-  /** Include NFT metadata attributes */
+  /** Include key-value attributes */
   attributes: z.boolean().optional(),
-  /** Include contract owner (controller) */
+  /** Include current owner */
   owner: z.boolean().optional(),
-  /** Include unique holder count aggregate */
+  /** Include holder count aggregate */
   holderCount: z.boolean().optional(),
-  /** Include creator count */
+  /** Include creator count aggregate */
   creatorCount: z.boolean().optional(),
   /** Include LSP8 reference contract address */
   referenceContract: z.boolean().optional(),
   /** Include LSP8 token ID format */
   tokenIdFormat: z.boolean().optional(),
-  /** Include LSP8 token metadata base URI */
+  /** Include LSP8 base URI */
   baseUri: z.boolean().optional(),
 });
 
@@ -185,38 +137,27 @@ export const DigitalAssetIncludeSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export const UseDigitalAssetParamsSchema = z.object({
-  /** The digital asset contract address to fetch */
   address: z.string(),
-  /** Control which nested data to include (omit for all data — inverted default) */
   include: DigitalAssetIncludeSchema.optional(),
 });
 
 export const UseDigitalAssetsParamsSchema = z.object({
-  /** Filter criteria (all combine with AND logic) */
   filter: DigitalAssetFilterSchema.optional(),
-  /** Sort order for results */
   sort: DigitalAssetSortSchema.optional(),
-  /** Maximum number of assets to return */
   limit: z.number().optional(),
-  /** Number of assets to skip (for offset-based pagination) */
   offset: z.number().optional(),
-  /** Control which nested data to include (omit for all data — inverted default) */
   include: DigitalAssetIncludeSchema.optional(),
 });
 
 export const UseInfiniteDigitalAssetsParamsSchema = z.object({
-  /** Filter criteria (all combine with AND logic) */
   filter: DigitalAssetFilterSchema.optional(),
-  /** Sort order for results */
   sort: DigitalAssetSortSchema.optional(),
-  /** Number of assets per page (default: 20) */
   pageSize: z.number().optional(),
-  /** Control which nested data to include (omit for all data — inverted default) */
   include: DigitalAssetIncludeSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------
-// Inferred types (single source of truth — derive from schemas)
+// Inferred types
 // ---------------------------------------------------------------------------
 
 export type Standard = z.infer<typeof StandardSchema>;

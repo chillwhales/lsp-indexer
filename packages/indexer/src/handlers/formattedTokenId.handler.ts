@@ -13,10 +13,6 @@
  *
  * When the token ID format is unknown or not yet set, `formattedTokenId`
  * is left as null. A warning is logged for unknown formats to aid debugging.
- *
- * Port from v1:
- *   - utils/entityPopulation.ts:339-416 (formattedTokenId population)
- *   - utils/index.ts:62-82 (formatTokenId conversion)
  */
 
 import { EntityHandler, HandlerContext } from '@/core/types';

@@ -14,10 +14,6 @@
  *
  * `Follower` current-state entity updates are implemented by the FollowerHandler
  * EntityHandler.
- *
- * Port from v1:
- *   - scanner.ts L473-480 (event matching)
- *   - utils/follow/index.ts (extract + populate)
  */
 import { LSP26_ADDRESS } from '@/constants';
 import {

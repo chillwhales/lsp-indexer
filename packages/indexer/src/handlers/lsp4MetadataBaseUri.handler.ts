@@ -8,9 +8,6 @@
  *
  * Closes GAP-06 (~84K missing LSP4Metadata entities). Created entities are
  * automatically fetched by the existing lsp4MetadataFetch handler.
- *
- * Port from v1:
- *   - utils/lsp4MetadataBaseUri.ts (extractFromBaseUri, extractFromMints)
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
@@ -78,7 +75,7 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
       const entityId = `BaseURI - ${generateTokenId({ address, tokenId: nft.tokenId })}`;
 
       // Derive URL: baseUri.endsWith('/') ? baseUri + formattedTokenId : baseUri + '/' + formattedTokenId
-      // Use formattedTokenId when available, fall back to raw tokenId (V1 behavior at line 103-106)
+      // Use formattedTokenId when available, fall back to raw tokenId
       const tokenIdForUrl = nft.formattedTokenId ?? nft.tokenId;
       const url =
         value !== null

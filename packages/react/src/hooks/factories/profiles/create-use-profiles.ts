@@ -1,12 +1,4 @@
-/**
- * Factory for useProfiles — shared between `@lsp-indexer/react` and `@lsp-indexer/next`.
- *
- * Each package calls `createUseProfiles(queryFn)` with its own fetch function:
- * - React: `(p) => fetchProfiles(getClientUrl(), p)`
- * - Next:  `(p) => getProfiles(p)`
- *
- * @see createUseList — the generic factory this wraps
- */
+/** @see createUseList */
 import type { FetchProfilesResult } from '@lsp-indexer/node';
 import { profileKeys } from '@lsp-indexer/node';
 import type {
@@ -19,24 +11,8 @@ import type {
 import type { UseProfilesReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
-/** Params passed to the factory's queryFn */
 type ProfileListParams = UseProfilesParams & { include?: ProfileInclude };
 
-/**
- * Create a `useProfiles` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for profile lists
- *
- * @example
- * ```ts
- * // packages/react/src/hooks/profiles/use-profiles.ts
- * export const useProfiles = createUseProfiles(
- *   (p) => p.include
- *     ? fetchProfiles(getClientUrl(), p)
- *     : fetchProfiles(getClientUrl(), p),
- * );
- * ```
- */
 export function createUseProfiles(
   queryFn: (params: ProfileListParams) => Promise<FetchProfilesResult<PartialProfile>>,
 ) {

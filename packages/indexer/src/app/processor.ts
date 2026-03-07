@@ -2,7 +2,7 @@ import { FINALITY_CONFIRMATION, RPC_RATE_LIMIT, RPC_URL, SQD_GATEWAY } from '@/c
 import { EvmBatchProcessor } from '@subsquid/evm-processor';
 
 /**
- * Subsquid processor for V2 indexer.
+ * Subsquid processor for the indexer.
  *
  * Configured with LUKSO mainnet RPC and archive endpoints.
  * Log subscriptions will be added by registry wiring in next plan.

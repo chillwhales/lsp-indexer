@@ -58,31 +58,12 @@ export const ProfileFilterSchema = z.object({
 export const ProfileSortFieldSchema = z.enum(['name', 'followerCount', 'followingCount']);
 
 export const ProfileSortSchema = z.object({
-  /** Which field to sort by */
   field: ProfileSortFieldSchema,
-  /** Sort direction */
   direction: SortDirectionSchema,
-  /** Where nulls appear — omit to use Hasura default (nulls last for asc, nulls first for desc) */
   nulls: SortNullsSchema.optional(),
 });
 
-/**
- * Control which nested fields to include in a profile query.
- *
- * **Behavior:**
- * - When `include` is **omitted** entirely → all fields are included (GraphQL defaults to `true`)
- * - When `include` is **provided** → only fields explicitly set to `true` are included;
- *   unspecified fields default to `false` (opt-in when provided)
- *
- * @example
- * ```ts
- * // Include everything (default)
- * useProfile({ address: '0x...' });
- *
- * // Include only name and follower count
- * useProfile({ address: '0x...', include: { name: true, followerCount: true } });
- * ```
- */
+/** Omit = fetch all fields; set individual fields to opt-in. */
 export const ProfileIncludeSchema = z.object({
   /** Include profile name (included by default when `include` is omitted; `false` when `include` is provided but this field is not set) */
   name: z.boolean().optional(),
@@ -140,7 +121,7 @@ export const UseInfiniteProfilesParamsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Inferred types (single source of truth — derive from schemas)
+// Inferred types
 // ---------------------------------------------------------------------------
 
 export type Profile = z.infer<typeof ProfileSchema>;

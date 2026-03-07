@@ -24,23 +24,7 @@ import { escapeLike, orderDir } from './utils';
 // Internal builders — translate flat params to Hasura variables
 // ---------------------------------------------------------------------------
 
-/**
- * Translate a flat `DigitalAssetFilter` to a Hasura `digital_asset_bool_exp`.
- *
- * Multiple filters combine with `_and`. An empty or undefined filter
- * returns an empty object (no filtering).
- *
- * Filter → Hasura mapping:
- * - `name`          → `{ lsp4TokenName: { value: { _ilike: '%name%' } } }`
- * - `symbol`        → `{ lsp4TokenSymbol: { value: { _ilike: '%symbol%' } } }`
- * - `tokenType`     → `{ lsp4TokenType: { value: { _eq: tokenType } } }`
- *                     the indexer stores the decoded string directly ("TOKEN", "NFT", "COLLECTION")
- * - `category`      → `{ lsp4Metadata: { category: { value: { _ilike: '%category%' } } } }`
- * - `holderAddress` → `{ ownedAssets: { owner: { _ilike: escapeLike(holderAddress) } } }`
- *                     (assets where the given address holds tokens — via owned_asset.owner)
- * - `ownerAddress`  → `{ owner: { address: { _ilike: escapeLike(ownerAddress) } } }`
- *                     (assets whose contract controller is the given address)
- */
+/** Translate DigitalAssetFilter to a Hasura _bool_exp. */
 export function buildDigitalAssetWhere(filter?: DigitalAssetFilter): Digital_Asset_Bool_Exp {
   if (!filter) return {};
 
@@ -103,19 +87,7 @@ export function buildDigitalAssetWhere(filter?: DigitalAssetFilter): Digital_Ass
   return { _and: conditions };
 }
 
-/**
- * Translate a flat `DigitalAssetSort` to a Hasura `order_by` array.
- *
- * Sort field → Hasura mapping:
- * - `'name'`         → `[{ lsp4TokenName: { value: dir } }]`
- * - `'symbol'`       → `[{ lsp4TokenSymbol: { value: dir } }]`
- * - `'holderCount'`  → `[{ ownedAssets_aggregate: { count: dir } }]`
- * - `'creatorCount'` → `[{ lsp4CreatorsLength: { value: dir } }]`
- * - `'totalSupply'`  → `[{ totalSupply: { value: dir } }]`
- * - `'createdAt'`    → `[{ owner: { timestamp: dir } }]` (LOCKED DECISION)
- *
- * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
- */
+/** Translate DigitalAssetSort to a Hasura order_by. */
 export function buildDigitalAssetOrderBy(
   sort?: DigitalAssetSort,
 ): Digital_Asset_Order_By[] | undefined {
@@ -141,15 +113,7 @@ export function buildDigitalAssetOrderBy(
   }
 }
 
-/**
- * Translate a `DigitalAssetInclude` to GraphQL boolean variables for `@include` directives.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
- */
+/** Build @include directive variables from include config. */
 export function buildDigitalAssetIncludeVars(
   include?: boolean | DigitalAssetInclude,
 ): Record<string, boolean> {
@@ -187,29 +151,9 @@ export function buildDigitalAssetIncludeVars(
 // Subscription config builder
 // ---------------------------------------------------------------------------
 
-/**
- * Raw Hasura row type from the subscription codegen result.
- *
- * Structurally compatible with the query-side raw rows (both select
- * the same fields), but derived from the subscription codegen type to
- * keep the generic chain `TResult → TRaw` precise.
- */
 type RawDigitalAssetSubscriptionRow = DigitalAssetSubscriptionSubscription['digital_asset'][number];
 
-/**
- * Build a digital asset subscription config (document, variables, extract, parser).
- *
- * Encapsulates the domain-specific assembly that `createUseDigitalAssetSubscription`
- * needs — mirroring how `fetchDigitalAssets` encapsulates query assembly. Keeps the
- * React hook factory focused on hook lifecycle rather than domain plumbing.
- *
- * The return type is inferred so the 4-generic chain
- * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
- * `useSubscription` without any casts or `unknown` holes.
- *
- * @param params - Filter, sort, limit, and include configuration
- * @returns A config object consumable by `useSubscription`
- */
+/** Build subscription config for useSubscription. */
 export function buildDigitalAssetSubscriptionConfig(params: {
   filter?: DigitalAssetFilter;
   sort?: DigitalAssetSort;
@@ -238,21 +182,7 @@ export function buildDigitalAssetSubscriptionConfig(params: {
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Fetch a single digital asset by address.
- *
- * Translates the address to a Hasura `where` clause, executes the query,
- * and returns the first result parsed as a clean `DigitalAsset`, or `null` if
- * the address doesn't exist.
- *
- * When `include` is provided, the return type is narrowed to only contain
- * base fields + included fields (e.g., `DigitalAssetResult<{ name: true }>` =
- * `{ address: string; name: string | null }`).
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (address + optional include)
- * @returns The parsed digital asset (narrowed by include), or `null` if not found
- */
+/** Fetch a single digital asset by address. */
 export async function fetchDigitalAsset(
   url: string,
   params: { address: string },
@@ -282,32 +212,12 @@ export async function fetchDigitalAsset(
   return parseDigitalAsset(raw);
 }
 
-/**
- * Result shape for paginated digital asset list queries.
- *
- * When the include parameter `I` is provided, the `digitalAssets` array contains
- * narrowed types with only base fields + included fields.
- */
 export interface FetchDigitalAssetsResult<P = DigitalAsset> {
-  /** Parsed digital assets for the current page (narrowed by include) */
   digitalAssets: P[];
-  /** Total number of digital assets matching the filter (for pagination UI) */
   totalCount: number;
 }
 
-/**
- * Fetch a paginated list of digital assets with filtering, sorting, and total count.
- *
- * Translates flat filter/sort/include params to Hasura variables, executes the
- * query, and returns parsed results with a total count for pagination.
- *
- * When `include` is provided, the returned `digitalAssets` array contains narrowed types
- * with only base fields + included fields.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed digital assets (narrowed by include) and total count
- */
+/** Fetch a paginated list of digital assets. */
 export async function fetchDigitalAssets(
   url: string,
   params?: {

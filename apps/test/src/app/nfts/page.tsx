@@ -1,5 +1,6 @@
 'use client';
 
+/** NFTs playground — composite key lookup (address+tokenId), list, infinite scroll, and subscriptions. */
 import { Gem, Infinity, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -51,10 +52,6 @@ import {
   useIncludeToggles,
   useSubInclude,
 } from '@/components/playground';
-
-// ---------------------------------------------------------------------------
-// Domain config
-// ---------------------------------------------------------------------------
 
 const FILTERS: FilterFieldConfig[] = [
   {
@@ -148,10 +145,6 @@ function buildFilter(debouncedValues: Record<string, string>): NftFilter | undef
   return Object.keys(f).length > 0 ? f : undefined;
 }
 
-// ---------------------------------------------------------------------------
-// Shared list state
-// ---------------------------------------------------------------------------
-
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
   const [sortField, setSortField] = useState<NftSortField>('tokenId');
@@ -189,10 +182,6 @@ function useListState() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Sub-include sections (shared between all tabs)
-// ---------------------------------------------------------------------------
-
 function IncludeSections({
   includeValues,
   toggleInclude,
@@ -221,10 +210,6 @@ function IncludeSections({
     </>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: Single NFT
-// ---------------------------------------------------------------------------
 
 function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useNft } = useHooks(mode);
@@ -367,10 +352,6 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 2: NFT List
-// ---------------------------------------------------------------------------
-
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useNfts } = useHooks(mode);
   const state = useListState();
@@ -419,10 +400,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 3: Infinite Scroll
-// ---------------------------------------------------------------------------
-
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteNfts } = useHooks(mode);
   const state = useListState();
@@ -469,10 +446,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 4: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useNftSubscription } = useHooks(mode);
   const state = useListState();
@@ -486,8 +459,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const nfts = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -495,7 +466,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -544,10 +514,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
-
 export default function NftsPage(): React.ReactNode {
   return (
     <PlaygroundPageLayout
@@ -559,8 +525,7 @@ export default function NftsPage(): React.ReactNode {
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteNfts</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useNftSubscription</code> hooks
           against live Hasura data. Filter by collection address to exercise the{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useNftsByCollection</code> pattern
-          (QUERY-03).
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useNftsByCollection</code> pattern.
         </>
       }
       tabs={[

@@ -1,5 +1,5 @@
 /**
- * DigitalAssetOwner Entity Handler (V2 — postVerification).
+ * DigitalAssetOwner Entity Handler (postVerification).
  *
  * Creates DigitalAssetOwner entities from OwnershipTransferred events
  * where the emitting address is a verified DigitalAsset.
@@ -15,8 +15,6 @@
  *   - Creates DigitalAssetOwner with id=event.address, address=newOwner
  *   - Uses Map for deduplication (last-writer-wins)
  *   - Queues enrichment for digitalAsset FK
- *
- * Port from v1: packages/indexer/src/app/handlers/ownershipTransferredHandler.ts
  */
 
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';

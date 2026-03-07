@@ -1,3 +1,4 @@
+/** NFT (LSP8 token) card. Shows metadata, holder profile, and parent collection. */
 import { ExternalLink, Gem, Loader2 } from 'lucide-react';
 import React from 'react';
 
@@ -13,18 +14,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
-// ---------------------------------------------------------------------------
-// NFT Card
-// ---------------------------------------------------------------------------
-
 export interface NftCardProps {
-  /** Accepts any shape of Nft — full, narrowed via include, or partial from nested relations */
   nft: PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;
   isFetching?: boolean;
 }
 
 export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
-  // Destructure — base fields always present, everything else may be undefined
   const {
     address,
     tokenId,
@@ -92,7 +87,6 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Core token details */}
         <dl className="space-y-1.5 text-sm">
           {formattedTokenId && (
             <div className="flex gap-2">
@@ -111,8 +105,6 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
             </div>
           )}
         </dl>
-
-        {/* Holder section */}
         {holder != null && (
           <CollapsibleProfileSection
             label="Holder"
@@ -129,8 +121,6 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
             }
           />
         )}
-
-        {/* LSP4 Metadata */}
         {(description ||
           (icons && icons.length > 0) ||
           (images && images.length > 0) ||
@@ -207,8 +197,6 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
             </div>
           </div>
         )}
-
-        {/* Collection (full DigitalAsset) */}
         {collection != null && (
           <CollapsibleDigitalAssetSection label="Collection" digitalAsset={collection} />
         )}

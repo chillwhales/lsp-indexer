@@ -2,10 +2,7 @@ import type { SubscriptionHookOptions, SubscriptionInstance } from '@lsp-indexer
 import { IndexerError } from '../errors';
 import { TypedDocumentString } from '../graphql/graphql';
 
-/**
- * Internal interface for the client that subscription instances use.
- * Decouples the instance from the concrete SubscriptionClient class.
- */
+/** Decouples SubscriptionInstance from the concrete SubscriptionClient class. */
 export interface SubscriptionClientExecutor {
   executeSubscription<TResult, TVariables extends Record<string, unknown>>(
     payload: { query: TypedDocumentString<TResult, TVariables>; variables?: TVariables },
@@ -20,10 +17,8 @@ export interface SubscriptionClientExecutor {
 }
 
 /**
- * Manages state for a single subscription.
- *
- * Takes an `execute` closure (built by `SubscriptionClient.createSubscription`)
- * that delivers `TParsed[]` directly — extract and parse happen inside the closure.
+ * Manages state for a single subscription. The `execute` closure delivers
+ * `TParsed[]` directly — extract and parse happen inside the closure.
  */
 export class GenericSubscriptionInstance<TParsed> implements SubscriptionInstance<TParsed> {
   private _data: TParsed[] | null = null;

@@ -13,18 +13,7 @@ import type {
 import { UseOwnedTokenParamsSchema, UseOwnedTokensParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
-/**
- * Server action: Fetch a single owned token by unique ID.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchOwnedToken` server-side using the URL returned by `getServerUrl()`
- * (`INDEXER_URL`, falling back to `NEXT_PUBLIC_INDEXER_URL`). This keeps the
- * GraphQL endpoint invisible to the client.
- *
- * @param id - The owned token unique ID
- * @param include - Optional field inclusion config
- * @returns The parsed owned token (narrowed by include), or `null` if not found
- */
+/** Server action: fetch a single owned token by ID. */
 export async function getOwnedToken(params: { id: string }): Promise<OwnedToken | null>;
 export async function getOwnedToken<const I extends OwnedTokenInclude>(params: {
   id: string;
@@ -42,16 +31,7 @@ export async function getOwnedToken(params: {
   return fetchOwnedToken(getServerUrl(), params);
 }
 
-/**
- * Server action: Fetch a paginated list of owned tokens.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchOwnedTokens` server-side. Supports filtering, sorting, pagination, and
- * field inclusion.
- *
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed owned tokens and total count
- */
+/** Server action: fetch a paginated list of owned tokens. */
 export async function getOwnedTokens(params?: {
   filter?: OwnedTokenFilter;
   sort?: OwnedTokenSort;

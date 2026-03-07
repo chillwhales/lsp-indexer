@@ -1,3 +1,4 @@
+/** Collapsible section wrappers for nested profile, digital asset, and NFT relations. */
 import { ChevronDown, Coins, Gem, User } from 'lucide-react';
 import React from 'react';
 
@@ -10,10 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { getDigitalAssetLabel, getProfileLabel } from '@/lib/utils';
 
-// ---------------------------------------------------------------------------
-// CollapsibleProfileSection
-// ---------------------------------------------------------------------------
-
 export interface CollapsibleProfileSectionProps {
   /** Trigger label prefix, e.g. "Holder Profile", "Creator Profile" */
   label: string;
@@ -23,14 +20,6 @@ export interface CollapsibleProfileSectionProps {
   before?: React.ReactNode;
 }
 
-/**
- * Reusable collapsible section for displaying a profile relation.
- *
- * Trigger shows: `{label}: {name ?? truncatedAddress}`
- * Content renders the full `<ProfileCard>`.
- *
- * Used by: follower-card, creator-card, owned-asset-card, owned-token-card, nft-card.
- */
 export function CollapsibleProfileSection({
   label,
   profile,
@@ -55,10 +44,6 @@ export function CollapsibleProfileSection({
   );
 }
 
-// ---------------------------------------------------------------------------
-// CollapsibleDigitalAssetSection
-// ---------------------------------------------------------------------------
-
 export interface CollapsibleDigitalAssetSectionProps {
   /** Trigger label prefix, e.g. "Digital Asset", "Collection" */
   label: string;
@@ -66,14 +51,6 @@ export interface CollapsibleDigitalAssetSectionProps {
   digitalAsset: PartialExcept<DigitalAsset, 'address'>;
 }
 
-/**
- * Reusable collapsible section for displaying a digital asset relation.
- *
- * Trigger shows: `{label}: {name ?? truncatedAddress} ({symbol})`
- * Content renders the full `<DigitalAssetCard>`.
- *
- * Used by: creator-card, owned-asset-card, owned-token-card, nft-card.
- */
 export function CollapsibleDigitalAssetSection({
   label,
   digitalAsset,
@@ -97,10 +74,6 @@ export function CollapsibleDigitalAssetSection({
   );
 }
 
-// ---------------------------------------------------------------------------
-// CollapsibleNftSection
-// ---------------------------------------------------------------------------
-
 export interface CollapsibleNftSectionProps {
   /** Trigger label prefix, e.g. "NFT", "NFT Info" */
   label: string;
@@ -108,14 +81,6 @@ export interface CollapsibleNftSectionProps {
   nft: PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;
 }
 
-/**
- * Reusable collapsible section for displaying an NFT relation.
- *
- * Trigger shows: `{label}: {name ?? truncatedAddress}`
- * Content renders the full `<NftCard>`.
- *
- * Used by: token-id-data-changed-event-card.
- */
 export function CollapsibleNftSection({ label, nft }: CollapsibleNftSectionProps): React.ReactNode {
   const name = nft.name ?? null;
   const displayLabel = name ?? `${nft.address.slice(0, 8)}…`;

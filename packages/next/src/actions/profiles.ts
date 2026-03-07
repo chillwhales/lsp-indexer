@@ -13,18 +13,7 @@ import type {
 import { UseProfileParamsSchema, UseProfilesParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
-/**
- * Server action: Fetch a single Universal Profile by address.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchProfile` server-side using the URL returned by `getServerUrl()`
- * (`INDEXER_URL`, falling back to `NEXT_PUBLIC_INDEXER_URL`). This keeps the
- * GraphQL endpoint invisible to the client.
- *
- * @param address - The Universal Profile contract address
- * @param include - Optional field inclusion config
- * @returns The parsed profile, or `null` if not found
- */
+/** Server action: fetch a single profile by address. */
 export async function getProfile(params: { address: string }): Promise<Profile | null>;
 export async function getProfile<const I extends ProfileInclude>(params: {
   address: string;
@@ -42,16 +31,7 @@ export async function getProfile(params: {
   return fetchProfile(getServerUrl(), params);
 }
 
-/**
- * Server action: Fetch a paginated list of Universal Profiles.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchProfiles` server-side. Supports filtering, sorting, pagination, and
- * field inclusion.
- *
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed profiles and total count
- */
+/** Server action: fetch a paginated list of profiles. */
 export async function getProfiles(params?: {
   filter?: ProfileFilter;
   sort?: ProfileSort;

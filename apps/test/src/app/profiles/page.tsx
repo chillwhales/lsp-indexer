@@ -1,5 +1,6 @@
 'use client';
 
+/** Profiles playground — single lookup, list, infinite scroll, and subscription demos. */
 import { Loader2, Radio, Search, User, Users, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -47,10 +48,6 @@ import {
 } from '@/components/playground';
 import { ProfileCard } from '@/components/profile-card';
 
-// ---------------------------------------------------------------------------
-// Domain config
-// ---------------------------------------------------------------------------
-
 const FILTERS: FilterFieldConfig[] = [
   { key: 'name', label: 'Name', placeholder: 'Search by name...' },
   { key: 'followedBy', label: 'Followed by', placeholder: '0x... (address)', mono: true },
@@ -96,10 +93,6 @@ function buildFilter(debouncedValues: Record<string, string>): ProfileFilter | u
   return Object.keys(f).length > 0 ? f : undefined;
 }
 
-// ---------------------------------------------------------------------------
-// Shared list state
-// ---------------------------------------------------------------------------
-
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
   const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
@@ -132,10 +125,6 @@ function useListState() {
     include,
   };
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: Single Profile
-// ---------------------------------------------------------------------------
 
 function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useProfile } = useHooks(mode);
@@ -207,10 +196,6 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 2: Profile List
-// ---------------------------------------------------------------------------
-
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useProfiles } = useHooks(mode);
   const state = useListState();
@@ -263,10 +248,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 3: Infinite Scroll
-// ---------------------------------------------------------------------------
-
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteProfiles } = useHooks(mode);
   const state = useListState();
@@ -317,10 +298,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 4: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useProfileSubscription } = useHooks(mode);
   const state = useListState();
@@ -334,8 +311,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const profiles = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -343,7 +318,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -395,10 +369,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
 
 export default function ProfilesPage(): React.ReactNode {
   return (

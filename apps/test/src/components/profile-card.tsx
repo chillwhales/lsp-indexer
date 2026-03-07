@@ -1,3 +1,4 @@
+/** Universal Profile card. Shows LSP3 metadata with collapsible image/social sections. */
 import { ExternalLink, Hash, Loader2, User } from 'lucide-react';
 import React from 'react';
 
@@ -9,18 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { isSafeUrl, resolveUrl } from '@/lib/utils';
 
-// ---------------------------------------------------------------------------
-// Profile Card
-// ---------------------------------------------------------------------------
-
 export interface ProfileCardProps {
-  /** Accepts any shape of Profile — full, narrowed via include, or partial from nested relations */
   profile: PartialExcept<Profile, 'address'>;
   isFetching?: boolean;
 }
 
 export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.ReactNode {
-  // Destructure — address is always present, everything else may be undefined
   const {
     address,
     name,

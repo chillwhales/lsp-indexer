@@ -30,13 +30,6 @@
  *
  * Note: clearSubEntities logic is deferred to the metadata fetch handler since
  * that handler re-creates the sub-entities.
- *
- * Port from v1:
- *   - plugins/datakeys/lsp29EncryptedAsset.plugin.ts (extract + populate + persist)
- *   - utils/dataChanged/lsp29EncryptedAssetsLength.ts
- *   - utils/dataChanged/lsp29EncryptedAssetsItem.ts
- *   - utils/dataChanged/lsp29EncryptedAssetsMap.ts
- *   - utils/dataChanged/lsp29EncryptedAssetRevisionCount.ts
  */
 import { LSP29DataKeys } from '@/constants/lsp29';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';

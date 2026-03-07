@@ -4,10 +4,6 @@
  * Subscribes to DataChanged events and creates LSP8ReferenceContract entities
  * for events matching the LSP8ReferenceContract data key. Stores the raw hex
  * reference contract address value.
- *
- * Port from v1:
- *   - plugins/datakeys/lsp8ReferenceContract.plugin.ts (extract + populate + persist)
- *   - utils/dataChanged/lsp8ReferenceContract.ts (extract logic)
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { DataChanged, LSP8ReferenceContract } from '@chillwhales/typeorm';

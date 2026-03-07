@@ -22,15 +22,8 @@ import {
 // ---------------------------------------------------------------------------
 
 /**
- * Owned Asset — represents LSP7 fungible token ownership.
- *
- * Each record represents how much of a particular token an address holds.
- * The `balance` field uses `bigint` for uint256 precision (per locked decision).
- *
- * Fields renamed for developer clarity:
- * - `digitalAssetAddress` (Hasura: `address`) — the asset contract address
- * - `holderAddress` (Hasura: `owner`) — the holder's address
- * - `holder` (Hasura: `universalProfile`) — the holder's profile
+ * LSP7 fungible token ownership — how much of a token an address holds.
+ * Renamed from Hasura: `address` → `digitalAssetAddress`, `owner` → `holderAddress`.
  */
 export const OwnedAssetSchema = z.object({
   /** Unique identifier */
@@ -57,12 +50,6 @@ export const OwnedAssetSchema = z.object({
 // Filter & sort schemas
 // ---------------------------------------------------------------------------
 
-/**
- * Filter criteria for owned asset queries.
- *
- * All string fields use case-insensitive `_ilike` matching at the service layer.
- * Name filters use nested relation filtering through Hasura.
- */
 export const OwnedAssetFilterSchema = z.object({
   /** Case-insensitive match on holder address (Hasura column: owner) */
   holderAddress: z.string().optional(),
@@ -74,12 +61,7 @@ export const OwnedAssetFilterSchema = z.object({
   assetName: z.string().optional(),
 });
 
-/**
- * Fields available for sorting owned asset lists.
- *
- * Direct columns: balance, timestamp, digitalAssetAddress, holderAddress, block.
- * Nested sorts: digitalAssetName (via digitalAsset.lsp4TokenName), tokenIdCount (via tokenIds_aggregate).
- */
+/** `digitalAssetName` and `tokenIdCount` are nested sorts handled at service layer. */
 export const OwnedAssetSortFieldSchema = z.enum([
   'balance',
   'timestamp',
@@ -91,26 +73,12 @@ export const OwnedAssetSortFieldSchema = z.enum([
 ]);
 
 export const OwnedAssetSortSchema = z.object({
-  /** Which field to sort by */
   field: OwnedAssetSortFieldSchema,
-  /** Sort direction */
   direction: SortDirectionSchema,
-  /** Where nulls appear — omit to use Hasura default */
   nulls: SortNullsSchema.optional(),
 });
 
-/**
- * Control which fields to include in an owned asset query.
- *
- * **Behavior (inverted default):**
- * - When `include` is **omitted** entirely → all fields are fetched (opt-out model).
- *   GraphQL variables default to `true`, so all `@include(if:)` directives pass.
- * - When `include` is **provided** → only fields explicitly set/provided are included;
- *   unspecified fields default to `false` (opt-in when provided).
- *
- * The `digitalAsset` field accepts a `DigitalAssetIncludeSchema` for nested 17-field
- * sub-includes — controlling exactly which digital asset attributes to fetch.
- */
+/** Omit = fetch all fields; set individual fields to opt-in. */
 export const OwnedAssetIncludeSchema = z.object({
   /** Include token balance */
   balance: z.boolean().optional(),
@@ -165,7 +133,7 @@ export const UseInfiniteOwnedAssetsParamsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Inferred types (single source of truth — derive from schemas)
+// Inferred types
 // ---------------------------------------------------------------------------
 
 export type OwnedAsset = z.infer<typeof OwnedAssetSchema>;

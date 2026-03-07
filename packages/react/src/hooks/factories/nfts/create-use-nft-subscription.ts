@@ -1,16 +1,4 @@
-/**
- * Factory for useNftSubscription — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseNftSubscription(useSubscription)` with its
- * own hook (bound to the package-specific context).
- *
- * Domain-specific config assembly (document, variables, extract, parser) is
- * delegated to `buildNftSubscriptionConfig` in the node service layer.
- *
- * @see createUseSubscription — produces the `useSubscription` hook this factory consumes
- * @see buildNftSubscriptionConfig — node service that builds the subscription config
- */
+/** @see createUseSubscription */
 import { buildNftSubscriptionConfig, nftKeys } from '@lsp-indexer/node';
 import type {
   Nft,
@@ -23,11 +11,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DEFAULT_SUBSCRIPTION_LIMIT } from '../../../constants';
 import { UseNftSubscriptionParams, UseSubscriptionFn } from '../../types';
 
-/**
- * Create a `useNftSubscription` hook bound to a specific `useSubscription`.
- *
- * @param useSubscription - The package-specific useSubscription hook
- */
 export function createUseNftSubscription(useSubscription: UseSubscriptionFn) {
   function useNftSubscription<const I extends NftInclude>(
     params: UseNftSubscriptionParams & {

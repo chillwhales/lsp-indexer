@@ -32,24 +32,7 @@ import {
 // Internal builders — translate flat params to Hasura variables
 // ---------------------------------------------------------------------------
 
-/**
- * Translate a `FollowerFilter` to a Hasura `follower_bool_exp`.
- *
- * All filter fields are optional — consumers scope results by setting
- * `followerAddress` and/or `followedAddress` in the filter:
- * - "who follows X?" → `filter: { followedAddress: X }`
- * - "who does X follow?" → `filter: { followerAddress: X }`
- *
- * Multiple conditions combine with `_and`. Empty filter = empty object.
- *
- * Filter → Hasura mapping:
- * - `filter.followerAddress` → `{ follower_address: { _ilike: '%escapeLike%' } }` (partial match)
- * - `filter.followedAddress` → `{ followed_address: { _ilike: '%escapeLike%' } }` (partial match)
- * - `filter.followerName` → nested profile name search via followerUniversalProfile
- * - `filter.followedName` → nested profile name search via followedUniversalProfile
- * - `filter.timestampFrom` → `{ timestamp: { _gte: timestampFrom } }`
- * - `filter.timestampTo` → `{ timestamp: { _lte: timestampTo } }`
- */
+/** Translate FollowerFilter to a Hasura _bool_exp. */
 export function buildFollowerWhere(filter: FollowerFilter | undefined): Follower_Bool_Exp {
   if (!filter) return {};
 
@@ -100,21 +83,7 @@ export function buildFollowerWhere(filter: FollowerFilter | undefined): Follower
   return { _and: conditions };
 }
 
-/**
- * Translate a `FollowerSort` to a Hasura `follower_order_by` array.
- *
- * Sort field → Hasura mapping:
- * - `'newest'`          → `buildBlockOrderSort('desc')` (block_number → transaction_index → log_index desc)
- * - `'oldest'`          → `buildBlockOrderSort('asc')` (block_number → transaction_index → log_index asc)
- * - `'followerAddress'` → `[{ follower_address: dir }]`
- * - `'followedAddress'` → `[{ followed_address: dir }]`
- * - `'followerName'`    → `[{ followerUniversalProfile: { lsp3Profile: { name: { value: dir } } } }]`
- * - `'followedName'`    → `[{ followedUniversalProfile: { lsp3Profile: { name: { value: dir } } } }]`
- *
- * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
- * Name sorts default to `nulls: 'last'` when not specified (profiles without names sort last).
- * `direction` and `nulls` are ignored for `'newest'` and `'oldest'` (self-describing fields).
- */
+/** Translate FollowerSort to a Hasura order_by. */
 function buildFollowerOrderBy(sort?: FollowerSort): Follower_Order_By[] | undefined {
   if (!sort) return undefined;
 
@@ -150,22 +119,7 @@ function buildFollowerOrderBy(sort?: FollowerSort): Follower_Order_By[] | undefi
   }
 }
 
-/**
- * Translate a `FollowerInclude` to GraphQL boolean variables for `@include` directives.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
- *
- * **Profile sub-includes:** Reuses `buildProfileIncludeVars` with prefix replacement:
- * - `includeProfile*` → `includeFollowerProfile*` for follower profile sub-includes
- * - `includeProfile*` → `includeFollowedProfile*` for followed profile sub-includes
- *
- * @param include - Optional include config; `undefined` = include everything
- * @returns Record of boolean variables for the GetFollowers GraphQL document
- */
+/** Build @include directive variables from include config. */
 export function buildFollowerIncludeVars(include?: FollowerInclude): Record<string, boolean> {
   if (!include) return {};
 
@@ -205,35 +159,12 @@ export function buildFollowerIncludeVars(include?: FollowerInclude): Record<stri
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Result shape for paginated follow list queries.
- *
- * When the include parameter is provided, the `follows` array contains
- * narrowed types with only base fields + included fields.
- */
 export interface FetchFollowsResult<P = Follower> {
-  /** Parsed follow relationships for the current page (narrowed by include) */
   follows: P[];
-  /** Total number of follow relationships matching the filter (for pagination UI) */
   totalCount: number;
 }
 
-/**
- * Fetch a paginated list of follow relationships with filtering, sorting,
- * total count, and optional include narrowing.
- *
- * Consumers scope results via the filter:
- * - "who follows X?" → `filter: { followedAddress: X }`
- * - "who does X follow?" → `filter: { followerAddress: X }`
- * - "all follows" → omit filter or add name/timestamp filters
- *
- * Translates flat filter/sort/include params to Hasura variables, executes the
- * query, and returns parsed results with a total count for pagination.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed follows (narrowed by include) and total count
- */
+/** Fetch a paginated list of follow relationships. */
 export async function fetchFollows(
   url: string,
   params: {
@@ -297,19 +228,7 @@ export async function fetchFollows(
   };
 }
 
-/**
- * Fetch follow counts (follower + following) for an address.
- *
- * Uses two aliased `follower_aggregate` queries via `GetFollowCountDocument`:
- * - `followerCount` = count where `followed_address = address` (how many follow this address)
- * - `followingCount` = count where `follower_address = address` (how many this address follows)
- *
- * Uses exact-match `_ilike` (no `%` wrapping) for case-insensitive address matching.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (address)
- * @returns FollowCount with followerCount and followingCount
- */
+/** Fetch follower and following counts for an address. */
 export async function fetchFollowCount(
   url: string,
   params: { address: string },
@@ -327,16 +246,7 @@ export async function fetchFollowCount(
   };
 }
 
-/**
- * Check if one address follows another.
- *
- * Reuses `GetFollowersDocument` with all includes disabled and `limit: 1` for efficiency.
- * Returns `true` if at least one follower record exists matching both addresses.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (followerAddress, followedAddress)
- * @returns `true` if followerAddress follows followedAddress, `false` otherwise
- */
+/** Check if one address follows another. */
 export async function fetchIsFollowing(
   url: string,
   params: { followerAddress: string; followedAddress: string },
@@ -387,15 +297,7 @@ export async function fetchIsFollowing(
 /** Raw subscription row type extracted from codegen. */
 type RawFollowerSubscriptionRow = FollowerSubscriptionSubscription['follower'][number];
 
-/**
- * Build a follower subscription config (document, variables, extract, parser).
- *
- * EVENT domain — defaults to block-order desc sort when no sort is provided
- * (block_number desc → transaction_index desc → log_index desc).
- *
- * @param params - Filter, sort, limit, and include configuration
- * @returns A config object consumable by `useSubscription`
- */
+/** Build subscription config for useSubscription. */
 export function buildFollowerSubscriptionConfig(params: {
   filter?: FollowerFilter;
   sort?: FollowerSort;

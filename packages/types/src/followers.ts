@@ -14,13 +14,7 @@ import {
 // Core domain schemas
 // ---------------------------------------------------------------------------
 
-/**
- * A current active follow relationship between two addresses.
- *
- * Represents a single record in the `follower` Hasura table — one per unique
- * follower↔followed pair. Base fields (`followerAddress`, `followedAddress`)
- * are always present; other fields are controlled by the `include` parameter.
- */
+/** Active follow relationship — one per unique follower↔followed pair. */
 export const FollowerSchema = z.object({
   /** Address that is doing the following */
   followerAddress: z.string(),
@@ -42,13 +36,7 @@ export const FollowerSchema = z.object({
   followedProfile: ProfileSchema.nullable(),
 });
 
-/**
- * Follow counts for an address — separate type for useFollowCount.
- *
- * Two aggregates on the `follower` table:
- * - `followerCount` = count where `followed_address = address` (how many follow this address)
- * - `followingCount` = count where `follower_address = address` (how many this address follows)
- */
+/** Follower + following counts for an address. */
 export const FollowCountSchema = z.object({
   /** Number of profiles following this address */
   followerCount: z.number(),
@@ -60,12 +48,6 @@ export const FollowCountSchema = z.object({
 // Filter schema
 // ---------------------------------------------------------------------------
 
-/**
- * Filter for follower queries.
- *
- * All 6 filter fields from CONTEXT.md — string fields use `_ilike` (case-insensitive),
- * timestamp fields use `_gte` / `_lte` for range filtering.
- */
 export const FollowerFilterSchema = z.object({
   /** Case-insensitive match on follower address */
   followerAddress: z.string().optional(),
@@ -85,18 +67,7 @@ export const FollowerFilterSchema = z.object({
 // Sort schema
 // ---------------------------------------------------------------------------
 
-/**
- * Fields available for sorting follower lists.
- *
- * `newest` and `oldest` use deterministic block-order sorting
- * (block_number → transaction_index → log_index). `direction` and `nulls`
- * are ignored when these fields are selected.
- *
- * `followerName` and `followedName` are nested sorts via
- * `followerUniversalProfile.lsp3Profile.name` and
- * `followedUniversalProfile.lsp3Profile.name` — handled at service layer
- * (same pattern as `digitalAssetName` in owned-assets).
- */
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
 export const FollowerSortFieldSchema = z.enum([
   'newest',
   'oldest',
@@ -107,29 +78,16 @@ export const FollowerSortFieldSchema = z.enum([
 ]);
 
 export const FollowerSortSchema = z.object({
-  /** Which field to sort by */
   field: FollowerSortFieldSchema,
-  /** Sort direction */
   direction: SortDirectionSchema,
-  /** Where nulls appear — omit to use Hasura default */
   nulls: SortNullsSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------
-// Include schema (inverted default — omit = fetch everything)
+// Include schema
 // ---------------------------------------------------------------------------
 
-/**
- * Controls which optional fields are fetched for follower queries.
- *
- * **Inverted default:** When `include` is omitted, ALL fields are fetched
- * (opt-out rather than opt-in). When `include` is provided, only fields
- * set to `true` (or provided as sub-include objects) are included.
- *
- * **Profile sub-includes:** `followerProfile` and `followedProfile` accept
- * `ProfileIncludeSchema` objects for full control over which profile fields
- * to fetch for each side of the relationship.
- */
+/** Omit = fetch all fields; set individual fields to opt-in. */
 export const FollowerIncludeSchema = z.object({
   /** Include timestamp when follow was created */
   timestamp: z.boolean().optional(),
@@ -190,7 +148,7 @@ export const UseIsFollowingParamsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Inferred types (single source of truth — derive from schemas)
+// Inferred types
 // ---------------------------------------------------------------------------
 
 export type Follower = z.infer<typeof FollowerSchema>;
@@ -205,7 +163,7 @@ export type UseFollowCountParams = z.infer<typeof UseFollowCountParamsSchema>;
 export type UseIsFollowingParams = z.infer<typeof UseIsFollowingParamsSchema>;
 
 // ---------------------------------------------------------------------------
-// Conditional include result type (DX-04)
+// Conditional include result type
 // ---------------------------------------------------------------------------
 
 /**

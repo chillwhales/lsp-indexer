@@ -1,33 +1,6 @@
 import { graphql } from '../graphql';
 
-/**
- * GraphQL document for fetching a paginated list of LSP12 issued assets with total count.
- *
- * Used by both `useIssuedAssets` (offset-based pagination) and `useInfiniteIssuedAssets`
- * (infinite scroll) — the difference is how the hook manages pagination, not the document.
- *
- * No singular `useIssuedAsset` hook exists because issued asset records have no natural key
- * (opaque Hasura ID only). Developers query by filter instead.
- *
- * Variables:
- * - `$where` — Filter conditions (built by service layer from flat IssuedAssetFilter)
- * - `$order_by` — Sort order (built by service layer from IssuedAssetSort)
- * - `$limit` / `$offset` — Pagination
- * - `$includeArrayIndex`, `$includeInterfaceId`, `$includeTimestamp` — Scalar include toggles
- * - `$includeIssuerProfile*` — Boolean flags for issuer's Universal Profile sub-includes
- * - `$includeDigitalAsset*` — Boolean flags for digital asset sub-includes
- *
- * All include variables default to `true` (inverted default — omit `include` = fetch everything).
- *
- * **CRITICAL Hasura field names:**
- * - `universalProfile` (Hasura) → `issuerProfile` (our domain type) — parser does the mapping
- * - `issuedAsset` (Hasura) → `digitalAsset` (our domain type) — parser does the mapping
- * - `address` (Hasura) → `issuerAddress` (our domain type)
- * - `asset_address` (Hasura) → `assetAddress` (our domain type)
- *
- * Issuer profile sub-fields match what `parseProfile` expects.
- * Digital asset sub-fields match what `parseDigitalAsset` expects.
- */
+/** Paginated list of LSP12 issued assets with total count. */
 export const GetIssuedAssetsDocument = graphql(`
   query GetIssuedAssets(
     $where: lsp12_issued_asset_bool_exp
@@ -201,19 +174,7 @@ export const GetIssuedAssetsDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL subscription document for real-time LSP12 issued asset updates.
- *
- * Mirrors `GetIssuedAssetsDocument` but uses `subscription` instead of `query`
- * and omits `$offset` (subscriptions don't paginate) and the aggregate count.
- *
- * Used by `useIssuedAssetSubscription` in both `@lsp-indexer/react` and
- * `@lsp-indexer/next` via the `buildIssuedAssetSubscriptionConfig` service.
- *
- * Entity domain — uses Hasura default ordering (`order_by: undefined` when no sort).
- *
- * All 31 include variables default to `true` (inverted default — omit = fetch everything).
- */
+/** Subscription variant of GetIssuedAssetsDocument. */
 export const IssuedAssetSubscriptionDocument = graphql(`
   subscription IssuedAssetSubscription(
     $where: lsp12_issued_asset_bool_exp

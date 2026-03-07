@@ -8,10 +8,6 @@
  * The from address is queued for verification as both UniversalProfile
  * and DigitalAsset (could be either type).
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
- *
- * Port from v1:
- *   - scanner.ts L423-427 (event matching)
- *   - utils/universalReceiver/index.ts (extract + populate)
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { isNullAddress } from '@/utils';

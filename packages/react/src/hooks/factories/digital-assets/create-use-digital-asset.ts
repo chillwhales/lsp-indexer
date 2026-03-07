@@ -1,12 +1,4 @@
-/**
- * Factory for useDigitalAsset — shared between `@lsp-indexer/react` and `@lsp-indexer/next`.
- *
- * Each package calls `createUseDigitalAsset(queryFn)` with its own fetch function:
- * - React: `(p) => fetchDigitalAsset(getClientUrl(), p)`
- * - Next:  `(p) => getDigitalAsset(p.address, p.include)`
- *
- * @see createUseDetail — the generic factory this wraps
- */
+/** @see createUseDetail */
 import { digitalAssetKeys } from '@lsp-indexer/node';
 import type {
   DigitalAsset,
@@ -18,14 +10,8 @@ import type {
 import type { UseDigitalAssetReturn } from '../../types';
 import { createUseDetail } from '../create-use-detail';
 
-/** Params passed to the factory's queryFn — address + optional include */
 type DigitalAssetDetailParams = UseDigitalAssetParams & { include?: DigitalAssetInclude };
 
-/**
- * Create a `useDigitalAsset` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for a single digital asset
- */
 export function createUseDigitalAsset(
   queryFn: (params: DigitalAssetDetailParams) => Promise<PartialDigitalAsset | null>,
 ) {

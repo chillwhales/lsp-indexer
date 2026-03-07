@@ -1,18 +1,4 @@
-/**
- * Factory for useUniversalReceiverEventSubscription — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseUniversalReceiverEventSubscription(useSubscription)` with its
- * own hook (bound to the package-specific context).
- *
- * Domain-specific config assembly (document, variables, extract, parser) is
- * delegated to `buildUniversalReceiverEventSubscriptionConfig` in the node service layer.
- *
- * EVENT domain — defaults to block-order desc sort when no sort is provided.
- *
- * @see createUseSubscription — produces the `useSubscription` hook this factory consumes
- * @see buildUniversalReceiverEventSubscriptionConfig — node service that builds the subscription config
- */
+/** @see createUseSubscription */
 import {
   buildUniversalReceiverEventSubscriptionConfig,
   universalReceiverEventKeys,
@@ -28,11 +14,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DEFAULT_SUBSCRIPTION_LIMIT } from '../../../constants';
 import type { UseSubscriptionFn, UseUniversalReceiverEventSubscriptionParams } from '../../types';
 
-/**
- * Create a `useUniversalReceiverEventSubscription` hook bound to a specific `useSubscription`.
- *
- * @param useSubscription - The package-specific useSubscription hook
- */
 export function createUseUniversalReceiverEventSubscription(useSubscription: UseSubscriptionFn) {
   function useUniversalReceiverEventSubscription<const I extends UniversalReceiverEventInclude>(
     params: UseUniversalReceiverEventSubscriptionParams & {

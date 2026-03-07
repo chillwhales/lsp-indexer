@@ -1,25 +1,10 @@
-/**
- * Factory for infinite scroll hooks (useInfiniteProfiles, useInfiniteNfts, etc.).
- *
- * Produces the runtime implementation that both `@lsp-indexer/react` and
- * `@lsp-indexer/next` share. Each package passes its own `queryFn`:
- * - React: `(params) => fetchProfiles(getClientUrl(), params)`
- * - Next:  `(params) => getProfiles(params)`
- *
- * The returned function has the widest signature. Each domain factory wraps
- * this with proper function overloads to preserve `const I` narrowing.
- *
- * @see createUseList — same pattern for paginated (non-infinite) list hooks
- */
+/** Generic factory for infinite scroll hooks (useInfiniteProfiles, useInfiniteNfts, etc.). */
 import type { InfiniteData, UseInfiniteQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { DEFAULT_PAGE_SIZE } from '../../constants';
 
-/**
- * Params shape for infinite hooks. All infinite hooks accept these fields,
- * though individual domains may extend with additional fields.
- */
+/** Base params shape — individual domains extend with additional fields. */
 interface InfiniteBaseParams {
   filter?: unknown;
   sort?: unknown;
@@ -27,13 +12,7 @@ interface InfiniteBaseParams {
   pageSize?: number;
 }
 
-/**
- * Configuration for an infinite scroll hook factory.
- *
- * @typeParam TParams - The full params type (e.g., UseInfiniteProfilesParams & { include?: ProfileInclude })
- * @typeParam TData   - The widest item type (e.g., PartialProfile)
- * @typeParam TResult - The full fetch result type (e.g., FetchProfilesResult<PartialProfile>)
- */
+/** Configuration for an infinite scroll hook factory. */
 export interface CreateUseInfiniteConfig<
   TParams extends InfiniteBaseParams,
   TData,
@@ -63,13 +42,7 @@ export interface CreateUseInfiniteConfig<
   staleTime?: number;
 }
 
-/**
- * The raw return shape from the factory — `{ items, hasNextPage, ... }`.
- * Domain wrappers remap `items` to a named key (e.g., `profiles`, `nfts`).
- *
- * Uses `Omit` over `UseInfiniteQueryResult` to preserve all TanStack Query
- * fields with precise types, matching the pattern in `UseListRawReturn`.
- */
+/** Raw return shape — domain wrappers remap `items` to a named key (e.g., `profiles`, `nfts`). */
 export type UseInfiniteRawReturn<TData, TResult extends { totalCount: number }> = {
   items: TData[];
   hasNextPage: boolean;
@@ -80,23 +53,7 @@ export type UseInfiniteRawReturn<TData, TResult extends { totalCount: number }> 
   'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
 >;
 
-/**
- * Create an infinite scroll hook implementation.
- *
- * @returns A function `(params) => { items, hasNextPage, fetchNextPage, isFetchingNextPage, ...rest }`
- *          that domain factories wrap with proper overloads.
- *
- * @example
- * ```ts
- * const useInfiniteProfilesImpl = createUseInfinite({
- *   queryKey: (p) => profileKeys.infinite(p.filter, p.sort, p.include),
- *   queryFn: (p) => p.include
- *     ? fetchProfiles(url, { filter: p.filter, sort: p.sort, limit: p.limit, offset: p.offset, include: p.include })
- *     : fetchProfiles(url, { filter: p.filter, sort: p.sort, limit: p.limit, offset: p.offset }),
- *   extractItems: (r) => r.profiles,
- * });
- * ```
- */
+/** Create an infinite scroll hook from the given config. */
 export function createUseInfinite<
   TParams extends InfiniteBaseParams,
   TData,

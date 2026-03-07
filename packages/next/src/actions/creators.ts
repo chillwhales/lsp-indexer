@@ -12,20 +12,7 @@ import type {
 import { UseCreatorsParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
-/**
- * Server action: Fetch a paginated list of LSP4 creator records.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchCreators` server-side using the URL returned by `getServerUrl()`
- * (`INDEXER_URL`, falling back to `NEXT_PUBLIC_INDEXER_URL`). This keeps the
- * GraphQL endpoint invisible to the client.
- *
- * No singular `getCreator` action exists because creator records have no
- * natural key (opaque Hasura ID only). Developers query by filter instead.
- *
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed creators and total count
- */
+/** Server action: fetch a paginated list of creators. */
 export async function getCreators(params?: {
   filter?: CreatorFilter;
   sort?: CreatorSort;

@@ -28,23 +28,7 @@ import { escapeLike, hasActiveIncludes, orderDir } from './utils';
 // Internal builders — translate flat params to Hasura variables
 // ---------------------------------------------------------------------------
 
-/**
- * Translate a flat `OwnedTokenFilter` to a Hasura `owned_token_bool_exp`.
- *
- * Multiple filters combine with `_and`. An empty or undefined filter
- * returns an empty object (no filtering).
- *
- * Filter → Hasura mapping:
- * - `holderAddress`       → `{ owner: { _ilike: '%holder%' } }`
- * - `digitalAssetAddress` → `{ address: { _ilike: '%address%' } }`
- * - `tokenId`             → `{ token_id: { _ilike: '%tokenId%' } }` (snake_case column)
- * - `holderName`          → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike: '%name%' } } } } }`
- * - `assetName`           → `{ digitalAsset: { lsp4TokenName: { value: { _ilike: '%name%' } } } }`
- * - `tokenName`           → `{ nft: { _or: [lsp4Metadata.name, lsp4MetadataBaseUri.name] } }`
- *
- * All string fields use `_ilike` + `escapeLike` for case-insensitive matching
- * (EIP-55 mixed-case address prevention).
- */
+/** Translate OwnedTokenFilter to a Hasura _bool_exp. */
 export function buildOwnedTokenWhere(filter?: OwnedTokenFilter): Owned_Token_Bool_Exp {
   if (!filter) return {};
 
@@ -101,17 +85,7 @@ export function buildOwnedTokenWhere(filter?: OwnedTokenFilter): Owned_Token_Boo
   return { _and: conditions };
 }
 
-/**
- * Translate a flat `OwnedTokenSort` to a Hasura `order_by` array.
- *
- * Sort field → Hasura mapping:
- * - Direct columns: `block`, `timestamp` → `[{ [field]: dir }]`
- * - Renamed: `digitalAssetAddress` → `[{ address: dir }]`
- * - Renamed: `holderAddress` → `[{ owner: dir }]`
- * - `tokenId` → `[{ token_id: dir }]` (snake_case in Hasura)
- *
- * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
- */
+/** Translate OwnedTokenSort to a Hasura order_by. */
 function buildOwnedTokenOrderBy(sort?: OwnedTokenSort): Owned_Token_Order_By[] | undefined {
   if (!sort) return undefined;
 
@@ -132,27 +106,7 @@ function buildOwnedTokenOrderBy(sort?: OwnedTokenSort): Owned_Token_Order_By[] |
   }
 }
 
-/**
- * Translate an `OwnedTokenInclude` to GraphQL boolean variables for `@include` directives.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
- *
- * **Direct column includes:**
- * - `block`, `timestamp` map to `includeBlock`, `includeTimestamp`.
- *
- * **Nested relation sub-includes:**
- * - `digitalAsset`: Only included when at least one sub-field is truthy → 17 DA sub-variables.
- * - `nft`: Only included when at least one sub-field is truthy → 8 NFT sub-variables.
- * - `ownedAsset`: Only included when at least one sub-field is truthy → 3 owned asset sub-variables.
- * - `holder` (universal profile): Only included when at least one sub-field is truthy → 9 profile sub-variables.
- *   Variable name: `includeHolder` (maps to `$includeHolder` in GraphQL document).
- *
- * `undefined`, `{}`, and all-false objects all resolve to `false` for the parent relation.
- */
+/** Build @include directive variables from include config. */
 function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> {
   if (!include) {
     // Omitted = include everything (GraphQL defaults all Boolean! = true)
@@ -204,17 +158,7 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Fetch a single owned token by ID.
- *
- * Translates the ID to a Hasura `where` clause, executes the query,
- * and returns the first result parsed as a clean `OwnedToken`, or `null` if
- * the ID doesn't exist.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (id + optional include)
- * @returns The parsed owned token, or `null` if not found
- */
+/** Fetch a single owned token by ID. */
 export async function fetchOwnedToken(
   url: string,
   params: { id: string },
@@ -244,29 +188,12 @@ export async function fetchOwnedToken(
   return parseOwnedToken(raw);
 }
 
-/**
- * Result shape for paginated owned token list queries.
- *
- * When the include parameter `I` is provided, the `ownedTokens` array contains
- * narrowed types with only base fields + included fields.
- */
 export interface FetchOwnedTokensResult<P = OwnedToken> {
-  /** Parsed owned tokens for the current page (narrowed by include) */
   ownedTokens: P[];
-  /** Total number of owned tokens matching the filter (for pagination UI) */
   totalCount: number;
 }
 
-/**
- * Fetch a paginated list of owned tokens with filtering, sorting, and total count.
- *
- * Translates flat filter/sort/include params to Hasura variables, executes the
- * query, and returns parsed results with a total count for pagination.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed owned tokens and total count
- */
+/** Fetch a paginated list of owned tokens. */
 export async function fetchOwnedTokens(
   url: string,
   params?: {
@@ -337,20 +264,7 @@ export async function fetchOwnedTokens(
 /** Raw subscription row type extracted from codegen. */
 type RawOwnedTokenSubscriptionRow = OwnedTokenSubscriptionSubscription['owned_token'][number];
 
-/**
- * Build an owned token subscription config (document, variables, extract, parser).
- *
- * Encapsulates the domain-specific assembly that `createUseOwnedTokenSubscription`
- * needs — mirroring how `fetchOwnedTokens` encapsulates query assembly. Keeps the
- * React hook factory focused on hook lifecycle rather than domain plumbing.
- *
- * The return type is inferred so the 4-generic chain
- * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
- * `useSubscription` without any casts or `unknown` holes.
- *
- * @param params - Filter, sort, limit, and include configuration
- * @returns A config object consumable by `useSubscription`
- */
+/** Build subscription config for useSubscription. */
 export function buildOwnedTokenSubscriptionConfig(params: {
   filter?: OwnedTokenFilter;
   sort?: OwnedTokenSort;

@@ -1,5 +1,6 @@
 'use client';
 
+/** Universal Receiver Events playground — LSP1 events with 3 nested relations. */
 import { TYPE_ID_NAMES, TypeIdNameSchema } from '@chillwhales/lsp1';
 import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
@@ -42,10 +43,6 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { UniversalReceiverEventCard } from '@/components/universal-receiver-event-card';
-
-// ---------------------------------------------------------------------------
-// Domain config — Universal Receiver Events (11 filter params, 5 sort fields)
-// ---------------------------------------------------------------------------
 
 /** Type ID name options for select dropdowns — built from the data-keys registry */
 const TYPE_ID_NAME_OPTIONS = TYPE_ID_NAMES.map((name) => ({ value: name, label: name }));
@@ -149,10 +146,6 @@ const SORT_OPTIONS: SortOption[] = [
   { value: 'fromAssetName', label: 'Sender Asset Name' },
 ];
 
-// ---------------------------------------------------------------------------
-// Hook resolution by mode
-// ---------------------------------------------------------------------------
-
 type UniversalReceiverEventHooks = {
   useUniversalReceiverEvents: typeof useUniversalReceiverEventsReact;
   useInfiniteUniversalReceiverEvents: typeof useInfiniteUniversalReceiverEventsReact;
@@ -173,10 +166,6 @@ function useUniversalReceiverEventHooks(mode: HookMode): UniversalReceiverEventH
     useUniversalReceiverEventSubscription: useUniversalReceiverEventSubscriptionReact,
   };
 }
-
-// ---------------------------------------------------------------------------
-// Build filter
-// ---------------------------------------------------------------------------
 
 function buildFilter(vals: Record<string, string>): UniversalReceiverEventFilter | undefined {
   const f: UniversalReceiverEventFilter = {};
@@ -199,10 +188,6 @@ function buildFilter(vals: Record<string, string>): UniversalReceiverEventFilter
   if (vals.fromAssetName) f.fromAssetName = vals.fromAssetName;
   return Object.keys(f).length > 0 ? f : undefined;
 }
-
-// ---------------------------------------------------------------------------
-// Shared list state
-// ---------------------------------------------------------------------------
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
@@ -251,10 +236,6 @@ function useListState() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Include sections
-// ---------------------------------------------------------------------------
-
 function UreIncludeSections({
   includeValues,
   toggleInclude,
@@ -293,10 +274,6 @@ function UreIncludeSections({
     </>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: List (paginated)
-// ---------------------------------------------------------------------------
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useUniversalReceiverEvents } = useUniversalReceiverEventHooks(mode);
@@ -347,10 +324,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 2: Infinite
-// ---------------------------------------------------------------------------
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteUniversalReceiverEvents } = useUniversalReceiverEventHooks(mode);
@@ -406,10 +379,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 3: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useUniversalReceiverEventSubscription } = useUniversalReceiverEventHooks(mode);
   const state = useListState();
@@ -423,8 +392,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const universalReceiverEvents = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -432,7 +399,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -482,10 +448,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
-
 export default function UniversalReceiverEventsPage(): React.ReactNode {
   return (
     <PlaygroundPageLayout
@@ -503,7 +465,7 @@ export default function UniversalReceiverEventsPage(): React.ReactNode {
           </code>{' '}
           hooks against the{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">universal_receiver</code> table via
-          Hasura (QUERY-10, SUB-02).
+          Hasura.
         </>
       }
       tabs={[

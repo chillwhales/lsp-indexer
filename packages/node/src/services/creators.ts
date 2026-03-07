@@ -22,23 +22,7 @@ import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './u
 // Internal builders — translate flat params to Hasura variables
 // ---------------------------------------------------------------------------
 
-/**
- * Translate a flat `CreatorFilter` to a Hasura `lsp4_creator_bool_exp`.
- *
- * All 7 filter fields — string fields use `_ilike` + `escapeLike` for
- * case-insensitive matching, timestamp fields use `_gte` / `_lte`.
- *
- * Multiple conditions combine with `_and`. Empty filter = empty object.
- *
- * Filter → Hasura mapping:
- * - `creatorAddress`    → `{ creator_address: { _ilike: '%escapeLike%' } }` (partial match)
- * - `digitalAssetAddress` → `{ address: { _ilike: '%escapeLike%' } }` (partial match)
- * - `interfaceId`       → `{ interface_id: { _ilike: '%escapeLike%' } }` (partial match)
- * - `creatorName`       → `{ creatorProfile: { lsp3Profile: { name: { value: { _ilike } } } } }` (nested)
- * - `digitalAssetName`  → `{ digitalAsset: { lsp4TokenName: { value: { _ilike } } } }` (nested)
- * - `timestampFrom`     → `{ timestamp: { _gte: normalizeTimestamp } }`
- * - `timestampTo`       → `{ timestamp: { _lte: normalizeTimestamp } }`
- */
+/** Translate CreatorFilter to a Hasura _bool_exp. */
 export function buildCreatorWhere(filter?: CreatorFilter): Lsp4_Creator_Bool_Exp {
   if (!filter) return {};
 
@@ -99,20 +83,7 @@ export function buildCreatorWhere(filter?: CreatorFilter): Lsp4_Creator_Bool_Exp
   return { _and: conditions };
 }
 
-/**
- * Translate a flat `CreatorSort` to a Hasura `lsp4_creator_order_by` array.
- *
- * Sort field → Hasura mapping:
- * - `'timestamp'`          → `[{ timestamp: dir }]`
- * - `'creatorAddress'`     → `[{ creator_address: dir }]`
- * - `'digitalAssetAddress'` → `[{ address: dir }]`
- * - `'arrayIndex'`         → `[{ array_index: dir }]`
- * - `'creatorName'`        → `[{ creatorProfile: { lsp3Profile: { name: { value: dir } } } }]` (nested)
- * - `'digitalAssetName'`   → `[{ digitalAsset: { lsp4TokenName: { value: dir } } }]` (nested)
- *
- * Name sorts default to `nulls: 'last'` when not specified (names without values sort last).
- * `dir` is composed from `sort.direction` + optional `sort.nulls` via `orderDir()`.
- */
+/** Translate CreatorSort to a Hasura order_by. */
 function buildCreatorOrderBy(sort?: CreatorSort): Lsp4_Creator_Order_By[] | undefined {
   if (!sort) return undefined;
 
@@ -152,24 +123,7 @@ function buildCreatorOrderBy(sort?: CreatorSort): Lsp4_Creator_Order_By[] | unde
   }
 }
 
-/**
- * Translate a `CreatorInclude` to GraphQL boolean variables for `@include` directives.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
- *
- * **Profile sub-includes:** Reuses `buildProfileIncludeVars` with prefix replacement:
- * - `includeProfile*` → `includeCreatorProfile*` for creator profile sub-includes
- *
- * **Digital asset sub-includes:** Reuses `buildDigitalAssetIncludeVars` with prefix replacement:
- * - `include*` → `includeDigitalAsset*` for digital asset sub-includes
- *
- * @param include - Optional include config; `undefined` = include everything
- * @returns Record of boolean variables for the GetCreators GraphQL document
- */
+/** Build @include directive variables from include config. */
 export function buildCreatorIncludeVars(include?: CreatorInclude): Record<string, boolean> {
   if (!include) return {};
 
@@ -207,22 +161,9 @@ export function buildCreatorIncludeVars(include?: CreatorInclude): Record<string
 // Subscription config builder
 // ---------------------------------------------------------------------------
 
-/** Raw subscription row type — reuses the same shape from the subscription codegen. */
 type RawCreatorSubscriptionRow = CreatorSubscriptionSubscription['lsp4_creator'][number];
 
-/**
- * Build a type-safe `SubscriptionConfig` for creator subscriptions.
- *
- * Assembles domain-specific config (document, variables, extract, parser) that
- * `useSubscription` consumes. The return type is inferred so the 4-generic chain
- * `SubscriptionConfig<TResult, TVariables, TRaw, TParsed>` flows through
- * `useSubscription` without any casts or `unknown` holes.
- *
- * Entity domain — uses Hasura default ordering (`order_by: undefined` when no sort).
- *
- * @param params - Filter, sort, limit, and include configuration
- * @returns A config object consumable by `useSubscription`
- */
+/** Build subscription config for useSubscription. */
 export function buildCreatorSubscriptionConfig(params: {
   filter?: CreatorFilter;
   sort?: CreatorSort;
@@ -251,36 +192,12 @@ export function buildCreatorSubscriptionConfig(params: {
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Result shape for paginated creator list queries.
- *
- * When the include parameter is provided, the `creators` array contains
- * narrowed types with only base fields + included fields.
- */
 export interface FetchCreatorsResult<P = Creator> {
-  /** Parsed creator records for the current page (narrowed by include) */
   creators: P[];
-  /** Total number of creator records matching the filter (for pagination UI) */
   totalCount: number;
 }
 
-/**
- * Fetch a paginated list of LSP4 creator records with filtering, sorting,
- * total count, and optional include narrowing.
- *
- * Serves both `useCreators` (paginated) and `useInfiniteCreators` (infinite scroll) —
- * the difference is how the hook manages pagination, not the fetch function.
- *
- * No singular `fetchCreator` exists because creator records have no natural key
- * (opaque Hasura ID only). Developers query by filter instead.
- *
- * Translates flat filter/sort/include params to Hasura variables, executes the
- * query, and returns parsed results with a total count for pagination.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed creators (narrowed by include) and total count
- */
+/** Fetch a paginated list of LSP4 creator records. */
 export async function fetchCreators(
   url: string,
   params?: {

@@ -23,16 +23,7 @@ import {
 // Core domain schema
 // ---------------------------------------------------------------------------
 
-/**
- * A universal receiver event from the `universal_receiver` Hasura table.
- *
- * Represents a single `universalReceiver` call received by a Universal Profile
- * or other LSP1-compatible contract. Triggered whenever a UP receives tokens,
- * NFTs, or other value. Base fields (`address`, `from`, `typeId`, `value`) are
- * always present; `receivedData`, `returnedValue`, and `value` are includable
- * scalar fields, and 3 relation includes are also controlled by the `include`
- * parameter.
- */
+/** LSP1 universalReceiver call — triggered when a UP receives tokens, NFTs, or value. */
 export const UniversalReceiverEventSchema = z.object({
   /** Receiving contract address — the UP that received the universalReceiver call (always present) */
   address: z.string(),
@@ -65,15 +56,9 @@ export const UniversalReceiverEventSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Filter schema — 8 filter fields (10 params due to 2 range fields)
+// Filter schema
 // ---------------------------------------------------------------------------
 
-/**
- * Filter for universal receiver event queries.
- *
- * All 8 filter fields — string fields use `_ilike` (case-insensitive),
- * timestamp and blockNumber fields use `_gte` / `_lte` for range filtering.
- */
 export const UniversalReceiverEventFilterSchema = z.object({
   /** Case-insensitive match on receiving contract address (uses _ilike) */
   address: z.string().optional(),
@@ -100,21 +85,10 @@ export const UniversalReceiverEventFilterSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Sort schema — 5 sort fields
+// Sort schema
 // ---------------------------------------------------------------------------
 
-/**
- * Fields available for sorting universal receiver event lists.
- *
- * `newest` and `oldest` use deterministic block-order sorting
- * (block_number → transaction_index → log_index). `direction` and `nulls`
- * are ignored when these fields are selected.
- *
- * `universalProfileName` is a nested sort via `universalProfile.lsp3Profile.name`.
- * `fromProfileName` is a nested sort via `fromProfile.lsp3Profile.name`.
- * `fromAssetName` is a nested sort via `fromAsset.lsp4TokenName`.
- * All handled at service layer.
- */
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
 export const UniversalReceiverEventSortFieldSchema = z.enum([
   'newest',
   'oldest',
@@ -124,28 +98,16 @@ export const UniversalReceiverEventSortFieldSchema = z.enum([
 ]);
 
 export const UniversalReceiverEventSortSchema = z.object({
-  /** Which field to sort by */
   field: UniversalReceiverEventSortFieldSchema,
-  /** Sort direction */
   direction: SortDirectionSchema,
-  /** Where nulls appear — omit to use Hasura default */
   nulls: SortNullsSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------
-// Include schema (inverted default — omit = fetch everything)
+// Include schema
 // ---------------------------------------------------------------------------
 
-/**
- * Controls which optional fields are fetched for universal receiver event queries.
- *
- * **Inverted default:** When `include` is omitted, ALL fields are fetched
- * (opt-out rather than opt-in). When `include` is provided, only fields
- * set to `true` (or provided as sub-include objects) are included.
- *
- * **Relation sub-includes:** `universalProfile` and `fromProfile` accept
- * ProfileInclude sub-objects, `fromAsset` accepts DigitalAssetInclude sub-objects.
- */
+/** Omit = fetch all fields; set individual fields to opt-in. */
 export const UniversalReceiverEventIncludeSchema = z.object({
   /** Include resolved human-readable type ID name (parser-derived from typeId) */
   typeIdName: z.boolean().optional(),
@@ -193,7 +155,7 @@ export const UseInfiniteUniversalReceiverEventsParamsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Inferred types (single source of truth — derive from schemas)
+// Inferred types
 // ---------------------------------------------------------------------------
 
 export type UniversalReceiverEvent = z.infer<typeof UniversalReceiverEventSchema>;
@@ -209,7 +171,7 @@ export type UseInfiniteUniversalReceiverEventsParams = z.infer<
 >;
 
 // ---------------------------------------------------------------------------
-// Conditional include result type (DX-04)
+// Conditional include result type
 // ---------------------------------------------------------------------------
 
 /**

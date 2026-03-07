@@ -1,5 +1,6 @@
 'use client';
 
+/** Sidebar navigation with domain playground links and theme switcher. */
 import {
   ArrowDownFromLine,
   BarChart3,

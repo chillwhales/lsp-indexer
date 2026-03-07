@@ -1,12 +1,4 @@
-/**
- * Factory for useFollows — shared between `@lsp-indexer/react` and `@lsp-indexer/next`.
- *
- * Each package calls `createUseFollows(queryFn)` with its own fetch function:
- * - React: `(p) => fetchFollows(getClientUrl(), p)`
- * - Next:  `(p) => getFollows(p)`
- *
- * @see createUseList — the generic factory this wraps
- */
+/** @see createUseList */
 import type { FetchFollowsResult } from '@lsp-indexer/node';
 import { followerKeys } from '@lsp-indexer/node';
 import type {
@@ -19,14 +11,8 @@ import type {
 import type { UseFollowsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
-/** Params passed to the factory's queryFn */
 type FollowsListParams = UseFollowsParams & { include?: FollowerInclude };
 
-/**
- * Create a `useFollows` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for follow lists
- */
 export function createUseFollows(
   queryFn: (params: FollowsListParams) => Promise<FetchFollowsResult<PartialFollower>>,
 ) {

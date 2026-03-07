@@ -1,5 +1,5 @@
 /**
- * Pipeline orchestrator for the V2 indexer.
+ * Pipeline orchestrator for the indexer.
  *
  * Processes a single batch of blocks through the 7-step enrichment queue pipeline:
  *   1. EXTRACT         — EventPlugins decode events → BatchContext + enrichment queue

@@ -1,5 +1,6 @@
 'use client';
 
+/** Digital Assets playground — LSP7/LSP8 metadata lookup, list, infinite scroll, and subscriptions. */
 import { Coins, Infinity, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -47,10 +48,6 @@ import {
   useFilterFields,
   useIncludeToggles,
 } from '@/components/playground';
-
-// ---------------------------------------------------------------------------
-// Domain config
-// ---------------------------------------------------------------------------
 
 const FILTERS: FilterFieldConfig[] = [
   { key: 'name', label: 'Name', placeholder: 'Search by name...' },
@@ -116,10 +113,6 @@ function buildFilter(debouncedValues: Record<string, string>): DigitalAssetFilte
   return Object.keys(f).length > 0 ? f : undefined;
 }
 
-// ---------------------------------------------------------------------------
-// Shared list state
-// ---------------------------------------------------------------------------
-
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
   const [sortField, setSortField] = useState<DigitalAssetSortField>('holderCount');
@@ -152,10 +145,6 @@ function useListState() {
     include,
   };
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: Single Digital Asset
-// ---------------------------------------------------------------------------
 
 function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useDigitalAsset } = useHooks(mode);
@@ -230,10 +219,6 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 2: Asset List
-// ---------------------------------------------------------------------------
-
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useDigitalAssets } = useHooks(mode);
   const state = useListState();
@@ -285,10 +270,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 3: Infinite Scroll
-// ---------------------------------------------------------------------------
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteDigitalAssets } = useHooks(mode);
@@ -347,10 +328,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 4: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useDigitalAssetSubscription } = useHooks(mode);
   const state = useListState();
@@ -364,8 +341,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const digitalAssets = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -373,7 +348,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -425,10 +399,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
 
 export default function DigitalAssetsPage(): React.ReactNode {
   return (

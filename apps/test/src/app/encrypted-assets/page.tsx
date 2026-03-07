@@ -1,5 +1,6 @@
 'use client';
 
+/** Encrypted Assets playground — LSP29 encrypted metadata with encryption, file, and chunks sub-includes. */
 import { Infinity, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -44,10 +45,6 @@ import {
   useIncludeToggles,
   useSubInclude,
 } from '@/components/playground';
-
-// ---------------------------------------------------------------------------
-// Domain config — 8 filter fields, 5 sort options
-// ---------------------------------------------------------------------------
 
 const ALL_FILTERS: FilterFieldConfig[] = [
   {
@@ -122,10 +119,6 @@ const SORT_OPTIONS: SortOption[] = [
   { value: 'arrayIndex', label: 'Array Index' },
 ];
 
-// ---------------------------------------------------------------------------
-// Hook resolution by mode
-// ---------------------------------------------------------------------------
-
 type EncryptedAssetHooks = {
   useEncryptedAssets: typeof useEncryptedAssetsReact;
   useInfiniteEncryptedAssets: typeof useInfiniteEncryptedAssetsReact;
@@ -147,10 +140,6 @@ function useEncryptedAssetHooks(mode: HookMode): EncryptedAssetHooks {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Build filter from debounced values — numeric conversion for revision/fileSize
-// ---------------------------------------------------------------------------
-
 function buildFilter(debouncedValues: Record<string, string>): EncryptedAssetFilter | undefined {
   const f: EncryptedAssetFilter = {};
   if (debouncedValues.address) f.address = debouncedValues.address;
@@ -170,10 +159,6 @@ function buildFilter(debouncedValues: Record<string, string>): EncryptedAssetFil
   if (debouncedValues.timestamp) f.timestamp = debouncedValues.timestamp;
   return Object.keys(f).length > 0 ? f : undefined;
 }
-
-// ---------------------------------------------------------------------------
-// Shared list state for list/infinite tabs
-// ---------------------------------------------------------------------------
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
@@ -227,10 +212,6 @@ function useListState() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Include sections (shared between tabs)
-// ---------------------------------------------------------------------------
-
 function IncludeSections({
   includeValues,
   toggleInclude,
@@ -273,10 +254,6 @@ function IncludeSections({
     </>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: List — paginated list of encrypted assets
-// ---------------------------------------------------------------------------
 
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useEncryptedAssets } = useEncryptedAssetHooks(mode);
@@ -337,10 +314,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 2: Infinite — infinite scroll encrypted assets
-// ---------------------------------------------------------------------------
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteEncryptedAssets } = useEncryptedAssetHooks(mode);
@@ -407,10 +380,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 3: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useEncryptedAssetSubscription } = useEncryptedAssetHooks(mode);
   const state = useListState();
@@ -424,8 +393,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const encryptedAssets = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -433,7 +400,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -494,10 +460,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
-
 export default function EncryptedAssetsPage(): React.ReactNode {
   return (
     <PlaygroundPageLayout
@@ -512,7 +474,7 @@ export default function EncryptedAssetsPage(): React.ReactNode {
           </code>{' '}
           hooks against the{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">lsp29_encrypted_asset</code> table
-          via Hasura (QUERY-08, SUB-02, SUB-03).
+          via Hasura.
         </>
       }
       tabs={[

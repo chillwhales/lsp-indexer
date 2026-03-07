@@ -1,13 +1,4 @@
-/**
- * Factory for useDataChangedEvents — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseDataChangedEvents(queryFn)` with its own fetch:
- * - React: `(p) => fetchDataChangedEvents(getClientUrl(), p)`
- * - Next:  `(p) => getDataChangedEvents(p)`
- *
- * @see createUseList — the generic factory this wraps
- */
+/** @see createUseList */
 import type { FetchDataChangedEventsResult } from '@lsp-indexer/node';
 import { dataChangedEventKeys } from '@lsp-indexer/node';
 import type {
@@ -20,16 +11,10 @@ import type {
 import type { UseDataChangedEventsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
-/** Params passed to the factory's queryFn */
 type DataChangedEventsListParams = UseDataChangedEventsParams & {
   include?: DataChangedEventInclude;
 };
 
-/**
- * Create a `useDataChangedEvents` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for data changed event lists
- */
 export function createUseDataChangedEvents(
   queryFn: (
     params: DataChangedEventsListParams,

@@ -1,3 +1,4 @@
+/** Root layout — app shell with sidebar navigation and provider tree. */
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 

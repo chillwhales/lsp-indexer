@@ -1,37 +1,6 @@
 import { graphql } from '../graphql';
 
-/**
- * GraphQL document for fetching a paginated list of ERC725Y per-token data changed events
- * with total count.
- *
- * Used by both `useTokenIdDataChangedEvents` (offset-based pagination) and
- * `useInfiniteTokenIdDataChangedEvents` (infinite scroll) — the difference is how
- * the hook manages pagination, not the document.
- *
- * No singular hook exists because event records have no natural key
- * (opaque Hasura ID only). Developers query by filter instead.
- *
- * Variables:
- * - `$where` — Filter conditions (built by service layer from flat TokenIdDataChangedEventFilter)
- * - `$order_by` — Sort order (built by service layer from TokenIdDataChangedEventSort)
- * - `$limit` / `$offset` — Pagination
- * - `$includeBlockNumber`, `$includeTimestamp`, `$includeLogIndex`, `$includeTransactionIndex` — Scalar include toggles
- * - `$includeDigitalAsset*` — Boolean flags for digital asset sub-includes
- * - `$includeNft` + 8 NFT sub-variables — NFT relation with per-field include control
- *
- * All include variables default to `true` (inverted default — omit `include` = fetch everything).
- *
- * **CRITICAL Hasura field names:**
- * - `data_key` (Hasura) → `dataKey` (our domain type)
- * - `data_value` (Hasura) → `dataValue` (our domain type)
- * - `token_id` (Hasura) → `tokenId` (our domain type)
- * - `block_number` (Hasura) → `blockNumber` (our domain type)
- * - `log_index` (Hasura) → `logIndex` (our domain type)
- * - `transaction_index` (Hasura) → `transactionIndex` (our domain type)
- *
- * Digital Asset sub-fields match what `parseDigitalAsset` expects.
- * NFT sub-fields match what `parseNft` expects (full Nft type with baseUri fallback).
- */
+/** Paginated list query with total count. */
 export const GetTokenIdDataChangedEventsDocument = graphql(`
   query GetTokenIdDataChangedEvents(
     $where: token_id_data_changed_bool_exp
@@ -237,17 +206,7 @@ export const GetTokenIdDataChangedEventsDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL subscription document for real-time ERC725Y per-token data changed events.
- *
- * Mirrors `GetTokenIdDataChangedEventsDocument` exactly (same field selection, same `@include`
- * directives, same variables) but as a `subscription` operation — no `$offset` variable
- * (subscriptions don't paginate) and no `token_id_data_changed_aggregate` field.
- *
- * Used by `useTokenIdDataChangedEventSubscription` via `buildTokenIdDataChangedEventSubscriptionConfig`.
- *
- * Variables: ~31 total (3 pagination/filter + 4 scalar + 18 DA + 1 NFT + 8 NFT sub include toggles)
- */
+/** Subscription variant of GetTokenIdDataChangedEventsDocument. */
 export const TokenIdDataChangedEventSubscriptionDocument = graphql(`
   subscription TokenIdDataChangedEventSubscription(
     $where: token_id_data_changed_bool_exp

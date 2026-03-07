@@ -1,13 +1,4 @@
-/**
- * Factory for useInfiniteTokenIdDataChangedEvents — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseInfiniteTokenIdDataChangedEvents(queryFn)` with its own fetch:
- * - React: `(p) => fetchTokenIdDataChangedEvents(getClientUrl(), p)`
- * - Next:  `(p) => getTokenIdDataChangedEvents(p)`
- *
- * @see createUseInfinite — the generic factory this wraps
- */
+/** @see createUseInfinite */
 import type { FetchTokenIdDataChangedEventsResult } from '@lsp-indexer/node';
 import { tokenIdDataChangedEventKeys } from '@lsp-indexer/node';
 import type {
@@ -20,16 +11,10 @@ import type {
 import type { UseInfiniteTokenIdDataChangedEventsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
-/** Params passed to the factory — matches UseInfiniteTokenIdDataChangedEventsParams with optional include */
 type TokenIdDataChangedEventsInfiniteParams = UseInfiniteTokenIdDataChangedEventsParams & {
   include?: TokenIdDataChangedEventInclude;
 };
 
-/**
- * Create a `useInfiniteTokenIdDataChangedEvents` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for token ID data changed event lists (with limit + offset)
- */
 export function createUseInfiniteTokenIdDataChangedEvents(
   queryFn: (
     params: TokenIdDataChangedEventsInfiniteParams & { limit: number; offset: number },

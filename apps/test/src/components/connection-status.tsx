@@ -1,5 +1,6 @@
 'use client';
 
+/** Client-side import validation. Verifies @lsp-indexer/node resolves in browser context. */
 import { CheckCircle2 } from 'lucide-react';
 import React from 'react';
 

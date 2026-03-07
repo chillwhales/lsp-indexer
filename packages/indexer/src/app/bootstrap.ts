@@ -1,5 +1,5 @@
 /**
- * Bootstrap module for V2 indexer application.
+ * Bootstrap module for the indexer application.
  *
  * Handles registry creation, plugin/handler discovery, and registration.
  * All EventPlugins and EntityHandlers are auto-discovered from filesystem

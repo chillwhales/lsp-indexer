@@ -12,20 +12,7 @@ import type {
 import { UseIssuedAssetsParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
-/**
- * Server action: Fetch a paginated list of LSP12 issued asset records.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchIssuedAssets` server-side using the URL returned by `getServerUrl()`
- * (`INDEXER_URL`, falling back to `NEXT_PUBLIC_INDEXER_URL`). This keeps the
- * GraphQL endpoint invisible to the client.
- *
- * No singular `getIssuedAsset` action exists because issued asset records have no
- * natural key (opaque Hasura ID only). Developers query by filter instead.
- *
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed issued assets and total count
- */
+/** Server action: fetch a paginated list of issued assets. */
 export async function getIssuedAssets(params?: {
   filter?: IssuedAssetFilter;
   sort?: IssuedAssetSort;

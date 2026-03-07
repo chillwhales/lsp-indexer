@@ -1,18 +1,4 @@
-/**
- * Factory for useDataChangedEventSubscription — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseDataChangedEventSubscription(useSubscription)` with its
- * own hook (bound to the package-specific context).
- *
- * Domain-specific config assembly (document, variables, extract, parser) is
- * delegated to `buildDataChangedEventSubscriptionConfig` in the node service layer.
- *
- * EVENT domain — defaults to block-order desc sort when no sort is provided.
- *
- * @see createUseSubscription — produces the `useSubscription` hook this factory consumes
- * @see buildDataChangedEventSubscriptionConfig — node service that builds the subscription config
- */
+/** @see createUseSubscription */
 import { buildDataChangedEventSubscriptionConfig, dataChangedEventKeys } from '@lsp-indexer/node';
 import type {
   DataChangedEvent,
@@ -25,11 +11,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DEFAULT_SUBSCRIPTION_LIMIT } from '../../../constants';
 import type { UseDataChangedEventSubscriptionParams, UseSubscriptionFn } from '../../types';
 
-/**
- * Create a `useDataChangedEventSubscription` hook bound to a specific `useSubscription`.
- *
- * @param useSubscription - The package-specific useSubscription hook
- */
 export function createUseDataChangedEventSubscription(useSubscription: UseSubscriptionFn) {
   function useDataChangedEventSubscription<const I extends DataChangedEventInclude>(
     params: UseDataChangedEventSubscriptionParams & {

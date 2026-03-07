@@ -4,32 +4,15 @@ import React, { useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
-// ---------------------------------------------------------------------------
-// ExpandableHex — truncated hex with click-to-expand
-// ---------------------------------------------------------------------------
+/** Hex string display with click-to-expand for long values. */
 
-/** Threshold (in characters) above which the value is truncated */
 const TRUNCATE_THRESHOLD = 80;
-
-/** Number of leading characters to show when truncated (including 0x prefix) */
 const TRUNCATE_LENGTH = 80;
 
 interface ExpandableHexProps {
-  /** The full hex string to display */
   value: string;
-  /** Optional additional className for the container */
   className?: string;
 }
-
-/**
- * Displays a hex string that truncates long values with an expand/collapse toggle.
- *
- * - Short values (≤ 80 chars): shown in full, no toggle
- * - Long values: truncated with "…" suffix and a "Show full" / "Show less" toggle
- * - Expanded state wraps across multiple lines via `break-all`
- *
- * Shared between DataChangedEventCard and TokenIdDataChangedEventCard.
- */
 export function ExpandableHex({ value, className }: ExpandableHexProps): React.ReactNode {
   const [expanded, setExpanded] = useState(false);
   const isLong = value.length > TRUNCATE_THRESHOLD;

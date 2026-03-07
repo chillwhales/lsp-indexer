@@ -4,44 +4,10 @@ import { parseDigitalAsset } from './digital-assets';
 import { parseProfile } from './profiles';
 import { stripExcluded } from './strip';
 
-/**
- * Raw Hasura creator type from the codegen-generated query result.
- *
- * Uses `Omit<..., 'id'>` because the parser never reads `id` — it only needs
- * `creator_address`, `address`, and relation fields. This allows the same parser
- * to accept both primary query results (which include `id`) and sub-selections
- * from other domains which may not select `id`.
- * TypeScript structural subtyping means types WITH `id` still satisfy this.
- */
+/** Omits `id` so sub-selections from other domains also satisfy this type. */
 type RawCreator = Omit<GetCreatorsQuery['lsp4_creator'][number], '__typename'>;
 
-/**
- * Transform a raw Hasura lsp4_creator response into a clean `Creator` type.
- *
- * Handles all field mappings:
- * - `creator_address` → `creatorAddress`
- * - `address` → `digitalAssetAddress`
- * - `array_index` (numeric/string) → `arrayIndex` (number | null) via Number()
- * - `interface_id` → `interfaceId`
- * - `timestamp` → `timestamp` (stringified)
- * - `creatorProfile` parsed via `parseProfile` with sub-include
- * - `digitalAsset` parsed via `parseDigitalAsset` with sub-include
- * - `@include(if: false)` omitted fields won't be present — uses optional chaining
- *
- * **Conditional include narrowing:**
- * When `include` is provided, `stripExcluded` removes fields not in the include map.
- * Profile and digital asset sub-includes are passed through to their respective
- * parsers for recursive nested stripping.
- *
- * Uses function overloads for type-safe return types:
- * - No `include` → returns full `Creator` (all fields guaranteed)
- * - With `<const I>` → returns `CreatorResult<I>` (narrowed by include)
- * - With optional `include` → returns `PartialCreator`
- *
- * @param raw - A single lsp4_creator from the Hasura GraphQL response
- * @param include - Optional include config; when provided, excluded fields are stripped at runtime
- * @returns A clean, camelCase `Creator` (full or partial depending on include)
- */
+/** Parse a raw Hasura row into a clean `Creator`. */
 export function parseCreator(raw: RawCreator): Creator;
 export function parseCreator<const I extends CreatorInclude>(
   raw: RawCreator,
@@ -68,15 +34,7 @@ export function parseCreator(raw: RawCreator, include?: CreatorInclude): Creator
   });
 }
 
-/**
- * Transform an array of raw Hasura lsp4_creator responses into clean `Creator[]`.
- *
- * Convenience wrapper around `parseCreator` for batch results.
- *
- * @param raw - Array of lsp4_creator from the Hasura GraphQL response
- * @param include - Optional include config; forwarded to each `parseCreator` call
- * @returns Array of clean, camelCase `Creator` objects (full or partial depending on include)
- */
+/** Batch variant of parseCreator. */
 export function parseCreators(raw: RawCreator[]): Creator[];
 export function parseCreators<const I extends CreatorInclude>(
   raw: RawCreator[],

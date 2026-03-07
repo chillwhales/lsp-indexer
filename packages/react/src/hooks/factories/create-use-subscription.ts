@@ -1,10 +1,9 @@
 /**
- * Shared useSubscription hook factory.
+ * Generic factory for subscription hooks.
  *
- * Both `@lsp-indexer/react` and `@lsp-indexer/next` import this factory
- * and pass their own `useSubscriptionClient` context hook to produce a
- * package-specific `useSubscription`. This eliminates the ~130-line
- * duplication between the two packages.
+ * Domain subscription factories accept the already-instantiated `useSubscription` hook
+ * rather than wrapping this factory directly, because `useSubscription` is context-bound
+ * (React uses direct WebSocket context, Next.js uses a proxy context).
  */
 import type { SubscriptionConfig } from '@lsp-indexer/node';
 import type { SubscriptionInstance, UseSubscriptionReturn } from '@lsp-indexer/types';
@@ -12,20 +11,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { stableStringify } from '../../utils';
 import { UseSubscriptionClient, UseSubscriptionOptions } from '../types';
 
-/**
- * Create a `useSubscription` hook bound to a specific context.
- *
- * @param useSubscriptionClient - Context hook that returns the SubscriptionClient.
- *        Each package (React / Next.js) provides its own.
- *
- * @example
- * ```ts
- * // packages/react/src/subscriptions/use-subscription.ts
- * import { createUseSubscription } from './create-use-subscription';
- * import { useSubscriptionClient } from './context';
- * export const useSubscription = createUseSubscription(useSubscriptionClient);
- * ```
- */
+/** Create a real-time subscription hook from the given config. */
 export function createUseSubscription(useSubscriptionClient: () => UseSubscriptionClient) {
   return function useSubscription<
     TResult,

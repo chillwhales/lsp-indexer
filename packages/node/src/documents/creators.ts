@@ -1,27 +1,6 @@
 import { graphql } from '../graphql';
 
-/**
- * GraphQL document for fetching a paginated list of LSP4 creators with total count.
- *
- * Used by both `useCreators` (offset-based pagination) and `useInfiniteCreators`
- * (infinite scroll) — the difference is how the hook manages pagination, not the document.
- *
- * No singular `useCreator` hook exists because creator records have no natural key
- * (opaque Hasura ID only). Developers query by filter instead.
- *
- * Variables:
- * - `$where` — Filter conditions (built by service layer from flat CreatorFilter)
- * - `$order_by` — Sort order (built by service layer from CreatorSort)
- * - `$limit` / `$offset` — Pagination
- * - `$includeArrayIndex`, `$includeInterfaceId`, `$includeTimestamp` — Scalar include toggles
- * - `$includeCreatorProfile*` — Boolean flags for creator's Universal Profile sub-includes
- * - `$includeDigitalAsset*` — Boolean flags for digital asset sub-includes
- *
- * All include variables default to `true` (inverted default — omit `include` = fetch everything).
- *
- * Creator profile sub-fields match what `parseProfile` expects.
- * Digital asset sub-fields match what `parseDigitalAsset` expects.
- */
+/** Paginated list of LSP4 creators with total count. */
 export const GetCreatorsDocument = graphql(`
   query GetCreators(
     $where: lsp4_creator_bool_exp
@@ -195,22 +174,7 @@ export const GetCreatorsDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL subscription document for real-time LSP4 creator updates.
- *
- * Mirrors `GetCreatorsDocument` but as a subscription (no `$offset`, no aggregate).
- * Used by `useCreatorSubscription` for real-time updates via `graphql-ws`.
- *
- * Variables:
- * - `$where` — Filter conditions (built by service layer from flat CreatorFilter)
- * - `$order_by` — Sort order (built by service layer from CreatorSort)
- * - `$limit` — Maximum records
- * - `$includeArrayIndex`, `$includeInterfaceId`, `$includeTimestamp` — Scalar include toggles
- * - `$includeCreatorProfile*` — Boolean flags for creator's Universal Profile sub-includes
- * - `$includeDigitalAsset*` — Boolean flags for digital asset sub-includes
- *
- * All include variables default to `true` (inverted default — omit `include` = fetch everything).
- */
+/** Subscription variant of GetCreatorsDocument. */
 export const CreatorSubscriptionDocument = graphql(`
   subscription CreatorSubscription(
     $where: lsp4_creator_bool_exp

@@ -13,10 +13,6 @@
  *
  * TotalSupply and OwnedAssets updates will be implemented as EntityHandlers
  * in future issues (see #105: Transfer-derived entity handlers).
- *
- * Port from v1:
- *   - scanner.ts L429-438 (event matching)
- *   - utils/transfer/index.ts (extract + populate)
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { isNullAddress } from '@/utils';

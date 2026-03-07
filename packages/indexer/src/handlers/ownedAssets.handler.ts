@@ -19,12 +19,6 @@
  *   — never sets FKs directly.
  * - ID format: `{owner}:{address}` for OwnedAsset, `{owner}:{address}:{tokenId}`
  *   for OwnedToken.
- *
- * Port from v1:
- *   - core/handlerHelpers.ts → updateOwnedAssets() (deleted in 01-04)
- *   - handlers/ownedAssetsHandler.ts
- *   - utils/transfer/ownedAsset.ts
- *   - utils/transfer/ownedToken.ts
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';

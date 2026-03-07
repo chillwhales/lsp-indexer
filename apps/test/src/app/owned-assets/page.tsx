@@ -1,5 +1,6 @@
 'use client';
 
+/** Owned Assets playground — LSP7 fungible token ownership with balance and nested relations. */
 import { Infinity, Layers, Radio, Search, Wallet, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -55,10 +56,6 @@ import {
   useIncludeToggles,
   useSubInclude,
 } from '@/components/playground';
-
-// ---------------------------------------------------------------------------
-// Domain config
-// ---------------------------------------------------------------------------
 
 const ADDRESS_FILTERS: FilterFieldConfig[] = [
   {
@@ -139,10 +136,6 @@ function buildFilter(debouncedValues: Record<string, string>): OwnedAssetFilter 
   return Object.keys(f).length > 0 ? f : undefined;
 }
 
-// ---------------------------------------------------------------------------
-// Shared list state
-// ---------------------------------------------------------------------------
-
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
   const [sortField, setSortField] = useState<OwnedAssetSortField>('timestamp');
@@ -180,10 +173,6 @@ function useListState() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Sub-include sections (shared between all 3 tabs)
-// ---------------------------------------------------------------------------
-
 function IncludeSections({
   includeValues,
   toggleInclude,
@@ -208,10 +197,6 @@ function IncludeSections({
     </>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 1: Single Owned Asset
-// ---------------------------------------------------------------------------
 
 function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useOwnedAssets } = useHooks(mode);
@@ -324,10 +309,6 @@ function SingleTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 2: Owned Asset List
-// ---------------------------------------------------------------------------
-
 function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useOwnedAssets } = useHooks(mode);
   const state = useListState();
@@ -380,10 +361,6 @@ function ListTab({ mode }: { mode: HookMode }): React.ReactNode {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Tab 3: Infinite Scroll
-// ---------------------------------------------------------------------------
 
 function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useInfiniteOwnedAssets } = useHooks(mode);
@@ -443,10 +420,6 @@ function InfiniteTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tab 4: Subscription (real-time)
-// ---------------------------------------------------------------------------
-
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useOwnedAssetSubscription } = useHooks(mode);
   const state = useListState();
@@ -460,8 +433,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
     include: state.include,
     invalidate,
   });
-
-  // Map subscription shape to ResultsList expectations
   const ownedAssets = data ?? [];
   const isLoading = data === null && isSubscribed;
   const normalizedError =
@@ -469,7 +440,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
 
   return (
     <div className="space-y-4">
-      {/* Connection status + invalidate toggle */}
       <div className="flex items-center gap-3">
         <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
           {isConnected ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
@@ -523,10 +493,6 @@ function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main Page
-// ---------------------------------------------------------------------------
-
 export default function OwnedAssetsPage(): React.ReactNode {
   return (
     <PlaygroundPageLayout
@@ -538,7 +504,7 @@ export default function OwnedAssetsPage(): React.ReactNode {
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteOwnedAssets</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useOwnedAssetSubscription</code>{' '}
           hooks against live Hasura data. Filter by holder to find token balances for a specific
-          address (QUERY-04, SUB-02).
+          address.
         </>
       }
       tabs={[

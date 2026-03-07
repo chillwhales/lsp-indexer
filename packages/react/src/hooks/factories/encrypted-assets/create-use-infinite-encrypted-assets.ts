@@ -1,13 +1,4 @@
-/**
- * Factory for useInfiniteEncryptedAssets — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseInfiniteEncryptedAssets(queryFn)` with its own fetch:
- * - React: `(p) => fetchEncryptedAssets(getClientUrl(), p)`
- * - Next:  `(p) => getEncryptedAssets(p)`
- *
- * @see createUseInfinite — the generic factory this wraps
- */
+/** @see createUseInfinite */
 import type { FetchEncryptedAssetsResult } from '@lsp-indexer/node';
 import { encryptedAssetKeys } from '@lsp-indexer/node';
 import type {
@@ -20,16 +11,10 @@ import type {
 import type { UseInfiniteEncryptedAssetsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
-/** Params passed to the factory — matches UseInfiniteEncryptedAssetsParams with optional include */
 type EncryptedAssetsInfiniteParams = UseInfiniteEncryptedAssetsParams & {
   include?: EncryptedAssetInclude;
 };
 
-/**
- * Create a `useInfiniteEncryptedAssets` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for encrypted asset lists (with limit + offset)
- */
 export function createUseInfiniteEncryptedAssets(
   queryFn: (
     params: EncryptedAssetsInfiniteParams & { limit: number; offset: number },

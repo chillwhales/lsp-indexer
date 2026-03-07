@@ -1,5 +1,5 @@
 /**
- * Address verification module for the V2 indexer pipeline.
+ * Address verification module for the indexer pipeline.
  *
  * Verifies blockchain addresses via supportsInterface() multicalls with
  * 3-level error fallback (parallel → per-batch → per-address). Uses an
@@ -192,7 +192,7 @@ async function multicallVerify(
     );
   }
 
-  // Execute with 3-level fallback (same as v1)
+  // Execute with 3-level fallback
   const result: MulticallResult[] = [];
   try {
     // Level 1: All batches in parallel
@@ -222,7 +222,7 @@ async function multicallVerify(
     }
   }
 
-  // Interpret results (same criteria as v1)
+  // Interpret results
   return addresses.map((_, index) => {
     const r = result[index];
     return !!(

@@ -34,14 +34,12 @@ interface NestedStripConfig {
  * Returns a new object containing only base fields + fields with truthy include values.
  *
  * @param obj - The fully parsed object
- * @param include - `undefined` → keep everything (returns the original object as `T`)
  * @param baseFields - Field names to always keep (e.g., `['address']`)
  * @param derivedFields - Optional map of derived field → source field
  *                        (e.g., `{ standard: 'decimals' }` — standard follows decimals)
  * @param nestedConfig - Optional map of field name → nested strip config. When a field's
  *                       include value is an object (sub-include) and a config exists,
  *                       the nested object is recursively stripped.
- * @returns The original object if include is undefined, or a new partial object with base + included fields
  */
 export function stripExcluded<T extends Record<string, unknown>>(
   obj: T,

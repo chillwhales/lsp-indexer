@@ -1,12 +1,4 @@
-/**
- * Factory for useProfile — shared between `@lsp-indexer/react` and `@lsp-indexer/next`.
- *
- * Each package calls `createUseProfile(queryFn)` with its own fetch function:
- * - React: `(p) => fetchProfile(getClientUrl(), p)`
- * - Next:  `(p) => getProfile(p.address, p.include)`
- *
- * @see createUseDetail — the generic factory this wraps
- */
+/** @see createUseDetail */
 import { profileKeys } from '@lsp-indexer/node';
 import type {
   PartialProfile,
@@ -18,24 +10,8 @@ import type {
 import type { UseProfileReturn } from '../../types';
 import { createUseDetail } from '../create-use-detail';
 
-/** Params passed to the factory's queryFn — address + optional include */
 type ProfileDetailParams = UseProfileParams & { include?: ProfileInclude };
 
-/**
- * Create a `useProfile` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for a single profile
- *
- * @example
- * ```ts
- * // packages/react/src/hooks/profiles/use-profile.ts
- * export const useProfile = createUseProfile(
- *   (p) => p.include
- *     ? fetchProfile(getClientUrl(), { address: p.address, include: p.include })
- *     : fetchProfile(getClientUrl(), { address: p.address }),
- * );
- * ```
- */
 export function createUseProfile(
   queryFn: (params: ProfileDetailParams) => Promise<PartialProfile | null>,
 ) {

@@ -1,25 +1,7 @@
-/**
- * Factory for paginated list hooks (useProfiles, useNfts, useFollows, etc.).
- *
- * Produces the runtime implementation that both `@lsp-indexer/react` and
- * `@lsp-indexer/next` share. Each package passes its own `queryFn`:
- * - React: `(params) => fetchProfiles(getClientUrl(), params)`
- * - Next:  `(params) => getProfiles(params)`
- *
- * The returned function has the widest signature. Each domain factory wraps
- * this with proper function overloads to preserve `const I` narrowing.
- *
- * @see createUseDetail — same pattern for single-entity hooks
- */
+/** Generic factory for paginated list hooks (useProfiles, useNfts, useFollows, etc.). */
 import { useQuery } from '@tanstack/react-query';
 
-/**
- * Configuration for a paginated list hook factory.
- *
- * @typeParam TParams - The full params type (e.g., UseProfilesParams & { include?: ProfileInclude })
- * @typeParam TData   - The widest item type (e.g., PartialProfile)
- * @typeParam TResult - The full fetch result type (e.g., FetchProfilesResult<PartialProfile>)
- */
+/** Configuration for a paginated list hook factory. */
 export interface CreateUseListConfig<
   TParams extends Record<string, unknown>,
   TData,
@@ -53,23 +35,7 @@ export type UseListRawReturn<TData, TResult extends { totalCount: number }> = {
   totalCount: number;
 } & Omit<ReturnType<typeof useQuery<TResult, Error>>, 'data'>;
 
-/**
- * Create a list hook implementation.
- *
- * @returns A function `(params) => { items, totalCount, ...queryRest }`
- *          that domain factories wrap with proper overloads.
- *
- * @example
- * ```ts
- * const useProfilesImpl = createUseList({
- *   queryKey: (p) => profileKeys.list(p.filter, p.sort, p.limit, p.offset, p.include),
- *   queryFn: (p) => p.include
- *     ? fetchProfiles(url, { ...p, include: p.include })
- *     : fetchProfiles(url, p),
- *   extractItems: (r) => r.profiles,
- * });
- * ```
- */
+/** Create a paginated list hook from the given config. */
 export function createUseList<
   TParams extends Record<string, unknown>,
   TData,

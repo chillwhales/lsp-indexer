@@ -11,8 +11,6 @@ import { bytesToHex, Hex, hexToBytes, hexToNumber, hexToString, isHex, sliceHex 
  * Returns `{ value, decodeError }`:
  *   - `value` is the decoded URL string (or null if empty/invalid)
  *   - `decodeError` is an error message (or null if no error)
- *
- * Port from v1: utils/index.ts decodeVerifiableUri()
  */
 export function decodeVerifiableUri(dataValue: string): {
   value: string | null;
@@ -362,8 +360,6 @@ export function extractLSP29Chunks(chunks: LSP29ChunksMetadata): {
 /**
  * Type guard for LSP2 Verification objects.
  * Checks that object has `method` (string) and `data` (string) properties.
- *
- * Port from v1: utils/index.ts isVerification()
  */
 export const isVerification = (obj: unknown): obj is Verification =>
   obj !== null &&
@@ -377,8 +373,6 @@ export const isVerification = (obj: unknown): obj is Verification =>
 /**
  * Type guard for LSP3 FileAsset objects.
  * Checks that object has a `url` property.
- *
- * Port from v1: utils/index.ts isFileAsset()
  */
 export const isFileAsset = (obj: unknown): obj is FileAsset =>
   obj !== null &&
@@ -394,8 +388,6 @@ export const isFileAsset = (obj: unknown): obj is FileAsset =>
 /**
  * Type guard for LSP3 ImageMetadata objects.
  * Checks that object has `url` (string), `width` (number), and `height` (number).
- *
- * Port from v1: utils/index.ts isFileImage()
  */
 export const isFileImage = (obj: unknown): obj is ImageMetadata =>
   obj !== null &&
@@ -444,8 +436,6 @@ export function generateFollowId({
  * Map LSP4 token type integer to the LSP4TokenTypeEnum.
  *
  * 0 = TOKEN, 1 = NFT, 2 = COLLECTION.
- *
- * Port from v1: utils/index.ts decodeTokenType()
  */
 export function decodeTokenType(tokenType: number): LSP4TokenTypeEnum | null {
   return tokenType === 0
@@ -462,8 +452,6 @@ export function decodeTokenType(tokenType: number): LSP4TokenTypeEnum | null {
  *
  * Standard values: 0=NUMBER, 1=STRING, 2=ADDRESS, 3/4=BYTES32.
  * Legacy values (100+) map to the same enums.
- *
- * Port from v1: utils/index.ts decodeTokenIdFormat()
  */
 export function decodeTokenIdFormat(tokenIdFormat: number): LSP8TokenIdFormatEnum | null {
   return [0, 100].includes(tokenIdFormat)
@@ -503,7 +491,6 @@ export function decodeOperationType(operationType: bigint): OperationType | null
  * Generate a deterministic OwnedAsset entity ID from owner and contract address.
  *
  * Format: `"{owner}:{address}"`
- * Port from v1: utils/index.ts generateOwnedAssetId()
  */
 export function generateOwnedAssetId({
   owner,
@@ -519,7 +506,6 @@ export function generateOwnedAssetId({
  * Generate a deterministic OwnedToken entity ID from owner, contract address, and tokenId.
  *
  * Format: `"{owner}:{address}:{tokenId}"`
- * Port from v1: utils/index.ts generateOwnedTokenId()
  */
 export function generateOwnedTokenId({
   owner,
@@ -543,8 +529,7 @@ export function generateOwnedTokenId({
  * @param lsp8TokenIdFormat - The decoded token ID format enum (NUMBER, STRING, ADDRESS, BYTES32)
  * @returns Formatted tokenId string, or null if format is unknown/unsupported
  *
- * Port from v1: utils/index.ts formatTokenId()
- * V2 change: returns null on unknown format instead of raw tokenId
+ * Returns null on unknown format instead of raw tokenId.
  */
 export function formatTokenId({
   tokenId,

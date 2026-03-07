@@ -1,13 +1,4 @@
-/**
- * Factory for useInfiniteUniversalReceiverEvents — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseInfiniteUniversalReceiverEvents(queryFn)` with its own fetch:
- * - React: `(p) => fetchUniversalReceiverEvents(getClientUrl(), p)`
- * - Next:  `(p) => getUniversalReceiverEvents(p)`
- *
- * @see createUseInfinite — the generic factory this wraps
- */
+/** @see createUseInfinite */
 import type { FetchUniversalReceiverEventsResult } from '@lsp-indexer/node';
 import { universalReceiverEventKeys } from '@lsp-indexer/node';
 import type {
@@ -20,16 +11,10 @@ import type {
 import type { UseInfiniteUniversalReceiverEventsReturn } from '../../types';
 import { createUseInfinite } from '../create-use-infinite';
 
-/** Params passed to the factory — matches UseInfiniteUniversalReceiverEventsParams with optional include */
 type UniversalReceiverEventsInfiniteParams = UseInfiniteUniversalReceiverEventsParams & {
   include?: UniversalReceiverEventInclude;
 };
 
-/**
- * Create a `useInfiniteUniversalReceiverEvents` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for universal receiver event lists (with limit + offset)
- */
 export function createUseInfiniteUniversalReceiverEvents(
   queryFn: (
     params: UniversalReceiverEventsInfiniteParams & { limit: number; offset: number },

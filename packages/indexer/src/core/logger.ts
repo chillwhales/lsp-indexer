@@ -1,5 +1,5 @@
 /**
- * Structured logging module for the V2 indexer pipeline.
+ * Structured logging module for the indexer pipeline.
  *
  * Provides dual-output logging: Subsquid's context.log for stdout/stderr
  * and pino for rotating file output. All log lines include a `step` field
@@ -12,7 +12,7 @@ import type { Logger } from '@subsquid/logger';
 import pino from 'pino';
 
 // ---------------------------------------------------------------------------
-// PipelineStep type — union of all V2 pipeline step identifiers
+// PipelineStep type — union of all pipeline step identifiers
 // ---------------------------------------------------------------------------
 
 export type PipelineStep =

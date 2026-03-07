@@ -4,6 +4,7 @@ import { createContext, useContext } from 'react';
 const SubscriptionClientContext = createContext<SubscriptionClient | null>(null);
 SubscriptionClientContext.displayName = 'SubscriptionClientContext';
 
+/** React context holding the SubscriptionClient instance for subscription hooks. */
 export { SubscriptionClientContext };
 
 /**

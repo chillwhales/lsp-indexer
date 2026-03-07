@@ -17,10 +17,6 @@
  * Two paths:
  *   - Empty value (url === null): queueClear all sub-entities (every batch)
  *   - Head-only fetch: query DB backlog → worker pool → parse → sub-entities
- *
- * Port from v1:
- *   - utils/dataChanged/lsp4Metadata.ts (extractSubEntities, clearSubEntities)
- *   - app/handlers/lsp4MetadataHandler.ts (DB queries, fetch flow, Score/Rank)
  */
 import { createComponentLogger } from '@/core/logger';
 import { EntityHandler, HandlerContext } from '@/core/types';
@@ -81,11 +77,6 @@ const subEntityDescriptors: SubEntityDescriptor[] = [
  * Creates 10 sub-entity types from the parsed data. Score and Rank are
  * derived from Attribute entities where key === 'Score' or 'Rank' and the
  * value is numeric.
- *
- * Port from v1:
- *   - utils/dataChanged/lsp4Metadata.ts lines 56-226 (extractSubEntities)
- *   - app/handlers/lsp4MetadataHandler.ts lines 297-320 (Score/Rank extraction)
- *
  * @param entity - The LSP4Metadata entity being fetched
  * @param data   - Raw JSON from worker pool
  * @param hctx   - Handler context for addEntity calls
@@ -127,7 +118,7 @@ function parseAndAddSubEntities(
     hctx.batchCtx.addEntity('LSP4MetadataDescription', descEntity.id, descEntity);
   }
 
-  // --- Category (only created if present — stricter than V1) ---
+  // --- Category (only created if present) ---
   if ('category' in lsp4Metadata && typeof lsp4Metadata.category === 'string') {
     const catEntity = new LSP4MetadataCategory({
       id: uuidv4(),
@@ -235,7 +226,6 @@ function parseAndAddSubEntities(
   }
 
   // --- Score (derived from attributes where key === 'Score' and value is numeric) ---
-  // V1: lsp4MetadataHandler.ts lines 297-307
   for (const attr of attributeEntities) {
     if (attr.key === 'Score' && attr.value && isNumeric(attr.value)) {
       const scoreEntity = new LSP4MetadataScore({
@@ -248,7 +238,6 @@ function parseAndAddSubEntities(
   }
 
   // --- Rank (derived from attributes where key === 'Rank' and value is numeric) ---
-  // V1: lsp4MetadataHandler.ts lines 309-320
   for (const attr of attributeEntities) {
     if (attr.key === 'Rank' && attr.value && isNumeric(attr.value)) {
       const rankEntity = new LSP4MetadataRank({

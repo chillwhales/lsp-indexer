@@ -1,26 +1,12 @@
-/**
- * Factory for useNfts — shared between `@lsp-indexer/react` and `@lsp-indexer/next`.
- *
- * Each package calls `createUseNfts(queryFn)` with its own fetch function:
- * - React: `(p) => fetchNfts(getClientUrl(), p)`
- * - Next:  `(p) => getNfts(p)`
- *
- * @see createUseList — the generic factory this wraps
- */
+/** @see createUseList */
 import type { FetchNftsResult } from '@lsp-indexer/node';
 import { nftKeys } from '@lsp-indexer/node';
 import type { Nft, NftInclude, NftResult, PartialNft, UseNftsParams } from '@lsp-indexer/types';
 import type { UseNftsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
-/** Params passed to the factory's queryFn */
 type NftListParams = UseNftsParams & { include?: NftInclude };
 
-/**
- * Create a `useNfts` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for NFT lists
- */
 export function createUseNfts(
   queryFn: (params: NftListParams) => Promise<FetchNftsResult<PartialNft>>,
 ) {

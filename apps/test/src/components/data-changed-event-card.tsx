@@ -14,25 +14,11 @@ import { RawJsonToggle } from '@/components/playground';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatRelativeTime, truncateAddress } from '@/lib/utils';
 
-// ---------------------------------------------------------------------------
-// DataChangedEventCard
-// ---------------------------------------------------------------------------
-
 export interface DataChangedEventCardProps {
   dataChangedEvent: PartialExcept<DataChangedEvent, 'address' | 'dataKey' | 'dataValue'>;
 }
 
-/**
- * Card component for rendering a single ERC725Y DataChanged event.
- *
- * Base fields (always present): address, dataKey, dataValue.
- * Conditional scalars: dataKeyName, blockNumber, timestamp, logIndex, transactionIndex —
- * rendered via `'key' in obj` field-presence guards (DX-04 pattern).
- * Two collapsible relation sections: Universal Profile + Digital Asset.
- *
- * The dataKeyName field (when included) gets special treatment: bold resolved name
- * when known, "(Unknown Key)" in muted text when null. Raw hex always displayed in mono.
- */
+/** ERC725Y DataChanged event card. Shows data key/value with optional key name resolution. */
 export function DataChangedEventCard({
   dataChangedEvent,
 }: DataChangedEventCardProps): React.ReactNode {
@@ -61,20 +47,15 @@ export function DataChangedEventCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Base fields — always present */}
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-40 shrink-0">Address</dt>
             <dd className="font-mono text-xs break-all">{dataChangedEvent.address}</dd>
           </div>
-
-          {/* Data Key — always present (base field) */}
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-40 shrink-0">Data Key</dt>
             <dd className="font-mono text-xs break-all">{dataChangedEvent.dataKey}</dd>
           </div>
-
-          {/* Data Key Name — conditional include field */}
           {hasDataKeyName && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Data Key Name</dt>
@@ -87,16 +68,12 @@ export function DataChangedEventCard({
               </dd>
             </div>
           )}
-
-          {/* Data Value — expandable hex */}
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-40 shrink-0">Data Value</dt>
             <dd className="min-w-0">
               <ExpandableHex value={dataChangedEvent.dataValue} />
             </dd>
           </div>
-
-          {/* Conditional scalar fields via field-presence checks */}
           {'timestamp' in dataChangedEvent && dataChangedEvent.timestamp != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Timestamp</dt>
@@ -127,13 +104,9 @@ export function DataChangedEventCard({
             </div>
           )}
         </dl>
-
-        {/* Collapsible section 1: Universal Profile */}
         {universalProfile != null && (
           <CollapsibleProfileSection label="Universal Profile" profile={universalProfile} />
         )}
-
-        {/* Collapsible section 2: Digital Asset */}
         {digitalAsset != null && (
           <CollapsibleDigitalAssetSection label="Digital Asset" digitalAsset={digitalAsset} />
         )}

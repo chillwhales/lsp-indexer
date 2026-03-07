@@ -1,13 +1,4 @@
-/**
- * Factory for useTokenIdDataChangedEvents — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseTokenIdDataChangedEvents(queryFn)` with its own fetch:
- * - React: `(p) => fetchTokenIdDataChangedEvents(getClientUrl(), p)`
- * - Next:  `(p) => getTokenIdDataChangedEvents(p)`
- *
- * @see createUseList — the generic factory this wraps
- */
+/** @see createUseList */
 import type { FetchTokenIdDataChangedEventsResult } from '@lsp-indexer/node';
 import { tokenIdDataChangedEventKeys } from '@lsp-indexer/node';
 import type {
@@ -20,16 +11,10 @@ import type {
 import type { UseTokenIdDataChangedEventsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
-/** Params passed to the factory's queryFn */
 type TokenIdDataChangedEventsListParams = UseTokenIdDataChangedEventsParams & {
   include?: TokenIdDataChangedEventInclude;
 };
 
-/**
- * Create a `useTokenIdDataChangedEvents` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for token ID data changed event lists
- */
 export function createUseTokenIdDataChangedEvents(
   queryFn: (
     params: TokenIdDataChangedEventsListParams,

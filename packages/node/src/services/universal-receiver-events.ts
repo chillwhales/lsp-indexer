@@ -32,28 +32,7 @@ import {
 // Internal builders — translate flat params to Hasura variables
 // ---------------------------------------------------------------------------
 
-/**
- * Translate a flat `UniversalReceiverEventFilter` to a Hasura `universal_receiver_bool_exp`.
- *
- * All 10 filter params for 8 filter fields — string fields use
- * `_ilike` + `escapeLike` for case-insensitive matching, timestamp and
- * blockNumber fields use `_gte` / `_lte`.
- *
- * Multiple conditions combine with `_and`. Empty filter = empty object.
- *
- * Filter → Hasura mapping:
- * - `address`              → `{ address: { _ilike: '%escapeLike%' } }`
- * - `from`                 → `{ from: { _ilike: '%escapeLike%' } }`
- * - `typeId`               → `{ type_id: { _ilike: '%escapeLike%' } }`
- * - `typeIdName`           → resolved to hex via `resolveTypeIdHex`; exact match on `type_id` (full bytes32 hash)
- * - `timestampFrom`        → `{ timestamp: { _gte: normalizeTimestamp } }`
- * - `timestampTo`          → `{ timestamp: { _lte: normalizeTimestamp } }`
- * - `blockNumberFrom`      → `{ block_number: { _gte: value } }` (Int comparison)
- * - `blockNumberTo`        → `{ block_number: { _lte: value } }`
- * - `universalProfileName` → `{ universalProfile: { lsp3Profile: { name: { value: { _ilike } } } } }` (nested)
- * - `fromProfileName`      → `{ fromProfile: { lsp3Profile: { name: { value: { _ilike } } } } }` (nested)
- * - `fromAssetName`        → `{ fromAsset: { lsp4TokenName: { value: { _ilike } } } }` (nested)
- */
+/** Translate UniversalReceiverEventFilter to a Hasura _bool_exp. */
 export function buildUniversalReceiverEventWhere(
   filter?: UniversalReceiverEventFilter,
 ): Universal_Receiver_Bool_Exp {
@@ -149,19 +128,7 @@ export function buildUniversalReceiverEventWhere(
   return { _and: conditions };
 }
 
-/**
- * Translate a flat `UniversalReceiverEventSort` to a Hasura `universal_receiver_order_by` array.
- *
- * Sort field → Hasura mapping:
- * - `'newest'`                → `buildBlockOrderSort('desc')` (block_number → transaction_index → log_index desc)
- * - `'oldest'`                → `buildBlockOrderSort('asc')` (block_number → transaction_index → log_index asc)
- * - `'universalProfileName'`  → `[{ universalProfile: { lsp3Profile: { name: { value: dir } } } }]` (nested)
- * - `'fromProfileName'`       → `[{ fromProfile: { lsp3Profile: { name: { value: dir } } } }]` (nested)
- * - `'fromAssetName'`         → `[{ fromAsset: { lsp4TokenName: { value: dir } } }]` (nested)
- *
- * Name sorts default to `nulls: 'last'` when not specified (names without values sort last).
- * `direction` and `nulls` are ignored for `'newest'` and `'oldest'` (self-describing fields).
- */
+/** Translate UniversalReceiverEventSort to a Hasura order_by. */
 function buildUniversalReceiverEventOrderBy(
   sort?: UniversalReceiverEventSort,
 ): Universal_Receiver_Order_By[] | undefined {
@@ -207,25 +174,7 @@ function buildUniversalReceiverEventOrderBy(
   }
 }
 
-/**
- * Translate a `UniversalReceiverEventInclude` to GraphQL boolean variables for `@include` directives.
- *
- * **Inverted default pattern:**
- * - When `include` is **undefined** (omitted) → returns `{}` — the GraphQL
- *   document defaults all `Boolean! = true` variables to `true`, so everything is fetched.
- * - When `include` is **provided** → each field defaults to `false` unless explicitly
- *   set to `true`. This implements "opt-in when specified" while the default fetches everything.
- *
- * **2 data field variables:** `includeReceivedData`, `includeReturnedValue` (direct mapping).
- *
- * **3 relation prefix replacements (unique to this domain):**
- * - Receiving UP: `buildProfileIncludeVars` → `includeProfile*` → `includeUniversalProfile*`
- * - Sender UP: `buildProfileIncludeVars` → `includeProfile*` → `includeFromProfile*`
- * - Sender DA: `buildDigitalAssetIncludeVars` → `include*` → `includeFromAsset*`
- *
- * @param include - Optional include config; `undefined` = include everything
- * @returns Record of boolean variables for the GetUniversalReceiverEvents GraphQL document
- */
+/** Build @include directive variables from include config. */
 export function buildUniversalReceiverEventIncludeVars(
   include?: UniversalReceiverEventInclude,
 ): Record<string, boolean> {
@@ -279,37 +228,12 @@ export function buildUniversalReceiverEventIncludeVars(
 // Public service functions
 // ---------------------------------------------------------------------------
 
-/**
- * Result shape for paginated universal receiver event list queries.
- *
- * When the include parameter is provided, the `universalReceiverEvents` array contains
- * narrowed types with only base fields + included fields.
- */
 export interface FetchUniversalReceiverEventsResult<P = UniversalReceiverEvent> {
-  /** Parsed universal receiver event records for the current page (narrowed by include) */
   universalReceiverEvents: P[];
-  /** Total number of universal receiver event records matching the filter (for pagination UI) */
   totalCount: number;
 }
 
-/**
- * Fetch a paginated list of universal receiver event records with filtering, sorting,
- * total count, and optional include narrowing.
- *
- * Serves both `useUniversalReceiverEvents` (paginated) and `useInfiniteUniversalReceiverEvents`
- * (infinite scroll) — the difference is how the hook manages pagination, not the
- * fetch function.
- *
- * No singular `fetchUniversalReceiverEvent` exists because event records have no natural key
- * (opaque Hasura ID only). Developers query by filter instead.
- *
- * Translates flat filter/sort/include params to Hasura variables, executes the
- * query, and returns parsed results with a total count for pagination.
- *
- * @param url - The GraphQL endpoint URL
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed universal receiver events (narrowed by include) and total count
- */
+/** Fetch a paginated list of universal receiver event records. */
 export async function fetchUniversalReceiverEvents(
   url: string,
   params?: {
@@ -380,26 +304,11 @@ export async function fetchUniversalReceiverEvents(
 // Subscription config builder
 // ---------------------------------------------------------------------------
 
-/**
- * Raw subscription row type — extracted from the codegen subscription result.
- */
+/** Raw subscription row type extracted from codegen. */
 type RawUniversalReceiverEventSubscriptionRow =
   UniversalReceiverEventSubscriptionSubscription['universal_receiver'][number];
 
-/**
- * Build a `SubscriptionConfig` for universal receiver events.
- *
- * Assembles the document, variables, extract function, and parser into a config
- * object consumable by `useSubscription`. The resulting config enables
- * `useUniversalReceiverEventSubscription` in both `@lsp-indexer/react` and
- * `@lsp-indexer/next`.
- *
- * EVENT domain — defaults to block-order desc sort when no sort is provided
- * (block_number desc → transaction_index desc → log_index desc).
- *
- * @param params - Filter, sort, limit, and include configuration
- * @returns A config object consumable by `useSubscription`
- */
+/** Build subscription config for useSubscription. */
 export function buildUniversalReceiverEventSubscriptionConfig(params: {
   filter?: UniversalReceiverEventFilter;
   sort?: UniversalReceiverEventSort;

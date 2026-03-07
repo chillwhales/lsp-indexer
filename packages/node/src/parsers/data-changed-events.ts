@@ -17,33 +17,7 @@ import { stripExcluded } from './strip';
  */
 type RawDataChangedEvent = GetDataChangedEventsQuery['data_changed'][number];
 
-/**
- * Transform a raw Hasura data_changed response into a clean `DataChangedEvent` type.
- *
- * Handles all field mappings:
- * - `data_key` → `dataKey`
- * - `data_value` → `dataValue`
- * - `block_number` → `blockNumber`
- * - `log_index` → `logIndex`
- * - `transaction_index` → `transactionIndex`
- * - `universalProfile` → parsed via `parseProfile`
- * - `digitalAsset` → parsed via `parseDigitalAsset`
- * - `dataKeyName` is derived via `resolveDataKeyName` (NOT from Hasura) — conditionally
- *   included based on `include.dataKeyName` (not a base field)
- *
- * **Conditional include narrowing:**
- * When `include` is provided, `stripExcluded` removes fields not in the include map.
- * Profile and digital asset sub-includes are recursively stripped via nestedConfig.
- *
- * Uses function overloads for type-safe return types:
- * - No `include` → returns full `DataChangedEvent` (all fields guaranteed)
- * - With `<const I>` → returns `DataChangedEventResult<I>` (narrowed by include)
- * - With optional `include` → returns `PartialDataChangedEvent`
- *
- * @param raw - A single data_changed from the Hasura GraphQL response
- * @param include - Optional include config; when provided, excluded fields are stripped at runtime
- * @returns A clean, camelCase `DataChangedEvent` (full or partial depending on include)
- */
+/** Parse a raw Hasura row into a clean `DataChangedEvent`. */
 export function parseDataChangedEvent(raw: RawDataChangedEvent): DataChangedEvent;
 export function parseDataChangedEvent<const I extends DataChangedEventInclude>(
   raw: RawDataChangedEvent,
@@ -82,15 +56,7 @@ export function parseDataChangedEvent(
   });
 }
 
-/**
- * Transform an array of raw Hasura data_changed responses into clean `DataChangedEvent[]`.
- *
- * Convenience wrapper around `parseDataChangedEvent` for batch results.
- *
- * @param raw - Array of data_changed from the Hasura GraphQL response
- * @param include - Optional include config; forwarded to each `parseDataChangedEvent` call
- * @returns Array of clean, camelCase `DataChangedEvent` objects (full or partial depending on include)
- */
+/** Batch variant of parseDataChangedEvent. */
 export function parseDataChangedEvents(raw: RawDataChangedEvent[]): DataChangedEvent[];
 export function parseDataChangedEvents<const I extends DataChangedEventInclude>(
   raw: RawDataChangedEvent[],

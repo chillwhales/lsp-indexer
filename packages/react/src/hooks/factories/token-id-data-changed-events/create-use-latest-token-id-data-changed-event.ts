@@ -1,13 +1,4 @@
-/**
- * Factory for useLatestTokenIdDataChangedEvent — shared between `@lsp-indexer/react`
- * and `@lsp-indexer/next`.
- *
- * Each package calls `createUseLatestTokenIdDataChangedEvent(queryFn)` with its own fetch:
- * - React: `(p) => fetchLatestTokenIdDataChangedEvent(getClientUrl(), p)`
- * - Next:  `(p) => getLatestTokenIdDataChangedEvent(p)`
- *
- * @see createUseDetail — the generic factory this wraps
- */
+/** @see createUseDetail */
 import { tokenIdDataChangedEventKeys } from '@lsp-indexer/node';
 import type {
   PartialTokenIdDataChangedEvent,
@@ -19,16 +10,10 @@ import type {
 import type { UseLatestTokenIdDataChangedEventReturn } from '../../types';
 import { createUseDetail } from '../create-use-detail';
 
-/** Params passed to the factory's queryFn — filter + optional include */
 type LatestTokenIdDataChangedEventParams = UseLatestTokenIdDataChangedEventParams & {
   include?: TokenIdDataChangedEventInclude;
 };
 
-/**
- * Create a `useLatestTokenIdDataChangedEvent` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for the latest token ID data changed event
- */
 export function createUseLatestTokenIdDataChangedEvent(
   queryFn: (
     params: LatestTokenIdDataChangedEventParams,

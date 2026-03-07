@@ -23,11 +23,6 @@
  * other contracts matching the same data key hash are ignored.
  *
  * Entity IDs follow the NFT id pattern: `"{address} - {tokenId}"`.
- *
- * Port from v1:
- *   - plugins/datakeys/chillwhales/orbLevel.plugin.ts (extract + populate + persist)
- *   - app/handlers/orbsLevelHandler.ts (OrbLevel + OrbCooldownExpiry from TokenIdDataChanged and mint defaults)
- *   - constants/chillwhales.ts (ORB_LEVEL_KEY, ORBS_ADDRESS)
  */
 import { ORB_LEVEL_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { resolveEntity } from '@/core/handlerHelpers';

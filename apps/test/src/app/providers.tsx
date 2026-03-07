@@ -1,5 +1,6 @@
 'use client';
 
+/** Client providers — mounts both react and next subscription providers for package toggling. */
 import { IndexerSubscriptionProvider as NextSubscriptionProvider } from '@lsp-indexer/next';
 import { IndexerSubscriptionProvider as ReactSubscriptionProvider } from '@lsp-indexer/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -14,7 +15,7 @@ export function Providers({ children }: { children: ReactNode }): ReactNode {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60_000, // 1 minute — blockchain data doesn't change rapidly
+            staleTime: 60_000,
           },
         },
       }),

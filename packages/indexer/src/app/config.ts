@@ -1,5 +1,5 @@
 /**
- * Pipeline configuration module for V2 indexer.
+ * Pipeline configuration module for the indexer.
  *
  * Assembles the PipelineConfig object required by processBatch, injecting:
  * - PluginRegistry (passed in from bootstrap)

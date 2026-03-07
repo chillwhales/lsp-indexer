@@ -3,27 +3,7 @@ import type { TypedDocumentString } from '../graphql/graphql';
 
 /**
  * Execute a typed GraphQL query against a Hasura endpoint.
- *
- * Uses `TypedDocumentString` from codegen for full type inference on both
- * the result and variables. Handles all error cases with `IndexerError`:
- * - Network failures → `IndexerError` with NETWORK category
- * - HTTP errors → `IndexerError` with HTTP category
- * - GraphQL errors → `IndexerError` with GRAPHQL category
- * - Parse failures → `IndexerError` with PARSE category
- *
- * @param url - The GraphQL endpoint URL
- * @param document - A `TypedDocumentString` from codegen
- * @param variables - Query variables (inferred from the document type)
- * @returns The typed query result data
- *
- * @example
- * ```ts
- * import { execute } from '@lsp-indexer/react';
- * import { GetProfileDocument } from './documents';
- *
- * const data = await execute(url, GetProfileDocument, { address: '0x...' });
- * // data is fully typed based on the document
- * ```
+ * All error cases throw `IndexerError` (NETWORK, HTTP, GRAPHQL, PARSE).
  */
 export async function execute<TResult, TVariables>(
   url: string,

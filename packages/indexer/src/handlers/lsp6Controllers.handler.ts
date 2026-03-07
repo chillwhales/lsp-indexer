@@ -41,14 +41,6 @@
  *
  * controllerAddress is enriched for UniversalProfile verification so the
  * optional `controllerProfile` FK can be populated when the controller is a UP.
- *
- * Port from v1:
- *   - plugins/datakeys/lsp6Controllers.plugin.ts (extract + populate + persist + clearSubEntities)
- *   - utils/dataChanged/lsp6ControllersLength.ts
- *   - utils/dataChanged/lsp6ControllersItem.ts
- *   - utils/dataChanged/lsp6ControllerPermissions.ts
- *   - utils/dataChanged/lsp6ControllerAllowedCalls.ts
- *   - utils/dataChanged/lsp6ControllerAllowedErc725DataKey.ts
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';

@@ -20,15 +20,7 @@ import {
 } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
-/**
- * Server action: Fetch the most recent ERC725Y DataChanged event matching the given filter.
- *
- * Runs on the Next.js server — routes `fetchLatestDataChangedEvent` through server-side
- * execution using `getServerUrl()`.
- *
- * @param params - Query parameters (filter + optional include)
- * @returns The latest matching event, or `null` if none found
- */
+/** Server action: fetch the most recent DataChanged event for a data key. */
 export async function getLatestDataChangedEvent(params?: {
   filter?: DataChangedEventFilter;
 }): Promise<DataChangedEvent | null>;
@@ -49,17 +41,7 @@ export async function getLatestDataChangedEvent(params?: {
   return fetchLatestDataChangedEvent(getServerUrl(), params);
 }
 
-/**
- * Server action: Fetch a paginated list of ERC725Y DataChanged event records.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchDataChangedEvents` server-side using the URL returned by `getServerUrl()`
- * (`INDEXER_URL`, falling back to `NEXT_PUBLIC_INDEXER_URL`). This keeps the
- * GraphQL endpoint invisible to the client.
- *
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed data changed events and total count
- */
+/** Server action: fetch a paginated list of DataChanged events. */
 export async function getDataChangedEvents(params?: {
   filter?: DataChangedEventFilter;
   sort?: DataChangedEventSort;

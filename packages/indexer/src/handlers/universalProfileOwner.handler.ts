@@ -1,5 +1,5 @@
 /**
- * UniversalProfileOwner Entity Handler (V2 — postVerification).
+ * UniversalProfileOwner Entity Handler (postVerification).
  *
  * Creates UniversalProfileOwner entities from OwnershipTransferred events
  * where the emitting address is a verified UniversalProfile.
@@ -15,8 +15,6 @@
  *   - Creates UniversalProfileOwner with id=event.address, address=newOwner
  *   - Uses Map for deduplication (last-writer-wins)
  *   - Queues enrichment for universalProfile FK
- *
- * Port from v1: packages/indexer/src/app/handlers/ownershipTransferredHandler.ts
  */
 
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';

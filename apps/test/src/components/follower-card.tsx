@@ -1,3 +1,4 @@
+/** Follow relationship (LSP26) card. Shows follower → followed with profile sections. */
 import { ArrowRight, User } from 'lucide-react';
 import React from 'react';
 
@@ -7,10 +8,6 @@ import { CollapsibleProfileSection } from '@/components/collapsible-sections';
 import { RawJsonToggle } from '@/components/playground';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatRelativeTime, getProfileLabel } from '@/lib/utils';
-
-// ---------------------------------------------------------------------------
-// FollowerCard
-// ---------------------------------------------------------------------------
 
 export interface FollowerCardProps {
   follower: PartialExcept<Follower, 'followerAddress' | 'followedAddress'>;
@@ -37,7 +34,6 @@ export function FollowerCard({ follower, index }: FollowerCardProps): React.Reac
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Base fields — always present */}
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-36 shrink-0">Follower Address</dt>
@@ -47,8 +43,6 @@ export function FollowerCard({ follower, index }: FollowerCardProps): React.Reac
             <dt className="text-muted-foreground w-36 shrink-0">Followed Address</dt>
             <dd className="font-mono text-xs break-all">{obj.followedAddress}</dd>
           </div>
-
-          {/* Conditional scalar fields via field-presence checks */}
           {'address' in obj && obj.address != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-36 shrink-0">Contract Address</dt>
@@ -83,13 +77,9 @@ export function FollowerCard({ follower, index }: FollowerCardProps): React.Reac
             </div>
           )}
         </dl>
-
-        {/* Collapsible section 1: Follower Profile */}
         {followerProfile != null && (
           <CollapsibleProfileSection label="Follower Profile" profile={followerProfile} />
         )}
-
-        {/* Collapsible section 2: Followed Profile */}
         {followedProfile != null && (
           <CollapsibleProfileSection label="Followed Profile" profile={followedProfile} />
         )}

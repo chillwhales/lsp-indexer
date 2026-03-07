@@ -12,20 +12,7 @@ import type {
 import { UseUniversalReceiverEventsParamsSchema } from '@lsp-indexer/types';
 import { validateInput } from './validate';
 
-/**
- * Server action: Fetch a paginated list of universal receiver event records.
- *
- * Runs on the Next.js server — the browser calls this action, which executes
- * `fetchUniversalReceiverEvents` server-side using the URL returned by `getServerUrl()`
- * (`INDEXER_URL`, falling back to `NEXT_PUBLIC_INDEXER_URL`). This keeps the
- * GraphQL endpoint invisible to the client.
- *
- * No singular `getUniversalReceiverEvent` action exists because event records have no
- * natural key (opaque Hasura ID only). Developers query by filter instead.
- *
- * @param params - Query parameters (filter, sort, pagination, include)
- * @returns Parsed universal receiver events and total count
- */
+/** Server action: fetch a paginated list of universal receiver events. */
 export async function getUniversalReceiverEvents(params?: {
   filter?: UniversalReceiverEventFilter;
   sort?: UniversalReceiverEventSort;

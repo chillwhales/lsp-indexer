@@ -1,12 +1,4 @@
-/**
- * Factory for useIssuedAssets — shared between `@lsp-indexer/react` and `@lsp-indexer/next`.
- *
- * Each package calls `createUseIssuedAssets(queryFn)` with its own fetch function:
- * - React: `(p) => fetchIssuedAssets(getClientUrl(), p)`
- * - Next:  `(p) => getIssuedAssets(p)`
- *
- * @see createUseList — the generic factory this wraps
- */
+/** @see createUseList */
 import type { FetchIssuedAssetsResult } from '@lsp-indexer/node';
 import { issuedAssetKeys } from '@lsp-indexer/node';
 import type {
@@ -19,14 +11,8 @@ import type {
 import type { UseIssuedAssetsReturn } from '../../types';
 import { createUseList } from '../create-use-list';
 
-/** Params passed to the factory's queryFn */
 type IssuedAssetsListParams = UseIssuedAssetsParams & { include?: IssuedAssetInclude };
 
-/**
- * Create a `useIssuedAssets` hook bound to a specific fetch function.
- *
- * @param queryFn - Package-specific fetch function for issued asset lists
- */
 export function createUseIssuedAssets(
   queryFn: (params: IssuedAssetsListParams) => Promise<FetchIssuedAssetsResult<PartialIssuedAsset>>,
 ) {

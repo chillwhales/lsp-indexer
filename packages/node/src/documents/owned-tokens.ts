@@ -1,23 +1,6 @@
 import { graphql } from '../graphql';
 
-/**
- * GraphQL document for fetching a single Owned Token (LSP8 individual NFT ownership).
- *
- * Variables:
- * - `$where` — The service layer builds the Hasura bool_exp (e.g., `{ id: { _eq: "..." } }`)
- * - `$includeBlock` / `$includeTimestamp` — Direct column toggles
- * - `$includeDigitalAsset` — Include related digital asset details (with 17 DA sub-variables)
- * - `$include[Name|Symbol|...]` — 17 digital asset sub-include toggles
- * - `$includeNft` — Include related NFT details (with 8 NFT sub-variables)
- * - `$includeNft[FormattedTokenId|Name|...]` — 8 NFT sub-include toggles
- * - `$includeOwnedAsset` — Include related owned asset (parent fungible ownership record)
- * - `$includeOwnedAsset[Balance|Block|Timestamp]` — 3 owned asset sub-include toggles
- * - `$includeHolder` — Include related holder universal profile details
- * - `$includeProfile[Name|Description|...]` — 9 profile sub-include toggles
- *
- * Uses `@include(if:)` directives so omitted nested data is never sent over the wire.
- * When `include` is omitted by the caller, all variables default to `true` → everything fetched.
- */
+/** Single item query. */
 export const GetOwnedTokenDocument = graphql(`
   query GetOwnedToken(
     $where: owned_token_bool_exp!
@@ -281,24 +264,7 @@ export const GetOwnedTokenDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL document for fetching a paginated list of Owned Tokens with total count.
- *
- * Used by both `useOwnedTokens` (offset-based pagination) and `useInfiniteOwnedTokens`
- * (infinite scroll) — the difference is how the hook manages pagination, not the document.
- *
- * Variables:
- * - `$where` — Filter conditions (built by service layer from flat OwnedTokenFilter)
- * - `$order_by` — Sort order (built by service layer from OwnedTokenSort)
- * - `$limit` / `$offset` — Pagination
- * - `$includeBlock` / `$includeTimestamp` — Direct column toggles
- * - `$includeDigitalAsset` + 17 DA sub-variables — Digital asset nested include toggles
- * - `$includeNft` + 8 NFT sub-variables — NFT nested include toggles
- * - `$includeOwnedAsset` + 3 owned asset sub-variables — Owned asset nested include toggles
- * - `$includeHolder` + 9 profile sub-variables — Holder profile nested include toggles
- *
- * Includes `owned_token_aggregate` for total count (used for "X of Y results" UI).
- */
+/** Paginated list of Owned Tokens with total count. */
 export const GetOwnedTokensDocument = graphql(`
   query GetOwnedTokens(
     $where: owned_token_bool_exp
@@ -570,16 +536,7 @@ export const GetOwnedTokensDocument = graphql(`
   }
 `);
 
-/**
- * GraphQL subscription document for live Owned Token data.
- *
- * Same field selection as GetOwnedTokensDocument but as a subscription:
- * - No $offset (subscriptions are live streams, not paginated)
- * - No owned_token_aggregate (no total count in subscriptions)
- *
- * 46 variables: 3 pagination (where, order_by, limit) + 43 include toggles
- * (2 scalar + 18 DA + 9 NFT + 4 OA + 10 Profile).
- */
+/** Real-time subscription variant. */
 export const OwnedTokenSubscriptionDocument = graphql(`
   subscription OwnedTokenSubscription(
     $where: owned_token_bool_exp

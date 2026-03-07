@@ -13,23 +13,12 @@ import { RawJsonToggle } from '@/components/playground';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatRelativeTime, getDigitalAssetLabel, getProfileLabel } from '@/lib/utils';
 
-// ---------------------------------------------------------------------------
-// IssuedAssetCard
-// ---------------------------------------------------------------------------
-
 export interface IssuedAssetCardProps {
   issuedAsset: PartialExcept<IssuedAsset, 'issuerAddress' | 'assetAddress'>;
   index: number;
 }
 
-/**
- * Card component for rendering a single LSP12 issued asset record.
- *
- * Base fields (always present): issuerAddress, assetAddress.
- * Conditional scalars: arrayIndex, interfaceId, timestamp — rendered via
- * `'key' in obj` field-presence guards (DX-04 pattern).
- * Two collapsible relation sections: Issuer Profile + Digital Asset.
- */
+/** LSP12 issued asset card. Shows issuer-to-asset relationship. */
 export function IssuedAssetCard({ issuedAsset, index }: IssuedAssetCardProps): React.ReactNode {
   const issuerProfile = 'issuerProfile' in issuedAsset ? issuedAsset.issuerProfile : null;
   const digitalAsset = 'digitalAsset' in issuedAsset ? issuedAsset.digitalAsset : null;
@@ -48,7 +37,6 @@ export function IssuedAssetCard({ issuedAsset, index }: IssuedAssetCardProps): R
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Base fields — always present */}
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-40 shrink-0">Issuer Address</dt>
@@ -58,8 +46,6 @@ export function IssuedAssetCard({ issuedAsset, index }: IssuedAssetCardProps): R
             <dt className="text-muted-foreground w-40 shrink-0">Asset Address</dt>
             <dd className="font-mono text-xs break-all">{issuedAsset.assetAddress}</dd>
           </div>
-
-          {/* Conditional scalar fields via field-presence checks */}
           {'arrayIndex' in issuedAsset && issuedAsset.arrayIndex != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Array Index</dt>
@@ -84,13 +70,9 @@ export function IssuedAssetCard({ issuedAsset, index }: IssuedAssetCardProps): R
             </div>
           )}
         </dl>
-
-        {/* Collapsible section 1: Issuer Profile */}
         {issuerProfile != null && (
           <CollapsibleProfileSection label="Issuer Profile" profile={issuerProfile} />
         )}
-
-        {/* Collapsible section 2: Digital Asset */}
         {digitalAsset != null && (
           <CollapsibleDigitalAssetSection label="Digital Asset" digitalAsset={digitalAsset} />
         )}

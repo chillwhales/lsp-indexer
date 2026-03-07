@@ -13,28 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatRelativeTime, truncateAddress } from '@/lib/utils';
 
-// ---------------------------------------------------------------------------
-// EncryptedAssetCard
-// ---------------------------------------------------------------------------
-
 export interface EncryptedAssetCardProps {
   encryptedAsset: PartialExcept<EncryptedAsset, 'address' | 'contentId' | 'revision'>;
 }
 
-/**
- * Card component for rendering a single LSP29 encrypted asset record.
- *
- * The most feature-rich domain card in the project:
- * 1. Base fields: address, contentId, revision (always present)
- * 2. Conditional scalars: arrayIndex, timestamp
- * 3. Title and description sections
- * 4. Encryption collapsible with method, ciphertext (truncated), access control conditions
- * 5. File metadata section
- * 6. Chunks metadata section
- * 7. Images via ImageList component
- * 8. Universal Profile via CollapsibleProfileSection
- * 9. RawJsonToggle
- */
+/** LSP29 encrypted asset card. Shows encryption, file/chunks metadata, and images. */
 export function EncryptedAssetCard({ encryptedAsset }: EncryptedAssetCardProps): React.ReactNode {
   const universalProfile =
     'universalProfile' in encryptedAsset ? encryptedAsset.universalProfile : null;
@@ -61,7 +44,6 @@ export function EncryptedAssetCard({ encryptedAsset }: EncryptedAssetCardProps):
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Base fields — always present */}
         <dl className="space-y-1.5 text-sm">
           <div className="flex gap-2">
             <dt className="text-muted-foreground w-32 shrink-0">Address</dt>
@@ -75,8 +57,6 @@ export function EncryptedAssetCard({ encryptedAsset }: EncryptedAssetCardProps):
             <dt className="text-muted-foreground w-32 shrink-0">Revision</dt>
             <dd className="font-mono">{encryptedAsset.revision ?? '(none)'}</dd>
           </div>
-
-          {/* Conditional scalar fields via field-presence checks */}
           {'arrayIndex' in encryptedAsset && encryptedAsset.arrayIndex != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-32 shrink-0">Array Index</dt>
@@ -95,8 +75,6 @@ export function EncryptedAssetCard({ encryptedAsset }: EncryptedAssetCardProps):
             </div>
           )}
         </dl>
-
-        {/* Title & Description */}
         {'title' in encryptedAsset && encryptedAsset.title && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1">Title</h5>
@@ -109,23 +87,15 @@ export function EncryptedAssetCard({ encryptedAsset }: EncryptedAssetCardProps):
             <p className="text-sm">{encryptedAsset.description}</p>
           </div>
         )}
-
-        {/* Encryption collapsible section */}
         {'encryption' in encryptedAsset && encryptedAsset.encryption != null && (
           <EncryptionSection encryption={encryptedAsset.encryption} />
         )}
-
-        {/* File metadata section */}
         {'file' in encryptedAsset && encryptedAsset.file != null && (
           <FileSection file={encryptedAsset.file} />
         )}
-
-        {/* Chunks metadata section */}
         {'chunks' in encryptedAsset && encryptedAsset.chunks != null && (
           <ChunksSection chunks={encryptedAsset.chunks} />
         )}
-
-        {/* Images matrix — ImageList handles grouped-by-index rendering */}
         {'images' in encryptedAsset &&
           encryptedAsset.images != null &&
           encryptedAsset.images.length > 0 && (
@@ -134,8 +104,6 @@ export function EncryptedAssetCard({ encryptedAsset }: EncryptedAssetCardProps):
               images={encryptedAsset.images}
             />
           )}
-
-        {/* Universal Profile via CollapsibleProfileSection */}
         {universalProfile != null && (
           <CollapsibleProfileSection label="Universal Profile" profile={universalProfile} />
         )}
@@ -145,10 +113,6 @@ export function EncryptedAssetCard({ encryptedAsset }: EncryptedAssetCardProps):
     </Card>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Encryption section — collapsible with method, ciphertext, and ACC list
-// ---------------------------------------------------------------------------
 
 function EncryptionSection({
   encryption,
@@ -197,8 +161,6 @@ function EncryptionSection({
             </div>
           )}
         </dl>
-
-        {/* Access control conditions */}
         {acc != null && acc.length > 0 && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1.5">
@@ -257,10 +219,6 @@ function EncryptionSection({
   );
 }
 
-// ---------------------------------------------------------------------------
-// File section — collapsible with name, type, size, hash, lastModified
-// ---------------------------------------------------------------------------
-
 function FileSection({ file }: { file: NonNullable<EncryptedAsset['file']> }): React.ReactNode {
   return (
     <Collapsible>
@@ -313,10 +271,6 @@ function FileSection({ file }: { file: NonNullable<EncryptedAsset['file']> }): R
     </Collapsible>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Chunks section — collapsible with totalSize, iv, and CID list
-// ---------------------------------------------------------------------------
 
 function ChunksSection({
   chunks,

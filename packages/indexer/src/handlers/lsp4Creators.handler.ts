@@ -31,12 +31,6 @@
  *
  * Invalid Item entries (dataValue not a valid 20-byte address) are skipped
  * entirely — no garbage entities to clean up later.
- *
- * Port from v1:
- *   - plugins/datakeys/lsp4Creators.plugin.ts (extract + populate + persist)
- *   - utils/dataChanged/lsp4CreatorsLength.ts
- *   - utils/dataChanged/lsp4CreatorsItem.ts
- *   - utils/dataChanged/lsp4CreatorsMap.ts
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';

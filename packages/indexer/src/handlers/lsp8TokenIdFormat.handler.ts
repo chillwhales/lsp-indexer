@@ -4,10 +4,6 @@
  * Subscribes to DataChanged events and creates LSP8TokenIdFormat entities
  * for events matching the LSP8TokenIdFormat data key. Decodes the token ID
  * encoding format (0 = NUMBER, 1 = STRING, 2 = ADDRESS, 3/4 = BYTES32).
- *
- * Port from v1:
- *   - plugins/datakeys/lsp8TokenIdFormat.plugin.ts (extract + populate + persist)
- *   - utils/dataChanged/lsp8TokenIdFormat.ts (extract logic)
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { decodeTokenIdFormat } from '@/utils';
