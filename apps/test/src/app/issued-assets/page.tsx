@@ -1,7 +1,7 @@
 'use client';
 
 /** Issued Assets playground — LSP12 asset issuance with issuer profile and digital asset sub-includes. */
-import { List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { InfinityIcon, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {

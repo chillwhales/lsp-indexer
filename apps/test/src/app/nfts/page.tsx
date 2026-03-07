@@ -1,7 +1,7 @@
 'use client';
 
 /** NFTs playground — composite key lookup (address+tokenId), list, infinite scroll, and subscriptions. */
-import { Gem, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
+import { Gem, InfinityIcon, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {

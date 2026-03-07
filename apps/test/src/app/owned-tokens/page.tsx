@@ -1,7 +1,7 @@
 'use client';
 
 /** Owned Tokens playground — LSP8 NFT ownership with 4 nested relations. */
-import { Layers, Radio, Search, Tag, Wifi, WifiOff } from 'lucide-react';
+import { InfinityIcon, Layers, Radio, Search, Tag, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {

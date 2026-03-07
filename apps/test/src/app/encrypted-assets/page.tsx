@@ -1,7 +1,7 @@
 'use client';
 
 /** Encrypted Assets playground — LSP29 encrypted metadata with encryption, file, and chunks sub-includes. */
-import { List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { InfinityIcon, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {

@@ -2,7 +2,7 @@
 
 /** Token ID Data Changed Events playground — per-token ERC725Y data key changes on LSP8 NFTs. */
 import { DATA_KEY_NAMES, DataKeyNameSchema } from '@chillwhales/erc725';
-import { Clock, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { Clock, InfinityIcon, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {

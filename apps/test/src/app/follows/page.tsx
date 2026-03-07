@@ -1,7 +1,7 @@
 'use client';
 
 /** Follows playground — LSP26 social graph: list, infinite, count, is-following, and subscriptions. */
-import { Hash, Radio, UserCheck, Users, Wifi, WifiOff } from 'lucide-react';
+import { Hash, InfinityIcon, Radio, UserCheck, Users, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {

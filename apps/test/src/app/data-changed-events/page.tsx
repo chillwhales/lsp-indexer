@@ -2,7 +2,7 @@
 
 /** Data Changed Events playground — ERC725Y DataChanged events with data key name resolution. */
 import { DATA_KEY_NAMES, DataKeyNameSchema } from '@chillwhales/erc725';
-import { Clock, List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { Clock, InfinityIcon, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {

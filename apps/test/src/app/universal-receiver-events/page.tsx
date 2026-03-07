@@ -2,7 +2,7 @@
 
 /** Universal Receiver Events playground — LSP1 events with 3 nested relations. */
 import { TYPE_ID_NAMES, TypeIdNameSchema } from '@chillwhales/lsp1';
-import { List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { InfinityIcon, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {

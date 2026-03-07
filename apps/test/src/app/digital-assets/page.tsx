@@ -1,7 +1,7 @@
 'use client';
 
 /** Digital Assets playground — LSP7/LSP8 metadata lookup, list, infinite scroll, and subscriptions. */
-import { Coins, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
+import { Coins, InfinityIcon, Layers, Radio, Search, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {

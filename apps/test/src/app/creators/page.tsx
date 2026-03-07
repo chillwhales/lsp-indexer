@@ -1,7 +1,7 @@
 'use client';
 
 /** Creators playground — LSP4 creator attestations with profile and digital asset sub-includes. */
-import { List, Radio, Wifi, WifiOff } from 'lucide-react';
+import { InfinityIcon, List, Radio, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {

@@ -1,7 +1,7 @@
 'use client';
 
 /** Owned Assets playground — LSP7 fungible token ownership with balance and nested relations. */
-import { Layers, Radio, Search, Wallet, Wifi, WifiOff } from 'lucide-react';
+import { InfinityIcon, Layers, Radio, Search, Wallet, Wifi, WifiOff } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
