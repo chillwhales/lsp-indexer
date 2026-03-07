@@ -96,8 +96,8 @@ export default tseslint.config(
       // Allow {} in conditional types (common in packages/types/src/ for type algebra)
       '@typescript-eslint/no-empty-object-type': ['error', { allowObjectTypes: 'always' }],
 
-      // Demote to warning — String(error) pattern in subscription error normalization is intentional
-      '@typescript-eslint/no-base-to-string': 'warn',
+      // All String(unknown) calls replaced with proper type narrowing
+      '@typescript-eslint/no-base-to-string': 'error',
 
       // Allow empty functions (common in interface stubs)
       '@typescript-eslint/no-empty-function': 'off',

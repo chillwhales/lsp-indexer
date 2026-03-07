@@ -123,9 +123,9 @@ export class IndexerError extends Error {
     extensions: Record<string, unknown> | undefined;
   } {
     if (typeof e !== 'object' || e === null) {
-      return { message: String(e), extensions: undefined };
+      return { message: typeof e === 'string' ? e : 'Unknown error', extensions: undefined };
     }
-    const message = 'message' in e && typeof e.message === 'string' ? e.message : String(e);
+    const message = 'message' in e && typeof e.message === 'string' ? e.message : 'Unknown error';
     let extensions: Record<string, unknown> | undefined;
     if (
       'extensions' in e &&
