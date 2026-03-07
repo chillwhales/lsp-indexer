@@ -133,6 +133,17 @@ export default tseslint.config(
     },
   },
 
+  // ---- Next.js server actions — 'use server' requires async ------------------
+  {
+    files: ['packages/next/src/actions/**/*.ts'],
+    rules: {
+      // Server actions MUST be async (Next.js 'use server' requirement), but they
+      // return promises from @lsp-indexer/node without await. require-await is a
+      // false positive here — the async keyword is mandatory, not a mistake.
+      '@typescript-eslint/require-await': 'off',
+    },
+  },
+
   // ---- Test file overrides ----------------------------------------------------
   {
     files: ['**/__tests__/**/*.ts', '**/*.test.ts', '**/*.spec.ts'],
