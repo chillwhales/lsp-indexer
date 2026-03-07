@@ -72,8 +72,8 @@ The lsp-indexer repo already has a basic CI workflow (format, lint, build) from 
 | `@changesets/action` | v1 | GitHub Action for automated version PRs + publish | Official changesets GitHub Action; handles Version PR creation and npm publish |
 | `pkg-pr-new` | latest (via pnpx) | Preview releases on PRs | StackBlitz tool; no npm install needed, runs via pnpx; matches LSPs pattern |
 | `davelosert/vitest-coverage-report-action` | v2 | Coverage PR comments | 249+ stars, actively maintained (v2.9.3, Feb 2026), reads vitest json-summary output |
-| `@vitest/coverage-v8` | ^4.0.0 (or match vitest version) | Coverage provider for vitest | V8-based coverage for the 4 publishable packages |
-| `vitest` | ^4.0.0 (or latest) | Test runner | Already used in indexer package; needs setup for publishable packages |
+| `@vitest/coverage-v8` | ^2.1.8 (match vitest version) | Coverage provider for vitest | V8-based coverage for the 4 publishable packages |
+| `vitest` | ^2.1.8 | Test runner | Already used in indexer package (`^2.1.8`); needs setup for publishable packages. Keep aligned with existing version. |
 | `publint` | ^0.3.18 | Package.json + exports validation | Already in devDependencies; validates package publish readiness |
 | `@arethetypeswrong/cli` | ^0.18.2 | TypeScript types validation | Already in devDependencies (attw); validates type resolution paths |
 
@@ -295,7 +295,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/chillwhales/lsp-indexer:latest
-            ghcr.io/chillwhales/lsp-indexer:${{ steps.version.outputs.tag }}
+            ghcr.io/chillwhales/lsp-indexer:${{ steps.changesets.outputs.publishedPackages && fromJSON(steps.changesets.outputs.publishedPackages)[0].version || github.sha }}
 ```
 
 ### Pattern 5: Preview Releases

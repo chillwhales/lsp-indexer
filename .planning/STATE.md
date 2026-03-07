@@ -252,7 +252,7 @@ _None currently._
 - **Date:** 2026-03-07
 - **Activity:** Executed quick task 1 (fix CI linter and Prettier) — 2 tasks, 2 commits
 - **Outcome:** ESLint tuned from 827 errors to 0 errors; Prettier ignores updated; CI format/lint/build pipeline green
-- **Resume file:** .planning/phases/15-ci-cd-workflows-shared-infra/15-CONTEXT.md
+- **Resume file:** .planning/quick/1-fix-ci-linter-and-prettier/1-SUMMARY.md
 
 ### Context for Next Session
 
