@@ -93,13 +93,6 @@ export default tseslint.config(
       // Floating promises — critical for async indexer code
       '@typescript-eslint/no-floating-promises': 'error',
 
-      // No misused promises — allow Promise-returning functions in React event handler props
-      // and object properties (e.g., { fetchNextPage } passed to component props)
-      '@typescript-eslint/no-misused-promises': [
-        'error',
-        { checksVoidReturn: { attributes: false, properties: false } },
-      ],
-
       // Allow {} in conditional types (common in packages/types/src/ for type algebra)
       '@typescript-eslint/no-empty-object-type': ['error', { allowObjectTypes: 'always' }],
 
