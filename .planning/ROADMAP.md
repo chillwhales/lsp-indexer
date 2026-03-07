@@ -855,11 +855,13 @@ Plans:
 | CICD-03 | Preview release workflow for pre-release npm tags from non-main branches                                                                                                          |
 | CICD-04 | Investigation completed on abstracting shared workflow patterns into a reusable third repo (e.g., `chillwhales/.github` or `chillwhales/ci-workflows`) — with decision documented |
 
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
 
-- [ ] TBD (run `/gsd-plan-phase 15` to break down)
+- [ ] 15-01-PLAN.md — Changesets config + layered CI pipeline + vitest coverage infrastructure
+- [ ] 15-02-PLAN.md — Release workflow (changesets + Docker) + preview releases (pkg-pr-new)
+- [ ] 15-03-PLAN.md — Shared infra: chillwhales/.github repo + reusable workflows + lsp-indexer consumption
 
 **Success Criteria:**
 
