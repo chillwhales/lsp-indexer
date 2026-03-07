@@ -20,7 +20,8 @@ export type ConnectionState = 'disconnected' | 'connecting' | 'connected';
  */
 export class SubscriptionClient implements SubscriptionClientExecutor {
   private wsClient: Client | null = null;
-  protected readonly url: string;
+  private readonly _explicitUrl: string | undefined;
+  private _resolvedUrl: string | undefined;
   private state: ConnectionState = 'disconnected';
   private listeners = new Set<() => void>();
   private reconnectCallbacks = new Set<() => void>();
@@ -28,11 +29,22 @@ export class SubscriptionClient implements SubscriptionClientExecutor {
   private hasConnectedBefore = false;
   private subscriptions = new Set<{ dispose(): void }>();
 
-  /** @param url - WebSocket URL. Defaults to `getClientWsUrl()`. */
+  /**
+   * Lazily-resolved WebSocket URL.
+   * Defers `getClientWsUrl()` until first access so the constructor is safe
+   * during SSR / Next.js static generation (env vars may not be set at build time).
+   */
+  protected get url(): string {
+    if (this._explicitUrl != null) return this._explicitUrl;
+    if (this._resolvedUrl == null) this._resolvedUrl = getClientWsUrl();
+    return this._resolvedUrl;
+  }
+
+  /** @param url - WebSocket URL. Defaults to `getClientWsUrl()` (resolved lazily). */
   constructor(url?: string) {
-    // Resolve URL eagerly — no virtual method call from the constructor.
-    // Subclasses must pass their URL via super(url).
-    this.url = url ?? getClientWsUrl();
+    // Store without resolving — env vars may not be available during SSR.
+    // Resolution happens lazily via the `url` getter when actually connecting.
+    this._explicitUrl = url;
 
     // Bind methods for stable references (useSyncExternalStore needs stable function refs)
     this.subscribe = this.subscribe.bind(this);
