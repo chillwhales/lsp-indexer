@@ -23,7 +23,7 @@
     "build:react": "pnpm --filter @lsp-indexer/react build",
     "build:all": "pnpm --filter @lsp-indexer/react build && pnpm --filter test build",
     "validate:publint": "pnpm --filter @lsp-indexer/types exec publint && pnpm --filter @lsp-indexer/node exec publint && pnpm --filter @lsp-indexer/react exec publint && pnpm --filter @lsp-indexer/next exec publint",
-    "validate:attw": "pnpm --filter @lsp-indexer/types exec attw --pack && pnpm --filter @lsp-indexer/node exec attw --pack && pnpm --filter @lsp-indexer/react exec attw --pack && pnpm --filter @lsp-indexer/next exec attw --pack",
+    "validate:attw": "pnpm --filter @lsp-indexer/types exec attw --pack --ignore-rules cjs-resolves-to-esm && pnpm --filter @lsp-indexer/node exec attw --pack --ignore-rules cjs-resolves-to-esm && pnpm --filter @lsp-indexer/react exec attw --pack --ignore-rules cjs-resolves-to-esm && pnpm --filter @lsp-indexer/next exec attw --pack --ignore-rules cjs-resolves-to-esm",
     "validate:publish": "pnpm validate:publint && pnpm validate:attw",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

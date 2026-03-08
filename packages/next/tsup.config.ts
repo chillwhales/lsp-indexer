@@ -3,7 +3,7 @@ import { defineConfig } from 'tsup';
 export default defineConfig([
   {
     entry: { index: 'src/index.ts' },
-    format: ['esm', 'cjs'],
+    format: ['esm'],
     dts: true,
     sourcemap: true,
     clean: true,
@@ -21,7 +21,7 @@ export default defineConfig([
   },
   {
     entry: { server: 'src/server.ts' },
-    format: ['esm', 'cjs'],
+    format: ['esm'],
     dts: true,
     sourcemap: true,
     external: [
