@@ -593,7 +593,7 @@ Plans:
 | QUERY-01 | Developer can use `useProfile`, `useProfiles`, `useInfiniteProfiles` for Universal Profile data | Unverified   |
 | DX-01    | Developer can import all clean camelCase domain types from `@lsp-indexer/types`                 | Unverified   |
 | DX-02    | Developer can import query key factories for cache invalidation and prefetching                 | Unverified   |
-| QUERY-02 | Developer can use `useDigitalAsset`, `useDigitalAssets`, `useDigitalAssetSearch`                | Unverified   |
+| QUERY-02 | Developer can use `useDigitalAsset`, `useDigitalAssets`, `useInfiniteDigitalAssets`             | Unverified   |
 | QUERY-03 | Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data                       | Unverified   |
 | QUERY-04 | Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data                         | Unverified   |
 | PAGE-01  | Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain      | Tracking gap |
@@ -602,8 +602,8 @@ Plans:
 
 Plans:
 
-- [ ] 16-01-PLAN.md — Verify Phase 08 (QUERY-01, DX-01, DX-02) + Phase 09.1 (QUERY-02)
-- [ ] 16-02-PLAN.md — Verify Phase 09.2 (QUERY-03) + Phase 09.3 (QUERY-04) + PAGE-01 resolution
+- [x] 16-01-PLAN.md — Verify Phase 08 (QUERY-01, DX-01, DX-02) + Phase 09.1 (QUERY-02)
+- [x] 16-02-PLAN.md — Verify Phase 09.2 (QUERY-03) + Phase 09.3 (QUERY-04) + PAGE-01 resolution
 
 **Success Criteria:**
 
@@ -650,11 +650,11 @@ Plans:
 | 13    | Indexer v1 Cleanup                   |     4/4      | Complete    |
 | 14    | Code Comments Cleanup & Release Prep |     2/2      | Complete    |
 | 15    | CI/CD Workflows & Shared Infra       |     4/4      | Complete    |
-| 16    | 2/2 | Complete    | 2026-03-08 |
+| 16    | Verification Gap Closure            |     2/2      | Complete    |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 30/30 requirements mapped (Phase 16 closes verification gaps on final 7)
+**Total:** 46/46 requirements delivered (30 v1.1 core + 16 migration/cleanup/release/CI — Phase 16 closes verification gaps on final 7)
 
 ---
 
