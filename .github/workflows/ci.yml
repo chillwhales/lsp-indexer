@@ -12,9 +12,9 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Shared build-lint-test pipeline (from chillwhales/.github)
+  # Build, lint, test pipeline (shared from chillwhales/.github)
   # ---------------------------------------------------------------------------
-  ci:
+  build-test:
     uses: chillwhales/.github/.github/workflows/ci-build-lint-test.yml@main
     with:
       node-version: 22
@@ -34,11 +34,12 @@ jobs:
         packages/typeorm/lib
 
   # ---------------------------------------------------------------------------
-  # Shared quality checks (from chillwhales/.github)
+  # Quality checks (shared from chillwhales/.github)
   # ---------------------------------------------------------------------------
   quality:
-    needs: [ci]
+    needs: [build-test]
     uses: chillwhales/.github/.github/workflows/ci-quality.yml@main
     with:
       verify-command: pnpm validate:publish
-      changeset-check: true
+      changeset-check: ${{ github.base_ref == 'main' }}
+      base-branch: main
