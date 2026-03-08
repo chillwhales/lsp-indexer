@@ -1,0 +1,55 @@
+/**
+ * LSP4TokenSymbol entity handler.
+ *
+ * Subscribes to DataChanged events and creates LSP4TokenSymbol entities
+ * for events matching the LSP4TokenSymbol data key. Decodes the hex-encoded
+ * token symbol string from the data value.
+ */
+import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { DataChanged, LSP4TokenSymbol } from '@chillwhales/typeorm';
+import { LSP4DataKeys } from '@lukso/lsp4-contracts';
+import { hexToString, isHex } from 'viem';
+
+// Entity type key used in the BatchContext entity bag
+const ENTITY_TYPE = 'LSP4TokenSymbol';
+
+const LSP4_TOKEN_SYMBOL_KEY: string = LSP4DataKeys.LSP4TokenSymbol;
+
+const LSP4TokenSymbolHandler: EntityHandler = {
+  name: 'lsp4TokenSymbol',
+  listensToBag: ['DataChanged'],
+
+  handle(hctx: HandlerContext, triggeredBy: string): void {
+    const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
+
+    for (const event of events.values()) {
+      // Filter by data key
+      if (event.dataKey !== LSP4_TOKEN_SYMBOL_KEY) continue;
+
+      // Create entity with decoded value
+      const entity = new LSP4TokenSymbol({
+        id: event.address,
+        address: event.address,
+        timestamp: event.timestamp,
+        value:
+          !isHex(event.dataValue) || event.dataValue === '0x' ? null : hexToString(event.dataValue),
+        rawValue: event.dataValue,
+        digitalAsset: null, // FK initially null
+      });
+
+      // Add to BatchContext
+      hctx.batchCtx.addEntity(ENTITY_TYPE, entity.id, entity);
+
+      // Queue enrichment for digitalAsset FK
+      hctx.batchCtx.queueEnrichment<LSP4TokenSymbol>({
+        category: EntityCategory.DigitalAsset,
+        address: event.address,
+        entityType: ENTITY_TYPE,
+        entityId: entity.id,
+        fkField: 'digitalAsset',
+      });
+    }
+  },
+};
+
+export default LSP4TokenSymbolHandler;

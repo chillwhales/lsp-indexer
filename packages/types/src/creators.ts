@@ -1,0 +1,207 @@
+import { z } from 'zod';
+
+import { SortDirectionSchema, SortNullsSchema } from './common';
+import {
+  DigitalAssetIncludeSchema,
+  DigitalAssetSchema,
+  type DigitalAsset,
+  type DigitalAssetInclude,
+  type DigitalAssetResult,
+} from './digital-assets';
+import type { IncludeResult, PartialExcept } from './include-types';
+import {
+  ProfileIncludeSchema,
+  ProfileSchema,
+  type Profile,
+  type ProfileInclude,
+  type ProfileResult,
+} from './profiles';
+
+// ---------------------------------------------------------------------------
+// Core domain schemas
+// ---------------------------------------------------------------------------
+
+/** LSP4 creator — one per unique creator↔digital-asset pair. */
+export const CreatorSchema = z.object({
+  /** Address that created the digital asset (always present) */
+  creatorAddress: z.string(),
+  /** Digital asset contract address (always present) */
+  digitalAssetAddress: z.string(),
+  /** Position in the LSP4 creators array (null = not included or not set) */
+  arrayIndex: z.number().nullable(),
+  /** ERC165 interface ID of the creator (null = not included or not set) */
+  interfaceId: z.string().nullable(),
+  /** Timestamp when indexed (ISO string) */
+  timestamp: z.string().nullable(),
+  /** Universal Profile of the creator (null = not included in query) */
+  creatorProfile: ProfileSchema.nullable(),
+  /** Digital asset details (null = not included in query) */
+  digitalAsset: DigitalAssetSchema.nullable(),
+});
+
+// ---------------------------------------------------------------------------
+// Filter schema
+// ---------------------------------------------------------------------------
+
+export const CreatorFilterSchema = z.object({
+  /** Case-insensitive match on creator address */
+  creatorAddress: z.string().optional(),
+  /** Case-insensitive match on digital asset address */
+  digitalAssetAddress: z.string().optional(),
+  /** Case-insensitive match on interface ID */
+  interfaceId: z.string().optional(),
+  /** Case-insensitive match on creator's profile name (nested via creatorProfile.lsp3Profile.name) */
+  creatorName: z.string().optional(),
+  /** Case-insensitive match on digital asset name (nested via digitalAsset.lsp4TokenName.name) */
+  digitalAssetName: z.string().optional(),
+  /** ISO timestamp or unix seconds lower bound (inclusive) */
+  timestampFrom: z.union([z.string(), z.number()]).optional(),
+  /** ISO timestamp or unix seconds upper bound (inclusive) */
+  timestampTo: z.union([z.string(), z.number()]).optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Sort schema
+// ---------------------------------------------------------------------------
+
+/** `creatorName` / `digitalAssetName` are nested sorts handled at service layer. */
+export const CreatorSortFieldSchema = z.enum([
+  'timestamp',
+  'creatorAddress',
+  'digitalAssetAddress',
+  'arrayIndex',
+  'creatorName',
+  'digitalAssetName',
+]);
+
+export const CreatorSortSchema = z.object({
+  field: CreatorSortFieldSchema,
+  direction: SortDirectionSchema,
+  nulls: SortNullsSchema.optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Include schema
+// ---------------------------------------------------------------------------
+
+/** Omit = fetch all fields; set individual fields to opt-in. */
+export const CreatorIncludeSchema = z.object({
+  /** Include array index position */
+  arrayIndex: z.boolean().optional(),
+  /** Include ERC165 interface ID */
+  interfaceId: z.boolean().optional(),
+  /** Include timestamp */
+  timestamp: z.boolean().optional(),
+  /** Include creator's Universal Profile — `true` for all fields, or object for per-field control */
+  creatorProfile: z.union([z.boolean(), ProfileIncludeSchema]).optional(),
+  /** Include digital asset details — `true` for all fields, or object for per-field control */
+  digitalAsset: z.union([z.boolean(), DigitalAssetIncludeSchema]).optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Hook parameter schemas — 2 hooks
+// ---------------------------------------------------------------------------
+
+/** Params for useCreators — paginated list of creators */
+export const UseCreatorsParamsSchema = z.object({
+  filter: CreatorFilterSchema.optional(),
+  sort: CreatorSortSchema.optional(),
+  limit: z.number().optional(),
+  offset: z.number().optional(),
+  include: CreatorIncludeSchema.optional(),
+});
+
+/** Params for useInfiniteCreators — infinite scroll variant */
+export const UseInfiniteCreatorsParamsSchema = z.object({
+  filter: CreatorFilterSchema.optional(),
+  sort: CreatorSortSchema.optional(),
+  pageSize: z.number().optional(),
+  include: CreatorIncludeSchema.optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Inferred types
+// ---------------------------------------------------------------------------
+
+export type Creator = z.infer<typeof CreatorSchema>;
+export type CreatorFilter = z.infer<typeof CreatorFilterSchema>;
+export type CreatorSortField = z.infer<typeof CreatorSortFieldSchema>;
+export type CreatorSort = z.infer<typeof CreatorSortSchema>;
+export type CreatorInclude = z.infer<typeof CreatorIncludeSchema>;
+export type UseCreatorsParams = z.infer<typeof UseCreatorsParamsSchema>;
+export type UseInfiniteCreatorsParams = z.infer<typeof UseInfiniteCreatorsParamsSchema>;
+
+// ---------------------------------------------------------------------------
+// Conditional include result type
+// ---------------------------------------------------------------------------
+
+/**
+ * Scalar include fields: include schema key → Creator field name.
+ * Relations (creatorProfile, digitalAsset) handled by resolver types.
+ */
+type CreatorScalarIncludeFieldMap = {
+  arrayIndex: 'arrayIndex';
+  interfaceId: 'interfaceId';
+  timestamp: 'timestamp';
+};
+
+/**
+ * Resolve nested `creatorProfile` relation based on include parameter.
+ * When include has `creatorProfile` as a ProfileInclude object, the field is
+ * present and narrowed by sub-include. Otherwise absent from type.
+ */
+type ResolveCreatorProfile<I> = I extends { creatorProfile: infer P }
+  ? P extends true
+    ? { creatorProfile: Profile | null }
+    : P extends ProfileInclude
+      ? { creatorProfile: ProfileResult<P> | null }
+      : {}
+  : {};
+
+/**
+ * Resolve nested `digitalAsset` relation based on include parameter.
+ * When include has `digitalAsset` as a DigitalAssetInclude object, the field is
+ * present and narrowed by sub-include. Otherwise absent from type.
+ */
+type ResolveCreatorDigitalAsset<I> = I extends { digitalAsset: infer D }
+  ? D extends true
+    ? { digitalAsset: DigitalAsset | null }
+    : D extends DigitalAssetInclude
+      ? { digitalAsset: DigitalAssetResult<D> | null }
+      : {}
+  : {};
+
+/**
+ * Creator type narrowed by include parameter.
+ *
+ * - `CreatorResult` (no generic) → full `Creator` type (backward compatible)
+ * - `CreatorResult<{}>` → `{ creatorAddress; digitalAssetAddress }` (base fields only)
+ * - `CreatorResult<{ timestamp: true }>` → base + timestamp
+ * - `CreatorResult<{ creatorProfile: { name: true } }>` → base + narrowed creator profile
+ * - `CreatorResult<{ digitalAsset: { name: true, symbol: true } }>` → base + narrowed digital asset
+ *
+ * @example
+ * ```ts
+ * type Full = CreatorResult;                                           // = Creator (all fields)
+ * type Minimal = CreatorResult<{}>;                                    // = { creatorAddress; digitalAssetAddress }
+ * type WithTime = CreatorResult<{ timestamp: true }>;                  // = base + timestamp
+ * type WithProf = CreatorResult<{ creatorProfile: { name: true } }>;   // = base + narrowed profile
+ * type WithDA = CreatorResult<{ digitalAsset: { name: true } }>;       // = base + narrowed DA
+ * ```
+ */
+export type CreatorResult<I extends CreatorInclude | undefined = undefined> = I extends undefined
+  ? Creator
+  : IncludeResult<
+      Creator,
+      'creatorAddress' | 'digitalAssetAddress',
+      CreatorScalarIncludeFieldMap,
+      I
+    > &
+      ResolveCreatorProfile<NonNullable<I>> &
+      ResolveCreatorDigitalAsset<NonNullable<I>>;
+
+/**
+ * Creator with only base fields guaranteed — used for components that accept
+ * any include-narrowed Creator.
+ */
+export type PartialCreator = PartialExcept<Creator, 'creatorAddress' | 'digitalAssetAddress'>;

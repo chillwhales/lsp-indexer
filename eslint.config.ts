@@ -16,12 +16,23 @@ export default tseslint.config(
       'packages/typeorm/src/',
       'packages/typeorm/db/',
 
-      // Legacy v1 indexer — read-only reference, not actively maintained
-      'packages/indexer/',
+      // Codegen output — auto-generated, don't lint
+      'packages/node/src/graphql/',
 
       // Config files — not source code
       '**/vitest.config.ts',
       '**/vitest.setup.ts',
+      '**/tsup.config.ts',
+      '**/codegen.ts',
+
+      // Next.js build output — generated code, not source
+      '**/.next/',
+
+      // GSD planning docs — not source code
+      '**/.planning/',
+
+      // PostCSS config — not in any tsconfig project
+      '**/postcss.config.mjs',
     ],
   },
 
@@ -40,7 +51,8 @@ export default tseslint.config(
         project: [
           './tsconfig.json',
           './packages/*/tsconfig.json',
-          './packages/indexer-v2/tsconfig.eslint.json',
+          './packages/indexer/tsconfig.eslint.json',
+          './apps/*/tsconfig.json',
         ],
         tsconfigRootDir: import.meta.dirname,
       },
@@ -81,8 +93,11 @@ export default tseslint.config(
       // Floating promises — critical for async indexer code
       '@typescript-eslint/no-floating-promises': 'error',
 
-      // No misused promises
-      '@typescript-eslint/no-misused-promises': 'error',
+      // Allow {} in conditional types (common in packages/types/src/ for type algebra)
+      '@typescript-eslint/no-empty-object-type': ['error', { allowObjectTypes: 'always' }],
+
+      // All String(unknown) calls replaced with proper type narrowing
+      '@typescript-eslint/no-base-to-string': 'error',
 
       // Allow empty functions (common in interface stubs)
       '@typescript-eslint/no-empty-function': 'off',

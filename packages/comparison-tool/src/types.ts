@@ -1,14 +1,4 @@
 /**
- * Comparison mode determines which set of known divergences apply.
- *
- * - v1-v2: Cross-version comparison (V1 indexer vs V2 indexer).
- *   Known divergences include schema changes between versions.
- * - v2-v2: Redundancy comparison (two V2 instances).
- *   No known divergences expected — any diff is a bug.
- */
-export type ComparisonMode = 'v1-v2' | 'v2-v2';
-
-/**
  * ID strategy determines how the comparison tool matches rows across endpoints.
  *
  * - address: ID is a deterministic address (e.g., '0x...'). Matched by ID.
@@ -24,16 +14,10 @@ export interface EntityDefinition {
   category: 'core' | 'event' | 'metadata' | 'ownership' | 'lsp' | 'custom';
   isMetadataSub: boolean;
   idStrategy: IdStrategy;
-  /** Hasura column names that form a natural key for matching UUID entities across V1/V2 */
+  /** Hasura column names that form a natural key for matching UUID entities across endpoints */
   naturalKey?: string[];
   /** Parent FK column name for metadata sub-entities (deterministic, used for ordered sampling) */
   parentFk?: string;
-}
-
-export interface KnownDivergence {
-  entityType: string;
-  field: string;
-  reason: string;
 }
 
 export interface ComparisonConfig {
@@ -41,7 +25,6 @@ export interface ComparisonConfig {
   targetUrl: string;
   sourceSecret?: string;
   targetSecret?: string;
-  mode: ComparisonMode;
   entities?: string[];
   sampleSize: number;
   tolerancePercent: number;
@@ -66,8 +49,6 @@ export interface RowDiff {
   entityName: string;
   rowId: string;
   diffs: FieldDiff[];
-  knownDivergences: FieldDiff[];
-  unexpectedDiffs: FieldDiff[];
 }
 
 /**
@@ -80,7 +61,7 @@ export interface RowDiff {
 export interface FKCoverageResult {
   /** Human-readable rule name (e.g., 'UniversalProfile.lsp3Profile') */
   rule: string;
-  /** Endpoint label (e.g., 'V2' or 'V2-A') */
+  /** Endpoint label (e.g., 'Source' or 'Target') */
   endpoint: string;
   /** Number of entities sampled with null FK */
   nullFkCount: number;
@@ -91,7 +72,6 @@ export interface FKCoverageResult {
 }
 
 export interface ComparisonReport {
-  mode: ComparisonMode;
   sourceLabel: string;
   targetLabel: string;
   tolerancePercent: number;

@@ -9,8 +9,7 @@ lsp-indexer/
 ├── packages/              # Monorepo packages
 │   ├── abi/               # Contract ABIs (Subsquid typegen)
 │   ├── typeorm/           # Database entities & migrations
-│   ├── indexer/           # Indexer v1 (legacy, read-only)
-│   └── indexer-v2/        # Indexer v2 (active development)
+│   └── indexer/           # Blockchain indexer (plugin architecture)
 │
 ├── docs/                  # Documentation
 │   ├── ARCHITECTURE.md    # System architecture
@@ -19,8 +18,10 @@ lsp-indexer/
 │   └── docker/            # Docker deployment docs
 │
 ├── docker/                # Docker configurations
-│   ├── v1/                # Legacy setup (indexer v1)
-│   └── v2/                # Current setup (indexer v2)
+│   ├── docker-compose.yml # Orchestration with postgres
+│   ├── Dockerfile         # Multi-stage optimized build
+│   ├── manage.sh          # Management script (35+ commands)
+│   └── entrypoint.sh      # Container entrypoint
 │
 ├── sql/                   # SQL resources
 │   └── views/             # View definitions
@@ -39,15 +40,15 @@ This monorepo uses **pnpm workspaces** for package management. See [docs/](./doc
 
 ```bash
 # Setup
-cd docker/v2
-cp ../../.env.example ../../.env
-nano ../../.env  # Set RPC_URL
+cd docker
+cp ../.env.example ../.env
+nano ../.env  # Set RPC_URL
 
 # Start services
-./docker-v2.sh start
+./manage.sh start
 
 # Monitor logs
-./docker-v2.sh logs indexer-v2 all
+./manage.sh logs indexer all
 ```
 
 See [docs/docker/QUICKSTART.md](./docs/docker/QUICKSTART.md) for details.
@@ -69,8 +70,8 @@ nano .env  # Configure variables
 pnpm migration:generate
 pnpm migration:apply
 
-# Start indexer v2
-pnpm start:v2
+# Start indexer
+pnpm start
 ```
 
 ## 📦 Project Architecture
@@ -79,8 +80,7 @@ The project is organized into several packages that handle different aspects of 
 
 - **abi** — ABI definitions for LUKSO smart contracts (LSP0-LSP8, etc.)
 - **typeorm** — Database entities generated from `schema.graphql` and migrations
-- **indexer** — Legacy indexer (v1) - read-only reference
-- **indexer-v2** — Current indexer with plugin architecture (active development)
+- **indexer** — Blockchain indexer with plugin architecture, enrichment queue, and metadata workers
 
 Each package has its own `package.json` file with dependencies and scripts. The project uses a monorepo structure managed by pnpm workspaces.
 

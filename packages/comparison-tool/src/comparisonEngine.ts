@@ -1,4 +1,4 @@
-import { ENTITY_REGISTRY, getKnownDivergences } from './entityRegistry';
+import { ENTITY_REGISTRY } from './entityRegistry';
 import { createGraphqlClient, GraphqlClient } from './graphqlClient';
 import {
   ComparisonConfig,
@@ -221,13 +221,13 @@ async function checkFKCoverage(
  * Run four-phase comparison between two Hasura endpoints.
  *
  * Phase 1: Aggregate row counts per entity type
- * Phase 2: Sampled content diffs with known divergence detection
+ * Phase 2: Sampled content diffs
  * Phase 3: FK coverage validation (orphaned null detection)
  * Phase 4: Summary with pass/fail verdict (respecting tolerance)
  */
 export async function runComparison(config: ComparisonConfig): Promise<ComparisonReport> {
-  const sourceLabel = config.mode === 'v1-v2' ? 'V1' : 'V2-A';
-  const targetLabel = config.mode === 'v1-v2' ? 'V2' : 'V2-B';
+  const sourceLabel = 'Source';
+  const targetLabel = 'Target';
 
   const sourceClient = createGraphqlClient(config.sourceUrl, config.sourceSecret);
   const targetClient = createGraphqlClient(config.targetUrl, config.targetSecret);
@@ -366,8 +366,6 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
             entityName: entity.name,
             rowId: String(sourceRow.id),
             diffs: allFields,
-            knownDivergences: [],
-            unexpectedDiffs: allFields,
           });
         }
       }
@@ -384,8 +382,6 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
             entityName: entity.name,
             rowId: String(targetRow.id),
             diffs: allFields,
-            knownDivergences: [],
-            unexpectedDiffs: allFields,
           });
         }
       }
@@ -427,9 +423,6 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
     // -----------------------------------------------------------------------
     // Shared comparison logic for strategies 2 & 3
     // -----------------------------------------------------------------------
-    const knownDivergencesForEntity = getKnownDivergences(entity.name, config.mode);
-    const knownFieldSet = new Set(knownDivergencesForEntity.map((d) => d.field));
-    const hasKnownCountDivergence = knownFieldSet.has('count');
     const sampleKeys = Array.from(sourceRowMap.keys());
 
     for (const key of sampleKeys) {
@@ -444,32 +437,17 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
           .filter((field) => field !== 'id')
           .map((field) => ({ field, sourceValue: sourceRow[field], targetValue: undefined }));
 
-        // If this entity has a known count divergence, missing rows in the
-        // target are expected (V1 has phantom/stale rows) — classify as known.
-        if (hasKnownCountDivergence) {
-          sampleDiffs.push({
-            entityName: entity.name,
-            rowId: displayRowId,
-            diffs: allFields,
-            knownDivergences: allFields,
-            unexpectedDiffs: [],
-          });
-        } else {
-          sampleDiffs.push({
-            entityName: entity.name,
-            rowId: displayRowId,
-            diffs: allFields,
-            knownDivergences: [],
-            unexpectedDiffs: allFields,
-          });
-        }
+        sampleDiffs.push({
+          entityName: entity.name,
+          rowId: displayRowId,
+          diffs: allFields,
+        });
         continue;
       }
 
       if (!sourceRow || !targetRow) continue;
 
-      const rowKnownDivergences: FieldDiff[] = [];
-      const rowUnexpectedDiffs: FieldDiff[] = [];
+      const rowDiffs: FieldDiff[] = [];
 
       const allFields = new Set([
         ...Object.keys(sourceRow).filter((f) => f !== 'id'),
@@ -481,23 +459,15 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
         const targetValue = targetRow[field];
 
         if (!valuesEqual(sourceValue, targetValue)) {
-          const fieldDiff: FieldDiff = { field, sourceValue, targetValue };
-
-          if (knownFieldSet.has(field)) {
-            rowKnownDivergences.push(fieldDiff);
-          } else {
-            rowUnexpectedDiffs.push(fieldDiff);
-          }
+          rowDiffs.push({ field, sourceValue, targetValue });
         }
       }
 
-      if (rowKnownDivergences.length > 0 || rowUnexpectedDiffs.length > 0) {
+      if (rowDiffs.length > 0) {
         sampleDiffs.push({
           entityName: entity.name,
           rowId: displayRowId,
-          diffs: [...rowKnownDivergences, ...rowUnexpectedDiffs],
-          knownDivergences: rowKnownDivergences,
-          unexpectedDiffs: rowUnexpectedDiffs,
+          diffs: rowDiffs,
         });
       }
     }
@@ -509,23 +479,16 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
 
   // PHASE 3: FK Coverage validation
   // Check that FK fields are populated when the target entity exists.
-  // In v1-v2 mode, only check the target (V2) endpoint since V1 never populated these.
-  // In v2-v2 mode, check both endpoints.
+  // Always check both endpoints.
   process.stderr.write('\nPhase 3: Checking FK coverage...\n');
 
   const fkCoverage: FKCoverageResult[] = [];
 
-  if (config.mode === 'v2-v2') {
-    const [sourceFkResults, targetFkResults] = await Promise.all([
-      checkFKCoverage(sourceClient, sourceLabel, config.sampleSize),
-      checkFKCoverage(targetClient, targetLabel, config.sampleSize),
-    ]);
-    fkCoverage.push(...sourceFkResults, ...targetFkResults);
-  } else {
-    // v1-v2: only check V2 (target) endpoint
-    const targetFkResults = await checkFKCoverage(targetClient, targetLabel, config.sampleSize);
-    fkCoverage.push(...targetFkResults);
-  }
+  const [sourceFkResults, targetFkResults] = await Promise.all([
+    checkFKCoverage(sourceClient, sourceLabel, config.sampleSize),
+    checkFKCoverage(targetClient, targetLabel, config.sampleSize),
+  ]);
+  fkCoverage.push(...sourceFkResults, ...targetFkResults);
 
   const fkCoverageOrphans = fkCoverage.reduce((sum, r) => sum + r.orphanedNullCount, 0);
 
@@ -544,35 +507,24 @@ export async function runComparison(config: ComparisonConfig): Promise<Compariso
     if (c.match || c.withinTolerance) return false;
     const e = entitiesToCompare.find((ent) => ent.name === c.entityName);
     if (e?.isMetadataSub) return false;
-    // Suppress count mismatches for entities with known count-level divergences
-    const knownDivergences = getKnownDivergences(c.entityName, config.mode);
-    if (knownDivergences.some((d) => d.field === 'count')) return false;
     return true;
   });
 
-  const totalUnexpectedDiffs = sampleDiffs.reduce(
-    (sum, diff) => sum + diff.unexpectedDiffs.length,
-    0,
-  );
+  const totalDiffs = sampleDiffs.reduce((sum, diff) => sum + diff.diffs.length, 0);
 
   const targetMissingTypes = missingEntityTypes.filter((m) => m.endpoint === 'target');
   const sourceMissingTypes = missingEntityTypes.filter((m) => m.endpoint === 'source');
 
-  // In v2-v2 mode, any missing entity (source or target) is a failure.
-  // In v1-v2 mode, only target-missing matters (source may have legacy tables).
-  const missingTypeFailure =
-    config.mode === 'v2-v2'
-      ? targetMissingTypes.length > 0 || sourceMissingTypes.length > 0
-      : targetMissingTypes.length > 0;
+  // Any missing entity (source or target) is a failure
+  const missingTypeFailure = targetMissingTypes.length > 0 || sourceMissingTypes.length > 0;
 
   const passed =
     countFailures.length === 0 &&
-    totalUnexpectedDiffs === 0 &&
+    totalDiffs === 0 &&
     !missingTypeFailure &&
     fkCoverageOrphans === 0;
 
   return {
-    mode: config.mode,
     sourceLabel,
     targetLabel,
     tolerancePercent: config.tolerancePercent,

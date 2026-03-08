@@ -50,6 +50,11 @@ If documentation makes a requested change impossible or conflicts with requireme
    - What would need to change in guidelines to allow it
 4. **Wait** for user to clarify or update guidelines
 
+## Git Push Rules
+
+- **Never push directly to a PR base branch** — always create a feature branch and open a PR to it. This applies to `main`, epic branches, and any other branch that has an open PR.
+- **Check for existing open PRs** from the current branch before creating a new one: `gh pr list --head $(git branch --show-current) --state open`
+
 ## Documentation Standards
 
 When updating documentation:

@@ -1,0 +1,68 @@
+'use server';
+
+import {
+  type FetchFollowsResult,
+  fetchFollowCount,
+  fetchFollows,
+  fetchIsFollowing,
+  getServerUrl,
+} from '@lsp-indexer/node';
+import {
+  type FollowCount,
+  type FollowerFilter,
+  type FollowerInclude,
+  type FollowerResult,
+  type FollowerSort,
+  type PartialFollower,
+  UseFollowCountParamsSchema,
+  UseFollowsParamsSchema,
+  UseIsFollowingParamsSchema,
+} from '@lsp-indexer/types';
+import { validateInput } from './validate';
+
+/** Server action: fetch a paginated list of follow relationships. */
+export async function getFollows(params: {
+  filter?: FollowerFilter;
+  sort?: FollowerSort;
+  limit?: number;
+  offset?: number;
+}): Promise<FetchFollowsResult>;
+export async function getFollows<const I extends FollowerInclude>(params: {
+  filter?: FollowerFilter;
+  sort?: FollowerSort;
+  limit?: number;
+  offset?: number;
+  include: I;
+}): Promise<FetchFollowsResult<FollowerResult<I>>>;
+export async function getFollows(params: {
+  filter?: FollowerFilter;
+  sort?: FollowerSort;
+  limit?: number;
+  offset?: number;
+  include?: FollowerInclude;
+}): Promise<FetchFollowsResult<PartialFollower>>;
+export async function getFollows(params: {
+  filter?: FollowerFilter;
+  sort?: FollowerSort;
+  limit?: number;
+  offset?: number;
+  include?: FollowerInclude;
+}): Promise<FetchFollowsResult<PartialFollower>> {
+  validateInput(UseFollowsParamsSchema, params, 'getFollows');
+  return await fetchFollows(getServerUrl(), params);
+}
+
+/** Server action: fetch follower and following counts for an address. */
+export async function getFollowCount(address: string): Promise<FollowCount> {
+  validateInput(UseFollowCountParamsSchema, { address }, 'getFollowCount');
+  return await fetchFollowCount(getServerUrl(), { address });
+}
+
+/** Server action: check if one address follows another. */
+export async function getIsFollowing(
+  followerAddress: string,
+  followedAddress: string,
+): Promise<boolean> {
+  validateInput(UseIsFollowingParamsSchema, { followerAddress, followedAddress }, 'getIsFollowing');
+  return await fetchIsFollowing(getServerUrl(), { followerAddress, followedAddress });
+}

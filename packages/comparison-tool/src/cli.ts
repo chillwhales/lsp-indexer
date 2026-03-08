@@ -3,7 +3,7 @@
 import { runComparison } from './comparisonEngine';
 import { ENTITY_REGISTRY } from './entityRegistry';
 import { printReport } from './reporter';
-import { ComparisonConfig, ComparisonMode } from './types';
+import { ComparisonConfig } from './types';
 
 function parseArgs(): ComparisonConfig | null {
   const args = process.argv.slice(2);
@@ -13,8 +13,7 @@ function parseArgs(): ComparisonConfig | null {
     return null;
   }
 
-  const config: Partial<ComparisonConfig> & { mode: ComparisonMode } = {
-    mode: 'v1-v2',
+  const config: Partial<ComparisonConfig> = {
     sampleSize: 100,
     tolerancePercent: 0,
   };
@@ -24,26 +23,10 @@ function parseArgs(): ComparisonConfig | null {
       config.sourceUrl = arg.substring('--source='.length);
     } else if (arg.startsWith('--target=')) {
       config.targetUrl = arg.substring('--target='.length);
-    } else if (arg.startsWith('--v1=')) {
-      config.sourceUrl = arg.substring('--v1='.length);
-    } else if (arg.startsWith('--v2=')) {
-      config.targetUrl = arg.substring('--v2='.length);
     } else if (arg.startsWith('--source-secret=')) {
       config.sourceSecret = arg.substring('--source-secret='.length);
     } else if (arg.startsWith('--target-secret=')) {
       config.targetSecret = arg.substring('--target-secret='.length);
-    } else if (arg.startsWith('--v1-secret=')) {
-      config.sourceSecret = arg.substring('--v1-secret='.length);
-    } else if (arg.startsWith('--v2-secret=')) {
-      config.targetSecret = arg.substring('--v2-secret='.length);
-    } else if (arg.startsWith('--mode=')) {
-      const mode = arg.substring('--mode='.length);
-      if (mode === 'v1-v2' || mode === 'v2-v2') {
-        config.mode = mode;
-      } else {
-        console.error(`Error: Invalid mode "${mode}". Use "v1-v2" or "v2-v2".\n`);
-        return null;
-      }
     } else if (arg.startsWith('--entities=')) {
       const entityNames = arg
         .substring('--entities='.length)
@@ -77,7 +60,6 @@ function parseArgs(): ComparisonConfig | null {
     targetUrl: config.targetUrl,
     sourceSecret: config.sourceSecret,
     targetSecret: config.targetSecret,
-    mode: config.mode,
     entities: config.entities,
     sampleSize: config.sampleSize ?? 100,
     tolerancePercent: config.tolerancePercent ?? 0,
@@ -90,39 +72,30 @@ Usage: pnpm compare -- [options]
 
 Compare row counts and sampled content between two Hasura GraphQL endpoints.
 
-Endpoint options (pick one style):
-  --v1=<url>              Source endpoint (v1-v2 mode naming)
-  --v2=<url>              Target endpoint (v1-v2 mode naming)
-  --source=<url>          Source endpoint (generic naming)
-  --target=<url>          Target endpoint (generic naming)
+Endpoint options:
+  --source=<url>          Source endpoint
+  --target=<url>          Target endpoint
 
 Authentication:
-  --v1-secret=<secret>    Source admin secret (or --source-secret)
-  --v2-secret=<secret>    Target admin secret (or --target-secret)
+  --source-secret=<secret>  Source admin secret
+  --target-secret=<secret>  Target admin secret
 
 Comparison options:
-  --mode=<mode>           v1-v2 (default) or v2-v2
   --entities=<list>       Comma-separated entity names (default: all)
   --sample-size=<n>       Rows to sample per entity (default: 100)
   --tolerance=<percent>   Acceptable count diff percentage (default: 0)
   --help, -h              Show this help message
 
-Modes:
-  v1-v2   Cross-version comparison. Known divergences (null FKs, token format)
-          are reported separately and don't affect the verdict.
-  v2-v2   Redundancy comparison. Any difference is flagged as a failure.
-          No known divergences apply.
-
 Examples:
-  # V1 vs V2 comparison
-  pnpm compare -- --v1=https://v1.example.com/v1/graphql --v2=https://v2.example.com/v1/graphql
+  # Compare two endpoints
+  pnpm compare -- --source=https://a.example.com/v1/graphql --target=https://b.example.com/v1/graphql
 
-  # V2 vs V2 redundancy check with 2% tolerance
-  pnpm compare -- --mode=v2-v2 --source=https://v2a.example.com/v1/graphql \\
-    --target=https://v2b.example.com/v1/graphql --tolerance=2
+  # With 2% count tolerance
+  pnpm compare -- --source=https://a.example.com/v1/graphql \\
+    --target=https://b.example.com/v1/graphql --tolerance=2
 
   # Specific entities with secrets
-  pnpm compare -- --v1=URL --v2=URL --v1-secret=s1 --v2-secret=s2 \\
+  pnpm compare -- --source=URL --target=URL --source-secret=s1 --target-secret=s2 \\
     --entities=UniversalProfile,DigitalAsset,NFT
 
 Exit codes:

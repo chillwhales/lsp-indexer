@@ -1,7 +1,8 @@
 {
   "name": "@chillwhales/indexer",
-  "version": "1.5.2",
-  "description": "",
+  "private": true,
+  "version": "0.1.0",
+  "description": "LUKSO blockchain indexer — plugin architecture",
   "keywords": [],
   "author": "b00ste",
   "license": "MIT",
@@ -9,7 +10,11 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -Rf lib/",
-    "start": "ts-node --project ./tsconfig.json -r tsconfig-paths/register lib/app/index.js"
+    "start": "bash -c 'set -o pipefail && mkdir -p \"${LOG_DIR:-logs}\" && ts-node --project ./tsconfig.json -r tsconfig-paths/register lib/app/index.js 2>&1 | tee -a \"${LOG_DIR:-logs}\"/console-$(date +%Y-%m-%d).log'",
+    "start:simple": "INDEXER_ENABLE_FILE_LOGGER=false ts-node --project ./tsconfig.json -r tsconfig-paths/register lib/app/index.js",
+    "pretest": "pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@chillwhales/abi": "workspace:1.0.4",
@@ -25,17 +30,21 @@
     "@lukso/lsp7-contracts": "0.16.8",
     "@lukso/lsp8-contracts": "0.16.7",
     "@subsquid/evm-processor": "^1.27.2",
+    "@subsquid/logger": "^1.4.0",
     "@subsquid/typeorm-store": "^1.5.1",
     "axios": "^1.11.0",
     "data-urls": "^5.0.0",
     "dotenv": "^17.2.1",
+    "pino": "^9.6.0",
+    "pino-roll": "^1.1.0",
+    "tsconfig-paths": "^4.2.0",
     "typeorm": "^0.3.25",
     "uuid": "^11.1.0",
     "viem": "^2.33.2"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
-    "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^2.1.8"
   }
 }

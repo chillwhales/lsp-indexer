@@ -1,419 +1,437 @@
-# Stack Research
+# Technology Stack: packages/react
 
-**Project:** LSP Indexer V2
-**Researched:** 2026-02-06
-**Mode:** Ecosystem — Stack dimension for Subsquid-based LUKSO indexer
+**Project:** LSP Indexer — React Hooks Package
+**Researched:** 2026-02-16
+**Mode:** Ecosystem — Stack dimension for standalone React hooks library
+**Overall confidence:** HIGH
 
-## Current Stack Assessment
+## Executive Summary
 
-The existing stack is **well-chosen and current**. No major technology migrations are needed for the V2 completion milestone. Below is a detailed assessment of each component.
+The recommended stack from the `chillwhales/marketplace` reference implementation is **current and well-chosen**. All libraries are actively maintained, at recent stable versions, and integrate cleanly. The key architectural insight is that **GraphQL Codegen's `client-preset` with `documentMode: 'string'` is the modern, recommended approach** — it generates typed `TypedDocumentString` wrappers that work with any client including `graphql-request` and TanStack Query, without needing library-specific codegen plugins like `@graphql-codegen/typescript-react-query`.
 
-### Core Framework: Subsquid SDK
+**One notable change since the reference implementation:** Zod v4 is now the `latest` tag on npm (v4.3.6). However, `next-safe-action` v8 uses [Standard Schema](https://github.com/standard-schema/standard-schema), meaning it works with both Zod v3 and v4. **Recommend using Zod v3 (`zod@^3.24.1`) for stability** — v4 is brand new and introduces breaking API changes (`z.object()` → `z.interface()` for optionals, new import paths). Migrate to v4 in a future milestone.
 
-| Component                        | Current Version | Status | Assessment                                       |
-| -------------------------------- | --------------- | ------ | ------------------------------------------------ |
-| `@subsquid/evm-processor`        | 1.27.2          | Stable | **Keep** — latest stable on the gateway API line |
-| `@subsquid/typeorm-store`        | 1.5.1           | Stable | **Keep** — latest stable                         |
-| `@subsquid/evm-abi`              | 0.3.1           | Stable | **Keep**                                         |
-| `@subsquid/evm-codec`            | 0.3.0           | Stable | **Keep**                                         |
-| `@subsquid/evm-typegen`          | 4.4.0           | Stable | **Keep**                                         |
-| `@subsquid/typeorm-codegen`      | 2.0.2           | Stable | **Keep**                                         |
-| `@subsquid/typeorm-migration`    | 1.3.0           | Stable | **Keep**                                         |
-| `@subsquid/hasura-configuration` | 2.0.0           | Stable | **Keep**                                         |
+## Core Dependencies (Runtime — shipped in the package)
 
-**Key finding: SQD Portal API (future direction)**
+**UPDATE (post-synthesis decision):** The package ships with **a single runtime dependency (`graphql-ws`)** for WebSocket subscriptions. SUMMARY.md resolved the `graphql-request` vs typed `fetch` divergence in favor of a ~30-line typed `fetch` wrapper using `TypedDocumentString` from codegen. This eliminates `graphql-request` and `graphql` as runtime deps — `graphql` is only needed as a `devDependency` for codegen at build time.
 
-SQD is actively developing a new "Portal API" that replaces the gateway-based `setGateway()` with a stream-based `setPortal()`. This involves a **different npm package line** (`@subsquid/evm-processor@portal-api`), and the newest iteration (`@subsquid/evm-stream@portal-api` + `@subsquid/batch-processor@portal-api`) fully replaces `@subsquid/evm-processor`.
+| Library               | Version      | Purpose                                   | Status                                                                                                                                                      |
+| --------------------- | ------------ | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~`graphql-request`~~ | ~~`^7.4.0`~~ | ~~GraphQL HTTP client~~                   | **REMOVED** — replaced by typed `fetch` wrapper. `graphql-request` is evolving into "Graffle" (heavier, different API). The `execute()` wrapper is ~30 LOC. |
+| `graphql`             | `^16.12.0`   | GraphQL core (codegen + type generation)  | **Moved to `devDependencies`** — only needed at build time for codegen. Not shipped in the package bundle.                                                  |
+| `graphql-ws`          | `^6.0.0`     | WebSocket client for Hasura subscriptions | **Runtime dependency** — required for subscription hooks. Lightweight (~5KB), implements the graphql-ws protocol Hasura uses.                               |
 
-**Recommendation:** Do NOT migrate to Portal API during V2 completion. The Portal SDK is in open beta and introduces significant API changes (different imports, `DataSourceBuilder` instead of `EvmBatchProcessor`, `where-include-range` syntax, manual logger creation). The current gateway API (`v2.archive.subsquid.io/network/lukso-mainnet`) is stable and fully supported. Plan the Portal migration as a separate post-V2 milestone.
+**Note:** `graphql-ws` is the ONLY runtime dependency. Everything else (`@tanstack/react-query`, `next-safe-action`, `zod`, `react`, `viem`) must be **peer dependencies** — the consuming app provides them. This keeps the package lightweight and avoids version conflicts.
 
-**Confidence: HIGH** — Verified via official SQD docs at `docs.sqd.dev/migrate-to-portal-sdk/` and `docs.sqd.dev/migrate-to-portal-with-real-time-data-on-evm/`.
+## Peer Dependencies (Consumer provides)
 
-### EVM Utilities: Viem
+These are `peerDependencies` — the consuming application must install them. The package imports from them but does not bundle them.
 
-| Component | Current Version | Latest Specifier | Assessment                |
-| --------- | --------------- | ---------------- | ------------------------- |
-| `viem`    | ^2.33.2         | ^2.33.2          | **Keep** — correct choice |
+| Library                 | Version Range          | Purpose                                   | Required?    | Rationale                                                                                                                            |
+| ----------------------- | ---------------------- | ----------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `react`                 | `^18.0.0 \|\| ^19.0.0` | React core                                | **Yes**      | Hooks require React. Support both 18 (current majority) and 19 (released).                                                           |
+| `@tanstack/react-query` | `^5.0.0`               | Client-side data fetching hooks           | **Yes**      | v5 is stable (currently 5.90.21). The package wraps TanStack Query hooks — consumer must provide it. Supports React 18+.             |
+| `next-safe-action`      | `^8.0.0`               | Type-safe Next.js server actions          | **Optional** | Only needed for server-side pattern. Mark as optional in `peerDependenciesMeta`. v8.0.11 is current, uses Standard Schema.           |
+| `zod`                   | `^3.24.0`              | Schema validation for server actions      | **Optional** | Only needed alongside `next-safe-action` for input validation. Pin to v3 — see Zod section below.                                    |
+| `viem`                  | `^2.0.0`               | Ethereum address types (`Address`, `Hex`) | **Optional** | Only needed if consumer uses `Address`-typed parameters. The hooks package re-exports utility types but doesn't call viem functions. |
 
-Viem is the clear winner over ethers.js for EVM utilities in 2025-2026:
+### peerDependenciesMeta
 
-- **Tree-shakeable** — only imports what you use, smaller bundle
-- **Type-safe** — first-class TypeScript with strong inference
-- **Performance** — optimized for modern JS runtimes
-- **Active development** — faster release cadence than ethers v6
-- **Native BigInt** — no need for `BigNumber` wrapper class
+```json
+{
+  "peerDependenciesMeta": {
+    "next-safe-action": { "optional": true },
+    "zod": { "optional": true },
+    "viem": { "optional": true }
+  }
+}
+```
 
-This project uses viem correctly — for hex conversion, boolean parsing, and EVM data encoding/decoding utilities. The codebase does NOT use viem as an RPC client (Subsquid handles RPC), which is the ideal pattern.
+This allows consumers to install ONLY client-side hooks (React + TanStack Query) without Next.js/Zod/Viem.
 
-ethers.js v6 is still maintained but:
+## Dev Dependencies (Build-time only — not shipped)
 
-- Larger bundle size
-- Less ergonomic TypeScript experience
-- Slower adoption of modern JS patterns
-- Community momentum has shifted to viem
+### GraphQL Codegen Pipeline
 
-**Confidence: HIGH** — Based on ecosystem-wide adoption patterns and official documentation.
-
-### ORM: TypeORM
-
-| Component | Current Version | Assessment                      |
-| --------- | --------------- | ------------------------------- |
-| `typeorm` | ^0.3.25         | **Keep** — required by Subsquid |
-
-TypeORM 0.3.x is the version required by `@subsquid/typeorm-store`. The project cannot switch to an alternative ORM (Drizzle, Prisma, MikroORM) without losing Subsquid integration.
-
-**Batch upsert best practices for Subsquid TypeORM Store:**
-
-The `context.store` interface from `@subsquid/typeorm-store` provides:
-
-- `upsert(entities: E[])` — INSERT OR UPDATE on conflict. **Does not cascade to relations.** This is the correct method for data key entities where latest value wins.
-- `insert(entities: E[])` — Primitive INSERT, fails on duplicate. Use for event entities (unique UUIDs).
-- `remove(Entity, ids)` — Delete by IDs. **Does not cascade.**
-
-Key patterns already correctly used in this codebase:
-
-1. **Events use `insert()`** — UUID-keyed, append-only
-2. **Data keys use `upsert()`** — Address-keyed, latest value wins
-3. **Core entities use `upsert()`** — For UniversalProfile, DigitalAsset, NFT
-
-**Pitfall to watch:** `upsert()` does NOT cascade to relations. This means sub-entities (like LSP3ProfileImage, LSP4MetadataAttribute) must be explicitly cleared before re-inserting. The V1 codebase already handles this via `clearSubEntities()` — ensure V2 replicates this pattern.
-
-**Confidence: HIGH** — Verified via official SQD docs at `docs.sqd.dev/sdk/reference/store/typeorm/`.
-
-### Runtime: Node.js 22
-
-| Component | Current Version | Assessment                       |
-| --------- | --------------- | -------------------------------- |
-| Node.js   | 22 (Alpine)     | **Keep** — LTS, excellent choice |
-
-Node.js 22 (LTS since October 2024) provides:
-
-- **Stable `worker_threads`** — Used by Subsquid internally for data decoding; suitable for metadata worker thread pools if the V2 enrichment queue architecture needs them
-- **Native `fetch()`** — Could replace axios for simpler HTTP calls (but not urgent)
-- **Performance** — V8 engine improvements benefit batch processing throughput
-- **ESM improvements** — Though project uses CommonJS (required by TypeORM decorators + ts-node), no urgency to change
-
-**Worker threads consideration:** The V2 architecture mentions "metadata worker thread pool" (#18). Node.js 22 has a fully stable `worker_threads` API. For CPU-bound work (JSON parsing), workers help. For I/O-bound work (IPFS fetching), `Promise.allSettled()` with concurrency limiting is simpler and sufficient. Given that metadata fetching is primarily I/O-bound (HTTP requests to IPFS gateways), recommend using async concurrency control (e.g., p-limit or manual batching) rather than worker threads unless CPU parsing becomes a bottleneck.
-
-**Confidence: HIGH** — Based on Node.js official release schedule and feature documentation.
+| Library                          | Version   | Purpose                    | Rationale                                                                                                                                                                                                 |
+| -------------------------------- | --------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@graphql-codegen/cli`           | `^6.1.1`  | Codegen CLI runner         | Orchestrates type generation from Hasura schema. v6 is current stable.                                                                                                                                    |
+| `@graphql-codegen/client-preset` | `^5.2.2`  | **The** recommended preset | Generates `graphql()` function + `TypedDocumentString` types. Replaces the old plugin-per-library approach. Includes `@graphql-codegen/typescript` + `@graphql-codegen/typescript-operations` internally. |
+| `@graphql-codegen/schema-ast`    | `^5.0.0`  | Schema file generation     | Generates a local `.graphql` schema file from Hasura endpoint introspection. Used as codegen input for IDE tooling.                                                                                       |
+| `@graphql-codegen/introspection` | `^5.0.0`  | Introspection JSON output  | Generates `introspection.json` for tooling/testing. Optional but useful.                                                                                                                                  |
+| `@0no-co/graphqlsp`              | `^1.15.2` | TypeScript LSP plugin      | Provides GraphQL auto-complete in VSCode when writing queries with `graphql()`. Recommended by official codegen docs.                                                                                     |
+| `@parcel/watcher`                | `^2.1.0`  | Watch mode for codegen     | Enables `--watch` flag on `graphql-codegen` CLI. Optional peer dep of `@graphql-codegen/cli`.                                                                                                             |
 
 ### Build Tooling
 
-| Component      | Current Version | Assessment                                   |
-| -------------- | --------------- | -------------------------------------------- |
-| TypeScript     | ^5.9.2          | **Keep** — latest                            |
-| pnpm           | 10.15.0         | **Keep** — latest line                       |
-| ts-node        | ^10.9.2         | **Keep** — required for runtime TS execution |
-| tsconfig-paths | ^4.2.0          | **Keep** — for `@/*` alias resolution        |
-| Prettier       | ^3.5.3          | **Keep**                                     |
+| Library      | Version  | Purpose             | Rationale                                                                                                                                                                                                                                             |
+| ------------ | -------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tsup`       | `^8.5.1` | Package bundler     | **Recommended over unbuild.** esbuild-powered, generates ESM + CJS dual output, auto-generates `.d.ts` declarations, handles `"use client"` directives. Used by TanStack Query itself. Simpler config than unbuild, better React ecosystem alignment. |
+| `typescript` | `^5.9.2` | TypeScript compiler | Match monorepo root version. Used by tsup for `.d.ts` generation.                                                                                                                                                                                     |
 
-No changes needed. The build tooling is current.
+### Testing
 
-### Infrastructure
+| Library                        | Version   | Purpose                      | Rationale                                                                                                                                                                                                                                |
+| ------------------------------ | --------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vitest`                       | `^3.2.0`  | Test runner                  | **Pin to v3.x, NOT v4.x.** v4.0.18 is `latest` on npm but requires Node >=20 and has breaking changes. v3 is the LTS-equivalent for production packages. esbuild-powered, native ESM, compatible with vitest workspace in pnpm monorepo. |
+| `@testing-library/react`       | `^16.3.2` | React component/hook testing | Standard for testing React hooks. v16 supports React 18+19.                                                                                                                                                                              |
+| `@testing-library/react-hooks` | —         | **DO NOT ADD**               | Merged into `@testing-library/react` v13+. The `renderHook` API is built-in now.                                                                                                                                                         |
+| `msw`                          | `^2.x`    | API mocking                  | Mock GraphQL responses in tests without a real Hasura endpoint. MSW v2 is the current line with native ESM support.                                                                                                                      |
+| `happy-dom`                    | `^20.x`   | DOM environment for vitest   | Lighter than jsdom, sufficient for hook testing (no real DOM rendering needed).                                                                                                                                                          |
 
-| Component             | Current Version    | Assessment                           |
-| --------------------- | ------------------ | ------------------------------------ |
-| PostgreSQL            | 17-alpine          | **Keep** — latest stable             |
-| Hasura GraphQL Engine | v2.46.0            | **Keep** — recent stable             |
-| Docker                | Single-stage build | **Improve** — see Deployment section |
+### Type Checking & Quality
 
-### Supporting Libraries
+| Library    | Version           | Purpose    | Rationale                                                    |
+| ---------- | ----------------- | ---------- | ------------------------------------------------------------ |
+| `eslint`   | Use monorepo root | Linting    | Already configured at monorepo root with `eslint.config.ts`. |
+| `prettier` | Use monorepo root | Formatting | Already configured at monorepo root.                         |
 
-| Library             | Current Version | Assessment                                                                    |
-| ------------------- | --------------- | ----------------------------------------------------------------------------- |
-| `axios`             | ^1.11.0         | **Keep** for now — could consider native `fetch()` later                      |
-| `@erc725/erc725.js` | ^0.28.1         | **Keep** — LUKSO-specific, required for VerifiableURI decoding                |
-| `dotenv`            | ^17.2.1         | **Keep**                                                                      |
-| `data-urls`         | ^5.0.0          | **Keep** — for data: URI parsing                                              |
-| `uuid`              | ^11.1.0         | **Keep** — could use `crypto.randomUUID()` (Node.js 22 native) but not urgent |
+## Codegen Configuration
 
-## Recommendations
+The codegen pipeline runs against the Hasura GraphQL endpoint and generates TypeScript types from the schema.
 
-### Immediate (Do During V2 Completion)
-
-1. **No version bumps needed** — All current versions are at or near latest stable. Pin exact versions in the lockfile (already done via pnpm-lock.yaml).
-
-2. **Structured logging pattern** — Use Subsquid's built-in `context.log` with JSON-structured messages. See Logging Patterns section below for details.
-
-3. **Consider `crypto.randomUUID()`** — Could replace `uuid` package for entity ID generation since Node.js 22 includes this natively. Minor optimization, not urgent.
-
-### Post-V2 (Future Milestones)
-
-1. **Portal SDK migration** — When SQD Portal exits beta and LUKSO mainnet is confirmed supported with real-time data, migrate from `setGateway()` to `setPortal()`. This is a significant API change requiring a dedicated milestone:
-
-   - Replace `@subsquid/evm-processor` with `@subsquid/evm-stream@portal-api` + `@subsquid/batch-processor@portal-api`
-   - Rewrite processor config to use `DataSourceBuilder` with `where-include-range` syntax
-   - Add `@subsquid/logger` for manual logger creation
-   - Benefit: 5-10x faster historical sync, reduced RPC dependency, native finality handling
-
-2. **Multi-stage Docker build** — Current Dockerfile copies all source. A multi-stage build would reduce image size. See Deployment section.
-
-3. **Replace axios with native fetch** — Node.js 22 has a stable global `fetch()`. Would eliminate a dependency. Low priority.
-
-4. **Hasura v3 evaluation** — Hasura v3 (Hasura DDN) is a significant rewrite. The current v2.46.0 is stable and supported. Evaluate v3 only if v2 EOL is announced.
-
-### Not Recommended
-
-1. **DO NOT migrate to Drizzle/Prisma/MikroORM** — Subsquid's `TypeormDatabase` store is tightly integrated and generates entities from `schema.graphql`. Switching ORMs would break the entire codegen pipeline.
-
-2. **DO NOT switch to ethers.js** — Viem is the better choice. The project already uses it correctly.
-
-3. **DO NOT add GraphQL subscriptions** — Hasura handles the GraphQL layer. No custom resolvers needed per project constraints.
-
-4. **DO NOT add Redis/message queues** — The enrichment queue architecture works in-process. External queues add infrastructure complexity without benefit for this use case.
-
-## Version Notes
-
-### Current Versions (All Correct)
-
-| Package                          | In package.json | Resolved | Latest Stable         | Action                    |
-| -------------------------------- | --------------- | -------- | --------------------- | ------------------------- |
-| `@subsquid/evm-processor`        | ^1.27.2         | 1.27.2   | 1.27.2 (gateway line) | None                      |
-| `@subsquid/typeorm-store`        | ^1.5.1          | 1.5.1    | 1.5.1                 | None                      |
-| `@subsquid/evm-typegen`          | ^4.4.0          | 4.4.0    | 4.4.0                 | None                      |
-| `@subsquid/typeorm-codegen`      | ^2.0.2          | 2.0.2    | 2.0.2                 | None                      |
-| `@subsquid/hasura-configuration` | ^2.0.0          | 2.0.0    | 2.0.0                 | None                      |
-| `viem`                           | ^2.33.2         | 2.33.2+  | ~2.x (active)         | None (auto-updates via ^) |
-| `typeorm`                        | ^0.3.25         | 0.3.25   | 0.3.x                 | None                      |
-| `typescript`                     | ^5.9.2          | 5.9.2    | 5.9.x                 | None                      |
-| Node.js                          | 22-alpine       | 22.x     | 22.x LTS              | None                      |
-| PostgreSQL                       | 17-alpine       | 17.x     | 17.x                  | None                      |
-| Hasura                           | v2.46.0         | 2.46.0   | 2.46.x                | None                      |
-
-### Portal API Versions (Future — Do Not Adopt Yet)
-
-| Package                     | Version     | Purpose                         |
-| --------------------------- | ----------- | ------------------------------- |
-| `@subsquid/evm-stream`      | @portal-api | Replaces evm-processor          |
-| `@subsquid/evm-objects`     | @portal-api | Block augmentation utilities    |
-| `@subsquid/batch-processor` | @portal-api | New `run()` function            |
-| `@subsquid/logger`          | latest      | Manual logger for Portal SDK    |
-| `@subsquid/rpc-client`      | latest      | Explicit RPC client (if needed) |
-
-## Logging Patterns
-
-### Subsquid Logger Architecture
-
-Subsquid provides a built-in `Logger` interface injected as `ctx.log` in the batch handler context. It is bound to the namespace `sqd:processor:mapping`.
-
-**Available log levels (increasing severity):**
-
-- `TRACE` — Verbose debugging (disabled by default)
-- `DEBUG` — Detailed debugging
-- `INFO` — Standard operational messages (default minimum level)
-- `WARN` — Warning conditions
-- `ERROR` — Error conditions
-- `FATAL` — Unrecoverable errors
-
-**Confidence: HIGH** — Verified via official SQD docs at `docs.sqd.dev/sdk/reference/logger/`.
-
-### Current Logging Pattern (V1)
-
-The V1 codebase uses `context.log.info(JSON.stringify({...}))` throughout. This works but has issues:
-
-- Manual `JSON.stringify()` on every call
-- All messages at `INFO` level — no severity differentiation
-- No consistent structure across log sites
-
-### Recommended Pattern for V2
-
-**1. Centralized logger utility:**
+### Recommended `codegen.ts`
 
 ```typescript
-// src/utils/logger.ts
-import { Context } from '@/types';
+import type { CodegenConfig } from '@graphql-codegen/cli';
 
-interface LogFields {
-  [key: string]: string | number | boolean | null | undefined;
-}
+const config: CodegenConfig = {
+  // Introspect from Hasura endpoint (requires HASURA_GRAPHQL_URL env var)
+  // Falls back to local schema file for CI/offline development
+  schema: process.env.HASURA_GRAPHQL_URL || './schema.graphql',
+  documents: ['src/documents/**/*.ts'],
+  ignoreNoDocuments: true,
+  generates: {
+    // Generated types + graphql() function
+    './src/graphql/': {
+      preset: 'client',
+      config: {
+        documentMode: 'string', // String literals, not AST — smaller bundles
+        useTypeImports: true, // import type {} for TS 5.x
+        enumsAsTypes: true, // string unions, not TS enums — better for .d.ts
+        scalars: {
+          DateTime: 'string', // Hasura DateTime → string
+          BigInt: 'string', // BigInt scalars as string (Hasura uses numeric strings)
+          numeric: 'string', // PostgreSQL numeric type
+        },
+      },
+    },
+    // Local schema file for IDE tooling and offline development
+    './schema.graphql': {
+      plugins: ['schema-ast'],
+      config: {
+        includeDirectives: true,
+      },
+    },
+  },
+};
 
-export function createLogger(context: Context) {
-  return {
-    trace: (message: string, fields?: LogFields) =>
-      context.log.trace(JSON.stringify({ message, ...fields })),
-    debug: (message: string, fields?: LogFields) =>
-      context.log.debug(JSON.stringify({ message, ...fields })),
-    info: (message: string, fields?: LogFields) =>
-      context.log.info(JSON.stringify({ message, ...fields })),
-    warn: (message: string, fields?: LogFields) =>
-      context.log.warn(JSON.stringify({ message, ...fields })),
-    error: (message: string, fields?: LogFields) =>
-      context.log.error(JSON.stringify({ message, ...fields })),
-  };
-}
+export default config;
 ```
 
-**2. Severity usage guidelines:**
+### Why `client-preset` over `typescript-react-query` plugin
 
-| Level   | When to Use                     | Example                                       |
-| ------- | ------------------------------- | --------------------------------------------- |
-| `TRACE` | Per-entity processing details   | "Processing DataChanged for 0x..."            |
-| `DEBUG` | Batch-level processing stats    | "Batch contains 45 logs across 12 blocks"     |
-| `INFO`  | Significant operational events  | "Saving 23 new UniversalProfile entities"     |
-| `WARN`  | Recoverable issues              | "Metadata fetch failed (retry 2/5) for 0x..." |
-| `ERROR` | Non-recoverable issues in batch | "Multicall verification failed for 0x..."     |
+| Approach            | `client-preset` (Recommended)                    | `typescript-react-query` plugin |
+| ------------------- | ------------------------------------------------ | ------------------------------- |
+| **Official status** | The Guild's recommended approach                 | Community plugin, separate repo |
+| **Flexibility**     | Works with ANY client (TanStack, SWR, raw fetch) | Locked to React Query           |
+| **Bundle size**     | `documentMode: 'string'` = string literals       | Full AST objects                |
+| **Maintenance**     | Core team, frequent updates                      | Community, less frequent        |
+| **Pattern**         | You write thin hook wrappers around `execute()`  | Auto-generates hooks            |
+| **Customization**   | Full control over hook API                       | Limited config options          |
 
-**3. Log level control via environment:**
+The `client-preset` approach gives us full control over the hook API design while still getting complete type safety. The auto-generated hooks from `typescript-react-query` would conflict with our custom service → hook → action architecture.
 
-```bash
-# Default: INFO and above
-SQD_DEBUG=sqd:processor:mapping  # Enable DEBUG for processor
-SQD_TRACE=sqd:processor*         # Enable TRACE for all processor internals
-```
+**Confidence: HIGH** — Verified via official GraphQL Codegen docs (fetched 2026-02-16).
 
-**4. Consistent field schema:**
+## Build Tooling: tsup vs unbuild
+
+| Criterion                 | tsup ^8.5.1                                 | unbuild ^3.6.1              |
+| ------------------------- | ------------------------------------------- | --------------------------- |
+| **Engine**                | esbuild                                     | rollup + esbuild (mkdist)   |
+| **Config complexity**     | Minimal (~10 lines)                         | Minimal (~10 lines)         |
+| **Dual ESM/CJS**          | First-class                                 | First-class                 |
+| **DTS generation**        | Built-in (rollup-plugin-dts)                | Built-in (mkdist)           |
+| **`"use client"` banner** | `banner: { js: '"use client";' }` per entry | Requires custom plugin      |
+| **React ecosystem usage** | TanStack Query, Zustand, Jotai              | Nuxt, Nitro, UnJS ecosystem |
+| **Tree-shaking**          | Good (esbuild)                              | Good (rollup)               |
+| **Watch mode**            | Built-in                                    | Built-in                    |
+| **Monorepo support**      | Works with pnpm workspaces                  | Works with pnpm workspaces  |
+
+**Recommendation: tsup** — It's what TanStack Query itself uses for building. Better alignment with the React ecosystem. The `"use client"` directive banner support is crucial for Next.js App Router compatibility, and tsup handles it simply via the `banner` config option.
+
+**Confidence: HIGH** — Verified from TanStack Query's own `package.json` (uses `tsup` in build scripts) and npm registry data.
+
+### Recommended `tsup.config.ts`
 
 ```typescript
-// Event processing
-log.info('Events processed', {
-  executed: populatedExecuteEntities.length,
-  dataChanged: populatedDataChangedEntities.length,
-  transfers: populatedTransferEntities.length,
-  blockRange: `${firstBlock}-${lastBlock}`,
-});
+import { defineConfig } from 'tsup';
 
-// Entity verification
-log.info('Entities verified', {
-  newProfiles: newUniversalProfiles.size,
-  validProfiles: validUniversalProfiles.size,
-  invalidProfiles: invalidUniversalProfiles.size,
-});
+export default defineConfig([
+  // Client hooks (need "use client" banner)
+  {
+    entry: {
+      client: 'src/client/index.ts',
+    },
+    format: ['esm', 'cjs'],
+    dts: true,
+    sourcemap: true,
+    clean: true,
+    banner: { js: '"use client";' },
+    external: ['react', '@tanstack/react-query'],
+  },
+  // Server actions + core (no "use client" banner)
+  {
+    entry: {
+      index: 'src/index.ts',
+      server: 'src/server/index.ts',
+    },
+    format: ['esm', 'cjs'],
+    dts: true,
+    sourcemap: true,
+    external: ['react', '@tanstack/react-query', 'next-safe-action', 'zod'],
+  },
+]);
+```
 
-// Metadata fetching
-log.debug('Metadata fetch batch', {
-  total: unfetchedCount,
-  batchSize: FETCH_BATCH_SIZE,
-  retryable: retryableCount,
-});
+## Vitest Configuration
 
-// Errors
-log.warn('Metadata fetch failed', {
-  entityId: entity.id,
-  url: entity.url,
-  retryCount: entity.retryCount,
-  error: error.message,
+```typescript
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    environment: 'happy-dom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.ts'],
+      exclude: ['src/graphql/**', 'src/test/**'],
+    },
+  },
 });
 ```
 
-**Note:** These patterns are for stdout-based logging. No external logging service (Loki, ELK, Datadog) is needed for self-hosted Docker deployment. If monitoring is needed later, structured JSON logs can be shipped to any log aggregator via Docker log drivers.
+**Why vitest ^3.x (not ^4.x):** Vitest 4.0 was released recently and is tagged `latest` on npm. However:
 
-## Deployment
+- v4 drops Node 18 support (requires >=20)
+- v4 has breaking changes in config and API
+- v4 peer-deps on `vite ^6 || ^7`
+- v3 is still actively maintained and more battle-tested
 
-### Current Docker Setup (V1)
+For a library package, stability matters more than bleeding-edge. Pin to `^3.2.0` and upgrade to v4 when the ecosystem stabilizes.
 
-The existing setup works but has optimization opportunities:
+**Confidence: HIGH** — Verified via npm registry metadata for vitest v4.0.18 (`engines.node: "^20.0.0 || ^22.0.0 || >=24.0.0"`).
 
-**Current Dockerfile (single-stage):**
+## Zod v3 vs v4 Decision
 
-```dockerfile
-FROM node:22-alpine AS base
-RUN apk add --no-cache git
-WORKDIR /app
-COPY . .
-RUN corepack enable pnpm && pnpm install
-RUN pnpm build
-RUN chmod 755 start.sh
-ENTRYPOINT [ "sh", "-c" ]
-CMD [ "./start.sh" ]
+| Criterion            | Zod v3 (`^3.24.1`)                  | Zod v4 (`^4.3.6`)                                                        |
+| -------------------- | ----------------------------------- | ------------------------------------------------------------------------ |
+| **npm `latest` tag** | No (superseded)                     | Yes (current)                                                            |
+| **Stability**        | Battle-tested, 3+ years             | Released ~2025, still maturing                                           |
+| **next-safe-action** | Supported via Standard Schema       | Supported via Standard Schema                                            |
+| **API changes**      | Established API                     | Breaking changes (`.optional()` behavior, `z.interface()` for optionals) |
+| **Ecosystem**        | All tutorials/examples reference v3 | Limited adoption                                                         |
+| **Bundle size**      | Larger                              | ~57% smaller (per Zod v4 announcement)                                   |
+
+**Recommendation: Zod v3 (`^3.24.1`)** — `next-safe-action` v8 uses Standard Schema, so it works with both. Since this is a library consumed by external apps, and most apps today still use Zod v3, pinning to v3 avoids forcing consumers to adopt a breaking upgrade. The package should specify `zod` with `"^3.24.0"` as an optional peer dep. Plan v4 migration as a separate effort.
+
+**Confidence: HIGH** — Verified via npm registry (zod@4.3.6 is latest), next-safe-action docs (Standard Schema requirement).
+
+## What NOT to Add (Anti-Recommendations)
+
+### DO NOT add `@graphql-codegen/typescript-react-query`
+
+**Why:** This community plugin auto-generates React Query hooks directly. It conflicts with our architecture where we have manual `service → hook → action` layers. The `client-preset` with `documentMode: 'string'` gives us typed operations that we wrap manually — more control, better DX, officially recommended.
+
+### DO NOT add `@apollo/client` or `urql`
+
+**Why:** These are full GraphQL client frameworks with caches, subscriptions, etc. Way too heavy for a hooks library that just needs to send queries. The typed `fetch` wrapper is the right abstraction — minimal (~30 LOC), no cache opinions, zero dependencies, works everywhere.
+
+### DO NOT add `@tanstack/react-query-devtools`
+
+**Why:** Devtools are a consumer concern, not a library concern. The consuming app adds devtools if they want them.
+
+### DO NOT add `next` as a dependency or dev dependency
+
+**Why:** The package must work without Next.js installed. `next-safe-action` is the only Next.js-adjacent dependency and it's an optional peer dep. Server action files use `"use server"` directive which is a React/Next convention but doesn't require the `next` package at build time.
+
+### DO NOT add `@graphql-codegen/typescript` or `@graphql-codegen/typescript-operations` separately
+
+**Why:** Both are included inside `@graphql-codegen/client-preset`. Installing them separately creates version conflicts.
+
+### DO NOT add `dotenv` to the React package
+
+**Why:** Environment variable handling is the consumer's responsibility. The package reads `process.env.NEXT_PUBLIC_HASURA_GRAPHQL_URL` (or similar) at runtime. The consumer configures env vars in their framework (Next.js `.env.local`, Vite `import.meta.env`, etc.).
+
+### DO NOT add Zod v4 yet
+
+**Why:** Breaking API changes, immature ecosystem adoption, and this is a library consumed by external apps. Wait for ecosystem to stabilize.
+
+### DO NOT add `graphql-tag` (`gql`)
+
+**Why:** With `client-preset` and `documentMode: 'string'`, the `graphql()` function from the generated code replaces `gql`. The generated `graphql()` function provides full type inference. No need for `graphql-tag`.
+
+## Integration with Existing Monorepo
+
+### Schema Source
+
+The `packages/typeorm/schema.graphql` (925 lines, 72+ entity types) defines the data model. Hasura auto-generates its GraphQL API from the TypeORM/PostgreSQL schema. The codegen pipeline introspects the Hasura endpoint (which includes Hasura's auto-generated query/mutation types with filtering, ordering, pagination) to produce TypeScript types.
+
+**Important distinction:** `packages/typeorm/schema.graphql` is a Subsquid schema definition (entity types with `@entity` directives). The Hasura GraphQL schema is DIFFERENT — it includes `where` clauses, `order_by`, `limit`, `offset`, aggregate queries, etc. The codegen must introspect Hasura, not read `schema.graphql` directly.
+
+### Workspace Integration
+
+```yaml
+# pnpm-workspace.yaml (already configured)
+packages:
+  - 'packages/*'
 ```
 
-**Issues:**
+The new package at `packages/react` will automatically be part of the workspace. It should:
 
-1. Copies entire source tree including dev files
-2. No multi-stage build — image includes dev dependencies, source, and build artifacts
-3. No `.dockerignore` reducing context size
-4. `start.sh` runs migrations on every container start
+- NOT depend on `@chillwhales/typeorm` — the React package is decoupled from the indexer
+- Use its own `tsconfig.json` (different target: ES2020 for browser compat, `"jsx": "react-jsx"`)
+- Use its own build pipeline (tsup, not tsc)
+- Share monorepo root ESLint and Prettier configs
 
-### Recommended Docker Setup for V2
+### Package Naming
 
-**Multi-stage Dockerfile:**
-
-```dockerfile
-# Stage 1: Build
-FROM node:22-alpine AS builder
-RUN apk add --no-cache git
-WORKDIR /app
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY packages/abi/package.json packages/abi/
-COPY packages/typeorm/package.json packages/typeorm/
-COPY packages/indexer/package.json packages/indexer/
-RUN corepack enable pnpm && pnpm install --frozen-lockfile
-COPY . .
-RUN pnpm build
-
-# Stage 2: Production
-FROM node:22-alpine AS production
-RUN apk add --no-cache git curl
-WORKDIR /app
-COPY --from=builder /app/pnpm-workspace.yaml /app/pnpm-lock.yaml /app/package.json ./
-COPY --from=builder /app/packages/abi/package.json /app/packages/abi/lib/ packages/abi/
-COPY --from=builder /app/packages/typeorm/package.json /app/packages/typeorm/lib/ /app/packages/typeorm/db/ packages/typeorm/
-COPY --from=builder /app/packages/typeorm/schema.graphql packages/typeorm/
-COPY --from=builder /app/packages/indexer/package.json /app/packages/indexer/lib/ packages/indexer/
-COPY --from=builder /app/start.sh /app/env.sh ./
-RUN corepack enable pnpm && pnpm install --frozen-lockfile --prod
-RUN chmod 755 start.sh
-ENTRYPOINT [ "sh", "-c" ]
-CMD [ "./start.sh" ]
+```json
+{
+  "name": "@lsp-indexer/react",
+  "version": "0.1.0"
+}
 ```
 
-**Note:** This is an aspirational target. For V2 completion, the existing single-stage Dockerfile is fine. Optimize after V2 is validated.
+Follows the decided `@lsp-indexer/*` naming convention (indexer-specific, not org-specific).
 
-### Self-Hosted vs SQD Cloud
+### GraphQL URL Configuration
 
-| Factor           | Self-Hosted (Current)   | SQD Cloud            |
-| ---------------- | ----------------------- | -------------------- |
-| **Cost**         | VPS cost (~$20-50/mo)   | Per-resource pricing |
-| **Control**      | Full control over infra | Managed              |
-| **Hasura**       | Self-managed v2.46.0    | Available as addon   |
-| **PostgreSQL**   | Self-managed            | Managed addon        |
-| **Monitoring**   | DIY (Docker logs)       | Built-in metrics     |
-| **Deployment**   | `docker compose up`     | `sqd deploy`         |
-| **Custom infra** | Full flexibility        | Some constraints     |
+The package is framework-agnostic — it does NOT hardcode `process.env.NEXT_PUBLIC_*` or any framework-specific env var convention. The consuming app provides the GraphQL URL via the provider:
 
-**Recommendation:** Stay self-hosted for V2 completion. The existing Docker + VPS + Hasura setup works, matches V1, and avoids migration risk during the rewrite. SQD Cloud is a viable option for future consideration if operational overhead becomes a concern, but it would require adding a `squid.yaml` manifest and potentially adjusting the Hasura configuration.
+```typescript
+// Consumer usage — the consuming app resolves the URL however it wants
+<LspIndexerProvider graphqlUrl="https://my-hasura.example.com/v1/graphql">
+  <App />
+</LspIndexerProvider>
+```
 
-**Confidence: HIGH** — Verified via official SQD Cloud docs at `docs.sqd.dev/cloud/overview/` and self-hosting guide at `docs.sqd.dev/sdk/resources/self-hosting/`.
+```typescript
+// Next.js consumer example (env var is the consumer's concern, not the library's)
+<LspIndexerProvider graphqlUrl={process.env.NEXT_PUBLIC_HASURA_GRAPHQL_URL!}>
+  <App />
+</LspIndexerProvider>
 
-### Docker Compose Health Checks
+// Vite consumer example
+<LspIndexerProvider graphqlUrl={import.meta.env.VITE_HASURA_GRAPHQL_URL}>
+  <App />
+</LspIndexerProvider>
+```
 
-The current `docker-compose.yaml` already has proper health checks for PostgreSQL and Hasura with `depends_on: condition: service_healthy`. This is correct and follows Subsquid self-hosting best practices.
+The library provides the provider + context; how the URL is derived (env vars, runtime config, hardcoded) is the consumer's responsibility. This keeps the library framework-agnostic and avoids `process.env` assumptions that break in non-Node.js environments.
 
-### Start Script Improvement
+## Package Exports Structure
 
-The current `start.sh` always runs migration generation + application on every container start. This is safe but slow. Consider:
+```json
+{
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js",
+      "require": "./dist/client.cjs"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js",
+      "require": "./dist/server.cjs"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "sideEffects": false
+}
+```
+
+Three entry points:
+
+- `@lsp-indexer/react` — Core types, config, GraphQL client
+- `@lsp-indexer/react/client` — Client-side TanStack Query hooks (has `"use client"` banner)
+- `@lsp-indexer/react/server` — Server-side next-safe-action wrappers (optional Next.js import)
+
+## Installation Commands
+
+### For the package itself (in `packages/react`)
 
 ```bash
-#!/bin/sh
-set -e
+# Runtime dependencies
+pnpm add graphql-ws
 
-# Generate and apply migrations
-pnpm migration:generate
-pnpm migration:apply
+# Dev dependencies — codegen (graphql is build-time only)
+pnpm add -D graphql @graphql-codegen/cli @graphql-codegen/client-preset @graphql-codegen/schema-ast @graphql-codegen/introspection @parcel/watcher @0no-co/graphqlsp
 
-# Configure Hasura
-pnpm hasura:generate
-pnpm hasura:apply
+# Dev dependencies — build
+pnpm add -D tsup typescript
 
-# Start the indexer
-exec pnpm start
+# Dev dependencies — testing
+pnpm add -D vitest@^3 @testing-library/react happy-dom msw
+
+# Dev dependencies — peer deps for development/testing
+pnpm add -D react react-dom @types/react @types/react-dom @tanstack/react-query next-safe-action zod viem
 ```
 
-The `exec` ensures the Node.js process becomes PID 1 and receives signals properly for graceful shutdown. This is a minor improvement but important for Docker container lifecycle management.
+### For consuming apps
+
+```bash
+# Minimum (client-side hooks only)
+pnpm add @lsp-indexer/react @tanstack/react-query react
+
+# Full (client + server patterns)
+pnpm add @lsp-indexer/react @tanstack/react-query react next-safe-action zod
+```
+
+## Version Summary Table
+
+| Package                          | Recommended      | Latest on npm                    | Notes                                           |
+| -------------------------------- | ---------------- | -------------------------------- | ----------------------------------------------- |
+| ~~`graphql-request`~~            | ~~`^7.4.0`~~     | ~~7.4.0~~                        | **REMOVED** — replaced by typed `fetch` wrapper |
+| `graphql`                        | `^16.12.0` (dev) | 16.12.0                          | **Dev only** — codegen build-time, not shipped  |
+| `graphql-ws`                     | `^6.0.0`         | 6.x                              | WebSocket subscriptions runtime dep             |
+| `@tanstack/react-query`          | `^5.0.0` (peer)  | 5.90.21                          | Very active, weekly releases                    |
+| `next-safe-action`               | `^8.0.0` (peer)  | 8.0.11                           | Uses Standard Schema, stable                    |
+| `zod`                            | `^3.24.0` (peer) | 4.3.6 (latest), 3.24.4 (v3 line) | Intentionally pin to v3 — see rationale         |
+| `viem`                           | `^2.0.0` (peer)  | 2.46.1                           | Very active, weekly releases                    |
+| `@graphql-codegen/cli`           | `^6.1.1` (dev)   | 6.1.1                            | Current stable                                  |
+| `@graphql-codegen/client-preset` | `^5.2.2` (dev)   | 5.2.2                            | Current stable                                  |
+| `@graphql-codegen/schema-ast`    | `^5.0.0` (dev)   | 5.0.0                            | Current stable                                  |
+| `tsup`                           | `^8.5.1` (dev)   | 8.5.1                            | Current stable                                  |
+| `vitest`                         | `^3.2.0` (dev)   | 4.0.18 (latest)                  | Intentionally pin to v3 — see rationale         |
+| `@testing-library/react`         | `^16.3.2` (dev)  | 16.3.2                           | Current stable                                  |
+| `happy-dom`                      | `^20.0.0` (dev)  | 20.x                             | Current stable                                  |
+| `msw`                            | `^2.0.0` (dev)   | 2.x                              | Current stable                                  |
+| `@0no-co/graphqlsp`              | `^1.15.2` (dev)  | 1.15.2                           | Current stable                                  |
+| `@parcel/watcher`                | `^2.1.0` (dev)   | 2.x                              | For codegen watch mode                          |
+| `typescript`                     | `^5.9.2` (dev)   | 5.9.2                            | Match monorepo root                             |
 
 ## Sources
 
-- **SQD SDK Overview:** https://docs.sqd.dev/sdk/overview/ (HIGH confidence)
-- **SQD EvmBatchProcessor Reference:** https://docs.sqd.dev/sdk/reference/processors/evm-batch/ (HIGH confidence)
-- **SQD TypeORM Store Reference:** https://docs.sqd.dev/sdk/reference/store/typeorm/ (HIGH confidence)
-- **SQD Logger Reference:** https://docs.sqd.dev/sdk/reference/logger/ (HIGH confidence)
-- **SQD Self-Hosting Guide:** https://docs.sqd.dev/sdk/resources/self-hosting/ (HIGH confidence)
-- **SQD Portal Migration Guide:** https://docs.sqd.dev/migrate-to-portal-sdk/ (HIGH confidence)
-- **SQD Portal Real-Time Migration:** https://docs.sqd.dev/migrate-to-portal-with-real-time-data-on-evm/ (HIGH confidence)
-- **SQD Cloud Deployment:** https://docs.sqd.dev/cloud/overview/ (HIGH confidence)
-- **SQD External APIs & IPFS:** https://docs.sqd.dev/sdk/resources/external-api/ (HIGH confidence)
-- **Codebase analysis:** Direct reading of package.json, pnpm-lock.yaml, source files (HIGH confidence)
+- **npm registry** — All version numbers verified via direct `registry.npmjs.org` API fetches (2026-02-16) — HIGH confidence
+- **GraphQL Codegen React Query guide** — https://the-guild.dev/graphql/codegen/docs/guides/react-query (fetched 2026-02-16) — HIGH confidence
+- **GraphQL Codegen client-preset docs** — https://the-guild.dev/graphql/codegen/plugins/presets/preset-client (fetched 2026-02-16) — HIGH confidence
+- **next-safe-action docs** — https://next-safe-action.dev/docs/getting-started (fetched 2026-02-16) — HIGH confidence
+- **TanStack Query package.json** — Confirmed tsup usage from npm registry build scripts — HIGH confidence
+- **graphql-request GitHub** — https://github.com/graffle-js/graffle/tree/graphql-request (fetched 2026-02-16) — HIGH confidence
+- **Monorepo codebase** — Direct file reads of `package.json`, `tsconfig.json`, `schema.graphql`, `.env.example` — HIGH confidence
 
 ---
 
-_Researched: 2026-02-06_
+_Researched: 2026-02-16_

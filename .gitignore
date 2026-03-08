@@ -1,4 +1,6 @@
 lib/
+!apps/**/src/lib/
+dist/
 node_modules/
 packages/abi/src/
 packages/typeorm/src/
@@ -6,6 +8,19 @@ packages/typeorm/db/
 packages/typeorm/hasura_metadata.json
 .env
 .vscode/
+
+# Build info
+*.tsbuildinfo
+
+# tsup bundled config artifacts
+tsup.config.bundled_*
+
+# Next.js
+.next/
+next-env.d.ts
+
+# Coverage
+coverage/
 
 # Logs
 logs/

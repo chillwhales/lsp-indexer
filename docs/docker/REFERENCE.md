@@ -1,4 +1,4 @@
-# Docker Setup for Indexer V2
+# Docker Setup for Indexer
 
 Fully unattended Docker deployment for the LUKSO blockchain indexer with persistent logging and health monitoring.
 
@@ -12,13 +12,13 @@ cp .env.example .env
 nano .env  # Edit DB_URL, RPC_URL, etc.
 
 # 3. Build and start services
-docker compose -f docker-compose.yml --env-file ../../.env up -d
+docker compose -f docker-compose.yml --env-file ../.env up -d
 
 # 4. View logs (follow mode)
-docker compose -f docker-compose.yml --env-file ../../.env logs -f indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env logs -f indexer
 
 # 5. Check status
-docker compose -f docker-compose.yml --env-file ../../.env ps
+docker compose -f docker-compose.yml --env-file ../.env ps
 ```
 
 ## Architecture
@@ -29,7 +29,7 @@ docker compose -f docker-compose.yml --env-file ../../.env ps
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌──────────────────┐         ┌──────────────────┐         │
-│  │   indexer-v2     │────────▶│    postgres      │         │
+│  │   indexer        │────────▶│    postgres      │         │
 │  │                  │  5432   │                  │         │
 │  │  - Plugin arch   │         │  - PostgreSQL 17 │         │
 │  │  - Event extract │         │  - Persistent    │         │
@@ -42,7 +42,7 @@ docker compose -f docker-compose.yml --env-file ../../.env ps
 │         │   max-size: 100MB × 10 files                      │
 │         │                                                    │
 │         └─▶ File logs (mounted volume)                      │
-│             /app/packages/indexer-v2/logs/                   │
+│             /app/packages/indexer/logs/                      │
 │             - indexer-YYYY-MM-DD.log (JSON, pino)            │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
@@ -52,14 +52,14 @@ docker compose -f docker-compose.yml --env-file ../../.env ps
 
 | File                 | Purpose                                |
 | -------------------- | -------------------------------------- |
-| `Dockerfile.v2`      | Multi-stage build for indexer-v2       |
+| `Dockerfile`         | Multi-stage build for indexer          |
 | `docker-compose.yml` | Orchestration with postgres + indexer  |
 | `.env`               | Environment configuration (not in git) |
 | `.env.example`       | Template with all variables documented |
 
 ## Build Process
 
-### Multi-Stage Build (Dockerfile.v2)
+### Multi-Stage Build (Dockerfile)
 
 1. **Stage 1: Dependencies**
 
@@ -70,7 +70,7 @@ docker compose -f docker-compose.yml --env-file ../../.env ps
 
    - Compiles TypeScript (`pnpm build`)
    - Generates typeorm entities from `schema.graphql`
-   - Builds all packages: `abi` → `typeorm` → `indexer-v2`
+   - Builds all packages: `abi` → `typeorm` → `indexer`
 
 3. **Stage 3: Runner**
    - Minimal production image
@@ -142,19 +142,19 @@ The indexer writes logs to **two destinations simultaneously**:
 
 ```bash
 # Real-time logs (all services)
-docker compose -f docker-compose.yml --env-file ../../.env logs -f
+docker compose -f docker-compose.yml --env-file ../.env logs -f
 
 # Real-time logs (indexer only)
-docker compose -f docker-compose.yml --env-file ../../.env logs -f indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env logs -f indexer
 
 # Last 100 lines
-docker compose -f docker-compose.yml --env-file ../../.env logs --tail=100 indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env logs --tail=100 indexer
 
 # Specific time range
-docker compose -f docker-compose.yml --env-file ../../.env logs --since="2026-02-10T10:00" indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env logs --since="2026-02-10T10:00" indexer
 
 # Copy log files from container
-docker cp lsp-indexer-v2:/app/packages/indexer-v2/logs ./local-logs
+docker cp lsp-indexer:/app/packages/indexer/logs ./local-logs
 
 # Access logs volume directly
 docker volume inspect lsp-indexer_indexer-logs
@@ -172,7 +172,7 @@ docker run --rm -v lsp-indexer_indexer-logs:/logs -v $(pwd):/backup alpine \
   tar czf /backup/logs-backup-$(date +%Y%m%d).tar.gz -C /logs .
 
 # Cleanup old logs (inside container)
-docker exec lsp-indexer-v2 find /app/packages/indexer-v2/logs -name "*.log" -mtime +30 -delete
+docker exec lsp-indexer find /app/packages/indexer/logs -name "*.log" -mtime +30 -delete
 ```
 
 ## Service Management
@@ -181,42 +181,42 @@ docker exec lsp-indexer-v2 find /app/packages/indexer-v2/logs -name "*.log" -mti
 
 ```bash
 # Start in detached mode
-docker compose -f docker-compose.yml --env-file ../../.env up -d
+docker compose -f docker-compose.yml --env-file ../.env up -d
 
 # Start with rebuild (after code changes)
-docker compose -f docker-compose.yml --env-file ../../.env up -d --build
+docker compose -f docker-compose.yml --env-file ../.env up -d --build
 
 # Start specific service
-docker compose -f docker-compose.yml --env-file ../../.env up -d indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env up -d indexer
 ```
 
 ### Stopping Services
 
 ```bash
 # Stop all services
-docker compose -f docker-compose.yml --env-file ../../.env stop
+docker compose -f docker-compose.yml --env-file ../.env stop
 
 # Stop specific service
-docker compose -f docker-compose.yml --env-file ../../.env stop indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env stop indexer
 
 # Stop and remove containers (keeps volumes)
-docker compose -f docker-compose.yml --env-file ../../.env down
+docker compose -f docker-compose.yml --env-file ../.env down
 
 # Stop and remove everything (including volumes)
-docker compose -f docker-compose.yml --env-file ../../.env down -v
+docker compose -f docker-compose.yml --env-file ../.env down -v
 ```
 
 ### Restarting Services
 
 ```bash
 # Restart all
-docker compose -f docker-compose.yml --env-file ../../.env restart
+docker compose -f docker-compose.yml --env-file ../.env restart
 
 # Restart specific service
-docker compose -f docker-compose.yml --env-file ../../.env restart indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env restart indexer
 
 # Restart with rebuild
-docker compose -f docker-compose.yml --env-file ../../.env up -d --build --force-recreate
+docker compose -f docker-compose.yml --env-file ../.env up -d --build --force-recreate
 ```
 
 ## Health Checks
@@ -225,11 +225,11 @@ docker compose -f docker-compose.yml --env-file ../../.env up -d --build --force
 
 ```bash
 # All services
-docker compose -f docker-compose.yml --env-file ../../.env ps
+docker compose -f docker-compose.yml --env-file ../.env ps
 
 # Example output:
 # NAME                 STATUS              PORTS
-# lsp-indexer-v2       Up 2 hours (healthy)
+# lsp-indexer          Up 2 hours (healthy)
 # lsp-indexer-postgres Up 2 hours (healthy)
 ```
 
@@ -237,13 +237,13 @@ docker compose -f docker-compose.yml --env-file ../../.env ps
 
 ```bash
 # Check indexer process
-docker exec lsp-indexer-v2 pgrep -f "ts-node.*lib/app/index.js"
+docker exec lsp-indexer pgrep -f "ts-node.*lib/app/index.js"
 
 # Check database connectivity
 docker exec lsp-indexer-postgres pg_isready -U postgres -d postgres
 
 # View container health status
-docker inspect lsp-indexer-v2 --format='{{.State.Health.Status}}'
+docker inspect lsp-indexer --format='{{.State.Health.Status}}'
 ```
 
 ### Health Check Failures
@@ -252,19 +252,19 @@ If health checks fail:
 
 ```bash
 # 1. Check logs
-docker compose -f docker-compose.yml --env-file ../../.env logs --tail=50 indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env logs --tail=50 indexer
 
 # 2. Check container status
-docker compose -f docker-compose.yml --env-file ../../.env ps
+docker compose -f docker-compose.yml --env-file ../.env ps
 
 # 3. Inspect container
-docker inspect lsp-indexer-v2
+docker inspect lsp-indexer
 
 # 4. Enter container for debugging
-docker exec -it lsp-indexer-v2 sh
+docker exec -it lsp-indexer sh
 
 # 5. Restart service
-docker compose -f docker-compose.yml --env-file ../../.env restart indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env restart indexer
 ```
 
 ## Database Management
@@ -291,10 +291,10 @@ Migrations run automatically on container startup via TypeORM.
 
 ```bash
 # View migration status (from host)
-docker exec lsp-indexer-v2 pnpm --filter=@chillwhales/typeorm migration:show
+docker exec lsp-indexer pnpm --filter=@chillwhales/typeorm migration:show
 
 # Manual migration (if needed)
-docker exec lsp-indexer-v2 pnpm --filter=@chillwhales/typeorm migration:apply
+docker exec lsp-indexer pnpm --filter=@chillwhales/typeorm migration:apply
 ```
 
 ### Database Reset
@@ -303,14 +303,14 @@ docker exec lsp-indexer-v2 pnpm --filter=@chillwhales/typeorm migration:apply
 # WARNING: Deletes all data!
 
 # 1. Stop indexer
-docker compose -f docker-compose.yml --env-file ../../.env stop indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env stop indexer
 
 # 2. Drop and recreate database
 docker exec lsp-indexer-postgres psql -U postgres -c "DROP DATABASE postgres;"
 docker exec lsp-indexer-postgres psql -U postgres -c "CREATE DATABASE postgres;"
 
 # 3. Restart indexer (migrations run automatically)
-docker compose -f docker-compose.yml --env-file ../../.env start indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env start indexer
 ```
 
 ## Volumes
@@ -358,18 +358,18 @@ docker run --rm -v lsp-indexer_postgres-data:/data -v $(pwd):/backup alpine \
 
 Configured in `docker-compose.yml`:
 
-- **indexer-v2**: 4GB limit, 1GB reservation
+- **indexer**: 4GB limit, 1GB reservation
 - **postgres**: 2GB limit, 512MB reservation
 
 ### Monitoring Resources
 
 ```bash
 # Real-time stats
-docker stats lsp-indexer-v2 lsp-indexer-postgres
+docker stats lsp-indexer lsp-indexer-postgres
 
 # Example output:
 # NAME                 CPU %   MEM USAGE / LIMIT   MEM %   NET I/O
-# lsp-indexer-v2       15.3%   1.2GB / 4GB         30%     1.2GB / 850MB
+# lsp-indexer          15.3%   1.2GB / 4GB         30%     1.2GB / 850MB
 # lsp-indexer-postgres 2.1%    450MB / 2GB         22%     850MB / 1.2GB
 ```
 
@@ -389,7 +389,7 @@ deploy:
 Then restart:
 
 ```bash
-docker compose -f docker-compose.yml --env-file ../../.env up -d --force-recreate
+docker compose -f docker-compose.yml --env-file ../.env up -d --force-recreate
 ```
 
 ## Troubleshooting
@@ -398,25 +398,25 @@ docker compose -f docker-compose.yml --env-file ../../.env up -d --force-recreat
 
 ```bash
 # 1. Check logs
-docker compose -f docker-compose.yml --env-file ../../.env logs indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env logs indexer
 
 # 2. Verify environment
-docker exec lsp-indexer-v2 env | grep -E "(DB_URL|RPC_URL|LOG_)"
+docker exec lsp-indexer env | grep -E "(DB_URL|RPC_URL|LOG_)"
 
 # 3. Check database connectivity
-docker exec lsp-indexer-v2 nc -zv postgres 5432
+docker exec lsp-indexer nc -zv postgres 5432
 
 # 4. Rebuild from scratch
-docker compose -f docker-compose.yml --env-file ../../.env down -v
-docker compose -f docker-compose.yml --env-file ../../.env build --no-cache
-docker compose -f docker-compose.yml --env-file ../../.env up -d
+docker compose -f docker-compose.yml --env-file ../.env down -v
+docker compose -f docker-compose.yml --env-file ../.env build --no-cache
+docker compose -f docker-compose.yml --env-file ../.env up -d
 ```
 
 ### Database Connection Issues
 
 ```bash
 # 1. Check postgres health
-docker compose -f docker-compose.yml --env-file ../../.env ps postgres
+docker compose -f docker-compose.yml --env-file ../.env ps postgres
 
 # 2. Verify postgres is accepting connections
 docker exec lsp-indexer-postgres pg_isready
@@ -426,7 +426,7 @@ echo $DB_URL
 # Should be: postgresql://postgres:postgres@postgres:5432/postgres
 
 # 4. Test connection from indexer
-docker exec lsp-indexer-v2 nc -zv postgres 5432
+docker exec lsp-indexer nc -zv postgres 5432
 ```
 
 ### Build Failures
@@ -436,10 +436,10 @@ docker exec lsp-indexer-v2 nc -zv postgres 5432
 docker builder prune -a
 
 # 2. Remove old images
-docker rmi lsp-indexer-v2:latest
+docker rmi lsp-indexer:latest
 
 # 3. Rebuild with no cache
-docker compose -f docker-compose.yml --env-file ../../.env build --no-cache
+docker compose -f docker-compose.yml --env-file ../.env build --no-cache
 
 # 4. Check disk space
 docker system df
@@ -449,7 +449,7 @@ docker system df
 
 ```bash
 # 1. Check stats
-docker stats lsp-indexer-v2
+docker stats lsp-indexer
 
 # 2. Reduce worker pool size in .env
 METADATA_WORKER_POOL_SIZE=2
@@ -458,7 +458,7 @@ METADATA_WORKER_POOL_SIZE=2
 FETCH_BATCH_SIZE=500
 
 # 4. Restart with new settings
-docker compose -f docker-compose.yml --env-file ../../.env restart indexer-v2
+docker compose -f docker-compose.yml --env-file ../.env restart indexer
 ```
 
 ### Log Volume Full
@@ -468,14 +468,14 @@ docker compose -f docker-compose.yml --env-file ../../.env restart indexer-v2
 docker volume inspect lsp-indexer_indexer-logs
 
 # 2. Cleanup old logs (keeps last 7 days)
-docker exec lsp-indexer-v2 find /app/packages/indexer-v2/logs -name "*.log" -mtime +7 -delete
+docker exec lsp-indexer find /app/packages/indexer/logs -name "*.log" -mtime +7 -delete
 
 # 3. Compress old logs
-docker exec lsp-indexer-v2 gzip /app/packages/indexer-v2/logs/*.log
+docker exec lsp-indexer gzip /app/packages/indexer/logs/*.log
 
 # 4. Backup and prune
-docker cp lsp-indexer-v2:/app/packages/indexer-v2/logs ./backup-logs
-docker exec lsp-indexer-v2 rm -rf /app/packages/indexer-v2/logs/*.log.gz
+docker cp lsp-indexer:/app/packages/indexer/logs ./backup-logs
+docker exec lsp-indexer rm -rf /app/packages/indexer/logs/*.log.gz
 ```
 
 ## Production Deployment
@@ -516,17 +516,17 @@ Create `/etc/systemd/system/lsp-indexer.service`:
 
 ```ini
 [Unit]
-Description=LUKSO LSP Indexer V2
+Description=LUKSO LSP Indexer
 Requires=docker.service
 After=docker.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-WorkingDirectory=/path/to/lsp-indexer
-ExecStart=/usr/bin/docker compose -f docker-compose.yml --env-file ../../.env up -d
-ExecStop=/usr/bin/docker compose -f docker-compose.yml --env-file ../../.env stop
-ExecReload=/usr/bin/docker compose -f docker-compose.yml --env-file ../../.env restart
+WorkingDirectory=/path/to/lsp-indexer/docker
+ExecStart=/usr/bin/docker compose -f docker-compose.yml --env-file ../.env up -d
+ExecStop=/usr/bin/docker compose -f docker-compose.yml --env-file ../.env stop
+ExecReload=/usr/bin/docker compose -f docker-compose.yml --env-file ../.env restart
 
 [Install]
 WantedBy=multi-user.target
@@ -549,14 +549,14 @@ To enable GraphQL API, uncomment the `hasura` and `data-connector-agent` section
 # 1. Edit docker-compose.yml (uncomment hasura services)
 
 # 2. Restart stack
-docker compose -f docker-compose.yml --env-file ../../.env up -d
+docker compose -f docker-compose.yml --env-file ../.env up -d
 
 # 3. Access Hasura console
 open http://localhost:8080
 # Admin secret: see HASURA_GRAPHQL_ADMIN_SECRET in .env
 
 # 4. Apply metadata
-docker exec lsp-indexer-v2 pnpm hasura:apply
+docker exec lsp-indexer pnpm hasura:apply
 ```
 
 ## Development vs Production
@@ -565,7 +565,7 @@ docker exec lsp-indexer-v2 pnpm hasura:apply
 
 ```bash
 # Use host pnpm with live reload
-pnpm start:v2
+pnpm start
 
 # Benefits:
 # - Fast iteration
@@ -577,7 +577,7 @@ pnpm start:v2
 
 ```bash
 # Use Docker for stability
-docker compose -f docker-compose.yml --env-file ../../.env up -d
+docker compose -f docker-compose.yml --env-file ../.env up -d
 
 # Benefits:
 # - Isolated environment
@@ -590,8 +590,8 @@ docker compose -f docker-compose.yml --env-file ../../.env up -d
 ## Next Steps
 
 1. **Configure `.env`** — Update RPC_URL and other settings
-2. **Start services** — `docker compose -f docker-compose.yml --env-file ../../.env up -d`
-3. **Monitor logs** — `docker compose -f docker-compose.yml --env-file ../../.env logs -f indexer-v2`
+2. **Start services** — `docker compose -f docker-compose.yml --env-file ../.env up -d`
+3. **Monitor logs** — `docker compose -f docker-compose.yml --env-file ../.env logs -f indexer`
 4. **Check health** — Wait for "healthy" status in `docker compose ps`
 5. **Verify indexing** — Query database for indexed entities
 6. **Set up backups** — Schedule regular postgres dumps
@@ -599,7 +599,7 @@ docker compose -f docker-compose.yml --env-file ../../.env up -d
 
 ## Support
 
-- **Logs**: Start with `docker compose logs indexer-v2`
+- **Logs**: Start with `docker compose logs indexer`
 - **Status**: Check `docker compose ps` for health
 - **Database**: Use `psql` to inspect indexed data
 - **Issues**: File bug reports with full logs attached

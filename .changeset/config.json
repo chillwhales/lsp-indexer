@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3/schema.json",
+  "changelog": ["@changesets/changelog-github", { "repo": "chillwhales/lsp-indexer" }],
+  "commit": false,
+  "fixed": [["@lsp-indexer/types", "@lsp-indexer/node", "@lsp-indexer/react", "@lsp-indexer/next"]],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [],
+  "privatePackages": { "version": false, "tag": false }
+}

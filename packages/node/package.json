@@ -1,0 +1,39 @@
+{
+  "name": "@lsp-indexer/node",
+  "version": "0.1.0",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "pnpm codegen && tsup",
+    "clean": "rm -rf dist/",
+    "codegen": "graphql-codegen --config codegen.ts",
+    "codegen:watch": "graphql-codegen --config codegen.ts --watch",
+    "schema:dump": "node -e \"const{getIntrospectionQuery,buildClientSchema,printSchema}=require('graphql');const fs=require('fs');(async()=>{const r=await fetch(process.env.HASURA_GRAPHQL_ENDPOINT||'http://192.168.0.21:18716/v1/graphql',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:getIntrospectionQuery()})});const j=await r.json();fs.writeFileSync('schema.graphql',printSchema(buildClientSchema(j.data)));console.log('schema.graphql updated')})()\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "@chillwhales/erc725": "^0.1.1",
+    "@chillwhales/lsp1": "^0.1.1",
+    "@lsp-indexer/types": "workspace:*",
+    "graphql-ws": "^6.0.7"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^6.1.1",
+    "@graphql-codegen/client-preset": "^5.2.3",
+    "@graphql-codegen/schema-ast": "^5.0.0",
+    "graphql": "^16.12.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}
