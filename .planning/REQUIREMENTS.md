@@ -1,0 +1,127 @@
+# Requirements: LSP Indexer v1.2
+
+**Defined:** 2026-03-08
+**Core Value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
+
+## v1 Requirements
+
+Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
+
+### Docker Compose
+
+- [ ] **DOCK-01**: Production docker-compose pulls `ghcr.io/chillwhales/lsp-indexer:latest` and runs indexer + PostgreSQL + Hasura
+- [ ] **DOCK-02**: Local docker-compose (existing) remains the default for development
+- [ ] **DOCK-03**: Production compose is configurable via environment variables (RPC URL, DB credentials, Hasura secrets)
+
+### Block Ordering
+
+- [ ] **BORD-01**: Every TypeORM entity has `blockNumber`, `transactionIndex`, and `logIndex` columns
+- [ ] **BORD-02**: All EventPlugins populate block/tx/log fields from the decoded event context
+- [ ] **BORD-03**: All EntityHandlers populate block/tx/log fields from the triggering event
+- [ ] **BORD-04**: UniversalProfile, DigitalAsset, and NFT entities retain block/tx/log from the oldest (first) event — later updates do not overwrite these fields
+- [ ] **BORD-05**: schema.graphql updated with block ordering fields on all entities
+- [ ] **BORD-06**: TypeORM codegen rebuilt and all entities compile cleanly
+
+### Monitoring
+
+- [ ] **MNTR-01**: Grafana dashboard displays all structured log output from the indexer
+- [ ] **MNTR-02**: Grafana dashboard displays Subsquid processor (sqd) logs
+- [ ] **MNTR-03**: Monitoring stack (Grafana + log collector) included in production docker-compose
+
+### Release — Docker Image
+
+- [ ] **RELD-01**: New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block ordering changes
+
+### Sorting
+
+- [ ] **SORT-01**: All 12 query domain services support sorting by oldest and newest based on blockNumber, transactionIndex, logIndex
+- [ ] **SORT-02**: All 12 subscription hooks support oldest/newest sort order
+- [ ] **SORT-03**: All 12 React hooks support oldest/newest sort order parameter
+- [ ] **SORT-04**: All 12 Next.js server actions support oldest/newest sort order parameter
+- [ ] **SORT-05**: Sort parameter propagates through types, documents, parsers, and services
+
+### Release — Consumer Packages
+
+- [ ] **RELP-01**: All 4 packages (`types`, `node`, `react`, `next`) released with sorting support
+
+### Versioning
+
+- [ ] **VERS-01**: `@chillwhales/abi` package.json version set to 0.1.0
+- [ ] **VERS-02**: `@chillwhales/typeorm` package.json version set to 0.1.0
+- [ ] **VERS-03**: `@chillwhales/indexer` package.json version set to 0.1.0
+- [ ] **VERS-04**: `apps/test` package.json version set to 0.1.0
+
+### Operations
+
+- [ ] **OPS-01**: PostgreSQL backup strategy defined and documented
+- [ ] **OPS-02**: Backup automation configured (scheduled dumps or WAL archiving)
+- [ ] **OPS-03**: Recovery procedure documented and tested
+
+## v2 Requirements
+
+Deferred to future release. Tracked but not in current roadmap.
+
+### High Availability
+
+- **HA-01**: Multi-instance deployment with automatic failover
+- **HA-02**: Comparison tool running on timer to validate instance consistency
+- **HA-03**: Auto-scaling by duplicating indexer stack under load
+
+### Developer Experience
+
+- **DX-01**: SSR hydration examples and documentation
+- **DX-02**: Select transform helpers
+- **DX-03**: Domain-specific stale time tuning
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Multi-instance auto-scaling | No scaling pressure yet, overkill for current traffic |
+| Kubernetes orchestration | Too complex for current deployment needs |
+| VPS migration (Dokploy → Proxmox) | Infra decision, outside milestone scope |
+| CI/CD for Docker image builds | Can be added later |
+| Marketplace functionality | Removed from scope |
+| Mutations/write hooks | Indexer is read-only |
+| Mobile-specific hooks | React Native deferred, web-first |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| DOCK-01 | TBD | Pending |
+| DOCK-02 | TBD | Pending |
+| DOCK-03 | TBD | Pending |
+| BORD-01 | TBD | Pending |
+| BORD-02 | TBD | Pending |
+| BORD-03 | TBD | Pending |
+| BORD-04 | TBD | Pending |
+| BORD-05 | TBD | Pending |
+| BORD-06 | TBD | Pending |
+| MNTR-01 | TBD | Pending |
+| MNTR-02 | TBD | Pending |
+| MNTR-03 | TBD | Pending |
+| RELD-01 | TBD | Pending |
+| SORT-01 | TBD | Pending |
+| SORT-02 | TBD | Pending |
+| SORT-03 | TBD | Pending |
+| SORT-04 | TBD | Pending |
+| SORT-05 | TBD | Pending |
+| RELP-01 | TBD | Pending |
+| VERS-01 | TBD | Pending |
+| VERS-02 | TBD | Pending |
+| VERS-03 | TBD | Pending |
+| VERS-04 | TBD | Pending |
+| OPS-01 | TBD | Pending |
+| OPS-02 | TBD | Pending |
+
+**Coverage:**
+- v1 requirements: 25 total
+- Mapped to phases: 0
+- Unmapped: 25 ⚠️
+
+---
+*Requirements defined: 2026-03-08*
+*Last updated: 2026-03-08 after initial definition*
