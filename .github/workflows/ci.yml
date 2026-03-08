@@ -12,242 +12,33 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Layer 1 — Install (warm pnpm cache for downstream jobs)
+  # Shared build-lint-test pipeline (from chillwhales/.github)
   # ---------------------------------------------------------------------------
-  install:
-    name: Install
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-  # ---------------------------------------------------------------------------
-  # Layer 1.5 — Changeset Check (PRs only)
-  # ---------------------------------------------------------------------------
-  changeset-check:
-    name: Changeset Check
-    runs-on: ubuntu-latest
-    needs: [install]
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm changeset status --since=origin/main
+  ci:
+    uses: chillwhales/.github/.github/workflows/ci-build-lint-test.yml@main
+    with:
+      node-version: 22
+      build-command: pnpm build
+      lint-command: pnpm lint
+      format-command: pnpm format:check
+      typecheck-command: pnpm typecheck
+      test-command: pnpm test:coverage
+      pre-lint-command: 'pnpm --filter=@chillwhales/abi build && pnpm --filter=@chillwhales/typeorm build'
+      test-node-versions: '[20, 22]'
+      artifact-paths: |
+        packages/types/dist
+        packages/node/dist
+        packages/react/dist
+        packages/next/dist
+        packages/abi/lib
+        packages/typeorm/lib
 
   # ---------------------------------------------------------------------------
-  # Layer 2 — Formatting (parallel with lint + build)
+  # Shared quality checks (from chillwhales/.github)
   # ---------------------------------------------------------------------------
-  format:
-    name: Prettier
-    runs-on: ubuntu-latest
-    needs: [install]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm format:check
-
-  # ---------------------------------------------------------------------------
-  # Layer 2 — Lint (parallel with format + build)
-  # ---------------------------------------------------------------------------
-  lint:
-    name: ESLint
-    runs-on: ubuntu-latest
-    needs: [install]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      # Full build of dependency packages so lib/ type declarations are
-      # available for ESLint's type-checked rules (codegen alone only
-      # produces src/ — the package entry points reference lib/).
-      - name: Build dependency packages
-        run: |
-          pnpm --filter=@chillwhales/abi build
-          pnpm --filter=@chillwhales/typeorm build
-
-      - run: pnpm lint
-
-  # ---------------------------------------------------------------------------
-  # Layer 2 — Build (parallel with format + lint)
-  # ---------------------------------------------------------------------------
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: [install]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Build all packages
-        run: pnpm build
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-output
-          path: |
-            packages/types/dist
-            packages/node/dist
-            packages/react/dist
-            packages/next/dist
-            packages/abi/lib
-            packages/typeorm/lib
-          retention-days: 1
-
-  # ---------------------------------------------------------------------------
-  # Layer 2.5 — Typecheck (needs build for cross-package .d.ts)
-  # ---------------------------------------------------------------------------
-  typecheck:
-    name: Typecheck
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: packages
-
-      - run: pnpm typecheck
-
-  # ---------------------------------------------------------------------------
-  # Layer 3 — Test (needs build, Node 20+22 matrix)
-  # ---------------------------------------------------------------------------
-  test:
-    name: Test (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    needs: [build]
-    strategy:
-      matrix:
-        node-version: [20, 22]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: packages
-
-      - name: Run tests with coverage
-        run: pnpm test:coverage
-
-      - name: Upload coverage reports
-        if: matrix.node-version == 22
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-reports
-          path: coverage/
-          retention-days: 1
-
-  # ---------------------------------------------------------------------------
-  # Layer 3 — Package Verify (needs build, publint + attw)
-  # ---------------------------------------------------------------------------
-  pkg-verify:
-    name: Package Verify
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: packages
-
-      - run: pnpm validate:publish
-
-  # ---------------------------------------------------------------------------
-  # Layer 4 — Coverage Report (PRs only, posts comment)
-  # ---------------------------------------------------------------------------
-  coverage:
-    name: Coverage Report
-    runs-on: ubuntu-latest
-    needs: [test]
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download coverage reports
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-reports
-          path: coverage
-
-      - name: Coverage report — all packages
-        uses: davelosert/vitest-coverage-report-action@v2
-        with:
-          json-summary-path: coverage/coverage-summary.json
-          json-final-path: coverage/coverage-final.json
+  quality:
+    needs: [ci]
+    uses: chillwhales/.github/.github/workflows/ci-quality.yml@main
+    with:
+      verify-command: pnpm validate:publish
+      changeset-check: true
