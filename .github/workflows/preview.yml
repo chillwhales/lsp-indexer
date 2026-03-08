@@ -1,0 +1,36 @@
+name: Preview Release
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  preview:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish preview packages
+        run: pnpx pkg-pr-new publish './packages/types' './packages/node' './packages/react' './packages/next' --compact --comment=update --packageManager=pnpm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
