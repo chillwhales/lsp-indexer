@@ -598,11 +598,12 @@ Plans:
 | QUERY-04 | Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data                         | Unverified   |
 | PAGE-01  | Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain      | Tracking gap |
 
-**Plans:** 1 plan
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] 16-01-PLAN.md — Verify phases 08, 09.1, 09.2, 09.3 + resolve PAGE-01 tracking
+- [ ] 16-01-PLAN.md — Verify Phase 08 (QUERY-01, DX-01, DX-02) + Phase 09.1 (QUERY-02)
+- [ ] 16-02-PLAN.md — Verify Phase 09.2 (QUERY-03) + Phase 09.3 (QUERY-04) + PAGE-01 resolution
 
 **Success Criteria:**
 
