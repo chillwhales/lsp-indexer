@@ -19,6 +19,9 @@ tsup.config.bundled_*
 .next/
 next-env.d.ts
 
+# Coverage
+coverage/
+
 # Logs
 logs/
 *.log

@@ -22,21 +22,30 @@
     "dev:test": "pnpm --filter test dev",
     "build:react": "pnpm --filter @lsp-indexer/react build",
     "build:all": "pnpm --filter @lsp-indexer/react build && pnpm --filter test build",
-    "validate:publint": "pnpm --filter @lsp-indexer/types exec publint && pnpm --filter @lsp-indexer/node exec publint && pnpm --filter @lsp-indexer/react exec publint && pnpm --filter @lsp-indexer/next exec publint",
-    "validate:attw": "pnpm --filter @lsp-indexer/types exec attw --pack && pnpm --filter @lsp-indexer/node exec attw --pack && pnpm --filter @lsp-indexer/react exec attw --pack && pnpm --filter @lsp-indexer/next exec attw --pack",
-    "validate:publish": "pnpm validate:publint && pnpm validate:attw"
+    "validate:publint": "pnpm --filter '@lsp-indexer/*' exec publint",
+    "validate:attw": "pnpm --filter '@lsp-indexer/*' exec attw --pack --ignore-rules cjs-resolves-to-esm",
+    "validate:publish": "pnpm validate:publint && pnpm validate:attw",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "pnpm --filter '@lsp-indexer/*' exec tsc --noEmit",
+    "changeset": "changeset",
+    "ci:publish": "changeset publish"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
+    "@changesets/changelog-github": "^0.6.0",
+    "@changesets/cli": "^2.30.0",
     "@eslint/js": "^9.39.2",
     "@types/node": "^24.2.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^9.39.2",
     "globals": "^17.2.0",
     "jiti": "^2.6.1",
     "prettier": "^3.5.3",
     "prettier-plugin-organize-imports": "^4.1.0",
     "publint": "^0.3.18",
-    "typescript-eslint": "^8.54.0"
+    "typescript-eslint": "^8.54.0",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "ts-node": "^10.9.2"

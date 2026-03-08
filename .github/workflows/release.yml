@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      packages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Configure npm provenance
+        run: npm config set provenance true
+
+      - name: Create release PR or publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          commit: 'chore: version packages'
+          title: 'chore: version packages'
+          publish: pnpm ci:publish
+          version: pnpm changeset version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Extract version tag
+        if: steps.changesets.outputs.published == 'true'
+        id: version
+        run: |
+          VERSION=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[0].version')
+          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Login to GHCR
+        if: steps.changesets.outputs.published == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        if: steps.changesets.outputs.published == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/chillwhales/lsp-indexer:latest
+            ghcr.io/chillwhales/lsp-indexer:${{ steps.version.outputs.tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/chillwhales/lsp-indexer
+            org.opencontainers.image.description=LUKSO blockchain indexer
+            org.opencontainers.image.licenses=MIT

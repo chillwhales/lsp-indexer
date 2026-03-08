@@ -12,72 +12,55 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Formatting — fast, runs first
+  # Build, lint, test pipeline (shared from chillwhales/.github)
   # ---------------------------------------------------------------------------
-  format:
-    name: Prettier
+  build-test:
+    uses: chillwhales/.github/.github/workflows/ci-build-lint-test.yml@main
+    with:
+      node-version: 22
+      build-command: pnpm build
+      lint-command: pnpm lint
+      format-command: pnpm format:check
+      typecheck-command: pnpm typecheck
+      test-command: pnpm test:coverage
+      pre-lint-command: 'pnpm --filter=@chillwhales/abi build && pnpm --filter=@chillwhales/typeorm build'
+      test-node-versions: '[20, 22]'
+      artifact-paths: |
+        packages/types/dist
+        packages/node/dist
+        packages/react/dist
+        packages/next/dist
+        packages/abi/lib
+        packages/typeorm/lib
+
+  # ---------------------------------------------------------------------------
+  # Quality checks (shared from chillwhales/.github)
+  # ---------------------------------------------------------------------------
+  quality:
+    needs: [build-test]
+    uses: chillwhales/.github/.github/workflows/ci-quality.yml@main
+    with:
+      verify-command: pnpm validate:publish
+      changeset-check: ${{ github.base_ref == 'main' }}
+      base-branch: main
+
+  # ---------------------------------------------------------------------------
+  # Gate — single required check for branch protection
+  # ---------------------------------------------------------------------------
+  ci-pass:
+    name: CI Pass
     runs-on: ubuntu-latest
+    needs: [build-test, quality]
+    if: always()
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm format:check
-
-  # ---------------------------------------------------------------------------
-  # Lint — ESLint with strict TypeScript rules
-  # ---------------------------------------------------------------------------
-  lint:
-    name: ESLint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      # Full build of dependency packages so lib/ type declarations are
-      # available for ESLint's type-checked rules (codegen alone only
-      # produces src/ — the package entry points reference lib/).
-      - name: Build dependency packages
+      - name: Check all jobs passed
         run: |
-          pnpm --filter=@chillwhales/abi build
-          pnpm --filter=@chillwhales/typeorm build
-
-      - run: pnpm lint
-
-  # ---------------------------------------------------------------------------
-  # Build — active packages across Node versions
-  # ---------------------------------------------------------------------------
-  build:
-    name: Build (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20, 22]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Build all packages
-        run: pnpm build
+          if [[ "${{ needs.build-test.result }}" != "success" ]]; then
+            echo "build-test failed"
+            exit 1
+          fi
+          if [[ "${{ needs.quality.result }}" != "success" ]]; then
+            echo "quality failed"
+            exit 1
+          fi
+          echo "All checks passed"

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: planning
-last_updated: "2026-03-07T19:50:01.713Z"
-last_activity: "2026-03-07 — Completed quick task 1: fix ci, linter and prettier"
+status: completed
+last_updated: "2026-03-08T12:09:31.023Z"
+last_activity: "2026-03-08 — Completed 15-03: Shared infra (chillwhales/.github org repo)"
 progress:
   total_phases: 45
-  completed_phases: 38
-  total_plans: 117
-  completed_plans: 104
-  percent: 94
+  completed_phases: 39
+  total_plans: 120
+  completed_plans: 107
+  percent: 96
 ---
 
 # State: LSP Indexer
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 ## Current Position
 
-- **Phase:** 14 of 15 (Code Comments Cleanup & Release Prep) — **Complete**
-- **Plan:** 2 of 2 in current phase
-- **Status:** Ready to plan
-- **Last activity:** 2026-03-07 — Completed quick task 1: fix ci, linter and prettier
-- **Progress:** [█████████░] 94%
+- **Phase:** 15 of 15 (CI/CD Workflows & Shared Infra) — **Complete**
+- **Plan:** 3 of 3 in current phase — Plan 03 complete
+- **Status:** Milestone complete
+- **Last activity:** 2026-03-08 — Completed 15-03: Shared infra (chillwhales/.github org repo)
+- **Progress:** [██████████] 96%
 
 ## Milestone History
 
@@ -81,10 +81,16 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 106 (36 v1.0 + 70 v1.1)
+- **Plans completed:** 108 (36 v1.0 + 72 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 41 (11 v1.0 + 30 v1.1 including all Phase 9 sub-phases + Phase 10.1 through Phase 10.13 + Phase 11 + Phase 12 + Phase 13)
 - **Requirements delivered:** 45/45 (v1.0), 30/30 (v1.1)
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| 15-01 | 15m | 2 | 14 |
+| 15-02 | 5m | 2 | 2 |
+| 15-03 | 14m | 4 | 8 |
 
 ## Accumulated Context
 
@@ -94,6 +100,10 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 
 **v1.1 decisions:**
 
+- npm provenance via `npm config set provenance true` (avoids modifying changesets publish command)
+- Docker image tagged with version from `publishedPackages[0].version` (fixed group ensures all packages share version)
+- Preview releases use explicit package list (not glob) to exclude internal packages
+- Shared CI/CD infra in chillwhales/.github org repo — reusable workflows consumed via `uses: chillwhales/.github/.github/workflows/*@main`, CI reduced from 9 inline jobs to 2 calls
 - 4 packages: `@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next` in lsp-indexer monorepo
 - Three consumption patterns: queries (TanStack Query via `@lsp-indexer/react`), subscriptions (graphql-ws), server actions (`'use server'` via `@lsp-indexer/next`)
 - GraphQL codegen from Hasura schema, types committed to `packages/node`
@@ -230,6 +240,8 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - Phase 13 added: Indexer v1 cleanup — remove `packages/indexer/` (v1), promote `packages/indexer-v2/` to `packages/indexer/`, remove `docker/v1/`, update root scripts and configs. Eliminates all v1 remnants.
 - Phase 14 added: Code comments cleanup & release prep — remove dead/outdated/.planning comments, add consumer-facing JSDoc to all public APIs, clean up test app documentation, final publish validation. Last phase before npm release.
 - Phase 15 added: CI/CD workflows & shared infra — mirror `chillwhales/LSPs` CI pipeline (layered CI, changesets release, preview releases), investigate abstracting shared workflow patterns into a reusable third repo for cross-repo consistency.
+- **vitest 4 API change:** `defineWorkspace` removed — use `vitest.config.ts` with `test.projects` array. Per-project coverage thresholds not enforced in projects mode; root-level coverage config needed for reporter output.
+- **Changesets fixed group:** All 4 @lsp-indexer packages versioned together via `fixed` array in `.changeset/config.json`
 
 ### Discovered Todos
 
@@ -249,18 +261,18 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-03-07
-- **Activity:** Executed quick task 1 (fix CI linter and Prettier) — 2 tasks, 2 commits
-- **Outcome:** ESLint tuned from 827 errors to 0 errors; Prettier ignores updated; CI format/lint/build pipeline green
-- **Resume file:** .planning/quick/1-fix-ci-linter-and-prettier/1-SUMMARY.md
+- **Date:** 2026-03-08
+- **Activity:** Executed 15-03: Shared infra — chillwhales/.github org repo with reusable workflows
+- **Outcome:** chillwhales/.github created with 2 composite actions + 3 reusable workflows, lsp-indexer CI refactored to consume them, decision doc written
+- **Resume file:** .planning/phases/15-ci-cd-workflows-shared-infra/15-03-SUMMARY.md
 
 ### Context for Next Session
 
-- **Phase 14 complete** — All packages and test app fully documented with JSDoc
-- **All 4 packages publish-validated** — publint + attw pass with zero errors
-- **CI pipeline green** — format:check, lint, and build all pass
-- **Ready for Phase 15** — CI/CD workflows & shared infra
+- **Phase 15 complete** — All 3 plans done (CI pipeline, release/preview workflows, shared infra)
+- **v1.1 milestone nearly complete** — all 46 requirements mapped, Phase 15 was final phase
+- **chillwhales/.github** — org repo with reusable workflows, consumed by lsp-indexer
 - **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
+- **Note:** vitest 4 changed API from `defineWorkspace` to `test.projects` — per-project coverage thresholds not yet enforced in projects mode
 
 ---
 
