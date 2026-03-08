@@ -615,7 +615,7 @@ Plans:
 | 12    | Replace Local Pkgs → @chillwhales    |     2/2      | Complete    |
 | 13    | Indexer v1 Cleanup                   |     4/4      | Complete    |
 | 14    | Code Comments Cleanup & Release Prep |     2/2      | Complete    |
-| 15    | CI/CD Workflows & Shared Infra       |      4       | Not started |
+| 15    | CI/CD Workflows & Shared Infra       |      4       | Active      |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
@@ -859,7 +859,7 @@ Plans:
 
 Plans:
 
-- [ ] 15-01-PLAN.md — Changesets config + layered CI pipeline + vitest coverage infrastructure
+- [x] 15-01-PLAN.md — Changesets config + layered CI pipeline + vitest coverage infrastructure
 - [ ] 15-02-PLAN.md — Release workflow (changesets + Docker) + preview releases (pkg-pr-new)
 - [ ] 15-03-PLAN.md — Shared infra: chillwhales/.github repo + reusable workflows + lsp-indexer consumption
 
