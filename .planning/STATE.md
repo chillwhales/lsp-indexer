@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 ## Current Position
 
 - **Phase:** 15 of 15 (CI/CD Workflows & Shared Infra) — **In Progress**
-- **Plan:** 1 of ? in current phase — Plan 01 complete
+- **Plan:** 2 of 3 in current phase — Plan 02 complete
 - **Status:** Executing
-- **Last activity:** 2026-03-08 — Completed 15-01: CI pipeline & changesets infrastructure
-- **Progress:** [█████████░] 95%
+- **Last activity:** 2026-03-08 — Completed 15-02: Release & preview workflows
+- **Progress:** [█████████░] 96%
 
 ## Milestone History
 
@@ -81,7 +81,7 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 
 ## Performance Metrics
 
-- **Plans completed:** 107 (36 v1.0 + 71 v1.1)
+- **Plans completed:** 108 (36 v1.0 + 72 v1.1)
 - **Plans failed:** 0
 - **Phases completed:** 41 (11 v1.0 + 30 v1.1 including all Phase 9 sub-phases + Phase 10.1 through Phase 10.13 + Phase 11 + Phase 12 + Phase 13)
 - **Requirements delivered:** 45/45 (v1.0), 30/30 (v1.1)
@@ -89,6 +89,7 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | 15-01 | 15m | 2 | 14 |
+| 15-02 | 5m | 2 | 2 |
 
 ## Accumulated Context
 
@@ -98,6 +99,9 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 
 **v1.1 decisions:**
 
+- npm provenance via `npm config set provenance true` (avoids modifying changesets publish command)
+- Docker image tagged with version from `publishedPackages[0].version` (fixed group ensures all packages share version)
+- Preview releases use explicit package list (not glob) to exclude internal packages
 - 4 packages: `@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next` in lsp-indexer monorepo
 - Three consumption patterns: queries (TanStack Query via `@lsp-indexer/react`), subscriptions (graphql-ws), server actions (`'use server'` via `@lsp-indexer/next`)
 - GraphQL codegen from Hasura schema, types committed to `packages/node`
@@ -256,16 +260,15 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-08
-- **Activity:** Executed 15-01: CI pipeline & changesets infrastructure — 2 tasks, 2 commits
-- **Outcome:** Changesets configured with fixed group versioning; CI expanded from 3 to 9 jobs; vitest 4 coverage with 88 smoke tests; all scripts working
-- **Resume file:** .planning/phases/15-ci-cd-workflows-shared-infra/15-01-SUMMARY.md
+- **Activity:** Executed 15-02: Release & preview workflows — 2 tasks, 2 commits
+- **Outcome:** Release workflow (changesets + Docker to GHCR) and preview release workflow (pkg-pr-new) created
+- **Resume file:** .planning/phases/15-ci-cd-workflows-shared-infra/15-02-SUMMARY.md
 
 ### Context for Next Session
 
-- **Phase 15 Plan 01 complete** — Changesets + CI pipeline + vitest coverage infra
-- **CI pipeline has 9 jobs** — layered dependency graph with install → format/lint/build → typecheck/test/pkg-verify → coverage
-- **88 smoke tests pass** across 4 packages with coverage reporting
-- **Ready for Phase 15 Plan 02** — Release workflow or preview releases (if planned)
+- **Phase 15 Plans 01 + 02 complete** — CI pipeline + changesets + release + preview workflows
+- **3 workflow files:** ci.yml (9 jobs), release.yml (changesets + Docker), preview.yml (pkg-pr-new)
+- **Ready for Phase 15 Plan 03** — Shared infra investigation (chillwhales/.github)
 - **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
 - **Note:** vitest 4 changed API from `defineWorkspace` to `test.projects` — per-project coverage thresholds not yet enforced in projects mode
 

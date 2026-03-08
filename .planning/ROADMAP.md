@@ -860,7 +860,7 @@ Plans:
 Plans:
 
 - [x] 15-01-PLAN.md — Changesets config + layered CI pipeline + vitest coverage infrastructure
-- [ ] 15-02-PLAN.md — Release workflow (changesets + Docker) + preview releases (pkg-pr-new)
+- [x] 15-02-PLAN.md — Release workflow (changesets + Docker) + preview releases (pkg-pr-new)
 - [ ] 15-03-PLAN.md — Shared infra: chillwhales/.github repo + reusable workflows + lsp-indexer consumption
 
 **Success Criteria:**
