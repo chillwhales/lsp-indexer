@@ -650,7 +650,7 @@ Plans:
 | 13    | Indexer v1 Cleanup                   |     4/4      | Complete    |
 | 14    | Code Comments Cleanup & Release Prep |     2/2      | Complete    |
 | 15    | CI/CD Workflows & Shared Infra       |     4/4      | Complete    |
-| 16    | 2/2 | Complete   | 2026-03-08 |
+| 16    | 2/2 | Complete    | 2026-03-08 |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
