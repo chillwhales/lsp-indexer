@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-last_updated: "2026-03-08T10:50:01Z"
-last_activity: "2026-03-08 — Completed 15-01: CI pipeline & changesets infrastructure"
+last_updated: "2026-03-08T12:03:00Z"
+last_activity: "2026-03-08 — Completed 15-03: Shared infra (chillwhales/.github org repo)"
 progress:
   total_phases: 45
-  completed_phases: 38
+  completed_phases: 39
   total_plans: 117
-  completed_plans: 105
-  percent: 95
+  completed_plans: 106
+  percent: 96
 ---
 
 # State: LSP Indexer
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 ## Current Position
 
-- **Phase:** 15 of 15 (CI/CD Workflows & Shared Infra) — **In Progress**
-- **Plan:** 2 of 3 in current phase — Plan 02 complete
+- **Phase:** 15 of 15 (CI/CD Workflows & Shared Infra) — **Complete**
+- **Plan:** 3 of 3 in current phase — Plan 03 complete
 - **Status:** Executing
-- **Last activity:** 2026-03-08 — Completed 15-02: Release & preview workflows
-- **Progress:** [█████████░] 96%
+- **Last activity:** 2026-03-08 — Completed 15-03: Shared infra (chillwhales/.github org repo)
+- **Progress:** [██████████] 96%
 
 ## Milestone History
 
@@ -90,6 +90,7 @@ _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain 
 |------|----------|-------|-------|
 | 15-01 | 15m | 2 | 14 |
 | 15-02 | 5m | 2 | 2 |
+| 15-03 | 14m | 4 | 8 |
 
 ## Accumulated Context
 
@@ -102,6 +103,7 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - npm provenance via `npm config set provenance true` (avoids modifying changesets publish command)
 - Docker image tagged with version from `publishedPackages[0].version` (fixed group ensures all packages share version)
 - Preview releases use explicit package list (not glob) to exclude internal packages
+- Shared CI/CD infra in chillwhales/.github org repo — reusable workflows consumed via `uses: chillwhales/.github/.github/workflows/*@main`, CI reduced from 9 inline jobs to 2 calls
 - 4 packages: `@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next` in lsp-indexer monorepo
 - Three consumption patterns: queries (TanStack Query via `@lsp-indexer/react`), subscriptions (graphql-ws), server actions (`'use server'` via `@lsp-indexer/next`)
 - GraphQL codegen from Hasura schema, types committed to `packages/node`
@@ -260,15 +262,15 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-08
-- **Activity:** Executed 15-02: Release & preview workflows — 2 tasks, 2 commits
-- **Outcome:** Release workflow (changesets + Docker to GHCR) and preview release workflow (pkg-pr-new) created
-- **Resume file:** .planning/phases/15-ci-cd-workflows-shared-infra/15-02-SUMMARY.md
+- **Activity:** Executed 15-03: Shared infra — chillwhales/.github org repo with reusable workflows
+- **Outcome:** chillwhales/.github created with 2 composite actions + 3 reusable workflows, lsp-indexer CI refactored to consume them, decision doc written
+- **Resume file:** .planning/phases/15-ci-cd-workflows-shared-infra/15-03-SUMMARY.md
 
 ### Context for Next Session
 
-- **Phase 15 Plans 01 + 02 complete** — CI pipeline + changesets + release + preview workflows
-- **3 workflow files:** ci.yml (9 jobs), release.yml (changesets + Docker), preview.yml (pkg-pr-new)
-- **Ready for Phase 15 Plan 03** — Shared infra investigation (chillwhales/.github)
+- **Phase 15 complete** — All 3 plans done (CI pipeline, release/preview workflows, shared infra)
+- **v1.1 milestone nearly complete** — all 46 requirements mapped, Phase 15 was final phase
+- **chillwhales/.github** — org repo with reusable workflows, consumed by lsp-indexer
 - **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
 - **Note:** vitest 4 changed API from `defineWorkspace` to `test.projects` — per-project coverage thresholds not yet enforced in projects mode
 
