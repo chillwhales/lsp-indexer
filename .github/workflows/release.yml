@@ -14,7 +14,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      packages: write
       id-token: write
     steps:
       - name: Checkout
@@ -50,33 +49,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Extract version tag
-        if: steps.changesets.outputs.published == 'true'
-        id: version
-        run: |
-          VERSION=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[0].version')
-          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Login to GHCR
-        if: steps.changesets.outputs.published == 'true'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        if: steps.changesets.outputs.published == 'true'
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: docker/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/chillwhales/lsp-indexer:latest
-            ghcr.io/chillwhales/lsp-indexer:${{ steps.version.outputs.tag }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/chillwhales/lsp-indexer
-            org.opencontainers.image.description=LUKSO blockchain indexer
-            org.opencontainers.image.licenses=MIT
