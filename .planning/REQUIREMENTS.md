@@ -106,7 +106,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUERY-08    | 9.9   | Complete |
 | QUERY-09    | 9.10  | Complete |
 | QUERY-10    | 9.11  | Complete |
-| PAGE-01     | 9     | Pending  |
+| PAGE-01     | 16    | Pending  |
 | SUB-01      | 10    | Complete |
 | SUB-02      | 10.2  | Complete |
 | SUB-03      | 10.2  | Complete |
@@ -124,4 +124,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 ---
 
 _Requirements defined: 2026-02-16_
-_Last updated: 2026-02-24 — QUERY-07/QUERY-08 marked Complete (phases 9.8/9.9 verified)_
+_Last updated: 2026-03-08 — PAGE-01 reassigned to Phase 16 (gap closure verification)_
