@@ -34,7 +34,7 @@ Each domain includes: GraphQL document, parser (snake_case → camelCase), servi
 
 ### Pagination
 
-- [ ] **PAGE-01**: Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain
+- [x] **PAGE-01**: Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain
 
 ### Subscriptions
 
@@ -106,7 +106,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUERY-08    | 9.9   | Complete |
 | QUERY-09    | 9.10  | Complete |
 | QUERY-10    | 9.11  | Complete |
-| PAGE-01     | 9     | Pending  |
+| PAGE-01     | 9.*   | Complete |
 | SUB-01      | 10    | Complete |
 | SUB-02      | 10.2  | Complete |
 | SUB-03      | 10.2  | Complete |
@@ -124,4 +124,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 ---
 
 _Requirements defined: 2026-02-16_
-_Last updated: 2026-02-24 — QUERY-07/QUERY-08 marked Complete (phases 9.8/9.9 verified)_
+_Last updated: 2026-03-08 — PAGE-01 verified Complete across all 12 list domains (useInfinite* hooks in both React and Next.js packages)_

@@ -578,6 +578,40 @@ Plans:
 4. Developer can run `publint` and `arethetypeswrong` against all 4 packages and see zero errors — `@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`
 5. Developer can `npm pack` each package and see only `dist/` and `README.md` included — no source files, no test fixtures, no generated intermediates
 
+## Phase 16 — v1.1 Verification Gap Closure
+
+**Goal:** Create VERIFICATION.md files for the 4 unverified core query domain phases and resolve the PAGE-01 tracking discrepancy — closing all remaining v1.1 audit gaps so the milestone can pass re-audit.
+
+**Dependencies:** Phase 15 (all implementation phases complete — this is verification-only)
+
+**Gap Closure:** Closes gaps from v1.1 milestone audit (2026-03-08)
+
+**Requirements:**
+
+| ID       | Requirement                                                                                     | Gap Type     |
+| -------- | ----------------------------------------------------------------------------------------------- | ------------ |
+| QUERY-01 | Developer can use `useProfile`, `useProfiles`, `useInfiniteProfiles` for Universal Profile data | Unverified   |
+| DX-01    | Developer can import all clean camelCase domain types from `@lsp-indexer/types`                 | Unverified   |
+| DX-02    | Developer can import query key factories for cache invalidation and prefetching                 | Unverified   |
+| QUERY-02 | Developer can use `useDigitalAsset`, `useDigitalAssets`, `useInfiniteDigitalAssets`             | Unverified   |
+| QUERY-03 | Developer can use `useNft`, `useNfts`, `useNftsByCollection` for NFT data                       | Unverified   |
+| QUERY-04 | Developer can use `useOwnedAssets`, `useOwnedTokens` for ownership data                         | Unverified   |
+| PAGE-01  | Developer can use `useInfinite*` hooks for offset-based infinite scroll on any list domain      | Tracking gap |
+
+**Plans:** 2/2 plans complete
+
+Plans:
+
+- [x] 16-01-PLAN.md — Verify Phase 08 (QUERY-01, DX-01, DX-02) + Phase 09.1 (QUERY-02)
+- [x] 16-02-PLAN.md — Verify Phase 09.2 (QUERY-03) + Phase 09.3 (QUERY-04) + PAGE-01 resolution
+
+**Success Criteria:**
+
+1. Phase 08 has a VERIFICATION.md confirming QUERY-01, DX-01, DX-02 are satisfied — with evidence from existing code artifacts
+2. Phases 09.1, 09.2, 09.3 each have a VERIFICATION.md confirming their QUERY requirement is satisfied
+3. PAGE-01 is verified across all 10 list domains (each has a working `useInfinite*` hook) and marked `[x]` in REQUIREMENTS.md
+4. Re-running `/gsd-audit-milestone` produces `passed` status
+
 ---
 
 ## Progress
@@ -615,11 +649,12 @@ Plans:
 | 12    | Replace Local Pkgs → @chillwhales    |     2/2      | Complete    |
 | 13    | Indexer v1 Cleanup                   |     4/4      | Complete    |
 | 14    | Code Comments Cleanup & Release Prep |     2/2      | Complete    |
-| 15    | CI/CD Workflows & Shared Infra       | Complete    | 2026-03-08 |
+| 15    | CI/CD Workflows & Shared Infra       |     4/4      | Complete    |
+| 16    | Verification Gap Closure            |     2/2      | Complete    |
 
 _Note:_ Phase 9 has 12 requirements total: 9 QUERY requirements (one per domain sub-phase), DX-04 (conditional include types), DX-05 (generic type propagation), plus PAGE-01 which is delivered incrementally across all sub-phases and counted once globally.
 
-**Total:** 25/30 requirements delivered (SUB-02, SUB-03 incremental via Phases 10.2–10.5)
+**Total:** 46/46 requirements delivered (30 v1.1 core + 16 migration/cleanup/release/CI — Phase 16 closes verification gaps on final 7)
 
 ---
 
