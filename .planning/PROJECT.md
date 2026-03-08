@@ -8,6 +8,19 @@ The LSP Indexer is an open-source blockchain event indexer for the LUKSO network
 
 Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer — without needing to understand the underlying blockchain, GraphQL schema, or indexing pipeline.
 
+## Current Milestone: v1.2 Production Readiness
+
+**Goal:** Make the indexer production-ready with block-level ordering, sorting support across all consumer packages, monitoring, and operational infrastructure.
+
+**Target features:**
+
+- Production Docker Compose using released `ghcr.io/chillwhales/lsp-indexer` image
+- Block ordering fields (blockNumber, transactionIndex, logIndex) on all entities
+- Oldest/newest sorting across all 12 query domains in all consumer packages
+- Grafana monitoring dashboards (structured logs + sqd logs)
+- Database backup strategy and recovery procedure
+- Version normalization for private packages
+
 ## Current State
 
 **Shipped:** v1.1 React Hooks Package (2026-03-08)
@@ -27,8 +40,6 @@ The indexer is complete (v1.0) and the consumer package layer is complete (v1.1)
 - 12 server action sets (Next.js `'use server'` with Zod input validation)
 - Prisma-style include type narrowing (excluded fields absent from TypeScript types)
 - Layered CI pipeline, changesets release flow, shared reusable workflows
-
-**Next:** Planning next milestone.
 
 ## Requirements
 
@@ -55,7 +66,12 @@ The indexer is complete (v1.0) and the consumer package layer is complete (v1.1)
 
 ### Active
 
-_(No active requirements — planning next milestone)_
+- [ ] Production Docker Compose (released image + PG + Hasura)
+- [ ] Block ordering fields on all entities
+- [ ] Oldest/newest sorting across all 12 domains
+- [ ] Grafana monitoring dashboards
+- [ ] Database backups + recovery procedure
+- [ ] Version normalization (0.1.0 for private packages)
 
 ### Deferred
 
@@ -63,6 +79,8 @@ _(No active requirements — planning next milestone)_
 - SSR hydration examples and documentation — deferred from v1.1
 - Select transform helpers — deferred from v1.1
 - Domain-specific stale time tuning — deferred from v1.1
+- Multi-instance deployment with failover — deferred from v1.2
+- Auto-scaling / Kubernetes — deferred from v1.2
 
 ### Out of Scope
 
@@ -119,4 +137,4 @@ All v1.1 milestone work (Phases 7–16) merged through pull requests targeting `
 
 ---
 
-_Last updated: 2026-03-08 after v1.1 milestone_
+_Last updated: 2026-03-08 after v1.2 milestone started_

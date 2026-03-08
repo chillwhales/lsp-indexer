@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: React Hooks Package
-status: shipped
+milestone: v1.2
+milestone_name: Production Readiness
+status: defining_requirements
 last_updated: "2026-03-08"
-last_activity: "2026-03-08 — Milestone v1.1 archived and tagged"
+last_activity: "2026-03-08 — Milestone v1.2 started"
 progress:
-  total_phases: 33
-  completed_phases: 33
-  total_plans: 77
-  completed_plans: 77
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: LSP Indexer
@@ -21,14 +21,16 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** Planning next milestone
+**Current focus:** v1.2 Production Readiness — defining requirements
 
 ## Current Position
 
-- **Milestone:** v1.1 React Hooks Package — **SHIPPED** 2026-03-08
-- **Status:** Milestone archived, git tagged v1.1
-- **Last activity:** 2026-03-08 — Milestone archived
-- **Progress:** [██████████] 100%
+- **Milestone:** v1.2 Production Readiness
+- **Phase:** Not started (defining requirements)
+- **Plan:** —
+- **Status:** Defining requirements
+- **Last activity:** 2026-03-08 — Milestone v1.2 started
+- **Progress:** [░░░░░░░░░░] 0%
 
 ## Milestone History
 
@@ -74,17 +76,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-08
-- **Activity:** Milestone v1.1 archived and tagged
-- **Outcome:** v1.1 shipped — 4 packages, 12 domains, subscriptions, server actions, CI/CD
+- **Activity:** Started milestone v1.2 — Production Readiness
+- **Outcome:** Requirements defined (25 requirements across 7 categories)
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **v1.1 archived** — ROADMAP.md collapsed, REQUIREMENTS.md archived, MILESTONES.md created
-- **Next step:** `/gsd-new-milestone` to start next milestone (questioning → research → requirements → roadmap)
+- **v1.2 in progress** — Requirements defined, roadmap creation next
 - **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
-- **Integration branch:** `refactor/indexer-v2-react` — contains all v1.1 work, needs merge decision
+- **Integration branch:** `refactor/indexer-v2-react` — contains all v1.0+v1.1 work, needs merge decision
+- **Key lesson from v1.1:** Plan for release readiness from the start (include release phases in initial roadmap)
 
 ---
 
-_Last updated: 2026-03-08 — v1.1 milestone shipped and archived_
+_Last updated: 2026-03-08 — v1.2 milestone started_
