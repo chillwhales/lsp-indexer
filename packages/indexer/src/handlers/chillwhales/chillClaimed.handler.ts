@@ -55,6 +55,9 @@ const ChillClaimedHandler: EntityHandler = {
         const entity = new ChillClaimed({
           id,
           address: CHILLWHALES_ADDRESS,
+          blockNumber: event.blockNumber,
+          transactionIndex: event.transactionIndex,
+          logIndex: event.logIndex,
           digitalAsset: null, // FK initially null — resolved by enrichment queue
           tokenId: event.tokenId,
           nft: null, // FK initially null — resolved by enrichment queue
@@ -70,9 +73,9 @@ const ChillClaimedHandler: EntityHandler = {
           entityType: ENTITY_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: event.blockNumber,
+          transactionIndex: event.transactionIndex,
+          logIndex: event.logIndex,
         });
 
         // Queue enrichment for nft FK
@@ -83,9 +86,9 @@ const ChillClaimedHandler: EntityHandler = {
           entityType: ENTITY_TYPE,
           entityId: id,
           fkField: 'nft',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: event.blockNumber,
+          transactionIndex: event.transactionIndex,
+          logIndex: event.logIndex,
         });
       }
     }

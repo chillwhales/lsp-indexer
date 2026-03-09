@@ -58,6 +58,9 @@ const OrbFactionHandler: EntityHandler = {
           id,
           address: transfer.address,
           tokenId: transfer.tokenId,
+          blockNumber: transfer.blockNumber,
+          transactionIndex: transfer.transactionIndex,
+          logIndex: transfer.logIndex,
           value: 'Neutral',
           digitalAsset: null, // FK initially null
           nft: null, // FK initially null
@@ -72,9 +75,9 @@ const OrbFactionHandler: EntityHandler = {
           entityType: ORB_FACTION_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: transfer.blockNumber,
+          transactionIndex: transfer.transactionIndex,
+          logIndex: transfer.logIndex,
         });
 
         // Queue enrichment for nft FK
@@ -85,9 +88,9 @@ const OrbFactionHandler: EntityHandler = {
           entityType: ORB_FACTION_TYPE,
           entityId: id,
           fkField: 'nft',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: transfer.blockNumber,
+          transactionIndex: transfer.transactionIndex,
+          logIndex: transfer.logIndex,
         });
       }
     } else if (triggeredBy === 'TokenIdDataChanged') {
@@ -120,6 +123,9 @@ const OrbFactionHandler: EntityHandler = {
           id,
           address: event.address,
           tokenId: event.tokenId,
+          blockNumber: event.blockNumber,
+          transactionIndex: event.transactionIndex,
+          logIndex: event.logIndex,
           value: faction,
         });
 
@@ -132,9 +138,9 @@ const OrbFactionHandler: EntityHandler = {
           entityType: ORB_FACTION_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: event.blockNumber,
+          transactionIndex: event.transactionIndex,
+          logIndex: event.logIndex,
         });
 
         // Queue enrichment for nft FK
@@ -145,9 +151,9 @@ const OrbFactionHandler: EntityHandler = {
           entityType: ORB_FACTION_TYPE,
           entityId: id,
           fkField: 'nft',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: event.blockNumber,
+          transactionIndex: event.transactionIndex,
+          logIndex: event.logIndex,
         });
       }
     }
