@@ -15,7 +15,7 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 
 ### Block Ordering
 
-- [ ] **BORD-01**: Every TypeORM entity has `blockNumber`, `transactionIndex`, and `logIndex` columns
+- [x] **BORD-01**: Every TypeORM entity has `blockNumber`, `transactionIndex`, and `logIndex` columns
 - [x] **BORD-02**: All EventPlugins populate block/tx/log fields from the decoded event context
 - [x] **BORD-03**: All EntityHandlers populate block/tx/log fields from the triggering event
 - [x] **BORD-04**: UniversalProfile, DigitalAsset, and NFT entities retain block/tx/log from the oldest (first) event — later updates do not overwrite these fields
@@ -98,7 +98,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOCK-01 | Phase 18 | Complete |
 | DOCK-02 | Phase 18 | Complete |
 | DOCK-03 | Phase 18 | Complete |
-| BORD-01 | Phase 19 | Pending |
+| BORD-01 | Phase 19 | Complete |
 | BORD-02 | Phase 19 | Complete |
 | BORD-03 | Phase 19 | Complete |
 | BORD-04 | Phase 19 | Complete |
