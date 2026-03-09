@@ -128,6 +128,9 @@ const NFTHandler: EntityHandler = {
         entityType: ENTITY_TYPE,
         entityId: nft.id,
         fkField: 'digitalAsset',
+        blockNumber: 0,
+        transactionIndex: 0,
+        logIndex: 0,
       });
 
       hctx.batchCtx.addEntity(ENTITY_TYPE, nft.id, nft);

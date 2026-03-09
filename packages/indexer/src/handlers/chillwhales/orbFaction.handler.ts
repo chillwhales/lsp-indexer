@@ -72,6 +72,9 @@ const OrbFactionHandler: EntityHandler = {
           entityType: ORB_FACTION_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
 
         // Queue enrichment for nft FK
@@ -82,6 +85,9 @@ const OrbFactionHandler: EntityHandler = {
           entityType: ORB_FACTION_TYPE,
           entityId: id,
           fkField: 'nft',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       }
     } else if (triggeredBy === 'TokenIdDataChanged') {
@@ -126,6 +132,9 @@ const OrbFactionHandler: EntityHandler = {
           entityType: ORB_FACTION_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
 
         // Queue enrichment for nft FK
@@ -136,6 +145,9 @@ const OrbFactionHandler: EntityHandler = {
           entityType: ORB_FACTION_TYPE,
           entityId: id,
           fkField: 'nft',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       }
     }

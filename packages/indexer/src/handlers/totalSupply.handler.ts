@@ -135,6 +135,9 @@ const TotalSupplyHandler: EntityHandler = {
           entityType: ENTITY_TYPE,
           entityId: entity.id,
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       }
     }

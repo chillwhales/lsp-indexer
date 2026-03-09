@@ -21,6 +21,9 @@ describe('BatchContext - Enrichment Queue', () => {
       entityType: 'Transfer',
       entityId: 'transfer-1',
       fkField: 'digitalAsset',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     };
 
     ctx.queueEnrichment(request);
@@ -39,6 +42,9 @@ describe('BatchContext - Enrichment Queue', () => {
       entityType: 'Transfer',
       entityId: 'transfer-1',
       fkField: 'digitalAsset',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     };
 
     const request2: EnrichmentRequest<Transfer> = {
@@ -47,6 +53,9 @@ describe('BatchContext - Enrichment Queue', () => {
       entityType: 'Transfer',
       entityId: 'transfer-1',
       fkField: 'fromProfile',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     };
 
     const request3: EnrichmentRequest<Transfer> = {
@@ -56,6 +65,9 @@ describe('BatchContext - Enrichment Queue', () => {
       entityType: 'LSP8Transfer',
       entityId: 'nft-transfer-1',
       fkField: 'nft',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     };
 
     ctx.queueEnrichment(request1);
@@ -80,6 +92,9 @@ describe('BatchContext - Enrichment Queue', () => {
       entityType: 'NFTMetadata',
       entityId: 'nft-meta-1',
       fkField: 'nft',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     };
 
     const requestWithoutTokenId: EnrichmentRequest<Transfer> = {
@@ -88,6 +103,9 @@ describe('BatchContext - Enrichment Queue', () => {
       entityType: 'LSP4TokenName',
       entityId: 'token-name-1',
       fkField: 'digitalAsset',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     };
 
     ctx.queueEnrichment(requestWithTokenId);
@@ -121,6 +139,9 @@ describe('BatchContext - Enrichment Queue', () => {
         entityType: 'Transfer',
         entityId: `transfer-${i}`,
         fkField: 'digitalAsset',
+        blockNumber: 0,
+        transactionIndex: 0,
+        logIndex: 0,
       });
       ctx.queueEnrichment(requests[i]);
     }
@@ -142,6 +163,9 @@ describe('BatchContext - Enrichment Queue', () => {
       entityType: 'Transfer',
       entityId: 'transfer-1',
       fkField: 'fromProfile',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     };
 
     const request2: EnrichmentRequest<Transfer> = {
@@ -150,6 +174,9 @@ describe('BatchContext - Enrichment Queue', () => {
       entityType: 'Transfer',
       entityId: 'transfer-1',
       fkField: 'toProfile',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     };
 
     ctx.queueEnrichment(request1);

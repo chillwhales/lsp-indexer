@@ -94,6 +94,9 @@ const DecimalsHandler: EntityHandler = {
               entityType: ENTITY_TYPE,
               entityId: entity.id,
               fkField: 'digitalAsset',
+              blockNumber: 0,
+              transactionIndex: 0,
+              logIndex: 0,
             });
           } catch (error) {
             // Skip this result if hexToNumber throws (e.g., value out of range)

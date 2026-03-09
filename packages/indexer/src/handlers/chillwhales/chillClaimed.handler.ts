@@ -70,6 +70,9 @@ const ChillClaimedHandler: EntityHandler = {
           entityType: ENTITY_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
 
         // Queue enrichment for nft FK
@@ -80,6 +83,9 @@ const ChillClaimedHandler: EntityHandler = {
           entityType: ENTITY_TYPE,
           entityId: id,
           fkField: 'nft',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       }
     }

@@ -211,6 +211,9 @@ function extractLength(
     entityType: LENGTH_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 
@@ -273,6 +276,9 @@ function extractFromIndex(
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
   // Queue enrichment for controllerProfile FK (secondary UP reference)
   hctx.batchCtx.queueEnrichment<LSP6Controller>({
@@ -281,6 +287,9 @@ function extractFromIndex(
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'controllerProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 
@@ -501,6 +510,9 @@ function getOrCreateController(
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
   // Queue enrichment for controllerProfile FK (secondary UP reference)
   hctx.batchCtx.queueEnrichment<LSP6Controller>({
@@ -509,6 +521,9 @@ function getOrCreateController(
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'controllerProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 
   return entity;

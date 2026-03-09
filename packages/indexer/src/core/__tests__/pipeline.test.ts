@@ -294,6 +294,9 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       },
     };
@@ -561,6 +564,9 @@ describe('Pipeline Step 5: VERIFY', () => {
           entityType: 'Event',
           entityId: 'e1',
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
@@ -568,6 +574,9 @@ describe('Pipeline Step 5: VERIFY', () => {
           entityType: 'Event',
           entityId: 'e1',
           fkField: 'anotherDA',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       },
     };
@@ -607,6 +616,9 @@ describe('Pipeline Step 5: VERIFY', () => {
           entityType: 'Event',
           entityId: 'e1',
           fkField: 'profile',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       },
     };
@@ -644,6 +656,9 @@ describe('Pipeline Step 5: VERIFY', () => {
           entityType: 'Event',
           entityId: 'e1',
           fkField: 'fromProfile',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
@@ -651,6 +666,9 @@ describe('Pipeline Step 5: VERIFY', () => {
           entityType: 'Event',
           entityId: 'e1',
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       },
     };
@@ -741,6 +759,9 @@ describe('Pipeline Step 6: ENRICH', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       },
     };
@@ -785,6 +806,9 @@ describe('Pipeline Step 6: ENRICH', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       },
     };
@@ -835,6 +859,9 @@ describe('Pipeline Step 6: ENRICH', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'fromProfile',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
@@ -842,6 +869,9 @@ describe('Pipeline Step 6: ENRICH', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'toProfile',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
@@ -849,6 +879,9 @@ describe('Pipeline Step 6: ENRICH', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       },
     };
@@ -897,6 +930,9 @@ describe('Pipeline Step 6: ENRICH', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset', // This field doesn't exist on the entity instance
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       },
     };
@@ -960,6 +996,9 @@ describe('Pipeline Integration', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'fromProfile',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
@@ -967,6 +1006,9 @@ describe('Pipeline Integration', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'toProfile',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
@@ -974,6 +1016,9 @@ describe('Pipeline Integration', () => {
           entityType: 'Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       },
     };

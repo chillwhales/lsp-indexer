@@ -112,6 +112,9 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
       entityType: LSP4_ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     });
 
     // Queue enrichment for nft FK
@@ -122,6 +125,9 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
       entityType: LSP4_ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'nft',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     });
   }
 }
@@ -221,6 +227,9 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
       entityType: LSP4_ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     });
 
     // Queue enrichment for nft FK
@@ -231,6 +240,9 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
       entityType: LSP4_ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'nft',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     });
   }
 }

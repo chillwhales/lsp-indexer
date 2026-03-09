@@ -116,6 +116,9 @@ function extractLength(
     entityType: LENGTH_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 
@@ -163,6 +166,9 @@ function extractFromIndex(
     entityType: ENCRYPTED_ASSET_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 
@@ -203,6 +209,9 @@ function extractFromMap(
     entityType: ENTRY_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 
@@ -244,6 +253,9 @@ function extractRevisionCount(
     entityType: REVISION_COUNT_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 

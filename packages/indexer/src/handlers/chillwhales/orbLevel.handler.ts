@@ -96,6 +96,9 @@ const OrbLevelHandler: EntityHandler = {
           entityType: ORB_LEVEL_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
 
         hctx.batchCtx.queueEnrichment<OrbCooldownExpiry>({
@@ -104,6 +107,9 @@ const OrbLevelHandler: EntityHandler = {
           entityType: ORB_COOLDOWN_EXPIRY_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
 
         // Queue enrichment for nft FK (both entities)
@@ -114,6 +120,9 @@ const OrbLevelHandler: EntityHandler = {
           entityType: ORB_LEVEL_TYPE,
           entityId: id,
           fkField: 'nft',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
 
         hctx.batchCtx.queueEnrichment<OrbCooldownExpiry>({
@@ -123,6 +132,9 @@ const OrbLevelHandler: EntityHandler = {
           entityType: ORB_COOLDOWN_EXPIRY_TYPE,
           entityId: id,
           fkField: 'nft',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
         });
       }
     } else if (triggeredBy === 'TokenIdDataChanged') {
@@ -190,6 +202,9 @@ const OrbLevelHandler: EntityHandler = {
             entityType: ORB_LEVEL_TYPE,
             entityId: id,
             fkField: 'digitalAsset',
+            blockNumber: 0,
+            transactionIndex: 0,
+            logIndex: 0,
           });
 
           hctx.batchCtx.queueEnrichment<OrbCooldownExpiry>({
@@ -198,6 +213,9 @@ const OrbLevelHandler: EntityHandler = {
             entityType: ORB_COOLDOWN_EXPIRY_TYPE,
             entityId: id,
             fkField: 'digitalAsset',
+            blockNumber: 0,
+            transactionIndex: 0,
+            logIndex: 0,
           });
 
           // Queue enrichment for nft FK (both entities)
@@ -208,6 +226,9 @@ const OrbLevelHandler: EntityHandler = {
             entityType: ORB_LEVEL_TYPE,
             entityId: id,
             fkField: 'nft',
+            blockNumber: 0,
+            transactionIndex: 0,
+            logIndex: 0,
           });
 
           hctx.batchCtx.queueEnrichment<OrbCooldownExpiry>({
@@ -217,6 +238,9 @@ const OrbLevelHandler: EntityHandler = {
             entityType: ORB_COOLDOWN_EXPIRY_TYPE,
             entityId: id,
             fkField: 'nft',
+            blockNumber: 0,
+            transactionIndex: 0,
+            logIndex: 0,
           });
         }
       }

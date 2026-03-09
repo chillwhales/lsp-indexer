@@ -66,6 +66,15 @@ export interface EnrichmentRequest<T extends Entity> {
 
   /** Which field on the entity to set the FK reference (must be a FK field) */
   fkField: FKFields<T> & string;
+
+  /** Block number from the event that created this enrichment request */
+  blockNumber: number;
+
+  /** Transaction index within the block */
+  transactionIndex: number;
+
+  /** Log index within the transaction */
+  logIndex: number;
 }
 
 /**

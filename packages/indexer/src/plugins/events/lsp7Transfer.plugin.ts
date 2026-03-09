@@ -67,6 +67,9 @@ const LSP7TransferPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     });
 
     // Queue enrichment for from/to/operator UniversalProfile FKs
@@ -78,6 +81,9 @@ const LSP7TransferPlugin: EventPlugin = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'fromProfile',
+        blockNumber: 0,
+        transactionIndex: 0,
+        logIndex: 0,
       });
     }
     if (!isNullAddress(to)) {
@@ -87,6 +93,9 @@ const LSP7TransferPlugin: EventPlugin = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'toProfile',
+        blockNumber: 0,
+        transactionIndex: 0,
+        logIndex: 0,
       });
     }
     if (!isNullAddress(operator)) {
@@ -96,6 +105,9 @@ const LSP7TransferPlugin: EventPlugin = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'operatorProfile',
+        blockNumber: 0,
+        transactionIndex: 0,
+        logIndex: 0,
       });
     }
   },

@@ -137,6 +137,9 @@ function extractLength(
     entityType: LENGTH_TYPE,
     entityId: entity.id,
     fkField: 'digitalAsset',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 
@@ -201,6 +204,9 @@ function extractFromIndex(
     entityType: CREATOR_TYPE,
     entityId: entity.id,
     fkField: 'digitalAsset',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 
   // Queue enrichment for creatorProfile FK (secondary UP reference)
@@ -210,6 +216,9 @@ function extractFromIndex(
     entityType: CREATOR_TYPE,
     entityId: entity.id,
     fkField: 'creatorProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 
@@ -275,6 +284,9 @@ function extractFromMap(
     entityType: CREATOR_TYPE,
     entityId: entity.id,
     fkField: 'digitalAsset',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 
   // Queue enrichment for creatorProfile FK (secondary UP reference)
@@ -284,6 +296,9 @@ function extractFromMap(
     entityType: CREATOR_TYPE,
     entityId: entity.id,
     fkField: 'creatorProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 

@@ -134,6 +134,9 @@ function extractLength(
     entityType: LENGTH_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 
@@ -198,6 +201,9 @@ function extractFromIndex(
     entityType: RECEIVED_ASSET_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 
   // Queue enrichment for receivedAsset FK (secondary DA reference)
@@ -207,6 +213,9 @@ function extractFromIndex(
     entityType: RECEIVED_ASSET_TYPE,
     entityId: entity.id,
     fkField: 'receivedAsset',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 
@@ -272,6 +281,9 @@ function extractFromMap(
     entityType: RECEIVED_ASSET_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 
   // Queue enrichment for receivedAsset FK (secondary DA reference)
@@ -281,6 +293,9 @@ function extractFromMap(
     entityType: RECEIVED_ASSET_TYPE,
     entityId: entity.id,
     fkField: 'receivedAsset',
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 
