@@ -46,10 +46,10 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 
 ### Versioning
 
-- [ ] **VERS-01**: `@chillwhales/abi` package.json version set to 0.1.0
-- [ ] **VERS-02**: `@chillwhales/typeorm` package.json version set to 0.1.0
-- [ ] **VERS-03**: `@chillwhales/indexer` package.json version set to 0.1.0
-- [ ] **VERS-04**: `apps/test` package.json version set to 0.1.0
+- [x] **VERS-01**: `@chillwhales/abi` package.json version set to 0.1.0
+- [x] **VERS-02**: `@chillwhales/typeorm` package.json version set to 0.1.0
+- [x] **VERS-03**: `@chillwhales/indexer` package.json version set to 0.1.0
+- [x] **VERS-04**: `apps/test` package.json version set to 0.1.0
 
 ### Operations
 
@@ -91,10 +91,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VERS-01 | Phase 17 | Pending |
-| VERS-02 | Phase 17 | Pending |
-| VERS-03 | Phase 17 | Pending |
-| VERS-04 | Phase 17 | Pending |
+| VERS-01 | Phase 17 | Complete |
+| VERS-02 | Phase 17 | Complete |
+| VERS-03 | Phase 17 | Complete |
+| VERS-04 | Phase 17 | Complete |
 | DOCK-01 | Phase 18 | Pending |
 | DOCK-02 | Phase 18 | Pending |
 | DOCK-03 | Phase 18 | Pending |

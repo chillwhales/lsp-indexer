@@ -17,8 +17,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@chillwhales/abi": "workspace:1.0.4",
-    "@chillwhales/typeorm": "workspace:1.2.1",
+    "@chillwhales/abi": "workspace:*",
+    "@chillwhales/typeorm": "workspace:*",
     "@erc725/erc725.js": "^0.28.1",
     "@lukso/lsp0-contracts": "0.15.5",
     "@lukso/lsp12-contracts": "^0.15.4",
