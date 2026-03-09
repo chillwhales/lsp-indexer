@@ -50,6 +50,9 @@ const LSP8MetadataBaseURIHandler: EntityHandler = {
         id: event.address,
         address: event.address,
         timestamp: event.timestamp,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
         value: decodeBaseURI(event.dataValue),
         rawValue: event.dataValue,
         digitalAsset: null, // FK initially null
@@ -65,9 +68,9 @@ const LSP8MetadataBaseURIHandler: EntityHandler = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'digitalAsset',
-        blockNumber: 0,
-        transactionIndex: 0,
-        logIndex: 0,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
       });
     }
   },

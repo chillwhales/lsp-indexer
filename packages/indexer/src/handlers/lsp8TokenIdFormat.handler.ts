@@ -32,6 +32,9 @@ const LSP8TokenIdFormatHandler: EntityHandler = {
         id: event.address,
         address: event.address,
         timestamp: event.timestamp,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
         value:
           !isHex(event.dataValue) || event.dataValue === '0x'
             ? null
@@ -50,9 +53,9 @@ const LSP8TokenIdFormatHandler: EntityHandler = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'digitalAsset',
-        blockNumber: 0,
-        transactionIndex: 0,
-        logIndex: 0,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
       });
     }
   },

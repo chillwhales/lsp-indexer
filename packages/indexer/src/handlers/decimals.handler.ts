@@ -77,9 +77,18 @@ const DecimalsHandler: EntityHandler = {
 
         if (result.success && isHex(result.returnData) && result.returnData !== '0x') {
           try {
+            const daWithBlock = da as {
+              id: string;
+              blockNumber?: number;
+              transactionIndex?: number;
+              logIndex?: number;
+            };
             const entity = new Decimals({
               id: da.id,
               address: da.id,
+              blockNumber: daWithBlock.blockNumber ?? 0,
+              transactionIndex: daWithBlock.transactionIndex ?? 0,
+              logIndex: daWithBlock.logIndex ?? 0,
               digitalAsset: null, // FK initially null — resolved by enrichment queue
               value: hexToNumber(result.returnData),
             });
@@ -94,9 +103,9 @@ const DecimalsHandler: EntityHandler = {
               entityType: ENTITY_TYPE,
               entityId: entity.id,
               fkField: 'digitalAsset',
-              blockNumber: 0,
-              transactionIndex: 0,
-              logIndex: 0,
+              blockNumber: entity.blockNumber,
+              transactionIndex: entity.transactionIndex,
+              logIndex: entity.logIndex,
             });
           } catch (error) {
             // Skip this result if hexToNumber throws (e.g., value out of range)

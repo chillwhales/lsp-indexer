@@ -76,6 +76,9 @@ const TotalSupplyHandler: EntityHandler = {
         entity = new TotalSupply({
           id: address,
           timestamp,
+          blockNumber: transfer.blockNumber,
+          transactionIndex: transfer.transactionIndex,
+          logIndex: transfer.logIndex,
           address,
           digitalAsset: null,
           value: 0n,
@@ -89,6 +92,9 @@ const TotalSupplyHandler: EntityHandler = {
           new TotalSupply({
             ...entity,
             timestamp,
+            blockNumber: transfer.blockNumber,
+            transactionIndex: transfer.transactionIndex,
+            logIndex: transfer.logIndex,
             value: entity.value + amount,
             // Explicitly preserve FK field for enrichment
             digitalAsset: entity.digitalAsset ?? null,
@@ -113,6 +119,9 @@ const TotalSupplyHandler: EntityHandler = {
           new TotalSupply({
             ...current,
             timestamp,
+            blockNumber: transfer.blockNumber,
+            transactionIndex: transfer.transactionIndex,
+            logIndex: transfer.logIndex,
             value: current.value > amount ? current.value - amount : 0n,
             // Explicitly preserve FK field for enrichment
             digitalAsset: current.digitalAsset ?? null,
@@ -135,9 +144,9 @@ const TotalSupplyHandler: EntityHandler = {
           entityType: ENTITY_TYPE,
           entityId: entity.id,
           fkField: 'digitalAsset',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
         });
       }
     }

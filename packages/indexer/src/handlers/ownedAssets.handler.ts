@@ -270,9 +270,9 @@ const OwnedAssetsHandler: EntityHandler = {
           entityType: OWNED_ASSET_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
         });
       }
 
@@ -284,9 +284,9 @@ const OwnedAssetsHandler: EntityHandler = {
           entityType: OWNED_ASSET_TYPE,
           entityId: id,
           fkField: 'universalProfile',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
         });
       }
     }
@@ -302,9 +302,9 @@ const OwnedAssetsHandler: EntityHandler = {
           entityType: OWNED_TOKEN_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
         });
       }
 
@@ -316,9 +316,9 @@ const OwnedAssetsHandler: EntityHandler = {
           entityType: OWNED_TOKEN_TYPE,
           entityId: id,
           fkField: 'universalProfile',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
         });
       }
 
@@ -331,9 +331,9 @@ const OwnedAssetsHandler: EntityHandler = {
           entityType: OWNED_TOKEN_TYPE,
           entityId: id,
           fkField: 'nft',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
         });
       }
 

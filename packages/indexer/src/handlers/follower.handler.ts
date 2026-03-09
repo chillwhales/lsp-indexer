@@ -57,9 +57,9 @@ const FollowerHandler: EntityHandler = {
           entityType: FOLLOWER_TYPE,
           entityId: entity.id,
           fkField: 'followerUniversalProfile',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: follow.blockNumber,
+          transactionIndex: follow.transactionIndex,
+          logIndex: follow.logIndex,
         });
         hctx.batchCtx.queueEnrichment<Follower>({
           category: EntityCategory.UniversalProfile,
@@ -67,9 +67,9 @@ const FollowerHandler: EntityHandler = {
           entityType: FOLLOWER_TYPE,
           entityId: entity.id,
           fkField: 'followedUniversalProfile',
-          blockNumber: 0,
-          transactionIndex: 0,
-          logIndex: 0,
+          blockNumber: follow.blockNumber,
+          transactionIndex: follow.transactionIndex,
+          logIndex: follow.logIndex,
         });
       }
     }
