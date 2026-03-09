@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Readiness
-status: defining_requirements
+status: ready_to_plan
 last_updated: "2026-03-08"
 last_activity: "2026-03-08 — Milestone v1.2 started"
 progress:
@@ -21,15 +21,15 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.2 Production Readiness — defining requirements
+**Current focus:** v1.2 Production Readiness — Phase 17 ready to plan
 
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Not started (defining requirements)
+- **Phase:** 17 of 22 (Version Normalization) — not started
 - **Plan:** —
-- **Status:** Defining requirements
-- **Last activity:** 2026-03-08 — Milestone v1.2 started
+- **Status:** Ready to plan Phase 17
+- **Last activity:** 2026-03-08 — Roadmap created (6 phases, 26 requirements)
 - **Progress:** [░░░░░░░░░░] 0%
 
 ## Milestone History
@@ -76,17 +76,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-08
-- **Activity:** Started milestone v1.2 — Production Readiness
-- **Outcome:** Requirements defined (25 requirements across 7 categories)
+- **Activity:** Created milestone v1.2 roadmap
+- **Outcome:** 6 phases (17-22), 26 requirements mapped, ready to plan Phase 17
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **v1.2 in progress** — Requirements defined, roadmap creation next
+- **v1.2 roadmap ready** — 6 phases, 26 requirements, ready to plan Phase 17
 - **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
 - **Integration branch:** `refactor/indexer-v2-react` — contains all v1.0+v1.1 work, needs merge decision
 - **Key lesson from v1.1:** Plan for release readiness from the start (include release phases in initial roadmap)
 
 ---
 
-_Last updated: 2026-03-08 — v1.2 milestone started_
+_Last updated: 2026-03-08 — v1.2 roadmap created_
