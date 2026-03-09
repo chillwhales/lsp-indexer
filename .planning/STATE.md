@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Readiness
 status: executing
-last_updated: "2026-03-09T13:41:24Z"
-last_activity: 2026-03-09 — Completed 19-01-PLAN.md (Block Ordering Schema & Types)
+last_updated: "2026-03-09T13:52:49Z"
+last_activity: 2026-03-09 — Completed 19-02-PLAN.md (Wire Block Ordering Through Plugins and Pipeline)
 progress:
   total_phases: 49
   completed_phases: 42
   total_plans: 124
-  completed_plans: 112
+  completed_plans: 113
   percent: 90
 ---
 
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 - **Milestone:** v1.2 Production Readiness
 - **Phase:** Phase 19 — 3 of 6 in v1.2 (Block Ordering) — in progress
-- **Plan:** 1 of 3 complete
-- **Status:** Executing Phase 19 — Plan 01 complete
-- **Last activity:** 2026-03-09 — Completed 19-01-PLAN.md (Block Ordering Schema & Types)
+- **Plan:** 2 of 3 complete
+- **Status:** Executing Phase 19 — Plan 02 complete
+- **Last activity:** 2026-03-09 — Completed 19-02-PLAN.md (Wire Block Ordering Through Plugins and Pipeline)
 - **Progress:** [█████████░] 90%
 
 ## Milestone History
@@ -47,7 +47,7 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 116 (36 v1.0 + 77 v1.1 + 3 v1.2)
+- **Plans completed:** 117 (36 v1.0 + 77 v1.1 + 4 v1.2)
 - **Plans failed:** 0
 - **Phases completed:** 46 (11 v1.0 + 33 v1.1 + 2 v1.2)
 - **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 9/26 (v1.2)
@@ -76,17 +76,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-09
-- **Activity:** Executed Phase 19 Plan 01 — Block Ordering Schema & Types
-- **Outcome:** All 72 entities have blockNumber/transactionIndex/logIndex fields, EnrichmentRequest updated, placeholder values in queueEnrichment calls
-- **Resume file:** .planning/phases/19-block-ordering/19-02-PLAN.md
+- **Activity:** Executed Phase 19 Plan 02 — Wire Block Ordering Through Plugins and Pipeline
+- **Outcome:** All 11 EventPlugins pass real block data in enrichment requests; pipeline computes earliest block position per address for new UP/DA entity creation (BORD-04)
+- **Resume file:** .planning/phases/19-block-ordering/19-03-PLAN.md
 
 ### Context for Next Session
 
-- **Phase 19 Plan 01 complete** — Schema and type foundation ready
-- **Plans 02/03 remain** — Replace placeholder 0 values with real block data from events in plugins and handlers
-- **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
+- **Phase 19 Plan 02 complete** — Plugin and pipeline block ordering wiring done
+- **Plan 03 remains** — Wire block data through EntityHandler-created derived entities
+- **Uncommitted handler changes** observed in working directory (Plan 03 scope) — these build correctly
 - **Integration branch:** `refactor/indexer-v2-react` — contains all v1.0+v1.1 work, needs merge decision
 
 ---
 
-_Last updated: 2026-03-09 — Phase 19 Plan 01 complete (block ordering schema & types)_
+_Last updated: 2026-03-09 — Phase 19 Plan 02 complete (wire block ordering through plugins and pipeline)_
