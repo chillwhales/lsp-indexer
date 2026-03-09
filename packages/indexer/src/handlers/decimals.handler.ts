@@ -77,18 +77,12 @@ const DecimalsHandler: EntityHandler = {
 
         if (result.success && isHex(result.returnData) && result.returnData !== '0x') {
           try {
-            const daWithBlock = da as {
-              id: string;
-              blockNumber?: number;
-              transactionIndex?: number;
-              logIndex?: number;
-            };
             const entity = new Decimals({
               id: da.id,
               address: da.id,
-              blockNumber: daWithBlock.blockNumber ?? 0,
-              transactionIndex: daWithBlock.transactionIndex ?? 0,
-              logIndex: daWithBlock.logIndex ?? 0,
+              blockNumber: da.blockNumber,
+              transactionIndex: da.transactionIndex,
+              logIndex: da.logIndex,
               digitalAsset: null, // FK initially null — resolved by enrichment queue
               value: hexToNumber(result.returnData),
             });

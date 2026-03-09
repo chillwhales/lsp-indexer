@@ -115,12 +115,33 @@ function createMockVerifyFn(
     const newSet = new Set([...addresses].filter((addr) => newAddresses.has(addr)));
     const invalid = new Set([...addresses].filter((addr) => !validAddresses.has(addr)));
 
-    const newEntities = new Map<string, { id: string }>();
+    const newEntities = new Map<
+      string,
+      { id: string } & { blockNumber: number; transactionIndex: number; logIndex: number }
+    >();
     for (const addr of newSet) {
       if (category === EntityCategory.UniversalProfile) {
-        newEntities.set(addr, new UniversalProfile({ id: addr, address: addr }));
+        newEntities.set(
+          addr,
+          new UniversalProfile({
+            id: addr,
+            address: addr,
+            blockNumber: 0,
+            transactionIndex: 0,
+            logIndex: 0,
+          }),
+        );
       } else if (category === EntityCategory.DigitalAsset) {
-        newEntities.set(addr, new DigitalAsset({ id: addr, address: addr }));
+        newEntities.set(
+          addr,
+          new DigitalAsset({
+            id: addr,
+            address: addr,
+            blockNumber: 0,
+            transactionIndex: 0,
+            logIndex: 0,
+          }),
+        );
       }
     }
 

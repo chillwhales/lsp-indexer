@@ -243,7 +243,7 @@ interface InternalVerificationResult {
   newAddresses: Set<string>;
   validAddresses: Set<string>;
   invalidAddresses: Set<string>;
-  newEntities: Map<string, { id: string }>;
+  newEntities: Map<string, { id: string } & BlockPosition>;
 }
 
 // ---------------------------------------------------------------------------
@@ -355,7 +355,7 @@ async function verifyWithInterface(
   // BORD-04: Set block position from earliest enrichment request per address.
   // Existing entities (from DB or cache) are never modified — only new entities
   // get block fields, ensuring the "oldest retention" guarantee.
-  const newEntities = new Map<string, { id: string }>();
+  const newEntities = new Map<string, { id: string } & BlockPosition>();
   if (category === EntityCategory.UniversalProfile) {
     for (const addr of newlyVerified) {
       const blockPos = blockPositionByAddress?.get(addr);

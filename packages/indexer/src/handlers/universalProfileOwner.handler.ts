@@ -46,15 +46,13 @@ const UniversalProfileOwnerHandler: EntityHandler = {
       // Check if the emitting address is a verified UniversalProfile
       if (!verifiedUPs.valid.has(event.address)) continue;
 
-      const upWithBlock = verifiedUPs.newEntities.get(event.address) as
-        | { id: string; blockNumber?: number; transactionIndex?: number; logIndex?: number }
-        | undefined;
+      const upEntity = verifiedUPs.newEntities.get(event.address);
       const entity = new UniversalProfileOwner({
         id: event.address,
         timestamp: event.timestamp,
-        blockNumber: upWithBlock?.blockNumber ?? event.blockNumber,
-        transactionIndex: upWithBlock?.transactionIndex ?? event.transactionIndex,
-        logIndex: upWithBlock?.logIndex ?? event.logIndex,
+        blockNumber: upEntity?.blockNumber ?? event.blockNumber,
+        transactionIndex: upEntity?.transactionIndex ?? event.transactionIndex,
+        logIndex: upEntity?.logIndex ?? event.logIndex,
         address: event.newOwner,
         universalProfile: null, // FK initially null — resolved by enrichment queue
       });
