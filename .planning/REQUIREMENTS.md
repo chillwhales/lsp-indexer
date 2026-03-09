@@ -3,7 +3,7 @@
 **Defined:** 2026-03-08
 **Core Value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-## v1 Requirements
+## v1.2 Requirements
 
 Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 

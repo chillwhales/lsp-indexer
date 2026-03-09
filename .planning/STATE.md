@@ -6,7 +6,7 @@ status: ready_to_plan
 last_updated: "2026-03-08"
 last_activity: "2026-03-08 — Milestone v1.2 started"
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** 17 of 22 (Version Normalization) — not started
+- **Phase:** Phase 17 — 1 of 6 in v1.2 (Version Normalization) — not started
 - **Plan:** —
 - **Status:** Ready to plan Phase 17
 - **Last activity:** 2026-03-08 — Roadmap created (6 phases, 26 requirements)

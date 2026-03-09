@@ -68,7 +68,7 @@ Full details: `milestones/v1.1-ROADMAP.md`
 
 ### Phase 18: Production Docker Compose
 **Goal**: Anyone can run the full indexer stack in production using the released Docker image
-**Depends on**: Nothing (independent of Phase 17)
+**Depends on**: Nothing (independent of Phase 17, execution order is a preference)
 **Requirements**: DOCK-01, DOCK-02, DOCK-03
 **Success Criteria** (what must be TRUE):
   1. Running `docker compose up` with the production compose file starts the full stack (indexer + PostgreSQL + Hasura) using `ghcr.io/chillwhales/lsp-indexer:latest`
