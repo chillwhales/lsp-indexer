@@ -77,7 +77,10 @@ Plans:
   1. Running `docker compose up` with the production compose file starts the full stack (indexer + PostgreSQL + Hasura) using `ghcr.io/chillwhales/lsp-indexer:latest`
   2. All services are configurable through environment variables (RPC URL, DB credentials, Hasura secrets) without modifying the compose file
   3. The local development compose file continues to work unchanged for contributors
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 18-01-PLAN.md — Create production compose file, env template, and documentation
 
 ### Phase 19: Block Ordering
 **Goal**: Every indexed entity carries its blockchain position for deterministic ordering
@@ -132,7 +135,7 @@ Plans:
 | 1-6 | v1.0 | 36/36 | Complete | 2026-02-16 |
 | 7-16 | v1.1 | 77/77 | Complete | 2026-03-08 |
 | 17. Version Normalization | v1.2 | Complete    | 2026-03-09 | 2026-03-09 |
-| 18. Production Docker Compose | v1.2 | 0/TBD | Not started | - |
+| 18. Production Docker Compose | v1.2 | 0/1 | Planned | - |
 | 19. Block Ordering | v1.2 | 0/TBD | Not started | - |
 | 20. Monitoring & Docker Release | v1.2 | 0/TBD | Not started | - |
 | 21. Sorting & Package Release | v1.2 | 0/TBD | Not started | - |
