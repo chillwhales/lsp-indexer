@@ -27,16 +27,12 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm build
-
-      - name: Configure npm provenance
-        run: npm config set provenance true
 
       - name: Create release PR or publish
         id: changesets
