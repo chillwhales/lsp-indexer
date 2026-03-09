@@ -91,7 +91,12 @@ Plans:
   2. UniversalProfile, DigitalAsset, and NFT entities retain their original (oldest) block/tx/log values even after being updated by subsequent events
   3. All entities compile cleanly after schema.graphql and TypeORM codegen changes
   4. The indexer processes blocks and populates all ordering fields correctly end-to-end
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 19-01-PLAN.md — Schema + interface foundation (block fields on all entities + codegen)
+- [ ] 19-02-PLAN.md — EventPlugin + pipeline updates (real block data in enrichment + core entity retention)
+- [ ] 19-03-PLAN.md — EntityHandler block propagation (derived entities + metadata sub-entities)
 
 ### Phase 20: Monitoring & Docker Image Release
 **Goal**: Production operators can observe indexer health through Grafana and deploy the latest changes
@@ -136,7 +141,7 @@ Plans:
 | 7-16 | v1.1 | 77/77 | Complete | 2026-03-08 |
 | 17. Version Normalization | v1.2 | 1/1 | Complete | 2026-03-09 |
 | 18. Production Docker Compose | v1.2 | 1/1 | Complete | 2026-03-09 |
-| 19. Block Ordering | v1.2 | 0/TBD | Not started | - |
+| 19. Block Ordering | v1.2 | 0/3 | Not started | - |
 | 20. Monitoring & Docker Release | v1.2 | 0/TBD | Not started | - |
 | 21. Sorting & Package Release | v1.2 | 0/TBD | Not started | - |
 | 22. Database Operations | v1.2 | 0/TBD | Not started | - |
