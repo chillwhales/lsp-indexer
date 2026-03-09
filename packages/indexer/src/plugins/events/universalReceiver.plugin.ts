@@ -59,9 +59,9 @@ const UniversalReceiverPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'universalProfile',
-      blockNumber: 0,
-      transactionIndex: 0,
-      logIndex: 0,
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
 
     // Queue enrichment for from address as both UP and DA
@@ -73,9 +73,9 @@ const UniversalReceiverPlugin: EventPlugin = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'fromProfile',
-        blockNumber: 0,
-        transactionIndex: 0,
-        logIndex: 0,
+        blockNumber: height,
+        transactionIndex,
+        logIndex,
       });
       ctx.queueEnrichment<UniversalReceiver>({
         category: EntityCategory.DigitalAsset,
@@ -83,9 +83,9 @@ const UniversalReceiverPlugin: EventPlugin = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'fromAsset',
-        blockNumber: 0,
-        transactionIndex: 0,
-        logIndex: 0,
+        blockNumber: height,
+        transactionIndex,
+        logIndex,
       });
     }
   },

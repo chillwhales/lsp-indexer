@@ -62,9 +62,9 @@ const DataChangedPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'universalProfile',
-      blockNumber: 0,
-      transactionIndex: 0,
-      logIndex: 0,
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
     ctx.queueEnrichment<DataChanged>({
       category: EntityCategory.DigitalAsset,
@@ -72,9 +72,9 @@ const DataChangedPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
-      blockNumber: 0,
-      transactionIndex: 0,
-      logIndex: 0,
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
   },
 };

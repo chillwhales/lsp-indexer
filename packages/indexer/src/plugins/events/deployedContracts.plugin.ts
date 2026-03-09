@@ -71,9 +71,9 @@ const DeployedContractsPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'universalProfile',
-      blockNumber: 0,
-      transactionIndex: 0,
-      logIndex: 0,
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
   },
 };

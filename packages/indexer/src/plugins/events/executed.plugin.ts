@@ -58,9 +58,9 @@ const ExecutedPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'universalProfile',
-      blockNumber: 0,
-      transactionIndex: 0,
-      logIndex: 0,
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
 
     // Queue enrichment for target address as both UP and DA
@@ -72,9 +72,9 @@ const ExecutedPlugin: EventPlugin = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'targetProfile',
-        blockNumber: 0,
-        transactionIndex: 0,
-        logIndex: 0,
+        blockNumber: height,
+        transactionIndex,
+        logIndex,
       });
       ctx.queueEnrichment<Executed>({
         category: EntityCategory.DigitalAsset,
@@ -82,9 +82,9 @@ const ExecutedPlugin: EventPlugin = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'targetAsset',
-        blockNumber: 0,
-        transactionIndex: 0,
-        logIndex: 0,
+        blockNumber: height,
+        transactionIndex,
+        logIndex,
       });
     }
   },
