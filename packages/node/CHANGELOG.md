@@ -1,5 +1,16 @@
 # @lsp-indexer/node
 
+## 0.2.1
+
+### Patch Changes
+
+- [#277](https://github.com/chillwhales/lsp-indexer/pull/277) [`7120525`](https://github.com/chillwhales/lsp-indexer/commit/71205255c6b1b5a7b1843c0ce0be46c7da5e962e) Thanks [@b00ste](https://github.com/b00ste)! - Initial publication of @lsp-indexer packages at version 0.1.0
+
+  This publishes the initial versions of all packages to npm for the first time.
+
+- Updated dependencies [[`7120525`](https://github.com/chillwhales/lsp-indexer/commit/71205255c6b1b5a7b1843c0ce0be46c7da5e962e)]:
+  - @lsp-indexer/types@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
