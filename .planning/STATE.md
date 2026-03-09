@@ -1,6 +1,6 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
+milestone: v1.2
 milestone_name: Production Readiness
 status: executing
 last_updated: "2026-03-09T12:26:32.659Z"
