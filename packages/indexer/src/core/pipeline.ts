@@ -25,6 +25,7 @@ import { resolveForeignKeys } from './fkResolution';
 import { createStepLogger } from './logger';
 import { PluginRegistry } from './registry';
 import {
+  BlockPosition,
   Context,
   Entity,
   EntityCategory,
@@ -42,12 +43,16 @@ import {
 /**
  * Function signature for address verification.
  * Injected into the pipeline so it stays decoupled from the verification implementation.
+ *
+ * @param blockPositionByAddress - BORD-04: Earliest block position per address.
+ *   Used to set block fields on newly created UP/DA entities.
  */
 export type VerifyFn = (
   category: EntityCategory,
   addresses: Set<string>,
   store: Store,
   context: Context,
+  blockPositionByAddress?: Map<string, BlockPosition>,
 ) => Promise<VerificationResult>;
 
 /**
@@ -158,6 +163,21 @@ function enrichEntity(entity: unknown, request: StoredEnrichmentRequest, fkStub:
   // Field name is validated at the handler call site via queueEnrichment<T>()
   // The field existence is checked by the caller with the `in` operator
   typedEntity[request.fkField] = fkStub;
+}
+
+// ---------------------------------------------------------------------------
+// Block position comparison helper (BORD-04)
+// ---------------------------------------------------------------------------
+
+/**
+ * Compare two block positions for ordering.
+ * Returns negative if `a` is earlier than `b`, positive if later, 0 if equal.
+ * Comparison order: blockNumber → transactionIndex → logIndex.
+ */
+function compareBlockPosition(a: BlockPosition, b: BlockPosition): number {
+  if (a.blockNumber !== b.blockNumber) return a.blockNumber - b.blockNumber;
+  if (a.transactionIndex !== b.transactionIndex) return a.transactionIndex - b.transactionIndex;
+  return a.logIndex - b.logIndex;
 }
 
 /**
@@ -393,6 +413,24 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     requestList.push(request);
   }
 
+  // BORD-04: Compute earliest block position per address from enrichment queue.
+  // For each non-NFT address, retain the enrichment request with the lowest
+  // (blockNumber, transactionIndex, logIndex) tuple. This ensures new core
+  // entities (UP, DA) are created with the block position of their first
+  // on-chain appearance, and later batches never overwrite these fields.
+  const earliestBlockByAddress = new Map<string, BlockPosition>();
+  for (const request of enrichmentQueue) {
+    if (request.category === EntityCategory.NFT) continue;
+    const existing = earliestBlockByAddress.get(request.address);
+    if (!existing || compareBlockPosition(request, existing) < 0) {
+      earliestBlockByAddress.set(request.address, {
+        blockNumber: request.blockNumber,
+        transactionIndex: request.transactionIndex,
+        logIndex: request.logIndex,
+      });
+    }
+  }
+
   // Capture queue length — any requests added by post-verification handlers
   // (Step 5.5) will be at indices >= this value and need a second grouping pass.
   const prePostVerifyQueueLen = enrichmentQueue.length;
@@ -406,7 +444,13 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       const addresses = addressesByCategory.get(category);
       if (!addresses || addresses.size === 0) return;
 
-      const result = await verifyAddresses(category, addresses, context.store, context);
+      const result = await verifyAddresses(
+        category,
+        addresses,
+        context.store,
+        context,
+        earliestBlockByAddress,
+      );
       batchCtx.setVerified(category, result);
 
       verifyLog.info(

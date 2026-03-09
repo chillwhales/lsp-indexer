@@ -10,6 +10,16 @@
 import { Entity, FKFields } from './entity';
 
 /**
+ * Block position data for a single event occurrence.
+ * Used to propagate earliest-seen block position to newly created core entities (BORD-04).
+ */
+export type BlockPosition = {
+  blockNumber: number;
+  transactionIndex: number;
+  logIndex: number;
+};
+
+/**
  * Categories of blockchain entities that require verification via supportsInterface().
  */
 export enum EntityCategory {
