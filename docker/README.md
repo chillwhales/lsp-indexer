@@ -5,7 +5,9 @@ Docker deployment for LSP Indexer.
 ## Files
 
 - **`Dockerfile`** — Multi-stage optimized build (~400MB)
-- **`docker-compose.yml`** — Orchestration with PostgreSQL + Hasura
+- **`docker-compose.yml`** — Development orchestration (builds from source)
+- **`docker-compose.prod.yml`** — Production orchestration with released Docker image
+- **`.env.prod.example`** — Production environment template
 - **`manage.sh`** — Management script (35+ commands)
 - **`entrypoint.sh`** — Container entrypoint (migrations + Hasura config + start)
 
@@ -38,6 +40,39 @@ nano ../.env  # Configure RPC_URL
 # Export logs
 ./manage.sh logs-export ./logs
 ```
+
+## Production Deployment
+
+The production compose file uses the pre-built Docker image from GitHub Container Registry instead of building from source.
+
+### Setup
+
+```bash
+cd docker
+
+# Copy and configure production environment
+cp .env.prod.example ../.env.prod
+nano ../.env.prod  # Set REQUIRED: POSTGRES_PASSWORD, HASURA_GRAPHQL_ADMIN_SECRET, RPC_URL
+
+# Start production stack
+docker compose -f docker-compose.prod.yml --env-file ../.env.prod up -d
+
+# Monitor logs
+docker compose -f docker-compose.prod.yml --env-file ../.env.prod logs -f indexer
+
+# Stop
+docker compose -f docker-compose.prod.yml --env-file ../.env.prod down
+```
+
+### Production vs Development
+
+| Aspect          | Development       | Production                               |
+| --------------- | ----------------- | ---------------------------------------- |
+| Indexer         | Built from source | `ghcr.io/chillwhales/lsp-indexer:latest` |
+| PostgreSQL port | Exposed (5432)    | Not exposed                              |
+| Hasura console  | Enabled           | Disabled                                 |
+| Hasura dev mode | Enabled           | Disabled                                 |
+| Secrets         | Optional defaults | Required (no defaults)                   |
 
 ## Management Commands
 

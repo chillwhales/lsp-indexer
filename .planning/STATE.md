@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
+milestone: v1.2
 milestone_name: Production Readiness
-status: ready_to_plan
-last_updated: "2026-03-09T07:14:56.735Z"
-last_activity: 2026-03-09 — Completed 17-01-PLAN.md (Version Normalization)
+status: in_progress
+last_updated: "2026-03-09T07:55:47.907Z"
+last_activity: 2026-03-09 — Completed 18-01-PLAN.md (Production Docker Compose)
 progress:
-  total_phases: 47
-  completed_phases: 41
-  total_plans: 123
-  completed_plans: 110
-  percent: 4
+  total_phases: 48
+  completed_phases: 42
+  total_plans: 124
+  completed_plans: 111
+  percent: 90
 ---
 
 # State: LSP Indexer
@@ -21,16 +21,16 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.2 Production Readiness — Phase 18 ready to plan
+**Current focus:** v1.2 Production Readiness — Phase 18 complete
 
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Phase 18 — 2 of 6 in v1.2 (Production Docker Compose) — not started
-- **Plan:** —
-- **Status:** Ready to plan Phase 18
-- **Last activity:** 2026-03-09 — Completed 17-01-PLAN.md (Version Normalization)
-- **Progress:** [█░░░░░░░░░] 4%
+- **Phase:** Phase 18 — 2 of 6 in v1.2 (Production Docker Compose) — complete
+- **Plan:** 1 of 1 complete
+- **Status:** Phase 18 complete — Milestone in progress
+- **Last activity:** 2026-03-09 — Completed 18-01-PLAN.md (Production Docker Compose)
+- **Progress:** [█████████░] 90%
 
 ## Milestone History
 
@@ -47,10 +47,10 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 114 (36 v1.0 + 77 v1.1 + 1 v1.2)
+- **Plans completed:** 115 (36 v1.0 + 77 v1.1 + 2 v1.2)
 - **Plans failed:** 0
-- **Phases completed:** 45 (11 v1.0 + 33 v1.1 + 1 v1.2)
-- **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 4/26 (v1.2)
+- **Phases completed:** 46 (11 v1.0 + 33 v1.1 + 2 v1.2)
+- **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 7/26 (v1.2)
 
 ## Accumulated Context
 
@@ -76,17 +76,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-09
-- **Activity:** Executed Phase 17 Plan 01 — Version Normalization
-- **Outcome:** All 4 private packages normalized to 0.1.0, all builds pass
+- **Activity:** Executed Phase 18 Plan 01 — Production Docker Compose
+- **Outcome:** Production compose file created with ghcr.io image, hardened defaults, env template
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 17 complete** — All packages at 0.1.0, ready for Phase 18 (Production Docker Compose)
+- **Phase 18 complete** — Production Docker Compose ready, next is Phase 19
 - **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
 - **Integration branch:** `refactor/indexer-v2-react` — contains all v1.0+v1.1 work, needs merge decision
-- **Key lesson from v1.1:** Plan for release readiness from the start (include release phases in initial roadmap)
 
 ---
 
-_Last updated: 2026-03-09 — Phase 17 complete (version normalization)_
+_Last updated: 2026-03-09 — Phase 18 complete (production docker compose)_

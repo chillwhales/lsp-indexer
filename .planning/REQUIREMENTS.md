@@ -9,9 +9,9 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 
 ### Docker Compose
 
-- [ ] **DOCK-01**: Production docker-compose pulls `ghcr.io/chillwhales/lsp-indexer:latest` and runs indexer + PostgreSQL + Hasura
-- [ ] **DOCK-02**: Local docker-compose (existing) remains the default for development
-- [ ] **DOCK-03**: Production compose is configurable via environment variables (RPC URL, DB credentials, Hasura secrets)
+- [x] **DOCK-01**: Production docker-compose pulls `ghcr.io/chillwhales/lsp-indexer:latest` and runs indexer + PostgreSQL + Hasura
+- [x] **DOCK-02**: Local docker-compose (existing) remains the default for development
+- [x] **DOCK-03**: Production compose is configurable via environment variables (RPC URL, DB credentials, Hasura secrets)
 
 ### Block Ordering
 
@@ -95,9 +95,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VERS-02 | Phase 17 | Complete |
 | VERS-03 | Phase 17 | Complete |
 | VERS-04 | Phase 17 | Complete |
-| DOCK-01 | Phase 18 | Pending |
-| DOCK-02 | Phase 18 | Pending |
-| DOCK-03 | Phase 18 | Pending |
+| DOCK-01 | Phase 18 | Complete |
+| DOCK-02 | Phase 18 | Complete |
+| DOCK-03 | Phase 18 | Complete |
 | BORD-01 | Phase 19 | Pending |
 | BORD-02 | Phase 19 | Pending |
 | BORD-03 | Phase 19 | Pending |

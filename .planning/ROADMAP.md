@@ -49,7 +49,7 @@ Full details: `milestones/v1.1-ROADMAP.md`
 **Milestone Goal:** Make the indexer production-ready with block-level ordering, sorting across all consumer packages, monitoring, and operational infrastructure.
 
 - [x] **Phase 17: Version Normalization** — Set 0.1.0 for all private packages (completed 2026-03-09)
-- [ ] **Phase 18: Production Docker Compose** — Production-ready compose using released Docker image
+- [x] **Phase 18: Production Docker Compose** — Production-ready compose using released Docker image (completed 2026-03-09)
 - [ ] **Phase 19: Block Ordering** — Add blockNumber/transactionIndex/logIndex to all entities
 - [ ] **Phase 20: Monitoring & Docker Image Release** — Grafana dashboards + release updated Docker image
 - [ ] **Phase 21: Sorting & Consumer Package Release** — Oldest/newest sorting across all 12 domains + release 4 packages
@@ -134,8 +134,8 @@ Plans:
 | --- | --- | --- | --- | --- |
 | 1-6 | v1.0 | 36/36 | Complete | 2026-02-16 |
 | 7-16 | v1.1 | 77/77 | Complete | 2026-03-08 |
-| 17. Version Normalization | v1.2 | Complete    | 2026-03-09 | 2026-03-09 |
-| 18. Production Docker Compose | v1.2 | 0/1 | Planned | - |
+| 17. Version Normalization | v1.2 | 1/1 | Complete | 2026-03-09 |
+| 18. Production Docker Compose | v1.2 | 1/1 | Complete | 2026-03-09 |
 | 19. Block Ordering | v1.2 | 0/TBD | Not started | - |
 | 20. Monitoring & Docker Release | v1.2 | 0/TBD | Not started | - |
 | 21. Sorting & Package Release | v1.2 | 0/TBD | Not started | - |
