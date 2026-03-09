@@ -62,10 +62,10 @@ services:
       - -c
       - work_mem=64MB
 
-    # Database credentials from .env (POSTGRES_PASSWORD required — no default)
+    # Database credentials from .env.prod (POSTGRES_PASSWORD required — no default)
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
 
     # No ports exposed in production — access via internal Docker network only
@@ -105,14 +105,14 @@ services:
     volumes:
       - indexer-logs:/app/packages/indexer/logs
 
-    # All environment variables from .env
+    # Environment variables (configured via your env file, e.g. .env.prod)
     environment:
       # Database connection (POSTGRES_PASSWORD required — no default)
-      DB_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-postgres}
+      DB_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}@postgres:5432/${POSTGRES_DB:-postgres}
 
       # Blockchain data sources (RPC_URL required — no default)
       SQD_GATEWAY: ${SQD_GATEWAY:-https://v2.archive.subsquid.io/network/lukso-mainnet}
-      RPC_URL: ${RPC_URL:?Set RPC_URL in .env}
+      RPC_URL: ${RPC_URL:?Set RPC_URL in .env.prod}
       RPC_RATE_LIMIT: ${RPC_RATE_LIMIT:-10}
       FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION:-75}
 
@@ -131,7 +131,7 @@ services:
 
       # Hasura configuration (for entrypoint script)
       HASURA_GRAPHQL_ENDPOINT: ${HASURA_GRAPHQL_ENDPOINT:-http://hasura:8080}
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set in .env}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set (no default)}
 
     # Logging configuration for Docker
     logging:
@@ -175,10 +175,10 @@ services:
       - '${HASURA_GRAPHQL_PORT:-8080}:8080'
 
     environment:
-      PG_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-postgres}
-      HASURA_GRAPHQL_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-postgres}
-      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-postgres}
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set in .env}
+      PG_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}@postgres:5432/${POSTGRES_DB:-postgres}
+      HASURA_GRAPHQL_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}@postgres:5432/${POSTGRES_DB:-postgres}
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}@postgres:5432/${POSTGRES_DB:-postgres}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set (no default)}
       HASURA_GRAPHQL_ENABLE_CONSOLE: ${HASURA_GRAPHQL_ENABLE_CONSOLE:-false}
       HASURA_GRAPHQL_DEV_MODE: ${HASURA_GRAPHQL_DEV_MODE:-false}
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: ${HASURA_GRAPHQL_ENABLED_LOG_TYPES:-startup,http-log,webhook-log,websocket-log,query-log}

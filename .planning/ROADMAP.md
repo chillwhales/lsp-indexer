@@ -134,8 +134,8 @@ Plans:
 | --- | --- | --- | --- | --- |
 | 1-6 | v1.0 | 36/36 | Complete | 2026-02-16 |
 | 7-16 | v1.1 | 77/77 | Complete | 2026-03-08 |
-| 17. Version Normalization | v1.2 | Complete    | 2026-03-09 | 2026-03-09 |
-| 18. Production Docker Compose | 1/1 | Complete    | 2026-03-09 | - |
+| 17. Version Normalization | v1.2 | 1/1 | Complete | 2026-03-09 |
+| 18. Production Docker Compose | v1.2 | 1/1 | Complete | 2026-03-09 |
 | 19. Block Ordering | v1.2 | 0/TBD | Not started | - |
 | 20. Monitoring & Docker Release | v1.2 | 0/TBD | Not started | - |
 | 21. Sorting & Package Release | v1.2 | 0/TBD | Not started | - |
