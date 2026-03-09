@@ -95,7 +95,7 @@ docker compose -f docker-compose.prod.yml --env-file ../.env.prod up -d
 |---------|------------|--------------|-----|
 | `HASURA_GRAPHQL_DEV_MODE` | `true` | `false` | Hide detailed errors from public |
 | `HASURA_GRAPHQL_ENABLE_CONSOLE` | `true` | `false` | Console is a security risk in prod |
-| `HASURA_GRAPHQL_ADMIN_SECRET` | Optional | **Required** (no default) | Must be strong secret in prod |
+| `HASURA_GRAPHQL_ADMIN_SECRET` | **Required** (no default; enforced via `docker-compose.yml`) | **Required** (no default; must be strong secret in prod) | Must be strong secret in prod |
 | `POSTGRES_PASSWORD` | `postgres` | **Required** (no default) | Must be strong secret in prod |
 | `POSTGRES_PORT` | `5432` (exposed) | Not exposed | DB should not be publicly accessible |
 | `NODE_ENV` | `production` | `production` | Same — already correct |
@@ -319,7 +319,7 @@ RPC_URL=                     # LUKSO RPC endpoint (e.g., https://rpc.lukso.sigma
 # --- Optional (sane defaults) ---
 POSTGRES_USER=postgres
 POSTGRES_DB=postgres
-INDEXER_VERSION=latest        # Pin to specific version: v0.1.0, sha-abc1234
+INDEXER_VERSION=latest        # Pin to specific version: v0.1.0, abc1234
 SQD_GATEWAY=https://v2.archive.subsquid.io/network/lukso-mainnet
 RPC_RATE_LIMIT=10
 FINALITY_CONFIRMATION=75
@@ -358,6 +358,9 @@ Complete catalog of all environment variables used across services:
 | `METADATA_WORKER_POOL_SIZE` | `4` | indexer | Worker thread count |
 | `NODE_ENV` | `production` | indexer | Runtime environment |
 | `LOG_LEVEL` | `info` | indexer | Log verbosity |
+| `INDEXER_ENABLE_FILE_LOGGER` | `true` | indexer | Enable pino file logging in addition to console |
+| `LOG_DIR` | `/app/packages/indexer/logs` | indexer | Directory inside container where log files are written |
+| `HASURA_GRAPHQL_ENDPOINT` | `http://hasura:8080` | indexer | URL where entrypoint applies Hasura metadata |
 | `HASURA_GRAPHQL_PORT` | `8080` | hasura | Exposed GraphQL port |
 | `HASURA_GRAPHQL_ENABLE_CONSOLE` | `false` (prod) | hasura | Web console access |
 | `HASURA_GRAPHQL_DEV_MODE` | `false` (prod) | hasura | Detailed error messages |
@@ -391,9 +394,9 @@ postgres ──────────► hasura (depends_on: postgres healthy 
 ## Open Questions
 
 1. **INDEXER_VERSION variable**
-   - What we know: The CI publishes to `ghcr.io/chillwhales/lsp-indexer` with tags `:latest`, `:vX.Y.Z`, and `:sha-ABCDEF`
+   - What we know: The CI publishes to `ghcr.io/chillwhales/lsp-indexer` with tags `:latest`, `:vX.Y.Z`, and `:ABCDEF` (short commit SHA without a `sha-` prefix)
    - What's unclear: Whether `latest` is always safe for production (could pull untested changes)
-   - Recommendation: Default to `latest` but support `INDEXER_VERSION` env var for pinning. Document that operators should pin to a specific version in production.
+   - Recommendation: Default to `latest` but support `INDEXER_VERSION` env var for pinning. Document that operators should pin to a specific version (e.g., `v1.2.3` or a short SHA like `abc1234`) in production.
 
 2. **Hasura metadata_defaults for data connector**
    - What we know: The dev compose uses a long JSON string as the default for `HASURA_GRAPHQL_METADATA_DEFAULTS`
