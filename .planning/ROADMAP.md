@@ -64,7 +64,10 @@ Full details: `milestones/v1.1-ROADMAP.md`
 **Success Criteria** (what must be TRUE):
   1. All 4 private packages (`@chillwhales/abi`, `@chillwhales/typeorm`, `@chillwhales/indexer`, `apps/test`) show version 0.1.0 in their package.json
   2. All packages build successfully after version change
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 17-01-PLAN.md — Normalize all package versions to 0.1.0 and verify builds
 
 ### Phase 18: Production Docker Compose
 **Goal**: Anyone can run the full indexer stack in production using the released Docker image
