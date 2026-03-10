@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
+milestone: v1.0
 milestone_name: Production Readiness
 status: completed
-last_updated: "2026-03-09T14:12:46.030Z"
-last_activity: 2026-03-09 — Completed 19-03-PLAN.md (Wire Block Ordering Through EntityHandlers)
+last_updated: "2026-03-10T13:47:47.056Z"
+last_activity: 2026-03-10 — Completed 19.1-01 getEntities generic removal (28 files, 331 errors fixed)
 progress:
-  total_phases: 49
-  completed_phases: 43
-  total_plans: 127
-  completed_plans: 114
-  percent: 92
+  total_phases: 50
+  completed_phases: 44
+  total_plans: 128
+  completed_plans: 115
+  percent: 93
 ---
 
 # State: LSP Indexer
@@ -21,16 +21,16 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.2 Production Readiness — Phase 19.1 next
+**Current focus:** v1.2 Production Readiness — Phase 19.1 complete, Phase 20 next
 
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Phase 19.1 — Type System Tightening (not started)
-- **Plan:** 0 of TBD
-- **Status:** Phase 19 complete, 19.1 inserted
-- **Last activity:** 2026-03-10 — Inserted Phase 19.1 for type system tightening
-- **Progress:** [█████████░] 92%
+- **Phase:** Phase 19.1 — Type System Tightening (complete)
+- **Plan:** 1 of 1
+- **Status:** Phase 19.1 complete
+- **Last activity:** 2026-03-10 — Completed 19.1-01 getEntities generic removal (28 files, 331 errors fixed)
+- **Progress:** [█████████░] 93%
 
 ## Milestone History
 
@@ -47,9 +47,9 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 118 (36 v1.0 + 77 v1.1 + 5 v1.2)
+- **Plans completed:** 119 (36 v1.0 + 77 v1.1 + 6 v1.2)
 - **Plans failed:** 0
-- **Phases completed:** 47 (11 v1.0 + 33 v1.1 + 3 v1.2)
+- **Phases completed:** 48 (11 v1.0 + 33 v1.1 + 4 v1.2)
 - **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 10/26 (v1.2)
 
 ## Accumulated Context
@@ -76,18 +76,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-10
-- **Activity:** Inserted Phase 19.1 for type system tightening; moved WIP changes to `refactor/indexer-type-system-tightening` branch
-- **Outcome:** Branch rebased onto latest main (2bee515); 17 WIP files carry partial progress on core types + handler test fixes
-- **Resume file:** `.planning/phases/19.1-type-system-tightening/19.1-CONTEXT.md`
+- **Activity:** Executed Phase 19.1-01 — replaced getEntities<T> generic with explicit casts in 28 files
+- **Outcome:** All 331 TypeScript errors fixed; build clean; 260 tests pass
+- **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 19.1 scope:** Remove `getEntities<T>` generic, enforce `Entity` base type in BatchContext, fix ~29 handler files + tests
-- **WIP branch:** `refactor/indexer-type-system-tightening` — 17 uncommitted files with partial progress
-- **Key change:** `getEntities()` returns `Map<string, Entity>`, handlers cast at call site
-- **Also needed:** Fix `multi-event.json` fixture (ABI-encoded DataChanged data), add 5th param to integration test `createMockVerifyFn`
-- **Next after 19.1:** Phase 20 (Monitoring & Docker Image Release)
+- **Phase 19.1 complete:** All getEntities<T> generics removed, handlers use explicit casts
+- **Branch:** `refactor/indexer-type-system-tightening` — ready for merge/review
+- **Next:** Phase 20 (Monitoring & Docker Image Release)
 
 ---
 
-_Last updated: 2026-03-09 — Phase 19 complete (all 3 block ordering plans executed)_
+_Last updated: 2026-03-10 — Phase 19.1 complete (type system tightening)_
