@@ -1,3 +1,4 @@
+import type { EntityRegistry } from '../entityRegistry';
 import { Entity, EntityConstructor, FKFields, WritableFields } from './entity';
 import { FetchRequest } from './metadata';
 import {
@@ -115,11 +116,16 @@ export type StoredClearRequest = Omit<ClearRequest<Entity>, 'fkField'> & {
  * A new BatchContext is created for each batch — no state carries over.
  */
 export interface IBatchContext {
-  // Entity storage
-  addEntity(type: string, id: string, entity: Entity): void;
-  getEntities(type: string): Map<string, Entity>;
-  removeEntity(type: string, id: string): void;
-  hasEntities(type: string): boolean;
+  // Typed entity storage — compile-time bag key validation
+  addEntity<K extends keyof EntityRegistry>(type: K, id: string, entity: EntityRegistry[K]): void;
+  getEntities<K extends keyof EntityRegistry>(type: K): Map<string, EntityRegistry[K]>;
+  removeEntity<K extends keyof EntityRegistry>(type: K, id: string): void;
+  hasEntities(type: keyof EntityRegistry): boolean;
+
+  // Untyped entity storage — for pipeline/fkResolution dynamic iteration
+  getEntitiesUntyped(type: string): Map<string, Entity>;
+  hasEntitiesUntyped(type: string): boolean;
+
   getEntityTypeKeys(): string[];
 
   /**
