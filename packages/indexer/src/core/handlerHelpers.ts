@@ -13,7 +13,8 @@
  * This replaces the old ad-hoc patterns with a single recognizable shape:
  * `const existing = await resolveEntity(...); new Entity({ ...existing, id, newField })`
  */
-import { Entity, EntityConstructor, IBatchContext } from '@/core/types';
+import { type EntityRegistry, getEntityConstructor } from '@/core/entityRegistry';
+import { IBatchContext } from '@/core/types';
 import { Store } from '@subsquid/typeorm-store';
 import { FindOptionsWhere, In } from 'typeorm';
 
@@ -36,24 +37,22 @@ import { FindOptionsWhere, In } from 'typeorm';
  * @param store        - Subsquid store for DB queries
  * @param batchCtx     - BatchContext for intra-batch entities
  * @param entityType   - Entity type key in BatchContext (e.g., 'NFT')
- * @param entityClass  - TypeORM entity class for DB queries
  * @param id           - Entity ID to resolve
  * @returns Entity if found in batch or DB, null otherwise
  */
-export async function resolveEntity<T extends Entity>(
+export async function resolveEntity<K extends keyof EntityRegistry & string>(
   store: Store,
   batchCtx: IBatchContext,
-  entityType: string,
-  entityClass: EntityConstructor<T>,
+  entityType: K,
   id: string,
-): Promise<T | null> {
+): Promise<EntityRegistry[K] | null> {
   // 1. Check batch first (current batch)
-  // Entity storage is type-erased; the caller knows what type was stored for this key
-  const batchEntity = (batchCtx.getEntities(entityType) as Map<string, T>).get(id);
+  const batchEntity = batchCtx.getEntities(entityType).get(id);
   if (batchEntity) return batchEntity;
 
   // 2. Check database (previous batches)
-  const dbEntity = await store.findOneBy(entityClass, { id } as FindOptionsWhere<T>);
+  const ctor = getEntityConstructor(entityType);
+  const dbEntity = await store.findOneBy(ctor, { id } as FindOptionsWhere<EntityRegistry[K]>);
   return dbEntity ?? null;
 }
 
@@ -69,11 +68,10 @@ export async function resolveEntity<T extends Entity>(
  *
  * Usage:
  * ```typescript
- * const nfts = await resolveEntities<NFT>(
+ * const nfts = await resolveEntities(
  *   hctx.store,
  *   hctx.batchCtx,
  *   'NFT',
- *   NFT,
  *   potentialIds
  * );
  * ```
@@ -81,28 +79,26 @@ export async function resolveEntity<T extends Entity>(
  * @param store        - Subsquid store for DB queries
  * @param batchCtx     - BatchContext for intra-batch entities
  * @param entityType   - Entity type key in BatchContext (e.g., 'NFT')
- * @param entityClass  - TypeORM entity class for DB queries
  * @param ids          - IDs to query from database
  * @returns Map containing ALL batch entities + DB entities for requested IDs
  */
-export async function resolveEntities<T extends Entity>(
+export async function resolveEntities<K extends keyof EntityRegistry & string>(
   store: Store,
   batchCtx: IBatchContext,
-  entityType: string,
-  entityClass: EntityConstructor<T>,
+  entityType: K,
   ids: string[],
-): Promise<Map<string, T>> {
+): Promise<Map<string, EntityRegistry[K]>> {
   // 1. Start with ALL batch entities (preserves intra-batch updates to other entities)
-  // Entity storage is type-erased; the caller knows what type was stored for this key
-  const batchEntities = batchCtx.getEntities(entityType) as Map<string, T>;
-  const merged = new Map<string, T>(batchEntities);
+  const batchEntities = batchCtx.getEntities(entityType);
+  const merged = new Map<string, EntityRegistry[K]>(batchEntities);
 
   // 2. Query DB for requested IDs not already in batch
   const idsNotInBatch = ids.filter((id) => !batchEntities.has(id));
   if (idsNotInBatch.length > 0) {
-    const dbEntities = await store.findBy(entityClass, {
+    const ctor = getEntityConstructor(entityType);
+    const dbEntities = await store.findBy(ctor, {
       id: In(idsNotInBatch),
-    } as FindOptionsWhere<T>);
+    } as FindOptionsWhere<EntityRegistry[K]>);
     for (const entity of dbEntities) {
       merged.set(entity.id, entity);
     }
