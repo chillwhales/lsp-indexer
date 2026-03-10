@@ -359,28 +359,34 @@ async function verifyWithInterface(
   if (category === EntityCategory.UniversalProfile) {
     for (const addr of newlyVerified) {
       const blockPos = blockPositionByAddress?.get(addr);
+      if (!blockPos) {
+        throw new Error(`Missing block position for newly verified UniversalProfile: ${addr}`);
+      }
       newEntities.set(
         addr,
         new UniversalProfile({
           id: addr,
           address: addr,
-          blockNumber: blockPos?.blockNumber ?? 0,
-          transactionIndex: blockPos?.transactionIndex ?? 0,
-          logIndex: blockPos?.logIndex ?? 0,
+          blockNumber: blockPos.blockNumber,
+          transactionIndex: blockPos.transactionIndex,
+          logIndex: blockPos.logIndex,
         }),
       );
     }
   } else if (category === EntityCategory.DigitalAsset) {
     for (const addr of newlyVerified) {
       const blockPos = blockPositionByAddress?.get(addr);
+      if (!blockPos) {
+        throw new Error(`Missing block position for newly verified DigitalAsset: ${addr}`);
+      }
       newEntities.set(
         addr,
         new DigitalAsset({
           id: addr,
           address: addr,
-          blockNumber: blockPos?.blockNumber ?? 0,
-          transactionIndex: blockPos?.transactionIndex ?? 0,
-          logIndex: blockPos?.logIndex ?? 0,
+          blockNumber: blockPos.blockNumber,
+          transactionIndex: blockPos.transactionIndex,
+          logIndex: blockPos.logIndex,
         }),
       );
     }
