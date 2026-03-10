@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Readiness
 status: completed
-last_updated: "2026-03-10T13:47:47.056Z"
-last_activity: 2026-03-10 — Completed 19.1-01 getEntities generic removal (28 files, 331 errors fixed)
+last_updated: "2026-03-10T19:28:00Z"
+last_activity: 2026-03-10 — Completed 19.1-02 entity registry + typed BatchContext (41 files, 71-key registry)
 progress:
   total_phases: 50
   completed_phases: 44
-  total_plans: 128
-  completed_plans: 115
+  total_plans: 129
+  completed_plans: 116
   percent: 93
 ---
 
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 - **Milestone:** v1.2 Production Readiness
 - **Phase:** Phase 19.1 — Type System Tightening (complete)
-- **Plan:** 1 of 1
+- **Plan:** 2 of 2
 - **Status:** Phase 19.1 complete
-- **Last activity:** 2026-03-10 — Completed 19.1-01 getEntities generic removal (28 files, 331 errors fixed)
+- **Last activity:** 2026-03-10 — Completed 19.1-02 entity registry + typed BatchContext (41 files, 71-key registry)
 - **Progress:** [█████████░] 93%
 
 ## Milestone History
@@ -47,7 +47,7 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 119 (36 v1.0 + 77 v1.1 + 6 v1.2)
+- **Plans completed:** 120 (36 v1.0 + 77 v1.1 + 7 v1.2)
 - **Plans failed:** 0
 - **Phases completed:** 48 (11 v1.0 + 33 v1.1 + 4 v1.2)
 - **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 10/26 (v1.2)
@@ -76,16 +76,16 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-10
-- **Activity:** Executed Phase 19.1-01 — replaced getEntities<T> generic with explicit casts in 28 files
-- **Outcome:** All 331 TypeScript errors fixed; build clean; 260 tests pass
+- **Activity:** Executed Phase 19.1-02 — created 71-key entity registry with typed BatchContext
+- **Outcome:** Full type safety: compile-time bag key validation + runtime instanceof checks; 41 files changed; build clean; 260 tests pass
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 19.1 complete:** All getEntities<T> generics removed, handlers use explicit casts
+- **Phase 19.1 complete:** Entity registry replaces entityTypeMap; typed addEntity/getEntities; zero handler casts; one justified cast in metadataFetch.ts
 - **Branch:** `refactor/indexer-type-system-tightening` — ready for merge/review
 - **Next:** Phase 20 (Monitoring & Docker Image Release)
 
 ---
 
-_Last updated: 2026-03-10 — Phase 19.1 complete (type system tightening)_
+_Last updated: 2026-03-10 — Phase 19.1-02 complete (entity registry + typed BatchContext)_
