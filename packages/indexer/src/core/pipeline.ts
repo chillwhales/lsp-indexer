@@ -14,7 +14,7 @@
  * No JSON.stringify calls — attributes are passed as native objects for jq filtering.
  */
 
-import { generateTokenId } from '@/utils';
+import { compareBlockPosition, generateTokenId } from '@/utils';
 import { DigitalAsset, NFT, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
@@ -163,21 +163,6 @@ function enrichEntity(entity: unknown, request: StoredEnrichmentRequest, fkStub:
   // Field name is validated at the handler call site via queueEnrichment<T>()
   // The field existence is checked by the caller with the `in` operator
   typedEntity[request.fkField] = fkStub;
-}
-
-// ---------------------------------------------------------------------------
-// Block position comparison helper
-// ---------------------------------------------------------------------------
-
-/**
- * Compare two block positions for ordering.
- * Returns negative if `a` is earlier than `b`, positive if later, 0 if equal.
- * Comparison order: blockNumber → transactionIndex → logIndex.
- */
-function compareBlockPosition(a: BlockPosition, b: BlockPosition): number {
-  if (a.blockNumber !== b.blockNumber) return a.blockNumber - b.blockNumber;
-  if (a.transactionIndex !== b.transactionIndex) return a.transactionIndex - b.transactionIndex;
-  return a.logIndex - b.logIndex;
 }
 
 /**
