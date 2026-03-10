@@ -114,7 +114,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 19.1-01-PLAN.md — Fix all getEntities generic removal + handler casts + test verification
+- [x] 19.1-01-PLAN.md — Fix all getEntities generic removal + handler casts + test verification
 
 ### Phase 20: Monitoring & Docker Image Release
 **Goal**: Production operators can observe indexer health through Grafana and deploy the latest changes
@@ -160,7 +160,7 @@ Plans:
 | 17. Version Normalization | v1.2 | 1/1 | Complete | 2026-03-09 |
 | 18. Production Docker Compose | v1.2 | 1/1 | Complete | 2026-03-09 |
 | 19. Block Ordering | v1.2 | 3/3 | Complete | 2026-03-09 |
-| 19.1. Type System Tightening | 1/1 | Complete   | 2026-03-10 | - |
+| 19.1. Type System Tightening | v1.2 | 1/1 | Complete | 2026-03-10 |
 | 20. Monitoring & Docker Release | v1.2 | 0/TBD | Not started | - |
 | 21. Sorting & Package Release | v1.2 | 0/TBD | Not started | - |
 | 22. Database Operations | v1.2 | 0/TBD | Not started | - |
