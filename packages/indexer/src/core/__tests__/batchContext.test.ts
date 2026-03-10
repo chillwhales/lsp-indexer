@@ -1,11 +1,49 @@
-import { Transfer } from '@chillwhales/typeorm';
+import { DataChanged, Follow, Follower, Transfer } from '@chillwhales/typeorm';
 import { describe, expect, it } from 'vitest';
 import { BatchContext } from '../batchContext';
-import { EnrichmentRequest, Entity, EntityCategory } from '../types';
+import { EnrichmentRequest, EntityCategory } from '../types';
 
-/** Create a minimal test entity with required block fields. */
-function e(id: string): Entity {
-  return { id, blockNumber: 0, transactionIndex: 0, logIndex: 0 };
+/** Create a minimal DataChanged entity for testing. */
+function dc(id: string): DataChanged {
+  return new DataChanged({
+    id,
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
+    address: '0x0000000000000000000000000000000000000001',
+    dataKey: '0x',
+    dataValue: '0x',
+    timestamp: new Date(),
+  });
+}
+
+/** Create a minimal Transfer entity for testing. */
+function tr(id: string): Transfer {
+  return new Transfer({
+    id,
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
+    address: '0x0000000000000000000000000000000000000001',
+    from: '0x0000000000000000000000000000000000000001',
+    to: '0x0000000000000000000000000000000000000002',
+    amount: 0n,
+    timestamp: new Date(),
+  });
+}
+
+/** Create a minimal Follow entity for testing. */
+function fl(id: string): Follow {
+  return new Follow({
+    id,
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
+    address: '0x0000000000000000000000000000000000000001',
+    followerAddress: '0x0000000000000000000000000000000000000001',
+    followedAddress: '0x0000000000000000000000000000000000000002',
+    timestamp: new Date(),
+  });
 }
 
 describe('BatchContext - Enrichment Queue', () => {
@@ -23,7 +61,7 @@ describe('BatchContext - Enrichment Queue', () => {
     const request: EnrichmentRequest<Transfer> = {
       category: EntityCategory.DigitalAsset,
       address: '0x1234567890abcdef1234567890abcdef12345678',
-      entityType: 'Transfer',
+      entityType: 'LSP7Transfer',
       entityId: 'transfer-1',
       fkField: 'digitalAsset',
       blockNumber: 0,
@@ -44,7 +82,7 @@ describe('BatchContext - Enrichment Queue', () => {
     const request1: EnrichmentRequest<Transfer> = {
       category: EntityCategory.DigitalAsset,
       address: '0x1234567890abcdef1234567890abcdef12345678',
-      entityType: 'Transfer',
+      entityType: 'LSP7Transfer',
       entityId: 'transfer-1',
       fkField: 'digitalAsset',
       blockNumber: 0,
@@ -55,7 +93,7 @@ describe('BatchContext - Enrichment Queue', () => {
     const request2: EnrichmentRequest<Transfer> = {
       category: EntityCategory.UniversalProfile,
       address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-      entityType: 'Transfer',
+      entityType: 'LSP7Transfer',
       entityId: 'transfer-1',
       fkField: 'fromProfile',
       blockNumber: 0,
@@ -94,7 +132,7 @@ describe('BatchContext - Enrichment Queue', () => {
       category: EntityCategory.NFT,
       address: '0xnftaddress',
       tokenId: '123',
-      entityType: 'NFTMetadata',
+      entityType: 'LSP8Transfer',
       entityId: 'nft-meta-1',
       fkField: 'nft',
       blockNumber: 0,
@@ -105,7 +143,7 @@ describe('BatchContext - Enrichment Queue', () => {
     const requestWithoutTokenId: EnrichmentRequest<Transfer> = {
       category: EntityCategory.DigitalAsset,
       address: '0xdassetaddress',
-      entityType: 'LSP4TokenName',
+      entityType: 'LSP7Transfer',
       entityId: 'token-name-1',
       fkField: 'digitalAsset',
       blockNumber: 0,
@@ -121,14 +159,14 @@ describe('BatchContext - Enrichment Queue', () => {
     expect(queue[0].category).toBe(EntityCategory.NFT);
     expect(queue[0].address).toBe('0xnftaddress');
     expect(queue[0].tokenId).toBe('123');
-    expect(queue[0].entityType).toBe('NFTMetadata');
+    expect(queue[0].entityType).toBe('LSP8Transfer');
     expect(queue[0].entityId).toBe('nft-meta-1');
     expect(queue[0].fkField).toBe('nft');
 
     expect(queue[1].category).toBe(EntityCategory.DigitalAsset);
     expect(queue[1].address).toBe('0xdassetaddress');
     expect(queue[1].tokenId).toBeUndefined();
-    expect(queue[1].entityType).toBe('LSP4TokenName');
+    expect(queue[1].entityType).toBe('LSP7Transfer');
     expect(queue[1].entityId).toBe('token-name-1');
     expect(queue[1].fkField).toBe('digitalAsset');
   });
@@ -141,7 +179,7 @@ describe('BatchContext - Enrichment Queue', () => {
       requests.push({
         category: EntityCategory.DigitalAsset,
         address: `0xaddress${i}`,
-        entityType: 'Transfer',
+        entityType: 'LSP7Transfer',
         entityId: `transfer-${i}`,
         fkField: 'digitalAsset',
         blockNumber: 0,
@@ -165,7 +203,7 @@ describe('BatchContext - Enrichment Queue', () => {
     const request1: EnrichmentRequest<Transfer> = {
       category: EntityCategory.UniversalProfile,
       address: '0xprofile1',
-      entityType: 'Transfer',
+      entityType: 'LSP7Transfer',
       entityId: 'transfer-1',
       fkField: 'fromProfile',
       blockNumber: 0,
@@ -176,7 +214,7 @@ describe('BatchContext - Enrichment Queue', () => {
     const request2: EnrichmentRequest<Transfer> = {
       category: EntityCategory.UniversalProfile,
       address: '0xprofile2',
-      entityType: 'Transfer',
+      entityType: 'LSP7Transfer',
       entityId: 'transfer-1',
       fkField: 'toProfile',
       blockNumber: 0,
@@ -201,68 +239,80 @@ describe('BatchContext - Raw Entity Type Sealing', () => {
   it('should allow adding entities before sealing', () => {
     const ctx = new BatchContext();
 
-    ctx.addEntity('Event', 'e1', e('e1'));
-    ctx.addEntity('Event', 'e2', e('e2'));
-    ctx.addEntity('Transfer', 't1', e('t1'));
+    ctx.addEntity('DataChanged', 'e1', dc('e1'));
+    ctx.addEntity('DataChanged', 'e2', dc('e2'));
+    ctx.addEntity('LSP7Transfer', 't1', tr('t1'));
 
-    expect(ctx.hasEntities('Event')).toBe(true);
-    expect(ctx.hasEntities('Transfer')).toBe(true);
-    expect(ctx.getEntities('Event').size).toBe(2);
-    expect(ctx.getEntities('Transfer').size).toBe(1);
+    expect(ctx.hasEntities('DataChanged')).toBe(true);
+    expect(ctx.hasEntities('LSP7Transfer')).toBe(true);
+    expect(ctx.getEntities('DataChanged').size).toBe(2);
+    expect(ctx.getEntities('LSP7Transfer').size).toBe(1);
   });
 
   it('should seal raw entity type keys', () => {
     const ctx = new BatchContext();
 
-    ctx.addEntity('RawEvent', 'e1', e('e1'));
-    ctx.addEntity('RawTransfer', 't1', e('t1'));
+    ctx.addEntity('DataChanged', 'e1', dc('e1'));
+    ctx.addEntity('LSP7Transfer', 't1', tr('t1'));
 
     // Seal the types
     ctx.sealRawEntityTypes();
 
     // Should still be able to add to new types
-    ctx.addEntity('DerivedEntity', 'd1', e('d1'));
-    expect(ctx.hasEntities('DerivedEntity')).toBe(true);
+    ctx.addEntity('Follow', 'f1', fl('f1'));
+    expect(ctx.hasEntities('Follow')).toBe(true);
   });
 
   it('should throw when adding to sealed type', () => {
     const ctx = new BatchContext();
 
-    ctx.addEntity('RawEvent', 'e1', e('e1'));
+    ctx.addEntity('DataChanged', 'e1', dc('e1'));
     ctx.sealRawEntityTypes();
 
     expect(() => {
-      ctx.addEntity('RawEvent', 'e2', e('e2'));
-    }).toThrow(/Handler attempted to add entity to raw type 'RawEvent'/);
+      ctx.addEntity('DataChanged', 'e2', dc('e2'));
+    }).toThrow(/Handler attempted to add entity to raw type 'DataChanged'/);
   });
 
   it('should throw with clear error message mentioning Step 2', () => {
     const ctx = new BatchContext();
 
-    ctx.addEntity('Transfer', 't1', e('t1'));
+    ctx.addEntity('LSP7Transfer', 't1', tr('t1'));
     ctx.sealRawEntityTypes();
 
     expect(() => {
-      ctx.addEntity('Transfer', 't2', e('t2'));
+      ctx.addEntity('LSP7Transfer', 't2', tr('t2'));
     }).toThrow(/already persisted in Step 2/);
   });
 
   it('should not throw for new entity types after sealing', () => {
     const ctx = new BatchContext();
 
-    ctx.addEntity('RawEvent', 'e1', e('e1'));
+    ctx.addEntity('DataChanged', 'e1', dc('e1'));
     ctx.sealRawEntityTypes();
 
     // These should all work fine (new types)
     expect(() => {
-      ctx.addEntity('Derived1', 'd1', e('d1'));
-      ctx.addEntity('Derived2', 'd2', e('d2'));
-      ctx.addEntity('Metadata', 'm1', e('m1'));
+      ctx.addEntity('Follow', 'f1', fl('f1'));
+      ctx.addEntity('LSP7Transfer', 't1', tr('t1'));
+      ctx.addEntity(
+        'Follower',
+        'm1',
+        new Follower({
+          id: 'm1',
+          blockNumber: 0,
+          transactionIndex: 0,
+          logIndex: 0,
+          followerAddress: '0x01',
+          followedAddress: '0x02',
+          timestamp: new Date(),
+        }),
+      );
     }).not.toThrow();
 
-    expect(ctx.hasEntities('Derived1')).toBe(true);
-    expect(ctx.hasEntities('Derived2')).toBe(true);
-    expect(ctx.hasEntities('Metadata')).toBe(true);
+    expect(ctx.hasEntities('Follow')).toBe(true);
+    expect(ctx.hasEntities('LSP7Transfer')).toBe(true);
+    expect(ctx.hasEntities('Follower')).toBe(true);
   });
 
   it('should allow sealing empty context', () => {
@@ -273,7 +323,7 @@ describe('BatchContext - Raw Entity Type Sealing', () => {
     }).not.toThrow();
 
     // Should be able to add after sealing empty context
-    ctx.addEntity('Event', 'e1', e('e1'));
-    expect(ctx.hasEntities('Event')).toBe(true);
+    ctx.addEntity('DataChanged', 'e1', dc('e1'));
+    expect(ctx.hasEntities('DataChanged')).toBe(true);
   });
 });

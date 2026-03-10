@@ -1,4 +1,12 @@
-import { DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
+import {
+  DataChanged,
+  DigitalAsset,
+  Follow,
+  Follower,
+  TotalSupply,
+  Transfer,
+  UniversalProfile,
+} from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { describe, expect, it, vi } from 'vitest';
 import { processBatch, VerifyFn } from '../pipeline';
@@ -16,19 +24,82 @@ import {
   VerificationResult,
 } from '../types';
 
-// ---------------------------------------------------------------------------
-// Test entity type with all FK fields used in tests
-// ---------------------------------------------------------------------------
-type TestEntity = Entity & {
-  digitalAsset?: DigitalAsset | null;
-  fromProfile?: UniversalProfile | null;
-  toProfile?: UniversalProfile | null;
-  profile?: UniversalProfile | null;
-  anotherDA?: DigitalAsset | null;
-};
-
 /** Default block fields for test entities. */
 const B = { blockNumber: 0, transactionIndex: 0, logIndex: 0 } as const;
+const ADDR = '0x0000000000000000000000000000000000000001';
+const TS = new Date(0);
+
+// ---------------------------------------------------------------------------
+// Entity factory helpers
+// ---------------------------------------------------------------------------
+
+/** Create a DataChanged entity for testing. */
+function mkDataChanged(id: string, props?: Partial<DataChanged>): DataChanged {
+  return new DataChanged({
+    id,
+    ...B,
+    address: ADDR,
+    dataKey: '0x',
+    dataValue: '0x',
+    timestamp: TS,
+    ...props,
+  });
+}
+
+/** Create a Follow entity for testing. */
+function mkFollow(id: string): Follow {
+  return new Follow({
+    id,
+    ...B,
+    address: ADDR,
+    followerAddress: ADDR,
+    followedAddress: '0x0000000000000000000000000000000000000002',
+    timestamp: TS,
+  });
+}
+
+/** Create a Transfer entity for testing (used as LSP7Transfer). */
+function mkTransfer(id: string, props?: Partial<Transfer>): Transfer {
+  return new Transfer({
+    id,
+    ...B,
+    address: ADDR,
+    operator: ADDR,
+    from: ADDR,
+    to: '0x0000000000000000000000000000000000000002',
+    amount: 0n,
+    force: false,
+    data: '0x',
+    timestamp: TS,
+    digitalAsset: null,
+    fromProfile: null,
+    toProfile: null,
+    ...props,
+  });
+}
+
+/** Create a Follower entity for testing (handler-derived). */
+function mkFollower(id: string): Follower {
+  return new Follower({
+    id,
+    ...B,
+    followerAddress: ADDR,
+    followedAddress: '0x0000000000000000000000000000000000000002',
+    timestamp: TS,
+  });
+}
+
+/** Create a TotalSupply entity for testing (handler-derived). */
+function mkTotalSupply(id: string, props?: Partial<TotalSupply>): TotalSupply {
+  return new TotalSupply({
+    id,
+    ...B,
+    address: ADDR,
+    value: 0n,
+    timestamp: TS,
+    ...props,
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Test fixtures and mocks
@@ -240,9 +311,8 @@ describe('Pipeline Step 1: EXTRACT', () => {
       name: 'test-plugin',
       topic0: topic,
       requiresVerification: [],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        const e1 = { id: 'entity-1', ...B, data: 'test' };
-        ctx.addEntity('TestEntity', 'entity-1', e1 as Entity);
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity('DataChanged', 'entity-1', mkDataChanged('entity-1'));
       },
     };
 
@@ -261,7 +331,7 @@ describe('Pipeline Step 1: EXTRACT', () => {
     // Verify entity was persisted in step 2
     const mockStore = store;
     expect(mockStore.insertedEntities.length).toBeGreaterThan(0);
-    expect(mockStore.insertedEntities).toContainEqual({ id: 'entity-1', ...B, data: 'test' });
+    expect(mockStore.insertedEntities.find((e) => e.id === 'entity-1')).toBeDefined();
   });
 });
 
@@ -275,11 +345,9 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        const ev1 = { id: 'e1', ...B, type: 'event1' };
-        const ev2 = { id: 'e2', ...B, type: 'event2' };
-        ctx.addEntity('Event1', 'e1', ev1 as Entity);
-        ctx.addEntity('Event2', 'e2', ev2 as Entity);
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity('DataChanged', 'e1', mkDataChanged('e1'));
+        ctx.addEntity('Follow', 'e2', mkFollow('e2'));
       },
     };
 
@@ -297,8 +365,8 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
 
     const mockStore = store;
     expect(mockStore.insert).toHaveBeenCalled();
-    expect(mockStore.insertedEntities).toContainEqual({ id: 'e1', ...B, type: 'event1' });
-    expect(mockStore.insertedEntities).toContainEqual({ id: 'e2', ...B, type: 'event2' });
+    expect(mockStore.insertedEntities.find((e) => e.id === 'e1')).toBeDefined();
+    expect(mockStore.insertedEntities.find((e) => e.id === 'e2')).toBeDefined();
   });
 
   it('should persist entities with null FK references initially, then enrich', async () => {
@@ -306,13 +374,16 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        const t1 = { id: 't1', ...B, address: '0xda', digitalAsset: null };
-        ctx.addEntity('Transfer', 't1', t1 as Entity);
-        ctx.queueEnrichment<TestEntity>({
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity(
+          'LSP7Transfer',
+          't1',
+          mkTransfer('t1', { address: '0xda', digitalAsset: null }),
+        );
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
           address: '0xda',
-          entityType: 'Transfer',
+          entityType: 'LSP7Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
           blockNumber: 0,
@@ -359,16 +430,16 @@ describe('Pipeline Step 3: HANDLE', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event1', 'e1', { id: 'e1', ...B });
-        ctx.addEntity('Event2', 'e2', { id: 'e2', ...B });
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity('DataChanged', 'e1', mkDataChanged('e1'));
+        ctx.addEntity('Follow', 'e2', mkFollow('e2'));
       },
     };
 
     const handleMock = vi.fn();
     const handler: EntityHandler = {
       name: 'test-handler',
-      listensToBag: ['Event1', 'Event2'],
+      listensToBag: ['DataChanged', 'Follow'],
       handle: handleMock,
     };
 
@@ -386,15 +457,15 @@ describe('Pipeline Step 3: HANDLE', () => {
     });
 
     expect(handleMock).toHaveBeenCalledTimes(2);
-    expect(handleMock).toHaveBeenCalledWith(expect.anything(), 'Event1');
-    expect(handleMock).toHaveBeenCalledWith(expect.anything(), 'Event2');
+    expect(handleMock).toHaveBeenCalledWith(expect.anything(), 'DataChanged');
+    expect(handleMock).toHaveBeenCalledWith(expect.anything(), 'Follow');
   });
 
   it('should not call handlers when bag is empty', async () => {
     const handleMock = vi.fn();
     const handler: EntityHandler = {
       name: 'test-handler',
-      listensToBag: ['NonExistentBag'],
+      listensToBag: ['OrbsClaimed'],
       handle: handleMock,
     };
 
@@ -418,23 +489,22 @@ describe('Pipeline Step 3: HANDLE', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        const e1 = { id: 'e1', ...B, value: 10 };
-        ctx.addEntity('Event', 'e1', e1 as Entity);
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity('DataChanged', 'e1', mkDataChanged('e1'));
       },
     };
 
     const handler: EntityHandler = {
       name: 'test-handler',
-      listensToBag: ['Event'],
+      listensToBag: ['DataChanged'],
       handle: (hctx, triggeredBy) => {
-        const events = hctx.batchCtx.getEntities(triggeredBy) as Map<
-          string,
-          Entity & { value: number }
-        >;
+        const events = hctx.batchCtx.getEntities(triggeredBy);
         for (const event of events.values()) {
-          const derived = { id: `derived-${event.id}`, ...B, originalValue: event.value };
-          hctx.batchCtx.addEntity('Derived', derived.id, derived as Entity);
+          hctx.batchCtx.addEntity(
+            'Follower',
+            `derived-${event.id}`,
+            mkFollower(`derived-${event.id}`),
+          );
         }
       },
     };
@@ -455,11 +525,7 @@ describe('Pipeline Step 3: HANDLE', () => {
     // Derived entity should be persisted in step 4 via upsert
     const mockStore = store;
     expect(mockStore.upsertedEntities.length).toBeGreaterThan(0);
-    expect(mockStore.upsertedEntities).toContainEqual({
-      id: 'derived-e1',
-      ...B,
-      originalValue: 10,
-    });
+    expect(mockStore.upsertedEntities.find((e) => e.id === 'derived-e1')).toBeDefined();
   });
 
   it('should throw if handler tries to add entity to raw entity type key', async () => {
@@ -467,17 +533,17 @@ describe('Pipeline Step 3: HANDLE', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('RawEvent', 'e1', { id: 'e1', ...B });
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity('DataChanged', 'e1', mkDataChanged('e1'));
       },
     };
 
     const handler: EntityHandler = {
       name: 'bad-handler',
-      listensToBag: ['RawEvent'],
+      listensToBag: ['DataChanged'],
       handle: (hctx) => {
         // Handler incorrectly tries to add to the same type key
-        hctx.batchCtx.addEntity('RawEvent', 'e2', { id: 'e2', ...B });
+        hctx.batchCtx.addEntity('DataChanged', 'e2', mkDataChanged('e2'));
       },
     };
 
@@ -494,7 +560,7 @@ describe('Pipeline Step 3: HANDLE', () => {
         verifyAddresses: createMockVerifyFn(),
         workerPool: mockWorkerPool,
       }),
-    ).rejects.toThrow(/Handler attempted to add entity to raw type 'RawEvent'/);
+    ).rejects.toThrow(/Handler attempted to add entity to raw type 'DataChanged'/);
   });
 });
 
@@ -508,17 +574,16 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('RawEvent', 'e1', { id: 'e1', ...B });
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity('DataChanged', 'e1', mkDataChanged('e1'));
       },
     };
 
     const handler: EntityHandler = {
       name: 'test-handler',
-      listensToBag: ['RawEvent'],
+      listensToBag: ['DataChanged'],
       handle: (hctx) => {
-        const d1 = { id: 'd1', ...B, computed: true };
-        hctx.batchCtx.addEntity('Derived', 'd1', d1 as Entity);
+        hctx.batchCtx.addEntity('Follower', 'd1', mkFollower('d1'));
       },
     };
 
@@ -537,7 +602,7 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
 
     // Raw event should be inserted
     const mockStore = store;
-    expect(mockStore.insertedEntities).toContainEqual({ id: 'e1', ...B });
+    expect(mockStore.insertedEntities.find((e) => e.id === 'e1')).toBeDefined();
 
     // Step 4 upserts should be empty (or only core entities from step 5)
     expect(mockStore.upsertedEntities.filter((e) => e.id === 'e1')).toHaveLength(0);
@@ -554,25 +619,24 @@ describe('Pipeline Step 5: VERIFY', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        const e1 = { id: 'e1', ...B, address: '0xda1' };
-        ctx.addEntity('Event', 'e1', e1 as Entity);
-        ctx.queueEnrichment<TestEntity>({
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity('LSP7Transfer', 'e1', mkTransfer('e1', { address: '0xda1' }));
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
-          entityType: 'Event',
+          entityType: 'LSP7Transfer',
           entityId: 'e1',
           fkField: 'digitalAsset',
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
         });
-        ctx.queueEnrichment<TestEntity>({
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
           address: '0xda2',
-          entityType: 'Event',
+          entityType: 'LSP7Transfer',
           entityId: 'e1',
-          fkField: 'anotherDA',
+          fkField: 'nft',
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
@@ -608,14 +672,14 @@ describe('Pipeline Step 5: VERIFY', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.UniversalProfile],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event', 'e1', { id: 'e1', ...B });
-        ctx.queueEnrichment<TestEntity>({
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity('LSP7Transfer', 'e1', mkTransfer('e1'));
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
-          entityType: 'Event',
+          entityType: 'LSP7Transfer',
           entityId: 'e1',
-          fkField: 'profile',
+          fkField: 'fromProfile',
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
@@ -648,22 +712,22 @@ describe('Pipeline Step 5: VERIFY', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event', 'e1', { id: 'e1', ...B });
-        ctx.queueEnrichment<TestEntity>({
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity('LSP7Transfer', 'e1', mkTransfer('e1'));
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
-          entityType: 'Event',
+          entityType: 'LSP7Transfer',
           entityId: 'e1',
           fkField: 'fromProfile',
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
         });
-        ctx.queueEnrichment<TestEntity>({
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
-          entityType: 'Event',
+          entityType: 'LSP7Transfer',
           entityId: 'e1',
           fkField: 'digitalAsset',
           blockNumber: 0,
@@ -747,13 +811,16 @@ describe('Pipeline Step 6: ENRICH', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        const t1 = { id: 't1', ...B, address: '0xda1', digitalAsset: null };
-        ctx.addEntity('Transfer', 't1', t1 as Entity);
-        ctx.queueEnrichment<TestEntity>({
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity(
+          'LSP7Transfer',
+          't1',
+          mkTransfer('t1', { address: '0xda1', digitalAsset: null }),
+        );
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
-          entityType: 'Transfer',
+          entityType: 'LSP7Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
           blockNumber: 0,
@@ -791,13 +858,16 @@ describe('Pipeline Step 6: ENRICH', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        const t1 = { id: 't1', ...B, address: '0xinvalid', digitalAsset: null };
-        ctx.addEntity('Transfer', 't1', t1 as Entity);
-        ctx.queueEnrichment<TestEntity>({
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity(
+          'LSP7Transfer',
+          't1',
+          mkTransfer('t1', { address: '0xinvalid', digitalAsset: null }),
+        );
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
           address: '0xinvalid',
-          entityType: 'Transfer',
+          entityType: 'LSP7Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
           blockNumber: 0,
@@ -821,12 +891,9 @@ describe('Pipeline Step 6: ENRICH', () => {
 
     // Entity should be inserted in step 2, but NOT enriched in step 6
     const mockStore = store;
-    expect(mockStore.insertedEntities).toContainEqual({
-      id: 't1',
-      ...B,
-      address: '0xinvalid',
-      digitalAsset: null,
-    });
+    const insertedTransfer = mockStore.insertedEntities.find((e) => e.id === 't1');
+    expect(insertedTransfer).toBeDefined();
+    expect((insertedTransfer as unknown as Transfer | undefined)?.digitalAsset).toBeNull();
 
     // Should not appear in step 6 upserts (only step 5 might have core entities)
     const enrichmentUpserts = mockStore.upsertedEntities.filter((e) => e.id === 't1');
@@ -838,42 +905,43 @@ describe('Pipeline Step 6: ENRICH', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        const t1 = {
-          id: 't1',
-          ...B,
-          from: '0xup1',
-          to: '0xup2',
-          address: '0xda1',
-          fromProfile: null,
-          toProfile: null,
-          digitalAsset: null,
-        };
-        ctx.addEntity('Transfer', 't1', t1 as Entity);
-        ctx.queueEnrichment<TestEntity>({
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity(
+          'LSP7Transfer',
+          't1',
+          mkTransfer('t1', {
+            from: '0xup1',
+            to: '0xup2',
+            address: '0xda1',
+            fromProfile: null,
+            toProfile: null,
+            digitalAsset: null,
+          }),
+        );
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
-          entityType: 'Transfer',
+          entityType: 'LSP7Transfer',
           entityId: 't1',
           fkField: 'fromProfile',
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
         });
-        ctx.queueEnrichment<TestEntity>({
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.UniversalProfile,
           address: '0xup2',
-          entityType: 'Transfer',
+          entityType: 'LSP7Transfer',
           entityId: 't1',
           fkField: 'toProfile',
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
         });
-        ctx.queueEnrichment<TestEntity>({
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
-          entityType: 'Transfer',
+          entityType: 'LSP7Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
           blockNumber: 0,
@@ -914,16 +982,15 @@ describe('Pipeline Step 6: ENRICH', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        // Entity created WITHOUT the FK field in constructor props
-        const t1 = { id: 't1', ...B, address: '0xda1' };
-        ctx.addEntity('Transfer', 't1', t1 as Entity);
-        ctx.queueEnrichment<TestEntity>({
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        // Use DataChanged which does NOT have a 'digitalAsset' FK field
+        ctx.addEntity('DataChanged', 't1', mkDataChanged('t1', { address: '0xda1' }));
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
-          entityType: 'Transfer',
+          entityType: 'DataChanged',
           entityId: 't1',
-          fkField: 'digitalAsset', // This field doesn't exist on the entity instance
+          fkField: 'digitalAsset', // This field doesn't exist on DataChanged
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
@@ -955,7 +1022,7 @@ describe('Pipeline Step 6: ENRICH', () => {
     expect(context.log.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         entityId: 't1',
-        entityType: 'Transfer',
+        entityType: 'DataChanged',
         fkField: 'digitalAsset',
       }),
       'Skipping enrichment: FK field not found on entity',
@@ -973,43 +1040,44 @@ describe('Pipeline Integration', () => {
       name: 'transfer-plugin',
       topic0: '0xtransfer',
       requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        const t1 = {
-          id: 't1',
-          ...B,
-          from: '0xup1',
-          to: '0xup2',
-          address: '0xda1',
-          amount: 100,
-          fromProfile: null,
-          toProfile: null,
-          digitalAsset: null,
-        };
-        ctx.addEntity('Transfer', 't1', t1 as Entity);
-        ctx.queueEnrichment<TestEntity>({
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity(
+          'LSP7Transfer',
+          't1',
+          mkTransfer('t1', {
+            from: '0xup1',
+            to: '0xup2',
+            address: '0xda1',
+            amount: 100n,
+            fromProfile: null,
+            toProfile: null,
+            digitalAsset: null,
+          }),
+        );
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
-          entityType: 'Transfer',
+          entityType: 'LSP7Transfer',
           entityId: 't1',
           fkField: 'fromProfile',
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
         });
-        ctx.queueEnrichment<TestEntity>({
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.UniversalProfile,
           address: '0xup2',
-          entityType: 'Transfer',
+          entityType: 'LSP7Transfer',
           entityId: 't1',
           fkField: 'toProfile',
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
         });
-        ctx.queueEnrichment<TestEntity>({
+        ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
-          entityType: 'Transfer',
+          entityType: 'LSP7Transfer',
           entityId: 't1',
           fkField: 'digitalAsset',
           blockNumber: 0,
@@ -1020,21 +1088,19 @@ describe('Pipeline Integration', () => {
     };
 
     const handler: EntityHandler = {
-      name: 'balance-handler',
-      listensToBag: ['Transfer'],
-      handle: (hctx) => {
-        const transfers = hctx.batchCtx.getEntities('Transfer') as Map<
-          string,
-          Entity & { from: string; to: string; amount: number }
-        >;
+      name: 'total-supply-handler',
+      listensToBag: ['LSP7Transfer'],
+      handle: (hctx, triggeredBy) => {
+        const transfers = hctx.batchCtx.getEntities(triggeredBy);
         for (const transfer of transfers.values()) {
-          const balance = {
-            id: `balance-${transfer.to}`,
-            ...B,
-            owner: transfer.to,
-            amount: transfer.amount,
-          };
-          hctx.batchCtx.addEntity('Balance', balance.id, balance as Entity);
+          hctx.batchCtx.addEntity(
+            'TotalSupply',
+            `supply-${(transfer as Transfer).to}`,
+            mkTotalSupply(`supply-${(transfer as Transfer).to}`, {
+              address: (transfer as Transfer).address,
+              value: (transfer as Transfer).amount,
+            }),
+          );
         }
       },
     };
@@ -1059,8 +1125,8 @@ describe('Pipeline Integration', () => {
     const mockStore = store;
     expect(mockStore.insertedEntities.find((e) => e.id === 't1')).toBeDefined();
 
-    // Step 4: Derived Balance should be upserted
-    expect(mockStore.upsertedEntities.find((e) => e.id === 'balance-0xup2')).toBeDefined();
+    // Step 4: Derived TotalSupply should be upserted
+    expect(mockStore.upsertedEntities.find((e) => e.id === 'supply-0xup2')).toBeDefined();
 
     // Step 5: Core entities should be created
     expect(

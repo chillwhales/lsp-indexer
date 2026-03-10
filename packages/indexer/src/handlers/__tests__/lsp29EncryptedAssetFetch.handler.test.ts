@@ -28,6 +28,7 @@ import LSP29EncryptedAssetFetchHandler from '../lsp29EncryptedAssetFetch.handler
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
   getEntities: ReturnType<typeof vi.fn>;
+  getEntitiesUntyped: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
   hasEntities: ReturnType<typeof vi.fn>;
   queueClear: ReturnType<typeof vi.fn>;
@@ -43,10 +44,13 @@ function createMockBatchCtx(): {
   const clearQueue: unknown[] = [];
   const enrichmentQueue: unknown[] = [];
 
+  const getEntitiesFn = vi.fn(<T>(type: string): Map<string, T> => {
+    return (entityBags.get(type) || new Map()) as Map<string, T>;
+  });
+
   return {
-    getEntities: vi.fn(<T>(type: string): Map<string, T> => {
-      return (entityBags.get(type) || new Map()) as Map<string, T>;
-    }),
+    getEntities: getEntitiesFn,
+    getEntitiesUntyped: getEntitiesFn,
     addEntity: vi.fn((type: string, id: string, entity: unknown) => {
       if (!entityBags.has(type)) entityBags.set(type, new Map());
       const bag = entityBags.get(type);

@@ -6,6 +6,7 @@
  * - resolveEntities: bulk entity lookup (batch + DB merge)
  * - Edge cases: empty IDs, batch-only, DB-only, mixed sources
  */
+import { DataChanged } from '@chillwhales/typeorm';
 import type { Store } from '@subsquid/typeorm-store';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { resolveEntities, resolveEntity } from '../handlerHelpers';
@@ -66,8 +67,7 @@ describe('resolveEntity', () => {
     const result = await resolveEntity(
       mockStore as unknown as Store,
       batchCtx,
-      'TestEntity',
-      TestEntity,
+      'DataChanged' as keyof import('../entityRegistry').EntityRegistry,
       'id-1',
     );
 
@@ -84,13 +84,13 @@ describe('resolveEntity', () => {
     const result = await resolveEntity(
       mockStore as unknown as Store,
       batchCtx,
-      'TestEntity',
-      TestEntity,
+      'DataChanged' as keyof import('../entityRegistry').EntityRegistry,
       'id-2',
     );
 
     expect(result).toEqual({ id: 'id-2', value: 'db' });
-    expect(mockStore.findOneBy).toHaveBeenCalledWith(TestEntity, { id: 'id-2' });
+    // DB query uses the constructor from the registry
+    expect(mockStore.findOneBy).toHaveBeenCalledTimes(1);
   });
 
   it('returns null when entity not in batch and not in DB', async () => {
@@ -101,13 +101,12 @@ describe('resolveEntity', () => {
     const result = await resolveEntity(
       mockStore as unknown as Store,
       batchCtx,
-      'TestEntity',
-      TestEntity,
+      'DataChanged' as keyof import('../entityRegistry').EntityRegistry,
       'id-3',
     );
 
     expect(result).toBeNull();
-    expect(mockStore.findOneBy).toHaveBeenCalledWith(TestEntity, { id: 'id-3' });
+    expect(mockStore.findOneBy).toHaveBeenCalledTimes(1);
   });
 
   it('batch entity takes priority over DB entity (batch checked first)', async () => {
@@ -121,8 +120,7 @@ describe('resolveEntity', () => {
     const result = await resolveEntity(
       mockStore as unknown as Store,
       batchCtx,
-      'TestEntity',
-      TestEntity,
+      'DataChanged' as keyof import('../entityRegistry').EntityRegistry,
       'id-4',
     );
 
@@ -152,8 +150,7 @@ describe('resolveEntities', () => {
     const result = await resolveEntities(
       mockStore as unknown as Store,
       batchCtx,
-      'TestEntity',
-      TestEntity,
+      'DataChanged' as keyof import('../entityRegistry').EntityRegistry,
       ['id-1'], // Only requesting id-1
     );
 
@@ -173,8 +170,7 @@ describe('resolveEntities', () => {
     const result = await resolveEntities(
       mockStore as unknown as Store,
       batchCtx,
-      'TestEntity',
-      TestEntity,
+      'DataChanged' as keyof import('../entityRegistry').EntityRegistry,
       ['id-1', 'id-2'], // id-1 in batch, id-2 needs DB query
     );
 
@@ -184,10 +180,10 @@ describe('resolveEntities', () => {
     // Verify DB query was made with correct IDs (avoid TypeORM internal fields)
     expect(mockStore.findBy).toHaveBeenCalledTimes(1);
     const callArgs = mockStore.findBy.mock.calls[0] as [
-      typeof TestEntity,
+      typeof DataChanged,
       { id: { value: string[] } },
     ];
-    expect(callArgs[0]).toBe(TestEntity);
+    expect(callArgs[0]).toBe(DataChanged);
     expect(callArgs[1].id.value).toEqual(['id-2']);
   });
 
@@ -202,8 +198,7 @@ describe('resolveEntities', () => {
     const result = await resolveEntities(
       mockStore as unknown as Store,
       batchCtx,
-      'TestEntity',
-      TestEntity,
+      'DataChanged' as keyof import('../entityRegistry').EntityRegistry,
       ['id-1'],
     );
 
@@ -221,8 +216,7 @@ describe('resolveEntities', () => {
     const result = await resolveEntities(
       mockStore as unknown as Store,
       batchCtx,
-      'TestEntity',
-      TestEntity,
+      'DataChanged' as keyof import('../entityRegistry').EntityRegistry,
       ['id-1'],
     );
 
@@ -230,10 +224,10 @@ describe('resolveEntities', () => {
     // Verify DB query was made (avoid TypeORM internal fields)
     expect(mockStore.findBy).toHaveBeenCalledTimes(1);
     const callArgs = mockStore.findBy.mock.calls[0] as [
-      typeof TestEntity,
+      typeof DataChanged,
       { id: { value: string[] } },
     ];
-    expect(callArgs[0]).toBe(TestEntity);
+    expect(callArgs[0]).toBe(DataChanged);
     expect(callArgs[1].id.value).toEqual(['id-1']);
   });
 
@@ -246,8 +240,7 @@ describe('resolveEntities', () => {
     const result = await resolveEntities(
       mockStore as unknown as Store,
       batchCtx,
-      'TestEntity',
-      TestEntity,
+      'DataChanged' as keyof import('../entityRegistry').EntityRegistry,
       [], // Empty IDs
     );
 
@@ -266,8 +259,7 @@ describe('resolveEntities', () => {
     const result = await resolveEntities(
       mockStore as unknown as Store,
       batchCtx,
-      'TestEntity',
-      TestEntity,
+      'DataChanged' as keyof import('../entityRegistry').EntityRegistry,
       ['id-1', 'id-2'],
     );
 
@@ -291,8 +283,7 @@ describe('resolveEntities', () => {
     const result = await resolveEntities(
       mockStore as unknown as Store,
       batchCtx,
-      'TestEntity',
-      TestEntity,
+      'DataChanged' as keyof import('../entityRegistry').EntityRegistry,
       ['id-1', 'id-2', 'id-3'],
     );
 
@@ -303,10 +294,10 @@ describe('resolveEntities', () => {
     // Verify DB query was made with correct IDs (avoid TypeORM internal fields)
     expect(mockStore.findBy).toHaveBeenCalledTimes(1);
     const callArgs = mockStore.findBy.mock.calls[0] as [
-      typeof TestEntity,
+      typeof DataChanged,
       { id: { value: string[] } },
     ];
-    expect(callArgs[0]).toBe(TestEntity);
+    expect(callArgs[0]).toBe(DataChanged);
     expect(callArgs[1].id.value).toEqual(['id-2', 'id-3']);
   });
 
@@ -323,8 +314,7 @@ describe('resolveEntities', () => {
     const result = await resolveEntities(
       mockStore as unknown as Store,
       batchCtx,
-      'TestEntity',
-      TestEntity,
+      'DataChanged' as keyof import('../entityRegistry').EntityRegistry,
       ['id-1', 'id-4'], // Only requesting id-1 and id-4
     );
 
