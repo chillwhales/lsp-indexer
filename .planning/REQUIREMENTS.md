@@ -15,12 +15,12 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 
 ### Block Ordering
 
-- [ ] **BORD-01**: Every TypeORM entity has `blockNumber`, `transactionIndex`, and `logIndex` columns
-- [ ] **BORD-02**: All EventPlugins populate block/tx/log fields from the decoded event context
-- [ ] **BORD-03**: All EntityHandlers populate block/tx/log fields from the triggering event
-- [ ] **BORD-04**: UniversalProfile, DigitalAsset, and NFT entities retain block/tx/log from the oldest (first) event — later updates do not overwrite these fields
-- [ ] **BORD-05**: schema.graphql updated with block ordering fields on all entities
-- [ ] **BORD-06**: TypeORM codegen rebuilt and all entities compile cleanly
+- [x] **BORD-01**: Every TypeORM entity has `blockNumber`, `transactionIndex`, and `logIndex` columns
+- [x] **BORD-02**: All EventPlugins populate block/tx/log fields from the decoded event context
+- [x] **BORD-03**: All EntityHandlers populate block/tx/log fields from the triggering event
+- [x] **BORD-04**: UniversalProfile, DigitalAsset, and NFT entities retain block/tx/log from the oldest (first) event — later updates do not overwrite these fields
+- [x] **BORD-05**: schema.graphql updated with block ordering fields on all entities
+- [x] **BORD-06**: TypeORM codegen rebuilt and all entities compile cleanly
 
 ### Monitoring
 
@@ -98,12 +98,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOCK-01 | Phase 18 | Complete |
 | DOCK-02 | Phase 18 | Complete |
 | DOCK-03 | Phase 18 | Complete |
-| BORD-01 | Phase 19 | Pending |
-| BORD-02 | Phase 19 | Pending |
-| BORD-03 | Phase 19 | Pending |
-| BORD-04 | Phase 19 | Pending |
-| BORD-05 | Phase 19 | Pending |
-| BORD-06 | Phase 19 | Pending |
+| BORD-01 | Phase 19 | Complete |
+| BORD-02 | Phase 19 | Complete |
+| BORD-03 | Phase 19 | Complete |
+| BORD-04 | Phase 19 | Complete |
+| BORD-05 | Phase 19 | Complete |
+| BORD-06 | Phase 19 | Complete |
 | MNTR-01 | Phase 20 | Pending |
 | MNTR-02 | Phase 20 | Pending |
 | MNTR-03 | Phase 20 | Pending |

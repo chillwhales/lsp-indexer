@@ -199,6 +199,9 @@ describe('OrbsClaimedHandler - Phase 1 (Mint Detection)', () => {
         entityType: 'OrbsClaimed',
         entityId: expectedId,
         fkField: 'digitalAsset',
+        blockNumber: 0,
+        transactionIndex: 0,
+        logIndex: 0,
       });
 
       // Should queue enrichment for nft FK
@@ -209,6 +212,9 @@ describe('OrbsClaimedHandler - Phase 1 (Mint Detection)', () => {
         entityType: 'OrbsClaimed',
         entityId: expectedId,
         fkField: 'nft',
+        blockNumber: 0,
+        transactionIndex: 0,
+        logIndex: 0,
       });
     });
   });

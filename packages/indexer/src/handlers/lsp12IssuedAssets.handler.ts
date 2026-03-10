@@ -93,11 +93,11 @@ const LSP12IssuedAssetsHandler: EntityHandler = {
       const { dataKey, dataValue, address, timestamp } = event;
 
       if (dataKey === LSP12_ISSUED_ASSETS_LENGTH_KEY) {
-        extractLength(address, dataValue, timestamp, hctx);
+        extractLength(address, dataValue, timestamp, event, hctx);
       } else if (dataKey.startsWith(LSP12_ISSUED_ASSETS_INDEX_PREFIX)) {
-        extractFromIndex(address, dataKey, dataValue, timestamp, hctx, existingAssets);
+        extractFromIndex(address, dataKey, dataValue, timestamp, event, hctx, existingAssets);
       } else if (dataKey.startsWith(LSP12_ISSUED_ASSETS_MAP_PREFIX)) {
-        extractFromMap(address, dataKey, dataValue, timestamp, hctx, existingAssets);
+        extractFromMap(address, dataKey, dataValue, timestamp, event, hctx, existingAssets);
       }
     }
   },
@@ -117,12 +117,16 @@ function extractLength(
   address: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
 ): void {
   const entity = new LSP12IssuedAssetsLength({
     id: address,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     value: isHex(dataValue) && hexToBytes(dataValue).length === 16 ? hexToBigInt(dataValue) : null,
     rawValue: dataValue,
     universalProfile: null, // FK initially null
@@ -137,6 +141,9 @@ function extractLength(
     entityType: LENGTH_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 }
 
@@ -157,6 +164,7 @@ function extractFromIndex(
   dataKey: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
   existingAssets: Map<string, LSP12IssuedAsset>,
 ): void {
@@ -185,6 +193,9 @@ function extractFromIndex(
     id,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     assetAddress,
     arrayIndex,
     universalProfile: null, // FK initially null
@@ -201,6 +212,9 @@ function extractFromIndex(
     entityType: ISSUED_ASSET_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 
   // Queue enrichment for issuedAsset FK (secondary DA reference)
@@ -210,6 +224,9 @@ function extractFromIndex(
     entityType: ISSUED_ASSET_TYPE,
     entityId: entity.id,
     fkField: 'issuedAsset',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 }
 
@@ -228,6 +245,7 @@ function extractFromMap(
   dataKey: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
   existingAssets: Map<string, LSP12IssuedAsset>,
 ): void {
@@ -258,6 +276,9 @@ function extractFromMap(
     id,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     assetAddress,
     arrayIndex,
     interfaceId,
@@ -275,6 +296,9 @@ function extractFromMap(
     entityType: ISSUED_ASSET_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 
   // Queue enrichment for issuedAsset FK (secondary DA reference)
@@ -284,6 +308,9 @@ function extractFromMap(
     entityType: ISSUED_ASSET_TYPE,
     entityId: entity.id,
     fkField: 'issuedAsset',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 }
 

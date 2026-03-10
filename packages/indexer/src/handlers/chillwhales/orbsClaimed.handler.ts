@@ -58,6 +58,9 @@ const OrbsClaimedHandler: EntityHandler = {
         const entity = new OrbsClaimed({
           id,
           address: CHILLWHALES_ADDRESS,
+          blockNumber: event.blockNumber,
+          transactionIndex: event.transactionIndex,
+          logIndex: event.logIndex,
           digitalAsset: null, // FK initially null — resolved by enrichment queue
           tokenId: event.tokenId,
           nft: null, // FK initially null — resolved by enrichment queue
@@ -73,6 +76,9 @@ const OrbsClaimedHandler: EntityHandler = {
           entityType: ENTITY_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
+          blockNumber: event.blockNumber,
+          transactionIndex: event.transactionIndex,
+          logIndex: event.logIndex,
         });
 
         // Queue enrichment for nft FK
@@ -83,6 +89,9 @@ const OrbsClaimedHandler: EntityHandler = {
           entityType: ENTITY_TYPE,
           entityId: id,
           fkField: 'nft',
+          blockNumber: event.blockNumber,
+          transactionIndex: event.transactionIndex,
+          logIndex: event.logIndex,
         });
       }
     }

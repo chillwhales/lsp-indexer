@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Readiness
-status: executing
-last_updated: "2026-03-09T12:26:32.659Z"
-last_activity: 2026-03-09 — Completed 18-01-PLAN.md (Production Docker Compose)
+status: completed
+last_updated: "2026-03-09T14:12:46.030Z"
+last_activity: 2026-03-09 — Completed 19-03-PLAN.md (Wire Block Ordering Through EntityHandlers)
 progress:
   total_phases: 49
-  completed_phases: 42
-  total_plans: 124
-  completed_plans: 111
-  percent: 90
+  completed_phases: 43
+  total_plans: 127
+  completed_plans: 114
+  percent: 92
 ---
 
 # State: LSP Indexer
@@ -21,16 +21,16 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.2 Production Readiness — Phase 18 complete
+**Current focus:** v1.2 Production Readiness — Phase 19 complete
 
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Phase 18 — 2 of 6 in v1.2 (Production Docker Compose) — complete
-- **Plan:** 1 of 1 complete
-- **Status:** Phase 18 complete — Milestone in progress
-- **Last activity:** 2026-03-09 — Completed 18-01-PLAN.md (Production Docker Compose)
-- **Progress:** [█████████░] 90%
+- **Phase:** Phase 19 — 3 of 6 in v1.2 (Block Ordering) — complete
+- **Plan:** 3 of 3 complete
+- **Status:** Milestone complete
+- **Last activity:** 2026-03-09 — Completed 19-03-PLAN.md (Wire Block Ordering Through EntityHandlers)
+- **Progress:** [█████████░] 92%
 
 ## Milestone History
 
@@ -47,10 +47,10 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 115 (36 v1.0 + 77 v1.1 + 2 v1.2)
+- **Plans completed:** 118 (36 v1.0 + 77 v1.1 + 5 v1.2)
 - **Plans failed:** 0
-- **Phases completed:** 46 (11 v1.0 + 33 v1.1 + 2 v1.2)
-- **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 7/26 (v1.2)
+- **Phases completed:** 47 (11 v1.0 + 33 v1.1 + 3 v1.2)
+- **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 10/26 (v1.2)
 
 ## Accumulated Context
 
@@ -76,16 +76,17 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-09
-- **Activity:** Executed Phase 18 Plan 01 — Production Docker Compose
-- **Outcome:** Production compose file created with ghcr.io image, hardened defaults, env template
-- **Resume file:** .planning/phases/19-block-ordering/19-CONTEXT.md
+- **Activity:** Executed Phase 19 Plan 03 — Wire Block Ordering Through EntityHandlers
+- **Outcome:** All ~29 EntityHandlers set real block fields on derived entities; metadata fetch handlers propagate parent block fields to sub-entities; zero placeholder values remain
+- **Resume file:** Next phase plan
 
 ### Context for Next Session
 
-- **Phase 18 complete** — Production Docker Compose ready, next is Phase 19
-- **Pre-existing issue:** `packages/indexer` has pre-existing build errors (unrelated typeorm/abi issues) — build individual packages instead of `pnpm build`
+- **Phase 19 complete** — All 3 plans for Block Ordering executed successfully
+- **All entities carry real block position data** — blockNumber, transactionIndex, logIndex wired through plugins, pipeline, and handlers
 - **Integration branch:** `refactor/indexer-v2-react` — contains all v1.0+v1.1 work, needs merge decision
+- **Next:** Phase 20 or next milestone phase
 
 ---
 
-_Last updated: 2026-03-09 — Phase 18 complete (production docker compose)_
+_Last updated: 2026-03-09 — Phase 19 complete (all 3 block ordering plans executed)_

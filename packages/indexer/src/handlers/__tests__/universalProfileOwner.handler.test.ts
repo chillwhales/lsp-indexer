@@ -165,6 +165,9 @@ describe('UniversalProfileOwnerHandler', () => {
         entityType: 'UniversalProfileOwner',
         entityId: upAddress,
         fkField: 'universalProfile',
+        blockNumber: 0,
+        transactionIndex: 0,
+        logIndex: 0,
       });
     });
   });

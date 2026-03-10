@@ -126,15 +126,39 @@ const LSP6ControllersHandler: EntityHandler = {
       const { dataKey, dataValue, address, timestamp } = event;
 
       if (dataKey === LSP6_LENGTH_KEY) {
-        extractLength(address, dataValue, timestamp, hctx);
+        extractLength(address, dataValue, timestamp, event, hctx);
       } else if (dataKey.startsWith(LSP6_INDEX_PREFIX)) {
-        extractFromIndex(address, dataKey, dataValue, timestamp, hctx, existingControllers);
+        extractFromIndex(address, dataKey, dataValue, timestamp, event, hctx, existingControllers);
       } else if (dataKey.startsWith(LSP6_PERMISSIONS_PREFIX)) {
-        extractPermissions(address, dataKey, dataValue, timestamp, hctx, existingControllers);
+        extractPermissions(
+          address,
+          dataKey,
+          dataValue,
+          timestamp,
+          event,
+          hctx,
+          existingControllers,
+        );
       } else if (dataKey.startsWith(LSP6_ALLOWED_CALLS_PREFIX)) {
-        extractAllowedCalls(address, dataKey, dataValue, timestamp, hctx, existingControllers);
+        extractAllowedCalls(
+          address,
+          dataKey,
+          dataValue,
+          timestamp,
+          event,
+          hctx,
+          existingControllers,
+        );
       } else if (dataKey.startsWith(LSP6_ALLOWED_DATA_KEYS_PREFIX)) {
-        extractAllowedDataKeys(address, dataKey, dataValue, timestamp, hctx, existingControllers);
+        extractAllowedDataKeys(
+          address,
+          dataKey,
+          dataValue,
+          timestamp,
+          event,
+          hctx,
+          existingControllers,
+        );
       }
     }
 
@@ -191,12 +215,16 @@ function extractLength(
   address: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
 ): void {
   const entity = new LSP6ControllersLength({
     id: address,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     value: isHex(dataValue) && hexToBytes(dataValue).length === 16 ? hexToBigInt(dataValue) : null,
     rawValue: dataValue,
     universalProfile: undefined, // FK resolved in enrichment step
@@ -211,6 +239,9 @@ function extractLength(
     entityType: LENGTH_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 }
 
@@ -230,6 +261,7 @@ function extractFromIndex(
   dataKey: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
   existingControllers: Map<string, LSP6Controller>,
 ): void {
@@ -257,6 +289,9 @@ function extractFromIndex(
     id,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     controllerAddress,
     arrayIndex,
     universalProfile: undefined, // FK resolved in enrichment step
@@ -273,6 +308,9 @@ function extractFromIndex(
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
   // Queue enrichment for controllerProfile FK (secondary UP reference)
   hctx.batchCtx.queueEnrichment<LSP6Controller>({
@@ -281,6 +319,9 @@ function extractFromIndex(
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'controllerProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 }
 
@@ -299,6 +340,7 @@ function extractPermissions(
   dataKey: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
   existingControllers: Map<string, LSP6Controller>,
 ): void {
@@ -310,6 +352,7 @@ function extractPermissions(
     address,
     controllerAddress,
     timestamp,
+    event,
     hctx,
     existingControllers,
   );
@@ -349,6 +392,7 @@ function extractAllowedCalls(
   dataKey: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
   existingControllers: Map<string, LSP6Controller>,
 ): void {
@@ -360,6 +404,7 @@ function extractAllowedCalls(
     address,
     controllerAddress,
     timestamp,
+    event,
     hctx,
     existingControllers,
   );
@@ -410,6 +455,7 @@ function extractAllowedDataKeys(
   dataKey: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
   existingControllers: Map<string, LSP6Controller>,
 ): void {
@@ -421,6 +467,7 @@ function extractAllowedDataKeys(
     address,
     controllerAddress,
     timestamp,
+    event,
     hctx,
     existingControllers,
   );
@@ -469,6 +516,7 @@ function getOrCreateController(
   address: string,
   controllerAddress: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
   existingControllers: Map<string, LSP6Controller>,
 ): LSP6Controller {
@@ -501,6 +549,9 @@ function getOrCreateController(
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
   // Queue enrichment for controllerProfile FK (secondary UP reference)
   hctx.batchCtx.queueEnrichment<LSP6Controller>({
@@ -509,6 +560,9 @@ function getOrCreateController(
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'controllerProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 
   return entity;

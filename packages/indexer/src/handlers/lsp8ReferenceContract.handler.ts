@@ -31,6 +31,9 @@ const LSP8ReferenceContractHandler: EntityHandler = {
         id: event.address,
         address: event.address,
         timestamp: event.timestamp,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
         value: !isHex(event.dataValue) || event.dataValue === '0x' ? null : event.dataValue,
         rawValue: event.dataValue,
         digitalAsset: null, // FK initially null
@@ -46,6 +49,9 @@ const LSP8ReferenceContractHandler: EntityHandler = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'digitalAsset',
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
       });
     }
   },

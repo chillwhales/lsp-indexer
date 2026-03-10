@@ -103,6 +103,9 @@ function parseAndAddSubEntities(
     const nameEntity = new LSP4MetadataName({
       id: uuidv4(),
       lsp4Metadata: parentRef,
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
       value: lsp4Metadata.name,
     });
     hctx.batchCtx.addEntity('LSP4MetadataName', nameEntity.id, nameEntity);
@@ -113,6 +116,9 @@ function parseAndAddSubEntities(
     const descEntity = new LSP4MetadataDescription({
       id: uuidv4(),
       lsp4Metadata: parentRef,
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
       value: lsp4Metadata.description,
     });
     hctx.batchCtx.addEntity('LSP4MetadataDescription', descEntity.id, descEntity);
@@ -123,6 +129,9 @@ function parseAndAddSubEntities(
     const catEntity = new LSP4MetadataCategory({
       id: uuidv4(),
       lsp4Metadata: parentRef,
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
       value: lsp4Metadata.category,
     });
     hctx.batchCtx.addEntity('LSP4MetadataCategory', catEntity.id, catEntity);
@@ -135,6 +144,9 @@ function parseAndAddSubEntities(
       const linkEntity = new LSP4MetadataLink({
         id: uuidv4(),
         lsp4Metadata: parentRef,
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
         title: link.title,
         url: link.url,
       });
@@ -151,6 +163,9 @@ function parseAndAddSubEntities(
           const imgEntity = new LSP4MetadataImage({
             id: uuidv4(),
             lsp4Metadata: parentRef,
+            blockNumber: entity.blockNumber,
+            transactionIndex: entity.transactionIndex,
+            logIndex: entity.logIndex,
             url: img.url,
             width: img.width,
             height: img.height,
@@ -171,6 +186,9 @@ function parseAndAddSubEntities(
       const iconEntity = new LSP4MetadataIcon({
         id: uuidv4(),
         lsp4Metadata: parentRef,
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
         url: iconItem.url,
         width: iconItem.width,
         height: iconItem.height,
@@ -190,6 +208,9 @@ function parseAndAddSubEntities(
       const assetEntity = new LSP4MetadataAsset({
         id: uuidv4(),
         lsp4Metadata: parentRef,
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
         url: url,
         fileType: fileType,
         verificationMethod: verification.method,
@@ -214,6 +235,9 @@ function parseAndAddSubEntities(
       const attrEntity = new LSP4MetadataAttribute({
         id: uuidv4(),
         lsp4Metadata: parentRef,
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
         key: attribute.key,
         value: attribute.value,
         type: getAttributeType(attribute),
@@ -231,6 +255,9 @@ function parseAndAddSubEntities(
       const scoreEntity = new LSP4MetadataScore({
         id: uuidv4(),
         lsp4Metadata: parentRef,
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
         value: parseInt(attr.value),
       });
       hctx.batchCtx.addEntity('LSP4MetadataScore', scoreEntity.id, scoreEntity);
@@ -243,6 +270,9 @@ function parseAndAddSubEntities(
       const rankEntity = new LSP4MetadataRank({
         id: uuidv4(),
         lsp4Metadata: parentRef,
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
         value: parseInt(attr.value),
       });
       hctx.batchCtx.addEntity('LSP4MetadataRank', rankEntity.id, rankEntity);

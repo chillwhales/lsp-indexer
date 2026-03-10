@@ -41,6 +41,9 @@ const LSP3ProfileHandler: EntityHandler = {
         id: event.address,
         address: event.address,
         timestamp: event.timestamp,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
         url,
         rawValue: event.dataValue,
         decodeError,
@@ -59,6 +62,9 @@ const LSP3ProfileHandler: EntityHandler = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'universalProfile',
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
       });
     }
   },

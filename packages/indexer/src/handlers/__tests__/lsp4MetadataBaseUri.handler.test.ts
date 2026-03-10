@@ -107,6 +107,9 @@ function createBaseURI(
     rawValue: '0x123456',
     digitalAsset: null,
     ...overrides,
+    blockNumber: 0,
+    transactionIndex: 0,
+    logIndex: 0,
   });
 }
 

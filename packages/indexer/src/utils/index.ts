@@ -1,4 +1,5 @@
 import { DEAD_ADDRESS, ZERO_ADDRESS } from '@/constants';
+import { BlockPosition } from '@/core/types';
 import { LSP4TokenTypeEnum, LSP8TokenIdFormatEnum, OperationType } from '@chillwhales/typeorm';
 import ERC725 from '@erc725/erc725.js';
 import type { Verification } from '@lukso/lsp2-contracts';
@@ -68,6 +69,17 @@ export function isNumeric(value: string): boolean {
 export function isNullAddress(address: string): boolean {
   const lower = address.toLowerCase();
   return lower === ZERO_ADDRESS.toLowerCase() || lower === DEAD_ADDRESS.toLowerCase();
+}
+
+/**
+ * Compare two block positions for ordering.
+ * Returns negative if `a` is earlier than `b`, positive if later, 0 if equal.
+ * Comparison order: blockNumber → transactionIndex → logIndex.
+ */
+export function compareBlockPosition(a: BlockPosition, b: BlockPosition): number {
+  if (a.blockNumber !== b.blockNumber) return a.blockNumber - b.blockNumber;
+  if (a.transactionIndex !== b.transactionIndex) return a.transactionIndex - b.transactionIndex;
+  return a.logIndex - b.logIndex;
 }
 
 export const isLink = (obj: unknown): obj is LinkMetadata =>

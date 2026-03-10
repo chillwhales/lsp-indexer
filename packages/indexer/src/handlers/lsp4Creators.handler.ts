@@ -93,11 +93,11 @@ const LSP4CreatorsHandler: EntityHandler = {
       const { dataKey, dataValue, address, timestamp } = event;
 
       if (dataKey === LSP4_CREATORS_LENGTH_KEY) {
-        extractLength(address, dataValue, timestamp, hctx);
+        extractLength(address, dataValue, timestamp, event, hctx);
       } else if (dataKey.startsWith(LSP4_CREATORS_INDEX_PREFIX)) {
-        extractFromIndex(address, dataKey, dataValue, timestamp, hctx, existingCreators);
+        extractFromIndex(address, dataKey, dataValue, timestamp, event, hctx, existingCreators);
       } else if (dataKey.startsWith(LSP4_CREATORS_MAP_PREFIX)) {
-        extractFromMap(address, dataKey, dataValue, timestamp, hctx, existingCreators);
+        extractFromMap(address, dataKey, dataValue, timestamp, event, hctx, existingCreators);
       }
     }
   },
@@ -117,12 +117,16 @@ function extractLength(
   address: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
 ): void {
   const entity = new LSP4CreatorsLength({
     id: address,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     value: isHex(dataValue) && hexToBytes(dataValue).length === 16 ? hexToBigInt(dataValue) : null,
     rawValue: dataValue,
     digitalAsset: null, // FK initially null
@@ -137,6 +141,9 @@ function extractLength(
     entityType: LENGTH_TYPE,
     entityId: entity.id,
     fkField: 'digitalAsset',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 }
 
@@ -157,6 +164,7 @@ function extractFromIndex(
   dataKey: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
   existingCreators: Map<string, LSP4Creator>,
 ): void {
@@ -185,6 +193,9 @@ function extractFromIndex(
     id,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     creatorAddress,
     arrayIndex,
     digitalAsset: null, // FK initially null
@@ -201,6 +212,9 @@ function extractFromIndex(
     entityType: CREATOR_TYPE,
     entityId: entity.id,
     fkField: 'digitalAsset',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 
   // Queue enrichment for creatorProfile FK (secondary UP reference)
@@ -210,6 +224,9 @@ function extractFromIndex(
     entityType: CREATOR_TYPE,
     entityId: entity.id,
     fkField: 'creatorProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 }
 
@@ -228,6 +245,7 @@ function extractFromMap(
   dataKey: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
   existingCreators: Map<string, LSP4Creator>,
 ): void {
@@ -258,6 +276,9 @@ function extractFromMap(
     id,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     creatorAddress,
     arrayIndex,
     interfaceId,
@@ -275,6 +296,9 @@ function extractFromMap(
     entityType: CREATOR_TYPE,
     entityId: entity.id,
     fkField: 'digitalAsset',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 
   // Queue enrichment for creatorProfile FK (secondary UP reference)
@@ -284,6 +308,9 @@ function extractFromMap(
     entityType: CREATOR_TYPE,
     entityId: entity.id,
     fkField: 'creatorProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 }
 

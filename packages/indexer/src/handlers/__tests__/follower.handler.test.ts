@@ -224,6 +224,9 @@ describe('FollowerHandler - Follow events (HNDL-01)', () => {
       entityType: 'Follower',
       entityId: expectedId,
       fkField: 'followerUniversalProfile',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     });
     expect(batchCtx.queueEnrichment).toHaveBeenCalledWith({
       category: EntityCategory.UniversalProfile,
@@ -231,6 +234,9 @@ describe('FollowerHandler - Follow events (HNDL-01)', () => {
       entityType: 'Follower',
       entityId: expectedId,
       fkField: 'followedUniversalProfile',
+      blockNumber: 0,
+      transactionIndex: 0,
+      logIndex: 0,
     });
   });
 });

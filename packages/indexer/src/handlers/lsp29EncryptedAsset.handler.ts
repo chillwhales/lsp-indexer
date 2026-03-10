@@ -70,13 +70,13 @@ const LSP29EncryptedAssetHandler: EntityHandler = {
       const { dataKey, dataValue, address, timestamp } = event;
 
       if (dataKey === LSP29_LENGTH_KEY) {
-        extractLength(address, dataValue, timestamp, hctx);
+        extractLength(address, dataValue, timestamp, event, hctx);
       } else if (dataKey.startsWith(LSP29_INDEX_PREFIX)) {
-        extractFromIndex(address, dataKey, dataValue, timestamp, hctx);
+        extractFromIndex(address, dataKey, dataValue, timestamp, event, hctx);
       } else if (dataKey.startsWith(LSP29_MAP_PREFIX)) {
-        extractFromMap(address, dataKey, dataValue, timestamp, hctx);
+        extractFromMap(address, dataKey, dataValue, timestamp, event, hctx);
       } else if (dataKey.startsWith(LSP29_REVISION_COUNT_PREFIX)) {
-        extractRevisionCount(address, dataKey, dataValue, timestamp, hctx);
+        extractRevisionCount(address, dataKey, dataValue, timestamp, event, hctx);
       }
     }
   },
@@ -96,12 +96,16 @@ function extractLength(
   address: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
 ): void {
   const entity = new LSP29EncryptedAssetsLength({
     id: address,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     value: isHex(dataValue) && hexToBytes(dataValue).length === 16 ? hexToBigInt(dataValue) : null,
     rawValue: dataValue,
     universalProfile: null, // FK initially null
@@ -116,6 +120,9 @@ function extractLength(
     entityType: LENGTH_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 }
 
@@ -134,6 +141,7 @@ function extractFromIndex(
   dataKey: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
 ): void {
   const { value: url, decodeError } = decodeVerifiableUri(dataValue);
@@ -145,6 +153,9 @@ function extractFromIndex(
     id: `${address} - ${dataKey}`,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     arrayIndex,
     url,
     rawValue: dataValue,
@@ -163,6 +174,9 @@ function extractFromIndex(
     entityType: ENCRYPTED_ASSET_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 }
 
@@ -179,6 +193,7 @@ function extractFromMap(
   dataKey: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
 ): void {
   const contentIdHash = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
@@ -189,6 +204,9 @@ function extractFromMap(
     id: `${address} - ${contentIdHash}`,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     contentIdHash,
     arrayIndex,
     universalProfile: null, // FK initially null
@@ -203,6 +221,9 @@ function extractFromMap(
     entityType: ENTRY_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 }
 
@@ -219,6 +240,7 @@ function extractRevisionCount(
   dataKey: string,
   dataValue: string,
   timestamp: Date,
+  event: DataChanged,
   hctx: HandlerContext,
 ): void {
   const contentIdHash = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
@@ -229,6 +251,9 @@ function extractRevisionCount(
     id: `${address} - ${contentIdHash}`,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     contentIdHash,
     revisionCount,
     rawValue: dataValue,
@@ -244,6 +269,9 @@ function extractRevisionCount(
     entityType: REVISION_COUNT_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
   });
 }
 

@@ -19,7 +19,7 @@ import { type Hex, hexToBool, isHex } from 'viem';
 
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { aggregate3StaticLatest } from './multicall';
-import { Context, EntityCategory, VerificationResult } from './types';
+import { BlockPosition, Context, Entity, EntityCategory, VerificationResult } from './types';
 
 // ---------------------------------------------------------------------------
 // Interface version constants
@@ -243,7 +243,7 @@ interface InternalVerificationResult {
   newAddresses: Set<string>;
   validAddresses: Set<string>;
   invalidAddresses: Set<string>;
-  newEntities: Map<string, { id: string }>;
+  newEntities: Map<string, Entity>;
 }
 
 // ---------------------------------------------------------------------------
@@ -263,6 +263,7 @@ async function verifyWithInterface(
   versions: InterfaceVersion[],
   cache: VerificationCache,
   batchSize: number,
+  blockPositionByAddress: Map<string, BlockPosition>,
 ): Promise<InternalVerificationResult> {
   const addressArray = [...addresses];
 
@@ -351,14 +352,43 @@ async function verifyWithInterface(
   }
 
   // Build entity instances for newly verified addresses
-  const newEntities = new Map<string, { id: string }>();
+  // Set block position from earliest enrichment request per address.
+  // Existing entities (from DB or cache) are never modified — only new entities
+  // get block fields, ensuring the oldest-retention guarantee.
+  const newEntities = new Map<string, Entity>();
   if (category === EntityCategory.UniversalProfile) {
     for (const addr of newlyVerified) {
-      newEntities.set(addr, new UniversalProfile({ id: addr, address: addr }));
+      const blockPos = blockPositionByAddress.get(addr);
+      if (!blockPos) {
+        throw new Error(`Missing block position for newly verified UniversalProfile: ${addr}`);
+      }
+      newEntities.set(
+        addr,
+        new UniversalProfile({
+          id: addr,
+          address: addr,
+          blockNumber: blockPos.blockNumber,
+          transactionIndex: blockPos.transactionIndex,
+          logIndex: blockPos.logIndex,
+        }),
+      );
     }
   } else if (category === EntityCategory.DigitalAsset) {
     for (const addr of newlyVerified) {
-      newEntities.set(addr, new DigitalAsset({ id: addr, address: addr }));
+      const blockPos = blockPositionByAddress.get(addr);
+      if (!blockPos) {
+        throw new Error(`Missing block position for newly verified DigitalAsset: ${addr}`);
+      }
+      newEntities.set(
+        addr,
+        new DigitalAsset({
+          id: addr,
+          address: addr,
+          blockNumber: blockPos.blockNumber,
+          transactionIndex: blockPos.transactionIndex,
+          logIndex: blockPos.logIndex,
+        }),
+      );
     }
   }
 
@@ -393,6 +423,7 @@ export function createVerifyFn(
   addresses: Set<string>,
   store: Store,
   context: Context,
+  blockPositionByAddress: Map<string, BlockPosition>,
 ) => Promise<VerificationResult> {
   const cache = new VerificationCache(config.cacheMaxSize ?? 50_000);
   const batchSize = config.batchSize ?? DEFAULT_BATCH_SIZE;
@@ -408,12 +439,17 @@ export function createVerifyFn(
    *
    * Newly verified entity instances are returned in `result.newEntities`
    * for the pipeline to persist. No side-effects on the BatchContext.
+   *
+   * @param blockPositionByAddress - Earliest block position per address.
+   *   Used to set block fields on newly created UP/DA entities. Existing entities
+   *   are never modified — only new entities get block fields.
    */
   return async function verifyAddresses(
     category: EntityCategory,
     addresses: Set<string>,
     store: Store,
     context: Context,
+    blockPositionByAddress: Map<string, BlockPosition>,
   ): Promise<VerificationResult> {
     if (addresses.size === 0) {
       return { new: new Set(), valid: new Set(), invalid: new Set(), newEntities: new Map() };
@@ -433,7 +469,16 @@ export function createVerifyFn(
     const versions = category === EntityCategory.UniversalProfile ? UP_VERSIONS : DA_VERSIONS;
 
     const { newAddresses, validAddresses, invalidAddresses, newEntities } =
-      await verifyWithInterface(context, store, addresses, category, versions, cache, batchSize);
+      await verifyWithInterface(
+        context,
+        store,
+        addresses,
+        category,
+        versions,
+        cache,
+        batchSize,
+        blockPositionByAddress,
+      );
 
     return {
       new: newAddresses,

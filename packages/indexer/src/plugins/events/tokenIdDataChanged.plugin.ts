@@ -63,6 +63,9 @@ const TokenIdDataChangedPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
 
     // Queue enrichment for nft FK.
@@ -75,6 +78,9 @@ const TokenIdDataChangedPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'nft',
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
   },
 };

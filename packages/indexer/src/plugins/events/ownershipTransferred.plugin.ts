@@ -59,6 +59,9 @@ const OwnershipTransferredPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'universalProfile',
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
     ctx.queueEnrichment<OwnershipTransferred>({
       category: EntityCategory.DigitalAsset,
@@ -66,6 +69,9 @@ const OwnershipTransferredPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
 
     // Queue enrichment for previousOwner and newOwner UniversalProfile FKs
@@ -77,6 +83,9 @@ const OwnershipTransferredPlugin: EventPlugin = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'previousOwnerProfile',
+        blockNumber: height,
+        transactionIndex,
+        logIndex,
       });
     }
     if (!isNullAddress(newOwner)) {
@@ -86,6 +95,9 @@ const OwnershipTransferredPlugin: EventPlugin = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'newOwnerProfile',
+        blockNumber: height,
+        transactionIndex,
+        logIndex,
       });
     }
   },

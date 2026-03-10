@@ -49,6 +49,9 @@ const UniversalProfileOwnerHandler: EntityHandler = {
       const entity = new UniversalProfileOwner({
         id: event.address,
         timestamp: event.timestamp,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
         address: event.newOwner,
         universalProfile: null, // FK initially null — resolved by enrichment queue
       });
@@ -63,6 +66,9 @@ const UniversalProfileOwnerHandler: EntityHandler = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'universalProfile',
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
       });
     }
 

@@ -75,6 +75,9 @@ const DeployedProxiesPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'universalProfile',
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
   },
 };

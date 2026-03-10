@@ -226,14 +226,14 @@ function getSourceEntitiesFromBatch(batchCtx: BatchContext, rule: FKResolutionRu
     for (const entity of verified.newEntities.values()) {
       // Avoid duplicates if somehow already in the bag
       if (!bagEntities.has(entity.id)) {
-        entities.push(entity as Entity);
+        entities.push(entity);
       }
     }
   } else if (rule.sourceType === 'DigitalAsset') {
     const verified = batchCtx.getVerified(EntityCategory.DigitalAsset);
     for (const entity of verified.newEntities.values()) {
       if (!bagEntities.has(entity.id)) {
-        entities.push(entity as Entity);
+        entities.push(entity);
       }
     }
   }

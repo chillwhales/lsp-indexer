@@ -165,6 +165,9 @@ describe('DigitalAssetOwnerHandler', () => {
         entityType: 'DigitalAssetOwner',
         entityId: daAddress,
         fkField: 'digitalAsset',
+        blockNumber: 0,
+        transactionIndex: 0,
+        logIndex: 0,
       });
     });
   });

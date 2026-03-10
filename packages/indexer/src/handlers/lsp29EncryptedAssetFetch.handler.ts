@@ -117,6 +117,9 @@ function parseAndAddSubEntities(
     const titleEntity = new LSP29EncryptedAssetTitle({
       id: uuidv4(),
       lsp29EncryptedAsset: parentRef,
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
       value: lsp29.title,
     });
     hctx.batchCtx.addEntity('LSP29EncryptedAssetTitle', titleEntity.id, titleEntity);
@@ -127,6 +130,9 @@ function parseAndAddSubEntities(
     const descEntity = new LSP29EncryptedAssetDescription({
       id: uuidv4(),
       lsp29EncryptedAsset: parentRef,
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
       value: lsp29.description,
     });
     hctx.batchCtx.addEntity('LSP29EncryptedAssetDescription', descEntity.id, descEntity);
@@ -138,6 +144,9 @@ function parseAndAddSubEntities(
     const fileEntity = new LSP29EncryptedAssetFile({
       id: uuidv4(),
       lsp29EncryptedAsset: parentRef,
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
       type,
       name,
       size,
@@ -156,6 +165,9 @@ function parseAndAddSubEntities(
     const encryptionEntity = new LSP29EncryptedAssetEncryption({
       id: uuidv4(),
       lsp29EncryptedAsset: parentRef,
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
       method,
       ciphertext,
       dataToEncryptHash,
@@ -180,6 +192,9 @@ function parseAndAddSubEntities(
         const conditionEntity = new LSP29AccessControlCondition({
           id: uuidv4(),
           encryption: encryptionRef,
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
           conditionIndex: index,
           contractAddress: extracted.contractAddress,
           chain: extracted.chain,
@@ -202,6 +217,9 @@ function parseAndAddSubEntities(
     const chunksEntity = new LSP29EncryptedAssetChunks({
       id: uuidv4(),
       lsp29EncryptedAsset: parentRef,
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
       cids,
       iv,
       totalSize,
@@ -220,6 +238,9 @@ function parseAndAddSubEntities(
         const imageEntity = new LSP29EncryptedAssetImage({
           id: uuidv4(),
           lsp29EncryptedAsset: parentRef,
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
           url: img.url,
           width: img.width,
           height: img.height,

@@ -48,6 +48,9 @@ const NFTHandler: EntityHandler = {
               id: nftId,
               tokenId: transfer.tokenId,
               address: transfer.address,
+              blockNumber: transfer.blockNumber,
+              transactionIndex: transfer.transactionIndex,
+              logIndex: transfer.logIndex,
               formattedTokenId: null, // Populated by FormattedTokenId handler (issue #113)
               digitalAsset: null, // FK resolved via enrichment
               isMinted: true,
@@ -63,6 +66,9 @@ const NFTHandler: EntityHandler = {
               id: nftId,
               tokenId: transfer.tokenId,
               address: transfer.address,
+              blockNumber: transfer.blockNumber,
+              transactionIndex: transfer.transactionIndex,
+              logIndex: transfer.logIndex,
               formattedTokenId: null, // Populated by FormattedTokenId handler (issue #113)
               digitalAsset: null, // FK resolved via enrichment
               isMinted: false,
@@ -107,6 +113,9 @@ const NFTHandler: EntityHandler = {
               id: nftId,
               tokenId: event.tokenId,
               address: event.address,
+              blockNumber: event.blockNumber,
+              transactionIndex: event.transactionIndex,
+              logIndex: event.logIndex,
               formattedTokenId: null, // Populated by FormattedTokenId handler (issue #113)
               digitalAsset: null, // FK resolved via enrichment
               isMinted: false,
@@ -128,6 +137,9 @@ const NFTHandler: EntityHandler = {
         entityType: ENTITY_TYPE,
         entityId: nft.id,
         fkField: 'digitalAsset',
+        blockNumber: nft.blockNumber,
+        transactionIndex: nft.transactionIndex,
+        logIndex: nft.logIndex,
       });
 
       hctx.batchCtx.addEntity(ENTITY_TYPE, nft.id, nft);

@@ -14,7 +14,7 @@
  * No JSON.stringify calls — attributes are passed as native objects for jq filtering.
  */
 
-import { generateTokenId } from '@/utils';
+import { compareBlockPosition, generateTokenId } from '@/utils';
 import { DigitalAsset, NFT, UniversalProfile } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
@@ -25,6 +25,7 @@ import { resolveForeignKeys } from './fkResolution';
 import { createStepLogger } from './logger';
 import { PluginRegistry } from './registry';
 import {
+  BlockPosition,
   Context,
   Entity,
   EntityCategory,
@@ -42,12 +43,16 @@ import {
 /**
  * Function signature for address verification.
  * Injected into the pipeline so it stays decoupled from the verification implementation.
+ *
+ * @param blockPositionByAddress - Earliest block position per address.
+ *   Used to set block fields on newly created UP/DA entities.
  */
 export type VerifyFn = (
   category: EntityCategory,
   addresses: Set<string>,
   store: Store,
   context: Context,
+  blockPositionByAddress: Map<string, BlockPosition>,
 ) => Promise<VerificationResult>;
 
 /**
@@ -393,6 +398,24 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     requestList.push(request);
   }
 
+  // Compute earliest block position per address from enrichment queue.
+  // For each non-NFT address, retain the enrichment request with the lowest
+  // (blockNumber, transactionIndex, logIndex) tuple. This ensures new core
+  // entities (UP, DA) are created with the block position of their first
+  // on-chain appearance, and later batches never overwrite these fields.
+  const earliestBlockByAddress = new Map<string, BlockPosition>();
+  for (const request of enrichmentQueue) {
+    if (request.category === EntityCategory.NFT) continue;
+    const existing = earliestBlockByAddress.get(request.address);
+    if (!existing || compareBlockPosition(request, existing) < 0) {
+      earliestBlockByAddress.set(request.address, {
+        blockNumber: request.blockNumber,
+        transactionIndex: request.transactionIndex,
+        logIndex: request.logIndex,
+      });
+    }
+  }
+
   // Capture queue length — any requests added by post-verification handlers
   // (Step 5.5) will be at indices >= this value and need a second grouping pass.
   const prePostVerifyQueueLen = enrichmentQueue.length;
@@ -406,7 +429,13 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       const addresses = addressesByCategory.get(category);
       if (!addresses || addresses.size === 0) return;
 
-      const result = await verifyAddresses(category, addresses, context.store, context);
+      const result = await verifyAddresses(
+        category,
+        addresses,
+        context.store,
+        context,
+        earliestBlockByAddress,
+      );
       batchCtx.setVerified(category, result);
 
       verifyLog.info(

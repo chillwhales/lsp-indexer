@@ -66,6 +66,9 @@ const FollowPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'followerUniversalProfile',
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
     ctx.queueEnrichment<Follow>({
       category: EntityCategory.UniversalProfile,
@@ -73,6 +76,9 @@ const FollowPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'followedUniversalProfile',
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
   },
 };

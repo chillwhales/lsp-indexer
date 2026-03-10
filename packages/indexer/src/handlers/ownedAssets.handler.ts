@@ -78,7 +78,17 @@ const OwnedAssetsHandler: EntityHandler = {
     const updatedOwnedTokensMap = new Map<string, OwnedToken>();
 
     for (const transfer of allTransfers) {
-      const { timestamp, blockNumber, address, from, to, amount, tokenId } = transfer;
+      const {
+        timestamp,
+        blockNumber,
+        transactionIndex,
+        logIndex,
+        address,
+        from,
+        to,
+        amount,
+        tokenId,
+      } = transfer;
 
       // --- OwnedAsset: decrement sender (floor at 0 to prevent underflow) ---
       if (!isAddressEqual(getAddress(from), zeroAddress)) {
@@ -91,7 +101,9 @@ const OwnedAssetsHandler: EntityHandler = {
             fromId,
             new OwnedAsset({
               ...existing,
-              block: blockNumber,
+              blockNumber,
+              transactionIndex,
+              logIndex,
               timestamp,
               balance: newBalance,
               // Explicitly preserve FK fields for enrichment
@@ -112,7 +124,9 @@ const OwnedAssetsHandler: EntityHandler = {
             toId,
             new OwnedAsset({
               ...existing,
-              block: blockNumber,
+              blockNumber,
+              transactionIndex,
+              logIndex,
               timestamp,
               balance: existing.balance + amount,
               // Explicitly preserve FK fields for enrichment
@@ -127,7 +141,9 @@ const OwnedAssetsHandler: EntityHandler = {
             toId,
             new OwnedAsset({
               id: toId,
-              block: blockNumber,
+              blockNumber,
+              transactionIndex,
+              logIndex,
               timestamp,
               balance: amount,
               address,
@@ -150,7 +166,9 @@ const OwnedAssetsHandler: EntityHandler = {
             fromId,
             new OwnedToken({
               ...existing,
-              block: blockNumber,
+              blockNumber,
+              transactionIndex,
+              logIndex,
               timestamp,
               tokenId: null as unknown as string,
               // Explicitly preserve FK fields for enrichment
@@ -174,7 +192,9 @@ const OwnedAssetsHandler: EntityHandler = {
             toId,
             new OwnedToken({
               ...existing,
-              block: blockNumber,
+              blockNumber,
+              transactionIndex,
+              logIndex,
               timestamp,
               tokenId,
               // Explicitly preserve FK fields for enrichment
@@ -191,7 +211,9 @@ const OwnedAssetsHandler: EntityHandler = {
             toId,
             new OwnedToken({
               id: toId,
-              block: blockNumber,
+              blockNumber,
+              transactionIndex,
+              logIndex,
               timestamp,
               address,
               tokenId,
@@ -248,6 +270,9 @@ const OwnedAssetsHandler: EntityHandler = {
           entityType: OWNED_ASSET_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
         });
       }
 
@@ -259,6 +284,9 @@ const OwnedAssetsHandler: EntityHandler = {
           entityType: OWNED_ASSET_TYPE,
           entityId: id,
           fkField: 'universalProfile',
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
         });
       }
     }
@@ -274,6 +302,9 @@ const OwnedAssetsHandler: EntityHandler = {
           entityType: OWNED_TOKEN_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
         });
       }
 
@@ -285,6 +316,9 @@ const OwnedAssetsHandler: EntityHandler = {
           entityType: OWNED_TOKEN_TYPE,
           entityId: id,
           fkField: 'universalProfile',
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
         });
       }
 
@@ -297,6 +331,9 @@ const OwnedAssetsHandler: EntityHandler = {
           entityType: OWNED_TOKEN_TYPE,
           entityId: id,
           fkField: 'nft',
+          blockNumber: entity.blockNumber,
+          transactionIndex: entity.transactionIndex,
+          logIndex: entity.logIndex,
         });
       }
 

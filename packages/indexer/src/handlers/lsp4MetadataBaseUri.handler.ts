@@ -88,6 +88,9 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
         id: entityId,
         address,
         timestamp,
+        blockNumber: baseUriEntity.blockNumber,
+        transactionIndex: baseUriEntity.transactionIndex,
+        logIndex: baseUriEntity.logIndex,
         tokenId: nft.tokenId,
         url,
         rawValue,
@@ -112,6 +115,9 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
       entityType: LSP4_ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
     });
 
     // Queue enrichment for nft FK
@@ -122,6 +128,9 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
       entityType: LSP4_ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'nft',
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
     });
   }
 }
@@ -198,6 +207,9 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
       id: entityId,
       address: mint.address,
       timestamp: baseUri.timestamp,
+      blockNumber: mint.blockNumber,
+      transactionIndex: mint.transactionIndex,
+      logIndex: mint.logIndex,
       tokenId: mint.tokenId,
       url,
       rawValue: baseUri.rawValue,
@@ -221,6 +233,9 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
       entityType: LSP4_ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
     });
 
     // Queue enrichment for nft FK
@@ -231,6 +246,9 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
       entityType: LSP4_ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'nft',
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
     });
   }
 }

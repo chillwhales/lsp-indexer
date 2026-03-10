@@ -83,6 +83,9 @@ function parseAndAddSubEntities(
     const nameEntity = new LSP3ProfileName({
       id: uuidv4(),
       lsp3Profile: parentRef,
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
       value: lsp3Profile.name,
     });
     hctx.batchCtx.addEntity('LSP3ProfileName', nameEntity.id, nameEntity);
@@ -93,6 +96,9 @@ function parseAndAddSubEntities(
     const descEntity = new LSP3ProfileDescription({
       id: uuidv4(),
       lsp3Profile: parentRef,
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
       value: lsp3Profile.description,
     });
     hctx.batchCtx.addEntity('LSP3ProfileDescription', descEntity.id, descEntity);
@@ -105,6 +111,9 @@ function parseAndAddSubEntities(
       const tagEntity = new LSP3ProfileTag({
         id: uuidv4(),
         lsp3Profile: parentRef,
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
         value: tag,
       });
       hctx.batchCtx.addEntity('LSP3ProfileTag', tagEntity.id, tagEntity);
@@ -118,6 +127,9 @@ function parseAndAddSubEntities(
       const linkEntity = new LSP3ProfileLink({
         id: uuidv4(),
         lsp3Profile: parentRef,
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
         title: link.title,
         url: link.url,
       });
@@ -133,6 +145,9 @@ function parseAndAddSubEntities(
       const assetEntity = new LSP3ProfileAsset({
         id: uuidv4(),
         lsp3Profile: parentRef,
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
         url,
         fileType,
         verificationMethod: verification.method,
@@ -154,6 +169,9 @@ function parseAndAddSubEntities(
       const imageEntity = new LSP3ProfileImage({
         id: uuidv4(),
         lsp3Profile: parentRef,
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
         url: img.url,
         width: img.width,
         height: img.height,
@@ -176,6 +194,9 @@ function parseAndAddSubEntities(
       const bgEntity = new LSP3ProfileBackgroundImage({
         id: uuidv4(),
         lsp3Profile: parentRef,
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
         url: img.url,
         width: img.width,
         height: img.height,

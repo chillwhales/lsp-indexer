@@ -71,6 +71,9 @@ const LSP8TransferPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
 
     // Queue enrichment for nft FK.
@@ -83,6 +86,9 @@ const LSP8TransferPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'nft',
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
 
     // Queue enrichment for from/to/operator UniversalProfile FKs
@@ -94,6 +100,9 @@ const LSP8TransferPlugin: EventPlugin = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'fromProfile',
+        blockNumber: height,
+        transactionIndex,
+        logIndex,
       });
     }
     if (!isNullAddress(to)) {
@@ -103,6 +112,9 @@ const LSP8TransferPlugin: EventPlugin = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'toProfile',
+        blockNumber: height,
+        transactionIndex,
+        logIndex,
       });
     }
     if (!isNullAddress(operator)) {
@@ -112,6 +124,9 @@ const LSP8TransferPlugin: EventPlugin = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'operatorProfile',
+        blockNumber: height,
+        transactionIndex,
+        logIndex,
       });
     }
   },

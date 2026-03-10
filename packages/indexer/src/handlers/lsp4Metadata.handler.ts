@@ -58,6 +58,9 @@ function handleDataChanged(hctx: HandlerContext): void {
       id: event.address,
       address: event.address,
       timestamp: event.timestamp,
+      blockNumber: event.blockNumber,
+      transactionIndex: event.transactionIndex,
+      logIndex: event.logIndex,
       url,
       rawValue: event.dataValue,
       decodeError,
@@ -76,6 +79,9 @@ function handleDataChanged(hctx: HandlerContext): void {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
+      blockNumber: event.blockNumber,
+      transactionIndex: event.transactionIndex,
+      logIndex: event.logIndex,
     });
   }
 }
@@ -102,6 +108,9 @@ function handleTokenIdDataChanged(hctx: HandlerContext): void {
       id: nftId,
       address: event.address,
       timestamp: event.timestamp,
+      blockNumber: event.blockNumber,
+      transactionIndex: event.transactionIndex,
+      logIndex: event.logIndex,
       tokenId: event.tokenId,
       nft: null, // FK initially null
       url,
@@ -122,6 +131,9 @@ function handleTokenIdDataChanged(hctx: HandlerContext): void {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'digitalAsset',
+      blockNumber: event.blockNumber,
+      transactionIndex: event.transactionIndex,
+      logIndex: event.logIndex,
     });
 
     // Queue enrichment for nft FK
@@ -132,6 +144,9 @@ function handleTokenIdDataChanged(hctx: HandlerContext): void {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'nft',
+      blockNumber: event.blockNumber,
+      transactionIndex: event.transactionIndex,
+      logIndex: event.logIndex,
     });
   }
 }

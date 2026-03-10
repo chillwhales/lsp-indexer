@@ -174,7 +174,9 @@ describe('OwnedAssetsHandler', () => {
       // Existing OwnedAsset for sender with balance 5000
       const existingSenderAsset = new OwnedAsset({
         id: generateOwnedAssetId({ owner: sender, address: assetAddress }),
-        block: 90,
+        blockNumber: 90,
+        transactionIndex: 0,
+        logIndex: 0,
         timestamp: new Date('2024-01-01T00:00:00Z'),
         balance: 5000n,
         address: assetAddress,
@@ -186,7 +188,9 @@ describe('OwnedAssetsHandler', () => {
       // Existing OwnedAsset for receiver with balance 2000
       const existingReceiverAsset = new OwnedAsset({
         id: generateOwnedAssetId({ owner: receiver, address: assetAddress }),
-        block: 90,
+        blockNumber: 90,
+        transactionIndex: 0,
+        logIndex: 0,
         timestamp: new Date('2024-01-01T00:00:00Z'),
         balance: 2000n,
         address: assetAddress,
@@ -232,7 +236,9 @@ describe('OwnedAssetsHandler', () => {
       // Sender has exact balance being transferred
       const existingSenderAsset = new OwnedAsset({
         id: generateOwnedAssetId({ owner: sender, address: assetAddress }),
-        block: 90,
+        blockNumber: 90,
+        transactionIndex: 0,
+        logIndex: 0,
         timestamp: new Date('2024-01-01T00:00:00Z'),
         balance: 1000n,
         address: assetAddress,
@@ -323,7 +329,9 @@ describe('OwnedAssetsHandler', () => {
       // Simulate entity loaded from DB where FK fields might be missing as own properties
       const existingAsset = new OwnedAsset({
         id: generateOwnedAssetId({ owner: sender, address: assetAddress }),
-        block: 90,
+        blockNumber: 90,
+        transactionIndex: 0,
+        logIndex: 0,
         timestamp: new Date('2024-01-01T00:00:00Z'),
         balance: 5000n,
         address: assetAddress,
@@ -409,7 +417,9 @@ describe('OwnedAssetsHandler', () => {
 
       const existingToken = new OwnedToken({
         id: generateOwnedTokenId({ owner: sender, address: assetAddress, tokenId }),
-        block: 90,
+        blockNumber: 90,
+        transactionIndex: 0,
+        logIndex: 0,
         timestamp: new Date('2024-01-01T00:00:00Z'),
         address: assetAddress,
         tokenId,
@@ -460,7 +470,9 @@ describe('OwnedAssetsHandler', () => {
 
       const existingToken = new OwnedToken({
         id: generateOwnedTokenId({ owner: sender, address: assetAddress, tokenId }),
-        block: 90,
+        blockNumber: 90,
+        transactionIndex: 0,
+        logIndex: 0,
         timestamp: new Date('2024-01-01T00:00:00Z'),
         address: assetAddress,
         tokenId,
@@ -529,7 +541,9 @@ describe('OwnedAssetsHandler', () => {
       // Existing OwnedAsset for receiver (from prior LSP7 transfer or same batch)
       const existingOwnedAsset = new OwnedAsset({
         id: generateOwnedAssetId({ owner: receiver, address: assetAddress }),
-        block: 90,
+        blockNumber: 90,
+        transactionIndex: 0,
+        logIndex: 0,
         timestamp: new Date('2024-01-01T00:00:00Z'),
         balance: 5000n,
         address: assetAddress,

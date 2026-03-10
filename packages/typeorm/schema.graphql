@@ -19,7 +19,7 @@ enum OperationType {
   DELEGATECALL
 }
 
-type Executed @entity {
+type Executed @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -36,7 +36,7 @@ type Executed @entity {
   universalProfile: UniversalProfile @index
 }
 
-type UniversalReceiver @entity {
+type UniversalReceiver @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -53,7 +53,7 @@ type UniversalReceiver @entity {
   universalProfile: UniversalProfile @index
 }
 
-type Follow @entity {
+type Follow @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -66,7 +66,7 @@ type Follow @entity {
   followedUniversalProfile: UniversalProfile @index
 }
 
-type Follower @entity {
+type Follower @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -79,7 +79,7 @@ type Follower @entity {
   followedUniversalProfile: UniversalProfile @index
 }
 
-type Unfollow @entity {
+type Unfollow @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -92,7 +92,7 @@ type Unfollow @entity {
   unfollowedUniversalProfile: UniversalProfile @index
 }
 
-type DataChanged @entity {
+type DataChanged @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -105,7 +105,7 @@ type DataChanged @entity {
   digitalAsset: DigitalAsset @index
 }
 
-type TokenIdDataChanged @entity {
+type TokenIdDataChanged @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -119,7 +119,7 @@ type TokenIdDataChanged @entity {
   nft: NFT @index
 }
 
-type Transfer @entity {
+type Transfer @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -140,7 +140,7 @@ type Transfer @entity {
   nft: NFT @index
 }
 
-type DeployedContracts @entity {
+type DeployedContracts @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -156,7 +156,9 @@ type DeployedContracts @entity {
   universalProfile: UniversalProfile @index
 }
 
-type DeployedERC1167Proxies @entity {
+type DeployedERC1167Proxies
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -172,7 +174,7 @@ type DeployedERC1167Proxies @entity {
   universalProfile: UniversalProfile @index
 }
 
-type OwnershipTransferred @entity {
+type OwnershipTransferred @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -215,8 +217,11 @@ type SecondaryContractDeploymentInit {
   extraInitializationParams: String!
 }
 
-type UniversalProfile @entity {
+type UniversalProfile @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   address: String! @index
   owner: UniversalProfileOwner @derivedFrom(field: "universalProfile")
   ownedAssets: [OwnedAsset!]! @derivedFrom(field: "universalProfile")
@@ -260,8 +265,11 @@ type UniversalProfile @entity {
   universalReceiverFrom: [UniversalReceiver!]! @derivedFrom(field: "fromProfile")
 }
 
-type DigitalAsset @entity {
+type DigitalAsset @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   address: String! @index
   owner: DigitalAssetOwner @derivedFrom(field: "digitalAsset")
   totalSupply: TotalSupply @derivedFrom(field: "digitalAsset")
@@ -296,37 +304,55 @@ type DigitalAsset @entity {
   universalReceiverFrom: [UniversalReceiver!]! @derivedFrom(field: "fromAsset")
 }
 
-type TotalSupply @entity {
+type TotalSupply @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
   value: BigInt! @index
 }
 
-type Decimals @entity {
+type Decimals @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
   value: Int! @index
 }
 
-type UniversalProfileOwner @entity {
+type UniversalProfileOwner @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index @unique
 }
 
-type DigitalAssetOwner @entity {
+type DigitalAssetOwner @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
 }
 
-type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
+type NFT
+  @entity
+  @index(fields: ["tokenId", "digitalAsset"])
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   tokenId: String! @index
   formattedTokenId: String @index
   address: String! @index
@@ -351,9 +377,14 @@ type NFT @entity @index(fields: ["tokenId", "digitalAsset"]) {
   transfer: [Transfer!]! @derivedFrom(field: "nft")
 }
 
-type OwnedAsset @entity @index(fields: ["address", "owner"]) {
+type OwnedAsset
+  @entity
+  @index(fields: ["address", "owner"])
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
-  block: Int! @index
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   balance: BigInt! @index
   address: String! @index
@@ -366,9 +397,14 @@ type OwnedAsset @entity @index(fields: ["address", "owner"]) {
   tokenIds: [OwnedToken!] @derivedFrom(field: "ownedAsset")
 }
 
-type OwnedToken @entity @index(fields: ["address", "tokenId", "owner"]) {
+type OwnedToken
+  @entity
+  @index(fields: ["address", "tokenId", "owner"])
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
-  block: Int! @index
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   tokenId: String! @index
   address: String! @index
@@ -381,8 +417,11 @@ type OwnedToken @entity @index(fields: ["address", "tokenId", "owner"]) {
   ownedAsset: OwnedAsset @index
 }
 
-type LSP4TokenName @entity {
+type LSP4TokenName @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
@@ -390,8 +429,11 @@ type LSP4TokenName @entity {
   rawValue: String!
 }
 
-type LSP4TokenSymbol @entity {
+type LSP4TokenSymbol @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
@@ -399,8 +441,11 @@ type LSP4TokenSymbol @entity {
   rawValue: String!
 }
 
-type LSP4TokenType @entity {
+type LSP4TokenType @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
@@ -408,8 +453,11 @@ type LSP4TokenType @entity {
   rawValue: String!
 }
 
-type LSP4CreatorsLength @entity {
+type LSP4CreatorsLength @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
@@ -417,8 +465,11 @@ type LSP4CreatorsLength @entity {
   rawValue: String!
 }
 
-type LSP4Creator @entity {
+type LSP4Creator @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -428,8 +479,13 @@ type LSP4Creator @entity {
   interfaceId: String @index
 }
 
-type LSP5ReceivedAssetsLength @entity {
+type LSP5ReceivedAssetsLength
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index @unique
@@ -437,8 +493,11 @@ type LSP5ReceivedAssetsLength @entity {
   rawValue: String!
 }
 
-type LSP5ReceivedAsset @entity {
+type LSP5ReceivedAsset @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
@@ -448,8 +507,11 @@ type LSP5ReceivedAsset @entity {
   interfaceId: String @index
 }
 
-type LSP6ControllersLength @entity {
+type LSP6ControllersLength @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index @unique
@@ -457,8 +519,11 @@ type LSP6ControllersLength @entity {
   rawValue: String!
 }
 
-type LSP6Controller @entity {
+type LSP6Controller @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
@@ -473,15 +538,21 @@ type LSP6Controller @entity {
   allowedDataKeysRawValue: String
 }
 
-type LSP6Permission @entity {
+type LSP6Permission @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   permissionName: String! @index
   permissionValue: Boolean! @index
   controller: LSP6Controller @index
 }
 
-type LSP6AllowedCall @entity {
+type LSP6AllowedCall @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   # 4 bytes
   restrictionOperations: String! @index
   # 20 bytes
@@ -493,14 +564,22 @@ type LSP6AllowedCall @entity {
   controller: LSP6Controller @index
 }
 
-type LSP6AllowedERC725YDataKey @entity {
+type LSP6AllowedERC725YDataKey
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   allowedDataKey: String! @index
   controller: LSP6Controller @index
 }
 
-type LSP8TokenIdFormat @entity {
+type LSP8TokenIdFormat @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
@@ -508,8 +587,11 @@ type LSP8TokenIdFormat @entity {
   rawValue: String!
 }
 
-type LSP8ReferenceContract @entity {
+type LSP8ReferenceContract @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
@@ -517,8 +599,13 @@ type LSP8ReferenceContract @entity {
   rawValue: String!
 }
 
-type LSP8TokenMetadataBaseURI @entity {
+type LSP8TokenMetadataBaseURI
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index @unique
@@ -526,8 +613,13 @@ type LSP8TokenMetadataBaseURI @entity {
   rawValue: String!
 }
 
-type LSP12IssuedAssetsLength @entity {
+type LSP12IssuedAssetsLength
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index @unique
@@ -535,8 +627,11 @@ type LSP12IssuedAssetsLength @entity {
   rawValue: String!
 }
 
-type LSP12IssuedAsset @entity {
+type LSP12IssuedAsset @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
@@ -546,8 +641,11 @@ type LSP12IssuedAsset @entity {
   interfaceId: String @index
 }
 
-type LSP3Profile @entity {
+type LSP3Profile @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
@@ -568,32 +666,49 @@ type LSP3Profile @entity {
   retryCount: Int
 }
 
-type LSP3ProfileName @entity {
+type LSP3ProfileName @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp3Profile: LSP3Profile! @index @unique
   value: String @index
 }
 
-type LSP3ProfileDescription @entity {
+type LSP3ProfileDescription
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp3Profile: LSP3Profile! @index @unique
   value: String
 }
-type LSP3ProfileTag @entity {
+type LSP3ProfileTag @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp3Profile: LSP3Profile! @index
   value: String @index
 }
 
-type LSP3ProfileLink @entity {
+type LSP3ProfileLink @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp3Profile: LSP3Profile! @index
   title: String @index
   url: String @index
 }
 
-type LSP3ProfileAsset @entity {
+type LSP3ProfileAsset @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp3Profile: LSP3Profile! @index
   url: String
   fileType: String @index
@@ -602,8 +717,11 @@ type LSP3ProfileAsset @entity {
   verificationSource: String
 }
 
-type LSP3ProfileImage @entity {
+type LSP3ProfileImage @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp3Profile: LSP3Profile! @index
   width: Int @index
   height: Int @index
@@ -613,8 +731,13 @@ type LSP3ProfileImage @entity {
   verificationSource: String
 }
 
-type LSP3ProfileBackgroundImage @entity {
+type LSP3ProfileBackgroundImage
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp3Profile: LSP3Profile! @index
   url: String
   width: Int @index
@@ -624,8 +747,11 @@ type LSP3ProfileBackgroundImage @entity {
   verificationSource: String
 }
 
-type LSP4Metadata @entity {
+type LSP4Metadata @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
@@ -651,45 +777,68 @@ type LSP4Metadata @entity {
   retryCount: Int
 }
 
-type LSP4MetadataName @entity {
+type LSP4MetadataName @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp4Metadata: LSP4Metadata! @index @unique
   value: String @index
 }
 
-type LSP4MetadataDescription @entity {
+type LSP4MetadataDescription
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp4Metadata: LSP4Metadata! @index @unique
   value: String
 }
 
-type LSP4MetadataScore @entity {
+type LSP4MetadataScore @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp4Metadata: LSP4Metadata! @index @unique
   value: Int @index
 }
 
-type LSP4MetadataRank @entity {
+type LSP4MetadataRank @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp4Metadata: LSP4Metadata! @index @unique
   value: Int @index
 }
 
-type LSP4MetadataCategory @entity {
+type LSP4MetadataCategory @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp4Metadata: LSP4Metadata! @index @unique
   value: String @index
 }
 
-type LSP4MetadataLink @entity {
+type LSP4MetadataLink @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp4Metadata: LSP4Metadata! @index
   title: String @index
   url: String @index
 }
 
-type LSP4MetadataIcon @entity {
+type LSP4MetadataIcon @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp4Metadata: LSP4Metadata! @index
   url: String
   width: Int @index
@@ -699,8 +848,11 @@ type LSP4MetadataIcon @entity {
   verificationSource: String
 }
 
-type LSP4MetadataImage @entity {
+type LSP4MetadataImage @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp4Metadata: LSP4Metadata! @index
   url: String
   width: Int @index
@@ -711,8 +863,11 @@ type LSP4MetadataImage @entity {
   imageIndex: Int! @index
 }
 
-type LSP4MetadataAsset @entity {
+type LSP4MetadataAsset @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp4Metadata: LSP4Metadata! @index
   url: String
   fileType: String @index
@@ -721,8 +876,11 @@ type LSP4MetadataAsset @entity {
   verificationSource: String
 }
 
-type LSP4MetadataAttribute @entity {
+type LSP4MetadataAttribute @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp4Metadata: LSP4Metadata! @index
   key: String @index
   value: String @index
@@ -732,8 +890,11 @@ type LSP4MetadataAttribute @entity {
 }
 
 # LSP29 Encrypted Assets - Token-gated digital assets stored on Universal Profiles
-type LSP29EncryptedAsset @entity {
+type LSP29EncryptedAsset @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
@@ -772,20 +933,35 @@ type LSP29EncryptedAsset @entity {
   retryCount: Int
 }
 
-type LSP29EncryptedAssetTitle @entity {
+type LSP29EncryptedAssetTitle
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp29EncryptedAsset: LSP29EncryptedAsset! @index @unique
   value: String @index
 }
 
-type LSP29EncryptedAssetDescription @entity {
+type LSP29EncryptedAssetDescription
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp29EncryptedAsset: LSP29EncryptedAsset! @index @unique
   value: String
 }
 
-type LSP29EncryptedAssetFile @entity {
+type LSP29EncryptedAssetFile
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp29EncryptedAsset: LSP29EncryptedAsset! @index @unique
   type: String @index
   name: String @index
@@ -794,8 +970,13 @@ type LSP29EncryptedAssetFile @entity {
   hash: String @index
 }
 
-type LSP29EncryptedAssetEncryption @entity {
+type LSP29EncryptedAssetEncryption
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp29EncryptedAsset: LSP29EncryptedAsset! @index @unique
   method: String @index
   ciphertext: String
@@ -805,8 +986,13 @@ type LSP29EncryptedAssetEncryption @entity {
   decryptionParams: String
 }
 
-type LSP29AccessControlCondition @entity {
+type LSP29AccessControlCondition
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   encryption: LSP29EncryptedAssetEncryption! @index
   conditionIndex: Int! @index
 
@@ -830,16 +1016,26 @@ type LSP29AccessControlCondition @entity {
   rawCondition: String!
 }
 
-type LSP29EncryptedAssetChunks @entity {
+type LSP29EncryptedAssetChunks
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp29EncryptedAsset: LSP29EncryptedAsset! @index @unique
   cids: [String!]
   iv: String
   totalSize: BigInt
 }
 
-type LSP29EncryptedAssetImage @entity {
+type LSP29EncryptedAssetImage
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   lsp29EncryptedAsset: LSP29EncryptedAsset! @index
   url: String
   width: Int @index
@@ -850,8 +1046,13 @@ type LSP29EncryptedAssetImage @entity {
   imageIndex: Int! @index
 }
 
-type LSP29EncryptedAssetsLength @entity {
+type LSP29EncryptedAssetsLength
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index @unique
@@ -859,8 +1060,13 @@ type LSP29EncryptedAssetsLength @entity {
   rawValue: String!
 }
 
-type LSP29EncryptedAssetEntry @entity {
+type LSP29EncryptedAssetEntry
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
@@ -868,8 +1074,13 @@ type LSP29EncryptedAssetEntry @entity {
   arrayIndex: BigInt @index
 }
 
-type LSP29EncryptedAssetRevisionCount @entity {
+type LSP29EncryptedAssetRevisionCount
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   timestamp: DateTime! @index
   address: String! @index
   universalProfile: UniversalProfile! @index
@@ -878,8 +1089,11 @@ type LSP29EncryptedAssetRevisionCount @entity {
   rawValue: String!
 }
 
-type ChillClaimed @entity {
+type ChillClaimed @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
   tokenId: String! @index
@@ -887,8 +1101,11 @@ type ChillClaimed @entity {
   value: Boolean!
 }
 
-type OrbsClaimed @entity {
+type OrbsClaimed @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
   tokenId: String! @index
@@ -896,8 +1113,11 @@ type OrbsClaimed @entity {
   value: Boolean!
 }
 
-type OrbLevel @entity {
+type OrbLevel @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
   tokenId: String! @index
@@ -905,8 +1125,11 @@ type OrbLevel @entity {
   value: Int!
 }
 
-type OrbCooldownExpiry @entity {
+type OrbCooldownExpiry @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
   tokenId: String! @index
@@ -914,8 +1137,11 @@ type OrbCooldownExpiry @entity {
   value: Int!
 }
 
-type OrbFaction @entity {
+type OrbFaction @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  blockNumber: Int! @index
+  transactionIndex: Int! @index
+  logIndex: Int! @index
   address: String! @index
   digitalAsset: DigitalAsset! @index
   tokenId: String! @index

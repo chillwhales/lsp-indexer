@@ -49,6 +49,9 @@ const DigitalAssetOwnerHandler: EntityHandler = {
       const entity = new DigitalAssetOwner({
         id: event.address,
         timestamp: event.timestamp,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
         address: event.newOwner,
         digitalAsset: null, // FK initially null — resolved by enrichment queue
       });
@@ -63,6 +66,9 @@ const DigitalAssetOwnerHandler: EntityHandler = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'digitalAsset',
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
       });
     }
 

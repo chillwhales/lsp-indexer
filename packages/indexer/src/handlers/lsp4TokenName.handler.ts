@@ -31,6 +31,9 @@ const LSP4TokenNameHandler: EntityHandler = {
         id: event.address,
         address: event.address,
         timestamp: event.timestamp,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
         value:
           !isHex(event.dataValue) || event.dataValue === '0x' ? null : hexToString(event.dataValue),
         rawValue: event.dataValue,
@@ -47,6 +50,9 @@ const LSP4TokenNameHandler: EntityHandler = {
         entityType: ENTITY_TYPE,
         entityId: entity.id,
         fkField: 'digitalAsset',
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
       });
     }
   },

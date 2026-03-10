@@ -66,6 +66,9 @@ const UnfollowPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'followerUniversalProfile',
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
     ctx.queueEnrichment<Unfollow>({
       category: EntityCategory.UniversalProfile,
@@ -73,6 +76,9 @@ const UnfollowPlugin: EventPlugin = {
       entityType: ENTITY_TYPE,
       entityId: entity.id,
       fkField: 'unfollowedUniversalProfile',
+      blockNumber: height,
+      transactionIndex,
+      logIndex,
     });
   },
 };

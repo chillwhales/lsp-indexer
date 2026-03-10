@@ -10,6 +10,16 @@
 import { Entity, FKFields } from './entity';
 
 /**
+ * Block position data for a single event occurrence.
+ * Used to propagate earliest-seen block position to newly created core entities.
+ */
+export type BlockPosition = {
+  blockNumber: number;
+  transactionIndex: number;
+  logIndex: number;
+};
+
+/**
  * Categories of blockchain entities that require verification via supportsInterface().
  */
 export enum EntityCategory {
@@ -34,7 +44,7 @@ export interface VerificationResult {
   /** Addresses that failed interface checks */
   invalid: Set<string>;
   /** Newly created entity instances to persist, keyed by address */
-  newEntities: Map<string, { id: string }>;
+  newEntities: Map<string, Entity>;
 }
 
 /**
@@ -48,7 +58,7 @@ export interface VerificationResult {
  * This enables compile-time validation that fkField is actually a FK field
  * on the entity (not a primitive field like 'address' or 'timestamp').
  */
-export interface EnrichmentRequest<T extends Entity> {
+export interface EnrichmentRequest<T extends Entity> extends BlockPosition {
   /** Category to verify (UniversalProfile, DigitalAsset, NFT) */
   category: EntityCategory;
 

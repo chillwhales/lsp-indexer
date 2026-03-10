@@ -50,7 +50,7 @@ Full details: `milestones/v1.1-ROADMAP.md`
 
 - [x] **Phase 17: Version Normalization** — Set 0.1.0 for all private packages (completed 2026-03-09)
 - [x] **Phase 18: Production Docker Compose** — Production-ready compose using released Docker image (completed 2026-03-09)
-- [ ] **Phase 19: Block Ordering** — Add blockNumber/transactionIndex/logIndex to all entities
+- [x] **Phase 19: Block Ordering** — Add blockNumber/transactionIndex/logIndex to all entities (completed 2026-03-09)
 - [ ] **Phase 20: Monitoring & Docker Image Release** — Grafana dashboards + release updated Docker image
 - [ ] **Phase 21: Sorting & Consumer Package Release** — Oldest/newest sorting across all 12 domains + release 4 packages
 - [ ] **Phase 22: Database Operations** — Backup strategy, automation, and recovery procedure
@@ -141,7 +141,7 @@ Plans:
 | 7-16 | v1.1 | 77/77 | Complete | 2026-03-08 |
 | 17. Version Normalization | v1.2 | 1/1 | Complete | 2026-03-09 |
 | 18. Production Docker Compose | v1.2 | 1/1 | Complete | 2026-03-09 |
-| 19. Block Ordering | v1.2 | 0/3 | Not started | - |
+| 19. Block Ordering | v1.2 | 3/3 | Complete | 2026-03-09 |
 | 20. Monitoring & Docker Release | v1.2 | 0/TBD | Not started | - |
 | 21. Sorting & Package Release | v1.2 | 0/TBD | Not started | - |
 | 22. Database Operations | v1.2 | 0/TBD | Not started | - |
