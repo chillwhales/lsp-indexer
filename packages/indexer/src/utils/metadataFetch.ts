@@ -174,7 +174,7 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
   config: MetadataFetchConfig<TEntity>,
   triggeredBy: string,
 ): Promise<void> {
-  const entities = hctx.batchCtx.getEntities<TEntity>(triggeredBy);
+  const entities = hctx.batchCtx.getEntities(triggeredBy) as Map<string, TEntity>;
 
   // ----- Path 1: Empty value (runs every batch, not just head) -----
   for (const entity of entities.values()) {

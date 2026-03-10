@@ -216,7 +216,7 @@ export async function resolveForeignKeys(
  */
 function getSourceEntitiesFromBatch(batchCtx: BatchContext, rule: FKResolutionRule): Entity[] {
   // Check regular entity bag first
-  const bagEntities = batchCtx.getEntities<Entity>(rule.sourceType);
+  const bagEntities = batchCtx.getEntities(rule.sourceType);
   const entities: Entity[] = [...bagEntities.values()];
 
   // For core entities (UP, DA), also check verification results
@@ -245,7 +245,7 @@ function getSourceEntitiesFromBatch(batchCtx: BatchContext, rule: FKResolutionRu
  * Get target entities from the batch context for a given rule.
  */
 function getTargetEntitiesFromBatch(batchCtx: BatchContext, rule: FKResolutionRule): Entity[] {
-  const entities = batchCtx.getEntities<Entity>(rule.targetType);
+  const entities = batchCtx.getEntities(rule.targetType);
   return [...entities.values()];
 }
 
@@ -266,7 +266,7 @@ async function resolveForward(
   // Separate sources into those whose target is in-batch vs needs DB lookup
   const needsDbLookup: Array<{ source: Entity; targetId: string }> = [];
 
-  const batchTargets = batchCtx.getEntities<Entity>(rule.targetType);
+  const batchTargets = batchCtx.getEntities(rule.targetType);
 
   for (const source of sourceEntities) {
     // Skip if FK is already set

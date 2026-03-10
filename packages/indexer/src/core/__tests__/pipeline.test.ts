@@ -241,7 +241,8 @@ describe('Pipeline Step 1: EXTRACT', () => {
       topic0: topic,
       requiresVerification: [],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('TestEntity', 'entity-1', { id: 'entity-1', ...B, data: 'test' });
+        const e1 = { id: 'entity-1', ...B, data: 'test' };
+        ctx.addEntity('TestEntity', 'entity-1', e1 as Entity);
       },
     };
 
@@ -275,8 +276,10 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       topic0: '0xtopic',
       requiresVerification: [],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event1', 'e1', { id: 'e1', ...B, type: 'event1' });
-        ctx.addEntity('Event2', 'e2', { id: 'e2', ...B, type: 'event2' });
+        const ev1 = { id: 'e1', ...B, type: 'event1' };
+        const ev2 = { id: 'e2', ...B, type: 'event2' };
+        ctx.addEntity('Event1', 'e1', ev1 as Entity);
+        ctx.addEntity('Event2', 'e2', ev2 as Entity);
       },
     };
 
@@ -304,12 +307,8 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Transfer', 't1', {
-          id: 't1',
-          ...B,
-          address: '0xda',
-          digitalAsset: null,
-        });
+        const t1 = { id: 't1', ...B, address: '0xda', digitalAsset: null };
+        ctx.addEntity('Transfer', 't1', t1 as Entity);
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda',
@@ -420,7 +419,8 @@ describe('Pipeline Step 3: HANDLE', () => {
       topic0: '0xtopic',
       requiresVerification: [],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event', 'e1', { id: 'e1', ...B, value: 10 });
+        const e1 = { id: 'e1', ...B, value: 10 };
+        ctx.addEntity('Event', 'e1', e1 as Entity);
       },
     };
 
@@ -428,13 +428,13 @@ describe('Pipeline Step 3: HANDLE', () => {
       name: 'test-handler',
       listensToBag: ['Event'],
       handle: (hctx, triggeredBy) => {
-        const events = hctx.batchCtx.getEntities<Entity & { value: number }>(triggeredBy);
+        const events = hctx.batchCtx.getEntities(triggeredBy) as Map<
+          string,
+          Entity & { value: number }
+        >;
         for (const event of events.values()) {
-          hctx.batchCtx.addEntity('Derived', `derived-${event.id}`, {
-            id: `derived-${event.id}`,
-            ...B,
-            originalValue: event.value,
-          });
+          const derived = { id: `derived-${event.id}`, ...B, originalValue: event.value };
+          hctx.batchCtx.addEntity('Derived', derived.id, derived as Entity);
         }
       },
     };
@@ -517,7 +517,8 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
       name: 'test-handler',
       listensToBag: ['RawEvent'],
       handle: (hctx) => {
-        hctx.batchCtx.addEntity('Derived', 'd1', { id: 'd1', ...B, computed: true });
+        const d1 = { id: 'd1', ...B, computed: true };
+        hctx.batchCtx.addEntity('Derived', 'd1', d1 as Entity);
       },
     };
 
@@ -554,7 +555,8 @@ describe('Pipeline Step 5: VERIFY', () => {
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event', 'e1', { id: 'e1', ...B, address: '0xda1' });
+        const e1 = { id: 'e1', ...B, address: '0xda1' };
+        ctx.addEntity('Event', 'e1', e1 as Entity);
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
@@ -746,12 +748,8 @@ describe('Pipeline Step 6: ENRICH', () => {
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Transfer', 't1', {
-          id: 't1',
-          ...B,
-          address: '0xda1',
-          digitalAsset: null,
-        });
+        const t1 = { id: 't1', ...B, address: '0xda1', digitalAsset: null };
+        ctx.addEntity('Transfer', 't1', t1 as Entity);
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
@@ -794,12 +792,8 @@ describe('Pipeline Step 6: ENRICH', () => {
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Transfer', 't1', {
-          id: 't1',
-          ...B,
-          address: '0xinvalid',
-          digitalAsset: null,
-        });
+        const t1 = { id: 't1', ...B, address: '0xinvalid', digitalAsset: null };
+        ctx.addEntity('Transfer', 't1', t1 as Entity);
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xinvalid',
@@ -845,7 +839,7 @@ describe('Pipeline Step 6: ENRICH', () => {
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Transfer', 't1', {
+        const t1 = {
           id: 't1',
           ...B,
           from: '0xup1',
@@ -854,7 +848,8 @@ describe('Pipeline Step 6: ENRICH', () => {
           fromProfile: null,
           toProfile: null,
           digitalAsset: null,
-        });
+        };
+        ctx.addEntity('Transfer', 't1', t1 as Entity);
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
@@ -921,12 +916,8 @@ describe('Pipeline Step 6: ENRICH', () => {
       requiresVerification: [EntityCategory.DigitalAsset],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         // Entity created WITHOUT the FK field in constructor props
-        ctx.addEntity('Transfer', 't1', {
-          id: 't1',
-          ...B,
-          address: '0xda1',
-          // NOTE: 'digitalAsset' field intentionally omitted
-        });
+        const t1 = { id: 't1', ...B, address: '0xda1' };
+        ctx.addEntity('Transfer', 't1', t1 as Entity);
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
@@ -983,7 +974,7 @@ describe('Pipeline Integration', () => {
       topic0: '0xtransfer',
       requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Transfer', 't1', {
+        const t1 = {
           id: 't1',
           ...B,
           from: '0xup1',
@@ -993,7 +984,8 @@ describe('Pipeline Integration', () => {
           fromProfile: null,
           toProfile: null,
           digitalAsset: null,
-        });
+        };
+        ctx.addEntity('Transfer', 't1', t1 as Entity);
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
@@ -1031,16 +1023,18 @@ describe('Pipeline Integration', () => {
       name: 'balance-handler',
       listensToBag: ['Transfer'],
       handle: (hctx) => {
-        const transfers = hctx.batchCtx.getEntities<
+        const transfers = hctx.batchCtx.getEntities('Transfer') as Map<
+          string,
           Entity & { from: string; to: string; amount: number }
-        >('Transfer');
+        >;
         for (const transfer of transfers.values()) {
-          hctx.batchCtx.addEntity('Balance', `balance-${transfer.to}`, {
+          const balance = {
             id: `balance-${transfer.to}`,
             ...B,
             owner: transfer.to,
             amount: transfer.amount,
-          });
+          };
+          hctx.batchCtx.addEntity('Balance', balance.id, balance as Entity);
         }
       },
     };
