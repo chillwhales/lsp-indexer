@@ -15,6 +15,7 @@
  * is left as null. A warning is logged for unknown formats to aid debugging.
  */
 
+import { getTypedEntities } from '@/core/entityTypeMap';
 import { EntityHandler, HandlerContext } from '@/core/types';
 import { formatTokenId } from '@/utils';
 import { LSP8TokenIdFormat, NFT } from '@chillwhales/typeorm';
@@ -36,7 +37,7 @@ const FormattedTokenIdHandler: EntityHandler = {
     // -----------------------------------------------------------------------
     // Path 1: New batch NFTs — look up format, set formattedTokenId in place
     // -----------------------------------------------------------------------
-    const batchNfts = batchCtx.getEntities(NFT_ENTITY_TYPE) as Map<string, NFT>;
+    const batchNfts = getTypedEntities(batchCtx, 'NFT');
     const nftsWithoutFormat = [...batchNfts.values()].filter(
       (nft) => nft.formattedTokenId === null || nft.formattedTokenId === undefined,
     );
@@ -52,10 +53,7 @@ const FormattedTokenIdHandler: EntityHandler = {
         nftAddresses.length > 0
           ? await store.findBy(LSP8TokenIdFormat, { address: In(nftAddresses) })
           : [];
-      const batchFormats = batchCtx.getEntities(TOKEN_ID_FORMAT_ENTITY_TYPE) as Map<
-        string,
-        LSP8TokenIdFormat
-      >;
+      const batchFormats = getTypedEntities(batchCtx, 'LSP8TokenIdFormat');
       const allFormats = [...dbFormats, ...batchFormats.values()];
 
       for (const nft of nftsWithoutFormat) {
@@ -95,11 +93,7 @@ const FormattedTokenIdHandler: EntityHandler = {
     // -----------------------------------------------------------------------
     // Path 2: Format changes — retroactively reformat ALL existing NFTs
     // -----------------------------------------------------------------------
-    const newFormats = [
-      ...(
-        batchCtx.getEntities(TOKEN_ID_FORMAT_ENTITY_TYPE) as Map<string, LSP8TokenIdFormat>
-      ).values(),
-    ];
+    const newFormats = [...getTypedEntities(batchCtx, 'LSP8TokenIdFormat').values()];
     if (newFormats.length === 0) return;
 
     // Collect addresses with format changes

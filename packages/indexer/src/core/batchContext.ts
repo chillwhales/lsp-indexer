@@ -33,8 +33,9 @@ export class BatchContext implements IBatchContext {
   /**
    * Entity storage: entityType → (entityId → entity)
    *
-   * Using Map<string, Map<string, unknown>> internally.
-   * Type safety is enforced on the read side via getEntities<T>().
+   * Stores entities as `Entity` (the base type with id + block ordering fields).
+   * Handlers use `getTypedEntities()` from `entityTypeMap.ts` for type-safe
+   * access with concrete types — the single cast lives there, not at call sites.
    */
   private readonly entities = new Map<string, Map<string, Entity>>();
 

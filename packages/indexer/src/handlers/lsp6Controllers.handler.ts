@@ -42,6 +42,7 @@
  * controllerAddress is enriched for UniversalProfile verification so the
  * optional `controllerProfile` FK can be populated when the controller is a UP.
  */
+import { getTypedEntities } from '@/core/entityTypeMap';
 import { resolveEntities } from '@/core/handlerHelpers';
 import { type Entity, EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';
 import {
@@ -79,7 +80,7 @@ const LSP6ControllersHandler: EntityHandler = {
   listensToBag: ['DataChanged'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const events = hctx.batchCtx.getEntities(triggeredBy) as Map<string, DataChanged>;
+    const events = getTypedEntities(hctx.batchCtx, 'DataChanged');
 
     // Set persist hint for cross-batch merge behavior (safety net)
     hctx.batchCtx.setPersistHint(CONTROLLER_TYPE, {
@@ -163,7 +164,7 @@ const LSP6ControllersHandler: EntityHandler = {
     }
 
     // Queue clear requests for sub-entity types that had new data in this batch
-    const controllers = hctx.batchCtx.getEntities(CONTROLLER_TYPE) as Map<string, LSP6Controller>;
+    const controllers = getTypedEntities(hctx.batchCtx, 'LSP6Controller');
     if (controllers.size === 0) return;
 
     const controllerIds = [...controllers.keys()];

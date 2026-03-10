@@ -12,9 +12,10 @@
  * Note: clearSubEntities logic is deferred to the metadata fetch handler since
  * that handler re-creates the sub-entities.
  */
+import { getTypedEntities } from '@/core/entityTypeMap';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { decodeVerifiableUri } from '@/utils';
-import { DataChanged, LSP3Profile } from '@chillwhales/typeorm';
+import { LSP3Profile } from '@chillwhales/typeorm';
 import { LSP3DataKeys } from '@lukso/lsp3-contracts';
 
 // Entity type key used in the BatchContext entity bag
@@ -27,7 +28,7 @@ const LSP3ProfileHandler: EntityHandler = {
   listensToBag: ['DataChanged'],
 
   handle(hctx: HandlerContext, triggeredBy: string): void {
-    const events = hctx.batchCtx.getEntities(triggeredBy) as Map<string, DataChanged>;
+    const events = getTypedEntities(hctx.batchCtx, 'DataChanged');
 
     for (const event of events.values()) {
       // Filter by data key

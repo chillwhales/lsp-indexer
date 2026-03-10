@@ -156,7 +156,7 @@ async function mergeUpsertEntities(
  *
  * @param entity - The entity instance to enrich
  * @param request - Enrichment request with FK field name
- * @param fkStub - Core entity stub (just { id: string })
+ * @param fkStub - Core entity (UP/DA/NFT) used as FK reference value
  */
 function enrichEntity(entity: Entity, request: StoredEnrichmentRequest, fkStub: Entity): void {
   const typedEntity = entity as Record<string, unknown>;

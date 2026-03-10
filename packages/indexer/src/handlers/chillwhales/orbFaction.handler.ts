@@ -22,10 +22,11 @@
  * Entity ID follows the NFT id pattern: `"{address} - {tokenId}"`.
  */
 import { ORB_FACTION_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
+import { getTypedEntities } from '@/core/entityTypeMap';
 import { resolveEntity } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
-import { OrbFaction, TokenIdDataChanged, Transfer } from '@chillwhales/typeorm';
+import { OrbFaction } from '@chillwhales/typeorm';
 import { getAddress, Hex, hexToString, isAddressEqual, zeroAddress } from 'viem';
 
 // ---------------------------------------------------------------------------
@@ -41,7 +42,7 @@ const OrbFactionHandler: EntityHandler = {
     // Branch on triggeredBy to handle mint detection vs data key changes
     if (triggeredBy === 'LSP8Transfer') {
       // MINT DETECTION: Create default entity when Orb NFTs are minted
-      const transfers = hctx.batchCtx.getEntities(triggeredBy) as Map<string, Transfer>;
+      const transfers = getTypedEntities(hctx.batchCtx, 'LSP8Transfer');
 
       for (const transfer of transfers.values()) {
         // Filter to ORBS contract only
@@ -95,7 +96,7 @@ const OrbFactionHandler: EntityHandler = {
       }
     } else if (triggeredBy === 'TokenIdDataChanged') {
       // DATA KEY CHANGES: Overwrite defaults with actual on-chain values
-      const events = hctx.batchCtx.getEntities(triggeredBy) as Map<string, TokenIdDataChanged>;
+      const events = getTypedEntities(hctx.batchCtx, 'TokenIdDataChanged');
 
       for (const event of events.values()) {
         // Filter by contract address

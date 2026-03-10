@@ -32,6 +32,7 @@
  * Invalid Item entries (dataValue not a valid 20-byte address) are skipped
  * entirely — no garbage entities to clean up later.
  */
+import { getTypedEntities } from '@/core/entityTypeMap';
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { DataChanged, LSP12IssuedAsset, LSP12IssuedAssetsLength } from '@chillwhales/typeorm';
@@ -56,7 +57,7 @@ const LSP12IssuedAssetsHandler: EntityHandler = {
   listensToBag: ['DataChanged'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const events = hctx.batchCtx.getEntities(triggeredBy) as Map<string, DataChanged>;
+    const events = getTypedEntities(hctx.batchCtx, 'DataChanged');
 
     // Set persist hint for cross-batch merge behavior (safety net)
     hctx.batchCtx.setPersistHint<LSP12IssuedAsset>(ISSUED_ASSET_TYPE, {

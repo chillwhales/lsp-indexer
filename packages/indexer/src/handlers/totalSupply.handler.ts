@@ -14,6 +14,7 @@
  * - Queues enrichment for digitalAsset FK — never sets FKs directly.
  * - Uses the contract address as the entity ID (one TotalSupply per contract).
  */
+import { getTypedEntities } from '@/core/entityTypeMap';
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { isNullAddress } from '@/utils';
@@ -33,9 +34,9 @@ const TotalSupplyHandler: EntityHandler = {
     // Without this guard, reading both bags on each call would apply deltas twice.
     const transfers =
       triggeredBy === 'LSP7Transfer'
-        ? (hctx.batchCtx.getEntities('LSP7Transfer') as Map<string, Transfer>)
+        ? getTypedEntities(hctx.batchCtx, 'LSP7Transfer')
         : triggeredBy === 'LSP8Transfer'
-          ? (hctx.batchCtx.getEntities('LSP8Transfer') as Map<string, Transfer>)
+          ? getTypedEntities(hctx.batchCtx, 'LSP8Transfer')
           : new Map<string, Transfer>();
 
     // Filter for mint/burn only

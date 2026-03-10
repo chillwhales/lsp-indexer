@@ -20,10 +20,11 @@
  * - ID format: `{owner}:{address}` for OwnedAsset, `{owner}:{address}:{tokenId}`
  *   for OwnedToken.
  */
+import { getTypedEntities } from '@/core/entityTypeMap';
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateOwnedAssetId, generateOwnedTokenId, isNullAddress } from '@/utils';
-import { OwnedAsset, OwnedToken, Transfer } from '@chillwhales/typeorm';
+import { OwnedAsset, OwnedToken } from '@chillwhales/typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 
 // Entity type keys used in the BatchContext entity bag
@@ -37,11 +38,11 @@ const OwnedAssetsHandler: EntityHandler = {
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
     // Only process transfers from the triggered bag (prevents double-processing)
     // Handler is called twice per batch: once for LSP7Transfer, once for LSP8Transfer
-    const allTransfers: Transfer[] =
+    const allTransfers =
       triggeredBy === 'LSP7Transfer'
-        ? [...(hctx.batchCtx.getEntities('LSP7Transfer') as Map<string, Transfer>).values()]
+        ? [...getTypedEntities(hctx.batchCtx, 'LSP7Transfer').values()]
         : triggeredBy === 'LSP8Transfer'
-          ? [...(hctx.batchCtx.getEntities('LSP8Transfer') as Map<string, Transfer>).values()]
+          ? [...getTypedEntities(hctx.batchCtx, 'LSP8Transfer').values()]
           : [];
 
     if (allTransfers.length === 0) return;

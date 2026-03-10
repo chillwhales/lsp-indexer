@@ -11,6 +11,7 @@
  * Phase 1 runs on every batch. Phase 2 only runs at chain head to avoid wasteful RPC calls.
  */
 import { CHILL_ADDRESS, CHILLWHALES_ADDRESS } from '@/constants/chillwhales';
+import { getTypedEntities } from '@/core/entityTypeMap';
 import { aggregate3StaticLatest } from '@/core/multicall';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId, isNullAddress } from '@/utils';
@@ -35,7 +36,7 @@ const ChillClaimedHandler: EntityHandler = {
 
     // PHASE 1: Mint detection (runs every batch)
     // Filter LSP8Transfer events to Chillwhale mints (from zero address to CHILLWHALES_ADDRESS)
-    const events = batchCtx.getEntities(triggeredBy) as Map<string, Transfer>;
+    const events = getTypedEntities(batchCtx, 'LSP8Transfer');
     const mintTransfers: Transfer[] = [];
 
     for (const event of events.values()) {
