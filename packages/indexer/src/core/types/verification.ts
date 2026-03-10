@@ -11,7 +11,7 @@ import { Entity, FKFields } from './entity';
 
 /**
  * Block position data for a single event occurrence.
- * Used to propagate earliest-seen block position to newly created core entities (BORD-04).
+ * Used to propagate earliest-seen block position to newly created core entities.
  */
 export type BlockPosition = {
   blockNumber: number;
@@ -58,7 +58,7 @@ export interface VerificationResult {
  * This enables compile-time validation that fkField is actually a FK field
  * on the entity (not a primitive field like 'address' or 'timestamp').
  */
-export interface EnrichmentRequest<T extends Entity> {
+export interface EnrichmentRequest<T extends Entity> extends BlockPosition {
   /** Category to verify (UniversalProfile, DigitalAsset, NFT) */
   category: EntityCategory;
 
@@ -76,15 +76,6 @@ export interface EnrichmentRequest<T extends Entity> {
 
   /** Which field on the entity to set the FK reference (must be a FK field) */
   fkField: FKFields<T> & string;
-
-  /** Block number from the event that created this enrichment request */
-  blockNumber: number;
-
-  /** Transaction index within the block */
-  transactionIndex: number;
-
-  /** Log index within the transaction */
-  logIndex: number;
 }
 
 /**

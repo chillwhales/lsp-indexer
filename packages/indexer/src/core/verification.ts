@@ -352,9 +352,9 @@ async function verifyWithInterface(
   }
 
   // Build entity instances for newly verified addresses
-  // BORD-04: Set block position from earliest enrichment request per address.
+  // Set block position from earliest enrichment request per address.
   // Existing entities (from DB or cache) are never modified — only new entities
-  // get block fields, ensuring the "oldest retention" guarantee.
+  // get block fields, ensuring the oldest-retention guarantee.
   const newEntities = new Map<string, Entity>();
   if (category === EntityCategory.UniversalProfile) {
     for (const addr of newlyVerified) {
@@ -440,7 +440,7 @@ export function createVerifyFn(
    * Newly verified entity instances are returned in `result.newEntities`
    * for the pipeline to persist. No side-effects on the BatchContext.
    *
-   * @param blockPositionByAddress - BORD-04: Earliest block position per address.
+   * @param blockPositionByAddress - Earliest block position per address.
    *   Used to set block fields on newly created UP/DA entities. Existing entities
    *   are never modified — only new entities get block fields.
    */

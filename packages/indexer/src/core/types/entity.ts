@@ -10,7 +10,7 @@
  * Base constraint for all TypeORM entities.
  *
  * All entities in the system must have an `id` field and block ordering
- * fields for deterministic blockchain positioning (BORD-05).
+ * fields for deterministic blockchain positioning.
  * This constraint enables type-safe operations in the pipeline while
  * remaining flexible enough to work with any entity type.
  */

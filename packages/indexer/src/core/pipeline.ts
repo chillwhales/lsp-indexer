@@ -44,7 +44,7 @@ import {
  * Function signature for address verification.
  * Injected into the pipeline so it stays decoupled from the verification implementation.
  *
- * @param blockPositionByAddress - BORD-04: Earliest block position per address.
+ * @param blockPositionByAddress - Earliest block position per address.
  *   Used to set block fields on newly created UP/DA entities.
  */
 export type VerifyFn = (
@@ -166,7 +166,7 @@ function enrichEntity(entity: unknown, request: StoredEnrichmentRequest, fkStub:
 }
 
 // ---------------------------------------------------------------------------
-// Block position comparison helper (BORD-04)
+// Block position comparison helper
 // ---------------------------------------------------------------------------
 
 /**
@@ -413,7 +413,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     requestList.push(request);
   }
 
-  // BORD-04: Compute earliest block position per address from enrichment queue.
+  // Compute earliest block position per address from enrichment queue.
   // For each non-NFT address, retain the enrichment request with the lowest
   // (blockNumber, transactionIndex, logIndex) tuple. This ensures new core
   // entities (UP, DA) are created with the block position of their first
