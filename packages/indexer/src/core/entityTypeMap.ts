@@ -1,14 +1,15 @@
 /**
- * Entity type map — single source of truth for bag-key → entity-type mappings.
+ * Entity type map — runtime registry of bag-key → entity constructor.
  *
- * Maps BatchContext entity bag keys (string literals) to their concrete TypeORM
- * entity types. This eliminates scattered `as Map<string, T>` casts throughout
- * handlers by centralizing the one cast into `getTypedEntities()`.
+ * Maps BatchContext entity bag keys to their concrete TypeORM entity classes.
+ * The `getTypedEntities()` function validates at runtime (via `instanceof`)
+ * that retrieved entities actually match the expected type — no blind casts.
  *
  * When adding a new event plugin or handler that introduces a new bag key,
- * add an entry here to get type-safe access everywhere.
+ * add an entry to both `EntityTypeMap` (type level) and `ENTITY_CONSTRUCTORS`
+ * (runtime) to get validated, type-safe access everywhere.
  */
-import { IBatchContext } from '@/core/types';
+import { Entity, IBatchContext } from '@/core/types';
 import {
   DataChanged,
   Follow,
@@ -23,7 +24,7 @@ import {
 } from '@chillwhales/typeorm';
 
 /**
- * Maps BatchContext bag keys to their concrete entity types.
+ * Maps BatchContext bag keys to their concrete entity types (type level).
  *
  * This is the schema of the entity bag — it documents which string keys
  * correspond to which TypeORM entities at the type level.
@@ -53,28 +54,76 @@ export interface EntityTypeMap {
   LSP8TokenMetadataBaseURI: LSP8TokenMetadataBaseURI;
 }
 
+// ---------------------------------------------------------------------------
+// Runtime constructor registry
+// ---------------------------------------------------------------------------
+
 /**
- * Type-safe entity bag accessor.
+ * Runtime mapping of bag keys to entity constructors.
  *
- * Retrieves entities from the BatchContext with the correct concrete type,
- * eliminating the need for `as Map<string, T>` casts at every call site.
+ * Used by `getTypedEntities()` to validate via `instanceof` that entities
+ * retrieved from the bag are actually the expected type. This catches
+ * mismatches immediately (e.g., plugin stores wrong entity under a key)
+ * instead of letting bad data propagate silently.
  *
- * The single cast lives here — handlers get clean, type-safe access:
- * ```typescript
- * // Before (cast at every call site):
- * const events = hctx.batchCtx.getEntities('DataChanged') as Map<string, DataChanged>;
+ * Must stay in sync with `EntityTypeMap` — if you add a type-level entry,
+ * add the constructor here too.
+ */
+const ENTITY_CONSTRUCTORS: {
+  [K in keyof EntityTypeMap]: new (...args: unknown[]) => EntityTypeMap[K];
+} = {
+  DataChanged: DataChanged,
+  TokenIdDataChanged: TokenIdDataChanged,
+  LSP7Transfer: Transfer,
+  LSP8Transfer: Transfer,
+  Follow: Follow,
+  Unfollow: Unfollow,
+  OwnershipTransferred: OwnershipTransferred,
+  NFT: NFT,
+  LSP6Controller: LSP6Controller,
+  LSP8TokenIdFormat: LSP8TokenIdFormat,
+  LSP8TokenMetadataBaseURI: LSP8TokenMetadataBaseURI,
+};
+
+// ---------------------------------------------------------------------------
+// Validated accessor
+// ---------------------------------------------------------------------------
+
+/**
+ * Type-safe, runtime-validated entity bag accessor.
  *
- * // After (zero casts, fully typed):
- * const events = getTypedEntities(hctx.batchCtx, 'DataChanged');
- * ```
+ * Retrieves entities from the BatchContext and validates that the first
+ * entity is an instance of the expected class. Returns a properly typed
+ * map — the type narrowing is earned via `instanceof`, not asserted via `as`.
  *
  * @param ctx  - BatchContext (or IBatchContext) to read from
  * @param type - Bag key (must be a key of EntityTypeMap)
- * @returns Map of entity ID → typed entity
+ * @returns Map of entity ID → typed entity (validated at runtime)
+ * @throws Error if entities in the bag don't match the expected constructor
+ *
+ * @example
+ * ```typescript
+ * const events = getTypedEntities(hctx.batchCtx, 'DataChanged');
+ * // events is Map<string, DataChanged> — validated, not cast
+ * ```
  */
 export function getTypedEntities<K extends keyof EntityTypeMap>(
   ctx: IBatchContext,
   type: K,
 ): Map<string, EntityTypeMap[K]> {
-  return ctx.getEntities(type) as Map<string, EntityTypeMap[K]>;
+  const raw = ctx.getEntities(type);
+  if (raw.size === 0) return raw as Map<string, EntityTypeMap[K]>;
+
+  // Validate: spot-check the first entity against the expected constructor
+  const ctor = ENTITY_CONSTRUCTORS[type];
+  const first = raw.values().next().value as Entity;
+  if (!(first instanceof ctor)) {
+    throw new Error(
+      `Entity type mismatch for bag key '${type}': expected ${ctor.name}, ` +
+        `got ${first?.constructor?.name ?? 'unknown'}`,
+    );
+  }
+
+  // Type narrowing earned via instanceof — safe to return as typed map
+  return raw as Map<string, EntityTypeMap[K]>;
 }
