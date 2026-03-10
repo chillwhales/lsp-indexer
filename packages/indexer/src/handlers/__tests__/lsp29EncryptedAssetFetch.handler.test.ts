@@ -80,7 +80,13 @@ function createMockHandlerContext(
       findBy: vi.fn(() => Promise.resolve([])),
     } as unknown as HandlerContext['store'],
     context: {
-      log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+      log: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+        isDebug: vi.fn(() => false),
+      },
     } as unknown as HandlerContext['context'],
     isHead: overrides.isHead ?? false,
     batchCtx: batchCtx as unknown as HandlerContext['batchCtx'],
@@ -510,19 +516,14 @@ describe('LSP29EncryptedAssetFetchHandler - Successful fetch (META-03)', () => {
     const imgCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP29EncryptedAssetImage',
     );
-    expect(imgCalls.length).toBe(2);
+    // Only the first image passes isFileImage (has verification); second (QmImg2) is filtered out
+    expect(imgCalls.length).toBe(1);
 
     const img1 = imgCalls[0][2] as LSP29EncryptedAssetImage;
     expect(img1.url).toBe('ipfs://QmImg1');
     expect(img1.width).toBe(512);
     expect(img1.height).toBe(512);
     expect(img1.imageIndex).toBe(0);
-
-    const img2 = imgCalls[1][2] as LSP29EncryptedAssetImage;
-    expect(img2.url).toBe('ipfs://QmImg2');
-    expect(img2.width).toBe(128);
-    expect(img2.height).toBe(128);
-    expect(img2.imageIndex).toBe(1);
   });
 
   it('returns entityUpdates with version, contentId, revision, createdAt', async () => {

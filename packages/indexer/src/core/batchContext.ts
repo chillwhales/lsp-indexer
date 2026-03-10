@@ -36,7 +36,7 @@ export class BatchContext implements IBatchContext {
    * Using Map<string, Map<string, unknown>> internally.
    * Type safety is enforced on the read side via getEntities<T>().
    */
-  private readonly entities = new Map<string, Map<string, unknown>>();
+  private readonly entities = new Map<string, Map<string, Entity>>();
 
   /**
    * Set of raw entity type keys sealed after Step 2 persistence.
@@ -100,7 +100,7 @@ export class BatchContext implements IBatchContext {
   // Entity storage
   // -------------------------------------------------------------------------
 
-  addEntity(type: string, id: string, entity: unknown): void {
+  addEntity(type: string, id: string, entity: Entity): void {
     // Prevent handlers from adding to raw entity type keys after Step 2
     if (this.sealedRawTypes !== null && this.sealedRawTypes.has(type)) {
       throw new Error(
@@ -118,10 +118,10 @@ export class BatchContext implements IBatchContext {
     map.set(id, entity);
   }
 
-  getEntities<T>(type: string): Map<string, T> {
+  getEntities(type: string): Map<string, Entity> {
     const map = this.entities.get(type);
-    if (!map) return new Map<string, T>();
-    return map as Map<string, T>;
+    if (!map) return new Map<string, Entity>();
+    return map;
   }
 
   removeEntity(type: string, id: string): void {

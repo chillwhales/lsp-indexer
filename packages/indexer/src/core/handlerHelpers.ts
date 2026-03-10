@@ -48,7 +48,8 @@ export async function resolveEntity<T extends Entity>(
   id: string,
 ): Promise<T | null> {
   // 1. Check batch first (current batch)
-  const batchEntity = batchCtx.getEntities<T>(entityType).get(id);
+  // Entity storage is type-erased; the caller knows what type was stored for this key
+  const batchEntity = (batchCtx.getEntities(entityType) as Map<string, T>).get(id);
   if (batchEntity) return batchEntity;
 
   // 2. Check database (previous batches)
@@ -92,7 +93,8 @@ export async function resolveEntities<T extends Entity>(
   ids: string[],
 ): Promise<Map<string, T>> {
   // 1. Start with ALL batch entities (preserves intra-batch updates to other entities)
-  const batchEntities = batchCtx.getEntities<T>(entityType);
+  // Entity storage is type-erased; the caller knows what type was stored for this key
+  const batchEntities = batchCtx.getEntities(entityType) as Map<string, T>;
   const merged = new Map<string, T>(batchEntities);
 
   // 2. Query DB for requested IDs not already in batch

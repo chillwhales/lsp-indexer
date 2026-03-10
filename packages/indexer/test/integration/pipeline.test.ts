@@ -156,6 +156,7 @@ function createMockVerifyFn(validAddresses: Set<string>): VerifyFn {
     addresses: Set<string>,
     _store: Store,
     _context: Context,
+    _blockPositionByAddress: Map<string, BlockPosition>,
   ): Promise<VerificationResult> => {
     const valid = new Set<string>();
     const invalid = new Set<string>();

@@ -110,7 +110,7 @@ async function clearSubEntities(store: Store, request: StoredClearRequest): Prom
  */
 async function mergeUpsertEntities(
   store: Store,
-  entities: Map<string, unknown>,
+  entities: Map<string, Entity>,
   persistHint: StoredPersistHint,
 ): Promise<void> {
   const ids = [...entities.keys()];
@@ -143,7 +143,7 @@ async function mergeUpsertEntities(
     }
   }
 
-  await store.upsert([...entities.values()] as Entity[]);
+  await store.upsert([...entities.values()]);
 }
 
 /**
@@ -158,7 +158,7 @@ async function mergeUpsertEntities(
  * @param request - Enrichment request with FK field name
  * @param fkStub - Core entity stub (just { id: string })
  */
-function enrichEntity(entity: unknown, request: StoredEnrichmentRequest, fkStub: Entity): void {
+function enrichEntity(entity: Entity, request: StoredEnrichmentRequest, fkStub: Entity): void {
   const typedEntity = entity as Record<string, unknown>;
   // Field name is validated at the handler call site via queueEnrichment<T>()
   // The field existence is checked by the caller with the `in` operator
@@ -232,7 +232,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   for (const type of rawEntityTypes) {
     const entities = batchCtx.getEntities(type);
     if (entities.size > 0) {
-      await context.store.insert([...entities.values()] as Entity[]);
+      await context.store.insert([...entities.values()]);
       persistRawLog.info(
         { entityType: type, count: entities.size },
         'Persisted raw event entities',
@@ -352,7 +352,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       );
     } else {
       // Simple upsert (default)
-      await context.store.upsert([...entities.values()] as Entity[]);
+      await context.store.upsert([...entities.values()]);
       persistDerivedLog.info(
         { entityType: type, count: entities.size },
         'Persisted derived entities',
@@ -489,7 +489,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     const entities = batchCtx.getEntities(type);
     if (entities.size === 0) continue;
 
-    await context.store.upsert([...entities.values()] as Entity[]);
+    await context.store.upsert([...entities.values()]);
     postVerifyLog.info(
       { entityType: type, count: entities.size, phase: 'post-verification' },
       'Persisted post-verification entities',
@@ -542,7 +542,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   const enrichLog = createStepLogger(context.log, 'ENRICH', blockRange);
   for (const [entityType, entityMap] of grouped) {
     const entities = batchCtx.getEntities(entityType);
-    const entitiesToUpdate: unknown[] = [];
+    const entitiesToUpdate: Entity[] = [];
 
     for (const [entityId, requests] of entityMap) {
       const entity = entities.get(entityId);
@@ -561,7 +561,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
         // Validate that the FK field exists on the entity before assignment.
         // TypeORM entities use Object.assign(this, props) in the constructor,
         // so FK fields only exist on the instance if explicitly passed (even as null).
-        if (!(request.fkField in (entity as object))) {
+        if (!(request.fkField in entity)) {
           enrichLog.warn(
             { entityType, entityId, fkField: request.fkField },
             'Skipping enrichment: FK field not found on entity',
@@ -581,7 +581,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     }
 
     if (entitiesToUpdate.length > 0) {
-      await context.store.upsert(entitiesToUpdate as Entity[]);
+      await context.store.upsert(entitiesToUpdate);
       enrichLog.info(
         { entityType, count: entitiesToUpdate.length },
         'Enriched entities with FK references',

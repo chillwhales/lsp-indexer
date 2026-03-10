@@ -78,7 +78,13 @@ function createMockHandlerContext(
       findBy: vi.fn(() => Promise.resolve([])),
     } as unknown as HandlerContext['store'],
     context: {
-      log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+      log: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+        isDebug: vi.fn(() => false),
+      },
     } as unknown as HandlerContext['context'],
     isHead: overrides.isHead ?? false,
     batchCtx: batchCtx as unknown as HandlerContext['batchCtx'],

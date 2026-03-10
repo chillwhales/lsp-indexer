@@ -1,7 +1,12 @@
 import { Transfer } from '@chillwhales/typeorm';
 import { describe, expect, it } from 'vitest';
 import { BatchContext } from '../batchContext';
-import { EnrichmentRequest, EntityCategory } from '../types';
+import { EnrichmentRequest, Entity, EntityCategory } from '../types';
+
+/** Create a minimal test entity with required block fields. */
+function e(id: string): Entity {
+  return { id, blockNumber: 0, transactionIndex: 0, logIndex: 0 };
+}
 
 describe('BatchContext - Enrichment Queue', () => {
   it('should start with an empty enrichment queue', () => {
@@ -196,9 +201,9 @@ describe('BatchContext - Raw Entity Type Sealing', () => {
   it('should allow adding entities before sealing', () => {
     const ctx = new BatchContext();
 
-    ctx.addEntity('Event', 'e1', { id: 'e1' });
-    ctx.addEntity('Event', 'e2', { id: 'e2' });
-    ctx.addEntity('Transfer', 't1', { id: 't1' });
+    ctx.addEntity('Event', 'e1', e('e1'));
+    ctx.addEntity('Event', 'e2', e('e2'));
+    ctx.addEntity('Transfer', 't1', e('t1'));
 
     expect(ctx.hasEntities('Event')).toBe(true);
     expect(ctx.hasEntities('Transfer')).toBe(true);
@@ -209,50 +214,50 @@ describe('BatchContext - Raw Entity Type Sealing', () => {
   it('should seal raw entity type keys', () => {
     const ctx = new BatchContext();
 
-    ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
-    ctx.addEntity('RawTransfer', 't1', { id: 't1' });
+    ctx.addEntity('RawEvent', 'e1', e('e1'));
+    ctx.addEntity('RawTransfer', 't1', e('t1'));
 
     // Seal the types
     ctx.sealRawEntityTypes();
 
     // Should still be able to add to new types
-    ctx.addEntity('DerivedEntity', 'd1', { id: 'd1' });
+    ctx.addEntity('DerivedEntity', 'd1', e('d1'));
     expect(ctx.hasEntities('DerivedEntity')).toBe(true);
   });
 
   it('should throw when adding to sealed type', () => {
     const ctx = new BatchContext();
 
-    ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
+    ctx.addEntity('RawEvent', 'e1', e('e1'));
     ctx.sealRawEntityTypes();
 
     expect(() => {
-      ctx.addEntity('RawEvent', 'e2', { id: 'e2' });
+      ctx.addEntity('RawEvent', 'e2', e('e2'));
     }).toThrow(/Handler attempted to add entity to raw type 'RawEvent'/);
   });
 
   it('should throw with clear error message mentioning Step 2', () => {
     const ctx = new BatchContext();
 
-    ctx.addEntity('Transfer', 't1', { id: 't1' });
+    ctx.addEntity('Transfer', 't1', e('t1'));
     ctx.sealRawEntityTypes();
 
     expect(() => {
-      ctx.addEntity('Transfer', 't2', { id: 't2' });
+      ctx.addEntity('Transfer', 't2', e('t2'));
     }).toThrow(/already persisted in Step 2/);
   });
 
   it('should not throw for new entity types after sealing', () => {
     const ctx = new BatchContext();
 
-    ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
+    ctx.addEntity('RawEvent', 'e1', e('e1'));
     ctx.sealRawEntityTypes();
 
     // These should all work fine (new types)
     expect(() => {
-      ctx.addEntity('Derived1', 'd1', { id: 'd1' });
-      ctx.addEntity('Derived2', 'd2', { id: 'd2' });
-      ctx.addEntity('Metadata', 'm1', { id: 'm1' });
+      ctx.addEntity('Derived1', 'd1', e('d1'));
+      ctx.addEntity('Derived2', 'd2', e('d2'));
+      ctx.addEntity('Metadata', 'm1', e('m1'));
     }).not.toThrow();
 
     expect(ctx.hasEntities('Derived1')).toBe(true);
@@ -268,7 +273,7 @@ describe('BatchContext - Raw Entity Type Sealing', () => {
     }).not.toThrow();
 
     // Should be able to add after sealing empty context
-    ctx.addEntity('Event', 'e1', { id: 'e1' });
+    ctx.addEntity('Event', 'e1', e('e1'));
     expect(ctx.hasEntities('Event')).toBe(true);
   });
 });

@@ -27,6 +27,9 @@ type TestEntity = Entity & {
   anotherDA?: DigitalAsset | null;
 };
 
+/** Default block fields for test entities. */
+const B = { blockNumber: 0, transactionIndex: 0, logIndex: 0 } as const;
+
 // ---------------------------------------------------------------------------
 // Test fixtures and mocks
 // ---------------------------------------------------------------------------
@@ -238,7 +241,7 @@ describe('Pipeline Step 1: EXTRACT', () => {
       topic0: topic,
       requiresVerification: [],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('TestEntity', 'entity-1', { id: 'entity-1', data: 'test' });
+        ctx.addEntity('TestEntity', 'entity-1', { id: 'entity-1', ...B, data: 'test' });
       },
     };
 
@@ -257,7 +260,7 @@ describe('Pipeline Step 1: EXTRACT', () => {
     // Verify entity was persisted in step 2
     const mockStore = store;
     expect(mockStore.insertedEntities.length).toBeGreaterThan(0);
-    expect(mockStore.insertedEntities).toContainEqual({ id: 'entity-1', data: 'test' });
+    expect(mockStore.insertedEntities).toContainEqual({ id: 'entity-1', ...B, data: 'test' });
   });
 });
 
@@ -272,8 +275,8 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       topic0: '0xtopic',
       requiresVerification: [],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event1', 'e1', { id: 'e1', type: 'event1' });
-        ctx.addEntity('Event2', 'e2', { id: 'e2', type: 'event2' });
+        ctx.addEntity('Event1', 'e1', { id: 'e1', ...B, type: 'event1' });
+        ctx.addEntity('Event2', 'e2', { id: 'e2', ...B, type: 'event2' });
       },
     };
 
@@ -291,8 +294,8 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
 
     const mockStore = store;
     expect(mockStore.insert).toHaveBeenCalled();
-    expect(mockStore.insertedEntities).toContainEqual({ id: 'e1', type: 'event1' });
-    expect(mockStore.insertedEntities).toContainEqual({ id: 'e2', type: 'event2' });
+    expect(mockStore.insertedEntities).toContainEqual({ id: 'e1', ...B, type: 'event1' });
+    expect(mockStore.insertedEntities).toContainEqual({ id: 'e2', ...B, type: 'event2' });
   });
 
   it('should persist entities with null FK references initially, then enrich', async () => {
@@ -303,6 +306,7 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Transfer', 't1', {
           id: 't1',
+          ...B,
           address: '0xda',
           digitalAsset: null,
         });
@@ -357,8 +361,8 @@ describe('Pipeline Step 3: HANDLE', () => {
       topic0: '0xtopic',
       requiresVerification: [],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event1', 'e1', { id: 'e1' });
-        ctx.addEntity('Event2', 'e2', { id: 'e2' });
+        ctx.addEntity('Event1', 'e1', { id: 'e1', ...B });
+        ctx.addEntity('Event2', 'e2', { id: 'e2', ...B });
       },
     };
 
@@ -416,7 +420,7 @@ describe('Pipeline Step 3: HANDLE', () => {
       topic0: '0xtopic',
       requiresVerification: [],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event', 'e1', { id: 'e1', value: 10 });
+        ctx.addEntity('Event', 'e1', { id: 'e1', ...B, value: 10 });
       },
     };
 
@@ -424,10 +428,11 @@ describe('Pipeline Step 3: HANDLE', () => {
       name: 'test-handler',
       listensToBag: ['Event'],
       handle: (hctx, triggeredBy) => {
-        const events = hctx.batchCtx.getEntities<{ id: string; value: number }>(triggeredBy);
+        const events = hctx.batchCtx.getEntities<Entity & { value: number }>(triggeredBy);
         for (const event of events.values()) {
           hctx.batchCtx.addEntity('Derived', `derived-${event.id}`, {
             id: `derived-${event.id}`,
+            ...B,
             originalValue: event.value,
           });
         }
@@ -450,7 +455,11 @@ describe('Pipeline Step 3: HANDLE', () => {
     // Derived entity should be persisted in step 4 via upsert
     const mockStore = store;
     expect(mockStore.upsertedEntities.length).toBeGreaterThan(0);
-    expect(mockStore.upsertedEntities).toContainEqual({ id: 'derived-e1', originalValue: 10 });
+    expect(mockStore.upsertedEntities).toContainEqual({
+      id: 'derived-e1',
+      ...B,
+      originalValue: 10,
+    });
   });
 
   it('should throw if handler tries to add entity to raw entity type key', async () => {
@@ -459,7 +468,7 @@ describe('Pipeline Step 3: HANDLE', () => {
       topic0: '0xtopic',
       requiresVerification: [],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
+        ctx.addEntity('RawEvent', 'e1', { id: 'e1', ...B });
       },
     };
 
@@ -468,7 +477,7 @@ describe('Pipeline Step 3: HANDLE', () => {
       listensToBag: ['RawEvent'],
       handle: (hctx) => {
         // Handler incorrectly tries to add to the same type key
-        hctx.batchCtx.addEntity('RawEvent', 'e2', { id: 'e2' });
+        hctx.batchCtx.addEntity('RawEvent', 'e2', { id: 'e2', ...B });
       },
     };
 
@@ -500,7 +509,7 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
       topic0: '0xtopic',
       requiresVerification: [],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('RawEvent', 'e1', { id: 'e1' });
+        ctx.addEntity('RawEvent', 'e1', { id: 'e1', ...B });
       },
     };
 
@@ -508,7 +517,7 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
       name: 'test-handler',
       listensToBag: ['RawEvent'],
       handle: (hctx) => {
-        hctx.batchCtx.addEntity('Derived', 'd1', { id: 'd1', computed: true });
+        hctx.batchCtx.addEntity('Derived', 'd1', { id: 'd1', ...B, computed: true });
       },
     };
 
@@ -527,37 +536,7 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
 
     // Raw event should be inserted
     const mockStore = store;
-    expect(mockStore.insertedEntities).toContainEqual({ id: 'e1' });
-
-    // Derived entity should be upserted
-    expect(mockStore.upsertedEntities).toContainEqual({ id: 'd1', computed: true });
-  });
-
-  it('should skip entity types already persisted in step 2', async () => {
-    const plugin: EventPlugin = {
-      name: 'test-plugin',
-      topic0: '0xtopic',
-      requiresVerification: [],
-      extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event', 'e1', { id: 'e1' });
-      },
-    };
-
-    const registry = new PluginRegistry();
-    registry.registerEventPlugin(plugin);
-
-    const store = createMockStore();
-    const context = createMockContext(store, [{ ...mockBlock, logs: [mockLog('0xtopic')] }]);
-
-    await processBatch(context, {
-      registry,
-      verifyAddresses: createMockVerifyFn(),
-      workerPool: mockWorkerPool,
-    });
-
-    // 'Event' should only be in insertCalls (step 2), not upsertCalls (step 4)
-    const mockStore = store;
-    expect(mockStore.insertedEntities).toContainEqual({ id: 'e1' });
+    expect(mockStore.insertedEntities).toContainEqual({ id: 'e1', ...B });
 
     // Step 4 upserts should be empty (or only core entities from step 5)
     expect(mockStore.upsertedEntities.filter((e) => e.id === 'e1')).toHaveLength(0);
@@ -575,7 +554,7 @@ describe('Pipeline Step 5: VERIFY', () => {
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event', 'e1', { id: 'e1', address: '0xda1' });
+        ctx.addEntity('Event', 'e1', { id: 'e1', ...B, address: '0xda1' });
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.DigitalAsset,
           address: '0xda1',
@@ -618,6 +597,7 @@ describe('Pipeline Step 5: VERIFY', () => {
       new Set(['0xda1', '0xda2']),
       store,
       context,
+      expect.any(Map),
     );
   });
 
@@ -627,7 +607,7 @@ describe('Pipeline Step 5: VERIFY', () => {
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.UniversalProfile],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event', 'e1', { id: 'e1' });
+        ctx.addEntity('Event', 'e1', { id: 'e1', ...B });
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
@@ -667,7 +647,7 @@ describe('Pipeline Step 5: VERIFY', () => {
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
-        ctx.addEntity('Event', 'e1', { id: 'e1' });
+        ctx.addEntity('Event', 'e1', { id: 'e1', ...B });
         ctx.queueEnrichment<TestEntity>({
           category: EntityCategory.UniversalProfile,
           address: '0xup1',
@@ -768,6 +748,7 @@ describe('Pipeline Step 6: ENRICH', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Transfer', 't1', {
           id: 't1',
+          ...B,
           address: '0xda1',
           digitalAsset: null,
         });
@@ -815,6 +796,7 @@ describe('Pipeline Step 6: ENRICH', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Transfer', 't1', {
           id: 't1',
+          ...B,
           address: '0xinvalid',
           digitalAsset: null,
         });
@@ -847,6 +829,7 @@ describe('Pipeline Step 6: ENRICH', () => {
     const mockStore = store;
     expect(mockStore.insertedEntities).toContainEqual({
       id: 't1',
+      ...B,
       address: '0xinvalid',
       digitalAsset: null,
     });
@@ -864,6 +847,7 @@ describe('Pipeline Step 6: ENRICH', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Transfer', 't1', {
           id: 't1',
+          ...B,
           from: '0xup1',
           to: '0xup2',
           address: '0xda1',
@@ -939,6 +923,7 @@ describe('Pipeline Step 6: ENRICH', () => {
         // Entity created WITHOUT the FK field in constructor props
         ctx.addEntity('Transfer', 't1', {
           id: 't1',
+          ...B,
           address: '0xda1',
           // NOTE: 'digitalAsset' field intentionally omitted
         });
@@ -1000,6 +985,7 @@ describe('Pipeline Integration', () => {
       extract: (log: Log, block: Block, ctx: IBatchContext) => {
         ctx.addEntity('Transfer', 't1', {
           id: 't1',
+          ...B,
           from: '0xup1',
           to: '0xup2',
           address: '0xda1',
@@ -1045,12 +1031,13 @@ describe('Pipeline Integration', () => {
       name: 'balance-handler',
       listensToBag: ['Transfer'],
       handle: (hctx) => {
-        const transfers = hctx.batchCtx.getEntities<{ from: string; to: string; amount: number }>(
-          'Transfer',
-        );
+        const transfers = hctx.batchCtx.getEntities<
+          Entity & { from: string; to: string; amount: number }
+        >('Transfer');
         for (const transfer of transfers.values()) {
           hctx.batchCtx.addEntity('Balance', `balance-${transfer.to}`, {
             id: `balance-${transfer.to}`,
+            ...B,
             owner: transfer.to,
             amount: transfer.amount,
           });

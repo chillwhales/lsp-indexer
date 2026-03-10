@@ -116,8 +116,8 @@ export type StoredClearRequest = Omit<ClearRequest<Entity>, 'fkField'> & {
  */
 export interface IBatchContext {
   // Entity storage
-  addEntity(type: string, id: string, entity: unknown): void;
-  getEntities<T>(type: string): Map<string, T>;
+  addEntity(type: string, id: string, entity: Entity): void;
+  getEntities(type: string): Map<string, Entity>;
   removeEntity(type: string, id: string): void;
   hasEntities(type: string): boolean;
   getEntityTypeKeys(): string[];

@@ -199,7 +199,7 @@ describe('OrbsClaimedHandler - Phase 1 (Mint Detection)', () => {
         entityType: 'OrbsClaimed',
         entityId: expectedId,
         fkField: 'digitalAsset',
-        blockNumber: 0,
+        blockNumber: 100,
         transactionIndex: 0,
         logIndex: 0,
       });
@@ -212,7 +212,7 @@ describe('OrbsClaimedHandler - Phase 1 (Mint Detection)', () => {
         entityType: 'OrbsClaimed',
         entityId: expectedId,
         fkField: 'nft',
-        blockNumber: 0,
+        blockNumber: 100,
         transactionIndex: 0,
         logIndex: 0,
       });

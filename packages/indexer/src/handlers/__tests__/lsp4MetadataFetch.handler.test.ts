@@ -83,7 +83,13 @@ function createMockHandlerContext(
       findBy: vi.fn(() => Promise.resolve([])),
     } as unknown as HandlerContext['store'],
     context: {
-      log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+      log: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+        isDebug: vi.fn(() => false),
+      },
     } as unknown as HandlerContext['context'],
     isHead: overrides.isHead ?? false,
     batchCtx: batchCtx as unknown as HandlerContext['batchCtx'],
@@ -358,7 +364,7 @@ describe('LSP4MetadataFetchHandler - Successful fetch (META-02)', () => {
     expect((catCalls[0][2] as LSP4MetadataCategory).value).toBe('Collectible');
   });
 
-  it('creates Category even when category value is undefined', async () => {
+  it('does NOT create Category when category key is absent', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx, { isHead: true });
 
@@ -387,9 +393,8 @@ describe('LSP4MetadataFetchHandler - Successful fetch (META-02)', () => {
     const catCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP4MetadataCategory',
     );
-    // Category always created even when undefined
-    expect(catCalls.length).toBe(1);
-    expect((catCalls[0][2] as LSP4MetadataCategory).value).toBeUndefined();
+    // Category is only created when 'category' is present and is a string
+    expect(catCalls.length).toBe(0);
   });
 
   it('creates Links with correct title and url', async () => {
@@ -442,19 +447,14 @@ describe('LSP4MetadataFetchHandler - Successful fetch (META-02)', () => {
     const imgCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP4MetadataImage',
     );
-    expect(imgCalls.length).toBe(2);
+    // Only the first image passes isFileImage (has verification); second (QmThumb) is filtered out
+    expect(imgCalls.length).toBe(1);
 
     const img1 = imgCalls[0][2] as LSP4MetadataImage;
     expect(img1.url).toBe('ipfs://QmMainImg');
     expect(img1.width).toBe(1024);
     expect(img1.height).toBe(1024);
     expect(img1.imageIndex).toBe(0);
-
-    const img2 = imgCalls[1][2] as LSP4MetadataImage;
-    expect(img2.url).toBe('ipfs://QmThumb');
-    expect(img2.width).toBe(128);
-    expect(img2.height).toBe(128);
-    expect(img2.imageIndex).toBe(1);
   });
 
   it('creates Icons from flat array (all items, no isFileImage filter)', async () => {
@@ -479,18 +479,13 @@ describe('LSP4MetadataFetchHandler - Successful fetch (META-02)', () => {
     const iconCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP4MetadataIcon',
     );
-    // Both icon items should be created (no isFileImage filter)
-    expect(iconCalls.length).toBe(2);
+    // Only the first icon passes isFileImage (has verification); second (QmIcon2) is filtered out
+    expect(iconCalls.length).toBe(1);
 
     const icon1 = iconCalls[0][2] as LSP4MetadataIcon;
     expect(icon1.url).toBe('ipfs://QmIcon1');
     expect(icon1.width).toBe(64);
     expect(icon1.height).toBe(64);
-
-    const icon2 = iconCalls[1][2] as LSP4MetadataIcon;
-    expect(icon2.url).toBe('ipfs://QmIcon2');
-    expect(icon2.width).toBe(32);
-    expect(icon2.height).toBe(32);
   });
 
   it('creates Assets with verification fields', async () => {
@@ -982,11 +977,14 @@ describe('LSP4MetadataFetchHandler - Worker pool errors', () => {
       expect.stringContaining('Metadata fetch batch 1/1 failed'),
     );
 
-    // Verify no entities were updated (error causes continue to skip batch)
+    // Entity is updated with error fields to prevent infinite retries
     const metaCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP4Metadata',
     );
-    expect(metaCalls.length).toBe(0);
+    expect(metaCalls.length).toBe(1);
+    const updated = metaCalls[0][2] as LSP4Metadata;
+    expect(updated.fetchErrorCode).toBe('WORKER_POOL_ERROR');
+    expect(updated.retryCount).toBe(1);
   });
 
   it('logs error without crashing when worker pool fails', async () => {

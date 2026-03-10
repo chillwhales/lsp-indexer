@@ -43,7 +43,7 @@
  * optional `controllerProfile` FK can be populated when the controller is a UP.
  */
 import { resolveEntities } from '@/core/handlerHelpers';
-import { EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';
+import { type Entity, EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';
 import {
   DataChanged,
   LSP6AllowedCall,
@@ -593,7 +593,7 @@ function linkSubEntitiesToController(
   subEntityType: string,
   controllers: Map<string, LSP6Controller>,
 ): void {
-  const subEntities = hctx.batchCtx.getEntities<{ controller: LSP6Controller | null }>(
+  const subEntities = hctx.batchCtx.getEntities<Entity & { controller: LSP6Controller | null }>(
     subEntityType,
   );
 
