@@ -39,9 +39,9 @@ const OwnedAssetsHandler: EntityHandler = {
     // Handler is called twice per batch: once for LSP7Transfer, once for LSP8Transfer
     const allTransfers: Transfer[] =
       triggeredBy === 'LSP7Transfer'
-        ? [...hctx.batchCtx.getEntities<Transfer>('LSP7Transfer').values()]
+        ? [...(hctx.batchCtx.getEntities('LSP7Transfer') as Map<string, Transfer>).values()]
         : triggeredBy === 'LSP8Transfer'
-          ? [...hctx.batchCtx.getEntities<Transfer>('LSP8Transfer').values()]
+          ? [...(hctx.batchCtx.getEntities('LSP8Transfer') as Map<string, Transfer>).values()]
           : [];
 
     if (allTransfers.length === 0) return;

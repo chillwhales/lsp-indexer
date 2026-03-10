@@ -36,7 +36,7 @@ const FormattedTokenIdHandler: EntityHandler = {
     // -----------------------------------------------------------------------
     // Path 1: New batch NFTs — look up format, set formattedTokenId in place
     // -----------------------------------------------------------------------
-    const batchNfts = batchCtx.getEntities<NFT>(NFT_ENTITY_TYPE);
+    const batchNfts = batchCtx.getEntities(NFT_ENTITY_TYPE) as Map<string, NFT>;
     const nftsWithoutFormat = [...batchNfts.values()].filter(
       (nft) => nft.formattedTokenId === null || nft.formattedTokenId === undefined,
     );
@@ -52,7 +52,10 @@ const FormattedTokenIdHandler: EntityHandler = {
         nftAddresses.length > 0
           ? await store.findBy(LSP8TokenIdFormat, { address: In(nftAddresses) })
           : [];
-      const batchFormats = batchCtx.getEntities<LSP8TokenIdFormat>(TOKEN_ID_FORMAT_ENTITY_TYPE);
+      const batchFormats = batchCtx.getEntities(TOKEN_ID_FORMAT_ENTITY_TYPE) as Map<
+        string,
+        LSP8TokenIdFormat
+      >;
       const allFormats = [...dbFormats, ...batchFormats.values()];
 
       for (const nft of nftsWithoutFormat) {
@@ -93,7 +96,9 @@ const FormattedTokenIdHandler: EntityHandler = {
     // Path 2: Format changes — retroactively reformat ALL existing NFTs
     // -----------------------------------------------------------------------
     const newFormats = [
-      ...batchCtx.getEntities<LSP8TokenIdFormat>(TOKEN_ID_FORMAT_ENTITY_TYPE).values(),
+      ...(
+        batchCtx.getEntities(TOKEN_ID_FORMAT_ENTITY_TYPE) as Map<string, LSP8TokenIdFormat>
+      ).values(),
     ];
     if (newFormats.length === 0) return;
 

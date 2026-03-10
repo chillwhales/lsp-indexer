@@ -33,9 +33,9 @@ const TotalSupplyHandler: EntityHandler = {
     // Without this guard, reading both bags on each call would apply deltas twice.
     const transfers =
       triggeredBy === 'LSP7Transfer'
-        ? hctx.batchCtx.getEntities<Transfer>('LSP7Transfer')
+        ? (hctx.batchCtx.getEntities('LSP7Transfer') as Map<string, Transfer>)
         : triggeredBy === 'LSP8Transfer'
-          ? hctx.batchCtx.getEntities<Transfer>('LSP8Transfer')
+          ? (hctx.batchCtx.getEntities('LSP8Transfer') as Map<string, Transfer>)
           : new Map<string, Transfer>();
 
     // Filter for mint/burn only

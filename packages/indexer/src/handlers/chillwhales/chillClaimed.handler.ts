@@ -35,7 +35,7 @@ const ChillClaimedHandler: EntityHandler = {
 
     // PHASE 1: Mint detection (runs every batch)
     // Filter LSP8Transfer events to Chillwhale mints (from zero address to CHILLWHALES_ADDRESS)
-    const events = batchCtx.getEntities<Transfer>(triggeredBy);
+    const events = batchCtx.getEntities(triggeredBy) as Map<string, Transfer>;
     const mintTransfers: Transfer[] = [];
 
     for (const event of events.values()) {

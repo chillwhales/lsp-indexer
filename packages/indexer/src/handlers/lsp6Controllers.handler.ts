@@ -79,7 +79,7 @@ const LSP6ControllersHandler: EntityHandler = {
   listensToBag: ['DataChanged'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
+    const events = hctx.batchCtx.getEntities(triggeredBy) as Map<string, DataChanged>;
 
     // Set persist hint for cross-batch merge behavior (safety net)
     hctx.batchCtx.setPersistHint(CONTROLLER_TYPE, {
@@ -163,7 +163,7 @@ const LSP6ControllersHandler: EntityHandler = {
     }
 
     // Queue clear requests for sub-entity types that had new data in this batch
-    const controllers = hctx.batchCtx.getEntities<LSP6Controller>(CONTROLLER_TYPE);
+    const controllers = hctx.batchCtx.getEntities(CONTROLLER_TYPE) as Map<string, LSP6Controller>;
     if (controllers.size === 0) return;
 
     const controllerIds = [...controllers.keys()];
@@ -593,9 +593,10 @@ function linkSubEntitiesToController(
   subEntityType: string,
   controllers: Map<string, LSP6Controller>,
 ): void {
-  const subEntities = hctx.batchCtx.getEntities<Entity & { controller: LSP6Controller | null }>(
-    subEntityType,
-  );
+  const subEntities = hctx.batchCtx.getEntities(subEntityType) as Map<
+    string,
+    Entity & { controller: LSP6Controller | null }
+  >;
 
   for (const [id, entity] of subEntities) {
     // Extract controller ID from sub-entity ID: "{upAddress} - {controllerAddress} - {suffix}"

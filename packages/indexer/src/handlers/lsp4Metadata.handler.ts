@@ -44,7 +44,7 @@ const LSP4MetadataHandler: EntityHandler = {
 // ---------------------------------------------------------------------------
 
 function handleDataChanged(hctx: HandlerContext): void {
-  const events = hctx.batchCtx.getEntities<DataChanged>('DataChanged');
+  const events = hctx.batchCtx.getEntities('DataChanged') as Map<string, DataChanged>;
 
   for (const event of events.values()) {
     // Filter by data key
@@ -91,7 +91,7 @@ function handleDataChanged(hctx: HandlerContext): void {
 // ---------------------------------------------------------------------------
 
 function handleTokenIdDataChanged(hctx: HandlerContext): void {
-  const events = hctx.batchCtx.getEntities<TokenIdDataChanged>('TokenIdDataChanged');
+  const events = hctx.batchCtx.getEntities('TokenIdDataChanged') as Map<string, TokenIdDataChanged>;
 
   for (const event of events.values()) {
     // Filter by data key

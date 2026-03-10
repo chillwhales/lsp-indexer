@@ -41,7 +41,7 @@ const OrbFactionHandler: EntityHandler = {
     // Branch on triggeredBy to handle mint detection vs data key changes
     if (triggeredBy === 'LSP8Transfer') {
       // MINT DETECTION: Create default entity when Orb NFTs are minted
-      const transfers = hctx.batchCtx.getEntities<Transfer>(triggeredBy);
+      const transfers = hctx.batchCtx.getEntities(triggeredBy) as Map<string, Transfer>;
 
       for (const transfer of transfers.values()) {
         // Filter to ORBS contract only
@@ -95,7 +95,7 @@ const OrbFactionHandler: EntityHandler = {
       }
     } else if (triggeredBy === 'TokenIdDataChanged') {
       // DATA KEY CHANGES: Overwrite defaults with actual on-chain values
-      const events = hctx.batchCtx.getEntities<TokenIdDataChanged>(triggeredBy);
+      const events = hctx.batchCtx.getEntities(triggeredBy) as Map<string, TokenIdDataChanged>;
 
       for (const event of events.values()) {
         // Filter by contract address
