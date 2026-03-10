@@ -21,15 +21,15 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.2 Production Readiness — Phase 19 complete
+**Current focus:** v1.2 Production Readiness — Phase 19.1 next
 
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Phase 19 — 3 of 6 in v1.2 (Block Ordering) — complete
-- **Plan:** 3 of 3 complete
-- **Status:** Milestone complete
-- **Last activity:** 2026-03-09 — Completed 19-03-PLAN.md (Wire Block Ordering Through EntityHandlers)
+- **Phase:** Phase 19.1 — Type System Tightening (not started)
+- **Plan:** 0 of TBD
+- **Status:** Phase 19 complete, 19.1 inserted
+- **Last activity:** 2026-03-10 — Inserted Phase 19.1 for type system tightening
 - **Progress:** [█████████░] 92%
 
 ## Milestone History
@@ -75,17 +75,18 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-03-09
-- **Activity:** Executed Phase 19 Plan 03 — Wire Block Ordering Through EntityHandlers
-- **Outcome:** All ~29 EntityHandlers set real block fields on derived entities; metadata fetch handlers propagate parent block fields to sub-entities; zero placeholder values remain
-- **Resume file:** Next phase plan
+- **Date:** 2026-03-10
+- **Activity:** Inserted Phase 19.1 for type system tightening; moved WIP changes to `refactor/indexer-type-system-tightening` branch
+- **Outcome:** Branch rebased onto latest main (2bee515); 17 WIP files carry partial progress on core types + handler test fixes
+- **Resume file:** `.planning/phases/19.1-type-system-tightening/19.1-CONTEXT.md`
 
 ### Context for Next Session
 
-- **Phase 19 complete** — All 3 plans for Block Ordering executed successfully
-- **All entities carry real block position data** — blockNumber, transactionIndex, logIndex wired through plugins, pipeline, and handlers
-- **Integration branch:** `refactor/indexer-v2-react` — contains all v1.0+v1.1 work, needs merge decision
-- **Next:** Phase 20 or next milestone phase
+- **Phase 19.1 scope:** Remove `getEntities<T>` generic, enforce `Entity` base type in BatchContext, fix ~29 handler files + tests
+- **WIP branch:** `refactor/indexer-type-system-tightening` — 17 uncommitted files with partial progress
+- **Key change:** `getEntities()` returns `Map<string, Entity>`, handlers cast at call site
+- **Also needed:** Fix `multi-event.json` fixture (ABI-encoded DataChanged data), add 5th param to integration test `createMockVerifyFn`
+- **Next after 19.1:** Phase 20 (Monitoring & Docker Image Release)
 
 ---
 
