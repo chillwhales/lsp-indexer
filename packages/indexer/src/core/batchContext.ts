@@ -1,3 +1,4 @@
+import { ENTITY_CONSTRUCTORS, type EntityRegistry } from './entityRegistry';
 import {
   ClearRequest,
   DeleteRequest,
@@ -34,8 +35,9 @@ export class BatchContext implements IBatchContext {
    * Entity storage: entityType → (entityId → entity)
    *
    * Stores entities as `Entity` (the base type with id + block ordering fields).
-   * Handlers use `getTypedEntities()` from `entityTypeMap.ts` for type-safe
-   * access with concrete types — the single cast lives there, not at call sites.
+   * Type safety is provided by the generic `addEntity<K>` / `getEntities<K>`
+   * methods which use `keyof EntityRegistry` to enforce bag key validity at
+   * compile time and `instanceof ENTITY_CONSTRUCTORS[K]` at runtime.
    */
   private readonly entities = new Map<string, Map<string, Entity>>();
 
@@ -101,13 +103,32 @@ export class BatchContext implements IBatchContext {
   // Entity storage
   // -------------------------------------------------------------------------
 
-  addEntity(type: string, id: string, entity: Entity): void {
+  /**
+   * Add a typed entity to the bag. Validates at runtime via `instanceof`
+   * that the entity matches the expected constructor for the bag key.
+   *
+   * @throws Error if the entity is not an instance of the expected constructor
+   * @throws Error if the bag key is sealed (raw entity type already persisted in Step 2)
+   */
+  addEntity<K extends keyof EntityRegistry & string>(
+    type: K,
+    id: string,
+    entity: EntityRegistry[K],
+  ): void {
     // Prevent handlers from adding to raw entity type keys after Step 2
     if (this.sealedRawTypes !== null && this.sealedRawTypes.has(type)) {
       throw new Error(
         `Handler attempted to add entity to raw type '${type}' which was already ` +
           `persisted in Step 2. Handlers must use a different entity type key for ` +
           `derived entities. This prevents silent data loss since Step 4 skips raw types.`,
+      );
+    }
+
+    // Runtime validation: instanceof check against ENTITY_CONSTRUCTORS[type]
+    const ctor = ENTITY_CONSTRUCTORS[type];
+    if (!(entity instanceof ctor)) {
+      throw new Error(
+        `addEntity('${type}'): expected ${ctor.name}, got ${(entity as Entity)?.constructor?.name ?? 'unknown'}`,
       );
     }
 
@@ -119,17 +140,55 @@ export class BatchContext implements IBatchContext {
     map.set(id, entity);
   }
 
-  getEntities(type: string): Map<string, Entity> {
-    const map = this.entities.get(type);
-    if (!map) return new Map<string, Entity>();
-    return map;
+  /**
+   * Get typed entities from the bag. Spot-checks the first entity via
+   * `instanceof` on non-empty maps to catch runtime type corruption.
+   *
+   * @returns Typed map of entity ID → entity, or empty map if no entities exist
+   */
+  getEntities<K extends keyof EntityRegistry & string>(type: K): Map<string, EntityRegistry[K]> {
+    const raw = this.entities.get(type);
+    if (!raw || raw.size === 0) return new Map() as Map<string, EntityRegistry[K]>;
+
+    // Runtime validation: spot-check first entity
+    const ctor = ENTITY_CONSTRUCTORS[type];
+    const first = raw.values().next().value;
+    if (!(first instanceof ctor)) {
+      throw new Error(
+        `getEntities('${type}'): expected ${ctor.name}, got ${(first as Entity)?.constructor?.name ?? 'unknown'}`,
+      );
+    }
+
+    return raw as Map<string, EntityRegistry[K]>;
   }
 
-  removeEntity(type: string, id: string): void {
+  /**
+   * Remove a typed entity from the bag.
+   */
+  removeEntity<K extends keyof EntityRegistry & string>(type: K, id: string): void {
     this.entities.get(type)?.delete(id);
   }
 
-  hasEntities(type: string): boolean {
+  /**
+   * Check if typed entities exist in the bag for a given key.
+   */
+  hasEntities(type: keyof EntityRegistry & string): boolean {
+    const map = this.entities.get(type);
+    return map !== undefined && map.size > 0;
+  }
+
+  /**
+   * Get entities without type validation — for pipeline and fkResolution
+   * that iterate dynamically via `getEntityTypeKeys()`.
+   */
+  getEntitiesUntyped(type: string): Map<string, Entity> {
+    return this.entities.get(type) ?? new Map();
+  }
+
+  /**
+   * Check if entities exist without type validation — for pipeline dynamic checks.
+   */
+  hasEntitiesUntyped(type: string): boolean {
     const map = this.entities.get(type);
     return map !== undefined && map.size > 0;
   }
