@@ -13,7 +13,10 @@ import { Entity, IBatchContext } from '@/core/types';
 import {
   DataChanged,
   Follow,
+  LSP6AllowedCall,
+  LSP6AllowedERC725YDataKey,
   LSP6Controller,
+  LSP6Permission,
   LSP8TokenIdFormat,
   LSP8TokenMetadataBaseURI,
   NFT,
@@ -50,6 +53,9 @@ export interface EntityTypeMap {
   // Derived entities (from handlers, read back by other handlers)
   NFT: NFT;
   LSP6Controller: LSP6Controller;
+  LSP6Permission: LSP6Permission;
+  LSP6AllowedCall: LSP6AllowedCall;
+  LSP6AllowedERC725YDataKey: LSP6AllowedERC725YDataKey;
   LSP8TokenIdFormat: LSP8TokenIdFormat;
   LSP8TokenMetadataBaseURI: LSP8TokenMetadataBaseURI;
 }
@@ -72,17 +78,20 @@ export interface EntityTypeMap {
 const ENTITY_CONSTRUCTORS: {
   [K in keyof EntityTypeMap]: new (...args: unknown[]) => EntityTypeMap[K];
 } = {
-  DataChanged: DataChanged,
-  TokenIdDataChanged: TokenIdDataChanged,
+  DataChanged,
+  TokenIdDataChanged,
   LSP7Transfer: Transfer,
   LSP8Transfer: Transfer,
-  Follow: Follow,
-  Unfollow: Unfollow,
-  OwnershipTransferred: OwnershipTransferred,
-  NFT: NFT,
-  LSP6Controller: LSP6Controller,
-  LSP8TokenIdFormat: LSP8TokenIdFormat,
-  LSP8TokenMetadataBaseURI: LSP8TokenMetadataBaseURI,
+  Follow,
+  Unfollow,
+  OwnershipTransferred,
+  NFT,
+  LSP6Controller,
+  LSP6Permission,
+  LSP6AllowedCall,
+  LSP6AllowedERC725YDataKey,
+  LSP8TokenIdFormat,
+  LSP8TokenMetadataBaseURI,
 };
 
 // ---------------------------------------------------------------------------

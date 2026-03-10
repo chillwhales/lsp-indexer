@@ -44,7 +44,7 @@
  */
 import { getTypedEntities } from '@/core/entityTypeMap';
 import { resolveEntities } from '@/core/handlerHelpers';
-import { type Entity, EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';
+import { EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';
 import {
   DataChanged,
   LSP6AllowedCall,
@@ -196,9 +196,9 @@ const LSP6ControllersHandler: EntityHandler = {
     // Link sub-entities to their parent controller
     // Sub-entities are created without controller FK; we link them here after
     // populate so orphans whose parent was filtered out get removed.
-    linkSubEntitiesToController(hctx, PERMISSION_TYPE, controllers);
-    linkSubEntitiesToController(hctx, ALLOWED_CALL_TYPE, controllers);
-    linkSubEntitiesToController(hctx, ALLOWED_DATA_KEY_TYPE, controllers);
+    linkSubEntitiesToController(hctx, 'LSP6Permission', controllers);
+    linkSubEntitiesToController(hctx, 'LSP6AllowedCall', controllers);
+    linkSubEntitiesToController(hctx, 'LSP6AllowedERC725YDataKey', controllers);
   },
 };
 
@@ -591,13 +591,10 @@ function getOrCreateController(
  */
 function linkSubEntitiesToController(
   hctx: HandlerContext,
-  subEntityType: string,
+  subEntityType: 'LSP6Permission' | 'LSP6AllowedCall' | 'LSP6AllowedERC725YDataKey',
   controllers: Map<string, LSP6Controller>,
 ): void {
-  const subEntities = hctx.batchCtx.getEntities(subEntityType) as Map<
-    string,
-    Entity & { controller: LSP6Controller | null }
-  >;
+  const subEntities = getTypedEntities(hctx.batchCtx, subEntityType);
 
   for (const [id, entity] of subEntities) {
     // Extract controller ID from sub-entity ID: "{upAddress} - {controllerAddress} - {suffix}"
