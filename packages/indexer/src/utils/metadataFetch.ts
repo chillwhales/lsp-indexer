@@ -14,7 +14,15 @@ import {
   FETCH_LIMIT,
   FETCH_RETRY_COUNT,
 } from '@/constants';
-import { Entity, EntityConstructor, FetchRequest, FetchResult, HandlerContext } from '@/core/types';
+import { EntityRegistry } from '@/core/entityRegistry';
+import {
+  Entity,
+  EntityConstructor,
+  FetchRequest,
+  FetchResult,
+  HandlerContext,
+  IBatchContext,
+} from '@/core/types';
 import { Store } from '@subsquid/typeorm-store';
 import { FindOptionsWhere, In, IsNull, LessThan, Not } from 'typeorm';
 
@@ -56,8 +64,15 @@ export interface SubEntityDescriptor {
 export interface MetadataFetchConfig<TEntity extends MetadataEntity> {
   /** Entity class constructor for DB queries and entity construction */
   entityClass: EntityConstructor<TEntity>;
-  /** Entity type key in BatchContext */
-  entityType: string;
+  /**
+   * Entity type key in BatchContext.
+   *
+   * Typed as `keyof EntityRegistry & string` so that `addEntity()` calls
+   * compile without casts at handler call sites. The generic TEntity cannot
+   * be statically proven to match EntityRegistry[K], so `handleMetadataFetch`
+   * uses a single justified cast (`as Map<string, TEntity>`) to bridge the gap.
+   */
+  entityType: keyof EntityRegistry & string;
   /** Sub-entity types to clear on success or empty value */
   subEntityDescriptors: SubEntityDescriptor[];
   /**
@@ -155,6 +170,35 @@ export async function queryUnfetchedEntities<TEntity extends MetadataEntity>(
 }
 
 // ---------------------------------------------------------------------------
+// Internal helper — justified cast for generic metadata addEntity
+// ---------------------------------------------------------------------------
+
+/**
+ * Add a metadata entity to the batch context, bridging the TEntity ↔ EntityRegistry gap.
+ *
+ * `handleMetadataFetch<TEntity>` is generic over the metadata entity type, but
+ * `addEntity<K>` requires `EntityRegistry[K]`. TypeScript cannot prove that
+ * `TEntity === EntityRegistry[K]` because the mapping is only resolved at each
+ * handler call site (LSP3Profile, LSP4Metadata, LSP29EncryptedAsset). At runtime,
+ * `addEntity`'s `instanceof` check validates the entity against
+ * `ENTITY_CONSTRUCTORS[entityType]`, so correctness is enforced dynamically.
+ */
+function addToCtx(
+  batchCtx: IBatchContext,
+  entityType: keyof EntityRegistry & string,
+  id: string,
+  entity: MetadataEntity,
+): void {
+  // Cast entity to satisfy addEntity's generic constraint. The runtime instanceof
+  // check in BatchContext.addEntity validates the entity class matches the key.
+  (batchCtx as unknown as { addEntity(type: string, id: string, entity: Entity): void }).addEntity(
+    entityType,
+    id,
+    entity,
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main utility
 // ---------------------------------------------------------------------------
 
@@ -174,7 +218,7 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
   config: MetadataFetchConfig<TEntity>,
   triggeredBy: string,
 ): Promise<void> {
-  const entities = hctx.batchCtx.getEntities(triggeredBy) as Map<string, TEntity>;
+  const entities = hctx.batchCtx.getEntitiesUntyped(triggeredBy) as Map<string, TEntity>;
 
   // ----- Path 1: Empty value (runs every batch, not just head) -----
   for (const entity of entities.values()) {
@@ -316,7 +360,10 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
           fetchErrorStatus: null,
           retryCount: (entity.retryCount ?? 0) + 1,
         });
-        hctx.batchCtx.addEntity(config.entityType, config.getId(entity), updated);
+        // Justified cast: TEntity is correct at runtime (validated by instanceof
+        // in addEntity) but cannot be statically proven as EntityRegistry[K]
+        // because the key→entity mapping is resolved at each handler call site.
+        addToCtx(hctx.batchCtx, config.entityType, config.getId(entity), updated);
       }
 
       totalFailed += batchRequests.length;
@@ -341,7 +388,7 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
             fetchErrorStatus: null,
             retryCount: (entity.retryCount ?? 0) + 1,
           });
-          hctx.batchCtx.addEntity(config.entityType, config.getId(entity), updated);
+          addToCtx(hctx.batchCtx, config.entityType, config.getId(entity), updated);
         } else {
           // Queue clear old sub-entities before new ones are persisted
           for (const desc of config.subEntityDescriptors) {
@@ -362,7 +409,7 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
             retryCount: null,
             ...(parseResult.entityUpdates ?? {}),
           });
-          hctx.batchCtx.addEntity(config.entityType, config.getId(entity), updated);
+          addToCtx(hctx.batchCtx, config.entityType, config.getId(entity), updated);
           totalProcessed++;
         }
       } else {
@@ -374,7 +421,7 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
           fetchErrorStatus: result.errorStatus ?? null,
           retryCount: (entity.retryCount ?? 0) + 1,
         });
-        hctx.batchCtx.addEntity(config.entityType, config.getId(entity), updated);
+        addToCtx(hctx.batchCtx, config.entityType, config.getId(entity), updated);
         totalFailed++;
       }
     }

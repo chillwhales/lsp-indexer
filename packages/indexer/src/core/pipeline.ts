@@ -230,7 +230,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   const persistRawLog = createStepLogger(context.log, 'PERSIST_RAW', blockRange);
   const rawEntityTypes = new Set(batchCtx.getEntityTypeKeys());
   for (const type of rawEntityTypes) {
-    const entities = batchCtx.getEntities(type);
+    const entities = batchCtx.getEntitiesUntyped(type);
     if (entities.size > 0) {
       await context.store.insert([...entities.values()]);
       persistRawLog.info(
@@ -277,8 +277,11 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     // Without this, rarely-updated entity types (e.g. LSP29 with only 11
     // entities on-chain) would never have their metadata fetched.
     if (!triggered && handler.drainAtHead && context.isHead) {
-      const drainTrigger = handler.listensToBag[0] ?? 'drain';
-      await handler.handle(handlerCtx, drainTrigger);
+      // drainAtHead handlers always have at least one listensToBag entry
+      const drainTrigger = handler.listensToBag[0];
+      if (drainTrigger) {
+        await handler.handle(handlerCtx, drainTrigger);
+      }
     }
   }
 
@@ -339,7 +342,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   const derivedTypes = allEntityTypes.filter((type) => !rawEntityTypes.has(type));
 
   for (const type of derivedTypes) {
-    const entities = batchCtx.getEntities(type);
+    const entities = batchCtx.getEntitiesUntyped(type);
     if (entities.size === 0) continue;
 
     const persistHint = batchCtx.getPersistHint(type);
@@ -486,7 +489,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     .filter((type) => !rawEntityTypes.has(type) && !derivedTypes.includes(type));
 
   for (const type of postVerifyTypes) {
-    const entities = batchCtx.getEntities(type);
+    const entities = batchCtx.getEntitiesUntyped(type);
     if (entities.size === 0) continue;
 
     await context.store.upsert([...entities.values()]);
@@ -541,7 +544,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // Step 6: ENRICH — Batch update FK fields per entity type
   const enrichLog = createStepLogger(context.log, 'ENRICH', blockRange);
   for (const [entityType, entityMap] of grouped) {
-    const entities = batchCtx.getEntities(entityType);
+    const entities = batchCtx.getEntitiesUntyped(entityType);
     const entitiesToUpdate: Entity[] = [];
 
     for (const [entityId, requests] of entityMap) {
