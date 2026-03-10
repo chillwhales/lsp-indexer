@@ -19,7 +19,7 @@ import { type Hex, hexToBool, isHex } from 'viem';
 
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { aggregate3StaticLatest } from './multicall';
-import { BlockPosition, Context, EntityCategory, VerificationResult } from './types';
+import { BlockPosition, Context, Entity, EntityCategory, VerificationResult } from './types';
 
 // ---------------------------------------------------------------------------
 // Interface version constants
@@ -243,7 +243,7 @@ interface InternalVerificationResult {
   newAddresses: Set<string>;
   validAddresses: Set<string>;
   invalidAddresses: Set<string>;
-  newEntities: Map<string, { id: string } & BlockPosition>;
+  newEntities: Map<string, Entity>;
 }
 
 // ---------------------------------------------------------------------------
@@ -263,7 +263,7 @@ async function verifyWithInterface(
   versions: InterfaceVersion[],
   cache: VerificationCache,
   batchSize: number,
-  blockPositionByAddress?: Map<string, BlockPosition>,
+  blockPositionByAddress: Map<string, BlockPosition>,
 ): Promise<InternalVerificationResult> {
   const addressArray = [...addresses];
 
@@ -355,10 +355,10 @@ async function verifyWithInterface(
   // BORD-04: Set block position from earliest enrichment request per address.
   // Existing entities (from DB or cache) are never modified — only new entities
   // get block fields, ensuring the "oldest retention" guarantee.
-  const newEntities = new Map<string, { id: string } & BlockPosition>();
+  const newEntities = new Map<string, Entity>();
   if (category === EntityCategory.UniversalProfile) {
     for (const addr of newlyVerified) {
-      const blockPos = blockPositionByAddress?.get(addr);
+      const blockPos = blockPositionByAddress.get(addr);
       if (!blockPos) {
         throw new Error(`Missing block position for newly verified UniversalProfile: ${addr}`);
       }
@@ -375,7 +375,7 @@ async function verifyWithInterface(
     }
   } else if (category === EntityCategory.DigitalAsset) {
     for (const addr of newlyVerified) {
-      const blockPos = blockPositionByAddress?.get(addr);
+      const blockPos = blockPositionByAddress.get(addr);
       if (!blockPos) {
         throw new Error(`Missing block position for newly verified DigitalAsset: ${addr}`);
       }
@@ -423,7 +423,7 @@ export function createVerifyFn(
   addresses: Set<string>,
   store: Store,
   context: Context,
-  blockPositionByAddress?: Map<string, BlockPosition>,
+  blockPositionByAddress: Map<string, BlockPosition>,
 ) => Promise<VerificationResult> {
   const cache = new VerificationCache(config.cacheMaxSize ?? 50_000);
   const batchSize = config.batchSize ?? DEFAULT_BATCH_SIZE;
@@ -449,7 +449,7 @@ export function createVerifyFn(
     addresses: Set<string>,
     store: Store,
     context: Context,
-    blockPositionByAddress?: Map<string, BlockPosition>,
+    blockPositionByAddress: Map<string, BlockPosition>,
   ): Promise<VerificationResult> {
     if (addresses.size === 0) {
       return { new: new Set(), valid: new Set(), invalid: new Set(), newEntities: new Map() };

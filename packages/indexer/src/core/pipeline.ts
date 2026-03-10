@@ -52,7 +52,7 @@ export type VerifyFn = (
   addresses: Set<string>,
   store: Store,
   context: Context,
-  blockPositionByAddress?: Map<string, BlockPosition>,
+  blockPositionByAddress: Map<string, BlockPosition>,
 ) => Promise<VerificationResult>;
 
 /**

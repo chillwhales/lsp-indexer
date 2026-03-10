@@ -16,6 +16,9 @@ import type { IBatchContext } from '../types';
 // ---------------------------------------------------------------------------
 class TestEntity {
   id: string;
+  blockNumber: number;
+  transactionIndex: number;
+  logIndex: number;
   value?: string;
   constructor(props?: Partial<TestEntity>) {
     Object.assign(this, props);

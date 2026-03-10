@@ -64,7 +64,7 @@ must_haves:
 | `packages/typeorm/schema.graphql` | Block ordering fields on all entities | ✓ VERIFIED | 72 entities with blockNumber/transactionIndex/logIndex; 61 composite indexes; no old `block:` field remaining |
 | `packages/indexer/src/core/types/verification.ts` | EnrichmentRequest + BlockPosition type | ✓ VERIFIED | BlockPosition type at L16-20; EnrichmentRequest has blockNumber/transactionIndex/logIndex at L81-87 |
 | `packages/indexer/src/core/pipeline.ts` | Earliest-enrichment logic | ✓ VERIFIED | `compareBlockPosition()` function; `earliestBlockByAddress` Map computation; passed to verify call at L452 |
-| `packages/indexer/src/core/verification.ts` | Core entity creation with block position | ✓ VERIFIED | `blockPositionByAddress` param accepted; UP and DA entities created with `blockPos?.blockNumber ?? 0` fallback |
+| `packages/indexer/src/core/verification.ts` | Core entity creation with block position | ✓ VERIFIED | `blockPositionByAddress` param required; UP and DA entities created with block fields from earliest enrichment (throws if missing) |
 | `packages/typeorm/src/model/generated/*.model.ts` | Codegen output with columns | ✓ VERIFIED | All 72 model files contain blockNumber, transactionIndex, logIndex with composite index annotations |
 
 ### Key Link Verification

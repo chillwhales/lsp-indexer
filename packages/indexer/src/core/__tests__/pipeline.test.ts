@@ -115,10 +115,7 @@ function createMockVerifyFn(
     const newSet = new Set([...addresses].filter((addr) => newAddresses.has(addr)));
     const invalid = new Set([...addresses].filter((addr) => !validAddresses.has(addr)));
 
-    const newEntities = new Map<
-      string,
-      { id: string } & { blockNumber: number; transactionIndex: number; logIndex: number }
-    >();
+    const newEntities = new Map<string, Entity>();
     for (const addr of newSet) {
       if (category === EntityCategory.UniversalProfile) {
         newEntities.set(

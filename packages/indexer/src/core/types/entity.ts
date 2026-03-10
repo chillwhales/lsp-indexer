@@ -9,11 +9,17 @@
 /**
  * Base constraint for all TypeORM entities.
  *
- * All entities in the system must have an `id` field. This constraint
- * enables type-safe operations in the pipeline while remaining flexible
- * enough to work with any entity type.
+ * All entities in the system must have an `id` field and block ordering
+ * fields for deterministic blockchain positioning (BORD-05).
+ * This constraint enables type-safe operations in the pipeline while
+ * remaining flexible enough to work with any entity type.
  */
-export type Entity = { id: string };
+export type Entity = {
+  id: string;
+  blockNumber: number;
+  transactionIndex: number;
+  logIndex: number;
+};
 
 /**
  * Extract the entity class constructor type.

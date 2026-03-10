@@ -19,7 +19,7 @@ enum OperationType {
   DELEGATECALL
 }
 
-type Executed @entity {
+type Executed @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -36,7 +36,7 @@ type Executed @entity {
   universalProfile: UniversalProfile @index
 }
 
-type UniversalReceiver @entity {
+type UniversalReceiver @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -53,7 +53,7 @@ type UniversalReceiver @entity {
   universalProfile: UniversalProfile @index
 }
 
-type Follow @entity {
+type Follow @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -66,7 +66,7 @@ type Follow @entity {
   followedUniversalProfile: UniversalProfile @index
 }
 
-type Follower @entity {
+type Follower @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -79,7 +79,7 @@ type Follower @entity {
   followedUniversalProfile: UniversalProfile @index
 }
 
-type Unfollow @entity {
+type Unfollow @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -92,7 +92,7 @@ type Unfollow @entity {
   unfollowedUniversalProfile: UniversalProfile @index
 }
 
-type DataChanged @entity {
+type DataChanged @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -105,7 +105,7 @@ type DataChanged @entity {
   digitalAsset: DigitalAsset @index
 }
 
-type TokenIdDataChanged @entity {
+type TokenIdDataChanged @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -119,7 +119,7 @@ type TokenIdDataChanged @entity {
   nft: NFT @index
 }
 
-type Transfer @entity {
+type Transfer @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -140,7 +140,7 @@ type Transfer @entity {
   nft: NFT @index
 }
 
-type DeployedContracts @entity {
+type DeployedContracts @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -156,7 +156,9 @@ type DeployedContracts @entity {
   universalProfile: UniversalProfile @index
 }
 
-type DeployedERC1167Proxies @entity {
+type DeployedERC1167Proxies
+  @entity
+  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index
@@ -172,7 +174,7 @@ type DeployedERC1167Proxies @entity {
   universalProfile: UniversalProfile @index
 }
 
-type OwnershipTransferred @entity {
+type OwnershipTransferred @entity @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
   timestamp: DateTime! @index
   blockNumber: Int! @index

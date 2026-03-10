@@ -44,7 +44,7 @@ export interface VerificationResult {
   /** Addresses that failed interface checks */
   invalid: Set<string>;
   /** Newly created entity instances to persist, keyed by address */
-  newEntities: Map<string, { id: string } & BlockPosition>;
+  newEntities: Map<string, Entity>;
 }
 
 /**

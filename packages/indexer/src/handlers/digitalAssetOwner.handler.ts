@@ -46,13 +46,12 @@ const DigitalAssetOwnerHandler: EntityHandler = {
       // Check if the emitting address is a verified DigitalAsset
       if (!verifiedDAs.valid.has(event.address)) continue;
 
-      const daEntity = verifiedDAs.newEntities.get(event.address);
       const entity = new DigitalAssetOwner({
         id: event.address,
         timestamp: event.timestamp,
-        blockNumber: daEntity?.blockNumber ?? event.blockNumber,
-        transactionIndex: daEntity?.transactionIndex ?? event.transactionIndex,
-        logIndex: daEntity?.logIndex ?? event.logIndex,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
         address: event.newOwner,
         digitalAsset: null, // FK initially null — resolved by enrichment queue
       });
