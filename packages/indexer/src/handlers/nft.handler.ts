@@ -13,7 +13,6 @@
  * FormattedTokenId handler (issue #113) which runs after NFT creation.
  */
 import { ZERO_ADDRESS } from '@/constants';
-import { getTypedEntities } from '@/core/entityTypeMap';
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
@@ -31,12 +30,12 @@ const NFTHandler: EntityHandler = {
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
     // Start with NFTs already created in this batch (intra-batch deduplication)
-    const existingInBatch = getTypedEntities(hctx.batchCtx, 'NFT');
+    const existingInBatch = hctx.batchCtx.getEntities('NFT');
     const nfts = new Map<string, NFT>(existingInBatch);
 
     // Process LSP8Transfer first (higher priority for mint/burn status)
     if (triggeredBy === 'LSP8Transfer') {
-      const transfers = getTypedEntities(hctx.batchCtx, 'LSP8Transfer');
+      const transfers = hctx.batchCtx.getEntities('LSP8Transfer');
 
       for (const transfer of transfers.values()) {
         const nftId = generateTokenId({ address: transfer.address, tokenId: transfer.tokenId });
@@ -85,7 +84,7 @@ const NFTHandler: EntityHandler = {
     // Resolve from batch + DB to avoid overwriting existing NFTs with stubs.
     // This ensures we preserve mint/burn flags from previous batches.
     if (triggeredBy === 'TokenIdDataChanged') {
-      const events = getTypedEntities(hctx.batchCtx, 'TokenIdDataChanged');
+      const events = hctx.batchCtx.getEntities('TokenIdDataChanged');
 
       // Collect potential NFT IDs from TokenIdDataChanged events
       const potentialNewIds: string[] = [];
@@ -95,11 +94,10 @@ const NFTHandler: EntityHandler = {
       }
 
       // Resolve NFTs from batch + DB
-      const existingNFTs = await resolveEntities<NFT>(
+      const existingNFTs = await resolveEntities(
         hctx.store,
         hctx.batchCtx,
         ENTITY_TYPE,
-        NFT,
         potentialNewIds,
       );
 

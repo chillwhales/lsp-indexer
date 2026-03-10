@@ -17,7 +17,6 @@
  *   - Queues enrichment for universalProfile FK
  */
 
-import { getTypedEntities } from '@/core/entityTypeMap';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { UniversalProfileOwner } from '@chillwhales/typeorm';
 
@@ -34,7 +33,7 @@ const UniversalProfileOwnerHandler: EntityHandler = {
     const { batchCtx } = hctx;
 
     // Read OwnershipTransferred entities from the batch
-    const events = getTypedEntities(batchCtx, 'OwnershipTransferred');
+    const events = batchCtx.getEntities('OwnershipTransferred');
     if (events.size === 0) return;
 
     // Get verified UniversalProfiles

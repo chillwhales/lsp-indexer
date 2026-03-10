@@ -25,7 +25,6 @@
  * Entity IDs follow the NFT id pattern: `"{address} - {tokenId}"`.
  */
 import { ORB_LEVEL_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
-import { getTypedEntities } from '@/core/entityTypeMap';
 import { resolveEntity } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
@@ -54,7 +53,7 @@ const OrbLevelHandler: EntityHandler = {
     // Branch on triggeredBy to handle mint detection vs data key changes
     if (triggeredBy === 'LSP8Transfer') {
       // MINT DETECTION: Create default entities when Orb NFTs are minted
-      const transfers = getTypedEntities(hctx.batchCtx, 'LSP8Transfer');
+      const transfers = hctx.batchCtx.getEntities('LSP8Transfer');
 
       for (const transfer of transfers.values()) {
         // Filter to ORBS contract only
@@ -146,7 +145,7 @@ const OrbLevelHandler: EntityHandler = {
       }
     } else if (triggeredBy === 'TokenIdDataChanged') {
       // DATA KEY CHANGES: Overwrite defaults with actual on-chain values
-      const events = getTypedEntities(hctx.batchCtx, 'TokenIdDataChanged');
+      const events = hctx.batchCtx.getEntities('TokenIdDataChanged');
 
       for (const event of events.values()) {
         // Filter by contract address
@@ -165,18 +164,11 @@ const OrbLevelHandler: EntityHandler = {
           const cooldownExpiry = bytesToNumber(sliceBytes(dataBytes, 4));
 
           // Resolve entities from batch AND database (cross-batch FK preservation)
-          const existingLevel = await resolveEntity(
-            hctx.store,
-            hctx.batchCtx,
-            ORB_LEVEL_TYPE,
-            OrbLevel,
-            id,
-          );
+          const existingLevel = await resolveEntity(hctx.store, hctx.batchCtx, ORB_LEVEL_TYPE, id);
           const existingCooldown = await resolveEntity(
             hctx.store,
             hctx.batchCtx,
             ORB_COOLDOWN_EXPIRY_TYPE,
-            OrbCooldownExpiry,
             id,
           );
 

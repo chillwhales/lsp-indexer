@@ -5,7 +5,6 @@
  * for events matching the LSP4TokenName data key. Decodes the hex-encoded
  * token name string from the data value.
  */
-import { getTypedEntities } from '@/core/entityTypeMap';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { LSP4TokenName } from '@chillwhales/typeorm';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
@@ -21,7 +20,7 @@ const LSP4TokenNameHandler: EntityHandler = {
   listensToBag: ['DataChanged'],
 
   handle(hctx: HandlerContext, triggeredBy: string): void {
-    const events = getTypedEntities(hctx.batchCtx, 'DataChanged');
+    const events = hctx.batchCtx.getEntities('DataChanged');
 
     for (const event of events.values()) {
       // Filter by data key

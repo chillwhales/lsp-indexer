@@ -9,7 +9,6 @@
  * Closes GAP-06 (~84K missing LSP4Metadata entities). Created entities are
  * automatically fetched by the existing lsp4MetadataFetch handler.
  */
-import { getTypedEntities } from '@/core/entityTypeMap';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
 import { LSP4Metadata, LSP8TokenMetadataBaseURI, NFT, Transfer } from '@chillwhales/typeorm';
@@ -42,7 +41,7 @@ const LSP4MetadataBaseUriHandler: EntityHandler = {
 
 async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
   // Get all LSP8TokenMetadataBaseURI entities from batch
-  const baseUriEntities = getTypedEntities(hctx.batchCtx, 'LSP8TokenMetadataBaseURI');
+  const baseUriEntities = hctx.batchCtx.getEntities('LSP8TokenMetadataBaseURI');
   if (baseUriEntities.size === 0) return;
 
   // Collect unique addresses
@@ -55,7 +54,7 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
   const nfts = new Map<string, NFT>(dbNFTs.map((nft) => [nft.id, nft]));
 
   // Also check NFTs in current batch (may have mints in same batch as base URI change)
-  const batchNFTs = getTypedEntities(hctx.batchCtx, 'NFT');
+  const batchNFTs = hctx.batchCtx.getEntities('NFT');
   for (const [id, nft] of batchNFTs) {
     nfts.set(id, nft); // Batch takes priority
   }
@@ -142,7 +141,7 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
 
 async function handleMints(hctx: HandlerContext): Promise<void> {
   // Get all LSP8Transfer entities
-  const transfers = getTypedEntities(hctx.batchCtx, 'LSP8Transfer');
+  const transfers = hctx.batchCtx.getEntities('LSP8Transfer');
 
   // Filter to mints only (from zero address AND has tokenId — LSP8 only)
   const mints: Transfer[] = [];
@@ -172,7 +171,7 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
   );
 
   // Also check batch for LSP8TokenMetadataBaseURI entities
-  const batchBaseURIs = getTypedEntities(hctx.batchCtx, 'LSP8TokenMetadataBaseURI');
+  const batchBaseURIs = hctx.batchCtx.getEntities('LSP8TokenMetadataBaseURI');
   for (const [_, uri] of batchBaseURIs) {
     baseURIs.set(uri.address.toLowerCase(), uri); // Batch takes priority
   }
@@ -189,7 +188,7 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
 
     // Look up NFT entity from batch to get formattedTokenId
     const nftId = generateTokenId({ address: mint.address, tokenId: mint.tokenId });
-    const nft = getTypedEntities(hctx.batchCtx, 'NFT').get(nftId);
+    const nft = hctx.batchCtx.getEntities('NFT').get(nftId);
 
     // Use formattedTokenId when available, fall back to raw tokenId
     const tokenIdForUrl = nft?.formattedTokenId ?? mint.tokenId;

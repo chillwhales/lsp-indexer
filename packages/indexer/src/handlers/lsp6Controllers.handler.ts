@@ -42,7 +42,6 @@
  * controllerAddress is enriched for UniversalProfile verification so the
  * optional `controllerProfile` FK can be populated when the controller is a UP.
  */
-import { getTypedEntities } from '@/core/entityTypeMap';
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';
 import {
@@ -80,7 +79,7 @@ const LSP6ControllersHandler: EntityHandler = {
   listensToBag: ['DataChanged'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const events = getTypedEntities(hctx.batchCtx, 'DataChanged');
+    const events = hctx.batchCtx.getEntities('DataChanged');
 
     // Set persist hint for cross-batch merge behavior (safety net)
     hctx.batchCtx.setPersistHint(CONTROLLER_TYPE, {
@@ -115,11 +114,10 @@ const LSP6ControllersHandler: EntityHandler = {
     }
 
     // Merge entities from BOTH BatchContext and database
-    const existingControllers = await resolveEntities<LSP6Controller>(
+    const existingControllers = await resolveEntities(
       hctx.store,
       hctx.batchCtx,
       CONTROLLER_TYPE,
-      LSP6Controller,
       potentialIds,
     );
 
@@ -164,7 +162,7 @@ const LSP6ControllersHandler: EntityHandler = {
     }
 
     // Queue clear requests for sub-entity types that had new data in this batch
-    const controllers = getTypedEntities(hctx.batchCtx, 'LSP6Controller');
+    const controllers = hctx.batchCtx.getEntities('LSP6Controller');
     if (controllers.size === 0) return;
 
     const controllerIds = [...controllers.keys()];
@@ -594,7 +592,7 @@ function linkSubEntitiesToController(
   subEntityType: 'LSP6Permission' | 'LSP6AllowedCall' | 'LSP6AllowedERC725YDataKey',
   controllers: Map<string, LSP6Controller>,
 ): void {
-  const subEntities = getTypedEntities(hctx.batchCtx, subEntityType);
+  const subEntities = hctx.batchCtx.getEntities(subEntityType);
 
   for (const [id, entity] of subEntities) {
     // Extract controller ID from sub-entity ID: "{upAddress} - {controllerAddress} - {suffix}"

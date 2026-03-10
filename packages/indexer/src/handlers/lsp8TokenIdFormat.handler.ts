@@ -5,7 +5,6 @@
  * for events matching the LSP8TokenIdFormat data key. Decodes the token ID
  * encoding format (0 = NUMBER, 1 = STRING, 2 = ADDRESS, 3/4 = BYTES32).
  */
-import { getTypedEntities } from '@/core/entityTypeMap';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { decodeTokenIdFormat } from '@/utils';
 import { LSP8TokenIdFormat } from '@chillwhales/typeorm';
@@ -22,7 +21,7 @@ const LSP8TokenIdFormatHandler: EntityHandler = {
   listensToBag: ['DataChanged'],
 
   handle(hctx: HandlerContext, triggeredBy: string): void {
-    const events = getTypedEntities(hctx.batchCtx, 'DataChanged');
+    const events = hctx.batchCtx.getEntities('DataChanged');
 
     for (const event of events.values()) {
       // Filter by data key

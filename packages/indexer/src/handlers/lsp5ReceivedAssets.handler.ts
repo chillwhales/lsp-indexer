@@ -35,7 +35,6 @@
  * Invalid Item entries (dataValue not a valid 20-byte address) are skipped
  * entirely — no garbage entities to clean up later.
  */
-import { getTypedEntities } from '@/core/entityTypeMap';
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { DataChanged, LSP5ReceivedAsset, LSP5ReceivedAssetsLength } from '@chillwhales/typeorm';
@@ -60,7 +59,7 @@ const LSP5ReceivedAssetsHandler: EntityHandler = {
   listensToBag: ['DataChanged'],
 
   async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const events = getTypedEntities(hctx.batchCtx, 'DataChanged');
+    const events = hctx.batchCtx.getEntities('DataChanged');
 
     // Collect all potential LSP5ReceivedAsset IDs from Index and Map events
     const potentialIds: string[] = [];
@@ -79,11 +78,10 @@ const LSP5ReceivedAssetsHandler: EntityHandler = {
     }
 
     // CORRECT PATTERN: Resolve from BOTH batch and database
-    const existingAssets = await resolveEntities<LSP5ReceivedAsset>(
+    const existingAssets = await resolveEntities(
       hctx.store,
       hctx.batchCtx,
       RECEIVED_ASSET_TYPE,
-      LSP5ReceivedAsset,
       potentialIds,
     );
 

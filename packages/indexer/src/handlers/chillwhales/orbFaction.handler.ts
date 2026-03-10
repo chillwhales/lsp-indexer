@@ -22,7 +22,6 @@
  * Entity ID follows the NFT id pattern: `"{address} - {tokenId}"`.
  */
 import { ORB_FACTION_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
-import { getTypedEntities } from '@/core/entityTypeMap';
 import { resolveEntity } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
@@ -42,7 +41,7 @@ const OrbFactionHandler: EntityHandler = {
     // Branch on triggeredBy to handle mint detection vs data key changes
     if (triggeredBy === 'LSP8Transfer') {
       // MINT DETECTION: Create default entity when Orb NFTs are minted
-      const transfers = getTypedEntities(hctx.batchCtx, 'LSP8Transfer');
+      const transfers = hctx.batchCtx.getEntities('LSP8Transfer');
 
       for (const transfer of transfers.values()) {
         // Filter to ORBS contract only
@@ -96,7 +95,7 @@ const OrbFactionHandler: EntityHandler = {
       }
     } else if (triggeredBy === 'TokenIdDataChanged') {
       // DATA KEY CHANGES: Overwrite defaults with actual on-chain values
-      const events = getTypedEntities(hctx.batchCtx, 'TokenIdDataChanged');
+      const events = hctx.batchCtx.getEntities('TokenIdDataChanged');
 
       for (const event of events.values()) {
         // Filter by contract address
@@ -110,13 +109,7 @@ const OrbFactionHandler: EntityHandler = {
         const faction = hexToString(event.dataValue as Hex);
 
         // Resolve entity from batch AND database (cross-batch FK preservation)
-        const existing = await resolveEntity(
-          hctx.store,
-          hctx.batchCtx,
-          ORB_FACTION_TYPE,
-          OrbFaction,
-          id,
-        );
+        const existing = await resolveEntity(hctx.store, hctx.batchCtx, ORB_FACTION_TYPE, id);
 
         // Create entity, preserving existing FKs if entity was already created
         const entity = new OrbFaction({
