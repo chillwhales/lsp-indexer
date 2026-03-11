@@ -30,9 +30,11 @@ schema_config:
         period: 24h
 
 storage_config:
+  tsdb_shipper:
+    active_index_directory: /loki/tsdb-index
+    cache_location: /loki/tsdb-cache
   filesystem:
-    chunks_directory: /loki/chunks
-    rules_directory: /loki/rules
+    directory: /loki/chunks
 
 limits_config:
   # 14 days — edit to change log retention
@@ -41,3 +43,10 @@ limits_config:
 compactor:
   working_directory: /loki/compactor
   retention_enabled: true
+
+ruler:
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
+  rule_path: /loki/rules-temp
