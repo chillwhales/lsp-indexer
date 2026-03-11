@@ -8,5 +8,5 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": ["@chillwhales/abi", "@chillwhales/typeorm", "@chillwhales/comparison-tool"],
-  "privatePackages": { "version": false, "tag": false }
+  "privatePackages": { "version": true, "tag": true }
 }
