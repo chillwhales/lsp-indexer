@@ -128,7 +128,7 @@
     },
     {
       "type": "stat",
-      "title": "Last Block Age",
+      "title": "Block Processing Activity (1m)",
       "datasource": {
         "type": "loki",
         "uid": "loki"

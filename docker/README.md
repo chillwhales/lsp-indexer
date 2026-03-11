@@ -66,14 +66,14 @@ docker compose -f docker-compose.prod.yml --env-file ../.env.prod down
 
 ### Production vs Development
 
-| Aspect          | Development                                    | Production                                     |
-| --------------- | ---------------------------------------------- | ---------------------------------------------- |
-| Indexer         | Built from source                              | `ghcr.io/chillwhales/lsp-indexer:latest`       |
-| PostgreSQL port | Exposed (5432)                                 | Not exposed                                    |
-| Hasura console  | Enabled                                        | Disabled                                       |
-| Hasura dev mode | Enabled                                        | Disabled                                       |
-| Monitoring      | Grafana + Loki + Alloy + cAdvisor + Prometheus | Grafana + Loki + Alloy + cAdvisor + Prometheus |
-| Secrets         | Optional defaults                              | Required (no defaults)                         |
+| Aspect          | Development                                    | Production                                      |
+| --------------- | ---------------------------------------------- | ----------------------------------------------- |
+| Indexer         | Built from source                              | `ghcr.io/chillwhales/lsp-indexer:latest`        |
+| PostgreSQL port | Exposed (5432)                                 | Not exposed                                     |
+| Hasura console  | Enabled                                        | Disabled                                        |
+| Hasura dev mode | Enabled                                        | Disabled                                        |
+| Monitoring      | Grafana + Loki + Alloy + cAdvisor + Prometheus | Grafana + Loki + Alloy + cAdvisor + Prometheus  |
+| Secrets         | Optional defaults                              | Required (no defaults, including Grafana admin) |
 
 ## Monitoring
 
