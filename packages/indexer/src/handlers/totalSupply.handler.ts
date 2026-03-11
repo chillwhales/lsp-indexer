@@ -15,7 +15,7 @@
  * - Uses the contract address as the entity ID (one TotalSupply per contract).
  */
 import { resolveEntities } from '@/core/handlerHelpers';
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { isNullAddress } from '@/utils';
 import { TotalSupply, Transfer } from '@chillwhales/typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
@@ -27,7 +27,7 @@ const TotalSupplyHandler: EntityHandler = {
   name: 'totalSupply',
   listensToBag: ['LSP7Transfer', 'LSP8Transfer'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, triggeredBy): Promise<void> {
     // Only process transfers from the triggered bag (prevents double-processing).
     // The pipeline calls handle() once per subscribed bag key that has entities.
     // Without this guard, reading both bags on each call would apply deltas twice.

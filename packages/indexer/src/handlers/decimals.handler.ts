@@ -15,7 +15,7 @@
  */
 
 import { aggregate3StaticLatest } from '@/core/multicall';
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { LSP7DigitalAsset } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { Decimals } from '@chillwhales/typeorm';
@@ -32,7 +32,7 @@ const DecimalsHandler: EntityHandler = {
   listensToBag: ['LSP7Transfer', 'LSP8Transfer', 'DataChanged'],
   postVerification: true,
 
-  async handle(hctx: HandlerContext, _triggeredBy: string): Promise<void> {
+  async handle(hctx, _triggeredBy): Promise<void> {
     const { context, batchCtx } = hctx;
 
     // Read newly verified Digital Assets from the verification phase

@@ -26,7 +26,7 @@ const LSP4MetadataBaseUriHandler: EntityHandler = {
   listensToBag: ['LSP8Transfer', 'LSP8TokenMetadataBaseURI'],
   dependsOn: ['lsp8MetadataBaseURI', 'nft', 'formattedTokenId'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, triggeredBy): Promise<void> {
     if (triggeredBy === BASE_URI_ENTITY_TYPE) {
       await handleBaseUriChanged(hctx);
     } else if (triggeredBy === TRANSFER_ENTITY_TYPE) {

@@ -67,12 +67,12 @@ export interface MetadataFetchConfig<TEntity extends MetadataEntity> {
   /**
    * Entity type key in BatchContext.
    *
-   * Typed as `keyof EntityRegistry & string` so that `addEntity()` calls
+   * Typed as `keyof EntityRegistry` so that `addEntity()` calls
    * compile without casts at handler call sites. The generic TEntity cannot
    * be statically proven to match EntityRegistry[K], so `handleMetadataFetch`
    * uses a single justified cast (`as Map<string, TEntity>`) to bridge the gap.
    */
-  entityType: keyof EntityRegistry & string;
+  entityType: keyof EntityRegistry;
   /** Sub-entity types to clear on success or empty value */
   subEntityDescriptors: SubEntityDescriptor[];
   /**
@@ -185,7 +185,7 @@ export async function queryUnfetchedEntities<TEntity extends MetadataEntity>(
  */
 function addToCtx(
   batchCtx: IBatchContext,
-  entityType: keyof EntityRegistry & string,
+  entityType: keyof EntityRegistry,
   id: string,
   entity: MetadataEntity,
 ): void {
@@ -216,9 +216,9 @@ function addToCtx(
 export async function handleMetadataFetch<TEntity extends MetadataEntity>(
   hctx: HandlerContext,
   config: MetadataFetchConfig<TEntity>,
-  triggeredBy: string,
+  triggeredBy: keyof EntityRegistry,
 ): Promise<void> {
-  const entities = hctx.batchCtx.getEntitiesUntyped(triggeredBy) as Map<string, TEntity>;
+  const entities = hctx.batchCtx.getEntities(triggeredBy) as unknown as Map<string, TEntity>;
 
   // ----- Path 1: Empty value (runs every batch, not just head) -----
   for (const entity of entities.values()) {

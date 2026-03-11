@@ -40,7 +40,7 @@ import { FindOptionsWhere, In } from 'typeorm';
  * @param id           - Entity ID to resolve
  * @returns Entity if found in batch or DB, null otherwise
  */
-export async function resolveEntity<K extends keyof EntityRegistry & string>(
+export async function resolveEntity<K extends keyof EntityRegistry>(
   store: Store,
   batchCtx: IBatchContext,
   entityType: K,
@@ -82,7 +82,7 @@ export async function resolveEntity<K extends keyof EntityRegistry & string>(
  * @param ids          - IDs to query from database
  * @returns Map containing ALL batch entities + DB entities for requested IDs
  */
-export async function resolveEntities<K extends keyof EntityRegistry & string>(
+export async function resolveEntities<K extends keyof EntityRegistry>(
   store: Store,
   batchCtx: IBatchContext,
   entityType: K,

@@ -292,7 +292,7 @@ const LSP29EncryptedAssetFetchHandler: EntityHandler = {
   dependsOn: ['lsp29EncryptedAsset'],
   drainAtHead: true,
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, triggeredBy): Promise<void> {
     const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_TYPE).values());
 
     if (hctx.context.log.isDebug()) {

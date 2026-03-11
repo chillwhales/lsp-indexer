@@ -9,7 +9,7 @@
  *   - First 8 bytes: verification header (either zero-padded or keccak256(bytes) method)
  *   - Remaining bytes: UTF-8 encoded base URI string
  */
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { LSP8TokenMetadataBaseURI } from '@chillwhales/typeorm';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { concat, hexToString, isHex, keccak256, sliceHex, toHex } from 'viem';
@@ -38,7 +38,7 @@ const LSP8MetadataBaseURIHandler: EntityHandler = {
   name: 'lsp8MetadataBaseURI',
   listensToBag: ['DataChanged'],
 
-  handle(hctx: HandlerContext, triggeredBy: string): void {
+  handle(hctx, _triggeredBy): void {
     const events = hctx.batchCtx.getEntities('DataChanged');
 
     for (const event of events.values()) {

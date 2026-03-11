@@ -12,7 +12,7 @@
  */
 import { CHILL_ADDRESS, CHILLWHALES_ADDRESS } from '@/constants/chillwhales';
 import { aggregate3StaticLatest } from '@/core/multicall';
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { generateTokenId, isNullAddress } from '@/utils';
 import { CHILL } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
@@ -30,7 +30,7 @@ const ChillClaimedHandler: EntityHandler = {
   listensToBag: ['LSP8Transfer'],
   postVerification: false,
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, _triggeredBy): Promise<void> {
     const { context, batchCtx, isHead, store } = hctx;
 
     // PHASE 1: Mint detection (runs every batch)

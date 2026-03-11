@@ -78,7 +78,7 @@ const LSP6ControllersHandler: EntityHandler = {
   name: 'lsp6Controllers',
   listensToBag: ['DataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, _triggeredBy): Promise<void> {
     const events = hctx.batchCtx.getEntities('DataChanged');
 
     // Set persist hint for cross-batch merge behavior (safety net)

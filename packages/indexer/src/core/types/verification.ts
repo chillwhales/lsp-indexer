@@ -7,6 +7,7 @@
  * - EnrichmentRequest: Deferred FK resolution request for verified addresses
  */
 
+import type { EntityRegistry } from '../entityRegistry';
 import { Entity, FKFields } from './entity';
 
 /**
@@ -69,7 +70,7 @@ export interface EnrichmentRequest<T extends Entity> extends BlockPosition {
   tokenId?: string;
 
   /** Which entity type to enrich (e.g. 'Transfer', 'LSP4TokenName') */
-  entityType: string;
+  entityType: keyof EntityRegistry;
 
   /** Which entity id to enrich */
   entityId: string;

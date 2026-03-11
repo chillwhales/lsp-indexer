@@ -14,7 +14,7 @@
  */
 import { ZERO_ADDRESS } from '@/constants';
 import { resolveEntities } from '@/core/handlerHelpers';
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { generateTokenId } from '@/utils';
 import { NFT } from '@chillwhales/typeorm';
 
@@ -28,7 +28,7 @@ const NFTHandler: EntityHandler = {
   name: 'nft',
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, triggeredBy): Promise<void> {
     // Start with NFTs already created in this batch (intra-batch deduplication)
     const existingInBatch = hctx.batchCtx.getEntities('NFT');
     const nfts = new Map<string, NFT>(existingInBatch);

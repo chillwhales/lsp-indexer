@@ -22,6 +22,7 @@ import {
   Decimals,
   DeployedContracts,
   DeployedERC1167Proxies,
+  DigitalAsset,
   DigitalAssetOwner,
   Executed,
   Follow,
@@ -85,6 +86,7 @@ import {
   TotalSupply,
   Transfer,
   Unfollow,
+  UniversalProfile,
   UniversalProfileOwner,
   UniversalReceiver,
 } from '@chillwhales/typeorm';
@@ -104,6 +106,10 @@ import {
  * caught at compile time.
  */
 export interface EntityRegistry {
+  // Core entities (created by verification, Step 5)
+  UniversalProfile: UniversalProfile;
+  DigitalAsset: DigitalAsset;
+
   // Event entities (from plugins, Step 1 EXTRACT)
   DataChanged: DataChanged;
   TokenIdDataChanged: TokenIdDataChanged;
@@ -213,6 +219,10 @@ export type BagKey = keyof EntityRegistry;
 export const ENTITY_CONSTRUCTORS: {
   [K in keyof EntityRegistry]: new (...args: any[]) => EntityRegistry[K];
 } = {
+  // Core entities
+  UniversalProfile,
+  DigitalAsset,
+
   // Event entities
   DataChanged,
   TokenIdDataChanged,

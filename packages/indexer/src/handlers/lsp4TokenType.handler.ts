@@ -5,7 +5,7 @@
  * for events matching the LSP4TokenType data key. Decodes the token type
  * enum value (0 = TOKEN, 1 = NFT, 2 = COLLECTION) from the data value.
  */
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { decodeTokenType } from '@/utils';
 import { LSP4TokenType } from '@chillwhales/typeorm';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
@@ -20,7 +20,7 @@ const LSP4TokenTypeHandler: EntityHandler = {
   name: 'lsp4TokenType',
   listensToBag: ['DataChanged'],
 
-  handle(hctx: HandlerContext, triggeredBy: string): void {
+  handle(hctx, _triggeredBy): void {
     const events = hctx.batchCtx.getEntities('DataChanged');
 
     for (const event of events.values()) {

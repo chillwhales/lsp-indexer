@@ -15,7 +15,7 @@
  * is left as null. A warning is logged for unknown formats to aid debugging.
  */
 
-import { EntityHandler, HandlerContext } from '@/core/types';
+import { EntityHandler } from '@/core/types';
 import { formatTokenId } from '@/utils';
 import { LSP8TokenIdFormat, NFT } from '@chillwhales/typeorm';
 import { In } from 'typeorm';
@@ -30,7 +30,7 @@ const FormattedTokenIdHandler: EntityHandler = {
   listensToBag: ['LSP8Transfer', 'DataChanged'],
   dependsOn: ['lsp8TokenIdFormat'],
 
-  async handle(hctx: HandlerContext, _triggeredBy: string): Promise<void> {
+  async handle(hctx, _triggeredBy): Promise<void> {
     const { store, context, batchCtx } = hctx;
 
     // -----------------------------------------------------------------------

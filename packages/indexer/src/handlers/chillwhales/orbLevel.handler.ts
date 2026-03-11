@@ -26,7 +26,7 @@
  */
 import { ORB_LEVEL_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { resolveEntity } from '@/core/handlerHelpers';
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { generateTokenId } from '@/utils';
 import { OrbCooldownExpiry, OrbLevel } from '@chillwhales/typeorm';
 import {
@@ -49,7 +49,7 @@ const OrbLevelHandler: EntityHandler = {
   name: 'orbLevel',
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, triggeredBy): Promise<void> {
     // Branch on triggeredBy to handle mint detection vs data key changes
     if (triggeredBy === 'LSP8Transfer') {
       // MINT DETECTION: Create default entities when Orb NFTs are minted

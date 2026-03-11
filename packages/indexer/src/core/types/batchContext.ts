@@ -117,20 +117,12 @@ export type StoredClearRequest = Omit<ClearRequest<Entity>, 'fkField'> & {
  */
 export interface IBatchContext {
   // Typed entity storage — compile-time bag key validation
-  addEntity<K extends keyof EntityRegistry & string>(
-    type: K,
-    id: string,
-    entity: EntityRegistry[K],
-  ): void;
-  getEntities<K extends keyof EntityRegistry & string>(type: K): Map<string, EntityRegistry[K]>;
-  removeEntity<K extends keyof EntityRegistry & string>(type: K, id: string): void;
-  hasEntities(type: keyof EntityRegistry & string): boolean;
+  addEntity<K extends keyof EntityRegistry>(type: K, id: string, entity: EntityRegistry[K]): void;
+  getEntities<K extends keyof EntityRegistry>(type: K): Map<string, EntityRegistry[K]>;
+  removeEntity<K extends keyof EntityRegistry>(type: K, id: string): void;
+  hasEntities(type: keyof EntityRegistry): boolean;
 
-  // Untyped entity storage — for pipeline/fkResolution dynamic iteration
-  getEntitiesUntyped(type: string): Map<string, Entity>;
-  hasEntitiesUntyped(type: string): boolean;
-
-  getEntityTypeKeys(): string[];
+  getEntityTypeKeys(): (keyof EntityRegistry)[];
 
   /**
    * Seal the set of raw entity type keys after Step 2 persistence.

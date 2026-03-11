@@ -38,6 +38,8 @@ export class BatchContext implements IBatchContext {
    * Type safety is provided by the generic `addEntity<K>` / `getEntities<K>`
    * methods which use `keyof EntityRegistry` to enforce bag key validity at
    * compile time and `instanceof ENTITY_CONSTRUCTORS[K]` at runtime.
+   * `getEntityTypeKeys()` returns `(keyof EntityRegistry)[]` so callers
+   * can iterate and call `getEntities(key)` directly without casts.
    */
   private readonly entities = new Map<string, Map<string, Entity>>();
 
@@ -110,11 +112,7 @@ export class BatchContext implements IBatchContext {
    * @throws Error if the entity is not an instance of the expected constructor
    * @throws Error if the bag key is sealed (raw entity type already persisted in Step 2)
    */
-  addEntity<K extends keyof EntityRegistry & string>(
-    type: K,
-    id: string,
-    entity: EntityRegistry[K],
-  ): void {
+  addEntity<K extends keyof EntityRegistry>(type: K, id: string, entity: EntityRegistry[K]): void {
     // Prevent handlers from adding to raw entity type keys after Step 2
     if (this.sealedRawTypes !== null && this.sealedRawTypes.has(type)) {
       throw new Error(
@@ -146,7 +144,7 @@ export class BatchContext implements IBatchContext {
    *
    * @returns Typed map of entity ID → entity, or empty map if no entities exist
    */
-  getEntities<K extends keyof EntityRegistry & string>(type: K): Map<string, EntityRegistry[K]> {
+  getEntities<K extends keyof EntityRegistry>(type: K): Map<string, EntityRegistry[K]> {
     const raw = this.entities.get(type);
     if (!raw || raw.size === 0) return new Map() as Map<string, EntityRegistry[K]>;
 
@@ -165,36 +163,20 @@ export class BatchContext implements IBatchContext {
   /**
    * Remove a typed entity from the bag.
    */
-  removeEntity<K extends keyof EntityRegistry & string>(type: K, id: string): void {
+  removeEntity<K extends keyof EntityRegistry>(type: K, id: string): void {
     this.entities.get(type)?.delete(id);
   }
 
   /**
    * Check if typed entities exist in the bag for a given key.
    */
-  hasEntities(type: keyof EntityRegistry & string): boolean {
+  hasEntities(type: keyof EntityRegistry): boolean {
     const map = this.entities.get(type);
     return map !== undefined && map.size > 0;
   }
 
-  /**
-   * Get entities without type validation — for pipeline and fkResolution
-   * that iterate dynamically via `getEntityTypeKeys()`.
-   */
-  getEntitiesUntyped(type: string): Map<string, Entity> {
-    return this.entities.get(type) ?? new Map();
-  }
-
-  /**
-   * Check if entities exist without type validation — for pipeline dynamic checks.
-   */
-  hasEntitiesUntyped(type: string): boolean {
-    const map = this.entities.get(type);
-    return map !== undefined && map.size > 0;
-  }
-
-  getEntityTypeKeys(): string[] {
-    return [...this.entities.keys()];
+  getEntityTypeKeys(): (keyof EntityRegistry)[] {
+    return [...this.entities.keys()] as (keyof EntityRegistry)[];
   }
 
   sealRawEntityTypes(): void {

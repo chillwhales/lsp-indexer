@@ -17,7 +17,7 @@
  *   - Queues enrichment for digitalAsset FK
  */
 
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { DigitalAssetOwner } from '@chillwhales/typeorm';
 
 // Entity type key used in the BatchContext entity bag
@@ -29,7 +29,7 @@ const DigitalAssetOwnerHandler: EntityHandler = {
   postVerification: true,
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  async handle(hctx: HandlerContext, _triggeredBy: string): Promise<void> {
+  async handle(hctx, _triggeredBy): Promise<void> {
     const { batchCtx } = hctx;
 
     // Read OwnershipTransferred entities from the batch

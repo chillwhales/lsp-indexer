@@ -21,6 +21,7 @@ import { In } from 'typeorm';
 import { getAddress, isAddressEqual } from 'viem';
 
 import { BatchContext } from './batchContext';
+import type { EntityRegistry } from './entityRegistry';
 import { resolveForeignKeys } from './fkResolution';
 import { createStepLogger } from './logger';
 import { PluginRegistry } from './registry';
@@ -230,7 +231,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   const persistRawLog = createStepLogger(context.log, 'PERSIST_RAW', blockRange);
   const rawEntityTypes = new Set(batchCtx.getEntityTypeKeys());
   for (const type of rawEntityTypes) {
-    const entities = batchCtx.getEntitiesUntyped(type);
+    const entities = batchCtx.getEntities(type);
     if (entities.size > 0) {
       await context.store.insert([...entities.values()]);
       persistRawLog.info(
@@ -342,7 +343,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   const derivedTypes = allEntityTypes.filter((type) => !rawEntityTypes.has(type));
 
   for (const type of derivedTypes) {
-    const entities = batchCtx.getEntitiesUntyped(type);
+    const entities = batchCtx.getEntities(type);
     if (entities.size === 0) continue;
 
     const persistHint = batchCtx.getPersistHint(type);
@@ -374,7 +375,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
 
   // Single pass: collect addresses for verification AND group for enrichment
   const addressesByCategory = new Map<EntityCategory, Set<string>>();
-  const grouped = new Map<string, Map<string, StoredEnrichmentRequest[]>>();
+  const grouped = new Map<keyof EntityRegistry, Map<string, StoredEnrichmentRequest[]>>();
 
   for (const request of enrichmentQueue) {
     // Collect addresses for non-NFT categories (NFTs always valid)
@@ -489,7 +490,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     .filter((type) => !rawEntityTypes.has(type) && !derivedTypes.includes(type));
 
   for (const type of postVerifyTypes) {
-    const entities = batchCtx.getEntitiesUntyped(type);
+    const entities = batchCtx.getEntities(type);
     if (entities.size === 0) continue;
 
     await context.store.upsert([...entities.values()]);
@@ -544,7 +545,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // Step 6: ENRICH — Batch update FK fields per entity type
   const enrichLog = createStepLogger(context.log, 'ENRICH', blockRange);
   for (const [entityType, entityMap] of grouped) {
-    const entities = batchCtx.getEntitiesUntyped(entityType);
+    const entities = batchCtx.getEntities(entityType);
     const entitiesToUpdate: Entity[] = [];
 
     for (const [entityId, requests] of entityMap) {

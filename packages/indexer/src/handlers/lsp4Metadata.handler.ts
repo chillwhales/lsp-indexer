@@ -30,7 +30,7 @@ const LSP4MetadataHandler: EntityHandler = {
   name: 'lsp4Metadata',
   listensToBag: ['DataChanged', 'TokenIdDataChanged'],
 
-  handle(hctx: HandlerContext, triggeredBy: string): void {
+  handle(hctx, triggeredBy): void {
     if (triggeredBy === 'DataChanged') {
       handleDataChanged(hctx);
     } else if (triggeredBy === 'TokenIdDataChanged') {

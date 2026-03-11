@@ -58,7 +58,7 @@ const LSP5ReceivedAssetsHandler: EntityHandler = {
   name: 'lsp5ReceivedAssets',
   listensToBag: ['DataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, _triggeredBy): Promise<void> {
     const events = hctx.batchCtx.getEntities('DataChanged');
 
     // Collect all potential LSP5ReceivedAsset IDs from Index and Map events

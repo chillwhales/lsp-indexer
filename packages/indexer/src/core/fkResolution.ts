@@ -29,6 +29,7 @@ import { Store } from '@subsquid/typeorm-store';
 import { In, IsNull } from 'typeorm';
 
 import { BatchContext } from './batchContext';
+import type { EntityRegistry } from './entityRegistry';
 import { createStepLogger } from './logger';
 import { EntityCategory, type Entity } from './types';
 
@@ -52,7 +53,7 @@ interface FKResolutionRule {
   readonly name: string;
 
   /** BatchContext entity type key for source entities (e.g., 'UniversalProfile') */
-  readonly sourceType: string;
+  readonly sourceType: keyof EntityRegistry;
 
   /** Source entity class constructor (for DB queries) */
   readonly sourceClass: { new (props?: unknown): Entity };
@@ -64,7 +65,7 @@ interface FKResolutionRule {
   readonly targetClass: { new (props?: unknown): Entity };
 
   /** BatchContext entity type key for target entities */
-  readonly targetType: string;
+  readonly targetType: keyof EntityRegistry;
 
   /** Given a source entity ID, derive the target entity ID */
   readonly resolveTargetId: (sourceId: string) => string;
@@ -216,7 +217,7 @@ export async function resolveForeignKeys(
  */
 function getSourceEntitiesFromBatch(batchCtx: BatchContext, rule: FKResolutionRule): Entity[] {
   // Check regular entity bag first
-  const bagEntities = batchCtx.getEntitiesUntyped(rule.sourceType);
+  const bagEntities = batchCtx.getEntities(rule.sourceType);
   const entities: Entity[] = [...bagEntities.values()];
 
   // For core entities (UP, DA), also check verification results
@@ -245,7 +246,7 @@ function getSourceEntitiesFromBatch(batchCtx: BatchContext, rule: FKResolutionRu
  * Get target entities from the batch context for a given rule.
  */
 function getTargetEntitiesFromBatch(batchCtx: BatchContext, rule: FKResolutionRule): Entity[] {
-  const entities = batchCtx.getEntitiesUntyped(rule.targetType);
+  const entities = batchCtx.getEntities(rule.targetType);
   return [...entities.values()];
 }
 
@@ -266,7 +267,7 @@ async function resolveForward(
   // Separate sources into those whose target is in-batch vs needs DB lookup
   const needsDbLookup: Array<{ source: Entity; targetId: string }> = [];
 
-  const batchTargets = batchCtx.getEntitiesUntyped(rule.targetType);
+  const batchTargets = batchCtx.getEntities(rule.targetType);
 
   for (const source of sourceEntities) {
     // Skip if FK is already set

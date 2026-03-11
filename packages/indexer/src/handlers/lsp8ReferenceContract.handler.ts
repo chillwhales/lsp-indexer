@@ -5,7 +5,7 @@
  * for events matching the LSP8ReferenceContract data key. Stores the raw hex
  * reference contract address value.
  */
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { LSP8ReferenceContract } from '@chillwhales/typeorm';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { isHex } from 'viem';
@@ -19,7 +19,7 @@ const LSP8ReferenceContractHandler: EntityHandler = {
   name: 'lsp8ReferenceContract',
   listensToBag: ['DataChanged'],
 
-  handle(hctx: HandlerContext, triggeredBy: string): void {
+  handle(hctx, _triggeredBy): void {
     const events = hctx.batchCtx.getEntities('DataChanged');
 
     for (const event of events.values()) {

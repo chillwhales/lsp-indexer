@@ -21,7 +21,7 @@
  *   for OwnedToken.
  */
 import { resolveEntities } from '@/core/handlerHelpers';
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { generateOwnedAssetId, generateOwnedTokenId, isNullAddress } from '@/utils';
 import { OwnedAsset, OwnedToken } from '@chillwhales/typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
@@ -34,7 +34,7 @@ const OwnedAssetsHandler: EntityHandler = {
   name: 'ownedAssets',
   listensToBag: ['LSP7Transfer', 'LSP8Transfer'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, triggeredBy): Promise<void> {
     // Only process transfers from the triggered bag (prevents double-processing)
     // Handler is called twice per batch: once for LSP7Transfer, once for LSP8Transfer
     const allTransfers =
