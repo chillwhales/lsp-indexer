@@ -21,9 +21,8 @@ import { LSP8TokenIdFormat, NFT } from '@chillwhales/typeorm';
 import { In } from 'typeorm';
 import { isHex } from 'viem';
 
-// Entity type keys used in BatchContext entity bag
+// Entity type key used in BatchContext entity bag
 const NFT_ENTITY_TYPE = 'NFT';
-const TOKEN_ID_FORMAT_ENTITY_TYPE = 'LSP8TokenIdFormat';
 
 const FormattedTokenIdHandler: EntityHandler = {
   name: 'formattedTokenId',

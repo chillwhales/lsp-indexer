@@ -28,7 +28,7 @@ const UniversalProfileOwnerHandler: EntityHandler = {
   listensToBag: ['OwnershipTransferred'],
   postVerification: true,
 
-  async handle(hctx, _triggeredBy): Promise<void> {
+  handle(hctx, _triggeredBy): void {
     const { batchCtx } = hctx;
 
     // Read OwnershipTransferred entities from the batch

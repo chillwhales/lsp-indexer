@@ -17,7 +17,6 @@ import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 
 // Entity type keys
 const LSP4_ENTITY_TYPE = 'LSP4Metadata';
-const NFT_ENTITY_TYPE = 'NFT';
 const BASE_URI_ENTITY_TYPE = 'LSP8TokenMetadataBaseURI';
 const TRANSFER_ENTITY_TYPE = 'LSP8Transfer';
 
