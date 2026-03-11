@@ -5,8 +5,13 @@
  * drain, worker pool fetch, sub-entity parsing, error tracking, and
  * sub-entity clearing via queueClear().
  *
- * Each fetch handler configures this utility with its specific entity class,
- * parsing function, and sub-entity types.
+ * Each fetch handler configures this utility with its specific bag key
+ * and parsing function. All functions operate on the concrete
+ * `MetadataEntityKey` union (`'LSP3Profile' | 'LSP4Metadata' | 'LSP29EncryptedAsset'`)
+ * rather than a deferred generic `K extends MetadataEntityKey`. This lets
+ * TypeScript resolve `EntityRegistry[MetadataEntityKey]` to the concrete
+ * 3-member union, which in turn makes `FindOptionsWhere`, `createEntity`,
+ * and `addEntity` all evaluate without type casts.
  */
 import {
   FETCH_BATCH_SIZE,
@@ -14,44 +19,52 @@ import {
   FETCH_LIMIT,
   FETCH_RETRY_COUNT,
 } from '@/constants';
-import { EntityRegistry } from '@/core/entityRegistry';
-import {
-  Entity,
-  EntityConstructor,
-  FetchRequest,
-  FetchResult,
-  HandlerContext,
-  IBatchContext,
-} from '@/core/types';
+import { createEntity, EntityRegistry, storeFind } from '@/core/entityRegistry';
+import { Entity, EntityConstructor, FetchRequest, FetchResult, HandlerContext } from '@/core/types';
 import { Store } from '@subsquid/typeorm-store';
-import { FindOptionsWhere, In, IsNull, LessThan, Not } from 'typeorm';
+import { In, IsNull, LessThan, Not } from 'typeorm';
+
+// ---------------------------------------------------------------------------
+// Key types
+// ---------------------------------------------------------------------------
+
+/**
+ * The 3 bag keys whose entities support metadata fetching.
+ *
+ * Using the concrete union (not a deferred generic `K extends MetadataEntityKey`)
+ * lets TypeScript resolve `EntityRegistry[MetadataEntityKey]` to
+ * `LSP3Profile | LSP4Metadata | LSP29EncryptedAsset` — a concrete union that
+ * `FindOptionsWhere`, `createEntity`, and `addEntity` can all evaluate directly.
+ */
+export type MetadataEntityKey = 'LSP3Profile' | 'LSP4Metadata' | 'LSP29EncryptedAsset';
+
+/**
+ * Concrete union of the 3 metadata entity types.
+ *
+ * `EntityRegistry[MetadataEntityKey]` resolves to
+ * `LSP3Profile | LSP4Metadata | LSP29EncryptedAsset`. Used for `storeFind()`
+ * where clauses, `createEntity()` spreads, and callback parameters — all
+ * without type casts.
+ */
+export type MetadataEntity = EntityRegistry[MetadataEntityKey];
 
 // ---------------------------------------------------------------------------
 // Configuration types
 // ---------------------------------------------------------------------------
 
 /**
- * Common fields shared by all metadata entities (LSP3Profile, LSP4Metadata, LSP29EncryptedAsset).
- *
- * Used as a type constraint so `queryUnfetchedEntities` and `handleMetadataFetch`
- * can access fetch-tracking fields without `any` casts.
- */
-export interface MetadataEntity extends Entity {
-  url: string | null;
-  isDataFetched: boolean;
-  fetchErrorCode: string | null;
-  fetchErrorMessage: string | null;
-  fetchErrorStatus: number | null;
-  retryCount: number | null;
-}
-
-/**
  * Sub-entity type descriptor for queueClear operations.
+ *
+ * The descriptor array is heterogeneous — each handler holds descriptors for
+ * 7-10 different sub-entity classes. Compile-time FK field validation happens
+ * at each handler call site (where concrete types like `LSP3ProfileName` are
+ * used with literal `fkField` strings); here we only need the constructor for
+ * `store.find()` lookups and the field name as a plain string for the dynamic
+ * where clause.
  */
 export interface SubEntityDescriptor {
   /** Sub-entity class constructor for TypeORM findBy/remove operations */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  subEntityClass: EntityConstructor<any>;
+  subEntityClass: EntityConstructor<Entity>;
   /** FK field name on sub-entity that references the parent */
   fkField: string;
 }
@@ -59,20 +72,16 @@ export interface SubEntityDescriptor {
 /**
  * Configuration for handleMetadataFetch, provided by each handler.
  *
- * @template TEntity The main metadata entity type (e.g., LSP3Profile)
+ * Non-generic — all callbacks receive `MetadataEntity` (the concrete union)
+ * rather than `EntityRegistry[K]` (a deferred generic). This is safe because
+ * the 3 metadata entities share all fields accessed by the fetch utility
+ * (`id`, `url`, `blockNumber`, `transactionIndex`, `logIndex`, `retryCount`,
+ * `isDataFetched`, `fetchError*`), and each handler's `parseAndAddSubEntities`
+ * callback only accesses these shared fields on the entity parameter.
  */
-export interface MetadataFetchConfig<TEntity extends MetadataEntity> {
-  /** Entity class constructor for DB queries and entity construction */
-  entityClass: EntityConstructor<TEntity>;
-  /**
-   * Entity type key in BatchContext.
-   *
-   * Typed as `keyof EntityRegistry` so that `addEntity()` calls
-   * compile without casts at handler call sites. The generic TEntity cannot
-   * be statically proven to match EntityRegistry[K], so `handleMetadataFetch`
-   * uses a single justified cast (`as Map<string, TEntity>`) to bridge the gap.
-   */
-  entityType: keyof EntityRegistry;
+export interface MetadataFetchConfig<K extends MetadataEntityKey = MetadataEntityKey> {
+  /** Bag key in the EntityRegistry — used for getEntities/addEntity/createEntity */
+  entityKey: K;
   /** Sub-entity types to clear on success or empty value */
   subEntityDescriptors: SubEntityDescriptor[];
   /**
@@ -84,22 +93,27 @@ export interface MetadataFetchConfig<TEntity extends MetadataEntity> {
    * - Adding them to `hctx.batchCtx.addEntity()`
    * - Returning `{ success: true }` or `{ success: false, fetchErrorMessage: '...' }`
    *
+   * Receives `MetadataEntity` (the concrete union) rather than a specific entity
+   * type. Each handler's parse function only accesses shared fields (`id`,
+   * `blockNumber`, `transactionIndex`, `logIndex`) on the entity parameter,
+   * so the union type is safe.
+   *
    * @param entity - The main metadata entity being fetched
    * @param data - The fetched JSON data from worker pool
    * @param hctx - Handler context for addEntity calls
    * @returns Parse result with optional entity-level field updates on success
    */
   parseAndAddSubEntities: (
-    entity: TEntity,
+    entity: EntityRegistry[K],
     data: unknown,
     hctx: HandlerContext,
   ) =>
     | { success: true; entityUpdates?: Record<string, unknown> }
     | { success: false; fetchErrorMessage: string };
   /** Extract URL from entity. Returns null if entity has no URL (empty value). */
-  getUrl: (entity: TEntity) => string | null;
+  getUrl: (entity: EntityRegistry[K]) => string | null;
   /** Get entity ID */
-  getId: (entity: TEntity) => string;
+  getId: (entity: EntityRegistry[K]) => string;
 }
 
 // ---------------------------------------------------------------------------
@@ -113,20 +127,26 @@ export interface MetadataFetchConfig<TEntity extends MetadataEntity> {
  * Priority 2: Retryable HTTP status codes (408, 429, 5xx)
  * Priority 3: Retryable network error codes (ETIMEDOUT, EPROTO)
  *
+ * Uses `storeFind(store, entityKey, options)` which binds `K = MetadataEntityKey`,
+ * resolving `FindManyOptions<EntityRegistry[MetadataEntityKey]>` to
+ * `FindManyOptions<MetadataEntity>` — the concrete union. TypeScript can
+ * evaluate `FindOptionsWhere<MetadataEntity>` against the shared fields
+ * (`url`, `isDataFetched`, `fetchError*`, `retryCount`) without casts.
+ *
  * @param store - Subsquid store for DB operations
- * @param entityClass - Entity class constructor for DB queries
+ * @param entityKey - Bag key identifying the metadata entity type
  * @param limit - Maximum number of entities to return
  * @returns Array of unfetched entities ordered by priority
  */
-export async function queryUnfetchedEntities<TEntity extends MetadataEntity>(
+export async function queryUnfetchedEntities(
   store: Store,
-  entityClass: EntityConstructor<TEntity>,
+  entityKey: MetadataEntityKey,
   limit: number,
-): Promise<TEntity[]> {
-  const results: TEntity[] = [];
+): Promise<MetadataEntity[]> {
+  const results: MetadataEntity[] = [];
 
   // Priority 1: Never fetched, no errors
-  const p1 = await store.find(entityClass, {
+  const p1 = await storeFind(store, entityKey, {
     take: limit,
     where: {
       url: Not(IsNull()),
@@ -134,68 +154,39 @@ export async function queryUnfetchedEntities<TEntity extends MetadataEntity>(
       fetchErrorCode: IsNull(),
       fetchErrorMessage: IsNull(),
       fetchErrorStatus: IsNull(),
-    } as FindOptionsWhere<TEntity>,
+    },
   });
   results.push(...p1);
 
   // Priority 2: Retryable HTTP status codes
   if (results.length < limit) {
-    const p2 = await store.find(entityClass, {
+    const p2 = await storeFind(store, entityKey, {
       take: limit - results.length,
       where: {
         url: Not(IsNull()),
         isDataFetched: false,
         fetchErrorStatus: In([408, 429, 500, 502, 503, 504]),
         retryCount: LessThan(FETCH_RETRY_COUNT),
-      } as FindOptionsWhere<TEntity>,
+      },
     });
     results.push(...p2);
   }
 
   // Priority 3: Retryable network error codes
   if (results.length < limit) {
-    const p3 = await store.find(entityClass, {
+    const p3 = await storeFind(store, entityKey, {
       take: limit - results.length,
       where: {
         url: Not(IsNull()),
         isDataFetched: false,
         fetchErrorCode: In(['ETIMEDOUT', 'EPROTO']),
         retryCount: LessThan(FETCH_RETRY_COUNT),
-      } as FindOptionsWhere<TEntity>,
+      },
     });
     results.push(...p3);
   }
 
   return results;
-}
-
-// ---------------------------------------------------------------------------
-// Internal helper — justified cast for generic metadata addEntity
-// ---------------------------------------------------------------------------
-
-/**
- * Add a metadata entity to the batch context, bridging the TEntity ↔ EntityRegistry gap.
- *
- * `handleMetadataFetch<TEntity>` is generic over the metadata entity type, but
- * `addEntity<K>` requires `EntityRegistry[K]`. TypeScript cannot prove that
- * `TEntity === EntityRegistry[K]` because the mapping is only resolved at each
- * handler call site (LSP3Profile, LSP4Metadata, LSP29EncryptedAsset). At runtime,
- * `addEntity`'s `instanceof` check validates the entity against
- * `ENTITY_CONSTRUCTORS[entityType]`, so correctness is enforced dynamically.
- */
-function addToCtx(
-  batchCtx: IBatchContext,
-  entityType: keyof EntityRegistry,
-  id: string,
-  entity: MetadataEntity,
-): void {
-  // Cast entity to satisfy addEntity's generic constraint. The runtime instanceof
-  // check in BatchContext.addEntity validates the entity class matches the key.
-  (batchCtx as unknown as { addEntity(type: string, id: string, entity: Entity): void }).addEntity(
-    entityType,
-    id,
-    entity,
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -209,23 +200,27 @@ function addToCtx(
  * 1. Empty value path (every batch): entities with url === null → queueClear sub-entities
  * 2. Head-only fetch path: query DB backlog → worker pool fetch → parse → add sub-entities
  *
+ * Non-generic — operates on `MetadataEntityKey` (the concrete union key) so that
+ * `getEntities`, `addEntity`, and `createEntity` all resolve against the concrete
+ * `MetadataEntity` union type without casts.
+ *
  * @param hctx - Handler context (store, batch context, worker pool)
  * @param config - Handler-specific configuration
  * @param triggeredBy - The entity bag key that triggered this invocation
  */
-export async function handleMetadataFetch<TEntity extends MetadataEntity>(
+export async function handleMetadataFetch(
   hctx: HandlerContext,
-  config: MetadataFetchConfig<TEntity>,
-  triggeredBy: keyof EntityRegistry,
+  config: MetadataFetchConfig,
+  triggeredBy: MetadataEntityKey,
 ): Promise<void> {
-  const entities = hctx.batchCtx.getEntities(triggeredBy) as unknown as Map<string, TEntity>;
+  const entities = hctx.batchCtx.getEntities(triggeredBy);
 
   // ----- Path 1: Empty value (runs every batch, not just head) -----
   for (const entity of entities.values()) {
     if (config.getUrl(entity) === null) {
       // Queue clear for all sub-entity types
       for (const desc of config.subEntityDescriptors) {
-        hctx.batchCtx.queueClear({
+        hctx.batchCtx.queueClearStored({
           subEntityClass: desc.subEntityClass,
           fkField: desc.fkField,
           parentIds: [config.getId(entity)],
@@ -236,15 +231,15 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
 
   // ----- Path 2: Head-only fetch (DB backlog drain) -----
   hctx.context.log.debug(
-    `[${config.entityType}] isHead=${hctx.isHead}, entities in batch=${entities.size}`,
+    `[${config.entityKey}] isHead=${hctx.isHead}, entities in batch=${entities.size}`,
   );
 
   if (!hctx.isHead) {
-    hctx.context.log.debug(`[${config.entityType}] Skipping metadata fetch - not at head`);
+    hctx.context.log.debug(`[${config.entityKey}] Skipping metadata fetch - not at head`);
     return;
   }
 
-  hctx.context.log.info(`[${config.entityType}] At chain head - checking for metadata backlog`);
+  hctx.context.log.info(`[${config.entityKey}] At chain head - checking for metadata backlog`);
 
   // Collect current-batch IDs so we can exclude them from the DB backlog.
   // Entities in the current batch may have updated url/fields that the DB
@@ -255,18 +250,12 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
   }
 
   hctx.context.log.debug(
-    `[${config.entityType}] Querying DB for unfetched entities (limit=${FETCH_LIMIT})`,
+    `[${config.entityKey}] Querying DB for unfetched entities (limit=${FETCH_LIMIT})`,
   );
 
-  const unfetched = await queryUnfetchedEntities<TEntity>(
-    hctx.store,
-    config.entityClass,
-    FETCH_LIMIT,
-  );
+  const unfetched = await queryUnfetchedEntities(hctx.store, config.entityKey, FETCH_LIMIT);
 
-  hctx.context.log.info(
-    `[${config.entityType}] Found ${unfetched.length} unfetched entities in DB`,
-  );
+  hctx.context.log.info(`[${config.entityKey}] Found ${unfetched.length} unfetched entities in DB`);
 
   if (unfetched.length === 0) return;
 
@@ -275,7 +264,7 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
   const backlog = unfetched.filter((entity) => !batchIds.has(config.getId(entity)));
 
   hctx.context.log.info(
-    `[${config.entityType}] After filtering batch IDs: ${backlog.length} entities in backlog`,
+    `[${config.entityKey}] After filtering batch IDs: ${backlog.length} entities in backlog`,
   );
 
   if (backlog.length === 0) return;
@@ -284,19 +273,19 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
   const requests: FetchRequest[] = backlog.reduce<FetchRequest[]>((acc, entity) => {
     const url = config.getUrl(entity);
     if (url !== null) {
-      acc.push({ id: config.getId(entity), url, entityType: config.entityType, retries: 0 });
+      acc.push({ id: config.getId(entity), url, entityType: config.entityKey, retries: 0 });
     }
     return acc;
   }, []);
 
   hctx.context.log.info(
-    `[${config.entityType}] Built ${requests.length} fetch requests (${backlog.length - requests.length} had null URLs)`,
+    `[${config.entityKey}] Built ${requests.length} fetch requests (${backlog.length - requests.length} had null URLs)`,
   );
 
   if (requests.length === 0) return;
 
   // Build lookup for backlog entities by ID (used for all batches)
-  const entityById = new Map<string, TEntity>();
+  const entityById = new Map<string, MetadataEntity>();
   for (const entity of backlog) {
     entityById.set(config.getId(entity), entity);
   }
@@ -307,7 +296,7 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
   let totalFailed = 0;
 
   hctx.context.log.info(
-    `[${config.entityType}] Starting metadata fetch: ${requests.length} requests split into ${batchCount} batches of ${FETCH_BATCH_SIZE}`,
+    `[${config.entityKey}] Starting metadata fetch: ${requests.length} requests split into ${batchCount} batches of ${FETCH_BATCH_SIZE}`,
   );
 
   for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
@@ -316,7 +305,7 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
     const batchRequests = requests.slice(batchStart, batchEnd);
 
     hctx.context.log.info(
-      `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount}: Calling worker pool with ${batchRequests.length} URLs`,
+      `[${config.entityKey}] Batch ${batchIndex + 1}/${batchCount}: Calling worker pool with ${batchRequests.length} URLs`,
     );
 
     // Fetch via worker pool with timeout protection
@@ -334,13 +323,13 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
 
       const fetchDuration = Date.now() - fetchStartTime;
       hctx.context.log.info(
-        `[${config.entityType}] Batch ${batchIndex + 1}/${batchCount}: Worker pool returned ${results.length} results in ${fetchDuration}ms`,
+        `[${config.entityKey}] Batch ${batchIndex + 1}/${batchCount}: Worker pool returned ${results.length} results in ${fetchDuration}ms`,
       );
     } catch (err) {
       // Log error but don't crash the processor — metadata fetching is best-effort
       // Pass full error object to capture stack traces for debugging worker crashes
       const fetchDuration = Date.now() - fetchStartTime;
-      const message = `Metadata fetch batch ${batchIndex + 1}/${batchCount} failed for ${config.entityType} (${batchRequests.length} requests, ${fetchDuration}ms elapsed)`;
+      const message = `Metadata fetch batch ${batchIndex + 1}/${batchCount} failed for ${config.entityKey} (${batchRequests.length} requests, ${fetchDuration}ms elapsed)`;
       if (typeof err === 'object' && err !== null) {
         hctx.context.log.warn(err, message);
       } else {
@@ -353,17 +342,14 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
         const entity = entityById.get(request.id);
         if (!entity) continue;
 
-        const updated = new config.entityClass({
+        const updated = createEntity(config.entityKey, {
           ...entity,
           fetchErrorMessage: message,
           fetchErrorCode: 'WORKER_POOL_ERROR',
           fetchErrorStatus: null,
           retryCount: (entity.retryCount ?? 0) + 1,
         });
-        // Justified cast: TEntity is correct at runtime (validated by instanceof
-        // in addEntity) but cannot be statically proven as EntityRegistry[K]
-        // because the key→entity mapping is resolved at each handler call site.
-        addToCtx(hctx.batchCtx, config.entityType, config.getId(entity), updated);
+        hctx.batchCtx.addEntity(config.entityKey, config.getId(entity), updated);
       }
 
       totalFailed += batchRequests.length;
@@ -381,18 +367,18 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
 
         if (parseResult.success === false) {
           // Parse error — update entity with error, increment retry
-          const updated = new config.entityClass({
+          const updated = createEntity(config.entityKey, {
             ...entity,
             fetchErrorMessage: parseResult.fetchErrorMessage,
             fetchErrorCode: null,
             fetchErrorStatus: null,
             retryCount: (entity.retryCount ?? 0) + 1,
           });
-          addToCtx(hctx.batchCtx, config.entityType, config.getId(entity), updated);
+          hctx.batchCtx.addEntity(config.entityKey, config.getId(entity), updated);
         } else {
           // Queue clear old sub-entities before new ones are persisted
           for (const desc of config.subEntityDescriptors) {
-            hctx.batchCtx.queueClear({
+            hctx.batchCtx.queueClearStored({
               subEntityClass: desc.subEntityClass,
               fkField: desc.fkField,
               parentIds: [config.getId(entity)],
@@ -400,7 +386,7 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
           }
 
           // Update main entity: isDataFetched = true, clear error fields
-          const updated = new config.entityClass({
+          const updated = createEntity(config.entityKey, {
             ...entity,
             isDataFetched: true,
             fetchErrorMessage: null,
@@ -409,19 +395,19 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
             retryCount: null,
             ...(parseResult.entityUpdates ?? {}),
           });
-          addToCtx(hctx.batchCtx, config.entityType, config.getId(entity), updated);
+          hctx.batchCtx.addEntity(config.entityKey, config.getId(entity), updated);
           totalProcessed++;
         }
       } else {
         // Fetch error — update entity with error fields from worker
-        const updated = new config.entityClass({
+        const updated = createEntity(config.entityKey, {
           ...entity,
           fetchErrorMessage: result.error ?? 'Unknown fetch error',
           fetchErrorCode: result.errorCode ?? null,
           fetchErrorStatus: result.errorStatus ?? null,
           retryCount: (entity.retryCount ?? 0) + 1,
         });
-        addToCtx(hctx.batchCtx, config.entityType, config.getId(entity), updated);
+        hctx.batchCtx.addEntity(config.entityKey, config.getId(entity), updated);
         totalFailed++;
       }
     }
@@ -429,6 +415,6 @@ export async function handleMetadataFetch<TEntity extends MetadataEntity>(
 
   // Log summary after all batches complete
   hctx.context.log.info(
-    `[${config.entityType}] Metadata backlog drain complete: ${totalProcessed} processed, ${totalFailed} failed (${batchCount} batches)`,
+    `[${config.entityKey}] Metadata backlog drain complete: ${totalProcessed} processed, ${totalFailed} failed (${batchCount} batches)`,
   );
 }

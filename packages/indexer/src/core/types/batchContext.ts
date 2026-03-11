@@ -154,6 +154,8 @@ export interface IBatchContext {
 
   // Clear queue (for sub-entity deletion)
   queueClear<T extends Entity>(request: ClearRequest<T>): void;
+  /** Queue a clear request with pre-erased types (for heterogeneous descriptor arrays). */
+  queueClearStored(request: StoredClearRequest): void;
   getClearQueue(): ReadonlyArray<StoredClearRequest>;
 
   // Delete queue (for DB-level entity removal)

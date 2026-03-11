@@ -253,6 +253,10 @@ export class BatchContext implements IBatchContext {
     this.clearQueue.push(request);
   }
 
+  queueClearStored(request: StoredClearRequest): void {
+    this.clearQueue.push(request);
+  }
+
   getClearQueue(): ReadonlyArray<StoredClearRequest> {
     return this.clearQueue;
   }

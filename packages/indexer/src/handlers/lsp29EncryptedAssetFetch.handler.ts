@@ -52,7 +52,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
-const ENTITY_TYPE = 'LSP29EncryptedAsset';
+const ENTITY_KEY = 'LSP29EncryptedAsset';
 
 // ---------------------------------------------------------------------------
 // Sub-entity descriptors (for queueClear operations)
@@ -277,13 +277,12 @@ function parseAndAddSubEntities(
 // Handler definition
 // ---------------------------------------------------------------------------
 
-const fetchConfig: MetadataFetchConfig<LSP29EncryptedAsset> = {
-  entityClass: LSP29EncryptedAsset,
-  entityType: ENTITY_TYPE,
+const fetchConfig: MetadataFetchConfig<'LSP29EncryptedAsset'> = {
+  entityKey: ENTITY_KEY,
   subEntityDescriptors: SUB_ENTITY_DESCRIPTORS,
   parseAndAddSubEntities,
-  getUrl: (entity: LSP29EncryptedAsset): string | null => entity.url ?? null,
-  getId: (entity: LSP29EncryptedAsset): string => entity.id,
+  getUrl: (entity): string | null => entity.url ?? null,
+  getId: (entity): string => entity.id,
 };
 
 const LSP29EncryptedAssetFetchHandler: EntityHandler = {
@@ -293,7 +292,7 @@ const LSP29EncryptedAssetFetchHandler: EntityHandler = {
   drainAtHead: true,
 
   async handle(hctx, triggeredBy): Promise<void> {
-    const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_TYPE).values());
+    const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_KEY).values());
 
     if (hctx.context.log.isDebug()) {
       const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
@@ -306,7 +305,7 @@ const LSP29EncryptedAssetFetchHandler: EntityHandler = {
         'Starting LSP29 encrypted asset metadata fetch',
       );
       const startTime = Date.now();
-      await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+      await handleMetadataFetch(hctx, fetchConfig, ENTITY_KEY);
       const duration = Date.now() - startTime;
       logger.debug(
         {
@@ -317,7 +316,7 @@ const LSP29EncryptedAssetFetchHandler: EntityHandler = {
         'LSP29 encrypted asset metadata fetch complete',
       );
     } else {
-      await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+      await handleMetadataFetch(hctx, fetchConfig, ENTITY_KEY);
     }
   },
 };

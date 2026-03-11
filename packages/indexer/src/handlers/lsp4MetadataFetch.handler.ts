@@ -286,11 +286,10 @@ function parseAndAddSubEntities(
 // Handler configuration and definition
 // ---------------------------------------------------------------------------
 
-const ENTITY_TYPE = 'LSP4Metadata';
+const ENTITY_KEY = 'LSP4Metadata';
 
-const config: MetadataFetchConfig<LSP4Metadata> = {
-  entityClass: LSP4Metadata,
-  entityType: ENTITY_TYPE,
+const config: MetadataFetchConfig<'LSP4Metadata'> = {
+  entityKey: ENTITY_KEY,
   subEntityDescriptors,
   parseAndAddSubEntities,
   getUrl: (entity) => entity.url ?? null,
@@ -304,7 +303,7 @@ const LSP4MetadataFetchHandler: EntityHandler = {
   drainAtHead: true,
 
   async handle(hctx, triggeredBy): Promise<void> {
-    const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_TYPE).values());
+    const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_KEY).values());
 
     if (hctx.context.log.isDebug()) {
       const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
@@ -317,7 +316,7 @@ const LSP4MetadataFetchHandler: EntityHandler = {
         'Starting LSP4 metadata fetch',
       );
       const startTime = Date.now();
-      await handleMetadataFetch(hctx, config, triggeredBy);
+      await handleMetadataFetch(hctx, config, ENTITY_KEY);
       const duration = Date.now() - startTime;
       logger.debug(
         {
@@ -328,7 +327,7 @@ const LSP4MetadataFetchHandler: EntityHandler = {
         'LSP4 metadata fetch complete',
       );
     } else {
-      await handleMetadataFetch(hctx, config, triggeredBy);
+      await handleMetadataFetch(hctx, config, ENTITY_KEY);
     }
   },
 };
