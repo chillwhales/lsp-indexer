@@ -7,6 +7,8 @@
  * - EnrichmentRequest: Deferred FK resolution request for verified addresses
  */
 
+import { DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
+import type { EntityRegistry } from '../entityRegistry';
 import { Entity, FKFields } from './entity';
 
 /**
@@ -44,7 +46,7 @@ export interface VerificationResult {
   /** Addresses that failed interface checks */
   invalid: Set<string>;
   /** Newly created entity instances to persist, keyed by address */
-  newEntities: Map<string, Entity>;
+  newEntities: Map<string, UniversalProfile | DigitalAsset>;
 }
 
 /**
@@ -69,7 +71,7 @@ export interface EnrichmentRequest<T extends Entity> extends BlockPosition {
   tokenId?: string;
 
   /** Which entity type to enrich (e.g. 'Transfer', 'LSP4TokenName') */
-  entityType: string;
+  entityType: keyof EntityRegistry;
 
   /** Which entity id to enrich */
   entityId: string;

@@ -5,8 +5,8 @@
  * for events matching the LSP4TokenSymbol data key. Decodes the hex-encoded
  * token symbol string from the data value.
  */
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
-import { DataChanged, LSP4TokenSymbol } from '@chillwhales/typeorm';
+import { EntityCategory, EntityHandler } from '@/core/types';
+import { LSP4TokenSymbol } from '@chillwhales/typeorm';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { hexToString, isHex } from 'viem';
 
@@ -19,8 +19,8 @@ const LSP4TokenSymbolHandler: EntityHandler = {
   name: 'lsp4TokenSymbol',
   listensToBag: ['DataChanged'],
 
-  handle(hctx: HandlerContext, triggeredBy: string): void {
-    const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
+  handle(hctx, _triggeredBy): void {
+    const events = hctx.batchCtx.getEntities('DataChanged');
 
     for (const event of events.values()) {
       // Filter by data key

@@ -21,9 +21,9 @@
  *   for OwnedToken.
  */
 import { resolveEntities } from '@/core/handlerHelpers';
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { generateOwnedAssetId, generateOwnedTokenId, isNullAddress } from '@/utils';
-import { OwnedAsset, OwnedToken, Transfer } from '@chillwhales/typeorm';
+import { OwnedAsset, OwnedToken } from '@chillwhales/typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 
 // Entity type keys used in the BatchContext entity bag
@@ -34,14 +34,14 @@ const OwnedAssetsHandler: EntityHandler = {
   name: 'ownedAssets',
   listensToBag: ['LSP7Transfer', 'LSP8Transfer'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, triggeredBy): Promise<void> {
     // Only process transfers from the triggered bag (prevents double-processing)
     // Handler is called twice per batch: once for LSP7Transfer, once for LSP8Transfer
-    const allTransfers: Transfer[] =
+    const allTransfers =
       triggeredBy === 'LSP7Transfer'
-        ? [...hctx.batchCtx.getEntities<Transfer>('LSP7Transfer').values()]
+        ? [...hctx.batchCtx.getEntities('LSP7Transfer').values()]
         : triggeredBy === 'LSP8Transfer'
-          ? [...hctx.batchCtx.getEntities<Transfer>('LSP8Transfer').values()]
+          ? [...hctx.batchCtx.getEntities('LSP8Transfer').values()]
           : [];
 
     if (allTransfers.length === 0) return;
@@ -70,8 +70,8 @@ const OwnedAssetsHandler: EntityHandler = {
 
     // Resolve existing entities from batch + DB
     const [existingOwnedAssetsMap, existingOwnedTokensMap] = await Promise.all([
-      resolveEntities(hctx.store, hctx.batchCtx, OWNED_ASSET_TYPE, OwnedAsset, [...ownedAssetIds]),
-      resolveEntities(hctx.store, hctx.batchCtx, OWNED_TOKEN_TYPE, OwnedToken, [...ownedTokenIds]),
+      resolveEntities(hctx.store, hctx.batchCtx, OWNED_ASSET_TYPE, [...ownedAssetIds]),
+      resolveEntities(hctx.store, hctx.batchCtx, OWNED_TOKEN_TYPE, [...ownedTokenIds]),
     ]);
 
     const updatedOwnedAssetsMap = new Map<string, OwnedAsset>();

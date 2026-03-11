@@ -63,8 +63,8 @@ const LSP29EncryptedAssetHandler: EntityHandler = {
   name: 'lsp29EncryptedAsset',
   listensToBag: ['DataChanged'],
 
-  handle(hctx: HandlerContext, triggeredBy: string): void {
-    const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
+  handle(hctx, _triggeredBy): void {
+    const events = hctx.batchCtx.getEntities('DataChanged');
 
     for (const event of events.values()) {
       const { dataKey, dataValue, address, timestamp } = event;

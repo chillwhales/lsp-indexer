@@ -21,13 +21,13 @@ import { In } from 'typeorm';
 import { getAddress, isAddressEqual } from 'viem';
 
 import { BatchContext } from './batchContext';
+import type { EntityRegistry, RegisteredEntity } from './entityRegistry';
 import { resolveForeignKeys } from './fkResolution';
 import { createStepLogger } from './logger';
 import { PluginRegistry } from './registry';
 import {
   BlockPosition,
   Context,
-  Entity,
   EntityCategory,
   IMetadataWorkerPool,
   StoredClearRequest,
@@ -108,9 +108,9 @@ async function clearSubEntities(store: Store, request: StoredClearRequest): Prom
  * @param entities - Map of entities to upsert (from BatchContext)
  * @param persistHint - Hint with entity class and merge field names
  */
-async function mergeUpsertEntities(
+async function mergeUpsertEntities<K extends keyof EntityRegistry>(
   store: Store,
-  entities: Map<string, unknown>,
+  entities: Map<string, EntityRegistry[K]>,
   persistHint: StoredPersistHint,
 ): Promise<void> {
   const ids = [...entities.keys()];
@@ -132,8 +132,8 @@ async function mergeUpsertEntities(
   for (const [id, entity] of entities) {
     const prev = existingMap.get(id);
     if (prev) {
-      const typedEntity = entity as Record<string, unknown>;
-      const typedPrev = prev as unknown as Record<string, unknown>;
+      const typedEntity = entity;
+      const typedPrev = prev;
       for (const field of persistHint.mergeFields) {
         if (typedEntity[field] == null && typedPrev[field] != null) {
           // Field names are validated at the handler call site via setPersistHint<T>()
@@ -143,7 +143,7 @@ async function mergeUpsertEntities(
     }
   }
 
-  await store.upsert([...entities.values()] as Entity[]);
+  await store.upsert([...entities.values()]);
 }
 
 /**
@@ -156,13 +156,17 @@ async function mergeUpsertEntities(
  *
  * @param entity - The entity instance to enrich
  * @param request - Enrichment request with FK field name
- * @param fkStub - Core entity stub (just { id: string })
+ * @param fkStub - Core entity (UP/DA/NFT) used as FK reference value
  */
-function enrichEntity(entity: unknown, request: StoredEnrichmentRequest, fkStub: Entity): void {
-  const typedEntity = entity as Record<string, unknown>;
-  // Field name is validated at the handler call site via queueEnrichment<T>()
-  // The field existence is checked by the caller with the `in` operator
-  typedEntity[request.fkField] = fkStub;
+function enrichEntity(
+  entity: RegisteredEntity,
+  request: StoredEnrichmentRequest,
+  fkStub: RegisteredEntity,
+): void {
+  // Dynamic field assignment requires casting — field name is validated at the handler
+  // call site via queueEnrichment<T>(), and field existence is checked by the caller
+  // with the `in` operator
+  entity[request.fkField] = fkStub;
 }
 
 /**
@@ -232,7 +236,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   for (const type of rawEntityTypes) {
     const entities = batchCtx.getEntities(type);
     if (entities.size > 0) {
-      await context.store.insert([...entities.values()] as Entity[]);
+      await context.store.insert([...entities.values()]);
       persistRawLog.info(
         { entityType: type, count: entities.size },
         'Persisted raw event entities',
@@ -277,8 +281,11 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     // Without this, rarely-updated entity types (e.g. LSP29 with only 11
     // entities on-chain) would never have their metadata fetched.
     if (!triggered && handler.drainAtHead && context.isHead) {
-      const drainTrigger = handler.listensToBag[0] ?? 'drain';
-      await handler.handle(handlerCtx, drainTrigger);
+      // drainAtHead handlers always have at least one listensToBag entry
+      const drainTrigger = handler.listensToBag[0];
+      if (drainTrigger) {
+        await handler.handle(handlerCtx, drainTrigger);
+      }
     }
   }
 
@@ -352,7 +359,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       );
     } else {
       // Simple upsert (default)
-      await context.store.upsert([...entities.values()] as Entity[]);
+      await context.store.upsert([...entities.values()]);
       persistDerivedLog.info(
         { entityType: type, count: entities.size },
         'Persisted derived entities',
@@ -371,7 +378,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
 
   // Single pass: collect addresses for verification AND group for enrichment
   const addressesByCategory = new Map<EntityCategory, Set<string>>();
-  const grouped = new Map<string, Map<string, StoredEnrichmentRequest[]>>();
+  const grouped = new Map<keyof EntityRegistry, Map<string, StoredEnrichmentRequest[]>>();
 
   for (const request of enrichmentQueue) {
     // Collect addresses for non-NFT categories (NFTs always valid)
@@ -489,7 +496,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     const entities = batchCtx.getEntities(type);
     if (entities.size === 0) continue;
 
-    await context.store.upsert([...entities.values()] as Entity[]);
+    await context.store.upsert([...entities.values()]);
     postVerifyLog.info(
       { entityType: type, count: entities.size, phase: 'post-verification' },
       'Persisted post-verification entities',
@@ -542,7 +549,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   const enrichLog = createStepLogger(context.log, 'ENRICH', blockRange);
   for (const [entityType, entityMap] of grouped) {
     const entities = batchCtx.getEntities(entityType);
-    const entitiesToUpdate: unknown[] = [];
+    const entitiesToUpdate: RegisteredEntity[] = [];
 
     for (const [entityId, requests] of entityMap) {
       const entity = entities.get(entityId);
@@ -561,7 +568,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
         // Validate that the FK field exists on the entity before assignment.
         // TypeORM entities use Object.assign(this, props) in the constructor,
         // so FK fields only exist on the instance if explicitly passed (even as null).
-        if (!(request.fkField in (entity as object))) {
+        if (!(request.fkField in entity)) {
           enrichLog.warn(
             { entityType, entityId, fkField: request.fkField },
             'Skipping enrichment: FK field not found on entity',
@@ -581,7 +588,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     }
 
     if (entitiesToUpdate.length > 0) {
-      await context.store.upsert(entitiesToUpdate as Entity[]);
+      await context.store.upsert(entitiesToUpdate);
       enrichLog.info(
         { entityType, count: entitiesToUpdate.length },
         'Enriched entities with FK references',
@@ -615,7 +622,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
  * These are TypeORM entity instances with only the `id` field set,
  * used as foreign key references.
  */
-function createFkStub(request: StoredEnrichmentRequest): Entity {
+function createFkStub(request: StoredEnrichmentRequest): RegisteredEntity {
   switch (request.category) {
     case EntityCategory.UniversalProfile:
       return new UniversalProfile({ id: request.address });

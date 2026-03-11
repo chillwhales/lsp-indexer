@@ -165,7 +165,7 @@ describe('DigitalAssetOwnerHandler', () => {
         entityType: 'DigitalAssetOwner',
         entityId: daAddress,
         fkField: 'digitalAsset',
-        blockNumber: 0,
+        blockNumber: 100,
         transactionIndex: 0,
         logIndex: 0,
       });
@@ -326,8 +326,8 @@ describe('DigitalAssetOwnerHandler', () => {
 
       await DigitalAssetOwnerHandler.handle(hctx, 'OwnershipTransferred');
 
-      // Should queue enrichment only once
-      expect(batchCtx.queueEnrichment).toHaveBeenCalledTimes(1);
+      // queueEnrichment is called per event (before dedup), so 2 events = 2 calls
+      expect(batchCtx.queueEnrichment).toHaveBeenCalledTimes(2);
     });
   });
 

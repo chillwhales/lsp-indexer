@@ -1,3 +1,4 @@
+import { ENTITY_CONSTRUCTORS, type EntityRegistry } from './entityRegistry';
 import {
   ClearRequest,
   DeleteRequest,
@@ -33,10 +34,14 @@ export class BatchContext implements IBatchContext {
   /**
    * Entity storage: entityType → (entityId → entity)
    *
-   * Using Map<string, Map<string, unknown>> internally.
-   * Type safety is enforced on the read side via getEntities<T>().
+   * Stores entities as `Entity` (the base type with id + block ordering fields).
+   * Type safety is provided by the generic `addEntity<K>` / `getEntities<K>`
+   * methods which use `keyof EntityRegistry` to enforce bag key validity at
+   * compile time and `instanceof ENTITY_CONSTRUCTORS[K]` at runtime.
+   * `getEntityTypeKeys()` returns `(keyof EntityRegistry)[]` so callers
+   * can iterate and call `getEntities(key)` directly without casts.
    */
-  private readonly entities = new Map<string, Map<string, unknown>>();
+  private readonly entities = new Map<string, Map<string, Entity>>();
 
   /**
    * Set of raw entity type keys sealed after Step 2 persistence.
@@ -100,13 +105,28 @@ export class BatchContext implements IBatchContext {
   // Entity storage
   // -------------------------------------------------------------------------
 
-  addEntity(type: string, id: string, entity: unknown): void {
+  /**
+   * Add a typed entity to the bag. Validates at runtime via `instanceof`
+   * that the entity matches the expected constructor for the bag key.
+   *
+   * @throws Error if the entity is not an instance of the expected constructor
+   * @throws Error if the bag key is sealed (raw entity type already persisted in Step 2)
+   */
+  addEntity<K extends keyof EntityRegistry>(type: K, id: string, entity: EntityRegistry[K]): void {
     // Prevent handlers from adding to raw entity type keys after Step 2
     if (this.sealedRawTypes !== null && this.sealedRawTypes.has(type)) {
       throw new Error(
         `Handler attempted to add entity to raw type '${type}' which was already ` +
           `persisted in Step 2. Handlers must use a different entity type key for ` +
           `derived entities. This prevents silent data loss since Step 4 skips raw types.`,
+      );
+    }
+
+    // Runtime validation: instanceof check against ENTITY_CONSTRUCTORS[type]
+    const ctor = ENTITY_CONSTRUCTORS[type];
+    if (!(entity instanceof ctor)) {
+      throw new Error(
+        `addEntity('${type}'): expected ${ctor.name}, got ${entity?.constructor?.name ?? 'unknown'}`,
       );
     }
 
@@ -118,23 +138,45 @@ export class BatchContext implements IBatchContext {
     map.set(id, entity);
   }
 
-  getEntities<T>(type: string): Map<string, T> {
-    const map = this.entities.get(type);
-    if (!map) return new Map<string, T>();
-    return map as Map<string, T>;
+  /**
+   * Get typed entities from the bag. Spot-checks the first entity via
+   * `instanceof` on non-empty maps to catch runtime type corruption.
+   *
+   * @returns Typed map of entity ID → entity, or empty map if no entities exist
+   */
+  getEntities<K extends keyof EntityRegistry>(type: K): Map<string, EntityRegistry[K]> {
+    const raw = this.entities.get(type);
+    if (!raw || raw.size === 0) return new Map() as Map<string, EntityRegistry[K]>;
+
+    // Runtime validation: spot-check first entity
+    const ctor = ENTITY_CONSTRUCTORS[type];
+    const first = raw.values().next().value;
+    if (!(first instanceof ctor)) {
+      throw new Error(
+        `getEntities('${type}'): expected ${ctor.name}, got ${first?.constructor?.name ?? 'unknown'}`,
+      );
+    }
+
+    return raw as Map<string, EntityRegistry[K]>;
   }
 
-  removeEntity(type: string, id: string): void {
+  /**
+   * Remove a typed entity from the bag.
+   */
+  removeEntity<K extends keyof EntityRegistry>(type: K, id: string): void {
     this.entities.get(type)?.delete(id);
   }
 
-  hasEntities(type: string): boolean {
+  /**
+   * Check if typed entities exist in the bag for a given key.
+   */
+  hasEntities(type: keyof EntityRegistry): boolean {
     const map = this.entities.get(type);
     return map !== undefined && map.size > 0;
   }
 
-  getEntityTypeKeys(): string[] {
-    return [...this.entities.keys()];
+  getEntityTypeKeys(): (keyof EntityRegistry)[] {
+    return [...this.entities.keys()] as (keyof EntityRegistry)[];
   }
 
   sealRawEntityTypes(): void {
@@ -208,6 +250,10 @@ export class BatchContext implements IBatchContext {
   queueClear<T extends Entity>(request: ClearRequest<T>): void {
     // The request is structurally compatible with StoredClearRequest
     // Type safety is enforced at the handler call site via the generic parameter
+    this.clearQueue.push(request);
+  }
+
+  queueClearStored(request: StoredClearRequest): void {
     this.clearQueue.push(request);
   }
 

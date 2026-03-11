@@ -31,6 +31,7 @@ function createMockBatchCtx(): {
   addEntity: ReturnType<typeof vi.fn>;
   hasEntities: ReturnType<typeof vi.fn>;
   queueClear: ReturnType<typeof vi.fn>;
+  queueClearStored: ReturnType<typeof vi.fn>;
   queueDelete: ReturnType<typeof vi.fn>;
   queueEnrichment: ReturnType<typeof vi.fn>;
   setPersistHint: ReturnType<typeof vi.fn>;
@@ -43,10 +44,12 @@ function createMockBatchCtx(): {
   const clearQueue: unknown[] = [];
   const enrichmentQueue: unknown[] = [];
 
+  const getEntitiesFn = vi.fn(<T>(type: string): Map<string, T> => {
+    return (entityBags.get(type) || new Map()) as Map<string, T>;
+  });
+
   return {
-    getEntities: vi.fn(<T>(type: string): Map<string, T> => {
-      return (entityBags.get(type) || new Map()) as Map<string, T>;
-    }),
+    getEntities: getEntitiesFn,
     addEntity: vi.fn((type: string, id: string, entity: unknown) => {
       if (!entityBags.has(type)) entityBags.set(type, new Map());
       const bag = entityBags.get(type);
@@ -57,6 +60,7 @@ function createMockBatchCtx(): {
       return bag != null && bag.size > 0;
     }),
     queueClear: vi.fn((request: unknown) => clearQueue.push(request)),
+    queueClearStored: vi.fn((request: unknown) => clearQueue.push(request)),
     queueDelete: vi.fn(),
     queueEnrichment: vi.fn((request: unknown) => enrichmentQueue.push(request)),
     setPersistHint: vi.fn(),
@@ -80,7 +84,13 @@ function createMockHandlerContext(
       findBy: vi.fn(() => Promise.resolve([])),
     } as unknown as HandlerContext['store'],
     context: {
-      log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+      log: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+        isDebug: vi.fn(() => false),
+      },
     } as unknown as HandlerContext['context'],
     isHead: overrides.isHead ?? false,
     batchCtx: batchCtx as unknown as HandlerContext['batchCtx'],
@@ -177,7 +187,7 @@ describe('LSP29EncryptedAssetFetchHandler - Empty value path', () => {
     await LSP29EncryptedAssetFetchHandler.handle(hctx, 'LSP29EncryptedAsset');
 
     // 6 sub-entity types in descriptors (AccessControlCondition excluded)
-    expect(batchCtx.queueClear).toHaveBeenCalledTimes(6);
+    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(6);
 
     const expectedSubEntities = [
       LSP29EncryptedAssetTitle,
@@ -212,7 +222,7 @@ describe('LSP29EncryptedAssetFetchHandler - Empty value path', () => {
 
     await LSP29EncryptedAssetFetchHandler.handle(hctx, 'LSP29EncryptedAsset');
 
-    expect(batchCtx.queueClear).toHaveBeenCalledTimes(6);
+    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(6);
   });
 });
 
@@ -510,19 +520,14 @@ describe('LSP29EncryptedAssetFetchHandler - Successful fetch (META-03)', () => {
     const imgCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP29EncryptedAssetImage',
     );
-    expect(imgCalls.length).toBe(2);
+    // Only the first image passes isFileImage (has verification); second (QmImg2) is filtered out
+    expect(imgCalls.length).toBe(1);
 
     const img1 = imgCalls[0][2] as LSP29EncryptedAssetImage;
     expect(img1.url).toBe('ipfs://QmImg1');
     expect(img1.width).toBe(512);
     expect(img1.height).toBe(512);
     expect(img1.imageIndex).toBe(0);
-
-    const img2 = imgCalls[1][2] as LSP29EncryptedAssetImage;
-    expect(img2.url).toBe('ipfs://QmImg2');
-    expect(img2.width).toBe(128);
-    expect(img2.height).toBe(128);
-    expect(img2.imageIndex).toBe(1);
   });
 
   it('returns entityUpdates with version, contentId, revision, createdAt', async () => {

@@ -17,8 +17,8 @@
  *   - Queues enrichment for universalProfile FK
  */
 
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
-import { OwnershipTransferred, UniversalProfileOwner } from '@chillwhales/typeorm';
+import { EntityCategory, EntityHandler } from '@/core/types';
+import { UniversalProfileOwner } from '@chillwhales/typeorm';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'UniversalProfileOwner';
@@ -28,12 +28,11 @@ const UniversalProfileOwnerHandler: EntityHandler = {
   listensToBag: ['OwnershipTransferred'],
   postVerification: true,
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async handle(hctx: HandlerContext, _triggeredBy: string): Promise<void> {
+  handle(hctx, _triggeredBy): void {
     const { batchCtx } = hctx;
 
     // Read OwnershipTransferred entities from the batch
-    const events = batchCtx.getEntities<OwnershipTransferred>('OwnershipTransferred');
+    const events = batchCtx.getEntities('OwnershipTransferred');
     if (events.size === 0) return;
 
     // Get verified UniversalProfiles

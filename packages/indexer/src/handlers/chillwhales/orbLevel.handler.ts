@@ -26,9 +26,9 @@
  */
 import { ORB_LEVEL_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { resolveEntity } from '@/core/handlerHelpers';
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { generateTokenId } from '@/utils';
-import { OrbCooldownExpiry, OrbLevel, TokenIdDataChanged, Transfer } from '@chillwhales/typeorm';
+import { OrbCooldownExpiry, OrbLevel } from '@chillwhales/typeorm';
 import {
   bytesToNumber,
   getAddress,
@@ -49,11 +49,11 @@ const OrbLevelHandler: EntityHandler = {
   name: 'orbLevel',
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, triggeredBy): Promise<void> {
     // Branch on triggeredBy to handle mint detection vs data key changes
     if (triggeredBy === 'LSP8Transfer') {
       // MINT DETECTION: Create default entities when Orb NFTs are minted
-      const transfers = hctx.batchCtx.getEntities<Transfer>(triggeredBy);
+      const transfers = hctx.batchCtx.getEntities('LSP8Transfer');
 
       for (const transfer of transfers.values()) {
         // Filter to ORBS contract only
@@ -145,7 +145,7 @@ const OrbLevelHandler: EntityHandler = {
       }
     } else if (triggeredBy === 'TokenIdDataChanged') {
       // DATA KEY CHANGES: Overwrite defaults with actual on-chain values
-      const events = hctx.batchCtx.getEntities<TokenIdDataChanged>(triggeredBy);
+      const events = hctx.batchCtx.getEntities('TokenIdDataChanged');
 
       for (const event of events.values()) {
         // Filter by contract address
@@ -164,18 +164,11 @@ const OrbLevelHandler: EntityHandler = {
           const cooldownExpiry = bytesToNumber(sliceBytes(dataBytes, 4));
 
           // Resolve entities from batch AND database (cross-batch FK preservation)
-          const existingLevel = await resolveEntity(
-            hctx.store,
-            hctx.batchCtx,
-            ORB_LEVEL_TYPE,
-            OrbLevel,
-            id,
-          );
+          const existingLevel = await resolveEntity(hctx.store, hctx.batchCtx, ORB_LEVEL_TYPE, id);
           const existingCooldown = await resolveEntity(
             hctx.store,
             hctx.batchCtx,
             ORB_COOLDOWN_EXPIRY_TYPE,
-            OrbCooldownExpiry,
             id,
           );
 

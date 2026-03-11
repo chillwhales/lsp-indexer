@@ -19,7 +19,7 @@ import { type Hex, hexToBool, isHex } from 'viem';
 
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { aggregate3StaticLatest } from './multicall';
-import { BlockPosition, Context, Entity, EntityCategory, VerificationResult } from './types';
+import { BlockPosition, Context, EntityCategory, VerificationResult } from './types';
 
 // ---------------------------------------------------------------------------
 // Interface version constants
@@ -243,7 +243,7 @@ interface InternalVerificationResult {
   newAddresses: Set<string>;
   validAddresses: Set<string>;
   invalidAddresses: Set<string>;
-  newEntities: Map<string, Entity>;
+  newEntities: Map<string, UniversalProfile | DigitalAsset>;
 }
 
 // ---------------------------------------------------------------------------
@@ -355,7 +355,7 @@ async function verifyWithInterface(
   // Set block position from earliest enrichment request per address.
   // Existing entities (from DB or cache) are never modified — only new entities
   // get block fields, ensuring the oldest-retention guarantee.
-  const newEntities = new Map<string, Entity>();
+  const newEntities = new Map<string, UniversalProfile | DigitalAsset>();
   if (category === EntityCategory.UniversalProfile) {
     for (const addr of newlyVerified) {
       const blockPos = blockPositionByAddress.get(addr);

@@ -14,9 +14,9 @@
  * - FKs set to null, enrichment queued for both follower and followed UP FKs
  * - No direct `store.*` calls — follows pipeline conventions
  */
-import { EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';
+import { EntityCategory, type EntityHandler } from '@/core/types';
 import { generateFollowId } from '@/utils';
-import { Follow, Follower, Unfollow } from '@chillwhales/typeorm';
+import { Follower } from '@chillwhales/typeorm';
 
 const FOLLOWER_TYPE = 'Follower';
 
@@ -24,10 +24,10 @@ const FollowerHandler: EntityHandler = {
   name: 'follower',
   listensToBag: ['Follow', 'Unfollow'],
 
-  handle(hctx: HandlerContext, triggeredBy: string): void {
+  handle(hctx, triggeredBy): void {
     // Handle Follow events → create Follower entities
     if (triggeredBy === 'Follow') {
-      const follows = hctx.batchCtx.getEntities<Follow>('Follow');
+      const follows = hctx.batchCtx.getEntities('Follow');
 
       for (const follow of follows.values()) {
         const id = generateFollowId({
@@ -76,7 +76,7 @@ const FollowerHandler: EntityHandler = {
 
     // Handle Unfollow events → delete Follower entities
     if (triggeredBy === 'Unfollow') {
-      const unfollows = hctx.batchCtx.getEntities<Unfollow>('Unfollow');
+      const unfollows = hctx.batchCtx.getEntities('Unfollow');
       const entitiesToDelete: Follower[] = [];
 
       for (const unfollow of unfollows.values()) {

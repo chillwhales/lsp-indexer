@@ -15,28 +15,27 @@
  * is left as null. A warning is logged for unknown formats to aid debugging.
  */
 
-import { EntityHandler, HandlerContext } from '@/core/types';
+import { EntityHandler } from '@/core/types';
 import { formatTokenId } from '@/utils';
 import { LSP8TokenIdFormat, NFT } from '@chillwhales/typeorm';
 import { In } from 'typeorm';
 import { isHex } from 'viem';
 
-// Entity type keys used in BatchContext entity bag
+// Entity type key used in BatchContext entity bag
 const NFT_ENTITY_TYPE = 'NFT';
-const TOKEN_ID_FORMAT_ENTITY_TYPE = 'LSP8TokenIdFormat';
 
 const FormattedTokenIdHandler: EntityHandler = {
   name: 'formattedTokenId',
   listensToBag: ['LSP8Transfer', 'DataChanged'],
   dependsOn: ['lsp8TokenIdFormat'],
 
-  async handle(hctx: HandlerContext, _triggeredBy: string): Promise<void> {
+  async handle(hctx, _triggeredBy): Promise<void> {
     const { store, context, batchCtx } = hctx;
 
     // -----------------------------------------------------------------------
     // Path 1: New batch NFTs — look up format, set formattedTokenId in place
     // -----------------------------------------------------------------------
-    const batchNfts = batchCtx.getEntities<NFT>(NFT_ENTITY_TYPE);
+    const batchNfts = batchCtx.getEntities('NFT');
     const nftsWithoutFormat = [...batchNfts.values()].filter(
       (nft) => nft.formattedTokenId === null || nft.formattedTokenId === undefined,
     );
@@ -52,7 +51,7 @@ const FormattedTokenIdHandler: EntityHandler = {
         nftAddresses.length > 0
           ? await store.findBy(LSP8TokenIdFormat, { address: In(nftAddresses) })
           : [];
-      const batchFormats = batchCtx.getEntities<LSP8TokenIdFormat>(TOKEN_ID_FORMAT_ENTITY_TYPE);
+      const batchFormats = batchCtx.getEntities('LSP8TokenIdFormat');
       const allFormats = [...dbFormats, ...batchFormats.values()];
 
       for (const nft of nftsWithoutFormat) {
@@ -92,9 +91,7 @@ const FormattedTokenIdHandler: EntityHandler = {
     // -----------------------------------------------------------------------
     // Path 2: Format changes — retroactively reformat ALL existing NFTs
     // -----------------------------------------------------------------------
-    const newFormats = [
-      ...batchCtx.getEntities<LSP8TokenIdFormat>(TOKEN_ID_FORMAT_ENTITY_TYPE).values(),
-    ];
+    const newFormats = [...batchCtx.getEntities('LSP8TokenIdFormat').values()];
     if (newFormats.length === 0) return;
 
     // Collect addresses with format changes

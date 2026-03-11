@@ -29,6 +29,7 @@ function createMockBatchCtx(): {
   addEntity: ReturnType<typeof vi.fn>;
   hasEntities: ReturnType<typeof vi.fn>;
   queueClear: ReturnType<typeof vi.fn>;
+  queueClearStored: ReturnType<typeof vi.fn>;
   queueDelete: ReturnType<typeof vi.fn>;
   queueEnrichment: ReturnType<typeof vi.fn>;
   setPersistHint: ReturnType<typeof vi.fn>;
@@ -41,10 +42,12 @@ function createMockBatchCtx(): {
   const clearQueue: unknown[] = [];
   const enrichmentQueue: unknown[] = [];
 
+  const getEntitiesFn = vi.fn(<T>(type: string): Map<string, T> => {
+    return (entityBags.get(type) || new Map()) as Map<string, T>;
+  });
+
   return {
-    getEntities: vi.fn(<T>(type: string): Map<string, T> => {
-      return (entityBags.get(type) || new Map()) as Map<string, T>;
-    }),
+    getEntities: getEntitiesFn,
     addEntity: vi.fn((type: string, id: string, entity: unknown) => {
       if (!entityBags.has(type)) entityBags.set(type, new Map());
       const bag = entityBags.get(type);
@@ -55,6 +58,7 @@ function createMockBatchCtx(): {
       return bag != null && bag.size > 0;
     }),
     queueClear: vi.fn((request: unknown) => clearQueue.push(request)),
+    queueClearStored: vi.fn((request: unknown) => clearQueue.push(request)),
     queueDelete: vi.fn(),
     queueEnrichment: vi.fn((request: unknown) => enrichmentQueue.push(request)),
     setPersistHint: vi.fn(),
@@ -78,7 +82,13 @@ function createMockHandlerContext(
       findBy: vi.fn(() => Promise.resolve([])),
     } as unknown as HandlerContext['store'],
     context: {
-      log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+      log: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+        isDebug: vi.fn(() => false),
+      },
     } as unknown as HandlerContext['context'],
     isHead: overrides.isHead ?? false,
     batchCtx: batchCtx as unknown as HandlerContext['batchCtx'],
@@ -143,7 +153,7 @@ describe('LSP3ProfileFetchHandler - Empty value path', () => {
     await LSP3ProfileFetchHandler.handle(hctx, 'LSP3Profile');
 
     // Should queue 7 clear requests (one per sub-entity type)
-    expect(batchCtx.queueClear).toHaveBeenCalledTimes(7);
+    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(7);
 
     const expectedSubEntities = [
       LSP3ProfileName,
@@ -176,7 +186,7 @@ describe('LSP3ProfileFetchHandler - Empty value path', () => {
 
     await LSP3ProfileFetchHandler.handle(hctx, 'LSP3Profile');
 
-    expect(batchCtx.queueClear).toHaveBeenCalledTimes(7);
+    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(7);
   });
 });
 
@@ -493,7 +503,7 @@ describe('LSP3ProfileFetchHandler - Successful fetch (META-01)', () => {
     await LSP3ProfileFetchHandler.handle(hctx, 'LSP3Profile');
 
     // Should queue clear for all 7 sub-entity types
-    expect(batchCtx.queueClear).toHaveBeenCalledTimes(7);
+    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(7);
   });
 
   it('marks entity as isDataFetched=true on success', async () => {

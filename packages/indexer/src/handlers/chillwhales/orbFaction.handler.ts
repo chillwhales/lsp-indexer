@@ -23,9 +23,9 @@
  */
 import { ORB_FACTION_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { resolveEntity } from '@/core/handlerHelpers';
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { generateTokenId } from '@/utils';
-import { OrbFaction, TokenIdDataChanged, Transfer } from '@chillwhales/typeorm';
+import { OrbFaction } from '@chillwhales/typeorm';
 import { getAddress, Hex, hexToString, isAddressEqual, zeroAddress } from 'viem';
 
 // ---------------------------------------------------------------------------
@@ -37,11 +37,11 @@ const OrbFactionHandler: EntityHandler = {
   name: 'orbFaction',
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, triggeredBy): Promise<void> {
     // Branch on triggeredBy to handle mint detection vs data key changes
     if (triggeredBy === 'LSP8Transfer') {
       // MINT DETECTION: Create default entity when Orb NFTs are minted
-      const transfers = hctx.batchCtx.getEntities<Transfer>(triggeredBy);
+      const transfers = hctx.batchCtx.getEntities('LSP8Transfer');
 
       for (const transfer of transfers.values()) {
         // Filter to ORBS contract only
@@ -95,7 +95,7 @@ const OrbFactionHandler: EntityHandler = {
       }
     } else if (triggeredBy === 'TokenIdDataChanged') {
       // DATA KEY CHANGES: Overwrite defaults with actual on-chain values
-      const events = hctx.batchCtx.getEntities<TokenIdDataChanged>(triggeredBy);
+      const events = hctx.batchCtx.getEntities('TokenIdDataChanged');
 
       for (const event of events.values()) {
         // Filter by contract address
@@ -109,13 +109,7 @@ const OrbFactionHandler: EntityHandler = {
         const faction = hexToString(event.dataValue as Hex);
 
         // Resolve entity from batch AND database (cross-batch FK preservation)
-        const existing = await resolveEntity(
-          hctx.store,
-          hctx.batchCtx,
-          ORB_FACTION_TYPE,
-          OrbFaction,
-          id,
-        );
+        const existing = await resolveEntity(hctx.store, hctx.batchCtx, ORB_FACTION_TYPE, id);
 
         // Create entity, preserving existing FKs if entity was already created
         const entity = new OrbFaction({

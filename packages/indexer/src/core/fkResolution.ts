@@ -18,19 +18,19 @@
  *     entities in DB with null FK and update them
  */
 
-import {
-  DigitalAsset,
-  LSP3Profile,
-  LSP4Metadata,
-  NFT,
-  UniversalProfile,
-} from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { In, IsNull } from 'typeorm';
 
 import { BatchContext } from './batchContext';
+import {
+  createEntity,
+  storeFind,
+  storeFindBy,
+  type EntityRegistry,
+  type RegisteredEntity,
+} from './entityRegistry';
 import { createStepLogger } from './logger';
-import { EntityCategory, type Entity } from './types';
+import { EntityCategory } from './types';
 
 import type { Logger } from '@subsquid/logger';
 
@@ -52,19 +52,13 @@ interface FKResolutionRule {
   readonly name: string;
 
   /** BatchContext entity type key for source entities (e.g., 'UniversalProfile') */
-  readonly sourceType: string;
-
-  /** Source entity class constructor (for DB queries) */
-  readonly sourceClass: { new (props?: unknown): Entity };
+  readonly sourceType: keyof EntityRegistry;
 
   /** FK field name on the source entity to populate */
   readonly fkField: string;
 
-  /** Target entity class constructor (for DB lookups and FK stub creation) */
-  readonly targetClass: { new (props?: unknown): Entity };
-
   /** BatchContext entity type key for target entities */
-  readonly targetType: string;
+  readonly targetType: keyof EntityRegistry;
 
   /** Given a source entity ID, derive the target entity ID */
   readonly resolveTargetId: (sourceId: string) => string;
@@ -98,9 +92,7 @@ const FK_RESOLUTION_RULES: readonly FKResolutionRule[] = [
   {
     name: 'UniversalProfile.lsp3Profile',
     sourceType: 'UniversalProfile',
-    sourceClass: UniversalProfile as unknown as { new (props?: unknown): Entity },
     fkField: 'lsp3Profile',
-    targetClass: LSP3Profile as unknown as { new (props?: unknown): Entity },
     targetType: 'LSP3Profile',
     resolveTargetId: (sourceId: string) => sourceId,
     resolveSourceId: (targetId: string) => targetId,
@@ -108,9 +100,7 @@ const FK_RESOLUTION_RULES: readonly FKResolutionRule[] = [
   {
     name: 'DigitalAsset.lsp4Metadata',
     sourceType: 'DigitalAsset',
-    sourceClass: DigitalAsset as unknown as { new (props?: unknown): Entity },
     fkField: 'lsp4Metadata',
-    targetClass: LSP4Metadata as unknown as { new (props?: unknown): Entity },
     targetType: 'LSP4Metadata',
     resolveTargetId: (sourceId: string) => sourceId,
     resolveSourceId: (targetId: string) => targetId,
@@ -118,9 +108,7 @@ const FK_RESOLUTION_RULES: readonly FKResolutionRule[] = [
   {
     name: 'NFT.lsp4Metadata',
     sourceType: 'NFT',
-    sourceClass: NFT as unknown as { new (props?: unknown): Entity },
     fkField: 'lsp4Metadata',
-    targetClass: LSP4Metadata as unknown as { new (props?: unknown): Entity },
     targetType: 'LSP4Metadata',
     resolveTargetId: (sourceId: string) => sourceId,
     resolveSourceId: (targetId: string) => targetId,
@@ -128,9 +116,7 @@ const FK_RESOLUTION_RULES: readonly FKResolutionRule[] = [
   {
     name: 'NFT.lsp4MetadataBaseUri',
     sourceType: 'NFT',
-    sourceClass: NFT as unknown as { new (props?: unknown): Entity },
     fkField: 'lsp4MetadataBaseUri',
-    targetClass: LSP4Metadata as unknown as { new (props?: unknown): Entity },
     targetType: 'LSP4Metadata',
     resolveTargetId: (sourceId: string) => `BaseURI - ${sourceId}`,
     resolveSourceId: (targetId: string) =>
@@ -169,7 +155,7 @@ export async function resolveForeignKeys(
   const resolveLog = createStepLogger(log, 'RESOLVE', blockRange);
 
   for (const rule of FK_RESOLUTION_RULES) {
-    const entitiesToUpdate: Entity[] = [];
+    const entitiesToUpdate: RegisteredEntity[] = [];
 
     // ----- Forward pass: source entities in batch → find target -----
     const sourceEntities = getSourceEntitiesFromBatch(batchCtx, rule);
@@ -214,17 +200,19 @@ export async function resolveForeignKeys(
  *
  * We also check the verification results for newly created UP/DA entities.
  */
-function getSourceEntitiesFromBatch(batchCtx: BatchContext, rule: FKResolutionRule): Entity[] {
+function getSourceEntitiesFromBatch(
+  batchCtx: BatchContext,
+  rule: FKResolutionRule,
+): RegisteredEntity[] {
   // Check regular entity bag first
-  const bagEntities = batchCtx.getEntities<Entity>(rule.sourceType);
-  const entities: Entity[] = [...bagEntities.values()];
+  const bagEntities = batchCtx.getEntities(rule.sourceType);
+  const entities: RegisteredEntity[] = [...bagEntities.values()];
 
   // For core entities (UP, DA), also check verification results
-  // since new UP/DA entities are stored there, not in the entity bag
+  // since new UP/DA entities are stored there, not in the entity bag.
   if (rule.sourceType === 'UniversalProfile') {
     const verified = batchCtx.getVerified(EntityCategory.UniversalProfile);
     for (const entity of verified.newEntities.values()) {
-      // Avoid duplicates if somehow already in the bag
       if (!bagEntities.has(entity.id)) {
         entities.push(entity);
       }
@@ -244,8 +232,11 @@ function getSourceEntitiesFromBatch(batchCtx: BatchContext, rule: FKResolutionRu
 /**
  * Get target entities from the batch context for a given rule.
  */
-function getTargetEntitiesFromBatch(batchCtx: BatchContext, rule: FKResolutionRule): Entity[] {
-  const entities = batchCtx.getEntities<Entity>(rule.targetType);
+function getTargetEntitiesFromBatch(
+  batchCtx: BatchContext,
+  rule: FKResolutionRule,
+): RegisteredEntity[] {
+  const entities = batchCtx.getEntities(rule.targetType);
   return [...entities.values()];
 }
 
@@ -259,18 +250,18 @@ async function resolveForward(
   store: Store,
   batchCtx: BatchContext,
   rule: FKResolutionRule,
-  sourceEntities: Entity[],
-): Promise<Entity[]> {
-  const resolved: Entity[] = [];
+  sourceEntities: RegisteredEntity[],
+): Promise<RegisteredEntity[]> {
+  const resolved: RegisteredEntity[] = [];
 
   // Separate sources into those whose target is in-batch vs needs DB lookup
-  const needsDbLookup: Array<{ source: Entity; targetId: string }> = [];
+  const needsDbLookup: Array<{ source: RegisteredEntity; targetId: string }> = [];
 
-  const batchTargets = batchCtx.getEntities<Entity>(rule.targetType);
+  const batchTargets = batchCtx.getEntities(rule.targetType);
 
   for (const source of sourceEntities) {
     // Skip if FK is already set
-    const currentFk = (source as Record<string, unknown>)[rule.fkField];
+    const currentFk = source[rule.fkField];
     if (currentFk != null) continue;
 
     const targetId = rule.resolveTargetId(source.id);
@@ -287,7 +278,7 @@ async function resolveForward(
   // Batch DB lookup for remaining targets
   if (needsDbLookup.length > 0) {
     const targetIds = [...new Set(needsDbLookup.map((item) => item.targetId))];
-    const existingTargets = await store.findBy(rule.targetClass, {
+    const existingTargets = await storeFindBy(store, rule.targetType, {
       id: In(targetIds),
     });
     const existingIds = new Set(existingTargets.map((e) => e.id));
@@ -313,10 +304,10 @@ async function resolveForward(
 async function resolveReverse(
   store: Store,
   rule: FKResolutionRule,
-  targetEntities: Entity[],
+  targetEntities: RegisteredEntity[],
   alreadyResolved: Set<string>,
-): Promise<Entity[]> {
-  const resolved: Entity[] = [];
+): Promise<RegisteredEntity[]> {
+  const resolved: RegisteredEntity[] = [];
 
   // Derive source IDs from target entities, excluding:
   // - null returns (target ID doesn't match this rule's pattern)
@@ -334,7 +325,7 @@ async function resolveReverse(
   if (sourceIds.length === 0) return resolved;
 
   // Query DB for source entities with null FK
-  const sources = await store.find(rule.sourceClass, {
+  const sources = await storeFind(store, rule.sourceType, {
     where: {
       id: In(sourceIds),
       [rule.fkField]: IsNull(),
@@ -353,8 +344,8 @@ async function resolveReverse(
  * Set a FK stub on a source entity. Creates a minimal target entity instance
  * with only the `id` field set, which TypeORM uses as a FK reference.
  */
-function setFkStub(source: Entity, rule: FKResolutionRule): void {
+function setFkStub(source: RegisteredEntity, rule: FKResolutionRule): void {
   const targetId = rule.resolveTargetId(source.id);
-  const stub = new rule.targetClass({ id: targetId });
-  (source as Record<string, unknown>)[rule.fkField] = stub;
+  const stub = createEntity(rule.targetType, { id: targetId });
+  source[rule.fkField] = stub;
 }

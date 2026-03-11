@@ -1,3 +1,4 @@
+import type { EntityRegistry } from '../entityRegistry';
 import { Entity, EntityConstructor, FKFields, WritableFields } from './entity';
 import { FetchRequest } from './metadata';
 import {
@@ -115,12 +116,13 @@ export type StoredClearRequest = Omit<ClearRequest<Entity>, 'fkField'> & {
  * A new BatchContext is created for each batch — no state carries over.
  */
 export interface IBatchContext {
-  // Entity storage
-  addEntity(type: string, id: string, entity: unknown): void;
-  getEntities<T>(type: string): Map<string, T>;
-  removeEntity(type: string, id: string): void;
-  hasEntities(type: string): boolean;
-  getEntityTypeKeys(): string[];
+  // Typed entity storage — compile-time bag key validation
+  addEntity<K extends keyof EntityRegistry>(type: K, id: string, entity: EntityRegistry[K]): void;
+  getEntities<K extends keyof EntityRegistry>(type: K): Map<string, EntityRegistry[K]>;
+  removeEntity<K extends keyof EntityRegistry>(type: K, id: string): void;
+  hasEntities(type: keyof EntityRegistry): boolean;
+
+  getEntityTypeKeys(): (keyof EntityRegistry)[];
 
   /**
    * Seal the set of raw entity type keys after Step 2 persistence.
@@ -152,6 +154,8 @@ export interface IBatchContext {
 
   // Clear queue (for sub-entity deletion)
   queueClear<T extends Entity>(request: ClearRequest<T>): void;
+  /** Queue a clear request with pre-erased types (for heterogeneous descriptor arrays). */
+  queueClearStored(request: StoredClearRequest): void;
   getClearQueue(): ReadonlyArray<StoredClearRequest>;
 
   // Delete queue (for DB-level entity removal)

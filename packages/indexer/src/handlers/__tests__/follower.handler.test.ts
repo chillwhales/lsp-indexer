@@ -224,7 +224,7 @@ describe('FollowerHandler - Follow events (HNDL-01)', () => {
       entityType: 'Follower',
       entityId: expectedId,
       fkField: 'followerUniversalProfile',
-      blockNumber: 0,
+      blockNumber: 100,
       transactionIndex: 0,
       logIndex: 0,
     });
@@ -234,7 +234,7 @@ describe('FollowerHandler - Follow events (HNDL-01)', () => {
       entityType: 'Follower',
       entityId: expectedId,
       fkField: 'followedUniversalProfile',
-      blockNumber: 0,
+      blockNumber: 100,
       transactionIndex: 0,
       logIndex: 0,
     });

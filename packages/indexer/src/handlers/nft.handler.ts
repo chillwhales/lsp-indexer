@@ -14,9 +14,9 @@
  */
 import { ZERO_ADDRESS } from '@/constants';
 import { resolveEntities } from '@/core/handlerHelpers';
-import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { EntityCategory, EntityHandler } from '@/core/types';
 import { generateTokenId } from '@/utils';
-import { NFT, TokenIdDataChanged, Transfer } from '@chillwhales/typeorm';
+import { NFT } from '@chillwhales/typeorm';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'NFT';
@@ -28,14 +28,14 @@ const NFTHandler: EntityHandler = {
   name: 'nft',
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
+  async handle(hctx, triggeredBy): Promise<void> {
     // Start with NFTs already created in this batch (intra-batch deduplication)
-    const existingInBatch = hctx.batchCtx.getEntities<NFT>(ENTITY_TYPE);
+    const existingInBatch = hctx.batchCtx.getEntities('NFT');
     const nfts = new Map<string, NFT>(existingInBatch);
 
     // Process LSP8Transfer first (higher priority for mint/burn status)
     if (triggeredBy === 'LSP8Transfer') {
-      const transfers = hctx.batchCtx.getEntities<Transfer>(triggeredBy);
+      const transfers = hctx.batchCtx.getEntities('LSP8Transfer');
 
       for (const transfer of transfers.values()) {
         const nftId = generateTokenId({ address: transfer.address, tokenId: transfer.tokenId });
@@ -84,7 +84,7 @@ const NFTHandler: EntityHandler = {
     // Resolve from batch + DB to avoid overwriting existing NFTs with stubs.
     // This ensures we preserve mint/burn flags from previous batches.
     if (triggeredBy === 'TokenIdDataChanged') {
-      const events = hctx.batchCtx.getEntities<TokenIdDataChanged>(triggeredBy);
+      const events = hctx.batchCtx.getEntities('TokenIdDataChanged');
 
       // Collect potential NFT IDs from TokenIdDataChanged events
       const potentialNewIds: string[] = [];
@@ -94,11 +94,10 @@ const NFTHandler: EntityHandler = {
       }
 
       // Resolve NFTs from batch + DB
-      const existingNFTs = await resolveEntities<NFT>(
+      const existingNFTs = await resolveEntities(
         hctx.store,
         hctx.batchCtx,
         ENTITY_TYPE,
-        NFT,
         potentialNewIds,
       );
 

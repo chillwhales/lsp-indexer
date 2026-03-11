@@ -1,4 +1,5 @@
 import { Store } from '@subsquid/typeorm-store';
+import type { EntityRegistry } from '../entityRegistry';
 import { IBatchContext } from './batchContext';
 import { IMetadataWorkerPool } from './metadata';
 import { Context } from './subsquid';
@@ -51,7 +52,7 @@ export interface EntityHandler {
   readonly name: string;
 
   /** Subscribe to BatchContext entity bag keys (e.g. ['DataChanged', 'LSP8Transfer']) */
-  readonly listensToBag: string[];
+  readonly listensToBag: (keyof EntityRegistry)[];
 
   /**
    * If true, this handler runs after verification (Step 5.5) instead of
@@ -92,5 +93,5 @@ export interface EntityHandler {
    * @param hctx        - Handler context (store, batch context, worker pool)
    * @param triggeredBy - The entity bag key that triggered this invocation
    */
-  handle(hctx: HandlerContext, triggeredBy: string): void | Promise<void>;
+  handle(hctx: HandlerContext, triggeredBy: keyof EntityRegistry): void | Promise<void>;
 }

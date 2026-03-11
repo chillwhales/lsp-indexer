@@ -58,8 +58,8 @@ const LSP5ReceivedAssetsHandler: EntityHandler = {
   name: 'lsp5ReceivedAssets',
   listensToBag: ['DataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
+  async handle(hctx, _triggeredBy): Promise<void> {
+    const events = hctx.batchCtx.getEntities('DataChanged');
 
     // Collect all potential LSP5ReceivedAsset IDs from Index and Map events
     const potentialIds: string[] = [];
@@ -78,11 +78,10 @@ const LSP5ReceivedAssetsHandler: EntityHandler = {
     }
 
     // CORRECT PATTERN: Resolve from BOTH batch and database
-    const existingAssets = await resolveEntities<LSP5ReceivedAsset>(
+    const existingAssets = await resolveEntities(
       hctx.store,
       hctx.batchCtx,
       RECEIVED_ASSET_TYPE,
-      LSP5ReceivedAsset,
       potentialIds,
     );
 

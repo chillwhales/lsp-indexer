@@ -4,6 +4,7 @@ import { PipelineConfig, VerifyFn, processBatch } from '@/core/pipeline';
 import { PluginRegistry } from '@/core/registry';
 import {
   Block,
+  BlockPosition,
   Context,
   EntityCategory,
   IMetadataWorkerPool,
@@ -156,6 +157,7 @@ function createMockVerifyFn(validAddresses: Set<string>): VerifyFn {
     addresses: Set<string>,
     _store: Store,
     _context: Context,
+    blockPositionByAddress: Map<string, BlockPosition>,
   ): Promise<VerificationResult> => {
     const valid = new Set<string>();
     const invalid = new Set<string>();
@@ -166,11 +168,20 @@ function createMockVerifyFn(validAddresses: Set<string>): VerifyFn {
       if (validAddresses.has(addr)) {
         valid.add(addr);
         newAddresses.add(addr);
+        // Use block position from enrichment queue (mirrors production behavior)
+        const pos = blockPositionByAddress.get(addr);
+        const blockFields = pos
+          ? {
+              blockNumber: pos.blockNumber,
+              transactionIndex: pos.transactionIndex,
+              logIndex: pos.logIndex,
+            }
+          : { blockNumber: 0, transactionIndex: 0, logIndex: 0 };
         // Create mock entity based on category
         if (category === EntityCategory.UniversalProfile) {
-          newEntities.set(addr, new UniversalProfile({ id: addr }));
+          newEntities.set(addr, new UniversalProfile({ id: addr, ...blockFields }));
         } else if (category === EntityCategory.DigitalAsset) {
-          newEntities.set(addr, new DigitalAsset({ id: addr }));
+          newEntities.set(addr, new DigitalAsset({ id: addr, ...blockFields }));
         }
       } else {
         invalid.add(addr);

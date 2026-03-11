@@ -55,8 +55,8 @@ const LSP4CreatorsHandler: EntityHandler = {
   name: 'lsp4Creators',
   listensToBag: ['DataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
+  async handle(hctx, _triggeredBy): Promise<void> {
+    const events = hctx.batchCtx.getEntities('DataChanged');
 
     // Set persist hint for cross-batch merge behavior (safety net)
     hctx.batchCtx.setPersistHint<LSP4Creator>(CREATOR_TYPE, {
@@ -81,11 +81,10 @@ const LSP4CreatorsHandler: EntityHandler = {
     }
 
     // Merge entities from BOTH BatchContext and database
-    const existingCreators = await resolveEntities<LSP4Creator>(
+    const existingCreators = await resolveEntities(
       hctx.store,
       hctx.batchCtx,
       CREATOR_TYPE,
-      LSP4Creator,
       potentialIds,
     );
 

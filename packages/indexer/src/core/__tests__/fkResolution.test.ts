@@ -229,8 +229,13 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
         lsp3Profile: existingLsp3,
       });
 
-      // Add to entity bag (simulating an entity that was somehow already in batch)
-      batchCtx.addEntity('UniversalProfile', upEntity.id, upEntity);
+      // Simulate verified UP with FK already set (UP entities come from verification, not addEntity)
+      batchCtx.setVerified(EntityCategory.UniversalProfile, {
+        new: new Set([UP_ADDRESS]),
+        valid: new Set([UP_ADDRESS]),
+        invalid: new Set(),
+        newEntities: new Map([[UP_ADDRESS, upEntity]]),
+      });
 
       // Also add LSP3Profile to batch to trigger forward pass
       const lsp3 = new LSP3Profile({

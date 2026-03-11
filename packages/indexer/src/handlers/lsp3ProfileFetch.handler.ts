@@ -38,7 +38,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
-const ENTITY_TYPE = 'LSP3Profile';
+const ENTITY_KEY = 'LSP3Profile';
 
 // ---------------------------------------------------------------------------
 // Sub-entity descriptors (for queueClear operations)
@@ -215,13 +215,12 @@ function parseAndAddSubEntities(
 // Handler definition
 // ---------------------------------------------------------------------------
 
-const fetchConfig: MetadataFetchConfig<LSP3Profile> = {
-  entityClass: LSP3Profile,
-  entityType: ENTITY_TYPE,
+const fetchConfig: MetadataFetchConfig<'LSP3Profile'> = {
+  entityKey: ENTITY_KEY,
   subEntityDescriptors: SUB_ENTITY_DESCRIPTORS,
   parseAndAddSubEntities,
-  getUrl: (entity: LSP3Profile): string | null => entity.url ?? null,
-  getId: (entity: LSP3Profile): string => entity.id,
+  getUrl: (entity): string | null => entity.url ?? null,
+  getId: (entity): string => entity.id,
 };
 
 const LSP3ProfileFetchHandler: EntityHandler = {
@@ -230,8 +229,8 @@ const LSP3ProfileFetchHandler: EntityHandler = {
   dependsOn: ['lsp3Profile'],
   drainAtHead: true,
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_TYPE).values());
+  async handle(hctx, triggeredBy): Promise<void> {
+    const unfetchedEntities = Array.from(hctx.batchCtx.getEntities(ENTITY_KEY).values());
 
     if (hctx.context.log.isDebug()) {
       const logger = createComponentLogger(hctx.context.log, 'metadata_fetch');
@@ -244,7 +243,7 @@ const LSP3ProfileFetchHandler: EntityHandler = {
         'Starting LSP3 profile metadata fetch',
       );
       const startTime = Date.now();
-      await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+      await handleMetadataFetch(hctx, fetchConfig, ENTITY_KEY);
       const duration = Date.now() - startTime;
       logger.debug(
         {
@@ -255,7 +254,7 @@ const LSP3ProfileFetchHandler: EntityHandler = {
         'LSP3 profile metadata fetch complete',
       );
     } else {
-      await handleMetadataFetch(hctx, fetchConfig, triggeredBy);
+      await handleMetadataFetch(hctx, fetchConfig, ENTITY_KEY);
     }
   },
 };

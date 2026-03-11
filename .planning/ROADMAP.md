@@ -51,6 +51,7 @@ Full details: `milestones/v1.1-ROADMAP.md`
 - [x] **Phase 17: Version Normalization** — Set 0.1.0 for all private packages (completed 2026-03-09)
 - [x] **Phase 18: Production Docker Compose** — Production-ready compose using released Docker image (completed 2026-03-09)
 - [x] **Phase 19: Block Ordering** — Add blockNumber/transactionIndex/logIndex to all entities (completed 2026-03-09)
+- [x] **Phase 19.1: Type System Tightening** — Remove unchecked generics from BatchContext, enforce Entity base type — INSERTED (completed 2026-03-10)
 - [ ] **Phase 20: Monitoring & Docker Image Release** — Grafana dashboards + release updated Docker image
 - [ ] **Phase 21: Sorting & Consumer Package Release** — Oldest/newest sorting across all 12 domains + release 4 packages
 - [ ] **Phase 22: Database Operations** — Backup strategy, automation, and recovery procedure
@@ -98,6 +99,24 @@ Plans:
 - [ ] 19-02-PLAN.md — EventPlugin + pipeline updates (real block data in enrichment + core entity retention)
 - [ ] 19-03-PLAN.md — EntityHandler block propagation (derived entities + metadata sub-entities)
 
+### Phase 19.1: Type System Tightening
+**Goal**: BatchContext uses honest types — no unchecked generics on type-erased storage
+**Depends on**: Phase 19
+**Requirements**: None (refactor, no new requirements)
+**Success Criteria** (what must be TRUE):
+  1. `getEntities()` returns `Map<string, Entity>` (no generic parameter)
+  2. `addEntity()` accepts `Entity` (not `unknown`)
+  3. All ~29 handlers compile and cast at the call site where they know the concrete type
+  4. All handler tests pass with block field expectations and updated mocks
+  5. Integration test passes with fixed multi-event fixture and VerifyFn signature
+  6. `pnpm --filter=@chillwhales/indexer build` succeeds with zero errors
+  7. Full test suite passes
+**Plans**: 2 plans
+
+Plans:
+- [x] 19.1-01-PLAN.md — Fix all getEntities generic removal + handler casts + test verification
+- [x] 19.1-02-PLAN.md — Entity registry with 71-key type map + typed BatchContext + runtime validation
+
 ### Phase 20: Monitoring & Docker Image Release
 **Goal**: Production operators can observe indexer health through Grafana and deploy the latest changes
 **Depends on**: Phase 18, Phase 19
@@ -133,7 +152,7 @@ Plans:
 
 ## Progress
 
-**Execution Order:** 17 → 18 → 19 → 20 → 21 → 22
+**Execution Order:** 17 → 18 → 19 → 19.1 → 20 → 21 → 22
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | --- | --- | --- | --- | --- |
@@ -142,6 +161,7 @@ Plans:
 | 17. Version Normalization | v1.2 | 1/1 | Complete | 2026-03-09 |
 | 18. Production Docker Compose | v1.2 | 1/1 | Complete | 2026-03-09 |
 | 19. Block Ordering | v1.2 | 3/3 | Complete | 2026-03-09 |
+| 19.1. Type System Tightening | v1.2 | Complete    | 2026-03-10 | 2026-03-10 |
 | 20. Monitoring & Docker Release | v1.2 | 0/TBD | Not started | - |
 | 21. Sorting & Package Release | v1.2 | 0/TBD | Not started | - |
 | 22. Database Operations | v1.2 | 0/TBD | Not started | - |

@@ -78,8 +78,8 @@ const LSP6ControllersHandler: EntityHandler = {
   name: 'lsp6Controllers',
   listensToBag: ['DataChanged'],
 
-  async handle(hctx: HandlerContext, triggeredBy: string): Promise<void> {
-    const events = hctx.batchCtx.getEntities<DataChanged>(triggeredBy);
+  async handle(hctx, _triggeredBy): Promise<void> {
+    const events = hctx.batchCtx.getEntities('DataChanged');
 
     // Set persist hint for cross-batch merge behavior (safety net)
     hctx.batchCtx.setPersistHint(CONTROLLER_TYPE, {
@@ -114,11 +114,10 @@ const LSP6ControllersHandler: EntityHandler = {
     }
 
     // Merge entities from BOTH BatchContext and database
-    const existingControllers = await resolveEntities<LSP6Controller>(
+    const existingControllers = await resolveEntities(
       hctx.store,
       hctx.batchCtx,
       CONTROLLER_TYPE,
-      LSP6Controller,
       potentialIds,
     );
 
@@ -163,7 +162,7 @@ const LSP6ControllersHandler: EntityHandler = {
     }
 
     // Queue clear requests for sub-entity types that had new data in this batch
-    const controllers = hctx.batchCtx.getEntities<LSP6Controller>(CONTROLLER_TYPE);
+    const controllers = hctx.batchCtx.getEntities('LSP6Controller');
     if (controllers.size === 0) return;
 
     const controllerIds = [...controllers.keys()];
@@ -195,9 +194,9 @@ const LSP6ControllersHandler: EntityHandler = {
     // Link sub-entities to their parent controller
     // Sub-entities are created without controller FK; we link them here after
     // populate so orphans whose parent was filtered out get removed.
-    linkSubEntitiesToController(hctx, PERMISSION_TYPE, controllers);
-    linkSubEntitiesToController(hctx, ALLOWED_CALL_TYPE, controllers);
-    linkSubEntitiesToController(hctx, ALLOWED_DATA_KEY_TYPE, controllers);
+    linkSubEntitiesToController(hctx, 'LSP6Permission', controllers);
+    linkSubEntitiesToController(hctx, 'LSP6AllowedCall', controllers);
+    linkSubEntitiesToController(hctx, 'LSP6AllowedERC725YDataKey', controllers);
   },
 };
 
@@ -590,12 +589,10 @@ function getOrCreateController(
  */
 function linkSubEntitiesToController(
   hctx: HandlerContext,
-  subEntityType: string,
+  subEntityType: 'LSP6Permission' | 'LSP6AllowedCall' | 'LSP6AllowedERC725YDataKey',
   controllers: Map<string, LSP6Controller>,
 ): void {
-  const subEntities = hctx.batchCtx.getEntities<{ controller: LSP6Controller | null }>(
-    subEntityType,
-  );
+  const subEntities = hctx.batchCtx.getEntities(subEntityType);
 
   for (const [id, entity] of subEntities) {
     // Extract controller ID from sub-entity ID: "{upAddress} - {controllerAddress} - {suffix}"
