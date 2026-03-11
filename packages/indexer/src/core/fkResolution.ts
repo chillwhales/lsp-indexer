@@ -22,7 +22,13 @@ import { Store } from '@subsquid/typeorm-store';
 import { In, IsNull } from 'typeorm';
 
 import { BatchContext } from './batchContext';
-import { ENTITY_CONSTRUCTORS, type EntityRegistry, type RegisteredEntity } from './entityRegistry';
+import {
+  createEntity,
+  storeFind,
+  storeFindBy,
+  type EntityRegistry,
+  type RegisteredEntity,
+} from './entityRegistry';
 import { createStepLogger } from './logger';
 import { EntityCategory } from './types';
 
@@ -272,11 +278,7 @@ async function resolveForward(
   // Batch DB lookup for remaining targets
   if (needsDbLookup.length > 0) {
     const targetIds = [...new Set(needsDbLookup.map((item) => item.targetId))];
-    // Constructor resolved from registry; cast needed because TypeORM's EntityClass<T>
-    // expects a single concrete type, not the union from ENTITY_CONSTRUCTORS[K]
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const targetClass = ENTITY_CONSTRUCTORS[rule.targetType] as any;
-    const existingTargets = await store.findBy(targetClass, {
+    const existingTargets = await storeFindBy(store, rule.targetType, {
       id: In(targetIds),
     });
     const existingIds = new Set(existingTargets.map((e) => e.id));
@@ -323,18 +325,14 @@ async function resolveReverse(
   if (sourceIds.length === 0) return resolved;
 
   // Query DB for source entities with null FK
-  // Constructor resolved from registry; cast needed because TypeORM's EntityClass<T>
-  // expects a single concrete type, not the union from ENTITY_CONSTRUCTORS[K]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sourceClass = ENTITY_CONSTRUCTORS[rule.sourceType] as any;
-  const sources = await store.find(sourceClass, {
+  const sources = await storeFind(store, rule.sourceType, {
     where: {
       id: In(sourceIds),
       [rule.fkField]: IsNull(),
     },
   });
 
-  for (const source of sources as RegisteredEntity[]) {
+  for (const source of sources) {
     setFkStub(source, rule);
     resolved.push(source);
   }
@@ -348,7 +346,6 @@ async function resolveReverse(
  */
 function setFkStub(source: RegisteredEntity, rule: FKResolutionRule): void {
   const targetId = rule.resolveTargetId(source.id);
-  const targetClass = ENTITY_CONSTRUCTORS[rule.targetType];
-  const stub = new targetClass({ id: targetId });
+  const stub = createEntity(rule.targetType, { id: targetId });
   source[rule.fkField] = stub;
 }

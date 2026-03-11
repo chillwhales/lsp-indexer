@@ -90,6 +90,8 @@ import {
   UniversalProfileOwner,
   UniversalReceiver,
 } from '@chillwhales/typeorm';
+import { FindManyOptions, Store } from '@subsquid/typeorm-store';
+import { FindOptionsWhere, In } from 'typeorm';
 
 // ---------------------------------------------------------------------------
 // Type-level registry
@@ -218,9 +220,8 @@ export type RegisteredEntity = EntityRegistry[BagKey];
  * The mapped type ensures the compiler rejects any mismatch between the
  * interface and the runtime map.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const ENTITY_CONSTRUCTORS: {
-  [K in keyof EntityRegistry]: new (...args: any[]) => EntityRegistry[K];
+  [K in keyof EntityRegistry]: new (props?: Partial<EntityRegistry[K]>) => EntityRegistry[K];
 } = {
   // Core entities
   UniversalProfile,
@@ -311,7 +312,7 @@ export const ENTITY_CONSTRUCTORS: {
 };
 
 // ---------------------------------------------------------------------------
-// Runtime accessor
+// Runtime accessors
 // ---------------------------------------------------------------------------
 
 /**
@@ -323,9 +324,133 @@ export const ENTITY_CONSTRUCTORS: {
  * @param key - A valid bag key (keyof EntityRegistry)
  * @returns The TypeORM entity class constructor for that bag key
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getEntityConstructor<K extends keyof EntityRegistry>(
   key: K,
-): new (...args: any[]) => EntityRegistry[K] {
+): new (props?: Partial<EntityRegistry[K]>) => EntityRegistry[K] {
   return ENTITY_CONSTRUCTORS[key];
+}
+
+/**
+ * Create a new entity instance for a bag key.
+ *
+ * Uses the registry constructor to instantiate the entity with the given
+ * partial props. The generic `K` keeps the type deferred, so TypeScript
+ * resolves the constructor as compatible with `EntityClass<EntityRegistry[K]>`
+ * without expanding the 73-member union.
+ *
+ * @param key   - A valid bag key (keyof EntityRegistry)
+ * @param props - Partial entity properties (typically just `{ id }` for FK stubs)
+ * @returns A new entity instance of the correct type for the bag key
+ */
+export function createEntity<K extends keyof EntityRegistry>(
+  key: K,
+  props?: Partial<EntityRegistry[K]>,
+): EntityRegistry[K] {
+  const ctor = ENTITY_CONSTRUCTORS[key];
+  return new ctor(props);
+}
+
+/**
+ * Query entities from the store by bag key using `store.find()`.
+ *
+ * Wraps the Subsquid store query with the registry constructor so callers
+ * don't need type casts. The generic `K` keeps the constructor type deferred,
+ * making it compatible with `EntityClass<EntityRegistry[K]>`.
+ *
+ * @param store   - Subsquid store instance
+ * @param key     - A valid bag key (keyof EntityRegistry)
+ * @param options - TypeORM FindManyOptions (where, order, relations, etc.)
+ * @returns Array of entities matching the query
+ */
+export async function storeFind<K extends keyof EntityRegistry>(
+  store: Store,
+  key: K,
+  options?: FindManyOptions<EntityRegistry[K]>,
+): Promise<EntityRegistry[K][]> {
+  const ctor = ENTITY_CONSTRUCTORS[key];
+  return store.find(ctor, options);
+}
+
+/**
+ * Query entities from the store by bag key using `store.findBy()`.
+ *
+ * Like {@link storeFind} but takes a where clause directly instead of
+ * a full options object. Useful for simple ID-based lookups.
+ *
+ * @param store - Subsquid store instance
+ * @param key   - A valid bag key (keyof EntityRegistry)
+ * @param where - TypeORM FindOptionsWhere condition(s)
+ * @returns Array of entities matching the where clause
+ */
+export async function storeFindBy<K extends keyof EntityRegistry>(
+  store: Store,
+  key: K,
+  where: FindOptionsWhere<EntityRegistry[K]>,
+): Promise<EntityRegistry[K][]> {
+  const ctor = ENTITY_CONSTRUCTORS[key];
+  return store.findBy(ctor, where);
+}
+
+/**
+ * Query a single entity from the store by bag key using `store.findOneBy()`.
+ *
+ * Like {@link storeFindBy} but returns a single entity or undefined.
+ *
+ * @param store - Subsquid store instance
+ * @param key   - A valid bag key (keyof EntityRegistry)
+ * @param where - TypeORM FindOptionsWhere condition(s)
+ * @returns The matching entity, or undefined if not found
+ */
+export async function storeFindOneBy<K extends keyof EntityRegistry>(
+  store: Store,
+  key: K,
+  where: FindOptionsWhere<EntityRegistry[K]>,
+): Promise<EntityRegistry[K] | undefined> {
+  const ctor = ENTITY_CONSTRUCTORS[key];
+  return store.findOneBy(ctor, where);
+}
+
+/**
+ * Find a single entity by ID using the registry constructor.
+ *
+ * Accepts a plain `id` string instead of `FindOptionsWhere<EntityRegistry[K]>`,
+ * avoiding the deferred-generic mapped type issue where TypeScript cannot verify
+ * `{ id: string }` against `FindOptionsWhere<EntityRegistry[K]>` when `K` is
+ * an unresolved type parameter (see: https://github.com/microsoft/TypeScript/issues/53620).
+ *
+ * The internal cast is sound: all EntityRegistry values have `id: string`,
+ * enforced by TypeORM's Entity interface and our codegen.
+ *
+ * @param store - Subsquid store instance
+ * @param key   - A valid bag key (keyof EntityRegistry)
+ * @param id    - Entity ID to look up
+ * @returns The matching entity, or undefined if not found
+ */
+export async function storeFindOneById<K extends keyof EntityRegistry>(
+  store: Store,
+  key: K,
+  id: string,
+): Promise<EntityRegistry[K] | undefined> {
+  const ctor = ENTITY_CONSTRUCTORS[key];
+  return store.findOneBy(ctor, { id } as FindOptionsWhere<EntityRegistry[K]>);
+}
+
+/**
+ * Find multiple entities by IDs using the registry constructor.
+ *
+ * Accepts a plain `ids` array instead of `FindOptionsWhere<EntityRegistry[K]>`,
+ * avoiding the same deferred-generic mapped type issue as {@link storeFindOneById}.
+ *
+ * @param store - Subsquid store instance
+ * @param key   - A valid bag key (keyof EntityRegistry)
+ * @param ids   - Entity IDs to look up
+ * @returns Array of entities matching the given IDs
+ */
+export async function storeFindByIds<K extends keyof EntityRegistry>(
+  store: Store,
+  key: K,
+  ids: string[],
+): Promise<EntityRegistry[K][]> {
+  const ctor = ENTITY_CONSTRUCTORS[key];
+  return store.findBy(ctor, { id: In(ids) } as FindOptionsWhere<EntityRegistry[K]>);
 }

@@ -13,10 +13,9 @@
  * This replaces the old ad-hoc patterns with a single recognizable shape:
  * `const existing = await resolveEntity(...); new Entity({ ...existing, id, newField })`
  */
-import { type EntityRegistry, getEntityConstructor } from '@/core/entityRegistry';
+import { storeFindByIds, storeFindOneById, type EntityRegistry } from '@/core/entityRegistry';
 import { IBatchContext } from '@/core/types';
 import { Store } from '@subsquid/typeorm-store';
-import { FindOptionsWhere, In } from 'typeorm';
 
 // ---------------------------------------------------------------------------
 // Entity resolution utilities
@@ -51,8 +50,7 @@ export async function resolveEntity<K extends keyof EntityRegistry>(
   if (batchEntity) return batchEntity;
 
   // 2. Check database (previous batches)
-  const ctor = getEntityConstructor(entityType);
-  const dbEntity = await store.findOneBy(ctor, { id } as FindOptionsWhere<EntityRegistry[K]>);
+  const dbEntity = await storeFindOneById(store, entityType, id);
   return dbEntity ?? null;
 }
 
@@ -95,10 +93,7 @@ export async function resolveEntities<K extends keyof EntityRegistry>(
   // 2. Query DB for requested IDs not already in batch
   const idsNotInBatch = ids.filter((id) => !batchEntities.has(id));
   if (idsNotInBatch.length > 0) {
-    const ctor = getEntityConstructor(entityType);
-    const dbEntities = await store.findBy(ctor, {
-      id: In(idsNotInBatch),
-    } as FindOptionsWhere<EntityRegistry[K]>);
+    const dbEntities = await storeFindByIds(store, entityType, idsNotInBatch);
     for (const entity of dbEntities) {
       merged.set(entity.id, entity);
     }
