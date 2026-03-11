@@ -1,0 +1,24 @@
+# ==============================================================================
+# Grafana Datasource Provisioning
+# ==============================================================================
+#
+# Auto-configures Loki and Prometheus datasources on first boot.
+# UIDs are referenced by dashboard JSON files — do not change.
+#
+# ==============================================================================
+
+apiVersion: 1
+
+datasources:
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    uid: loki
+    isDefault: true
+
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    uid: prometheus

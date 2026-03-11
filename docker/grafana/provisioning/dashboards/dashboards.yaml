@@ -1,0 +1,20 @@
+# ==============================================================================
+# Grafana Dashboard Provisioning
+# ==============================================================================
+#
+# Loads dashboard JSON files from /var/lib/grafana/dashboards on startup.
+# Dashboard files are bind-mounted from docker/grafana/provisioning/dashboards/.
+#
+# ==============================================================================
+
+apiVersion: 1
+
+providers:
+  - name: default
+    orgId: 1
+    type: file
+    disableDeletion: false
+    allowUiUpdates: true
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards

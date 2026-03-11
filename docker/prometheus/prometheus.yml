@@ -1,0 +1,13 @@
+# ==============================================================================
+# Prometheus Configuration — Minimal
+# ==============================================================================
+#
+# Metrics received via remote write from Alloy (--web.enable-remote-write-receiver flag in compose)
+#
+# No scrape_configs needed — Alloy handles all scraping and pushes via remote write.
+#
+# ==============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s

@@ -1,0 +1,43 @@
+# ==============================================================================
+# Loki Configuration — Single Instance
+# ==============================================================================
+#
+# Stores logs from all Docker containers collected by Grafana Alloy.
+# Filesystem backend with TSDB index — suitable for single-node deployments.
+#
+# ==============================================================================
+
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+
+common:
+  ring:
+    kvstore:
+      store: inmemory
+    replication_factor: 1
+    instance_addr: 127.0.0.1
+
+schema_config:
+  configs:
+    - from: '2020-10-24'
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  filesystem:
+    chunks_directory: /loki/chunks
+    rules_directory: /loki/rules
+
+limits_config:
+  # 14 days — edit to change log retention
+  retention_period: 336h
+
+compactor:
+  working_directory: /loki/compactor
+  retention_enabled: true
