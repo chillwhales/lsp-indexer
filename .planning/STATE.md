@@ -88,4 +88,4 @@ _None currently._
 
 ---
 
-_Last updated: 2026-03-10 — Phase 19.1-02 complete (entity registry + typed BatchContext)_
+_Last updated: 2026-03-11 — Phase 20 planned (monitoring + Docker image release)_
