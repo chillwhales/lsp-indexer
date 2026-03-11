@@ -36,6 +36,17 @@ storage_config:
   filesystem:
     directory: /loki/chunks
 
+ingester:
+  wal:
+    dir: /loki/wal
+    replay_memory_ceiling: 50MB
+  lifecycler:
+    address: 127.0.0.1
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+
 limits_config:
   # 14 days — edit to change log retention
   retention_period: 336h
