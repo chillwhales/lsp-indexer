@@ -44,10 +44,6 @@ compactor:
   working_directory: /loki/compactor
   retention_enabled: true
 
-table_manager:
-  retention_deletes_enabled: true
-  retention_period: 336h
-
 ruler:
   storage:
     type: local
