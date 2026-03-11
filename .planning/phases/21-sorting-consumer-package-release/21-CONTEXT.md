@@ -32,7 +32,7 @@ Add consistent `newest`/`oldest` block-order sorting across all 12 domain servic
 - Coordinated release — all 4 packages released together since types flow through the full stack
 - Use existing changesets workflow for versioning and publishing
 - Publish to npm public registry
-- Version stays at 1.1.0 (minor bump) — removals are not breaking since no external consumers yet
+- Version goes from 1.0.0 to 1.1.0 (minor bump) — removals are not breaking since no external consumers yet
 
 ### Claude's Discretion
 - Order of implementation across the 12 domains
