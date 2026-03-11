@@ -26,7 +26,7 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 
 - [ ] **MNTR-01**: Grafana dashboard displays all structured log output from the indexer
 - [ ] **MNTR-02**: Grafana dashboard displays Subsquid processor (sqd) logs
-- [ ] **MNTR-03**: Monitoring stack (Grafana + log collector) included in production docker-compose
+- [x] **MNTR-03**: Monitoring stack (Grafana + log collector) included in production docker-compose
 
 ### Release — Docker Image
 
@@ -106,7 +106,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BORD-06 | Phase 19 | Complete |
 | MNTR-01 | Phase 20 | Pending |
 | MNTR-02 | Phase 20 | Pending |
-| MNTR-03 | Phase 20 | Pending |
+| MNTR-03 | Phase 20 | Complete |
 | RELD-01 | Phase 20 | Pending |
 | SORT-01 | Phase 21 | Pending |
 | SORT-02 | Phase 21 | Pending |

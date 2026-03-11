@@ -1,0 +1,67 @@
+// =============================================================================
+// Grafana Alloy Configuration — Log Collection + Metric Scraping
+// =============================================================================
+//
+// Single collector pipeline:
+//   1. Discover Docker containers
+//   2. Collect stdout/stderr logs → push to Loki
+//   3. Scrape cAdvisor metrics → push to Prometheus via remote write
+//
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Docker container discovery
+// ---------------------------------------------------------------------------
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// ---------------------------------------------------------------------------
+// Docker log collection → Loki
+// ---------------------------------------------------------------------------
+
+discovery.relabel "docker_logs" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "compose_service"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    target_label  = "compose_project"
+  }
+}
+
+loki.source.docker "default" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.docker_logs.output
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
+
+// ---------------------------------------------------------------------------
+// cAdvisor metric scraping → Prometheus
+// ---------------------------------------------------------------------------
+
+prometheus.scrape "cadvisor" {
+  targets = [{
+    __address__ = "cadvisor:8080",
+  }]
+  metrics_path    = "/metrics"
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "http://prometheus:9090/api/v1/write"
+  }
+}

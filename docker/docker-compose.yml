@@ -6,6 +6,7 @@
 # - Multi-stage build with layer caching for fast rebuilds
 # - PostgreSQL with persistent volume
 # - Hasura GraphQL API (automatically configured on startup)
+# - Grafana monitoring (dashboards, logs, metrics)
 # - Comprehensive logging (both file and stdout)
 # - Health checks for all services
 # - Auto-restart policies
@@ -55,6 +56,8 @@ services:
       - checkpoint_timeout=15min
       - -c
       - work_mem=64MB
+      - -c
+      - log_min_duration_statement=500
 
     # Database credentials from .env
     environment:
@@ -222,6 +225,197 @@ services:
         reservations:
           memory: 128M
 
+  # ----------------------------------------------------------------------------
+  # Loki — Log Aggregation
+  # Receives logs from Alloy and stores them on local filesystem
+  # ----------------------------------------------------------------------------
+  loki:
+    image: grafana/loki:3.4
+    container_name: lsp-indexer-loki
+    restart: unless-stopped
+
+    command: -config.file=/etc/loki/config.yaml
+
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget --quiet --tries=1 --output-document=- http://localhost:3100/ready || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    volumes:
+      - loki-data:/loki
+      - ./loki/config.yaml:/etc/loki/config.yaml:ro
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+
+  # ----------------------------------------------------------------------------
+  # Prometheus — Metrics Storage
+  # Receives metrics from Alloy via remote write
+  # ----------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v3.2.0
+    container_name: lsp-indexer-prometheus
+    restart: unless-stopped
+
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
+      - --storage.tsdb.retention.time=14d
+
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget --quiet --tries=1 --output-document=- http://localhost:9090/-/healthy || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    volumes:
+      - prometheus-data:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+
+  # ----------------------------------------------------------------------------
+  # Grafana Alloy — Unified Log & Metric Collector
+  # Collects Docker logs → Loki, scrapes cAdvisor metrics → Prometheus
+  # ----------------------------------------------------------------------------
+  alloy:
+    image: grafana/alloy:v1.8
+    container_name: lsp-indexer-alloy
+    restart: unless-stopped
+
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+
+    depends_on:
+      loki:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget --quiet --tries=1 --output-document=- http://localhost:12345/-/healthy || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+
+  # ----------------------------------------------------------------------------
+  # cAdvisor — Container Resource Metrics
+  # Provides per-container CPU, memory, network, and disk I/O metrics
+  # ----------------------------------------------------------------------------
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.51.0
+    container_name: lsp-indexer-cadvisor
+    restart: unless-stopped
+    privileged: true
+
+    command: --housekeeping_interval=30s --docker_only=true
+
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget --quiet --tries=1 --output-document=- http://localhost:8080/healthz || exit 1',
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+
+  # ----------------------------------------------------------------------------
+  # Grafana — Dashboard & Visualization
+  # Pre-provisioned with Loki and Prometheus datasources + dashboard JSON files
+  # ----------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: lsp-indexer-grafana
+    restart: unless-stopped
+
+    depends_on:
+      loki:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget --quiet --tries=1 --output-document=- http://localhost:3000/api/health || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+    ports:
+      - '${GRAFANA_PORT:-3000}:3000'
+
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/provisioning/dashboards:/var/lib/grafana/dashboards:ro
+
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+
 # ==============================================================================
 # Persistent Volumes
 # ==============================================================================
@@ -243,6 +437,18 @@ volumes:
     #   type: none
     #   o: bind
     #   device: ${LOG_DIR:-./logs}
+
+  # Grafana dashboard data — operator edits persist across restarts
+  grafana-data:
+    driver: local
+
+  # Loki log data — stores collected container logs
+  loki-data:
+    driver: local
+
+  # Prometheus metric data — stores scraped time-series metrics
+  prometheus-data:
+    driver: local
 # ==============================================================================
 # Networks (optional)
 # ==============================================================================

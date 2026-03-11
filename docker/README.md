@@ -66,13 +66,20 @@ docker compose -f docker-compose.prod.yml --env-file ../.env.prod down
 
 ### Production vs Development
 
-| Aspect          | Development       | Production                               |
-| --------------- | ----------------- | ---------------------------------------- |
-| Indexer         | Built from source | `ghcr.io/chillwhales/lsp-indexer:latest` |
-| PostgreSQL port | Exposed (5432)    | Not exposed                              |
-| Hasura console  | Enabled           | Disabled                                 |
-| Hasura dev mode | Enabled           | Disabled                                 |
-| Secrets         | Optional defaults | Required (no defaults)                   |
+| Aspect          | Development                                    | Production                                      |
+| --------------- | ---------------------------------------------- | ----------------------------------------------- |
+| Indexer         | Built from source                              | `ghcr.io/chillwhales/lsp-indexer:latest`        |
+| PostgreSQL port | Exposed (5432)                                 | Not exposed                                     |
+| Hasura console  | Enabled                                        | Disabled                                        |
+| Hasura dev mode | Enabled                                        | Disabled                                        |
+| Monitoring      | Grafana + Loki + Alloy + cAdvisor + Prometheus | Grafana + Loki + Alloy + cAdvisor + Prometheus  |
+| Secrets         | Optional defaults                              | Required (no defaults, including Grafana admin) |
+
+## Monitoring
+
+The production compose includes a full monitoring stack (Grafana, Loki, Alloy, cAdvisor, Prometheus). Dashboards are available at `GRAFANA_PORT` (default 3000) with anonymous read-only access enabled. Admin login (default `admin`/`admin`) is required for editing dashboards — change the password via `GRAFANA_ADMIN_PASSWORD` in your `.env.prod`.
+
+Logs from all containers are collected by Grafana Alloy and stored in Loki (14-day retention). Container metrics (CPU, memory, network, disk I/O) are scraped from cAdvisor and pushed to Prometheus.
 
 ## Management Commands
 
