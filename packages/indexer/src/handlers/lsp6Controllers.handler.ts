@@ -364,6 +364,9 @@ function extractPermissions(
     for (const [permissionName, permissionValue] of Object.entries(permissions)) {
       const permEntity = new LSP6Permission({
         id: `${id} - ${permissionName}`,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
         permissionName,
         permissionValue,
         controller: null, // FK set later in linkSubEntitiesToController
@@ -417,6 +420,9 @@ function extractAllowedCalls(
       const callBytes = hexToBytes(allowedCalls[i] as Hex);
       const callEntity = new LSP6AllowedCall({
         id: `${id} - ${i}`,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
         restrictionOperations: bytesToHex(callBytes.slice(0, 4)),
         allowedAddress: bytesToHex(callBytes.slice(4, 24)),
         allowedInterfaceId: bytesToHex(callBytes.slice(24, 28)),
@@ -479,6 +485,9 @@ function extractAllowedDataKeys(
     for (let i = 0; i < allowedKeys.length; i++) {
       const keyEntity = new LSP6AllowedERC725YDataKey({
         id: `${id} - ${i}`,
+        blockNumber: event.blockNumber,
+        transactionIndex: event.transactionIndex,
+        logIndex: event.logIndex,
         allowedDataKey: allowedKeys[i],
         controller: null, // FK set later in linkSubEntitiesToController
       });
@@ -533,6 +542,9 @@ function getOrCreateController(
     id,
     address,
     timestamp,
+    blockNumber: event.blockNumber,
+    transactionIndex: event.transactionIndex,
+    logIndex: event.logIndex,
     controllerAddress,
     universalProfile: undefined, // FK resolved in enrichment step
     controllerProfile: null,
