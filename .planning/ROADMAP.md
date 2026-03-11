@@ -126,7 +126,11 @@ Plans:
   2. Grafana dashboard shows Subsquid processor (sqd) logs including block processing progress
   3. Monitoring stack (Grafana + log collector) starts automatically with the production docker-compose
   4. Updated Docker image is available at `ghcr.io/chillwhales/lsp-indexer:latest` with block ordering and monitoring
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 20-01-PLAN.md — Monitoring stack infrastructure (Loki, Alloy, Prometheus, cAdvisor, Grafana in compose)
+- [ ] 20-02-PLAN.md — Grafana dashboard JSON + Docker image release
 
 ### Phase 21: Sorting & Consumer Package Release
 **Goal**: Developers can sort query results by blockchain position (oldest/newest) across all domains
