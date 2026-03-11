@@ -21,14 +21,13 @@ import { In } from 'typeorm';
 import { getAddress, isAddressEqual } from 'viem';
 
 import { BatchContext } from './batchContext';
-import type { EntityRegistry } from './entityRegistry';
+import type { EntityRegistry, RegisteredEntity } from './entityRegistry';
 import { resolveForeignKeys } from './fkResolution';
 import { createStepLogger } from './logger';
 import { PluginRegistry } from './registry';
 import {
   BlockPosition,
   Context,
-  Entity,
   EntityCategory,
   IMetadataWorkerPool,
   StoredClearRequest,
@@ -109,9 +108,9 @@ async function clearSubEntities(store: Store, request: StoredClearRequest): Prom
  * @param entities - Map of entities to upsert (from BatchContext)
  * @param persistHint - Hint with entity class and merge field names
  */
-async function mergeUpsertEntities(
+async function mergeUpsertEntities<K extends keyof EntityRegistry>(
   store: Store,
-  entities: Map<string, Entity>,
+  entities: Map<string, EntityRegistry[K]>,
   persistHint: StoredPersistHint,
 ): Promise<void> {
   const ids = [...entities.keys()];
@@ -133,8 +132,8 @@ async function mergeUpsertEntities(
   for (const [id, entity] of entities) {
     const prev = existingMap.get(id);
     if (prev) {
-      const typedEntity = entity as Record<string, unknown>;
-      const typedPrev = prev as unknown as Record<string, unknown>;
+      const typedEntity = entity;
+      const typedPrev = prev;
       for (const field of persistHint.mergeFields) {
         if (typedEntity[field] == null && typedPrev[field] != null) {
           // Field names are validated at the handler call site via setPersistHint<T>()
@@ -159,11 +158,15 @@ async function mergeUpsertEntities(
  * @param request - Enrichment request with FK field name
  * @param fkStub - Core entity (UP/DA/NFT) used as FK reference value
  */
-function enrichEntity(entity: Entity, request: StoredEnrichmentRequest, fkStub: Entity): void {
-  const typedEntity = entity as Record<string, unknown>;
-  // Field name is validated at the handler call site via queueEnrichment<T>()
-  // The field existence is checked by the caller with the `in` operator
-  typedEntity[request.fkField] = fkStub;
+function enrichEntity(
+  entity: RegisteredEntity,
+  request: StoredEnrichmentRequest,
+  fkStub: RegisteredEntity,
+): void {
+  // Dynamic field assignment requires casting — field name is validated at the handler
+  // call site via queueEnrichment<T>(), and field existence is checked by the caller
+  // with the `in` operator
+  entity[request.fkField] = fkStub;
 }
 
 /**
@@ -546,7 +549,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   const enrichLog = createStepLogger(context.log, 'ENRICH', blockRange);
   for (const [entityType, entityMap] of grouped) {
     const entities = batchCtx.getEntities(entityType);
-    const entitiesToUpdate: Entity[] = [];
+    const entitiesToUpdate: RegisteredEntity[] = [];
 
     for (const [entityId, requests] of entityMap) {
       const entity = entities.get(entityId);
@@ -619,7 +622,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
  * These are TypeORM entity instances with only the `id` field set,
  * used as foreign key references.
  */
-function createFkStub(request: StoredEnrichmentRequest): Entity {
+function createFkStub(request: StoredEnrichmentRequest): RegisteredEntity {
   switch (request.category) {
     case EntityCategory.UniversalProfile:
       return new UniversalProfile({ id: request.address });

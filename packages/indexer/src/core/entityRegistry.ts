@@ -201,6 +201,9 @@ export interface EntityRegistry {
 /** Union of all valid bag keys. */
 export type BagKey = keyof EntityRegistry;
 
+/** Union of all registered entity types — the value-side counterpart of BagKey. */
+export type RegisteredEntity = EntityRegistry[BagKey];
+
 // ---------------------------------------------------------------------------
 // Runtime constructor registry
 // ---------------------------------------------------------------------------

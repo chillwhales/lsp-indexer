@@ -126,7 +126,7 @@ export class BatchContext implements IBatchContext {
     const ctor = ENTITY_CONSTRUCTORS[type];
     if (!(entity instanceof ctor)) {
       throw new Error(
-        `addEntity('${type}'): expected ${ctor.name}, got ${(entity as Entity)?.constructor?.name ?? 'unknown'}`,
+        `addEntity('${type}'): expected ${ctor.name}, got ${entity?.constructor?.name ?? 'unknown'}`,
       );
     }
 
@@ -153,7 +153,7 @@ export class BatchContext implements IBatchContext {
     const first = raw.values().next().value;
     if (!(first instanceof ctor)) {
       throw new Error(
-        `getEntities('${type}'): expected ${ctor.name}, got ${(first as Entity)?.constructor?.name ?? 'unknown'}`,
+        `getEntities('${type}'): expected ${ctor.name}, got ${first?.constructor?.name ?? 'unknown'}`,
       );
     }
 
