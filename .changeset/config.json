@@ -7,6 +7,6 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [],
-  "privatePackages": { "version": false, "tag": false }
+  "ignore": ["@chillwhales/abi", "@chillwhales/typeorm", "@chillwhales/comparison-tool"],
+  "privatePackages": { "version": true, "tag": true }
 }
