@@ -204,20 +204,18 @@ function getSourceEntitiesFromBatch(
 
   // For core entities (UP, DA), also check verification results
   // since new UP/DA entities are stored there, not in the entity bag.
-  // VerificationResult.newEntities uses the base Entity type, but the
-  // entities are always UniversalProfile or DigitalAsset instances.
   if (rule.sourceType === 'UniversalProfile') {
     const verified = batchCtx.getVerified(EntityCategory.UniversalProfile);
     for (const entity of verified.newEntities.values()) {
       if (!bagEntities.has(entity.id)) {
-        entities.push(entity as RegisteredEntity);
+        entities.push(entity);
       }
     }
   } else if (rule.sourceType === 'DigitalAsset') {
     const verified = batchCtx.getVerified(EntityCategory.DigitalAsset);
     for (const entity of verified.newEntities.values()) {
       if (!bagEntities.has(entity.id)) {
-        entities.push(entity as RegisteredEntity);
+        entities.push(entity);
       }
     }
   }
@@ -257,7 +255,7 @@ async function resolveForward(
 
   for (const source of sourceEntities) {
     // Skip if FK is already set
-    const currentFk = (source as unknown as Record<string, unknown>)[rule.fkField];
+    const currentFk = source[rule.fkField];
     if (currentFk != null) continue;
 
     const targetId = rule.resolveTargetId(source.id);
@@ -352,5 +350,5 @@ function setFkStub(source: RegisteredEntity, rule: FKResolutionRule): void {
   const targetId = rule.resolveTargetId(source.id);
   const targetClass = ENTITY_CONSTRUCTORS[rule.targetType];
   const stub = new targetClass({ id: targetId });
-  (source as unknown as Record<string, unknown>)[rule.fkField] = stub;
+  source[rule.fkField] = stub;
 }
