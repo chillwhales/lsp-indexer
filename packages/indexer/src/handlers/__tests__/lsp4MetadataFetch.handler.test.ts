@@ -34,6 +34,7 @@ function createMockBatchCtx(): {
   addEntity: ReturnType<typeof vi.fn>;
   hasEntities: ReturnType<typeof vi.fn>;
   queueClear: ReturnType<typeof vi.fn>;
+  queueClearStored: ReturnType<typeof vi.fn>;
   queueDelete: ReturnType<typeof vi.fn>;
   queueEnrichment: ReturnType<typeof vi.fn>;
   setPersistHint: ReturnType<typeof vi.fn>;
@@ -62,6 +63,7 @@ function createMockBatchCtx(): {
       return bag != null && bag.size > 0;
     }),
     queueClear: vi.fn((request: unknown) => clearQueue.push(request)),
+    queueClearStored: vi.fn((request: unknown) => clearQueue.push(request)),
     queueDelete: vi.fn(),
     queueEnrichment: vi.fn((request: unknown) => enrichmentQueue.push(request)),
     setPersistHint: vi.fn(),
@@ -172,7 +174,7 @@ describe('LSP4MetadataFetchHandler - Empty value path', () => {
 
     await LSP4MetadataFetchHandler.handle(hctx, 'LSP4Metadata');
 
-    expect(batchCtx.queueClear).toHaveBeenCalledTimes(10);
+    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(10);
 
     const expectedSubEntities = [
       LSP4MetadataName,
@@ -208,7 +210,7 @@ describe('LSP4MetadataFetchHandler - Empty value path', () => {
 
     await LSP4MetadataFetchHandler.handle(hctx, 'LSP4Metadata');
 
-    expect(batchCtx.queueClear).toHaveBeenCalledTimes(10);
+    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(10);
   });
 });
 
@@ -459,7 +461,7 @@ describe('LSP4MetadataFetchHandler - Successful fetch (META-02)', () => {
     expect(img1.imageIndex).toBe(0);
   });
 
-  it('creates Icons from flat array (all items, no isFileImage filter)', async () => {
+  it('creates Icons from flat array (only items passing isFileImage filter)', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx, { isHead: true });
 

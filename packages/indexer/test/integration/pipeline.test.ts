@@ -4,6 +4,7 @@ import { PipelineConfig, VerifyFn, processBatch } from '@/core/pipeline';
 import { PluginRegistry } from '@/core/registry';
 import {
   Block,
+  BlockPosition,
   Context,
   EntityCategory,
   IMetadataWorkerPool,

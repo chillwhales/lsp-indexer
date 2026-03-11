@@ -31,6 +31,7 @@ function createMockBatchCtx(): {
   addEntity: ReturnType<typeof vi.fn>;
   hasEntities: ReturnType<typeof vi.fn>;
   queueClear: ReturnType<typeof vi.fn>;
+  queueClearStored: ReturnType<typeof vi.fn>;
   queueDelete: ReturnType<typeof vi.fn>;
   queueEnrichment: ReturnType<typeof vi.fn>;
   setPersistHint: ReturnType<typeof vi.fn>;
@@ -59,6 +60,7 @@ function createMockBatchCtx(): {
       return bag != null && bag.size > 0;
     }),
     queueClear: vi.fn((request: unknown) => clearQueue.push(request)),
+    queueClearStored: vi.fn((request: unknown) => clearQueue.push(request)),
     queueDelete: vi.fn(),
     queueEnrichment: vi.fn((request: unknown) => enrichmentQueue.push(request)),
     setPersistHint: vi.fn(),
@@ -185,7 +187,7 @@ describe('LSP29EncryptedAssetFetchHandler - Empty value path', () => {
     await LSP29EncryptedAssetFetchHandler.handle(hctx, 'LSP29EncryptedAsset');
 
     // 6 sub-entity types in descriptors (AccessControlCondition excluded)
-    expect(batchCtx.queueClear).toHaveBeenCalledTimes(6);
+    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(6);
 
     const expectedSubEntities = [
       LSP29EncryptedAssetTitle,
@@ -220,7 +222,7 @@ describe('LSP29EncryptedAssetFetchHandler - Empty value path', () => {
 
     await LSP29EncryptedAssetFetchHandler.handle(hctx, 'LSP29EncryptedAsset');
 
-    expect(batchCtx.queueClear).toHaveBeenCalledTimes(6);
+    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(6);
   });
 });
 
