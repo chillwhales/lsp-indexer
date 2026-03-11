@@ -2,6 +2,11 @@ name: Docker (manual)
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. 2.1.2) — omit to use git SHA only'
+        required: false
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,8 +27,15 @@ jobs:
         run: |
           SHA=$(git rev-parse --short HEAD)
           IMAGE="ghcr.io/chillwhales/lsp-indexer"
-          echo "tags=${IMAGE}:${SHA}" >> $GITHUB_OUTPUT
-          echo "version=${SHA}" >> $GITHUB_OUTPUT
+          VERSION="${{ inputs.version }}"
+
+          TAGS="${IMAGE}:${SHA}"
+          if [[ -n "$VERSION" ]]; then
+            TAGS="${TAGS},${IMAGE}:v${VERSION},${IMAGE}:latest"
+          fi
+
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION:-${SHA}}" >> $GITHUB_OUTPUT
 
       - name: Login to GHCR
         uses: docker/login-action@v3
