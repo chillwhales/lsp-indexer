@@ -47,7 +47,7 @@ describe('createStepLogger', () => {
     expect(logger.child).toHaveBeenCalledWith({ step: 'EXTRACT' });
   });
 
-  it('includes blockRange when provided', () => {
+  it('includes blockRange and blockNumber when provided', () => {
     const { logger } = createMockLogger();
 
     createStepLogger(logger, 'PERSIST_RAW', { from: 100, to: 200 });
@@ -55,6 +55,7 @@ describe('createStepLogger', () => {
     expect(logger.child).toHaveBeenCalledWith({
       step: 'PERSIST_RAW',
       blockRange: '100-200',
+      blockNumber: 200,
     });
   });
 
