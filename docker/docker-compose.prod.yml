@@ -296,7 +296,7 @@ services:
   # Collects Docker logs → Loki, scrapes cAdvisor metrics → Prometheus
   # ----------------------------------------------------------------------------
   alloy:
-    image: grafana/alloy:v1.8
+    image: grafana/alloy:v1.14.0
     container_name: lsp-indexer-alloy
     restart: unless-stopped
 
