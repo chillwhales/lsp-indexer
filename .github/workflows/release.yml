@@ -15,6 +15,10 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
+      indexerVersion: ${{ steps.check-indexer.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,3 +49,58 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Check if indexer was published
+        id: check-indexer
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          VERSION=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | select(.name == "@chillwhales/indexer") | .version')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+  # ---------------------------------------------------------------------------
+  # Docker image — builds and pushes when indexer version is bumped
+  # ---------------------------------------------------------------------------
+  docker:
+    needs: [release]
+    if: needs.release.outputs.indexerVersion != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compute image tags
+        id: meta
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          IMAGE="ghcr.io/chillwhales/lsp-indexer"
+          VERSION="${{ needs.release.outputs.indexerVersion }}"
+          TAGS="${IMAGE}:${SHA},${IMAGE}:v${VERSION},${IMAGE}:latest"
+
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "sha=${SHA}" >> $GITHUB_OUTPUT
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/chillwhales/lsp-indexer
+            org.opencontainers.image.description=LUKSO blockchain indexer
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp || github.event.repository.updated_at }}
+            org.opencontainers.image.licenses=MIT

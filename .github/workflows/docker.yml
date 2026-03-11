@@ -1,8 +1,6 @@
-name: Docker
+name: Docker (manual)
 
 on:
-  push:
-    tags: ['@chillwhales/indexer@*']
   workflow_dispatch:
 
 concurrency:
@@ -24,20 +22,8 @@ jobs:
         run: |
           SHA=$(git rev-parse --short HEAD)
           IMAGE="ghcr.io/chillwhales/lsp-indexer"
-
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            # Tag push: @chillwhales/indexer@2.2.0 → 2.2.0
-            VERSION="${GITHUB_REF_NAME#@chillwhales/indexer@}"
-            TAGS="${IMAGE}:${SHA},${IMAGE}:v${VERSION},${IMAGE}:latest"
-          else
-            # Manual dispatch — SHA only
-            TAGS="${IMAGE}:${SHA}"
-            VERSION=""
-          fi
-
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
-          echo "version=${VERSION:-${SHA}}" >> $GITHUB_OUTPUT
-          echo "sha=${SHA}" >> $GITHUB_OUTPUT
+          echo "tags=${IMAGE}:${SHA}" >> $GITHUB_OUTPUT
+          echo "version=${SHA}" >> $GITHUB_OUTPUT
 
       - name: Login to GHCR
         uses: docker/login-action@v3
