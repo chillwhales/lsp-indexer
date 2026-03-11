@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Readiness
 status: completed
-last_updated: "2026-03-11T10:15:44.756Z"
-last_activity: 2026-03-10 — Completed 19.1-02 entity registry + typed BatchContext (41 files, 71-key registry)
+last_updated: "2026-03-11T11:09:26Z"
+last_activity: 2026-03-11 — Completed 20-01 monitoring infrastructure (5 config files, 9 compose services)
 progress:
   total_phases: 51
   completed_phases: 44
   total_plans: 129
-  completed_plans: 116
+  completed_plans: 117
   percent: 93
 ---
 
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Phase 19.1 — Type System Tightening (complete)
-- **Plan:** 2 of 2
-- **Status:** Milestone complete
-- **Last activity:** 2026-03-10 — Completed 19.1-02 entity registry + typed BatchContext (41 files, 71-key registry)
+- **Phase:** Phase 20 — Monitoring & Docker Image Release
+- **Plan:** 1 of 2
+- **Status:** In Progress
+- **Last activity:** 2026-03-11 — Completed 20-01 monitoring infrastructure (5 config files, 9 compose services)
 - **Progress:** [█████████░] 93%
 
 ## Milestone History
@@ -47,10 +47,10 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 120 (36 v1.0 + 77 v1.1 + 7 v1.2)
+- **Plans completed:** 121 (36 v1.0 + 77 v1.1 + 8 v1.2)
 - **Plans failed:** 0
 - **Phases completed:** 48 (11 v1.0 + 33 v1.1 + 4 v1.2)
-- **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 10/26 (v1.2)
+- **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 11/26 (v1.2)
 
 ## Accumulated Context
 
@@ -75,17 +75,17 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-03-10
-- **Activity:** Executed Phase 19.1-02 — created 71-key entity registry with typed BatchContext
-- **Outcome:** Full type safety: compile-time bag key validation + runtime instanceof checks; 41 files changed; build clean; 260 tests pass
-- **Resume file:** .planning/phases/20-monitoring-docker-image-release/20-CONTEXT.md
+- **Date:** 2026-03-11
+- **Activity:** Executed Phase 20-01 — monitoring infrastructure (Loki, Alloy, Prometheus, cAdvisor, Grafana)
+- **Outcome:** 5 config files created, production compose expanded to 9 services, PostgreSQL slow query logging enabled
+- **Resume file:** .planning/phases/20-monitoring-docker-image-release/20-01-SUMMARY.md
 
 ### Context for Next Session
 
-- **Phase 19.1 complete:** Entity registry replaces entityTypeMap; typed addEntity/getEntities; zero handler casts; one justified cast in metadataFetch.ts
-- **Branch:** `refactor/indexer-type-system-tightening` — ready for merge/review
-- **Next:** Phase 20 (Monitoring & Docker Image Release)
+- **Phase 20 Plan 01 complete:** Monitoring infrastructure in place with all config files and compose services
+- **Next:** Phase 20 Plan 02 (Grafana dashboard JSON files)
+- **Key conventions for Plan 02:** Datasource UIDs `loki` and `prometheus`, Alloy labels `container_name`/`compose_service`/`compose_project`
 
 ---
 
-_Last updated: 2026-03-11 — Phase 20 planned (monitoring + Docker image release)_
+_Last updated: 2026-03-11 — Phase 20-01 complete (monitoring infrastructure)_

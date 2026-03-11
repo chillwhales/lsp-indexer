@@ -166,7 +166,7 @@ Plans:
 | 18. Production Docker Compose | v1.2 | 1/1 | Complete | 2026-03-09 |
 | 19. Block Ordering | v1.2 | 3/3 | Complete | 2026-03-09 |
 | 19.1. Type System Tightening | v1.2 | Complete    | 2026-03-10 | 2026-03-10 |
-| 20. Monitoring & Docker Release | v1.2 | 0/2 | Planned | - |
+| 20. Monitoring & Docker Release | 1/2 | In Progress|  | - |
 | 21. Sorting & Package Release | v1.2 | 0/TBD | Not started | - |
 | 22. Database Operations | v1.2 | 0/TBD | Not started | - |
 
