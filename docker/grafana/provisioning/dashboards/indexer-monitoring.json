@@ -198,7 +198,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "count_over_time({compose_service=~\"$service\"} | json | level >= 50 [1h])",
+          "expr": "count_over_time({compose_service=~\"$service\"} | json | level >= 4 [1h])",
           "queryType": "range"
         }
       ],
@@ -249,7 +249,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (compose_service) (count_over_time({compose_service=~\"$service\"} | json | level >= 50 [$__interval]))",
+          "expr": "sum by (compose_service) (count_over_time({compose_service=~\"$service\"} | json | level >= 4 [$__interval]))",
           "legendFormat": "{{compose_service}}"
         }
       ],
@@ -303,7 +303,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (step) (count_over_time({compose_service=\"indexer\"} | json | level >= 50 | step != \"\" [$__interval]))",
+          "expr": "sum by (step) (count_over_time({compose_service=\"indexer\"} | json | level >= 4 | step != \"\" [$__interval]))",
           "legendFormat": "{{step}}"
         }
       ],

@@ -48,6 +48,7 @@ export function createStepLogger(
   const attrs: Record<string, unknown> = { step };
   if (blockRange) {
     attrs.blockRange = `${blockRange.from}-${blockRange.to}`;
+    attrs.blockNumber = blockRange.to;
   }
   return baseLogger.child(attrs);
 }
@@ -178,6 +179,7 @@ export function createDualLogger(
   const baseAttrs: Record<string, unknown> = { step };
   if (blockRange) {
     baseAttrs.blockRange = `${blockRange.from}-${blockRange.to}`;
+    baseAttrs.blockNumber = blockRange.to;
   }
 
   function logToBoth(
