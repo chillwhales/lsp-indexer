@@ -30,7 +30,6 @@ services:
   # ----------------------------------------------------------------------------
   postgres:
     image: postgres:17-alpine
-    container_name: lsp-indexer-postgres
     restart: unless-stopped
 
     # Health check to ensure DB is ready before starting indexer
@@ -89,7 +88,6 @@ services:
         - lsp-indexer:latest
 
     image: lsp-indexer:latest
-    container_name: lsp-indexer
     restart: unless-stopped
 
     # Wait for PostgreSQL to be healthy before starting
@@ -161,7 +159,6 @@ services:
   # ----------------------------------------------------------------------------
   hasura:
     image: hasura/graphql-engine:v2.46.0
-    container_name: lsp-indexer-hasura
     restart: unless-stopped
 
     depends_on:
@@ -204,7 +201,6 @@ services:
   # ----------------------------------------------------------------------------
   data-connector-agent:
     image: hasura/graphql-data-connector:v2.46.0
-    container_name: lsp-indexer-data-connector
     restart: unless-stopped
 
     healthcheck:
@@ -231,7 +227,6 @@ services:
   # ----------------------------------------------------------------------------
   loki:
     image: grafana/loki:3.4
-    container_name: lsp-indexer-loki
     restart: unless-stopped
 
     command: -config.file=/etc/loki/config.yaml
@@ -264,7 +259,6 @@ services:
   # ----------------------------------------------------------------------------
   prometheus:
     image: prom/prometheus:v3.2.0
-    container_name: lsp-indexer-prometheus
     restart: unless-stopped
 
     command:
@@ -300,7 +294,6 @@ services:
   # ----------------------------------------------------------------------------
   alloy:
     image: grafana/alloy:v1.14.0
-    container_name: lsp-indexer-alloy
     restart: unless-stopped
 
     command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
@@ -339,7 +332,6 @@ services:
   # ----------------------------------------------------------------------------
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.51.0
-    container_name: lsp-indexer-cadvisor
     restart: unless-stopped
     privileged: true
 
@@ -375,7 +367,6 @@ services:
   # ----------------------------------------------------------------------------
   grafana:
     image: grafana/grafana:11.4.0
-    container_name: lsp-indexer-grafana
     restart: unless-stopped
 
     depends_on:
