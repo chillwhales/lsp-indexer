@@ -2,13 +2,8 @@ name: Docker
 
 on:
   push:
-    tags: ['indexer-v*']
+    tags: ['@chillwhales/indexer@*']
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version tag (e.g. 1.0.0) — omit to use git SHA'
-        required: false
-        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -31,19 +26,13 @@ jobs:
           IMAGE="ghcr.io/chillwhales/lsp-indexer"
 
           if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            # Tag push: indexer-v1.2.3 → 1.2.3
-            VERSION="${GITHUB_REF_NAME#indexer-v}"
-          elif [[ -n "${{ inputs.version }}" ]]; then
-            # Manual dispatch with version
-            VERSION="${{ inputs.version }}"
+            # Tag push: @chillwhales/indexer@2.2.0 → 2.2.0
+            VERSION="${GITHUB_REF_NAME#@chillwhales/indexer@}"
+            TAGS="${IMAGE}:${SHA},${IMAGE}:v${VERSION},${IMAGE}:latest"
           else
-            # Manual dispatch without version — SHA only
+            # Manual dispatch — SHA only
+            TAGS="${IMAGE}:${SHA}"
             VERSION=""
-          fi
-
-          TAGS="${IMAGE}:${SHA}"
-          if [[ -n "$VERSION" ]]; then
-            TAGS="${TAGS},${IMAGE}:v${VERSION},${IMAGE}:latest"
           fi
 
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
