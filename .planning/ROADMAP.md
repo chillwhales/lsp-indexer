@@ -142,7 +142,11 @@ Plans:
   3. All 12 Next.js server actions support the sort order parameter
   4. Sort types flow through the full stack (Zod types → GraphQL documents → parsers → services → hooks → server actions)
   5. All 4 consumer packages (`types`, `node`, `react`, `next`) are released with sorting support
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 21-01-PLAN.md — Add newest/oldest sort to all 12 domain types and services
+- [ ] 21-02-PLAN.md — Build verification + coordinated package release
 
 ### Phase 22: Database Operations
 **Goal**: Production database can be backed up and recovered reliably
@@ -167,10 +171,10 @@ Plans:
 | 19. Block Ordering | v1.2 | 3/3 | Complete | 2026-03-09 |
 | 19.1. Type System Tightening | v1.2 | Complete    | 2026-03-10 | 2026-03-10 |
 | 20. Monitoring & Docker Release | v1.2 | 1/2 | In Progress | - |
-| 21. Sorting & Package Release | v1.2 | 0/TBD | Not started | - |
+| 21. Sorting & Package Release | v1.2 | 0/2 | Not started | - |
 | 22. Database Operations | v1.2 | 0/TBD | Not started | - |
 
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-03-11 — Phase 20 planned_
+_Last updated: 2026-03-11 — Phase 21 planned_
