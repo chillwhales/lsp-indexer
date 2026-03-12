@@ -60,6 +60,7 @@ const FollowerHandler: EntityHandler = {
           blockNumber: follow.blockNumber,
           transactionIndex: follow.transactionIndex,
           logIndex: follow.logIndex,
+          timestamp: entity.timestamp.getTime(),
         });
         hctx.batchCtx.queueEnrichment<Follower>({
           category: EntityCategory.UniversalProfile,
@@ -70,6 +71,7 @@ const FollowerHandler: EntityHandler = {
           blockNumber: follow.blockNumber,
           transactionIndex: follow.transactionIndex,
           logIndex: follow.logIndex,
+          timestamp: entity.timestamp.getTime(),
         });
       }
     }

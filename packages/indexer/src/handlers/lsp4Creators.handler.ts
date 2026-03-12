@@ -143,6 +143,7 @@ function extractLength(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 }
 
@@ -214,6 +215,7 @@ function extractFromIndex(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 
   // Queue enrichment for creatorProfile FK (secondary UP reference)
@@ -226,6 +228,7 @@ function extractFromIndex(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 }
 
@@ -298,6 +301,7 @@ function extractFromMap(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 
   // Queue enrichment for creatorProfile FK (secondary UP reference)
@@ -310,6 +314,7 @@ function extractFromMap(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 }
 

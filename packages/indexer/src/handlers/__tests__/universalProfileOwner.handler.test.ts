@@ -165,6 +165,7 @@ describe('UniversalProfileOwnerHandler', () => {
         entityType: 'UniversalProfileOwner',
         entityId: upAddress,
         fkField: 'universalProfile',
+        timestamp: new Date('2024-01-01T00:00:00Z').getTime(),
         blockNumber: 100,
         transactionIndex: 0,
         logIndex: 0,

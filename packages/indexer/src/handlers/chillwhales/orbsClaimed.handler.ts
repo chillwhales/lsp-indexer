@@ -58,6 +58,7 @@ const OrbsClaimedHandler: EntityHandler = {
         const entity = new OrbsClaimed({
           id,
           address: CHILLWHALES_ADDRESS,
+          timestamp: event.timestamp,
           blockNumber: event.blockNumber,
           transactionIndex: event.transactionIndex,
           logIndex: event.logIndex,
@@ -76,6 +77,7 @@ const OrbsClaimedHandler: EntityHandler = {
           entityType: ENTITY_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
+          timestamp: event.timestamp.getTime(),
           blockNumber: event.blockNumber,
           transactionIndex: event.transactionIndex,
           logIndex: event.logIndex,
@@ -89,6 +91,7 @@ const OrbsClaimedHandler: EntityHandler = {
           entityType: ENTITY_TYPE,
           entityId: id,
           fkField: 'nft',
+          timestamp: event.timestamp.getTime(),
           blockNumber: event.blockNumber,
           transactionIndex: event.transactionIndex,
           logIndex: event.logIndex,

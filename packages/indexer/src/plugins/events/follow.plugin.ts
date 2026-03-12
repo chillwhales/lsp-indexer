@@ -69,6 +69,7 @@ const FollowPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
     ctx.queueEnrichment<Follow>({
       category: EntityCategory.UniversalProfile,
@@ -79,6 +80,7 @@ const FollowPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
   },
 };

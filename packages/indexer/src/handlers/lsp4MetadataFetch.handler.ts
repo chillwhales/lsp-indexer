@@ -106,6 +106,7 @@ function parseAndAddSubEntities(
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp,
       value: lsp4Metadata.name,
     });
     hctx.batchCtx.addEntity('LSP4MetadataName', nameEntity.id, nameEntity);
@@ -119,6 +120,7 @@ function parseAndAddSubEntities(
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp,
       value: lsp4Metadata.description,
     });
     hctx.batchCtx.addEntity('LSP4MetadataDescription', descEntity.id, descEntity);
@@ -132,6 +134,7 @@ function parseAndAddSubEntities(
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp,
       value: lsp4Metadata.category,
     });
     hctx.batchCtx.addEntity('LSP4MetadataCategory', catEntity.id, catEntity);
@@ -147,6 +150,7 @@ function parseAndAddSubEntities(
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
         logIndex: entity.logIndex,
+        timestamp: entity.timestamp,
         title: link.title,
         url: link.url,
       });
@@ -166,6 +170,7 @@ function parseAndAddSubEntities(
             blockNumber: entity.blockNumber,
             transactionIndex: entity.transactionIndex,
             logIndex: entity.logIndex,
+            timestamp: entity.timestamp,
             url: img.url,
             width: img.width,
             height: img.height,
@@ -189,6 +194,7 @@ function parseAndAddSubEntities(
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
         logIndex: entity.logIndex,
+        timestamp: entity.timestamp,
         url: iconItem.url,
         width: iconItem.width,
         height: iconItem.height,
@@ -211,6 +217,7 @@ function parseAndAddSubEntities(
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
         logIndex: entity.logIndex,
+        timestamp: entity.timestamp,
         url: url,
         fileType: fileType,
         verificationMethod: verification.method,
@@ -238,6 +245,7 @@ function parseAndAddSubEntities(
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
         logIndex: entity.logIndex,
+        timestamp: entity.timestamp,
         key: attribute.key,
         value: attribute.value,
         type: getAttributeType(attribute),
@@ -258,6 +266,7 @@ function parseAndAddSubEntities(
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
         logIndex: entity.logIndex,
+        timestamp: entity.timestamp,
         value: parseInt(attr.value),
       });
       hctx.batchCtx.addEntity('LSP4MetadataScore', scoreEntity.id, scoreEntity);
@@ -273,6 +282,7 @@ function parseAndAddSubEntities(
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
         logIndex: entity.logIndex,
+        timestamp: entity.timestamp,
         value: parseInt(attr.value),
       });
       hctx.batchCtx.addEntity('LSP4MetadataRank', rankEntity.id, rankEntity);

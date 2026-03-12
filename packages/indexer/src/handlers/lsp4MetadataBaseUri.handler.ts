@@ -117,6 +117,7 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp.getTime(),
     });
 
     // Queue enrichment for nft FK
@@ -130,6 +131,7 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp.getTime(),
     });
   }
 }
@@ -235,6 +237,7 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp.getTime(),
     });
 
     // Queue enrichment for nft FK
@@ -248,6 +251,7 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp.getTime(),
     });
   }
 }

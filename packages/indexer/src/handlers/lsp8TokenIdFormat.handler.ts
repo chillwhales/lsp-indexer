@@ -56,6 +56,7 @@ const LSP8TokenIdFormatHandler: EntityHandler = {
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
         logIndex: event.logIndex,
+        timestamp: event.timestamp.getTime(),
       });
     }
   },

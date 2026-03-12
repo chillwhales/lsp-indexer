@@ -238,6 +238,7 @@ function extractLength(
     entityType: LENGTH_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    timestamp: event.timestamp.getTime(),
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
@@ -307,6 +308,7 @@ function extractFromIndex(
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    timestamp: event.timestamp.getTime(),
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
@@ -318,6 +320,7 @@ function extractFromIndex(
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'controllerProfile',
+    timestamp: event.timestamp.getTime(),
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
@@ -364,6 +367,7 @@ function extractPermissions(
     for (const [permissionName, permissionValue] of Object.entries(permissions)) {
       const permEntity = new LSP6Permission({
         id: `${id} - ${permissionName}`,
+        timestamp: event.timestamp,
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
         logIndex: event.logIndex,
@@ -420,6 +424,7 @@ function extractAllowedCalls(
       const callBytes = hexToBytes(allowedCalls[i] as Hex);
       const callEntity = new LSP6AllowedCall({
         id: `${id} - ${i}`,
+        timestamp: event.timestamp,
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
         logIndex: event.logIndex,
@@ -485,6 +490,7 @@ function extractAllowedDataKeys(
     for (let i = 0; i < allowedKeys.length; i++) {
       const keyEntity = new LSP6AllowedERC725YDataKey({
         id: `${id} - ${i}`,
+        timestamp: event.timestamp,
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
         logIndex: event.logIndex,
@@ -560,6 +566,7 @@ function getOrCreateController(
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'universalProfile',
+    timestamp: event.timestamp.getTime(),
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
@@ -571,6 +578,7 @@ function getOrCreateController(
     entityType: CONTROLLER_TYPE,
     entityId: entity.id,
     fkField: 'controllerProfile',
+    timestamp: event.timestamp.getTime(),
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,

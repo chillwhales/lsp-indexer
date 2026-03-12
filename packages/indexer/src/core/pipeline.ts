@@ -419,6 +419,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
         blockNumber: request.blockNumber,
         transactionIndex: request.transactionIndex,
         logIndex: request.logIndex,
+        timestamp: request.timestamp,
       });
     }
   }

@@ -165,6 +165,7 @@ describe('DigitalAssetOwnerHandler', () => {
         entityType: 'DigitalAssetOwner',
         entityId: daAddress,
         fkField: 'digitalAsset',
+        timestamp: new Date('2024-01-01T00:00:00Z').getTime(),
         blockNumber: 100,
         transactionIndex: 0,
         logIndex: 0,

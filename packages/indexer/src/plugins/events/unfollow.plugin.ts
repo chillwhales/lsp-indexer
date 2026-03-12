@@ -69,6 +69,7 @@ const UnfollowPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
     ctx.queueEnrichment<Unfollow>({
       category: EntityCategory.UniversalProfile,
@@ -79,6 +80,7 @@ const UnfollowPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
   },
 };

@@ -86,6 +86,7 @@ function parseAndAddSubEntities(
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp,
       value: lsp3Profile.name,
     });
     hctx.batchCtx.addEntity('LSP3ProfileName', nameEntity.id, nameEntity);
@@ -99,6 +100,7 @@ function parseAndAddSubEntities(
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp,
       value: lsp3Profile.description,
     });
     hctx.batchCtx.addEntity('LSP3ProfileDescription', descEntity.id, descEntity);
@@ -114,6 +116,7 @@ function parseAndAddSubEntities(
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
         logIndex: entity.logIndex,
+        timestamp: entity.timestamp,
         value: tag,
       });
       hctx.batchCtx.addEntity('LSP3ProfileTag', tagEntity.id, tagEntity);
@@ -130,6 +133,7 @@ function parseAndAddSubEntities(
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
         logIndex: entity.logIndex,
+        timestamp: entity.timestamp,
         title: link.title,
         url: link.url,
       });
@@ -148,6 +152,7 @@ function parseAndAddSubEntities(
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
         logIndex: entity.logIndex,
+        timestamp: entity.timestamp,
         url,
         fileType,
         verificationMethod: verification.method,
@@ -172,6 +177,7 @@ function parseAndAddSubEntities(
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
         logIndex: entity.logIndex,
+        timestamp: entity.timestamp,
         url: img.url,
         width: img.width,
         height: img.height,
@@ -197,6 +203,7 @@ function parseAndAddSubEntities(
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
         logIndex: entity.logIndex,
+        timestamp: entity.timestamp,
         url: img.url,
         width: img.width,
         height: img.height,

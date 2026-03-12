@@ -67,6 +67,7 @@ describe('BatchContext - Enrichment Queue', () => {
       blockNumber: 0,
       transactionIndex: 0,
       logIndex: 0,
+      timestamp: 1700000000000,
     };
 
     ctx.queueEnrichment(request);
@@ -88,6 +89,7 @@ describe('BatchContext - Enrichment Queue', () => {
       blockNumber: 0,
       transactionIndex: 0,
       logIndex: 0,
+      timestamp: 1700000000000,
     };
 
     const request2: EnrichmentRequest<Transfer> = {
@@ -99,6 +101,7 @@ describe('BatchContext - Enrichment Queue', () => {
       blockNumber: 0,
       transactionIndex: 0,
       logIndex: 0,
+      timestamp: 1700000000000,
     };
 
     const request3: EnrichmentRequest<Transfer> = {
@@ -111,6 +114,7 @@ describe('BatchContext - Enrichment Queue', () => {
       blockNumber: 0,
       transactionIndex: 0,
       logIndex: 0,
+      timestamp: 1700000000000,
     };
 
     ctx.queueEnrichment(request1);
@@ -138,6 +142,7 @@ describe('BatchContext - Enrichment Queue', () => {
       blockNumber: 0,
       transactionIndex: 0,
       logIndex: 0,
+      timestamp: 1700000000000,
     };
 
     const requestWithoutTokenId: EnrichmentRequest<Transfer> = {
@@ -149,6 +154,7 @@ describe('BatchContext - Enrichment Queue', () => {
       blockNumber: 0,
       transactionIndex: 0,
       logIndex: 0,
+      timestamp: 1700000000000,
     };
 
     ctx.queueEnrichment(requestWithTokenId);
@@ -185,6 +191,7 @@ describe('BatchContext - Enrichment Queue', () => {
         blockNumber: 0,
         transactionIndex: 0,
         logIndex: 0,
+        timestamp: 1700000000000,
       });
       ctx.queueEnrichment(requests[i]);
     }
@@ -209,6 +216,7 @@ describe('BatchContext - Enrichment Queue', () => {
       blockNumber: 0,
       transactionIndex: 0,
       logIndex: 0,
+      timestamp: 1700000000000,
     };
 
     const request2: EnrichmentRequest<Transfer> = {
@@ -220,6 +228,7 @@ describe('BatchContext - Enrichment Queue', () => {
       blockNumber: 0,
       transactionIndex: 0,
       logIndex: 0,
+      timestamp: 1700000000000,
     };
 
     ctx.queueEnrichment(request1);

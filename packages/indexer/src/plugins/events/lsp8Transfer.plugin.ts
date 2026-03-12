@@ -74,6 +74,7 @@ const LSP8TransferPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
 
     // Queue enrichment for nft FK.
@@ -89,6 +90,7 @@ const LSP8TransferPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
 
     // Queue enrichment for from/to/operator UniversalProfile FKs
@@ -103,6 +105,7 @@ const LSP8TransferPlugin: EventPlugin = {
         blockNumber: height,
         transactionIndex,
         logIndex,
+        timestamp,
       });
     }
     if (!isNullAddress(to)) {
@@ -115,6 +118,7 @@ const LSP8TransferPlugin: EventPlugin = {
         blockNumber: height,
         transactionIndex,
         logIndex,
+        timestamp,
       });
     }
     if (!isNullAddress(operator)) {
@@ -127,6 +131,7 @@ const LSP8TransferPlugin: EventPlugin = {
         blockNumber: height,
         transactionIndex,
         logIndex,
+        timestamp,
       });
     }
   },

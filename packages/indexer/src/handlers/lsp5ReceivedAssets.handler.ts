@@ -140,6 +140,7 @@ function extractLength(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 }
 
@@ -211,6 +212,7 @@ function extractFromIndex(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 
   // Queue enrichment for receivedAsset FK (secondary DA reference)
@@ -223,6 +225,7 @@ function extractFromIndex(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 }
 
@@ -295,6 +298,7 @@ function extractFromMap(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 
   // Queue enrichment for receivedAsset FK (secondary DA reference)
@@ -307,6 +311,7 @@ function extractFromMap(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 }
 

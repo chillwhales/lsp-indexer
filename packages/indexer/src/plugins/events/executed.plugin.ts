@@ -61,6 +61,7 @@ const ExecutedPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
 
     // Queue enrichment for target address as both UP and DA
@@ -75,6 +76,7 @@ const ExecutedPlugin: EventPlugin = {
         blockNumber: height,
         transactionIndex,
         logIndex,
+        timestamp,
       });
       ctx.queueEnrichment<Executed>({
         category: EntityCategory.DigitalAsset,
@@ -85,6 +87,7 @@ const ExecutedPlugin: EventPlugin = {
         blockNumber: height,
         transactionIndex,
         logIndex,
+        timestamp,
       });
     }
   },

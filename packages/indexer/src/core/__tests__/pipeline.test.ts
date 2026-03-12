@@ -200,6 +200,7 @@ function createMockVerifyFn(
             blockNumber: 0,
             transactionIndex: 0,
             logIndex: 0,
+            timestamp: new Date('2024-01-01T00:00:00Z'),
           }),
         );
       } else if (category === EntityCategory.DigitalAsset) {
@@ -211,6 +212,7 @@ function createMockVerifyFn(
             blockNumber: 0,
             transactionIndex: 0,
             logIndex: 0,
+            timestamp: new Date('2024-01-01T00:00:00Z'),
           }),
         );
       }
@@ -389,6 +391,7 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
       },
     };
@@ -630,6 +633,7 @@ describe('Pipeline Step 5: VERIFY', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
         ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
@@ -640,6 +644,7 @@ describe('Pipeline Step 5: VERIFY', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
       },
     };
@@ -683,6 +688,7 @@ describe('Pipeline Step 5: VERIFY', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
       },
     };
@@ -723,6 +729,7 @@ describe('Pipeline Step 5: VERIFY', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
         ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
@@ -733,6 +740,7 @@ describe('Pipeline Step 5: VERIFY', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
       },
     };
@@ -826,6 +834,7 @@ describe('Pipeline Step 6: ENRICH', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
       },
     };
@@ -873,6 +882,7 @@ describe('Pipeline Step 6: ENRICH', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
       },
     };
@@ -927,6 +937,7 @@ describe('Pipeline Step 6: ENRICH', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
         ctx.queueEnrichment<Transfer>({
           category: EntityCategory.UniversalProfile,
@@ -937,6 +948,7 @@ describe('Pipeline Step 6: ENRICH', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
         ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
@@ -947,6 +959,7 @@ describe('Pipeline Step 6: ENRICH', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
       },
     };
@@ -994,6 +1007,7 @@ describe('Pipeline Step 6: ENRICH', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
       },
     };
@@ -1063,6 +1077,7 @@ describe('Pipeline Integration', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
         ctx.queueEnrichment<Transfer>({
           category: EntityCategory.UniversalProfile,
@@ -1073,6 +1088,7 @@ describe('Pipeline Integration', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
         ctx.queueEnrichment<Transfer>({
           category: EntityCategory.DigitalAsset,
@@ -1083,6 +1099,7 @@ describe('Pipeline Integration', () => {
           blockNumber: 0,
           transactionIndex: 0,
           logIndex: 0,
+          timestamp: 1700000000000,
         });
       },
     };

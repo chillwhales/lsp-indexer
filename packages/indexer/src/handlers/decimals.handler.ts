@@ -80,6 +80,7 @@ const DecimalsHandler: EntityHandler = {
             const entity = new Decimals({
               id: da.id,
               address: da.id,
+              timestamp: da.timestamp,
               blockNumber: da.blockNumber,
               transactionIndex: da.transactionIndex,
               logIndex: da.logIndex,
@@ -100,6 +101,7 @@ const DecimalsHandler: EntityHandler = {
               blockNumber: entity.blockNumber,
               transactionIndex: entity.transactionIndex,
               logIndex: entity.logIndex,
+              timestamp: entity.timestamp.getTime(),
             });
           } catch (error) {
             // Skip this result if hexToNumber throws (e.g., value out of range)

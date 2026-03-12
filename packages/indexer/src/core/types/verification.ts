@@ -19,6 +19,7 @@ export type BlockPosition = {
   blockNumber: number;
   transactionIndex: number;
   logIndex: number;
+  timestamp: number;
 };
 
 /**

@@ -74,6 +74,7 @@ const DeployedContractsPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
   },
 };

@@ -120,6 +120,7 @@ function parseAndAddSubEntities(
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp,
       value: lsp29.title,
     });
     hctx.batchCtx.addEntity('LSP29EncryptedAssetTitle', titleEntity.id, titleEntity);
@@ -133,6 +134,7 @@ function parseAndAddSubEntities(
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp,
       value: lsp29.description,
     });
     hctx.batchCtx.addEntity('LSP29EncryptedAssetDescription', descEntity.id, descEntity);
@@ -147,6 +149,7 @@ function parseAndAddSubEntities(
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp,
       type,
       name,
       size,
@@ -168,6 +171,7 @@ function parseAndAddSubEntities(
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp,
       method,
       ciphertext,
       dataToEncryptHash,
@@ -195,6 +199,7 @@ function parseAndAddSubEntities(
           blockNumber: entity.blockNumber,
           transactionIndex: entity.transactionIndex,
           logIndex: entity.logIndex,
+          timestamp: entity.timestamp,
           conditionIndex: index,
           contractAddress: extracted.contractAddress,
           chain: extracted.chain,
@@ -220,6 +225,7 @@ function parseAndAddSubEntities(
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
       logIndex: entity.logIndex,
+      timestamp: entity.timestamp,
       cids,
       iv,
       totalSize,
@@ -241,6 +247,7 @@ function parseAndAddSubEntities(
           blockNumber: entity.blockNumber,
           transactionIndex: entity.transactionIndex,
           logIndex: entity.logIndex,
+          timestamp: entity.timestamp,
           url: img.url,
           width: img.width,
           height: img.height,

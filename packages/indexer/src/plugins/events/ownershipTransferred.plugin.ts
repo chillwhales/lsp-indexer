@@ -62,6 +62,7 @@ const OwnershipTransferredPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
     ctx.queueEnrichment<OwnershipTransferred>({
       category: EntityCategory.DigitalAsset,
@@ -72,6 +73,7 @@ const OwnershipTransferredPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
 
     // Queue enrichment for previousOwner and newOwner UniversalProfile FKs
@@ -86,6 +88,7 @@ const OwnershipTransferredPlugin: EventPlugin = {
         blockNumber: height,
         transactionIndex,
         logIndex,
+        timestamp,
       });
     }
     if (!isNullAddress(newOwner)) {
@@ -98,6 +101,7 @@ const OwnershipTransferredPlugin: EventPlugin = {
         blockNumber: height,
         transactionIndex,
         logIndex,
+        timestamp,
       });
     }
   },

@@ -66,6 +66,7 @@ const TokenIdDataChangedPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
 
     // Queue enrichment for nft FK.
@@ -81,6 +82,7 @@ const TokenIdDataChangedPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
   },
 };

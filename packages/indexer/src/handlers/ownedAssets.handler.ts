@@ -273,6 +273,7 @@ const OwnedAssetsHandler: EntityHandler = {
           blockNumber: entity.blockNumber,
           transactionIndex: entity.transactionIndex,
           logIndex: entity.logIndex,
+          timestamp: entity.timestamp.getTime(),
         });
       }
 
@@ -287,6 +288,7 @@ const OwnedAssetsHandler: EntityHandler = {
           blockNumber: entity.blockNumber,
           transactionIndex: entity.transactionIndex,
           logIndex: entity.logIndex,
+          timestamp: entity.timestamp.getTime(),
         });
       }
     }
@@ -305,6 +307,7 @@ const OwnedAssetsHandler: EntityHandler = {
           blockNumber: entity.blockNumber,
           transactionIndex: entity.transactionIndex,
           logIndex: entity.logIndex,
+          timestamp: entity.timestamp.getTime(),
         });
       }
 
@@ -319,6 +322,7 @@ const OwnedAssetsHandler: EntityHandler = {
           blockNumber: entity.blockNumber,
           transactionIndex: entity.transactionIndex,
           logIndex: entity.logIndex,
+          timestamp: entity.timestamp.getTime(),
         });
       }
 
@@ -334,6 +338,7 @@ const OwnedAssetsHandler: EntityHandler = {
           blockNumber: entity.blockNumber,
           transactionIndex: entity.transactionIndex,
           logIndex: entity.logIndex,
+          timestamp: entity.timestamp.getTime(),
         });
       }
 

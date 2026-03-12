@@ -55,6 +55,7 @@ const ChillClaimedHandler: EntityHandler = {
         const entity = new ChillClaimed({
           id,
           address: CHILLWHALES_ADDRESS,
+          timestamp: event.timestamp,
           blockNumber: event.blockNumber,
           transactionIndex: event.transactionIndex,
           logIndex: event.logIndex,
@@ -73,6 +74,7 @@ const ChillClaimedHandler: EntityHandler = {
           entityType: ENTITY_TYPE,
           entityId: id,
           fkField: 'digitalAsset',
+          timestamp: event.timestamp.getTime(),
           blockNumber: event.blockNumber,
           transactionIndex: event.transactionIndex,
           logIndex: event.logIndex,
@@ -86,6 +88,7 @@ const ChillClaimedHandler: EntityHandler = {
           entityType: ENTITY_TYPE,
           entityId: id,
           fkField: 'nft',
+          timestamp: event.timestamp.getTime(),
           blockNumber: event.blockNumber,
           transactionIndex: event.transactionIndex,
           logIndex: event.logIndex,
