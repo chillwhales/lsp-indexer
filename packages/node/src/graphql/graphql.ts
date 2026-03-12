@@ -99,14 +99,18 @@ export type String_Comparison_Exp = {
 export type Chill_Claimed = {
   __typename?: 'chill_claimed';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   nft?: Maybe<Nft>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
   token_id: Scalars['String']['output'];
+  transaction_index: Scalars['Int']['output'];
   value: Scalars['Boolean']['output'];
 };
 
@@ -120,9 +124,17 @@ export type Chill_Claimed_Aggregate = {
 /** aggregate fields of "chill_claimed" */
 export type Chill_Claimed_Aggregate_Fields = {
   __typename?: 'chill_claimed_aggregate_fields';
+  avg?: Maybe<Chill_Claimed_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Chill_Claimed_Max_Fields>;
   min?: Maybe<Chill_Claimed_Min_Fields>;
+  stddev?: Maybe<Chill_Claimed_Stddev_Fields>;
+  stddev_pop?: Maybe<Chill_Claimed_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Chill_Claimed_Stddev_Samp_Fields>;
+  sum?: Maybe<Chill_Claimed_Sum_Fields>;
+  var_pop?: Maybe<Chill_Claimed_Var_Pop_Fields>;
+  var_samp?: Maybe<Chill_Claimed_Var_Samp_Fields>;
+  variance?: Maybe<Chill_Claimed_Variance_Fields>;
 };
 
 
@@ -132,18 +144,30 @@ export type Chill_Claimed_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Chill_Claimed_Avg_Fields = {
+  __typename?: 'chill_claimed_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "chill_claimed". All fields are combined with a logical 'AND'. */
 export type Chill_Claimed_Bool_Exp = {
   _and?: InputMaybe<Array<Chill_Claimed_Bool_Exp>>;
   _not?: InputMaybe<Chill_Claimed_Bool_Exp>;
   _or?: InputMaybe<Array<Chill_Claimed_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   nft?: InputMaybe<Nft_Bool_Exp>;
   nft_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   token_id?: InputMaybe<String_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<Boolean_Comparison_Exp>;
 };
 
@@ -151,31 +175,43 @@ export type Chill_Claimed_Bool_Exp = {
 export type Chill_Claimed_Max_Fields = {
   __typename?: 'chill_claimed_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate min on columns */
 export type Chill_Claimed_Min_Fields = {
   __typename?: 'chill_claimed_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Ordering options when selecting data from "chill_claimed". */
 export type Chill_Claimed_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   nft?: InputMaybe<Nft_Order_By>;
   nft_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -184,15 +220,47 @@ export type Chill_Claimed_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'nft_id'
+  /** column name */
+  | 'timestamp'
   /** column name */
   | 'token_id'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Chill_Claimed_Stddev_Fields = {
+  __typename?: 'chill_claimed_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Chill_Claimed_Stddev_Pop_Fields = {
+  __typename?: 'chill_claimed_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Chill_Claimed_Stddev_Samp_Fields = {
+  __typename?: 'chill_claimed_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "chill_claimed" */
 export type Chill_Claimed_Stream_Cursor_Input = {
@@ -205,11 +273,47 @@ export type Chill_Claimed_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Chill_Claimed_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   nft_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
   token_id?: InputMaybe<Scalars['String']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Chill_Claimed_Sum_Fields = {
+  __typename?: 'chill_claimed_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Chill_Claimed_Var_Pop_Fields = {
+  __typename?: 'chill_claimed_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Chill_Claimed_Var_Samp_Fields = {
+  __typename?: 'chill_claimed_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Chill_Claimed_Variance_Fields = {
+  __typename?: 'chill_claimed_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** ordering argument of a cursor */
@@ -556,10 +660,14 @@ export type Data_Changed_Variance_Order_By = {
 export type Decimals = {
   __typename?: 'decimals';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value: Scalars['Int']['output'];
 };
 
@@ -596,6 +704,9 @@ export type Decimals_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Decimals_Avg_Fields = {
   __typename?: 'decimals_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -605,9 +716,13 @@ export type Decimals_Bool_Exp = {
   _not?: InputMaybe<Decimals_Bool_Exp>;
   _or?: InputMaybe<Array<Decimals_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<Int_Comparison_Exp>;
 };
 
@@ -615,8 +730,12 @@ export type Decimals_Bool_Exp = {
 export type Decimals_Max_Fields = {
   __typename?: 'decimals_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
@@ -624,17 +743,25 @@ export type Decimals_Max_Fields = {
 export type Decimals_Min_Fields = {
   __typename?: 'decimals_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Ordering options when selecting data from "decimals". */
 export type Decimals_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -643,27 +770,44 @@ export type Decimals_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'value';
 
 /** aggregate stddev on columns */
 export type Decimals_Stddev_Fields = {
   __typename?: 'decimals_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Decimals_Stddev_Pop_Fields = {
   __typename?: 'decimals_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Decimals_Stddev_Samp_Fields = {
   __typename?: 'decimals_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -678,32 +822,48 @@ export type Decimals_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Decimals_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Decimals_Sum_Fields = {
   __typename?: 'decimals_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Decimals_Var_Pop_Fields = {
   __typename?: 'decimals_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Decimals_Var_Samp_Fields = {
   __typename?: 'decimals_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Decimals_Variance_Fields = {
   __typename?: 'decimals_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -1213,7 +1373,7 @@ export type Deployed_Erc1167_Proxies_Variance_Fields = {
 export type Digital_Asset = {
   __typename?: 'digital_asset';
   address: Scalars['String']['output'];
-  block_number?: Maybe<Scalars['Int']['output']>;
+  block_number: Scalars['Int']['output'];
   /** An array relationship */
   dataChanged: Array<Data_Changed>;
   /** An aggregate relationship */
@@ -1225,7 +1385,7 @@ export type Digital_Asset = {
   /** An aggregate relationship */
   executedTarget_aggregate: Executed_Aggregate;
   id: Scalars['String']['output'];
-  log_index?: Maybe<Scalars['Int']['output']>;
+  log_index: Scalars['Int']['output'];
   /** An array relationship */
   lsp4Creators: Array<Lsp4_Creator>;
   /** An object relationship */
@@ -1273,14 +1433,14 @@ export type Digital_Asset = {
   ownershipTransferred: Array<Ownership_Transferred>;
   /** An aggregate relationship */
   ownershipTransferred_aggregate: Ownership_Transferred_Aggregate;
-  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
   /** An array relationship */
   tokenIdDataChanged: Array<Token_Id_Data_Changed>;
   /** An aggregate relationship */
   tokenIdDataChanged_aggregate: Token_Id_Data_Changed_Aggregate;
   /** An object relationship */
   totalSupply?: Maybe<Total_Supply>;
-  transaction_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index: Scalars['Int']['output'];
   /** An array relationship */
   transfer: Array<Transfer>;
   /** An aggregate relationship */
@@ -1541,9 +1701,17 @@ export type Digital_Asset_Aggregate = {
 /** aggregate fields of "digital_asset" */
 export type Digital_Asset_Aggregate_Fields = {
   __typename?: 'digital_asset_aggregate_fields';
+  avg?: Maybe<Digital_Asset_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Digital_Asset_Max_Fields>;
   min?: Maybe<Digital_Asset_Min_Fields>;
+  stddev?: Maybe<Digital_Asset_Stddev_Fields>;
+  stddev_pop?: Maybe<Digital_Asset_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Digital_Asset_Stddev_Samp_Fields>;
+  sum?: Maybe<Digital_Asset_Sum_Fields>;
+  var_pop?: Maybe<Digital_Asset_Var_Pop_Fields>;
+  var_samp?: Maybe<Digital_Asset_Var_Samp_Fields>;
+  variance?: Maybe<Digital_Asset_Variance_Fields>;
 };
 
 
@@ -1553,18 +1721,28 @@ export type Digital_Asset_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Digital_Asset_Avg_Fields = {
+  __typename?: 'digital_asset_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "digital_asset". All fields are combined with a logical 'AND'. */
 export type Digital_Asset_Bool_Exp = {
   _and?: InputMaybe<Array<Digital_Asset_Bool_Exp>>;
   _not?: InputMaybe<Digital_Asset_Bool_Exp>;
   _or?: InputMaybe<Array<Digital_Asset_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   dataChanged?: InputMaybe<Data_Changed_Bool_Exp>;
   dataChanged_aggregate?: InputMaybe<Data_Changed_Aggregate_Bool_Exp>;
   decimals?: InputMaybe<Decimals_Bool_Exp>;
   executedTarget?: InputMaybe<Executed_Bool_Exp>;
   executedTarget_aggregate?: InputMaybe<Executed_Aggregate_Bool_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp4Creators?: InputMaybe<Lsp4_Creator_Bool_Exp>;
   lsp4CreatorsLength?: InputMaybe<Lsp4_Creators_Length_Bool_Exp>;
   lsp4Creators_aggregate?: InputMaybe<Lsp4_Creator_Aggregate_Bool_Exp>;
@@ -1589,9 +1767,11 @@ export type Digital_Asset_Bool_Exp = {
   owner?: InputMaybe<Digital_Asset_Owner_Bool_Exp>;
   ownershipTransferred?: InputMaybe<Ownership_Transferred_Bool_Exp>;
   ownershipTransferred_aggregate?: InputMaybe<Ownership_Transferred_Aggregate_Bool_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   tokenIdDataChanged?: InputMaybe<Token_Id_Data_Changed_Bool_Exp>;
   tokenIdDataChanged_aggregate?: InputMaybe<Token_Id_Data_Changed_Aggregate_Bool_Exp>;
   totalSupply?: InputMaybe<Total_Supply_Bool_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   transfer?: InputMaybe<Transfer_Bool_Exp>;
   transfer_aggregate?: InputMaybe<Transfer_Aggregate_Bool_Exp>;
   universalReceiverFrom?: InputMaybe<Universal_Receiver_Bool_Exp>;
@@ -1602,25 +1782,35 @@ export type Digital_Asset_Bool_Exp = {
 export type Digital_Asset_Max_Fields = {
   __typename?: 'digital_asset_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate min on columns */
 export type Digital_Asset_Min_Fields = {
   __typename?: 'digital_asset_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Ordering options when selecting data from "digital_asset". */
 export type Digital_Asset_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   dataChanged_aggregate?: InputMaybe<Data_Changed_Aggregate_Order_By>;
   decimals?: InputMaybe<Decimals_Order_By>;
   executedTarget_aggregate?: InputMaybe<Executed_Aggregate_Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4CreatorsLength?: InputMaybe<Lsp4_Creators_Length_Order_By>;
   lsp4Creators_aggregate?: InputMaybe<Lsp4_Creator_Aggregate_Order_By>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Order_By>;
@@ -1638,8 +1828,10 @@ export type Digital_Asset_Order_By = {
   ownedTokens_aggregate?: InputMaybe<Owned_Token_Aggregate_Order_By>;
   owner?: InputMaybe<Digital_Asset_Owner_Order_By>;
   ownershipTransferred_aggregate?: InputMaybe<Ownership_Transferred_Aggregate_Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   tokenIdDataChanged_aggregate?: InputMaybe<Token_Id_Data_Changed_Aggregate_Order_By>;
   totalSupply?: InputMaybe<Total_Supply_Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   transfer_aggregate?: InputMaybe<Transfer_Aggregate_Order_By>;
   universalReceiverFrom_aggregate?: InputMaybe<Universal_Receiver_Aggregate_Order_By>;
 };
@@ -1648,11 +1840,14 @@ export type Digital_Asset_Order_By = {
 export type Digital_Asset_Owner = {
   __typename?: 'digital_asset_owner';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
 };
 
 /** aggregated selection of "digital_asset_owner" */
@@ -1665,9 +1860,17 @@ export type Digital_Asset_Owner_Aggregate = {
 /** aggregate fields of "digital_asset_owner" */
 export type Digital_Asset_Owner_Aggregate_Fields = {
   __typename?: 'digital_asset_owner_aggregate_fields';
+  avg?: Maybe<Digital_Asset_Owner_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Digital_Asset_Owner_Max_Fields>;
   min?: Maybe<Digital_Asset_Owner_Min_Fields>;
+  stddev?: Maybe<Digital_Asset_Owner_Stddev_Fields>;
+  stddev_pop?: Maybe<Digital_Asset_Owner_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Digital_Asset_Owner_Stddev_Samp_Fields>;
+  sum?: Maybe<Digital_Asset_Owner_Sum_Fields>;
+  var_pop?: Maybe<Digital_Asset_Owner_Var_Pop_Fields>;
+  var_samp?: Maybe<Digital_Asset_Owner_Var_Samp_Fields>;
+  variance?: Maybe<Digital_Asset_Owner_Variance_Fields>;
 };
 
 
@@ -1677,43 +1880,63 @@ export type Digital_Asset_Owner_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Digital_Asset_Owner_Avg_Fields = {
+  __typename?: 'digital_asset_owner_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "digital_asset_owner". All fields are combined with a logical 'AND'. */
 export type Digital_Asset_Owner_Bool_Exp = {
   _and?: InputMaybe<Array<Digital_Asset_Owner_Bool_Exp>>;
   _not?: InputMaybe<Digital_Asset_Owner_Bool_Exp>;
   _or?: InputMaybe<Array<Digital_Asset_Owner_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Digital_Asset_Owner_Max_Fields = {
   __typename?: 'digital_asset_owner_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate min on columns */
 export type Digital_Asset_Owner_Min_Fields = {
   __typename?: 'digital_asset_owner_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Ordering options when selecting data from "digital_asset_owner". */
 export type Digital_Asset_Owner_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "digital_asset_owner" */
@@ -1721,11 +1944,41 @@ export type Digital_Asset_Owner_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
   /** column name */
-  | 'timestamp';
+  | 'log_index'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index';
+
+/** aggregate stddev on columns */
+export type Digital_Asset_Owner_Stddev_Fields = {
+  __typename?: 'digital_asset_owner_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Digital_Asset_Owner_Stddev_Pop_Fields = {
+  __typename?: 'digital_asset_owner_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Digital_Asset_Owner_Stddev_Samp_Fields = {
+  __typename?: 'digital_asset_owner_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "digital_asset_owner" */
 export type Digital_Asset_Owner_Stream_Cursor_Input = {
@@ -1738,9 +1991,44 @@ export type Digital_Asset_Owner_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Digital_Asset_Owner_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Digital_Asset_Owner_Sum_Fields = {
+  __typename?: 'digital_asset_owner_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Digital_Asset_Owner_Var_Pop_Fields = {
+  __typename?: 'digital_asset_owner_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Digital_Asset_Owner_Var_Samp_Fields = {
+  __typename?: 'digital_asset_owner_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Digital_Asset_Owner_Variance_Fields = {
+  __typename?: 'digital_asset_owner_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** select columns of table "digital_asset" */
@@ -1748,9 +2036,41 @@ export type Digital_Asset_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
   /** column name */
-  | 'lsp4_metadata_id';
+  | 'log_index'
+  /** column name */
+  | 'lsp4_metadata_id'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index';
+
+/** aggregate stddev on columns */
+export type Digital_Asset_Stddev_Fields = {
+  __typename?: 'digital_asset_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Digital_Asset_Stddev_Pop_Fields = {
+  __typename?: 'digital_asset_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Digital_Asset_Stddev_Samp_Fields = {
+  __typename?: 'digital_asset_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "digital_asset" */
 export type Digital_Asset_Stream_Cursor_Input = {
@@ -1763,8 +2083,44 @@ export type Digital_Asset_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Digital_Asset_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp4_metadata_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Digital_Asset_Sum_Fields = {
+  __typename?: 'digital_asset_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Digital_Asset_Var_Pop_Fields = {
+  __typename?: 'digital_asset_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Digital_Asset_Var_Samp_Fields = {
+  __typename?: 'digital_asset_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Digital_Asset_Variance_Fields = {
+  __typename?: 'digital_asset_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "executed" */
@@ -2772,6 +3128,7 @@ export type Lsp3_Profile = {
   backgroundImage: Array<Lsp3_Profile_Background_Image>;
   /** An aggregate relationship */
   backgroundImage_aggregate: Lsp3_Profile_Background_Image_Aggregate;
+  block_number: Scalars['Int']['output'];
   decode_error?: Maybe<Scalars['String']['output']>;
   /** An object relationship */
   description?: Maybe<Lsp3_Profile_Description>;
@@ -2784,6 +3141,7 @@ export type Lsp3_Profile = {
   links: Array<Lsp3_Profile_Link>;
   /** An aggregate relationship */
   links_aggregate: Lsp3_Profile_Link_Aggregate;
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   name?: Maybe<Lsp3_Profile_Name>;
   /** An array relationship */
@@ -2797,6 +3155,7 @@ export type Lsp3_Profile = {
   /** An aggregate relationship */
   tags_aggregate: Lsp3_Profile_Tag_Aggregate;
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -2936,11 +3295,15 @@ export type Lsp3_Profile_Aggregate_FieldsCountArgs = {
 /** columns and relationships of "lsp3_profile_asset" */
 export type Lsp3_Profile_Asset = {
   __typename?: 'lsp3_profile_asset';
+  block_number: Scalars['Int']['output'];
   file_type?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp3Profile?: Maybe<Lsp3_Profile>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -2968,9 +3331,17 @@ export type Lsp3_Profile_Asset_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "lsp3_profile_asset" */
 export type Lsp3_Profile_Asset_Aggregate_Fields = {
   __typename?: 'lsp3_profile_asset_aggregate_fields';
+  avg?: Maybe<Lsp3_Profile_Asset_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp3_Profile_Asset_Max_Fields>;
   min?: Maybe<Lsp3_Profile_Asset_Min_Fields>;
+  stddev?: Maybe<Lsp3_Profile_Asset_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp3_Profile_Asset_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp3_Profile_Asset_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp3_Profile_Asset_Sum_Fields>;
+  var_pop?: Maybe<Lsp3_Profile_Asset_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp3_Profile_Asset_Var_Samp_Fields>;
+  variance?: Maybe<Lsp3_Profile_Asset_Variance_Fields>;
 };
 
 
@@ -2982,9 +3353,32 @@ export type Lsp3_Profile_Asset_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "lsp3_profile_asset" */
 export type Lsp3_Profile_Asset_Aggregate_Order_By = {
+  avg?: InputMaybe<Lsp3_Profile_Asset_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Lsp3_Profile_Asset_Max_Order_By>;
   min?: InputMaybe<Lsp3_Profile_Asset_Min_Order_By>;
+  stddev?: InputMaybe<Lsp3_Profile_Asset_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Lsp3_Profile_Asset_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Lsp3_Profile_Asset_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Lsp3_Profile_Asset_Sum_Order_By>;
+  var_pop?: InputMaybe<Lsp3_Profile_Asset_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Lsp3_Profile_Asset_Var_Samp_Order_By>;
+  variance?: InputMaybe<Lsp3_Profile_Asset_Variance_Order_By>;
+};
+
+/** aggregate avg on columns */
+export type Lsp3_Profile_Asset_Avg_Fields = {
+  __typename?: 'lsp3_profile_asset_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by avg() on columns of table "lsp3_profile_asset" */
+export type Lsp3_Profile_Asset_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp3_profile_asset". All fields are combined with a logical 'AND'. */
@@ -2992,10 +3386,14 @@ export type Lsp3_Profile_Asset_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp3_Profile_Asset_Bool_Exp>>;
   _not?: InputMaybe<Lsp3_Profile_Asset_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp3_Profile_Asset_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   file_type?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Bool_Exp>;
   lsp3_profile_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   url?: InputMaybe<String_Comparison_Exp>;
   verification_data?: InputMaybe<String_Comparison_Exp>;
   verification_method?: InputMaybe<String_Comparison_Exp>;
@@ -3005,9 +3403,13 @@ export type Lsp3_Profile_Asset_Bool_Exp = {
 /** aggregate max on columns */
 export type Lsp3_Profile_Asset_Max_Fields = {
   __typename?: 'lsp3_profile_asset_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   file_type?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -3016,9 +3418,13 @@ export type Lsp3_Profile_Asset_Max_Fields = {
 
 /** order by max() on columns of table "lsp3_profile_asset" */
 export type Lsp3_Profile_Asset_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   file_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -3028,9 +3434,13 @@ export type Lsp3_Profile_Asset_Max_Order_By = {
 /** aggregate min on columns */
 export type Lsp3_Profile_Asset_Min_Fields = {
   __typename?: 'lsp3_profile_asset_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   file_type?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -3039,9 +3449,13 @@ export type Lsp3_Profile_Asset_Min_Fields = {
 
 /** order by min() on columns of table "lsp3_profile_asset" */
 export type Lsp3_Profile_Asset_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   file_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -3050,10 +3464,14 @@ export type Lsp3_Profile_Asset_Min_Order_By = {
 
 /** Ordering options when selecting data from "lsp3_profile_asset". */
 export type Lsp3_Profile_Asset_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   file_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -3063,11 +3481,19 @@ export type Lsp3_Profile_Asset_Order_By = {
 /** select columns of table "lsp3_profile_asset" */
 export type Lsp3_Profile_Asset_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'file_type'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp3_profile_id'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'url'
   /** column name */
@@ -3076,6 +3502,51 @@ export type Lsp3_Profile_Asset_Select_Column =
   | 'verification_method'
   /** column name */
   | 'verification_source';
+
+/** aggregate stddev on columns */
+export type Lsp3_Profile_Asset_Stddev_Fields = {
+  __typename?: 'lsp3_profile_asset_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev() on columns of table "lsp3_profile_asset" */
+export type Lsp3_Profile_Asset_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp3_Profile_Asset_Stddev_Pop_Fields = {
+  __typename?: 'lsp3_profile_asset_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_pop() on columns of table "lsp3_profile_asset" */
+export type Lsp3_Profile_Asset_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp3_Profile_Asset_Stddev_Samp_Fields = {
+  __typename?: 'lsp3_profile_asset_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "lsp3_profile_asset" */
+export type Lsp3_Profile_Asset_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
 
 /** Streaming cursor of the table "lsp3_profile_asset" */
 export type Lsp3_Profile_Asset_Stream_Cursor_Input = {
@@ -3087,30 +3558,101 @@ export type Lsp3_Profile_Asset_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp3_Profile_Asset_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   file_type?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp3_profile_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
   verification_data?: InputMaybe<Scalars['String']['input']>;
   verification_method?: InputMaybe<Scalars['String']['input']>;
   verification_source?: InputMaybe<Scalars['String']['input']>;
 };
 
+/** aggregate sum on columns */
+export type Lsp3_Profile_Asset_Sum_Fields = {
+  __typename?: 'lsp3_profile_asset_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** order by sum() on columns of table "lsp3_profile_asset" */
+export type Lsp3_Profile_Asset_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp3_Profile_Asset_Var_Pop_Fields = {
+  __typename?: 'lsp3_profile_asset_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_pop() on columns of table "lsp3_profile_asset" */
+export type Lsp3_Profile_Asset_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp3_Profile_Asset_Var_Samp_Fields = {
+  __typename?: 'lsp3_profile_asset_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_samp() on columns of table "lsp3_profile_asset" */
+export type Lsp3_Profile_Asset_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Lsp3_Profile_Asset_Variance_Fields = {
+  __typename?: 'lsp3_profile_asset_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "lsp3_profile_asset" */
+export type Lsp3_Profile_Asset_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
 /** aggregate avg on columns */
 export type Lsp3_Profile_Avg_Fields = {
   __typename?: 'lsp3_profile_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp3_profile_background_image" */
 export type Lsp3_Profile_Background_Image = {
   __typename?: 'lsp3_profile_background_image';
+  block_number: Scalars['Int']['output'];
   height?: Maybe<Scalars['Int']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp3Profile?: Maybe<Lsp3_Profile>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -3177,13 +3719,19 @@ export type Lsp3_Profile_Background_Image_Aggregate_Order_By = {
 /** aggregate avg on columns */
 export type Lsp3_Profile_Background_Image_Avg_Fields = {
   __typename?: 'lsp3_profile_background_image_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp3_profile_background_image" */
 export type Lsp3_Profile_Background_Image_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
@@ -3192,10 +3740,14 @@ export type Lsp3_Profile_Background_Image_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp3_Profile_Background_Image_Bool_Exp>>;
   _not?: InputMaybe<Lsp3_Profile_Background_Image_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp3_Profile_Background_Image_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   height?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Bool_Exp>;
   lsp3_profile_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   url?: InputMaybe<String_Comparison_Exp>;
   verification_data?: InputMaybe<String_Comparison_Exp>;
   verification_method?: InputMaybe<String_Comparison_Exp>;
@@ -3206,9 +3758,13 @@ export type Lsp3_Profile_Background_Image_Bool_Exp = {
 /** aggregate max on columns */
 export type Lsp3_Profile_Background_Image_Max_Fields = {
   __typename?: 'lsp3_profile_background_image_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -3218,9 +3774,13 @@ export type Lsp3_Profile_Background_Image_Max_Fields = {
 
 /** order by max() on columns of table "lsp3_profile_background_image" */
 export type Lsp3_Profile_Background_Image_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -3231,9 +3791,13 @@ export type Lsp3_Profile_Background_Image_Max_Order_By = {
 /** aggregate min on columns */
 export type Lsp3_Profile_Background_Image_Min_Fields = {
   __typename?: 'lsp3_profile_background_image_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -3243,9 +3807,13 @@ export type Lsp3_Profile_Background_Image_Min_Fields = {
 
 /** order by min() on columns of table "lsp3_profile_background_image" */
 export type Lsp3_Profile_Background_Image_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -3255,10 +3823,14 @@ export type Lsp3_Profile_Background_Image_Min_Order_By = {
 
 /** Ordering options when selecting data from "lsp3_profile_background_image". */
 export type Lsp3_Profile_Background_Image_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -3269,11 +3841,19 @@ export type Lsp3_Profile_Background_Image_Order_By = {
 /** select columns of table "lsp3_profile_background_image" */
 export type Lsp3_Profile_Background_Image_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'height'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp3_profile_id'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'url'
   /** column name */
@@ -3288,39 +3868,57 @@ export type Lsp3_Profile_Background_Image_Select_Column =
 /** aggregate stddev on columns */
 export type Lsp3_Profile_Background_Image_Stddev_Fields = {
   __typename?: 'lsp3_profile_background_image_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp3_profile_background_image" */
 export type Lsp3_Profile_Background_Image_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp3_Profile_Background_Image_Stddev_Pop_Fields = {
   __typename?: 'lsp3_profile_background_image_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp3_profile_background_image" */
 export type Lsp3_Profile_Background_Image_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp3_Profile_Background_Image_Stddev_Samp_Fields = {
   __typename?: 'lsp3_profile_background_image_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp3_profile_background_image" */
 export type Lsp3_Profile_Background_Image_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
@@ -3334,9 +3932,13 @@ export type Lsp3_Profile_Background_Image_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp3_Profile_Background_Image_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   height?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp3_profile_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
   verification_data?: InputMaybe<Scalars['String']['input']>;
   verification_method?: InputMaybe<Scalars['String']['input']>;
@@ -3347,52 +3949,76 @@ export type Lsp3_Profile_Background_Image_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Lsp3_Profile_Background_Image_Sum_Fields = {
   __typename?: 'lsp3_profile_background_image_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   width?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp3_profile_background_image" */
 export type Lsp3_Profile_Background_Image_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp3_Profile_Background_Image_Var_Pop_Fields = {
   __typename?: 'lsp3_profile_background_image_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp3_profile_background_image" */
 export type Lsp3_Profile_Background_Image_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp3_Profile_Background_Image_Var_Samp_Fields = {
   __typename?: 'lsp3_profile_background_image_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp3_profile_background_image" */
 export type Lsp3_Profile_Background_Image_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp3_Profile_Background_Image_Variance_Fields = {
   __typename?: 'lsp3_profile_background_image_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp3_profile_background_image" */
 export type Lsp3_Profile_Background_Image_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
@@ -3406,6 +4032,7 @@ export type Lsp3_Profile_Bool_Exp = {
   avatar_aggregate?: InputMaybe<Lsp3_Profile_Asset_Aggregate_Bool_Exp>;
   backgroundImage?: InputMaybe<Lsp3_Profile_Background_Image_Bool_Exp>;
   backgroundImage_aggregate?: InputMaybe<Lsp3_Profile_Background_Image_Aggregate_Bool_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   decode_error?: InputMaybe<String_Comparison_Exp>;
   description?: InputMaybe<Lsp3_Profile_Description_Bool_Exp>;
   fetch_error_code?: InputMaybe<String_Comparison_Exp>;
@@ -3415,6 +4042,7 @@ export type Lsp3_Profile_Bool_Exp = {
   is_data_fetched?: InputMaybe<Boolean_Comparison_Exp>;
   links?: InputMaybe<Lsp3_Profile_Link_Bool_Exp>;
   links_aggregate?: InputMaybe<Lsp3_Profile_Link_Aggregate_Bool_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   name?: InputMaybe<Lsp3_Profile_Name_Bool_Exp>;
   profileImage?: InputMaybe<Lsp3_Profile_Image_Bool_Exp>;
   profileImage_aggregate?: InputMaybe<Lsp3_Profile_Image_Aggregate_Bool_Exp>;
@@ -3423,6 +4051,7 @@ export type Lsp3_Profile_Bool_Exp = {
   tags?: InputMaybe<Lsp3_Profile_Tag_Bool_Exp>;
   tags_aggregate?: InputMaybe<Lsp3_Profile_Tag_Aggregate_Bool_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
   url?: InputMaybe<String_Comparison_Exp>;
@@ -3431,10 +4060,14 @@ export type Lsp3_Profile_Bool_Exp = {
 /** columns and relationships of "lsp3_profile_description" */
 export type Lsp3_Profile_Description = {
   __typename?: 'lsp3_profile_description';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp3Profile?: Maybe<Lsp3_Profile>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -3448,9 +4081,17 @@ export type Lsp3_Profile_Description_Aggregate = {
 /** aggregate fields of "lsp3_profile_description" */
 export type Lsp3_Profile_Description_Aggregate_Fields = {
   __typename?: 'lsp3_profile_description_aggregate_fields';
+  avg?: Maybe<Lsp3_Profile_Description_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp3_Profile_Description_Max_Fields>;
   min?: Maybe<Lsp3_Profile_Description_Min_Fields>;
+  stddev?: Maybe<Lsp3_Profile_Description_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp3_Profile_Description_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp3_Profile_Description_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp3_Profile_Description_Sum_Fields>;
+  var_pop?: Maybe<Lsp3_Profile_Description_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp3_Profile_Description_Var_Samp_Fields>;
+  variance?: Maybe<Lsp3_Profile_Description_Variance_Fields>;
 };
 
 
@@ -3460,49 +4101,105 @@ export type Lsp3_Profile_Description_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp3_Profile_Description_Avg_Fields = {
+  __typename?: 'lsp3_profile_description_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp3_profile_description". All fields are combined with a logical 'AND'. */
 export type Lsp3_Profile_Description_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp3_Profile_Description_Bool_Exp>>;
   _not?: InputMaybe<Lsp3_Profile_Description_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp3_Profile_Description_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Bool_Exp>;
   lsp3_profile_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp3_Profile_Description_Max_Fields = {
   __typename?: 'lsp3_profile_description_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** aggregate min on columns */
 export type Lsp3_Profile_Description_Min_Fields = {
   __typename?: 'lsp3_profile_description_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp3_profile_description". */
 export type Lsp3_Profile_Description_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp3_profile_description" */
 export type Lsp3_Profile_Description_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'lsp3_profile_id'
   /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp3_Profile_Description_Stddev_Fields = {
+  __typename?: 'lsp3_profile_description_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp3_Profile_Description_Stddev_Pop_Fields = {
+  __typename?: 'lsp3_profile_description_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp3_Profile_Description_Stddev_Samp_Fields = {
+  __typename?: 'lsp3_profile_description_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp3_profile_description" */
 export type Lsp3_Profile_Description_Stream_Cursor_Input = {
@@ -3514,19 +4211,59 @@ export type Lsp3_Profile_Description_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp3_Profile_Description_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp3_profile_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp3_Profile_Description_Sum_Fields = {
+  __typename?: 'lsp3_profile_description_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp3_Profile_Description_Var_Pop_Fields = {
+  __typename?: 'lsp3_profile_description_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp3_Profile_Description_Var_Samp_Fields = {
+  __typename?: 'lsp3_profile_description_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp3_Profile_Description_Variance_Fields = {
+  __typename?: 'lsp3_profile_description_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp3_profile_image" */
 export type Lsp3_Profile_Image = {
   __typename?: 'lsp3_profile_image';
+  block_number: Scalars['Int']['output'];
   height?: Maybe<Scalars['Int']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp3Profile?: Maybe<Lsp3_Profile>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -3593,13 +4330,19 @@ export type Lsp3_Profile_Image_Aggregate_Order_By = {
 /** aggregate avg on columns */
 export type Lsp3_Profile_Image_Avg_Fields = {
   __typename?: 'lsp3_profile_image_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp3_profile_image" */
 export type Lsp3_Profile_Image_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
@@ -3608,10 +4351,14 @@ export type Lsp3_Profile_Image_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp3_Profile_Image_Bool_Exp>>;
   _not?: InputMaybe<Lsp3_Profile_Image_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp3_Profile_Image_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   height?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Bool_Exp>;
   lsp3_profile_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   url?: InputMaybe<String_Comparison_Exp>;
   verification_data?: InputMaybe<String_Comparison_Exp>;
   verification_method?: InputMaybe<String_Comparison_Exp>;
@@ -3622,9 +4369,13 @@ export type Lsp3_Profile_Image_Bool_Exp = {
 /** aggregate max on columns */
 export type Lsp3_Profile_Image_Max_Fields = {
   __typename?: 'lsp3_profile_image_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -3634,9 +4385,13 @@ export type Lsp3_Profile_Image_Max_Fields = {
 
 /** order by max() on columns of table "lsp3_profile_image" */
 export type Lsp3_Profile_Image_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -3647,9 +4402,13 @@ export type Lsp3_Profile_Image_Max_Order_By = {
 /** aggregate min on columns */
 export type Lsp3_Profile_Image_Min_Fields = {
   __typename?: 'lsp3_profile_image_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -3659,9 +4418,13 @@ export type Lsp3_Profile_Image_Min_Fields = {
 
 /** order by min() on columns of table "lsp3_profile_image" */
 export type Lsp3_Profile_Image_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -3671,10 +4434,14 @@ export type Lsp3_Profile_Image_Min_Order_By = {
 
 /** Ordering options when selecting data from "lsp3_profile_image". */
 export type Lsp3_Profile_Image_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -3685,11 +4452,19 @@ export type Lsp3_Profile_Image_Order_By = {
 /** select columns of table "lsp3_profile_image" */
 export type Lsp3_Profile_Image_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'height'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp3_profile_id'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'url'
   /** column name */
@@ -3704,39 +4479,57 @@ export type Lsp3_Profile_Image_Select_Column =
 /** aggregate stddev on columns */
 export type Lsp3_Profile_Image_Stddev_Fields = {
   __typename?: 'lsp3_profile_image_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp3_profile_image" */
 export type Lsp3_Profile_Image_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp3_Profile_Image_Stddev_Pop_Fields = {
   __typename?: 'lsp3_profile_image_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp3_profile_image" */
 export type Lsp3_Profile_Image_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp3_Profile_Image_Stddev_Samp_Fields = {
   __typename?: 'lsp3_profile_image_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp3_profile_image" */
 export type Lsp3_Profile_Image_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
@@ -3750,9 +4543,13 @@ export type Lsp3_Profile_Image_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp3_Profile_Image_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   height?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp3_profile_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
   verification_data?: InputMaybe<Scalars['String']['input']>;
   verification_method?: InputMaybe<Scalars['String']['input']>;
@@ -3763,63 +4560,91 @@ export type Lsp3_Profile_Image_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Lsp3_Profile_Image_Sum_Fields = {
   __typename?: 'lsp3_profile_image_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   width?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp3_profile_image" */
 export type Lsp3_Profile_Image_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp3_Profile_Image_Var_Pop_Fields = {
   __typename?: 'lsp3_profile_image_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp3_profile_image" */
 export type Lsp3_Profile_Image_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp3_Profile_Image_Var_Samp_Fields = {
   __typename?: 'lsp3_profile_image_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp3_profile_image" */
 export type Lsp3_Profile_Image_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp3_Profile_Image_Variance_Fields = {
   __typename?: 'lsp3_profile_image_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp3_profile_image" */
 export type Lsp3_Profile_Image_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp3_profile_link" */
 export type Lsp3_Profile_Link = {
   __typename?: 'lsp3_profile_link';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp3Profile?: Maybe<Lsp3_Profile>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
   title?: Maybe<Scalars['String']['output']>;
+  transaction_index: Scalars['Int']['output'];
   url?: Maybe<Scalars['String']['output']>;
 };
 
@@ -3844,9 +4669,17 @@ export type Lsp3_Profile_Link_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "lsp3_profile_link" */
 export type Lsp3_Profile_Link_Aggregate_Fields = {
   __typename?: 'lsp3_profile_link_aggregate_fields';
+  avg?: Maybe<Lsp3_Profile_Link_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp3_Profile_Link_Max_Fields>;
   min?: Maybe<Lsp3_Profile_Link_Min_Fields>;
+  stddev?: Maybe<Lsp3_Profile_Link_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp3_Profile_Link_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp3_Profile_Link_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp3_Profile_Link_Sum_Fields>;
+  var_pop?: Maybe<Lsp3_Profile_Link_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp3_Profile_Link_Var_Samp_Fields>;
+  variance?: Maybe<Lsp3_Profile_Link_Variance_Fields>;
 };
 
 
@@ -3858,9 +4691,32 @@ export type Lsp3_Profile_Link_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "lsp3_profile_link" */
 export type Lsp3_Profile_Link_Aggregate_Order_By = {
+  avg?: InputMaybe<Lsp3_Profile_Link_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Lsp3_Profile_Link_Max_Order_By>;
   min?: InputMaybe<Lsp3_Profile_Link_Min_Order_By>;
+  stddev?: InputMaybe<Lsp3_Profile_Link_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Lsp3_Profile_Link_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Lsp3_Profile_Link_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Lsp3_Profile_Link_Sum_Order_By>;
+  var_pop?: InputMaybe<Lsp3_Profile_Link_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Lsp3_Profile_Link_Var_Samp_Order_By>;
+  variance?: InputMaybe<Lsp3_Profile_Link_Variance_Order_By>;
+};
+
+/** aggregate avg on columns */
+export type Lsp3_Profile_Link_Avg_Fields = {
+  __typename?: 'lsp3_profile_link_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by avg() on columns of table "lsp3_profile_link" */
+export type Lsp3_Profile_Link_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp3_profile_link". All fields are combined with a logical 'AND'. */
@@ -3868,66 +4724,143 @@ export type Lsp3_Profile_Link_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp3_Profile_Link_Bool_Exp>>;
   _not?: InputMaybe<Lsp3_Profile_Link_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp3_Profile_Link_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Bool_Exp>;
   lsp3_profile_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   title?: InputMaybe<String_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   url?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp3_Profile_Link_Max_Fields = {
   __typename?: 'lsp3_profile_link_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   title?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by max() on columns of table "lsp3_profile_link" */
 export type Lsp3_Profile_Link_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
 export type Lsp3_Profile_Link_Min_Fields = {
   __typename?: 'lsp3_profile_link_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   title?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by min() on columns of table "lsp3_profile_link" */
 export type Lsp3_Profile_Link_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
 };
 
 /** Ordering options when selecting data from "lsp3_profile_link". */
 export type Lsp3_Profile_Link_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp3_profile_link" */
 export type Lsp3_Profile_Link_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'lsp3_profile_id'
   /** column name */
+  | 'timestamp'
+  /** column name */
   | 'title'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'url';
+
+/** aggregate stddev on columns */
+export type Lsp3_Profile_Link_Stddev_Fields = {
+  __typename?: 'lsp3_profile_link_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev() on columns of table "lsp3_profile_link" */
+export type Lsp3_Profile_Link_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp3_Profile_Link_Stddev_Pop_Fields = {
+  __typename?: 'lsp3_profile_link_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_pop() on columns of table "lsp3_profile_link" */
+export type Lsp3_Profile_Link_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp3_Profile_Link_Stddev_Samp_Fields = {
+  __typename?: 'lsp3_profile_link_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "lsp3_profile_link" */
+export type Lsp3_Profile_Link_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
 
 /** Streaming cursor of the table "lsp3_profile_link" */
 export type Lsp3_Profile_Link_Stream_Cursor_Input = {
@@ -3939,24 +4872,91 @@ export type Lsp3_Profile_Link_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp3_Profile_Link_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp3_profile_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp3_Profile_Link_Sum_Fields = {
+  __typename?: 'lsp3_profile_link_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** order by sum() on columns of table "lsp3_profile_link" */
+export type Lsp3_Profile_Link_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp3_Profile_Link_Var_Pop_Fields = {
+  __typename?: 'lsp3_profile_link_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_pop() on columns of table "lsp3_profile_link" */
+export type Lsp3_Profile_Link_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp3_Profile_Link_Var_Samp_Fields = {
+  __typename?: 'lsp3_profile_link_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_samp() on columns of table "lsp3_profile_link" */
+export type Lsp3_Profile_Link_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Lsp3_Profile_Link_Variance_Fields = {
+  __typename?: 'lsp3_profile_link_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "lsp3_profile_link" */
+export type Lsp3_Profile_Link_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate max on columns */
 export type Lsp3_Profile_Max_Fields = {
   __typename?: 'lsp3_profile_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   decode_error?: Maybe<Scalars['String']['output']>;
   fetch_error_code?: Maybe<Scalars['String']['output']>;
   fetch_error_message?: Maybe<Scalars['String']['output']>;
   fetch_error_status?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   retry_count?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
   url?: Maybe<Scalars['String']['output']>;
 };
@@ -3965,14 +4965,17 @@ export type Lsp3_Profile_Max_Fields = {
 export type Lsp3_Profile_Min_Fields = {
   __typename?: 'lsp3_profile_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   decode_error?: Maybe<Scalars['String']['output']>;
   fetch_error_code?: Maybe<Scalars['String']['output']>;
   fetch_error_message?: Maybe<Scalars['String']['output']>;
   fetch_error_status?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   retry_count?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
   url?: Maybe<Scalars['String']['output']>;
 };
@@ -3980,10 +4983,14 @@ export type Lsp3_Profile_Min_Fields = {
 /** columns and relationships of "lsp3_profile_name" */
 export type Lsp3_Profile_Name = {
   __typename?: 'lsp3_profile_name';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp3Profile?: Maybe<Lsp3_Profile>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -3997,9 +5004,17 @@ export type Lsp3_Profile_Name_Aggregate = {
 /** aggregate fields of "lsp3_profile_name" */
 export type Lsp3_Profile_Name_Aggregate_Fields = {
   __typename?: 'lsp3_profile_name_aggregate_fields';
+  avg?: Maybe<Lsp3_Profile_Name_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp3_Profile_Name_Max_Fields>;
   min?: Maybe<Lsp3_Profile_Name_Min_Fields>;
+  stddev?: Maybe<Lsp3_Profile_Name_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp3_Profile_Name_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp3_Profile_Name_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp3_Profile_Name_Sum_Fields>;
+  var_pop?: Maybe<Lsp3_Profile_Name_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp3_Profile_Name_Var_Samp_Fields>;
+  variance?: Maybe<Lsp3_Profile_Name_Variance_Fields>;
 };
 
 
@@ -4009,49 +5024,105 @@ export type Lsp3_Profile_Name_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp3_Profile_Name_Avg_Fields = {
+  __typename?: 'lsp3_profile_name_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp3_profile_name". All fields are combined with a logical 'AND'. */
 export type Lsp3_Profile_Name_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp3_Profile_Name_Bool_Exp>>;
   _not?: InputMaybe<Lsp3_Profile_Name_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp3_Profile_Name_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Bool_Exp>;
   lsp3_profile_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp3_Profile_Name_Max_Fields = {
   __typename?: 'lsp3_profile_name_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** aggregate min on columns */
 export type Lsp3_Profile_Name_Min_Fields = {
   __typename?: 'lsp3_profile_name_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp3_profile_name". */
 export type Lsp3_Profile_Name_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp3_profile_name" */
 export type Lsp3_Profile_Name_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'lsp3_profile_id'
   /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp3_Profile_Name_Stddev_Fields = {
+  __typename?: 'lsp3_profile_name_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp3_Profile_Name_Stddev_Pop_Fields = {
+  __typename?: 'lsp3_profile_name_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp3_Profile_Name_Stddev_Samp_Fields = {
+  __typename?: 'lsp3_profile_name_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp3_profile_name" */
 export type Lsp3_Profile_Name_Stream_Cursor_Input = {
@@ -4063,9 +5134,45 @@ export type Lsp3_Profile_Name_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp3_Profile_Name_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp3_profile_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp3_Profile_Name_Sum_Fields = {
+  __typename?: 'lsp3_profile_name_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp3_Profile_Name_Var_Pop_Fields = {
+  __typename?: 'lsp3_profile_name_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp3_Profile_Name_Var_Samp_Fields = {
+  __typename?: 'lsp3_profile_name_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp3_Profile_Name_Variance_Fields = {
+  __typename?: 'lsp3_profile_name_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp3_profile". */
@@ -4073,6 +5180,7 @@ export type Lsp3_Profile_Order_By = {
   address?: InputMaybe<Order_By>;
   avatar_aggregate?: InputMaybe<Lsp3_Profile_Asset_Aggregate_Order_By>;
   backgroundImage_aggregate?: InputMaybe<Lsp3_Profile_Background_Image_Aggregate_Order_By>;
+  block_number?: InputMaybe<Order_By>;
   decode_error?: InputMaybe<Order_By>;
   description?: InputMaybe<Lsp3_Profile_Description_Order_By>;
   fetch_error_code?: InputMaybe<Order_By>;
@@ -4081,12 +5189,14 @@ export type Lsp3_Profile_Order_By = {
   id?: InputMaybe<Order_By>;
   is_data_fetched?: InputMaybe<Order_By>;
   links_aggregate?: InputMaybe<Lsp3_Profile_Link_Aggregate_Order_By>;
+  log_index?: InputMaybe<Order_By>;
   name?: InputMaybe<Lsp3_Profile_Name_Order_By>;
   profileImage_aggregate?: InputMaybe<Lsp3_Profile_Image_Aggregate_Order_By>;
   raw_value?: InputMaybe<Order_By>;
   retry_count?: InputMaybe<Order_By>;
   tags_aggregate?: InputMaybe<Lsp3_Profile_Tag_Aggregate_Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
@@ -4096,6 +5206,8 @@ export type Lsp3_Profile_Order_By = {
 export type Lsp3_Profile_Select_Column =
   /** column name */
   | 'address'
+  /** column name */
+  | 'block_number'
   /** column name */
   | 'decode_error'
   /** column name */
@@ -4109,11 +5221,15 @@ export type Lsp3_Profile_Select_Column =
   /** column name */
   | 'is_data_fetched'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'raw_value'
   /** column name */
   | 'retry_count'
   /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'universal_profile_id'
   /** column name */
@@ -4122,22 +5238,31 @@ export type Lsp3_Profile_Select_Column =
 /** aggregate stddev on columns */
 export type Lsp3_Profile_Stddev_Fields = {
   __typename?: 'lsp3_profile_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp3_Profile_Stddev_Pop_Fields = {
   __typename?: 'lsp3_profile_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp3_Profile_Stddev_Samp_Fields = {
   __typename?: 'lsp3_profile_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** Streaming cursor of the table "lsp3_profile" */
@@ -4151,15 +5276,18 @@ export type Lsp3_Profile_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp3_Profile_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   decode_error?: InputMaybe<Scalars['String']['input']>;
   fetch_error_code?: InputMaybe<Scalars['String']['input']>;
   fetch_error_message?: InputMaybe<Scalars['String']['input']>;
   fetch_error_status?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   is_data_fetched?: InputMaybe<Scalars['Boolean']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   retry_count?: InputMaybe<Scalars['Int']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
 };
@@ -4167,17 +5295,24 @@ export type Lsp3_Profile_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Lsp3_Profile_Sum_Fields = {
   __typename?: 'lsp3_profile_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   fetch_error_status?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   retry_count?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** columns and relationships of "lsp3_profile_tag" */
 export type Lsp3_Profile_Tag = {
   __typename?: 'lsp3_profile_tag';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp3Profile?: Maybe<Lsp3_Profile>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -4202,9 +5337,17 @@ export type Lsp3_Profile_Tag_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "lsp3_profile_tag" */
 export type Lsp3_Profile_Tag_Aggregate_Fields = {
   __typename?: 'lsp3_profile_tag_aggregate_fields';
+  avg?: Maybe<Lsp3_Profile_Tag_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp3_Profile_Tag_Max_Fields>;
   min?: Maybe<Lsp3_Profile_Tag_Min_Fields>;
+  stddev?: Maybe<Lsp3_Profile_Tag_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp3_Profile_Tag_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp3_Profile_Tag_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp3_Profile_Tag_Sum_Fields>;
+  var_pop?: Maybe<Lsp3_Profile_Tag_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp3_Profile_Tag_Var_Samp_Fields>;
+  variance?: Maybe<Lsp3_Profile_Tag_Variance_Fields>;
 };
 
 
@@ -4216,9 +5359,32 @@ export type Lsp3_Profile_Tag_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "lsp3_profile_tag" */
 export type Lsp3_Profile_Tag_Aggregate_Order_By = {
+  avg?: InputMaybe<Lsp3_Profile_Tag_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Lsp3_Profile_Tag_Max_Order_By>;
   min?: InputMaybe<Lsp3_Profile_Tag_Min_Order_By>;
+  stddev?: InputMaybe<Lsp3_Profile_Tag_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Lsp3_Profile_Tag_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Lsp3_Profile_Tag_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Lsp3_Profile_Tag_Sum_Order_By>;
+  var_pop?: InputMaybe<Lsp3_Profile_Tag_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Lsp3_Profile_Tag_Var_Samp_Order_By>;
+  variance?: InputMaybe<Lsp3_Profile_Tag_Variance_Order_By>;
+};
+
+/** aggregate avg on columns */
+export type Lsp3_Profile_Tag_Avg_Fields = {
+  __typename?: 'lsp3_profile_tag_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by avg() on columns of table "lsp3_profile_tag" */
+export type Lsp3_Profile_Tag_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp3_profile_tag". All fields are combined with a logical 'AND'. */
@@ -4226,58 +5392,135 @@ export type Lsp3_Profile_Tag_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp3_Profile_Tag_Bool_Exp>>;
   _not?: InputMaybe<Lsp3_Profile_Tag_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp3_Profile_Tag_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Bool_Exp>;
   lsp3_profile_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp3_Profile_Tag_Max_Fields = {
   __typename?: 'lsp3_profile_tag_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by max() on columns of table "lsp3_profile_tag" */
 export type Lsp3_Profile_Tag_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
 export type Lsp3_Profile_Tag_Min_Fields = {
   __typename?: 'lsp3_profile_tag_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by min() on columns of table "lsp3_profile_tag" */
 export type Lsp3_Profile_Tag_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** Ordering options when selecting data from "lsp3_profile_tag". */
 export type Lsp3_Profile_Tag_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp3_profile_tag" */
 export type Lsp3_Profile_Tag_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'lsp3_profile_id'
   /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp3_Profile_Tag_Stddev_Fields = {
+  __typename?: 'lsp3_profile_tag_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev() on columns of table "lsp3_profile_tag" */
+export type Lsp3_Profile_Tag_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp3_Profile_Tag_Stddev_Pop_Fields = {
+  __typename?: 'lsp3_profile_tag_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_pop() on columns of table "lsp3_profile_tag" */
+export type Lsp3_Profile_Tag_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp3_Profile_Tag_Stddev_Samp_Fields = {
+  __typename?: 'lsp3_profile_tag_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "lsp3_profile_tag" */
+export type Lsp3_Profile_Tag_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
 
 /** Streaming cursor of the table "lsp3_profile_tag" */
 export type Lsp3_Profile_Tag_Stream_Cursor_Input = {
@@ -4289,30 +5532,103 @@ export type Lsp3_Profile_Tag_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp3_Profile_Tag_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp3_profile_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp3_Profile_Tag_Sum_Fields = {
+  __typename?: 'lsp3_profile_tag_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** order by sum() on columns of table "lsp3_profile_tag" */
+export type Lsp3_Profile_Tag_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp3_Profile_Tag_Var_Pop_Fields = {
+  __typename?: 'lsp3_profile_tag_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_pop() on columns of table "lsp3_profile_tag" */
+export type Lsp3_Profile_Tag_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp3_Profile_Tag_Var_Samp_Fields = {
+  __typename?: 'lsp3_profile_tag_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_samp() on columns of table "lsp3_profile_tag" */
+export type Lsp3_Profile_Tag_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Lsp3_Profile_Tag_Variance_Fields = {
+  __typename?: 'lsp3_profile_tag_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "lsp3_profile_tag" */
+export type Lsp3_Profile_Tag_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp3_Profile_Var_Pop_Fields = {
   __typename?: 'lsp3_profile_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp3_Profile_Var_Samp_Fields = {
   __typename?: 'lsp3_profile_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Lsp3_Profile_Variance_Fields = {
   __typename?: 'lsp3_profile_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp4_creator" */
@@ -4320,7 +5636,7 @@ export type Lsp4_Creator = {
   __typename?: 'lsp4_creator';
   address: Scalars['String']['output'];
   array_index?: Maybe<Scalars['numeric']['output']>;
-  block_number?: Maybe<Scalars['Int']['output']>;
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   creatorProfile?: Maybe<Universal_Profile>;
   creator_address: Scalars['String']['output'];
@@ -4330,9 +5646,9 @@ export type Lsp4_Creator = {
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   interface_id?: Maybe<Scalars['String']['output']>;
-  log_index?: Maybe<Scalars['Int']['output']>;
+  log_index: Scalars['Int']['output'];
   timestamp: Scalars['timestamptz']['output'];
-  transaction_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index: Scalars['Int']['output'];
 };
 
 /** aggregated selection of "lsp4_creator" */
@@ -4395,11 +5711,17 @@ export type Lsp4_Creator_Aggregate_Order_By = {
 export type Lsp4_Creator_Avg_Fields = {
   __typename?: 'lsp4_creator_avg_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp4_creator" */
 export type Lsp4_Creator_Avg_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp4_creator". All fields are combined with a logical 'AND'. */
@@ -4409,6 +5731,7 @@ export type Lsp4_Creator_Bool_Exp = {
   _or?: InputMaybe<Array<Lsp4_Creator_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
   array_index?: InputMaybe<Numeric_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   creatorProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   creator_address?: InputMaybe<String_Comparison_Exp>;
   creator_profile_id?: InputMaybe<String_Comparison_Exp>;
@@ -4416,7 +5739,9 @@ export type Lsp4_Creator_Bool_Exp = {
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   interface_id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
@@ -4424,24 +5749,30 @@ export type Lsp4_Creator_Max_Fields = {
   __typename?: 'lsp4_creator_max_fields';
   address?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   creator_address?: Maybe<Scalars['String']['output']>;
   creator_profile_id?: Maybe<Scalars['String']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   interface_id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by max() on columns of table "lsp4_creator" */
 export type Lsp4_Creator_Max_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   creator_address?: InputMaybe<Order_By>;
   creator_profile_id?: InputMaybe<Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   interface_id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -4449,30 +5780,37 @@ export type Lsp4_Creator_Min_Fields = {
   __typename?: 'lsp4_creator_min_fields';
   address?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   creator_address?: Maybe<Scalars['String']['output']>;
   creator_profile_id?: Maybe<Scalars['String']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   interface_id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by min() on columns of table "lsp4_creator" */
 export type Lsp4_Creator_Min_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   creator_address?: InputMaybe<Order_By>;
   creator_profile_id?: InputMaybe<Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   interface_id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Ordering options when selecting data from "lsp4_creator". */
 export type Lsp4_Creator_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   creatorProfile?: InputMaybe<Universal_Profile_Order_By>;
   creator_address?: InputMaybe<Order_By>;
   creator_profile_id?: InputMaybe<Order_By>;
@@ -4480,7 +5818,9 @@ export type Lsp4_Creator_Order_By = {
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   interface_id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp4_creator" */
@@ -4489,6 +5829,8 @@ export type Lsp4_Creator_Select_Column =
   | 'address'
   /** column name */
   | 'array_index'
+  /** column name */
+  | 'block_number'
   /** column name */
   | 'creator_address'
   /** column name */
@@ -4500,39 +5842,61 @@ export type Lsp4_Creator_Select_Column =
   /** column name */
   | 'interface_id'
   /** column name */
-  | 'timestamp';
+  | 'log_index'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index';
 
 /** aggregate stddev on columns */
 export type Lsp4_Creator_Stddev_Fields = {
   __typename?: 'lsp4_creator_stddev_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp4_creator" */
 export type Lsp4_Creator_Stddev_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp4_Creator_Stddev_Pop_Fields = {
   __typename?: 'lsp4_creator_stddev_pop_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp4_creator" */
 export type Lsp4_Creator_Stddev_Pop_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp4_Creator_Stddev_Samp_Fields = {
   __typename?: 'lsp4_creator_stddev_samp_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp4_creator" */
 export type Lsp4_Creator_Stddev_Samp_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "lsp4_creator" */
@@ -4547,68 +5911,98 @@ export type Lsp4_Creator_Stream_Cursor_Input = {
 export type Lsp4_Creator_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
   array_index?: InputMaybe<Scalars['numeric']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   creator_address?: InputMaybe<Scalars['String']['input']>;
   creator_profile_id?: InputMaybe<Scalars['String']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   interface_id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Lsp4_Creator_Sum_Fields = {
   __typename?: 'lsp4_creator_sum_fields';
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp4_creator" */
 export type Lsp4_Creator_Sum_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp4_Creator_Var_Pop_Fields = {
   __typename?: 'lsp4_creator_var_pop_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp4_creator" */
 export type Lsp4_Creator_Var_Pop_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp4_Creator_Var_Samp_Fields = {
   __typename?: 'lsp4_creator_var_samp_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp4_creator" */
 export type Lsp4_Creator_Var_Samp_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp4_Creator_Variance_Fields = {
   __typename?: 'lsp4_creator_variance_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp4_creator" */
 export type Lsp4_Creator_Variance_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp4_creators_length" */
 export type Lsp4_Creators_Length = {
   __typename?: 'lsp4_creators_length';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['numeric']['output']>;
 };
 
@@ -4645,6 +6039,9 @@ export type Lsp4_Creators_Length_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Lsp4_Creators_Length_Avg_Fields = {
   __typename?: 'lsp4_creators_length_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -4654,11 +6051,14 @@ export type Lsp4_Creators_Length_Bool_Exp = {
   _not?: InputMaybe<Lsp4_Creators_Length_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Creators_Length_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<Numeric_Comparison_Exp>;
 };
 
@@ -4666,10 +6066,13 @@ export type Lsp4_Creators_Length_Bool_Exp = {
 export type Lsp4_Creators_Length_Max_Fields = {
   __typename?: 'lsp4_creators_length_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
 
@@ -4677,21 +6080,27 @@ export type Lsp4_Creators_Length_Max_Fields = {
 export type Lsp4_Creators_Length_Min_Fields = {
   __typename?: 'lsp4_creators_length_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp4_creators_length". */
 export type Lsp4_Creators_Length_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -4700,31 +6109,46 @@ export type Lsp4_Creators_Length_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'raw_value'
   /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'value';
 
 /** aggregate stddev on columns */
 export type Lsp4_Creators_Length_Stddev_Fields = {
   __typename?: 'lsp4_creators_length_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp4_Creators_Length_Stddev_Pop_Fields = {
   __typename?: 'lsp4_creators_length_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp4_Creators_Length_Stddev_Samp_Fields = {
   __typename?: 'lsp4_creators_length_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -4739,34 +6163,49 @@ export type Lsp4_Creators_Length_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Creators_Length_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['numeric']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Lsp4_Creators_Length_Sum_Fields = {
   __typename?: 'lsp4_creators_length_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp4_Creators_Length_Var_Pop_Fields = {
   __typename?: 'lsp4_creators_length_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp4_Creators_Length_Var_Samp_Fields = {
   __typename?: 'lsp4_creators_length_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Lsp4_Creators_Length_Variance_Fields = {
   __typename?: 'lsp4_creators_length_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -4782,6 +6221,7 @@ export type Lsp4_Metadata = {
   attributes: Array<Lsp4_Metadata_Attribute>;
   /** An aggregate relationship */
   attributes_aggregate: Lsp4_Metadata_Attribute_Aggregate;
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   category?: Maybe<Lsp4_Metadata_Category>;
   decode_error?: Maybe<Scalars['String']['output']>;
@@ -4807,6 +6247,7 @@ export type Lsp4_Metadata = {
   links: Array<Lsp4_Metadata_Link>;
   /** An aggregate relationship */
   links_aggregate: Lsp4_Metadata_Link_Aggregate;
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   name?: Maybe<Lsp4_Metadata_Name>;
   /** An object relationship */
@@ -4820,6 +6261,7 @@ export type Lsp4_Metadata = {
   score?: Maybe<Lsp4_Metadata_Score>;
   timestamp: Scalars['timestamptz']['output'];
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index: Scalars['Int']['output'];
   url?: Maybe<Scalars['String']['output']>;
 };
 
@@ -4956,11 +6398,15 @@ export type Lsp4_Metadata_Aggregate_FieldsCountArgs = {
 /** columns and relationships of "lsp4_metadata_asset" */
 export type Lsp4_Metadata_Asset = {
   __typename?: 'lsp4_metadata_asset';
+  block_number: Scalars['Int']['output'];
   file_type?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp4Metadata?: Maybe<Lsp4_Metadata>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -4988,9 +6434,17 @@ export type Lsp4_Metadata_Asset_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "lsp4_metadata_asset" */
 export type Lsp4_Metadata_Asset_Aggregate_Fields = {
   __typename?: 'lsp4_metadata_asset_aggregate_fields';
+  avg?: Maybe<Lsp4_Metadata_Asset_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp4_Metadata_Asset_Max_Fields>;
   min?: Maybe<Lsp4_Metadata_Asset_Min_Fields>;
+  stddev?: Maybe<Lsp4_Metadata_Asset_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp4_Metadata_Asset_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp4_Metadata_Asset_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp4_Metadata_Asset_Sum_Fields>;
+  var_pop?: Maybe<Lsp4_Metadata_Asset_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp4_Metadata_Asset_Var_Samp_Fields>;
+  variance?: Maybe<Lsp4_Metadata_Asset_Variance_Fields>;
 };
 
 
@@ -5002,9 +6456,32 @@ export type Lsp4_Metadata_Asset_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "lsp4_metadata_asset" */
 export type Lsp4_Metadata_Asset_Aggregate_Order_By = {
+  avg?: InputMaybe<Lsp4_Metadata_Asset_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Lsp4_Metadata_Asset_Max_Order_By>;
   min?: InputMaybe<Lsp4_Metadata_Asset_Min_Order_By>;
+  stddev?: InputMaybe<Lsp4_Metadata_Asset_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Lsp4_Metadata_Asset_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Lsp4_Metadata_Asset_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Lsp4_Metadata_Asset_Sum_Order_By>;
+  var_pop?: InputMaybe<Lsp4_Metadata_Asset_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Lsp4_Metadata_Asset_Var_Samp_Order_By>;
+  variance?: InputMaybe<Lsp4_Metadata_Asset_Variance_Order_By>;
+};
+
+/** aggregate avg on columns */
+export type Lsp4_Metadata_Asset_Avg_Fields = {
+  __typename?: 'lsp4_metadata_asset_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by avg() on columns of table "lsp4_metadata_asset" */
+export type Lsp4_Metadata_Asset_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp4_metadata_asset". All fields are combined with a logical 'AND'. */
@@ -5012,10 +6489,14 @@ export type Lsp4_Metadata_Asset_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Metadata_Asset_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Metadata_Asset_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Metadata_Asset_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   file_type?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Bool_Exp>;
   lsp4_metadata_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   url?: InputMaybe<String_Comparison_Exp>;
   verification_data?: InputMaybe<String_Comparison_Exp>;
   verification_method?: InputMaybe<String_Comparison_Exp>;
@@ -5025,9 +6506,13 @@ export type Lsp4_Metadata_Asset_Bool_Exp = {
 /** aggregate max on columns */
 export type Lsp4_Metadata_Asset_Max_Fields = {
   __typename?: 'lsp4_metadata_asset_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   file_type?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -5036,9 +6521,13 @@ export type Lsp4_Metadata_Asset_Max_Fields = {
 
 /** order by max() on columns of table "lsp4_metadata_asset" */
 export type Lsp4_Metadata_Asset_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   file_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -5048,9 +6537,13 @@ export type Lsp4_Metadata_Asset_Max_Order_By = {
 /** aggregate min on columns */
 export type Lsp4_Metadata_Asset_Min_Fields = {
   __typename?: 'lsp4_metadata_asset_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   file_type?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -5059,9 +6552,13 @@ export type Lsp4_Metadata_Asset_Min_Fields = {
 
 /** order by min() on columns of table "lsp4_metadata_asset" */
 export type Lsp4_Metadata_Asset_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   file_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -5070,10 +6567,14 @@ export type Lsp4_Metadata_Asset_Min_Order_By = {
 
 /** Ordering options when selecting data from "lsp4_metadata_asset". */
 export type Lsp4_Metadata_Asset_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   file_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -5083,11 +6584,19 @@ export type Lsp4_Metadata_Asset_Order_By = {
 /** select columns of table "lsp4_metadata_asset" */
 export type Lsp4_Metadata_Asset_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'file_type'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp4_metadata_id'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'url'
   /** column name */
@@ -5096,6 +6605,51 @@ export type Lsp4_Metadata_Asset_Select_Column =
   | 'verification_method'
   /** column name */
   | 'verification_source';
+
+/** aggregate stddev on columns */
+export type Lsp4_Metadata_Asset_Stddev_Fields = {
+  __typename?: 'lsp4_metadata_asset_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev() on columns of table "lsp4_metadata_asset" */
+export type Lsp4_Metadata_Asset_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp4_Metadata_Asset_Stddev_Pop_Fields = {
+  __typename?: 'lsp4_metadata_asset_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_pop() on columns of table "lsp4_metadata_asset" */
+export type Lsp4_Metadata_Asset_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp4_Metadata_Asset_Stddev_Samp_Fields = {
+  __typename?: 'lsp4_metadata_asset_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "lsp4_metadata_asset" */
+export type Lsp4_Metadata_Asset_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
 
 /** Streaming cursor of the table "lsp4_metadata_asset" */
 export type Lsp4_Metadata_Asset_Stream_Cursor_Input = {
@@ -5107,25 +6661,93 @@ export type Lsp4_Metadata_Asset_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Metadata_Asset_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   file_type?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp4_metadata_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
   verification_data?: InputMaybe<Scalars['String']['input']>;
   verification_method?: InputMaybe<Scalars['String']['input']>;
   verification_source?: InputMaybe<Scalars['String']['input']>;
 };
 
+/** aggregate sum on columns */
+export type Lsp4_Metadata_Asset_Sum_Fields = {
+  __typename?: 'lsp4_metadata_asset_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** order by sum() on columns of table "lsp4_metadata_asset" */
+export type Lsp4_Metadata_Asset_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp4_Metadata_Asset_Var_Pop_Fields = {
+  __typename?: 'lsp4_metadata_asset_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_pop() on columns of table "lsp4_metadata_asset" */
+export type Lsp4_Metadata_Asset_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp4_Metadata_Asset_Var_Samp_Fields = {
+  __typename?: 'lsp4_metadata_asset_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_samp() on columns of table "lsp4_metadata_asset" */
+export type Lsp4_Metadata_Asset_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Lsp4_Metadata_Asset_Variance_Fields = {
+  __typename?: 'lsp4_metadata_asset_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "lsp4_metadata_asset" */
+export type Lsp4_Metadata_Asset_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
 /** columns and relationships of "lsp4_metadata_attribute" */
 export type Lsp4_Metadata_Attribute = {
   __typename?: 'lsp4_metadata_attribute';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
   key?: Maybe<Scalars['String']['output']>;
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp4Metadata?: Maybe<Lsp4_Metadata>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
   rarity?: Maybe<Scalars['numeric']['output']>;
   score?: Maybe<Scalars['numeric']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   type?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
@@ -5189,14 +6811,20 @@ export type Lsp4_Metadata_Attribute_Aggregate_Order_By = {
 /** aggregate avg on columns */
 export type Lsp4_Metadata_Attribute_Avg_Fields = {
   __typename?: 'lsp4_metadata_attribute_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   rarity?: Maybe<Scalars['Float']['output']>;
   score?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp4_metadata_attribute" */
 export type Lsp4_Metadata_Attribute_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   rarity?: InputMaybe<Order_By>;
   score?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp4_metadata_attribute". All fields are combined with a logical 'AND'. */
@@ -5204,12 +6832,16 @@ export type Lsp4_Metadata_Attribute_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Metadata_Attribute_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Metadata_Attribute_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Metadata_Attribute_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   key?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Bool_Exp>;
   lsp4_metadata_id?: InputMaybe<String_Comparison_Exp>;
   rarity?: InputMaybe<Numeric_Comparison_Exp>;
   score?: InputMaybe<Numeric_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   type?: InputMaybe<String_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
@@ -5217,22 +6849,30 @@ export type Lsp4_Metadata_Attribute_Bool_Exp = {
 /** aggregate max on columns */
 export type Lsp4_Metadata_Attribute_Max_Fields = {
   __typename?: 'lsp4_metadata_attribute_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   key?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
   rarity?: Maybe<Scalars['numeric']['output']>;
   score?: Maybe<Scalars['numeric']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   type?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by max() on columns of table "lsp4_metadata_attribute" */
 export type Lsp4_Metadata_Attribute_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   key?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
   rarity?: InputMaybe<Order_By>;
   score?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
@@ -5240,34 +6880,46 @@ export type Lsp4_Metadata_Attribute_Max_Order_By = {
 /** aggregate min on columns */
 export type Lsp4_Metadata_Attribute_Min_Fields = {
   __typename?: 'lsp4_metadata_attribute_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   key?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
   rarity?: Maybe<Scalars['numeric']['output']>;
   score?: Maybe<Scalars['numeric']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   type?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by min() on columns of table "lsp4_metadata_attribute" */
 export type Lsp4_Metadata_Attribute_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   key?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
   rarity?: InputMaybe<Order_By>;
   score?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** Ordering options when selecting data from "lsp4_metadata_attribute". */
 export type Lsp4_Metadata_Attribute_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   key?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
   rarity?: InputMaybe<Order_By>;
   score?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
@@ -5275,15 +6927,23 @@ export type Lsp4_Metadata_Attribute_Order_By = {
 /** select columns of table "lsp4_metadata_attribute" */
 export type Lsp4_Metadata_Attribute_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
   /** column name */
   | 'key'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'lsp4_metadata_id'
   /** column name */
   | 'rarity'
   /** column name */
   | 'score'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'type'
   /** column name */
@@ -5292,40 +6952,58 @@ export type Lsp4_Metadata_Attribute_Select_Column =
 /** aggregate stddev on columns */
 export type Lsp4_Metadata_Attribute_Stddev_Fields = {
   __typename?: 'lsp4_metadata_attribute_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   rarity?: Maybe<Scalars['Float']['output']>;
   score?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp4_metadata_attribute" */
 export type Lsp4_Metadata_Attribute_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   rarity?: InputMaybe<Order_By>;
   score?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp4_Metadata_Attribute_Stddev_Pop_Fields = {
   __typename?: 'lsp4_metadata_attribute_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   rarity?: Maybe<Scalars['Float']['output']>;
   score?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp4_metadata_attribute" */
 export type Lsp4_Metadata_Attribute_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   rarity?: InputMaybe<Order_By>;
   score?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp4_Metadata_Attribute_Stddev_Samp_Fields = {
   __typename?: 'lsp4_metadata_attribute_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   rarity?: Maybe<Scalars['Float']['output']>;
   score?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp4_metadata_attribute" */
 export type Lsp4_Metadata_Attribute_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   rarity?: InputMaybe<Order_By>;
   score?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "lsp4_metadata_attribute" */
@@ -5338,11 +7016,15 @@ export type Lsp4_Metadata_Attribute_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Metadata_Attribute_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   key?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp4_metadata_id?: InputMaybe<Scalars['String']['input']>;
   rarity?: InputMaybe<Scalars['numeric']['input']>;
   score?: InputMaybe<Scalars['numeric']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   type?: InputMaybe<Scalars['String']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
 };
@@ -5350,60 +7032,87 @@ export type Lsp4_Metadata_Attribute_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Lsp4_Metadata_Attribute_Sum_Fields = {
   __typename?: 'lsp4_metadata_attribute_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   rarity?: Maybe<Scalars['numeric']['output']>;
   score?: Maybe<Scalars['numeric']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp4_metadata_attribute" */
 export type Lsp4_Metadata_Attribute_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   rarity?: InputMaybe<Order_By>;
   score?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp4_Metadata_Attribute_Var_Pop_Fields = {
   __typename?: 'lsp4_metadata_attribute_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   rarity?: Maybe<Scalars['Float']['output']>;
   score?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp4_metadata_attribute" */
 export type Lsp4_Metadata_Attribute_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   rarity?: InputMaybe<Order_By>;
   score?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp4_Metadata_Attribute_Var_Samp_Fields = {
   __typename?: 'lsp4_metadata_attribute_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   rarity?: Maybe<Scalars['Float']['output']>;
   score?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp4_metadata_attribute" */
 export type Lsp4_Metadata_Attribute_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   rarity?: InputMaybe<Order_By>;
   score?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp4_Metadata_Attribute_Variance_Fields = {
   __typename?: 'lsp4_metadata_attribute_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   rarity?: Maybe<Scalars['Float']['output']>;
   score?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp4_metadata_attribute" */
 export type Lsp4_Metadata_Attribute_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   rarity?: InputMaybe<Order_By>;
   score?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate avg on columns */
 export type Lsp4_Metadata_Avg_Fields = {
   __typename?: 'lsp4_metadata_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** Boolean expression to filter rows from the table "lsp4_metadata". All fields are combined with a logical 'AND'. */
@@ -5416,6 +7125,7 @@ export type Lsp4_Metadata_Bool_Exp = {
   assets_aggregate?: InputMaybe<Lsp4_Metadata_Asset_Aggregate_Bool_Exp>;
   attributes?: InputMaybe<Lsp4_Metadata_Attribute_Bool_Exp>;
   attributes_aggregate?: InputMaybe<Lsp4_Metadata_Attribute_Aggregate_Bool_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   category?: InputMaybe<Lsp4_Metadata_Category_Bool_Exp>;
   decode_error?: InputMaybe<String_Comparison_Exp>;
   description?: InputMaybe<Lsp4_Metadata_Description_Bool_Exp>;
@@ -5432,6 +7142,7 @@ export type Lsp4_Metadata_Bool_Exp = {
   is_data_fetched?: InputMaybe<Boolean_Comparison_Exp>;
   links?: InputMaybe<Lsp4_Metadata_Link_Bool_Exp>;
   links_aggregate?: InputMaybe<Lsp4_Metadata_Link_Aggregate_Bool_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   name?: InputMaybe<Lsp4_Metadata_Name_Bool_Exp>;
   nft?: InputMaybe<Nft_Bool_Exp>;
   nft_id?: InputMaybe<String_Comparison_Exp>;
@@ -5441,16 +7152,21 @@ export type Lsp4_Metadata_Bool_Exp = {
   score?: InputMaybe<Lsp4_Metadata_Score_Bool_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   token_id?: InputMaybe<String_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   url?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** columns and relationships of "lsp4_metadata_category" */
 export type Lsp4_Metadata_Category = {
   __typename?: 'lsp4_metadata_category';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp4Metadata?: Maybe<Lsp4_Metadata>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -5464,9 +7180,17 @@ export type Lsp4_Metadata_Category_Aggregate = {
 /** aggregate fields of "lsp4_metadata_category" */
 export type Lsp4_Metadata_Category_Aggregate_Fields = {
   __typename?: 'lsp4_metadata_category_aggregate_fields';
+  avg?: Maybe<Lsp4_Metadata_Category_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp4_Metadata_Category_Max_Fields>;
   min?: Maybe<Lsp4_Metadata_Category_Min_Fields>;
+  stddev?: Maybe<Lsp4_Metadata_Category_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp4_Metadata_Category_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp4_Metadata_Category_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp4_Metadata_Category_Sum_Fields>;
+  var_pop?: Maybe<Lsp4_Metadata_Category_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp4_Metadata_Category_Var_Samp_Fields>;
+  variance?: Maybe<Lsp4_Metadata_Category_Variance_Fields>;
 };
 
 
@@ -5476,49 +7200,105 @@ export type Lsp4_Metadata_Category_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp4_Metadata_Category_Avg_Fields = {
+  __typename?: 'lsp4_metadata_category_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp4_metadata_category". All fields are combined with a logical 'AND'. */
 export type Lsp4_Metadata_Category_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Metadata_Category_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Metadata_Category_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Metadata_Category_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Bool_Exp>;
   lsp4_metadata_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp4_Metadata_Category_Max_Fields = {
   __typename?: 'lsp4_metadata_category_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** aggregate min on columns */
 export type Lsp4_Metadata_Category_Min_Fields = {
   __typename?: 'lsp4_metadata_category_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp4_metadata_category". */
 export type Lsp4_Metadata_Category_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp4_metadata_category" */
 export type Lsp4_Metadata_Category_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'lsp4_metadata_id'
   /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp4_Metadata_Category_Stddev_Fields = {
+  __typename?: 'lsp4_metadata_category_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp4_Metadata_Category_Stddev_Pop_Fields = {
+  __typename?: 'lsp4_metadata_category_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp4_Metadata_Category_Stddev_Samp_Fields = {
+  __typename?: 'lsp4_metadata_category_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp4_metadata_category" */
 export type Lsp4_Metadata_Category_Stream_Cursor_Input = {
@@ -5530,18 +7310,58 @@ export type Lsp4_Metadata_Category_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Metadata_Category_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp4_metadata_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp4_Metadata_Category_Sum_Fields = {
+  __typename?: 'lsp4_metadata_category_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp4_Metadata_Category_Var_Pop_Fields = {
+  __typename?: 'lsp4_metadata_category_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp4_Metadata_Category_Var_Samp_Fields = {
+  __typename?: 'lsp4_metadata_category_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp4_Metadata_Category_Variance_Fields = {
+  __typename?: 'lsp4_metadata_category_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp4_metadata_description" */
 export type Lsp4_Metadata_Description = {
   __typename?: 'lsp4_metadata_description';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp4Metadata?: Maybe<Lsp4_Metadata>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -5555,9 +7375,17 @@ export type Lsp4_Metadata_Description_Aggregate = {
 /** aggregate fields of "lsp4_metadata_description" */
 export type Lsp4_Metadata_Description_Aggregate_Fields = {
   __typename?: 'lsp4_metadata_description_aggregate_fields';
+  avg?: Maybe<Lsp4_Metadata_Description_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp4_Metadata_Description_Max_Fields>;
   min?: Maybe<Lsp4_Metadata_Description_Min_Fields>;
+  stddev?: Maybe<Lsp4_Metadata_Description_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp4_Metadata_Description_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp4_Metadata_Description_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp4_Metadata_Description_Sum_Fields>;
+  var_pop?: Maybe<Lsp4_Metadata_Description_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp4_Metadata_Description_Var_Samp_Fields>;
+  variance?: Maybe<Lsp4_Metadata_Description_Variance_Fields>;
 };
 
 
@@ -5567,49 +7395,105 @@ export type Lsp4_Metadata_Description_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp4_Metadata_Description_Avg_Fields = {
+  __typename?: 'lsp4_metadata_description_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp4_metadata_description". All fields are combined with a logical 'AND'. */
 export type Lsp4_Metadata_Description_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Metadata_Description_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Metadata_Description_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Metadata_Description_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Bool_Exp>;
   lsp4_metadata_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp4_Metadata_Description_Max_Fields = {
   __typename?: 'lsp4_metadata_description_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** aggregate min on columns */
 export type Lsp4_Metadata_Description_Min_Fields = {
   __typename?: 'lsp4_metadata_description_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp4_metadata_description". */
 export type Lsp4_Metadata_Description_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp4_metadata_description" */
 export type Lsp4_Metadata_Description_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'lsp4_metadata_id'
   /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp4_Metadata_Description_Stddev_Fields = {
+  __typename?: 'lsp4_metadata_description_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp4_Metadata_Description_Stddev_Pop_Fields = {
+  __typename?: 'lsp4_metadata_description_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp4_Metadata_Description_Stddev_Samp_Fields = {
+  __typename?: 'lsp4_metadata_description_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp4_metadata_description" */
 export type Lsp4_Metadata_Description_Stream_Cursor_Input = {
@@ -5621,19 +7505,59 @@ export type Lsp4_Metadata_Description_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Metadata_Description_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp4_metadata_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp4_Metadata_Description_Sum_Fields = {
+  __typename?: 'lsp4_metadata_description_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp4_Metadata_Description_Var_Pop_Fields = {
+  __typename?: 'lsp4_metadata_description_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp4_Metadata_Description_Var_Samp_Fields = {
+  __typename?: 'lsp4_metadata_description_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp4_Metadata_Description_Variance_Fields = {
+  __typename?: 'lsp4_metadata_description_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp4_metadata_icon" */
 export type Lsp4_Metadata_Icon = {
   __typename?: 'lsp4_metadata_icon';
+  block_number: Scalars['Int']['output'];
   height?: Maybe<Scalars['Int']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp4Metadata?: Maybe<Lsp4_Metadata>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -5700,13 +7624,19 @@ export type Lsp4_Metadata_Icon_Aggregate_Order_By = {
 /** aggregate avg on columns */
 export type Lsp4_Metadata_Icon_Avg_Fields = {
   __typename?: 'lsp4_metadata_icon_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp4_metadata_icon" */
 export type Lsp4_Metadata_Icon_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
@@ -5715,10 +7645,14 @@ export type Lsp4_Metadata_Icon_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Metadata_Icon_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Metadata_Icon_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Metadata_Icon_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   height?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Bool_Exp>;
   lsp4_metadata_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   url?: InputMaybe<String_Comparison_Exp>;
   verification_data?: InputMaybe<String_Comparison_Exp>;
   verification_method?: InputMaybe<String_Comparison_Exp>;
@@ -5729,9 +7663,13 @@ export type Lsp4_Metadata_Icon_Bool_Exp = {
 /** aggregate max on columns */
 export type Lsp4_Metadata_Icon_Max_Fields = {
   __typename?: 'lsp4_metadata_icon_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -5741,9 +7679,13 @@ export type Lsp4_Metadata_Icon_Max_Fields = {
 
 /** order by max() on columns of table "lsp4_metadata_icon" */
 export type Lsp4_Metadata_Icon_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -5754,9 +7696,13 @@ export type Lsp4_Metadata_Icon_Max_Order_By = {
 /** aggregate min on columns */
 export type Lsp4_Metadata_Icon_Min_Fields = {
   __typename?: 'lsp4_metadata_icon_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -5766,9 +7712,13 @@ export type Lsp4_Metadata_Icon_Min_Fields = {
 
 /** order by min() on columns of table "lsp4_metadata_icon" */
 export type Lsp4_Metadata_Icon_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -5778,10 +7728,14 @@ export type Lsp4_Metadata_Icon_Min_Order_By = {
 
 /** Ordering options when selecting data from "lsp4_metadata_icon". */
 export type Lsp4_Metadata_Icon_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -5792,11 +7746,19 @@ export type Lsp4_Metadata_Icon_Order_By = {
 /** select columns of table "lsp4_metadata_icon" */
 export type Lsp4_Metadata_Icon_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'height'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp4_metadata_id'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'url'
   /** column name */
@@ -5811,39 +7773,57 @@ export type Lsp4_Metadata_Icon_Select_Column =
 /** aggregate stddev on columns */
 export type Lsp4_Metadata_Icon_Stddev_Fields = {
   __typename?: 'lsp4_metadata_icon_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp4_metadata_icon" */
 export type Lsp4_Metadata_Icon_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp4_Metadata_Icon_Stddev_Pop_Fields = {
   __typename?: 'lsp4_metadata_icon_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp4_metadata_icon" */
 export type Lsp4_Metadata_Icon_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp4_Metadata_Icon_Stddev_Samp_Fields = {
   __typename?: 'lsp4_metadata_icon_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp4_metadata_icon" */
 export type Lsp4_Metadata_Icon_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
@@ -5857,9 +7837,13 @@ export type Lsp4_Metadata_Icon_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Metadata_Icon_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   height?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp4_metadata_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
   verification_data?: InputMaybe<Scalars['String']['input']>;
   verification_method?: InputMaybe<Scalars['String']['input']>;
@@ -5870,64 +7854,92 @@ export type Lsp4_Metadata_Icon_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Lsp4_Metadata_Icon_Sum_Fields = {
   __typename?: 'lsp4_metadata_icon_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   width?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp4_metadata_icon" */
 export type Lsp4_Metadata_Icon_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp4_Metadata_Icon_Var_Pop_Fields = {
   __typename?: 'lsp4_metadata_icon_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp4_metadata_icon" */
 export type Lsp4_Metadata_Icon_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp4_Metadata_Icon_Var_Samp_Fields = {
   __typename?: 'lsp4_metadata_icon_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp4_metadata_icon" */
 export type Lsp4_Metadata_Icon_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp4_Metadata_Icon_Variance_Fields = {
   __typename?: 'lsp4_metadata_icon_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp4_metadata_icon" */
 export type Lsp4_Metadata_Icon_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp4_metadata_image" */
 export type Lsp4_Metadata_Image = {
   __typename?: 'lsp4_metadata_image';
+  block_number: Scalars['Int']['output'];
   height?: Maybe<Scalars['Int']['output']>;
   id: Scalars['String']['output'];
   image_index: Scalars['Int']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp4Metadata?: Maybe<Lsp4_Metadata>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -5994,15 +8006,21 @@ export type Lsp4_Metadata_Image_Aggregate_Order_By = {
 /** aggregate avg on columns */
 export type Lsp4_Metadata_Image_Avg_Fields = {
   __typename?: 'lsp4_metadata_image_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp4_metadata_image" */
 export type Lsp4_Metadata_Image_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
@@ -6011,11 +8029,15 @@ export type Lsp4_Metadata_Image_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Metadata_Image_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Metadata_Image_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Metadata_Image_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   height?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   image_index?: InputMaybe<Int_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Bool_Exp>;
   lsp4_metadata_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   url?: InputMaybe<String_Comparison_Exp>;
   verification_data?: InputMaybe<String_Comparison_Exp>;
   verification_method?: InputMaybe<String_Comparison_Exp>;
@@ -6026,10 +8048,14 @@ export type Lsp4_Metadata_Image_Bool_Exp = {
 /** aggregate max on columns */
 export type Lsp4_Metadata_Image_Max_Fields = {
   __typename?: 'lsp4_metadata_image_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   image_index?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -6039,10 +8065,14 @@ export type Lsp4_Metadata_Image_Max_Fields = {
 
 /** order by max() on columns of table "lsp4_metadata_image" */
 export type Lsp4_Metadata_Image_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -6053,10 +8083,14 @@ export type Lsp4_Metadata_Image_Max_Order_By = {
 /** aggregate min on columns */
 export type Lsp4_Metadata_Image_Min_Fields = {
   __typename?: 'lsp4_metadata_image_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   image_index?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -6066,10 +8100,14 @@ export type Lsp4_Metadata_Image_Min_Fields = {
 
 /** order by min() on columns of table "lsp4_metadata_image" */
 export type Lsp4_Metadata_Image_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -6079,11 +8117,15 @@ export type Lsp4_Metadata_Image_Min_Order_By = {
 
 /** Ordering options when selecting data from "lsp4_metadata_image". */
 export type Lsp4_Metadata_Image_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -6094,13 +8136,21 @@ export type Lsp4_Metadata_Image_Order_By = {
 /** select columns of table "lsp4_metadata_image" */
 export type Lsp4_Metadata_Image_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'height'
   /** column name */
   | 'id'
   /** column name */
   | 'image_index'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp4_metadata_id'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'url'
   /** column name */
@@ -6115,45 +8165,63 @@ export type Lsp4_Metadata_Image_Select_Column =
 /** aggregate stddev on columns */
 export type Lsp4_Metadata_Image_Stddev_Fields = {
   __typename?: 'lsp4_metadata_image_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp4_metadata_image" */
 export type Lsp4_Metadata_Image_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp4_Metadata_Image_Stddev_Pop_Fields = {
   __typename?: 'lsp4_metadata_image_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp4_metadata_image" */
 export type Lsp4_Metadata_Image_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp4_Metadata_Image_Stddev_Samp_Fields = {
   __typename?: 'lsp4_metadata_image_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp4_metadata_image" */
 export type Lsp4_Metadata_Image_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
@@ -6167,10 +8235,14 @@ export type Lsp4_Metadata_Image_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Metadata_Image_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   height?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   image_index?: InputMaybe<Scalars['Int']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp4_metadata_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
   verification_data?: InputMaybe<Scalars['String']['input']>;
   verification_method?: InputMaybe<Scalars['String']['input']>;
@@ -6181,71 +8253,99 @@ export type Lsp4_Metadata_Image_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Lsp4_Metadata_Image_Sum_Fields = {
   __typename?: 'lsp4_metadata_image_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
   image_index?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   width?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp4_metadata_image" */
 export type Lsp4_Metadata_Image_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp4_Metadata_Image_Var_Pop_Fields = {
   __typename?: 'lsp4_metadata_image_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp4_metadata_image" */
 export type Lsp4_Metadata_Image_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp4_Metadata_Image_Var_Samp_Fields = {
   __typename?: 'lsp4_metadata_image_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp4_metadata_image" */
 export type Lsp4_Metadata_Image_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp4_Metadata_Image_Variance_Fields = {
   __typename?: 'lsp4_metadata_image_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp4_metadata_image" */
 export type Lsp4_Metadata_Image_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp4_metadata_link" */
 export type Lsp4_Metadata_Link = {
   __typename?: 'lsp4_metadata_link';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp4Metadata?: Maybe<Lsp4_Metadata>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
   title?: Maybe<Scalars['String']['output']>;
+  transaction_index: Scalars['Int']['output'];
   url?: Maybe<Scalars['String']['output']>;
 };
 
@@ -6270,9 +8370,17 @@ export type Lsp4_Metadata_Link_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "lsp4_metadata_link" */
 export type Lsp4_Metadata_Link_Aggregate_Fields = {
   __typename?: 'lsp4_metadata_link_aggregate_fields';
+  avg?: Maybe<Lsp4_Metadata_Link_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp4_Metadata_Link_Max_Fields>;
   min?: Maybe<Lsp4_Metadata_Link_Min_Fields>;
+  stddev?: Maybe<Lsp4_Metadata_Link_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp4_Metadata_Link_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp4_Metadata_Link_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp4_Metadata_Link_Sum_Fields>;
+  var_pop?: Maybe<Lsp4_Metadata_Link_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp4_Metadata_Link_Var_Samp_Fields>;
+  variance?: Maybe<Lsp4_Metadata_Link_Variance_Fields>;
 };
 
 
@@ -6284,9 +8392,32 @@ export type Lsp4_Metadata_Link_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "lsp4_metadata_link" */
 export type Lsp4_Metadata_Link_Aggregate_Order_By = {
+  avg?: InputMaybe<Lsp4_Metadata_Link_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Lsp4_Metadata_Link_Max_Order_By>;
   min?: InputMaybe<Lsp4_Metadata_Link_Min_Order_By>;
+  stddev?: InputMaybe<Lsp4_Metadata_Link_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Lsp4_Metadata_Link_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Lsp4_Metadata_Link_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Lsp4_Metadata_Link_Sum_Order_By>;
+  var_pop?: InputMaybe<Lsp4_Metadata_Link_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Lsp4_Metadata_Link_Var_Samp_Order_By>;
+  variance?: InputMaybe<Lsp4_Metadata_Link_Variance_Order_By>;
+};
+
+/** aggregate avg on columns */
+export type Lsp4_Metadata_Link_Avg_Fields = {
+  __typename?: 'lsp4_metadata_link_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by avg() on columns of table "lsp4_metadata_link" */
+export type Lsp4_Metadata_Link_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp4_metadata_link". All fields are combined with a logical 'AND'. */
@@ -6294,66 +8425,143 @@ export type Lsp4_Metadata_Link_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Metadata_Link_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Metadata_Link_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Metadata_Link_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Bool_Exp>;
   lsp4_metadata_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   title?: InputMaybe<String_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   url?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp4_Metadata_Link_Max_Fields = {
   __typename?: 'lsp4_metadata_link_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   title?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by max() on columns of table "lsp4_metadata_link" */
 export type Lsp4_Metadata_Link_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
 export type Lsp4_Metadata_Link_Min_Fields = {
   __typename?: 'lsp4_metadata_link_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   title?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by min() on columns of table "lsp4_metadata_link" */
 export type Lsp4_Metadata_Link_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
 };
 
 /** Ordering options when selecting data from "lsp4_metadata_link". */
 export type Lsp4_Metadata_Link_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp4_metadata_link" */
 export type Lsp4_Metadata_Link_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'lsp4_metadata_id'
   /** column name */
+  | 'timestamp'
+  /** column name */
   | 'title'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'url';
+
+/** aggregate stddev on columns */
+export type Lsp4_Metadata_Link_Stddev_Fields = {
+  __typename?: 'lsp4_metadata_link_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev() on columns of table "lsp4_metadata_link" */
+export type Lsp4_Metadata_Link_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp4_Metadata_Link_Stddev_Pop_Fields = {
+  __typename?: 'lsp4_metadata_link_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_pop() on columns of table "lsp4_metadata_link" */
+export type Lsp4_Metadata_Link_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp4_Metadata_Link_Stddev_Samp_Fields = {
+  __typename?: 'lsp4_metadata_link_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "lsp4_metadata_link" */
+export type Lsp4_Metadata_Link_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
 
 /** Streaming cursor of the table "lsp4_metadata_link" */
 export type Lsp4_Metadata_Link_Stream_Cursor_Input = {
@@ -6365,27 +8573,94 @@ export type Lsp4_Metadata_Link_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Metadata_Link_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp4_metadata_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp4_Metadata_Link_Sum_Fields = {
+  __typename?: 'lsp4_metadata_link_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** order by sum() on columns of table "lsp4_metadata_link" */
+export type Lsp4_Metadata_Link_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp4_Metadata_Link_Var_Pop_Fields = {
+  __typename?: 'lsp4_metadata_link_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_pop() on columns of table "lsp4_metadata_link" */
+export type Lsp4_Metadata_Link_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp4_Metadata_Link_Var_Samp_Fields = {
+  __typename?: 'lsp4_metadata_link_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_samp() on columns of table "lsp4_metadata_link" */
+export type Lsp4_Metadata_Link_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Lsp4_Metadata_Link_Variance_Fields = {
+  __typename?: 'lsp4_metadata_link_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "lsp4_metadata_link" */
+export type Lsp4_Metadata_Link_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate max on columns */
 export type Lsp4_Metadata_Max_Fields = {
   __typename?: 'lsp4_metadata_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   decode_error?: Maybe<Scalars['String']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   fetch_error_code?: Maybe<Scalars['String']['output']>;
   fetch_error_message?: Maybe<Scalars['String']['output']>;
   fetch_error_status?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   retry_count?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
 };
 
@@ -6393,27 +8668,34 @@ export type Lsp4_Metadata_Max_Fields = {
 export type Lsp4_Metadata_Min_Fields = {
   __typename?: 'lsp4_metadata_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   decode_error?: Maybe<Scalars['String']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   fetch_error_code?: Maybe<Scalars['String']['output']>;
   fetch_error_message?: Maybe<Scalars['String']['output']>;
   fetch_error_status?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   retry_count?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
 };
 
 /** columns and relationships of "lsp4_metadata_name" */
 export type Lsp4_Metadata_Name = {
   __typename?: 'lsp4_metadata_name';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp4Metadata?: Maybe<Lsp4_Metadata>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -6427,9 +8709,17 @@ export type Lsp4_Metadata_Name_Aggregate = {
 /** aggregate fields of "lsp4_metadata_name" */
 export type Lsp4_Metadata_Name_Aggregate_Fields = {
   __typename?: 'lsp4_metadata_name_aggregate_fields';
+  avg?: Maybe<Lsp4_Metadata_Name_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp4_Metadata_Name_Max_Fields>;
   min?: Maybe<Lsp4_Metadata_Name_Min_Fields>;
+  stddev?: Maybe<Lsp4_Metadata_Name_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp4_Metadata_Name_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp4_Metadata_Name_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp4_Metadata_Name_Sum_Fields>;
+  var_pop?: Maybe<Lsp4_Metadata_Name_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp4_Metadata_Name_Var_Samp_Fields>;
+  variance?: Maybe<Lsp4_Metadata_Name_Variance_Fields>;
 };
 
 
@@ -6439,49 +8729,105 @@ export type Lsp4_Metadata_Name_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp4_Metadata_Name_Avg_Fields = {
+  __typename?: 'lsp4_metadata_name_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp4_metadata_name". All fields are combined with a logical 'AND'. */
 export type Lsp4_Metadata_Name_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Metadata_Name_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Metadata_Name_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Metadata_Name_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Bool_Exp>;
   lsp4_metadata_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp4_Metadata_Name_Max_Fields = {
   __typename?: 'lsp4_metadata_name_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** aggregate min on columns */
 export type Lsp4_Metadata_Name_Min_Fields = {
   __typename?: 'lsp4_metadata_name_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp4_metadata_name". */
 export type Lsp4_Metadata_Name_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp4_metadata_name" */
 export type Lsp4_Metadata_Name_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'lsp4_metadata_id'
   /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp4_Metadata_Name_Stddev_Fields = {
+  __typename?: 'lsp4_metadata_name_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp4_Metadata_Name_Stddev_Pop_Fields = {
+  __typename?: 'lsp4_metadata_name_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp4_Metadata_Name_Stddev_Samp_Fields = {
+  __typename?: 'lsp4_metadata_name_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp4_metadata_name" */
 export type Lsp4_Metadata_Name_Stream_Cursor_Input = {
@@ -6493,9 +8839,45 @@ export type Lsp4_Metadata_Name_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Metadata_Name_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp4_metadata_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp4_Metadata_Name_Sum_Fields = {
+  __typename?: 'lsp4_metadata_name_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp4_Metadata_Name_Var_Pop_Fields = {
+  __typename?: 'lsp4_metadata_name_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp4_Metadata_Name_Var_Samp_Fields = {
+  __typename?: 'lsp4_metadata_name_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp4_Metadata_Name_Variance_Fields = {
+  __typename?: 'lsp4_metadata_name_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp4_metadata". */
@@ -6503,6 +8885,7 @@ export type Lsp4_Metadata_Order_By = {
   address?: InputMaybe<Order_By>;
   assets_aggregate?: InputMaybe<Lsp4_Metadata_Asset_Aggregate_Order_By>;
   attributes_aggregate?: InputMaybe<Lsp4_Metadata_Attribute_Aggregate_Order_By>;
+  block_number?: InputMaybe<Order_By>;
   category?: InputMaybe<Lsp4_Metadata_Category_Order_By>;
   decode_error?: InputMaybe<Order_By>;
   description?: InputMaybe<Lsp4_Metadata_Description_Order_By>;
@@ -6516,6 +8899,7 @@ export type Lsp4_Metadata_Order_By = {
   images_aggregate?: InputMaybe<Lsp4_Metadata_Image_Aggregate_Order_By>;
   is_data_fetched?: InputMaybe<Order_By>;
   links_aggregate?: InputMaybe<Lsp4_Metadata_Link_Aggregate_Order_By>;
+  log_index?: InputMaybe<Order_By>;
   name?: InputMaybe<Lsp4_Metadata_Name_Order_By>;
   nft?: InputMaybe<Nft_Order_By>;
   nft_id?: InputMaybe<Order_By>;
@@ -6525,16 +8909,21 @@ export type Lsp4_Metadata_Order_By = {
   score?: InputMaybe<Lsp4_Metadata_Score_Order_By>;
   timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp4_metadata_rank" */
 export type Lsp4_Metadata_Rank = {
   __typename?: 'lsp4_metadata_rank';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp4Metadata?: Maybe<Lsp4_Metadata>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['Int']['output']>;
 };
 
@@ -6571,6 +8960,9 @@ export type Lsp4_Metadata_Rank_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Lsp4_Metadata_Rank_Avg_Fields = {
   __typename?: 'lsp4_metadata_rank_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -6579,60 +8971,93 @@ export type Lsp4_Metadata_Rank_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Metadata_Rank_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Metadata_Rank_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Metadata_Rank_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Bool_Exp>;
   lsp4_metadata_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<Int_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp4_Metadata_Rank_Max_Fields = {
   __typename?: 'lsp4_metadata_rank_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate min on columns */
 export type Lsp4_Metadata_Rank_Min_Fields = {
   __typename?: 'lsp4_metadata_rank_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp4_metadata_rank". */
 export type Lsp4_Metadata_Rank_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp4_metadata_rank" */
 export type Lsp4_Metadata_Rank_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp4_metadata_id'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'value';
 
 /** aggregate stddev on columns */
 export type Lsp4_Metadata_Rank_Stddev_Fields = {
   __typename?: 'lsp4_metadata_rank_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp4_Metadata_Rank_Stddev_Pop_Fields = {
   __typename?: 'lsp4_metadata_rank_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp4_Metadata_Rank_Stddev_Samp_Fields = {
   __typename?: 'lsp4_metadata_rank_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -6646,42 +9071,62 @@ export type Lsp4_Metadata_Rank_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Metadata_Rank_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp4_metadata_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Lsp4_Metadata_Rank_Sum_Fields = {
   __typename?: 'lsp4_metadata_rank_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp4_Metadata_Rank_Var_Pop_Fields = {
   __typename?: 'lsp4_metadata_rank_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp4_Metadata_Rank_Var_Samp_Fields = {
   __typename?: 'lsp4_metadata_rank_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Lsp4_Metadata_Rank_Variance_Fields = {
   __typename?: 'lsp4_metadata_rank_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp4_metadata_score" */
 export type Lsp4_Metadata_Score = {
   __typename?: 'lsp4_metadata_score';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp4Metadata?: Maybe<Lsp4_Metadata>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['Int']['output']>;
 };
 
@@ -6718,6 +9163,9 @@ export type Lsp4_Metadata_Score_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Lsp4_Metadata_Score_Avg_Fields = {
   __typename?: 'lsp4_metadata_score_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -6726,60 +9174,93 @@ export type Lsp4_Metadata_Score_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Metadata_Score_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Metadata_Score_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Metadata_Score_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Bool_Exp>;
   lsp4_metadata_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<Int_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp4_Metadata_Score_Max_Fields = {
   __typename?: 'lsp4_metadata_score_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate min on columns */
 export type Lsp4_Metadata_Score_Min_Fields = {
   __typename?: 'lsp4_metadata_score_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp4_metadata_score". */
 export type Lsp4_Metadata_Score_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp4_metadata_score" */
 export type Lsp4_Metadata_Score_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp4_metadata_id'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'value';
 
 /** aggregate stddev on columns */
 export type Lsp4_Metadata_Score_Stddev_Fields = {
   __typename?: 'lsp4_metadata_score_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp4_Metadata_Score_Stddev_Pop_Fields = {
   __typename?: 'lsp4_metadata_score_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp4_Metadata_Score_Stddev_Samp_Fields = {
   __typename?: 'lsp4_metadata_score_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -6793,32 +9274,48 @@ export type Lsp4_Metadata_Score_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Metadata_Score_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp4_metadata_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Lsp4_Metadata_Score_Sum_Fields = {
   __typename?: 'lsp4_metadata_score_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp4_Metadata_Score_Var_Pop_Fields = {
   __typename?: 'lsp4_metadata_score_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp4_Metadata_Score_Var_Samp_Fields = {
   __typename?: 'lsp4_metadata_score_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Lsp4_Metadata_Score_Variance_Fields = {
   __typename?: 'lsp4_metadata_score_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -6826,6 +9323,8 @@ export type Lsp4_Metadata_Score_Variance_Fields = {
 export type Lsp4_Metadata_Select_Column =
   /** column name */
   | 'address'
+  /** column name */
+  | 'block_number'
   /** column name */
   | 'decode_error'
   /** column name */
@@ -6841,6 +9340,8 @@ export type Lsp4_Metadata_Select_Column =
   /** column name */
   | 'is_data_fetched'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'nft_id'
   /** column name */
   | 'raw_value'
@@ -6851,27 +9352,38 @@ export type Lsp4_Metadata_Select_Column =
   /** column name */
   | 'token_id'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'url';
 
 /** aggregate stddev on columns */
 export type Lsp4_Metadata_Stddev_Fields = {
   __typename?: 'lsp4_metadata_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp4_Metadata_Stddev_Pop_Fields = {
   __typename?: 'lsp4_metadata_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp4_Metadata_Stddev_Samp_Fields = {
   __typename?: 'lsp4_metadata_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** Streaming cursor of the table "lsp4_metadata" */
@@ -6885,6 +9397,7 @@ export type Lsp4_Metadata_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Metadata_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   decode_error?: InputMaybe<Scalars['String']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   fetch_error_code?: InputMaybe<Scalars['String']['input']>;
@@ -6892,52 +9405,69 @@ export type Lsp4_Metadata_Stream_Cursor_Value_Input = {
   fetch_error_status?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   is_data_fetched?: InputMaybe<Scalars['Boolean']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   nft_id?: InputMaybe<Scalars['String']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   retry_count?: InputMaybe<Scalars['Int']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
   token_id?: InputMaybe<Scalars['String']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Lsp4_Metadata_Sum_Fields = {
   __typename?: 'lsp4_metadata_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   fetch_error_status?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   retry_count?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp4_Metadata_Var_Pop_Fields = {
   __typename?: 'lsp4_metadata_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp4_Metadata_Var_Samp_Fields = {
   __typename?: 'lsp4_metadata_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Lsp4_Metadata_Variance_Fields = {
   __typename?: 'lsp4_metadata_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp4_token_name" */
 export type Lsp4_Token_Name = {
   __typename?: 'lsp4_token_name';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -6951,9 +9481,17 @@ export type Lsp4_Token_Name_Aggregate = {
 /** aggregate fields of "lsp4_token_name" */
 export type Lsp4_Token_Name_Aggregate_Fields = {
   __typename?: 'lsp4_token_name_aggregate_fields';
+  avg?: Maybe<Lsp4_Token_Name_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp4_Token_Name_Max_Fields>;
   min?: Maybe<Lsp4_Token_Name_Min_Fields>;
+  stddev?: Maybe<Lsp4_Token_Name_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp4_Token_Name_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp4_Token_Name_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp4_Token_Name_Sum_Fields>;
+  var_pop?: Maybe<Lsp4_Token_Name_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp4_Token_Name_Var_Samp_Fields>;
+  variance?: Maybe<Lsp4_Token_Name_Variance_Fields>;
 };
 
 
@@ -6963,17 +9501,28 @@ export type Lsp4_Token_Name_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp4_Token_Name_Avg_Fields = {
+  __typename?: 'lsp4_token_name_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp4_token_name". All fields are combined with a logical 'AND'. */
 export type Lsp4_Token_Name_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Token_Name_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Token_Name_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Token_Name_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -6981,10 +9530,13 @@ export type Lsp4_Token_Name_Bool_Exp = {
 export type Lsp4_Token_Name_Max_Fields = {
   __typename?: 'lsp4_token_name_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -6992,21 +9544,27 @@ export type Lsp4_Token_Name_Max_Fields = {
 export type Lsp4_Token_Name_Min_Fields = {
   __typename?: 'lsp4_token_name_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp4_token_name". */
 export type Lsp4_Token_Name_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -7015,15 +9573,45 @@ export type Lsp4_Token_Name_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'raw_value'
   /** column name */
   | 'timestamp'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp4_Token_Name_Stddev_Fields = {
+  __typename?: 'lsp4_token_name_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp4_Token_Name_Stddev_Pop_Fields = {
+  __typename?: 'lsp4_token_name_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp4_Token_Name_Stddev_Samp_Fields = {
+  __typename?: 'lsp4_token_name_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp4_token_name" */
 export type Lsp4_Token_Name_Stream_Cursor_Input = {
@@ -7036,23 +9624,61 @@ export type Lsp4_Token_Name_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Token_Name_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp4_Token_Name_Sum_Fields = {
+  __typename?: 'lsp4_token_name_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp4_Token_Name_Var_Pop_Fields = {
+  __typename?: 'lsp4_token_name_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp4_Token_Name_Var_Samp_Fields = {
+  __typename?: 'lsp4_token_name_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp4_Token_Name_Variance_Fields = {
+  __typename?: 'lsp4_token_name_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp4_token_symbol" */
 export type Lsp4_Token_Symbol = {
   __typename?: 'lsp4_token_symbol';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -7066,9 +9692,17 @@ export type Lsp4_Token_Symbol_Aggregate = {
 /** aggregate fields of "lsp4_token_symbol" */
 export type Lsp4_Token_Symbol_Aggregate_Fields = {
   __typename?: 'lsp4_token_symbol_aggregate_fields';
+  avg?: Maybe<Lsp4_Token_Symbol_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp4_Token_Symbol_Max_Fields>;
   min?: Maybe<Lsp4_Token_Symbol_Min_Fields>;
+  stddev?: Maybe<Lsp4_Token_Symbol_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp4_Token_Symbol_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp4_Token_Symbol_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp4_Token_Symbol_Sum_Fields>;
+  var_pop?: Maybe<Lsp4_Token_Symbol_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp4_Token_Symbol_Var_Samp_Fields>;
+  variance?: Maybe<Lsp4_Token_Symbol_Variance_Fields>;
 };
 
 
@@ -7078,17 +9712,28 @@ export type Lsp4_Token_Symbol_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp4_Token_Symbol_Avg_Fields = {
+  __typename?: 'lsp4_token_symbol_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp4_token_symbol". All fields are combined with a logical 'AND'. */
 export type Lsp4_Token_Symbol_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Token_Symbol_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Token_Symbol_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Token_Symbol_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -7096,10 +9741,13 @@ export type Lsp4_Token_Symbol_Bool_Exp = {
 export type Lsp4_Token_Symbol_Max_Fields = {
   __typename?: 'lsp4_token_symbol_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -7107,21 +9755,27 @@ export type Lsp4_Token_Symbol_Max_Fields = {
 export type Lsp4_Token_Symbol_Min_Fields = {
   __typename?: 'lsp4_token_symbol_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp4_token_symbol". */
 export type Lsp4_Token_Symbol_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -7130,15 +9784,45 @@ export type Lsp4_Token_Symbol_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'raw_value'
   /** column name */
   | 'timestamp'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp4_Token_Symbol_Stddev_Fields = {
+  __typename?: 'lsp4_token_symbol_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp4_Token_Symbol_Stddev_Pop_Fields = {
+  __typename?: 'lsp4_token_symbol_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp4_Token_Symbol_Stddev_Samp_Fields = {
+  __typename?: 'lsp4_token_symbol_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp4_token_symbol" */
 export type Lsp4_Token_Symbol_Stream_Cursor_Input = {
@@ -7151,23 +9835,61 @@ export type Lsp4_Token_Symbol_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Token_Symbol_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp4_Token_Symbol_Sum_Fields = {
+  __typename?: 'lsp4_token_symbol_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp4_Token_Symbol_Var_Pop_Fields = {
+  __typename?: 'lsp4_token_symbol_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp4_Token_Symbol_Var_Samp_Fields = {
+  __typename?: 'lsp4_token_symbol_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp4_Token_Symbol_Variance_Fields = {
+  __typename?: 'lsp4_token_symbol_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp4_token_type" */
 export type Lsp4_Token_Type = {
   __typename?: 'lsp4_token_type';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -7181,9 +9903,17 @@ export type Lsp4_Token_Type_Aggregate = {
 /** aggregate fields of "lsp4_token_type" */
 export type Lsp4_Token_Type_Aggregate_Fields = {
   __typename?: 'lsp4_token_type_aggregate_fields';
+  avg?: Maybe<Lsp4_Token_Type_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp4_Token_Type_Max_Fields>;
   min?: Maybe<Lsp4_Token_Type_Min_Fields>;
+  stddev?: Maybe<Lsp4_Token_Type_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp4_Token_Type_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp4_Token_Type_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp4_Token_Type_Sum_Fields>;
+  var_pop?: Maybe<Lsp4_Token_Type_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp4_Token_Type_Var_Samp_Fields>;
+  variance?: Maybe<Lsp4_Token_Type_Variance_Fields>;
 };
 
 
@@ -7193,17 +9923,28 @@ export type Lsp4_Token_Type_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp4_Token_Type_Avg_Fields = {
+  __typename?: 'lsp4_token_type_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp4_token_type". All fields are combined with a logical 'AND'. */
 export type Lsp4_Token_Type_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp4_Token_Type_Bool_Exp>>;
   _not?: InputMaybe<Lsp4_Token_Type_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp4_Token_Type_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -7211,10 +9952,13 @@ export type Lsp4_Token_Type_Bool_Exp = {
 export type Lsp4_Token_Type_Max_Fields = {
   __typename?: 'lsp4_token_type_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -7222,21 +9966,27 @@ export type Lsp4_Token_Type_Max_Fields = {
 export type Lsp4_Token_Type_Min_Fields = {
   __typename?: 'lsp4_token_type_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp4_token_type". */
 export type Lsp4_Token_Type_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -7245,15 +9995,45 @@ export type Lsp4_Token_Type_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'raw_value'
   /** column name */
   | 'timestamp'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp4_Token_Type_Stddev_Fields = {
+  __typename?: 'lsp4_token_type_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp4_Token_Type_Stddev_Pop_Fields = {
+  __typename?: 'lsp4_token_type_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp4_Token_Type_Stddev_Samp_Fields = {
+  __typename?: 'lsp4_token_type_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp4_token_type" */
 export type Lsp4_Token_Type_Stream_Cursor_Input = {
@@ -7266,11 +10046,46 @@ export type Lsp4_Token_Type_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp4_Token_Type_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp4_Token_Type_Sum_Fields = {
+  __typename?: 'lsp4_token_type_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp4_Token_Type_Var_Pop_Fields = {
+  __typename?: 'lsp4_token_type_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp4_Token_Type_Var_Samp_Fields = {
+  __typename?: 'lsp4_token_type_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp4_Token_Type_Variance_Fields = {
+  __typename?: 'lsp4_token_type_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp5_received_asset" */
@@ -7279,12 +10094,15 @@ export type Lsp5_Received_Asset = {
   address: Scalars['String']['output'];
   array_index?: Maybe<Scalars['numeric']['output']>;
   asset_address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
   interface_id?: Maybe<Scalars['String']['output']>;
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   receivedAsset?: Maybe<Digital_Asset>;
   received_asset_id?: Maybe<Scalars['String']['output']>;
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -7350,11 +10168,17 @@ export type Lsp5_Received_Asset_Aggregate_Order_By = {
 export type Lsp5_Received_Asset_Avg_Fields = {
   __typename?: 'lsp5_received_asset_avg_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp5_received_asset" */
 export type Lsp5_Received_Asset_Avg_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp5_received_asset". All fields are combined with a logical 'AND'. */
@@ -7365,11 +10189,14 @@ export type Lsp5_Received_Asset_Bool_Exp = {
   address?: InputMaybe<String_Comparison_Exp>;
   array_index?: InputMaybe<Numeric_Comparison_Exp>;
   asset_address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   interface_id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   receivedAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   received_asset_id?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
 };
@@ -7380,10 +10207,13 @@ export type Lsp5_Received_Asset_Max_Fields = {
   address?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
   asset_address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   interface_id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   received_asset_id?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -7392,10 +10222,13 @@ export type Lsp5_Received_Asset_Max_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
   asset_address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   interface_id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   received_asset_id?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -7405,10 +10238,13 @@ export type Lsp5_Received_Asset_Min_Fields = {
   address?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
   asset_address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   interface_id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   received_asset_id?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -7417,10 +10253,13 @@ export type Lsp5_Received_Asset_Min_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
   asset_address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   interface_id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   received_asset_id?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -7429,11 +10268,14 @@ export type Lsp5_Received_Asset_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
   asset_address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   interface_id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   receivedAsset?: InputMaybe<Digital_Asset_Order_By>;
   received_asset_id?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
@@ -7447,13 +10289,19 @@ export type Lsp5_Received_Asset_Select_Column =
   /** column name */
   | 'asset_address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
   /** column name */
   | 'interface_id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'received_asset_id'
   /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'universal_profile_id';
 
@@ -7461,33 +10309,51 @@ export type Lsp5_Received_Asset_Select_Column =
 export type Lsp5_Received_Asset_Stddev_Fields = {
   __typename?: 'lsp5_received_asset_stddev_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp5_received_asset" */
 export type Lsp5_Received_Asset_Stddev_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp5_Received_Asset_Stddev_Pop_Fields = {
   __typename?: 'lsp5_received_asset_stddev_pop_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp5_received_asset" */
 export type Lsp5_Received_Asset_Stddev_Pop_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp5_Received_Asset_Stddev_Samp_Fields = {
   __typename?: 'lsp5_received_asset_stddev_samp_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp5_received_asset" */
 export type Lsp5_Received_Asset_Stddev_Samp_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "lsp5_received_asset" */
@@ -7503,10 +10369,13 @@ export type Lsp5_Received_Asset_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
   array_index?: InputMaybe<Scalars['numeric']['input']>;
   asset_address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   interface_id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   received_asset_id?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -7514,53 +10383,80 @@ export type Lsp5_Received_Asset_Stream_Cursor_Value_Input = {
 export type Lsp5_Received_Asset_Sum_Fields = {
   __typename?: 'lsp5_received_asset_sum_fields';
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp5_received_asset" */
 export type Lsp5_Received_Asset_Sum_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp5_Received_Asset_Var_Pop_Fields = {
   __typename?: 'lsp5_received_asset_var_pop_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp5_received_asset" */
 export type Lsp5_Received_Asset_Var_Pop_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp5_Received_Asset_Var_Samp_Fields = {
   __typename?: 'lsp5_received_asset_var_samp_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp5_received_asset" */
 export type Lsp5_Received_Asset_Var_Samp_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp5_Received_Asset_Variance_Fields = {
   __typename?: 'lsp5_received_asset_variance_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp5_received_asset" */
 export type Lsp5_Received_Asset_Variance_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp5_received_assets_length" */
 export type Lsp5_Received_Assets_Length = {
   __typename?: 'lsp5_received_assets_length';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -7600,6 +10496,9 @@ export type Lsp5_Received_Assets_Length_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Lsp5_Received_Assets_Length_Avg_Fields = {
   __typename?: 'lsp5_received_assets_length_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -7609,9 +10508,12 @@ export type Lsp5_Received_Assets_Length_Bool_Exp = {
   _not?: InputMaybe<Lsp5_Received_Assets_Length_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp5_Received_Assets_Length_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
   value?: InputMaybe<Numeric_Comparison_Exp>;
@@ -7621,9 +10523,12 @@ export type Lsp5_Received_Assets_Length_Bool_Exp = {
 export type Lsp5_Received_Assets_Length_Max_Fields = {
   __typename?: 'lsp5_received_assets_length_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
@@ -7632,9 +10537,12 @@ export type Lsp5_Received_Assets_Length_Max_Fields = {
 export type Lsp5_Received_Assets_Length_Min_Fields = {
   __typename?: 'lsp5_received_assets_length_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
@@ -7642,9 +10550,12 @@ export type Lsp5_Received_Assets_Length_Min_Fields = {
 /** Ordering options when selecting data from "lsp5_received_assets_length". */
 export type Lsp5_Received_Assets_Length_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
@@ -7655,11 +10566,17 @@ export type Lsp5_Received_Assets_Length_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'raw_value'
   /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'universal_profile_id'
   /** column name */
@@ -7668,18 +10585,27 @@ export type Lsp5_Received_Assets_Length_Select_Column =
 /** aggregate stddev on columns */
 export type Lsp5_Received_Assets_Length_Stddev_Fields = {
   __typename?: 'lsp5_received_assets_length_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp5_Received_Assets_Length_Stddev_Pop_Fields = {
   __typename?: 'lsp5_received_assets_length_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp5_Received_Assets_Length_Stddev_Samp_Fields = {
   __typename?: 'lsp5_received_assets_length_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -7694,9 +10620,12 @@ export type Lsp5_Received_Assets_Length_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp5_Received_Assets_Length_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
   value?: InputMaybe<Scalars['numeric']['input']>;
 };
@@ -7704,24 +10633,36 @@ export type Lsp5_Received_Assets_Length_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Lsp5_Received_Assets_Length_Sum_Fields = {
   __typename?: 'lsp5_received_assets_length_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp5_Received_Assets_Length_Var_Pop_Fields = {
   __typename?: 'lsp5_received_assets_length_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp5_Received_Assets_Length_Var_Samp_Fields = {
   __typename?: 'lsp5_received_assets_length_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Lsp5_Received_Assets_Length_Variance_Fields = {
   __typename?: 'lsp5_received_assets_length_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -7731,11 +10672,15 @@ export type Lsp6_Allowed_Call = {
   allowed_address: Scalars['String']['output'];
   allowed_function: Scalars['String']['output'];
   allowed_interface_id: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   controller?: Maybe<Lsp6_Controller>;
   controller_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   restriction_operations: Scalars['String']['output'];
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
 };
 
 /** aggregated selection of "lsp6_allowed_call" */
@@ -7759,9 +10704,17 @@ export type Lsp6_Allowed_Call_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "lsp6_allowed_call" */
 export type Lsp6_Allowed_Call_Aggregate_Fields = {
   __typename?: 'lsp6_allowed_call_aggregate_fields';
+  avg?: Maybe<Lsp6_Allowed_Call_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp6_Allowed_Call_Max_Fields>;
   min?: Maybe<Lsp6_Allowed_Call_Min_Fields>;
+  stddev?: Maybe<Lsp6_Allowed_Call_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp6_Allowed_Call_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp6_Allowed_Call_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp6_Allowed_Call_Sum_Fields>;
+  var_pop?: Maybe<Lsp6_Allowed_Call_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp6_Allowed_Call_Var_Samp_Fields>;
+  variance?: Maybe<Lsp6_Allowed_Call_Variance_Fields>;
 };
 
 
@@ -7773,9 +10726,32 @@ export type Lsp6_Allowed_Call_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "lsp6_allowed_call" */
 export type Lsp6_Allowed_Call_Aggregate_Order_By = {
+  avg?: InputMaybe<Lsp6_Allowed_Call_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Lsp6_Allowed_Call_Max_Order_By>;
   min?: InputMaybe<Lsp6_Allowed_Call_Min_Order_By>;
+  stddev?: InputMaybe<Lsp6_Allowed_Call_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Lsp6_Allowed_Call_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Lsp6_Allowed_Call_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Lsp6_Allowed_Call_Sum_Order_By>;
+  var_pop?: InputMaybe<Lsp6_Allowed_Call_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Lsp6_Allowed_Call_Var_Samp_Order_By>;
+  variance?: InputMaybe<Lsp6_Allowed_Call_Variance_Order_By>;
+};
+
+/** aggregate avg on columns */
+export type Lsp6_Allowed_Call_Avg_Fields = {
+  __typename?: 'lsp6_allowed_call_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by avg() on columns of table "lsp6_allowed_call" */
+export type Lsp6_Allowed_Call_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp6_allowed_call". All fields are combined with a logical 'AND'. */
@@ -7786,10 +10762,14 @@ export type Lsp6_Allowed_Call_Bool_Exp = {
   allowed_address?: InputMaybe<String_Comparison_Exp>;
   allowed_function?: InputMaybe<String_Comparison_Exp>;
   allowed_interface_id?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   controller?: InputMaybe<Lsp6_Controller_Bool_Exp>;
   controller_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   restriction_operations?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
@@ -7798,9 +10778,13 @@ export type Lsp6_Allowed_Call_Max_Fields = {
   allowed_address?: Maybe<Scalars['String']['output']>;
   allowed_function?: Maybe<Scalars['String']['output']>;
   allowed_interface_id?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   controller_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   restriction_operations?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by max() on columns of table "lsp6_allowed_call" */
@@ -7808,9 +10792,13 @@ export type Lsp6_Allowed_Call_Max_Order_By = {
   allowed_address?: InputMaybe<Order_By>;
   allowed_function?: InputMaybe<Order_By>;
   allowed_interface_id?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   controller_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   restriction_operations?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -7819,9 +10807,13 @@ export type Lsp6_Allowed_Call_Min_Fields = {
   allowed_address?: Maybe<Scalars['String']['output']>;
   allowed_function?: Maybe<Scalars['String']['output']>;
   allowed_interface_id?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   controller_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   restriction_operations?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by min() on columns of table "lsp6_allowed_call" */
@@ -7829,9 +10821,13 @@ export type Lsp6_Allowed_Call_Min_Order_By = {
   allowed_address?: InputMaybe<Order_By>;
   allowed_function?: InputMaybe<Order_By>;
   allowed_interface_id?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   controller_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   restriction_operations?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Ordering options when selecting data from "lsp6_allowed_call". */
@@ -7839,10 +10835,14 @@ export type Lsp6_Allowed_Call_Order_By = {
   allowed_address?: InputMaybe<Order_By>;
   allowed_function?: InputMaybe<Order_By>;
   allowed_interface_id?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   controller?: InputMaybe<Lsp6_Controller_Order_By>;
   controller_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   restriction_operations?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp6_allowed_call" */
@@ -7854,11 +10854,64 @@ export type Lsp6_Allowed_Call_Select_Column =
   /** column name */
   | 'allowed_interface_id'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'controller_id'
   /** column name */
   | 'id'
   /** column name */
-  | 'restriction_operations';
+  | 'log_index'
+  /** column name */
+  | 'restriction_operations'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index';
+
+/** aggregate stddev on columns */
+export type Lsp6_Allowed_Call_Stddev_Fields = {
+  __typename?: 'lsp6_allowed_call_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev() on columns of table "lsp6_allowed_call" */
+export type Lsp6_Allowed_Call_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp6_Allowed_Call_Stddev_Pop_Fields = {
+  __typename?: 'lsp6_allowed_call_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_pop() on columns of table "lsp6_allowed_call" */
+export type Lsp6_Allowed_Call_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp6_Allowed_Call_Stddev_Samp_Fields = {
+  __typename?: 'lsp6_allowed_call_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "lsp6_allowed_call" */
+export type Lsp6_Allowed_Call_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
 
 /** Streaming cursor of the table "lsp6_allowed_call" */
 export type Lsp6_Allowed_Call_Stream_Cursor_Input = {
@@ -7873,19 +10926,87 @@ export type Lsp6_Allowed_Call_Stream_Cursor_Value_Input = {
   allowed_address?: InputMaybe<Scalars['String']['input']>;
   allowed_function?: InputMaybe<Scalars['String']['input']>;
   allowed_interface_id?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   controller_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   restriction_operations?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp6_Allowed_Call_Sum_Fields = {
+  __typename?: 'lsp6_allowed_call_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** order by sum() on columns of table "lsp6_allowed_call" */
+export type Lsp6_Allowed_Call_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp6_Allowed_Call_Var_Pop_Fields = {
+  __typename?: 'lsp6_allowed_call_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_pop() on columns of table "lsp6_allowed_call" */
+export type Lsp6_Allowed_Call_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp6_Allowed_Call_Var_Samp_Fields = {
+  __typename?: 'lsp6_allowed_call_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_samp() on columns of table "lsp6_allowed_call" */
+export type Lsp6_Allowed_Call_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Lsp6_Allowed_Call_Variance_Fields = {
+  __typename?: 'lsp6_allowed_call_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "lsp6_allowed_call" */
+export type Lsp6_Allowed_Call_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp6_allowed_erc725_y_data_key" */
 export type Lsp6_Allowed_Erc725_Y_Data_Key = {
   __typename?: 'lsp6_allowed_erc725_y_data_key';
   allowed_data_key: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   controller?: Maybe<Lsp6_Controller>;
   controller_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
 };
 
 /** aggregated selection of "lsp6_allowed_erc725_y_data_key" */
@@ -7909,9 +11030,17 @@ export type Lsp6_Allowed_Erc725_Y_Data_Key_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "lsp6_allowed_erc725_y_data_key" */
 export type Lsp6_Allowed_Erc725_Y_Data_Key_Aggregate_Fields = {
   __typename?: 'lsp6_allowed_erc725_y_data_key_aggregate_fields';
+  avg?: Maybe<Lsp6_Allowed_Erc725_Y_Data_Key_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp6_Allowed_Erc725_Y_Data_Key_Max_Fields>;
   min?: Maybe<Lsp6_Allowed_Erc725_Y_Data_Key_Min_Fields>;
+  stddev?: Maybe<Lsp6_Allowed_Erc725_Y_Data_Key_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp6_Allowed_Erc725_Y_Data_Key_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp6_Allowed_Erc725_Y_Data_Key_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp6_Allowed_Erc725_Y_Data_Key_Sum_Fields>;
+  var_pop?: Maybe<Lsp6_Allowed_Erc725_Y_Data_Key_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp6_Allowed_Erc725_Y_Data_Key_Var_Samp_Fields>;
+  variance?: Maybe<Lsp6_Allowed_Erc725_Y_Data_Key_Variance_Fields>;
 };
 
 
@@ -7923,9 +11052,32 @@ export type Lsp6_Allowed_Erc725_Y_Data_Key_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "lsp6_allowed_erc725_y_data_key" */
 export type Lsp6_Allowed_Erc725_Y_Data_Key_Aggregate_Order_By = {
+  avg?: InputMaybe<Lsp6_Allowed_Erc725_Y_Data_Key_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Lsp6_Allowed_Erc725_Y_Data_Key_Max_Order_By>;
   min?: InputMaybe<Lsp6_Allowed_Erc725_Y_Data_Key_Min_Order_By>;
+  stddev?: InputMaybe<Lsp6_Allowed_Erc725_Y_Data_Key_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Lsp6_Allowed_Erc725_Y_Data_Key_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Lsp6_Allowed_Erc725_Y_Data_Key_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Lsp6_Allowed_Erc725_Y_Data_Key_Sum_Order_By>;
+  var_pop?: InputMaybe<Lsp6_Allowed_Erc725_Y_Data_Key_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Lsp6_Allowed_Erc725_Y_Data_Key_Var_Samp_Order_By>;
+  variance?: InputMaybe<Lsp6_Allowed_Erc725_Y_Data_Key_Variance_Order_By>;
+};
+
+/** aggregate avg on columns */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Avg_Fields = {
+  __typename?: 'lsp6_allowed_erc725_y_data_key_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by avg() on columns of table "lsp6_allowed_erc725_y_data_key" */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp6_allowed_erc725_y_data_key". All fields are combined with a logical 'AND'. */
@@ -7934,47 +11086,71 @@ export type Lsp6_Allowed_Erc725_Y_Data_Key_Bool_Exp = {
   _not?: InputMaybe<Lsp6_Allowed_Erc725_Y_Data_Key_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp6_Allowed_Erc725_Y_Data_Key_Bool_Exp>>;
   allowed_data_key?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   controller?: InputMaybe<Lsp6_Controller_Bool_Exp>;
   controller_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp6_Allowed_Erc725_Y_Data_Key_Max_Fields = {
   __typename?: 'lsp6_allowed_erc725_y_data_key_max_fields';
   allowed_data_key?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   controller_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by max() on columns of table "lsp6_allowed_erc725_y_data_key" */
 export type Lsp6_Allowed_Erc725_Y_Data_Key_Max_Order_By = {
   allowed_data_key?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   controller_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
 export type Lsp6_Allowed_Erc725_Y_Data_Key_Min_Fields = {
   __typename?: 'lsp6_allowed_erc725_y_data_key_min_fields';
   allowed_data_key?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   controller_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by min() on columns of table "lsp6_allowed_erc725_y_data_key" */
 export type Lsp6_Allowed_Erc725_Y_Data_Key_Min_Order_By = {
   allowed_data_key?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   controller_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Ordering options when selecting data from "lsp6_allowed_erc725_y_data_key". */
 export type Lsp6_Allowed_Erc725_Y_Data_Key_Order_By = {
   allowed_data_key?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   controller?: InputMaybe<Lsp6_Controller_Order_By>;
   controller_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp6_allowed_erc725_y_data_key" */
@@ -7982,9 +11158,62 @@ export type Lsp6_Allowed_Erc725_Y_Data_Key_Select_Column =
   /** column name */
   | 'allowed_data_key'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'controller_id'
   /** column name */
-  | 'id';
+  | 'id'
+  /** column name */
+  | 'log_index'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index';
+
+/** aggregate stddev on columns */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Stddev_Fields = {
+  __typename?: 'lsp6_allowed_erc725_y_data_key_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev() on columns of table "lsp6_allowed_erc725_y_data_key" */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Stddev_Pop_Fields = {
+  __typename?: 'lsp6_allowed_erc725_y_data_key_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_pop() on columns of table "lsp6_allowed_erc725_y_data_key" */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Stddev_Samp_Fields = {
+  __typename?: 'lsp6_allowed_erc725_y_data_key_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "lsp6_allowed_erc725_y_data_key" */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
 
 /** Streaming cursor of the table "lsp6_allowed_erc725_y_data_key" */
 export type Lsp6_Allowed_Erc725_Y_Data_Key_Stream_Cursor_Input = {
@@ -7997,8 +11226,72 @@ export type Lsp6_Allowed_Erc725_Y_Data_Key_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp6_Allowed_Erc725_Y_Data_Key_Stream_Cursor_Value_Input = {
   allowed_data_key?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   controller_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Sum_Fields = {
+  __typename?: 'lsp6_allowed_erc725_y_data_key_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** order by sum() on columns of table "lsp6_allowed_erc725_y_data_key" */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Var_Pop_Fields = {
+  __typename?: 'lsp6_allowed_erc725_y_data_key_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_pop() on columns of table "lsp6_allowed_erc725_y_data_key" */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Var_Samp_Fields = {
+  __typename?: 'lsp6_allowed_erc725_y_data_key_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_samp() on columns of table "lsp6_allowed_erc725_y_data_key" */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Variance_Fields = {
+  __typename?: 'lsp6_allowed_erc725_y_data_key_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "lsp6_allowed_erc725_y_data_key" */
+export type Lsp6_Allowed_Erc725_Y_Data_Key_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp6_controller" */
@@ -8016,17 +11309,20 @@ export type Lsp6_Controller = {
   allowed_calls_raw_value?: Maybe<Scalars['String']['output']>;
   allowed_data_keys_raw_value?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   controllerProfile?: Maybe<Universal_Profile>;
   controller_address: Scalars['String']['output'];
   controller_profile_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An array relationship */
   permissions: Array<Lsp6_Permission>;
   /** An aggregate relationship */
   permissions_aggregate: Lsp6_Permission_Aggregate;
   permissions_raw_value?: Maybe<Scalars['String']['output']>;
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -8152,11 +11448,17 @@ export type Lsp6_Controller_Aggregate_Order_By = {
 export type Lsp6_Controller_Avg_Fields = {
   __typename?: 'lsp6_controller_avg_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp6_controller" */
 export type Lsp6_Controller_Avg_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp6_controller". All fields are combined with a logical 'AND'. */
@@ -8172,14 +11474,17 @@ export type Lsp6_Controller_Bool_Exp = {
   allowed_calls_raw_value?: InputMaybe<String_Comparison_Exp>;
   allowed_data_keys_raw_value?: InputMaybe<String_Comparison_Exp>;
   array_index?: InputMaybe<Numeric_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   controllerProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   controller_address?: InputMaybe<String_Comparison_Exp>;
   controller_profile_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   permissions?: InputMaybe<Lsp6_Permission_Bool_Exp>;
   permissions_aggregate?: InputMaybe<Lsp6_Permission_Aggregate_Bool_Exp>;
   permissions_raw_value?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
 };
@@ -8191,11 +11496,14 @@ export type Lsp6_Controller_Max_Fields = {
   allowed_calls_raw_value?: Maybe<Scalars['String']['output']>;
   allowed_data_keys_raw_value?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   controller_address?: Maybe<Scalars['String']['output']>;
   controller_profile_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   permissions_raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -8205,11 +11513,14 @@ export type Lsp6_Controller_Max_Order_By = {
   allowed_calls_raw_value?: InputMaybe<Order_By>;
   allowed_data_keys_raw_value?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   controller_address?: InputMaybe<Order_By>;
   controller_profile_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   permissions_raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -8220,11 +11531,14 @@ export type Lsp6_Controller_Min_Fields = {
   allowed_calls_raw_value?: Maybe<Scalars['String']['output']>;
   allowed_data_keys_raw_value?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   controller_address?: Maybe<Scalars['String']['output']>;
   controller_profile_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   permissions_raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -8234,11 +11548,14 @@ export type Lsp6_Controller_Min_Order_By = {
   allowed_calls_raw_value?: InputMaybe<Order_By>;
   allowed_data_keys_raw_value?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   controller_address?: InputMaybe<Order_By>;
   controller_profile_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   permissions_raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -8250,13 +11567,16 @@ export type Lsp6_Controller_Order_By = {
   allowed_calls_raw_value?: InputMaybe<Order_By>;
   allowed_data_keys_raw_value?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   controllerProfile?: InputMaybe<Universal_Profile_Order_By>;
   controller_address?: InputMaybe<Order_By>;
   controller_profile_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   permissions_aggregate?: InputMaybe<Lsp6_Permission_Aggregate_Order_By>;
   permissions_raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
@@ -8272,15 +11592,21 @@ export type Lsp6_Controller_Select_Column =
   /** column name */
   | 'array_index'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'controller_address'
   /** column name */
   | 'controller_profile_id'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'permissions_raw_value'
   /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'universal_profile_id';
 
@@ -8288,33 +11614,51 @@ export type Lsp6_Controller_Select_Column =
 export type Lsp6_Controller_Stddev_Fields = {
   __typename?: 'lsp6_controller_stddev_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp6_controller" */
 export type Lsp6_Controller_Stddev_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp6_Controller_Stddev_Pop_Fields = {
   __typename?: 'lsp6_controller_stddev_pop_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp6_controller" */
 export type Lsp6_Controller_Stddev_Pop_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp6_Controller_Stddev_Samp_Fields = {
   __typename?: 'lsp6_controller_stddev_samp_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp6_controller" */
 export type Lsp6_Controller_Stddev_Samp_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "lsp6_controller" */
@@ -8331,11 +11675,14 @@ export type Lsp6_Controller_Stream_Cursor_Value_Input = {
   allowed_calls_raw_value?: InputMaybe<Scalars['String']['input']>;
   allowed_data_keys_raw_value?: InputMaybe<Scalars['String']['input']>;
   array_index?: InputMaybe<Scalars['numeric']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   controller_address?: InputMaybe<Scalars['String']['input']>;
   controller_profile_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   permissions_raw_value?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -8343,53 +11690,80 @@ export type Lsp6_Controller_Stream_Cursor_Value_Input = {
 export type Lsp6_Controller_Sum_Fields = {
   __typename?: 'lsp6_controller_sum_fields';
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp6_controller" */
 export type Lsp6_Controller_Sum_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp6_Controller_Var_Pop_Fields = {
   __typename?: 'lsp6_controller_var_pop_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp6_controller" */
 export type Lsp6_Controller_Var_Pop_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp6_Controller_Var_Samp_Fields = {
   __typename?: 'lsp6_controller_var_samp_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp6_controller" */
 export type Lsp6_Controller_Var_Samp_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp6_Controller_Variance_Fields = {
   __typename?: 'lsp6_controller_variance_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp6_controller" */
 export type Lsp6_Controller_Variance_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp6_controllers_length" */
 export type Lsp6_Controllers_Length = {
   __typename?: 'lsp6_controllers_length';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -8429,6 +11803,9 @@ export type Lsp6_Controllers_Length_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Lsp6_Controllers_Length_Avg_Fields = {
   __typename?: 'lsp6_controllers_length_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -8438,9 +11815,12 @@ export type Lsp6_Controllers_Length_Bool_Exp = {
   _not?: InputMaybe<Lsp6_Controllers_Length_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp6_Controllers_Length_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
   value?: InputMaybe<Numeric_Comparison_Exp>;
@@ -8450,9 +11830,12 @@ export type Lsp6_Controllers_Length_Bool_Exp = {
 export type Lsp6_Controllers_Length_Max_Fields = {
   __typename?: 'lsp6_controllers_length_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
@@ -8461,9 +11844,12 @@ export type Lsp6_Controllers_Length_Max_Fields = {
 export type Lsp6_Controllers_Length_Min_Fields = {
   __typename?: 'lsp6_controllers_length_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
@@ -8471,9 +11857,12 @@ export type Lsp6_Controllers_Length_Min_Fields = {
 /** Ordering options when selecting data from "lsp6_controllers_length". */
 export type Lsp6_Controllers_Length_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
@@ -8484,11 +11873,17 @@ export type Lsp6_Controllers_Length_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'raw_value'
   /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'universal_profile_id'
   /** column name */
@@ -8497,18 +11892,27 @@ export type Lsp6_Controllers_Length_Select_Column =
 /** aggregate stddev on columns */
 export type Lsp6_Controllers_Length_Stddev_Fields = {
   __typename?: 'lsp6_controllers_length_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp6_Controllers_Length_Stddev_Pop_Fields = {
   __typename?: 'lsp6_controllers_length_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp6_Controllers_Length_Stddev_Samp_Fields = {
   __typename?: 'lsp6_controllers_length_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -8523,9 +11927,12 @@ export type Lsp6_Controllers_Length_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp6_Controllers_Length_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
   value?: InputMaybe<Scalars['numeric']['input']>;
 };
@@ -8533,36 +11940,52 @@ export type Lsp6_Controllers_Length_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Lsp6_Controllers_Length_Sum_Fields = {
   __typename?: 'lsp6_controllers_length_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp6_Controllers_Length_Var_Pop_Fields = {
   __typename?: 'lsp6_controllers_length_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp6_Controllers_Length_Var_Samp_Fields = {
   __typename?: 'lsp6_controllers_length_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Lsp6_Controllers_Length_Variance_Fields = {
   __typename?: 'lsp6_controllers_length_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp6_permission" */
 export type Lsp6_Permission = {
   __typename?: 'lsp6_permission';
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   controller?: Maybe<Lsp6_Controller>;
   controller_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   permission_name: Scalars['String']['output'];
   permission_value: Scalars['Boolean']['output'];
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
 };
 
 /** aggregated selection of "lsp6_permission" */
@@ -8602,9 +12025,17 @@ export type Lsp6_Permission_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "lsp6_permission" */
 export type Lsp6_Permission_Aggregate_Fields = {
   __typename?: 'lsp6_permission_aggregate_fields';
+  avg?: Maybe<Lsp6_Permission_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp6_Permission_Max_Fields>;
   min?: Maybe<Lsp6_Permission_Min_Fields>;
+  stddev?: Maybe<Lsp6_Permission_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp6_Permission_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp6_Permission_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp6_Permission_Sum_Fields>;
+  var_pop?: Maybe<Lsp6_Permission_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp6_Permission_Var_Samp_Fields>;
+  variance?: Maybe<Lsp6_Permission_Variance_Fields>;
 };
 
 
@@ -8616,9 +12047,32 @@ export type Lsp6_Permission_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "lsp6_permission" */
 export type Lsp6_Permission_Aggregate_Order_By = {
+  avg?: InputMaybe<Lsp6_Permission_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Lsp6_Permission_Max_Order_By>;
   min?: InputMaybe<Lsp6_Permission_Min_Order_By>;
+  stddev?: InputMaybe<Lsp6_Permission_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Lsp6_Permission_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Lsp6_Permission_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Lsp6_Permission_Sum_Order_By>;
+  var_pop?: InputMaybe<Lsp6_Permission_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Lsp6_Permission_Var_Samp_Order_By>;
+  variance?: InputMaybe<Lsp6_Permission_Variance_Order_By>;
+};
+
+/** aggregate avg on columns */
+export type Lsp6_Permission_Avg_Fields = {
+  __typename?: 'lsp6_permission_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by avg() on columns of table "lsp6_permission" */
+export type Lsp6_Permission_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp6_permission". All fields are combined with a logical 'AND'. */
@@ -8626,62 +12080,94 @@ export type Lsp6_Permission_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp6_Permission_Bool_Exp>>;
   _not?: InputMaybe<Lsp6_Permission_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp6_Permission_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   controller?: InputMaybe<Lsp6_Controller_Bool_Exp>;
   controller_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   permission_name?: InputMaybe<String_Comparison_Exp>;
   permission_value?: InputMaybe<Boolean_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp6_Permission_Max_Fields = {
   __typename?: 'lsp6_permission_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   controller_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   permission_name?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by max() on columns of table "lsp6_permission" */
 export type Lsp6_Permission_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   controller_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   permission_name?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
 export type Lsp6_Permission_Min_Fields = {
   __typename?: 'lsp6_permission_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   controller_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   permission_name?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by min() on columns of table "lsp6_permission" */
 export type Lsp6_Permission_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   controller_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   permission_name?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Ordering options when selecting data from "lsp6_permission". */
 export type Lsp6_Permission_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   controller?: InputMaybe<Lsp6_Controller_Order_By>;
   controller_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   permission_name?: InputMaybe<Order_By>;
   permission_value?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp6_permission" */
 export type Lsp6_Permission_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'controller_id'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'permission_name'
   /** column name */
-  | 'permission_value';
+  | 'permission_value'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index';
 
 /** select "lsp6_permission_aggregate_bool_exp_bool_and_arguments_columns" columns of table "lsp6_permission" */
 export type Lsp6_Permission_Select_Column_Lsp6_Permission_Aggregate_Bool_Exp_Bool_And_Arguments_Columns =
@@ -8693,6 +12179,51 @@ export type Lsp6_Permission_Select_Column_Lsp6_Permission_Aggregate_Bool_Exp_Boo
   /** column name */
   | 'permission_value';
 
+/** aggregate stddev on columns */
+export type Lsp6_Permission_Stddev_Fields = {
+  __typename?: 'lsp6_permission_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev() on columns of table "lsp6_permission" */
+export type Lsp6_Permission_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp6_Permission_Stddev_Pop_Fields = {
+  __typename?: 'lsp6_permission_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_pop() on columns of table "lsp6_permission" */
+export type Lsp6_Permission_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp6_Permission_Stddev_Samp_Fields = {
+  __typename?: 'lsp6_permission_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "lsp6_permission" */
+export type Lsp6_Permission_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
 /** Streaming cursor of the table "lsp6_permission" */
 export type Lsp6_Permission_Stream_Cursor_Input = {
   /** Stream column input with initial value */
@@ -8703,22 +12234,89 @@ export type Lsp6_Permission_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp6_Permission_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   controller_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   permission_name?: InputMaybe<Scalars['String']['input']>;
   permission_value?: InputMaybe<Scalars['Boolean']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp6_Permission_Sum_Fields = {
+  __typename?: 'lsp6_permission_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** order by sum() on columns of table "lsp6_permission" */
+export type Lsp6_Permission_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp6_Permission_Var_Pop_Fields = {
+  __typename?: 'lsp6_permission_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_pop() on columns of table "lsp6_permission" */
+export type Lsp6_Permission_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp6_Permission_Var_Samp_Fields = {
+  __typename?: 'lsp6_permission_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_samp() on columns of table "lsp6_permission" */
+export type Lsp6_Permission_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Lsp6_Permission_Variance_Fields = {
+  __typename?: 'lsp6_permission_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "lsp6_permission" */
+export type Lsp6_Permission_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp8_reference_contract" */
 export type Lsp8_Reference_Contract = {
   __typename?: 'lsp8_reference_contract';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -8732,9 +12330,17 @@ export type Lsp8_Reference_Contract_Aggregate = {
 /** aggregate fields of "lsp8_reference_contract" */
 export type Lsp8_Reference_Contract_Aggregate_Fields = {
   __typename?: 'lsp8_reference_contract_aggregate_fields';
+  avg?: Maybe<Lsp8_Reference_Contract_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp8_Reference_Contract_Max_Fields>;
   min?: Maybe<Lsp8_Reference_Contract_Min_Fields>;
+  stddev?: Maybe<Lsp8_Reference_Contract_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp8_Reference_Contract_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp8_Reference_Contract_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp8_Reference_Contract_Sum_Fields>;
+  var_pop?: Maybe<Lsp8_Reference_Contract_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp8_Reference_Contract_Var_Samp_Fields>;
+  variance?: Maybe<Lsp8_Reference_Contract_Variance_Fields>;
 };
 
 
@@ -8744,17 +12350,28 @@ export type Lsp8_Reference_Contract_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp8_Reference_Contract_Avg_Fields = {
+  __typename?: 'lsp8_reference_contract_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp8_reference_contract". All fields are combined with a logical 'AND'. */
 export type Lsp8_Reference_Contract_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp8_Reference_Contract_Bool_Exp>>;
   _not?: InputMaybe<Lsp8_Reference_Contract_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp8_Reference_Contract_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -8762,10 +12379,13 @@ export type Lsp8_Reference_Contract_Bool_Exp = {
 export type Lsp8_Reference_Contract_Max_Fields = {
   __typename?: 'lsp8_reference_contract_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -8773,21 +12393,27 @@ export type Lsp8_Reference_Contract_Max_Fields = {
 export type Lsp8_Reference_Contract_Min_Fields = {
   __typename?: 'lsp8_reference_contract_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp8_reference_contract". */
 export type Lsp8_Reference_Contract_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -8796,15 +12422,45 @@ export type Lsp8_Reference_Contract_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'raw_value'
   /** column name */
   | 'timestamp'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp8_Reference_Contract_Stddev_Fields = {
+  __typename?: 'lsp8_reference_contract_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp8_Reference_Contract_Stddev_Pop_Fields = {
+  __typename?: 'lsp8_reference_contract_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp8_Reference_Contract_Stddev_Samp_Fields = {
+  __typename?: 'lsp8_reference_contract_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp8_reference_contract" */
 export type Lsp8_Reference_Contract_Stream_Cursor_Input = {
@@ -8817,23 +12473,61 @@ export type Lsp8_Reference_Contract_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp8_Reference_Contract_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp8_Reference_Contract_Sum_Fields = {
+  __typename?: 'lsp8_reference_contract_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp8_Reference_Contract_Var_Pop_Fields = {
+  __typename?: 'lsp8_reference_contract_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp8_Reference_Contract_Var_Samp_Fields = {
+  __typename?: 'lsp8_reference_contract_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp8_Reference_Contract_Variance_Fields = {
+  __typename?: 'lsp8_reference_contract_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp8_token_id_format" */
 export type Lsp8_Token_Id_Format = {
   __typename?: 'lsp8_token_id_format';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -8847,9 +12541,17 @@ export type Lsp8_Token_Id_Format_Aggregate = {
 /** aggregate fields of "lsp8_token_id_format" */
 export type Lsp8_Token_Id_Format_Aggregate_Fields = {
   __typename?: 'lsp8_token_id_format_aggregate_fields';
+  avg?: Maybe<Lsp8_Token_Id_Format_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp8_Token_Id_Format_Max_Fields>;
   min?: Maybe<Lsp8_Token_Id_Format_Min_Fields>;
+  stddev?: Maybe<Lsp8_Token_Id_Format_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp8_Token_Id_Format_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp8_Token_Id_Format_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp8_Token_Id_Format_Sum_Fields>;
+  var_pop?: Maybe<Lsp8_Token_Id_Format_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp8_Token_Id_Format_Var_Samp_Fields>;
+  variance?: Maybe<Lsp8_Token_Id_Format_Variance_Fields>;
 };
 
 
@@ -8859,17 +12561,28 @@ export type Lsp8_Token_Id_Format_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp8_Token_Id_Format_Avg_Fields = {
+  __typename?: 'lsp8_token_id_format_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp8_token_id_format". All fields are combined with a logical 'AND'. */
 export type Lsp8_Token_Id_Format_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp8_Token_Id_Format_Bool_Exp>>;
   _not?: InputMaybe<Lsp8_Token_Id_Format_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp8_Token_Id_Format_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -8877,10 +12590,13 @@ export type Lsp8_Token_Id_Format_Bool_Exp = {
 export type Lsp8_Token_Id_Format_Max_Fields = {
   __typename?: 'lsp8_token_id_format_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -8888,21 +12604,27 @@ export type Lsp8_Token_Id_Format_Max_Fields = {
 export type Lsp8_Token_Id_Format_Min_Fields = {
   __typename?: 'lsp8_token_id_format_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp8_token_id_format". */
 export type Lsp8_Token_Id_Format_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -8911,15 +12633,45 @@ export type Lsp8_Token_Id_Format_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'raw_value'
   /** column name */
   | 'timestamp'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp8_Token_Id_Format_Stddev_Fields = {
+  __typename?: 'lsp8_token_id_format_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp8_Token_Id_Format_Stddev_Pop_Fields = {
+  __typename?: 'lsp8_token_id_format_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp8_Token_Id_Format_Stddev_Samp_Fields = {
+  __typename?: 'lsp8_token_id_format_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp8_token_id_format" */
 export type Lsp8_Token_Id_Format_Stream_Cursor_Input = {
@@ -8932,23 +12684,61 @@ export type Lsp8_Token_Id_Format_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp8_Token_Id_Format_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp8_Token_Id_Format_Sum_Fields = {
+  __typename?: 'lsp8_token_id_format_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp8_Token_Id_Format_Var_Pop_Fields = {
+  __typename?: 'lsp8_token_id_format_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp8_Token_Id_Format_Var_Samp_Fields = {
+  __typename?: 'lsp8_token_id_format_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp8_Token_Id_Format_Variance_Fields = {
+  __typename?: 'lsp8_token_id_format_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp8_token_metadata_base_uri" */
 export type Lsp8_Token_Metadata_Base_Uri = {
   __typename?: 'lsp8_token_metadata_base_uri';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -8962,9 +12752,17 @@ export type Lsp8_Token_Metadata_Base_Uri_Aggregate = {
 /** aggregate fields of "lsp8_token_metadata_base_uri" */
 export type Lsp8_Token_Metadata_Base_Uri_Aggregate_Fields = {
   __typename?: 'lsp8_token_metadata_base_uri_aggregate_fields';
+  avg?: Maybe<Lsp8_Token_Metadata_Base_Uri_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp8_Token_Metadata_Base_Uri_Max_Fields>;
   min?: Maybe<Lsp8_Token_Metadata_Base_Uri_Min_Fields>;
+  stddev?: Maybe<Lsp8_Token_Metadata_Base_Uri_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp8_Token_Metadata_Base_Uri_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp8_Token_Metadata_Base_Uri_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp8_Token_Metadata_Base_Uri_Sum_Fields>;
+  var_pop?: Maybe<Lsp8_Token_Metadata_Base_Uri_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp8_Token_Metadata_Base_Uri_Var_Samp_Fields>;
+  variance?: Maybe<Lsp8_Token_Metadata_Base_Uri_Variance_Fields>;
 };
 
 
@@ -8974,17 +12772,28 @@ export type Lsp8_Token_Metadata_Base_Uri_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp8_Token_Metadata_Base_Uri_Avg_Fields = {
+  __typename?: 'lsp8_token_metadata_base_uri_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp8_token_metadata_base_uri". All fields are combined with a logical 'AND'. */
 export type Lsp8_Token_Metadata_Base_Uri_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp8_Token_Metadata_Base_Uri_Bool_Exp>>;
   _not?: InputMaybe<Lsp8_Token_Metadata_Base_Uri_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp8_Token_Metadata_Base_Uri_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -8992,10 +12801,13 @@ export type Lsp8_Token_Metadata_Base_Uri_Bool_Exp = {
 export type Lsp8_Token_Metadata_Base_Uri_Max_Fields = {
   __typename?: 'lsp8_token_metadata_base_uri_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -9003,21 +12815,27 @@ export type Lsp8_Token_Metadata_Base_Uri_Max_Fields = {
 export type Lsp8_Token_Metadata_Base_Uri_Min_Fields = {
   __typename?: 'lsp8_token_metadata_base_uri_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp8_token_metadata_base_uri". */
 export type Lsp8_Token_Metadata_Base_Uri_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -9026,15 +12844,45 @@ export type Lsp8_Token_Metadata_Base_Uri_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'raw_value'
   /** column name */
   | 'timestamp'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp8_Token_Metadata_Base_Uri_Stddev_Fields = {
+  __typename?: 'lsp8_token_metadata_base_uri_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp8_Token_Metadata_Base_Uri_Stddev_Pop_Fields = {
+  __typename?: 'lsp8_token_metadata_base_uri_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp8_Token_Metadata_Base_Uri_Stddev_Samp_Fields = {
+  __typename?: 'lsp8_token_metadata_base_uri_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp8_token_metadata_base_uri" */
 export type Lsp8_Token_Metadata_Base_Uri_Stream_Cursor_Input = {
@@ -9047,11 +12895,46 @@ export type Lsp8_Token_Metadata_Base_Uri_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp8_Token_Metadata_Base_Uri_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp8_Token_Metadata_Base_Uri_Sum_Fields = {
+  __typename?: 'lsp8_token_metadata_base_uri_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp8_Token_Metadata_Base_Uri_Var_Pop_Fields = {
+  __typename?: 'lsp8_token_metadata_base_uri_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp8_Token_Metadata_Base_Uri_Var_Samp_Fields = {
+  __typename?: 'lsp8_token_metadata_base_uri_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp8_Token_Metadata_Base_Uri_Variance_Fields = {
+  __typename?: 'lsp8_token_metadata_base_uri_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp12_issued_asset" */
@@ -9060,15 +12943,15 @@ export type Lsp12_Issued_Asset = {
   address: Scalars['String']['output'];
   array_index?: Maybe<Scalars['numeric']['output']>;
   asset_address: Scalars['String']['output'];
-  block_number?: Maybe<Scalars['Int']['output']>;
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
   interface_id?: Maybe<Scalars['String']['output']>;
   /** An object relationship */
   issuedAsset?: Maybe<Digital_Asset>;
   issued_asset_id?: Maybe<Scalars['String']['output']>;
-  log_index?: Maybe<Scalars['Int']['output']>;
+  log_index: Scalars['Int']['output'];
   timestamp: Scalars['timestamptz']['output'];
-  transaction_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -9134,11 +13017,17 @@ export type Lsp12_Issued_Asset_Aggregate_Order_By = {
 export type Lsp12_Issued_Asset_Avg_Fields = {
   __typename?: 'lsp12_issued_asset_avg_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp12_issued_asset" */
 export type Lsp12_Issued_Asset_Avg_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp12_issued_asset". All fields are combined with a logical 'AND'. */
@@ -9149,11 +13038,14 @@ export type Lsp12_Issued_Asset_Bool_Exp = {
   address?: InputMaybe<String_Comparison_Exp>;
   array_index?: InputMaybe<Numeric_Comparison_Exp>;
   asset_address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   interface_id?: InputMaybe<String_Comparison_Exp>;
   issuedAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   issued_asset_id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
 };
@@ -9164,10 +13056,13 @@ export type Lsp12_Issued_Asset_Max_Fields = {
   address?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
   asset_address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   interface_id?: Maybe<Scalars['String']['output']>;
   issued_asset_id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -9176,10 +13071,13 @@ export type Lsp12_Issued_Asset_Max_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
   asset_address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   interface_id?: InputMaybe<Order_By>;
   issued_asset_id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -9189,10 +13087,13 @@ export type Lsp12_Issued_Asset_Min_Fields = {
   address?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
   asset_address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   interface_id?: Maybe<Scalars['String']['output']>;
   issued_asset_id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -9201,10 +13102,13 @@ export type Lsp12_Issued_Asset_Min_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
   asset_address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   interface_id?: InputMaybe<Order_By>;
   issued_asset_id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -9213,11 +13117,14 @@ export type Lsp12_Issued_Asset_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
   asset_address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   interface_id?: InputMaybe<Order_By>;
   issuedAsset?: InputMaybe<Digital_Asset_Order_By>;
   issued_asset_id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
@@ -9231,13 +13138,19 @@ export type Lsp12_Issued_Asset_Select_Column =
   /** column name */
   | 'asset_address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
   /** column name */
   | 'interface_id'
   /** column name */
   | 'issued_asset_id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'universal_profile_id';
 
@@ -9245,33 +13158,51 @@ export type Lsp12_Issued_Asset_Select_Column =
 export type Lsp12_Issued_Asset_Stddev_Fields = {
   __typename?: 'lsp12_issued_asset_stddev_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp12_issued_asset" */
 export type Lsp12_Issued_Asset_Stddev_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp12_Issued_Asset_Stddev_Pop_Fields = {
   __typename?: 'lsp12_issued_asset_stddev_pop_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp12_issued_asset" */
 export type Lsp12_Issued_Asset_Stddev_Pop_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp12_Issued_Asset_Stddev_Samp_Fields = {
   __typename?: 'lsp12_issued_asset_stddev_samp_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp12_issued_asset" */
 export type Lsp12_Issued_Asset_Stddev_Samp_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "lsp12_issued_asset" */
@@ -9287,10 +13218,13 @@ export type Lsp12_Issued_Asset_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
   array_index?: InputMaybe<Scalars['numeric']['input']>;
   asset_address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   interface_id?: InputMaybe<Scalars['String']['input']>;
   issued_asset_id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -9298,53 +13232,80 @@ export type Lsp12_Issued_Asset_Stream_Cursor_Value_Input = {
 export type Lsp12_Issued_Asset_Sum_Fields = {
   __typename?: 'lsp12_issued_asset_sum_fields';
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp12_issued_asset" */
 export type Lsp12_Issued_Asset_Sum_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp12_Issued_Asset_Var_Pop_Fields = {
   __typename?: 'lsp12_issued_asset_var_pop_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp12_issued_asset" */
 export type Lsp12_Issued_Asset_Var_Pop_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp12_Issued_Asset_Var_Samp_Fields = {
   __typename?: 'lsp12_issued_asset_var_samp_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp12_issued_asset" */
 export type Lsp12_Issued_Asset_Var_Samp_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp12_Issued_Asset_Variance_Fields = {
   __typename?: 'lsp12_issued_asset_variance_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp12_issued_asset" */
 export type Lsp12_Issued_Asset_Variance_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp12_issued_assets_length" */
 export type Lsp12_Issued_Assets_Length = {
   __typename?: 'lsp12_issued_assets_length';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -9384,6 +13345,9 @@ export type Lsp12_Issued_Assets_Length_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Lsp12_Issued_Assets_Length_Avg_Fields = {
   __typename?: 'lsp12_issued_assets_length_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -9393,9 +13357,12 @@ export type Lsp12_Issued_Assets_Length_Bool_Exp = {
   _not?: InputMaybe<Lsp12_Issued_Assets_Length_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp12_Issued_Assets_Length_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
   value?: InputMaybe<Numeric_Comparison_Exp>;
@@ -9405,9 +13372,12 @@ export type Lsp12_Issued_Assets_Length_Bool_Exp = {
 export type Lsp12_Issued_Assets_Length_Max_Fields = {
   __typename?: 'lsp12_issued_assets_length_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
@@ -9416,9 +13386,12 @@ export type Lsp12_Issued_Assets_Length_Max_Fields = {
 export type Lsp12_Issued_Assets_Length_Min_Fields = {
   __typename?: 'lsp12_issued_assets_length_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
@@ -9426,9 +13399,12 @@ export type Lsp12_Issued_Assets_Length_Min_Fields = {
 /** Ordering options when selecting data from "lsp12_issued_assets_length". */
 export type Lsp12_Issued_Assets_Length_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
@@ -9439,11 +13415,17 @@ export type Lsp12_Issued_Assets_Length_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'raw_value'
   /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'universal_profile_id'
   /** column name */
@@ -9452,18 +13434,27 @@ export type Lsp12_Issued_Assets_Length_Select_Column =
 /** aggregate stddev on columns */
 export type Lsp12_Issued_Assets_Length_Stddev_Fields = {
   __typename?: 'lsp12_issued_assets_length_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp12_Issued_Assets_Length_Stddev_Pop_Fields = {
   __typename?: 'lsp12_issued_assets_length_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp12_Issued_Assets_Length_Stddev_Samp_Fields = {
   __typename?: 'lsp12_issued_assets_length_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -9478,9 +13469,12 @@ export type Lsp12_Issued_Assets_Length_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp12_Issued_Assets_Length_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
   value?: InputMaybe<Scalars['numeric']['input']>;
 };
@@ -9488,30 +13482,43 @@ export type Lsp12_Issued_Assets_Length_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Lsp12_Issued_Assets_Length_Sum_Fields = {
   __typename?: 'lsp12_issued_assets_length_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp12_Issued_Assets_Length_Var_Pop_Fields = {
   __typename?: 'lsp12_issued_assets_length_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp12_Issued_Assets_Length_Var_Samp_Fields = {
   __typename?: 'lsp12_issued_assets_length_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Lsp12_Issued_Assets_Length_Variance_Fields = {
   __typename?: 'lsp12_issued_assets_length_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp29_access_control_condition" */
 export type Lsp29_Access_Control_Condition = {
   __typename?: 'lsp29_access_control_condition';
+  block_number: Scalars['Int']['output'];
   chain?: Maybe<Scalars['String']['output']>;
   comparator?: Maybe<Scalars['String']['output']>;
   condition_index: Scalars['Int']['output'];
@@ -9521,10 +13528,13 @@ export type Lsp29_Access_Control_Condition = {
   encryption_id?: Maybe<Scalars['String']['output']>;
   follower_address?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   method?: Maybe<Scalars['String']['output']>;
   raw_condition: Scalars['String']['output'];
   standard_contract_type?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -9587,12 +13597,18 @@ export type Lsp29_Access_Control_Condition_Aggregate_Order_By = {
 /** aggregate avg on columns */
 export type Lsp29_Access_Control_Condition_Avg_Fields = {
   __typename?: 'lsp29_access_control_condition_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   condition_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp29_access_control_condition" */
 export type Lsp29_Access_Control_Condition_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   condition_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp29_access_control_condition". All fields are combined with a logical 'AND'. */
@@ -9600,6 +13616,7 @@ export type Lsp29_Access_Control_Condition_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp29_Access_Control_Condition_Bool_Exp>>;
   _not?: InputMaybe<Lsp29_Access_Control_Condition_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp29_Access_Control_Condition_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   chain?: InputMaybe<String_Comparison_Exp>;
   comparator?: InputMaybe<String_Comparison_Exp>;
   condition_index?: InputMaybe<Int_Comparison_Exp>;
@@ -9608,16 +13625,20 @@ export type Lsp29_Access_Control_Condition_Bool_Exp = {
   encryption_id?: InputMaybe<String_Comparison_Exp>;
   follower_address?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   method?: InputMaybe<String_Comparison_Exp>;
   raw_condition?: InputMaybe<String_Comparison_Exp>;
   standard_contract_type?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   token_id?: InputMaybe<String_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp29_Access_Control_Condition_Max_Fields = {
   __typename?: 'lsp29_access_control_condition_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   chain?: Maybe<Scalars['String']['output']>;
   comparator?: Maybe<Scalars['String']['output']>;
   condition_index?: Maybe<Scalars['Int']['output']>;
@@ -9625,15 +13646,19 @@ export type Lsp29_Access_Control_Condition_Max_Fields = {
   encryption_id?: Maybe<Scalars['String']['output']>;
   follower_address?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   method?: Maybe<Scalars['String']['output']>;
   raw_condition?: Maybe<Scalars['String']['output']>;
   standard_contract_type?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by max() on columns of table "lsp29_access_control_condition" */
 export type Lsp29_Access_Control_Condition_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   chain?: InputMaybe<Order_By>;
   comparator?: InputMaybe<Order_By>;
   condition_index?: InputMaybe<Order_By>;
@@ -9641,16 +13666,20 @@ export type Lsp29_Access_Control_Condition_Max_Order_By = {
   encryption_id?: InputMaybe<Order_By>;
   follower_address?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   method?: InputMaybe<Order_By>;
   raw_condition?: InputMaybe<Order_By>;
   standard_contract_type?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
 export type Lsp29_Access_Control_Condition_Min_Fields = {
   __typename?: 'lsp29_access_control_condition_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   chain?: Maybe<Scalars['String']['output']>;
   comparator?: Maybe<Scalars['String']['output']>;
   condition_index?: Maybe<Scalars['Int']['output']>;
@@ -9658,15 +13687,19 @@ export type Lsp29_Access_Control_Condition_Min_Fields = {
   encryption_id?: Maybe<Scalars['String']['output']>;
   follower_address?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   method?: Maybe<Scalars['String']['output']>;
   raw_condition?: Maybe<Scalars['String']['output']>;
   standard_contract_type?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by min() on columns of table "lsp29_access_control_condition" */
 export type Lsp29_Access_Control_Condition_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   chain?: InputMaybe<Order_By>;
   comparator?: InputMaybe<Order_By>;
   condition_index?: InputMaybe<Order_By>;
@@ -9674,15 +13707,19 @@ export type Lsp29_Access_Control_Condition_Min_Order_By = {
   encryption_id?: InputMaybe<Order_By>;
   follower_address?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   method?: InputMaybe<Order_By>;
   raw_condition?: InputMaybe<Order_By>;
   standard_contract_type?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** Ordering options when selecting data from "lsp29_access_control_condition". */
 export type Lsp29_Access_Control_Condition_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   chain?: InputMaybe<Order_By>;
   comparator?: InputMaybe<Order_By>;
   condition_index?: InputMaybe<Order_By>;
@@ -9691,15 +13728,20 @@ export type Lsp29_Access_Control_Condition_Order_By = {
   encryption_id?: InputMaybe<Order_By>;
   follower_address?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   method?: InputMaybe<Order_By>;
   raw_condition?: InputMaybe<Order_By>;
   standard_contract_type?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp29_access_control_condition" */
 export type Lsp29_Access_Control_Condition_Select_Column =
+  /** column name */
+  | 'block_number'
   /** column name */
   | 'chain'
   /** column name */
@@ -9715,47 +13757,71 @@ export type Lsp29_Access_Control_Condition_Select_Column =
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'method'
   /** column name */
   | 'raw_condition'
   /** column name */
   | 'standard_contract_type'
   /** column name */
+  | 'timestamp'
+  /** column name */
   | 'token_id'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'value';
 
 /** aggregate stddev on columns */
 export type Lsp29_Access_Control_Condition_Stddev_Fields = {
   __typename?: 'lsp29_access_control_condition_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   condition_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp29_access_control_condition" */
 export type Lsp29_Access_Control_Condition_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   condition_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp29_Access_Control_Condition_Stddev_Pop_Fields = {
   __typename?: 'lsp29_access_control_condition_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   condition_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp29_access_control_condition" */
 export type Lsp29_Access_Control_Condition_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   condition_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp29_Access_Control_Condition_Stddev_Samp_Fields = {
   __typename?: 'lsp29_access_control_condition_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   condition_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp29_access_control_condition" */
 export type Lsp29_Access_Control_Condition_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   condition_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "lsp29_access_control_condition" */
@@ -9768,6 +13834,7 @@ export type Lsp29_Access_Control_Condition_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp29_Access_Control_Condition_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   chain?: InputMaybe<Scalars['String']['input']>;
   comparator?: InputMaybe<Scalars['String']['input']>;
   condition_index?: InputMaybe<Scalars['Int']['input']>;
@@ -9775,55 +13842,82 @@ export type Lsp29_Access_Control_Condition_Stream_Cursor_Value_Input = {
   encryption_id?: InputMaybe<Scalars['String']['input']>;
   follower_address?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   method?: InputMaybe<Scalars['String']['input']>;
   raw_condition?: InputMaybe<Scalars['String']['input']>;
   standard_contract_type?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
   token_id?: InputMaybe<Scalars['String']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Lsp29_Access_Control_Condition_Sum_Fields = {
   __typename?: 'lsp29_access_control_condition_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   condition_index?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp29_access_control_condition" */
 export type Lsp29_Access_Control_Condition_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   condition_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp29_Access_Control_Condition_Var_Pop_Fields = {
   __typename?: 'lsp29_access_control_condition_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   condition_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp29_access_control_condition" */
 export type Lsp29_Access_Control_Condition_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   condition_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp29_Access_Control_Condition_Var_Samp_Fields = {
   __typename?: 'lsp29_access_control_condition_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   condition_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp29_access_control_condition" */
 export type Lsp29_Access_Control_Condition_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   condition_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp29_Access_Control_Condition_Variance_Fields = {
   __typename?: 'lsp29_access_control_condition_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   condition_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp29_access_control_condition" */
 export type Lsp29_Access_Control_Condition_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   condition_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp29_encrypted_asset" */
@@ -9831,7 +13925,7 @@ export type Lsp29_Encrypted_Asset = {
   __typename?: 'lsp29_encrypted_asset';
   address: Scalars['String']['output'];
   array_index?: Maybe<Scalars['numeric']['output']>;
-  block_number?: Maybe<Scalars['Int']['output']>;
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   chunks?: Maybe<Lsp29_Encrypted_Asset_Chunks>;
   content_id?: Maybe<Scalars['String']['output']>;
@@ -9852,14 +13946,14 @@ export type Lsp29_Encrypted_Asset = {
   /** An aggregate relationship */
   images_aggregate: Lsp29_Encrypted_Asset_Image_Aggregate;
   is_data_fetched: Scalars['Boolean']['output'];
-  log_index?: Maybe<Scalars['Int']['output']>;
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   retry_count?: Maybe<Scalars['Int']['output']>;
   revision?: Maybe<Scalars['Int']['output']>;
   timestamp: Scalars['timestamptz']['output'];
   /** An object relationship */
   title?: Maybe<Lsp29_Encrypted_Asset_Title>;
-  transaction_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -9963,17 +14057,23 @@ export type Lsp29_Encrypted_Asset_Aggregate_Order_By = {
 export type Lsp29_Encrypted_Asset_Avg_Fields = {
   __typename?: 'lsp29_encrypted_asset_avg_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
   revision?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp29_encrypted_asset" */
 export type Lsp29_Encrypted_Asset_Avg_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   fetch_error_status?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   retry_count?: InputMaybe<Order_By>;
   revision?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp29_encrypted_asset". All fields are combined with a logical 'AND'. */
@@ -9983,6 +14083,7 @@ export type Lsp29_Encrypted_Asset_Bool_Exp = {
   _or?: InputMaybe<Array<Lsp29_Encrypted_Asset_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
   array_index?: InputMaybe<Numeric_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   chunks?: InputMaybe<Lsp29_Encrypted_Asset_Chunks_Bool_Exp>;
   content_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -9997,11 +14098,13 @@ export type Lsp29_Encrypted_Asset_Bool_Exp = {
   images?: InputMaybe<Lsp29_Encrypted_Asset_Image_Bool_Exp>;
   images_aggregate?: InputMaybe<Lsp29_Encrypted_Asset_Image_Aggregate_Bool_Exp>;
   is_data_fetched?: InputMaybe<Boolean_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   retry_count?: InputMaybe<Int_Comparison_Exp>;
   revision?: InputMaybe<Int_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   title?: InputMaybe<Lsp29_Encrypted_Asset_Title_Bool_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
   url?: InputMaybe<String_Comparison_Exp>;
@@ -10011,13 +14114,17 @@ export type Lsp29_Encrypted_Asset_Bool_Exp = {
 /** columns and relationships of "lsp29_encrypted_asset_chunks" */
 export type Lsp29_Encrypted_Asset_Chunks = {
   __typename?: 'lsp29_encrypted_asset_chunks';
+  block_number: Scalars['Int']['output'];
   cids?: Maybe<Array<Scalars['String']['output']>>;
   id: Scalars['String']['output'];
   iv?: Maybe<Scalars['String']['output']>;
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp29EncryptedAsset?: Maybe<Lsp29_Encrypted_Asset>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
   total_size?: Maybe<Scalars['numeric']['output']>;
+  transaction_index: Scalars['Int']['output'];
 };
 
 /** aggregated selection of "lsp29_encrypted_asset_chunks" */
@@ -10053,7 +14160,10 @@ export type Lsp29_Encrypted_Asset_Chunks_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Lsp29_Encrypted_Asset_Chunks_Avg_Fields = {
   __typename?: 'lsp29_encrypted_asset_chunks_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   total_size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** Boolean expression to filter rows from the table "lsp29_encrypted_asset_chunks". All fields are combined with a logical 'AND'. */
@@ -10061,46 +14171,64 @@ export type Lsp29_Encrypted_Asset_Chunks_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp29_Encrypted_Asset_Chunks_Bool_Exp>>;
   _not?: InputMaybe<Lsp29_Encrypted_Asset_Chunks_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp29_Encrypted_Asset_Chunks_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   cids?: InputMaybe<String_Array_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   iv?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp29EncryptedAsset?: InputMaybe<Lsp29_Encrypted_Asset_Bool_Exp>;
   lsp29_encrypted_asset_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   total_size?: InputMaybe<Numeric_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp29_Encrypted_Asset_Chunks_Max_Fields = {
   __typename?: 'lsp29_encrypted_asset_chunks_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   cids?: Maybe<Array<Scalars['String']['output']>>;
   id?: Maybe<Scalars['String']['output']>;
   iv?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   total_size?: Maybe<Scalars['numeric']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate min on columns */
 export type Lsp29_Encrypted_Asset_Chunks_Min_Fields = {
   __typename?: 'lsp29_encrypted_asset_chunks_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   cids?: Maybe<Array<Scalars['String']['output']>>;
   id?: Maybe<Scalars['String']['output']>;
   iv?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   total_size?: Maybe<Scalars['numeric']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp29_encrypted_asset_chunks". */
 export type Lsp29_Encrypted_Asset_Chunks_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   cids?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   iv?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp29EncryptedAsset?: InputMaybe<Lsp29_Encrypted_Asset_Order_By>;
   lsp29_encrypted_asset_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   total_size?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp29_encrypted_asset_chunks" */
 export type Lsp29_Encrypted_Asset_Chunks_Select_Column =
+  /** column name */
+  | 'block_number'
   /** column name */
   | 'cids'
   /** column name */
@@ -10108,26 +14236,41 @@ export type Lsp29_Encrypted_Asset_Chunks_Select_Column =
   /** column name */
   | 'iv'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp29_encrypted_asset_id'
   /** column name */
-  | 'total_size';
+  | 'timestamp'
+  /** column name */
+  | 'total_size'
+  /** column name */
+  | 'transaction_index';
 
 /** aggregate stddev on columns */
 export type Lsp29_Encrypted_Asset_Chunks_Stddev_Fields = {
   __typename?: 'lsp29_encrypted_asset_chunks_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   total_size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp29_Encrypted_Asset_Chunks_Stddev_Pop_Fields = {
   __typename?: 'lsp29_encrypted_asset_chunks_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   total_size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp29_Encrypted_Asset_Chunks_Stddev_Samp_Fields = {
   __typename?: 'lsp29_encrypted_asset_chunks_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   total_size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** Streaming cursor of the table "lsp29_encrypted_asset_chunks" */
@@ -10140,44 +14283,64 @@ export type Lsp29_Encrypted_Asset_Chunks_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp29_Encrypted_Asset_Chunks_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   cids?: InputMaybe<Array<Scalars['String']['input']>>;
   id?: InputMaybe<Scalars['String']['input']>;
   iv?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp29_encrypted_asset_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
   total_size?: InputMaybe<Scalars['numeric']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Lsp29_Encrypted_Asset_Chunks_Sum_Fields = {
   __typename?: 'lsp29_encrypted_asset_chunks_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   total_size?: Maybe<Scalars['numeric']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp29_Encrypted_Asset_Chunks_Var_Pop_Fields = {
   __typename?: 'lsp29_encrypted_asset_chunks_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   total_size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp29_Encrypted_Asset_Chunks_Var_Samp_Fields = {
   __typename?: 'lsp29_encrypted_asset_chunks_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   total_size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Lsp29_Encrypted_Asset_Chunks_Variance_Fields = {
   __typename?: 'lsp29_encrypted_asset_chunks_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   total_size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp29_encrypted_asset_description" */
 export type Lsp29_Encrypted_Asset_Description = {
   __typename?: 'lsp29_encrypted_asset_description';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp29EncryptedAsset?: Maybe<Lsp29_Encrypted_Asset>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -10191,9 +14354,17 @@ export type Lsp29_Encrypted_Asset_Description_Aggregate = {
 /** aggregate fields of "lsp29_encrypted_asset_description" */
 export type Lsp29_Encrypted_Asset_Description_Aggregate_Fields = {
   __typename?: 'lsp29_encrypted_asset_description_aggregate_fields';
+  avg?: Maybe<Lsp29_Encrypted_Asset_Description_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp29_Encrypted_Asset_Description_Max_Fields>;
   min?: Maybe<Lsp29_Encrypted_Asset_Description_Min_Fields>;
+  stddev?: Maybe<Lsp29_Encrypted_Asset_Description_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp29_Encrypted_Asset_Description_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp29_Encrypted_Asset_Description_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp29_Encrypted_Asset_Description_Sum_Fields>;
+  var_pop?: Maybe<Lsp29_Encrypted_Asset_Description_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp29_Encrypted_Asset_Description_Var_Samp_Fields>;
+  variance?: Maybe<Lsp29_Encrypted_Asset_Description_Variance_Fields>;
 };
 
 
@@ -10203,49 +14374,105 @@ export type Lsp29_Encrypted_Asset_Description_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp29_Encrypted_Asset_Description_Avg_Fields = {
+  __typename?: 'lsp29_encrypted_asset_description_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp29_encrypted_asset_description". All fields are combined with a logical 'AND'. */
 export type Lsp29_Encrypted_Asset_Description_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp29_Encrypted_Asset_Description_Bool_Exp>>;
   _not?: InputMaybe<Lsp29_Encrypted_Asset_Description_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp29_Encrypted_Asset_Description_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp29EncryptedAsset?: InputMaybe<Lsp29_Encrypted_Asset_Bool_Exp>;
   lsp29_encrypted_asset_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp29_Encrypted_Asset_Description_Max_Fields = {
   __typename?: 'lsp29_encrypted_asset_description_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** aggregate min on columns */
 export type Lsp29_Encrypted_Asset_Description_Min_Fields = {
   __typename?: 'lsp29_encrypted_asset_description_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp29_encrypted_asset_description". */
 export type Lsp29_Encrypted_Asset_Description_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp29EncryptedAsset?: InputMaybe<Lsp29_Encrypted_Asset_Order_By>;
   lsp29_encrypted_asset_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp29_encrypted_asset_description" */
 export type Lsp29_Encrypted_Asset_Description_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'lsp29_encrypted_asset_id'
   /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp29_Encrypted_Asset_Description_Stddev_Fields = {
+  __typename?: 'lsp29_encrypted_asset_description_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp29_Encrypted_Asset_Description_Stddev_Pop_Fields = {
+  __typename?: 'lsp29_encrypted_asset_description_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp29_Encrypted_Asset_Description_Stddev_Samp_Fields = {
+  __typename?: 'lsp29_encrypted_asset_description_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp29_encrypted_asset_description" */
 export type Lsp29_Encrypted_Asset_Description_Stream_Cursor_Input = {
@@ -10257,9 +14484,45 @@ export type Lsp29_Encrypted_Asset_Description_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp29_Encrypted_Asset_Description_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp29_encrypted_asset_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp29_Encrypted_Asset_Description_Sum_Fields = {
+  __typename?: 'lsp29_encrypted_asset_description_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp29_Encrypted_Asset_Description_Var_Pop_Fields = {
+  __typename?: 'lsp29_encrypted_asset_description_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp29_Encrypted_Asset_Description_Var_Samp_Fields = {
+  __typename?: 'lsp29_encrypted_asset_description_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp29_Encrypted_Asset_Description_Variance_Fields = {
+  __typename?: 'lsp29_encrypted_asset_description_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp29_encrypted_asset_encryption" */
@@ -10269,15 +14532,19 @@ export type Lsp29_Encrypted_Asset_Encryption = {
   accessControlConditions: Array<Lsp29_Access_Control_Condition>;
   /** An aggregate relationship */
   accessControlConditions_aggregate: Lsp29_Access_Control_Condition_Aggregate;
+  block_number: Scalars['Int']['output'];
   ciphertext?: Maybe<Scalars['String']['output']>;
   data_to_encrypt_hash?: Maybe<Scalars['String']['output']>;
   decryption_code?: Maybe<Scalars['String']['output']>;
   decryption_params?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp29EncryptedAsset?: Maybe<Lsp29_Encrypted_Asset>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
   method?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
 };
 
 
@@ -10310,9 +14577,17 @@ export type Lsp29_Encrypted_Asset_Encryption_Aggregate = {
 /** aggregate fields of "lsp29_encrypted_asset_encryption" */
 export type Lsp29_Encrypted_Asset_Encryption_Aggregate_Fields = {
   __typename?: 'lsp29_encrypted_asset_encryption_aggregate_fields';
+  avg?: Maybe<Lsp29_Encrypted_Asset_Encryption_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp29_Encrypted_Asset_Encryption_Max_Fields>;
   min?: Maybe<Lsp29_Encrypted_Asset_Encryption_Min_Fields>;
+  stddev?: Maybe<Lsp29_Encrypted_Asset_Encryption_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp29_Encrypted_Asset_Encryption_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp29_Encrypted_Asset_Encryption_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp29_Encrypted_Asset_Encryption_Sum_Fields>;
+  var_pop?: Maybe<Lsp29_Encrypted_Asset_Encryption_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp29_Encrypted_Asset_Encryption_Var_Samp_Fields>;
+  variance?: Maybe<Lsp29_Encrypted_Asset_Encryption_Variance_Fields>;
 };
 
 
@@ -10322,6 +14597,14 @@ export type Lsp29_Encrypted_Asset_Encryption_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp29_Encrypted_Asset_Encryption_Avg_Fields = {
+  __typename?: 'lsp29_encrypted_asset_encryption_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp29_encrypted_asset_encryption". All fields are combined with a logical 'AND'. */
 export type Lsp29_Encrypted_Asset_Encryption_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp29_Encrypted_Asset_Encryption_Bool_Exp>>;
@@ -10329,55 +14612,73 @@ export type Lsp29_Encrypted_Asset_Encryption_Bool_Exp = {
   _or?: InputMaybe<Array<Lsp29_Encrypted_Asset_Encryption_Bool_Exp>>;
   accessControlConditions?: InputMaybe<Lsp29_Access_Control_Condition_Bool_Exp>;
   accessControlConditions_aggregate?: InputMaybe<Lsp29_Access_Control_Condition_Aggregate_Bool_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   ciphertext?: InputMaybe<String_Comparison_Exp>;
   data_to_encrypt_hash?: InputMaybe<String_Comparison_Exp>;
   decryption_code?: InputMaybe<String_Comparison_Exp>;
   decryption_params?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp29EncryptedAsset?: InputMaybe<Lsp29_Encrypted_Asset_Bool_Exp>;
   lsp29_encrypted_asset_id?: InputMaybe<String_Comparison_Exp>;
   method?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp29_Encrypted_Asset_Encryption_Max_Fields = {
   __typename?: 'lsp29_encrypted_asset_encryption_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   ciphertext?: Maybe<Scalars['String']['output']>;
   data_to_encrypt_hash?: Maybe<Scalars['String']['output']>;
   decryption_code?: Maybe<Scalars['String']['output']>;
   decryption_params?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
   method?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate min on columns */
 export type Lsp29_Encrypted_Asset_Encryption_Min_Fields = {
   __typename?: 'lsp29_encrypted_asset_encryption_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   ciphertext?: Maybe<Scalars['String']['output']>;
   data_to_encrypt_hash?: Maybe<Scalars['String']['output']>;
   decryption_code?: Maybe<Scalars['String']['output']>;
   decryption_params?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
   method?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp29_encrypted_asset_encryption". */
 export type Lsp29_Encrypted_Asset_Encryption_Order_By = {
   accessControlConditions_aggregate?: InputMaybe<Lsp29_Access_Control_Condition_Aggregate_Order_By>;
+  block_number?: InputMaybe<Order_By>;
   ciphertext?: InputMaybe<Order_By>;
   data_to_encrypt_hash?: InputMaybe<Order_By>;
   decryption_code?: InputMaybe<Order_By>;
   decryption_params?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp29EncryptedAsset?: InputMaybe<Lsp29_Encrypted_Asset_Order_By>;
   lsp29_encrypted_asset_id?: InputMaybe<Order_By>;
   method?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp29_encrypted_asset_encryption" */
 export type Lsp29_Encrypted_Asset_Encryption_Select_Column =
+  /** column name */
+  | 'block_number'
   /** column name */
   | 'ciphertext'
   /** column name */
@@ -10389,9 +14690,39 @@ export type Lsp29_Encrypted_Asset_Encryption_Select_Column =
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp29_encrypted_asset_id'
   /** column name */
-  | 'method';
+  | 'method'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index';
+
+/** aggregate stddev on columns */
+export type Lsp29_Encrypted_Asset_Encryption_Stddev_Fields = {
+  __typename?: 'lsp29_encrypted_asset_encryption_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp29_Encrypted_Asset_Encryption_Stddev_Pop_Fields = {
+  __typename?: 'lsp29_encrypted_asset_encryption_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp29_Encrypted_Asset_Encryption_Stddev_Samp_Fields = {
+  __typename?: 'lsp29_encrypted_asset_encryption_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp29_encrypted_asset_encryption" */
 export type Lsp29_Encrypted_Asset_Encryption_Stream_Cursor_Input = {
@@ -10403,13 +14734,49 @@ export type Lsp29_Encrypted_Asset_Encryption_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp29_Encrypted_Asset_Encryption_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   ciphertext?: InputMaybe<Scalars['String']['input']>;
   data_to_encrypt_hash?: InputMaybe<Scalars['String']['input']>;
   decryption_code?: InputMaybe<Scalars['String']['input']>;
   decryption_params?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp29_encrypted_asset_id?: InputMaybe<Scalars['String']['input']>;
   method?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp29_Encrypted_Asset_Encryption_Sum_Fields = {
+  __typename?: 'lsp29_encrypted_asset_encryption_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp29_Encrypted_Asset_Encryption_Var_Pop_Fields = {
+  __typename?: 'lsp29_encrypted_asset_encryption_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp29_Encrypted_Asset_Encryption_Var_Samp_Fields = {
+  __typename?: 'lsp29_encrypted_asset_encryption_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp29_Encrypted_Asset_Encryption_Variance_Fields = {
+  __typename?: 'lsp29_encrypted_asset_encryption_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp29_encrypted_asset_entry" */
@@ -10417,9 +14784,12 @@ export type Lsp29_Encrypted_Asset_Entry = {
   __typename?: 'lsp29_encrypted_asset_entry';
   address: Scalars['String']['output'];
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number: Scalars['Int']['output'];
   content_id_hash: Scalars['String']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -10485,11 +14855,17 @@ export type Lsp29_Encrypted_Asset_Entry_Aggregate_Order_By = {
 export type Lsp29_Encrypted_Asset_Entry_Avg_Fields = {
   __typename?: 'lsp29_encrypted_asset_entry_avg_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp29_encrypted_asset_entry" */
 export type Lsp29_Encrypted_Asset_Entry_Avg_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp29_encrypted_asset_entry". All fields are combined with a logical 'AND'. */
@@ -10499,9 +14875,12 @@ export type Lsp29_Encrypted_Asset_Entry_Bool_Exp = {
   _or?: InputMaybe<Array<Lsp29_Encrypted_Asset_Entry_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
   array_index?: InputMaybe<Numeric_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   content_id_hash?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
 };
@@ -10511,9 +14890,12 @@ export type Lsp29_Encrypted_Asset_Entry_Max_Fields = {
   __typename?: 'lsp29_encrypted_asset_entry_max_fields';
   address?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   content_id_hash?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -10521,9 +14903,12 @@ export type Lsp29_Encrypted_Asset_Entry_Max_Fields = {
 export type Lsp29_Encrypted_Asset_Entry_Max_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   content_id_hash?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -10532,9 +14917,12 @@ export type Lsp29_Encrypted_Asset_Entry_Min_Fields = {
   __typename?: 'lsp29_encrypted_asset_entry_min_fields';
   address?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   content_id_hash?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -10542,9 +14930,12 @@ export type Lsp29_Encrypted_Asset_Entry_Min_Fields = {
 export type Lsp29_Encrypted_Asset_Entry_Min_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   content_id_hash?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -10552,9 +14943,12 @@ export type Lsp29_Encrypted_Asset_Entry_Min_Order_By = {
 export type Lsp29_Encrypted_Asset_Entry_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   content_id_hash?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
@@ -10566,11 +14960,17 @@ export type Lsp29_Encrypted_Asset_Entry_Select_Column =
   /** column name */
   | 'array_index'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'content_id_hash'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'universal_profile_id';
 
@@ -10578,33 +14978,51 @@ export type Lsp29_Encrypted_Asset_Entry_Select_Column =
 export type Lsp29_Encrypted_Asset_Entry_Stddev_Fields = {
   __typename?: 'lsp29_encrypted_asset_entry_stddev_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp29_encrypted_asset_entry" */
 export type Lsp29_Encrypted_Asset_Entry_Stddev_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp29_Encrypted_Asset_Entry_Stddev_Pop_Fields = {
   __typename?: 'lsp29_encrypted_asset_entry_stddev_pop_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp29_encrypted_asset_entry" */
 export type Lsp29_Encrypted_Asset_Entry_Stddev_Pop_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp29_Encrypted_Asset_Entry_Stddev_Samp_Fields = {
   __typename?: 'lsp29_encrypted_asset_entry_stddev_samp_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp29_encrypted_asset_entry" */
 export type Lsp29_Encrypted_Asset_Entry_Stddev_Samp_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "lsp29_encrypted_asset_entry" */
@@ -10619,9 +15037,12 @@ export type Lsp29_Encrypted_Asset_Entry_Stream_Cursor_Input = {
 export type Lsp29_Encrypted_Asset_Entry_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
   array_index?: InputMaybe<Scalars['numeric']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   content_id_hash?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -10629,57 +15050,85 @@ export type Lsp29_Encrypted_Asset_Entry_Stream_Cursor_Value_Input = {
 export type Lsp29_Encrypted_Asset_Entry_Sum_Fields = {
   __typename?: 'lsp29_encrypted_asset_entry_sum_fields';
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp29_encrypted_asset_entry" */
 export type Lsp29_Encrypted_Asset_Entry_Sum_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp29_Encrypted_Asset_Entry_Var_Pop_Fields = {
   __typename?: 'lsp29_encrypted_asset_entry_var_pop_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp29_encrypted_asset_entry" */
 export type Lsp29_Encrypted_Asset_Entry_Var_Pop_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp29_Encrypted_Asset_Entry_Var_Samp_Fields = {
   __typename?: 'lsp29_encrypted_asset_entry_var_samp_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp29_encrypted_asset_entry" */
 export type Lsp29_Encrypted_Asset_Entry_Var_Samp_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp29_Encrypted_Asset_Entry_Variance_Fields = {
   __typename?: 'lsp29_encrypted_asset_entry_variance_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp29_encrypted_asset_entry" */
 export type Lsp29_Encrypted_Asset_Entry_Variance_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp29_encrypted_asset_file" */
 export type Lsp29_Encrypted_Asset_File = {
   __typename?: 'lsp29_encrypted_asset_file';
+  block_number: Scalars['Int']['output'];
   hash?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   last_modified?: Maybe<Scalars['numeric']['output']>;
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp29EncryptedAsset?: Maybe<Lsp29_Encrypted_Asset>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   size?: Maybe<Scalars['numeric']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   type?: Maybe<Scalars['String']['output']>;
 };
 
@@ -10716,8 +15165,11 @@ export type Lsp29_Encrypted_Asset_File_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Lsp29_Encrypted_Asset_File_Avg_Fields = {
   __typename?: 'lsp29_encrypted_asset_file_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   last_modified?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** Boolean expression to filter rows from the table "lsp29_encrypted_asset_file". All fields are combined with a logical 'AND'. */
@@ -10725,54 +15177,72 @@ export type Lsp29_Encrypted_Asset_File_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp29_Encrypted_Asset_File_Bool_Exp>>;
   _not?: InputMaybe<Lsp29_Encrypted_Asset_File_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp29_Encrypted_Asset_File_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   hash?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   last_modified?: InputMaybe<Numeric_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp29EncryptedAsset?: InputMaybe<Lsp29_Encrypted_Asset_Bool_Exp>;
   lsp29_encrypted_asset_id?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   size?: InputMaybe<Numeric_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   type?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp29_Encrypted_Asset_File_Max_Fields = {
   __typename?: 'lsp29_encrypted_asset_file_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   hash?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   last_modified?: Maybe<Scalars['numeric']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   size?: Maybe<Scalars['numeric']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   type?: Maybe<Scalars['String']['output']>;
 };
 
 /** aggregate min on columns */
 export type Lsp29_Encrypted_Asset_File_Min_Fields = {
   __typename?: 'lsp29_encrypted_asset_file_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   hash?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   last_modified?: Maybe<Scalars['numeric']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   size?: Maybe<Scalars['numeric']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   type?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp29_encrypted_asset_file". */
 export type Lsp29_Encrypted_Asset_File_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   hash?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   last_modified?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp29EncryptedAsset?: InputMaybe<Lsp29_Encrypted_Asset_Order_By>;
   lsp29_encrypted_asset_id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp29_encrypted_asset_file" */
 export type Lsp29_Encrypted_Asset_File_Select_Column =
+  /** column name */
+  | 'block_number'
   /** column name */
   | 'hash'
   /** column name */
@@ -10780,33 +15250,48 @@ export type Lsp29_Encrypted_Asset_File_Select_Column =
   /** column name */
   | 'last_modified'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp29_encrypted_asset_id'
   /** column name */
   | 'name'
   /** column name */
   | 'size'
   /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'type';
 
 /** aggregate stddev on columns */
 export type Lsp29_Encrypted_Asset_File_Stddev_Fields = {
   __typename?: 'lsp29_encrypted_asset_file_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   last_modified?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp29_Encrypted_Asset_File_Stddev_Pop_Fields = {
   __typename?: 'lsp29_encrypted_asset_file_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   last_modified?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp29_Encrypted_Asset_File_Stddev_Samp_Fields = {
   __typename?: 'lsp29_encrypted_asset_file_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   last_modified?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** Streaming cursor of the table "lsp29_encrypted_asset_file" */
@@ -10819,52 +15304,72 @@ export type Lsp29_Encrypted_Asset_File_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp29_Encrypted_Asset_File_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   hash?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   last_modified?: InputMaybe<Scalars['numeric']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp29_encrypted_asset_id?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   size?: InputMaybe<Scalars['numeric']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   type?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Lsp29_Encrypted_Asset_File_Sum_Fields = {
   __typename?: 'lsp29_encrypted_asset_file_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   last_modified?: Maybe<Scalars['numeric']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   size?: Maybe<Scalars['numeric']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp29_Encrypted_Asset_File_Var_Pop_Fields = {
   __typename?: 'lsp29_encrypted_asset_file_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   last_modified?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp29_Encrypted_Asset_File_Var_Samp_Fields = {
   __typename?: 'lsp29_encrypted_asset_file_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   last_modified?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Lsp29_Encrypted_Asset_File_Variance_Fields = {
   __typename?: 'lsp29_encrypted_asset_file_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   last_modified?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   size?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "lsp29_encrypted_asset_image" */
 export type Lsp29_Encrypted_Asset_Image = {
   __typename?: 'lsp29_encrypted_asset_image';
+  block_number: Scalars['Int']['output'];
   height?: Maybe<Scalars['Int']['output']>;
   id: Scalars['String']['output'];
   image_index: Scalars['Int']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp29EncryptedAsset?: Maybe<Lsp29_Encrypted_Asset>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -10931,15 +15436,21 @@ export type Lsp29_Encrypted_Asset_Image_Aggregate_Order_By = {
 /** aggregate avg on columns */
 export type Lsp29_Encrypted_Asset_Image_Avg_Fields = {
   __typename?: 'lsp29_encrypted_asset_image_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp29_encrypted_asset_image" */
 export type Lsp29_Encrypted_Asset_Image_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
@@ -10948,11 +15459,15 @@ export type Lsp29_Encrypted_Asset_Image_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp29_Encrypted_Asset_Image_Bool_Exp>>;
   _not?: InputMaybe<Lsp29_Encrypted_Asset_Image_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp29_Encrypted_Asset_Image_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   height?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   image_index?: InputMaybe<Int_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp29EncryptedAsset?: InputMaybe<Lsp29_Encrypted_Asset_Bool_Exp>;
   lsp29_encrypted_asset_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   url?: InputMaybe<String_Comparison_Exp>;
   verification_data?: InputMaybe<String_Comparison_Exp>;
   verification_method?: InputMaybe<String_Comparison_Exp>;
@@ -10963,10 +15478,14 @@ export type Lsp29_Encrypted_Asset_Image_Bool_Exp = {
 /** aggregate max on columns */
 export type Lsp29_Encrypted_Asset_Image_Max_Fields = {
   __typename?: 'lsp29_encrypted_asset_image_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   image_index?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -10976,10 +15495,14 @@ export type Lsp29_Encrypted_Asset_Image_Max_Fields = {
 
 /** order by max() on columns of table "lsp29_encrypted_asset_image" */
 export type Lsp29_Encrypted_Asset_Image_Max_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp29_encrypted_asset_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -10990,10 +15513,14 @@ export type Lsp29_Encrypted_Asset_Image_Max_Order_By = {
 /** aggregate min on columns */
 export type Lsp29_Encrypted_Asset_Image_Min_Fields = {
   __typename?: 'lsp29_encrypted_asset_image_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   image_index?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   verification_data?: Maybe<Scalars['String']['output']>;
   verification_method?: Maybe<Scalars['String']['output']>;
@@ -11003,10 +15530,14 @@ export type Lsp29_Encrypted_Asset_Image_Min_Fields = {
 
 /** order by min() on columns of table "lsp29_encrypted_asset_image" */
 export type Lsp29_Encrypted_Asset_Image_Min_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp29_encrypted_asset_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -11016,11 +15547,15 @@ export type Lsp29_Encrypted_Asset_Image_Min_Order_By = {
 
 /** Ordering options when selecting data from "lsp29_encrypted_asset_image". */
 export type Lsp29_Encrypted_Asset_Image_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp29EncryptedAsset?: InputMaybe<Lsp29_Encrypted_Asset_Order_By>;
   lsp29_encrypted_asset_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   verification_data?: InputMaybe<Order_By>;
   verification_method?: InputMaybe<Order_By>;
@@ -11031,13 +15566,21 @@ export type Lsp29_Encrypted_Asset_Image_Order_By = {
 /** select columns of table "lsp29_encrypted_asset_image" */
 export type Lsp29_Encrypted_Asset_Image_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'height'
   /** column name */
   | 'id'
   /** column name */
   | 'image_index'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp29_encrypted_asset_id'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'url'
   /** column name */
@@ -11052,45 +15595,63 @@ export type Lsp29_Encrypted_Asset_Image_Select_Column =
 /** aggregate stddev on columns */
 export type Lsp29_Encrypted_Asset_Image_Stddev_Fields = {
   __typename?: 'lsp29_encrypted_asset_image_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp29_encrypted_asset_image" */
 export type Lsp29_Encrypted_Asset_Image_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp29_Encrypted_Asset_Image_Stddev_Pop_Fields = {
   __typename?: 'lsp29_encrypted_asset_image_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp29_encrypted_asset_image" */
 export type Lsp29_Encrypted_Asset_Image_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp29_Encrypted_Asset_Image_Stddev_Samp_Fields = {
   __typename?: 'lsp29_encrypted_asset_image_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp29_encrypted_asset_image" */
 export type Lsp29_Encrypted_Asset_Image_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
@@ -11104,10 +15665,14 @@ export type Lsp29_Encrypted_Asset_Image_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp29_Encrypted_Asset_Image_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   height?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   image_index?: InputMaybe<Scalars['Int']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp29_encrypted_asset_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
   verification_data?: InputMaybe<Scalars['String']['input']>;
   verification_method?: InputMaybe<Scalars['String']['input']>;
@@ -11118,60 +15683,84 @@ export type Lsp29_Encrypted_Asset_Image_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Lsp29_Encrypted_Asset_Image_Sum_Fields = {
   __typename?: 'lsp29_encrypted_asset_image_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
   image_index?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   width?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp29_encrypted_asset_image" */
 export type Lsp29_Encrypted_Asset_Image_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp29_Encrypted_Asset_Image_Var_Pop_Fields = {
   __typename?: 'lsp29_encrypted_asset_image_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp29_encrypted_asset_image" */
 export type Lsp29_Encrypted_Asset_Image_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp29_Encrypted_Asset_Image_Var_Samp_Fields = {
   __typename?: 'lsp29_encrypted_asset_image_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp29_encrypted_asset_image" */
 export type Lsp29_Encrypted_Asset_Image_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp29_Encrypted_Asset_Image_Variance_Fields = {
   __typename?: 'lsp29_encrypted_asset_image_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Float']['output']>;
   image_index?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   width?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp29_encrypted_asset_image" */
 export type Lsp29_Encrypted_Asset_Image_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   height?: InputMaybe<Order_By>;
   image_index?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   width?: InputMaybe<Order_By>;
 };
 
@@ -11180,6 +15769,7 @@ export type Lsp29_Encrypted_Asset_Max_Fields = {
   __typename?: 'lsp29_encrypted_asset_max_fields';
   address?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   content_id?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   decode_error?: Maybe<Scalars['String']['output']>;
@@ -11187,10 +15777,12 @@ export type Lsp29_Encrypted_Asset_Max_Fields = {
   fetch_error_message?: Maybe<Scalars['String']['output']>;
   fetch_error_status?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   retry_count?: Maybe<Scalars['Int']['output']>;
   revision?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   version?: Maybe<Scalars['String']['output']>;
@@ -11200,6 +15792,7 @@ export type Lsp29_Encrypted_Asset_Max_Fields = {
 export type Lsp29_Encrypted_Asset_Max_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   content_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   decode_error?: InputMaybe<Order_By>;
@@ -11207,10 +15800,12 @@ export type Lsp29_Encrypted_Asset_Max_Order_By = {
   fetch_error_message?: InputMaybe<Order_By>;
   fetch_error_status?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   retry_count?: InputMaybe<Order_By>;
   revision?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   version?: InputMaybe<Order_By>;
@@ -11221,6 +15816,7 @@ export type Lsp29_Encrypted_Asset_Min_Fields = {
   __typename?: 'lsp29_encrypted_asset_min_fields';
   address?: Maybe<Scalars['String']['output']>;
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   content_id?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   decode_error?: Maybe<Scalars['String']['output']>;
@@ -11228,10 +15824,12 @@ export type Lsp29_Encrypted_Asset_Min_Fields = {
   fetch_error_message?: Maybe<Scalars['String']['output']>;
   fetch_error_status?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   retry_count?: Maybe<Scalars['Int']['output']>;
   revision?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
   url?: Maybe<Scalars['String']['output']>;
   version?: Maybe<Scalars['String']['output']>;
@@ -11241,6 +15839,7 @@ export type Lsp29_Encrypted_Asset_Min_Fields = {
 export type Lsp29_Encrypted_Asset_Min_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   content_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   decode_error?: InputMaybe<Order_By>;
@@ -11248,10 +15847,12 @@ export type Lsp29_Encrypted_Asset_Min_Order_By = {
   fetch_error_message?: InputMaybe<Order_By>;
   fetch_error_status?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   retry_count?: InputMaybe<Order_By>;
   revision?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
   version?: InputMaybe<Order_By>;
@@ -11261,6 +15862,7 @@ export type Lsp29_Encrypted_Asset_Min_Order_By = {
 export type Lsp29_Encrypted_Asset_Order_By = {
   address?: InputMaybe<Order_By>;
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   chunks?: InputMaybe<Lsp29_Encrypted_Asset_Chunks_Order_By>;
   content_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -11274,11 +15876,13 @@ export type Lsp29_Encrypted_Asset_Order_By = {
   id?: InputMaybe<Order_By>;
   images_aggregate?: InputMaybe<Lsp29_Encrypted_Asset_Image_Aggregate_Order_By>;
   is_data_fetched?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   retry_count?: InputMaybe<Order_By>;
   revision?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
   title?: InputMaybe<Lsp29_Encrypted_Asset_Title_Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
   url?: InputMaybe<Order_By>;
@@ -11289,11 +15893,14 @@ export type Lsp29_Encrypted_Asset_Order_By = {
 export type Lsp29_Encrypted_Asset_Revision_Count = {
   __typename?: 'lsp29_encrypted_asset_revision_count';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   content_id_hash: Scalars['String']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   revision_count?: Maybe<Scalars['numeric']['output']>;
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -11358,12 +15965,18 @@ export type Lsp29_Encrypted_Asset_Revision_Count_Aggregate_Order_By = {
 /** aggregate avg on columns */
 export type Lsp29_Encrypted_Asset_Revision_Count_Avg_Fields = {
   __typename?: 'lsp29_encrypted_asset_revision_count_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   revision_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "lsp29_encrypted_asset_revision_count" */
 export type Lsp29_Encrypted_Asset_Revision_Count_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   revision_count?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "lsp29_encrypted_asset_revision_count". All fields are combined with a logical 'AND'. */
@@ -11372,11 +15985,14 @@ export type Lsp29_Encrypted_Asset_Revision_Count_Bool_Exp = {
   _not?: InputMaybe<Lsp29_Encrypted_Asset_Revision_Count_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp29_Encrypted_Asset_Revision_Count_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   content_id_hash?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   revision_count?: InputMaybe<Numeric_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
 };
@@ -11385,22 +16001,28 @@ export type Lsp29_Encrypted_Asset_Revision_Count_Bool_Exp = {
 export type Lsp29_Encrypted_Asset_Revision_Count_Max_Fields = {
   __typename?: 'lsp29_encrypted_asset_revision_count_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   content_id_hash?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   revision_count?: Maybe<Scalars['numeric']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by max() on columns of table "lsp29_encrypted_asset_revision_count" */
 export type Lsp29_Encrypted_Asset_Revision_Count_Max_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   content_id_hash?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   revision_count?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -11408,33 +16030,42 @@ export type Lsp29_Encrypted_Asset_Revision_Count_Max_Order_By = {
 export type Lsp29_Encrypted_Asset_Revision_Count_Min_Fields = {
   __typename?: 'lsp29_encrypted_asset_revision_count_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   content_id_hash?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   revision_count?: Maybe<Scalars['numeric']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by min() on columns of table "lsp29_encrypted_asset_revision_count" */
 export type Lsp29_Encrypted_Asset_Revision_Count_Min_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   content_id_hash?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   revision_count?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
 /** Ordering options when selecting data from "lsp29_encrypted_asset_revision_count". */
 export type Lsp29_Encrypted_Asset_Revision_Count_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   content_id_hash?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   revision_count?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
@@ -11444,9 +16075,13 @@ export type Lsp29_Encrypted_Asset_Revision_Count_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'content_id_hash'
   /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'raw_value'
   /** column name */
@@ -11454,39 +16089,59 @@ export type Lsp29_Encrypted_Asset_Revision_Count_Select_Column =
   /** column name */
   | 'timestamp'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'universal_profile_id';
 
 /** aggregate stddev on columns */
 export type Lsp29_Encrypted_Asset_Revision_Count_Stddev_Fields = {
   __typename?: 'lsp29_encrypted_asset_revision_count_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   revision_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp29_encrypted_asset_revision_count" */
 export type Lsp29_Encrypted_Asset_Revision_Count_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   revision_count?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp29_Encrypted_Asset_Revision_Count_Stddev_Pop_Fields = {
   __typename?: 'lsp29_encrypted_asset_revision_count_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   revision_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp29_encrypted_asset_revision_count" */
 export type Lsp29_Encrypted_Asset_Revision_Count_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   revision_count?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp29_Encrypted_Asset_Revision_Count_Stddev_Samp_Fields = {
   __typename?: 'lsp29_encrypted_asset_revision_count_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   revision_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp29_encrypted_asset_revision_count" */
 export type Lsp29_Encrypted_Asset_Revision_Count_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   revision_count?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "lsp29_encrypted_asset_revision_count" */
@@ -11500,56 +16155,83 @@ export type Lsp29_Encrypted_Asset_Revision_Count_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp29_Encrypted_Asset_Revision_Count_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   content_id_hash?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   revision_count?: InputMaybe<Scalars['numeric']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Lsp29_Encrypted_Asset_Revision_Count_Sum_Fields = {
   __typename?: 'lsp29_encrypted_asset_revision_count_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   revision_count?: Maybe<Scalars['numeric']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp29_encrypted_asset_revision_count" */
 export type Lsp29_Encrypted_Asset_Revision_Count_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   revision_count?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp29_Encrypted_Asset_Revision_Count_Var_Pop_Fields = {
   __typename?: 'lsp29_encrypted_asset_revision_count_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   revision_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp29_encrypted_asset_revision_count" */
 export type Lsp29_Encrypted_Asset_Revision_Count_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   revision_count?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp29_Encrypted_Asset_Revision_Count_Var_Samp_Fields = {
   __typename?: 'lsp29_encrypted_asset_revision_count_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   revision_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp29_encrypted_asset_revision_count" */
 export type Lsp29_Encrypted_Asset_Revision_Count_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   revision_count?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp29_Encrypted_Asset_Revision_Count_Variance_Fields = {
   __typename?: 'lsp29_encrypted_asset_revision_count_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   revision_count?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp29_encrypted_asset_revision_count" */
 export type Lsp29_Encrypted_Asset_Revision_Count_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   revision_count?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp29_encrypted_asset" */
@@ -11558,6 +16240,8 @@ export type Lsp29_Encrypted_Asset_Select_Column =
   | 'address'
   /** column name */
   | 'array_index'
+  /** column name */
+  | 'block_number'
   /** column name */
   | 'content_id'
   /** column name */
@@ -11575,6 +16259,8 @@ export type Lsp29_Encrypted_Asset_Select_Column =
   /** column name */
   | 'is_data_fetched'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'raw_value'
   /** column name */
   | 'retry_count'
@@ -11582,6 +16268,8 @@ export type Lsp29_Encrypted_Asset_Select_Column =
   | 'revision'
   /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'universal_profile_id'
   /** column name */
@@ -11603,51 +16291,69 @@ export type Lsp29_Encrypted_Asset_Select_Column_Lsp29_Encrypted_Asset_Aggregate_
 export type Lsp29_Encrypted_Asset_Stddev_Fields = {
   __typename?: 'lsp29_encrypted_asset_stddev_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
   revision?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "lsp29_encrypted_asset" */
 export type Lsp29_Encrypted_Asset_Stddev_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   fetch_error_status?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   retry_count?: InputMaybe<Order_By>;
   revision?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp29_Encrypted_Asset_Stddev_Pop_Fields = {
   __typename?: 'lsp29_encrypted_asset_stddev_pop_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
   revision?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "lsp29_encrypted_asset" */
 export type Lsp29_Encrypted_Asset_Stddev_Pop_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   fetch_error_status?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   retry_count?: InputMaybe<Order_By>;
   revision?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp29_Encrypted_Asset_Stddev_Samp_Fields = {
   __typename?: 'lsp29_encrypted_asset_stddev_samp_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
   revision?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "lsp29_encrypted_asset" */
 export type Lsp29_Encrypted_Asset_Stddev_Samp_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   fetch_error_status?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   retry_count?: InputMaybe<Order_By>;
   revision?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "lsp29_encrypted_asset" */
@@ -11662,6 +16368,7 @@ export type Lsp29_Encrypted_Asset_Stream_Cursor_Input = {
 export type Lsp29_Encrypted_Asset_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
   array_index?: InputMaybe<Scalars['numeric']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   content_id?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   decode_error?: InputMaybe<Scalars['String']['input']>;
@@ -11670,10 +16377,12 @@ export type Lsp29_Encrypted_Asset_Stream_Cursor_Value_Input = {
   fetch_error_status?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   is_data_fetched?: InputMaybe<Scalars['Boolean']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   retry_count?: InputMaybe<Scalars['Int']['input']>;
   revision?: InputMaybe<Scalars['Int']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
   url?: InputMaybe<Scalars['String']['input']>;
   version?: InputMaybe<Scalars['String']['input']>;
@@ -11683,26 +16392,36 @@ export type Lsp29_Encrypted_Asset_Stream_Cursor_Value_Input = {
 export type Lsp29_Encrypted_Asset_Sum_Fields = {
   __typename?: 'lsp29_encrypted_asset_sum_fields';
   array_index?: Maybe<Scalars['numeric']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   fetch_error_status?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   retry_count?: Maybe<Scalars['Int']['output']>;
   revision?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "lsp29_encrypted_asset" */
 export type Lsp29_Encrypted_Asset_Sum_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   fetch_error_status?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   retry_count?: InputMaybe<Order_By>;
   revision?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp29_encrypted_asset_title" */
 export type Lsp29_Encrypted_Asset_Title = {
   __typename?: 'lsp29_encrypted_asset_title';
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp29EncryptedAsset?: Maybe<Lsp29_Encrypted_Asset>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -11716,9 +16435,17 @@ export type Lsp29_Encrypted_Asset_Title_Aggregate = {
 /** aggregate fields of "lsp29_encrypted_asset_title" */
 export type Lsp29_Encrypted_Asset_Title_Aggregate_Fields = {
   __typename?: 'lsp29_encrypted_asset_title_aggregate_fields';
+  avg?: Maybe<Lsp29_Encrypted_Asset_Title_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Lsp29_Encrypted_Asset_Title_Max_Fields>;
   min?: Maybe<Lsp29_Encrypted_Asset_Title_Min_Fields>;
+  stddev?: Maybe<Lsp29_Encrypted_Asset_Title_Stddev_Fields>;
+  stddev_pop?: Maybe<Lsp29_Encrypted_Asset_Title_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Lsp29_Encrypted_Asset_Title_Stddev_Samp_Fields>;
+  sum?: Maybe<Lsp29_Encrypted_Asset_Title_Sum_Fields>;
+  var_pop?: Maybe<Lsp29_Encrypted_Asset_Title_Var_Pop_Fields>;
+  var_samp?: Maybe<Lsp29_Encrypted_Asset_Title_Var_Samp_Fields>;
+  variance?: Maybe<Lsp29_Encrypted_Asset_Title_Variance_Fields>;
 };
 
 
@@ -11728,49 +16455,105 @@ export type Lsp29_Encrypted_Asset_Title_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Lsp29_Encrypted_Asset_Title_Avg_Fields = {
+  __typename?: 'lsp29_encrypted_asset_title_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "lsp29_encrypted_asset_title". All fields are combined with a logical 'AND'. */
 export type Lsp29_Encrypted_Asset_Title_Bool_Exp = {
   _and?: InputMaybe<Array<Lsp29_Encrypted_Asset_Title_Bool_Exp>>;
   _not?: InputMaybe<Lsp29_Encrypted_Asset_Title_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp29_Encrypted_Asset_Title_Bool_Exp>>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp29EncryptedAsset?: InputMaybe<Lsp29_Encrypted_Asset_Bool_Exp>;
   lsp29_encrypted_asset_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** aggregate max on columns */
 export type Lsp29_Encrypted_Asset_Title_Max_Fields = {
   __typename?: 'lsp29_encrypted_asset_title_max_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** aggregate min on columns */
 export type Lsp29_Encrypted_Asset_Title_Min_Fields = {
   __typename?: 'lsp29_encrypted_asset_title_min_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "lsp29_encrypted_asset_title". */
 export type Lsp29_Encrypted_Asset_Title_Order_By = {
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp29EncryptedAsset?: InputMaybe<Lsp29_Encrypted_Asset_Order_By>;
   lsp29_encrypted_asset_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "lsp29_encrypted_asset_title" */
 export type Lsp29_Encrypted_Asset_Title_Select_Column =
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'lsp29_encrypted_asset_id'
   /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Lsp29_Encrypted_Asset_Title_Stddev_Fields = {
+  __typename?: 'lsp29_encrypted_asset_title_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Lsp29_Encrypted_Asset_Title_Stddev_Pop_Fields = {
+  __typename?: 'lsp29_encrypted_asset_title_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Lsp29_Encrypted_Asset_Title_Stddev_Samp_Fields = {
+  __typename?: 'lsp29_encrypted_asset_title_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "lsp29_encrypted_asset_title" */
 export type Lsp29_Encrypted_Asset_Title_Stream_Cursor_Input = {
@@ -11782,69 +16565,126 @@ export type Lsp29_Encrypted_Asset_Title_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Lsp29_Encrypted_Asset_Title_Stream_Cursor_Value_Input = {
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp29_encrypted_asset_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Lsp29_Encrypted_Asset_Title_Sum_Fields = {
+  __typename?: 'lsp29_encrypted_asset_title_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Lsp29_Encrypted_Asset_Title_Var_Pop_Fields = {
+  __typename?: 'lsp29_encrypted_asset_title_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Lsp29_Encrypted_Asset_Title_Var_Samp_Fields = {
+  __typename?: 'lsp29_encrypted_asset_title_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Lsp29_Encrypted_Asset_Title_Variance_Fields = {
+  __typename?: 'lsp29_encrypted_asset_title_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp29_Encrypted_Asset_Var_Pop_Fields = {
   __typename?: 'lsp29_encrypted_asset_var_pop_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
   revision?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "lsp29_encrypted_asset" */
 export type Lsp29_Encrypted_Asset_Var_Pop_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   fetch_error_status?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   retry_count?: InputMaybe<Order_By>;
   revision?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp29_Encrypted_Asset_Var_Samp_Fields = {
   __typename?: 'lsp29_encrypted_asset_var_samp_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
   revision?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "lsp29_encrypted_asset" */
 export type Lsp29_Encrypted_Asset_Var_Samp_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   fetch_error_status?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   retry_count?: InputMaybe<Order_By>;
   revision?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Lsp29_Encrypted_Asset_Variance_Fields = {
   __typename?: 'lsp29_encrypted_asset_variance_fields';
   array_index?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
   fetch_error_status?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
   retry_count?: Maybe<Scalars['Float']['output']>;
   revision?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "lsp29_encrypted_asset" */
 export type Lsp29_Encrypted_Asset_Variance_Order_By = {
   array_index?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   fetch_error_status?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   retry_count?: InputMaybe<Order_By>;
   revision?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "lsp29_encrypted_assets_length" */
 export type Lsp29_Encrypted_Assets_Length = {
   __typename?: 'lsp29_encrypted_assets_length';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   raw_value: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -11884,6 +16724,9 @@ export type Lsp29_Encrypted_Assets_Length_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Lsp29_Encrypted_Assets_Length_Avg_Fields = {
   __typename?: 'lsp29_encrypted_assets_length_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -11893,9 +16736,12 @@ export type Lsp29_Encrypted_Assets_Length_Bool_Exp = {
   _not?: InputMaybe<Lsp29_Encrypted_Assets_Length_Bool_Exp>;
   _or?: InputMaybe<Array<Lsp29_Encrypted_Assets_Length_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   raw_value?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
   value?: InputMaybe<Numeric_Comparison_Exp>;
@@ -11905,9 +16751,12 @@ export type Lsp29_Encrypted_Assets_Length_Bool_Exp = {
 export type Lsp29_Encrypted_Assets_Length_Max_Fields = {
   __typename?: 'lsp29_encrypted_assets_length_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
@@ -11916,9 +16765,12 @@ export type Lsp29_Encrypted_Assets_Length_Max_Fields = {
 export type Lsp29_Encrypted_Assets_Length_Min_Fields = {
   __typename?: 'lsp29_encrypted_assets_length_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   raw_value?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
@@ -11926,9 +16778,12 @@ export type Lsp29_Encrypted_Assets_Length_Min_Fields = {
 /** Ordering options when selecting data from "lsp29_encrypted_assets_length". */
 export type Lsp29_Encrypted_Assets_Length_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   raw_value?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
@@ -11939,11 +16794,17 @@ export type Lsp29_Encrypted_Assets_Length_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'raw_value'
   /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'universal_profile_id'
   /** column name */
@@ -11952,18 +16813,27 @@ export type Lsp29_Encrypted_Assets_Length_Select_Column =
 /** aggregate stddev on columns */
 export type Lsp29_Encrypted_Assets_Length_Stddev_Fields = {
   __typename?: 'lsp29_encrypted_assets_length_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Lsp29_Encrypted_Assets_Length_Stddev_Pop_Fields = {
   __typename?: 'lsp29_encrypted_assets_length_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Lsp29_Encrypted_Assets_Length_Stddev_Samp_Fields = {
   __typename?: 'lsp29_encrypted_assets_length_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -11978,9 +16848,12 @@ export type Lsp29_Encrypted_Assets_Length_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Lsp29_Encrypted_Assets_Length_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   raw_value?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
   value?: InputMaybe<Scalars['numeric']['input']>;
 };
@@ -11988,24 +16861,36 @@ export type Lsp29_Encrypted_Assets_Length_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Lsp29_Encrypted_Assets_Length_Sum_Fields = {
   __typename?: 'lsp29_encrypted_assets_length_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Lsp29_Encrypted_Assets_Length_Var_Pop_Fields = {
   __typename?: 'lsp29_encrypted_assets_length_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Lsp29_Encrypted_Assets_Length_Var_Samp_Fields = {
   __typename?: 'lsp29_encrypted_assets_length_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Lsp29_Encrypted_Assets_Length_Variance_Fields = {
   __typename?: 'lsp29_encrypted_assets_length_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -12013,7 +16898,7 @@ export type Lsp29_Encrypted_Assets_Length_Variance_Fields = {
 export type Nft = {
   __typename?: 'nft';
   address: Scalars['String']['output'];
-  block_number?: Maybe<Scalars['Int']['output']>;
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   chillClaimed?: Maybe<Chill_Claimed>;
   /** An object relationship */
@@ -12029,7 +16914,7 @@ export type Nft = {
   is_minted: Scalars['Boolean']['output'];
   /** An object relationship */
   level?: Maybe<Orb_Level>;
-  log_index?: Maybe<Scalars['Int']['output']>;
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp4Metadata?: Maybe<Lsp4_Metadata>;
   /** An object relationship */
@@ -12040,13 +16925,13 @@ export type Nft = {
   orbsClaimed?: Maybe<Orbs_Claimed>;
   /** An object relationship */
   ownedToken?: Maybe<Owned_Token>;
-  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
   /** An array relationship */
   tokenIdDataChanged: Array<Token_Id_Data_Changed>;
   /** An aggregate relationship */
   tokenIdDataChanged_aggregate: Token_Id_Data_Changed_Aggregate;
   token_id: Scalars['String']['output'];
-  transaction_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index: Scalars['Int']['output'];
   /** An array relationship */
   transfer: Array<Transfer>;
   /** An aggregate relationship */
@@ -12130,9 +17015,17 @@ export type Nft_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "nft" */
 export type Nft_Aggregate_Fields = {
   __typename?: 'nft_aggregate_fields';
+  avg?: Maybe<Nft_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Nft_Max_Fields>;
   min?: Maybe<Nft_Min_Fields>;
+  stddev?: Maybe<Nft_Stddev_Fields>;
+  stddev_pop?: Maybe<Nft_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Nft_Stddev_Samp_Fields>;
+  sum?: Maybe<Nft_Sum_Fields>;
+  var_pop?: Maybe<Nft_Var_Pop_Fields>;
+  var_samp?: Maybe<Nft_Var_Samp_Fields>;
+  variance?: Maybe<Nft_Variance_Fields>;
 };
 
 
@@ -12144,9 +17037,32 @@ export type Nft_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "nft" */
 export type Nft_Aggregate_Order_By = {
+  avg?: InputMaybe<Nft_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Nft_Max_Order_By>;
   min?: InputMaybe<Nft_Min_Order_By>;
+  stddev?: InputMaybe<Nft_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Nft_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Nft_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Nft_Sum_Order_By>;
+  var_pop?: InputMaybe<Nft_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Nft_Var_Samp_Order_By>;
+  variance?: InputMaybe<Nft_Variance_Order_By>;
+};
+
+/** aggregate avg on columns */
+export type Nft_Avg_Fields = {
+  __typename?: 'nft_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by avg() on columns of table "nft" */
+export type Nft_Avg_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "nft". All fields are combined with a logical 'AND'. */
@@ -12155,6 +17071,7 @@ export type Nft_Bool_Exp = {
   _not?: InputMaybe<Nft_Bool_Exp>;
   _or?: InputMaybe<Array<Nft_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   chillClaimed?: InputMaybe<Chill_Claimed_Bool_Exp>;
   cooldownExpiry?: InputMaybe<Orb_Cooldown_Expiry_Bool_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
@@ -12165,15 +17082,18 @@ export type Nft_Bool_Exp = {
   is_burned?: InputMaybe<Boolean_Comparison_Exp>;
   is_minted?: InputMaybe<Boolean_Comparison_Exp>;
   level?: InputMaybe<Orb_Level_Bool_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Bool_Exp>;
   lsp4MetadataBaseUri?: InputMaybe<Lsp4_Metadata_Bool_Exp>;
   lsp4_metadata_base_uri_id?: InputMaybe<String_Comparison_Exp>;
   lsp4_metadata_id?: InputMaybe<String_Comparison_Exp>;
   orbsClaimed?: InputMaybe<Orbs_Claimed_Bool_Exp>;
   ownedToken?: InputMaybe<Owned_Token_Bool_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   tokenIdDataChanged?: InputMaybe<Token_Id_Data_Changed_Bool_Exp>;
   tokenIdDataChanged_aggregate?: InputMaybe<Token_Id_Data_Changed_Aggregate_Bool_Exp>;
   token_id?: InputMaybe<String_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   transfer?: InputMaybe<Transfer_Bool_Exp>;
   transfer_aggregate?: InputMaybe<Transfer_Aggregate_Bool_Exp>;
 };
@@ -12182,51 +17102,68 @@ export type Nft_Bool_Exp = {
 export type Nft_Max_Fields = {
   __typename?: 'nft_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   formatted_token_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_base_uri_id?: Maybe<Scalars['String']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by max() on columns of table "nft" */
 export type Nft_Max_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   formatted_token_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4_metadata_base_uri_id?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
 export type Nft_Min_Fields = {
   __typename?: 'nft_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   formatted_token_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp4_metadata_base_uri_id?: Maybe<Scalars['String']['output']>;
   lsp4_metadata_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by min() on columns of table "nft" */
 export type Nft_Min_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   formatted_token_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4_metadata_base_uri_id?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Ordering options when selecting data from "nft". */
 export type Nft_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   chillClaimed?: InputMaybe<Chill_Claimed_Order_By>;
   cooldownExpiry?: InputMaybe<Orb_Cooldown_Expiry_Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
@@ -12237,14 +17174,17 @@ export type Nft_Order_By = {
   is_burned?: InputMaybe<Order_By>;
   is_minted?: InputMaybe<Order_By>;
   level?: InputMaybe<Orb_Level_Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp4Metadata?: InputMaybe<Lsp4_Metadata_Order_By>;
   lsp4MetadataBaseUri?: InputMaybe<Lsp4_Metadata_Order_By>;
   lsp4_metadata_base_uri_id?: InputMaybe<Order_By>;
   lsp4_metadata_id?: InputMaybe<Order_By>;
   orbsClaimed?: InputMaybe<Orbs_Claimed_Order_By>;
   ownedToken?: InputMaybe<Owned_Token_Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   tokenIdDataChanged_aggregate?: InputMaybe<Token_Id_Data_Changed_Aggregate_Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   transfer_aggregate?: InputMaybe<Transfer_Aggregate_Order_By>;
 };
 
@@ -12252,6 +17192,8 @@ export type Nft_Order_By = {
 export type Nft_Select_Column =
   /** column name */
   | 'address'
+  /** column name */
+  | 'block_number'
   /** column name */
   | 'digital_asset_id'
   /** column name */
@@ -12263,11 +17205,17 @@ export type Nft_Select_Column =
   /** column name */
   | 'is_minted'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'lsp4_metadata_base_uri_id'
   /** column name */
   | 'lsp4_metadata_id'
   /** column name */
-  | 'token_id';
+  | 'timestamp'
+  /** column name */
+  | 'token_id'
+  /** column name */
+  | 'transaction_index';
 
 /** select "nft_aggregate_bool_exp_bool_and_arguments_columns" columns of table "nft" */
 export type Nft_Select_Column_Nft_Aggregate_Bool_Exp_Bool_And_Arguments_Columns =
@@ -12283,6 +17231,51 @@ export type Nft_Select_Column_Nft_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns =
   /** column name */
   | 'is_minted';
 
+/** aggregate stddev on columns */
+export type Nft_Stddev_Fields = {
+  __typename?: 'nft_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev() on columns of table "nft" */
+export type Nft_Stddev_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Nft_Stddev_Pop_Fields = {
+  __typename?: 'nft_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_pop() on columns of table "nft" */
+export type Nft_Stddev_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Nft_Stddev_Samp_Fields = {
+  __typename?: 'nft_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "nft" */
+export type Nft_Stddev_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
 /** Streaming cursor of the table "nft" */
 export type Nft_Stream_Cursor_Input = {
   /** Stream column input with initial value */
@@ -12294,14 +17287,78 @@ export type Nft_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Nft_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   formatted_token_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   is_burned?: InputMaybe<Scalars['Boolean']['input']>;
   is_minted?: InputMaybe<Scalars['Boolean']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp4_metadata_base_uri_id?: InputMaybe<Scalars['String']['input']>;
   lsp4_metadata_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
   token_id?: InputMaybe<Scalars['String']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Nft_Sum_Fields = {
+  __typename?: 'nft_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** order by sum() on columns of table "nft" */
+export type Nft_Sum_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_pop on columns */
+export type Nft_Var_Pop_Fields = {
+  __typename?: 'nft_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_pop() on columns of table "nft" */
+export type Nft_Var_Pop_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Nft_Var_Samp_Fields = {
+  __typename?: 'nft_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_samp() on columns of table "nft" */
+export type Nft_Var_Samp_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Nft_Variance_Fields = {
+  __typename?: 'nft_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "nft" */
+export type Nft_Variance_Order_By = {
+  block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'. */
@@ -12321,14 +17378,18 @@ export type Numeric_Comparison_Exp = {
 export type Orb_Cooldown_Expiry = {
   __typename?: 'orb_cooldown_expiry';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   nft?: Maybe<Nft>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
   token_id: Scalars['String']['output'];
+  transaction_index: Scalars['Int']['output'];
   value: Scalars['Int']['output'];
 };
 
@@ -12365,6 +17426,9 @@ export type Orb_Cooldown_Expiry_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Orb_Cooldown_Expiry_Avg_Fields = {
   __typename?: 'orb_cooldown_expiry_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -12374,12 +17438,16 @@ export type Orb_Cooldown_Expiry_Bool_Exp = {
   _not?: InputMaybe<Orb_Cooldown_Expiry_Bool_Exp>;
   _or?: InputMaybe<Array<Orb_Cooldown_Expiry_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   nft?: InputMaybe<Nft_Bool_Exp>;
   nft_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   token_id?: InputMaybe<String_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<Int_Comparison_Exp>;
 };
 
@@ -12387,10 +17455,14 @@ export type Orb_Cooldown_Expiry_Bool_Exp = {
 export type Orb_Cooldown_Expiry_Max_Fields = {
   __typename?: 'orb_cooldown_expiry_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
@@ -12398,22 +17470,30 @@ export type Orb_Cooldown_Expiry_Max_Fields = {
 export type Orb_Cooldown_Expiry_Min_Fields = {
   __typename?: 'orb_cooldown_expiry_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Ordering options when selecting data from "orb_cooldown_expiry". */
 export type Orb_Cooldown_Expiry_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   nft?: InputMaybe<Nft_Order_By>;
   nft_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -12422,31 +17502,48 @@ export type Orb_Cooldown_Expiry_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'nft_id'
   /** column name */
+  | 'timestamp'
+  /** column name */
   | 'token_id'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'value';
 
 /** aggregate stddev on columns */
 export type Orb_Cooldown_Expiry_Stddev_Fields = {
   __typename?: 'orb_cooldown_expiry_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Orb_Cooldown_Expiry_Stddev_Pop_Fields = {
   __typename?: 'orb_cooldown_expiry_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Orb_Cooldown_Expiry_Stddev_Samp_Fields = {
   __typename?: 'orb_cooldown_expiry_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -12461,34 +17558,50 @@ export type Orb_Cooldown_Expiry_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Orb_Cooldown_Expiry_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   nft_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
   token_id?: InputMaybe<Scalars['String']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Orb_Cooldown_Expiry_Sum_Fields = {
   __typename?: 'orb_cooldown_expiry_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Orb_Cooldown_Expiry_Var_Pop_Fields = {
   __typename?: 'orb_cooldown_expiry_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Orb_Cooldown_Expiry_Var_Samp_Fields = {
   __typename?: 'orb_cooldown_expiry_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Orb_Cooldown_Expiry_Variance_Fields = {
   __typename?: 'orb_cooldown_expiry_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -12496,14 +17609,18 @@ export type Orb_Cooldown_Expiry_Variance_Fields = {
 export type Orb_Faction = {
   __typename?: 'orb_faction';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   nft?: Maybe<Nft>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
   token_id: Scalars['String']['output'];
+  transaction_index: Scalars['Int']['output'];
   value: Scalars['String']['output'];
 };
 
@@ -12517,9 +17634,17 @@ export type Orb_Faction_Aggregate = {
 /** aggregate fields of "orb_faction" */
 export type Orb_Faction_Aggregate_Fields = {
   __typename?: 'orb_faction_aggregate_fields';
+  avg?: Maybe<Orb_Faction_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Orb_Faction_Max_Fields>;
   min?: Maybe<Orb_Faction_Min_Fields>;
+  stddev?: Maybe<Orb_Faction_Stddev_Fields>;
+  stddev_pop?: Maybe<Orb_Faction_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Orb_Faction_Stddev_Samp_Fields>;
+  sum?: Maybe<Orb_Faction_Sum_Fields>;
+  var_pop?: Maybe<Orb_Faction_Var_Pop_Fields>;
+  var_samp?: Maybe<Orb_Faction_Var_Samp_Fields>;
+  variance?: Maybe<Orb_Faction_Variance_Fields>;
 };
 
 
@@ -12529,18 +17654,30 @@ export type Orb_Faction_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Orb_Faction_Avg_Fields = {
+  __typename?: 'orb_faction_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "orb_faction". All fields are combined with a logical 'AND'. */
 export type Orb_Faction_Bool_Exp = {
   _and?: InputMaybe<Array<Orb_Faction_Bool_Exp>>;
   _not?: InputMaybe<Orb_Faction_Bool_Exp>;
   _or?: InputMaybe<Array<Orb_Faction_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   nft?: InputMaybe<Nft_Bool_Exp>;
   nft_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   token_id?: InputMaybe<String_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -12548,10 +17685,14 @@ export type Orb_Faction_Bool_Exp = {
 export type Orb_Faction_Max_Fields = {
   __typename?: 'orb_faction_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -12559,22 +17700,30 @@ export type Orb_Faction_Max_Fields = {
 export type Orb_Faction_Min_Fields = {
   __typename?: 'orb_faction_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "orb_faction". */
 export type Orb_Faction_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   nft?: InputMaybe<Nft_Order_By>;
   nft_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -12583,15 +17732,47 @@ export type Orb_Faction_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'nft_id'
+  /** column name */
+  | 'timestamp'
   /** column name */
   | 'token_id'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Orb_Faction_Stddev_Fields = {
+  __typename?: 'orb_faction_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Orb_Faction_Stddev_Pop_Fields = {
+  __typename?: 'orb_faction_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Orb_Faction_Stddev_Samp_Fields = {
+  __typename?: 'orb_faction_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "orb_faction" */
 export type Orb_Faction_Stream_Cursor_Input = {
@@ -12604,25 +17785,65 @@ export type Orb_Faction_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Orb_Faction_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   nft_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
   token_id?: InputMaybe<Scalars['String']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Orb_Faction_Sum_Fields = {
+  __typename?: 'orb_faction_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Orb_Faction_Var_Pop_Fields = {
+  __typename?: 'orb_faction_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Orb_Faction_Var_Samp_Fields = {
+  __typename?: 'orb_faction_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Orb_Faction_Variance_Fields = {
+  __typename?: 'orb_faction_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "orb_level" */
 export type Orb_Level = {
   __typename?: 'orb_level';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   nft?: Maybe<Nft>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
   token_id: Scalars['String']['output'];
+  transaction_index: Scalars['Int']['output'];
   value: Scalars['Int']['output'];
 };
 
@@ -12659,6 +17880,9 @@ export type Orb_Level_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Orb_Level_Avg_Fields = {
   __typename?: 'orb_level_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -12668,12 +17892,16 @@ export type Orb_Level_Bool_Exp = {
   _not?: InputMaybe<Orb_Level_Bool_Exp>;
   _or?: InputMaybe<Array<Orb_Level_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   nft?: InputMaybe<Nft_Bool_Exp>;
   nft_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   token_id?: InputMaybe<String_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<Int_Comparison_Exp>;
 };
 
@@ -12681,10 +17909,14 @@ export type Orb_Level_Bool_Exp = {
 export type Orb_Level_Max_Fields = {
   __typename?: 'orb_level_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
@@ -12692,22 +17924,30 @@ export type Orb_Level_Max_Fields = {
 export type Orb_Level_Min_Fields = {
   __typename?: 'orb_level_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Ordering options when selecting data from "orb_level". */
 export type Orb_Level_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   nft?: InputMaybe<Nft_Order_By>;
   nft_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -12716,31 +17956,48 @@ export type Orb_Level_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'nft_id'
   /** column name */
+  | 'timestamp'
+  /** column name */
   | 'token_id'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'value';
 
 /** aggregate stddev on columns */
 export type Orb_Level_Stddev_Fields = {
   __typename?: 'orb_level_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Orb_Level_Stddev_Pop_Fields = {
   __typename?: 'orb_level_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Orb_Level_Stddev_Samp_Fields = {
   __typename?: 'orb_level_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -12755,34 +18012,50 @@ export type Orb_Level_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Orb_Level_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   nft_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
   token_id?: InputMaybe<Scalars['String']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Orb_Level_Sum_Fields = {
   __typename?: 'orb_level_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Orb_Level_Var_Pop_Fields = {
   __typename?: 'orb_level_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Orb_Level_Var_Samp_Fields = {
   __typename?: 'orb_level_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Orb_Level_Variance_Fields = {
   __typename?: 'orb_level_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -12790,14 +18063,18 @@ export type Orb_Level_Variance_Fields = {
 export type Orbs_Claimed = {
   __typename?: 'orbs_claimed';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   nft?: Maybe<Nft>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
   token_id: Scalars['String']['output'];
+  transaction_index: Scalars['Int']['output'];
   value: Scalars['Boolean']['output'];
 };
 
@@ -12811,9 +18088,17 @@ export type Orbs_Claimed_Aggregate = {
 /** aggregate fields of "orbs_claimed" */
 export type Orbs_Claimed_Aggregate_Fields = {
   __typename?: 'orbs_claimed_aggregate_fields';
+  avg?: Maybe<Orbs_Claimed_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Orbs_Claimed_Max_Fields>;
   min?: Maybe<Orbs_Claimed_Min_Fields>;
+  stddev?: Maybe<Orbs_Claimed_Stddev_Fields>;
+  stddev_pop?: Maybe<Orbs_Claimed_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Orbs_Claimed_Stddev_Samp_Fields>;
+  sum?: Maybe<Orbs_Claimed_Sum_Fields>;
+  var_pop?: Maybe<Orbs_Claimed_Var_Pop_Fields>;
+  var_samp?: Maybe<Orbs_Claimed_Var_Samp_Fields>;
+  variance?: Maybe<Orbs_Claimed_Variance_Fields>;
 };
 
 
@@ -12823,18 +18108,30 @@ export type Orbs_Claimed_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Orbs_Claimed_Avg_Fields = {
+  __typename?: 'orbs_claimed_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "orbs_claimed". All fields are combined with a logical 'AND'. */
 export type Orbs_Claimed_Bool_Exp = {
   _and?: InputMaybe<Array<Orbs_Claimed_Bool_Exp>>;
   _not?: InputMaybe<Orbs_Claimed_Bool_Exp>;
   _or?: InputMaybe<Array<Orbs_Claimed_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   nft?: InputMaybe<Nft_Bool_Exp>;
   nft_id?: InputMaybe<String_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   token_id?: InputMaybe<String_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<Boolean_Comparison_Exp>;
 };
 
@@ -12842,31 +18139,43 @@ export type Orbs_Claimed_Bool_Exp = {
 export type Orbs_Claimed_Max_Fields = {
   __typename?: 'orbs_claimed_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate min on columns */
 export type Orbs_Claimed_Min_Fields = {
   __typename?: 'orbs_claimed_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Ordering options when selecting data from "orbs_claimed". */
 export type Orbs_Claimed_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   nft?: InputMaybe<Nft_Order_By>;
   nft_id?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -12875,15 +18184,47 @@ export type Orbs_Claimed_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'nft_id'
+  /** column name */
+  | 'timestamp'
   /** column name */
   | 'token_id'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'value';
+
+/** aggregate stddev on columns */
+export type Orbs_Claimed_Stddev_Fields = {
+  __typename?: 'orbs_claimed_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Orbs_Claimed_Stddev_Pop_Fields = {
+  __typename?: 'orbs_claimed_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Orbs_Claimed_Stddev_Samp_Fields = {
+  __typename?: 'orbs_claimed_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "orbs_claimed" */
 export type Orbs_Claimed_Stream_Cursor_Input = {
@@ -12896,11 +18237,47 @@ export type Orbs_Claimed_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Orbs_Claimed_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   nft_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
   token_id?: InputMaybe<Scalars['String']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Orbs_Claimed_Sum_Fields = {
+  __typename?: 'orbs_claimed_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Orbs_Claimed_Var_Pop_Fields = {
+  __typename?: 'orbs_claimed_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Orbs_Claimed_Var_Samp_Fields = {
+  __typename?: 'orbs_claimed_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Orbs_Claimed_Variance_Fields = {
+  __typename?: 'orbs_claimed_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** column ordering options */
@@ -12928,14 +18305,14 @@ export type Owned_Asset = {
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
-  log_index?: Maybe<Scalars['Int']['output']>;
+  log_index: Scalars['Int']['output'];
   owner: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
   /** An array relationship */
   tokenIds: Array<Owned_Token>;
   /** An aggregate relationship */
   tokenIds_aggregate: Owned_Token_Aggregate;
-  transaction_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -13022,12 +18399,16 @@ export type Owned_Asset_Avg_Fields = {
   __typename?: 'owned_asset_avg_fields';
   balance?: Maybe<Scalars['Float']['output']>;
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "owned_asset" */
 export type Owned_Asset_Avg_Order_By = {
   balance?: InputMaybe<Order_By>;
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "owned_asset". All fields are combined with a logical 'AND'. */
@@ -13041,10 +18422,12 @@ export type Owned_Asset_Bool_Exp = {
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   owner?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   tokenIds?: InputMaybe<Owned_Token_Bool_Exp>;
   tokenIds_aggregate?: InputMaybe<Owned_Token_Aggregate_Bool_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
 };
@@ -13057,8 +18440,10 @@ export type Owned_Asset_Max_Fields = {
   block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   owner?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -13069,8 +18454,10 @@ export type Owned_Asset_Max_Order_By = {
   block_number?: InputMaybe<Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   owner?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -13082,8 +18469,10 @@ export type Owned_Asset_Min_Fields = {
   block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   owner?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -13094,8 +18483,10 @@ export type Owned_Asset_Min_Order_By = {
   block_number?: InputMaybe<Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   owner?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -13107,9 +18498,11 @@ export type Owned_Asset_Order_By = {
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   owner?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
   tokenIds_aggregate?: InputMaybe<Owned_Token_Aggregate_Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
@@ -13127,9 +18520,13 @@ export type Owned_Asset_Select_Column =
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'owner'
   /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'universal_profile_id';
 
@@ -13138,12 +18535,16 @@ export type Owned_Asset_Stddev_Fields = {
   __typename?: 'owned_asset_stddev_fields';
   balance?: Maybe<Scalars['Float']['output']>;
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "owned_asset" */
 export type Owned_Asset_Stddev_Order_By = {
   balance?: InputMaybe<Order_By>;
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
@@ -13151,12 +18552,16 @@ export type Owned_Asset_Stddev_Pop_Fields = {
   __typename?: 'owned_asset_stddev_pop_fields';
   balance?: Maybe<Scalars['Float']['output']>;
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "owned_asset" */
 export type Owned_Asset_Stddev_Pop_Order_By = {
   balance?: InputMaybe<Order_By>;
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
@@ -13164,12 +18569,16 @@ export type Owned_Asset_Stddev_Samp_Fields = {
   __typename?: 'owned_asset_stddev_samp_fields';
   balance?: Maybe<Scalars['Float']['output']>;
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "owned_asset" */
 export type Owned_Asset_Stddev_Samp_Order_By = {
   balance?: InputMaybe<Order_By>;
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "owned_asset" */
@@ -13187,8 +18596,10 @@ export type Owned_Asset_Stream_Cursor_Value_Input = {
   block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   owner?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -13197,12 +18608,16 @@ export type Owned_Asset_Sum_Fields = {
   __typename?: 'owned_asset_sum_fields';
   balance?: Maybe<Scalars['numeric']['output']>;
   block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "owned_asset" */
 export type Owned_Asset_Sum_Order_By = {
   balance?: InputMaybe<Order_By>;
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
@@ -13210,12 +18625,16 @@ export type Owned_Asset_Var_Pop_Fields = {
   __typename?: 'owned_asset_var_pop_fields';
   balance?: Maybe<Scalars['Float']['output']>;
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "owned_asset" */
 export type Owned_Asset_Var_Pop_Order_By = {
   balance?: InputMaybe<Order_By>;
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
@@ -13223,12 +18642,16 @@ export type Owned_Asset_Var_Samp_Fields = {
   __typename?: 'owned_asset_var_samp_fields';
   balance?: Maybe<Scalars['Float']['output']>;
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "owned_asset" */
 export type Owned_Asset_Var_Samp_Order_By = {
   balance?: InputMaybe<Order_By>;
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
@@ -13236,12 +18659,16 @@ export type Owned_Asset_Variance_Fields = {
   __typename?: 'owned_asset_variance_fields';
   balance?: Maybe<Scalars['Float']['output']>;
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "owned_asset" */
 export type Owned_Asset_Variance_Order_By = {
   balance?: InputMaybe<Order_By>;
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "owned_token" */
@@ -13253,7 +18680,7 @@ export type Owned_Token = {
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
-  log_index?: Maybe<Scalars['Int']['output']>;
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   nft?: Maybe<Nft>;
   nft_id?: Maybe<Scalars['String']['output']>;
@@ -13263,7 +18690,7 @@ export type Owned_Token = {
   owner: Scalars['String']['output'];
   timestamp: Scalars['timestamptz']['output'];
   token_id: Scalars['String']['output'];
-  transaction_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -13329,11 +18756,15 @@ export type Owned_Token_Aggregate_Order_By = {
 export type Owned_Token_Avg_Fields = {
   __typename?: 'owned_token_avg_fields';
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "owned_token" */
 export type Owned_Token_Avg_Order_By = {
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "owned_token". All fields are combined with a logical 'AND'. */
@@ -13346,6 +18777,7 @@ export type Owned_Token_Bool_Exp = {
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   nft?: InputMaybe<Nft_Bool_Exp>;
   nft_id?: InputMaybe<String_Comparison_Exp>;
   ownedAsset?: InputMaybe<Owned_Asset_Bool_Exp>;
@@ -13353,6 +18785,7 @@ export type Owned_Token_Bool_Exp = {
   owner?: InputMaybe<String_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
   token_id?: InputMaybe<String_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
 };
@@ -13364,11 +18797,13 @@ export type Owned_Token_Max_Fields = {
   block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
   owned_asset_id?: Maybe<Scalars['String']['output']>;
   owner?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -13378,11 +18813,13 @@ export type Owned_Token_Max_Order_By = {
   block_number?: InputMaybe<Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   nft_id?: InputMaybe<Order_By>;
   owned_asset_id?: InputMaybe<Order_By>;
   owner?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -13393,11 +18830,13 @@ export type Owned_Token_Min_Fields = {
   block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
   owned_asset_id?: Maybe<Scalars['String']['output']>;
   owner?: Maybe<Scalars['String']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
   token_id?: Maybe<Scalars['String']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -13407,11 +18846,13 @@ export type Owned_Token_Min_Order_By = {
   block_number?: InputMaybe<Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   nft_id?: InputMaybe<Order_By>;
   owned_asset_id?: InputMaybe<Order_By>;
   owner?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
 
@@ -13422,6 +18863,7 @@ export type Owned_Token_Order_By = {
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   nft?: InputMaybe<Nft_Order_By>;
   nft_id?: InputMaybe<Order_By>;
   ownedAsset?: InputMaybe<Owned_Asset_Order_By>;
@@ -13429,6 +18871,7 @@ export type Owned_Token_Order_By = {
   owner?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
   token_id?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
@@ -13444,6 +18887,8 @@ export type Owned_Token_Select_Column =
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'nft_id'
   /** column name */
   | 'owned_asset_id'
@@ -13454,39 +18899,53 @@ export type Owned_Token_Select_Column =
   /** column name */
   | 'token_id'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'universal_profile_id';
 
 /** aggregate stddev on columns */
 export type Owned_Token_Stddev_Fields = {
   __typename?: 'owned_token_stddev_fields';
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "owned_token" */
 export type Owned_Token_Stddev_Order_By = {
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Owned_Token_Stddev_Pop_Fields = {
   __typename?: 'owned_token_stddev_pop_fields';
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "owned_token" */
 export type Owned_Token_Stddev_Pop_Order_By = {
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Owned_Token_Stddev_Samp_Fields = {
   __typename?: 'owned_token_stddev_samp_fields';
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "owned_token" */
 export type Owned_Token_Stddev_Samp_Order_By = {
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "owned_token" */
@@ -13503,11 +18962,13 @@ export type Owned_Token_Stream_Cursor_Value_Input = {
   block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   nft_id?: InputMaybe<Scalars['String']['input']>;
   owned_asset_id?: InputMaybe<Scalars['String']['input']>;
   owner?: InputMaybe<Scalars['String']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
   token_id?: InputMaybe<Scalars['String']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -13515,44 +18976,60 @@ export type Owned_Token_Stream_Cursor_Value_Input = {
 export type Owned_Token_Sum_Fields = {
   __typename?: 'owned_token_sum_fields';
   block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "owned_token" */
 export type Owned_Token_Sum_Order_By = {
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Owned_Token_Var_Pop_Fields = {
   __typename?: 'owned_token_var_pop_fields';
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "owned_token" */
 export type Owned_Token_Var_Pop_Order_By = {
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Owned_Token_Var_Samp_Fields = {
   __typename?: 'owned_token_var_samp_fields';
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "owned_token" */
 export type Owned_Token_Var_Samp_Order_By = {
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Owned_Token_Variance_Fields = {
   __typename?: 'owned_token_variance_fields';
   block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "owned_token" */
 export type Owned_Token_Variance_Order_By = {
   block_number?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "ownership_transferred" */
@@ -19108,11 +24585,14 @@ export type Token_Id_Data_Changed_Variance_Order_By = {
 export type Total_Supply = {
   __typename?: 'total_supply';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   value: Scalars['numeric']['output'];
 };
 
@@ -19149,6 +24629,9 @@ export type Total_Supply_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Total_Supply_Avg_Fields = {
   __typename?: 'total_supply_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -19158,10 +24641,13 @@ export type Total_Supply_Bool_Exp = {
   _not?: InputMaybe<Total_Supply_Bool_Exp>;
   _or?: InputMaybe<Array<Total_Supply_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   value?: InputMaybe<Numeric_Comparison_Exp>;
 };
 
@@ -19169,9 +24655,12 @@ export type Total_Supply_Bool_Exp = {
 export type Total_Supply_Max_Fields = {
   __typename?: 'total_supply_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
 
@@ -19179,19 +24668,25 @@ export type Total_Supply_Max_Fields = {
 export type Total_Supply_Min_Fields = {
   __typename?: 'total_supply_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
 
 /** Ordering options when selecting data from "total_supply". */
 export type Total_Supply_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -19200,29 +24695,44 @@ export type Total_Supply_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'digital_asset_id'
   /** column name */
   | 'id'
   /** column name */
+  | 'log_index'
+  /** column name */
   | 'timestamp'
+  /** column name */
+  | 'transaction_index'
   /** column name */
   | 'value';
 
 /** aggregate stddev on columns */
 export type Total_Supply_Stddev_Fields = {
   __typename?: 'total_supply_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Total_Supply_Stddev_Pop_Fields = {
   __typename?: 'total_supply_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Total_Supply_Stddev_Samp_Fields = {
   __typename?: 'total_supply_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -19237,33 +24747,48 @@ export type Total_Supply_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Total_Supply_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   value?: InputMaybe<Scalars['numeric']['input']>;
 };
 
 /** aggregate sum on columns */
 export type Total_Supply_Sum_Fields = {
   __typename?: 'total_supply_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   value?: Maybe<Scalars['numeric']['output']>;
 };
 
 /** aggregate var_pop on columns */
 export type Total_Supply_Var_Pop_Fields = {
   __typename?: 'total_supply_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate var_samp on columns */
 export type Total_Supply_Var_Samp_Fields = {
   __typename?: 'total_supply_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
 /** aggregate variance on columns */
 export type Total_Supply_Variance_Fields = {
   __typename?: 'total_supply_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
   value?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -20067,7 +25592,7 @@ export type Unfollow_Variance_Order_By = {
 export type Universal_Profile = {
   __typename?: 'universal_profile';
   address: Scalars['String']['output'];
-  block_number?: Maybe<Scalars['Int']['output']>;
+  block_number: Scalars['Int']['output'];
   /** An array relationship */
   dataChanged: Array<Data_Changed>;
   /** An aggregate relationship */
@@ -20093,7 +25618,7 @@ export type Universal_Profile = {
   incomingTransfers: Array<Transfer>;
   /** An aggregate relationship */
   incomingTransfers_aggregate: Transfer_Aggregate;
-  log_index?: Maybe<Scalars['Int']['output']>;
+  log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp3Profile?: Maybe<Lsp3_Profile>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
@@ -20163,8 +25688,8 @@ export type Universal_Profile = {
   receivedOwnership: Array<Ownership_Transferred>;
   /** An aggregate relationship */
   receivedOwnership_aggregate: Ownership_Transferred_Aggregate;
-  timestamp?: Maybe<Scalars['timestamptz']['output']>;
-  transaction_index?: Maybe<Scalars['Int']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   /** An array relationship */
   transferredOwnership: Array<Ownership_Transferred>;
   /** An aggregate relationship */
@@ -20697,9 +26222,17 @@ export type Universal_Profile_Aggregate = {
 /** aggregate fields of "universal_profile" */
 export type Universal_Profile_Aggregate_Fields = {
   __typename?: 'universal_profile_aggregate_fields';
+  avg?: Maybe<Universal_Profile_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Universal_Profile_Max_Fields>;
   min?: Maybe<Universal_Profile_Min_Fields>;
+  stddev?: Maybe<Universal_Profile_Stddev_Fields>;
+  stddev_pop?: Maybe<Universal_Profile_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Universal_Profile_Stddev_Samp_Fields>;
+  sum?: Maybe<Universal_Profile_Sum_Fields>;
+  var_pop?: Maybe<Universal_Profile_Var_Pop_Fields>;
+  var_samp?: Maybe<Universal_Profile_Var_Samp_Fields>;
+  variance?: Maybe<Universal_Profile_Variance_Fields>;
 };
 
 
@@ -20709,12 +26242,21 @@ export type Universal_Profile_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Universal_Profile_Avg_Fields = {
+  __typename?: 'universal_profile_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "universal_profile". All fields are combined with a logical 'AND'. */
 export type Universal_Profile_Bool_Exp = {
   _and?: InputMaybe<Array<Universal_Profile_Bool_Exp>>;
   _not?: InputMaybe<Universal_Profile_Bool_Exp>;
   _or?: InputMaybe<Array<Universal_Profile_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   dataChanged?: InputMaybe<Data_Changed_Bool_Exp>;
   dataChanged_aggregate?: InputMaybe<Data_Changed_Aggregate_Bool_Exp>;
   executed?: InputMaybe<Executed_Bool_Exp>;
@@ -20728,6 +26270,7 @@ export type Universal_Profile_Bool_Exp = {
   id?: InputMaybe<String_Comparison_Exp>;
   incomingTransfers?: InputMaybe<Transfer_Bool_Exp>;
   incomingTransfers_aggregate?: InputMaybe<Transfer_Aggregate_Bool_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Bool_Exp>;
   lsp3_profile_id?: InputMaybe<String_Comparison_Exp>;
   lsp4CreatorOf?: InputMaybe<Lsp4_Creator_Bool_Exp>;
@@ -20763,6 +26306,8 @@ export type Universal_Profile_Bool_Exp = {
   ownershipTransferred_aggregate?: InputMaybe<Ownership_Transferred_Aggregate_Bool_Exp>;
   receivedOwnership?: InputMaybe<Ownership_Transferred_Bool_Exp>;
   receivedOwnership_aggregate?: InputMaybe<Ownership_Transferred_Aggregate_Bool_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   transferredOwnership?: InputMaybe<Ownership_Transferred_Bool_Exp>;
   transferredOwnership_aggregate?: InputMaybe<Ownership_Transferred_Aggregate_Bool_Exp>;
   unfollowed?: InputMaybe<Unfollow_Bool_Exp>;
@@ -20779,21 +26324,30 @@ export type Universal_Profile_Bool_Exp = {
 export type Universal_Profile_Max_Fields = {
   __typename?: 'universal_profile_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** aggregate min on columns */
 export type Universal_Profile_Min_Fields = {
   __typename?: 'universal_profile_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   lsp3_profile_id?: Maybe<Scalars['String']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Ordering options when selecting data from "universal_profile". */
 export type Universal_Profile_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   dataChanged_aggregate?: InputMaybe<Data_Changed_Aggregate_Order_By>;
   executedTarget_aggregate?: InputMaybe<Executed_Aggregate_Order_By>;
   executed_aggregate?: InputMaybe<Executed_Aggregate_Order_By>;
@@ -20801,6 +26355,7 @@ export type Universal_Profile_Order_By = {
   followed_aggregate?: InputMaybe<Follow_Aggregate_Order_By>;
   id?: InputMaybe<Order_By>;
   incomingTransfers_aggregate?: InputMaybe<Transfer_Aggregate_Order_By>;
+  log_index?: InputMaybe<Order_By>;
   lsp3Profile?: InputMaybe<Lsp3_Profile_Order_By>;
   lsp3_profile_id?: InputMaybe<Order_By>;
   lsp4CreatorOf_aggregate?: InputMaybe<Lsp4_Creator_Aggregate_Order_By>;
@@ -20822,6 +26377,8 @@ export type Universal_Profile_Order_By = {
   owner?: InputMaybe<Universal_Profile_Owner_Order_By>;
   ownershipTransferred_aggregate?: InputMaybe<Ownership_Transferred_Aggregate_Order_By>;
   receivedOwnership_aggregate?: InputMaybe<Ownership_Transferred_Aggregate_Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   transferredOwnership_aggregate?: InputMaybe<Ownership_Transferred_Aggregate_Order_By>;
   unfollowedBy_aggregate?: InputMaybe<Unfollow_Aggregate_Order_By>;
   unfollowed_aggregate?: InputMaybe<Unfollow_Aggregate_Order_By>;
@@ -20833,8 +26390,11 @@ export type Universal_Profile_Order_By = {
 export type Universal_Profile_Owner = {
   __typename?: 'universal_profile_owner';
   address: Scalars['String']['output'];
+  block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
+  log_index: Scalars['Int']['output'];
   timestamp: Scalars['timestamptz']['output'];
+  transaction_index: Scalars['Int']['output'];
   /** An object relationship */
   universalProfile?: Maybe<Universal_Profile>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
@@ -20850,9 +26410,17 @@ export type Universal_Profile_Owner_Aggregate = {
 /** aggregate fields of "universal_profile_owner" */
 export type Universal_Profile_Owner_Aggregate_Fields = {
   __typename?: 'universal_profile_owner_aggregate_fields';
+  avg?: Maybe<Universal_Profile_Owner_Avg_Fields>;
   count: Scalars['Int']['output'];
   max?: Maybe<Universal_Profile_Owner_Max_Fields>;
   min?: Maybe<Universal_Profile_Owner_Min_Fields>;
+  stddev?: Maybe<Universal_Profile_Owner_Stddev_Fields>;
+  stddev_pop?: Maybe<Universal_Profile_Owner_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Universal_Profile_Owner_Stddev_Samp_Fields>;
+  sum?: Maybe<Universal_Profile_Owner_Sum_Fields>;
+  var_pop?: Maybe<Universal_Profile_Owner_Var_Pop_Fields>;
+  var_samp?: Maybe<Universal_Profile_Owner_Var_Samp_Fields>;
+  variance?: Maybe<Universal_Profile_Owner_Variance_Fields>;
 };
 
 
@@ -20862,14 +26430,25 @@ export type Universal_Profile_Owner_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** aggregate avg on columns */
+export type Universal_Profile_Owner_Avg_Fields = {
+  __typename?: 'universal_profile_owner_avg_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to filter rows from the table "universal_profile_owner". All fields are combined with a logical 'AND'. */
 export type Universal_Profile_Owner_Bool_Exp = {
   _and?: InputMaybe<Array<Universal_Profile_Owner_Bool_Exp>>;
   _not?: InputMaybe<Universal_Profile_Owner_Bool_Exp>;
   _or?: InputMaybe<Array<Universal_Profile_Owner_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  log_index?: InputMaybe<Int_Comparison_Exp>;
   timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  transaction_index?: InputMaybe<Int_Comparison_Exp>;
   universalProfile?: InputMaybe<Universal_Profile_Bool_Exp>;
   universal_profile_id?: InputMaybe<String_Comparison_Exp>;
 };
@@ -20878,8 +26457,11 @@ export type Universal_Profile_Owner_Bool_Exp = {
 export type Universal_Profile_Owner_Max_Fields = {
   __typename?: 'universal_profile_owner_max_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
@@ -20887,16 +26469,22 @@ export type Universal_Profile_Owner_Max_Fields = {
 export type Universal_Profile_Owner_Min_Fields = {
   __typename?: 'universal_profile_owner_min_fields';
   address?: Maybe<Scalars['String']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['String']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
   timestamp?: Maybe<Scalars['timestamptz']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
   universal_profile_id?: Maybe<Scalars['String']['output']>;
 };
 
 /** Ordering options when selecting data from "universal_profile_owner". */
 export type Universal_Profile_Owner_Order_By = {
   address?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  log_index?: InputMaybe<Order_By>;
   timestamp?: InputMaybe<Order_By>;
+  transaction_index?: InputMaybe<Order_By>;
   universalProfile?: InputMaybe<Universal_Profile_Order_By>;
   universal_profile_id?: InputMaybe<Order_By>;
 };
@@ -20906,11 +26494,41 @@ export type Universal_Profile_Owner_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
+  /** column name */
+  | 'log_index'
   /** column name */
   | 'timestamp'
   /** column name */
+  | 'transaction_index'
+  /** column name */
   | 'universal_profile_id';
+
+/** aggregate stddev on columns */
+export type Universal_Profile_Owner_Stddev_Fields = {
+  __typename?: 'universal_profile_owner_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Universal_Profile_Owner_Stddev_Pop_Fields = {
+  __typename?: 'universal_profile_owner_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Universal_Profile_Owner_Stddev_Samp_Fields = {
+  __typename?: 'universal_profile_owner_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "universal_profile_owner" */
 export type Universal_Profile_Owner_Stream_Cursor_Input = {
@@ -20923,9 +26541,44 @@ export type Universal_Profile_Owner_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Universal_Profile_Owner_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
   universal_profile_id?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Universal_Profile_Owner_Sum_Fields = {
+  __typename?: 'universal_profile_owner_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Universal_Profile_Owner_Var_Pop_Fields = {
+  __typename?: 'universal_profile_owner_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Universal_Profile_Owner_Var_Samp_Fields = {
+  __typename?: 'universal_profile_owner_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Universal_Profile_Owner_Variance_Fields = {
+  __typename?: 'universal_profile_owner_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** select columns of table "universal_profile" */
@@ -20933,9 +26586,41 @@ export type Universal_Profile_Select_Column =
   /** column name */
   | 'address'
   /** column name */
+  | 'block_number'
+  /** column name */
   | 'id'
   /** column name */
-  | 'lsp3_profile_id';
+  | 'log_index'
+  /** column name */
+  | 'lsp3_profile_id'
+  /** column name */
+  | 'timestamp'
+  /** column name */
+  | 'transaction_index';
+
+/** aggregate stddev on columns */
+export type Universal_Profile_Stddev_Fields = {
+  __typename?: 'universal_profile_stddev_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Universal_Profile_Stddev_Pop_Fields = {
+  __typename?: 'universal_profile_stddev_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Universal_Profile_Stddev_Samp_Fields = {
+  __typename?: 'universal_profile_stddev_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
 
 /** Streaming cursor of the table "universal_profile" */
 export type Universal_Profile_Stream_Cursor_Input = {
@@ -20948,8 +26633,44 @@ export type Universal_Profile_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Universal_Profile_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  log_index?: InputMaybe<Scalars['Int']['input']>;
   lsp3_profile_id?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  transaction_index?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Universal_Profile_Sum_Fields = {
+  __typename?: 'universal_profile_sum_fields';
+  block_number?: Maybe<Scalars['Int']['output']>;
+  log_index?: Maybe<Scalars['Int']['output']>;
+  transaction_index?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate var_pop on columns */
+export type Universal_Profile_Var_Pop_Fields = {
+  __typename?: 'universal_profile_var_pop_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Universal_Profile_Var_Samp_Fields = {
+  __typename?: 'universal_profile_var_samp_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Universal_Profile_Variance_Fields = {
+  __typename?: 'universal_profile_variance_fields';
+  block_number?: Maybe<Scalars['Float']['output']>;
+  log_index?: Maybe<Scalars['Float']['output']>;
+  transaction_index?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "universal_receiver" */
@@ -21387,7 +27108,7 @@ export type GetCreatorsQueryVariables = Exact<{
 }>;
 
 
-export type GetCreatorsQuery = { __typename?: 'query_root', lsp4_creator: Array<{ __typename?: 'lsp4_creator', creator_address: string, address: string, array_index?: string | null, interface_id?: string | null, timestamp?: any, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, creatorProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null }>, lsp4_creator_aggregate: { __typename?: 'lsp4_creator_aggregate', aggregate?: { __typename?: 'lsp4_creator_aggregate_fields', count: number } | null } };
+export type GetCreatorsQuery = { __typename?: 'query_root', lsp4_creator: Array<{ __typename?: 'lsp4_creator', creator_address: string, address: string, array_index?: string | null, interface_id?: string | null, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, creatorProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null }>, lsp4_creator_aggregate: { __typename?: 'lsp4_creator_aggregate', aggregate?: { __typename?: 'lsp4_creator_aggregate_fields', count: number } | null } };
 
 export type CreatorSubscriptionSubscriptionVariables = Exact<{
   where?: InputMaybe<Lsp4_Creator_Bool_Exp>;
@@ -21430,7 +27151,7 @@ export type CreatorSubscriptionSubscriptionVariables = Exact<{
 }>;
 
 
-export type CreatorSubscriptionSubscription = { __typename?: 'subscription_root', lsp4_creator: Array<{ __typename?: 'lsp4_creator', creator_address: string, address: string, array_index?: string | null, interface_id?: string | null, timestamp?: any, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, creatorProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null }> };
+export type CreatorSubscriptionSubscription = { __typename?: 'subscription_root', lsp4_creator: Array<{ __typename?: 'lsp4_creator', creator_address: string, address: string, array_index?: string | null, interface_id?: string | null, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, creatorProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null }> };
 
 export type GetDataChangedEventsQueryVariables = Exact<{
   where?: InputMaybe<Data_Changed_Bool_Exp>;
@@ -21541,7 +27262,7 @@ export type GetDigitalAssetQueryVariables = Exact<{
 }>;
 
 
-export type GetDigitalAssetQuery = { __typename?: 'query_root', digital_asset: Array<{ __typename?: 'digital_asset', id: string, address: string, timestamp?: any | null, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null }> };
+export type GetDigitalAssetQuery = { __typename?: 'query_root', digital_asset: Array<{ __typename?: 'digital_asset', id: string, address: string, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null }> };
 
 export type GetDigitalAssetsQueryVariables = Exact<{
   where?: InputMaybe<Digital_Asset_Bool_Exp>;
@@ -21572,7 +27293,7 @@ export type GetDigitalAssetsQueryVariables = Exact<{
 }>;
 
 
-export type GetDigitalAssetsQuery = { __typename?: 'query_root', digital_asset: Array<{ __typename?: 'digital_asset', id: string, address: string, timestamp?: any | null, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null }>, digital_asset_aggregate: { __typename?: 'digital_asset_aggregate', aggregate?: { __typename?: 'digital_asset_aggregate_fields', count: number } | null } };
+export type GetDigitalAssetsQuery = { __typename?: 'query_root', digital_asset: Array<{ __typename?: 'digital_asset', id: string, address: string, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null }>, digital_asset_aggregate: { __typename?: 'digital_asset_aggregate', aggregate?: { __typename?: 'digital_asset_aggregate_fields', count: number } | null } };
 
 export type DigitalAssetSubscriptionSubscriptionVariables = Exact<{
   where?: InputMaybe<Digital_Asset_Bool_Exp>;
@@ -21602,7 +27323,7 @@ export type DigitalAssetSubscriptionSubscriptionVariables = Exact<{
 }>;
 
 
-export type DigitalAssetSubscriptionSubscription = { __typename?: 'subscription_root', digital_asset: Array<{ __typename?: 'digital_asset', id: string, address: string, timestamp?: any | null, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null }> };
+export type DigitalAssetSubscriptionSubscription = { __typename?: 'subscription_root', digital_asset: Array<{ __typename?: 'digital_asset', id: string, address: string, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null }> };
 
 export type GetEncryptedAssetsQueryVariables = Exact<{
   where?: InputMaybe<Lsp29_Encrypted_Asset_Bool_Exp>;
@@ -21646,7 +27367,7 @@ export type GetEncryptedAssetsQueryVariables = Exact<{
 }>;
 
 
-export type GetEncryptedAssetsQuery = { __typename?: 'query_root', lsp29_encrypted_asset: Array<{ __typename?: 'lsp29_encrypted_asset', address: string, content_id?: string | null, revision?: number | null, array_index?: string | null, timestamp?: any, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, title?: { __typename?: 'lsp29_encrypted_asset_title', value?: string | null } | null, description?: { __typename?: 'lsp29_encrypted_asset_description', value?: string | null } | null, encryption?: { __typename?: 'lsp29_encrypted_asset_encryption', ciphertext?: string | null, data_to_encrypt_hash?: string | null, decryption_code?: string | null, decryption_params?: string | null, method?: string | null, accessControlConditions?: Array<{ __typename?: 'lsp29_access_control_condition', chain?: string | null, comparator?: string | null, condition_index: number, contract_address?: string | null, follower_address?: string | null, method?: string | null, raw_condition: string, standard_contract_type?: string | null, token_id?: string | null, value?: string | null }> } | null, file?: { __typename?: 'lsp29_encrypted_asset_file', hash?: string | null, last_modified?: string | null, name?: string | null, size?: string | null, type?: string | null } | null, chunks?: { __typename?: 'lsp29_encrypted_asset_chunks', cids?: Array<string> | null, iv?: string | null, total_size?: string | null } | null, images?: Array<{ __typename?: 'lsp29_encrypted_asset_image', image_index: number, url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }>, lsp29_encrypted_asset_aggregate: { __typename?: 'lsp29_encrypted_asset_aggregate', aggregate?: { __typename?: 'lsp29_encrypted_asset_aggregate_fields', count: number } | null } };
+export type GetEncryptedAssetsQuery = { __typename?: 'query_root', lsp29_encrypted_asset: Array<{ __typename?: 'lsp29_encrypted_asset', address: string, content_id?: string | null, revision?: number | null, array_index?: string | null, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, title?: { __typename?: 'lsp29_encrypted_asset_title', value?: string | null } | null, description?: { __typename?: 'lsp29_encrypted_asset_description', value?: string | null } | null, encryption?: { __typename?: 'lsp29_encrypted_asset_encryption', ciphertext?: string | null, data_to_encrypt_hash?: string | null, decryption_code?: string | null, decryption_params?: string | null, method?: string | null, accessControlConditions?: Array<{ __typename?: 'lsp29_access_control_condition', chain?: string | null, comparator?: string | null, condition_index: number, contract_address?: string | null, follower_address?: string | null, method?: string | null, raw_condition: string, standard_contract_type?: string | null, token_id?: string | null, value?: string | null }> } | null, file?: { __typename?: 'lsp29_encrypted_asset_file', hash?: string | null, last_modified?: string | null, name?: string | null, size?: string | null, type?: string | null } | null, chunks?: { __typename?: 'lsp29_encrypted_asset_chunks', cids?: Array<string> | null, iv?: string | null, total_size?: string | null } | null, images?: Array<{ __typename?: 'lsp29_encrypted_asset_image', image_index: number, url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }>, lsp29_encrypted_asset_aggregate: { __typename?: 'lsp29_encrypted_asset_aggregate', aggregate?: { __typename?: 'lsp29_encrypted_asset_aggregate_fields', count: number } | null } };
 
 export type EncryptedAssetSubscriptionSubscriptionVariables = Exact<{
   where?: InputMaybe<Lsp29_Encrypted_Asset_Bool_Exp>;
@@ -21689,7 +27410,7 @@ export type EncryptedAssetSubscriptionSubscriptionVariables = Exact<{
 }>;
 
 
-export type EncryptedAssetSubscriptionSubscription = { __typename?: 'subscription_root', lsp29_encrypted_asset: Array<{ __typename?: 'lsp29_encrypted_asset', address: string, content_id?: string | null, revision?: number | null, array_index?: string | null, timestamp?: any, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, title?: { __typename?: 'lsp29_encrypted_asset_title', value?: string | null } | null, description?: { __typename?: 'lsp29_encrypted_asset_description', value?: string | null } | null, encryption?: { __typename?: 'lsp29_encrypted_asset_encryption', ciphertext?: string | null, data_to_encrypt_hash?: string | null, decryption_code?: string | null, decryption_params?: string | null, method?: string | null, accessControlConditions?: Array<{ __typename?: 'lsp29_access_control_condition', chain?: string | null, comparator?: string | null, condition_index: number, contract_address?: string | null, follower_address?: string | null, method?: string | null, raw_condition: string, standard_contract_type?: string | null, token_id?: string | null, value?: string | null }> } | null, file?: { __typename?: 'lsp29_encrypted_asset_file', hash?: string | null, last_modified?: string | null, name?: string | null, size?: string | null, type?: string | null } | null, chunks?: { __typename?: 'lsp29_encrypted_asset_chunks', cids?: Array<string> | null, iv?: string | null, total_size?: string | null } | null, images?: Array<{ __typename?: 'lsp29_encrypted_asset_image', image_index: number, url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
+export type EncryptedAssetSubscriptionSubscription = { __typename?: 'subscription_root', lsp29_encrypted_asset: Array<{ __typename?: 'lsp29_encrypted_asset', address: string, content_id?: string | null, revision?: number | null, array_index?: string | null, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, title?: { __typename?: 'lsp29_encrypted_asset_title', value?: string | null } | null, description?: { __typename?: 'lsp29_encrypted_asset_description', value?: string | null } | null, encryption?: { __typename?: 'lsp29_encrypted_asset_encryption', ciphertext?: string | null, data_to_encrypt_hash?: string | null, decryption_code?: string | null, decryption_params?: string | null, method?: string | null, accessControlConditions?: Array<{ __typename?: 'lsp29_access_control_condition', chain?: string | null, comparator?: string | null, condition_index: number, contract_address?: string | null, follower_address?: string | null, method?: string | null, raw_condition: string, standard_contract_type?: string | null, token_id?: string | null, value?: string | null }> } | null, file?: { __typename?: 'lsp29_encrypted_asset_file', hash?: string | null, last_modified?: string | null, name?: string | null, size?: string | null, type?: string | null } | null, chunks?: { __typename?: 'lsp29_encrypted_asset_chunks', cids?: Array<string> | null, iv?: string | null, total_size?: string | null } | null, images?: Array<{ __typename?: 'lsp29_encrypted_asset_image', image_index: number, url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
 
 export type GetFollowersQueryVariables = Exact<{
   where?: InputMaybe<Follower_Bool_Exp>;
@@ -21810,7 +27531,7 @@ export type GetIssuedAssetsQueryVariables = Exact<{
 }>;
 
 
-export type GetIssuedAssetsQuery = { __typename?: 'query_root', lsp12_issued_asset: Array<{ __typename?: 'lsp12_issued_asset', address: string, asset_address: string, array_index?: string | null, interface_id?: string | null, timestamp?: any, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, issuedAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null }>, lsp12_issued_asset_aggregate: { __typename?: 'lsp12_issued_asset_aggregate', aggregate?: { __typename?: 'lsp12_issued_asset_aggregate_fields', count: number } | null } };
+export type GetIssuedAssetsQuery = { __typename?: 'query_root', lsp12_issued_asset: Array<{ __typename?: 'lsp12_issued_asset', address: string, asset_address: string, array_index?: string | null, interface_id?: string | null, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, issuedAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null }>, lsp12_issued_asset_aggregate: { __typename?: 'lsp12_issued_asset_aggregate', aggregate?: { __typename?: 'lsp12_issued_asset_aggregate_fields', count: number } | null } };
 
 export type IssuedAssetSubscriptionSubscriptionVariables = Exact<{
   where?: InputMaybe<Lsp12_Issued_Asset_Bool_Exp>;
@@ -21853,7 +27574,7 @@ export type IssuedAssetSubscriptionSubscriptionVariables = Exact<{
 }>;
 
 
-export type IssuedAssetSubscriptionSubscription = { __typename?: 'subscription_root', lsp12_issued_asset: Array<{ __typename?: 'lsp12_issued_asset', address: string, asset_address: string, array_index?: string | null, interface_id?: string | null, timestamp?: any, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, issuedAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null }> };
+export type IssuedAssetSubscriptionSubscription = { __typename?: 'subscription_root', lsp12_issued_asset: Array<{ __typename?: 'lsp12_issued_asset', address: string, asset_address: string, array_index?: string | null, interface_id?: string | null, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, issuedAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null }> };
 
 export type GetNftQueryVariables = Exact<{
   where: Nft_Bool_Exp;
@@ -21900,7 +27621,7 @@ export type GetNftQueryVariables = Exact<{
 }>;
 
 
-export type GetNftQuery = { __typename?: 'query_root', nft: Array<{ __typename?: 'nft', id: string, address: string, token_id: string, is_burned: boolean, is_minted: boolean, timestamp?: any | null, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, formatted_token_id?: string | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, ownedToken?: { __typename?: 'owned_token', owner: string, timestamp: any, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null }> };
+export type GetNftQuery = { __typename?: 'query_root', nft: Array<{ __typename?: 'nft', id: string, address: string, token_id: string, is_burned: boolean, is_minted: boolean, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, formatted_token_id?: string | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, ownedToken?: { __typename?: 'owned_token', owner: string, timestamp: any, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null }> };
 
 export type GetNftsQueryVariables = Exact<{
   where?: InputMaybe<Nft_Bool_Exp>;
@@ -21950,7 +27671,7 @@ export type GetNftsQueryVariables = Exact<{
 }>;
 
 
-export type GetNftsQuery = { __typename?: 'query_root', nft: Array<{ __typename?: 'nft', id: string, address: string, token_id: string, is_burned: boolean, is_minted: boolean, timestamp?: any | null, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, formatted_token_id?: string | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, ownedToken?: { __typename?: 'owned_token', owner: string, timestamp: any, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null }>, nft_aggregate: { __typename?: 'nft_aggregate', aggregate?: { __typename?: 'nft_aggregate_fields', count: number } | null } };
+export type GetNftsQuery = { __typename?: 'query_root', nft: Array<{ __typename?: 'nft', id: string, address: string, token_id: string, is_burned: boolean, is_minted: boolean, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, formatted_token_id?: string | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, ownedToken?: { __typename?: 'owned_token', owner: string, timestamp: any, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null }>, nft_aggregate: { __typename?: 'nft_aggregate', aggregate?: { __typename?: 'nft_aggregate_fields', count: number } | null } };
 
 export type NftSubscriptionSubscriptionVariables = Exact<{
   where?: InputMaybe<Nft_Bool_Exp>;
@@ -21999,7 +27720,7 @@ export type NftSubscriptionSubscriptionVariables = Exact<{
 }>;
 
 
-export type NftSubscriptionSubscription = { __typename?: 'subscription_root', nft: Array<{ __typename?: 'nft', id: string, address: string, token_id: string, is_burned: boolean, is_minted: boolean, timestamp?: any | null, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, formatted_token_id?: string | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, ownedToken?: { __typename?: 'owned_token', owner: string, timestamp: any, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null }> };
+export type NftSubscriptionSubscription = { __typename?: 'subscription_root', nft: Array<{ __typename?: 'nft', id: string, address: string, token_id: string, is_burned: boolean, is_minted: boolean, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, formatted_token_id?: string | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, ownedToken?: { __typename?: 'owned_token', owner: string, timestamp: any, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null }> };
 
 export type GetOwnedAssetQueryVariables = Exact<{
   where: Owned_Asset_Bool_Exp;
@@ -22040,7 +27761,7 @@ export type GetOwnedAssetQueryVariables = Exact<{
 }>;
 
 
-export type GetOwnedAssetQuery = { __typename?: 'query_root', owned_asset: Array<{ __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, tokenIds_aggregate?: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }> };
+export type GetOwnedAssetQuery = { __typename?: 'query_root', owned_asset: Array<{ __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any, transaction_index?: number, log_index?: number, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, tokenIds_aggregate?: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }> };
 
 export type GetOwnedAssetsQueryVariables = Exact<{
   where?: InputMaybe<Owned_Asset_Bool_Exp>;
@@ -22084,7 +27805,7 @@ export type GetOwnedAssetsQueryVariables = Exact<{
 }>;
 
 
-export type GetOwnedAssetsQuery = { __typename?: 'query_root', owned_asset: Array<{ __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, tokenIds_aggregate?: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }>, owned_asset_aggregate: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null } };
+export type GetOwnedAssetsQuery = { __typename?: 'query_root', owned_asset: Array<{ __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any, transaction_index?: number, log_index?: number, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, tokenIds_aggregate?: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }>, owned_asset_aggregate: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null } };
 
 export type OwnedAssetSubscriptionSubscriptionVariables = Exact<{
   where?: InputMaybe<Owned_Asset_Bool_Exp>;
@@ -22127,7 +27848,7 @@ export type OwnedAssetSubscriptionSubscriptionVariables = Exact<{
 }>;
 
 
-export type OwnedAssetSubscriptionSubscription = { __typename?: 'subscription_root', owned_asset: Array<{ __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, tokenIds_aggregate?: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }> };
+export type OwnedAssetSubscriptionSubscription = { __typename?: 'subscription_root', owned_asset: Array<{ __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any, transaction_index?: number, log_index?: number, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, tokenIds_aggregate?: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }> };
 
 export type GetOwnedTokenQueryVariables = Exact<{
   where: Owned_Token_Bool_Exp;
@@ -22179,7 +27900,7 @@ export type GetOwnedTokenQueryVariables = Exact<{
 }>;
 
 
-export type GetOwnedTokenQuery = { __typename?: 'query_root', owned_token: Array<{ __typename?: 'owned_token', id: string, address: string, owner: string, token_id: string, block_number?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, nft?: { __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null } | null, ownedAsset?: { __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
+export type GetOwnedTokenQuery = { __typename?: 'query_root', owned_token: Array<{ __typename?: 'owned_token', id: string, address: string, owner: string, token_id: string, block_number?: number, timestamp?: any, transaction_index?: number, log_index?: number, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, nft?: { __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null } | null, ownedAsset?: { __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
 
 export type GetOwnedTokensQueryVariables = Exact<{
   where?: InputMaybe<Owned_Token_Bool_Exp>;
@@ -22234,7 +27955,7 @@ export type GetOwnedTokensQueryVariables = Exact<{
 }>;
 
 
-export type GetOwnedTokensQuery = { __typename?: 'query_root', owned_token: Array<{ __typename?: 'owned_token', id: string, address: string, owner: string, token_id: string, block_number?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, nft?: { __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null } | null, ownedAsset?: { __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }>, owned_token_aggregate: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } };
+export type GetOwnedTokensQuery = { __typename?: 'query_root', owned_token: Array<{ __typename?: 'owned_token', id: string, address: string, owner: string, token_id: string, block_number?: number, timestamp?: any, transaction_index?: number, log_index?: number, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, nft?: { __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null } | null, ownedAsset?: { __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }>, owned_token_aggregate: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } };
 
 export type OwnedTokenSubscriptionSubscriptionVariables = Exact<{
   where?: InputMaybe<Owned_Token_Bool_Exp>;
@@ -22288,7 +28009,7 @@ export type OwnedTokenSubscriptionSubscriptionVariables = Exact<{
 }>;
 
 
-export type OwnedTokenSubscriptionSubscription = { __typename?: 'subscription_root', owned_token: Array<{ __typename?: 'owned_token', id: string, address: string, owner: string, token_id: string, block_number?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, nft?: { __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null } | null, ownedAsset?: { __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
+export type OwnedTokenSubscriptionSubscription = { __typename?: 'subscription_root', owned_token: Array<{ __typename?: 'owned_token', id: string, address: string, owner: string, token_id: string, block_number?: number, timestamp?: any, transaction_index?: number, log_index?: number, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, nft?: { __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null } | null, ownedAsset?: { __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
 
 export type GetProfileQueryVariables = Exact<{
   where: Universal_Profile_Bool_Exp;
@@ -22308,7 +28029,7 @@ export type GetProfileQueryVariables = Exact<{
 }>;
 
 
-export type GetProfileQuery = { __typename?: 'query_root', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, timestamp?: any | null, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }> };
+export type GetProfileQuery = { __typename?: 'query_root', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }> };
 
 export type GetProfilesQueryVariables = Exact<{
   where?: InputMaybe<Universal_Profile_Bool_Exp>;
@@ -22331,7 +28052,7 @@ export type GetProfilesQueryVariables = Exact<{
 }>;
 
 
-export type GetProfilesQuery = { __typename?: 'query_root', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, timestamp?: any | null, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }>, universal_profile_aggregate: { __typename?: 'universal_profile_aggregate', aggregate?: { __typename?: 'universal_profile_aggregate_fields', count: number } | null } };
+export type GetProfilesQuery = { __typename?: 'query_root', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }>, universal_profile_aggregate: { __typename?: 'universal_profile_aggregate', aggregate?: { __typename?: 'universal_profile_aggregate_fields', count: number } | null } };
 
 export type ProfileSubscriptionSubscriptionVariables = Exact<{
   where?: InputMaybe<Universal_Profile_Bool_Exp>;
@@ -22353,7 +28074,7 @@ export type ProfileSubscriptionSubscriptionVariables = Exact<{
 }>;
 
 
-export type ProfileSubscriptionSubscription = { __typename?: 'subscription_root', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, timestamp?: any | null, block_number?: number | null, transaction_index?: number | null, log_index?: number | null, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }> };
+export type ProfileSubscriptionSubscription = { __typename?: 'subscription_root', universal_profile: Array<{ __typename?: 'universal_profile', id: string, address: string, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } }> };
 
 export type GetTokenIdDataChangedEventsQueryVariables = Exact<{
   where?: InputMaybe<Token_Id_Data_Changed_Bool_Exp>;
