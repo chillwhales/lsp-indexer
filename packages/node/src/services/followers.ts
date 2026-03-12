@@ -95,9 +95,9 @@ function buildFollowerOrderBy(sort?: FollowerSort): Follower_Order_By[] | undefi
     case 'oldest':
       return buildBlockOrderSort('asc');
     case 'followerAddress':
-      return [{ follower_address: dir }];
+      return [{ follower_address: dir }, ...buildBlockOrderSort('desc')];
     case 'followedAddress':
-      return [{ followed_address: dir }];
+      return [{ followed_address: dir }, ...buildBlockOrderSort('desc')];
     case 'followerName':
       return [
         {
@@ -105,6 +105,7 @@ function buildFollowerOrderBy(sort?: FollowerSort): Follower_Order_By[] | undefi
             lsp3Profile: { name: { value: orderDir(sort.direction, sort.nulls ?? 'last') } },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     case 'followedName':
       return [
@@ -113,6 +114,7 @@ function buildFollowerOrderBy(sort?: FollowerSort): Follower_Order_By[] | undefi
             lsp3Profile: { name: { value: orderDir(sort.direction, sort.nulls ?? 'last') } },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     default:
       return undefined;

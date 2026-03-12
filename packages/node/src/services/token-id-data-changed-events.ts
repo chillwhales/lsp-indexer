@@ -145,6 +145,7 @@ export function buildTokenIdDataChangedEventOrderBy(
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     case 'nftName':
       return [
@@ -155,6 +156,7 @@ export function buildTokenIdDataChangedEventOrderBy(
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     default:
       return undefined;

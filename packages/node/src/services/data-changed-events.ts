@@ -133,6 +133,7 @@ export function buildDataChangedEventOrderBy(
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     case 'digitalAssetName':
       return [
@@ -143,6 +144,7 @@ export function buildDataChangedEventOrderBy(
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     default:
       return undefined;

@@ -148,6 +148,7 @@ function buildUniversalReceiverEventOrderBy(
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     case 'fromProfileName':
       return [
@@ -158,6 +159,7 @@ function buildUniversalReceiverEventOrderBy(
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     case 'fromAssetName':
       return [
@@ -168,6 +170,7 @@ function buildUniversalReceiverEventOrderBy(
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     default:
       return undefined;
