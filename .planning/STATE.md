@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
+milestone: v1.2
 milestone_name: Production Readiness
 status: executing
-last_updated: "2026-03-11T12:44:04.965Z"
-last_activity: 2026-03-11 — Completed quick task 2: release pipeline with versioning for monorepo Dockerfile builds
+last_updated: "2026-03-12T00:00:00.000Z"
+last_activity: 2026-03-12 — Inserted Phases 20.1-20.3 (structured logging, pipeline instrumentation, dashboard redesign)
 progress:
-  total_phases: 52
+  total_phases: 55
   completed_phases: 44
   total_plans: 131
   completed_plans: 117
-  percent: 93
+  percent: 89
 ---
 
 # State: LSP Indexer
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 - **Phase:** Phase 20 — Monitoring & Docker Image Release
 - **Plan:** 1 of 2
 - **Status:** In Progress
-- **Last activity:** 2026-03-11 — Completed 20-01 monitoring infrastructure (5 config files, 9 compose services)
-- **Progress:** [█████████░] 93%
+- **Last activity:** 2026-03-12 — Inserted Phases 20.1-20.3 (structured logging, pipeline instrumentation, dashboard redesign)
+- **Progress:** [████████░░] 89%
 
 ## Milestone History
 
@@ -89,10 +89,12 @@ _None currently._
 ### Context for Next Session
 
 - **Phase 20 Plan 01 complete:** Monitoring infrastructure in place with all config files and compose services
-- **Next:** Phase 20 Plan 02 (Grafana dashboard JSON files)
-- **Key conventions for Plan 02:** Datasource UIDs `loki` and `prometheus`, Alloy labels `container_name`/`compose_service`/`compose_project`
-- **Phase 21 planned:** 2 plans ready for execution after Phase 20 completes
+- **Phase 20 Plan 02:** Grafana dashboard JSON — partially done (initial dashboard committed, but needs fixes from 20.1-20.3)
+- **Phases 20.1-20.3 inserted:** Structured logging overhaul → pipeline instrumentation → dashboard redesign
+- **PR #301 open:** Container name + dashboard fixes (deterministic names, error queries, block height, log explorer)
+- **Execution order:** 20 → 20.1 → 20.2 → 20.3 → 21 → 22
+- **Research completed:** Full logging audit (40 instances across 8 files), pipeline step boundaries mapped, Subsquid Logger API confirmed
 
 ---
 
-_Last updated: 2026-03-11 — Phase 21 planned_
+_Last updated: 2026-03-12 — Phases 20.1-20.3 inserted_
