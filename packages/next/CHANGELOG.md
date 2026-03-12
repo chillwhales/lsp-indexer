@@ -1,5 +1,14 @@
 # @lsp-indexer/next
 
+## 1.1.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @lsp-indexer/types@1.1.0
+  - @lsp-indexer/node@1.1.0
+  - @lsp-indexer/react@1.1.0
+
 ## 1.0.0
 
 ### Major Changes

@@ -1,5 +1,11 @@
 # @lsp-indexer/types
 
+## 1.1.0
+
+### Minor Changes
+
+- Add newest/oldest block-order sorting across all 12 query domains. All domain services now default to newest-first when no sort parameter is provided. Non-block sort fields include block-order as a deterministic pagination tiebreaker. Removed individual block/timestamp sort fields in favor of consistent newest/oldest.
+
 ## 1.0.0
 
 ### Major Changes
