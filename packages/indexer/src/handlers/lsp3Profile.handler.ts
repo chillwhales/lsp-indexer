@@ -65,6 +65,7 @@ const LSP3ProfileHandler: EntityHandler = {
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
         logIndex: event.logIndex,
+        timestamp: event.timestamp.getTime(),
       });
     }
   },

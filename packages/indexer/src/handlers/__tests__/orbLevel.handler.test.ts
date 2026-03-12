@@ -119,6 +119,7 @@ describe('OrbLevel handler - Cross-batch FK preservation', () => {
     // TokenIdDataChanged event with packed level + cooldown
     const event = new TokenIdDataChanged({
       id: 'event-1',
+      timestamp: new Date('2024-01-01T00:00:00Z'),
       blockNumber: 2000000,
       logIndex: 0,
       address: ORBS_ADDRESS,
@@ -172,6 +173,7 @@ describe('OrbLevel handler - Cross-batch FK preservation', () => {
 
     const event = new TokenIdDataChanged({
       id: 'event-2',
+      timestamp: new Date('2024-01-01T00:00:00Z'),
       blockNumber: 2000000,
       logIndex: 0,
       address: ORBS_ADDRESS,
@@ -250,6 +252,7 @@ describe('OrbLevel handler - Cross-batch FK preservation', () => {
 
     const event = new TokenIdDataChanged({
       id: 'event-3',
+      timestamp: new Date('2024-01-01T00:00:00Z'),
       blockNumber: 2000000,
       logIndex: 0,
       address: ORBS_ADDRESS,

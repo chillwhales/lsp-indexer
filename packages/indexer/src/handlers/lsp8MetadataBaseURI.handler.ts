@@ -71,6 +71,7 @@ const LSP8MetadataBaseURIHandler: EntityHandler = {
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
         logIndex: event.logIndex,
+        timestamp: event.timestamp.getTime(),
       });
     }
   },

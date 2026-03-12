@@ -53,6 +53,7 @@ const LSP4TokenSymbolHandler: EntityHandler = {
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
         logIndex: event.logIndex,
+        timestamp: event.timestamp.getTime(),
       });
     }
   },

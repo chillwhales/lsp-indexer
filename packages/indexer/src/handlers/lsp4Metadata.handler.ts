@@ -82,6 +82,7 @@ function handleDataChanged(hctx: HandlerContext): void {
       blockNumber: event.blockNumber,
       transactionIndex: event.transactionIndex,
       logIndex: event.logIndex,
+      timestamp: event.timestamp.getTime(),
     });
   }
 }
@@ -134,6 +135,7 @@ function handleTokenIdDataChanged(hctx: HandlerContext): void {
       blockNumber: event.blockNumber,
       transactionIndex: event.transactionIndex,
       logIndex: event.logIndex,
+      timestamp: event.timestamp.getTime(),
     });
 
     // Queue enrichment for nft FK
@@ -147,6 +149,7 @@ function handleTokenIdDataChanged(hctx: HandlerContext): void {
       blockNumber: event.blockNumber,
       transactionIndex: event.transactionIndex,
       logIndex: event.logIndex,
+      timestamp: event.timestamp.getTime(),
     });
   }
 }

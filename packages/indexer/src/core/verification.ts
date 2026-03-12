@@ -367,6 +367,7 @@ async function verifyWithInterface(
         new UniversalProfile({
           id: addr,
           address: addr,
+          timestamp: new Date(blockPos.timestamp),
           blockNumber: blockPos.blockNumber,
           transactionIndex: blockPos.transactionIndex,
           logIndex: blockPos.logIndex,
@@ -384,6 +385,7 @@ async function verifyWithInterface(
         new DigitalAsset({
           id: addr,
           address: addr,
+          timestamp: new Date(blockPos.timestamp),
           blockNumber: blockPos.blockNumber,
           transactionIndex: blockPos.transactionIndex,
           logIndex: blockPos.logIndex,

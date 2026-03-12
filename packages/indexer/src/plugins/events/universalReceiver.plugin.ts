@@ -62,6 +62,7 @@ const UniversalReceiverPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
 
     // Queue enrichment for from address as both UP and DA
@@ -76,6 +77,7 @@ const UniversalReceiverPlugin: EventPlugin = {
         blockNumber: height,
         transactionIndex,
         logIndex,
+        timestamp,
       });
       ctx.queueEnrichment<UniversalReceiver>({
         category: EntityCategory.DigitalAsset,
@@ -86,6 +88,7 @@ const UniversalReceiverPlugin: EventPlugin = {
         blockNumber: height,
         transactionIndex,
         logIndex,
+        timestamp,
       });
     }
   },

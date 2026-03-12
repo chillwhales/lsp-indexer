@@ -48,6 +48,7 @@ const NFTHandler: EntityHandler = {
               id: nftId,
               tokenId: transfer.tokenId,
               address: transfer.address,
+              timestamp: transfer.timestamp,
               blockNumber: transfer.blockNumber,
               transactionIndex: transfer.transactionIndex,
               logIndex: transfer.logIndex,
@@ -66,6 +67,7 @@ const NFTHandler: EntityHandler = {
               id: nftId,
               tokenId: transfer.tokenId,
               address: transfer.address,
+              timestamp: transfer.timestamp,
               blockNumber: transfer.blockNumber,
               transactionIndex: transfer.transactionIndex,
               logIndex: transfer.logIndex,
@@ -112,6 +114,7 @@ const NFTHandler: EntityHandler = {
               id: nftId,
               tokenId: event.tokenId,
               address: event.address,
+              timestamp: event.timestamp,
               blockNumber: event.blockNumber,
               transactionIndex: event.transactionIndex,
               logIndex: event.logIndex,
@@ -139,6 +142,7 @@ const NFTHandler: EntityHandler = {
         blockNumber: nft.blockNumber,
         transactionIndex: nft.transactionIndex,
         logIndex: nft.logIndex,
+        timestamp: nft.timestamp.getTime(),
       });
 
       hctx.batchCtx.addEntity(ENTITY_TYPE, nft.id, nft);

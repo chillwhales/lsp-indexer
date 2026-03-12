@@ -78,6 +78,7 @@ const DeployedProxiesPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
   },
 };

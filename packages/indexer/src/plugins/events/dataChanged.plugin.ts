@@ -65,6 +65,7 @@ const DataChangedPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
     ctx.queueEnrichment<DataChanged>({
       category: EntityCategory.DigitalAsset,
@@ -75,6 +76,7 @@ const DataChangedPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
   },
 };

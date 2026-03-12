@@ -70,6 +70,7 @@ const LSP7TransferPlugin: EventPlugin = {
       blockNumber: height,
       transactionIndex,
       logIndex,
+      timestamp,
     });
 
     // Queue enrichment for from/to/operator UniversalProfile FKs
@@ -84,6 +85,7 @@ const LSP7TransferPlugin: EventPlugin = {
         blockNumber: height,
         transactionIndex,
         logIndex,
+        timestamp,
       });
     }
     if (!isNullAddress(to)) {
@@ -96,6 +98,7 @@ const LSP7TransferPlugin: EventPlugin = {
         blockNumber: height,
         transactionIndex,
         logIndex,
+        timestamp,
       });
     }
     if (!isNullAddress(operator)) {
@@ -108,6 +111,7 @@ const LSP7TransferPlugin: EventPlugin = {
         blockNumber: height,
         transactionIndex,
         logIndex,
+        timestamp,
       });
     }
   },

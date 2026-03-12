@@ -123,6 +123,7 @@ function extractLength(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 }
 
@@ -177,6 +178,7 @@ function extractFromIndex(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 }
 
@@ -224,6 +226,7 @@ function extractFromMap(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 }
 
@@ -272,6 +275,7 @@ function extractRevisionCount(
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,
     logIndex: event.logIndex,
+    timestamp: event.timestamp.getTime(),
   });
 }
 
