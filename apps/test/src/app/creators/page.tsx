@@ -102,7 +102,8 @@ const NAME_FILTERS = ALL_FILTERS.filter((f) => f.key.endsWith('Name'));
 const DATE_FILTERS = ALL_FILTERS.filter((f) => f.key.startsWith('timestamp'));
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'timestamp', label: 'Timestamp' },
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
   { value: 'creatorAddress', label: 'Creator Address' },
   { value: 'digitalAssetAddress', label: 'Digital Asset Address' },
   { value: 'arrayIndex', label: 'Array Index' },
@@ -146,7 +147,7 @@ function buildFilter(debouncedValues: Record<string, string>): CreatorFilter | u
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
-  const [sortField, setSortField] = useState<CreatorSortField>('timestamp');
+  const [sortField, setSortField] = useState<CreatorSortField>('newest');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } =

@@ -97,6 +97,8 @@ const FILTERS: FilterFieldConfig[] = [
 ];
 
 const SORT_OPTIONS: SortOption[] = [
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
   { value: 'tokenId', label: 'Token ID' },
   { value: 'formattedTokenId', label: 'Formatted Token ID' },
 ];

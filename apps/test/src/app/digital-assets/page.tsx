@@ -74,6 +74,8 @@ const FILTERS: FilterFieldConfig[] = [
 ] as const;
 
 const SORT_OPTIONS: SortOption[] = [
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
   { value: 'name', label: 'Name' },
   { value: 'symbol', label: 'Symbol' },
   { value: 'holderCount', label: 'Holders' },

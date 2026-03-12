@@ -78,11 +78,11 @@ const NAME_FILTERS: FilterFieldConfig[] = [
 const ALL_FILTERS = [...ADDRESS_FILTERS, ...NAME_FILTERS];
 
 const SORT_OPTIONS: SortOption[] = [
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
   { value: 'balance', label: 'Balance' },
-  { value: 'timestamp', label: 'Timestamp' },
   { value: 'digitalAssetAddress', label: 'Asset Address' },
   { value: 'holderAddress', label: 'Holder' },
-  { value: 'block', label: 'Block' },
   { value: 'digitalAssetName', label: 'Digital Asset Name' },
   { value: 'tokenIdCount', label: 'Token ID Count' },
 ];
@@ -136,7 +136,7 @@ function buildFilter(debouncedValues: Record<string, string>): OwnedAssetFilter 
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
-  const [sortField, setSortField] = useState<OwnedAssetSortField>('timestamp');
+  const [sortField, setSortField] = useState<OwnedAssetSortField>('newest');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(BASE_INCLUDES);

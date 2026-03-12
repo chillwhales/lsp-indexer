@@ -58,6 +58,8 @@ const FILTERS: FilterFieldConfig[] = [
 ] as const;
 
 const SORT_OPTIONS: SortOption[] = [
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
   { value: 'name', label: 'Name' },
   { value: 'followerCount', label: 'Followers' },
   { value: 'followingCount', label: 'Following' },
