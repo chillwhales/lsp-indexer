@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1-6 (shipped 2026-02-16)
 - ✅ **v1.1 React Hooks Package** — Phases 7-16 (shipped 2026-03-08)
-- 🚧 **v1.2 Production Readiness** — Phases 17-22 (in progress)
+- 🚧 **v1.2 Production Readiness** — Phases 17-22 (in progress, includes 20.1-20.3 inserted)
 
 ## Phases
 
@@ -53,6 +53,9 @@ Full details: `milestones/v1.1-ROADMAP.md`
 - [x] **Phase 19: Block Ordering** — Add blockNumber/transactionIndex/logIndex to all entities (completed 2026-03-09)
 - [x] **Phase 19.1: Type System Tightening** — Remove unchecked generics from BatchContext, enforce Entity base type — INSERTED (completed 2026-03-10)
 - [ ] **Phase 20: Monitoring & Docker Image Release** — Grafana dashboards + release updated Docker image
+- [ ] **Phase 20.1: Structured Logging Overhaul** — Migrate all unstructured logs to queryable structured format — INSERTED
+- [ ] **Phase 20.2: Pipeline Instrumentation** — Add step timing and batch summary logs — INSERTED
+- [ ] **Phase 20.3: Grafana Dashboard Redesign** — New panels leveraging structured log data — INSERTED
 - [ ] **Phase 21: Sorting & Consumer Package Release** — Oldest/newest sorting across all 12 domains + release 4 packages
 - [ ] **Phase 22: Database Operations** — Backup strategy, automation, and recovery procedure
 
@@ -132,6 +135,42 @@ Plans:
 - [ ] 20-01-PLAN.md — Monitoring stack infrastructure (Loki, Alloy, Prometheus, cAdvisor, Grafana in compose)
 - [ ] 20-02-PLAN.md — Grafana dashboard JSON + Docker image release
 
+### Phase 20.1: Structured Logging Overhaul
+**Goal**: Every indexer log call uses structured attrs so all fields are queryable in Grafana/Loki
+**Depends on**: Phase 20 (monitoring infrastructure must exist)
+**Requirements**: SLOG-01, SLOG-02, SLOG-03, SLOG-04
+**Success Criteria** (what must be TRUE):
+  1. Zero `console.*` calls remain in indexer source (except worker threads where logger is unavailable)
+  2. Zero `JSON.stringify()` calls used as log message arguments
+  3. All `metadataFetch.ts` log calls use `(attrs, message)` pattern with extractable fields
+  4. All `app/index.ts` startup logs include structured metadata
+  5. `pnpm --filter=@chillwhales/indexer build` succeeds
+**Plans**: TBD
+
+### Phase 20.2: Pipeline Instrumentation
+**Goal**: Every pipeline step emits timing data and a batch summary enables at-a-glance health monitoring
+**Depends on**: Phase 20.1 (structured logging foundation)
+**Requirements**: INST-01, INST-02, INST-03
+**Success Criteria** (what must be TRUE):
+  1. Every pipeline step (EXTRACT, PERSIST_RAW, HANDLE, CLEAR_SUB_ENTITIES, DELETE_ENTITIES, PERSIST_DERIVED, VERIFY, ENRICH, RESOLVE) logs `durationMs`
+  2. A single batch summary log is emitted at end of `processBatch()` with block range, total entity counts, per-step timings, and total elapsed time
+  3. EXTRACT and HANDLE steps have dedicated `createStepLogger` loggers
+  4. `pnpm --filter=@chillwhales/indexer build` succeeds
+**Plans**: TBD
+
+### Phase 20.3: Grafana Dashboard Redesign
+**Goal**: Production dashboard surfaces pipeline health, entity throughput, verification status, and metadata fetch progress
+**Depends on**: Phase 20.2 (instrumentation data must exist in logs)
+**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04, DASH-05
+**Success Criteria** (what must be TRUE):
+  1. Pipeline step latency panel shows per-step timing breakdown
+  2. Entity throughput panel shows entities persisted per batch by entity type
+  3. Verification health panel shows valid/invalid/new address counts
+  4. Metadata fetch progress panel shows backlog depth, fetch duration, success/failure rates
+  5. Batch processing time panel shows total elapsed per batch
+  6. All existing panels (block height, errors, logs, container metrics) continue working
+**Plans**: TBD
+
 ### Phase 21: Sorting & Consumer Package Release
 **Goal**: Developers can sort query results by blockchain position (oldest/newest) across all domains
 **Depends on**: Phase 19
@@ -160,7 +199,7 @@ Plans:
 
 ## Progress
 
-**Execution Order:** 17 → 18 → 19 → 19.1 → 20 → 21 → 22
+**Execution Order:** 17 → 18 → 19 → 19.1 → 20 → 20.1 → 20.2 → 20.3 → 21 → 22
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 | --- | --- | --- | --- | --- |
@@ -169,12 +208,15 @@ Plans:
 | 17. Version Normalization | v1.2 | 1/1 | Complete | 2026-03-09 |
 | 18. Production Docker Compose | v1.2 | 1/1 | Complete | 2026-03-09 |
 | 19. Block Ordering | v1.2 | 3/3 | Complete | 2026-03-09 |
-| 19.1. Type System Tightening | v1.2 | Complete    | 2026-03-10 | 2026-03-10 |
+| 19.1. Type System Tightening | v1.2 | 2/2 | Complete | 2026-03-10 |
 | 20. Monitoring & Docker Release | v1.2 | 1/2 | In Progress | - |
+| 20.1. Structured Logging Overhaul | v1.2 | 0/TBD | Not started | - |
+| 20.2. Pipeline Instrumentation | v1.2 | 0/TBD | Not started | - |
+| 20.3. Grafana Dashboard Redesign | v1.2 | 0/TBD | Not started | - |
 | 21. Sorting & Package Release | v1.2 | 0/2 | Not started | - |
 | 22. Database Operations | v1.2 | 0/TBD | Not started | - |
 
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-03-11 — Phase 21 planned_
+_Last updated: 2026-03-12 — Phases 20.1-20.3 inserted (logging overhaul + instrumentation + dashboard redesign)_
