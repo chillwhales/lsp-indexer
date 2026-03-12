@@ -22,7 +22,7 @@ export async function execute<TResult, TVariables>(
       // GraphQL-level errors (permission denied, validation, etc.)
       if (error.response.errors?.length) {
         throw IndexerError.fromGraphQLErrors(
-          error.response.errors.map(IndexerError.narrowGraphQLError),
+          error.response.errors.map((e) => IndexerError.narrowGraphQLError(e)),
           document.toString(),
         );
       }
