@@ -64,9 +64,10 @@ export const CreatorFilterSchema = z.object({
 // Sort schema
 // ---------------------------------------------------------------------------
 
-/** `creatorName` / `digitalAssetName` are nested sorts handled at service layer. */
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
 export const CreatorSortFieldSchema = z.enum([
-  'timestamp',
+  'newest',
+  'oldest',
   'creatorAddress',
   'digitalAssetAddress',
   'arrayIndex',

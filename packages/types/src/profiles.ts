@@ -54,8 +54,14 @@ export const ProfileFilterSchema = z.object({
     .optional(),
 });
 
-/** Fields available for sorting profile lists */
-export const ProfileSortFieldSchema = z.enum(['name', 'followerCount', 'followingCount']);
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
+export const ProfileSortFieldSchema = z.enum([
+  'newest',
+  'oldest',
+  'name',
+  'followerCount',
+  'followingCount',
+]);
 
 export const ProfileSortSchema = z.object({
   field: ProfileSortFieldSchema,

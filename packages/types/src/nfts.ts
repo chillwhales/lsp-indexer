@@ -91,8 +91,8 @@ export const NftFilterSchema = z.object({
 // Sort schema
 // ---------------------------------------------------------------------------
 
-/** Fields available for sorting NFT lists */
-export const NftSortFieldSchema = z.enum(['tokenId', 'formattedTokenId']);
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
+export const NftSortFieldSchema = z.enum(['newest', 'oldest', 'tokenId', 'formattedTokenId']);
 
 export const NftSortSchema = z.object({
   field: NftSortFieldSchema,

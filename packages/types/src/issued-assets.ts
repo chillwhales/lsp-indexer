@@ -64,9 +64,10 @@ export const IssuedAssetFilterSchema = z.object({
 // Sort schema
 // ---------------------------------------------------------------------------
 
-/** `issuerName` / `digitalAssetName` are nested sorts handled at service layer. */
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
 export const IssuedAssetSortFieldSchema = z.enum([
-  'timestamp',
+  'newest',
+  'oldest',
   'issuerAddress',
   'assetAddress',
   'arrayIndex',

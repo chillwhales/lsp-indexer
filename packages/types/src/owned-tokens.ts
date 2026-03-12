@@ -82,12 +82,12 @@ export const OwnedTokenFilterSchema = z.object({
   tokenName: z.string().optional(),
 });
 
-/** Fields available for sorting owned token lists */
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
 export const OwnedTokenSortFieldSchema = z.enum([
+  'newest',
+  'oldest',
   'digitalAssetAddress',
-  'block',
   'holderAddress',
-  'timestamp',
   'tokenId',
 ]);
 

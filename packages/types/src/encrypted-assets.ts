@@ -140,8 +140,10 @@ export const EncryptedAssetFilterSchema = z.object({
 // Sort schema
 // ---------------------------------------------------------------------------
 
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
 export const EncryptedAssetSortFieldSchema = z.enum([
-  'timestamp',
+  'newest',
+  'oldest',
   'address',
   'contentId',
   'revision',

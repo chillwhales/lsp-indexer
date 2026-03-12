@@ -79,7 +79,10 @@ export const DigitalAssetFilterSchema = z.object({
   ownerAddress: z.string().optional(),
 });
 
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
 export const DigitalAssetSortFieldSchema = z.enum([
+  'newest',
+  'oldest',
   'name',
   'symbol',
   'holderCount',

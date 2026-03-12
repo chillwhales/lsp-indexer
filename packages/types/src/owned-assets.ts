@@ -61,13 +61,13 @@ export const OwnedAssetFilterSchema = z.object({
   assetName: z.string().optional(),
 });
 
-/** `digitalAssetName` and `tokenIdCount` are nested sorts handled at service layer. */
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
 export const OwnedAssetSortFieldSchema = z.enum([
+  'newest',
+  'oldest',
   'balance',
-  'timestamp',
   'digitalAssetAddress',
   'holderAddress',
-  'block',
   'digitalAssetName',
   'tokenIdCount',
 ]);
