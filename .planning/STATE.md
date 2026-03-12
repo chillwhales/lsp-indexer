@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Readiness
 status: executing
-last_updated: "2026-03-12T00:00:00.000Z"
-last_activity: 2026-03-12 — Completed quick task 3: Add timestamp to all entities missing it
+last_updated: "2026-03-12T05:35:31.525Z"
+last_activity: 2026-03-12 — Completed 21-01 sorting across 12 domain types and services
 progress:
   total_phases: 55
   completed_phases: 44
-  total_plans: 131
-  completed_plans: 117
+  total_plans: 133
+  completed_plans: 118
   percent: 89
 ---
 
@@ -21,16 +21,16 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.2 Production Readiness — Phase 19.1 complete, Phase 20 next
+**Current focus:** v1.2 Production Readiness — Phase 21 sorting, Plan 01 complete
 
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Phase 20 — Monitoring & Docker Image Release
-- **Plan:** 1 of 2
+- **Phase:** Phase 21 — Sorting & Consumer Package Release
+- **Plan:** 2 of 2
 - **Status:** In Progress
-- **Last activity:** 2026-03-12 — Completed quick task 3: Add timestamp to all entities missing it
-- **Progress:** [████████░░] 89%
+- **Last activity:** 2026-03-12 — Completed 21-01 sorting across 12 domain types and services
+- **Progress:** [█████████░] 89%
 
 ## Milestone History
 
@@ -47,7 +47,7 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 121 (36 v1.0 + 77 v1.1 + 8 v1.2)
+- **Plans completed:** 122 (36 v1.0 + 77 v1.1 + 9 v1.2)
 - **Plans failed:** 0
 - **Phases completed:** 48 (11 v1.0 + 33 v1.1 + 4 v1.2)
 - **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 11/26 (v1.2)
@@ -77,25 +77,23 @@ _None currently._
 |---|-------------|------|--------|-----------|
 | 2 | Release pipeline with versioning for monorepo Dockerfile builds | 2026-03-11 | c0e2ad7 | [2-release-pipeline-with-versioning-for-mon](./quick/2-release-pipeline-with-versioning-for-mon/) |
 | 3 | Add timestamp to all entities missing it (Phase 19 fix) | 2026-03-12 | eecfa83 | [3-add-timestamp-to-all-entities-that-got-b](./quick/3-add-timestamp-to-all-entities-that-got-b/) |
+| Phase 21 P01 | 8min | 3 tasks | 20 files |
 
 ## Session Continuity
 
 ### Last Session
 
-- **Date:** 2026-03-11
-- **Activity:** Executed Phase 20-01 — monitoring infrastructure (Loki, Alloy, Prometheus, cAdvisor, Grafana)
-- **Outcome:** 5 config files created, production compose expanded to 9 services, PostgreSQL slow query logging enabled
-- **Resume file:** .planning/phases/20-monitoring-docker-image-release/20-02-PLAN.md
+- **Date:** 2026-03-12
+- **Activity:** Executed Phase 21-01 — sorting across 12 domain types and services
+- **Outcome:** 8 type files + 12 service files updated with newest/oldest, tiebreaker, and default fallback
+- **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 20 Plan 01 complete:** Monitoring infrastructure in place with all config files and compose services
-- **Phase 20 Plan 02:** Grafana dashboard JSON — partially done (initial dashboard committed, but needs fixes from 20.1-20.3)
+- **Phase 21 Plan 01 complete:** All 12 domains have consistent sorting
+- **Next:** Phase 21 Plan 02 (changeset release of consumer packages)
 - **Phases 20.1-20.3 inserted:** Structured logging overhaul → pipeline instrumentation → dashboard redesign
-- **PR #301 open:** Container name + dashboard fixes (deterministic names, error queries, block height, log explorer)
-- **Execution order:** 20 → 20.1 → 20.2 → 20.3 → 21 → 22
-- **Research completed:** Full logging audit (40 instances across 8 files), pipeline step boundaries mapped, Subsquid Logger API confirmed
 
 ---
 
-_Last updated: 2026-03-12 — Completed quick task 3: Add timestamp to all entities_
+_Last updated: 2026-03-12 — Completed 21-01 sorting_
