@@ -183,6 +183,10 @@ describe('@lsp-indexer/types', () => {
         backgroundImage: null,
         followerCount: 0,
         followingCount: 0,
+        timestamp: null,
+        blockNumber: null,
+        transactionIndex: null,
+        logIndex: null,
       });
       expect(profile.address).toBe('0x1234');
     });
