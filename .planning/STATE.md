@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 - **Phase:** Phase 20 — Monitoring & Docker Image Release
 - **Plan:** 1 of 2
 - **Status:** In Progress
-- **Last activity:** 2026-03-11 — Completed 20-01 monitoring infrastructure (5 config files, 9 compose services)
-- **Progress:** [█████████░] 93%
+- **Last activity:** 2026-03-12 — Inserted Phases 20.1-20.3 (structured logging, pipeline instrumentation, dashboard redesign)
+- **Progress:** [████████░░] 89%
 
 ## Milestone History
 

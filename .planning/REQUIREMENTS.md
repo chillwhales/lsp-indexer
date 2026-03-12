@@ -53,7 +53,7 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 
 ### Structured Logging
 
-- [ ] **SLOG-01**: All `console.*` calls in indexer source migrated to structured `context.log.*` with queryable fields
+- [ ] **SLOG-01**: All `console.*` calls in indexer source migrated to structured Subsquid logger output, except worker threads where logger is unavailable, with queryable fields
 - [ ] **SLOG-02**: All `JSON.stringify()` anti-pattern log calls converted to proper `(attrs, message)` pattern
 - [ ] **SLOG-03**: All template string log messages in `metadataFetch.ts` converted to structured attrs
 - [ ] **SLOG-04**: All startup logs in `app/index.ts` include structured metadata fields
@@ -158,4 +158,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-08 after roadmap creation*
+*Last updated: 2026-03-12 — Added SLOG, INST, DASH requirements for Phases 20.1-20.3*
