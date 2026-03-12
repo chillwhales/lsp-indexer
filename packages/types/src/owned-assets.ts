@@ -35,9 +35,13 @@ export const OwnedAssetSchema = z.object({
   /** Token balance — bigint for uint256 precision (null when excluded via include) */
   balance: z.bigint().nullable(),
   /** Block number when this ownership was last updated (null when excluded via include) */
-  block: z.number().nullable(),
+  blockNumber: z.number().nullable(),
   /** Timestamp when this ownership was last updated — ISO string (null when excluded via include) */
   timestamp: z.string().nullable(),
+  /** Transaction index within the block (null when excluded via include) */
+  transactionIndex: z.number().nullable(),
+  /** Log index within the transaction (null when excluded via include) */
+  logIndex: z.number().nullable(),
   /** Related digital asset details (null = not included in query) */
   digitalAsset: DigitalAssetSchema.nullable(),
   /** Related holder's universal profile details (null = not included in query) */
@@ -83,9 +87,13 @@ export const OwnedAssetIncludeSchema = z.object({
   /** Include token balance */
   balance: z.boolean().optional(),
   /** Include block number */
-  block: z.boolean().optional(),
+  blockNumber: z.boolean().optional(),
   /** Include timestamp */
   timestamp: z.boolean().optional(),
+  /** Include transaction index */
+  transactionIndex: z.boolean().optional(),
+  /** Include log index */
+  logIndex: z.boolean().optional(),
   /** Include related digital asset details — `true` for all fields, or object for per-field control */
   digitalAsset: z.union([z.boolean(), DigitalAssetIncludeSchema]).optional(),
   /** Include related holder profile details — `true` for all fields, or object for per-field control */
@@ -155,8 +163,10 @@ export type UseInfiniteOwnedAssetsParams = z.infer<typeof UseInfiniteOwnedAssets
  */
 type OwnedAssetScalarIncludeFieldMap = {
   balance: 'balance';
-  block: 'block';
+  blockNumber: 'blockNumber';
   timestamp: 'timestamp';
+  transactionIndex: 'transactionIndex';
+  logIndex: 'logIndex';
   tokenIdCount: 'tokenIdCount';
 };
 

@@ -149,6 +149,9 @@ export function buildIssuedAssetIncludeVars(include?: IssuedAssetInclude): Recor
     includeArrayIndex: include.arrayIndex ?? false,
     includeInterfaceId: include.interfaceId ?? false,
     includeTimestamp: include.timestamp ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
     includeIssuerProfile: activeIssuerProfile,
     includeDigitalAsset: activeDigitalAsset,
   };

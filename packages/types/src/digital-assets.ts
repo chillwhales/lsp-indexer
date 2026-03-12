@@ -58,6 +58,14 @@ export const DigitalAssetSchema = z.object({
   tokenIdFormat: z.string().nullable(),
   /** LSP8-only. */
   baseUri: z.string().nullable(),
+  /** Timestamp when the digital asset was indexed — ISO string (null when excluded via include) */
+  timestamp: z.string().nullable(),
+  /** Block number where the digital asset event was emitted (null when excluded via include) */
+  blockNumber: z.number().nullable(),
+  /** Transaction index within the block (null when excluded via include) */
+  transactionIndex: z.number().nullable(),
+  /** Log index within the transaction (null when excluded via include) */
+  logIndex: z.number().nullable(),
 });
 
 // ---------------------------------------------------------------------------
@@ -133,6 +141,14 @@ export const DigitalAssetIncludeSchema = z.object({
   tokenIdFormat: z.boolean().optional(),
   /** Include LSP8 base URI */
   baseUri: z.boolean().optional(),
+  /** Include timestamp */
+  timestamp: z.boolean().optional(),
+  /** Include block number */
+  blockNumber: z.boolean().optional(),
+  /** Include transaction index */
+  transactionIndex: z.boolean().optional(),
+  /** Include log index */
+  logIndex: z.boolean().optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -202,6 +218,10 @@ type DigitalAssetIncludeFieldMap = {
   referenceContract: 'referenceContract';
   tokenIdFormat: 'tokenIdFormat';
   baseUri: 'baseUri';
+  timestamp: 'timestamp';
+  blockNumber: 'blockNumber';
+  transactionIndex: 'transactionIndex';
+  logIndex: 'logIndex';
 };
 
 /**

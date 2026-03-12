@@ -28,7 +28,7 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
     digitalAssetAddress,
     holderAddress,
     tokenId,
-    block,
+    blockNumber,
     timestamp,
     holder,
     nft,
@@ -94,10 +94,10 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
             <dt className="text-muted-foreground w-28 shrink-0">Token ID</dt>
             <dd className="font-mono text-xs break-all">{tokenId}</dd>
           </div>
-          {block != null && (
+          {blockNumber != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Block</dt>
-              <dd className="font-mono text-xs">{block}</dd>
+              <dd className="font-mono text-xs">{blockNumber}</dd>
             </div>
           )}
           {timestamp && (

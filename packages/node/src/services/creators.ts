@@ -144,6 +144,9 @@ export function buildCreatorIncludeVars(include?: CreatorInclude): Record<string
     includeArrayIndex: include.arrayIndex ?? false,
     includeInterfaceId: include.interfaceId ?? false,
     includeTimestamp: include.timestamp ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
     includeCreatorProfile: activeCreatorProfile,
     includeDigitalAsset: activeDigitalAsset,
   };

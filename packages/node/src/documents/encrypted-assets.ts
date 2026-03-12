@@ -9,6 +9,9 @@ export const GetEncryptedAssetsDocument = graphql(`
     $offset: Int
     $includeArrayIndex: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeTitle: Boolean! = true
     $includeDescription: Boolean! = true
     $includeEncryption: Boolean! = true
@@ -46,6 +49,9 @@ export const GetEncryptedAssetsDocument = graphql(`
 
       array_index @include(if: $includeArrayIndex)
       timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
 
       title @include(if: $includeTitle) {
         value
@@ -164,6 +170,9 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
     $limit: Int
     $includeArrayIndex: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeTitle: Boolean! = true
     $includeDescription: Boolean! = true
     $includeEncryption: Boolean! = true
@@ -201,6 +210,9 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
 
       array_index @include(if: $includeArrayIndex)
       timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
 
       title @include(if: $includeTitle) {
         value

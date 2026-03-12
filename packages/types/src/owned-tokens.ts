@@ -28,8 +28,10 @@ export const OwnedTokenNftIncludeSchema = NftIncludeSchema.omit({
 /** Scalar fields only — nested relations are siblings on owned_token itself. */
 export const OwnedTokenOwnedAssetIncludeSchema = z.object({
   balance: z.boolean().optional(),
-  block: z.boolean().optional(),
+  blockNumber: z.boolean().optional(),
   timestamp: z.boolean().optional(),
+  transactionIndex: z.boolean().optional(),
+  logIndex: z.boolean().optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -50,9 +52,13 @@ export const OwnedTokenSchema = z.object({
   /** Specific token ID within the collection */
   tokenId: z.string(),
   /** Block number when this ownership was last updated (null when excluded via include) */
-  block: z.number().nullable(),
+  blockNumber: z.number().nullable(),
   /** Timestamp when this ownership was last updated — ISO string (null when excluded via include) */
   timestamp: z.string().nullable(),
+  /** Transaction index within the block (null when excluded via include) */
+  transactionIndex: z.number().nullable(),
+  /** Log index within the transaction (null when excluded via include) */
+  logIndex: z.number().nullable(),
   /** Related digital asset (null = not included) */
   digitalAsset: DigitalAssetSchema.nullable(),
   /** Related NFT details (null = not included) */
@@ -100,9 +106,13 @@ export const OwnedTokenSortSchema = z.object({
 /** Omit = fetch all fields; set individual fields to opt-in. */
 export const OwnedTokenIncludeSchema = z.object({
   /** Include block number */
-  block: z.boolean().optional(),
+  blockNumber: z.boolean().optional(),
   /** Include timestamp */
   timestamp: z.boolean().optional(),
+  /** Include transaction index */
+  transactionIndex: z.boolean().optional(),
+  /** Include log index */
+  logIndex: z.boolean().optional(),
   /** Include related digital asset details — `true` for all fields, or object for per-field control */
   digitalAsset: z.union([z.boolean(), DigitalAssetIncludeSchema]).optional(),
   /** Include related NFT details — `true` for all fields, or object for per-field control */
@@ -175,8 +185,10 @@ export type UseInfiniteOwnedTokensParams = z.infer<typeof UseInfiniteOwnedTokens
  * Relations (digitalAsset, nft, ownedAsset, holder) are handled separately by resolver types.
  */
 type OwnedTokenScalarIncludeFieldMap = {
-  block: 'block';
+  blockNumber: 'blockNumber';
   timestamp: 'timestamp';
+  transactionIndex: 'transactionIndex';
+  logIndex: 'logIndex';
 };
 
 /**
@@ -241,8 +253,10 @@ type ResolveOwnedTokenNft<I> = I extends { nft: infer N }
  */
 type OwnedTokenOwnedAssetFieldMap = {
   balance: 'balance';
-  block: 'block';
+  blockNumber: 'blockNumber';
   timestamp: 'timestamp';
+  transactionIndex: 'transactionIndex';
+  logIndex: 'logIndex';
 };
 
 /**

@@ -104,8 +104,10 @@ function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> 
 
   const vars: Record<string, boolean> = {
     includeBalance: include.balance ?? false,
-    includeBlock: include.block ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
     includeTimestamp: include.timestamp ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
     includeDigitalAsset: activeDA,
     includeHolder: activeHolder,
     includeTokenIdCount: include.tokenIdCount ?? false,
@@ -139,8 +141,10 @@ export function buildOwnedAssetIncludeVars(
 
   return {
     includeOwnedAssetBalance: include.balance ?? false,
-    includeOwnedAssetBlock: include.block ?? false,
+    includeOwnedAssetBlockNumber: include.blockNumber ?? false,
     includeOwnedAssetTimestamp: include.timestamp ?? false,
+    includeOwnedAssetTransactionIndex: include.transactionIndex ?? false,
+    includeOwnedAssetLogIndex: include.logIndex ?? false,
   };
 }
 

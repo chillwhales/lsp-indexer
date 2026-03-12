@@ -40,6 +40,10 @@ export const GetNftDocument = graphql(`
     $includeHolderBackgroundImage: Boolean! = true
     $includeHolderFollowerCount: Boolean! = true
     $includeHolderFollowingCount: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
   ) {
     nft(where: $where, limit: 1) {
       id
@@ -47,6 +51,10 @@ export const GetNftDocument = graphql(`
       token_id
       is_burned
       is_minted
+      timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       formatted_token_id @include(if: $includeFormattedTokenId)
       digitalAsset @include(if: $includeCollection) {
         id
@@ -289,6 +297,10 @@ export const GetNftsDocument = graphql(`
     $includeHolderBackgroundImage: Boolean! = true
     $includeHolderFollowerCount: Boolean! = true
     $includeHolderFollowingCount: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
   ) {
     nft(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       id
@@ -296,6 +308,10 @@ export const GetNftsDocument = graphql(`
       token_id
       is_burned
       is_minted
+      timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       formatted_token_id @include(if: $includeFormattedTokenId)
       digitalAsset @include(if: $includeCollection) {
         id
@@ -545,6 +561,10 @@ export const NftSubscriptionDocument = graphql(`
     $includeHolderBackgroundImage: Boolean! = true
     $includeHolderFollowerCount: Boolean! = true
     $includeHolderFollowingCount: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
   ) {
     nft(where: $where, order_by: $order_by, limit: $limit) {
       id
@@ -552,6 +572,10 @@ export const NftSubscriptionDocument = graphql(`
       token_id
       is_burned
       is_minted
+      timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       formatted_token_id @include(if: $includeFormattedTokenId)
       digitalAsset @include(if: $includeCollection) {
         id

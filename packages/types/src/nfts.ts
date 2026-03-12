@@ -26,13 +26,16 @@ import {
 // Core domain schemas
 // ---------------------------------------------------------------------------
 
-/** NFT holder — profile fields merged flat (not nested) from the UP relation. */
-export const NftHolderSchema = z
-  .object({
+/** NFT holder — profile fields merged flat (not nested) from the UP relation.
+ * ProfileSchema is merged first, then the holder-specific `timestamp` overrides the profile's
+ * (profile.timestamp = indexing time, holder.timestamp = acquisition time).
+ */
+export const NftHolderSchema = ProfileSchema.merge(
+  z.object({
     /** When this holder acquired the token (ISO timestamp) */
     timestamp: z.string(),
-  })
-  .merge(ProfileSchema);
+  }),
+);
 
 /** Individual NFT token — identified by (address, tokenId). */
 export const NftSchema = z.object({
@@ -64,6 +67,14 @@ export const NftSchema = z.object({
   links: z.array(LinkSchema).nullable(),
   /** NFT-specific metadata attributes (traits) */
   attributes: z.array(Lsp4AttributeSchema).nullable(),
+  /** Timestamp when the NFT was indexed — ISO string (null when excluded via include) */
+  timestamp: z.string().nullable(),
+  /** Block number where the NFT event was emitted (null when excluded via include) */
+  blockNumber: z.number().nullable(),
+  /** Transaction index within the block (null when excluded via include) */
+  transactionIndex: z.number().nullable(),
+  /** Log index within the transaction (null when excluded via include) */
+  logIndex: z.number().nullable(),
 });
 
 // ---------------------------------------------------------------------------
@@ -126,6 +137,14 @@ export const NftIncludeSchema = z.object({
   links: z.boolean().optional(),
   /** Include metadata attributes (traits) */
   attributes: z.boolean().optional(),
+  /** Include timestamp */
+  timestamp: z.boolean().optional(),
+  /** Include block number */
+  blockNumber: z.boolean().optional(),
+  /** Include transaction index */
+  transactionIndex: z.boolean().optional(),
+  /** Include log index */
+  logIndex: z.boolean().optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -205,6 +224,10 @@ type NftScalarIncludeFieldMap = {
   images: 'images';
   links: 'links';
   attributes: 'attributes';
+  timestamp: 'timestamp';
+  blockNumber: 'blockNumber';
+  transactionIndex: 'transactionIndex';
+  logIndex: 'logIndex';
 };
 
 /**

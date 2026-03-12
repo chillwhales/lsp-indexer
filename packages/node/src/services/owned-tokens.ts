@@ -120,8 +120,10 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
   const activeHolder = hasActiveIncludes(include.holder);
 
   const vars: Record<string, boolean> = {
-    includeBlock: include.block ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
     includeTimestamp: include.timestamp ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
     includeDigitalAsset: activeDA,
     includeNft: activeNft,
     includeOwnedAsset: activeOA,

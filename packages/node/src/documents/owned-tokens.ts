@@ -4,8 +4,10 @@ import { graphql } from '../graphql';
 export const GetOwnedTokenDocument = graphql(`
   query GetOwnedToken(
     $where: owned_token_bool_exp!
-    $includeBlock: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeName: Boolean! = true
     $includeSymbol: Boolean! = true
@@ -35,7 +37,7 @@ export const GetOwnedTokenDocument = graphql(`
     $includeNftAttributes: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeOwnedAssetBalance: Boolean! = true
-    $includeOwnedAssetBlock: Boolean! = true
+    $includeOwnedAssetBlockNumber: Boolean! = true
     $includeOwnedAssetTimestamp: Boolean! = true
     $includeHolder: Boolean! = true
     $includeProfileName: Boolean! = true
@@ -53,8 +55,10 @@ export const GetOwnedTokenDocument = graphql(`
       address
       owner
       token_id
-      block @include(if: $includeBlock)
+      block @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
@@ -209,7 +213,7 @@ export const GetOwnedTokenDocument = graphql(`
         address
         owner
         balance @include(if: $includeOwnedAssetBalance)
-        block @include(if: $includeOwnedAssetBlock)
+        block @include(if: $includeOwnedAssetBlockNumber)
         timestamp @include(if: $includeOwnedAssetTimestamp)
       }
       universalProfile @include(if: $includeHolder) {
@@ -271,8 +275,10 @@ export const GetOwnedTokensDocument = graphql(`
     $order_by: [owned_token_order_by!]
     $limit: Int
     $offset: Int
-    $includeBlock: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeName: Boolean! = true
     $includeSymbol: Boolean! = true
@@ -302,7 +308,7 @@ export const GetOwnedTokensDocument = graphql(`
     $includeNftAttributes: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeOwnedAssetBalance: Boolean! = true
-    $includeOwnedAssetBlock: Boolean! = true
+    $includeOwnedAssetBlockNumber: Boolean! = true
     $includeOwnedAssetTimestamp: Boolean! = true
     $includeHolder: Boolean! = true
     $includeProfileName: Boolean! = true
@@ -320,8 +326,10 @@ export const GetOwnedTokensDocument = graphql(`
       address
       owner
       token_id
-      block @include(if: $includeBlock)
+      block @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
@@ -476,7 +484,7 @@ export const GetOwnedTokensDocument = graphql(`
         address
         owner
         balance @include(if: $includeOwnedAssetBalance)
-        block @include(if: $includeOwnedAssetBlock)
+        block @include(if: $includeOwnedAssetBlockNumber)
         timestamp @include(if: $includeOwnedAssetTimestamp)
       }
       universalProfile @include(if: $includeHolder) {
@@ -542,8 +550,10 @@ export const OwnedTokenSubscriptionDocument = graphql(`
     $where: owned_token_bool_exp
     $order_by: [owned_token_order_by!]
     $limit: Int
-    $includeBlock: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeName: Boolean! = true
     $includeSymbol: Boolean! = true
@@ -573,7 +583,7 @@ export const OwnedTokenSubscriptionDocument = graphql(`
     $includeNftAttributes: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeOwnedAssetBalance: Boolean! = true
-    $includeOwnedAssetBlock: Boolean! = true
+    $includeOwnedAssetBlockNumber: Boolean! = true
     $includeOwnedAssetTimestamp: Boolean! = true
     $includeHolder: Boolean! = true
     $includeProfileName: Boolean! = true
@@ -591,8 +601,10 @@ export const OwnedTokenSubscriptionDocument = graphql(`
       address
       owner
       token_id
-      block @include(if: $includeBlock)
+      block @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
@@ -747,7 +759,7 @@ export const OwnedTokenSubscriptionDocument = graphql(`
         address
         owner
         balance @include(if: $includeOwnedAssetBalance)
-        block @include(if: $includeOwnedAssetBlock)
+        block @include(if: $includeOwnedAssetBlockNumber)
         timestamp @include(if: $includeOwnedAssetTimestamp)
       }
       universalProfile @include(if: $includeHolder) {

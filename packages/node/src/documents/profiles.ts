@@ -13,10 +13,18 @@ export const GetProfileDocument = graphql(`
     $includeBackgroundImage: Boolean! = true
     $includeFollowerCount: Boolean! = true
     $includeFollowingCount: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
   ) {
     universal_profile(where: $where, limit: 1) {
       id
       address
+      timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       lsp3Profile {
         name @include(if: $includeName) {
           value
@@ -82,10 +90,18 @@ export const GetProfilesDocument = graphql(`
     $includeBackgroundImage: Boolean! = true
     $includeFollowerCount: Boolean! = true
     $includeFollowingCount: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
   ) {
     universal_profile(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       id
       address
+      timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       lsp3Profile {
         name @include(if: $includeName) {
           value
@@ -155,10 +171,18 @@ export const ProfileSubscriptionDocument = graphql(`
     $includeBackgroundImage: Boolean! = true
     $includeFollowerCount: Boolean! = true
     $includeFollowingCount: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
   ) {
     universal_profile(where: $where, order_by: $order_by, limit: $limit) {
       id
       address
+      timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       lsp3Profile {
         name @include(if: $includeName) {
           value

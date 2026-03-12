@@ -124,6 +124,10 @@ export function buildProfileIncludeDirectives(include?: ProfileInclude): Record<
     includeBackgroundImage: include.backgroundImage ?? false,
     includeFollowerCount: include.followerCount ?? false,
     includeFollowingCount: include.followingCount ?? false,
+    includeTimestamp: include.timestamp ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
   };
 }
 
@@ -149,6 +153,10 @@ export function buildProfileIncludeVars(
     includeProfileBackgroundImage: include.backgroundImage ?? false,
     includeProfileFollowerCount: include.followerCount ?? false,
     includeProfileFollowingCount: include.followingCount ?? false,
+    includeProfileTimestamp: include.timestamp ?? false,
+    includeProfileBlockNumber: include.blockNumber ?? false,
+    includeProfileTransactionIndex: include.transactionIndex ?? false,
+    includeProfileLogIndex: include.logIndex ?? false,
   };
 }
 

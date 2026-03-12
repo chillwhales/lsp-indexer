@@ -1538,6 +1538,10 @@ columns and relationships of "digital_asset"
 """
 type digital_asset {
   address: String!
+  block_number: Int
+  log_index: Int
+  timestamp: timestamptz
+  transaction_index: Int
 
   """
   An array relationship
@@ -3851,6 +3855,7 @@ type lsp12_issued_asset {
   address: String!
   array_index: numeric
   asset_address: String!
+  block_number: Int
   id: String!
   interface_id: String
 
@@ -3859,7 +3864,9 @@ type lsp12_issued_asset {
   """
   issuedAsset: digital_asset
   issued_asset_id: String
+  log_index: Int
   timestamp: timestamptz!
+  transaction_index: Int
 
   """
   An object relationship
@@ -4816,6 +4823,7 @@ columns and relationships of "lsp29_encrypted_asset"
 type lsp29_encrypted_asset {
   address: String!
   array_index: numeric
+  block_number: Int
 
   """
   An object relationship
@@ -4843,6 +4851,7 @@ type lsp29_encrypted_asset {
   """
   file: lsp29_encrypted_asset_file
   id: String!
+  log_index: Int
 
   """
   An array relationship
@@ -4908,6 +4917,7 @@ type lsp29_encrypted_asset {
   retry_count: Int
   revision: Int
   timestamp: timestamptz!
+  transaction_index: Int
 
   """
   An object relationship
@@ -9705,6 +9715,7 @@ columns and relationships of "lsp4_creator"
 type lsp4_creator {
   address: String!
   array_index: numeric
+  block_number: Int
 
   """
   An object relationship
@@ -9720,7 +9731,9 @@ type lsp4_creator {
   digital_asset_id: String
   id: String!
   interface_id: String
+  log_index: Int
   timestamp: timestamptz!
+  transaction_index: Int
 }
 
 """
@@ -15909,6 +15922,10 @@ columns and relationships of "nft"
 """
 type nft {
   address: String!
+  block_number: Int
+  log_index: Int
+  timestamp: timestamptz
+  transaction_index: Int
 
   """
   An object relationship
@@ -17172,8 +17189,10 @@ type owned_asset {
   digitalAsset: digital_asset
   digital_asset_id: String
   id: String!
+  log_index: Int
   owner: String!
   timestamp: timestamptz!
+  transaction_index: Int
 
   """
   An array relationship
@@ -17604,6 +17623,7 @@ type owned_token {
   digitalAsset: digital_asset
   digital_asset_id: String
   id: String!
+  log_index: Int
 
   """
   An object relationship
@@ -17619,6 +17639,7 @@ type owned_token {
   owner: String!
   timestamp: timestamptz!
   token_id: String!
+  transaction_index: Int
 
   """
   An object relationship
@@ -30887,6 +30908,10 @@ columns and relationships of "universal_profile"
 """
 type universal_profile {
   address: String!
+  block_number: Int
+  log_index: Int
+  timestamp: timestamptz
+  transaction_index: Int
 
   """
   An array relationship

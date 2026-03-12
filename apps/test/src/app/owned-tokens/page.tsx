@@ -85,8 +85,10 @@ const SORT_OPTIONS: SortOption[] = [
 ];
 
 const BASE_INCLUDES: IncludeToggleConfig[] = [
-  { key: 'block', label: 'Block' },
+  { key: 'blockNumber', label: 'Block Number' },
   { key: 'timestamp', label: 'Timestamp' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];
 
 const PRESETS = [

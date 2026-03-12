@@ -49,7 +49,7 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
     digitalAssetAddress,
     holderAddress,
     balance,
-    block,
+    blockNumber,
     timestamp,
     tokenIdCount,
     digitalAsset,
@@ -118,10 +118,10 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
               </dd>
             </div>
           )}
-          {block != null && (
+          {blockNumber != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Block</dt>
-              <dd className="font-mono text-xs">{block}</dd>
+              <dd className="font-mono text-xs">{blockNumber}</dd>
             </div>
           )}
           {timestamp && (

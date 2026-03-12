@@ -89,8 +89,10 @@ const SORT_OPTIONS: SortOption[] = [
 
 const BASE_INCLUDES: IncludeToggleConfig[] = [
   { key: 'balance', label: 'Balance' },
-  { key: 'block', label: 'Block' },
+  { key: 'blockNumber', label: 'Block Number' },
   { key: 'timestamp', label: 'Timestamp' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
   { key: 'tokenIdCount', label: 'Token ID Count' },
 ];
 

@@ -120,6 +120,10 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
     includeImages: include.images ?? false,
     includeLinks: include.links ?? false,
     includeAttributes: include.attributes ?? false,
+    includeTimestamp: include.timestamp ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
   };
 
   // Collection sub-includes: reuse digital asset include builder with "Collection" prefix.

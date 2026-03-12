@@ -148,6 +148,10 @@ export function buildDigitalAssetIncludeVars(
     includeReferenceContract: include.referenceContract ?? false,
     includeTokenIdFormat: include.tokenIdFormat ?? false,
     includeBaseUri: include.baseUri ?? false,
+    includeTimestamp: include.timestamp ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
   };
 }
 

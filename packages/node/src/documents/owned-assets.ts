@@ -5,8 +5,10 @@ export const GetOwnedAssetDocument = graphql(`
   query GetOwnedAsset(
     $where: owned_asset_bool_exp!
     $includeBalance: Boolean! = true
-    $includeBlock: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeName: Boolean! = true
     $includeSymbol: Boolean! = true
@@ -42,8 +44,10 @@ export const GetOwnedAssetDocument = graphql(`
       address
       owner
       balance @include(if: $includeBalance)
-      block @include(if: $includeBlock)
+      block @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
@@ -181,8 +185,10 @@ export const GetOwnedAssetsDocument = graphql(`
     $limit: Int
     $offset: Int
     $includeBalance: Boolean! = true
-    $includeBlock: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeName: Boolean! = true
     $includeSymbol: Boolean! = true
@@ -218,8 +224,10 @@ export const GetOwnedAssetsDocument = graphql(`
       address
       owner
       balance @include(if: $includeBalance)
-      block @include(if: $includeBlock)
+      block @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
@@ -361,8 +369,10 @@ export const OwnedAssetSubscriptionDocument = graphql(`
     $order_by: [owned_asset_order_by!]
     $limit: Int
     $includeBalance: Boolean! = true
-    $includeBlock: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeName: Boolean! = true
     $includeSymbol: Boolean! = true
@@ -398,8 +408,10 @@ export const OwnedAssetSubscriptionDocument = graphql(`
       address
       owner
       balance @include(if: $includeBalance)
-      block @include(if: $includeBlock)
+      block @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address

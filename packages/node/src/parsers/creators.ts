@@ -21,6 +21,9 @@ export function parseCreator(raw: RawCreator, include?: CreatorInclude): Creator
     arrayIndex: raw.array_index != null ? Number(raw.array_index) : null,
     interfaceId: raw.interface_id ?? null,
     timestamp: raw.timestamp != null ? String(raw.timestamp) : null,
+    blockNumber: raw.block_number ?? null,
+    transactionIndex: raw.transaction_index ?? null,
+    logIndex: raw.log_index ?? null,
     creatorProfile: raw.creatorProfile
       ? parseProfile(raw.creatorProfile as Parameters<typeof parseProfile>[0])
       : null,

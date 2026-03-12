@@ -156,6 +156,9 @@ export function buildEncryptedAssetIncludeVars(
     // Scalars
     includeArrayIndex: include.arrayIndex ?? false,
     includeTimestamp: include.timestamp ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
 
     // Boolean relations
     includeTitle: include.title ?? false,

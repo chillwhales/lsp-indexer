@@ -124,7 +124,10 @@ export function parseEncryptedAsset(
 
     // Includable scalars
     arrayIndex: raw.array_index != null ? Number(raw.array_index) : null,
-    timestamp: raw.timestamp,
+    timestamp: raw.timestamp ?? null,
+    blockNumber: raw.block_number ?? null,
+    transactionIndex: raw.transaction_index ?? null,
+    logIndex: raw.log_index ?? null,
 
     // Flattened wrappers — title.value → title, description.value → description
     title: raw.title?.value ?? null,

@@ -10,6 +10,9 @@ export const GetCreatorsDocument = graphql(`
     $includeArrayIndex: Boolean! = true
     $includeInterfaceId: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeCreatorProfile: Boolean! = true
     $includeCreatorProfileName: Boolean! = true
     $includeCreatorProfileDescription: Boolean! = true
@@ -45,6 +48,9 @@ export const GetCreatorsDocument = graphql(`
       array_index @include(if: $includeArrayIndex)
       interface_id @include(if: $includeInterfaceId)
       timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       creatorProfile @include(if: $includeCreatorProfile) {
         address
         lsp3Profile {
@@ -183,6 +189,9 @@ export const CreatorSubscriptionDocument = graphql(`
     $includeArrayIndex: Boolean! = true
     $includeInterfaceId: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeCreatorProfile: Boolean! = true
     $includeCreatorProfileName: Boolean! = true
     $includeCreatorProfileDescription: Boolean! = true
@@ -218,6 +227,9 @@ export const CreatorSubscriptionDocument = graphql(`
       array_index @include(if: $includeArrayIndex)
       interface_id @include(if: $includeInterfaceId)
       timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       creatorProfile @include(if: $includeCreatorProfile) {
         address
         lsp3Profile {
