@@ -12923,7 +12923,7 @@ export type Owned_Asset = {
   __typename?: 'owned_asset';
   address: Scalars['String']['output'];
   balance: Scalars['numeric']['output'];
-  block: Scalars['Int']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
@@ -13021,13 +13021,13 @@ export type Owned_Asset_Aggregate_Order_By = {
 export type Owned_Asset_Avg_Fields = {
   __typename?: 'owned_asset_avg_fields';
   balance?: Maybe<Scalars['Float']['output']>;
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "owned_asset" */
 export type Owned_Asset_Avg_Order_By = {
   balance?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "owned_asset". All fields are combined with a logical 'AND'. */
@@ -13037,7 +13037,7 @@ export type Owned_Asset_Bool_Exp = {
   _or?: InputMaybe<Array<Owned_Asset_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
   balance?: InputMaybe<Numeric_Comparison_Exp>;
-  block?: InputMaybe<Int_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
@@ -13054,7 +13054,7 @@ export type Owned_Asset_Max_Fields = {
   __typename?: 'owned_asset_max_fields';
   address?: Maybe<Scalars['String']['output']>;
   balance?: Maybe<Scalars['numeric']['output']>;
-  block?: Maybe<Scalars['Int']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   owner?: Maybe<Scalars['String']['output']>;
@@ -13066,7 +13066,7 @@ export type Owned_Asset_Max_Fields = {
 export type Owned_Asset_Max_Order_By = {
   address?: InputMaybe<Order_By>;
   balance?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   owner?: InputMaybe<Order_By>;
@@ -13079,7 +13079,7 @@ export type Owned_Asset_Min_Fields = {
   __typename?: 'owned_asset_min_fields';
   address?: Maybe<Scalars['String']['output']>;
   balance?: Maybe<Scalars['numeric']['output']>;
-  block?: Maybe<Scalars['Int']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   owner?: Maybe<Scalars['String']['output']>;
@@ -13091,7 +13091,7 @@ export type Owned_Asset_Min_Fields = {
 export type Owned_Asset_Min_Order_By = {
   address?: InputMaybe<Order_By>;
   balance?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   owner?: InputMaybe<Order_By>;
@@ -13103,7 +13103,7 @@ export type Owned_Asset_Min_Order_By = {
 export type Owned_Asset_Order_By = {
   address?: InputMaybe<Order_By>;
   balance?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -13121,7 +13121,7 @@ export type Owned_Asset_Select_Column =
   /** column name */
   | 'balance'
   /** column name */
-  | 'block'
+  | 'block_number'
   /** column name */
   | 'digital_asset_id'
   /** column name */
@@ -13137,39 +13137,39 @@ export type Owned_Asset_Select_Column =
 export type Owned_Asset_Stddev_Fields = {
   __typename?: 'owned_asset_stddev_fields';
   balance?: Maybe<Scalars['Float']['output']>;
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "owned_asset" */
 export type Owned_Asset_Stddev_Order_By = {
   balance?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Owned_Asset_Stddev_Pop_Fields = {
   __typename?: 'owned_asset_stddev_pop_fields';
   balance?: Maybe<Scalars['Float']['output']>;
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "owned_asset" */
 export type Owned_Asset_Stddev_Pop_Order_By = {
   balance?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Owned_Asset_Stddev_Samp_Fields = {
   __typename?: 'owned_asset_stddev_samp_fields';
   balance?: Maybe<Scalars['Float']['output']>;
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "owned_asset" */
 export type Owned_Asset_Stddev_Samp_Order_By = {
   balance?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "owned_asset" */
@@ -13184,7 +13184,7 @@ export type Owned_Asset_Stream_Cursor_Input = {
 export type Owned_Asset_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
   balance?: InputMaybe<Scalars['numeric']['input']>;
-  block?: InputMaybe<Scalars['Int']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   owner?: InputMaybe<Scalars['String']['input']>;
@@ -13196,59 +13196,59 @@ export type Owned_Asset_Stream_Cursor_Value_Input = {
 export type Owned_Asset_Sum_Fields = {
   __typename?: 'owned_asset_sum_fields';
   balance?: Maybe<Scalars['numeric']['output']>;
-  block?: Maybe<Scalars['Int']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "owned_asset" */
 export type Owned_Asset_Sum_Order_By = {
   balance?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Owned_Asset_Var_Pop_Fields = {
   __typename?: 'owned_asset_var_pop_fields';
   balance?: Maybe<Scalars['Float']['output']>;
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "owned_asset" */
 export type Owned_Asset_Var_Pop_Order_By = {
   balance?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Owned_Asset_Var_Samp_Fields = {
   __typename?: 'owned_asset_var_samp_fields';
   balance?: Maybe<Scalars['Float']['output']>;
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "owned_asset" */
 export type Owned_Asset_Var_Samp_Order_By = {
   balance?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Owned_Asset_Variance_Fields = {
   __typename?: 'owned_asset_variance_fields';
   balance?: Maybe<Scalars['Float']['output']>;
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "owned_asset" */
 export type Owned_Asset_Variance_Order_By = {
   balance?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "owned_token" */
 export type Owned_Token = {
   __typename?: 'owned_token';
   address: Scalars['String']['output'];
-  block: Scalars['Int']['output'];
+  block_number: Scalars['Int']['output'];
   /** An object relationship */
   digitalAsset?: Maybe<Digital_Asset>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
@@ -13328,12 +13328,12 @@ export type Owned_Token_Aggregate_Order_By = {
 /** aggregate avg on columns */
 export type Owned_Token_Avg_Fields = {
   __typename?: 'owned_token_avg_fields';
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "owned_token" */
 export type Owned_Token_Avg_Order_By = {
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "owned_token". All fields are combined with a logical 'AND'. */
@@ -13342,7 +13342,7 @@ export type Owned_Token_Bool_Exp = {
   _not?: InputMaybe<Owned_Token_Bool_Exp>;
   _or?: InputMaybe<Array<Owned_Token_Bool_Exp>>;
   address?: InputMaybe<String_Comparison_Exp>;
-  block?: InputMaybe<Int_Comparison_Exp>;
+  block_number?: InputMaybe<Int_Comparison_Exp>;
   digitalAsset?: InputMaybe<Digital_Asset_Bool_Exp>;
   digital_asset_id?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
@@ -13361,7 +13361,7 @@ export type Owned_Token_Bool_Exp = {
 export type Owned_Token_Max_Fields = {
   __typename?: 'owned_token_max_fields';
   address?: Maybe<Scalars['String']['output']>;
-  block?: Maybe<Scalars['Int']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
@@ -13375,7 +13375,7 @@ export type Owned_Token_Max_Fields = {
 /** order by max() on columns of table "owned_token" */
 export type Owned_Token_Max_Order_By = {
   address?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nft_id?: InputMaybe<Order_By>;
@@ -13390,7 +13390,7 @@ export type Owned_Token_Max_Order_By = {
 export type Owned_Token_Min_Fields = {
   __typename?: 'owned_token_min_fields';
   address?: Maybe<Scalars['String']['output']>;
-  block?: Maybe<Scalars['Int']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
   digital_asset_id?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['String']['output']>;
   nft_id?: Maybe<Scalars['String']['output']>;
@@ -13404,7 +13404,7 @@ export type Owned_Token_Min_Fields = {
 /** order by min() on columns of table "owned_token" */
 export type Owned_Token_Min_Order_By = {
   address?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nft_id?: InputMaybe<Order_By>;
@@ -13418,7 +13418,7 @@ export type Owned_Token_Min_Order_By = {
 /** Ordering options when selecting data from "owned_token". */
 export type Owned_Token_Order_By = {
   address?: InputMaybe<Order_By>;
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
   digitalAsset?: InputMaybe<Digital_Asset_Order_By>;
   digital_asset_id?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -13438,7 +13438,7 @@ export type Owned_Token_Select_Column =
   /** column name */
   | 'address'
   /** column name */
-  | 'block'
+  | 'block_number'
   /** column name */
   | 'digital_asset_id'
   /** column name */
@@ -13459,34 +13459,34 @@ export type Owned_Token_Select_Column =
 /** aggregate stddev on columns */
 export type Owned_Token_Stddev_Fields = {
   __typename?: 'owned_token_stddev_fields';
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "owned_token" */
 export type Owned_Token_Stddev_Order_By = {
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Owned_Token_Stddev_Pop_Fields = {
   __typename?: 'owned_token_stddev_pop_fields';
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "owned_token" */
 export type Owned_Token_Stddev_Pop_Order_By = {
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Owned_Token_Stddev_Samp_Fields = {
   __typename?: 'owned_token_stddev_samp_fields';
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "owned_token" */
 export type Owned_Token_Stddev_Samp_Order_By = {
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "owned_token" */
@@ -13500,7 +13500,7 @@ export type Owned_Token_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Owned_Token_Stream_Cursor_Value_Input = {
   address?: InputMaybe<Scalars['String']['input']>;
-  block?: InputMaybe<Scalars['Int']['input']>;
+  block_number?: InputMaybe<Scalars['Int']['input']>;
   digital_asset_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   nft_id?: InputMaybe<Scalars['String']['input']>;
@@ -13514,45 +13514,45 @@ export type Owned_Token_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Owned_Token_Sum_Fields = {
   __typename?: 'owned_token_sum_fields';
-  block?: Maybe<Scalars['Int']['output']>;
+  block_number?: Maybe<Scalars['Int']['output']>;
 };
 
 /** order by sum() on columns of table "owned_token" */
 export type Owned_Token_Sum_Order_By = {
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */
 export type Owned_Token_Var_Pop_Fields = {
   __typename?: 'owned_token_var_pop_fields';
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "owned_token" */
 export type Owned_Token_Var_Pop_Order_By = {
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Owned_Token_Var_Samp_Fields = {
   __typename?: 'owned_token_var_samp_fields';
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "owned_token" */
 export type Owned_Token_Var_Samp_Order_By = {
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Owned_Token_Variance_Fields = {
   __typename?: 'owned_token_variance_fields';
-  block?: Maybe<Scalars['Float']['output']>;
+  block_number?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "owned_token" */
 export type Owned_Token_Variance_Order_By = {
-  block?: InputMaybe<Order_By>;
+  block_number?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "ownership_transferred" */
@@ -22040,7 +22040,7 @@ export type GetOwnedAssetQueryVariables = Exact<{
 }>;
 
 
-export type GetOwnedAssetQuery = { __typename?: 'query_root', owned_asset: Array<{ __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, tokenIds_aggregate?: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }> };
+export type GetOwnedAssetQuery = { __typename?: 'query_root', owned_asset: Array<{ __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, tokenIds_aggregate?: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }> };
 
 export type GetOwnedAssetsQueryVariables = Exact<{
   where?: InputMaybe<Owned_Asset_Bool_Exp>;
@@ -22084,7 +22084,7 @@ export type GetOwnedAssetsQueryVariables = Exact<{
 }>;
 
 
-export type GetOwnedAssetsQuery = { __typename?: 'query_root', owned_asset: Array<{ __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, tokenIds_aggregate?: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }>, owned_asset_aggregate: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null } };
+export type GetOwnedAssetsQuery = { __typename?: 'query_root', owned_asset: Array<{ __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, tokenIds_aggregate?: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }>, owned_asset_aggregate: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null } };
 
 export type OwnedAssetSubscriptionSubscriptionVariables = Exact<{
   where?: InputMaybe<Owned_Asset_Bool_Exp>;
@@ -22127,7 +22127,7 @@ export type OwnedAssetSubscriptionSubscriptionVariables = Exact<{
 }>;
 
 
-export type OwnedAssetSubscriptionSubscription = { __typename?: 'subscription_root', owned_asset: Array<{ __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, tokenIds_aggregate?: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }> };
+export type OwnedAssetSubscriptionSubscription = { __typename?: 'subscription_root', owned_asset: Array<{ __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null, tokenIds_aggregate?: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } }> };
 
 export type GetOwnedTokenQueryVariables = Exact<{
   where: Owned_Token_Bool_Exp;
@@ -22179,7 +22179,7 @@ export type GetOwnedTokenQueryVariables = Exact<{
 }>;
 
 
-export type GetOwnedTokenQuery = { __typename?: 'query_root', owned_token: Array<{ __typename?: 'owned_token', id: string, address: string, owner: string, token_id: string, block?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, nft?: { __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null } | null, ownedAsset?: { __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block?: number, timestamp?: any } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
+export type GetOwnedTokenQuery = { __typename?: 'query_root', owned_token: Array<{ __typename?: 'owned_token', id: string, address: string, owner: string, token_id: string, block_number?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, nft?: { __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null } | null, ownedAsset?: { __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
 
 export type GetOwnedTokensQueryVariables = Exact<{
   where?: InputMaybe<Owned_Token_Bool_Exp>;
@@ -22234,7 +22234,7 @@ export type GetOwnedTokensQueryVariables = Exact<{
 }>;
 
 
-export type GetOwnedTokensQuery = { __typename?: 'query_root', owned_token: Array<{ __typename?: 'owned_token', id: string, address: string, owner: string, token_id: string, block?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, nft?: { __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null } | null, ownedAsset?: { __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block?: number, timestamp?: any } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }>, owned_token_aggregate: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } };
+export type GetOwnedTokensQuery = { __typename?: 'query_root', owned_token: Array<{ __typename?: 'owned_token', id: string, address: string, owner: string, token_id: string, block_number?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, nft?: { __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null } | null, ownedAsset?: { __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }>, owned_token_aggregate: { __typename?: 'owned_token_aggregate', aggregate?: { __typename?: 'owned_token_aggregate_fields', count: number } | null } };
 
 export type OwnedTokenSubscriptionSubscriptionVariables = Exact<{
   where?: InputMaybe<Owned_Token_Bool_Exp>;
@@ -22288,7 +22288,7 @@ export type OwnedTokenSubscriptionSubscriptionVariables = Exact<{
 }>;
 
 
-export type OwnedTokenSubscriptionSubscription = { __typename?: 'subscription_root', owned_token: Array<{ __typename?: 'owned_token', id: string, address: string, owner: string, token_id: string, block?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, nft?: { __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null } | null, ownedAsset?: { __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block?: number, timestamp?: any } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
+export type OwnedTokenSubscriptionSubscription = { __typename?: 'subscription_root', owned_token: Array<{ __typename?: 'owned_token', id: string, address: string, owner: string, token_id: string, block_number?: number, timestamp?: any, transaction_index?: number | null, log_index?: number | null, digitalAsset?: { __typename?: 'digital_asset', id: string, address: string, lsp4TokenName?: { __typename?: 'lsp4_token_name', value?: string | null } | null, lsp4TokenSymbol?: { __typename?: 'lsp4_token_symbol', value?: string | null } | null, lsp4TokenType?: { __typename?: 'lsp4_token_type', value?: string | null } | null, decimals?: { __typename?: 'decimals', value: number } | null, totalSupply?: { __typename?: 'total_supply', value: string } | null, lsp4Metadata?: { __typename?: 'lsp4_metadata', description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, owner?: { __typename?: 'digital_asset_owner', address: string, timestamp: any } | null, ownedAssets_aggregate?: { __typename?: 'owned_asset_aggregate', aggregate?: { __typename?: 'owned_asset_aggregate_fields', count: number } | null }, lsp4CreatorsLength?: { __typename?: 'lsp4_creators_length', value?: string | null } | null, lsp8ReferenceContract?: { __typename?: 'lsp8_reference_contract', value?: string | null } | null, lsp8TokenIdFormat?: { __typename?: 'lsp8_token_id_format', value?: string | null } | null, lsp8TokenMetadataBaseUri?: { __typename?: 'lsp8_token_metadata_base_uri', value?: string | null } | null } | null, nft?: { __typename?: 'nft', address: string, token_id: string, formatted_token_id?: string | null, is_burned: boolean, is_minted: boolean, lsp4Metadata?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null, lsp4MetadataBaseUri?: { __typename?: 'lsp4_metadata', name?: { __typename?: 'lsp4_metadata_name', value?: string | null } | null, description?: { __typename?: 'lsp4_metadata_description', value?: string | null } | null, category?: { __typename?: 'lsp4_metadata_category', value?: string | null } | null, icon?: Array<{ __typename?: 'lsp4_metadata_icon', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, images?: Array<{ __typename?: 'lsp4_metadata_image', url?: string | null, width?: number | null, height?: number | null, image_index: number, verification_method?: string | null, verification_data?: string | null }>, links?: Array<{ __typename?: 'lsp4_metadata_link', title?: string | null, url?: string | null }>, attributes?: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }> } | null } | null, ownedAsset?: { __typename?: 'owned_asset', id: string, address: string, owner: string, balance?: string, block_number?: number, timestamp?: any } | null, universalProfile?: { __typename?: 'universal_profile', address: string, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
 
 export type GetProfileQueryVariables = Exact<{
   where: Universal_Profile_Bool_Exp;
@@ -24740,7 +24740,7 @@ export const GetOwnedAssetDocument = new TypedDocumentString(`
     address
     owner
     balance @include(if: $includeBalance)
-    block @include(if: $includeBlockNumber)
+    block_number @include(if: $includeBlockNumber)
     timestamp @include(if: $includeTimestamp)
     transaction_index @include(if: $includeTransactionIndex)
     log_index @include(if: $includeLogIndex)
@@ -24879,7 +24879,7 @@ export const GetOwnedAssetsDocument = new TypedDocumentString(`
     address
     owner
     balance @include(if: $includeBalance)
-    block @include(if: $includeBlockNumber)
+    block_number @include(if: $includeBlockNumber)
     timestamp @include(if: $includeTimestamp)
     transaction_index @include(if: $includeTransactionIndex)
     log_index @include(if: $includeLogIndex)
@@ -25023,7 +25023,7 @@ export const OwnedAssetSubscriptionDocument = new TypedDocumentString(`
     address
     owner
     balance @include(if: $includeBalance)
-    block @include(if: $includeBlockNumber)
+    block_number @include(if: $includeBlockNumber)
     timestamp @include(if: $includeTimestamp)
     transaction_index @include(if: $includeTransactionIndex)
     log_index @include(if: $includeLogIndex)
@@ -25162,7 +25162,7 @@ export const GetOwnedTokenDocument = new TypedDocumentString(`
     address
     owner
     token_id
-    block @include(if: $includeBlockNumber)
+    block_number @include(if: $includeBlockNumber)
     timestamp @include(if: $includeTimestamp)
     transaction_index @include(if: $includeTransactionIndex)
     log_index @include(if: $includeLogIndex)
@@ -25320,7 +25320,7 @@ export const GetOwnedTokenDocument = new TypedDocumentString(`
       address
       owner
       balance @include(if: $includeOwnedAssetBalance)
-      block @include(if: $includeOwnedAssetBlockNumber)
+      block_number @include(if: $includeOwnedAssetBlockNumber)
       timestamp @include(if: $includeOwnedAssetTimestamp)
     }
     universalProfile @include(if: $includeHolder) {
@@ -25381,7 +25381,7 @@ export const GetOwnedTokensDocument = new TypedDocumentString(`
     address
     owner
     token_id
-    block @include(if: $includeBlockNumber)
+    block_number @include(if: $includeBlockNumber)
     timestamp @include(if: $includeTimestamp)
     transaction_index @include(if: $includeTransactionIndex)
     log_index @include(if: $includeLogIndex)
@@ -25539,7 +25539,7 @@ export const GetOwnedTokensDocument = new TypedDocumentString(`
       address
       owner
       balance @include(if: $includeOwnedAssetBalance)
-      block @include(if: $includeOwnedAssetBlockNumber)
+      block_number @include(if: $includeOwnedAssetBlockNumber)
       timestamp @include(if: $includeOwnedAssetTimestamp)
     }
     universalProfile @include(if: $includeHolder) {
@@ -25605,7 +25605,7 @@ export const OwnedTokenSubscriptionDocument = new TypedDocumentString(`
     address
     owner
     token_id
-    block @include(if: $includeBlockNumber)
+    block_number @include(if: $includeBlockNumber)
     timestamp @include(if: $includeTimestamp)
     transaction_index @include(if: $includeTransactionIndex)
     log_index @include(if: $includeLogIndex)
@@ -25763,7 +25763,7 @@ export const OwnedTokenSubscriptionDocument = new TypedDocumentString(`
       address
       owner
       balance @include(if: $includeOwnedAssetBalance)
-      block @include(if: $includeOwnedAssetBlockNumber)
+      block_number @include(if: $includeOwnedAssetBlockNumber)
       timestamp @include(if: $includeOwnedAssetTimestamp)
     }
     universalProfile @include(if: $includeHolder) {

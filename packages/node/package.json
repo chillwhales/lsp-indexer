@@ -22,17 +22,18 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@graphql-typed-document-node/core": "^3.2.0",
     "@chillwhales/erc725": "^0.1.1",
     "@chillwhales/lsp1": "^0.1.1",
+    "@graphql-typed-document-node/core": "^3.2.0",
     "@lsp-indexer/types": "workspace:*",
+    "graphql": "^16.12.0",
+    "graphql-request": "^7.4.0",
     "graphql-ws": "^6.0.7"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^6.1.1",
     "@graphql-codegen/client-preset": "^5.2.3",
     "@graphql-codegen/schema-ast": "^5.0.0",
-    "graphql": "^16.12.0",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"

@@ -1,11 +1,11 @@
 import { writeFileSync } from 'fs';
 import {
   buildClientSchema,
-  type ExecutionResult,
   getIntrospectionQuery,
   type IntrospectionQuery,
   printSchema,
 } from 'graphql';
+import { request } from 'graphql-request';
 
 function getEndpoint(): string {
   const endpoint = process.env.HASURA_GRAPHQL_ENDPOINT;
@@ -27,30 +27,9 @@ async function main(): Promise<void> {
   const endpoint = getEndpoint();
   console.log(`Introspecting ${endpoint} ...`);
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: getIntrospectionQuery() }),
-  });
+  const result = await request<IntrospectionQuery>(endpoint, getIntrospectionQuery());
 
-  if (!response.ok) {
-    console.error(`Hasura returned HTTP ${response.status}: ${response.statusText}`);
-    process.exit(1);
-  }
-
-  const result: ExecutionResult<IntrospectionQuery> = await response.json();
-
-  if (result.errors?.length) {
-    console.error('GraphQL introspection errors:', JSON.stringify(result.errors, null, 2));
-    process.exit(1);
-  }
-
-  if (!result.data) {
-    console.error('No data returned from introspection query.');
-    process.exit(1);
-  }
-
-  const schema = printSchema(buildClientSchema(result.data));
+  const schema = printSchema(buildClientSchema(result));
   writeFileSync('schema.graphql', schema);
   console.log('schema.graphql updated successfully.');
 }

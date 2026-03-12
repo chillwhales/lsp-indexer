@@ -17181,7 +17181,7 @@ columns and relationships of "owned_asset"
 type owned_asset {
   address: String!
   balance: numeric!
-  block: Int!
+  block_number: Int!
 
   """
   An object relationship
@@ -17319,7 +17319,7 @@ aggregate avg on columns
 """
 type owned_asset_avg_fields {
   balance: Float
-  block: Float
+  block_number: Float
 }
 
 """
@@ -17327,7 +17327,7 @@ order by avg() on columns of table "owned_asset"
 """
 input owned_asset_avg_order_by {
   balance: order_by
-  block: order_by
+  block_number: order_by
 }
 
 """
@@ -17339,7 +17339,7 @@ input owned_asset_bool_exp {
   _or: [owned_asset_bool_exp!]
   address: String_comparison_exp
   balance: numeric_comparison_exp
-  block: Int_comparison_exp
+  block_number: Int_comparison_exp
   digitalAsset: digital_asset_bool_exp
   digital_asset_id: String_comparison_exp
   id: String_comparison_exp
@@ -17357,7 +17357,7 @@ aggregate max on columns
 type owned_asset_max_fields {
   address: String
   balance: numeric
-  block: Int
+  block_number: Int
   digital_asset_id: String
   id: String
   owner: String
@@ -17371,7 +17371,7 @@ order by max() on columns of table "owned_asset"
 input owned_asset_max_order_by {
   address: order_by
   balance: order_by
-  block: order_by
+  block_number: order_by
   digital_asset_id: order_by
   id: order_by
   owner: order_by
@@ -17385,7 +17385,7 @@ aggregate min on columns
 type owned_asset_min_fields {
   address: String
   balance: numeric
-  block: Int
+  block_number: Int
   digital_asset_id: String
   id: String
   owner: String
@@ -17399,7 +17399,7 @@ order by min() on columns of table "owned_asset"
 input owned_asset_min_order_by {
   address: order_by
   balance: order_by
-  block: order_by
+  block_number: order_by
   digital_asset_id: order_by
   id: order_by
   owner: order_by
@@ -17413,7 +17413,7 @@ Ordering options when selecting data from "owned_asset".
 input owned_asset_order_by {
   address: order_by
   balance: order_by
-  block: order_by
+  block_number: order_by
   digitalAsset: digital_asset_order_by
   digital_asset_id: order_by
   id: order_by
@@ -17441,7 +17441,7 @@ enum owned_asset_select_column {
   """
   column name
   """
-  block
+  block_number
 
   """
   column name
@@ -17474,7 +17474,7 @@ aggregate stddev on columns
 """
 type owned_asset_stddev_fields {
   balance: Float
-  block: Float
+  block_number: Float
 }
 
 """
@@ -17482,7 +17482,7 @@ order by stddev() on columns of table "owned_asset"
 """
 input owned_asset_stddev_order_by {
   balance: order_by
-  block: order_by
+  block_number: order_by
 }
 
 """
@@ -17490,7 +17490,7 @@ aggregate stddev_pop on columns
 """
 type owned_asset_stddev_pop_fields {
   balance: Float
-  block: Float
+  block_number: Float
 }
 
 """
@@ -17498,7 +17498,7 @@ order by stddev_pop() on columns of table "owned_asset"
 """
 input owned_asset_stddev_pop_order_by {
   balance: order_by
-  block: order_by
+  block_number: order_by
 }
 
 """
@@ -17506,7 +17506,7 @@ aggregate stddev_samp on columns
 """
 type owned_asset_stddev_samp_fields {
   balance: Float
-  block: Float
+  block_number: Float
 }
 
 """
@@ -17514,7 +17514,7 @@ order by stddev_samp() on columns of table "owned_asset"
 """
 input owned_asset_stddev_samp_order_by {
   balance: order_by
-  block: order_by
+  block_number: order_by
 }
 
 """
@@ -17538,7 +17538,7 @@ Initial value of the column from where the streaming should start
 input owned_asset_stream_cursor_value_input {
   address: String
   balance: numeric
-  block: Int
+  block_number: Int
   digital_asset_id: String
   id: String
   owner: String
@@ -17551,7 +17551,7 @@ aggregate sum on columns
 """
 type owned_asset_sum_fields {
   balance: numeric
-  block: Int
+  block_number: Int
 }
 
 """
@@ -17559,7 +17559,7 @@ order by sum() on columns of table "owned_asset"
 """
 input owned_asset_sum_order_by {
   balance: order_by
-  block: order_by
+  block_number: order_by
 }
 
 """
@@ -17567,7 +17567,7 @@ aggregate var_pop on columns
 """
 type owned_asset_var_pop_fields {
   balance: Float
-  block: Float
+  block_number: Float
 }
 
 """
@@ -17575,7 +17575,7 @@ order by var_pop() on columns of table "owned_asset"
 """
 input owned_asset_var_pop_order_by {
   balance: order_by
-  block: order_by
+  block_number: order_by
 }
 
 """
@@ -17583,7 +17583,7 @@ aggregate var_samp on columns
 """
 type owned_asset_var_samp_fields {
   balance: Float
-  block: Float
+  block_number: Float
 }
 
 """
@@ -17591,7 +17591,7 @@ order by var_samp() on columns of table "owned_asset"
 """
 input owned_asset_var_samp_order_by {
   balance: order_by
-  block: order_by
+  block_number: order_by
 }
 
 """
@@ -17599,7 +17599,7 @@ aggregate variance on columns
 """
 type owned_asset_variance_fields {
   balance: Float
-  block: Float
+  block_number: Float
 }
 
 """
@@ -17607,7 +17607,7 @@ order by variance() on columns of table "owned_asset"
 """
 input owned_asset_variance_order_by {
   balance: order_by
-  block: order_by
+  block_number: order_by
 }
 
 """
@@ -17615,7 +17615,7 @@ columns and relationships of "owned_token"
 """
 type owned_token {
   address: String!
-  block: Int!
+  block_number: Int!
 
   """
   An object relationship
@@ -17705,14 +17705,14 @@ input owned_token_aggregate_order_by {
 aggregate avg on columns
 """
 type owned_token_avg_fields {
-  block: Float
+  block_number: Float
 }
 
 """
 order by avg() on columns of table "owned_token"
 """
 input owned_token_avg_order_by {
-  block: order_by
+  block_number: order_by
 }
 
 """
@@ -17723,7 +17723,7 @@ input owned_token_bool_exp {
   _not: owned_token_bool_exp
   _or: [owned_token_bool_exp!]
   address: String_comparison_exp
-  block: Int_comparison_exp
+  block_number: Int_comparison_exp
   digitalAsset: digital_asset_bool_exp
   digital_asset_id: String_comparison_exp
   id: String_comparison_exp
@@ -17743,7 +17743,7 @@ aggregate max on columns
 """
 type owned_token_max_fields {
   address: String
-  block: Int
+  block_number: Int
   digital_asset_id: String
   id: String
   nft_id: String
@@ -17759,7 +17759,7 @@ order by max() on columns of table "owned_token"
 """
 input owned_token_max_order_by {
   address: order_by
-  block: order_by
+  block_number: order_by
   digital_asset_id: order_by
   id: order_by
   nft_id: order_by
@@ -17775,7 +17775,7 @@ aggregate min on columns
 """
 type owned_token_min_fields {
   address: String
-  block: Int
+  block_number: Int
   digital_asset_id: String
   id: String
   nft_id: String
@@ -17791,7 +17791,7 @@ order by min() on columns of table "owned_token"
 """
 input owned_token_min_order_by {
   address: order_by
-  block: order_by
+  block_number: order_by
   digital_asset_id: order_by
   id: order_by
   nft_id: order_by
@@ -17807,7 +17807,7 @@ Ordering options when selecting data from "owned_token".
 """
 input owned_token_order_by {
   address: order_by
-  block: order_by
+  block_number: order_by
   digitalAsset: digital_asset_order_by
   digital_asset_id: order_by
   id: order_by
@@ -17834,7 +17834,7 @@ enum owned_token_select_column {
   """
   column name
   """
-  block
+  block_number
 
   """
   column name
@@ -17881,42 +17881,42 @@ enum owned_token_select_column {
 aggregate stddev on columns
 """
 type owned_token_stddev_fields {
-  block: Float
+  block_number: Float
 }
 
 """
 order by stddev() on columns of table "owned_token"
 """
 input owned_token_stddev_order_by {
-  block: order_by
+  block_number: order_by
 }
 
 """
 aggregate stddev_pop on columns
 """
 type owned_token_stddev_pop_fields {
-  block: Float
+  block_number: Float
 }
 
 """
 order by stddev_pop() on columns of table "owned_token"
 """
 input owned_token_stddev_pop_order_by {
-  block: order_by
+  block_number: order_by
 }
 
 """
 aggregate stddev_samp on columns
 """
 type owned_token_stddev_samp_fields {
-  block: Float
+  block_number: Float
 }
 
 """
 order by stddev_samp() on columns of table "owned_token"
 """
 input owned_token_stddev_samp_order_by {
-  block: order_by
+  block_number: order_by
 }
 
 """
@@ -17939,7 +17939,7 @@ Initial value of the column from where the streaming should start
 """
 input owned_token_stream_cursor_value_input {
   address: String
-  block: Int
+  block_number: Int
   digital_asset_id: String
   id: String
   nft_id: String
@@ -17954,56 +17954,56 @@ input owned_token_stream_cursor_value_input {
 aggregate sum on columns
 """
 type owned_token_sum_fields {
-  block: Int
+  block_number: Int
 }
 
 """
 order by sum() on columns of table "owned_token"
 """
 input owned_token_sum_order_by {
-  block: order_by
+  block_number: order_by
 }
 
 """
 aggregate var_pop on columns
 """
 type owned_token_var_pop_fields {
-  block: Float
+  block_number: Float
 }
 
 """
 order by var_pop() on columns of table "owned_token"
 """
 input owned_token_var_pop_order_by {
-  block: order_by
+  block_number: order_by
 }
 
 """
 aggregate var_samp on columns
 """
 type owned_token_var_samp_fields {
-  block: Float
+  block_number: Float
 }
 
 """
 order by var_samp() on columns of table "owned_token"
 """
 input owned_token_var_samp_order_by {
-  block: order_by
+  block_number: order_by
 }
 
 """
 aggregate variance on columns
 """
 type owned_token_variance_fields {
-  block: Float
+  block_number: Float
 }
 
 """
 order by variance() on columns of table "owned_token"
 """
 input owned_token_variance_order_by {
-  block: order_by
+  block_number: order_by
 }
 
 """
