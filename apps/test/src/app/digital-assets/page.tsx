@@ -119,7 +119,7 @@ function buildFilter(debouncedValues: Record<string, string>): DigitalAssetFilte
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
-  const [sortField, setSortField] = useState<DigitalAssetSortField>('holderCount');
+  const [sortField, setSortField] = useState<DigitalAssetSortField>('newest');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const {

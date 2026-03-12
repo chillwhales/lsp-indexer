@@ -99,7 +99,7 @@ function buildFilter(debouncedValues: Record<string, string>): ProfileFilter | u
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
-  const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
+  const [sortField, setSortField] = useState<ProfileSortField>('newest');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const {

@@ -151,7 +151,7 @@ function buildFilter(debouncedValues: Record<string, string>): NftFilter | undef
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
-  const [sortField, setSortField] = useState<NftSortField>('tokenId');
+  const [sortField, setSortField] = useState<NftSortField>('newest');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(NFT_INCLUDE_FIELDS);
