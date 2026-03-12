@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Readiness
 status: executing
-last_updated: "2026-03-12T05:35:31.525Z"
-last_activity: 2026-03-12 — Completed 21-01 sorting across 12 domain types and services
+last_updated: "2026-03-12T05:38:26Z"
+last_activity: 2026-03-12 — Completed 21-02 consumer package release (1.1.0)
 progress:
   total_phases: 55
-  completed_phases: 44
+  completed_phases: 45
   total_plans: 133
-  completed_plans: 118
+  completed_plans: 119
   percent: 89
 ---
 
@@ -21,15 +21,15 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.2 Production Readiness — Phase 21 sorting, Plan 01 complete
+**Current focus:** v1.2 Production Readiness — Phase 21 complete, all 4 packages at 1.1.0
 
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Phase 21 — Sorting & Consumer Package Release
-- **Plan:** 2 of 2
-- **Status:** In Progress
-- **Last activity:** 2026-03-12 — Completed 21-01 sorting across 12 domain types and services
+- **Phase:** Phase 21 — Sorting & Consumer Package Release (Complete)
+- **Plan:** 2 of 2 ✅
+- **Status:** Phase Complete
+- **Last activity:** 2026-03-12 — Completed 21-02 consumer package release (1.1.0)
 - **Progress:** [█████████░] 89%
 
 ## Milestone History
@@ -47,10 +47,10 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 122 (36 v1.0 + 77 v1.1 + 9 v1.2)
+- **Plans completed:** 123 (36 v1.0 + 77 v1.1 + 10 v1.2)
 - **Plans failed:** 0
-- **Phases completed:** 48 (11 v1.0 + 33 v1.1 + 4 v1.2)
-- **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 11/26 (v1.2)
+- **Phases completed:** 49 (11 v1.0 + 33 v1.1 + 5 v1.2)
+- **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 12/26 (v1.2)
 
 ## Accumulated Context
 
@@ -78,22 +78,23 @@ _None currently._
 | 2 | Release pipeline with versioning for monorepo Dockerfile builds | 2026-03-11 | c0e2ad7 | [2-release-pipeline-with-versioning-for-mon](./quick/2-release-pipeline-with-versioning-for-mon/) |
 | 3 | Add timestamp to all entities missing it (Phase 19 fix) | 2026-03-12 | eecfa83 | [3-add-timestamp-to-all-entities-that-got-b](./quick/3-add-timestamp-to-all-entities-that-got-b/) |
 | Phase 21 P01 | 8min | 3 tasks | 20 files |
+| Phase 21 P02 | 2min | 2 tasks | 8 files |
 
 ## Session Continuity
 
 ### Last Session
 
 - **Date:** 2026-03-12
-- **Activity:** Executed Phase 21-01 — sorting across 12 domain types and services
-- **Outcome:** 8 type files + 12 service files updated with newest/oldest, tiebreaker, and default fallback
+- **Activity:** Executed Phase 21-02 — consumer package release with changeset
+- **Outcome:** All 4 packages version-bumped 1.0.0 → 1.1.0 with CHANGELOGs
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 21 Plan 01 complete:** All 12 domains have consistent sorting
-- **Next:** Phase 21 Plan 02 (changeset release of consumer packages)
+- **Phase 21 complete:** Sorting + release done, all 4 packages at 1.1.0
 - **Phases 20.1-20.3 inserted:** Structured logging overhaul → pipeline instrumentation → dashboard redesign
+- **Next:** Next phase in roadmap (ready for `pnpm changeset publish` on merge to main)
 
 ---
 
-_Last updated: 2026-03-12 — Completed 21-01 sorting_
+_Last updated: 2026-03-12 — Completed 21-02 consumer package release_

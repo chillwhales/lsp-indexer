@@ -42,7 +42,7 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 
 ### Release — Consumer Packages
 
-- [ ] **RELP-01**: All 4 packages (`types`, `node`, `react`, `next`) released with sorting support
+- [x] **RELP-01**: All 4 packages (`types`, `node`, `react`, `next`) released with sorting support
 
 ### Versioning
 
@@ -134,7 +134,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SORT-03 | Phase 21 | Complete |
 | SORT-04 | Phase 21 | Complete |
 | SORT-05 | Phase 21 | Complete |
-| RELP-01 | Phase 21 | Pending |
+| RELP-01 | Phase 21 | Complete |
 | SLOG-01 | Phase 20.1 | Pending |
 | SLOG-02 | Phase 20.1 | Pending |
 | SLOG-03 | Phase 20.1 | Pending |
