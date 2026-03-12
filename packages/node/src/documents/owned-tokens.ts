@@ -55,7 +55,7 @@ export const GetOwnedTokenDocument = graphql(`
       address
       owner
       token_id
-      block @include(if: $includeBlockNumber)
+      block_number @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
       transaction_index @include(if: $includeTransactionIndex)
       log_index @include(if: $includeLogIndex)
@@ -213,7 +213,7 @@ export const GetOwnedTokenDocument = graphql(`
         address
         owner
         balance @include(if: $includeOwnedAssetBalance)
-        block @include(if: $includeOwnedAssetBlockNumber)
+        block_number @include(if: $includeOwnedAssetBlockNumber)
         timestamp @include(if: $includeOwnedAssetTimestamp)
       }
       universalProfile @include(if: $includeHolder) {
@@ -326,7 +326,7 @@ export const GetOwnedTokensDocument = graphql(`
       address
       owner
       token_id
-      block @include(if: $includeBlockNumber)
+      block_number @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
       transaction_index @include(if: $includeTransactionIndex)
       log_index @include(if: $includeLogIndex)
@@ -484,7 +484,7 @@ export const GetOwnedTokensDocument = graphql(`
         address
         owner
         balance @include(if: $includeOwnedAssetBalance)
-        block @include(if: $includeOwnedAssetBlockNumber)
+        block_number @include(if: $includeOwnedAssetBlockNumber)
         timestamp @include(if: $includeOwnedAssetTimestamp)
       }
       universalProfile @include(if: $includeHolder) {
@@ -601,7 +601,7 @@ export const OwnedTokenSubscriptionDocument = graphql(`
       address
       owner
       token_id
-      block @include(if: $includeBlockNumber)
+      block_number @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
       transaction_index @include(if: $includeTransactionIndex)
       log_index @include(if: $includeLogIndex)
@@ -759,7 +759,7 @@ export const OwnedTokenSubscriptionDocument = graphql(`
         address
         owner
         balance @include(if: $includeOwnedAssetBalance)
-        block @include(if: $includeOwnedAssetBlockNumber)
+        block_number @include(if: $includeOwnedAssetBlockNumber)
         timestamp @include(if: $includeOwnedAssetTimestamp)
       }
       universalProfile @include(if: $includeHolder) {

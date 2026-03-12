@@ -35,7 +35,7 @@ export function parseOwnedToken(
     digitalAssetAddress: raw.address,
     holderAddress: raw.owner,
     tokenId: raw.token_id,
-    blockNumber: raw.block ?? null,
+    blockNumber: raw.block_number ?? null,
     timestamp: raw.timestamp ?? null,
     transactionIndex: raw.transaction_index ?? null,
     logIndex: raw.log_index ?? null,

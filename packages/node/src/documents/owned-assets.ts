@@ -44,7 +44,7 @@ export const GetOwnedAssetDocument = graphql(`
       address
       owner
       balance @include(if: $includeBalance)
-      block @include(if: $includeBlockNumber)
+      block_number @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
       transaction_index @include(if: $includeTransactionIndex)
       log_index @include(if: $includeLogIndex)
@@ -224,7 +224,7 @@ export const GetOwnedAssetsDocument = graphql(`
       address
       owner
       balance @include(if: $includeBalance)
-      block @include(if: $includeBlockNumber)
+      block_number @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
       transaction_index @include(if: $includeTransactionIndex)
       log_index @include(if: $includeLogIndex)
@@ -408,7 +408,7 @@ export const OwnedAssetSubscriptionDocument = graphql(`
       address
       owner
       balance @include(if: $includeBalance)
-      block @include(if: $includeBlockNumber)
+      block_number @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
       transaction_index @include(if: $includeTransactionIndex)
       log_index @include(if: $includeLogIndex)
