@@ -29,6 +29,37 @@
           "value": "$__all"
         },
         "refresh": 2
+      },
+      {
+        "name": "project",
+        "label": "Project",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values(container_cpu_usage_seconds_total, container_label_com_docker_compose_project)",
+        "multi": false,
+        "includeAll": false,
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "refresh": 2
+      },
+      {
+        "name": "log_lines",
+        "label": "Log Lines",
+        "type": "custom",
+        "query": "50,100,200,500,1000",
+        "current": {
+          "selected": true,
+          "text": "200",
+          "value": "200"
+        },
+        "multi": false,
+        "includeAll": false
       }
     ]
   },
@@ -54,7 +85,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "max_over_time({compose_service=\"indexer\"} | json | unwrap blockNumber [1h])",
+          "expr": "max(max_over_time({compose_service=\"indexer\"} | json | unwrap blockNumber [1h]))",
           "queryType": "range"
         }
       ],
@@ -75,7 +106,7 @@
           "values": false
         },
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
         "textMode": "auto"
       },
@@ -140,7 +171,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "count_over_time({compose_service=\"indexer\"} | json | blockNumber > 0 [1m])",
+          "expr": "sum(count_over_time({compose_service=\"indexer\"} | json | blockNumber > 0 [$__interval]))",
           "queryType": "range"
         }
       ],
@@ -177,11 +208,11 @@
           "values": false
         },
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
         "textMode": "auto"
       },
-      "description": "Number of block-processing log entries in the last minute. 0 or no data indicates the indexer may be stalled.",
+      "description": "Block-processing log entries per interval. 0 or no data indicates the indexer may be stalled.",
       "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 }
     },
     {
@@ -198,7 +229,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "count_over_time({compose_service=~\"$service\"} | json | level >= 4 [1h])",
+          "expr": "sum(count_over_time({compose_service=~\"$service\"} | json | level=~\"error|fatal|ERROR|FATAL\" [1h]))",
           "queryType": "range"
         }
       ],
@@ -249,7 +280,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (compose_service) (count_over_time({compose_service=~\"$service\"} | json | level >= 4 [$__interval]))",
+          "expr": "sum by (compose_service) (count_over_time({compose_service=~\"$service\"} | json | level=~\"error|fatal|warn|ERROR|FATAL|WARN|warning|WARNING\" [$__interval]))",
           "legendFormat": "{{compose_service}}"
         }
       ],
@@ -303,7 +334,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (step) (count_over_time({compose_service=\"indexer\"} | json | level >= 4 | step != \"\" [$__interval]))",
+          "expr": "sum by (step) (count_over_time({compose_service=\"indexer\"} | json | level=~\"error|fatal|ERROR|FATAL\" | step != \"\" [$__interval]))",
           "legendFormat": "{{step}}"
         }
       ],
@@ -358,7 +389,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "max_over_time({compose_service=\"indexer\"} | json | unwrap blockNumber [$__interval])",
+          "expr": "max(max_over_time({compose_service=\"indexer\"} | json | unwrap blockNumber [$__interval]))",
           "legendFormat": "Block Height"
         }
       ],
@@ -476,8 +507,9 @@
                 "type": "loki",
                 "uid": "loki"
               },
-              "expr": "{compose_service=~\"$service\"}",
-              "queryType": "range"
+              "expr": "{compose_service=~\"$service\"} | json",
+              "queryType": "range",
+              "maxLines": "$log_lines"
             }
           ],
           "options": {
@@ -514,8 +546,8 @@
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "rate(container_cpu_usage_seconds_total{name=~\"lsp-indexer.*\"}[5m]) * 100",
-              "legendFormat": "{{name}}"
+              "expr": "rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_project=\"$project\"}[5m]) * 100",
+              "legendFormat": "{{container_label_com_docker_compose_service}}"
             }
           ],
           "fieldConfig": {
@@ -560,8 +592,8 @@
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "container_memory_usage_bytes{name=~\"lsp-indexer.*\"}",
-              "legendFormat": "{{name}}"
+              "expr": "container_memory_usage_bytes{container_label_com_docker_compose_project=\"$project\"}",
+              "legendFormat": "{{container_label_com_docker_compose_service}}"
             }
           ],
           "fieldConfig": {
@@ -606,8 +638,8 @@
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "rate(container_network_receive_bytes_total{name=~\"lsp-indexer.*\"}[5m])",
-              "legendFormat": "{{name}} rx"
+              "expr": "rate(container_network_receive_bytes_total{container_label_com_docker_compose_project=\"$project\"}[5m])",
+              "legendFormat": "{{container_label_com_docker_compose_service}} rx"
             },
             {
               "refId": "B",
@@ -615,8 +647,8 @@
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "rate(container_network_transmit_bytes_total{name=~\"lsp-indexer.*\"}[5m])",
-              "legendFormat": "{{name}} tx"
+              "expr": "rate(container_network_transmit_bytes_total{container_label_com_docker_compose_project=\"$project\"}[5m])",
+              "legendFormat": "{{container_label_com_docker_compose_service}} tx"
             }
           ],
           "fieldConfig": {
@@ -661,8 +693,8 @@
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "rate(container_fs_reads_bytes_total{name=~\"lsp-indexer.*\"}[5m])",
-              "legendFormat": "{{name}} read"
+              "expr": "rate(container_fs_reads_bytes_total{container_label_com_docker_compose_project=\"$project\"}[5m])",
+              "legendFormat": "{{container_label_com_docker_compose_service}} read"
             },
             {
               "refId": "B",
@@ -670,8 +702,8 @@
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "rate(container_fs_writes_bytes_total{name=~\"lsp-indexer.*\"}[5m])",
-              "legendFormat": "{{name}} write"
+              "expr": "rate(container_fs_writes_bytes_total{container_label_com_docker_compose_project=\"$project\"}[5m])",
+              "legendFormat": "{{container_label_com_docker_compose_service}} write"
             }
           ],
           "fieldConfig": {
