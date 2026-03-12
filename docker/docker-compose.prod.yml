@@ -35,6 +35,7 @@ services:
   # PostgreSQL Database
   # ----------------------------------------------------------------------------
   postgres:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-postgres
     image: postgres:17-alpine
     restart: unless-stopped
 
@@ -84,6 +85,7 @@ services:
   # Indexer — LUKSO Blockchain Indexer
   # ----------------------------------------------------------------------------
   indexer:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-indexer
     image: ghcr.io/chillwhales/lsp-indexer:${INDEXER_VERSION:-latest}
     restart: unless-stopped
 
@@ -155,6 +157,7 @@ services:
   # Automatically configured on startup with all tables and relationships
   # ----------------------------------------------------------------------------
   hasura:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-hasura
     image: hasura/graphql-engine:v2.46.0
     restart: unless-stopped
 
@@ -197,6 +200,7 @@ services:
   # Required dependency for Hasura GraphQL Engine
   # ----------------------------------------------------------------------------
   data-connector-agent:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-data-connector-agent
     image: hasura/graphql-data-connector:v2.46.0
     restart: unless-stopped
 
@@ -223,6 +227,7 @@ services:
   # Receives logs from Alloy and stores them on local filesystem
   # ----------------------------------------------------------------------------
   loki:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-loki
     image: grafana/loki:3.4
     restart: unless-stopped
 
@@ -255,6 +260,7 @@ services:
   # Receives metrics from Alloy via remote write
   # ----------------------------------------------------------------------------
   prometheus:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-prometheus
     image: prom/prometheus:v3.2.0
     restart: unless-stopped
 
@@ -290,6 +296,7 @@ services:
   # Collects Docker logs → Loki, scrapes cAdvisor metrics → Prometheus
   # ----------------------------------------------------------------------------
   alloy:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-alloy
     image: grafana/alloy:v1.14.0
     restart: unless-stopped
 
@@ -328,6 +335,7 @@ services:
   # Provides per-container CPU, memory, network, and disk I/O metrics
   # ----------------------------------------------------------------------------
   cadvisor:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-cadvisor
     image: gcr.io/cadvisor/cadvisor:v0.51.0
     restart: unless-stopped
     privileged: true
@@ -363,6 +371,7 @@ services:
   # Pre-provisioned with Loki and Prometheus datasources + dashboard JSON files
   # ----------------------------------------------------------------------------
   grafana:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-grafana
     image: grafana/grafana:11.4.0
     restart: unless-stopped
 
