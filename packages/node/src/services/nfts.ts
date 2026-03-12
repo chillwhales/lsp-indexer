@@ -13,7 +13,7 @@ import type { NftSubscriptionSubscription, Nft_Bool_Exp, Nft_Order_By } from '..
 import { parseNft, parseNfts } from '../parsers/nfts';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, hasActiveIncludes, orderDir } from './utils';
+import { buildBlockOrderSort, escapeLike, hasActiveIncludes, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -83,10 +83,17 @@ export function buildNftOrderBy(sort?: NftSort): Nft_Order_By[] | undefined {
   if (!sort) return undefined;
 
   switch (sort.field) {
+    case 'newest':
+      return buildBlockOrderSort('desc');
+    case 'oldest':
+      return buildBlockOrderSort('asc');
     case 'tokenId':
-      return [{ token_id: orderDir(sort.direction, sort.nulls) }];
+      return [{ token_id: orderDir(sort.direction, sort.nulls) }, ...buildBlockOrderSort('desc')];
     case 'formattedTokenId':
-      return [{ formatted_token_id: orderDir(sort.direction, sort.nulls ?? 'last') }];
+      return [
+        { formatted_token_id: orderDir(sort.direction, sort.nulls ?? 'last') },
+        ...buildBlockOrderSort('desc'),
+      ];
     default:
       return undefined;
   }
@@ -174,7 +181,7 @@ export function buildNftSubscriptionConfig(params: {
   include?: NftInclude;
 }) {
   const where = buildNftWhere(params.filter);
-  const orderBy = buildNftOrderBy(params.sort);
+  const orderBy = buildNftOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildIncludeVars(params.include);
 
   return {
@@ -282,7 +289,7 @@ export async function fetchNfts(
   } = {},
 ): Promise<FetchNftsResult<PartialNft>> {
   const where = buildNftWhere(params.filter);
-  const orderBy = buildNftOrderBy(params.sort);
+  const orderBy = buildNftOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetNftsDocument, {

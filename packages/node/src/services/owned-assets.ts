@@ -21,7 +21,7 @@ import type {
 import { parseOwnedAsset, parseOwnedAssets } from '../parsers/owned-assets';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, hasActiveIncludes, orderDir } from './utils';
+import { buildBlockOrderSort, escapeLike, hasActiveIncludes, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -73,18 +73,20 @@ function buildOwnedAssetOrderBy(sort?: OwnedAssetSort): Owned_Asset_Order_By[] |
   const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
+    case 'newest':
+      return buildBlockOrderSort('desc');
+    case 'oldest':
+      return buildBlockOrderSort('asc');
     case 'balance':
-    case 'timestamp':
-    case 'block':
-      return [{ [sort.field]: dir }];
+      return [{ balance: dir }, ...buildBlockOrderSort('desc')];
     case 'digitalAssetAddress':
-      return [{ address: dir }];
+      return [{ address: dir }, ...buildBlockOrderSort('desc')];
     case 'holderAddress':
-      return [{ owner: dir }];
+      return [{ owner: dir }, ...buildBlockOrderSort('desc')];
     case 'digitalAssetName':
-      return [{ digitalAsset: { lsp4TokenName: { value: dir } } }];
+      return [{ digitalAsset: { lsp4TokenName: { value: dir } } }, ...buildBlockOrderSort('desc')];
     case 'tokenIdCount':
-      return [{ tokenIds_aggregate: { count: dir } }];
+      return [{ tokenIds_aggregate: { count: dir } }, ...buildBlockOrderSort('desc')];
     default:
       return undefined;
   }
@@ -157,7 +159,7 @@ export function buildOwnedAssetSubscriptionConfig(params: {
   include?: OwnedAssetInclude;
 }) {
   const where = buildOwnedAssetWhere(params.filter);
-  const orderBy = buildOwnedAssetOrderBy(params.sort);
+  const orderBy = buildOwnedAssetOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildIncludeVars(params.include);
 
   return {
@@ -254,7 +256,7 @@ export async function fetchOwnedAssets(
   } = {},
 ): Promise<FetchOwnedAssetsResult<PartialOwnedAsset>> {
   const where = buildOwnedAssetWhere(params.filter);
-  const orderBy = buildOwnedAssetOrderBy(params.sort);
+  const orderBy = buildOwnedAssetOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetOwnedAssetsDocument, {

@@ -22,7 +22,7 @@ import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildNftIncludeVars } from './nfts';
 import { buildOwnedAssetIncludeVars } from './owned-assets';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, hasActiveIncludes, orderDir } from './utils';
+import { buildBlockOrderSort, escapeLike, hasActiveIncludes, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -92,15 +92,16 @@ function buildOwnedTokenOrderBy(sort?: OwnedTokenSort): Owned_Token_Order_By[] |
   const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
-    case 'block':
-    case 'timestamp':
-      return [{ [sort.field]: dir }];
+    case 'newest':
+      return buildBlockOrderSort('desc');
+    case 'oldest':
+      return buildBlockOrderSort('asc');
     case 'digitalAssetAddress':
-      return [{ address: dir }];
+      return [{ address: dir }, ...buildBlockOrderSort('desc')];
     case 'holderAddress':
-      return [{ owner: dir }];
+      return [{ owner: dir }, ...buildBlockOrderSort('desc')];
     case 'tokenId':
-      return [{ token_id: dir }];
+      return [{ token_id: dir }, ...buildBlockOrderSort('desc')];
     default:
       return undefined;
   }
@@ -234,7 +235,7 @@ export async function fetchOwnedTokens(
   } = {},
 ): Promise<FetchOwnedTokensResult<PartialOwnedToken>> {
   const where = buildOwnedTokenWhere(params.filter);
-  const orderBy = buildOwnedTokenOrderBy(params.sort);
+  const orderBy = buildOwnedTokenOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetOwnedTokensDocument, {
@@ -272,7 +273,7 @@ export function buildOwnedTokenSubscriptionConfig(params: {
   include?: OwnedTokenInclude;
 }) {
   const where = buildOwnedTokenWhere(params.filter);
-  const orderBy = buildOwnedTokenOrderBy(params.sort);
+  const orderBy = buildOwnedTokenOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildIncludeVars(params.include);
 
   return {

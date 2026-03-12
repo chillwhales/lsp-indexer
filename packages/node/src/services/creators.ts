@@ -16,7 +16,13 @@ import type {
 import { parseCreators } from '../parsers/creators';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';
+import {
+  buildBlockOrderSort,
+  escapeLike,
+  hasActiveIncludes,
+  normalizeTimestamp,
+  orderDir,
+} from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -90,14 +96,16 @@ function buildCreatorOrderBy(sort?: CreatorSort): Lsp4_Creator_Order_By[] | unde
   const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
-    case 'timestamp':
-      return [{ timestamp: dir }];
+    case 'newest':
+      return buildBlockOrderSort('desc');
+    case 'oldest':
+      return buildBlockOrderSort('asc');
     case 'creatorAddress':
-      return [{ creator_address: dir }];
+      return [{ creator_address: dir }, ...buildBlockOrderSort('desc')];
     case 'digitalAssetAddress':
-      return [{ address: dir }];
+      return [{ address: dir }, ...buildBlockOrderSort('desc')];
     case 'arrayIndex':
-      return [{ array_index: dir }];
+      return [{ array_index: dir }, ...buildBlockOrderSort('desc')];
     case 'creatorName':
       return [
         {
@@ -107,6 +115,7 @@ function buildCreatorOrderBy(sort?: CreatorSort): Lsp4_Creator_Order_By[] | unde
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     case 'digitalAssetName':
       return [
@@ -117,6 +126,7 @@ function buildCreatorOrderBy(sort?: CreatorSort): Lsp4_Creator_Order_By[] | unde
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     default:
       return undefined;
@@ -171,7 +181,7 @@ export function buildCreatorSubscriptionConfig(params: {
   include?: CreatorInclude;
 }) {
   const where = buildCreatorWhere(params.filter);
-  const orderBy = buildCreatorOrderBy(params.sort);
+  const orderBy = buildCreatorOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildCreatorIncludeVars(params.include);
 
   return {
@@ -238,7 +248,7 @@ export async function fetchCreators(
   } = {},
 ): Promise<FetchCreatorsResult<PartialCreator>> {
   const where = buildCreatorWhere(params.filter);
-  const orderBy = buildCreatorOrderBy(params.sort);
+  const orderBy = buildCreatorOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildCreatorIncludeVars(params.include);
 
   const result = await execute(url, GetCreatorsDocument, {
