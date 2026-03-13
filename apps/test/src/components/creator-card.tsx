@@ -69,6 +69,24 @@ export function CreatorCard({ creator, index: _index }: CreatorCardProps): React
               </dd>
             </div>
           )}
+          {'blockNumber' in creator && creator.blockNumber != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Block Number</dt>
+              <dd className="font-mono text-xs">{String(creator.blockNumber)}</dd>
+            </div>
+          )}
+          {'transactionIndex' in creator && creator.transactionIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Tx Index</dt>
+              <dd className="font-mono text-xs">{String(creator.transactionIndex)}</dd>
+            </div>
+          )}
+          {'logIndex' in creator && creator.logIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Log Index</dt>
+              <dd className="font-mono text-xs">{String(creator.logIndex)}</dd>
+            </div>
+          )}
         </dl>
         {creatorProfile != null && (
           <CollapsibleProfileSection label="Creator Profile" profile={creatorProfile} />

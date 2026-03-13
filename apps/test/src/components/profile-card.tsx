@@ -8,7 +8,7 @@ import { ImageList } from '@/components/image-list';
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { isSafeUrl, resolveUrl } from '@/lib/utils';
+import { formatRelativeTime, isSafeUrl, resolveUrl } from '@/lib/utils';
 
 export interface ProfileCardProps {
   profile: PartialExcept<Profile, 'address'>;
@@ -60,6 +60,42 @@ export function ProfileCard({ profile, isFetching }: ProfileCardProps): React.Re
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {('timestamp' in profile ||
+          'blockNumber' in profile ||
+          'transactionIndex' in profile ||
+          'logIndex' in profile) && (
+          <dl className="space-y-1.5 text-sm">
+            {'timestamp' in profile && profile.timestamp != null && (
+              <div className="flex gap-2">
+                <dt className="text-muted-foreground w-28 shrink-0">Timestamp</dt>
+                <dd className="text-xs">
+                  {new Date(profile.timestamp).toLocaleString()}{' '}
+                  <span className="text-muted-foreground">
+                    ({formatRelativeTime(profile.timestamp)})
+                  </span>
+                </dd>
+              </div>
+            )}
+            {'blockNumber' in profile && profile.blockNumber != null && (
+              <div className="flex gap-2">
+                <dt className="text-muted-foreground w-28 shrink-0">Block Number</dt>
+                <dd className="font-mono text-xs">{String(profile.blockNumber)}</dd>
+              </div>
+            )}
+            {'transactionIndex' in profile && profile.transactionIndex != null && (
+              <div className="flex gap-2">
+                <dt className="text-muted-foreground w-28 shrink-0">Tx Index</dt>
+                <dd className="font-mono text-xs">{String(profile.transactionIndex)}</dd>
+              </div>
+            )}
+            {'logIndex' in profile && profile.logIndex != null && (
+              <div className="flex gap-2">
+                <dt className="text-muted-foreground w-28 shrink-0">Log Index</dt>
+                <dd className="font-mono text-xs">{String(profile.logIndex)}</dd>
+              </div>
+            )}
+          </dl>
+        )}
         {description && (
           <div>
             <h4 className="text-sm font-medium mb-1">Description</h4>

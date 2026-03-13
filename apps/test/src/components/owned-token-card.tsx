@@ -109,6 +109,18 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
               </dd>
             </div>
           )}
+          {'transactionIndex' in ownedToken && ownedToken.transactionIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-28 shrink-0">Tx Index</dt>
+              <dd className="font-mono text-xs">{String(ownedToken.transactionIndex)}</dd>
+            </div>
+          )}
+          {'logIndex' in ownedToken && ownedToken.logIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-28 shrink-0">Log Index</dt>
+              <dd className="font-mono text-xs">{String(ownedToken.logIndex)}</dd>
+            </div>
+          )}
         </dl>
         {holder != null && <CollapsibleProfileSection label="Holder Profile" profile={holder} />}
         {nft != null && (

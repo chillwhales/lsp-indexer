@@ -12,7 +12,7 @@ import { ImageList } from '@/components/image-list';
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { isSafeUrl, resolveUrl } from '@/lib/utils';
+import { formatRelativeTime, isSafeUrl, resolveUrl } from '@/lib/utils';
 
 export interface NftCardProps {
   nft: PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;
@@ -101,6 +101,33 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-32 shrink-0">Category</dt>
               <dd>{category}</dd>
+            </div>
+          )}
+          {'timestamp' in nft && nft.timestamp != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Timestamp</dt>
+              <dd className="text-xs">
+                {new Date(nft.timestamp).toLocaleString()}{' '}
+                <span className="text-muted-foreground">({formatRelativeTime(nft.timestamp)})</span>
+              </dd>
+            </div>
+          )}
+          {'blockNumber' in nft && nft.blockNumber != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Block Number</dt>
+              <dd className="font-mono text-xs">{String(nft.blockNumber)}</dd>
+            </div>
+          )}
+          {'transactionIndex' in nft && nft.transactionIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Tx Index</dt>
+              <dd className="font-mono text-xs">{String(nft.transactionIndex)}</dd>
+            </div>
+          )}
+          {'logIndex' in nft && nft.logIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Log Index</dt>
+              <dd className="font-mono text-xs">{String(nft.logIndex)}</dd>
             </div>
           )}
         </dl>

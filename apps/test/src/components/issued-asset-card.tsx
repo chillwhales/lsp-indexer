@@ -72,6 +72,24 @@ export function IssuedAssetCard({
               </dd>
             </div>
           )}
+          {'blockNumber' in issuedAsset && issuedAsset.blockNumber != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Block Number</dt>
+              <dd className="font-mono text-xs">{String(issuedAsset.blockNumber)}</dd>
+            </div>
+          )}
+          {'transactionIndex' in issuedAsset && issuedAsset.transactionIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Tx Index</dt>
+              <dd className="font-mono text-xs">{String(issuedAsset.transactionIndex)}</dd>
+            </div>
+          )}
+          {'logIndex' in issuedAsset && issuedAsset.logIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Log Index</dt>
+              <dd className="font-mono text-xs">{String(issuedAsset.logIndex)}</dd>
+            </div>
+          )}
         </dl>
         {issuerProfile != null && (
           <CollapsibleProfileSection label="Issuer Profile" profile={issuerProfile} />
