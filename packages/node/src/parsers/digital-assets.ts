@@ -67,6 +67,10 @@ export function parseDigitalAsset(
     referenceContract: raw.lsp8ReferenceContract?.value ?? null,
     tokenIdFormat: raw.lsp8TokenIdFormat?.value ?? null,
     baseUri: raw.lsp8TokenMetadataBaseUri?.value ?? null,
+    timestamp: raw.timestamp ?? null,
+    blockNumber: raw.block_number ?? null,
+    transactionIndex: raw.transaction_index ?? null,
+    logIndex: raw.log_index ?? null,
   };
 
   if (!include) return result;

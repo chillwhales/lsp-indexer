@@ -10,6 +10,9 @@ export const GetIssuedAssetsDocument = graphql(`
     $includeArrayIndex: Boolean! = true
     $includeInterfaceId: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeIssuerProfile: Boolean! = true
     $includeIssuerProfileName: Boolean! = true
     $includeIssuerProfileDescription: Boolean! = true
@@ -20,6 +23,10 @@ export const GetIssuedAssetsDocument = graphql(`
     $includeIssuerProfileBackgroundImage: Boolean! = true
     $includeIssuerProfileFollowerCount: Boolean! = true
     $includeIssuerProfileFollowingCount: Boolean! = true
+    $includeIssuerProfileTimestamp: Boolean! = true
+    $includeIssuerProfileBlockNumber: Boolean! = true
+    $includeIssuerProfileTransactionIndex: Boolean! = true
+    $includeIssuerProfileLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeDigitalAssetName: Boolean! = true
     $includeDigitalAssetSymbol: Boolean! = true
@@ -38,6 +45,10 @@ export const GetIssuedAssetsDocument = graphql(`
     $includeDigitalAssetReferenceContract: Boolean! = true
     $includeDigitalAssetTokenIdFormat: Boolean! = true
     $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
   ) {
     lsp12_issued_asset(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       address
@@ -45,8 +56,15 @@ export const GetIssuedAssetsDocument = graphql(`
       array_index @include(if: $includeArrayIndex)
       interface_id @include(if: $includeInterfaceId)
       timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       universalProfile @include(if: $includeIssuerProfile) {
         address
+        timestamp @include(if: $includeIssuerProfileTimestamp)
+        block_number @include(if: $includeIssuerProfileBlockNumber)
+        transaction_index @include(if: $includeIssuerProfileTransactionIndex)
+        log_index @include(if: $includeIssuerProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeIssuerProfileName) {
             value
@@ -96,6 +114,10 @@ export const GetIssuedAssetsDocument = graphql(`
       issuedAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
         lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }
@@ -183,6 +205,9 @@ export const IssuedAssetSubscriptionDocument = graphql(`
     $includeArrayIndex: Boolean! = true
     $includeInterfaceId: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeIssuerProfile: Boolean! = true
     $includeIssuerProfileName: Boolean! = true
     $includeIssuerProfileDescription: Boolean! = true
@@ -193,6 +218,10 @@ export const IssuedAssetSubscriptionDocument = graphql(`
     $includeIssuerProfileBackgroundImage: Boolean! = true
     $includeIssuerProfileFollowerCount: Boolean! = true
     $includeIssuerProfileFollowingCount: Boolean! = true
+    $includeIssuerProfileTimestamp: Boolean! = true
+    $includeIssuerProfileBlockNumber: Boolean! = true
+    $includeIssuerProfileTransactionIndex: Boolean! = true
+    $includeIssuerProfileLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeDigitalAssetName: Boolean! = true
     $includeDigitalAssetSymbol: Boolean! = true
@@ -211,6 +240,10 @@ export const IssuedAssetSubscriptionDocument = graphql(`
     $includeDigitalAssetReferenceContract: Boolean! = true
     $includeDigitalAssetTokenIdFormat: Boolean! = true
     $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
   ) {
     lsp12_issued_asset(where: $where, order_by: $order_by, limit: $limit) {
       address
@@ -218,8 +251,15 @@ export const IssuedAssetSubscriptionDocument = graphql(`
       array_index @include(if: $includeArrayIndex)
       interface_id @include(if: $includeInterfaceId)
       timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       universalProfile @include(if: $includeIssuerProfile) {
         address
+        timestamp @include(if: $includeIssuerProfileTimestamp)
+        block_number @include(if: $includeIssuerProfileBlockNumber)
+        transaction_index @include(if: $includeIssuerProfileTransactionIndex)
+        log_index @include(if: $includeIssuerProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeIssuerProfileName) {
             value
@@ -269,6 +309,10 @@ export const IssuedAssetSubscriptionDocument = graphql(`
       issuedAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
         lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }

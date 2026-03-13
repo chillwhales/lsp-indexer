@@ -97,6 +97,8 @@ const FILTERS: FilterFieldConfig[] = [
 ];
 
 const SORT_OPTIONS: SortOption[] = [
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
   { value: 'tokenId', label: 'Token ID' },
   { value: 'formattedTokenId', label: 'Formatted Token ID' },
 ];
@@ -149,7 +151,7 @@ function buildFilter(debouncedValues: Record<string, string>): NftFilter | undef
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
-  const [sortField, setSortField] = useState<NftSortField>('tokenId');
+  const [sortField, setSortField] = useState<NftSortField>('newest');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(NFT_INCLUDE_FIELDS);

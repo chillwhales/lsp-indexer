@@ -22,6 +22,10 @@ export const GetFollowersDocument = graphql(`
     $includeFollowerProfileBackgroundImage: Boolean! = true
     $includeFollowerProfileFollowerCount: Boolean! = true
     $includeFollowerProfileFollowingCount: Boolean! = true
+    $includeFollowerProfileTimestamp: Boolean! = true
+    $includeFollowerProfileBlockNumber: Boolean! = true
+    $includeFollowerProfileTransactionIndex: Boolean! = true
+    $includeFollowerProfileLogIndex: Boolean! = true
     $includeFollowedProfile: Boolean! = true
     $includeFollowedProfileName: Boolean! = true
     $includeFollowedProfileDescription: Boolean! = true
@@ -32,6 +36,10 @@ export const GetFollowersDocument = graphql(`
     $includeFollowedProfileBackgroundImage: Boolean! = true
     $includeFollowedProfileFollowerCount: Boolean! = true
     $includeFollowedProfileFollowingCount: Boolean! = true
+    $includeFollowedProfileTimestamp: Boolean! = true
+    $includeFollowedProfileBlockNumber: Boolean! = true
+    $includeFollowedProfileTransactionIndex: Boolean! = true
+    $includeFollowedProfileLogIndex: Boolean! = true
   ) {
     follower(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       follower_address
@@ -43,6 +51,10 @@ export const GetFollowersDocument = graphql(`
       log_index @include(if: $includeLogIndex)
       followerUniversalProfile @include(if: $includeFollowerProfile) {
         address
+        timestamp @include(if: $includeFollowerProfileTimestamp)
+        block_number @include(if: $includeFollowerProfileBlockNumber)
+        transaction_index @include(if: $includeFollowerProfileTransactionIndex)
+        log_index @include(if: $includeFollowerProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeFollowerProfileName) {
             value
@@ -91,6 +103,10 @@ export const GetFollowersDocument = graphql(`
       }
       followedUniversalProfile @include(if: $includeFollowedProfile) {
         address
+        timestamp @include(if: $includeFollowedProfileTimestamp)
+        block_number @include(if: $includeFollowedProfileBlockNumber)
+        transaction_index @include(if: $includeFollowedProfileTransactionIndex)
+        log_index @include(if: $includeFollowedProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeFollowedProfileName) {
             value
@@ -167,6 +183,10 @@ export const FollowerSubscriptionDocument = graphql(`
     $includeFollowerProfileBackgroundImage: Boolean! = true
     $includeFollowerProfileFollowerCount: Boolean! = true
     $includeFollowerProfileFollowingCount: Boolean! = true
+    $includeFollowerProfileTimestamp: Boolean! = true
+    $includeFollowerProfileBlockNumber: Boolean! = true
+    $includeFollowerProfileTransactionIndex: Boolean! = true
+    $includeFollowerProfileLogIndex: Boolean! = true
     $includeFollowedProfile: Boolean! = true
     $includeFollowedProfileName: Boolean! = true
     $includeFollowedProfileDescription: Boolean! = true
@@ -177,6 +197,10 @@ export const FollowerSubscriptionDocument = graphql(`
     $includeFollowedProfileBackgroundImage: Boolean! = true
     $includeFollowedProfileFollowerCount: Boolean! = true
     $includeFollowedProfileFollowingCount: Boolean! = true
+    $includeFollowedProfileTimestamp: Boolean! = true
+    $includeFollowedProfileBlockNumber: Boolean! = true
+    $includeFollowedProfileTransactionIndex: Boolean! = true
+    $includeFollowedProfileLogIndex: Boolean! = true
   ) {
     follower(where: $where, order_by: $order_by, limit: $limit) {
       id
@@ -189,6 +213,10 @@ export const FollowerSubscriptionDocument = graphql(`
       log_index @include(if: $includeLogIndex)
       followerUniversalProfile @include(if: $includeFollowerProfile) {
         address
+        timestamp @include(if: $includeFollowerProfileTimestamp)
+        block_number @include(if: $includeFollowerProfileBlockNumber)
+        transaction_index @include(if: $includeFollowerProfileTransactionIndex)
+        log_index @include(if: $includeFollowerProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeFollowerProfileName) {
             value
@@ -237,6 +265,10 @@ export const FollowerSubscriptionDocument = graphql(`
       }
       followedUniversalProfile @include(if: $includeFollowedProfile) {
         address
+        timestamp @include(if: $includeFollowedProfileTimestamp)
+        block_number @include(if: $includeFollowedProfileBlockNumber)
+        transaction_index @include(if: $includeFollowedProfileTransactionIndex)
+        log_index @include(if: $includeFollowedProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeFollowedProfileName) {
             value

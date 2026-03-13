@@ -145,6 +145,7 @@ export function buildTokenIdDataChangedEventOrderBy(
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     case 'nftName':
       return [
@@ -155,6 +156,7 @@ export function buildTokenIdDataChangedEventOrderBy(
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     default:
       return undefined;
@@ -179,12 +181,10 @@ export function buildTokenIdDataChangedEventIncludeVars(
     includeNft: activeNft,
   };
 
-  // DA sub-includes: reuse DA include builder with "DigitalAsset" prefix
+  // DA sub-includes: reuse DA include builder (keys already prefixed).
   if (activeDA) {
     const daVars = buildDigitalAssetIncludeVars(include.digitalAsset);
-    for (const [key, val] of Object.entries(daVars)) {
-      vars[key.replace('include', 'includeDigitalAsset')] = val;
-    }
+    Object.assign(vars, daVars);
   }
 
   // NFT sub-includes: reuse NFT include builder with includeNft* prefix

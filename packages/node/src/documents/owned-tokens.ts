@@ -4,26 +4,32 @@ import { graphql } from '../graphql';
 export const GetOwnedTokenDocument = graphql(`
   query GetOwnedToken(
     $where: owned_token_bool_exp!
-    $includeBlock: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
-    $includeName: Boolean! = true
-    $includeSymbol: Boolean! = true
-    $includeTokenType: Boolean! = true
-    $includeDecimals: Boolean! = true
-    $includeTotalSupply: Boolean! = true
-    $includeDescription: Boolean! = true
-    $includeCategory: Boolean! = true
-    $includeIcons: Boolean! = true
-    $includeImages: Boolean! = true
-    $includeLinks: Boolean! = true
-    $includeAttributes: Boolean! = true
-    $includeOwner: Boolean! = true
-    $includeHolderCount: Boolean! = true
-    $includeCreatorCount: Boolean! = true
-    $includeReferenceContract: Boolean! = true
-    $includeTokenIdFormat: Boolean! = true
-    $includeBaseUri: Boolean! = true
+    $includeDigitalAssetName: Boolean! = true
+    $includeDigitalAssetSymbol: Boolean! = true
+    $includeDigitalAssetTokenType: Boolean! = true
+    $includeDigitalAssetDecimals: Boolean! = true
+    $includeDigitalAssetTotalSupply: Boolean! = true
+    $includeDigitalAssetDescription: Boolean! = true
+    $includeDigitalAssetCategory: Boolean! = true
+    $includeDigitalAssetIcons: Boolean! = true
+    $includeDigitalAssetImages: Boolean! = true
+    $includeDigitalAssetLinks: Boolean! = true
+    $includeDigitalAssetAttributes: Boolean! = true
+    $includeDigitalAssetOwner: Boolean! = true
+    $includeDigitalAssetHolderCount: Boolean! = true
+    $includeDigitalAssetCreatorCount: Boolean! = true
+    $includeDigitalAssetReferenceContract: Boolean! = true
+    $includeDigitalAssetTokenIdFormat: Boolean! = true
+    $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
     $includeNft: Boolean! = true
     $includeNftFormattedTokenId: Boolean! = true
     $includeNftName: Boolean! = true
@@ -33,11 +39,17 @@ export const GetOwnedTokenDocument = graphql(`
     $includeNftImages: Boolean! = true
     $includeNftLinks: Boolean! = true
     $includeNftAttributes: Boolean! = true
+    $includeNftTimestamp: Boolean! = true
+    $includeNftBlockNumber: Boolean! = true
+    $includeNftTransactionIndex: Boolean! = true
+    $includeNftLogIndex: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeOwnedAssetBalance: Boolean! = true
-    $includeOwnedAssetBlock: Boolean! = true
     $includeOwnedAssetTimestamp: Boolean! = true
-    $includeHolder: Boolean! = true
+    $includeOwnedAssetBlockNumber: Boolean! = true
+    $includeOwnedAssetTransactionIndex: Boolean! = true
+    $includeOwnedAssetLogIndex: Boolean! = true
+    $includeProfile: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
     $includeProfileTags: Boolean! = true
@@ -47,47 +59,57 @@ export const GetOwnedTokenDocument = graphql(`
     $includeProfileBackgroundImage: Boolean! = true
     $includeProfileFollowerCount: Boolean! = true
     $includeProfileFollowingCount: Boolean! = true
+    $includeProfileTimestamp: Boolean! = true
+    $includeProfileBlockNumber: Boolean! = true
+    $includeProfileTransactionIndex: Boolean! = true
+    $includeProfileLogIndex: Boolean! = true
   ) {
     owned_token(where: $where, limit: 1) {
       id
       address
       owner
       token_id
-      block @include(if: $includeBlock)
+      block_number @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
-        lsp4TokenName @include(if: $includeName) {
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
+        lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }
-        lsp4TokenSymbol @include(if: $includeSymbol) {
+        lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
           value
         }
-        lsp4TokenType @include(if: $includeTokenType) {
+        lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
           value
         }
-        decimals @include(if: $includeDecimals) {
+        decimals @include(if: $includeDigitalAssetDecimals) {
           value
         }
-        totalSupply @include(if: $includeTotalSupply) {
+        totalSupply @include(if: $includeDigitalAssetTotalSupply) {
           value
         }
         lsp4Metadata {
-          description @include(if: $includeDescription) {
+          description @include(if: $includeDigitalAssetDescription) {
             value
           }
-          category @include(if: $includeCategory) {
+          category @include(if: $includeDigitalAssetCategory) {
             value
           }
-          icon @include(if: $includeIcons) {
+          icon @include(if: $includeDigitalAssetIcons) {
             url
             width
             height
             verification_method
             verification_data
           }
-          images @include(if: $includeImages) {
+          images @include(if: $includeDigitalAssetImages) {
             url
             width
             height
@@ -95,35 +117,35 @@ export const GetOwnedTokenDocument = graphql(`
             verification_method
             verification_data
           }
-          links @include(if: $includeLinks) {
+          links @include(if: $includeDigitalAssetLinks) {
             title
             url
           }
-          attributes @include(if: $includeAttributes) {
+          attributes @include(if: $includeDigitalAssetAttributes) {
             key
             value
             type
           }
         }
-        owner @include(if: $includeOwner) {
+        owner @include(if: $includeDigitalAssetOwner) {
           address
           timestamp
         }
-        ownedAssets_aggregate @include(if: $includeHolderCount) {
+        ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
           aggregate {
             count
           }
         }
-        lsp4CreatorsLength @include(if: $includeCreatorCount) {
+        lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
           value
         }
-        lsp8ReferenceContract @include(if: $includeReferenceContract) {
+        lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
           value
         }
-        lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+        lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
           value
         }
-        lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+        lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
           value
         }
       }
@@ -133,6 +155,10 @@ export const GetOwnedTokenDocument = graphql(`
         formatted_token_id @include(if: $includeNftFormattedTokenId)
         is_burned
         is_minted
+        timestamp @include(if: $includeNftTimestamp)
+        block_number @include(if: $includeNftBlockNumber)
+        transaction_index @include(if: $includeNftTransactionIndex)
+        log_index @include(if: $includeNftLogIndex)
         lsp4Metadata {
           name @include(if: $includeNftName) {
             value
@@ -209,11 +235,17 @@ export const GetOwnedTokenDocument = graphql(`
         address
         owner
         balance @include(if: $includeOwnedAssetBalance)
-        block @include(if: $includeOwnedAssetBlock)
+        block_number @include(if: $includeOwnedAssetBlockNumber)
         timestamp @include(if: $includeOwnedAssetTimestamp)
+        transaction_index @include(if: $includeOwnedAssetTransactionIndex)
+        log_index @include(if: $includeOwnedAssetLogIndex)
       }
-      universalProfile @include(if: $includeHolder) {
+      universalProfile @include(if: $includeProfile) {
         address
+        timestamp @include(if: $includeProfileTimestamp)
+        block_number @include(if: $includeProfileBlockNumber)
+        transaction_index @include(if: $includeProfileTransactionIndex)
+        log_index @include(if: $includeProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeProfileName) {
             value
@@ -271,26 +303,32 @@ export const GetOwnedTokensDocument = graphql(`
     $order_by: [owned_token_order_by!]
     $limit: Int
     $offset: Int
-    $includeBlock: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
-    $includeName: Boolean! = true
-    $includeSymbol: Boolean! = true
-    $includeTokenType: Boolean! = true
-    $includeDecimals: Boolean! = true
-    $includeTotalSupply: Boolean! = true
-    $includeDescription: Boolean! = true
-    $includeCategory: Boolean! = true
-    $includeIcons: Boolean! = true
-    $includeImages: Boolean! = true
-    $includeLinks: Boolean! = true
-    $includeAttributes: Boolean! = true
-    $includeOwner: Boolean! = true
-    $includeHolderCount: Boolean! = true
-    $includeCreatorCount: Boolean! = true
-    $includeReferenceContract: Boolean! = true
-    $includeTokenIdFormat: Boolean! = true
-    $includeBaseUri: Boolean! = true
+    $includeDigitalAssetName: Boolean! = true
+    $includeDigitalAssetSymbol: Boolean! = true
+    $includeDigitalAssetTokenType: Boolean! = true
+    $includeDigitalAssetDecimals: Boolean! = true
+    $includeDigitalAssetTotalSupply: Boolean! = true
+    $includeDigitalAssetDescription: Boolean! = true
+    $includeDigitalAssetCategory: Boolean! = true
+    $includeDigitalAssetIcons: Boolean! = true
+    $includeDigitalAssetImages: Boolean! = true
+    $includeDigitalAssetLinks: Boolean! = true
+    $includeDigitalAssetAttributes: Boolean! = true
+    $includeDigitalAssetOwner: Boolean! = true
+    $includeDigitalAssetHolderCount: Boolean! = true
+    $includeDigitalAssetCreatorCount: Boolean! = true
+    $includeDigitalAssetReferenceContract: Boolean! = true
+    $includeDigitalAssetTokenIdFormat: Boolean! = true
+    $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
     $includeNft: Boolean! = true
     $includeNftFormattedTokenId: Boolean! = true
     $includeNftName: Boolean! = true
@@ -300,11 +338,17 @@ export const GetOwnedTokensDocument = graphql(`
     $includeNftImages: Boolean! = true
     $includeNftLinks: Boolean! = true
     $includeNftAttributes: Boolean! = true
+    $includeNftTimestamp: Boolean! = true
+    $includeNftBlockNumber: Boolean! = true
+    $includeNftTransactionIndex: Boolean! = true
+    $includeNftLogIndex: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeOwnedAssetBalance: Boolean! = true
-    $includeOwnedAssetBlock: Boolean! = true
     $includeOwnedAssetTimestamp: Boolean! = true
-    $includeHolder: Boolean! = true
+    $includeOwnedAssetBlockNumber: Boolean! = true
+    $includeOwnedAssetTransactionIndex: Boolean! = true
+    $includeOwnedAssetLogIndex: Boolean! = true
+    $includeProfile: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
     $includeProfileTags: Boolean! = true
@@ -314,47 +358,57 @@ export const GetOwnedTokensDocument = graphql(`
     $includeProfileBackgroundImage: Boolean! = true
     $includeProfileFollowerCount: Boolean! = true
     $includeProfileFollowingCount: Boolean! = true
+    $includeProfileTimestamp: Boolean! = true
+    $includeProfileBlockNumber: Boolean! = true
+    $includeProfileTransactionIndex: Boolean! = true
+    $includeProfileLogIndex: Boolean! = true
   ) {
     owned_token(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       id
       address
       owner
       token_id
-      block @include(if: $includeBlock)
+      block_number @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
-        lsp4TokenName @include(if: $includeName) {
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
+        lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }
-        lsp4TokenSymbol @include(if: $includeSymbol) {
+        lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
           value
         }
-        lsp4TokenType @include(if: $includeTokenType) {
+        lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
           value
         }
-        decimals @include(if: $includeDecimals) {
+        decimals @include(if: $includeDigitalAssetDecimals) {
           value
         }
-        totalSupply @include(if: $includeTotalSupply) {
+        totalSupply @include(if: $includeDigitalAssetTotalSupply) {
           value
         }
         lsp4Metadata {
-          description @include(if: $includeDescription) {
+          description @include(if: $includeDigitalAssetDescription) {
             value
           }
-          category @include(if: $includeCategory) {
+          category @include(if: $includeDigitalAssetCategory) {
             value
           }
-          icon @include(if: $includeIcons) {
+          icon @include(if: $includeDigitalAssetIcons) {
             url
             width
             height
             verification_method
             verification_data
           }
-          images @include(if: $includeImages) {
+          images @include(if: $includeDigitalAssetImages) {
             url
             width
             height
@@ -362,35 +416,35 @@ export const GetOwnedTokensDocument = graphql(`
             verification_method
             verification_data
           }
-          links @include(if: $includeLinks) {
+          links @include(if: $includeDigitalAssetLinks) {
             title
             url
           }
-          attributes @include(if: $includeAttributes) {
+          attributes @include(if: $includeDigitalAssetAttributes) {
             key
             value
             type
           }
         }
-        owner @include(if: $includeOwner) {
+        owner @include(if: $includeDigitalAssetOwner) {
           address
           timestamp
         }
-        ownedAssets_aggregate @include(if: $includeHolderCount) {
+        ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
           aggregate {
             count
           }
         }
-        lsp4CreatorsLength @include(if: $includeCreatorCount) {
+        lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
           value
         }
-        lsp8ReferenceContract @include(if: $includeReferenceContract) {
+        lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
           value
         }
-        lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+        lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
           value
         }
-        lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+        lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
           value
         }
       }
@@ -400,6 +454,10 @@ export const GetOwnedTokensDocument = graphql(`
         formatted_token_id @include(if: $includeNftFormattedTokenId)
         is_burned
         is_minted
+        timestamp @include(if: $includeNftTimestamp)
+        block_number @include(if: $includeNftBlockNumber)
+        transaction_index @include(if: $includeNftTransactionIndex)
+        log_index @include(if: $includeNftLogIndex)
         lsp4Metadata {
           name @include(if: $includeNftName) {
             value
@@ -476,11 +534,17 @@ export const GetOwnedTokensDocument = graphql(`
         address
         owner
         balance @include(if: $includeOwnedAssetBalance)
-        block @include(if: $includeOwnedAssetBlock)
+        block_number @include(if: $includeOwnedAssetBlockNumber)
         timestamp @include(if: $includeOwnedAssetTimestamp)
+        transaction_index @include(if: $includeOwnedAssetTransactionIndex)
+        log_index @include(if: $includeOwnedAssetLogIndex)
       }
-      universalProfile @include(if: $includeHolder) {
+      universalProfile @include(if: $includeProfile) {
         address
+        timestamp @include(if: $includeProfileTimestamp)
+        block_number @include(if: $includeProfileBlockNumber)
+        transaction_index @include(if: $includeProfileTransactionIndex)
+        log_index @include(if: $includeProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeProfileName) {
             value
@@ -542,26 +606,32 @@ export const OwnedTokenSubscriptionDocument = graphql(`
     $where: owned_token_bool_exp
     $order_by: [owned_token_order_by!]
     $limit: Int
-    $includeBlock: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
-    $includeName: Boolean! = true
-    $includeSymbol: Boolean! = true
-    $includeTokenType: Boolean! = true
-    $includeDecimals: Boolean! = true
-    $includeTotalSupply: Boolean! = true
-    $includeDescription: Boolean! = true
-    $includeCategory: Boolean! = true
-    $includeIcons: Boolean! = true
-    $includeImages: Boolean! = true
-    $includeLinks: Boolean! = true
-    $includeAttributes: Boolean! = true
-    $includeOwner: Boolean! = true
-    $includeHolderCount: Boolean! = true
-    $includeCreatorCount: Boolean! = true
-    $includeReferenceContract: Boolean! = true
-    $includeTokenIdFormat: Boolean! = true
-    $includeBaseUri: Boolean! = true
+    $includeDigitalAssetName: Boolean! = true
+    $includeDigitalAssetSymbol: Boolean! = true
+    $includeDigitalAssetTokenType: Boolean! = true
+    $includeDigitalAssetDecimals: Boolean! = true
+    $includeDigitalAssetTotalSupply: Boolean! = true
+    $includeDigitalAssetDescription: Boolean! = true
+    $includeDigitalAssetCategory: Boolean! = true
+    $includeDigitalAssetIcons: Boolean! = true
+    $includeDigitalAssetImages: Boolean! = true
+    $includeDigitalAssetLinks: Boolean! = true
+    $includeDigitalAssetAttributes: Boolean! = true
+    $includeDigitalAssetOwner: Boolean! = true
+    $includeDigitalAssetHolderCount: Boolean! = true
+    $includeDigitalAssetCreatorCount: Boolean! = true
+    $includeDigitalAssetReferenceContract: Boolean! = true
+    $includeDigitalAssetTokenIdFormat: Boolean! = true
+    $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
     $includeNft: Boolean! = true
     $includeNftFormattedTokenId: Boolean! = true
     $includeNftName: Boolean! = true
@@ -571,11 +641,17 @@ export const OwnedTokenSubscriptionDocument = graphql(`
     $includeNftImages: Boolean! = true
     $includeNftLinks: Boolean! = true
     $includeNftAttributes: Boolean! = true
+    $includeNftTimestamp: Boolean! = true
+    $includeNftBlockNumber: Boolean! = true
+    $includeNftTransactionIndex: Boolean! = true
+    $includeNftLogIndex: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeOwnedAssetBalance: Boolean! = true
-    $includeOwnedAssetBlock: Boolean! = true
     $includeOwnedAssetTimestamp: Boolean! = true
-    $includeHolder: Boolean! = true
+    $includeOwnedAssetBlockNumber: Boolean! = true
+    $includeOwnedAssetTransactionIndex: Boolean! = true
+    $includeOwnedAssetLogIndex: Boolean! = true
+    $includeProfile: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
     $includeProfileTags: Boolean! = true
@@ -585,47 +661,57 @@ export const OwnedTokenSubscriptionDocument = graphql(`
     $includeProfileBackgroundImage: Boolean! = true
     $includeProfileFollowerCount: Boolean! = true
     $includeProfileFollowingCount: Boolean! = true
+    $includeProfileTimestamp: Boolean! = true
+    $includeProfileBlockNumber: Boolean! = true
+    $includeProfileTransactionIndex: Boolean! = true
+    $includeProfileLogIndex: Boolean! = true
   ) {
     owned_token(where: $where, order_by: $order_by, limit: $limit) {
       id
       address
       owner
       token_id
-      block @include(if: $includeBlock)
+      block_number @include(if: $includeBlockNumber)
       timestamp @include(if: $includeTimestamp)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
-        lsp4TokenName @include(if: $includeName) {
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
+        lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }
-        lsp4TokenSymbol @include(if: $includeSymbol) {
+        lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
           value
         }
-        lsp4TokenType @include(if: $includeTokenType) {
+        lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
           value
         }
-        decimals @include(if: $includeDecimals) {
+        decimals @include(if: $includeDigitalAssetDecimals) {
           value
         }
-        totalSupply @include(if: $includeTotalSupply) {
+        totalSupply @include(if: $includeDigitalAssetTotalSupply) {
           value
         }
         lsp4Metadata {
-          description @include(if: $includeDescription) {
+          description @include(if: $includeDigitalAssetDescription) {
             value
           }
-          category @include(if: $includeCategory) {
+          category @include(if: $includeDigitalAssetCategory) {
             value
           }
-          icon @include(if: $includeIcons) {
+          icon @include(if: $includeDigitalAssetIcons) {
             url
             width
             height
             verification_method
             verification_data
           }
-          images @include(if: $includeImages) {
+          images @include(if: $includeDigitalAssetImages) {
             url
             width
             height
@@ -633,35 +719,35 @@ export const OwnedTokenSubscriptionDocument = graphql(`
             verification_method
             verification_data
           }
-          links @include(if: $includeLinks) {
+          links @include(if: $includeDigitalAssetLinks) {
             title
             url
           }
-          attributes @include(if: $includeAttributes) {
+          attributes @include(if: $includeDigitalAssetAttributes) {
             key
             value
             type
           }
         }
-        owner @include(if: $includeOwner) {
+        owner @include(if: $includeDigitalAssetOwner) {
           address
           timestamp
         }
-        ownedAssets_aggregate @include(if: $includeHolderCount) {
+        ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
           aggregate {
             count
           }
         }
-        lsp4CreatorsLength @include(if: $includeCreatorCount) {
+        lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
           value
         }
-        lsp8ReferenceContract @include(if: $includeReferenceContract) {
+        lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
           value
         }
-        lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+        lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
           value
         }
-        lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+        lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
           value
         }
       }
@@ -671,6 +757,10 @@ export const OwnedTokenSubscriptionDocument = graphql(`
         formatted_token_id @include(if: $includeNftFormattedTokenId)
         is_burned
         is_minted
+        timestamp @include(if: $includeNftTimestamp)
+        block_number @include(if: $includeNftBlockNumber)
+        transaction_index @include(if: $includeNftTransactionIndex)
+        log_index @include(if: $includeNftLogIndex)
         lsp4Metadata {
           name @include(if: $includeNftName) {
             value
@@ -747,11 +837,17 @@ export const OwnedTokenSubscriptionDocument = graphql(`
         address
         owner
         balance @include(if: $includeOwnedAssetBalance)
-        block @include(if: $includeOwnedAssetBlock)
+        block_number @include(if: $includeOwnedAssetBlockNumber)
         timestamp @include(if: $includeOwnedAssetTimestamp)
+        transaction_index @include(if: $includeOwnedAssetTransactionIndex)
+        log_index @include(if: $includeOwnedAssetLogIndex)
       }
-      universalProfile @include(if: $includeHolder) {
+      universalProfile @include(if: $includeProfile) {
         address
+        timestamp @include(if: $includeProfileTimestamp)
+        block_number @include(if: $includeProfileBlockNumber)
+        transaction_index @include(if: $includeProfileTransactionIndex)
+        log_index @include(if: $includeProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeProfileName) {
             value

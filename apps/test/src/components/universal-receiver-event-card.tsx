@@ -13,7 +13,12 @@ import { ExpandableHex } from '@/components/expandable-hex';
 import { RawJsonToggle } from '@/components/playground';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { formatRelativeTime, formatTokenAmount, truncateAddress } from '@/lib/utils';
+import {
+  formatRelativeTime,
+  formatTimestamp,
+  formatTokenAmount,
+  truncateAddress,
+} from '@/lib/utils';
 
 export interface UniversalReceiverEventCardProps {
   universalReceiverEvent: PartialExcept<UniversalReceiverEvent, 'address' | 'from' | 'typeId'>;
@@ -135,7 +140,7 @@ export function UniversalReceiverEventCard({
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(evt.timestamp).toLocaleString()}{' '}
+                {formatTimestamp(evt.timestamp)}{' '}
                 <span className="text-muted-foreground">({formatRelativeTime(evt.timestamp)})</span>
               </dd>
             </div>

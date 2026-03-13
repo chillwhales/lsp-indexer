@@ -33,6 +33,12 @@ export const IssuedAssetSchema = z.object({
   interfaceId: z.string().nullable(),
   /** Timestamp when indexed (ISO string) */
   timestamp: z.string().nullable(),
+  /** Block number where the issued asset event was emitted (null when excluded via include) */
+  blockNumber: z.number().nullable(),
+  /** Transaction index within the block (null when excluded via include) */
+  transactionIndex: z.number().nullable(),
+  /** Log index within the transaction (null when excluded via include) */
+  logIndex: z.number().nullable(),
   /** Universal Profile of the issuer (null = not included in query) */
   issuerProfile: ProfileSchema.nullable(),
   /** Digital asset details (null = not included in query) */
@@ -64,9 +70,10 @@ export const IssuedAssetFilterSchema = z.object({
 // Sort schema
 // ---------------------------------------------------------------------------
 
-/** `issuerName` / `digitalAssetName` are nested sorts handled at service layer. */
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
 export const IssuedAssetSortFieldSchema = z.enum([
-  'timestamp',
+  'newest',
+  'oldest',
   'issuerAddress',
   'assetAddress',
   'arrayIndex',
@@ -92,6 +99,12 @@ export const IssuedAssetIncludeSchema = z.object({
   interfaceId: z.boolean().optional(),
   /** Include timestamp */
   timestamp: z.boolean().optional(),
+  /** Include block number */
+  blockNumber: z.boolean().optional(),
+  /** Include transaction index */
+  transactionIndex: z.boolean().optional(),
+  /** Include log index */
+  logIndex: z.boolean().optional(),
   /** Include issuer's Universal Profile — `true` for all fields, or object for per-field control */
   issuerProfile: z.union([z.boolean(), ProfileIncludeSchema]).optional(),
   /** Include digital asset details — `true` for all fields, or object for per-field control */
@@ -143,6 +156,9 @@ type IssuedAssetScalarIncludeFieldMap = {
   arrayIndex: 'arrayIndex';
   interfaceId: 'interfaceId';
   timestamp: 'timestamp';
+  blockNumber: 'blockNumber';
+  transactionIndex: 'transactionIndex';
+  logIndex: 'logIndex';
 };
 
 /**

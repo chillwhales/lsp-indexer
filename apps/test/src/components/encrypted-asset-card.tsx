@@ -11,7 +11,7 @@ import { RawJsonToggle } from '@/components/playground';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { formatRelativeTime, truncateAddress } from '@/lib/utils';
+import { formatRelativeTime, formatTimestamp, truncateAddress } from '@/lib/utils';
 
 export interface EncryptedAssetCardProps {
   encryptedAsset: PartialExcept<EncryptedAsset, 'address' | 'contentId' | 'revision'>;
@@ -67,11 +67,29 @@ export function EncryptedAssetCard({ encryptedAsset }: EncryptedAssetCardProps):
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-32 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(encryptedAsset.timestamp).toLocaleString()}{' '}
+                {formatTimestamp(encryptedAsset.timestamp)}{' '}
                 <span className="text-muted-foreground">
                   ({formatRelativeTime(encryptedAsset.timestamp)})
                 </span>
               </dd>
+            </div>
+          )}
+          {'blockNumber' in encryptedAsset && encryptedAsset.blockNumber != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Block Number</dt>
+              <dd className="font-mono text-xs">{String(encryptedAsset.blockNumber)}</dd>
+            </div>
+          )}
+          {'transactionIndex' in encryptedAsset && encryptedAsset.transactionIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Tx Index</dt>
+              <dd className="font-mono text-xs">{String(encryptedAsset.transactionIndex)}</dd>
+            </div>
+          )}
+          {'logIndex' in encryptedAsset && encryptedAsset.logIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Log Index</dt>
+              <dd className="font-mono text-xs">{String(encryptedAsset.logIndex)}</dd>
             </div>
           )}
         </dl>
@@ -263,7 +281,7 @@ function FileSection({ file }: { file: NonNullable<EncryptedAsset['file']> }): R
           {file.lastModified != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-32 shrink-0">Last Modified</dt>
-              <dd className="text-xs">{new Date(file.lastModified).toLocaleString()}</dd>
+              <dd className="text-xs">{formatTimestamp(file.lastModified)}</dd>
             </div>
           )}
         </dl>

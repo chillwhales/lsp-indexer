@@ -95,8 +95,14 @@ export const EncryptedAssetSchema = z.object({
   revision: z.number().nullable(),
   /** Position in array (null = not included or not set) */
   arrayIndex: z.number().nullable(),
-  /** Timestamp when indexed (ISO string) */
-  timestamp: z.string(),
+  /** Timestamp when indexed — ISO string (null when excluded via include) */
+  timestamp: z.string().nullable(),
+  /** Block number where the encrypted asset event was emitted (null when excluded via include) */
+  blockNumber: z.number().nullable(),
+  /** Transaction index within the block (null when excluded via include) */
+  transactionIndex: z.number().nullable(),
+  /** Log index within the transaction (null when excluded via include) */
+  logIndex: z.number().nullable(),
   /** Title text, flattened from title.value wrapper (null = not included or not set) */
   title: z.string().nullable(),
   /** Description text, flattened from description.value wrapper (null = not included or not set) */
@@ -140,8 +146,10 @@ export const EncryptedAssetFilterSchema = z.object({
 // Sort schema
 // ---------------------------------------------------------------------------
 
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
 export const EncryptedAssetSortFieldSchema = z.enum([
-  'timestamp',
+  'newest',
+  'oldest',
   'address',
   'contentId',
   'revision',
@@ -184,6 +192,12 @@ export const EncryptedAssetEncryptionIncludeSchema = z.object({
 export const EncryptedAssetIncludeSchema = z.object({
   arrayIndex: z.boolean().optional(),
   timestamp: z.boolean().optional(),
+  /** Include block number */
+  blockNumber: z.boolean().optional(),
+  /** Include transaction index */
+  transactionIndex: z.boolean().optional(),
+  /** Include log index */
+  logIndex: z.boolean().optional(),
   title: z.boolean().optional(),
   description: z.boolean().optional(),
   encryption: z.union([z.boolean(), EncryptedAssetEncryptionIncludeSchema]).optional(),
@@ -248,6 +262,9 @@ export type UseInfiniteEncryptedAssetsParams = z.infer<
 type EncryptedAssetScalarIncludeFieldMap = {
   arrayIndex: 'arrayIndex';
   timestamp: 'timestamp';
+  blockNumber: 'blockNumber';
+  transactionIndex: 'transactionIndex';
+  logIndex: 'logIndex';
   title: 'title';
   description: 'description';
   images: 'images';

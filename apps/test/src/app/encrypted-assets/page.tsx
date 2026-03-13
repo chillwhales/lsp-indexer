@@ -114,7 +114,8 @@ const ROW2_FILTERS = ALL_FILTERS.filter(
 const ROW3_FILTERS = ALL_FILTERS.filter((f) => f.key === 'fileSize' || f.key === 'timestamp');
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'timestamp', label: 'Timestamp' },
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
   { value: 'address', label: 'Address' },
   { value: 'contentId', label: 'Content ID' },
   { value: 'revision', label: 'Revision' },
@@ -164,7 +165,7 @@ function buildFilter(debouncedValues: Record<string, string>): EncryptedAssetFil
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(ALL_FILTERS);
-  const [sortField, setSortField] = useState<EncryptedAssetSortField>('timestamp');
+  const [sortField, setSortField] = useState<EncryptedAssetSortField>('newest');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const { values: includeValues, toggle: toggleInclude } = useIncludeToggles(

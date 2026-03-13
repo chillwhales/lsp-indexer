@@ -34,15 +34,15 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 
 ### Sorting
 
-- [ ] **SORT-01**: All 12 query domain services support sorting by oldest and newest based on blockNumber, transactionIndex, logIndex
-- [ ] **SORT-02**: All 12 subscription hooks support oldest/newest sort order
-- [ ] **SORT-03**: All 12 React hooks support oldest/newest sort order parameter
-- [ ] **SORT-04**: All 12 Next.js server actions support oldest/newest sort order parameter
-- [ ] **SORT-05**: Sort parameter propagates through types, documents, parsers, and services
+- [x] **SORT-01**: All 12 query domain services support sorting by oldest and newest based on blockNumber, transactionIndex, logIndex
+- [x] **SORT-02**: All 12 subscription hooks support oldest/newest sort order
+- [x] **SORT-03**: All 12 React hooks support oldest/newest sort order parameter
+- [x] **SORT-04**: All 12 Next.js server actions support oldest/newest sort order parameter
+- [x] **SORT-05**: Sort parameter propagates through types, documents, parsers, and services
 
 ### Release — Consumer Packages
 
-- [ ] **RELP-01**: All 4 packages (`types`, `node`, `react`, `next`) released with sorting support
+- [x] **RELP-01**: All 4 packages (`types`, `node`, `react`, `next`) released with sorting support
 
 ### Versioning
 
@@ -129,12 +129,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MNTR-02 | Phase 20 | Pending |
 | MNTR-03 | Phase 20 | Complete |
 | RELD-01 | Phase 20 | Pending |
-| SORT-01 | Phase 21 | Pending |
-| SORT-02 | Phase 21 | Pending |
-| SORT-03 | Phase 21 | Pending |
-| SORT-04 | Phase 21 | Pending |
-| SORT-05 | Phase 21 | Pending |
-| RELP-01 | Phase 21 | Pending |
+| SORT-01 | Phase 21 | Complete |
+| SORT-02 | Phase 21 | Complete |
+| SORT-03 | Phase 21 | Complete |
+| SORT-04 | Phase 21 | Complete |
+| SORT-05 | Phase 21 | Complete |
+| RELP-01 | Phase 21 | Complete |
 | SLOG-01 | Phase 20.1 | Pending |
 | SLOG-02 | Phase 20.1 | Pending |
 | SLOG-03 | Phase 20.1 | Pending |

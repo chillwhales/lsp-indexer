@@ -35,7 +35,6 @@ export function parseNft(raw: RawNft, include?: NftInclude): Nft | PartialNft {
     // Always parse as full Profile; outer stripExcluded controls field presence.
     holder: raw.ownedToken
       ? {
-          timestamp: raw.ownedToken.timestamp ?? '',
           ...(raw.ownedToken.universalProfile
             ? parseProfile(raw.ownedToken.universalProfile)
             : {
@@ -49,7 +48,13 @@ export function parseNft(raw: RawNft, include?: NftInclude): Nft | PartialNft {
                 backgroundImage: null,
                 followerCount: 0,
                 followingCount: 0,
+                timestamp: null,
+                blockNumber: null,
+                transactionIndex: null,
+                logIndex: null,
               }),
+          // Override profile's timestamp with holder acquisition timestamp
+          timestamp: raw.ownedToken.timestamp ?? '',
         }
       : null,
 
@@ -64,6 +69,10 @@ export function parseNft(raw: RawNft, include?: NftInclude): Nft | PartialNft {
     images: parseImages(direct?.images) ?? parseImages(baseUri?.images),
     links: parseLinks(direct?.links) ?? parseLinks(baseUri?.links) ?? null,
     attributes: parseAttributes(direct?.attributes) ?? parseAttributes(baseUri?.attributes) ?? null,
+    timestamp: raw.timestamp ?? null,
+    blockNumber: raw.block_number ?? null,
+    transactionIndex: raw.transaction_index ?? null,
+    logIndex: raw.log_index ?? null,
   };
 
   if (!include) return result;

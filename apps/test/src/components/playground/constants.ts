@@ -8,7 +8,7 @@ import type { IncludeToggleConfig } from './include-toggles';
  * (ProfileInclude, DigitalAssetInclude, OwnedTokenNftInclude).
  */
 
-/** ProfileInclude — 9 fields. Used on profiles, nfts (holder), owned-assets, owned-tokens. */
+/** ProfileInclude — 13 fields. Used on profiles, nfts (holder), owned-assets, owned-tokens. */
 export const PROFILE_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'name', label: 'Name' },
   { key: 'description', label: 'Description' },
@@ -19,9 +19,13 @@ export const PROFILE_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'backgroundImage', label: 'Background Image' },
   { key: 'followerCount', label: 'Follower Count' },
   { key: 'followingCount', label: 'Following Count' },
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'blockNumber', label: 'Block Number' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];
 
-/** DigitalAssetInclude — 17 fields. Used on digital-assets, nfts (collection), owned-assets, owned-tokens. */
+/** DigitalAssetInclude — 21 fields. Used on digital-assets, nfts (collection), owned-assets, owned-tokens. */
 export const DIGITAL_ASSET_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'name', label: 'Name' },
   { key: 'symbol', label: 'Symbol' },
@@ -40,16 +44,22 @@ export const DIGITAL_ASSET_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'referenceContract', label: 'Reference Contract' },
   { key: 'tokenIdFormat', label: 'Token ID Format' },
   { key: 'baseUri', label: 'Base URI' },
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'blockNumber', label: 'Block Number' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];
 
-/** OwnedTokenOwnedAssetInclude — 3 fields. Used on owned-tokens (nested ownedAsset relation). */
+/** OwnedTokenOwnedAssetInclude — 5 fields. Used on owned-tokens (nested ownedAsset relation). */
 export const OWNED_ASSET_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'balance', label: 'Balance' },
-  { key: 'block', label: 'Block' },
+  { key: 'blockNumber', label: 'Block Number' },
   { key: 'timestamp', label: 'Timestamp' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];
 
-/** OwnedTokenNftInclude — 8 fields (excludes collection/holder). Used on nfts, owned-tokens. */
+/** OwnedTokenNftInclude — 12 fields (excludes collection/holder). Used on nfts, owned-tokens. */
 export const NFT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'formattedTokenId', label: 'Formatted Token ID' },
   { key: 'name', label: 'NFT Name' },
@@ -59,6 +69,10 @@ export const NFT_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'images', label: 'Images' },
   { key: 'links', label: 'Links' },
   { key: 'attributes', label: 'Attributes' },
+  { key: 'timestamp', label: 'Timestamp' },
+  { key: 'blockNumber', label: 'Block Number' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];
 
 /** FollowerInclude — 5 scalar fields. followerProfile/followedProfile are SubIncludeSections. */
@@ -70,27 +84,36 @@ export const FOLLOWER_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'logIndex', label: 'Log Index' },
 ];
 
-/** CreatorInclude — 3 scalar fields. creatorProfile/digitalAsset are SubIncludeSections. */
+/** CreatorInclude — 6 scalar fields. creatorProfile/digitalAsset are SubIncludeSections. */
 export const CREATOR_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'arrayIndex', label: 'Array Index' },
   { key: 'interfaceId', label: 'Interface ID' },
   { key: 'timestamp', label: 'Timestamp' },
+  { key: 'blockNumber', label: 'Block Number' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];
 
-/** IssuedAssetInclude — 3 scalar fields. issuerProfile/digitalAsset are SubIncludeSections. */
+/** IssuedAssetInclude — 6 scalar fields. issuerProfile/digitalAsset are SubIncludeSections. */
 export const ISSUED_ASSET_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'arrayIndex', label: 'Array Index' },
   { key: 'interfaceId', label: 'Interface ID' },
   { key: 'timestamp', label: 'Timestamp' },
+  { key: 'blockNumber', label: 'Block Number' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];
 
-/** EncryptedAssetInclude — 5 boolean fields. encryption/file/chunks are SubIncludeSections, universalProfile too. */
+/** EncryptedAssetInclude — 8 boolean fields. encryption/file/chunks are SubIncludeSections, universalProfile too. */
 export const ENCRYPTED_ASSET_INCLUDE_FIELDS: IncludeToggleConfig[] = [
   { key: 'arrayIndex', label: 'Array Index' },
   { key: 'timestamp', label: 'Timestamp' },
   { key: 'title', label: 'Title' },
   { key: 'description', label: 'Description' },
   { key: 'images', label: 'Images' },
+  { key: 'blockNumber', label: 'Block Number' },
+  { key: 'transactionIndex', label: 'Transaction Index' },
+  { key: 'logIndex', label: 'Log Index' },
 ];
 
 /** EncryptedAssetEncryptionInclude — 6 fields. Used in encryption sub-include. */

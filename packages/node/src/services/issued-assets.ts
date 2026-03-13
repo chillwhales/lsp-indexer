@@ -19,7 +19,13 @@ import type {
 import { parseIssuedAssets } from '../parsers/issued-assets';
 import { buildDigitalAssetIncludeVars } from './digital-assets';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';
+import {
+  buildBlockOrderSort,
+  escapeLike,
+  hasActiveIncludes,
+  normalizeTimestamp,
+  orderDir,
+} from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -95,14 +101,16 @@ function buildIssuedAssetOrderBy(
   const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
-    case 'timestamp':
-      return [{ timestamp: dir }];
+    case 'newest':
+      return buildBlockOrderSort('desc');
+    case 'oldest':
+      return buildBlockOrderSort('asc');
     case 'issuerAddress':
-      return [{ address: dir }];
+      return [{ address: dir }, ...buildBlockOrderSort('desc')];
     case 'assetAddress':
-      return [{ asset_address: dir }];
+      return [{ asset_address: dir }, ...buildBlockOrderSort('desc')];
     case 'arrayIndex':
-      return [{ array_index: dir }];
+      return [{ array_index: dir }, ...buildBlockOrderSort('desc')];
     case 'issuerName':
       return [
         {
@@ -112,6 +120,7 @@ function buildIssuedAssetOrderBy(
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     case 'digitalAssetName':
       return [
@@ -122,6 +131,7 @@ function buildIssuedAssetOrderBy(
             },
           },
         },
+        ...buildBlockOrderSort('desc'),
       ];
     default:
       return undefined;
@@ -139,6 +149,9 @@ export function buildIssuedAssetIncludeVars(include?: IssuedAssetInclude): Recor
     includeArrayIndex: include.arrayIndex ?? false,
     includeInterfaceId: include.interfaceId ?? false,
     includeTimestamp: include.timestamp ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
     includeIssuerProfile: activeIssuerProfile,
     includeDigitalAsset: activeDigitalAsset,
   };
@@ -151,12 +164,10 @@ export function buildIssuedAssetIncludeVars(include?: IssuedAssetInclude): Recor
     }
   }
 
-  // Digital asset sub-includes: reuse DA include builder with "DigitalAsset" prefix
+  // Digital asset sub-includes: reuse DA include builder (keys already prefixed).
   if (activeDigitalAsset) {
     const daVars = buildDigitalAssetIncludeVars(include.digitalAsset);
-    for (const [key, val] of Object.entries(daVars)) {
-      vars[key.replace('include', 'includeDigitalAsset')] = val;
-    }
+    Object.assign(vars, daVars);
   }
 
   return vars;
@@ -177,7 +188,7 @@ export function buildIssuedAssetSubscriptionConfig(params: {
   include?: IssuedAssetInclude;
 }) {
   const where = buildIssuedAssetWhere(params.filter);
-  const orderBy = buildIssuedAssetOrderBy(params.sort);
+  const orderBy = buildIssuedAssetOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildIssuedAssetIncludeVars(params.include);
 
   return {
@@ -244,7 +255,7 @@ export async function fetchIssuedAssets(
   } = {},
 ): Promise<FetchIssuedAssetsResult<PartialIssuedAsset>> {
   const where = buildIssuedAssetWhere(params.filter);
-  const orderBy = buildIssuedAssetOrderBy(params.sort);
+  const orderBy = buildIssuedAssetOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildIssuedAssetIncludeVars(params.include);
 
   const result = await execute(url, GetIssuedAssetsDocument, {

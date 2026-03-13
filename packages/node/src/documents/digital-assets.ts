@@ -21,10 +21,18 @@ export const GetDigitalAssetDocument = graphql(`
     $includeReferenceContract: Boolean! = true
     $includeTokenIdFormat: Boolean! = true
     $includeBaseUri: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
   ) {
     digital_asset(where: $where, limit: 1) {
       id
       address
+      timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       lsp4TokenName @include(if: $includeName) {
         value
       }
@@ -121,10 +129,18 @@ export const GetDigitalAssetsDocument = graphql(`
     $includeReferenceContract: Boolean! = true
     $includeTokenIdFormat: Boolean! = true
     $includeBaseUri: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
   ) {
     digital_asset(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       id
       address
+      timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       lsp4TokenName @include(if: $includeName) {
         value
       }
@@ -225,10 +241,18 @@ export const DigitalAssetSubscriptionDocument = graphql(`
     $includeReferenceContract: Boolean! = true
     $includeTokenIdFormat: Boolean! = true
     $includeBaseUri: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
   ) {
     digital_asset(where: $where, order_by: $order_by, limit: $limit) {
       id
       address
+      timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       lsp4TokenName @include(if: $includeName) {
         value
       }

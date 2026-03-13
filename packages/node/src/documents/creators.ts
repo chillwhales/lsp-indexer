@@ -10,6 +10,9 @@ export const GetCreatorsDocument = graphql(`
     $includeArrayIndex: Boolean! = true
     $includeInterfaceId: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeCreatorProfile: Boolean! = true
     $includeCreatorProfileName: Boolean! = true
     $includeCreatorProfileDescription: Boolean! = true
@@ -20,6 +23,10 @@ export const GetCreatorsDocument = graphql(`
     $includeCreatorProfileBackgroundImage: Boolean! = true
     $includeCreatorProfileFollowerCount: Boolean! = true
     $includeCreatorProfileFollowingCount: Boolean! = true
+    $includeCreatorProfileTimestamp: Boolean! = true
+    $includeCreatorProfileBlockNumber: Boolean! = true
+    $includeCreatorProfileTransactionIndex: Boolean! = true
+    $includeCreatorProfileLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeDigitalAssetName: Boolean! = true
     $includeDigitalAssetSymbol: Boolean! = true
@@ -38,6 +45,10 @@ export const GetCreatorsDocument = graphql(`
     $includeDigitalAssetReferenceContract: Boolean! = true
     $includeDigitalAssetTokenIdFormat: Boolean! = true
     $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
   ) {
     lsp4_creator(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       creator_address
@@ -45,8 +56,15 @@ export const GetCreatorsDocument = graphql(`
       array_index @include(if: $includeArrayIndex)
       interface_id @include(if: $includeInterfaceId)
       timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       creatorProfile @include(if: $includeCreatorProfile) {
         address
+        timestamp @include(if: $includeCreatorProfileTimestamp)
+        block_number @include(if: $includeCreatorProfileBlockNumber)
+        transaction_index @include(if: $includeCreatorProfileTransactionIndex)
+        log_index @include(if: $includeCreatorProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeCreatorProfileName) {
             value
@@ -96,6 +114,10 @@ export const GetCreatorsDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
         lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }
@@ -183,6 +205,9 @@ export const CreatorSubscriptionDocument = graphql(`
     $includeArrayIndex: Boolean! = true
     $includeInterfaceId: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeCreatorProfile: Boolean! = true
     $includeCreatorProfileName: Boolean! = true
     $includeCreatorProfileDescription: Boolean! = true
@@ -193,6 +218,10 @@ export const CreatorSubscriptionDocument = graphql(`
     $includeCreatorProfileBackgroundImage: Boolean! = true
     $includeCreatorProfileFollowerCount: Boolean! = true
     $includeCreatorProfileFollowingCount: Boolean! = true
+    $includeCreatorProfileTimestamp: Boolean! = true
+    $includeCreatorProfileBlockNumber: Boolean! = true
+    $includeCreatorProfileTransactionIndex: Boolean! = true
+    $includeCreatorProfileLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeDigitalAssetName: Boolean! = true
     $includeDigitalAssetSymbol: Boolean! = true
@@ -211,6 +240,10 @@ export const CreatorSubscriptionDocument = graphql(`
     $includeDigitalAssetReferenceContract: Boolean! = true
     $includeDigitalAssetTokenIdFormat: Boolean! = true
     $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
   ) {
     lsp4_creator(where: $where, order_by: $order_by, limit: $limit) {
       creator_address
@@ -218,8 +251,15 @@ export const CreatorSubscriptionDocument = graphql(`
       array_index @include(if: $includeArrayIndex)
       interface_id @include(if: $includeInterfaceId)
       timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
       creatorProfile @include(if: $includeCreatorProfile) {
         address
+        timestamp @include(if: $includeCreatorProfileTimestamp)
+        block_number @include(if: $includeCreatorProfileBlockNumber)
+        transaction_index @include(if: $includeCreatorProfileTransactionIndex)
+        log_index @include(if: $includeCreatorProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeCreatorProfileName) {
             value
@@ -269,6 +309,10 @@ export const CreatorSubscriptionDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
         lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }

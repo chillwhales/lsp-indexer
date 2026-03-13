@@ -6,5 +6,13 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ['@chillwhales/erc725', '@chillwhales/lsp1', '@lsp-indexer/types', 'zod'],
+  external: [
+    '@chillwhales/erc725',
+    '@chillwhales/lsp1',
+    '@lsp-indexer/types',
+    'graphql',
+    'graphql-request',
+    'graphql-ws',
+    'zod',
+  ],
 });

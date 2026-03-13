@@ -26,6 +26,10 @@ export function parseProfile(raw: RawProfile, include?: ProfileInclude): Profile
     backgroundImage: lsp3?.backgroundImage != null ? lsp3.backgroundImage.map(parseImage) : null,
     followerCount: raw.followedBy_aggregate?.aggregate?.count ?? 0,
     followingCount: raw.followed_aggregate?.aggregate?.count ?? 0,
+    timestamp: raw.timestamp ?? null,
+    blockNumber: raw.block_number ?? null,
+    transactionIndex: raw.transaction_index ?? null,
+    logIndex: raw.log_index ?? null,
   };
 
   if (!include) return profile;

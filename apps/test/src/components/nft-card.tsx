@@ -12,7 +12,7 @@ import { ImageList } from '@/components/image-list';
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { isSafeUrl, resolveUrl } from '@/lib/utils';
+import { formatRelativeTime, formatTimestamp, isSafeUrl, resolveUrl } from '@/lib/utils';
 
 export interface NftCardProps {
   nft: PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;
@@ -103,6 +103,33 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
               <dd>{category}</dd>
             </div>
           )}
+          {'timestamp' in nft && nft.timestamp != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Timestamp</dt>
+              <dd className="text-xs">
+                {formatTimestamp(nft.timestamp)}{' '}
+                <span className="text-muted-foreground">({formatRelativeTime(nft.timestamp)})</span>
+              </dd>
+            </div>
+          )}
+          {'blockNumber' in nft && nft.blockNumber != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Block Number</dt>
+              <dd className="font-mono text-xs">{String(nft.blockNumber)}</dd>
+            </div>
+          )}
+          {'transactionIndex' in nft && nft.transactionIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Tx Index</dt>
+              <dd className="font-mono text-xs">{String(nft.transactionIndex)}</dd>
+            </div>
+          )}
+          {'logIndex' in nft && nft.logIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Log Index</dt>
+              <dd className="font-mono text-xs">{String(nft.logIndex)}</dd>
+            </div>
+          )}
         </dl>
         {holder != null && (
           <CollapsibleProfileSection
@@ -113,7 +140,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
                 <dl className="space-y-1.5 text-sm mb-3">
                   <div className="flex gap-2">
                     <dt className="text-muted-foreground w-24 shrink-0">Acquired</dt>
-                    <dd className="text-xs">{new Date(holder.timestamp).toLocaleString()}</dd>
+                    <dd className="text-xs">{formatTimestamp(holder.timestamp)}</dd>
                   </div>
                 </dl>
               ) : undefined

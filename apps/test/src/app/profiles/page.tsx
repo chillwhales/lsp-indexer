@@ -58,6 +58,8 @@ const FILTERS: FilterFieldConfig[] = [
 ] as const;
 
 const SORT_OPTIONS: SortOption[] = [
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
   { value: 'name', label: 'Name' },
   { value: 'followerCount', label: 'Followers' },
   { value: 'followingCount', label: 'Following' },
@@ -97,7 +99,7 @@ function buildFilter(debouncedValues: Record<string, string>): ProfileFilter | u
 
 function useListState() {
   const { values, debouncedValues, setFieldValue } = useFilterFields(FILTERS);
-  const [sortField, setSortField] = useState<ProfileSortField>('followerCount');
+  const [sortField, setSortField] = useState<ProfileSortField>('newest');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortNulls, setSortNulls] = useState<SortNulls | undefined>(undefined);
   const {

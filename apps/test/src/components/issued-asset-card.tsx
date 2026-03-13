@@ -11,7 +11,12 @@ import {
 } from '@/components/collapsible-sections';
 import { RawJsonToggle } from '@/components/playground';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatRelativeTime, getDigitalAssetLabel, getProfileLabel } from '@/lib/utils';
+import {
+  formatRelativeTime,
+  formatTimestamp,
+  getDigitalAssetLabel,
+  getProfileLabel,
+} from '@/lib/utils';
 
 export interface IssuedAssetCardProps {
   issuedAsset: PartialExcept<IssuedAsset, 'issuerAddress' | 'assetAddress'>;
@@ -65,11 +70,29 @@ export function IssuedAssetCard({
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(issuedAsset.timestamp).toLocaleString()}{' '}
+                {formatTimestamp(issuedAsset.timestamp)}{' '}
                 <span className="text-muted-foreground">
                   ({formatRelativeTime(issuedAsset.timestamp)})
                 </span>
               </dd>
+            </div>
+          )}
+          {'blockNumber' in issuedAsset && issuedAsset.blockNumber != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Block Number</dt>
+              <dd className="font-mono text-xs">{String(issuedAsset.blockNumber)}</dd>
+            </div>
+          )}
+          {'transactionIndex' in issuedAsset && issuedAsset.transactionIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Tx Index</dt>
+              <dd className="font-mono text-xs">{String(issuedAsset.transactionIndex)}</dd>
+            </div>
+          )}
+          {'logIndex' in issuedAsset && issuedAsset.logIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-40 shrink-0">Log Index</dt>
+              <dd className="font-mono text-xs">{String(issuedAsset.logIndex)}</dd>
             </div>
           )}
         </dl>

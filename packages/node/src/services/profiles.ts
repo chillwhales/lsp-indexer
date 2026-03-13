@@ -18,7 +18,7 @@ import type {
   Universal_Profile_Order_By,
 } from '../graphql/graphql';
 import { parseProfile, parseProfiles } from '../parsers/profiles';
-import { escapeLike, orderDir } from './utils';
+import { buildBlockOrderSort, escapeLike, orderDir } from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -93,12 +93,16 @@ export function buildProfileOrderBy(sort?: ProfileSort): Universal_Profile_Order
   const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
+    case 'newest':
+      return buildBlockOrderSort('desc');
+    case 'oldest':
+      return buildBlockOrderSort('asc');
     case 'name':
-      return [{ lsp3Profile: { name: { value: dir } } }];
+      return [{ lsp3Profile: { name: { value: dir } } }, ...buildBlockOrderSort('desc')];
     case 'followerCount':
-      return [{ followedBy_aggregate: { count: dir } }];
+      return [{ followedBy_aggregate: { count: dir } }, ...buildBlockOrderSort('desc')];
     case 'followingCount':
-      return [{ followed_aggregate: { count: dir } }];
+      return [{ followed_aggregate: { count: dir } }, ...buildBlockOrderSort('desc')];
     default:
       return undefined;
   }
@@ -120,6 +124,10 @@ export function buildProfileIncludeDirectives(include?: ProfileInclude): Record<
     includeBackgroundImage: include.backgroundImage ?? false,
     includeFollowerCount: include.followerCount ?? false,
     includeFollowingCount: include.followingCount ?? false,
+    includeTimestamp: include.timestamp ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
   };
 }
 
@@ -145,6 +153,10 @@ export function buildProfileIncludeVars(
     includeProfileBackgroundImage: include.backgroundImage ?? false,
     includeProfileFollowerCount: include.followerCount ?? false,
     includeProfileFollowingCount: include.followingCount ?? false,
+    includeProfileTimestamp: include.timestamp ?? false,
+    includeProfileBlockNumber: include.blockNumber ?? false,
+    includeProfileTransactionIndex: include.transactionIndex ?? false,
+    includeProfileLogIndex: include.logIndex ?? false,
   };
 }
 
@@ -162,7 +174,7 @@ export function buildProfileSubscriptionConfig(params: {
   include?: ProfileInclude;
 }) {
   const where = buildProfileWhere(params.filter);
-  const orderBy = buildProfileOrderBy(params.sort);
+  const orderBy = buildProfileOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildProfileIncludeDirectives(params.include);
 
   return {
@@ -254,7 +266,7 @@ export async function fetchProfiles(
   } = {},
 ): Promise<FetchProfilesResult<PartialProfile>> {
   const where = buildProfileWhere(params.filter);
-  const orderBy = buildProfileOrderBy(params.sort);
+  const orderBy = buildProfileOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildProfileIncludeDirectives(params.include);
 
   const result = await execute(url, GetProfilesDocument, {

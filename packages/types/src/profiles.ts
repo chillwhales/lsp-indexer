@@ -28,6 +28,14 @@ export const ProfileSchema = z.object({
   followerCount: z.number(),
   /** Number of profiles this profile follows */
   followingCount: z.number(),
+  /** Timestamp when the profile was indexed — ISO string (null when excluded via include) */
+  timestamp: z.string().nullable(),
+  /** Block number where the profile event was emitted (null when excluded via include) */
+  blockNumber: z.number().nullable(),
+  /** Transaction index within the block (null when excluded via include) */
+  transactionIndex: z.number().nullable(),
+  /** Log index within the transaction (null when excluded via include) */
+  logIndex: z.number().nullable(),
 });
 
 // ---------------------------------------------------------------------------
@@ -54,8 +62,14 @@ export const ProfileFilterSchema = z.object({
     .optional(),
 });
 
-/** Fields available for sorting profile lists */
-export const ProfileSortFieldSchema = z.enum(['name', 'followerCount', 'followingCount']);
+/** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
+export const ProfileSortFieldSchema = z.enum([
+  'newest',
+  'oldest',
+  'name',
+  'followerCount',
+  'followingCount',
+]);
 
 export const ProfileSortSchema = z.object({
   field: ProfileSortFieldSchema,
@@ -83,6 +97,14 @@ export const ProfileIncludeSchema = z.object({
   followerCount: z.boolean().optional(),
   /** Include following count aggregate */
   followingCount: z.boolean().optional(),
+  /** Include timestamp */
+  timestamp: z.boolean().optional(),
+  /** Include block number */
+  blockNumber: z.boolean().optional(),
+  /** Include transaction index */
+  transactionIndex: z.boolean().optional(),
+  /** Include log index */
+  logIndex: z.boolean().optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -151,6 +173,10 @@ type ProfileIncludeFieldMap = {
   backgroundImage: 'backgroundImage';
   followerCount: 'followerCount';
   followingCount: 'followingCount';
+  timestamp: 'timestamp';
+  blockNumber: 'blockNumber';
+  transactionIndex: 'transactionIndex';
+  logIndex: 'logIndex';
 };
 
 /**

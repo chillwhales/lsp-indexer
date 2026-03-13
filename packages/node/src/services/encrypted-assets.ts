@@ -18,7 +18,13 @@ import type {
 } from '../graphql/graphql';
 import { parseEncryptedAssets } from '../parsers/encrypted-assets';
 import { buildProfileIncludeVars } from './profiles';
-import { escapeLike, hasActiveIncludes, normalizeTimestamp, orderDir } from './utils';
+import {
+  buildBlockOrderSort,
+  escapeLike,
+  hasActiveIncludes,
+  normalizeTimestamp,
+  orderDir,
+} from './utils';
 
 // ---------------------------------------------------------------------------
 // Internal builders — translate flat params to Hasura variables
@@ -105,16 +111,18 @@ function buildEncryptedAssetOrderBy(
   const dir = orderDir(sort.direction, sort.nulls);
 
   switch (sort.field) {
-    case 'timestamp':
-      return [{ timestamp: dir }];
+    case 'newest':
+      return buildBlockOrderSort('desc');
+    case 'oldest':
+      return buildBlockOrderSort('asc');
     case 'address':
-      return [{ address: dir }];
+      return [{ address: dir }, ...buildBlockOrderSort('desc')];
     case 'contentId':
-      return [{ content_id: dir }];
+      return [{ content_id: dir }, ...buildBlockOrderSort('desc')];
     case 'revision':
-      return [{ revision: dir }];
+      return [{ revision: dir }, ...buildBlockOrderSort('desc')];
     case 'arrayIndex':
-      return [{ array_index: dir }];
+      return [{ array_index: dir }, ...buildBlockOrderSort('desc')];
     default:
       return undefined;
   }
@@ -148,6 +156,9 @@ export function buildEncryptedAssetIncludeVars(
     // Scalars
     includeArrayIndex: include.arrayIndex ?? false,
     includeTimestamp: include.timestamp ?? false,
+    includeBlockNumber: include.blockNumber ?? false,
+    includeTransactionIndex: include.transactionIndex ?? false,
+    includeLogIndex: include.logIndex ?? false,
 
     // Boolean relations
     includeTitle: include.title ?? false,
@@ -209,7 +220,7 @@ export function buildEncryptedAssetSubscriptionConfig(params: {
   include?: EncryptedAssetInclude;
 }) {
   const where = buildEncryptedAssetWhere(params.filter);
-  const orderBy = buildEncryptedAssetOrderBy(params.sort);
+  const orderBy = buildEncryptedAssetOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildEncryptedAssetIncludeVars(params.include);
 
   return {
@@ -276,7 +287,7 @@ export async function fetchEncryptedAssets(
   } = {},
 ): Promise<FetchEncryptedAssetsResult<PartialEncryptedAsset>> {
   const where = buildEncryptedAssetWhere(params.filter);
-  const orderBy = buildEncryptedAssetOrderBy(params.sort);
+  const orderBy = buildEncryptedAssetOrderBy(params.sort) ?? buildBlockOrderSort('desc');
   const includeVars = buildEncryptedAssetIncludeVars(params.include);
 
   const result = await execute(url, GetEncryptedAssetsDocument, {

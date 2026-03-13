@@ -12,7 +12,7 @@ import {
 import { ExpandableHex } from '@/components/expandable-hex';
 import { RawJsonToggle } from '@/components/playground';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatRelativeTime, truncateAddress } from '@/lib/utils';
+import { formatRelativeTime, formatTimestamp, truncateAddress } from '@/lib/utils';
 
 export interface TokenIdDataChangedEventCardProps {
   tokenIdDataChangedEvent: PartialExcept<
@@ -85,7 +85,7 @@ export function TokenIdDataChangedEventCard({
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-40 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(tokenIdDataChangedEvent.timestamp).toLocaleString()}{' '}
+                {formatTimestamp(tokenIdDataChangedEvent.timestamp)}{' '}
                 <span className="text-muted-foreground">
                   ({formatRelativeTime(tokenIdDataChangedEvent.timestamp)})
                 </span>

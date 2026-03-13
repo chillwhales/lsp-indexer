@@ -9,6 +9,9 @@ export const GetEncryptedAssetsDocument = graphql(`
     $offset: Int
     $includeArrayIndex: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeTitle: Boolean! = true
     $includeDescription: Boolean! = true
     $includeEncryption: Boolean! = true
@@ -38,6 +41,10 @@ export const GetEncryptedAssetsDocument = graphql(`
     $includeUniversalProfileBackgroundImage: Boolean! = true
     $includeUniversalProfileFollowerCount: Boolean! = true
     $includeUniversalProfileFollowingCount: Boolean! = true
+    $includeUniversalProfileTimestamp: Boolean! = true
+    $includeUniversalProfileBlockNumber: Boolean! = true
+    $includeUniversalProfileTransactionIndex: Boolean! = true
+    $includeUniversalProfileLogIndex: Boolean! = true
   ) {
     lsp29_encrypted_asset(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       address
@@ -46,6 +53,9 @@ export const GetEncryptedAssetsDocument = graphql(`
 
       array_index @include(if: $includeArrayIndex)
       timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
 
       title @include(if: $includeTitle) {
         value
@@ -100,6 +110,10 @@ export const GetEncryptedAssetsDocument = graphql(`
 
       universalProfile @include(if: $includeUniversalProfile) {
         address
+        timestamp @include(if: $includeUniversalProfileTimestamp)
+        block_number @include(if: $includeUniversalProfileBlockNumber)
+        transaction_index @include(if: $includeUniversalProfileTransactionIndex)
+        log_index @include(if: $includeUniversalProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeUniversalProfileName) {
             value
@@ -164,6 +178,9 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
     $limit: Int
     $includeArrayIndex: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeTitle: Boolean! = true
     $includeDescription: Boolean! = true
     $includeEncryption: Boolean! = true
@@ -193,6 +210,10 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
     $includeUniversalProfileBackgroundImage: Boolean! = true
     $includeUniversalProfileFollowerCount: Boolean! = true
     $includeUniversalProfileFollowingCount: Boolean! = true
+    $includeUniversalProfileTimestamp: Boolean! = true
+    $includeUniversalProfileBlockNumber: Boolean! = true
+    $includeUniversalProfileTransactionIndex: Boolean! = true
+    $includeUniversalProfileLogIndex: Boolean! = true
   ) {
     lsp29_encrypted_asset(where: $where, order_by: $order_by, limit: $limit) {
       address
@@ -201,6 +222,9 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
 
       array_index @include(if: $includeArrayIndex)
       timestamp @include(if: $includeTimestamp)
+      block_number @include(if: $includeBlockNumber)
+      transaction_index @include(if: $includeTransactionIndex)
+      log_index @include(if: $includeLogIndex)
 
       title @include(if: $includeTitle) {
         value
@@ -255,6 +279,10 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
 
       universalProfile @include(if: $includeUniversalProfile) {
         address
+        timestamp @include(if: $includeUniversalProfileTimestamp)
+        block_number @include(if: $includeUniversalProfileBlockNumber)
+        transaction_index @include(if: $includeUniversalProfileTransactionIndex)
+        log_index @include(if: $includeUniversalProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeUniversalProfileName) {
             value

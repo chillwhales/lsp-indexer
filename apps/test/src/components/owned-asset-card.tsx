@@ -12,7 +12,7 @@ import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { formatRelativeTime, formatTokenAmount } from '@/lib/utils';
+import { formatRelativeTime, formatTimestamp, formatTokenAmount } from '@/lib/utils';
 
 /**
  * Format balance: use formatTokenAmount when digital asset decimals are available,
@@ -49,7 +49,7 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
     digitalAssetAddress,
     holderAddress,
     balance,
-    block,
+    blockNumber,
     timestamp,
     tokenIdCount,
     digitalAsset,
@@ -118,19 +118,31 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
               </dd>
             </div>
           )}
-          {block != null && (
+          {blockNumber != null && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Block</dt>
-              <dd className="font-mono text-xs">{block}</dd>
+              <dd className="font-mono text-xs">{blockNumber}</dd>
             </div>
           )}
           {timestamp && (
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(timestamp).toLocaleString()}{' '}
+                {formatTimestamp(timestamp)}{' '}
                 <span className="text-muted-foreground">({formatRelativeTime(timestamp)})</span>
               </dd>
+            </div>
+          )}
+          {'transactionIndex' in ownedAsset && ownedAsset.transactionIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-28 shrink-0">Tx Index</dt>
+              <dd className="font-mono text-xs">{String(ownedAsset.transactionIndex)}</dd>
+            </div>
+          )}
+          {'logIndex' in ownedAsset && ownedAsset.logIndex != null && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-28 shrink-0">Log Index</dt>
+              <dd className="font-mono text-xs">{String(ownedAsset.logIndex)}</dd>
             </div>
           )}
         </dl>
