@@ -1,5 +1,13 @@
 # @lsp-indexer/react
 
+## 1.1.0
+
+### Patch Changes
+
+- Updated dependencies [[`85fe631`](https://github.com/chillwhales/lsp-indexer/commit/85fe631bb18a4e40e8a9f49b61df1d52a79e30bc)]:
+  - @lsp-indexer/types@1.1.0
+  - @lsp-indexer/node@1.1.0
+
 ## 1.0.0
 
 ### Major Changes

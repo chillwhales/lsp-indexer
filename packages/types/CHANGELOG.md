@@ -1,5 +1,11 @@
 # @lsp-indexer/types
 
+## 1.1.0
+
+### Minor Changes
+
+- [#300](https://github.com/chillwhales/lsp-indexer/pull/300) [`85fe631`](https://github.com/chillwhales/lsp-indexer/commit/85fe631bb18a4e40e8a9f49b61df1d52a79e30bc) Thanks [@b00ste](https://github.com/b00ste)! - Add newest/oldest block-order sorting across all 12 query domains. All domain services now default to newest-first when no sort parameter is provided. Non-block sort fields include block-order as a deterministic pagination tiebreaker. Removed individual block/timestamp sort fields in favor of consistent newest/oldest.
+
 ## 1.0.0
 
 ### Major Changes
