@@ -9,7 +9,13 @@ import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { formatRelativeTime, formatTokenAmount, isSafeUrl, resolveUrl } from '@/lib/utils';
+import {
+  formatRelativeTime,
+  formatTimestamp,
+  formatTokenAmount,
+  isSafeUrl,
+  resolveUrl,
+} from '@/lib/utils';
 
 function StandardBadge({
   standard,
@@ -168,7 +174,7 @@ export function DigitalAssetCard({
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(digitalAsset.timestamp).toLocaleString()}{' '}
+                {formatTimestamp(digitalAsset.timestamp)}{' '}
                 <span className="text-muted-foreground">
                   ({formatRelativeTime(digitalAsset.timestamp)})
                 </span>

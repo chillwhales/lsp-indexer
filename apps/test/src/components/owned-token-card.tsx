@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { formatRelativeTime, truncateAddress } from '@/lib/utils';
+import { formatRelativeTime, formatTimestamp, truncateAddress } from '@/lib/utils';
 
 export interface OwnedTokenCardProps {
   ownedToken: PartialExcept<OwnedToken, 'id' | 'digitalAssetAddress' | 'holderAddress' | 'tokenId'>;
@@ -104,7 +104,7 @@ export function OwnedTokenCard({ ownedToken, isFetching }: OwnedTokenCardProps):
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(timestamp).toLocaleString()}{' '}
+                {formatTimestamp(timestamp)}{' '}
                 <span className="text-muted-foreground">({formatRelativeTime(timestamp)})</span>
               </dd>
             </div>

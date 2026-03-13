@@ -12,7 +12,7 @@ import { ImageList } from '@/components/image-list';
 import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatRelativeTime, isSafeUrl, resolveUrl } from '@/lib/utils';
+import { formatRelativeTime, formatTimestamp, isSafeUrl, resolveUrl } from '@/lib/utils';
 
 export interface NftCardProps {
   nft: PartialExcept<Nft, 'address' | 'tokenId' | 'isBurned' | 'isMinted'>;
@@ -107,7 +107,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-32 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(nft.timestamp).toLocaleString()}{' '}
+                {formatTimestamp(nft.timestamp)}{' '}
                 <span className="text-muted-foreground">({formatRelativeTime(nft.timestamp)})</span>
               </dd>
             </div>
@@ -140,7 +140,7 @@ export function NftCard({ nft, isFetching }: NftCardProps): React.ReactNode {
                 <dl className="space-y-1.5 text-sm mb-3">
                   <div className="flex gap-2">
                     <dt className="text-muted-foreground w-24 shrink-0">Acquired</dt>
-                    <dd className="text-xs">{new Date(holder.timestamp).toLocaleString()}</dd>
+                    <dd className="text-xs">{formatTimestamp(holder.timestamp)}</dd>
                   </div>
                 </dl>
               ) : undefined

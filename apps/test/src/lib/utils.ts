@@ -62,6 +62,14 @@ function bigintCompact(wholeUnits: bigint): string {
   return wholeUnits.toString();
 }
 
+/** Format an ISO timestamp to a locale-aware date+time string. */
+export function formatTimestamp(timestamp: string | number): string {
+  return new Date(timestamp).toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'medium',
+  });
+}
+
 /** Format an ISO timestamp to a relative time string (e.g. "2 days ago") */
 export function formatRelativeTime(timestamp: string): string {
   const now = Date.now();

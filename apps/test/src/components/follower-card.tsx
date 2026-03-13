@@ -7,7 +7,7 @@ import type { Follower, PartialExcept } from '@lsp-indexer/types';
 import { CollapsibleProfileSection } from '@/components/collapsible-sections';
 import { RawJsonToggle } from '@/components/playground';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatRelativeTime, getProfileLabel } from '@/lib/utils';
+import { formatRelativeTime, formatTimestamp, getProfileLabel } from '@/lib/utils';
 
 export interface FollowerCardProps {
   follower: PartialExcept<Follower, 'followerAddress' | 'followedAddress'>;
@@ -53,7 +53,7 @@ export function FollowerCard({ follower, index: _index }: FollowerCardProps): Re
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-36 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(obj.timestamp).toLocaleString()}{' '}
+                {formatTimestamp(obj.timestamp)}{' '}
                 <span className="text-muted-foreground">({formatRelativeTime(obj.timestamp)})</span>
               </dd>
             </div>

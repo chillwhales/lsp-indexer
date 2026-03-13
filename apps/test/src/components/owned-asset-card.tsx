@@ -12,7 +12,7 @@ import { RawJsonToggle } from '@/components/playground';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { formatRelativeTime, formatTokenAmount } from '@/lib/utils';
+import { formatRelativeTime, formatTimestamp, formatTokenAmount } from '@/lib/utils';
 
 /**
  * Format balance: use formatTokenAmount when digital asset decimals are available,
@@ -128,7 +128,7 @@ export function OwnedAssetCard({ ownedAsset, isFetching }: OwnedAssetCardProps):
             <div className="flex gap-2">
               <dt className="text-muted-foreground w-28 shrink-0">Timestamp</dt>
               <dd className="text-xs">
-                {new Date(timestamp).toLocaleString()}{' '}
+                {formatTimestamp(timestamp)}{' '}
                 <span className="text-muted-foreground">({formatRelativeTime(timestamp)})</span>
               </dd>
             </div>
