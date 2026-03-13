@@ -16,36 +16,22 @@
         "name": "service",
         "label": "Service",
         "type": "query",
-        "datasource": {
-          "type": "loki",
-          "uid": "loki"
-        },
+        "datasource": { "type": "loki", "uid": "loki" },
         "query": "label_values(compose_service)",
         "multi": true,
         "includeAll": true,
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
+        "current": { "selected": true, "text": "All", "value": "$__all" },
         "refresh": 2
       },
       {
         "name": "project",
         "label": "Project",
         "type": "query",
-        "datasource": {
-          "type": "prometheus",
-          "uid": "prometheus"
-        },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
         "query": "label_values(container_cpu_usage_seconds_total, container_label_com_docker_compose_project)",
         "multi": false,
         "includeAll": false,
-        "current": {
-          "selected": false,
-          "text": "",
-          "value": ""
-        },
+        "current": { "selected": false, "text": "", "value": "" },
         "refresh": 2
       },
       {
@@ -53,11 +39,7 @@
         "label": "Log Lines",
         "type": "custom",
         "query": "50,100,200,500,1000",
-        "current": {
-          "selected": true,
-          "text": "200",
-          "value": "200"
-        },
+        "current": { "selected": true, "text": "200", "value": "200" },
         "multi": false,
         "includeAll": false
       }
@@ -74,143 +56,78 @@
     {
       "type": "stat",
       "title": "Current Block",
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "max(max_over_time({compose_service=\"indexer\"} | json | unwrap blockNumber [1h]))",
-          "queryType": "range"
-        }
-      ],
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "max(max_over_time({compose_service=\"indexer\"} | json | unwrap blockNumber [1h]))",
+        "queryType": "range"
+      }],
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          }
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": ["last"],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "textMode": "auto"
+        "reduceOptions": { "calcs": ["last"], "fields": "", "values": false },
+        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "textMode": "auto"
       },
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 }
     },
     {
       "type": "stat",
       "title": "Blocks/min",
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "sum(count_over_time({compose_service=\"indexer\"} | json | blockNumber > 0 [5m])) / 5",
-          "queryType": "range"
-        }
-      ],
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "sum(count_over_time({compose_service=\"indexer\"} | json | blockNumber > 0 [5m])) / 5",
+        "queryType": "range"
+      }],
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 0 },
-              { "color": "green", "value": 1 }
-            ]
-          }
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 0 },
+            { "color": "green", "value": 1 }
+          ]}
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": ["last"],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "textMode": "auto"
+        "reduceOptions": { "calcs": ["last"], "fields": "", "values": false },
+        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "textMode": "auto"
       },
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 }
     },
     {
       "type": "stat",
       "title": "Block Processing Activity (1m)",
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "sum(count_over_time({compose_service=\"indexer\"} | json | blockNumber > 0 [$__interval]))",
-          "queryType": "range"
-        }
-      ],
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "sum(count_over_time({compose_service=\"indexer\"} | json | blockNumber > 0 [$__interval]))",
+        "queryType": "range"
+      }],
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
-            ]
-          },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "green", "value": 1 }
+          ]},
           "noValue": "No data",
-          "mappings": [
-            {
-              "type": "special",
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "Stale",
-                  "color": "red"
-                }
-              }
-            }
-          ]
+          "mappings": [{ "type": "special", "options": { "match": "null", "result": { "text": "Stale", "color": "red" } } }]
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": ["last"],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "textMode": "auto"
+        "reduceOptions": { "calcs": ["last"], "fields": "", "values": false },
+        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "textMode": "auto"
       },
       "description": "Block-processing log entries per interval. 0 or no data indicates the indexer may be stalled.",
       "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 }
@@ -218,44 +135,26 @@
     {
       "type": "stat",
       "title": "Errors (1h)",
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "sum(count_over_time({compose_service=~\"$service\"} | json | level=~\"error|fatal|ERROR|FATAL\" [1h]))",
-          "queryType": "range"
-        }
-      ],
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "sum(count_over_time({compose_service=~\"$service\"} | json | level=~\"error|fatal|ERROR|FATAL\" [1h]))",
+        "queryType": "range"
+      }],
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
-            ]
-          }
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "red", "value": 1 }
+          ]}
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": ["last"],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "textMode": "auto"
+        "reduceOptions": { "calcs": ["last"], "fields": "", "values": false },
+        "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "textMode": "auto"
       },
       "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 }
     },
@@ -269,102 +168,47 @@
     {
       "type": "timeseries",
       "title": "Error Rate by Service",
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "sum by (compose_service) (count_over_time({compose_service=~\"$service\"} | json | level=~\"error|fatal|warn|ERROR|FATAL|WARN|warning|WARNING\" [$__interval]))",
-          "legendFormat": "{{compose_service}}"
-        }
-      ],
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "sum by (compose_service) (count_over_time({compose_service=~\"$service\"} | json | level=~\"error|fatal|warn|ERROR|FATAL|WARN|warning|WARNING\" [$__interval]))",
+        "legendFormat": "{{compose_service}}"
+      }],
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "fillOpacity": 10,
-            "pointSize": 5,
-            "showPoints": "auto",
-            "spanNulls": false
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 10 }
-            ]
-          }
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10, "pointSize": 5, "showPoints": "auto", "spanNulls": false },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 10 }] }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        },
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": ["sum"]
-        }
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["sum"] }
       },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 }
     },
     {
       "type": "timeseries",
       "title": "Indexer Errors by Pipeline Step",
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "sum by (step) (count_over_time({compose_service=\"indexer\"} | json | level=~\"error|fatal|ERROR|FATAL\" | step != \"\" [$__interval]))",
-          "legendFormat": "{{step}}"
-        }
-      ],
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "sum by (step) (count_over_time({compose_service=\"indexer\"} | json | level=~\"error|fatal|ERROR|FATAL\" | step != \"\" [$__interval]))",
+        "legendFormat": "{{step}}"
+      }],
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "drawStyle": "bars",
-            "fillOpacity": 50,
-            "pointSize": 5,
-            "showPoints": "never",
-            "stacking": {
-              "mode": "normal"
-            }
-          }
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "bars", "fillOpacity": 50, "pointSize": 5, "showPoints": "never", "stacking": { "mode": "normal" } }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        },
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": ["sum"]
-        }
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["sum"] }
       },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 }
     },
@@ -378,140 +222,452 @@
     {
       "type": "timeseries",
       "title": "Block Height Over Time",
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "max(max_over_time({compose_service=\"indexer\"} | json | unwrap blockNumber [$__interval]))",
-          "legendFormat": "Block Height"
-        }
-      ],
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "max(max_over_time({compose_service=\"indexer\"} | json | unwrap blockNumber [$__interval]))",
+        "legendFormat": "Block Height"
+      }],
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "fixedColor": "blue",
-            "mode": "fixed"
-          },
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "fillOpacity": 20,
-            "pointSize": 5,
-            "showPoints": "auto",
-            "spanNulls": 600000
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          },
+          "color": { "fixedColor": "blue", "mode": "fixed" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20, "pointSize": 5, "showPoints": "auto", "spanNulls": 600000 },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
           "noValue": "No block data"
         },
         "overrides": []
       },
       "options": {
-        "tooltip": {
-          "mode": "single"
-        },
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      },
-      "alert": {
-        "name": "No block data",
-        "message": "No new block data received in the last 10 minutes",
-        "conditions": [
-          {
-            "type": "query",
-            "query": { "params": ["A", "10m", "now"] },
-            "reducer": { "type": "count", "params": [] },
-            "evaluator": { "type": "lt", "params": [1] }
-          }
-        ],
-        "noDataState": "alerting",
-        "frequency": "1m",
-        "for": "10m"
+        "tooltip": { "mode": "single" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
       },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 }
     },
     {
       "type": "timeseries",
       "title": "Log Entries/sec (Indexer)",
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "sum(rate({compose_service=\"indexer\"} | json | blockNumber > 0 [$__interval]))",
-          "legendFormat": "entries/sec"
-        }
-      ],
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "sum(rate({compose_service=\"indexer\"} | json | blockNumber > 0 [$__interval]))",
+        "legendFormat": "entries/sec"
+      }],
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "fixedColor": "green",
-            "mode": "fixed"
-          },
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "fillOpacity": 15,
-            "pointSize": 5,
-            "showPoints": "auto"
-          },
+          "color": { "fixedColor": "green", "mode": "fixed" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15, "pointSize": 5, "showPoints": "auto" },
           "unit": "ops"
         },
         "overrides": []
       },
       "options": {
-        "tooltip": {
-          "mode": "single"
-        },
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
+        "tooltip": { "mode": "single" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
       },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 }
     },
     {
       "type": "row",
+      "title": "Pipeline Performance",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "Batch Processing Time",
+      "description": "Total wall-clock duration per batch (BATCH_SUMMARY step). Spikes indicate slow blocks or RPC latency.",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "max(max_over_time({compose_service=\"indexer\"} | json | step=\"BATCH_SUMMARY\" | unwrap totalDurationMs [$__interval]))",
+        "legendFormat": "Total Batch Duration"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "purple", "mode": "fixed" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20, "pointSize": 5, "showPoints": "auto", "spanNulls": false },
+          "unit": "ms",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 2000 },
+            { "color": "red", "value": 5000 }
+          ]}
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "single" },
+        "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["mean", "max"] }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Pipeline Step Latency",
+      "description": "Max durationMs per pipeline step over time. Identifies which step is the bottleneck.",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "max by (step) (max_over_time({compose_service=\"indexer\"} | json | step != \"\" | step != \"BATCH_SUMMARY\" | durationMs > 0 | unwrap durationMs [$__interval]))",
+        "legendFormat": "{{step}}"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10, "pointSize": 5, "showPoints": "auto", "spanNulls": false },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["mean", "max"] }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 }
+    },
+    {
+      "type": "stat",
+      "title": "Avg Batch Duration",
+      "description": "Average total batch processing time over the selected window.",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "avg(avg_over_time({compose_service=\"indexer\"} | json | step=\"BATCH_SUMMARY\" | unwrap totalDurationMs [$__interval]))",
+        "queryType": "range"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 1000 },
+            { "color": "red", "value": 3000 }
+          ]}
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false },
+        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "textMode": "auto"
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 32 }
+    },
+    {
+      "type": "stat",
+      "title": "Entities per Batch",
+      "description": "Average total entities created/updated per batch (BATCH_SUMMARY.totalEntities).",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "avg(avg_over_time({compose_service=\"indexer\"} | json | step=\"BATCH_SUMMARY\" | unwrap totalEntities [$__interval]))",
+        "queryType": "range"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false },
+        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "textMode": "auto"
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 32 }
+    },
+    {
+      "type": "stat",
+      "title": "Enrichments per Batch",
+      "description": "Average FK enrichment requests per batch (BATCH_SUMMARY.totalEnrichments).",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "avg(avg_over_time({compose_service=\"indexer\"} | json | step=\"BATCH_SUMMARY\" | unwrap totalEnrichments [$__interval]))",
+        "queryType": "range"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false },
+        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "textMode": "auto"
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 32 }
+    },
+    {
+      "type": "stat",
+      "title": "Blocks per Batch",
+      "description": "Average number of blocks processed per batch.",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "avg(avg_over_time({compose_service=\"indexer\"} | json | step=\"BATCH_SUMMARY\" | unwrap blockCount [$__interval]))",
+        "queryType": "range"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false },
+        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "textMode": "auto"
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 32 }
+    },
+    {
+      "type": "row",
+      "title": "Entity & Verification",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "Entity Throughput (Raw Events)",
+      "description": "Entities persisted per interval by type during PERSIST_RAW step.",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "sum by (entityType) (sum_over_time({compose_service=\"indexer\"} | json | step=\"PERSIST_RAW\" | count > 0 | unwrap count [$__interval]))",
+        "legendFormat": "{{entityType}}"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "bars", "fillOpacity": 60, "stacking": { "mode": "normal" }, "pointSize": 5, "showPoints": "never" },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["sum"] }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 37 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Verification Health (Valid vs Invalid)",
+      "description": "Valid and invalid address verifications per interval from the VERIFY step.",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum(sum_over_time({compose_service=\"indexer\"} | json | step=\"VERIFY\" | validCount > 0 | unwrap validCount [$__interval]))",
+          "legendFormat": "Valid"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum(sum_over_time({compose_service=\"indexer\"} | json | step=\"VERIFY\" | newCount > 0 | unwrap newCount [$__interval]))",
+          "legendFormat": "New"
+        },
+        {
+          "refId": "C",
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum(sum_over_time({compose_service=\"indexer\"} | json | step=\"VERIFY\" | invalidCount > 0 | unwrap invalidCount [$__interval]))",
+          "legendFormat": "Invalid"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15, "pointSize": 5, "showPoints": "auto", "spanNulls": false },
+          "unit": "none"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Valid" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "New" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "Invalid" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+        ]
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["sum"] }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 37 }
+    },
+    {
+      "type": "row",
+      "title": "Metadata Fetch",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 45 },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "Metadata Fetch Backlog",
+      "description": "Unfetched entity backlog depth by entity type (LSP3Profile, LSP4Metadata, LSP29EncryptedAsset). A non-zero value at head means there are pending metadata fetches.",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "max by (entityKey) (max_over_time({compose_service=\"indexer\"} | json | entityKey != \"\" | unfetchedCount > 0 | unwrap unfetchedCount [$__interval]))",
+        "legendFormat": "{{entityKey}}"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20, "pointSize": 5, "showPoints": "auto", "spanNulls": false },
+          "unit": "none",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 50 },
+            { "color": "red", "value": 200 }
+          ]}
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["last", "max"] }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 46 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Metadata Fetch Duration",
+      "description": "Total fetch drain duration per entity type at chain head.",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "max by (entityKey) (max_over_time({compose_service=\"indexer\"} | json | entityKey != \"\" | totalProcessed >= 0 | durationMs > 0 | unwrap durationMs [$__interval]))",
+        "legendFormat": "{{entityKey}}"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10, "pointSize": 5, "showPoints": "auto", "spanNulls": false },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["mean", "max"] }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 46 }
+    },
+    {
+      "type": "stat",
+      "title": "LSP3 Fetch Success Rate",
+      "description": "Ratio of successfully processed vs total attempted for LSP3Profile.",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "sum(sum_over_time({compose_service=\"indexer\"} | json | entityKey=\"LSP3Profile\" | totalProcessed > 0 | unwrap totalProcessed [$__interval])) / (sum(sum_over_time({compose_service=\"indexer\"} | json | entityKey=\"LSP3Profile\" | totalProcessed > 0 | unwrap totalProcessed [$__interval])) + sum(sum_over_time({compose_service=\"indexer\"} | json | entityKey=\"LSP3Profile\" | totalFailed > 0 | unwrap totalFailed [$__interval])))",
+        "queryType": "range"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "yellow", "value": 0.8 },
+            { "color": "green", "value": 0.95 }
+          ]}
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["last"], "fields": "", "values": false },
+        "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "textMode": "auto"
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 54 }
+    },
+    {
+      "type": "stat",
+      "title": "LSP4 Fetch Success Rate",
+      "description": "Ratio of successfully processed vs total attempted for LSP4Metadata.",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "sum(sum_over_time({compose_service=\"indexer\"} | json | entityKey=\"LSP4Metadata\" | totalProcessed > 0 | unwrap totalProcessed [$__interval])) / (sum(sum_over_time({compose_service=\"indexer\"} | json | entityKey=\"LSP4Metadata\" | totalProcessed > 0 | unwrap totalProcessed [$__interval])) + sum(sum_over_time({compose_service=\"indexer\"} | json | entityKey=\"LSP4Metadata\" | totalFailed > 0 | unwrap totalFailed [$__interval])))",
+        "queryType": "range"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "yellow", "value": 0.8 },
+            { "color": "green", "value": 0.95 }
+          ]}
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["last"], "fields": "", "values": false },
+        "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "textMode": "auto"
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 54 }
+    },
+    {
+      "type": "stat",
+      "title": "LSP29 Fetch Success Rate",
+      "description": "Ratio of successfully processed vs total attempted for LSP29EncryptedAsset.",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{
+        "refId": "A",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "expr": "sum(sum_over_time({compose_service=\"indexer\"} | json | entityKey=\"LSP29EncryptedAsset\" | totalProcessed > 0 | unwrap totalProcessed [$__interval])) / (sum(sum_over_time({compose_service=\"indexer\"} | json | entityKey=\"LSP29EncryptedAsset\" | totalProcessed > 0 | unwrap totalProcessed [$__interval])) + sum(sum_over_time({compose_service=\"indexer\"} | json | entityKey=\"LSP29EncryptedAsset\" | totalFailed > 0 | unwrap totalFailed [$__interval])))",
+        "queryType": "range"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "yellow", "value": 0.8 },
+            { "color": "green", "value": 0.95 }
+          ]}
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["last"], "fields": "", "values": false },
+        "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "textMode": "auto"
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 54 }
+    },
+    {
+      "type": "row",
       "title": "Log Explorer",
       "collapsed": true,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 58 },
       "panels": [
         {
           "type": "logs",
           "title": "Service Logs",
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "targets": [
-            {
-              "refId": "A",
-              "datasource": {
-                "type": "loki",
-                "uid": "loki"
-              },
-              "expr": "{compose_service=~\"$service\"} | json",
-              "queryType": "range",
-              "maxLines": "$log_lines"
-            }
-          ],
+          "datasource": { "type": "loki", "uid": "loki" },
+          "targets": [{
+            "refId": "A",
+            "datasource": { "type": "loki", "uid": "loki" },
+            "expr": "{compose_service=~\"$service\"} | json",
+            "queryType": "range",
+            "maxLines": "$log_lines"
+          }],
           "options": {
             "showTime": true,
             "showLabels": true,
@@ -522,7 +678,7 @@
             "sortOrder": "Descending",
             "dedupStrategy": "none"
           },
-          "gridPos": { "h": 16, "w": 24, "x": 0, "y": 24 }
+          "gridPos": { "h": 16, "w": 24, "x": 0, "y": 59 }
         }
       ]
     },
@@ -530,209 +686,119 @@
       "type": "row",
       "title": "Container Metrics",
       "collapsed": true,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 59 },
       "panels": [
         {
           "type": "timeseries",
           "title": "CPU Usage by Container",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "targets": [
-            {
-              "refId": "A",
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_project=\"$project\"}[5m]) * 100",
-              "legendFormat": "{{container_label_com_docker_compose_service}}"
-            }
-          ],
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [{
+            "refId": "A",
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "expr": "rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_project=\"$project\"}[5m]) * 100",
+            "legendFormat": "{{container_label_com_docker_compose_service}}"
+          }],
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "drawStyle": "line",
-                "lineInterpolation": "smooth",
-                "fillOpacity": 10,
-                "pointSize": 5,
-                "showPoints": "auto"
-              },
+              "color": { "mode": "palette-classic" },
+              "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10, "pointSize": 5, "showPoints": "auto" },
               "unit": "percent"
             },
             "overrides": []
           },
           "options": {
-            "tooltip": {
-              "mode": "multi",
-              "sort": "desc"
-            },
-            "legend": {
-              "displayMode": "list",
-              "placement": "bottom"
-            }
+            "tooltip": { "mode": "multi", "sort": "desc" },
+            "legend": { "displayMode": "list", "placement": "bottom" }
           },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 25 }
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 60 }
         },
         {
           "type": "timeseries",
           "title": "Memory Usage by Container",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "targets": [
-            {
-              "refId": "A",
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "container_memory_usage_bytes{container_label_com_docker_compose_project=\"$project\"}",
-              "legendFormat": "{{container_label_com_docker_compose_service}}"
-            }
-          ],
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [{
+            "refId": "A",
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "expr": "container_memory_usage_bytes{container_label_com_docker_compose_project=\"$project\"}",
+            "legendFormat": "{{container_label_com_docker_compose_service}}"
+          }],
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "drawStyle": "line",
-                "lineInterpolation": "smooth",
-                "fillOpacity": 10,
-                "pointSize": 5,
-                "showPoints": "auto"
-              },
+              "color": { "mode": "palette-classic" },
+              "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10, "pointSize": 5, "showPoints": "auto" },
               "unit": "bytes"
             },
             "overrides": []
           },
           "options": {
-            "tooltip": {
-              "mode": "multi",
-              "sort": "desc"
-            },
-            "legend": {
-              "displayMode": "list",
-              "placement": "bottom"
-            }
+            "tooltip": { "mode": "multi", "sort": "desc" },
+            "legend": { "displayMode": "list", "placement": "bottom" }
           },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 25 }
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 60 }
         },
         {
           "type": "timeseries",
           "title": "Network I/O",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
           "targets": [
             {
               "refId": "A",
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
               "expr": "rate(container_network_receive_bytes_total{container_label_com_docker_compose_project=\"$project\"}[5m])",
               "legendFormat": "{{container_label_com_docker_compose_service}} rx"
             },
             {
               "refId": "B",
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
               "expr": "rate(container_network_transmit_bytes_total{container_label_com_docker_compose_project=\"$project\"}[5m])",
               "legendFormat": "{{container_label_com_docker_compose_service}} tx"
             }
           ],
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "drawStyle": "line",
-                "lineInterpolation": "smooth",
-                "fillOpacity": 10,
-                "pointSize": 5,
-                "showPoints": "auto"
-              },
+              "color": { "mode": "palette-classic" },
+              "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10, "pointSize": 5, "showPoints": "auto" },
               "unit": "Bps"
             },
             "overrides": []
           },
           "options": {
-            "tooltip": {
-              "mode": "multi",
-              "sort": "desc"
-            },
-            "legend": {
-              "displayMode": "list",
-              "placement": "bottom"
-            }
+            "tooltip": { "mode": "multi", "sort": "desc" },
+            "legend": { "displayMode": "list", "placement": "bottom" }
           },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 33 }
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 68 }
         },
         {
           "type": "timeseries",
           "title": "Disk I/O",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
           "targets": [
             {
               "refId": "A",
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
               "expr": "rate(container_fs_reads_bytes_total{container_label_com_docker_compose_project=\"$project\"}[5m])",
               "legendFormat": "{{container_label_com_docker_compose_service}} read"
             },
             {
               "refId": "B",
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
               "expr": "rate(container_fs_writes_bytes_total{container_label_com_docker_compose_project=\"$project\"}[5m])",
               "legendFormat": "{{container_label_com_docker_compose_service}} write"
             }
           ],
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "drawStyle": "line",
-                "lineInterpolation": "smooth",
-                "fillOpacity": 10,
-                "pointSize": 5,
-                "showPoints": "auto"
-              },
+              "color": { "mode": "palette-classic" },
+              "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10, "pointSize": 5, "showPoints": "auto" },
               "unit": "Bps"
             },
             "overrides": []
           },
           "options": {
-            "tooltip": {
-              "mode": "multi",
-              "sort": "desc"
-            },
-            "legend": {
-              "displayMode": "list",
-              "placement": "bottom"
-            }
+            "tooltip": { "mode": "multi", "sort": "desc" },
+            "legend": { "displayMode": "list", "placement": "bottom" }
           },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 33 }
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 68 }
         }
       ]
     }
@@ -741,10 +807,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
