@@ -11,6 +11,9 @@ import { MetadataWorkerPool } from '@/core/metadataWorkerPool';
 import { PipelineConfig } from '@/core/pipeline';
 import { PluginRegistry } from '@/core/registry';
 import { createVerifyFn } from '@/core/verification';
+import { createLogger } from '@subsquid/logger';
+
+const configLog = createLogger('sqd:config');
 
 /**
  * Creates the pipeline configuration object for processBatch.
@@ -25,9 +28,9 @@ export function createPipelineConfig(registry: PluginRegistry): PipelineConfig {
   let poolSize = parseInt(poolSizeRaw ?? `${defaultPoolSize}`, 10);
 
   if (!Number.isInteger(poolSize) || poolSize <= 0) {
-    console.error(
-      `Invalid METADATA_WORKER_POOL_SIZE='${poolSizeRaw}'. ` +
-        `Using default value ${defaultPoolSize}.`,
+    configLog.warn(
+      { envVar: 'METADATA_WORKER_POOL_SIZE', rawValue: poolSizeRaw, defaultValue: defaultPoolSize },
+      'Invalid env value, using default',
     );
     poolSize = defaultPoolSize;
   }

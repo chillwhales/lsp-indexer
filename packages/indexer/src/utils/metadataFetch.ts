@@ -231,15 +231,16 @@ export async function handleMetadataFetch(
 
   // ----- Path 2: Head-only fetch (DB backlog drain) -----
   hctx.context.log.debug(
-    `[${config.entityKey}] isHead=${hctx.isHead}, entities in batch=${entities.size}`,
+    { entityKey: config.entityKey, isHead: hctx.isHead, batchEntityCount: entities.size },
+    'Metadata fetch check',
   );
 
   if (!hctx.isHead) {
-    hctx.context.log.debug(`[${config.entityKey}] Skipping metadata fetch - not at head`);
+    hctx.context.log.debug({ entityKey: config.entityKey }, 'Skipping metadata fetch - not at head');
     return;
   }
 
-  hctx.context.log.info(`[${config.entityKey}] At chain head - checking for metadata backlog`);
+  hctx.context.log.info({ entityKey: config.entityKey }, 'At chain head - checking for metadata backlog');
 
   // Collect current-batch IDs so we can exclude them from the DB backlog.
   // Entities in the current batch may have updated url/fields that the DB
@@ -250,12 +251,16 @@ export async function handleMetadataFetch(
   }
 
   hctx.context.log.debug(
-    `[${config.entityKey}] Querying DB for unfetched entities (limit=${FETCH_LIMIT})`,
+    { entityKey: config.entityKey, fetchLimit: FETCH_LIMIT },
+    'Querying DB for unfetched entities',
   );
 
   const unfetched = await queryUnfetchedEntities(hctx.store, config.entityKey, FETCH_LIMIT);
 
-  hctx.context.log.info(`[${config.entityKey}] Found ${unfetched.length} unfetched entities in DB`);
+  hctx.context.log.info(
+    { entityKey: config.entityKey, unfetchedCount: unfetched.length },
+    'Found unfetched entities in DB',
+  );
 
   if (unfetched.length === 0) return;
 
@@ -264,7 +269,8 @@ export async function handleMetadataFetch(
   const backlog = unfetched.filter((entity) => !batchIds.has(config.getId(entity)));
 
   hctx.context.log.info(
-    `[${config.entityKey}] After filtering batch IDs: ${backlog.length} entities in backlog`,
+    { entityKey: config.entityKey, backlogCount: backlog.length },
+    'After filtering batch IDs: entities in backlog',
   );
 
   if (backlog.length === 0) return;
@@ -279,7 +285,12 @@ export async function handleMetadataFetch(
   }, []);
 
   hctx.context.log.info(
-    `[${config.entityKey}] Built ${requests.length} fetch requests (${backlog.length - requests.length} had null URLs)`,
+    {
+      entityKey: config.entityKey,
+      requestCount: requests.length,
+      nullUrlCount: backlog.length - requests.length,
+    },
+    'Built fetch requests',
   );
 
   if (requests.length === 0) return;
@@ -294,9 +305,11 @@ export async function handleMetadataFetch(
   const batchCount = Math.ceil(requests.length / FETCH_BATCH_SIZE);
   let totalProcessed = 0;
   let totalFailed = 0;
+  const fetchStart = Date.now();
 
   hctx.context.log.info(
-    `[${config.entityKey}] Starting metadata fetch: ${requests.length} requests split into ${batchCount} batches of ${FETCH_BATCH_SIZE}`,
+    { entityKey: config.entityKey, requestCount: requests.length, batchCount, batchSize: FETCH_BATCH_SIZE },
+    'Starting metadata fetch',
   );
 
   for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
@@ -305,7 +318,8 @@ export async function handleMetadataFetch(
     const batchRequests = requests.slice(batchStart, batchEnd);
 
     hctx.context.log.info(
-      `[${config.entityKey}] Batch ${batchIndex + 1}/${batchCount}: Calling worker pool with ${batchRequests.length} URLs`,
+      { entityKey: config.entityKey, batchIndex: batchIndex + 1, batchCount, batchSize: batchRequests.length },
+      'Calling worker pool for batch',
     );
 
     // Fetch via worker pool with timeout protection
@@ -321,19 +335,26 @@ export async function handleMetadataFetch(
 
       results = await Promise.race([hctx.workerPool.fetchBatch(batchRequests), timeoutPromise]);
 
-      const fetchDuration = Date.now() - fetchStartTime;
+      const durationMs = Date.now() - fetchStartTime;
       hctx.context.log.info(
-        `[${config.entityKey}] Batch ${batchIndex + 1}/${batchCount}: Worker pool returned ${results.length} results in ${fetchDuration}ms`,
+        { entityKey: config.entityKey, batchIndex: batchIndex + 1, batchCount, resultCount: results.length, durationMs },
+        'Worker pool batch complete',
       );
     } catch (err) {
       // Log error but don't crash the processor — metadata fetching is best-effort
       // Pass full error object to capture stack traces for debugging worker crashes
-      const fetchDuration = Date.now() - fetchStartTime;
-      const message = `Metadata fetch batch ${batchIndex + 1}/${batchCount} failed for ${config.entityKey} (${batchRequests.length} requests, ${fetchDuration}ms elapsed)`;
+      const durationMs = Date.now() - fetchStartTime;
+      const message = `Metadata fetch batch ${batchIndex + 1}/${batchCount} failed for ${config.entityKey} (${batchRequests.length} requests, ${durationMs}ms elapsed)`;
       if (typeof err === 'object' && err !== null) {
-        hctx.context.log.warn(err, message);
+        hctx.context.log.warn(
+          { entityKey: config.entityKey, batchIndex: batchIndex + 1, batchCount, batchSize: batchRequests.length, durationMs, error: err instanceof Error ? err.message : String(err) },
+          'Metadata fetch batch failed',
+        );
       } else {
-        hctx.context.log.warn(message);
+        hctx.context.log.warn(
+          { entityKey: config.entityKey, batchIndex: batchIndex + 1, batchCount, batchSize: batchRequests.length, durationMs },
+          message,
+        );
       }
 
       // Mark all entities in this batch with error to prevent infinite retries
@@ -414,7 +435,15 @@ export async function handleMetadataFetch(
   }
 
   // Log summary after all batches complete
+  const durationMs = Date.now() - fetchStart;
   hctx.context.log.info(
-    `[${config.entityKey}] Metadata backlog drain complete: ${totalProcessed} processed, ${totalFailed} failed (${batchCount} batches)`,
+    {
+      entityKey: config.entityKey,
+      totalProcessed,
+      totalFailed,
+      batchCount,
+      durationMs,
+    },
+    'Metadata backlog drain complete',
   );
 }

@@ -1,6 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { createLogger } from '@subsquid/logger';
 import { EntityHandler, EventPlugin, IPluginRegistry, LogSubscription } from './types';
+
+const registryLog = createLogger('sqd:registry');
 
 /**
  * Type guard: does the object satisfy the EventPlugin interface?
@@ -88,14 +91,14 @@ export class PluginRegistry implements IPluginRegistry {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const loaded = require(file);
         if (typeof loaded !== 'object' || loaded === null) {
-          console.warn(`[Registry] Invalid module export in ${file}, skipping`);
+          registryLog.warn({ file }, 'Invalid module export, skipping');
           continue;
         }
         const plugin =
           'default' in loaded ? loaded.default : 'plugin' in loaded ? loaded.plugin : undefined;
 
         if (!plugin) {
-          console.warn(`[Registry] No default/plugin export in ${file}, skipping`);
+          registryLog.warn({ file }, 'No default/plugin export, skipping');
           continue;
         }
 
@@ -108,12 +111,12 @@ export class PluginRegistry implements IPluginRegistry {
           }
           this.eventPlugins.set(plugin.topic0, plugin);
         } else {
-          console.warn(`[Registry] Export in ${file} does not implement EventPlugin, skipping`);
+          registryLog.warn({ file }, 'Export does not implement EventPlugin, skipping');
         }
       }
     }
 
-    console.info(`[Registry] Discovered ${this.eventPlugins.size} event plugins`);
+    registryLog.info({ count: this.eventPlugins.size }, 'Discovered event plugins');
   }
 
   /**
@@ -133,14 +136,14 @@ export class PluginRegistry implements IPluginRegistry {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const loaded = require(file);
         if (typeof loaded !== 'object' || loaded === null) {
-          console.warn(`[Registry] Invalid module export in ${file}, skipping`);
+          registryLog.warn({ file }, 'Invalid module export, skipping');
           continue;
         }
         const handler =
           'default' in loaded ? loaded.default : 'handler' in loaded ? loaded.handler : undefined;
 
         if (!handler) {
-          console.warn(`[Registry] No default/handler export in ${file}, skipping`);
+          registryLog.warn({ file }, 'No default/handler export, skipping');
           continue;
         }
 
@@ -153,12 +156,12 @@ export class PluginRegistry implements IPluginRegistry {
           }
           this.entityHandlers.push(handler);
         } else {
-          console.warn(`[Registry] Export in ${file} does not implement EntityHandler, skipping`);
+          registryLog.warn({ file }, 'Export does not implement EntityHandler, skipping');
         }
       }
     }
 
-    console.info(`[Registry] Discovered ${this.entityHandlers.length} entity handlers`);
+    registryLog.info({ count: this.entityHandlers.length }, 'Discovered entity handlers');
     this.topologicalSort();
   }
 

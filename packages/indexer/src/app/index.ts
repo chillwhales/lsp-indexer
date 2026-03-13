@@ -29,9 +29,9 @@ if (shouldInitFileLogger) {
 const logger = createLogger('sqd:processor');
 
 if (shouldInitFileLogger) {
-  logger.info('File logging enabled — writing to JSON logs with daily rotation');
+  logger.info({ step: 'BOOTSTRAP' }, 'File logging enabled — writing to JSON logs with daily rotation');
 } else {
-  logger.info('File logging disabled — console output only');
+  logger.info({ step: 'BOOTSTRAP' }, 'File logging disabled — console output only');
 }
 
 // Bootstrap: discover and register all plugins and handlers
@@ -43,14 +43,14 @@ for (const sub of subscriptions) {
   processor.addLog(sub);
 }
 
-logger.info('Processor configured with log subscriptions from registry');
+logger.info({ step: 'BOOTSTRAP' }, 'Processor configured with log subscriptions from registry');
 
 // Create pipeline configuration
 const pipelineConfig = createPipelineConfig(registry);
-logger.info('Pipeline configuration created');
+logger.info({ step: 'BOOTSTRAP' }, 'Pipeline configuration created');
 
 // Start processor
-logger.info('Starting processor — indexer ready');
+logger.info({ step: 'BOOTSTRAP' }, 'Starting processor — indexer ready');
 
 processor.run(new TypeormDatabase(), async (ctx) => {
   await processBatch(ctx, pipelineConfig);
