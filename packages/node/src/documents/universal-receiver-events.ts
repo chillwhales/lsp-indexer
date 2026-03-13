@@ -10,8 +10,8 @@ export const GetUniversalReceiverEventsDocument = graphql(`
     $includeValue: Boolean! = true
     $includeReceivedData: Boolean! = true
     $includeReturnedValue: Boolean! = true
-    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeLogIndex: Boolean! = true
     $includeTransactionIndex: Boolean! = true
     $includeUniversalProfile: Boolean! = true
@@ -24,6 +24,10 @@ export const GetUniversalReceiverEventsDocument = graphql(`
     $includeUniversalProfileBackgroundImage: Boolean! = true
     $includeUniversalProfileFollowerCount: Boolean! = true
     $includeUniversalProfileFollowingCount: Boolean! = true
+    $includeUniversalProfileTimestamp: Boolean! = true
+    $includeUniversalProfileBlockNumber: Boolean! = true
+    $includeUniversalProfileTransactionIndex: Boolean! = true
+    $includeUniversalProfileLogIndex: Boolean! = true
     $includeFromProfile: Boolean! = true
     $includeFromProfileName: Boolean! = true
     $includeFromProfileDescription: Boolean! = true
@@ -34,6 +38,10 @@ export const GetUniversalReceiverEventsDocument = graphql(`
     $includeFromProfileBackgroundImage: Boolean! = true
     $includeFromProfileFollowerCount: Boolean! = true
     $includeFromProfileFollowingCount: Boolean! = true
+    $includeFromProfileTimestamp: Boolean! = true
+    $includeFromProfileBlockNumber: Boolean! = true
+    $includeFromProfileTransactionIndex: Boolean! = true
+    $includeFromProfileLogIndex: Boolean! = true
     $includeFromAsset: Boolean! = true
     $includeFromAssetName: Boolean! = true
     $includeFromAssetSymbol: Boolean! = true
@@ -52,6 +60,10 @@ export const GetUniversalReceiverEventsDocument = graphql(`
     $includeFromAssetReferenceContract: Boolean! = true
     $includeFromAssetTokenIdFormat: Boolean! = true
     $includeFromAssetBaseUri: Boolean! = true
+    $includeFromAssetTimestamp: Boolean! = true
+    $includeFromAssetBlockNumber: Boolean! = true
+    $includeFromAssetTransactionIndex: Boolean! = true
+    $includeFromAssetLogIndex: Boolean! = true
   ) {
     universal_receiver(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       address
@@ -66,6 +78,10 @@ export const GetUniversalReceiverEventsDocument = graphql(`
       transaction_index @include(if: $includeTransactionIndex)
       universalProfile @include(if: $includeUniversalProfile) {
         address
+        timestamp @include(if: $includeUniversalProfileTimestamp)
+        block_number @include(if: $includeUniversalProfileBlockNumber)
+        transaction_index @include(if: $includeUniversalProfileTransactionIndex)
+        log_index @include(if: $includeUniversalProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeUniversalProfileName) {
             value
@@ -114,6 +130,10 @@ export const GetUniversalReceiverEventsDocument = graphql(`
       }
       fromProfile @include(if: $includeFromProfile) {
         address
+        timestamp @include(if: $includeFromProfileTimestamp)
+        block_number @include(if: $includeFromProfileBlockNumber)
+        transaction_index @include(if: $includeFromProfileTransactionIndex)
+        log_index @include(if: $includeFromProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeFromProfileName) {
             value
@@ -163,6 +183,10 @@ export const GetUniversalReceiverEventsDocument = graphql(`
       fromAsset @include(if: $includeFromAsset) {
         id
         address
+        timestamp @include(if: $includeFromAssetTimestamp)
+        block_number @include(if: $includeFromAssetBlockNumber)
+        transaction_index @include(if: $includeFromAssetTransactionIndex)
+        log_index @include(if: $includeFromAssetLogIndex)
         lsp4TokenName @include(if: $includeFromAssetName) {
           value
         }
@@ -250,8 +274,8 @@ export const UniversalReceiverEventSubscriptionDocument = graphql(`
     $includeValue: Boolean! = true
     $includeReceivedData: Boolean! = true
     $includeReturnedValue: Boolean! = true
-    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeLogIndex: Boolean! = true
     $includeTransactionIndex: Boolean! = true
     $includeUniversalProfile: Boolean! = true
@@ -264,6 +288,10 @@ export const UniversalReceiverEventSubscriptionDocument = graphql(`
     $includeUniversalProfileBackgroundImage: Boolean! = true
     $includeUniversalProfileFollowerCount: Boolean! = true
     $includeUniversalProfileFollowingCount: Boolean! = true
+    $includeUniversalProfileTimestamp: Boolean! = true
+    $includeUniversalProfileBlockNumber: Boolean! = true
+    $includeUniversalProfileTransactionIndex: Boolean! = true
+    $includeUniversalProfileLogIndex: Boolean! = true
     $includeFromProfile: Boolean! = true
     $includeFromProfileName: Boolean! = true
     $includeFromProfileDescription: Boolean! = true
@@ -274,6 +302,10 @@ export const UniversalReceiverEventSubscriptionDocument = graphql(`
     $includeFromProfileBackgroundImage: Boolean! = true
     $includeFromProfileFollowerCount: Boolean! = true
     $includeFromProfileFollowingCount: Boolean! = true
+    $includeFromProfileTimestamp: Boolean! = true
+    $includeFromProfileBlockNumber: Boolean! = true
+    $includeFromProfileTransactionIndex: Boolean! = true
+    $includeFromProfileLogIndex: Boolean! = true
     $includeFromAsset: Boolean! = true
     $includeFromAssetName: Boolean! = true
     $includeFromAssetSymbol: Boolean! = true
@@ -292,6 +324,10 @@ export const UniversalReceiverEventSubscriptionDocument = graphql(`
     $includeFromAssetReferenceContract: Boolean! = true
     $includeFromAssetTokenIdFormat: Boolean! = true
     $includeFromAssetBaseUri: Boolean! = true
+    $includeFromAssetTimestamp: Boolean! = true
+    $includeFromAssetBlockNumber: Boolean! = true
+    $includeFromAssetTransactionIndex: Boolean! = true
+    $includeFromAssetLogIndex: Boolean! = true
   ) {
     universal_receiver(where: $where, order_by: $order_by, limit: $limit) {
       address
@@ -306,6 +342,10 @@ export const UniversalReceiverEventSubscriptionDocument = graphql(`
       transaction_index @include(if: $includeTransactionIndex)
       universalProfile @include(if: $includeUniversalProfile) {
         address
+        timestamp @include(if: $includeUniversalProfileTimestamp)
+        block_number @include(if: $includeUniversalProfileBlockNumber)
+        transaction_index @include(if: $includeUniversalProfileTransactionIndex)
+        log_index @include(if: $includeUniversalProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeUniversalProfileName) {
             value
@@ -354,6 +394,10 @@ export const UniversalReceiverEventSubscriptionDocument = graphql(`
       }
       fromProfile @include(if: $includeFromProfile) {
         address
+        timestamp @include(if: $includeFromProfileTimestamp)
+        block_number @include(if: $includeFromProfileBlockNumber)
+        transaction_index @include(if: $includeFromProfileTransactionIndex)
+        log_index @include(if: $includeFromProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeFromProfileName) {
             value
@@ -403,6 +447,10 @@ export const UniversalReceiverEventSubscriptionDocument = graphql(`
       fromAsset @include(if: $includeFromAsset) {
         id
         address
+        timestamp @include(if: $includeFromAssetTimestamp)
+        block_number @include(if: $includeFromAssetBlockNumber)
+        transaction_index @include(if: $includeFromAssetTransactionIndex)
+        log_index @include(if: $includeFromAssetLogIndex)
         lsp4TokenName @include(if: $includeFromAssetName) {
           value
         }

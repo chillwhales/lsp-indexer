@@ -14,6 +14,10 @@ export const GetNftDocument = graphql(`
     $includeImages: Boolean! = true
     $includeLinks: Boolean! = true
     $includeAttributes: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeCollectionName: Boolean! = true
     $includeCollectionSymbol: Boolean! = true
     $includeCollectionTokenType: Boolean! = true
@@ -31,6 +35,10 @@ export const GetNftDocument = graphql(`
     $includeCollectionReferenceContract: Boolean! = true
     $includeCollectionTokenIdFormat: Boolean! = true
     $includeCollectionBaseUri: Boolean! = true
+    $includeCollectionTimestamp: Boolean! = true
+    $includeCollectionBlockNumber: Boolean! = true
+    $includeCollectionTransactionIndex: Boolean! = true
+    $includeCollectionLogIndex: Boolean! = true
     $includeHolderName: Boolean! = true
     $includeHolderDescription: Boolean! = true
     $includeHolderTags: Boolean! = true
@@ -40,10 +48,10 @@ export const GetNftDocument = graphql(`
     $includeHolderBackgroundImage: Boolean! = true
     $includeHolderFollowerCount: Boolean! = true
     $includeHolderFollowingCount: Boolean! = true
-    $includeTimestamp: Boolean! = true
-    $includeBlockNumber: Boolean! = true
-    $includeTransactionIndex: Boolean! = true
-    $includeLogIndex: Boolean! = true
+    $includeHolderTimestamp: Boolean! = true
+    $includeHolderBlockNumber: Boolean! = true
+    $includeHolderTransactionIndex: Boolean! = true
+    $includeHolderLogIndex: Boolean! = true
   ) {
     nft(where: $where, limit: 1) {
       id
@@ -59,6 +67,10 @@ export const GetNftDocument = graphql(`
       digitalAsset @include(if: $includeCollection) {
         id
         address
+        timestamp @include(if: $includeCollectionTimestamp)
+        block_number @include(if: $includeCollectionBlockNumber)
+        transaction_index @include(if: $includeCollectionTransactionIndex)
+        log_index @include(if: $includeCollectionLogIndex)
         lsp4TokenName @include(if: $includeCollectionName) {
           value
         }
@@ -130,7 +142,10 @@ export const GetNftDocument = graphql(`
       }
       ownedToken @include(if: $includeHolder) {
         owner
-        timestamp
+        timestamp @include(if: $includeHolderTimestamp)
+        block_number @include(if: $includeHolderBlockNumber)
+        transaction_index @include(if: $includeHolderTransactionIndex)
+        log_index @include(if: $includeHolderLogIndex)
         universalProfile {
           address
           lsp3Profile {
@@ -271,6 +286,10 @@ export const GetNftsDocument = graphql(`
     $includeImages: Boolean! = true
     $includeLinks: Boolean! = true
     $includeAttributes: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeCollectionName: Boolean! = true
     $includeCollectionSymbol: Boolean! = true
     $includeCollectionTokenType: Boolean! = true
@@ -288,6 +307,10 @@ export const GetNftsDocument = graphql(`
     $includeCollectionReferenceContract: Boolean! = true
     $includeCollectionTokenIdFormat: Boolean! = true
     $includeCollectionBaseUri: Boolean! = true
+    $includeCollectionTimestamp: Boolean! = true
+    $includeCollectionBlockNumber: Boolean! = true
+    $includeCollectionTransactionIndex: Boolean! = true
+    $includeCollectionLogIndex: Boolean! = true
     $includeHolderName: Boolean! = true
     $includeHolderDescription: Boolean! = true
     $includeHolderTags: Boolean! = true
@@ -297,10 +320,10 @@ export const GetNftsDocument = graphql(`
     $includeHolderBackgroundImage: Boolean! = true
     $includeHolderFollowerCount: Boolean! = true
     $includeHolderFollowingCount: Boolean! = true
-    $includeTimestamp: Boolean! = true
-    $includeBlockNumber: Boolean! = true
-    $includeTransactionIndex: Boolean! = true
-    $includeLogIndex: Boolean! = true
+    $includeHolderTimestamp: Boolean! = true
+    $includeHolderBlockNumber: Boolean! = true
+    $includeHolderTransactionIndex: Boolean! = true
+    $includeHolderLogIndex: Boolean! = true
   ) {
     nft(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       id
@@ -316,6 +339,10 @@ export const GetNftsDocument = graphql(`
       digitalAsset @include(if: $includeCollection) {
         id
         address
+        timestamp @include(if: $includeCollectionTimestamp)
+        block_number @include(if: $includeCollectionBlockNumber)
+        transaction_index @include(if: $includeCollectionTransactionIndex)
+        log_index @include(if: $includeCollectionLogIndex)
         lsp4TokenName @include(if: $includeCollectionName) {
           value
         }
@@ -387,7 +414,10 @@ export const GetNftsDocument = graphql(`
       }
       ownedToken @include(if: $includeHolder) {
         owner
-        timestamp
+        timestamp @include(if: $includeHolderTimestamp)
+        block_number @include(if: $includeHolderBlockNumber)
+        transaction_index @include(if: $includeHolderTransactionIndex)
+        log_index @include(if: $includeHolderLogIndex)
         universalProfile {
           address
           lsp3Profile {
@@ -535,6 +565,10 @@ export const NftSubscriptionDocument = graphql(`
     $includeImages: Boolean! = true
     $includeLinks: Boolean! = true
     $includeAttributes: Boolean! = true
+    $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
+    $includeTransactionIndex: Boolean! = true
+    $includeLogIndex: Boolean! = true
     $includeCollectionName: Boolean! = true
     $includeCollectionSymbol: Boolean! = true
     $includeCollectionTokenType: Boolean! = true
@@ -552,6 +586,10 @@ export const NftSubscriptionDocument = graphql(`
     $includeCollectionReferenceContract: Boolean! = true
     $includeCollectionTokenIdFormat: Boolean! = true
     $includeCollectionBaseUri: Boolean! = true
+    $includeCollectionTimestamp: Boolean! = true
+    $includeCollectionBlockNumber: Boolean! = true
+    $includeCollectionTransactionIndex: Boolean! = true
+    $includeCollectionLogIndex: Boolean! = true
     $includeHolderName: Boolean! = true
     $includeHolderDescription: Boolean! = true
     $includeHolderTags: Boolean! = true
@@ -561,10 +599,10 @@ export const NftSubscriptionDocument = graphql(`
     $includeHolderBackgroundImage: Boolean! = true
     $includeHolderFollowerCount: Boolean! = true
     $includeHolderFollowingCount: Boolean! = true
-    $includeTimestamp: Boolean! = true
-    $includeBlockNumber: Boolean! = true
-    $includeTransactionIndex: Boolean! = true
-    $includeLogIndex: Boolean! = true
+    $includeHolderTimestamp: Boolean! = true
+    $includeHolderBlockNumber: Boolean! = true
+    $includeHolderTransactionIndex: Boolean! = true
+    $includeHolderLogIndex: Boolean! = true
   ) {
     nft(where: $where, order_by: $order_by, limit: $limit) {
       id
@@ -580,6 +618,10 @@ export const NftSubscriptionDocument = graphql(`
       digitalAsset @include(if: $includeCollection) {
         id
         address
+        timestamp @include(if: $includeCollectionTimestamp)
+        block_number @include(if: $includeCollectionBlockNumber)
+        transaction_index @include(if: $includeCollectionTransactionIndex)
+        log_index @include(if: $includeCollectionLogIndex)
         lsp4TokenName @include(if: $includeCollectionName) {
           value
         }
@@ -651,7 +693,10 @@ export const NftSubscriptionDocument = graphql(`
       }
       ownedToken @include(if: $includeHolder) {
         owner
-        timestamp
+        timestamp @include(if: $includeHolderTimestamp)
+        block_number @include(if: $includeHolderBlockNumber)
+        transaction_index @include(if: $includeHolderTransactionIndex)
+        log_index @include(if: $includeHolderLogIndex)
         universalProfile {
           address
           lsp3Profile {

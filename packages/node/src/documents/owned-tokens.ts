@@ -35,10 +35,16 @@ export const GetOwnedTokenDocument = graphql(`
     $includeNftImages: Boolean! = true
     $includeNftLinks: Boolean! = true
     $includeNftAttributes: Boolean! = true
+    $includeNftTimestamp: Boolean! = true
+    $includeNftBlockNumber: Boolean! = true
+    $includeNftTransactionIndex: Boolean! = true
+    $includeNftLogIndex: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeOwnedAssetBalance: Boolean! = true
-    $includeOwnedAssetBlockNumber: Boolean! = true
     $includeOwnedAssetTimestamp: Boolean! = true
+    $includeOwnedAssetBlockNumber: Boolean! = true
+    $includeOwnedAssetTransactionIndex: Boolean! = true
+    $includeOwnedAssetLogIndex: Boolean! = true
     $includeHolder: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
@@ -49,6 +55,10 @@ export const GetOwnedTokenDocument = graphql(`
     $includeProfileBackgroundImage: Boolean! = true
     $includeProfileFollowerCount: Boolean! = true
     $includeProfileFollowingCount: Boolean! = true
+    $includeProfileTimestamp: Boolean! = true
+    $includeProfileBlockNumber: Boolean! = true
+    $includeProfileTransactionIndex: Boolean! = true
+    $includeProfileLogIndex: Boolean! = true
   ) {
     owned_token(where: $where, limit: 1) {
       id
@@ -62,6 +72,10 @@ export const GetOwnedTokenDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeTimestamp)
+        block_number @include(if: $includeBlockNumber)
+        transaction_index @include(if: $includeTransactionIndex)
+        log_index @include(if: $includeLogIndex)
         lsp4TokenName @include(if: $includeName) {
           value
         }
@@ -137,6 +151,10 @@ export const GetOwnedTokenDocument = graphql(`
         formatted_token_id @include(if: $includeNftFormattedTokenId)
         is_burned
         is_minted
+        timestamp @include(if: $includeNftTimestamp)
+        block_number @include(if: $includeNftBlockNumber)
+        transaction_index @include(if: $includeNftTransactionIndex)
+        log_index @include(if: $includeNftLogIndex)
         lsp4Metadata {
           name @include(if: $includeNftName) {
             value
@@ -215,9 +233,15 @@ export const GetOwnedTokenDocument = graphql(`
         balance @include(if: $includeOwnedAssetBalance)
         block_number @include(if: $includeOwnedAssetBlockNumber)
         timestamp @include(if: $includeOwnedAssetTimestamp)
+        transaction_index @include(if: $includeOwnedAssetTransactionIndex)
+        log_index @include(if: $includeOwnedAssetLogIndex)
       }
       universalProfile @include(if: $includeHolder) {
         address
+        timestamp @include(if: $includeProfileTimestamp)
+        block_number @include(if: $includeProfileBlockNumber)
+        transaction_index @include(if: $includeProfileTransactionIndex)
+        log_index @include(if: $includeProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeProfileName) {
             value
@@ -306,10 +330,16 @@ export const GetOwnedTokensDocument = graphql(`
     $includeNftImages: Boolean! = true
     $includeNftLinks: Boolean! = true
     $includeNftAttributes: Boolean! = true
+    $includeNftTimestamp: Boolean! = true
+    $includeNftBlockNumber: Boolean! = true
+    $includeNftTransactionIndex: Boolean! = true
+    $includeNftLogIndex: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeOwnedAssetBalance: Boolean! = true
-    $includeOwnedAssetBlockNumber: Boolean! = true
     $includeOwnedAssetTimestamp: Boolean! = true
+    $includeOwnedAssetBlockNumber: Boolean! = true
+    $includeOwnedAssetTransactionIndex: Boolean! = true
+    $includeOwnedAssetLogIndex: Boolean! = true
     $includeHolder: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
@@ -320,6 +350,10 @@ export const GetOwnedTokensDocument = graphql(`
     $includeProfileBackgroundImage: Boolean! = true
     $includeProfileFollowerCount: Boolean! = true
     $includeProfileFollowingCount: Boolean! = true
+    $includeProfileTimestamp: Boolean! = true
+    $includeProfileBlockNumber: Boolean! = true
+    $includeProfileTransactionIndex: Boolean! = true
+    $includeProfileLogIndex: Boolean! = true
   ) {
     owned_token(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       id
@@ -333,6 +367,10 @@ export const GetOwnedTokensDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeTimestamp)
+        block_number @include(if: $includeBlockNumber)
+        transaction_index @include(if: $includeTransactionIndex)
+        log_index @include(if: $includeLogIndex)
         lsp4TokenName @include(if: $includeName) {
           value
         }
@@ -408,6 +446,10 @@ export const GetOwnedTokensDocument = graphql(`
         formatted_token_id @include(if: $includeNftFormattedTokenId)
         is_burned
         is_minted
+        timestamp @include(if: $includeNftTimestamp)
+        block_number @include(if: $includeNftBlockNumber)
+        transaction_index @include(if: $includeNftTransactionIndex)
+        log_index @include(if: $includeNftLogIndex)
         lsp4Metadata {
           name @include(if: $includeNftName) {
             value
@@ -486,9 +528,15 @@ export const GetOwnedTokensDocument = graphql(`
         balance @include(if: $includeOwnedAssetBalance)
         block_number @include(if: $includeOwnedAssetBlockNumber)
         timestamp @include(if: $includeOwnedAssetTimestamp)
+        transaction_index @include(if: $includeOwnedAssetTransactionIndex)
+        log_index @include(if: $includeOwnedAssetLogIndex)
       }
       universalProfile @include(if: $includeHolder) {
         address
+        timestamp @include(if: $includeProfileTimestamp)
+        block_number @include(if: $includeProfileBlockNumber)
+        transaction_index @include(if: $includeProfileTransactionIndex)
+        log_index @include(if: $includeProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeProfileName) {
             value
@@ -581,10 +629,16 @@ export const OwnedTokenSubscriptionDocument = graphql(`
     $includeNftImages: Boolean! = true
     $includeNftLinks: Boolean! = true
     $includeNftAttributes: Boolean! = true
+    $includeNftTimestamp: Boolean! = true
+    $includeNftBlockNumber: Boolean! = true
+    $includeNftTransactionIndex: Boolean! = true
+    $includeNftLogIndex: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeOwnedAssetBalance: Boolean! = true
-    $includeOwnedAssetBlockNumber: Boolean! = true
     $includeOwnedAssetTimestamp: Boolean! = true
+    $includeOwnedAssetBlockNumber: Boolean! = true
+    $includeOwnedAssetTransactionIndex: Boolean! = true
+    $includeOwnedAssetLogIndex: Boolean! = true
     $includeHolder: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
@@ -595,6 +649,10 @@ export const OwnedTokenSubscriptionDocument = graphql(`
     $includeProfileBackgroundImage: Boolean! = true
     $includeProfileFollowerCount: Boolean! = true
     $includeProfileFollowingCount: Boolean! = true
+    $includeProfileTimestamp: Boolean! = true
+    $includeProfileBlockNumber: Boolean! = true
+    $includeProfileTransactionIndex: Boolean! = true
+    $includeProfileLogIndex: Boolean! = true
   ) {
     owned_token(where: $where, order_by: $order_by, limit: $limit) {
       id
@@ -608,6 +666,10 @@ export const OwnedTokenSubscriptionDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeTimestamp)
+        block_number @include(if: $includeBlockNumber)
+        transaction_index @include(if: $includeTransactionIndex)
+        log_index @include(if: $includeLogIndex)
         lsp4TokenName @include(if: $includeName) {
           value
         }
@@ -683,6 +745,10 @@ export const OwnedTokenSubscriptionDocument = graphql(`
         formatted_token_id @include(if: $includeNftFormattedTokenId)
         is_burned
         is_minted
+        timestamp @include(if: $includeNftTimestamp)
+        block_number @include(if: $includeNftBlockNumber)
+        transaction_index @include(if: $includeNftTransactionIndex)
+        log_index @include(if: $includeNftLogIndex)
         lsp4Metadata {
           name @include(if: $includeNftName) {
             value
@@ -761,9 +827,15 @@ export const OwnedTokenSubscriptionDocument = graphql(`
         balance @include(if: $includeOwnedAssetBalance)
         block_number @include(if: $includeOwnedAssetBlockNumber)
         timestamp @include(if: $includeOwnedAssetTimestamp)
+        transaction_index @include(if: $includeOwnedAssetTransactionIndex)
+        log_index @include(if: $includeOwnedAssetLogIndex)
       }
       universalProfile @include(if: $includeHolder) {
         address
+        timestamp @include(if: $includeProfileTimestamp)
+        block_number @include(if: $includeProfileBlockNumber)
+        transaction_index @include(if: $includeProfileTransactionIndex)
+        log_index @include(if: $includeProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeProfileName) {
             value

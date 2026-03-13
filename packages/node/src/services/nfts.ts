@@ -168,6 +168,10 @@ export function buildNftIncludeVars(
     includeNftImages: include.images ?? false,
     includeNftLinks: include.links ?? false,
     includeNftAttributes: include.attributes ?? false,
+    includeNftTimestamp: include.timestamp ?? false,
+    includeNftBlockNumber: include.blockNumber ?? false,
+    includeNftTransactionIndex: include.transactionIndex ?? false,
+    includeNftLogIndex: include.logIndex ?? false,
   };
 }
 

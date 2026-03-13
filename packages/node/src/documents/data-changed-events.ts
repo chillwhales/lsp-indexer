@@ -21,6 +21,10 @@ export const GetDataChangedEventsDocument = graphql(`
     $includeUniversalProfileBackgroundImage: Boolean! = true
     $includeUniversalProfileFollowerCount: Boolean! = true
     $includeUniversalProfileFollowingCount: Boolean! = true
+    $includeUniversalProfileTimestamp: Boolean! = true
+    $includeUniversalProfileBlockNumber: Boolean! = true
+    $includeUniversalProfileTransactionIndex: Boolean! = true
+    $includeUniversalProfileLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeDigitalAssetName: Boolean! = true
     $includeDigitalAssetSymbol: Boolean! = true
@@ -39,6 +43,10 @@ export const GetDataChangedEventsDocument = graphql(`
     $includeDigitalAssetReferenceContract: Boolean! = true
     $includeDigitalAssetTokenIdFormat: Boolean! = true
     $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
   ) {
     data_changed(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       address
@@ -50,6 +58,10 @@ export const GetDataChangedEventsDocument = graphql(`
       transaction_index @include(if: $includeTransactionIndex)
       universalProfile @include(if: $includeUniversalProfile) {
         address
+        timestamp @include(if: $includeUniversalProfileTimestamp)
+        block_number @include(if: $includeUniversalProfileBlockNumber)
+        transaction_index @include(if: $includeUniversalProfileTransactionIndex)
+        log_index @include(if: $includeUniversalProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeUniversalProfileName) {
             value
@@ -99,6 +111,10 @@ export const GetDataChangedEventsDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
         lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }
@@ -197,6 +213,10 @@ export const DataChangedEventSubscriptionDocument = graphql(`
     $includeUniversalProfileBackgroundImage: Boolean! = true
     $includeUniversalProfileFollowerCount: Boolean! = true
     $includeUniversalProfileFollowingCount: Boolean! = true
+    $includeUniversalProfileTimestamp: Boolean! = true
+    $includeUniversalProfileBlockNumber: Boolean! = true
+    $includeUniversalProfileTransactionIndex: Boolean! = true
+    $includeUniversalProfileLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
     $includeDigitalAssetName: Boolean! = true
     $includeDigitalAssetSymbol: Boolean! = true
@@ -215,6 +235,10 @@ export const DataChangedEventSubscriptionDocument = graphql(`
     $includeDigitalAssetReferenceContract: Boolean! = true
     $includeDigitalAssetTokenIdFormat: Boolean! = true
     $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
   ) {
     data_changed(where: $where, order_by: $order_by, limit: $limit) {
       address
@@ -226,6 +250,10 @@ export const DataChangedEventSubscriptionDocument = graphql(`
       transaction_index @include(if: $includeTransactionIndex)
       universalProfile @include(if: $includeUniversalProfile) {
         address
+        timestamp @include(if: $includeUniversalProfileTimestamp)
+        block_number @include(if: $includeUniversalProfileBlockNumber)
+        transaction_index @include(if: $includeUniversalProfileTransactionIndex)
+        log_index @include(if: $includeUniversalProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeUniversalProfileName) {
             value
@@ -275,6 +303,10 @@ export const DataChangedEventSubscriptionDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
         lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }

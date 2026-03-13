@@ -37,6 +37,10 @@ export const GetOwnedAssetDocument = graphql(`
     $includeProfileBackgroundImage: Boolean! = true
     $includeProfileFollowerCount: Boolean! = true
     $includeProfileFollowingCount: Boolean! = true
+    $includeProfileTimestamp: Boolean! = true
+    $includeProfileBlockNumber: Boolean! = true
+    $includeProfileTransactionIndex: Boolean! = true
+    $includeProfileLogIndex: Boolean! = true
     $includeTokenIdCount: Boolean! = true
   ) {
     owned_asset(where: $where, limit: 1) {
@@ -51,6 +55,10 @@ export const GetOwnedAssetDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeTimestamp)
+        block_number @include(if: $includeBlockNumber)
+        transaction_index @include(if: $includeTransactionIndex)
+        log_index @include(if: $includeLogIndex)
         lsp4TokenName @include(if: $includeName) {
           value
         }
@@ -122,6 +130,10 @@ export const GetOwnedAssetDocument = graphql(`
       }
       universalProfile @include(if: $includeHolder) {
         address
+        timestamp @include(if: $includeProfileTimestamp)
+        block_number @include(if: $includeProfileBlockNumber)
+        transaction_index @include(if: $includeProfileTransactionIndex)
+        log_index @include(if: $includeProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeProfileName) {
             value
@@ -217,6 +229,10 @@ export const GetOwnedAssetsDocument = graphql(`
     $includeProfileBackgroundImage: Boolean! = true
     $includeProfileFollowerCount: Boolean! = true
     $includeProfileFollowingCount: Boolean! = true
+    $includeProfileTimestamp: Boolean! = true
+    $includeProfileBlockNumber: Boolean! = true
+    $includeProfileTransactionIndex: Boolean! = true
+    $includeProfileLogIndex: Boolean! = true
     $includeTokenIdCount: Boolean! = true
   ) {
     owned_asset(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
@@ -231,6 +247,10 @@ export const GetOwnedAssetsDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeTimestamp)
+        block_number @include(if: $includeBlockNumber)
+        transaction_index @include(if: $includeTransactionIndex)
+        log_index @include(if: $includeLogIndex)
         lsp4TokenName @include(if: $includeName) {
           value
         }
@@ -302,6 +322,10 @@ export const GetOwnedAssetsDocument = graphql(`
       }
       universalProfile @include(if: $includeHolder) {
         address
+        timestamp @include(if: $includeProfileTimestamp)
+        block_number @include(if: $includeProfileBlockNumber)
+        transaction_index @include(if: $includeProfileTransactionIndex)
+        log_index @include(if: $includeProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeProfileName) {
             value
@@ -401,6 +425,10 @@ export const OwnedAssetSubscriptionDocument = graphql(`
     $includeProfileBackgroundImage: Boolean! = true
     $includeProfileFollowerCount: Boolean! = true
     $includeProfileFollowingCount: Boolean! = true
+    $includeProfileTimestamp: Boolean! = true
+    $includeProfileBlockNumber: Boolean! = true
+    $includeProfileTransactionIndex: Boolean! = true
+    $includeProfileLogIndex: Boolean! = true
     $includeTokenIdCount: Boolean! = true
   ) {
     owned_asset(where: $where, order_by: $order_by, limit: $limit) {
@@ -415,6 +443,10 @@ export const OwnedAssetSubscriptionDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeTimestamp)
+        block_number @include(if: $includeBlockNumber)
+        transaction_index @include(if: $includeTransactionIndex)
+        log_index @include(if: $includeLogIndex)
         lsp4TokenName @include(if: $includeName) {
           value
         }
@@ -486,6 +518,10 @@ export const OwnedAssetSubscriptionDocument = graphql(`
       }
       universalProfile @include(if: $includeHolder) {
         address
+        timestamp @include(if: $includeProfileTimestamp)
+        block_number @include(if: $includeProfileBlockNumber)
+        transaction_index @include(if: $includeProfileTransactionIndex)
+        log_index @include(if: $includeProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeProfileName) {
             value

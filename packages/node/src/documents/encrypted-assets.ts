@@ -41,6 +41,10 @@ export const GetEncryptedAssetsDocument = graphql(`
     $includeUniversalProfileBackgroundImage: Boolean! = true
     $includeUniversalProfileFollowerCount: Boolean! = true
     $includeUniversalProfileFollowingCount: Boolean! = true
+    $includeUniversalProfileTimestamp: Boolean! = true
+    $includeUniversalProfileBlockNumber: Boolean! = true
+    $includeUniversalProfileTransactionIndex: Boolean! = true
+    $includeUniversalProfileLogIndex: Boolean! = true
   ) {
     lsp29_encrypted_asset(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       address
@@ -106,6 +110,10 @@ export const GetEncryptedAssetsDocument = graphql(`
 
       universalProfile @include(if: $includeUniversalProfile) {
         address
+        timestamp @include(if: $includeUniversalProfileTimestamp)
+        block_number @include(if: $includeUniversalProfileBlockNumber)
+        transaction_index @include(if: $includeUniversalProfileTransactionIndex)
+        log_index @include(if: $includeUniversalProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeUniversalProfileName) {
             value
@@ -202,6 +210,10 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
     $includeUniversalProfileBackgroundImage: Boolean! = true
     $includeUniversalProfileFollowerCount: Boolean! = true
     $includeUniversalProfileFollowingCount: Boolean! = true
+    $includeUniversalProfileTimestamp: Boolean! = true
+    $includeUniversalProfileBlockNumber: Boolean! = true
+    $includeUniversalProfileTransactionIndex: Boolean! = true
+    $includeUniversalProfileLogIndex: Boolean! = true
   ) {
     lsp29_encrypted_asset(where: $where, order_by: $order_by, limit: $limit) {
       address
@@ -267,6 +279,10 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
 
       universalProfile @include(if: $includeUniversalProfile) {
         address
+        timestamp @include(if: $includeUniversalProfileTimestamp)
+        block_number @include(if: $includeUniversalProfileBlockNumber)
+        transaction_index @include(if: $includeUniversalProfileTransactionIndex)
+        log_index @include(if: $includeUniversalProfileLogIndex)
         lsp3Profile {
           name @include(if: $includeUniversalProfileName) {
             value

@@ -7,8 +7,8 @@ export const GetTokenIdDataChangedEventsDocument = graphql(`
     $order_by: [token_id_data_changed_order_by!]
     $limit: Int
     $offset: Int
-    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeLogIndex: Boolean! = true
     $includeTransactionIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
@@ -29,6 +29,10 @@ export const GetTokenIdDataChangedEventsDocument = graphql(`
     $includeDigitalAssetReferenceContract: Boolean! = true
     $includeDigitalAssetTokenIdFormat: Boolean! = true
     $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
     $includeNft: Boolean! = true
     $includeNftFormattedTokenId: Boolean! = true
     $includeNftName: Boolean! = true
@@ -38,6 +42,10 @@ export const GetTokenIdDataChangedEventsDocument = graphql(`
     $includeNftImages: Boolean! = true
     $includeNftLinks: Boolean! = true
     $includeNftAttributes: Boolean! = true
+    $includeNftTimestamp: Boolean! = true
+    $includeNftBlockNumber: Boolean! = true
+    $includeNftTransactionIndex: Boolean! = true
+    $includeNftLogIndex: Boolean! = true
   ) {
     token_id_data_changed(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       address
@@ -51,6 +59,10 @@ export const GetTokenIdDataChangedEventsDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
         lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }
@@ -126,6 +138,10 @@ export const GetTokenIdDataChangedEventsDocument = graphql(`
         formatted_token_id @include(if: $includeNftFormattedTokenId)
         is_burned
         is_minted
+        timestamp @include(if: $includeNftTimestamp)
+        block_number @include(if: $includeNftBlockNumber)
+        transaction_index @include(if: $includeNftTransactionIndex)
+        log_index @include(if: $includeNftLogIndex)
         lsp4Metadata {
           name @include(if: $includeNftName) {
             value
@@ -212,8 +228,8 @@ export const TokenIdDataChangedEventSubscriptionDocument = graphql(`
     $where: token_id_data_changed_bool_exp
     $order_by: [token_id_data_changed_order_by!]
     $limit: Int
-    $includeBlockNumber: Boolean! = true
     $includeTimestamp: Boolean! = true
+    $includeBlockNumber: Boolean! = true
     $includeLogIndex: Boolean! = true
     $includeTransactionIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
@@ -234,6 +250,10 @@ export const TokenIdDataChangedEventSubscriptionDocument = graphql(`
     $includeDigitalAssetReferenceContract: Boolean! = true
     $includeDigitalAssetTokenIdFormat: Boolean! = true
     $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
     $includeNft: Boolean! = true
     $includeNftFormattedTokenId: Boolean! = true
     $includeNftName: Boolean! = true
@@ -243,6 +263,10 @@ export const TokenIdDataChangedEventSubscriptionDocument = graphql(`
     $includeNftImages: Boolean! = true
     $includeNftLinks: Boolean! = true
     $includeNftAttributes: Boolean! = true
+    $includeNftTimestamp: Boolean! = true
+    $includeNftBlockNumber: Boolean! = true
+    $includeNftTransactionIndex: Boolean! = true
+    $includeNftLogIndex: Boolean! = true
   ) {
     token_id_data_changed(where: $where, order_by: $order_by, limit: $limit) {
       address
@@ -256,6 +280,10 @@ export const TokenIdDataChangedEventSubscriptionDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
         lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }
@@ -331,6 +359,10 @@ export const TokenIdDataChangedEventSubscriptionDocument = graphql(`
         formatted_token_id @include(if: $includeNftFormattedTokenId)
         is_burned
         is_minted
+        timestamp @include(if: $includeNftTimestamp)
+        block_number @include(if: $includeNftBlockNumber)
+        transaction_index @include(if: $includeNftTransactionIndex)
+        log_index @include(if: $includeNftLogIndex)
         lsp4Metadata {
           name @include(if: $includeNftName) {
             value
