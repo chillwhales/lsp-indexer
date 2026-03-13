@@ -4,7 +4,7 @@ milestone: v1.2
 milestone_name: Production Readiness
 status: completed
 last_updated: "2026-03-12T05:43:45.261Z"
-last_activity: 2026-03-12 — Completed 21-02 consumer package release (1.1.0)
+last_activity: 2026-03-12 — Completed 21-02 consumer package release (changeset prepared, CI publishes on merge)
 progress:
   total_phases: 55
   completed_phases: 45
@@ -21,7 +21,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.2 Production Readiness — Phase 21 complete, all 4 packages at 1.1.0
+**Current focus:** v1.2 Production Readiness — Phase 21 complete, changeset prepared for 1.1.0 release (CI publishes on merge)
 
 ## Current Position
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 - **Phase:** Phase 21 — Sorting & Consumer Package Release (Complete)
 - **Plan:** 2 of 2 ✅
 - **Status:** Milestone complete
-- **Last activity:** 2026-03-12 — Completed 21-02 consumer package release (1.1.0)
+- **Last activity:** 2026-03-12 — Completed 21-02 consumer package release (changeset prepared)
 - **Progress:** [█████████░] 89%
 
 ## Milestone History
@@ -86,15 +86,15 @@ _None currently._
 
 - **Date:** 2026-03-12
 - **Activity:** Executed Phase 21-02 — consumer package release with changeset
-- **Outcome:** All 4 packages version-bumped 1.0.0 → 1.1.0 with CHANGELOGs
+- **Outcome:** Changeset prepared for 1.0.0 → 1.1.0 bump (CI handles version bump + publish on merge)
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 21 complete:** Sorting + release done, all 4 packages at 1.1.0
+- **Phase 21 complete:** Sorting + release changeset prepared (packages still at 1.0.0 until merge)
 - **Phases 20.1-20.3 inserted:** Structured logging overhaul → pipeline instrumentation → dashboard redesign
 - **Next:** Next phase in roadmap (ready for `pnpm changeset publish` on merge to main)
 
 ---
 
-_Last updated: 2026-03-12 — Completed 21-02 consumer package release_
+_Last updated: 2026-03-13 — Fixed STATE.md to reflect changeset-based release workflow_

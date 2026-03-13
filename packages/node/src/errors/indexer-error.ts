@@ -42,8 +42,8 @@ export class IndexerError extends Error {
     };
   }
 
-  /** Create from a non-2xx HTTP response. Maps status codes to error codes. */
-  static fromHttpResponse(response: Response): IndexerError {
+  /** Create from an HTTP status code. Maps known codes to specific errors with recovery hints. */
+  static fromStatusCode(status: number, query?: string): IndexerError {
     const codeMap: Record<number, IndexerErrorCode> = {
       401: 'HTTP_UNAUTHORIZED',
       403: 'HTTP_FORBIDDEN',
@@ -51,8 +51,7 @@ export class IndexerError extends Error {
       429: 'HTTP_TOO_MANY_REQUESTS',
     };
 
-    const code =
-      codeMap[response.status] ?? (response.status >= 500 ? 'HTTP_SERVER_ERROR' : 'HTTP_UNKNOWN');
+    const code = codeMap[status] ?? (status >= 500 ? 'HTTP_SERVER_ERROR' : 'HTTP_UNKNOWN');
 
     const hints: Record<string, string> = {
       HTTP_UNAUTHORIZED:
@@ -68,9 +67,9 @@ export class IndexerError extends Error {
     return new IndexerError({
       category: 'HTTP',
       code,
-      message:
-        `${code}: HTTP ${response.status} ${response.statusText}. ${hints[code] ?? ''}`.trim(),
-      statusCode: response.status,
+      message: `${code}: HTTP ${status}. ${hints[code] ?? ''}`.trim(),
+      statusCode: status,
+      query,
     });
   }
 

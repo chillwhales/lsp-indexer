@@ -27,15 +27,9 @@ export async function execute<TResult, TVariables>(
         );
       }
 
-      // HTTP-level errors (4xx, 5xx)
+      // HTTP-level errors (4xx, 5xx) — delegate to shared fromStatusCode.
       if (error.response.status && error.response.status >= 400) {
-        throw new IndexerError({
-          category: 'HTTP',
-          code: error.response.status >= 500 ? 'HTTP_SERVER_ERROR' : 'HTTP_UNKNOWN',
-          message: `HTTP ${error.response.status}: ${error.message}`,
-          statusCode: error.response.status,
-          query: document.toString(),
-        });
+        throw IndexerError.fromStatusCode(error.response.status, document.toString());
       }
 
       // Fallback for other ClientError shapes
