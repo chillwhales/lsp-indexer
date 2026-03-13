@@ -25,7 +25,8 @@ export type PipelineStep =
   | 'PERSIST_DERIVED'
   | 'VERIFY'
   | 'ENRICH'
-  | 'RESOLVE';
+  | 'RESOLVE'
+  | 'BATCH_SUMMARY';
 
 // ---------------------------------------------------------------------------
 // createStepLogger — child logger with persistent step field
