@@ -200,12 +200,18 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
         }
       : undefined;
 
+  // Batch-level timing — used for BATCH_SUMMARY at the end
+  const batchStart = performance.now();
+
   // ---------------------------------------------------------------------------
   // Step 1: EXTRACT
   // Route each log to its EventPlugin by topic0. Plugins decode events and
   // store base entities in BatchContext with null FK references, then queue
   // enrichment requests for FK resolution.
   // ---------------------------------------------------------------------------
+  const extractLog = createStepLogger(context.log, 'EXTRACT', blockRange);
+  const extractStart = performance.now();
+
   for (const block of context.blocks) {
     for (const log of block.logs) {
       const topic0 = log.topics[0];
@@ -226,12 +232,19 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     }
   }
 
+  const extractMs = Math.round(performance.now() - extractStart);
+  extractLog.info(
+    { blockCount: context.blocks.length, durationMs: extractMs },
+    'Step complete',
+  );
+
   // ---------------------------------------------------------------------------
   // Step 2: PERSIST RAW
   // Batch-persist all raw event entities from step 1. These are inserted with
   // null FK references. FK resolution happens in step 6 after verification.
   // ---------------------------------------------------------------------------
   const persistRawLog = createStepLogger(context.log, 'PERSIST_RAW', blockRange);
+  const persistRawStart = performance.now();
   const rawEntityTypes = new Set(batchCtx.getEntityTypeKeys());
   for (const type of rawEntityTypes) {
     const entities = batchCtx.getEntities(type);
@@ -243,6 +256,9 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       );
     }
   }
+
+  const persistRawMs = Math.round(performance.now() - persistRawStart);
+  persistRawLog.info({ durationMs: persistRawMs }, 'Step complete');
 
   // Seal raw entity types to prevent handlers from adding to them
   batchCtx.sealRawEntityTypes();
@@ -267,6 +283,9 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     workerPool,
   };
 
+  const handleLog = createStepLogger(context.log, 'HANDLE', blockRange);
+  const handleStart = performance.now();
+
   const step3Handlers = registry.getAllEntityHandlers().filter((h) => !h.postVerification);
   for (const handler of step3Handlers) {
     let triggered = false;
@@ -289,6 +308,9 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     }
   }
 
+  const handleMs = Math.round(performance.now() - handleStart);
+  handleLog.info({ handlerCount: step3Handlers.length, durationMs: handleMs }, 'Step complete');
+
   // ---------------------------------------------------------------------------
   // Step 3.5: CLEAR SUB-ENTITIES
   // Process the clear queue before persisting derived entities. Handlers
@@ -296,6 +318,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // behavior (e.g., LSP6 permissions, allowed calls).
   // ---------------------------------------------------------------------------
   const clearLog = createStepLogger(context.log, 'CLEAR_SUB_ENTITIES', blockRange);
+  const clearStart = performance.now();
   const clearQueue = batchCtx.getClearQueue();
   if (clearQueue.length > 0) {
     for (const request of clearQueue) {
@@ -312,6 +335,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       }
     }
   }
+  const clearMs = Math.round(performance.now() - clearStart);
+  clearLog.info({ queueLength: clearQueue.length, durationMs: clearMs }, 'Step complete');
 
   // ---------------------------------------------------------------------------
   // Step 4a: DELETE ENTITIES
@@ -320,6 +345,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // BEFORE upserts to handle FK ordering (delete children before parents).
   // ---------------------------------------------------------------------------
   const deleteLog = createStepLogger(context.log, 'DELETE_ENTITIES', blockRange);
+  const deleteStart = performance.now();
   const deleteQueue = batchCtx.getDeleteQueue();
   if (deleteQueue.length > 0) {
     for (const request of deleteQueue) {
@@ -332,6 +358,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       }
     }
   }
+  const deleteMs = Math.round(performance.now() - deleteStart);
+  deleteLog.info({ queueLength: deleteQueue.length, durationMs: deleteMs }, 'Step complete');
 
   // ---------------------------------------------------------------------------
   // Step 4b: PERSIST DERIVED
@@ -342,6 +370,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // persisted in step 2.
   // ---------------------------------------------------------------------------
   const persistDerivedLog = createStepLogger(context.log, 'PERSIST_DERIVED', blockRange);
+  const persistDerivedStart = performance.now();
   const allEntityTypes = batchCtx.getEntityTypeKeys();
   const derivedTypes = allEntityTypes.filter((type) => !rawEntityTypes.has(type));
 
@@ -366,6 +395,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       );
     }
   }
+  const persistDerivedMs = Math.round(performance.now() - persistDerivedStart);
 
   // ---------------------------------------------------------------------------
   // Step 5 & 6: VERIFY + ENRICH (single-pass optimization)
@@ -430,6 +460,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
 
   // Step 5: VERIFY — Batch-verify UP and DA addresses in parallel
   const verifyLog = createStepLogger(context.log, 'VERIFY', blockRange);
+  const verifyStart = performance.now();
   const categories = [...addressesByCategory.keys()];
 
   await Promise.all(
@@ -472,12 +503,16 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     }
   }
 
+  const verifyMs = Math.round(performance.now() - verifyStart);
+  verifyLog.info({ categoryCount: categories.length, durationMs: verifyMs }, 'Step complete');
+
   // ---------------------------------------------------------------------------
   // Step 5.5: POST-VERIFICATION HANDLERS
   // Handlers with postVerification=true run here, after core entities (UP, DA)
   // are persisted. This allows handlers like decimals to read newly verified
   // Digital Assets and make RPC calls against verified contracts.
   // ---------------------------------------------------------------------------
+  const postVerifyStart = performance.now();
   const postVerifyHandlers = registry.getAllEntityHandlers().filter((h) => h.postVerification);
   for (const handler of postVerifyHandlers) {
     for (const bagKey of handler.listensToBag) {
@@ -503,6 +538,9 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       'Persisted post-verification entities',
     );
   }
+
+  const postVerifyMs = Math.round(performance.now() - postVerifyStart);
+  postVerifyLog.info({ handlerCount: postVerifyHandlers.length, durationMs: postVerifyMs }, 'Post-verification step complete');
 
   // ---------------------------------------------------------------------------
   // Process enrichment requests from post-verification handlers.
@@ -548,6 +586,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
 
   // Step 6: ENRICH — Batch update FK fields per entity type
   const enrichLog = createStepLogger(context.log, 'ENRICH', blockRange);
+  const enrichStart = performance.now();
   for (const [entityType, entityMap] of grouped) {
     const entities = batchCtx.getEntities(entityType);
     const entitiesToUpdate: RegisteredEntity[] = [];
@@ -611,7 +650,44 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // and target→source (target in batch, source in DB) to handle cross-batch
   // dependencies regardless of which entity was created first.
   // ---------------------------------------------------------------------------
+  const enrichMs = Math.round(performance.now() - enrichStart);
+  enrichLog.info({ durationMs: enrichMs }, 'Step complete');
+
+  const resolveStart = performance.now();
   await resolveForeignKeys(context.store, batchCtx, context.log, blockRange);
+  const resolveMs = Math.round(performance.now() - resolveStart);
+
+  // ---------------------------------------------------------------------------
+  // BATCH_SUMMARY — single summary log per batch with timing breakdown
+  // ---------------------------------------------------------------------------
+  const totalDurationMs = Math.round(performance.now() - batchStart);
+  const batchSummaryLog = createStepLogger(context.log, 'BATCH_SUMMARY', blockRange);
+  const totalEntityCount = batchCtx
+    .getEntityTypeKeys()
+    .reduce((sum, key) => sum + batchCtx.getEntities(key).size, 0);
+
+  batchSummaryLog.info(
+    {
+      step: 'BATCH_SUMMARY',
+      blockCount: context.blocks.length,
+      totalEntities: totalEntityCount,
+      totalEnrichments: batchCtx.getEnrichmentQueue().length,
+      stepTimings: {
+        extract: extractMs,
+        persistRaw: persistRawMs,
+        handle: handleMs,
+        clearSubEntities: clearMs,
+        deleteEntities: deleteMs,
+        persistDerived: persistDerivedMs,
+        verify: verifyMs,
+        postVerify: postVerifyMs,
+        enrich: enrichMs,
+        resolve: resolveMs,
+      },
+      totalDurationMs,
+    },
+    'Batch complete',
+  );
 }
 
 // ---------------------------------------------------------------------------
