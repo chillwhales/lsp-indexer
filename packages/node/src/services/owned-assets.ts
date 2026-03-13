@@ -109,17 +109,17 @@ function buildIncludeVars(include?: OwnedAssetInclude): Record<string, boolean> 
     includeTransactionIndex: include.transactionIndex ?? false,
     includeLogIndex: include.logIndex ?? false,
     includeDigitalAsset: activeDA,
-    includeHolder: activeHolder,
+    includeProfile: activeHolder,
     includeTokenIdCount: include.tokenIdCount ?? false,
   };
 
-  // Digital asset sub-includes: reuse digital asset include builder.
+  // Digital asset sub-includes: reuse DA include builder (keys already prefixed).
   if (activeDA) {
     const daVars = buildDigitalAssetIncludeVars(include.digitalAsset);
     Object.assign(vars, daVars);
   }
 
-  // Profile sub-includes: reuse profile include builder with includeProfile* prefix.
+  // Profile sub-includes: reuse profile include builder (keys already match GQL vars).
   if (activeHolder) {
     const profileVars = buildProfileIncludeVars(include.holder);
     Object.assign(vars, profileVars);

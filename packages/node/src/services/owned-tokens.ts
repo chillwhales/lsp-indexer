@@ -127,10 +127,10 @@ function buildIncludeVars(include?: OwnedTokenInclude): Record<string, boolean> 
     includeDigitalAsset: activeDA,
     includeNft: activeNft,
     includeOwnedAsset: activeOA,
-    includeHolder: activeHolder,
+    includeProfile: activeHolder,
   };
 
-  // Digital asset sub-includes: reuse digital asset include builder.
+  // Digital asset sub-includes: reuse DA include builder (keys already prefixed).
   if (activeDA) {
     const daVars = buildDigitalAssetIncludeVars(include.digitalAsset);
     Object.assign(vars, daVars);

@@ -10,24 +10,28 @@ export const GetOwnedAssetDocument = graphql(`
     $includeTransactionIndex: Boolean! = true
     $includeLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
-    $includeName: Boolean! = true
-    $includeSymbol: Boolean! = true
-    $includeTokenType: Boolean! = true
-    $includeDecimals: Boolean! = true
-    $includeTotalSupply: Boolean! = true
-    $includeDescription: Boolean! = true
-    $includeCategory: Boolean! = true
-    $includeIcons: Boolean! = true
-    $includeImages: Boolean! = true
-    $includeLinks: Boolean! = true
-    $includeAttributes: Boolean! = true
-    $includeOwner: Boolean! = true
-    $includeHolderCount: Boolean! = true
-    $includeCreatorCount: Boolean! = true
-    $includeReferenceContract: Boolean! = true
-    $includeTokenIdFormat: Boolean! = true
-    $includeBaseUri: Boolean! = true
-    $includeHolder: Boolean! = true
+    $includeDigitalAssetName: Boolean! = true
+    $includeDigitalAssetSymbol: Boolean! = true
+    $includeDigitalAssetTokenType: Boolean! = true
+    $includeDigitalAssetDecimals: Boolean! = true
+    $includeDigitalAssetTotalSupply: Boolean! = true
+    $includeDigitalAssetDescription: Boolean! = true
+    $includeDigitalAssetCategory: Boolean! = true
+    $includeDigitalAssetIcons: Boolean! = true
+    $includeDigitalAssetImages: Boolean! = true
+    $includeDigitalAssetLinks: Boolean! = true
+    $includeDigitalAssetAttributes: Boolean! = true
+    $includeDigitalAssetOwner: Boolean! = true
+    $includeDigitalAssetHolderCount: Boolean! = true
+    $includeDigitalAssetCreatorCount: Boolean! = true
+    $includeDigitalAssetReferenceContract: Boolean! = true
+    $includeDigitalAssetTokenIdFormat: Boolean! = true
+    $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
+    $includeProfile: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
     $includeProfileTags: Boolean! = true
@@ -55,40 +59,40 @@ export const GetOwnedAssetDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
-        timestamp @include(if: $includeTimestamp)
-        block_number @include(if: $includeBlockNumber)
-        transaction_index @include(if: $includeTransactionIndex)
-        log_index @include(if: $includeLogIndex)
-        lsp4TokenName @include(if: $includeName) {
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
+        lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }
-        lsp4TokenSymbol @include(if: $includeSymbol) {
+        lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
           value
         }
-        lsp4TokenType @include(if: $includeTokenType) {
+        lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
           value
         }
-        decimals @include(if: $includeDecimals) {
+        decimals @include(if: $includeDigitalAssetDecimals) {
           value
         }
-        totalSupply @include(if: $includeTotalSupply) {
+        totalSupply @include(if: $includeDigitalAssetTotalSupply) {
           value
         }
         lsp4Metadata {
-          description @include(if: $includeDescription) {
+          description @include(if: $includeDigitalAssetDescription) {
             value
           }
-          category @include(if: $includeCategory) {
+          category @include(if: $includeDigitalAssetCategory) {
             value
           }
-          icon @include(if: $includeIcons) {
+          icon @include(if: $includeDigitalAssetIcons) {
             url
             width
             height
             verification_method
             verification_data
           }
-          images @include(if: $includeImages) {
+          images @include(if: $includeDigitalAssetImages) {
             url
             width
             height
@@ -96,39 +100,39 @@ export const GetOwnedAssetDocument = graphql(`
             verification_method
             verification_data
           }
-          links @include(if: $includeLinks) {
+          links @include(if: $includeDigitalAssetLinks) {
             title
             url
           }
-          attributes @include(if: $includeAttributes) {
+          attributes @include(if: $includeDigitalAssetAttributes) {
             key
             value
             type
           }
         }
-        owner @include(if: $includeOwner) {
+        owner @include(if: $includeDigitalAssetOwner) {
           address
           timestamp
         }
-        ownedAssets_aggregate @include(if: $includeHolderCount) {
+        ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
           aggregate {
             count
           }
         }
-        lsp4CreatorsLength @include(if: $includeCreatorCount) {
+        lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
           value
         }
-        lsp8ReferenceContract @include(if: $includeReferenceContract) {
+        lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
           value
         }
-        lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+        lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
           value
         }
-        lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+        lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
           value
         }
       }
-      universalProfile @include(if: $includeHolder) {
+      universalProfile @include(if: $includeProfile) {
         address
         timestamp @include(if: $includeProfileTimestamp)
         block_number @include(if: $includeProfileBlockNumber)
@@ -202,24 +206,28 @@ export const GetOwnedAssetsDocument = graphql(`
     $includeTransactionIndex: Boolean! = true
     $includeLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
-    $includeName: Boolean! = true
-    $includeSymbol: Boolean! = true
-    $includeTokenType: Boolean! = true
-    $includeDecimals: Boolean! = true
-    $includeTotalSupply: Boolean! = true
-    $includeDescription: Boolean! = true
-    $includeCategory: Boolean! = true
-    $includeIcons: Boolean! = true
-    $includeImages: Boolean! = true
-    $includeLinks: Boolean! = true
-    $includeAttributes: Boolean! = true
-    $includeOwner: Boolean! = true
-    $includeHolderCount: Boolean! = true
-    $includeCreatorCount: Boolean! = true
-    $includeReferenceContract: Boolean! = true
-    $includeTokenIdFormat: Boolean! = true
-    $includeBaseUri: Boolean! = true
-    $includeHolder: Boolean! = true
+    $includeDigitalAssetName: Boolean! = true
+    $includeDigitalAssetSymbol: Boolean! = true
+    $includeDigitalAssetTokenType: Boolean! = true
+    $includeDigitalAssetDecimals: Boolean! = true
+    $includeDigitalAssetTotalSupply: Boolean! = true
+    $includeDigitalAssetDescription: Boolean! = true
+    $includeDigitalAssetCategory: Boolean! = true
+    $includeDigitalAssetIcons: Boolean! = true
+    $includeDigitalAssetImages: Boolean! = true
+    $includeDigitalAssetLinks: Boolean! = true
+    $includeDigitalAssetAttributes: Boolean! = true
+    $includeDigitalAssetOwner: Boolean! = true
+    $includeDigitalAssetHolderCount: Boolean! = true
+    $includeDigitalAssetCreatorCount: Boolean! = true
+    $includeDigitalAssetReferenceContract: Boolean! = true
+    $includeDigitalAssetTokenIdFormat: Boolean! = true
+    $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
+    $includeProfile: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
     $includeProfileTags: Boolean! = true
@@ -247,40 +255,40 @@ export const GetOwnedAssetsDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
-        timestamp @include(if: $includeTimestamp)
-        block_number @include(if: $includeBlockNumber)
-        transaction_index @include(if: $includeTransactionIndex)
-        log_index @include(if: $includeLogIndex)
-        lsp4TokenName @include(if: $includeName) {
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
+        lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }
-        lsp4TokenSymbol @include(if: $includeSymbol) {
+        lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
           value
         }
-        lsp4TokenType @include(if: $includeTokenType) {
+        lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
           value
         }
-        decimals @include(if: $includeDecimals) {
+        decimals @include(if: $includeDigitalAssetDecimals) {
           value
         }
-        totalSupply @include(if: $includeTotalSupply) {
+        totalSupply @include(if: $includeDigitalAssetTotalSupply) {
           value
         }
         lsp4Metadata {
-          description @include(if: $includeDescription) {
+          description @include(if: $includeDigitalAssetDescription) {
             value
           }
-          category @include(if: $includeCategory) {
+          category @include(if: $includeDigitalAssetCategory) {
             value
           }
-          icon @include(if: $includeIcons) {
+          icon @include(if: $includeDigitalAssetIcons) {
             url
             width
             height
             verification_method
             verification_data
           }
-          images @include(if: $includeImages) {
+          images @include(if: $includeDigitalAssetImages) {
             url
             width
             height
@@ -288,39 +296,39 @@ export const GetOwnedAssetsDocument = graphql(`
             verification_method
             verification_data
           }
-          links @include(if: $includeLinks) {
+          links @include(if: $includeDigitalAssetLinks) {
             title
             url
           }
-          attributes @include(if: $includeAttributes) {
+          attributes @include(if: $includeDigitalAssetAttributes) {
             key
             value
             type
           }
         }
-        owner @include(if: $includeOwner) {
+        owner @include(if: $includeDigitalAssetOwner) {
           address
           timestamp
         }
-        ownedAssets_aggregate @include(if: $includeHolderCount) {
+        ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
           aggregate {
             count
           }
         }
-        lsp4CreatorsLength @include(if: $includeCreatorCount) {
+        lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
           value
         }
-        lsp8ReferenceContract @include(if: $includeReferenceContract) {
+        lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
           value
         }
-        lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+        lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
           value
         }
-        lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+        lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
           value
         }
       }
-      universalProfile @include(if: $includeHolder) {
+      universalProfile @include(if: $includeProfile) {
         address
         timestamp @include(if: $includeProfileTimestamp)
         block_number @include(if: $includeProfileBlockNumber)
@@ -398,24 +406,28 @@ export const OwnedAssetSubscriptionDocument = graphql(`
     $includeTransactionIndex: Boolean! = true
     $includeLogIndex: Boolean! = true
     $includeDigitalAsset: Boolean! = true
-    $includeName: Boolean! = true
-    $includeSymbol: Boolean! = true
-    $includeTokenType: Boolean! = true
-    $includeDecimals: Boolean! = true
-    $includeTotalSupply: Boolean! = true
-    $includeDescription: Boolean! = true
-    $includeCategory: Boolean! = true
-    $includeIcons: Boolean! = true
-    $includeImages: Boolean! = true
-    $includeLinks: Boolean! = true
-    $includeAttributes: Boolean! = true
-    $includeOwner: Boolean! = true
-    $includeHolderCount: Boolean! = true
-    $includeCreatorCount: Boolean! = true
-    $includeReferenceContract: Boolean! = true
-    $includeTokenIdFormat: Boolean! = true
-    $includeBaseUri: Boolean! = true
-    $includeHolder: Boolean! = true
+    $includeDigitalAssetName: Boolean! = true
+    $includeDigitalAssetSymbol: Boolean! = true
+    $includeDigitalAssetTokenType: Boolean! = true
+    $includeDigitalAssetDecimals: Boolean! = true
+    $includeDigitalAssetTotalSupply: Boolean! = true
+    $includeDigitalAssetDescription: Boolean! = true
+    $includeDigitalAssetCategory: Boolean! = true
+    $includeDigitalAssetIcons: Boolean! = true
+    $includeDigitalAssetImages: Boolean! = true
+    $includeDigitalAssetLinks: Boolean! = true
+    $includeDigitalAssetAttributes: Boolean! = true
+    $includeDigitalAssetOwner: Boolean! = true
+    $includeDigitalAssetHolderCount: Boolean! = true
+    $includeDigitalAssetCreatorCount: Boolean! = true
+    $includeDigitalAssetReferenceContract: Boolean! = true
+    $includeDigitalAssetTokenIdFormat: Boolean! = true
+    $includeDigitalAssetBaseUri: Boolean! = true
+    $includeDigitalAssetTimestamp: Boolean! = true
+    $includeDigitalAssetBlockNumber: Boolean! = true
+    $includeDigitalAssetTransactionIndex: Boolean! = true
+    $includeDigitalAssetLogIndex: Boolean! = true
+    $includeProfile: Boolean! = true
     $includeProfileName: Boolean! = true
     $includeProfileDescription: Boolean! = true
     $includeProfileTags: Boolean! = true
@@ -443,40 +455,40 @@ export const OwnedAssetSubscriptionDocument = graphql(`
       digitalAsset @include(if: $includeDigitalAsset) {
         id
         address
-        timestamp @include(if: $includeTimestamp)
-        block_number @include(if: $includeBlockNumber)
-        transaction_index @include(if: $includeTransactionIndex)
-        log_index @include(if: $includeLogIndex)
-        lsp4TokenName @include(if: $includeName) {
+        timestamp @include(if: $includeDigitalAssetTimestamp)
+        block_number @include(if: $includeDigitalAssetBlockNumber)
+        transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+        log_index @include(if: $includeDigitalAssetLogIndex)
+        lsp4TokenName @include(if: $includeDigitalAssetName) {
           value
         }
-        lsp4TokenSymbol @include(if: $includeSymbol) {
+        lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
           value
         }
-        lsp4TokenType @include(if: $includeTokenType) {
+        lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
           value
         }
-        decimals @include(if: $includeDecimals) {
+        decimals @include(if: $includeDigitalAssetDecimals) {
           value
         }
-        totalSupply @include(if: $includeTotalSupply) {
+        totalSupply @include(if: $includeDigitalAssetTotalSupply) {
           value
         }
         lsp4Metadata {
-          description @include(if: $includeDescription) {
+          description @include(if: $includeDigitalAssetDescription) {
             value
           }
-          category @include(if: $includeCategory) {
+          category @include(if: $includeDigitalAssetCategory) {
             value
           }
-          icon @include(if: $includeIcons) {
+          icon @include(if: $includeDigitalAssetIcons) {
             url
             width
             height
             verification_method
             verification_data
           }
-          images @include(if: $includeImages) {
+          images @include(if: $includeDigitalAssetImages) {
             url
             width
             height
@@ -484,39 +496,39 @@ export const OwnedAssetSubscriptionDocument = graphql(`
             verification_method
             verification_data
           }
-          links @include(if: $includeLinks) {
+          links @include(if: $includeDigitalAssetLinks) {
             title
             url
           }
-          attributes @include(if: $includeAttributes) {
+          attributes @include(if: $includeDigitalAssetAttributes) {
             key
             value
             type
           }
         }
-        owner @include(if: $includeOwner) {
+        owner @include(if: $includeDigitalAssetOwner) {
           address
           timestamp
         }
-        ownedAssets_aggregate @include(if: $includeHolderCount) {
+        ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
           aggregate {
             count
           }
         }
-        lsp4CreatorsLength @include(if: $includeCreatorCount) {
+        lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
           value
         }
-        lsp8ReferenceContract @include(if: $includeReferenceContract) {
+        lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
           value
         }
-        lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+        lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
           value
         }
-        lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+        lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
           value
         }
       }
-      universalProfile @include(if: $includeHolder) {
+      universalProfile @include(if: $includeProfile) {
         address
         timestamp @include(if: $includeProfileTimestamp)
         block_number @include(if: $includeProfileBlockNumber)

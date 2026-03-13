@@ -126,12 +126,11 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
     includeLogIndex: include.logIndex ?? false,
   };
 
-  // Collection sub-includes: reuse digital asset include builder with "Collection" prefix.
+  // Collection sub-includes: reuse DA include builder, remap includeDigitalAsset* → includeCollection*.
   if (activeCollection) {
     const daVars = buildDigitalAssetIncludeVars(include.collection);
     for (const [key, val] of Object.entries(daVars)) {
-      // includeX → includeCollectionX
-      vars[key.replace('include', 'includeCollection')] = val;
+      vars[key.replace('includeDigitalAsset', 'includeCollection')] = val;
     }
   }
 

@@ -131,6 +131,35 @@ export function buildDigitalAssetIncludeVars(
   }
 
   return {
+    includeDigitalAssetName: include.name ?? false,
+    includeDigitalAssetSymbol: include.symbol ?? false,
+    includeDigitalAssetTokenType: include.tokenType ?? false,
+    includeDigitalAssetDecimals: include.decimals ?? false,
+    includeDigitalAssetTotalSupply: include.totalSupply ?? false,
+    includeDigitalAssetDescription: include.description ?? false,
+    includeDigitalAssetCategory: include.category ?? false,
+    includeDigitalAssetIcons: include.icons ?? false,
+    includeDigitalAssetImages: include.images ?? false,
+    includeDigitalAssetLinks: include.links ?? false,
+    includeDigitalAssetAttributes: include.attributes ?? false,
+    includeDigitalAssetOwner: include.owner ?? false,
+    includeDigitalAssetHolderCount: include.holderCount ?? false,
+    includeDigitalAssetCreatorCount: include.creatorCount ?? false,
+    includeDigitalAssetReferenceContract: include.referenceContract ?? false,
+    includeDigitalAssetTokenIdFormat: include.tokenIdFormat ?? false,
+    includeDigitalAssetBaseUri: include.baseUri ?? false,
+    includeDigitalAssetTimestamp: include.timestamp ?? false,
+    includeDigitalAssetBlockNumber: include.blockNumber ?? false,
+    includeDigitalAssetTransactionIndex: include.transactionIndex ?? false,
+    includeDigitalAssetLogIndex: include.logIndex ?? false,
+  };
+}
+
+/** Build @include directive variables for root digital-asset queries (unprefixed keys). */
+function buildIncludeVars(include?: DigitalAssetInclude): Record<string, boolean> {
+  if (!include) return {};
+
+  return {
     includeName: include.name ?? false,
     includeSymbol: include.symbol ?? false,
     includeTokenType: include.tokenType ?? false,
@@ -170,7 +199,7 @@ export function buildDigitalAssetSubscriptionConfig(params: {
 }) {
   const where = buildDigitalAssetWhere(params.filter);
   const orderBy = buildDigitalAssetOrderBy(params.sort) ?? buildBlockOrderSort('desc');
-  const includeVars = buildDigitalAssetIncludeVars(params.include);
+  const includeVars = buildIncludeVars(params.include);
 
   return {
     document: DigitalAssetSubscriptionDocument,
@@ -207,7 +236,7 @@ export async function fetchDigitalAsset(
   url: string,
   params: { address: string; include?: DigitalAssetInclude },
 ): Promise<PartialDigitalAsset | null> {
-  const includeVars = buildDigitalAssetIncludeVars(params.include);
+  const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetDigitalAssetDocument, {
     where: { address: { _ilike: escapeLike(params.address) } },
@@ -267,7 +296,7 @@ export async function fetchDigitalAssets(
 ): Promise<FetchDigitalAssetsResult<PartialDigitalAsset>> {
   const where = buildDigitalAssetWhere(params.filter);
   const orderBy = buildDigitalAssetOrderBy(params.sort) ?? buildBlockOrderSort('desc');
-  const includeVars = buildDigitalAssetIncludeVars(params.include);
+  const includeVars = buildIncludeVars(params.include);
 
   const result = await execute(url, GetDigitalAssetsDocument, {
     where: Object.keys(where).length > 0 ? where : undefined,

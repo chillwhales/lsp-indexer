@@ -27826,24 +27826,28 @@ export type GetOwnedAssetQueryVariables = Exact<{
   includeTransactionIndex?: Scalars['Boolean']['input'];
   includeLogIndex?: Scalars['Boolean']['input'];
   includeDigitalAsset?: Scalars['Boolean']['input'];
-  includeName?: Scalars['Boolean']['input'];
-  includeSymbol?: Scalars['Boolean']['input'];
-  includeTokenType?: Scalars['Boolean']['input'];
-  includeDecimals?: Scalars['Boolean']['input'];
-  includeTotalSupply?: Scalars['Boolean']['input'];
-  includeDescription?: Scalars['Boolean']['input'];
-  includeCategory?: Scalars['Boolean']['input'];
-  includeIcons?: Scalars['Boolean']['input'];
-  includeImages?: Scalars['Boolean']['input'];
-  includeLinks?: Scalars['Boolean']['input'];
-  includeAttributes?: Scalars['Boolean']['input'];
-  includeOwner?: Scalars['Boolean']['input'];
-  includeHolderCount?: Scalars['Boolean']['input'];
-  includeCreatorCount?: Scalars['Boolean']['input'];
-  includeReferenceContract?: Scalars['Boolean']['input'];
-  includeTokenIdFormat?: Scalars['Boolean']['input'];
-  includeBaseUri?: Scalars['Boolean']['input'];
-  includeHolder?: Scalars['Boolean']['input'];
+  includeDigitalAssetName?: Scalars['Boolean']['input'];
+  includeDigitalAssetSymbol?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenType?: Scalars['Boolean']['input'];
+  includeDigitalAssetDecimals?: Scalars['Boolean']['input'];
+  includeDigitalAssetTotalSupply?: Scalars['Boolean']['input'];
+  includeDigitalAssetDescription?: Scalars['Boolean']['input'];
+  includeDigitalAssetCategory?: Scalars['Boolean']['input'];
+  includeDigitalAssetIcons?: Scalars['Boolean']['input'];
+  includeDigitalAssetImages?: Scalars['Boolean']['input'];
+  includeDigitalAssetLinks?: Scalars['Boolean']['input'];
+  includeDigitalAssetAttributes?: Scalars['Boolean']['input'];
+  includeDigitalAssetOwner?: Scalars['Boolean']['input'];
+  includeDigitalAssetHolderCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetCreatorCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetReferenceContract?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenIdFormat?: Scalars['Boolean']['input'];
+  includeDigitalAssetBaseUri?: Scalars['Boolean']['input'];
+  includeDigitalAssetTimestamp?: Scalars['Boolean']['input'];
+  includeDigitalAssetBlockNumber?: Scalars['Boolean']['input'];
+  includeDigitalAssetTransactionIndex?: Scalars['Boolean']['input'];
+  includeDigitalAssetLogIndex?: Scalars['Boolean']['input'];
+  includeProfile?: Scalars['Boolean']['input'];
   includeProfileName?: Scalars['Boolean']['input'];
   includeProfileDescription?: Scalars['Boolean']['input'];
   includeProfileTags?: Scalars['Boolean']['input'];
@@ -27874,24 +27878,28 @@ export type GetOwnedAssetsQueryVariables = Exact<{
   includeTransactionIndex?: Scalars['Boolean']['input'];
   includeLogIndex?: Scalars['Boolean']['input'];
   includeDigitalAsset?: Scalars['Boolean']['input'];
-  includeName?: Scalars['Boolean']['input'];
-  includeSymbol?: Scalars['Boolean']['input'];
-  includeTokenType?: Scalars['Boolean']['input'];
-  includeDecimals?: Scalars['Boolean']['input'];
-  includeTotalSupply?: Scalars['Boolean']['input'];
-  includeDescription?: Scalars['Boolean']['input'];
-  includeCategory?: Scalars['Boolean']['input'];
-  includeIcons?: Scalars['Boolean']['input'];
-  includeImages?: Scalars['Boolean']['input'];
-  includeLinks?: Scalars['Boolean']['input'];
-  includeAttributes?: Scalars['Boolean']['input'];
-  includeOwner?: Scalars['Boolean']['input'];
-  includeHolderCount?: Scalars['Boolean']['input'];
-  includeCreatorCount?: Scalars['Boolean']['input'];
-  includeReferenceContract?: Scalars['Boolean']['input'];
-  includeTokenIdFormat?: Scalars['Boolean']['input'];
-  includeBaseUri?: Scalars['Boolean']['input'];
-  includeHolder?: Scalars['Boolean']['input'];
+  includeDigitalAssetName?: Scalars['Boolean']['input'];
+  includeDigitalAssetSymbol?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenType?: Scalars['Boolean']['input'];
+  includeDigitalAssetDecimals?: Scalars['Boolean']['input'];
+  includeDigitalAssetTotalSupply?: Scalars['Boolean']['input'];
+  includeDigitalAssetDescription?: Scalars['Boolean']['input'];
+  includeDigitalAssetCategory?: Scalars['Boolean']['input'];
+  includeDigitalAssetIcons?: Scalars['Boolean']['input'];
+  includeDigitalAssetImages?: Scalars['Boolean']['input'];
+  includeDigitalAssetLinks?: Scalars['Boolean']['input'];
+  includeDigitalAssetAttributes?: Scalars['Boolean']['input'];
+  includeDigitalAssetOwner?: Scalars['Boolean']['input'];
+  includeDigitalAssetHolderCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetCreatorCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetReferenceContract?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenIdFormat?: Scalars['Boolean']['input'];
+  includeDigitalAssetBaseUri?: Scalars['Boolean']['input'];
+  includeDigitalAssetTimestamp?: Scalars['Boolean']['input'];
+  includeDigitalAssetBlockNumber?: Scalars['Boolean']['input'];
+  includeDigitalAssetTransactionIndex?: Scalars['Boolean']['input'];
+  includeDigitalAssetLogIndex?: Scalars['Boolean']['input'];
+  includeProfile?: Scalars['Boolean']['input'];
   includeProfileName?: Scalars['Boolean']['input'];
   includeProfileDescription?: Scalars['Boolean']['input'];
   includeProfileTags?: Scalars['Boolean']['input'];
@@ -27921,24 +27929,28 @@ export type OwnedAssetSubscriptionSubscriptionVariables = Exact<{
   includeTransactionIndex?: Scalars['Boolean']['input'];
   includeLogIndex?: Scalars['Boolean']['input'];
   includeDigitalAsset?: Scalars['Boolean']['input'];
-  includeName?: Scalars['Boolean']['input'];
-  includeSymbol?: Scalars['Boolean']['input'];
-  includeTokenType?: Scalars['Boolean']['input'];
-  includeDecimals?: Scalars['Boolean']['input'];
-  includeTotalSupply?: Scalars['Boolean']['input'];
-  includeDescription?: Scalars['Boolean']['input'];
-  includeCategory?: Scalars['Boolean']['input'];
-  includeIcons?: Scalars['Boolean']['input'];
-  includeImages?: Scalars['Boolean']['input'];
-  includeLinks?: Scalars['Boolean']['input'];
-  includeAttributes?: Scalars['Boolean']['input'];
-  includeOwner?: Scalars['Boolean']['input'];
-  includeHolderCount?: Scalars['Boolean']['input'];
-  includeCreatorCount?: Scalars['Boolean']['input'];
-  includeReferenceContract?: Scalars['Boolean']['input'];
-  includeTokenIdFormat?: Scalars['Boolean']['input'];
-  includeBaseUri?: Scalars['Boolean']['input'];
-  includeHolder?: Scalars['Boolean']['input'];
+  includeDigitalAssetName?: Scalars['Boolean']['input'];
+  includeDigitalAssetSymbol?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenType?: Scalars['Boolean']['input'];
+  includeDigitalAssetDecimals?: Scalars['Boolean']['input'];
+  includeDigitalAssetTotalSupply?: Scalars['Boolean']['input'];
+  includeDigitalAssetDescription?: Scalars['Boolean']['input'];
+  includeDigitalAssetCategory?: Scalars['Boolean']['input'];
+  includeDigitalAssetIcons?: Scalars['Boolean']['input'];
+  includeDigitalAssetImages?: Scalars['Boolean']['input'];
+  includeDigitalAssetLinks?: Scalars['Boolean']['input'];
+  includeDigitalAssetAttributes?: Scalars['Boolean']['input'];
+  includeDigitalAssetOwner?: Scalars['Boolean']['input'];
+  includeDigitalAssetHolderCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetCreatorCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetReferenceContract?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenIdFormat?: Scalars['Boolean']['input'];
+  includeDigitalAssetBaseUri?: Scalars['Boolean']['input'];
+  includeDigitalAssetTimestamp?: Scalars['Boolean']['input'];
+  includeDigitalAssetBlockNumber?: Scalars['Boolean']['input'];
+  includeDigitalAssetTransactionIndex?: Scalars['Boolean']['input'];
+  includeDigitalAssetLogIndex?: Scalars['Boolean']['input'];
+  includeProfile?: Scalars['Boolean']['input'];
   includeProfileName?: Scalars['Boolean']['input'];
   includeProfileDescription?: Scalars['Boolean']['input'];
   includeProfileTags?: Scalars['Boolean']['input'];
@@ -27965,23 +27977,27 @@ export type GetOwnedTokenQueryVariables = Exact<{
   includeTransactionIndex?: Scalars['Boolean']['input'];
   includeLogIndex?: Scalars['Boolean']['input'];
   includeDigitalAsset?: Scalars['Boolean']['input'];
-  includeName?: Scalars['Boolean']['input'];
-  includeSymbol?: Scalars['Boolean']['input'];
-  includeTokenType?: Scalars['Boolean']['input'];
-  includeDecimals?: Scalars['Boolean']['input'];
-  includeTotalSupply?: Scalars['Boolean']['input'];
-  includeDescription?: Scalars['Boolean']['input'];
-  includeCategory?: Scalars['Boolean']['input'];
-  includeIcons?: Scalars['Boolean']['input'];
-  includeImages?: Scalars['Boolean']['input'];
-  includeLinks?: Scalars['Boolean']['input'];
-  includeAttributes?: Scalars['Boolean']['input'];
-  includeOwner?: Scalars['Boolean']['input'];
-  includeHolderCount?: Scalars['Boolean']['input'];
-  includeCreatorCount?: Scalars['Boolean']['input'];
-  includeReferenceContract?: Scalars['Boolean']['input'];
-  includeTokenIdFormat?: Scalars['Boolean']['input'];
-  includeBaseUri?: Scalars['Boolean']['input'];
+  includeDigitalAssetName?: Scalars['Boolean']['input'];
+  includeDigitalAssetSymbol?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenType?: Scalars['Boolean']['input'];
+  includeDigitalAssetDecimals?: Scalars['Boolean']['input'];
+  includeDigitalAssetTotalSupply?: Scalars['Boolean']['input'];
+  includeDigitalAssetDescription?: Scalars['Boolean']['input'];
+  includeDigitalAssetCategory?: Scalars['Boolean']['input'];
+  includeDigitalAssetIcons?: Scalars['Boolean']['input'];
+  includeDigitalAssetImages?: Scalars['Boolean']['input'];
+  includeDigitalAssetLinks?: Scalars['Boolean']['input'];
+  includeDigitalAssetAttributes?: Scalars['Boolean']['input'];
+  includeDigitalAssetOwner?: Scalars['Boolean']['input'];
+  includeDigitalAssetHolderCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetCreatorCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetReferenceContract?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenIdFormat?: Scalars['Boolean']['input'];
+  includeDigitalAssetBaseUri?: Scalars['Boolean']['input'];
+  includeDigitalAssetTimestamp?: Scalars['Boolean']['input'];
+  includeDigitalAssetBlockNumber?: Scalars['Boolean']['input'];
+  includeDigitalAssetTransactionIndex?: Scalars['Boolean']['input'];
+  includeDigitalAssetLogIndex?: Scalars['Boolean']['input'];
   includeNft?: Scalars['Boolean']['input'];
   includeNftFormattedTokenId?: Scalars['Boolean']['input'];
   includeNftName?: Scalars['Boolean']['input'];
@@ -28001,7 +28017,7 @@ export type GetOwnedTokenQueryVariables = Exact<{
   includeOwnedAssetBlockNumber?: Scalars['Boolean']['input'];
   includeOwnedAssetTransactionIndex?: Scalars['Boolean']['input'];
   includeOwnedAssetLogIndex?: Scalars['Boolean']['input'];
-  includeHolder?: Scalars['Boolean']['input'];
+  includeProfile?: Scalars['Boolean']['input'];
   includeProfileName?: Scalars['Boolean']['input'];
   includeProfileDescription?: Scalars['Boolean']['input'];
   includeProfileTags?: Scalars['Boolean']['input'];
@@ -28030,23 +28046,27 @@ export type GetOwnedTokensQueryVariables = Exact<{
   includeTransactionIndex?: Scalars['Boolean']['input'];
   includeLogIndex?: Scalars['Boolean']['input'];
   includeDigitalAsset?: Scalars['Boolean']['input'];
-  includeName?: Scalars['Boolean']['input'];
-  includeSymbol?: Scalars['Boolean']['input'];
-  includeTokenType?: Scalars['Boolean']['input'];
-  includeDecimals?: Scalars['Boolean']['input'];
-  includeTotalSupply?: Scalars['Boolean']['input'];
-  includeDescription?: Scalars['Boolean']['input'];
-  includeCategory?: Scalars['Boolean']['input'];
-  includeIcons?: Scalars['Boolean']['input'];
-  includeImages?: Scalars['Boolean']['input'];
-  includeLinks?: Scalars['Boolean']['input'];
-  includeAttributes?: Scalars['Boolean']['input'];
-  includeOwner?: Scalars['Boolean']['input'];
-  includeHolderCount?: Scalars['Boolean']['input'];
-  includeCreatorCount?: Scalars['Boolean']['input'];
-  includeReferenceContract?: Scalars['Boolean']['input'];
-  includeTokenIdFormat?: Scalars['Boolean']['input'];
-  includeBaseUri?: Scalars['Boolean']['input'];
+  includeDigitalAssetName?: Scalars['Boolean']['input'];
+  includeDigitalAssetSymbol?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenType?: Scalars['Boolean']['input'];
+  includeDigitalAssetDecimals?: Scalars['Boolean']['input'];
+  includeDigitalAssetTotalSupply?: Scalars['Boolean']['input'];
+  includeDigitalAssetDescription?: Scalars['Boolean']['input'];
+  includeDigitalAssetCategory?: Scalars['Boolean']['input'];
+  includeDigitalAssetIcons?: Scalars['Boolean']['input'];
+  includeDigitalAssetImages?: Scalars['Boolean']['input'];
+  includeDigitalAssetLinks?: Scalars['Boolean']['input'];
+  includeDigitalAssetAttributes?: Scalars['Boolean']['input'];
+  includeDigitalAssetOwner?: Scalars['Boolean']['input'];
+  includeDigitalAssetHolderCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetCreatorCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetReferenceContract?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenIdFormat?: Scalars['Boolean']['input'];
+  includeDigitalAssetBaseUri?: Scalars['Boolean']['input'];
+  includeDigitalAssetTimestamp?: Scalars['Boolean']['input'];
+  includeDigitalAssetBlockNumber?: Scalars['Boolean']['input'];
+  includeDigitalAssetTransactionIndex?: Scalars['Boolean']['input'];
+  includeDigitalAssetLogIndex?: Scalars['Boolean']['input'];
   includeNft?: Scalars['Boolean']['input'];
   includeNftFormattedTokenId?: Scalars['Boolean']['input'];
   includeNftName?: Scalars['Boolean']['input'];
@@ -28066,7 +28086,7 @@ export type GetOwnedTokensQueryVariables = Exact<{
   includeOwnedAssetBlockNumber?: Scalars['Boolean']['input'];
   includeOwnedAssetTransactionIndex?: Scalars['Boolean']['input'];
   includeOwnedAssetLogIndex?: Scalars['Boolean']['input'];
-  includeHolder?: Scalars['Boolean']['input'];
+  includeProfile?: Scalars['Boolean']['input'];
   includeProfileName?: Scalars['Boolean']['input'];
   includeProfileDescription?: Scalars['Boolean']['input'];
   includeProfileTags?: Scalars['Boolean']['input'];
@@ -28094,23 +28114,27 @@ export type OwnedTokenSubscriptionSubscriptionVariables = Exact<{
   includeTransactionIndex?: Scalars['Boolean']['input'];
   includeLogIndex?: Scalars['Boolean']['input'];
   includeDigitalAsset?: Scalars['Boolean']['input'];
-  includeName?: Scalars['Boolean']['input'];
-  includeSymbol?: Scalars['Boolean']['input'];
-  includeTokenType?: Scalars['Boolean']['input'];
-  includeDecimals?: Scalars['Boolean']['input'];
-  includeTotalSupply?: Scalars['Boolean']['input'];
-  includeDescription?: Scalars['Boolean']['input'];
-  includeCategory?: Scalars['Boolean']['input'];
-  includeIcons?: Scalars['Boolean']['input'];
-  includeImages?: Scalars['Boolean']['input'];
-  includeLinks?: Scalars['Boolean']['input'];
-  includeAttributes?: Scalars['Boolean']['input'];
-  includeOwner?: Scalars['Boolean']['input'];
-  includeHolderCount?: Scalars['Boolean']['input'];
-  includeCreatorCount?: Scalars['Boolean']['input'];
-  includeReferenceContract?: Scalars['Boolean']['input'];
-  includeTokenIdFormat?: Scalars['Boolean']['input'];
-  includeBaseUri?: Scalars['Boolean']['input'];
+  includeDigitalAssetName?: Scalars['Boolean']['input'];
+  includeDigitalAssetSymbol?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenType?: Scalars['Boolean']['input'];
+  includeDigitalAssetDecimals?: Scalars['Boolean']['input'];
+  includeDigitalAssetTotalSupply?: Scalars['Boolean']['input'];
+  includeDigitalAssetDescription?: Scalars['Boolean']['input'];
+  includeDigitalAssetCategory?: Scalars['Boolean']['input'];
+  includeDigitalAssetIcons?: Scalars['Boolean']['input'];
+  includeDigitalAssetImages?: Scalars['Boolean']['input'];
+  includeDigitalAssetLinks?: Scalars['Boolean']['input'];
+  includeDigitalAssetAttributes?: Scalars['Boolean']['input'];
+  includeDigitalAssetOwner?: Scalars['Boolean']['input'];
+  includeDigitalAssetHolderCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetCreatorCount?: Scalars['Boolean']['input'];
+  includeDigitalAssetReferenceContract?: Scalars['Boolean']['input'];
+  includeDigitalAssetTokenIdFormat?: Scalars['Boolean']['input'];
+  includeDigitalAssetBaseUri?: Scalars['Boolean']['input'];
+  includeDigitalAssetTimestamp?: Scalars['Boolean']['input'];
+  includeDigitalAssetBlockNumber?: Scalars['Boolean']['input'];
+  includeDigitalAssetTransactionIndex?: Scalars['Boolean']['input'];
+  includeDigitalAssetLogIndex?: Scalars['Boolean']['input'];
   includeNft?: Scalars['Boolean']['input'];
   includeNftFormattedTokenId?: Scalars['Boolean']['input'];
   includeNftName?: Scalars['Boolean']['input'];
@@ -28130,7 +28154,7 @@ export type OwnedTokenSubscriptionSubscriptionVariables = Exact<{
   includeOwnedAssetBlockNumber?: Scalars['Boolean']['input'];
   includeOwnedAssetTransactionIndex?: Scalars['Boolean']['input'];
   includeOwnedAssetLogIndex?: Scalars['Boolean']['input'];
-  includeHolder?: Scalars['Boolean']['input'];
+  includeProfile?: Scalars['Boolean']['input'];
   includeProfileName?: Scalars['Boolean']['input'];
   includeProfileDescription?: Scalars['Boolean']['input'];
   includeProfileTags?: Scalars['Boolean']['input'];
@@ -30726,7 +30750,7 @@ export const NftSubscriptionDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<NftSubscriptionSubscription, NftSubscriptionSubscriptionVariables>;
 export const GetOwnedAssetDocument = new TypedDocumentString(`
-    query GetOwnedAsset($where: owned_asset_bool_exp!, $includeBalance: Boolean! = true, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeName: Boolean! = true, $includeSymbol: Boolean! = true, $includeTokenType: Boolean! = true, $includeDecimals: Boolean! = true, $includeTotalSupply: Boolean! = true, $includeDescription: Boolean! = true, $includeCategory: Boolean! = true, $includeIcons: Boolean! = true, $includeImages: Boolean! = true, $includeLinks: Boolean! = true, $includeAttributes: Boolean! = true, $includeOwner: Boolean! = true, $includeHolderCount: Boolean! = true, $includeCreatorCount: Boolean! = true, $includeReferenceContract: Boolean! = true, $includeTokenIdFormat: Boolean! = true, $includeBaseUri: Boolean! = true, $includeHolder: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeProfileTimestamp: Boolean! = true, $includeProfileBlockNumber: Boolean! = true, $includeProfileTransactionIndex: Boolean! = true, $includeProfileLogIndex: Boolean! = true, $includeTokenIdCount: Boolean! = true) {
+    query GetOwnedAsset($where: owned_asset_bool_exp!, $includeBalance: Boolean! = true, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeDigitalAssetName: Boolean! = true, $includeDigitalAssetSymbol: Boolean! = true, $includeDigitalAssetTokenType: Boolean! = true, $includeDigitalAssetDecimals: Boolean! = true, $includeDigitalAssetTotalSupply: Boolean! = true, $includeDigitalAssetDescription: Boolean! = true, $includeDigitalAssetCategory: Boolean! = true, $includeDigitalAssetIcons: Boolean! = true, $includeDigitalAssetImages: Boolean! = true, $includeDigitalAssetLinks: Boolean! = true, $includeDigitalAssetAttributes: Boolean! = true, $includeDigitalAssetOwner: Boolean! = true, $includeDigitalAssetHolderCount: Boolean! = true, $includeDigitalAssetCreatorCount: Boolean! = true, $includeDigitalAssetReferenceContract: Boolean! = true, $includeDigitalAssetTokenIdFormat: Boolean! = true, $includeDigitalAssetBaseUri: Boolean! = true, $includeDigitalAssetTimestamp: Boolean! = true, $includeDigitalAssetBlockNumber: Boolean! = true, $includeDigitalAssetTransactionIndex: Boolean! = true, $includeDigitalAssetLogIndex: Boolean! = true, $includeProfile: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeProfileTimestamp: Boolean! = true, $includeProfileBlockNumber: Boolean! = true, $includeProfileTransactionIndex: Boolean! = true, $includeProfileLogIndex: Boolean! = true, $includeTokenIdCount: Boolean! = true) {
   owned_asset(where: $where, limit: 1) {
     id
     address
@@ -30739,40 +30763,40 @@ export const GetOwnedAssetDocument = new TypedDocumentString(`
     digitalAsset @include(if: $includeDigitalAsset) {
       id
       address
-      timestamp @include(if: $includeTimestamp)
-      block_number @include(if: $includeBlockNumber)
-      transaction_index @include(if: $includeTransactionIndex)
-      log_index @include(if: $includeLogIndex)
-      lsp4TokenName @include(if: $includeName) {
+      timestamp @include(if: $includeDigitalAssetTimestamp)
+      block_number @include(if: $includeDigitalAssetBlockNumber)
+      transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+      log_index @include(if: $includeDigitalAssetLogIndex)
+      lsp4TokenName @include(if: $includeDigitalAssetName) {
         value
       }
-      lsp4TokenSymbol @include(if: $includeSymbol) {
+      lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
         value
       }
-      lsp4TokenType @include(if: $includeTokenType) {
+      lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
         value
       }
-      decimals @include(if: $includeDecimals) {
+      decimals @include(if: $includeDigitalAssetDecimals) {
         value
       }
-      totalSupply @include(if: $includeTotalSupply) {
+      totalSupply @include(if: $includeDigitalAssetTotalSupply) {
         value
       }
       lsp4Metadata {
-        description @include(if: $includeDescription) {
+        description @include(if: $includeDigitalAssetDescription) {
           value
         }
-        category @include(if: $includeCategory) {
+        category @include(if: $includeDigitalAssetCategory) {
           value
         }
-        icon @include(if: $includeIcons) {
+        icon @include(if: $includeDigitalAssetIcons) {
           url
           width
           height
           verification_method
           verification_data
         }
-        images @include(if: $includeImages) {
+        images @include(if: $includeDigitalAssetImages) {
           url
           width
           height
@@ -30780,39 +30804,39 @@ export const GetOwnedAssetDocument = new TypedDocumentString(`
           verification_method
           verification_data
         }
-        links @include(if: $includeLinks) {
+        links @include(if: $includeDigitalAssetLinks) {
           title
           url
         }
-        attributes @include(if: $includeAttributes) {
+        attributes @include(if: $includeDigitalAssetAttributes) {
           key
           value
           type
         }
       }
-      owner @include(if: $includeOwner) {
+      owner @include(if: $includeDigitalAssetOwner) {
         address
         timestamp
       }
-      ownedAssets_aggregate @include(if: $includeHolderCount) {
+      ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
         aggregate {
           count
         }
       }
-      lsp4CreatorsLength @include(if: $includeCreatorCount) {
+      lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
         value
       }
-      lsp8ReferenceContract @include(if: $includeReferenceContract) {
+      lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
         value
       }
-      lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+      lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
         value
       }
-      lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+      lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
         value
       }
     }
-    universalProfile @include(if: $includeHolder) {
+    universalProfile @include(if: $includeProfile) {
       address
       timestamp @include(if: $includeProfileTimestamp)
       block_number @include(if: $includeProfileBlockNumber)
@@ -30873,7 +30897,7 @@ export const GetOwnedAssetDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<GetOwnedAssetQuery, GetOwnedAssetQueryVariables>;
 export const GetOwnedAssetsDocument = new TypedDocumentString(`
-    query GetOwnedAssets($where: owned_asset_bool_exp, $order_by: [owned_asset_order_by!], $limit: Int, $offset: Int, $includeBalance: Boolean! = true, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeName: Boolean! = true, $includeSymbol: Boolean! = true, $includeTokenType: Boolean! = true, $includeDecimals: Boolean! = true, $includeTotalSupply: Boolean! = true, $includeDescription: Boolean! = true, $includeCategory: Boolean! = true, $includeIcons: Boolean! = true, $includeImages: Boolean! = true, $includeLinks: Boolean! = true, $includeAttributes: Boolean! = true, $includeOwner: Boolean! = true, $includeHolderCount: Boolean! = true, $includeCreatorCount: Boolean! = true, $includeReferenceContract: Boolean! = true, $includeTokenIdFormat: Boolean! = true, $includeBaseUri: Boolean! = true, $includeHolder: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeProfileTimestamp: Boolean! = true, $includeProfileBlockNumber: Boolean! = true, $includeProfileTransactionIndex: Boolean! = true, $includeProfileLogIndex: Boolean! = true, $includeTokenIdCount: Boolean! = true) {
+    query GetOwnedAssets($where: owned_asset_bool_exp, $order_by: [owned_asset_order_by!], $limit: Int, $offset: Int, $includeBalance: Boolean! = true, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeDigitalAssetName: Boolean! = true, $includeDigitalAssetSymbol: Boolean! = true, $includeDigitalAssetTokenType: Boolean! = true, $includeDigitalAssetDecimals: Boolean! = true, $includeDigitalAssetTotalSupply: Boolean! = true, $includeDigitalAssetDescription: Boolean! = true, $includeDigitalAssetCategory: Boolean! = true, $includeDigitalAssetIcons: Boolean! = true, $includeDigitalAssetImages: Boolean! = true, $includeDigitalAssetLinks: Boolean! = true, $includeDigitalAssetAttributes: Boolean! = true, $includeDigitalAssetOwner: Boolean! = true, $includeDigitalAssetHolderCount: Boolean! = true, $includeDigitalAssetCreatorCount: Boolean! = true, $includeDigitalAssetReferenceContract: Boolean! = true, $includeDigitalAssetTokenIdFormat: Boolean! = true, $includeDigitalAssetBaseUri: Boolean! = true, $includeDigitalAssetTimestamp: Boolean! = true, $includeDigitalAssetBlockNumber: Boolean! = true, $includeDigitalAssetTransactionIndex: Boolean! = true, $includeDigitalAssetLogIndex: Boolean! = true, $includeProfile: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeProfileTimestamp: Boolean! = true, $includeProfileBlockNumber: Boolean! = true, $includeProfileTransactionIndex: Boolean! = true, $includeProfileLogIndex: Boolean! = true, $includeTokenIdCount: Boolean! = true) {
   owned_asset(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
     id
     address
@@ -30886,40 +30910,40 @@ export const GetOwnedAssetsDocument = new TypedDocumentString(`
     digitalAsset @include(if: $includeDigitalAsset) {
       id
       address
-      timestamp @include(if: $includeTimestamp)
-      block_number @include(if: $includeBlockNumber)
-      transaction_index @include(if: $includeTransactionIndex)
-      log_index @include(if: $includeLogIndex)
-      lsp4TokenName @include(if: $includeName) {
+      timestamp @include(if: $includeDigitalAssetTimestamp)
+      block_number @include(if: $includeDigitalAssetBlockNumber)
+      transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+      log_index @include(if: $includeDigitalAssetLogIndex)
+      lsp4TokenName @include(if: $includeDigitalAssetName) {
         value
       }
-      lsp4TokenSymbol @include(if: $includeSymbol) {
+      lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
         value
       }
-      lsp4TokenType @include(if: $includeTokenType) {
+      lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
         value
       }
-      decimals @include(if: $includeDecimals) {
+      decimals @include(if: $includeDigitalAssetDecimals) {
         value
       }
-      totalSupply @include(if: $includeTotalSupply) {
+      totalSupply @include(if: $includeDigitalAssetTotalSupply) {
         value
       }
       lsp4Metadata {
-        description @include(if: $includeDescription) {
+        description @include(if: $includeDigitalAssetDescription) {
           value
         }
-        category @include(if: $includeCategory) {
+        category @include(if: $includeDigitalAssetCategory) {
           value
         }
-        icon @include(if: $includeIcons) {
+        icon @include(if: $includeDigitalAssetIcons) {
           url
           width
           height
           verification_method
           verification_data
         }
-        images @include(if: $includeImages) {
+        images @include(if: $includeDigitalAssetImages) {
           url
           width
           height
@@ -30927,39 +30951,39 @@ export const GetOwnedAssetsDocument = new TypedDocumentString(`
           verification_method
           verification_data
         }
-        links @include(if: $includeLinks) {
+        links @include(if: $includeDigitalAssetLinks) {
           title
           url
         }
-        attributes @include(if: $includeAttributes) {
+        attributes @include(if: $includeDigitalAssetAttributes) {
           key
           value
           type
         }
       }
-      owner @include(if: $includeOwner) {
+      owner @include(if: $includeDigitalAssetOwner) {
         address
         timestamp
       }
-      ownedAssets_aggregate @include(if: $includeHolderCount) {
+      ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
         aggregate {
           count
         }
       }
-      lsp4CreatorsLength @include(if: $includeCreatorCount) {
+      lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
         value
       }
-      lsp8ReferenceContract @include(if: $includeReferenceContract) {
+      lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
         value
       }
-      lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+      lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
         value
       }
-      lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+      lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
         value
       }
     }
-    universalProfile @include(if: $includeHolder) {
+    universalProfile @include(if: $includeProfile) {
       address
       timestamp @include(if: $includeProfileTimestamp)
       block_number @include(if: $includeProfileBlockNumber)
@@ -31025,7 +31049,7 @@ export const GetOwnedAssetsDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<GetOwnedAssetsQuery, GetOwnedAssetsQueryVariables>;
 export const OwnedAssetSubscriptionDocument = new TypedDocumentString(`
-    subscription OwnedAssetSubscription($where: owned_asset_bool_exp, $order_by: [owned_asset_order_by!], $limit: Int, $includeBalance: Boolean! = true, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeName: Boolean! = true, $includeSymbol: Boolean! = true, $includeTokenType: Boolean! = true, $includeDecimals: Boolean! = true, $includeTotalSupply: Boolean! = true, $includeDescription: Boolean! = true, $includeCategory: Boolean! = true, $includeIcons: Boolean! = true, $includeImages: Boolean! = true, $includeLinks: Boolean! = true, $includeAttributes: Boolean! = true, $includeOwner: Boolean! = true, $includeHolderCount: Boolean! = true, $includeCreatorCount: Boolean! = true, $includeReferenceContract: Boolean! = true, $includeTokenIdFormat: Boolean! = true, $includeBaseUri: Boolean! = true, $includeHolder: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeProfileTimestamp: Boolean! = true, $includeProfileBlockNumber: Boolean! = true, $includeProfileTransactionIndex: Boolean! = true, $includeProfileLogIndex: Boolean! = true, $includeTokenIdCount: Boolean! = true) {
+    subscription OwnedAssetSubscription($where: owned_asset_bool_exp, $order_by: [owned_asset_order_by!], $limit: Int, $includeBalance: Boolean! = true, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeDigitalAssetName: Boolean! = true, $includeDigitalAssetSymbol: Boolean! = true, $includeDigitalAssetTokenType: Boolean! = true, $includeDigitalAssetDecimals: Boolean! = true, $includeDigitalAssetTotalSupply: Boolean! = true, $includeDigitalAssetDescription: Boolean! = true, $includeDigitalAssetCategory: Boolean! = true, $includeDigitalAssetIcons: Boolean! = true, $includeDigitalAssetImages: Boolean! = true, $includeDigitalAssetLinks: Boolean! = true, $includeDigitalAssetAttributes: Boolean! = true, $includeDigitalAssetOwner: Boolean! = true, $includeDigitalAssetHolderCount: Boolean! = true, $includeDigitalAssetCreatorCount: Boolean! = true, $includeDigitalAssetReferenceContract: Boolean! = true, $includeDigitalAssetTokenIdFormat: Boolean! = true, $includeDigitalAssetBaseUri: Boolean! = true, $includeDigitalAssetTimestamp: Boolean! = true, $includeDigitalAssetBlockNumber: Boolean! = true, $includeDigitalAssetTransactionIndex: Boolean! = true, $includeDigitalAssetLogIndex: Boolean! = true, $includeProfile: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeProfileTimestamp: Boolean! = true, $includeProfileBlockNumber: Boolean! = true, $includeProfileTransactionIndex: Boolean! = true, $includeProfileLogIndex: Boolean! = true, $includeTokenIdCount: Boolean! = true) {
   owned_asset(where: $where, order_by: $order_by, limit: $limit) {
     id
     address
@@ -31038,40 +31062,40 @@ export const OwnedAssetSubscriptionDocument = new TypedDocumentString(`
     digitalAsset @include(if: $includeDigitalAsset) {
       id
       address
-      timestamp @include(if: $includeTimestamp)
-      block_number @include(if: $includeBlockNumber)
-      transaction_index @include(if: $includeTransactionIndex)
-      log_index @include(if: $includeLogIndex)
-      lsp4TokenName @include(if: $includeName) {
+      timestamp @include(if: $includeDigitalAssetTimestamp)
+      block_number @include(if: $includeDigitalAssetBlockNumber)
+      transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+      log_index @include(if: $includeDigitalAssetLogIndex)
+      lsp4TokenName @include(if: $includeDigitalAssetName) {
         value
       }
-      lsp4TokenSymbol @include(if: $includeSymbol) {
+      lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
         value
       }
-      lsp4TokenType @include(if: $includeTokenType) {
+      lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
         value
       }
-      decimals @include(if: $includeDecimals) {
+      decimals @include(if: $includeDigitalAssetDecimals) {
         value
       }
-      totalSupply @include(if: $includeTotalSupply) {
+      totalSupply @include(if: $includeDigitalAssetTotalSupply) {
         value
       }
       lsp4Metadata {
-        description @include(if: $includeDescription) {
+        description @include(if: $includeDigitalAssetDescription) {
           value
         }
-        category @include(if: $includeCategory) {
+        category @include(if: $includeDigitalAssetCategory) {
           value
         }
-        icon @include(if: $includeIcons) {
+        icon @include(if: $includeDigitalAssetIcons) {
           url
           width
           height
           verification_method
           verification_data
         }
-        images @include(if: $includeImages) {
+        images @include(if: $includeDigitalAssetImages) {
           url
           width
           height
@@ -31079,39 +31103,39 @@ export const OwnedAssetSubscriptionDocument = new TypedDocumentString(`
           verification_method
           verification_data
         }
-        links @include(if: $includeLinks) {
+        links @include(if: $includeDigitalAssetLinks) {
           title
           url
         }
-        attributes @include(if: $includeAttributes) {
+        attributes @include(if: $includeDigitalAssetAttributes) {
           key
           value
           type
         }
       }
-      owner @include(if: $includeOwner) {
+      owner @include(if: $includeDigitalAssetOwner) {
         address
         timestamp
       }
-      ownedAssets_aggregate @include(if: $includeHolderCount) {
+      ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
         aggregate {
           count
         }
       }
-      lsp4CreatorsLength @include(if: $includeCreatorCount) {
+      lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
         value
       }
-      lsp8ReferenceContract @include(if: $includeReferenceContract) {
+      lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
         value
       }
-      lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+      lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
         value
       }
-      lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+      lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
         value
       }
     }
-    universalProfile @include(if: $includeHolder) {
+    universalProfile @include(if: $includeProfile) {
       address
       timestamp @include(if: $includeProfileTimestamp)
       block_number @include(if: $includeProfileBlockNumber)
@@ -31172,7 +31196,7 @@ export const OwnedAssetSubscriptionDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<OwnedAssetSubscriptionSubscription, OwnedAssetSubscriptionSubscriptionVariables>;
 export const GetOwnedTokenDocument = new TypedDocumentString(`
-    query GetOwnedToken($where: owned_token_bool_exp!, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeName: Boolean! = true, $includeSymbol: Boolean! = true, $includeTokenType: Boolean! = true, $includeDecimals: Boolean! = true, $includeTotalSupply: Boolean! = true, $includeDescription: Boolean! = true, $includeCategory: Boolean! = true, $includeIcons: Boolean! = true, $includeImages: Boolean! = true, $includeLinks: Boolean! = true, $includeAttributes: Boolean! = true, $includeOwner: Boolean! = true, $includeHolderCount: Boolean! = true, $includeCreatorCount: Boolean! = true, $includeReferenceContract: Boolean! = true, $includeTokenIdFormat: Boolean! = true, $includeBaseUri: Boolean! = true, $includeNft: Boolean! = true, $includeNftFormattedTokenId: Boolean! = true, $includeNftName: Boolean! = true, $includeNftDescription: Boolean! = true, $includeNftCategory: Boolean! = true, $includeNftIcons: Boolean! = true, $includeNftImages: Boolean! = true, $includeNftLinks: Boolean! = true, $includeNftAttributes: Boolean! = true, $includeNftTimestamp: Boolean! = true, $includeNftBlockNumber: Boolean! = true, $includeNftTransactionIndex: Boolean! = true, $includeNftLogIndex: Boolean! = true, $includeOwnedAsset: Boolean! = true, $includeOwnedAssetBalance: Boolean! = true, $includeOwnedAssetTimestamp: Boolean! = true, $includeOwnedAssetBlockNumber: Boolean! = true, $includeOwnedAssetTransactionIndex: Boolean! = true, $includeOwnedAssetLogIndex: Boolean! = true, $includeHolder: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeProfileTimestamp: Boolean! = true, $includeProfileBlockNumber: Boolean! = true, $includeProfileTransactionIndex: Boolean! = true, $includeProfileLogIndex: Boolean! = true) {
+    query GetOwnedToken($where: owned_token_bool_exp!, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeDigitalAssetName: Boolean! = true, $includeDigitalAssetSymbol: Boolean! = true, $includeDigitalAssetTokenType: Boolean! = true, $includeDigitalAssetDecimals: Boolean! = true, $includeDigitalAssetTotalSupply: Boolean! = true, $includeDigitalAssetDescription: Boolean! = true, $includeDigitalAssetCategory: Boolean! = true, $includeDigitalAssetIcons: Boolean! = true, $includeDigitalAssetImages: Boolean! = true, $includeDigitalAssetLinks: Boolean! = true, $includeDigitalAssetAttributes: Boolean! = true, $includeDigitalAssetOwner: Boolean! = true, $includeDigitalAssetHolderCount: Boolean! = true, $includeDigitalAssetCreatorCount: Boolean! = true, $includeDigitalAssetReferenceContract: Boolean! = true, $includeDigitalAssetTokenIdFormat: Boolean! = true, $includeDigitalAssetBaseUri: Boolean! = true, $includeDigitalAssetTimestamp: Boolean! = true, $includeDigitalAssetBlockNumber: Boolean! = true, $includeDigitalAssetTransactionIndex: Boolean! = true, $includeDigitalAssetLogIndex: Boolean! = true, $includeNft: Boolean! = true, $includeNftFormattedTokenId: Boolean! = true, $includeNftName: Boolean! = true, $includeNftDescription: Boolean! = true, $includeNftCategory: Boolean! = true, $includeNftIcons: Boolean! = true, $includeNftImages: Boolean! = true, $includeNftLinks: Boolean! = true, $includeNftAttributes: Boolean! = true, $includeNftTimestamp: Boolean! = true, $includeNftBlockNumber: Boolean! = true, $includeNftTransactionIndex: Boolean! = true, $includeNftLogIndex: Boolean! = true, $includeOwnedAsset: Boolean! = true, $includeOwnedAssetBalance: Boolean! = true, $includeOwnedAssetTimestamp: Boolean! = true, $includeOwnedAssetBlockNumber: Boolean! = true, $includeOwnedAssetTransactionIndex: Boolean! = true, $includeOwnedAssetLogIndex: Boolean! = true, $includeProfile: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeProfileTimestamp: Boolean! = true, $includeProfileBlockNumber: Boolean! = true, $includeProfileTransactionIndex: Boolean! = true, $includeProfileLogIndex: Boolean! = true) {
   owned_token(where: $where, limit: 1) {
     id
     address
@@ -31185,40 +31209,40 @@ export const GetOwnedTokenDocument = new TypedDocumentString(`
     digitalAsset @include(if: $includeDigitalAsset) {
       id
       address
-      timestamp @include(if: $includeTimestamp)
-      block_number @include(if: $includeBlockNumber)
-      transaction_index @include(if: $includeTransactionIndex)
-      log_index @include(if: $includeLogIndex)
-      lsp4TokenName @include(if: $includeName) {
+      timestamp @include(if: $includeDigitalAssetTimestamp)
+      block_number @include(if: $includeDigitalAssetBlockNumber)
+      transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+      log_index @include(if: $includeDigitalAssetLogIndex)
+      lsp4TokenName @include(if: $includeDigitalAssetName) {
         value
       }
-      lsp4TokenSymbol @include(if: $includeSymbol) {
+      lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
         value
       }
-      lsp4TokenType @include(if: $includeTokenType) {
+      lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
         value
       }
-      decimals @include(if: $includeDecimals) {
+      decimals @include(if: $includeDigitalAssetDecimals) {
         value
       }
-      totalSupply @include(if: $includeTotalSupply) {
+      totalSupply @include(if: $includeDigitalAssetTotalSupply) {
         value
       }
       lsp4Metadata {
-        description @include(if: $includeDescription) {
+        description @include(if: $includeDigitalAssetDescription) {
           value
         }
-        category @include(if: $includeCategory) {
+        category @include(if: $includeDigitalAssetCategory) {
           value
         }
-        icon @include(if: $includeIcons) {
+        icon @include(if: $includeDigitalAssetIcons) {
           url
           width
           height
           verification_method
           verification_data
         }
-        images @include(if: $includeImages) {
+        images @include(if: $includeDigitalAssetImages) {
           url
           width
           height
@@ -31226,35 +31250,35 @@ export const GetOwnedTokenDocument = new TypedDocumentString(`
           verification_method
           verification_data
         }
-        links @include(if: $includeLinks) {
+        links @include(if: $includeDigitalAssetLinks) {
           title
           url
         }
-        attributes @include(if: $includeAttributes) {
+        attributes @include(if: $includeDigitalAssetAttributes) {
           key
           value
           type
         }
       }
-      owner @include(if: $includeOwner) {
+      owner @include(if: $includeDigitalAssetOwner) {
         address
         timestamp
       }
-      ownedAssets_aggregate @include(if: $includeHolderCount) {
+      ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
         aggregate {
           count
         }
       }
-      lsp4CreatorsLength @include(if: $includeCreatorCount) {
+      lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
         value
       }
-      lsp8ReferenceContract @include(if: $includeReferenceContract) {
+      lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
         value
       }
-      lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+      lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
         value
       }
-      lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+      lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
         value
       }
     }
@@ -31349,7 +31373,7 @@ export const GetOwnedTokenDocument = new TypedDocumentString(`
       transaction_index @include(if: $includeOwnedAssetTransactionIndex)
       log_index @include(if: $includeOwnedAssetLogIndex)
     }
-    universalProfile @include(if: $includeHolder) {
+    universalProfile @include(if: $includeProfile) {
       address
       timestamp @include(if: $includeProfileTimestamp)
       block_number @include(if: $includeProfileBlockNumber)
@@ -31405,7 +31429,7 @@ export const GetOwnedTokenDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<GetOwnedTokenQuery, GetOwnedTokenQueryVariables>;
 export const GetOwnedTokensDocument = new TypedDocumentString(`
-    query GetOwnedTokens($where: owned_token_bool_exp, $order_by: [owned_token_order_by!], $limit: Int, $offset: Int, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeName: Boolean! = true, $includeSymbol: Boolean! = true, $includeTokenType: Boolean! = true, $includeDecimals: Boolean! = true, $includeTotalSupply: Boolean! = true, $includeDescription: Boolean! = true, $includeCategory: Boolean! = true, $includeIcons: Boolean! = true, $includeImages: Boolean! = true, $includeLinks: Boolean! = true, $includeAttributes: Boolean! = true, $includeOwner: Boolean! = true, $includeHolderCount: Boolean! = true, $includeCreatorCount: Boolean! = true, $includeReferenceContract: Boolean! = true, $includeTokenIdFormat: Boolean! = true, $includeBaseUri: Boolean! = true, $includeNft: Boolean! = true, $includeNftFormattedTokenId: Boolean! = true, $includeNftName: Boolean! = true, $includeNftDescription: Boolean! = true, $includeNftCategory: Boolean! = true, $includeNftIcons: Boolean! = true, $includeNftImages: Boolean! = true, $includeNftLinks: Boolean! = true, $includeNftAttributes: Boolean! = true, $includeNftTimestamp: Boolean! = true, $includeNftBlockNumber: Boolean! = true, $includeNftTransactionIndex: Boolean! = true, $includeNftLogIndex: Boolean! = true, $includeOwnedAsset: Boolean! = true, $includeOwnedAssetBalance: Boolean! = true, $includeOwnedAssetTimestamp: Boolean! = true, $includeOwnedAssetBlockNumber: Boolean! = true, $includeOwnedAssetTransactionIndex: Boolean! = true, $includeOwnedAssetLogIndex: Boolean! = true, $includeHolder: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeProfileTimestamp: Boolean! = true, $includeProfileBlockNumber: Boolean! = true, $includeProfileTransactionIndex: Boolean! = true, $includeProfileLogIndex: Boolean! = true) {
+    query GetOwnedTokens($where: owned_token_bool_exp, $order_by: [owned_token_order_by!], $limit: Int, $offset: Int, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeDigitalAssetName: Boolean! = true, $includeDigitalAssetSymbol: Boolean! = true, $includeDigitalAssetTokenType: Boolean! = true, $includeDigitalAssetDecimals: Boolean! = true, $includeDigitalAssetTotalSupply: Boolean! = true, $includeDigitalAssetDescription: Boolean! = true, $includeDigitalAssetCategory: Boolean! = true, $includeDigitalAssetIcons: Boolean! = true, $includeDigitalAssetImages: Boolean! = true, $includeDigitalAssetLinks: Boolean! = true, $includeDigitalAssetAttributes: Boolean! = true, $includeDigitalAssetOwner: Boolean! = true, $includeDigitalAssetHolderCount: Boolean! = true, $includeDigitalAssetCreatorCount: Boolean! = true, $includeDigitalAssetReferenceContract: Boolean! = true, $includeDigitalAssetTokenIdFormat: Boolean! = true, $includeDigitalAssetBaseUri: Boolean! = true, $includeDigitalAssetTimestamp: Boolean! = true, $includeDigitalAssetBlockNumber: Boolean! = true, $includeDigitalAssetTransactionIndex: Boolean! = true, $includeDigitalAssetLogIndex: Boolean! = true, $includeNft: Boolean! = true, $includeNftFormattedTokenId: Boolean! = true, $includeNftName: Boolean! = true, $includeNftDescription: Boolean! = true, $includeNftCategory: Boolean! = true, $includeNftIcons: Boolean! = true, $includeNftImages: Boolean! = true, $includeNftLinks: Boolean! = true, $includeNftAttributes: Boolean! = true, $includeNftTimestamp: Boolean! = true, $includeNftBlockNumber: Boolean! = true, $includeNftTransactionIndex: Boolean! = true, $includeNftLogIndex: Boolean! = true, $includeOwnedAsset: Boolean! = true, $includeOwnedAssetBalance: Boolean! = true, $includeOwnedAssetTimestamp: Boolean! = true, $includeOwnedAssetBlockNumber: Boolean! = true, $includeOwnedAssetTransactionIndex: Boolean! = true, $includeOwnedAssetLogIndex: Boolean! = true, $includeProfile: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeProfileTimestamp: Boolean! = true, $includeProfileBlockNumber: Boolean! = true, $includeProfileTransactionIndex: Boolean! = true, $includeProfileLogIndex: Boolean! = true) {
   owned_token(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
     id
     address
@@ -31418,40 +31442,40 @@ export const GetOwnedTokensDocument = new TypedDocumentString(`
     digitalAsset @include(if: $includeDigitalAsset) {
       id
       address
-      timestamp @include(if: $includeTimestamp)
-      block_number @include(if: $includeBlockNumber)
-      transaction_index @include(if: $includeTransactionIndex)
-      log_index @include(if: $includeLogIndex)
-      lsp4TokenName @include(if: $includeName) {
+      timestamp @include(if: $includeDigitalAssetTimestamp)
+      block_number @include(if: $includeDigitalAssetBlockNumber)
+      transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+      log_index @include(if: $includeDigitalAssetLogIndex)
+      lsp4TokenName @include(if: $includeDigitalAssetName) {
         value
       }
-      lsp4TokenSymbol @include(if: $includeSymbol) {
+      lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
         value
       }
-      lsp4TokenType @include(if: $includeTokenType) {
+      lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
         value
       }
-      decimals @include(if: $includeDecimals) {
+      decimals @include(if: $includeDigitalAssetDecimals) {
         value
       }
-      totalSupply @include(if: $includeTotalSupply) {
+      totalSupply @include(if: $includeDigitalAssetTotalSupply) {
         value
       }
       lsp4Metadata {
-        description @include(if: $includeDescription) {
+        description @include(if: $includeDigitalAssetDescription) {
           value
         }
-        category @include(if: $includeCategory) {
+        category @include(if: $includeDigitalAssetCategory) {
           value
         }
-        icon @include(if: $includeIcons) {
+        icon @include(if: $includeDigitalAssetIcons) {
           url
           width
           height
           verification_method
           verification_data
         }
-        images @include(if: $includeImages) {
+        images @include(if: $includeDigitalAssetImages) {
           url
           width
           height
@@ -31459,35 +31483,35 @@ export const GetOwnedTokensDocument = new TypedDocumentString(`
           verification_method
           verification_data
         }
-        links @include(if: $includeLinks) {
+        links @include(if: $includeDigitalAssetLinks) {
           title
           url
         }
-        attributes @include(if: $includeAttributes) {
+        attributes @include(if: $includeDigitalAssetAttributes) {
           key
           value
           type
         }
       }
-      owner @include(if: $includeOwner) {
+      owner @include(if: $includeDigitalAssetOwner) {
         address
         timestamp
       }
-      ownedAssets_aggregate @include(if: $includeHolderCount) {
+      ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
         aggregate {
           count
         }
       }
-      lsp4CreatorsLength @include(if: $includeCreatorCount) {
+      lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
         value
       }
-      lsp8ReferenceContract @include(if: $includeReferenceContract) {
+      lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
         value
       }
-      lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+      lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
         value
       }
-      lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+      lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
         value
       }
     }
@@ -31582,7 +31606,7 @@ export const GetOwnedTokensDocument = new TypedDocumentString(`
       transaction_index @include(if: $includeOwnedAssetTransactionIndex)
       log_index @include(if: $includeOwnedAssetLogIndex)
     }
-    universalProfile @include(if: $includeHolder) {
+    universalProfile @include(if: $includeProfile) {
       address
       timestamp @include(if: $includeProfileTimestamp)
       block_number @include(if: $includeProfileBlockNumber)
@@ -31643,7 +31667,7 @@ export const GetOwnedTokensDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<GetOwnedTokensQuery, GetOwnedTokensQueryVariables>;
 export const OwnedTokenSubscriptionDocument = new TypedDocumentString(`
-    subscription OwnedTokenSubscription($where: owned_token_bool_exp, $order_by: [owned_token_order_by!], $limit: Int, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeName: Boolean! = true, $includeSymbol: Boolean! = true, $includeTokenType: Boolean! = true, $includeDecimals: Boolean! = true, $includeTotalSupply: Boolean! = true, $includeDescription: Boolean! = true, $includeCategory: Boolean! = true, $includeIcons: Boolean! = true, $includeImages: Boolean! = true, $includeLinks: Boolean! = true, $includeAttributes: Boolean! = true, $includeOwner: Boolean! = true, $includeHolderCount: Boolean! = true, $includeCreatorCount: Boolean! = true, $includeReferenceContract: Boolean! = true, $includeTokenIdFormat: Boolean! = true, $includeBaseUri: Boolean! = true, $includeNft: Boolean! = true, $includeNftFormattedTokenId: Boolean! = true, $includeNftName: Boolean! = true, $includeNftDescription: Boolean! = true, $includeNftCategory: Boolean! = true, $includeNftIcons: Boolean! = true, $includeNftImages: Boolean! = true, $includeNftLinks: Boolean! = true, $includeNftAttributes: Boolean! = true, $includeNftTimestamp: Boolean! = true, $includeNftBlockNumber: Boolean! = true, $includeNftTransactionIndex: Boolean! = true, $includeNftLogIndex: Boolean! = true, $includeOwnedAsset: Boolean! = true, $includeOwnedAssetBalance: Boolean! = true, $includeOwnedAssetTimestamp: Boolean! = true, $includeOwnedAssetBlockNumber: Boolean! = true, $includeOwnedAssetTransactionIndex: Boolean! = true, $includeOwnedAssetLogIndex: Boolean! = true, $includeHolder: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeProfileTimestamp: Boolean! = true, $includeProfileBlockNumber: Boolean! = true, $includeProfileTransactionIndex: Boolean! = true, $includeProfileLogIndex: Boolean! = true) {
+    subscription OwnedTokenSubscription($where: owned_token_bool_exp, $order_by: [owned_token_order_by!], $limit: Int, $includeBlockNumber: Boolean! = true, $includeTimestamp: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeDigitalAssetName: Boolean! = true, $includeDigitalAssetSymbol: Boolean! = true, $includeDigitalAssetTokenType: Boolean! = true, $includeDigitalAssetDecimals: Boolean! = true, $includeDigitalAssetTotalSupply: Boolean! = true, $includeDigitalAssetDescription: Boolean! = true, $includeDigitalAssetCategory: Boolean! = true, $includeDigitalAssetIcons: Boolean! = true, $includeDigitalAssetImages: Boolean! = true, $includeDigitalAssetLinks: Boolean! = true, $includeDigitalAssetAttributes: Boolean! = true, $includeDigitalAssetOwner: Boolean! = true, $includeDigitalAssetHolderCount: Boolean! = true, $includeDigitalAssetCreatorCount: Boolean! = true, $includeDigitalAssetReferenceContract: Boolean! = true, $includeDigitalAssetTokenIdFormat: Boolean! = true, $includeDigitalAssetBaseUri: Boolean! = true, $includeDigitalAssetTimestamp: Boolean! = true, $includeDigitalAssetBlockNumber: Boolean! = true, $includeDigitalAssetTransactionIndex: Boolean! = true, $includeDigitalAssetLogIndex: Boolean! = true, $includeNft: Boolean! = true, $includeNftFormattedTokenId: Boolean! = true, $includeNftName: Boolean! = true, $includeNftDescription: Boolean! = true, $includeNftCategory: Boolean! = true, $includeNftIcons: Boolean! = true, $includeNftImages: Boolean! = true, $includeNftLinks: Boolean! = true, $includeNftAttributes: Boolean! = true, $includeNftTimestamp: Boolean! = true, $includeNftBlockNumber: Boolean! = true, $includeNftTransactionIndex: Boolean! = true, $includeNftLogIndex: Boolean! = true, $includeOwnedAsset: Boolean! = true, $includeOwnedAssetBalance: Boolean! = true, $includeOwnedAssetTimestamp: Boolean! = true, $includeOwnedAssetBlockNumber: Boolean! = true, $includeOwnedAssetTransactionIndex: Boolean! = true, $includeOwnedAssetLogIndex: Boolean! = true, $includeProfile: Boolean! = true, $includeProfileName: Boolean! = true, $includeProfileDescription: Boolean! = true, $includeProfileTags: Boolean! = true, $includeProfileLinks: Boolean! = true, $includeProfileAvatar: Boolean! = true, $includeProfileImage: Boolean! = true, $includeProfileBackgroundImage: Boolean! = true, $includeProfileFollowerCount: Boolean! = true, $includeProfileFollowingCount: Boolean! = true, $includeProfileTimestamp: Boolean! = true, $includeProfileBlockNumber: Boolean! = true, $includeProfileTransactionIndex: Boolean! = true, $includeProfileLogIndex: Boolean! = true) {
   owned_token(where: $where, order_by: $order_by, limit: $limit) {
     id
     address
@@ -31656,40 +31680,40 @@ export const OwnedTokenSubscriptionDocument = new TypedDocumentString(`
     digitalAsset @include(if: $includeDigitalAsset) {
       id
       address
-      timestamp @include(if: $includeTimestamp)
-      block_number @include(if: $includeBlockNumber)
-      transaction_index @include(if: $includeTransactionIndex)
-      log_index @include(if: $includeLogIndex)
-      lsp4TokenName @include(if: $includeName) {
+      timestamp @include(if: $includeDigitalAssetTimestamp)
+      block_number @include(if: $includeDigitalAssetBlockNumber)
+      transaction_index @include(if: $includeDigitalAssetTransactionIndex)
+      log_index @include(if: $includeDigitalAssetLogIndex)
+      lsp4TokenName @include(if: $includeDigitalAssetName) {
         value
       }
-      lsp4TokenSymbol @include(if: $includeSymbol) {
+      lsp4TokenSymbol @include(if: $includeDigitalAssetSymbol) {
         value
       }
-      lsp4TokenType @include(if: $includeTokenType) {
+      lsp4TokenType @include(if: $includeDigitalAssetTokenType) {
         value
       }
-      decimals @include(if: $includeDecimals) {
+      decimals @include(if: $includeDigitalAssetDecimals) {
         value
       }
-      totalSupply @include(if: $includeTotalSupply) {
+      totalSupply @include(if: $includeDigitalAssetTotalSupply) {
         value
       }
       lsp4Metadata {
-        description @include(if: $includeDescription) {
+        description @include(if: $includeDigitalAssetDescription) {
           value
         }
-        category @include(if: $includeCategory) {
+        category @include(if: $includeDigitalAssetCategory) {
           value
         }
-        icon @include(if: $includeIcons) {
+        icon @include(if: $includeDigitalAssetIcons) {
           url
           width
           height
           verification_method
           verification_data
         }
-        images @include(if: $includeImages) {
+        images @include(if: $includeDigitalAssetImages) {
           url
           width
           height
@@ -31697,35 +31721,35 @@ export const OwnedTokenSubscriptionDocument = new TypedDocumentString(`
           verification_method
           verification_data
         }
-        links @include(if: $includeLinks) {
+        links @include(if: $includeDigitalAssetLinks) {
           title
           url
         }
-        attributes @include(if: $includeAttributes) {
+        attributes @include(if: $includeDigitalAssetAttributes) {
           key
           value
           type
         }
       }
-      owner @include(if: $includeOwner) {
+      owner @include(if: $includeDigitalAssetOwner) {
         address
         timestamp
       }
-      ownedAssets_aggregate @include(if: $includeHolderCount) {
+      ownedAssets_aggregate @include(if: $includeDigitalAssetHolderCount) {
         aggregate {
           count
         }
       }
-      lsp4CreatorsLength @include(if: $includeCreatorCount) {
+      lsp4CreatorsLength @include(if: $includeDigitalAssetCreatorCount) {
         value
       }
-      lsp8ReferenceContract @include(if: $includeReferenceContract) {
+      lsp8ReferenceContract @include(if: $includeDigitalAssetReferenceContract) {
         value
       }
-      lsp8TokenIdFormat @include(if: $includeTokenIdFormat) {
+      lsp8TokenIdFormat @include(if: $includeDigitalAssetTokenIdFormat) {
         value
       }
-      lsp8TokenMetadataBaseUri @include(if: $includeBaseUri) {
+      lsp8TokenMetadataBaseUri @include(if: $includeDigitalAssetBaseUri) {
         value
       }
     }
@@ -31820,7 +31844,7 @@ export const OwnedTokenSubscriptionDocument = new TypedDocumentString(`
       transaction_index @include(if: $includeOwnedAssetTransactionIndex)
       log_index @include(if: $includeOwnedAssetLogIndex)
     }
-    universalProfile @include(if: $includeHolder) {
+    universalProfile @include(if: $includeProfile) {
       address
       timestamp @include(if: $includeProfileTimestamp)
       block_number @include(if: $includeProfileBlockNumber)

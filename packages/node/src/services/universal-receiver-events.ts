@@ -216,11 +216,11 @@ export function buildUniversalReceiverEventIncludeVars(
     }
   }
 
-  // Sender DA sub-includes: include* → includeFromAsset*
+  // Sender DA sub-includes: remap includeDigitalAsset* → includeFromAsset*.
   if (activeFromAsset) {
     const fromAssetVars = buildDigitalAssetIncludeVars(include.fromAsset);
     for (const [key, val] of Object.entries(fromAssetVars)) {
-      vars[key.replace('include', 'includeFromAsset')] = val;
+      vars[key.replace('includeDigitalAsset', 'includeFromAsset')] = val;
     }
   }
 
