@@ -27,31 +27,16 @@ import * as path from 'path';
 export function createRegistry(logger: Logger): PluginRegistry {
   const bootLogger = logger.child({ step: 'BOOTSTRAP' });
 
-  // Instantiate empty registry
-  const registry = new PluginRegistry();
+  // Instantiate registry with structured logger
+  const registry = new PluginRegistry(bootLogger);
 
   // Discover EventPlugins from plugins/events/ directory
   const pluginDir = path.resolve(__dirname, '../plugins/events');
   registry.discover([pluginDir]);
 
-  const pluginCount = registry.getAllEventPlugins().length;
-  bootLogger.info({ pluginCount }, 'Discovered EventPlugins');
-
   // Discover EntityHandlers from handlers/ directory
   const handlerDir = path.resolve(__dirname, '../handlers');
   registry.discoverHandlers([handlerDir]);
-
-  const handlers = registry.getAllEntityHandlers();
-  const handlerCount = handlers.length;
-  const handlerOrder = handlers.map((h) => h.name);
-
-  bootLogger.info(
-    {
-      handlerCount,
-      handlerOrder,
-    },
-    'Discovered EntityHandlers in dependency order',
-  );
 
   // Generate log subscriptions summary
   const subscriptions = registry.getLogSubscriptions();
