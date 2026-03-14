@@ -1165,4 +1165,87 @@ describe('Pipeline Integration', () => {
     expect(enrichedTransfer?.toProfile).toMatchObject({ id: '0xup2' });
     expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda1' });
   });
+
+  it('should emit BATCH_SUMMARY log with timing and entity counts', async () => {
+    const topic = '0xtopic';
+
+    // Plugin that creates a couple entities
+    const plugin: EventPlugin = {
+      name: 'test-plugin',
+      topic0: topic,
+      requiresVerification: [],
+      extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
+        ctx.addEntity('DataChanged', 'dc1', mkDataChanged('dc1'));
+        ctx.addEntity('DataChanged', 'dc2', mkDataChanged('dc2'));
+        ctx.addEntity('LSP7Transfer', 't1', mkTransfer('t1'));
+      },
+    };
+
+    // Handler that creates one more entity
+    const handler: EntityHandler = {
+      name: 'test-handler',
+      listensToBag: ['DataChanged'],
+      handle: async (hctx, triggeredBy) => {
+        const events = hctx.batchCtx.getEntities(triggeredBy);
+        if (events.size > 0) {
+          hctx.batchCtx.addEntity('Follow', 'f1', mkFollow('f1'));
+        }
+      },
+    };
+
+    const registry = new PluginRegistry();
+    registry.registerEventPlugin(plugin);
+    registry.registerEntityHandler(handler);
+
+    const store = createMockStore();
+    const context = createMockContext(store, [{ ...mockBlock, logs: [mockLog(topic)] }]);
+
+    await processBatch(context, {
+      registry,
+      verifyAddresses: createMockVerifyFn(),
+      workerPool: mockWorkerPool,
+    });
+
+    // Find the BATCH_SUMMARY log call
+    const batchSummaryCall = (context.log.info as any).mock.calls.find(
+      (call: any[]) => call[1] === 'Batch complete',
+    );
+
+    expect(batchSummaryCall).toBeDefined();
+
+    const summaryData = batchSummaryCall[0];
+
+    // Verify required fields are present
+    expect(summaryData).toHaveProperty('blockCount');
+    expect(summaryData).toHaveProperty('totalEntities');
+    expect(summaryData).toHaveProperty('totalEnrichments');
+    expect(summaryData).toHaveProperty('stepTimings');
+    expect(summaryData).toHaveProperty('totalDurationMs');
+
+    // Verify data types and reasonable values
+    expect(typeof summaryData.blockCount).toBe('number');
+    expect(typeof summaryData.totalEntities).toBe('number');
+    expect(typeof summaryData.totalEnrichments).toBe('number');
+    expect(typeof summaryData.totalDurationMs).toBe('number');
+    expect(summaryData.blockCount).toBe(1);
+    expect(summaryData.totalEntities).toBe(4); // 2 DataChanged + 1 Transfer + 1 Follow
+
+    // Verify step timings structure
+    const timings = summaryData.stepTimings;
+    expect(timings).toHaveProperty('extract');
+    expect(timings).toHaveProperty('persistRaw');
+    expect(timings).toHaveProperty('handle');
+    expect(timings).toHaveProperty('clearSubEntities');
+    expect(timings).toHaveProperty('deleteEntities');
+    expect(timings).toHaveProperty('persistDerived');
+    expect(timings).toHaveProperty('verify');
+    expect(timings).toHaveProperty('enrich');
+    expect(timings).toHaveProperty('resolve');
+
+    // All timing values should be non-negative numbers
+    Object.values(timings).forEach((timing) => {
+      expect(typeof timing).toBe('number');
+      expect(timing).toBeGreaterThanOrEqual(0);
+    });
+  });
 });
