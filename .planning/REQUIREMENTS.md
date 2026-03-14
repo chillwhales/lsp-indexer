@@ -78,7 +78,7 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 - [ ] **OPS-02**: Backup automation configured (scheduled dumps or WAL archiving)
 - [ ] **OPS-03**: Recovery procedure documented and tested
 
-### LSP29/LSP30 Decoding Update
+### LSP29/LSP31 Decoding Update
 
 - [ ] **LSP29-01**: `@chillwhales/lsp29` installed as indexer dependency and hand-rolled `src/constants/lsp29.ts` deleted
 - [ ] **LSP29-02**: TypeORM `schema.graphql` entities redesigned for v2.0.0 spec (provider-first encryption, per-backend chunks, encryption params entity replaces access control conditions)

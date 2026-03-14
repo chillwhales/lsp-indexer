@@ -242,4 +242,4 @@ Plans:
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-03-12 — Phases 20.1-20.3 inserted (logging overhaul + instrumentation + dashboard redesign)_
+_Last updated: 2026-03-14 — Phase 23 added (LSP29/LSP31 decoding update)_
