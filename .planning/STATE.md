@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
+milestone: v1.0
 milestone_name: Production Readiness
-status: planning
-last_updated: "2026-03-14T10:56:47.182Z"
-last_activity: 2026-03-14 — Completed 20.1-02 handler/utility/worker structured logging
+status: completed
+last_updated: "2026-03-14T16:35:08.552Z"
+last_activity: 2026-03-14 — Completed 20.2-01 pipeline step timing and batch summary
 progress:
   total_phases: 55
-  completed_phases: 46
-  total_plans: 135
-  completed_plans: 121
+  completed_phases: 47
+  total_plans: 136
+  completed_plans: 122
   percent: 90
 ---
 
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Phase 20.1 — Structured Logging Overhaul
-- **Plan:** 2 of 2 ✅
-- **Status:** Ready to plan
-- **Last activity:** 2026-03-14 — Completed 20.1-02 handler/utility/worker structured logging
+- **Phase:** Phase 20.2 — Pipeline Instrumentation
+- **Plan:** 1 of 1 ✅
+- **Status:** Phase complete
+- **Last activity:** 2026-03-14 — Completed 20.2-01 pipeline step timing and batch summary
 - **Progress:** [█████████░] 90%
 
 ## Milestone History
@@ -80,22 +80,23 @@ _None currently._
 | Phase 21 P01 | 8min | 3 tasks | 20 files |
 | Phase 21 P02 | 2min | 2 tasks | 8 files |
 | Phase 20.1 P02 | 7min | 2 tasks | 6 files |
+| Phase 20.2 P01 | 4min | 2 tasks | 3 files |
 
 ## Session Continuity
 
 ### Last Session
 
 - **Date:** 2026-03-14
-- **Activity:** Executed Phase 20.1-02 — handler/utility/worker structured logging migration
-- **Outcome:** 8 JSON.stringify + 13 template string + 1 console.warn migrated to structured attrs; worker LOG relay added
+- **Activity:** Executed Phase 20.2-01 — pipeline step timing and batch summary
+- **Outcome:** performance.now() timing on all 9 pipeline steps + BATCH_SUMMARY log with step timings, entity counts, total duration
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 20.1 complete:** All structured logging migration done (infrastructure + handlers + utilities + workers)
-- **Next:** Phase 20.2 pipeline instrumentation or Phase 20.3 dashboard redesign
-- **Patterns established:** step/handler/component attrs convention, worker LOG relay via postMessage type discrimination
+- **Phase 20.2 complete:** Pipeline instrumentation done (step timing wraps + batch summary log)
+- **Next:** Phase 20.3 dashboard redesign or next production readiness phase
+- **Patterns established:** step-timing-wrap pattern (performance.now() → durationMs log), BATCH_SUMMARY log pattern
 
 ---
 
-_Last updated: 2026-03-14 — Completed 20.1-02 handler/utility/worker structured logging_
+_Last updated: 2026-03-14 — Completed 20.2-01 pipeline step timing and batch summary_
