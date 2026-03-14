@@ -1,5 +1,17 @@
 # @chillwhales/indexer
 
+## 2.2.0
+
+### Minor Changes
+
+- [#313](https://github.com/chillwhales/lsp-indexer/pull/313) [`45a09c0`](https://github.com/chillwhales/lsp-indexer/commit/45a09c02780619cccebb9b54affb453d42ca9776) Thanks [@b00ste](https://github.com/b00ste)! - Add pipeline instrumentation with step timing and batch summary logging
+
+  - Add performance timing to all 9 pipeline steps (EXTRACT through RESOLVE)
+  - Emit structured durationMs logs for each step completion
+  - Add BATCH_SUMMARY log at end of processBatch() with comprehensive timing data
+  - Add missing createStepLogger loggers for EXTRACT and HANDLE steps
+  - Add getTotalEntityCount() method to BatchContext for entity metrics
+
 ## 2.1.4
 
 ### Patch Changes
