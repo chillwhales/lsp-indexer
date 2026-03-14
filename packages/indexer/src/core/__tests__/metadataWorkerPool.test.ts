@@ -10,7 +10,7 @@ interface MockWorker {
   postMessage: ReturnType<typeof vi.fn>;
   terminate: ReturnType<typeof vi.fn>;
   on: ReturnType<typeof vi.fn>;
-  _triggerMessage?: (results: unknown[]) => void;
+  _triggerMessage?: (message: unknown) => void;
   _triggerError?: (error: Error) => void;
   _triggerExit?: (code: number) => void;
 }
@@ -24,7 +24,7 @@ vi.mock('worker_threads', () => ({
       terminate: vi.fn().mockResolvedValue(undefined),
       on: vi.fn((event: string, handler: (...args: unknown[]) => void) => {
         if (event === 'message') {
-          worker._triggerMessage = (results) => handler(results);
+          worker._triggerMessage = (message) => handler(message);
         } else if (event === 'error') {
           worker._triggerError = (error) => handler(error);
         } else if (event === 'exit') {
@@ -624,6 +624,153 @@ describe('MetadataWorkerPool', () => {
       await vi.runAllTimersAsync();
       const results = await promise;
       expect(results).toHaveLength(10);
+    });
+  });
+
+  describe('Worker Log Message Relay', () => {
+    it('should relay LOG messages from worker without affecting job resolution', async () => {
+      const mockLogger = {
+        error: vi.fn(),
+        warn: vi.fn(),
+        info: vi.fn(),
+        debug: vi.fn(),
+        isLevelEnabled: vi.fn().mockReturnValue(true),
+      };
+
+      const pool = new MetadataWorkerPool({
+        poolSize: 1,
+        workerBatchSize: 2,
+      });
+      // Inject mock logger after creation since it's readonly
+      (pool as any).logger = mockLogger;
+
+      const requests = createMockRequests(2);
+
+      const fetchPromise = pool.fetchBatch(requests);
+      await tick();
+
+      // Worker sends a LOG message first
+      const worker = mockWorkerInstances[0];
+      const logMessage = {
+        type: 'LOG' as const,
+        level: 'error' as const,
+        attrs: { step: 'HANDLE', component: 'worker', error: 'Test error' },
+        message: 'Test log message from worker',
+      };
+      worker._triggerMessage?.(logMessage);
+      await tick();
+
+      // Verify log was relayed to parent logger with workerId
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        { step: 'HANDLE', component: 'worker', error: 'Test error', workerId: 0 },
+        'Test log message from worker',
+      );
+
+      // Worker then sends results - job should still resolve normally
+      const results = requests.map(createSuccessResult);
+      worker._triggerMessage?.(results);
+      await tick();
+
+      const finalResults = await fetchPromise;
+      expect(finalResults).toHaveLength(2);
+      expect(finalResults.every((r) => r.success)).toBe(true);
+      expect(finalResults[0].id).toBe('req-0');
+      expect(finalResults[1].id).toBe('req-1');
+    });
+
+    it('should handle all log levels and ignore invalid levels', async () => {
+      const mockLogger = {
+        error: vi.fn(),
+        warn: vi.fn(),
+        info: vi.fn(),
+        debug: vi.fn(),
+        isLevelEnabled: vi.fn().mockReturnValue(true),
+      };
+
+      const pool = new MetadataWorkerPool({
+        poolSize: 1,
+        workerBatchSize: 1,
+      });
+      (pool as any).logger = mockLogger;
+
+      const worker = mockWorkerInstances[0];
+
+      // Test all valid levels
+      const logLevels = [
+        { level: 'error' as const, fn: mockLogger.error },
+        { level: 'warn' as const, fn: mockLogger.warn },
+        { level: 'info' as const, fn: mockLogger.info },
+        { level: 'debug' as const, fn: mockLogger.debug },
+      ];
+
+      for (const { level, fn } of logLevels) {
+        const logMessage = {
+          type: 'LOG' as const,
+          level,
+          attrs: { test: true },
+          message: `Test ${level} message`,
+        };
+        worker._triggerMessage?.(logMessage);
+        await tick();
+
+        expect(fn).toHaveBeenCalledWith({ test: true, workerId: 0 }, `Test ${level} message`);
+      }
+
+      // Test invalid level (should be silently ignored)
+      const invalidMessage = {
+        type: 'LOG' as const,
+        level: 'invalid' as any,
+        attrs: { test: true },
+        message: 'Invalid level message',
+      };
+      worker._triggerMessage?.(invalidMessage);
+      await tick();
+
+      // No additional calls should have been made for invalid level
+      expect(mockLogger.error).toHaveBeenCalledTimes(1);
+      expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+      expect(mockLogger.info).toHaveBeenCalledTimes(1);
+      expect(mockLogger.debug).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle malformed messages gracefully', async () => {
+      const mockLogger = {
+        error: vi.fn(),
+        warn: vi.fn(),
+        info: vi.fn(),
+        debug: vi.fn(),
+        isLevelEnabled: vi.fn().mockReturnValue(true),
+      };
+
+      const pool = new MetadataWorkerPool({
+        poolSize: 1,
+        workerBatchSize: 1,
+      });
+      (pool as any).logger = mockLogger;
+
+      const worker = mockWorkerInstances[0];
+
+      // Test null message
+      worker._triggerMessage?.(null as any);
+      await tick();
+
+      // Test non-object message
+      worker._triggerMessage?.('string message' as any);
+      await tick();
+
+      // Test object without type property
+      worker._triggerMessage?.({ level: 'info', message: 'no type' } as any);
+      await tick();
+
+      // Test object with wrong type
+      worker._triggerMessage?.({ type: 'OTHER', level: 'info', message: 'wrong type' } as any);
+      await tick();
+
+      // No log methods should have been called
+      expect(mockLogger.error).not.toHaveBeenCalled();
+      expect(mockLogger.warn).not.toHaveBeenCalled();
+      expect(mockLogger.info).not.toHaveBeenCalled();
+      expect(mockLogger.debug).not.toHaveBeenCalled();
     });
   });
 });

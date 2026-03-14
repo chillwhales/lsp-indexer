@@ -12,6 +12,7 @@
 import axios from 'axios';
 import parseDataURL from 'data-urls';
 import { parentPort, workerData } from 'worker_threads';
+import type { WorkerLogMessage } from './types/workerMessages';
 
 // ---------------------------------------------------------------------------
 // Configuration passed from parent via workerData
@@ -64,14 +65,6 @@ interface FetchResult {
   errorCode?: string;
   errorStatus?: number;
   retryable: boolean;
-}
-
-/** Log message relayed from worker thread to parent for structured output. */
-interface WorkerLogMessage {
-  type: 'LOG';
-  level: 'error' | 'warn' | 'info' | 'debug';
-  attrs: Record<string, unknown>;
-  message: string;
 }
 
 /** Return type of data-urls parser (no DefinitelyTyped package available). */

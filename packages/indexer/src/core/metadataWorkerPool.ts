@@ -19,6 +19,7 @@ import type pino from 'pino';
 import { Worker } from 'worker_threads';
 import { getFileLogger } from './logger';
 import { FetchRequest, FetchResult, IMetadataWorkerPool } from './types';
+import type { WorkerLogMessage } from './types/workerMessages';
 
 // ---------------------------------------------------------------------------
 // Extended FetchResult from workers (includes retryable flag)
@@ -28,14 +29,6 @@ interface WorkerFetchResult extends FetchResult {
   retryable: boolean;
   errorCode?: string;
   errorStatus?: number;
-}
-
-/** Duplicated from metadataWorker.ts — worker threads can't import from src */
-interface WorkerLogMessage {
-  type: 'LOG';
-  level: 'error' | 'warn' | 'info' | 'debug';
-  attrs: Record<string, unknown>;
-  message: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -196,9 +189,25 @@ class PoolWorker {
     const logger = this.pool.logger;
     if (!logger) return;
     const attrs = { ...msg.attrs, workerId: this.workerId };
-    const validLevels: ReadonlySet<string> = new Set(['error', 'warn', 'info', 'debug']);
-    if (!validLevels.has(msg.level)) return;
-    logger[msg.level](attrs, msg.message);
+
+    // Use switch for type-safe direct dispatch instead of dynamic lookup
+    switch (msg.level) {
+      case 'error':
+        logger.error(attrs, msg.message);
+        break;
+      case 'warn':
+        logger.warn(attrs, msg.message);
+        break;
+      case 'info':
+        logger.info(attrs, msg.message);
+        break;
+      case 'debug':
+        logger.debug(attrs, msg.message);
+        break;
+      default:
+        // Invalid level - silently ignore
+        break;
+    }
   }
 
   execute(requests: FetchRequest[]): Promise<WorkerFetchResult[]> {
