@@ -200,12 +200,16 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
         }
       : undefined;
 
+  const batchStart = performance.now();
+
   // ---------------------------------------------------------------------------
   // Step 1: EXTRACT
   // Route each log to its EventPlugin by topic0. Plugins decode events and
   // store base entities in BatchContext with null FK references, then queue
   // enrichment requests for FK resolution.
   // ---------------------------------------------------------------------------
+  const extractLog = createStepLogger(context.log, 'EXTRACT', blockRange);
+  const extractStart = performance.now();
   for (const block of context.blocks) {
     for (const log of block.logs) {
       const topic0 = log.topics[0];
@@ -225,12 +229,15 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       plugin.extract(log, block, batchCtx);
     }
   }
+  const extractDurationMs = Math.round(performance.now() - extractStart);
+  extractLog.info({ durationMs: extractDurationMs }, 'Step complete');
 
   // ---------------------------------------------------------------------------
   // Step 2: PERSIST RAW
   // Batch-persist all raw event entities from step 1. These are inserted with
   // null FK references. FK resolution happens in step 6 after verification.
   // ---------------------------------------------------------------------------
+  const persistRawStart = performance.now();
   const persistRawLog = createStepLogger(context.log, 'PERSIST_RAW', blockRange);
   const rawEntityTypes = new Set(batchCtx.getEntityTypeKeys());
   for (const type of rawEntityTypes) {
@@ -246,6 +253,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
 
   // Seal raw entity types to prevent handlers from adding to them
   batchCtx.sealRawEntityTypes();
+  const persistRawDurationMs = Math.round(performance.now() - persistRawStart);
+  persistRawLog.info({ durationMs: persistRawDurationMs }, 'Step complete');
 
   // ---------------------------------------------------------------------------
   // Step 3: HANDLE
@@ -259,6 +268,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // Step 2 persistence. Attempting to add to a sealed type throws an error
   // to prevent silent data loss (Step 4 skips raw types).
   // ---------------------------------------------------------------------------
+  const handleLog = createStepLogger(context.log, 'HANDLE', blockRange);
+  const handleStart = performance.now();
   const handlerCtx = {
     store: context.store,
     context,
@@ -288,6 +299,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       }
     }
   }
+  const handleDurationMs = Math.round(performance.now() - handleStart);
+  handleLog.info({ durationMs: handleDurationMs }, 'Step complete');
 
   // ---------------------------------------------------------------------------
   // Step 3.5: CLEAR SUB-ENTITIES
@@ -295,6 +308,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // queue clear requests for sub-entities that need delete-then-reinsert
   // behavior (e.g., LSP6 permissions, allowed calls).
   // ---------------------------------------------------------------------------
+  const clearSubEntitiesStart = performance.now();
   const clearLog = createStepLogger(context.log, 'CLEAR_SUB_ENTITIES', blockRange);
   const clearQueue = batchCtx.getClearQueue();
   if (clearQueue.length > 0) {
@@ -312,6 +326,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       }
     }
   }
+  const clearSubEntitiesDurationMs = Math.round(performance.now() - clearSubEntitiesStart);
+  clearLog.info({ durationMs: clearSubEntitiesDurationMs }, 'Step complete');
 
   // ---------------------------------------------------------------------------
   // Step 4a: DELETE ENTITIES
@@ -319,6 +335,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // removal (e.g., OwnedToken/OwnedAsset with zero balance). Deletions run
   // BEFORE upserts to handle FK ordering (delete children before parents).
   // ---------------------------------------------------------------------------
+  const deleteEntitiesStart = performance.now();
   const deleteLog = createStepLogger(context.log, 'DELETE_ENTITIES', blockRange);
   const deleteQueue = batchCtx.getDeleteQueue();
   if (deleteQueue.length > 0) {
@@ -332,6 +349,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       }
     }
   }
+  const deleteEntitiesDurationMs = Math.round(performance.now() - deleteEntitiesStart);
+  deleteLog.info({ durationMs: deleteEntitiesDurationMs }, 'Step complete');
 
   // ---------------------------------------------------------------------------
   // Step 4b: PERSIST DERIVED
@@ -341,6 +360,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // non-null values in the specified mergeFields. Skip entity types already
   // persisted in step 2.
   // ---------------------------------------------------------------------------
+  const persistDerivedStart = performance.now();
   const persistDerivedLog = createStepLogger(context.log, 'PERSIST_DERIVED', blockRange);
   const allEntityTypes = batchCtx.getEntityTypeKeys();
   const derivedTypes = allEntityTypes.filter((type) => !rawEntityTypes.has(type));
@@ -366,6 +386,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       );
     }
   }
+  const persistDerivedDurationMs = Math.round(performance.now() - persistDerivedStart);
+  persistDerivedLog.info({ durationMs: persistDerivedDurationMs }, 'Step complete');
 
   // ---------------------------------------------------------------------------
   // Step 5 & 6: VERIFY + ENRICH (single-pass optimization)
@@ -374,6 +396,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   //   - Build the grouped enrichment map for FK assignment
   // Then verify addresses, persist core entities, and assign FKs.
   // ---------------------------------------------------------------------------
+  const verifyStart = performance.now();
   const enrichmentQueue = batchCtx.getEnrichmentQueue();
 
   // Single pass: collect addresses for verification AND group for enrichment
@@ -545,8 +568,11 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       requestList.push(request);
     }
   }
+  const verifyDurationMs = Math.round(performance.now() - verifyStart);
+  verifyLog.info({ durationMs: verifyDurationMs }, 'Step complete');
 
   // Step 6: ENRICH — Batch update FK fields per entity type
+  const enrichStart = performance.now();
   const enrichLog = createStepLogger(context.log, 'ENRICH', blockRange);
   for (const [entityType, entityMap] of grouped) {
     const entities = batchCtx.getEntities(entityType);
@@ -596,6 +622,8 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
       );
     }
   }
+  const enrichDurationMs = Math.round(performance.now() - enrichStart);
+  enrichLog.info({ durationMs: enrichDurationMs }, 'Step complete');
 
   // ---------------------------------------------------------------------------
   // Step 7: RESOLVE
@@ -611,7 +639,11 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   // and target→source (target in batch, source in DB) to handle cross-batch
   // dependencies regardless of which entity was created first.
   // ---------------------------------------------------------------------------
+  const resolveStart = performance.now();
   await resolveForeignKeys(context.store, batchCtx, context.log, blockRange);
+  const resolveDurationMs = Math.round(performance.now() - resolveStart);
+  const resolveTimingLog = createStepLogger(context.log, 'RESOLVE', blockRange);
+  resolveTimingLog.info({ durationMs: resolveDurationMs }, 'Step complete');
 }
 
 // ---------------------------------------------------------------------------

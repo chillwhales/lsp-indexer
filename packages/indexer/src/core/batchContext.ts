@@ -183,6 +183,17 @@ export class BatchContext implements IBatchContext {
     this.sealedRawTypes = new Set(this.entities.keys());
   }
 
+  /**
+   * Returns the total number of entities across all entity type bags.
+   */
+  getTotalEntityCount(): number {
+    let total = 0;
+    for (const map of this.entities.values()) {
+      total += map.size;
+    }
+    return total;
+  }
+
   // -------------------------------------------------------------------------
   // Verification results
   // -------------------------------------------------------------------------
