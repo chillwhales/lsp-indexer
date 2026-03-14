@@ -1,3 +1,4 @@
+import type { Logger } from '@subsquid/logger';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EntityHandler, EventPlugin, IPluginRegistry, LogSubscription } from './types';
@@ -70,6 +71,11 @@ function findFiles(dir: string, suffix: string): string[] {
 export class PluginRegistry implements IPluginRegistry {
   private readonly eventPlugins = new Map<string, EventPlugin>();
   private readonly entityHandlers: EntityHandler[] = [];
+  private readonly logger: Logger | null;
+
+  constructor(logger?: Logger) {
+    this.logger = logger?.child({ step: 'BOOTSTRAP', component: 'registry' }) ?? null;
+  }
 
   /**
    * Discover and register all event plugins from the given directories.
@@ -88,14 +94,14 @@ export class PluginRegistry implements IPluginRegistry {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const loaded = require(file);
         if (typeof loaded !== 'object' || loaded === null) {
-          console.warn(`[Registry] Invalid module export in ${file}, skipping`);
+          this.logger?.warn({ file }, 'Invalid module export, skipping');
           continue;
         }
         const plugin =
           'default' in loaded ? loaded.default : 'plugin' in loaded ? loaded.plugin : undefined;
 
         if (!plugin) {
-          console.warn(`[Registry] No default/plugin export in ${file}, skipping`);
+          this.logger?.warn({ file }, 'No default/plugin export, skipping');
           continue;
         }
 
@@ -108,12 +114,12 @@ export class PluginRegistry implements IPluginRegistry {
           }
           this.eventPlugins.set(plugin.topic0, plugin);
         } else {
-          console.warn(`[Registry] Export in ${file} does not implement EventPlugin, skipping`);
+          this.logger?.warn({ file }, 'Export does not implement EventPlugin, skipping');
         }
       }
     }
 
-    console.info(`[Registry] Discovered ${this.eventPlugins.size} event plugins`);
+    this.logger?.info({ pluginCount: this.eventPlugins.size }, 'Discovered event plugins');
   }
 
   /**
@@ -133,14 +139,14 @@ export class PluginRegistry implements IPluginRegistry {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const loaded = require(file);
         if (typeof loaded !== 'object' || loaded === null) {
-          console.warn(`[Registry] Invalid module export in ${file}, skipping`);
+          this.logger?.warn({ file }, 'Invalid module export, skipping');
           continue;
         }
         const handler =
           'default' in loaded ? loaded.default : 'handler' in loaded ? loaded.handler : undefined;
 
         if (!handler) {
-          console.warn(`[Registry] No default/handler export in ${file}, skipping`);
+          this.logger?.warn({ file }, 'No default/handler export, skipping');
           continue;
         }
 
@@ -153,12 +159,12 @@ export class PluginRegistry implements IPluginRegistry {
           }
           this.entityHandlers.push(handler);
         } else {
-          console.warn(`[Registry] Export in ${file} does not implement EntityHandler, skipping`);
+          this.logger?.warn({ file }, 'Export does not implement EntityHandler, skipping');
         }
       }
     }
 
-    console.info(`[Registry] Discovered ${this.entityHandlers.length} entity handlers`);
+    this.logger?.info({ handlerCount: this.entityHandlers.length }, 'Discovered entity handlers');
     this.topologicalSort();
   }
 

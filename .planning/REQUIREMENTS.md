@@ -53,10 +53,10 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 
 ### Structured Logging
 
-- [ ] **SLOG-01**: All `console.*` calls in indexer source migrated to structured Subsquid logger output, except worker threads where logger is unavailable, with queryable fields
-- [ ] **SLOG-02**: All `JSON.stringify()` anti-pattern log calls converted to proper `(attrs, message)` pattern
-- [ ] **SLOG-03**: All template string log messages in `metadataFetch.ts` converted to structured attrs
-- [ ] **SLOG-04**: All startup logs in `app/index.ts` include structured metadata fields
+- [x] **SLOG-01**: All `console.*` calls in indexer source migrated to structured Subsquid logger output, except worker threads where logger is unavailable, with queryable fields
+- [x] **SLOG-02**: All `JSON.stringify()` anti-pattern log calls converted to proper `(attrs, message)` pattern
+- [x] **SLOG-03**: All template string log messages in `metadataFetch.ts` converted to structured attrs
+- [x] **SLOG-04**: All startup logs in `app/index.ts` include structured metadata fields
 
 ### Pipeline Instrumentation
 
@@ -135,10 +135,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SORT-04 | Phase 21 | Complete |
 | SORT-05 | Phase 21 | Complete |
 | RELP-01 | Phase 21 | Complete |
-| SLOG-01 | Phase 20.1 | Pending |
-| SLOG-02 | Phase 20.1 | Pending |
-| SLOG-03 | Phase 20.1 | Pending |
-| SLOG-04 | Phase 20.1 | Pending |
+| SLOG-01 | Phase 20.1 | Complete |
+| SLOG-02 | Phase 20.1 | Complete |
+| SLOG-03 | Phase 20.1 | Complete |
+| SLOG-04 | Phase 20.1 | Complete |
 | INST-01 | Phase 20.2 | Pending |
 | INST-02 | Phase 20.2 | Pending |
 | INST-03 | Phase 20.2 | Pending |

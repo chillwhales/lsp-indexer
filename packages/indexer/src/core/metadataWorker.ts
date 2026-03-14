@@ -12,6 +12,7 @@
 import axios from 'axios';
 import parseDataURL from 'data-urls';
 import { parentPort, workerData } from 'worker_threads';
+import type { WorkerLogMessage } from './types/workerMessages';
 
 // ---------------------------------------------------------------------------
 // Configuration passed from parent via workerData
@@ -168,12 +169,23 @@ if (parentPort) {
         port.postMessage(results);
       })
       .catch((err: unknown) => {
-        console.error('[MetadataWorker] Fatal error processing requests:', err);
+        port.postMessage({
+          type: 'LOG',
+          level: 'error',
+          attrs: {
+            step: 'HANDLE',
+            component: 'worker',
+            error: err instanceof Error ? err.message : 'Unknown error',
+            ...(err instanceof Error && err.stack ? { errorStack: err.stack } : {}),
+          },
+          message: 'Fatal error processing requests',
+        } satisfies WorkerLogMessage);
         // Re-throw so the worker crashes — parent pool detects this via 'error' event
         throw err;
       });
   });
 } else {
+  // parentPort is null — cannot relay, console.error is the only option
   console.error(
     '[MetadataWorker] ERROR: parentPort is null - worker cannot communicate with parent',
   );

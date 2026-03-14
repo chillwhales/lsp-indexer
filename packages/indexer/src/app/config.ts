@@ -11,26 +11,33 @@ import { MetadataWorkerPool } from '@/core/metadataWorkerPool';
 import { PipelineConfig } from '@/core/pipeline';
 import { PluginRegistry } from '@/core/registry';
 import { createVerifyFn } from '@/core/verification';
+import type { Logger } from '@subsquid/logger';
 
 /**
  * Creates the pipeline configuration object for processBatch.
  *
  * @param registry - Fully initialized PluginRegistry with all plugins and handlers
+ * @param logger - Subsquid Logger instance for structured logging
  * @returns PipelineConfig with registry, verifyAddresses function, and worker pool
  */
-export function createPipelineConfig(registry: PluginRegistry): PipelineConfig {
+export function createPipelineConfig(registry: PluginRegistry, logger: Logger): PipelineConfig {
   // Read and validate worker pool size from environment variable
   const defaultPoolSize = 4;
   const poolSizeRaw = process.env.METADATA_WORKER_POOL_SIZE;
   let poolSize = parseInt(poolSizeRaw ?? `${defaultPoolSize}`, 10);
 
   if (!Number.isInteger(poolSize) || poolSize <= 0) {
-    console.error(
-      `Invalid METADATA_WORKER_POOL_SIZE='${poolSizeRaw}'. ` +
-        `Using default value ${defaultPoolSize}.`,
+    logger.warn(
+      { poolSizeRaw, defaultPoolSize, step: 'BOOTSTRAP', component: 'config' },
+      'Invalid METADATA_WORKER_POOL_SIZE, using default',
     );
     poolSize = defaultPoolSize;
   }
+
+  logger.info(
+    { poolSize, step: 'BOOTSTRAP', component: 'config' },
+    'MetadataWorkerPool configured',
+  );
 
   const workerPool = new MetadataWorkerPool({ poolSize });
 

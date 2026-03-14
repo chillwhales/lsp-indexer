@@ -105,10 +105,8 @@ const ChillClaimedHandler: EntityHandler = {
     if (unclaimedEntities.length === 0) return;
 
     context.log.info(
-      JSON.stringify({
-        message: 'Verifying CHILL claimed status',
-        totalCount: unclaimedEntities.length,
-      }),
+      { step: 'HANDLE', handler: 'chillClaimed', totalCount: unclaimedEntities.length },
+      'Verifying CHILL claimed status',
     );
 
     // Batch multicall to CHILL contract
@@ -121,14 +119,16 @@ const ChillClaimedHandler: EntityHandler = {
       const batch = unclaimedEntities.slice(start, start + BATCH_SIZE);
 
       context.log.info(
-        JSON.stringify({
-          message: 'Verifying CHILL claimed batch',
+        {
+          step: 'HANDLE',
+          handler: 'chillClaimed',
           batchIndex,
           batchSize: batch.length,
           verifiedCount: start,
           unverifiedCount: unclaimedEntities.length - start,
           totalCount: unclaimedEntities.length,
-        }),
+        },
+        'Verifying CHILL claimed batch',
       );
 
       try {
@@ -143,12 +143,14 @@ const ChillClaimedHandler: EntityHandler = {
         result.push(...batchResults);
       } catch (error) {
         context.log.warn(
-          JSON.stringify({
-            message: 'Multicall batch failed for CHILL claimed verification',
+          {
+            step: 'HANDLE',
+            handler: 'chillClaimed',
             batchIndex,
             batchSize: batch.length,
             error: error instanceof Error ? error.message : String(error),
-          }),
+          },
+          'Multicall batch failed for CHILL claimed verification',
         );
         // Skip this batch on error
         batchIndex++;
@@ -183,10 +185,8 @@ const ChillClaimedHandler: EntityHandler = {
     });
 
     context.log.info(
-      JSON.stringify({
-        message: 'CHILL claimed verification complete',
-        totalChecked: unclaimedEntities.length,
-      }),
+      { step: 'HANDLE', handler: 'chillClaimed', totalChecked: unclaimedEntities.length },
+      'CHILL claimed verification complete',
     );
   },
 };

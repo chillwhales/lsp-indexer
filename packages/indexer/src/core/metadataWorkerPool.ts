@@ -19,6 +19,7 @@ import type pino from 'pino';
 import { Worker } from 'worker_threads';
 import { getFileLogger } from './logger';
 import { FetchRequest, FetchResult, IMetadataWorkerPool } from './types';
+import type { WorkerLogMessage } from './types/workerMessages';
 
 // ---------------------------------------------------------------------------
 // Extended FetchResult from workers (includes retryable flag)
@@ -82,7 +83,20 @@ class PoolWorker {
   private createWorker(): Worker {
     const worker = new Worker(this.workerPath, { workerData: this.workerData });
 
-    worker.on('message', (results: WorkerFetchResult[]) => {
+    worker.on('message', (message: WorkerFetchResult[] | WorkerLogMessage) => {
+      // Handle worker log relay
+      if (
+        message &&
+        typeof message === 'object' &&
+        !Array.isArray(message) &&
+        'type' in message &&
+        message.type === 'LOG'
+      ) {
+        this.handleLogMessage(message);
+        return;
+      }
+      // Existing result handling
+      const results = message as WorkerFetchResult[];
       const job = this.pending;
       this.pending = null;
       this.busy = false;
@@ -169,6 +183,31 @@ class PoolWorker {
 
     // Trigger dispatch to give new worker work
     this.pool.triggerDispatch();
+  }
+
+  private handleLogMessage(msg: WorkerLogMessage): void {
+    const logger = this.pool.logger;
+    if (!logger) return;
+    const attrs = { ...msg.attrs, workerId: this.workerId };
+
+    // Use switch for type-safe direct dispatch instead of dynamic lookup
+    switch (msg.level) {
+      case 'error':
+        logger.error(attrs, msg.message);
+        break;
+      case 'warn':
+        logger.warn(attrs, msg.message);
+        break;
+      case 'info':
+        logger.info(attrs, msg.message);
+        break;
+      case 'debug':
+        logger.debug(attrs, msg.message);
+        break;
+      default:
+        // Invalid level - silently ignore
+        break;
+    }
   }
 
   execute(requests: FetchRequest[]): Promise<WorkerFetchResult[]> {

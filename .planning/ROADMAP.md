@@ -53,7 +53,7 @@ Full details: `milestones/v1.1-ROADMAP.md`
 - [x] **Phase 19: Block Ordering** — Add blockNumber/transactionIndex/logIndex to all entities (completed 2026-03-09)
 - [x] **Phase 19.1: Type System Tightening** — Remove unchecked generics from BatchContext, enforce Entity base type — INSERTED (completed 2026-03-10)
 - [ ] **Phase 20: Monitoring & Docker Image Release** — Grafana dashboards + release updated Docker image
-- [ ] **Phase 20.1: Structured Logging Overhaul** — Migrate all unstructured logs to queryable structured format — INSERTED
+- [x] **Phase 20.1: Structured Logging Overhaul** — Migrate all unstructured logs to queryable structured format — INSERTED (completed 2026-03-14)
 - [ ] **Phase 20.2: Pipeline Instrumentation** — Add step timing and batch summary logs — INSERTED
 - [ ] **Phase 20.3: Grafana Dashboard Redesign** — New panels leveraging structured log data — INSERTED
 - [x] **Phase 21: Sorting & Consumer Package Release** — Oldest/newest sorting across all 12 domains + release 4 packages (completed 2026-03-12)
@@ -214,7 +214,7 @@ Plans:
 | 19. Block Ordering | v1.2 | 3/3 | Complete | 2026-03-09 |
 | 19.1. Type System Tightening | v1.2 | 2/2 | Complete | 2026-03-10 |
 | 20. Monitoring & Docker Release | v1.2 | 1/2 | In Progress | - |
-| 20.1. Structured Logging Overhaul | v1.2 | 0/2 | Not started | - |
+| 20.1. Structured Logging Overhaul | v1.2 | 2/2 | Complete | 2026-03-14 |
 | 20.2. Pipeline Instrumentation | v1.2 | 0/TBD | Not started | - |
 | 20.3. Grafana Dashboard Redesign | v1.2 | 0/TBD | Not started | - |
 | 21. Sorting & Package Release | v1.2 | 2/2 | Complete | 2026-03-12 |
