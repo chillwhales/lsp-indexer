@@ -1,4 +1,4 @@
-# Phase 23: LSP29/LSP30 Decoding Update - Context
+# Phase 23: LSP29/LSP31 Decoding Update - Context
 
 **Gathered:** 2026-03-14
 **Status:** Ready for planning
@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Update the indexer's LSP29 encrypted asset decoding to match the latest spec from `@chillwhales/lsp29` and `@chillwhales/lsp30`. This is a complete redesign — LSP29 and LSP30 are two separate standards where LSP29 uses LSP30. All hand-rolled LSP29 code (constants, type guards, extractors, handlers) will be replaced with package imports. Consumer packages (types, node, react, next) will be updated with breaking changes to match the new schema.
+Update the indexer's LSP29 encrypted asset decoding to match the latest spec from `@chillwhales/lsp29` and `@chillwhales/lsp31`. This is a complete redesign — LSP29 and LSP31 are two separate standards where LSP29 uses LSP31. All hand-rolled LSP29 code (constants, type guards, extractors, handlers) will be replaced with package imports. Consumer packages (types, node, react, next) will be updated with breaking changes to match the new schema.
 
 </domain>
 
@@ -15,13 +15,13 @@ Update the indexer's LSP29 encrypted asset decoding to match the latest spec fro
 
 ### Spec changes scope
 - Complete redesign — not incremental updates to existing implementation
-- LSP29 and LSP30 are two separate standards; LSP29 uses LSP30
-- The authoritative source for the spec is the `@chillwhales/lsp29` and `@chillwhales/lsp30` npm packages (published) plus the LSPs repo in the chillwhales GitHub org
+- LSP29 and LSP31 are two separate standards; LSP29 uses LSP31
+- The authoritative source for the spec is the `@chillwhales/lsp29` and `@chillwhales/lsp31` npm packages (published) plus the LSPs repo in the chillwhales GitHub org
 
 ### Package adoption
 - Full replacement of hand-rolled LSP29 code — remove `src/constants/lsp29.ts` entirely, import data keys from `@chillwhales/lsp29`
 - Full replacement of hand-rolled type guards and extractors in `src/utils/index.ts` — use package functions directly
-- Import `@chillwhales/lsp29` and `@chillwhales/lsp30` as separate dependencies (not combined)
+- Import `@chillwhales/lsp29` and `@chillwhales/lsp31` as separate dependencies (not combined)
 - If the indexer needs utility functions that don't exist in the published packages: block the phase, open a PR to the LSPs repo, wait for release, then proceed
 
 ### Data migration
@@ -62,5 +62,5 @@ None — discussion stayed within phase scope
 
 ---
 
-*Phase: 23-lsp29-lsp30-decoding-update*
+*Phase: 23-lsp29-lsp31-decoding-update*
 *Context gathered: 2026-03-14*
