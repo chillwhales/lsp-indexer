@@ -108,10 +108,8 @@ const OrbsClaimedHandler: EntityHandler = {
     if (unclaimedEntities.length === 0) return;
 
     context.log.info(
-      JSON.stringify({
-        message: 'Verifying ORBS claimed status',
-        totalCount: unclaimedEntities.length,
-      }),
+      { step: 'HANDLE', handler: 'orbsClaimed', totalCount: unclaimedEntities.length },
+      'Verifying ORBS claimed status',
     );
 
     // Batch multicall to ORBS contract
@@ -124,14 +122,16 @@ const OrbsClaimedHandler: EntityHandler = {
       const batch = unclaimedEntities.slice(start, start + BATCH_SIZE);
 
       context.log.info(
-        JSON.stringify({
-          message: 'Verifying ORBS claimed batch',
+        {
+          step: 'HANDLE',
+          handler: 'orbsClaimed',
           batchIndex,
           batchSize: batch.length,
           verifiedCount: start,
           unverifiedCount: unclaimedEntities.length - start,
           totalCount: unclaimedEntities.length,
-        }),
+        },
+        'Verifying ORBS claimed batch',
       );
 
       try {
@@ -146,12 +146,14 @@ const OrbsClaimedHandler: EntityHandler = {
         result.push(...batchResults);
       } catch (error) {
         context.log.warn(
-          JSON.stringify({
-            message: 'Multicall batch failed for ORBS claimed verification',
+          {
+            step: 'HANDLE',
+            handler: 'orbsClaimed',
             batchIndex,
             batchSize: batch.length,
             error: error instanceof Error ? error.message : String(error),
-          }),
+          },
+          'Multicall batch failed for ORBS claimed verification',
         );
         // Skip this batch on error
         batchIndex++;
@@ -186,10 +188,8 @@ const OrbsClaimedHandler: EntityHandler = {
     });
 
     context.log.info(
-      JSON.stringify({
-        message: 'ORBS claimed verification complete',
-        totalChecked: unclaimedEntities.length,
-      }),
+      { step: 'HANDLE', handler: 'orbsClaimed', totalChecked: unclaimedEntities.length },
+      'ORBS claimed verification complete',
     );
   },
 };

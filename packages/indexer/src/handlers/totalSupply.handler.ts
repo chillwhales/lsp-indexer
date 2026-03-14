@@ -107,9 +107,15 @@ const TotalSupplyHandler: EntityHandler = {
         const current = updatedEntities.get(address) ?? entity;
 
         if (current.value < amount) {
-          console.warn(
-            `[totalSupply] Underflow clamped to 0 for address ${address}: ` +
-              `recorded=${current.value}, burn=${amount}`,
+          hctx.context.log.warn(
+            {
+              step: 'HANDLE',
+              handler: 'totalSupply',
+              address,
+              recorded: current.value.toString(),
+              burn: amount.toString(),
+            },
+            'Underflow clamped to 0',
           );
         }
 
