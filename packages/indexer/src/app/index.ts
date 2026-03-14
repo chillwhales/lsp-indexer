@@ -20,8 +20,9 @@ const shouldInitFileLogger =
   process.env.INDEXER_ENABLE_FILE_LOGGER === undefined ||
   process.env.INDEXER_ENABLE_FILE_LOGGER.toLowerCase() === 'true';
 
+const logDir = process.env.LOG_DIR || './logs';
+
 if (shouldInitFileLogger) {
-  const logDir = process.env.LOG_DIR || './logs';
   initFileLogger(logDir);
 }
 
@@ -29,9 +30,15 @@ if (shouldInitFileLogger) {
 const logger = createLogger('sqd:processor');
 
 if (shouldInitFileLogger) {
-  logger.info('File logging enabled — writing to JSON logs with daily rotation');
+  logger.info(
+    { step: 'BOOTSTRAP', component: 'startup', fileLogging: true, logDir },
+    'File logging enabled — writing to JSON logs with daily rotation',
+  );
 } else {
-  logger.info('File logging disabled — console output only');
+  logger.info(
+    { step: 'BOOTSTRAP', component: 'startup', fileLogging: false },
+    'File logging disabled — console output only',
+  );
 }
 
 // Bootstrap: discover and register all plugins and handlers
@@ -43,14 +50,17 @@ for (const sub of subscriptions) {
   processor.addLog(sub);
 }
 
-logger.info('Processor configured with log subscriptions from registry');
+logger.info(
+  { step: 'BOOTSTRAP', component: 'startup', subscriptionCount: subscriptions.length },
+  'Processor configured with log subscriptions from registry',
+);
 
 // Create pipeline configuration
-const pipelineConfig = createPipelineConfig(registry);
-logger.info('Pipeline configuration created');
+const pipelineConfig = createPipelineConfig(registry, logger);
+logger.info({ step: 'BOOTSTRAP', component: 'startup' }, 'Pipeline configuration created');
 
 // Start processor
-logger.info('Starting processor — indexer ready');
+logger.info({ step: 'BOOTSTRAP', component: 'startup' }, 'Starting processor — indexer ready');
 
 processor.run(new TypeormDatabase(), async (ctx) => {
   await processBatch(ctx, pipelineConfig);
