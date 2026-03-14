@@ -179,7 +179,11 @@ if (parentPort) {
         port.postMessage({
           type: 'LOG',
           level: 'error',
-          attrs: { step: 'METADATA_FETCH', component: 'worker', error: String(err) },
+          attrs: {
+            step: 'METADATA_FETCH',
+            component: 'worker',
+            error: err instanceof Error ? err.message : 'Unknown error',
+          },
           message: 'Fatal error processing requests',
         } satisfies WorkerLogMessage);
         // Re-throw so the worker crashes — parent pool detects this via 'error' event
