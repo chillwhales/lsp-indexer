@@ -55,7 +55,7 @@ Full details: `milestones/v1.1-ROADMAP.md`
 - [ ] **Phase 20: Monitoring & Docker Image Release** — Grafana dashboards + release updated Docker image
 - [x] **Phase 20.1: Structured Logging Overhaul** — Migrate all unstructured logs to queryable structured format — INSERTED (completed 2026-03-14)
 - [x] **Phase 20.2: Pipeline Instrumentation** — Add step timing and batch summary logs — INSERTED (completed 2026-03-14)
-- [ ] **Phase 20.3: Grafana Dashboard Redesign** — New panels leveraging structured log data — INSERTED
+- [x] **Phase 20.3: Grafana Dashboard Redesign** — New panels leveraging structured log data — INSERTED (completed 2026-03-14)
 - [x] **Phase 21: Sorting & Consumer Package Release** — Oldest/newest sorting across all 12 domains + release 4 packages (completed 2026-03-12)
 - [ ] **Phase 22: Database Operations** — Backup strategy, automation, and recovery procedure
 
@@ -222,7 +222,7 @@ Plans:
 | 20. Monitoring & Docker Release | v1.2 | 1/2 | In Progress | - |
 | 20.1. Structured Logging Overhaul | v1.2 | 2/2 | Complete | 2026-03-14 |
 | 20.2. Pipeline Instrumentation | v1.2 | 1/1 | Complete | 2026-03-14 |
-| 20.3. Grafana Dashboard Redesign | v1.2 | 0/1 | Not started | - |
+| 20.3. Grafana Dashboard Redesign | 1/1 | Complete   | 2026-03-14 | - |
 | 21. Sorting & Package Release | v1.2 | 2/2 | Complete | 2026-03-12 |
 | 22. Database Operations | v1.2 | 0/TBD | Not started | - |
 | 23. LSP29/LSP31 Decoding Update | v1.2 | 3/3 | Complete | 2026-03-15 |
