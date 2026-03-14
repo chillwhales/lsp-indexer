@@ -145,7 +145,11 @@ Plans:
   3. All `metadataFetch.ts` log calls use `(attrs, message)` pattern with extractable fields
   4. All `app/index.ts` startup logs include structured metadata
   5. `pnpm --filter=@chillwhales/indexer build` succeeds
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 20.1-01-PLAN.md — Core infrastructure + startup logging (LOGGING.md, registry injection, config, index.ts)
+- [ ] 20.1-02-PLAN.md — Handler + metadataFetch + worker migration (JSON.stringify, template strings, LOG relay)
 
 ### Phase 20.2: Pipeline Instrumentation
 **Goal**: Every pipeline step emits timing data and a batch summary enables at-a-glance health monitoring
