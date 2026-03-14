@@ -180,9 +180,10 @@ if (parentPort) {
           type: 'LOG',
           level: 'error',
           attrs: {
-            step: 'METADATA_FETCH',
+            step: 'HANDLE',
             component: 'worker',
             error: err instanceof Error ? err.message : 'Unknown error',
+            ...(err instanceof Error && err.stack ? { errorStack: err.stack } : {}),
           },
           message: 'Fatal error processing requests',
         } satisfies WorkerLogMessage);

@@ -92,7 +92,13 @@ class PoolWorker {
 
     worker.on('message', (message: WorkerFetchResult[] | WorkerLogMessage) => {
       // Handle worker log relay
-      if (!Array.isArray(message) && 'type' in message && message.type === 'LOG') {
+      if (
+        message &&
+        typeof message === 'object' &&
+        !Array.isArray(message) &&
+        'type' in message &&
+        message.type === 'LOG'
+      ) {
         this.handleLogMessage(message);
         return;
       }
@@ -190,10 +196,9 @@ class PoolWorker {
     const logger = this.pool.logger;
     if (!logger) return;
     const attrs = { ...msg.attrs, workerId: this.workerId };
-    const level = msg.level;
-    if (logger[level]) {
-      logger[level](attrs, msg.message);
-    }
+    const validLevels: ReadonlySet<string> = new Set(['error', 'warn', 'info', 'debug']);
+    if (!validLevels.has(msg.level)) return;
+    logger[msg.level](attrs, msg.message);
   }
 
   execute(requests: FetchRequest[]): Promise<WorkerFetchResult[]> {

@@ -382,14 +382,11 @@ export async function handleMetadataFetch(
         requestCount: batchRequests.length,
         durationMs: fetchDuration,
       };
-      if (typeof err === 'object' && err !== null) {
-        hctx.context.log.warn(
-          { ...failureAttrs, error: String(err) },
-          'Metadata fetch batch failed',
-        );
-      } else {
-        hctx.context.log.warn(failureAttrs, 'Metadata fetch batch failed');
-      }
+      const errorAttrs =
+        err instanceof Error
+          ? { error: err.message, ...(err.stack ? { errorStack: err.stack } : {}) }
+          : { error: typeof err === 'string' ? err : 'Unknown error' };
+      hctx.context.log.warn({ ...failureAttrs, ...errorAttrs }, 'Metadata fetch batch failed');
 
       // Mark all entities in this batch with error to prevent infinite retries
       // Without this, queryUnfetchedEntities() will keep retrying them on every head batch

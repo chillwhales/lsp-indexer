@@ -6,10 +6,12 @@ All logs use the `(attrs, message)` pattern — structured fields in the first a
 
 ## Core Fields (required on every log call)
 
-| Field       | Type           | Description                                        | Example                    |
-| ----------- | -------------- | -------------------------------------------------- | -------------------------- |
-| `step`      | `PipelineStep` | Pipeline step identifier                           | `'BOOTSTRAP'`, `'EXTRACT'` |
-| `component` | `string`       | Component emitting the log (or `handler`/`plugin`) | `'registry'`, `'startup'`  |
+| Field                                | Type           | Description                                          | Example                    |
+| ------------------------------------ | -------------- | ---------------------------------------------------- | -------------------------- |
+| `step`                               | `PipelineStep` | Pipeline step identifier                             | `'BOOTSTRAP'`, `'EXTRACT'` |
+| `component` or `handler` or `plugin` | `string`       | Component emitting the log — use exactly one variant | `'registry'`, `'startup'`  |
+
+Use `component` for infrastructure (registry, config, startup, worker). Use `handler` for EntityHandlers. Use `plugin` for EventPlugins.
 
 These fields are typically set once via `logger.child({ step, component })` and inherited by all subsequent log calls.
 
@@ -23,8 +25,8 @@ These fields are typically set once via `logger.child({ step, component })` and 
 | `entityType`   | `string` | Entity bag key                    | `'Transfer'`, `'LSP4Metadata'` |
 | `count`        | `number` | Numeric count of items            | `12`                           |
 | `file`         | `string` | Source file path (discovery logs) | `'/path/to/foo.plugin.js'`     |
-| `pluginName`   | `string` | Specific event plugin name        | `'lsp7Transfer'`               |
-| `handlerName`  | `string` | Specific entity handler name      | `'lsp4TokenName'`              |
+| `plugin`       | `string` | Specific event plugin name        | `'lsp7Transfer'`               |
+| `handler`      | `string` | Specific entity handler name      | `'lsp4TokenName'`              |
 | `pluginCount`  | `number` | Number of discovered plugins      | `11`                           |
 | `handlerCount` | `number` | Number of discovered handlers     | `20`                           |
 | `error`        | `string` | Error message string              | `'Connection refused'`         |
