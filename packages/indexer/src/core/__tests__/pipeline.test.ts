@@ -1185,7 +1185,7 @@ describe('Pipeline Integration', () => {
     const handler: EntityHandler = {
       name: 'test-handler',
       listensToBag: ['DataChanged'],
-      handle: async (hctx, triggeredBy) => {
+      handle: (hctx, triggeredBy) => {
         const events = hctx.batchCtx.getEntities(triggeredBy);
         if (events.size > 0) {
           hctx.batchCtx.addEntity('Follow', 'f1', mkFollow('f1'));
