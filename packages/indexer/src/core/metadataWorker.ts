@@ -66,6 +66,14 @@ interface FetchResult {
   retryable: boolean;
 }
 
+/** Log message relayed from worker thread to parent for structured output. */
+interface WorkerLogMessage {
+  type: 'LOG';
+  level: 'error' | 'warn' | 'info' | 'debug';
+  attrs: Record<string, unknown>;
+  message: string;
+}
+
 /** Return type of data-urls parser (no DefinitelyTyped package available). */
 interface DataURLResult {
   mimeType: { toString(): string };
@@ -168,12 +176,18 @@ if (parentPort) {
         port.postMessage(results);
       })
       .catch((err: unknown) => {
-        console.error('[MetadataWorker] Fatal error processing requests:', err);
+        port.postMessage({
+          type: 'LOG',
+          level: 'error',
+          attrs: { step: 'METADATA_FETCH', component: 'worker', error: String(err) },
+          message: 'Fatal error processing requests',
+        } satisfies WorkerLogMessage);
         // Re-throw so the worker crashes — parent pool detects this via 'error' event
         throw err;
       });
   });
 } else {
+  // parentPort is null — cannot relay, console.error is the only option
   console.error(
     '[MetadataWorker] ERROR: parentPort is null - worker cannot communicate with parent',
   );

@@ -30,6 +30,14 @@ interface WorkerFetchResult extends FetchResult {
   errorStatus?: number;
 }
 
+/** Duplicated from metadataWorker.ts — worker threads can't import from src */
+interface WorkerLogMessage {
+  type: 'LOG';
+  level: 'error' | 'warn' | 'info' | 'debug';
+  attrs: Record<string, unknown>;
+  message: string;
+}
+
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
@@ -82,7 +90,14 @@ class PoolWorker {
   private createWorker(): Worker {
     const worker = new Worker(this.workerPath, { workerData: this.workerData });
 
-    worker.on('message', (results: WorkerFetchResult[]) => {
+    worker.on('message', (message: WorkerFetchResult[] | WorkerLogMessage) => {
+      // Handle worker log relay
+      if (!Array.isArray(message) && 'type' in message && message.type === 'LOG') {
+        this.handleLogMessage(message);
+        return;
+      }
+      // Existing result handling
+      const results = message as WorkerFetchResult[];
       const job = this.pending;
       this.pending = null;
       this.busy = false;
@@ -169,6 +184,16 @@ class PoolWorker {
 
     // Trigger dispatch to give new worker work
     this.pool.triggerDispatch();
+  }
+
+  private handleLogMessage(msg: WorkerLogMessage): void {
+    const logger = this.pool.logger;
+    if (!logger) return;
+    const attrs = { ...msg.attrs, workerId: this.workerId };
+    const level = msg.level;
+    if (logger[level]) {
+      logger[level](attrs, msg.message);
+    }
   }
 
   execute(requests: FetchRequest[]): Promise<WorkerFetchResult[]> {
