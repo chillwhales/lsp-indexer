@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Readiness
 status: completed
-last_updated: "2026-03-14T09:56:16.379Z"
-last_activity: 2026-03-12 — Completed 21-02 consumer package release (changeset prepared)
+last_updated: "2026-03-14T10:49:02Z"
+last_activity: 2026-03-14 — Completed 20.1-01 infrastructure structured logging
 progress:
   total_phases: 55
   completed_phases: 45
@@ -21,16 +21,16 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.2 Production Readiness — Phase 21 complete, changeset prepared for 1.1.0 release (CI publishes on merge)
+**Current focus:** v1.2 Production Readiness — Phase 20.1 structured logging overhaul in progress
 
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Phase 21 — Sorting & Consumer Package Release (Complete)
-- **Plan:** 2 of 2 ✅
-- **Status:** Milestone complete
-- **Last activity:** 2026-03-12 — Completed 21-02 consumer package release (changeset prepared)
-- **Progress:** [█████████░] 89%
+- **Phase:** Phase 20.1 — Structured Logging Overhaul
+- **Plan:** 1 of 2 ✅
+- **Status:** In Progress
+- **Last activity:** 2026-03-14 — Completed 20.1-01 infrastructure structured logging
+- **Progress:** [█████████░] 90%
 
 ## Milestone History
 
@@ -47,10 +47,10 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 123 (36 v1.0 + 77 v1.1 + 10 v1.2)
+- **Plans completed:** 124 (36 v1.0 + 77 v1.1 + 11 v1.2)
 - **Plans failed:** 0
 - **Phases completed:** 49 (11 v1.0 + 33 v1.1 + 5 v1.2)
-- **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 12/26 (v1.2)
+- **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 14/26 (v1.2)
 
 ## Accumulated Context
 
@@ -84,17 +84,17 @@ _None currently._
 
 ### Last Session
 
-- **Date:** 2026-03-12
-- **Activity:** Executed Phase 21-02 — consumer package release with changeset
-- **Outcome:** Changeset prepared for 1.0.0 → 1.1.0 bump (CI handles version bump + publish on merge)
-- **Resume file:** .planning/phases/20.1-structured-logging-overhaul/20.1-CONTEXT.md
+- **Date:** 2026-03-14
+- **Activity:** Executed Phase 20.1-01 — infrastructure structured logging (registry, config, startup)
+- **Outcome:** LOGGING.md created, 8 console.* calls migrated to structured logging, all startup logs use (attrs, message) pattern
+- **Resume file:** .planning/phases/20.1-structured-logging-overhaul/20.1-02-PLAN.md
 
 ### Context for Next Session
 
-- **Phase 21 complete:** Sorting + release changeset prepared (packages still at 1.0.0 until merge)
-- **Phases 20.1-20.3 inserted:** Structured logging overhaul → pipeline instrumentation → dashboard redesign
-- **Next:** Next phase in roadmap (ready for `pnpm changeset publish` on merge to main)
+- **Phase 20.1 plan 01 complete:** Registry, config, startup migrated to structured logging
+- **Next:** 20.1-02 — Pipeline and handler structured logging migration
+- **Pattern established:** Optional Logger constructor injection, step + component on every log call
 
 ---
 
-_Last updated: 2026-03-13 — Fixed STATE.md to reflect changeset-based release workflow_
+_Last updated: 2026-03-14 — Completed 20.1-01 infrastructure structured logging_
