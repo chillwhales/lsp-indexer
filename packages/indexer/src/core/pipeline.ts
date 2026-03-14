@@ -644,6 +644,33 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
   const resolveDurationMs = Math.round(performance.now() - resolveStart);
   const resolveTimingLog = createStepLogger(context.log, 'RESOLVE', blockRange);
   resolveTimingLog.info({ durationMs: resolveDurationMs }, 'Step complete');
+
+  // ---------------------------------------------------------------------------
+  // BATCH SUMMARY
+  // Emit a single summary log with step timings, entity counts, and block range.
+  // ---------------------------------------------------------------------------
+  const totalDurationMs = Math.round(performance.now() - batchStart);
+  const batchLog = createStepLogger(context.log, 'BATCH_SUMMARY', blockRange);
+  batchLog.info(
+    {
+      blockCount: context.blocks.length,
+      totalEntities: batchCtx.getTotalEntityCount(),
+      totalEnrichments: enrichmentQueue.length,
+      stepTimings: {
+        extract: extractDurationMs,
+        persistRaw: persistRawDurationMs,
+        handle: handleDurationMs,
+        clearSubEntities: clearSubEntitiesDurationMs,
+        deleteEntities: deleteEntitiesDurationMs,
+        persistDerived: persistDerivedDurationMs,
+        verify: verifyDurationMs,
+        enrich: enrichDurationMs,
+        resolve: resolveDurationMs,
+      },
+      totalDurationMs,
+    },
+    'Batch complete',
+  );
 }
 
 // ---------------------------------------------------------------------------
