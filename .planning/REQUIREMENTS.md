@@ -60,9 +60,9 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 
 ### Pipeline Instrumentation
 
-- [ ] **INST-01**: Every pipeline step (EXTRACT through RESOLVE) emits timing data (`durationMs`)
-- [ ] **INST-02**: Batch summary log emitted at end of `processBatch()` with block range, entity counts, step timings, total elapsed
-- [ ] **INST-03**: EXTRACT and HANDLE steps have dedicated loggers (currently silent)
+- [x] **INST-01**: Every pipeline step (EXTRACT through RESOLVE) emits timing data (`durationMs`)
+- [x] **INST-02**: Batch summary log emitted at end of `processBatch()` with block range, entity counts, step timings, total elapsed
+- [x] **INST-03**: EXTRACT and HANDLE steps have dedicated loggers (currently silent)
 
 ### Grafana Dashboard
 
@@ -139,9 +139,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SLOG-02 | Phase 20.1 | Complete |
 | SLOG-03 | Phase 20.1 | Complete |
 | SLOG-04 | Phase 20.1 | Complete |
-| INST-01 | Phase 20.2 | Pending |
-| INST-02 | Phase 20.2 | Pending |
-| INST-03 | Phase 20.2 | Pending |
+| INST-01 | Phase 20.2 | Complete |
+| INST-02 | Phase 20.2 | Complete |
+| INST-03 | Phase 20.2 | Complete |
 | DASH-01 | Phase 20.3 | Pending |
 | DASH-02 | Phase 20.3 | Pending |
 | DASH-03 | Phase 20.3 | Pending |

@@ -336,3 +336,70 @@ describe('BatchContext - Raw Entity Type Sealing', () => {
     expect(ctx.hasEntities('DataChanged')).toBe(true);
   });
 });
+
+describe('BatchContext - Entity Count', () => {
+  it('should return zero for empty context', () => {
+    const ctx = new BatchContext();
+    expect(ctx.getTotalEntityCount()).toBe(0);
+  });
+
+  it('should count entities in single type bag', () => {
+    const ctx = new BatchContext();
+
+    ctx.addEntity('DataChanged', 'e1', dc('e1'));
+    ctx.addEntity('DataChanged', 'e2', dc('e2'));
+    ctx.addEntity('DataChanged', 'e3', dc('e3'));
+
+    expect(ctx.getTotalEntityCount()).toBe(3);
+  });
+
+  it('should count entities across multiple type bags', () => {
+    const ctx = new BatchContext();
+
+    ctx.addEntity('DataChanged', 'e1', dc('e1'));
+    ctx.addEntity('DataChanged', 'e2', dc('e2'));
+    ctx.addEntity('LSP7Transfer', 't1', tr('t1'));
+    ctx.addEntity('LSP7Transfer', 't2', tr('t2'));
+    ctx.addEntity('LSP7Transfer', 't3', tr('t3'));
+    ctx.addEntity('Follow', 'f1', fl('f1'));
+
+    expect(ctx.getTotalEntityCount()).toBe(6);
+  });
+
+  it('should return zero after adding and removing all entities', () => {
+    const ctx = new BatchContext();
+
+    ctx.addEntity('DataChanged', 'e1', dc('e1'));
+    ctx.addEntity('LSP7Transfer', 't1', tr('t1'));
+
+    expect(ctx.getTotalEntityCount()).toBe(2);
+
+    // Clear the entities (simulates what happens in real pipeline)
+    ctx.getEntities('DataChanged').clear();
+    ctx.getEntities('LSP7Transfer').clear();
+
+    expect(ctx.getTotalEntityCount()).toBe(0);
+  });
+
+  it('should handle mixed entity operations', () => {
+    const ctx = new BatchContext();
+
+    // Add some entities
+    ctx.addEntity('DataChanged', 'e1', dc('e1'));
+    ctx.addEntity('DataChanged', 'e2', dc('e2'));
+    expect(ctx.getTotalEntityCount()).toBe(2);
+
+    // Add different type
+    ctx.addEntity('LSP7Transfer', 't1', tr('t1'));
+    expect(ctx.getTotalEntityCount()).toBe(3);
+
+    // Remove one entity manually
+    ctx.getEntities('DataChanged').delete('e1');
+    expect(ctx.getTotalEntityCount()).toBe(2);
+
+    // Add more
+    ctx.addEntity('Follow', 'f1', fl('f1'));
+    ctx.addEntity('Follow', 'f2', fl('f2'));
+    expect(ctx.getTotalEntityCount()).toBe(4);
+  });
+});
