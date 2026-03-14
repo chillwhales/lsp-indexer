@@ -84,7 +84,7 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 - [ ] **LSP29-02**: TypeORM `schema.graphql` entities redesigned for v2.0.0 spec (provider-first encryption, per-backend chunks, encryption params entity replaces access control conditions)
 - [ ] **LSP29-03**: TypeORM codegen rebuilt and all generated entity classes compile cleanly
 - [ ] **LSP29-04**: `lsp29EncryptedAsset.handler.ts` imports data keys from `@chillwhales/lsp29` package (no hand-rolled constants)
-- [ ] **LSP29-05**: `lsp29EncryptedAssetFetch.handler.ts` uses `decodeLsp29Metadata()` from package for JSON validation and `isLsp29Asset()` type guard (no hand-rolled type guards/extractors)
+- [ ] **LSP29-05**: `lsp29EncryptedAssetFetch.handler.ts` uses `isLsp29Asset()` type guard from package for JSON validation (no hand-rolled type guards/extractors)
 - [ ] **LSP29-06**: All hand-rolled LSP29 type guards and extractors removed from `src/utils/index.ts`
 - [ ] **LSP29-07**: `types` package `encrypted-assets.ts` Zod schemas match new entity structure (encryption, chunks, params)
 - [ ] **LSP29-08**: `node` package GraphQL documents, parsers, and service rewritten for new Hasura schema

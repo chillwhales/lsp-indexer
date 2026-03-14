@@ -235,8 +235,8 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 23-01-PLAN.md — Package install + schema redesign + typeorm codegen rebuild
-- [ ] 23-02-PLAN.md — Handler rewrite + utils cleanup + entity registry update
+- [ ] 23-01-PLAN.md — Package install + schema redesign + typeorm codegen rebuild + entity registry update
+- [ ] 23-02-PLAN.md — Handler rewrite + utils cleanup
 - [ ] 23-03-PLAN.md — Consumer package updates (types + node + react + next) + build verification
 
 ---
