@@ -1,5 +1,11 @@
 # @chillwhales/indexer
 
+## 2.1.4
+
+### Patch Changes
+
+- [#310](https://github.com/chillwhales/lsp-indexer/pull/310) [`2f025d6`](https://github.com/chillwhales/lsp-indexer/commit/2f025d667829b0442a3a8ac054a2ff8db8bc4da6) Thanks [@b00ste](https://github.com/b00ste)! - Internal structured logging migration — migrated all console.\* calls to structured (attrs, message) pattern for Grafana/Loki queryability. All logs now emit structured fields queryable in Grafana/Loki, worker thread logs relay through parent, and LOGGING.md documents field conventions.
+
 ## 2.1.3
 
 ### Patch Changes
