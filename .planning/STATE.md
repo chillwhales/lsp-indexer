@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Readiness
 status: executing
-last_updated: "2026-03-15T10:01:40Z"
-last_activity: 2026-03-15 — Completed 23-01 schema foundation for LSP29 v2.0.0 spec
+last_updated: "2026-03-15T10:10:32Z"
+last_activity: 2026-03-15 — Completed 23-02 handler rewrite for LSP29 v2.0.0 spec
 progress:
   total_phases: 55
   completed_phases: 47
   total_plans: 137
-  completed_plans: 123
-  percent: 90
+  completed_plans: 124
+  percent: 91
 ---
 
 # State: LSP Indexer
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 - **Milestone:** v1.2 Production Readiness
 - **Phase:** Phase 23 — LSP29/LSP31 Decoding Update
-- **Plan:** 1 of 1 (Plan 01 complete)
+- **Plan:** 2 of 3 (Plan 02 complete)
 - **Status:** Executing
-- **Last activity:** 2026-03-15 — Completed 23-01 schema foundation for LSP29 v2.0.0 spec
-- **Progress:** [█████████░] 90%
+- **Last activity:** 2026-03-15 — Completed 23-02 handler rewrite for LSP29 v2.0.0 spec
+- **Progress:** [█████████░] 91%
 
 ## Milestone History
 
@@ -47,7 +47,7 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 126 (36 v1.0 + 77 v1.1 + 13 v1.2)
+- **Plans completed:** 127 (36 v1.0 + 77 v1.1 + 14 v1.2)
 - **Plans failed:** 0
 - **Phases completed:** 49 (11 v1.0 + 33 v1.1 + 5 v1.2)
 - **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 18/26 (v1.2)
@@ -83,22 +83,23 @@ _None currently._
 | Phase 20.1 P02 | 7min | 2 tasks | 6 files |
 | Phase 20.2 P01 | 4min | 2 tasks | 3 files |
 | Phase 23 P01 | 4min | 2 tasks | 3 files |
+| Phase 23 P02 | 6min | 2 tasks | 6 files |
 
 ## Session Continuity
 
 ### Last Session
 
 - **Date:** 2026-03-15
-- **Activity:** Executed Phase 23-01 — schema foundation for LSP29 v2.0.0 spec
-- **Outcome:** Installed @chillwhales/lsp29 + lsp31 packages, redesigned schema.graphql entities, updated entity registry
+- **Activity:** Executed Phase 23-02 — handler rewrite for LSP29 v2.0.0 spec
+- **Outcome:** Rewrote both LSP29 handlers to use @chillwhales/lsp29 package, removed hand-rolled utils
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 23 Plan 01 complete:** Schema foundation in place (entities, registry, packages)
-- **Next:** Check if more plans exist for phase 23, or next phase
-- **Decisions:** Used @chillwhales/lsp31@0.1.2 (0.1.0 not published), provider-first encryption model, per-backend chunk storage as JSON strings
+- **Phase 23 Plan 02 complete:** Handlers migrated to package imports
+- **Next:** Plan 03 (LSP31 handlers) remaining in phase 23
+- **Decisions:** Used isLsp29Asset() type guard for validation, kept isFileImage() shared utility
 
 ---
 
-_Last updated: 2026-03-15 — Completed 23-01 schema foundation for LSP29 v2.0.0 spec_
+_Last updated: 2026-03-15 — Completed 23-02 handler rewrite for LSP29 v2.0.0 spec_
