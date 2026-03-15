@@ -211,10 +211,10 @@ function EncryptionSection({
                   <span className="font-mono">{params.requiredTokenId}</span>
                 </div>
               )}
-              {params.followedAddresses && (
+              {params.followedAddresses && params.followedAddresses.length > 0 && (
                 <div className="flex gap-2">
                   <span className="text-muted-foreground w-28 shrink-0">Followed Addrs</span>
-                  <span className="font-mono break-all">{params.followedAddresses}</span>
+                  <span className="font-mono break-all">{params.followedAddresses.join(', ')}</span>
                 </div>
               )}
               {params.unlockTimestamp && (
@@ -312,28 +312,42 @@ function ChunksSection({
               <dd className="font-mono text-xs break-all">{chunks.iv}</dd>
             </div>
           )}
-          {chunks.ipfsChunks && (
+          {chunks.ipfsCids && chunks.ipfsCids.length > 0 && (
             <div className="flex gap-2">
-              <dt className="text-muted-foreground w-32 shrink-0">IPFS Chunks</dt>
-              <dd className="font-mono text-xs break-all">{chunks.ipfsChunks}</dd>
+              <dt className="text-muted-foreground w-32 shrink-0">IPFS CIDs</dt>
+              <dd className="font-mono text-xs break-all">{chunks.ipfsCids.join(', ')}</dd>
             </div>
           )}
-          {chunks.lumeraChunks && (
+          {chunks.lumeraActionIds && chunks.lumeraActionIds.length > 0 && (
             <div className="flex gap-2">
-              <dt className="text-muted-foreground w-32 shrink-0">Lumera Chunks</dt>
-              <dd className="font-mono text-xs break-all">{chunks.lumeraChunks}</dd>
+              <dt className="text-muted-foreground w-32 shrink-0">Lumera Actions</dt>
+              <dd className="font-mono text-xs break-all">{chunks.lumeraActionIds.join(', ')}</dd>
             </div>
           )}
-          {chunks.s3Chunks && (
+          {chunks.arweaveTransactionIds && chunks.arweaveTransactionIds.length > 0 && (
             <div className="flex gap-2">
-              <dt className="text-muted-foreground w-32 shrink-0">S3 Chunks</dt>
-              <dd className="font-mono text-xs break-all">{chunks.s3Chunks}</dd>
+              <dt className="text-muted-foreground w-32 shrink-0">Arweave Txs</dt>
+              <dd className="font-mono text-xs break-all">
+                {chunks.arweaveTransactionIds.join(', ')}
+              </dd>
             </div>
           )}
-          {chunks.arweaveChunks && (
+          {chunks.s3Keys && chunks.s3Keys.length > 0 && (
             <div className="flex gap-2">
-              <dt className="text-muted-foreground w-32 shrink-0">Arweave Chunks</dt>
-              <dd className="font-mono text-xs break-all">{chunks.arweaveChunks}</dd>
+              <dt className="text-muted-foreground w-32 shrink-0">S3 Keys</dt>
+              <dd className="font-mono text-xs break-all">{chunks.s3Keys.join(', ')}</dd>
+            </div>
+          )}
+          {chunks.s3Bucket && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">S3 Bucket</dt>
+              <dd className="font-mono text-xs">{chunks.s3Bucket}</dd>
+            </div>
+          )}
+          {chunks.s3Region && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">S3 Region</dt>
+              <dd className="font-mono text-xs">{chunks.s3Region}</dd>
             </div>
           )}
         </dl>

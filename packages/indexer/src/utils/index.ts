@@ -1,6 +1,7 @@
-import { DEAD_ADDRESS, ZERO_ADDRESS } from '@/constants';
+import { DEAD_ADDRESS, MAX_CHUNK_ARRAY_LENGTH, MAX_JSON_LENGTH, ZERO_ADDRESS } from '@/constants';
 import { BlockPosition } from '@/core/types';
 import { LSP4TokenTypeEnum, LSP8TokenIdFormatEnum, OperationType } from '@chillwhales/typeorm';
+import { isNumeric } from '@chillwhales/utils';
 import ERC725 from '@erc725/erc725.js';
 import type { Verification } from '@lukso/lsp2-contracts';
 import type { FileAsset, ImageMetadata, LinkMetadata } from '@lukso/lsp3-contracts';
@@ -51,21 +52,51 @@ export function decodeVerifiableUri(dataValue: string): {
   }
 }
 
-export function isNumeric(value: string): boolean {
-  if (typeof value !== 'string') return false;
-  return !isNaN(Number(value)) && !isNaN(parseFloat(value));
+/**
+ * Safely stringify a value and cap at MAX_JSON_LENGTH.
+ * Returns null if the value is nullish or the result exceeds the limit.
+ * Logs a warning when truncation occurs.
+ *
+ * @param value - The value to stringify
+ * @param fieldName - Optional field name for warning log context
+ */
+export function safeJsonStringify(value: unknown, fieldName?: string): string | null {
+  if (value == null) return null;
+  const json = JSON.stringify(value);
+  if (json.length > MAX_JSON_LENGTH) {
+    console.warn(
+      `[safeJsonStringify] Field "${fieldName ?? 'unknown'}" exceeded ${MAX_JSON_LENGTH} chars (${json.length}), storing null`,
+    );
+    return null;
+  }
+  return json;
 }
 
 /**
- * Check if an address is a null-ish address (zero or dead).
+ * Cap an array of strings at MAX_CHUNK_ARRAY_LENGTH.
+ * Returns null if the array is nullish or empty.
  *
- * These addresses cannot be Universal Profiles or Digital Assets, so they
- * should be filtered out before queueing enrichment requests to avoid
- * wasteful supportsInterface() RPC calls.
- *
- * @param address - The address to check (any casing)
- * @returns true if the address is zero or dead, false otherwise
+ * @param arr - The string array to cap
  */
+export function safeChunkArray(arr: string[] | undefined | null): string[] | null {
+  if (!arr || arr.length === 0) return null;
+  return arr.length <= MAX_CHUNK_ARRAY_LENGTH ? arr : arr.slice(0, MAX_CHUNK_ARRAY_LENGTH);
+}
+
+/**
+ * Safely convert a value to BigInt, returning null on failure.
+ * Handles string, number, and bigint inputs. Returns null for null/undefined
+ * or values that cannot be parsed (e.g., non-numeric strings).
+ */
+export function safeBigInt(value: unknown): bigint | null {
+  if (value == null) return null;
+  try {
+    return BigInt(value as string | number);
+  } catch {
+    return null;
+  }
+}
+
 export function isNullAddress(address: string): boolean {
   const lower = address.toLowerCase();
   return lower === ZERO_ADDRESS.toLowerCase() || lower === DEAD_ADDRESS.toLowerCase();

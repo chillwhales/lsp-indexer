@@ -1038,8 +1038,8 @@ type LSP29EncryptedAssetEncryptionParams
   # lsp8-ownership
   requiredTokenId: String
 
-  # lsp26-follower (stored as JSON array string)
-  followedAddresses: String
+  # lsp26-follower
+  followedAddresses: [String!]
 
   # time-locked
   unlockTimestamp: String
@@ -1059,11 +1059,13 @@ type LSP29EncryptedAssetChunks
   iv: String
   totalSize: BigInt
 
-  # Per-backend chunk references stored as JSON strings
-  ipfsChunks: String
-  lumeraChunks: String
-  s3Chunks: String
-  arweaveChunks: String
+  # Per-backend chunk references (matches LSP29 spec structure)
+  ipfsCids: [String!]
+  lumeraActionIds: [String!]
+  arweaveTransactionIds: [String!]
+  s3Keys: [String!]
+  s3Bucket: String
+  s3Region: String
 }
 
 type LSP29EncryptedAssetImage

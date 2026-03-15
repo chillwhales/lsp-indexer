@@ -8,9 +8,17 @@ import type {
   EncryptedAssetResult,
   PartialEncryptedAsset,
 } from '@lsp-indexer/types';
+import type { GetEncryptedAssetsQuery } from '../graphql/graphql';
 import { parseProfile } from './profiles';
 import { stripExcluded } from './strip';
 import { parseImages } from './utils';
+
+/** Raw Hasura row type from codegen — provides compile-time field name safety. */
+type RawEncryptedAsset = GetEncryptedAssetsQuery['lsp29_encrypted_asset'][number];
+type RawEncryptionParams = NonNullable<NonNullable<RawEncryptedAsset['encryption']>['params']>;
+type RawEncryption = NonNullable<RawEncryptedAsset['encryption']>;
+type RawFile = NonNullable<RawEncryptedAsset['file']>;
+type RawChunks = NonNullable<RawEncryptedAsset['chunks']>;
 
 // ---------------------------------------------------------------------------
 // Sub-object parsers — helpers for each nested type
@@ -26,7 +34,7 @@ import { parseImages } from './utils';
  * - `followed_addresses` → `followedAddresses`
  * - `unlock_timestamp` → `unlockTimestamp`
  */
-function parseEncryptionParams(raw: any): EncryptedAssetEncryptionParams {
+function parseEncryptionParams(raw: RawEncryptionParams): EncryptedAssetEncryptionParams {
   return {
     method: raw.method,
     tokenAddress: raw.token_address ?? null,
@@ -44,7 +52,7 @@ function parseEncryptionParams(raw: any): EncryptedAssetEncryptionParams {
  * `@include` directives in the GraphQL document — excluded fields are simply
  * absent from `raw`, so `raw.field ?? null` naturally returns `null`.
  */
-function parseEncryption(raw: any): EncryptedAssetEncryption {
+function parseEncryption(raw: RawEncryption): EncryptedAssetEncryption {
   return {
     provider: raw.provider ?? null,
     method: raw.method ?? null,
@@ -64,7 +72,7 @@ function parseEncryption(raw: any): EncryptedAssetEncryption {
  * Sub-field presence is controlled by `@include` directives in the GraphQL
  * document — excluded fields are absent from `raw`, so `?? null` handles them.
  */
-function parseFile(raw: any): EncryptedAssetFile {
+function parseFile(raw: RawFile): EncryptedAssetFile {
   return {
     hash: raw.hash ?? null,
     lastModified: raw.last_modified != null ? Number(raw.last_modified) : null,
@@ -83,14 +91,16 @@ function parseFile(raw: any): EncryptedAssetFile {
  * Sub-field presence is controlled by `@include` directives in the GraphQL
  * document — excluded fields are absent from `raw`, so `?? null` handles them.
  */
-function parseChunks(raw: any): EncryptedAssetChunks {
+function parseChunks(raw: RawChunks): EncryptedAssetChunks {
   return {
     iv: raw.iv ?? null,
     totalSize: raw.total_size != null ? Number(raw.total_size) : null,
-    ipfsChunks: raw.ipfs_chunks ?? null,
-    lumeraChunks: raw.lumera_chunks ?? null,
-    s3Chunks: raw.s3_chunks ?? null,
-    arweaveChunks: raw.arweave_chunks ?? null,
+    ipfsCids: raw.ipfs_cids ?? null,
+    lumeraActionIds: raw.lumera_action_ids ?? null,
+    arweaveTransactionIds: raw.arweave_transaction_ids ?? null,
+    s3Keys: raw.s3_keys ?? null,
+    s3Bucket: raw.s3_bucket ?? null,
+    s3Region: raw.s3_region ?? null,
   };
 }
 
@@ -99,13 +109,13 @@ function parseChunks(raw: any): EncryptedAssetChunks {
 // ---------------------------------------------------------------------------
 
 /** Parse a raw Hasura row into a clean domain type. */
-export function parseEncryptedAsset(raw: any): EncryptedAsset;
+export function parseEncryptedAsset(raw: RawEncryptedAsset): EncryptedAsset;
 export function parseEncryptedAsset<const I extends EncryptedAssetInclude>(
-  raw: any,
+  raw: RawEncryptedAsset,
   include: I,
 ): EncryptedAssetResult<I>;
 export function parseEncryptedAsset(
-  raw: any,
+  raw: RawEncryptedAsset,
   include?: EncryptedAssetInclude,
 ): EncryptedAsset | PartialEncryptedAsset {
   // Determine if encryption relation is included (boolean true or object form)
@@ -138,7 +148,6 @@ export function parseEncryptedAsset(
 
     // Universal Profile — parsed as full Profile via parseProfile.
     // Sub-include stripping handled by stripExcluded nestedConfig below.
-    // Uses `as any` cast for structural subtyping (sub-selection may omit `id`).
     universalProfile: raw.universalProfile ? parseProfile(raw.universalProfile) : null,
   };
 
@@ -171,13 +180,13 @@ export function parseEncryptedAsset(
 }
 
 /** Batch variant of parseEncryptedAsset. */
-export function parseEncryptedAssets(raw: any[]): EncryptedAsset[];
+export function parseEncryptedAssets(raw: RawEncryptedAsset[]): EncryptedAsset[];
 export function parseEncryptedAssets<const I extends EncryptedAssetInclude>(
-  raw: any[],
+  raw: RawEncryptedAsset[],
   include: I,
 ): EncryptedAssetResult<I>[];
 export function parseEncryptedAssets(
-  raw: any[],
+  raw: RawEncryptedAsset[],
   include?: EncryptedAssetInclude,
 ): (EncryptedAsset | PartialEncryptedAsset)[] {
   if (include) return raw.map((r) => parseEncryptedAsset(r, include));

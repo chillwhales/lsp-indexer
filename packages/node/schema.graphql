@@ -1,3 +1,8 @@
+# TODO: Re-dump from Hasura after v2.0.0 DB migration — stale v1.0 LSP29 fields
+# remain in aggregate/ordering/bool_exp types (e.g., ciphertext, cids,
+# accessControlConditions). These don't affect query/subscription documents
+# but will be cleaned up on next `pnpm --filter=@lsp-indexer/node schema:dump`.
+
 schema {
   query: query_root
   subscription: subscription_root
@@ -4667,18 +4672,20 @@ input lsp29_encrypted_asset_bool_exp {
 columns and relationships of "lsp29_encrypted_asset_chunks"
 """
 type lsp29_encrypted_asset_chunks {
-  arweave_chunks: String
+  arweave_transaction_ids: [String!]
   block_number: Int!
   id: String!
-  ipfs_chunks: String
+  ipfs_cids: [String!]
   iv: String
   log_index: Int!
-  lumera_chunks: String
+  lumera_action_ids: [String!]
 
   """An object relationship"""
   lsp29EncryptedAsset: lsp29_encrypted_asset
   lsp29_encrypted_asset_id: String
-  s3_chunks: String
+  s3_keys: [String!]
+  s3_bucket: String
+  s3_region: String
   timestamp: timestamptz!
   total_size: numeric
   transaction_index: Int!
@@ -5691,7 +5698,7 @@ columns and relationships of "lsp29_encrypted_asset_encryption_params"
 """
 type lsp29_encrypted_asset_encryption_params {
   block_number: Int!
-  followed_addresses: String
+  followed_addresses: [String!]
   id: String!
   log_index: Int!
 

@@ -26,7 +26,6 @@ import {
   isFileAsset,
   isFileImage,
   isLink,
-  isNumeric,
   parseAttributeRarity,
   parseAttributeScore,
 } from '@/utils';
@@ -48,6 +47,7 @@ import {
   LSP4MetadataRank,
   LSP4MetadataScore,
 } from '@chillwhales/typeorm';
+import { isNumeric } from '@chillwhales/utils';
 import { v4 as uuidv4 } from 'uuid';
 
 // ---------------------------------------------------------------------------

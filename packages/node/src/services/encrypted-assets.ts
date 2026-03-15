@@ -184,10 +184,13 @@ export function buildEncryptedAssetIncludeVars(
     includeChunks: isChunksIncluded,
     includeChunksIv: chunksInc === true || (chunksObj?.iv ?? false),
     includeChunksTotalSize: chunksInc === true || (chunksObj?.totalSize ?? false),
-    includeChunksIpfsChunks: chunksInc === true || (chunksObj?.ipfsChunks ?? false),
-    includeChunksLumeraChunks: chunksInc === true || (chunksObj?.lumeraChunks ?? false),
-    includeChunksS3Chunks: chunksInc === true || (chunksObj?.s3Chunks ?? false),
-    includeChunksArweaveChunks: chunksInc === true || (chunksObj?.arweaveChunks ?? false),
+    includeChunksIpfsCids: chunksInc === true || (chunksObj?.ipfsCids ?? false),
+    includeChunksLumeraActionIds: chunksInc === true || (chunksObj?.lumeraActionIds ?? false),
+    includeChunksArweaveTransactionIds:
+      chunksInc === true || (chunksObj?.arweaveTransactionIds ?? false),
+    includeChunksS3Keys: chunksInc === true || (chunksObj?.s3Keys ?? false),
+    includeChunksS3Bucket: chunksInc === true || (chunksObj?.s3Bucket ?? false),
+    includeChunksS3Region: chunksInc === true || (chunksObj?.s3Region ?? false),
 
     // Universal Profile
     includeUniversalProfile: activeUniversalProfile,

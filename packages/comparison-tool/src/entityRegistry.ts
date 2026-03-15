@@ -110,7 +110,7 @@ export const ENTITY_REGISTRY: EntityDefinition[] = [
   entity('LSP29EncryptedAssetDescription', 'metadata', lsp29Sub),
   entity('LSP29EncryptedAssetFile', 'metadata', lsp29Sub),
   entity('LSP29EncryptedAssetEncryption', 'metadata', lsp29Sub),
-  entity('LSP29AccessControlCondition', 'metadata', {
+  entity('LSP29EncryptedAssetEncryptionParams', 'metadata', {
     isMetadataSub: true,
     parentFk: 'encryption_id',
   }),

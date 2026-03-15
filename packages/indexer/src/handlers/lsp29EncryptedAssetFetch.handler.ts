@@ -3,7 +3,8 @@
  *
  * Subscribes to the 'LSP29EncryptedAsset' entity bag (created by
  * lsp29EncryptedAsset.handler.ts), fetches JSON metadata from URLs via the
- * worker pool, and parses the response into 7 sub-entity types:
+ * worker pool, and parses the response into 6 sub-entity types
+ * (plus EncryptionParams linked to Encryption, not Asset):
  *
  *   1. LSP29EncryptedAssetTitle       (1:1 with LSP29EncryptedAsset)
  *   2. LSP29EncryptedAssetDescription (1:1 with LSP29EncryptedAsset)
@@ -11,14 +12,11 @@
  *   4. LSP29EncryptedAssetEncryption  (1:1 with LSP29EncryptedAsset)
  *   5. LSP29EncryptedAssetChunks      (1:1 with LSP29EncryptedAsset)
  *   6. LSP29EncryptedAssetImage       (many per LSP29EncryptedAsset — nested arrays)
+ *   +  LSP29EncryptedAssetEncryptionParams (1:1 with Encryption — see NOTE)
  *
- * NOTE: LSP29EncryptedAssetEncryptionParams (1:1 with Encryption) is also
- * created during parsing but is NOT in SUB_ENTITY_DESCRIPTORS — its FK
- * points to Encryption (not Asset), so it cannot be cleared by asset ID.
+ * NOTE: LSP29EncryptedAssetEncryptionParams is NOT in SUB_ENTITY_DESCRIPTORS —
+ * its FK points to Encryption (not Asset), so it cannot be cleared by asset ID.
  * Params are cleared via DB cascade when their parent Encryption is removed.
- *
- * Additionally creates LSP29EncryptedAssetEncryptionParams (1:1 with Encryption),
- * but this entity is NOT in SUB_ENTITY_DESCRIPTORS — see note above.
  *
  * Uses `isLsp29Asset()` from @chillwhales/lsp29 for v2.0.0 schema validation
  * instead of hand-rolled type guards.
@@ -28,7 +26,7 @@
  */
 import { createComponentLogger } from '@/core/logger';
 import { EntityHandler, HandlerContext } from '@/core/types';
-import { isFileImage } from '@/utils';
+import { isFileImage, safeBigInt, safeChunkArray, safeJsonStringify } from '@/utils';
 import {
   handleMetadataFetch,
   MetadataFetchConfig,
@@ -131,8 +129,8 @@ function parseAndAddSubEntities(
     timestamp: entity.timestamp,
     type: lsp29.file.type,
     name: lsp29.file.name,
-    size: lsp29.file.size != null ? BigInt(lsp29.file.size) : null,
-    lastModified: lsp29.file.lastModified != null ? BigInt(lsp29.file.lastModified) : null,
+    size: safeBigInt(lsp29.file.size),
+    lastModified: safeBigInt(lsp29.file.lastModified),
     hash: lsp29.file.hash,
   });
   hctx.batchCtx.addEntity('LSP29EncryptedAssetFile', fileEntity.id, fileEntity);
@@ -147,21 +145,18 @@ function parseAndAddSubEntities(
     timestamp: entity.timestamp,
     provider: lsp29.encryption.provider,
     method: lsp29.encryption.method,
-    condition:
-      lsp29.encryption.condition != null ? JSON.stringify(lsp29.encryption.condition) : null,
-    encryptedKey:
-      lsp29.encryption.encryptedKey != null ? JSON.stringify(lsp29.encryption.encryptedKey) : null,
+    condition: safeJsonStringify(lsp29.encryption.condition, 'encryption.condition'),
+    encryptedKey: safeJsonStringify(lsp29.encryption.encryptedKey, 'encryption.encryptedKey'),
   });
   hctx.batchCtx.addEntity('LSP29EncryptedAssetEncryption', encryptionEntity.id, encryptionEntity);
 
-  // 5. Encryption params (1:1 with encryption, replaces AccessControlCondition)
+  // 5. Encryption params (1:1 with encryption)
   // Guard: params is required in v2.0.0 (enforced by isLsp29Asset()), but defensive
   // null check protects against future spec changes or malformed data.
   // Params is a discriminated union on `method` — properties differ per variant,
   // so `'prop' in params` is required for safe access across union members.
   const params = lsp29.encryption.params;
   if (params) {
-    const followedAddr = 'followedAddresses' in params ? params.followedAddresses : null;
     const paramsEntity = new LSP29EncryptedAssetEncryptionParams({
       id: uuidv4(),
       encryption: new LSP29EncryptedAssetEncryption({ id: encryptionEntity.id }),
@@ -173,13 +168,14 @@ function parseAndAddSubEntities(
       tokenAddress: 'tokenAddress' in params ? params.tokenAddress : null,
       requiredBalance: 'requiredBalance' in params ? params.requiredBalance : null,
       requiredTokenId: 'requiredTokenId' in params ? params.requiredTokenId : null,
-      followedAddresses: Array.isArray(followedAddr) ? JSON.stringify(followedAddr) : null,
+      followedAddresses:
+        'followedAddresses' in params ? safeChunkArray(params.followedAddresses) : null,
       unlockTimestamp: 'unlockTimestamp' in params ? params.unlockTimestamp : null,
     });
     hctx.batchCtx.addEntity('LSP29EncryptedAssetEncryptionParams', paramsEntity.id, paramsEntity);
   }
 
-  // 6. Chunks (required in v2.0.0) — per-backend JSON columns
+  // 6. Chunks (required in v2.0.0) — per-backend typed columns matching LSP29 spec
   const chunksEntity = new LSP29EncryptedAssetChunks({
     id: uuidv4(),
     lsp29EncryptedAsset: parentRef,
@@ -188,11 +184,13 @@ function parseAndAddSubEntities(
     logIndex: entity.logIndex,
     timestamp: entity.timestamp,
     iv: lsp29.chunks.iv,
-    totalSize: lsp29.chunks.totalSize != null ? BigInt(lsp29.chunks.totalSize) : null,
-    ipfsChunks: lsp29.chunks.ipfs ? JSON.stringify(lsp29.chunks.ipfs) : null,
-    lumeraChunks: lsp29.chunks.lumera ? JSON.stringify(lsp29.chunks.lumera) : null,
-    s3Chunks: lsp29.chunks.s3 ? JSON.stringify(lsp29.chunks.s3) : null,
-    arweaveChunks: lsp29.chunks.arweave ? JSON.stringify(lsp29.chunks.arweave) : null,
+    totalSize: safeBigInt(lsp29.chunks.totalSize),
+    ipfsCids: safeChunkArray(lsp29.chunks.ipfs?.cids),
+    lumeraActionIds: safeChunkArray(lsp29.chunks.lumera?.actionIds),
+    arweaveTransactionIds: safeChunkArray(lsp29.chunks.arweave?.transactionIds),
+    s3Keys: safeChunkArray(lsp29.chunks.s3?.keys),
+    s3Bucket: lsp29.chunks.s3?.bucket ?? null,
+    s3Region: lsp29.chunks.s3?.region ?? null,
   });
   hctx.batchCtx.addEntity('LSP29EncryptedAssetChunks', chunksEntity.id, chunksEntity);
 

@@ -201,6 +201,9 @@ importers:
       '@chillwhales/typeorm':
         specifier: workspace:*
         version: link:../typeorm
+      '@chillwhales/utils':
+        specifier: ^0.2.1
+        version: 0.2.1(viem@2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6))
       '@erc725/erc725.js':
         specifier: ^0.28.1
         version: 0.28.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)
@@ -832,6 +835,12 @@ packages:
 
   '@chillwhales/lsp31@0.1.2':
     resolution: {integrity: sha512-DLnHNbfjKYSBonmSHq0sl3UYWEfE32OLjbYa/d0rQq82v2yqDvoGSpHam9T5zOa+bammKT9vwYOK6dtOtidUUw==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      viem: ^2.47.0
+
+  '@chillwhales/utils@0.2.1':
+    resolution: {integrity: sha512-koKnge48ds8E9vXAEYyXF3RE2dGUt7kqylggiDN8zldr2VVPc/ZFSYfqYjbFZ09hBgLjpw866z/SfDO4dMfTyA==}
     engines: {node: '>=22'}
     peerDependencies:
       viem: ^2.47.0
@@ -9119,6 +9128,11 @@ snapshots:
     dependencies:
       viem: 2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)
       zod: 4.3.6
+
+  '@chillwhales/utils@0.2.1(viem@2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6))':
+    dependencies:
+      '@chillwhales/lsp2': 0.2.1(viem@2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6))
+      viem: 2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)
 
   '@colors/colors@1.5.0':
     optional: true

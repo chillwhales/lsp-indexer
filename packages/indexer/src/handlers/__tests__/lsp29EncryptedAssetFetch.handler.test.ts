@@ -438,7 +438,7 @@ describe('LSP29EncryptedAssetFetchHandler - Successful fetch (META-03)', () => {
     expect(params.requiredBalance).toBe('1000');
   });
 
-  it('creates Chunks with per-backend JSON columns and BigInt totalSize', async () => {
+  it('creates Chunks with per-backend typed arrays and BigInt totalSize', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx, { isHead: true });
 
@@ -467,12 +467,14 @@ describe('LSP29EncryptedAssetFetchHandler - Successful fetch (META-03)', () => {
     );
     expect(chunksCalls.length).toBe(1);
     const chunks = chunksCalls[0][2] as LSP29EncryptedAssetChunks;
-    expect(chunks.ipfsChunks).toBe(JSON.stringify({ cids: ['QmChunk1', 'QmChunk2', 'QmChunk3'] }));
+    expect(chunks.ipfsCids).toEqual(['QmChunk1', 'QmChunk2', 'QmChunk3']);
     expect(chunks.iv).toBe('iv-random-bytes');
     expect(chunks.totalSize).toBe(BigInt(3145728));
-    expect(chunks.lumeraChunks).toBeNull();
-    expect(chunks.s3Chunks).toBeNull();
-    expect(chunks.arweaveChunks).toBeNull();
+    expect(chunks.lumeraActionIds).toBeNull();
+    expect(chunks.arweaveTransactionIds).toBeNull();
+    expect(chunks.s3Keys).toBeNull();
+    expect(chunks.s3Bucket).toBeNull();
+    expect(chunks.s3Region).toBeNull();
   });
 
   it('creates Images with imageIndex', async () => {

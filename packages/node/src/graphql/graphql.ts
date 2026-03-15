@@ -14114,17 +14114,19 @@ export type Lsp29_Encrypted_Asset_Bool_Exp = {
 /** columns and relationships of "lsp29_encrypted_asset_chunks" */
 export type Lsp29_Encrypted_Asset_Chunks = {
   __typename?: 'lsp29_encrypted_asset_chunks';
-  arweave_chunks?: Maybe<Scalars['String']['output']>;
+  arweave_transaction_ids?: Maybe<Array<Scalars['String']['output']>>;
   block_number: Scalars['Int']['output'];
   id: Scalars['String']['output'];
-  ipfs_chunks?: Maybe<Scalars['String']['output']>;
+  ipfs_cids?: Maybe<Array<Scalars['String']['output']>>;
   iv?: Maybe<Scalars['String']['output']>;
   log_index: Scalars['Int']['output'];
   /** An object relationship */
   lsp29EncryptedAsset?: Maybe<Lsp29_Encrypted_Asset>;
   lsp29_encrypted_asset_id?: Maybe<Scalars['String']['output']>;
-  lumera_chunks?: Maybe<Scalars['String']['output']>;
-  s3_chunks?: Maybe<Scalars['String']['output']>;
+  lumera_action_ids?: Maybe<Array<Scalars['String']['output']>>;
+  s3_bucket?: Maybe<Scalars['String']['output']>;
+  s3_keys?: Maybe<Array<Scalars['String']['output']>>;
+  s3_region?: Maybe<Scalars['String']['output']>;
   timestamp: Scalars['timestamptz']['output'];
   total_size?: Maybe<Scalars['numeric']['output']>;
   transaction_index: Scalars['Int']['output'];
@@ -14656,7 +14658,7 @@ export type Lsp29_Encrypted_Asset_Encryption_Order_By = {
 export type Lsp29_Encrypted_Asset_Encryption_Params = {
   __typename?: 'lsp29_encrypted_asset_encryption_params';
   block_number: Scalars['Int']['output'];
-  followed_addresses?: Maybe<Scalars['String']['output']>;
+  followed_addresses?: Maybe<Array<Scalars['String']['output']>>;
   id: Scalars['String']['output'];
   log_index: Scalars['Int']['output'];
   /** An object relationship */
@@ -27379,10 +27381,12 @@ export type GetEncryptedAssetsQueryVariables = Exact<{
   includeChunks?: Scalars['Boolean']['input'];
   includeChunksIv?: Scalars['Boolean']['input'];
   includeChunksTotalSize?: Scalars['Boolean']['input'];
-  includeChunksIpfsChunks?: Scalars['Boolean']['input'];
-  includeChunksLumeraChunks?: Scalars['Boolean']['input'];
-  includeChunksS3Chunks?: Scalars['Boolean']['input'];
-  includeChunksArweaveChunks?: Scalars['Boolean']['input'];
+  includeChunksIpfsCids?: Scalars['Boolean']['input'];
+  includeChunksLumeraActionIds?: Scalars['Boolean']['input'];
+  includeChunksArweaveTransactionIds?: Scalars['Boolean']['input'];
+  includeChunksS3Keys?: Scalars['Boolean']['input'];
+  includeChunksS3Bucket?: Scalars['Boolean']['input'];
+  includeChunksS3Region?: Scalars['Boolean']['input'];
   includeImages?: Scalars['Boolean']['input'];
   includeUniversalProfile?: Scalars['Boolean']['input'];
   includeUniversalProfileName?: Scalars['Boolean']['input'];
@@ -27401,7 +27405,7 @@ export type GetEncryptedAssetsQueryVariables = Exact<{
 }>;
 
 
-export type GetEncryptedAssetsQuery = { __typename?: 'query_root', lsp29_encrypted_asset: Array<{ __typename?: 'lsp29_encrypted_asset', address: string, content_id?: string | null, revision?: number | null, array_index?: string | null, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, title?: { __typename?: 'lsp29_encrypted_asset_title', value?: string | null } | null, description?: { __typename?: 'lsp29_encrypted_asset_description', value?: string | null } | null, encryption?: { __typename?: 'lsp29_encrypted_asset_encryption', provider?: string, method?: string, condition?: string | null, encrypted_key?: string | null, params?: { __typename?: 'lsp29_encrypted_asset_encryption_params', method: string, token_address?: string | null, required_balance?: string | null, required_token_id?: string | null, followed_addresses?: string | null, unlock_timestamp?: string | null } | null } | null, file?: { __typename?: 'lsp29_encrypted_asset_file', hash?: string | null, last_modified?: string | null, name?: string | null, size?: string | null, type?: string | null } | null, chunks?: { __typename?: 'lsp29_encrypted_asset_chunks', iv?: string | null, total_size?: string | null, ipfs_chunks?: string | null, lumera_chunks?: string | null, s3_chunks?: string | null, arweave_chunks?: string | null } | null, images?: Array<{ __typename?: 'lsp29_encrypted_asset_image', image_index: number, url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, universalProfile?: { __typename?: 'universal_profile', address: string, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }>, lsp29_encrypted_asset_aggregate: { __typename?: 'lsp29_encrypted_asset_aggregate', aggregate?: { __typename?: 'lsp29_encrypted_asset_aggregate_fields', count: number } | null } };
+export type GetEncryptedAssetsQuery = { __typename?: 'query_root', lsp29_encrypted_asset: Array<{ __typename?: 'lsp29_encrypted_asset', address: string, content_id?: string | null, revision?: number | null, array_index?: string | null, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, title?: { __typename?: 'lsp29_encrypted_asset_title', value?: string | null } | null, description?: { __typename?: 'lsp29_encrypted_asset_description', value?: string | null } | null, encryption?: { __typename?: 'lsp29_encrypted_asset_encryption', provider?: string, method?: string, condition?: string | null, encrypted_key?: string | null, params?: { __typename?: 'lsp29_encrypted_asset_encryption_params', method: string, token_address?: string | null, required_balance?: string | null, required_token_id?: string | null, followed_addresses?: Array<string> | null, unlock_timestamp?: string | null } | null } | null, file?: { __typename?: 'lsp29_encrypted_asset_file', hash?: string | null, last_modified?: string | null, name?: string | null, size?: string | null, type?: string | null } | null, chunks?: { __typename?: 'lsp29_encrypted_asset_chunks', iv?: string | null, total_size?: string | null, ipfs_cids?: Array<string> | null, lumera_action_ids?: Array<string> | null, arweave_transaction_ids?: Array<string> | null, s3_keys?: Array<string> | null, s3_bucket?: string | null, s3_region?: string | null } | null, images?: Array<{ __typename?: 'lsp29_encrypted_asset_image', image_index: number, url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, universalProfile?: { __typename?: 'universal_profile', address: string, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }>, lsp29_encrypted_asset_aggregate: { __typename?: 'lsp29_encrypted_asset_aggregate', aggregate?: { __typename?: 'lsp29_encrypted_asset_aggregate_fields', count: number } | null } };
 
 export type EncryptedAssetSubscriptionSubscriptionVariables = Exact<{
   where?: InputMaybe<Lsp29_Encrypted_Asset_Bool_Exp>;
@@ -27428,10 +27432,12 @@ export type EncryptedAssetSubscriptionSubscriptionVariables = Exact<{
   includeChunks?: Scalars['Boolean']['input'];
   includeChunksIv?: Scalars['Boolean']['input'];
   includeChunksTotalSize?: Scalars['Boolean']['input'];
-  includeChunksIpfsChunks?: Scalars['Boolean']['input'];
-  includeChunksLumeraChunks?: Scalars['Boolean']['input'];
-  includeChunksS3Chunks?: Scalars['Boolean']['input'];
-  includeChunksArweaveChunks?: Scalars['Boolean']['input'];
+  includeChunksIpfsCids?: Scalars['Boolean']['input'];
+  includeChunksLumeraActionIds?: Scalars['Boolean']['input'];
+  includeChunksArweaveTransactionIds?: Scalars['Boolean']['input'];
+  includeChunksS3Keys?: Scalars['Boolean']['input'];
+  includeChunksS3Bucket?: Scalars['Boolean']['input'];
+  includeChunksS3Region?: Scalars['Boolean']['input'];
   includeImages?: Scalars['Boolean']['input'];
   includeUniversalProfile?: Scalars['Boolean']['input'];
   includeUniversalProfileName?: Scalars['Boolean']['input'];
@@ -27450,7 +27456,7 @@ export type EncryptedAssetSubscriptionSubscriptionVariables = Exact<{
 }>;
 
 
-export type EncryptedAssetSubscriptionSubscription = { __typename?: 'subscription_root', lsp29_encrypted_asset: Array<{ __typename?: 'lsp29_encrypted_asset', address: string, content_id?: string | null, revision?: number | null, array_index?: string | null, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, title?: { __typename?: 'lsp29_encrypted_asset_title', value?: string | null } | null, description?: { __typename?: 'lsp29_encrypted_asset_description', value?: string | null } | null, encryption?: { __typename?: 'lsp29_encrypted_asset_encryption', provider?: string, method?: string, condition?: string | null, encrypted_key?: string | null, params?: { __typename?: 'lsp29_encrypted_asset_encryption_params', method: string, token_address?: string | null, required_balance?: string | null, required_token_id?: string | null, followed_addresses?: string | null, unlock_timestamp?: string | null } | null } | null, file?: { __typename?: 'lsp29_encrypted_asset_file', hash?: string | null, last_modified?: string | null, name?: string | null, size?: string | null, type?: string | null } | null, chunks?: { __typename?: 'lsp29_encrypted_asset_chunks', iv?: string | null, total_size?: string | null, ipfs_chunks?: string | null, lumera_chunks?: string | null, s3_chunks?: string | null, arweave_chunks?: string | null } | null, images?: Array<{ __typename?: 'lsp29_encrypted_asset_image', image_index: number, url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, universalProfile?: { __typename?: 'universal_profile', address: string, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
+export type EncryptedAssetSubscriptionSubscription = { __typename?: 'subscription_root', lsp29_encrypted_asset: Array<{ __typename?: 'lsp29_encrypted_asset', address: string, content_id?: string | null, revision?: number | null, array_index?: string | null, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, title?: { __typename?: 'lsp29_encrypted_asset_title', value?: string | null } | null, description?: { __typename?: 'lsp29_encrypted_asset_description', value?: string | null } | null, encryption?: { __typename?: 'lsp29_encrypted_asset_encryption', provider?: string, method?: string, condition?: string | null, encrypted_key?: string | null, params?: { __typename?: 'lsp29_encrypted_asset_encryption_params', method: string, token_address?: string | null, required_balance?: string | null, required_token_id?: string | null, followed_addresses?: Array<string> | null, unlock_timestamp?: string | null } | null } | null, file?: { __typename?: 'lsp29_encrypted_asset_file', hash?: string | null, last_modified?: string | null, name?: string | null, size?: string | null, type?: string | null } | null, chunks?: { __typename?: 'lsp29_encrypted_asset_chunks', iv?: string | null, total_size?: string | null, ipfs_cids?: Array<string> | null, lumera_action_ids?: Array<string> | null, arweave_transaction_ids?: Array<string> | null, s3_keys?: Array<string> | null, s3_bucket?: string | null, s3_region?: string | null } | null, images?: Array<{ __typename?: 'lsp29_encrypted_asset_image', image_index: number, url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, universalProfile?: { __typename?: 'universal_profile', address: string, timestamp?: any, block_number?: number, transaction_index?: number, log_index?: number, lsp3Profile?: { __typename?: 'lsp3_profile', name?: { __typename?: 'lsp3_profile_name', value?: string | null } | null, description?: { __typename?: 'lsp3_profile_description', value?: string | null } | null, tags?: Array<{ __typename?: 'lsp3_profile_tag', value?: string | null }>, links?: Array<{ __typename?: 'lsp3_profile_link', title?: string | null, url?: string | null }>, avatar?: Array<{ __typename?: 'lsp3_profile_asset', url?: string | null, file_type?: string | null, verification_method?: string | null, verification_data?: string | null }>, profileImage?: Array<{ __typename?: 'lsp3_profile_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }>, backgroundImage?: Array<{ __typename?: 'lsp3_profile_background_image', url?: string | null, width?: number | null, height?: number | null, verification_method?: string | null, verification_data?: string | null }> } | null, followedBy_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null }, followed_aggregate?: { __typename?: 'follow_aggregate', aggregate?: { __typename?: 'follow_aggregate_fields', count: number } | null } } | null }> };
 
 export type GetFollowersQueryVariables = Exact<{
   where?: InputMaybe<Follower_Bool_Exp>;
@@ -29314,7 +29320,7 @@ export const DigitalAssetSubscriptionDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<DigitalAssetSubscriptionSubscription, DigitalAssetSubscriptionSubscriptionVariables>;
 export const GetEncryptedAssetsDocument = new TypedDocumentString(`
-    query GetEncryptedAssets($where: lsp29_encrypted_asset_bool_exp, $order_by: [lsp29_encrypted_asset_order_by!], $limit: Int, $offset: Int, $includeArrayIndex: Boolean! = true, $includeTimestamp: Boolean! = true, $includeBlockNumber: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeTitle: Boolean! = true, $includeDescription: Boolean! = true, $includeEncryption: Boolean! = true, $includeEncryptionProvider: Boolean! = true, $includeEncryptionMethod: Boolean! = true, $includeEncryptionCondition: Boolean! = true, $includeEncryptionEncryptedKey: Boolean! = true, $includeEncryptionParams: Boolean! = true, $includeFile: Boolean! = true, $includeFileType: Boolean! = true, $includeFileSize: Boolean! = true, $includeFileLastModified: Boolean! = true, $includeFileHash: Boolean! = true, $includeChunks: Boolean! = true, $includeChunksIv: Boolean! = true, $includeChunksTotalSize: Boolean! = true, $includeChunksIpfsChunks: Boolean! = true, $includeChunksLumeraChunks: Boolean! = true, $includeChunksS3Chunks: Boolean! = true, $includeChunksArweaveChunks: Boolean! = true, $includeImages: Boolean! = true, $includeUniversalProfile: Boolean! = true, $includeUniversalProfileName: Boolean! = true, $includeUniversalProfileDescription: Boolean! = true, $includeUniversalProfileTags: Boolean! = true, $includeUniversalProfileLinks: Boolean! = true, $includeUniversalProfileAvatar: Boolean! = true, $includeUniversalProfileImage: Boolean! = true, $includeUniversalProfileBackgroundImage: Boolean! = true, $includeUniversalProfileFollowerCount: Boolean! = true, $includeUniversalProfileFollowingCount: Boolean! = true, $includeUniversalProfileTimestamp: Boolean! = true, $includeUniversalProfileBlockNumber: Boolean! = true, $includeUniversalProfileTransactionIndex: Boolean! = true, $includeUniversalProfileLogIndex: Boolean! = true) {
+    query GetEncryptedAssets($where: lsp29_encrypted_asset_bool_exp, $order_by: [lsp29_encrypted_asset_order_by!], $limit: Int, $offset: Int, $includeArrayIndex: Boolean! = true, $includeTimestamp: Boolean! = true, $includeBlockNumber: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeTitle: Boolean! = true, $includeDescription: Boolean! = true, $includeEncryption: Boolean! = true, $includeEncryptionProvider: Boolean! = true, $includeEncryptionMethod: Boolean! = true, $includeEncryptionCondition: Boolean! = true, $includeEncryptionEncryptedKey: Boolean! = true, $includeEncryptionParams: Boolean! = true, $includeFile: Boolean! = true, $includeFileType: Boolean! = true, $includeFileSize: Boolean! = true, $includeFileLastModified: Boolean! = true, $includeFileHash: Boolean! = true, $includeChunks: Boolean! = true, $includeChunksIv: Boolean! = true, $includeChunksTotalSize: Boolean! = true, $includeChunksIpfsCids: Boolean! = true, $includeChunksLumeraActionIds: Boolean! = true, $includeChunksArweaveTransactionIds: Boolean! = true, $includeChunksS3Keys: Boolean! = true, $includeChunksS3Bucket: Boolean! = true, $includeChunksS3Region: Boolean! = true, $includeImages: Boolean! = true, $includeUniversalProfile: Boolean! = true, $includeUniversalProfileName: Boolean! = true, $includeUniversalProfileDescription: Boolean! = true, $includeUniversalProfileTags: Boolean! = true, $includeUniversalProfileLinks: Boolean! = true, $includeUniversalProfileAvatar: Boolean! = true, $includeUniversalProfileImage: Boolean! = true, $includeUniversalProfileBackgroundImage: Boolean! = true, $includeUniversalProfileFollowerCount: Boolean! = true, $includeUniversalProfileFollowingCount: Boolean! = true, $includeUniversalProfileTimestamp: Boolean! = true, $includeUniversalProfileBlockNumber: Boolean! = true, $includeUniversalProfileTransactionIndex: Boolean! = true, $includeUniversalProfileLogIndex: Boolean! = true) {
   lsp29_encrypted_asset(
     where: $where
     order_by: $order_by
@@ -29359,10 +29365,12 @@ export const GetEncryptedAssetsDocument = new TypedDocumentString(`
     chunks @include(if: $includeChunks) {
       iv @include(if: $includeChunksIv)
       total_size @include(if: $includeChunksTotalSize)
-      ipfs_chunks @include(if: $includeChunksIpfsChunks)
-      lumera_chunks @include(if: $includeChunksLumeraChunks)
-      s3_chunks @include(if: $includeChunksS3Chunks)
-      arweave_chunks @include(if: $includeChunksArweaveChunks)
+      ipfs_cids @include(if: $includeChunksIpfsCids)
+      lumera_action_ids @include(if: $includeChunksLumeraActionIds)
+      arweave_transaction_ids @include(if: $includeChunksArweaveTransactionIds)
+      s3_keys @include(if: $includeChunksS3Keys)
+      s3_bucket @include(if: $includeChunksS3Bucket)
+      s3_region @include(if: $includeChunksS3Region)
     }
     images @include(if: $includeImages) {
       image_index
@@ -29433,7 +29441,7 @@ export const GetEncryptedAssetsDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<GetEncryptedAssetsQuery, GetEncryptedAssetsQueryVariables>;
 export const EncryptedAssetSubscriptionDocument = new TypedDocumentString(`
-    subscription EncryptedAssetSubscription($where: lsp29_encrypted_asset_bool_exp, $order_by: [lsp29_encrypted_asset_order_by!], $limit: Int, $includeArrayIndex: Boolean! = true, $includeTimestamp: Boolean! = true, $includeBlockNumber: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeTitle: Boolean! = true, $includeDescription: Boolean! = true, $includeEncryption: Boolean! = true, $includeEncryptionProvider: Boolean! = true, $includeEncryptionMethod: Boolean! = true, $includeEncryptionCondition: Boolean! = true, $includeEncryptionEncryptedKey: Boolean! = true, $includeEncryptionParams: Boolean! = true, $includeFile: Boolean! = true, $includeFileType: Boolean! = true, $includeFileSize: Boolean! = true, $includeFileLastModified: Boolean! = true, $includeFileHash: Boolean! = true, $includeChunks: Boolean! = true, $includeChunksIv: Boolean! = true, $includeChunksTotalSize: Boolean! = true, $includeChunksIpfsChunks: Boolean! = true, $includeChunksLumeraChunks: Boolean! = true, $includeChunksS3Chunks: Boolean! = true, $includeChunksArweaveChunks: Boolean! = true, $includeImages: Boolean! = true, $includeUniversalProfile: Boolean! = true, $includeUniversalProfileName: Boolean! = true, $includeUniversalProfileDescription: Boolean! = true, $includeUniversalProfileTags: Boolean! = true, $includeUniversalProfileLinks: Boolean! = true, $includeUniversalProfileAvatar: Boolean! = true, $includeUniversalProfileImage: Boolean! = true, $includeUniversalProfileBackgroundImage: Boolean! = true, $includeUniversalProfileFollowerCount: Boolean! = true, $includeUniversalProfileFollowingCount: Boolean! = true, $includeUniversalProfileTimestamp: Boolean! = true, $includeUniversalProfileBlockNumber: Boolean! = true, $includeUniversalProfileTransactionIndex: Boolean! = true, $includeUniversalProfileLogIndex: Boolean! = true) {
+    subscription EncryptedAssetSubscription($where: lsp29_encrypted_asset_bool_exp, $order_by: [lsp29_encrypted_asset_order_by!], $limit: Int, $includeArrayIndex: Boolean! = true, $includeTimestamp: Boolean! = true, $includeBlockNumber: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeTitle: Boolean! = true, $includeDescription: Boolean! = true, $includeEncryption: Boolean! = true, $includeEncryptionProvider: Boolean! = true, $includeEncryptionMethod: Boolean! = true, $includeEncryptionCondition: Boolean! = true, $includeEncryptionEncryptedKey: Boolean! = true, $includeEncryptionParams: Boolean! = true, $includeFile: Boolean! = true, $includeFileType: Boolean! = true, $includeFileSize: Boolean! = true, $includeFileLastModified: Boolean! = true, $includeFileHash: Boolean! = true, $includeChunks: Boolean! = true, $includeChunksIv: Boolean! = true, $includeChunksTotalSize: Boolean! = true, $includeChunksIpfsCids: Boolean! = true, $includeChunksLumeraActionIds: Boolean! = true, $includeChunksArweaveTransactionIds: Boolean! = true, $includeChunksS3Keys: Boolean! = true, $includeChunksS3Bucket: Boolean! = true, $includeChunksS3Region: Boolean! = true, $includeImages: Boolean! = true, $includeUniversalProfile: Boolean! = true, $includeUniversalProfileName: Boolean! = true, $includeUniversalProfileDescription: Boolean! = true, $includeUniversalProfileTags: Boolean! = true, $includeUniversalProfileLinks: Boolean! = true, $includeUniversalProfileAvatar: Boolean! = true, $includeUniversalProfileImage: Boolean! = true, $includeUniversalProfileBackgroundImage: Boolean! = true, $includeUniversalProfileFollowerCount: Boolean! = true, $includeUniversalProfileFollowingCount: Boolean! = true, $includeUniversalProfileTimestamp: Boolean! = true, $includeUniversalProfileBlockNumber: Boolean! = true, $includeUniversalProfileTransactionIndex: Boolean! = true, $includeUniversalProfileLogIndex: Boolean! = true) {
   lsp29_encrypted_asset(where: $where, order_by: $order_by, limit: $limit) {
     address
     content_id
@@ -29473,10 +29481,12 @@ export const EncryptedAssetSubscriptionDocument = new TypedDocumentString(`
     chunks @include(if: $includeChunks) {
       iv @include(if: $includeChunksIv)
       total_size @include(if: $includeChunksTotalSize)
-      ipfs_chunks @include(if: $includeChunksIpfsChunks)
-      lumera_chunks @include(if: $includeChunksLumeraChunks)
-      s3_chunks @include(if: $includeChunksS3Chunks)
-      arweave_chunks @include(if: $includeChunksArweaveChunks)
+      ipfs_cids @include(if: $includeChunksIpfsCids)
+      lumera_action_ids @include(if: $includeChunksLumeraActionIds)
+      arweave_transaction_ids @include(if: $includeChunksArweaveTransactionIds)
+      s3_keys @include(if: $includeChunksS3Keys)
+      s3_bucket @include(if: $includeChunksS3Bucket)
+      s3_region @include(if: $includeChunksS3Region)
     }
     images @include(if: $includeImages) {
       image_index

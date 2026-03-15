@@ -24,8 +24,8 @@ export const EncryptedAssetEncryptionParamsSchema = z.object({
   requiredBalance: z.string().nullable(),
   /** Required token ID for lsp8-ownership */
   requiredTokenId: z.string().nullable(),
-  /** Followed addresses for lsp26-follower (JSON string of array) */
-  followedAddresses: z.string().nullable(),
+  /** Followed addresses for lsp26-follower */
+  followedAddresses: z.array(z.string()).nullable(),
   /** Unlock timestamp for time-locked */
   unlockTimestamp: z.string().nullable(),
 });
@@ -58,20 +58,24 @@ export const EncryptedAssetFileSchema = z.object({
   type: z.string().nullable(),
 });
 
-/** Chunk information for an encrypted asset. */
+/** Chunk information for an encrypted asset — matches LSP29 spec structure. */
 export const EncryptedAssetChunksSchema = z.object({
   /** Encryption initialization vector */
   iv: z.string().nullable(),
   /** Total size across all chunks (numeric → number) */
   totalSize: z.number().nullable(),
-  /** IPFS chunk references (JSON string) */
-  ipfsChunks: z.string().nullable(),
-  /** Lumera chunk references (JSON string) */
-  lumeraChunks: z.string().nullable(),
-  /** S3 chunk references (JSON string) */
-  s3Chunks: z.string().nullable(),
-  /** Arweave chunk references (JSON string) */
-  arweaveChunks: z.string().nullable(),
+  /** IPFS CIDs for chunk storage */
+  ipfsCids: z.array(z.string()).nullable(),
+  /** Lumera action IDs for chunk storage */
+  lumeraActionIds: z.array(z.string()).nullable(),
+  /** Arweave transaction IDs for chunk storage */
+  arweaveTransactionIds: z.array(z.string()).nullable(),
+  /** S3 object keys for chunk storage */
+  s3Keys: z.array(z.string()).nullable(),
+  /** S3 bucket name */
+  s3Bucket: z.string().nullable(),
+  /** S3 region */
+  s3Region: z.string().nullable(),
 });
 
 /** Images grouped by image_index — inner arrays are resolution variants. */
@@ -172,10 +176,12 @@ export const EncryptedAssetFileIncludeSchema = z.object({
 export const EncryptedAssetChunksIncludeSchema = z.object({
   iv: z.boolean().optional(),
   totalSize: z.boolean().optional(),
-  ipfsChunks: z.boolean().optional(),
-  lumeraChunks: z.boolean().optional(),
-  s3Chunks: z.boolean().optional(),
-  arweaveChunks: z.boolean().optional(),
+  ipfsCids: z.boolean().optional(),
+  lumeraActionIds: z.boolean().optional(),
+  arweaveTransactionIds: z.boolean().optional(),
+  s3Keys: z.boolean().optional(),
+  s3Bucket: z.boolean().optional(),
+  s3Region: z.boolean().optional(),
 });
 
 export const EncryptedAssetEncryptionIncludeSchema = z.object({
@@ -298,10 +304,12 @@ type FileIncludeFieldMap = {
 type ChunksIncludeFieldMap = {
   iv: 'iv';
   totalSize: 'totalSize';
-  ipfsChunks: 'ipfsChunks';
-  lumeraChunks: 'lumeraChunks';
-  s3Chunks: 's3Chunks';
-  arweaveChunks: 'arweaveChunks';
+  ipfsCids: 'ipfsCids';
+  lumeraActionIds: 'lumeraActionIds';
+  arweaveTransactionIds: 'arweaveTransactionIds';
+  s3Keys: 's3Keys';
+  s3Bucket: 's3Bucket';
+  s3Region: 's3Region';
 };
 
 /**
@@ -342,7 +350,7 @@ type ResolveFile<I> = I extends { file: infer E }
 /**
  * Resolve chunks based on include parameter.
  * - true → full EncryptedAssetChunks (all sub-fields)
- * - `{ ipfsChunks: true }` → only ipfsChunks present in type
+ * - `{ ipfsCids: true }` → only ipfsCids present in type
  * - false/omitted → field absent from type
  */
 type ResolveChunks<I> = I extends { chunks: infer E }
@@ -375,7 +383,7 @@ type ResolveUniversalProfile<I> = I extends { universalProfile: infer P }
  * - `EncryptedAssetResult<{ encryption: true }>` → base + full encryption (with params)
  * - `EncryptedAssetResult<{ encryption: { provider: true } }>` → base + encryption with provider only
  * - `EncryptedAssetResult<{ file: { type: true, size: true } }>` → base + file with type & size (name always included)
- * - `EncryptedAssetResult<{ chunks: { ipfsChunks: true } }>` → base + chunks with ipfsChunks only
+ * - `EncryptedAssetResult<{ chunks: { ipfsCids: true } }>` → base + chunks with ipfsCids only
  * - `EncryptedAssetResult<{ universalProfile: { name: true } }>` → base + narrowed profile
  *
  * @example
@@ -385,7 +393,7 @@ type ResolveUniversalProfile<I> = I extends { universalProfile: infer P }
  * type WithEnc = EncryptedAssetResult<{ encryption: true }>;                           // = base + full encryption
  * type EncSub = EncryptedAssetResult<{ encryption: { provider: true } }>;              // = base + encryption (provider only)
  * type WithFile = EncryptedAssetResult<{ file: { type: true, size: true } }>;          // = base + file (type, size + name)
- * type WithChunks = EncryptedAssetResult<{ chunks: { ipfsChunks: true } }>;            // = base + chunks (ipfsChunks only)
+ * type WithChunks = EncryptedAssetResult<{ chunks: { ipfsCids: true } }>;              // = base + chunks (ipfsCids only)
  * type WithProf = EncryptedAssetResult<{ universalProfile: { name: true } }>;          // = base + narrowed profile
  * ```
  */

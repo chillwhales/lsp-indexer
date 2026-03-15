@@ -28,10 +28,12 @@ export const GetEncryptedAssetsDocument = graphql(`
     $includeChunks: Boolean! = true
     $includeChunksIv: Boolean! = true
     $includeChunksTotalSize: Boolean! = true
-    $includeChunksIpfsChunks: Boolean! = true
-    $includeChunksLumeraChunks: Boolean! = true
-    $includeChunksS3Chunks: Boolean! = true
-    $includeChunksArweaveChunks: Boolean! = true
+    $includeChunksIpfsCids: Boolean! = true
+    $includeChunksLumeraActionIds: Boolean! = true
+    $includeChunksArweaveTransactionIds: Boolean! = true
+    $includeChunksS3Keys: Boolean! = true
+    $includeChunksS3Bucket: Boolean! = true
+    $includeChunksS3Region: Boolean! = true
     $includeImages: Boolean! = true
     $includeUniversalProfile: Boolean! = true
     $includeUniversalProfileName: Boolean! = true
@@ -93,10 +95,12 @@ export const GetEncryptedAssetsDocument = graphql(`
       chunks @include(if: $includeChunks) {
         iv @include(if: $includeChunksIv)
         total_size @include(if: $includeChunksTotalSize)
-        ipfs_chunks @include(if: $includeChunksIpfsChunks)
-        lumera_chunks @include(if: $includeChunksLumeraChunks)
-        s3_chunks @include(if: $includeChunksS3Chunks)
-        arweave_chunks @include(if: $includeChunksArweaveChunks)
+        ipfs_cids @include(if: $includeChunksIpfsCids)
+        lumera_action_ids @include(if: $includeChunksLumeraActionIds)
+        arweave_transaction_ids @include(if: $includeChunksArweaveTransactionIds)
+        s3_keys @include(if: $includeChunksS3Keys)
+        s3_bucket @include(if: $includeChunksS3Bucket)
+        s3_region @include(if: $includeChunksS3Region)
       }
 
       images @include(if: $includeImages) {
@@ -161,7 +165,6 @@ export const GetEncryptedAssetsDocument = graphql(`
         }
       }
     }
-
     lsp29_encrypted_asset_aggregate(where: $where) {
       aggregate {
         count
@@ -197,10 +200,12 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
     $includeChunks: Boolean! = true
     $includeChunksIv: Boolean! = true
     $includeChunksTotalSize: Boolean! = true
-    $includeChunksIpfsChunks: Boolean! = true
-    $includeChunksLumeraChunks: Boolean! = true
-    $includeChunksS3Chunks: Boolean! = true
-    $includeChunksArweaveChunks: Boolean! = true
+    $includeChunksIpfsCids: Boolean! = true
+    $includeChunksLumeraActionIds: Boolean! = true
+    $includeChunksArweaveTransactionIds: Boolean! = true
+    $includeChunksS3Keys: Boolean! = true
+    $includeChunksS3Bucket: Boolean! = true
+    $includeChunksS3Region: Boolean! = true
     $includeImages: Boolean! = true
     $includeUniversalProfile: Boolean! = true
     $includeUniversalProfileName: Boolean! = true
@@ -262,10 +267,12 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
       chunks @include(if: $includeChunks) {
         iv @include(if: $includeChunksIv)
         total_size @include(if: $includeChunksTotalSize)
-        ipfs_chunks @include(if: $includeChunksIpfsChunks)
-        lumera_chunks @include(if: $includeChunksLumeraChunks)
-        s3_chunks @include(if: $includeChunksS3Chunks)
-        arweave_chunks @include(if: $includeChunksArweaveChunks)
+        ipfs_cids @include(if: $includeChunksIpfsCids)
+        lumera_action_ids @include(if: $includeChunksLumeraActionIds)
+        arweave_transaction_ids @include(if: $includeChunksArweaveTransactionIds)
+        s3_keys @include(if: $includeChunksS3Keys)
+        s3_bucket @include(if: $includeChunksS3Bucket)
+        s3_region @include(if: $includeChunksS3Region)
       }
 
       images @include(if: $includeImages) {
