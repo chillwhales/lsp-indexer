@@ -1,8 +1,8 @@
 import type {
-  AccessControlCondition,
   EncryptedAsset,
   EncryptedAssetChunks,
   EncryptedAssetEncryption,
+  EncryptedAssetEncryptionParams,
   EncryptedAssetFile,
   EncryptedAssetInclude,
   EncryptedAssetResult,
@@ -17,28 +17,23 @@ import { parseImages } from './utils';
 // ---------------------------------------------------------------------------
 
 /**
- * Parse a raw Hasura `lsp29_access_control_condition` into a clean `AccessControlCondition`.
+ * Parse a raw Hasura `lsp29_encrypted_asset_encryption_params` into `EncryptedAssetEncryptionParams`.
  *
- * Maps all snake_case fields to camelCase:
- * - `condition_index` → `conditionIndex`
- * - `contract_address` → `contractAddress`
- * - `follower_address` → `followerAddress`
- * - `raw_condition` → `rawCondition`
- * - `standard_contract_type` → `standardContractType`
- * - `token_id` → `tokenId`
+ * Maps snake_case fields to camelCase:
+ * - `token_address` → `tokenAddress`
+ * - `required_balance` → `requiredBalance`
+ * - `required_token_id` → `requiredTokenId`
+ * - `followed_addresses` → `followedAddresses`
+ * - `unlock_timestamp` → `unlockTimestamp`
  */
-function parseAccessControlCondition(raw: any): AccessControlCondition {
+function parseEncryptionParams(raw: any): EncryptedAssetEncryptionParams {
   return {
-    chain: raw.chain ?? null,
-    comparator: raw.comparator ?? null,
-    conditionIndex: raw.condition_index, // Int! — always present
-    contractAddress: raw.contract_address ?? null,
-    followerAddress: raw.follower_address ?? null,
-    method: raw.method ?? null,
-    rawCondition: raw.raw_condition, // String! — always present
-    standardContractType: raw.standard_contract_type ?? null,
-    tokenId: raw.token_id ?? null,
-    value: raw.value ?? null,
+    method: raw.method,
+    tokenAddress: raw.token_address ?? null,
+    requiredBalance: raw.required_balance ?? null,
+    requiredTokenId: raw.required_token_id ?? null,
+    followedAddresses: raw.followed_addresses ?? null,
+    unlockTimestamp: raw.unlock_timestamp ?? null,
   };
 }
 
@@ -51,14 +46,11 @@ function parseAccessControlCondition(raw: any): AccessControlCondition {
  */
 function parseEncryption(raw: any): EncryptedAssetEncryption {
   return {
-    ciphertext: raw.ciphertext ?? null,
-    dataToEncryptHash: raw.data_to_encrypt_hash ?? null,
-    decryptionCode: raw.decryption_code ?? null,
-    decryptionParams: raw.decryption_params ?? null,
-    method: raw.method ?? null,
-    accessControlConditions: raw.accessControlConditions
-      ? raw.accessControlConditions.map(parseAccessControlCondition)
-      : null,
+    provider: raw.provider,
+    method: raw.method,
+    condition: raw.condition ?? null,
+    encryptedKey: raw.encrypted_key ?? null,
+    params: raw.params ? parseEncryptionParams(raw.params) : null,
   };
 }
 
@@ -86,15 +78,19 @@ function parseFile(raw: any): EncryptedAssetFile {
  * Parse a raw Hasura `lsp29_encrypted_asset_chunks` into a clean `EncryptedAssetChunks`.
  *
  * Converts `total_size` (numeric) → `totalSize` (number | null).
+ * Maps per-backend chunk fields from snake_case to camelCase.
  *
  * Sub-field presence is controlled by `@include` directives in the GraphQL
  * document — excluded fields are absent from `raw`, so `?? null` handles them.
  */
 function parseChunks(raw: any): EncryptedAssetChunks {
   return {
-    cids: raw.cids ?? null,
     iv: raw.iv ?? null,
     totalSize: raw.total_size != null ? Number(raw.total_size) : null,
+    ipfsChunks: raw.ipfs_chunks ?? null,
+    lumeraChunks: raw.lumera_chunks ?? null,
+    s3Chunks: raw.s3_chunks ?? null,
+    arweaveChunks: raw.arweave_chunks ?? null,
   };
 }
 

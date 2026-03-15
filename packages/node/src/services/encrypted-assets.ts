@@ -167,13 +167,11 @@ export function buildEncryptedAssetIncludeVars(
 
     // Encryption — top-level + per-sub-field toggles
     includeEncryption: isEncIncluded,
+    includeEncryptionProvider: encInc === true || (encObj?.provider ?? false),
     includeEncryptionMethod: encInc === true || (encObj?.method ?? false),
-    includeEncryptionCiphertext: encInc === true || (encObj?.ciphertext ?? false),
-    includeEncryptionDataToEncryptHash: encInc === true || (encObj?.dataToEncryptHash ?? false),
-    includeEncryptionDecryptionCode: encInc === true || (encObj?.decryptionCode ?? false),
-    includeEncryptionDecryptionParams: encInc === true || (encObj?.decryptionParams ?? false),
-    includeEncryptionAccessControlConditions:
-      encInc === true || (encObj?.accessControlConditions ?? false),
+    includeEncryptionCondition: encInc === true || (encObj?.condition ?? false),
+    includeEncryptionEncryptedKey: encInc === true || (encObj?.encryptedKey ?? false),
+    includeEncryptionParams: encInc === true || (encObj?.params ?? false),
 
     // File — top-level + per-sub-field toggles (name is always included, no toggle needed)
     includeFile: isFileIncluded,
@@ -184,9 +182,12 @@ export function buildEncryptedAssetIncludeVars(
 
     // Chunks — top-level + per-sub-field toggles
     includeChunks: isChunksIncluded,
-    includeChunksCids: chunksInc === true || (chunksObj?.cids ?? false),
     includeChunksIv: chunksInc === true || (chunksObj?.iv ?? false),
     includeChunksTotalSize: chunksInc === true || (chunksObj?.totalSize ?? false),
+    includeChunksIpfsChunks: chunksInc === true || (chunksObj?.ipfsChunks ?? false),
+    includeChunksLumeraChunks: chunksInc === true || (chunksObj?.lumeraChunks ?? false),
+    includeChunksS3Chunks: chunksInc === true || (chunksObj?.s3Chunks ?? false),
+    includeChunksArweaveChunks: chunksInc === true || (chunksObj?.arweaveChunks ?? false),
 
     // Universal Profile
     includeUniversalProfile: activeUniversalProfile,
