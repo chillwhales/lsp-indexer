@@ -1,7 +1,10 @@
-# TODO: Re-dump from Hasura after v2.0.0 DB migration — stale v1.0 LSP29 fields
-# remain in aggregate/ordering/bool_exp types (e.g., ciphertext, cids,
-# accessControlConditions). These don't affect query/subscription documents
-# but will be cleaned up on next `pnpm --filter=@lsp-indexer/node schema:dump`.
+# STALE SCHEMA WARNING (PR #318):
+# This file was manually patched to add flattened encryption fields (token_address,
+# required_balance, etc.) for the v2.0.0 LSP29 spec. Stale v1.0 types remain in
+# aggregate/ordering/bool_exp sections (e.g., ciphertext, lsp29_access_control_condition,
+# lsp29_encrypted_asset_encryption_params). These do NOT affect query/subscription
+# documents but must be cleaned up by re-dumping after DB migration:
+#   pnpm --filter=@lsp-indexer/node schema:dump
 
 schema {
   query: query_root

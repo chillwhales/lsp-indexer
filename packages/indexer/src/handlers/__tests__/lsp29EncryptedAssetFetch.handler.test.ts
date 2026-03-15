@@ -148,6 +148,7 @@ const VALID_LSP29_JSON = {
           url: 'ipfs://QmImg2',
           width: 128,
           height: 128,
+          verification: { method: 'keccak256(bytes)', data: '0ximg2hash' },
         },
       ],
     ],
@@ -171,7 +172,7 @@ describe('LSP29EncryptedAssetFetchHandler - Empty value path', () => {
 
     await LSP29EncryptedAssetFetchHandler.handle(hctx, 'LSP29EncryptedAsset');
 
-    // 6 sub-entity types with asset FK (EncryptionParams excluded — FK is encryption, not asset)
+    // 6 sub-entity types with asset FK
     expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(6);
 
     const expectedSubEntities = [
@@ -502,14 +503,20 @@ describe('LSP29EncryptedAssetFetchHandler - Successful fetch (META-03)', () => {
     const imgCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP29EncryptedAssetImage',
     );
-    // Only the first image passes isFileImage (has verification); second (QmImg2) is filtered out
-    expect(imgCalls.length).toBe(1);
+    // Both images pass isFileImage (both have verification per v2.0.0 spec)
+    expect(imgCalls.length).toBe(2);
 
     const img1 = imgCalls[0][2] as LSP29EncryptedAssetImage;
     expect(img1.url).toBe('ipfs://QmImg1');
     expect(img1.width).toBe(512);
     expect(img1.height).toBe(512);
     expect(img1.imageIndex).toBe(0);
+
+    const img2 = imgCalls[1][2] as LSP29EncryptedAssetImage;
+    expect(img2.url).toBe('ipfs://QmImg2');
+    expect(img2.width).toBe(128);
+    expect(img2.height).toBe(128);
+    expect(img2.imageIndex).toBe(1);
   });
 
   it('returns entityUpdates with version, contentId, revision', async () => {
@@ -654,5 +661,155 @@ describe('LSP29EncryptedAssetFetchHandler - Failed fetch (META-05)', () => {
       'Error: Invalid LSP29EncryptedAsset (v2.0.0 validation failed)',
     );
     expect(updated.retryCount).toBe(1);
+  });
+});
+
+// ===========================================================================
+// Encryption method variant fixtures
+// ===========================================================================
+
+/** Helper to create a valid LSP29 JSON payload with a specific encryption params variant. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function makeFixtureWithParams(params: Record<string, unknown>): any {
+  return {
+    LSP29EncryptedAsset: {
+      ...VALID_LSP29_JSON.LSP29EncryptedAsset,
+      encryption: {
+        ...VALID_LSP29_JSON.LSP29EncryptedAsset.encryption,
+        method: params.method as string,
+        params,
+      },
+    },
+  };
+}
+
+describe('LSP29EncryptedAssetFetchHandler - Encryption method variants', () => {
+  /** Shared helper: mock store + workerPool for a successful fetch with given JSON data. */
+  async function runSuccessfulFetch(data: unknown): Promise<ReturnType<typeof createMockBatchCtx>> {
+    const batchCtx = createMockBatchCtx();
+    const hctx = createMockHandlerContext(batchCtx, { isHead: true });
+
+    const unfetched = new LSP29EncryptedAsset({
+      id: 'asset-variant-1',
+      url: 'ipfs://QmVariant',
+      isDataFetched: false,
+    } as Partial<LSP29EncryptedAsset>);
+
+    (hctx.store.find as ReturnType<typeof vi.fn>).mockResolvedValueOnce([unfetched]);
+    (hctx.workerPool.fetchBatch as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
+      { id: 'asset-variant-1', entityType: 'LSP29EncryptedAsset', success: true, data },
+    ]);
+    batchCtx._entityBags.set('LSP29EncryptedAsset', new Map());
+
+    await LSP29EncryptedAssetFetchHandler.handle(hctx, 'LSP29EncryptedAsset');
+    return batchCtx;
+  }
+
+  it('lsp8-ownership: sets tokenAddress and requiredTokenId', async () => {
+    const fixture = makeFixtureWithParams({
+      method: 'lsp8-ownership',
+      tokenAddress: '0xNFT1111111111111111111111111111111111111111',
+      requiredTokenId: '0x000000000000000000000000000000000000000000000000000000000000002a',
+    });
+    const batchCtx = await runSuccessfulFetch(fixture);
+
+    const encCalls = batchCtx.addEntity.mock.calls.filter(
+      (c: unknown[]) => c[0] === 'LSP29EncryptedAssetEncryption',
+    );
+    expect(encCalls.length).toBe(1);
+    const enc = encCalls[0][2] as LSP29EncryptedAssetEncryption;
+    expect(enc.method).toBe('lsp8-ownership');
+    expect(enc.tokenAddress).toBe('0xNFT1111111111111111111111111111111111111111');
+    expect(enc.requiredTokenId).toBe(
+      '0x000000000000000000000000000000000000000000000000000000000000002a',
+    );
+    expect(enc.requiredBalance).toBeNull();
+    expect(enc.followedAddresses).toBeNull();
+    expect(enc.unlockTimestamp).toBeNull();
+  });
+
+  it('lsp26-follower: sets followedAddresses array', async () => {
+    const fixture = makeFixtureWithParams({
+      method: 'lsp26-follower',
+      followedAddresses: ['0xAddr1', '0xAddr2', '0xAddr3'],
+    });
+    const batchCtx = await runSuccessfulFetch(fixture);
+
+    const encCalls = batchCtx.addEntity.mock.calls.filter(
+      (c: unknown[]) => c[0] === 'LSP29EncryptedAssetEncryption',
+    );
+    expect(encCalls.length).toBe(1);
+    const enc = encCalls[0][2] as LSP29EncryptedAssetEncryption;
+    expect(enc.method).toBe('lsp26-follower');
+    expect(enc.followedAddresses).toEqual(['0xAddr1', '0xAddr2', '0xAddr3']);
+    expect(enc.tokenAddress).toBeNull();
+    expect(enc.requiredBalance).toBeNull();
+    expect(enc.requiredTokenId).toBeNull();
+    expect(enc.unlockTimestamp).toBeNull();
+  });
+
+  it('time-locked: sets unlockTimestamp', async () => {
+    const fixture = makeFixtureWithParams({
+      method: 'time-locked',
+      unlockTimestamp: '2026-06-01T00:00:00Z',
+    });
+    const batchCtx = await runSuccessfulFetch(fixture);
+
+    const encCalls = batchCtx.addEntity.mock.calls.filter(
+      (c: unknown[]) => c[0] === 'LSP29EncryptedAssetEncryption',
+    );
+    expect(encCalls.length).toBe(1);
+    const enc = encCalls[0][2] as LSP29EncryptedAssetEncryption;
+    expect(enc.method).toBe('time-locked');
+    expect(enc.unlockTimestamp).toBe('2026-06-01T00:00:00Z');
+    expect(enc.tokenAddress).toBeNull();
+    expect(enc.requiredBalance).toBeNull();
+    expect(enc.requiredTokenId).toBeNull();
+    expect(enc.followedAddresses).toBeNull();
+  });
+});
+
+describe('LSP29EncryptedAssetFetchHandler - Optional description omission', () => {
+  it('skips Description sub-entity when description is absent', async () => {
+    const batchCtx = createMockBatchCtx();
+    const hctx = createMockHandlerContext(batchCtx, { isHead: true });
+
+    // Create fixture without description field
+    const { description: _, ...innerWithoutDesc } = VALID_LSP29_JSON.LSP29EncryptedAsset;
+    const fixtureNoDesc = { LSP29EncryptedAsset: innerWithoutDesc };
+
+    const unfetched = new LSP29EncryptedAsset({
+      id: 'asset-no-desc-1',
+      url: 'ipfs://QmNoDesc',
+      isDataFetched: false,
+    } as Partial<LSP29EncryptedAsset>);
+
+    (hctx.store.find as ReturnType<typeof vi.fn>).mockResolvedValueOnce([unfetched]);
+    (hctx.workerPool.fetchBatch as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
+      {
+        id: 'asset-no-desc-1',
+        entityType: 'LSP29EncryptedAsset',
+        success: true,
+        data: fixtureNoDesc,
+      },
+    ]);
+    batchCtx._entityBags.set('LSP29EncryptedAsset', new Map());
+
+    await LSP29EncryptedAssetFetchHandler.handle(hctx, 'LSP29EncryptedAsset');
+
+    const descCalls = batchCtx.addEntity.mock.calls.filter(
+      (c: unknown[]) => c[0] === 'LSP29EncryptedAssetDescription',
+    );
+    expect(descCalls.length).toBe(0);
+
+    // Other sub-entities should still be created
+    const addedTypes = new Set<string>();
+    for (const call of batchCtx.addEntity.mock.calls) {
+      addedTypes.add(call[0] as string);
+    }
+    expect(addedTypes.has('LSP29EncryptedAssetTitle')).toBe(true);
+    expect(addedTypes.has('LSP29EncryptedAssetEncryption')).toBe(true);
+    expect(addedTypes.has('LSP29EncryptedAssetFile')).toBe(true);
+    expect(addedTypes.has('LSP29EncryptedAssetChunks')).toBe(true);
   });
 });

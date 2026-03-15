@@ -150,7 +150,7 @@ function parseAndAddSubEntities(
   });
   hctx.batchCtx.addEntity('LSP29EncryptedAssetEncryption', encryptionEntity.id, encryptionEntity);
 
-  // 6. Chunks (required in v2.0.0) — per-backend typed columns matching LSP29 spec
+  // 5. Chunks (required in v2.0.0) — per-backend typed columns matching LSP29 spec
   const chunksEntity = new LSP29EncryptedAssetChunks({
     id: uuidv4(),
     lsp29EncryptedAsset: parentRef,
@@ -169,7 +169,7 @@ function parseAndAddSubEntities(
   });
   hctx.batchCtx.addEntity('LSP29EncryptedAssetChunks', chunksEntity.id, chunksEntity);
 
-  // 7. Images (same nested array structure)
+  // 6. Images (same nested array structure)
   for (let imageSetIdx = 0; imageSetIdx < lsp29.images.length; imageSetIdx++) {
     const imageSet = lsp29.images[imageSetIdx];
     for (const img of imageSet) {
