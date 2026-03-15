@@ -68,6 +68,3 @@ export const LSP23_ADDRESS = '0x2300000A84D25dF63081feAa37ba6b62C4c89a30';
 // Special addresses that cannot be Universal Profiles or Digital Assets
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const DEAD_ADDRESS = '0x000000000000000000000000000000000000dEaD';
-
-// LSP29 Data Keys
-export * from './lsp29';

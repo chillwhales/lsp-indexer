@@ -9,42 +9,34 @@
  *   2. LSP29EncryptedAssetDescription (1:1 with LSP29EncryptedAsset)
  *   3. LSP29EncryptedAssetFile        (1:1 with LSP29EncryptedAsset)
  *   4. LSP29EncryptedAssetEncryption  (1:1 with LSP29EncryptedAsset)
- *   5. LSP29AccessControlCondition    (many per Encryption, FK → Encryption NOT Asset)
+ *   5. LSP29EncryptedAssetEncryptionParams (1:1 with Encryption, FK → Encryption NOT Asset)
  *   6. LSP29EncryptedAssetChunks      (1:1 with LSP29EncryptedAsset)
  *   7. LSP29EncryptedAssetImage       (many per LSP29EncryptedAsset — nested arrays)
  *
- * CRITICAL FK CHAIN: LSP29AccessControlCondition has FK `encryption` pointing
- * to LSP29EncryptedAssetEncryption, NOT to LSP29EncryptedAsset. This requires
- * special handling in sub-entity descriptors: conditions must be cleared via
- * the encryption FK, and clearing order matters (conditions before encryptions).
+ * CRITICAL FK CHAIN: LSP29EncryptedAssetEncryptionParams has FK `encryption`
+ * pointing to LSP29EncryptedAssetEncryption, NOT to LSP29EncryptedAsset.
+ *
+ * Uses `isLsp29Asset()` from @chillwhales/lsp29 for v2.0.0 schema validation
+ * instead of hand-rolled type guards.
  *
  * Empty value path: when url === null, all sub-entities are cleared via queueClear.
  * Head-only gating: IPFS/HTTP fetches only run at chain head.
  */
 import { createComponentLogger } from '@/core/logger';
 import { EntityHandler, HandlerContext } from '@/core/types';
-import {
-  extractLSP29Chunks,
-  extractLSP29Condition,
-  extractLSP29Encryption,
-  extractLSP29File,
-  isFileImage,
-  isLSP29Chunks,
-  isLSP29Condition,
-  isLSP29Encryption,
-  isLSP29File,
-} from '@/utils';
+import { isFileImage } from '@/utils';
 import {
   handleMetadataFetch,
   MetadataFetchConfig,
   SubEntityDescriptor,
 } from '@/utils/metadataFetch';
+import { isLsp29Asset } from '@chillwhales/lsp29';
 import {
-  LSP29AccessControlCondition,
   LSP29EncryptedAsset,
   LSP29EncryptedAssetChunks,
   LSP29EncryptedAssetDescription,
   LSP29EncryptedAssetEncryption,
+  LSP29EncryptedAssetEncryptionParams,
   LSP29EncryptedAssetFile,
   LSP29EncryptedAssetImage,
   LSP29EncryptedAssetTitle,
@@ -57,17 +49,9 @@ const ENTITY_KEY = 'LSP29EncryptedAsset';
 // ---------------------------------------------------------------------------
 // Sub-entity descriptors (for queueClear operations)
 // ---------------------------------------------------------------------------
-// NOTE: LSP29AccessControlCondition FK is `encryption` → LSP29EncryptedAssetEncryption,
-// NOT `lsp29EncryptedAsset` → LSP29EncryptedAsset. The handleMetadataFetch utility
-// clears sub-entities by parent ID. For conditions, we need separate clearing logic
-// since they're keyed off encryption IDs, not asset IDs. However, since we always
-// clear encryptions too, and the conditions reference encryptions, we handle this
-// by including conditions in the descriptor list (they'll be cleared when their
-// parent encryptions are cleared via cascade, or we clear them explicitly).
-//
-// For the empty-value path (queueClear with parentIds), conditions cannot be cleared
-// by asset ID directly. We include all direct children of the asset in descriptors,
-// and conditions will be orphaned/cleared when their encryption parents are removed.
+// NOTE: LSP29EncryptedAssetEncryptionParams FK is `encryption` →
+// LSP29EncryptedAssetEncryption, NOT `lsp29EncryptedAsset` → LSP29EncryptedAsset.
+// Params are 1:1 with encryption (FK encryption), cleared when encryption is removed.
 
 const SUB_ENTITY_DESCRIPTORS: SubEntityDescriptor[] = [
   { subEntityClass: LSP29EncryptedAssetTitle, fkField: 'lsp29EncryptedAsset' },
@@ -76,10 +60,8 @@ const SUB_ENTITY_DESCRIPTORS: SubEntityDescriptor[] = [
   { subEntityClass: LSP29EncryptedAssetEncryption, fkField: 'lsp29EncryptedAsset' },
   { subEntityClass: LSP29EncryptedAssetChunks, fkField: 'lsp29EncryptedAsset' },
   { subEntityClass: LSP29EncryptedAssetImage, fkField: 'lsp29EncryptedAsset' },
-  // AccessControlCondition is NOT included here — its FK is `encryption`,
-  // not `lsp29EncryptedAsset`. Conditions are cleared when their parent
-  // encryption entities are removed. The pipeline's clear step handles
-  // removal of encryptions, which cascades to conditions.
+  // Params are 1:1 with encryption (FK encryption), cleared when encryption is removed
+  { subEntityClass: LSP29EncryptedAssetEncryptionParams, fkField: 'encryption' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -88,6 +70,9 @@ const SUB_ENTITY_DESCRIPTORS: SubEntityDescriptor[] = [
 
 /**
  * Parse fetched LSP29 encrypted asset JSON into 7 sub-entity types.
+ *
+ * Uses `isLsp29Asset()` from @chillwhales/lsp29 for v2.0.0 schema validation.
+ * After validation, typed fields are accessed directly — no hand-rolled guards.
  */
 function parseAndAddSubEntities(
   entity: LSP29EncryptedAsset,
@@ -96,38 +81,31 @@ function parseAndAddSubEntities(
 ):
   | { success: true; entityUpdates?: Record<string, unknown> }
   | { success: false; fetchErrorMessage: string } {
-  if (typeof json !== 'object' || json === null) {
-    return { success: false, fetchErrorMessage: 'Error: Invalid data' };
+  // Validate against v2.0.0 schema using package type guard
+  if (!isLsp29Asset(json)) {
+    return {
+      success: false,
+      fetchErrorMessage: 'Error: Invalid LSP29EncryptedAsset (v2.0.0 validation failed)',
+    };
   }
 
-  if (
-    !('LSP29EncryptedAsset' in json) ||
-    !json.LSP29EncryptedAsset ||
-    typeof json.LSP29EncryptedAsset !== 'object'
-  ) {
-    return { success: false, fetchErrorMessage: 'Error: Invalid LSP29EncryptedAsset' };
-  }
-
-  const { LSP29EncryptedAsset: lsp29 } = json;
-
+  const lsp29 = json.LSP29EncryptedAsset;
   const parentRef = new LSP29EncryptedAsset({ id: entity.id });
 
-  // 1. LSP29EncryptedAssetTitle
-  if ('title' in lsp29 && typeof lsp29.title === 'string') {
-    const titleEntity = new LSP29EncryptedAssetTitle({
-      id: uuidv4(),
-      lsp29EncryptedAsset: parentRef,
-      blockNumber: entity.blockNumber,
-      transactionIndex: entity.transactionIndex,
-      logIndex: entity.logIndex,
-      timestamp: entity.timestamp,
-      value: lsp29.title,
-    });
-    hctx.batchCtx.addEntity('LSP29EncryptedAssetTitle', titleEntity.id, titleEntity);
-  }
+  // 1. Title (required in v2.0.0)
+  const titleEntity = new LSP29EncryptedAssetTitle({
+    id: uuidv4(),
+    lsp29EncryptedAsset: parentRef,
+    blockNumber: entity.blockNumber,
+    transactionIndex: entity.transactionIndex,
+    logIndex: entity.logIndex,
+    timestamp: entity.timestamp,
+    value: lsp29.title,
+  });
+  hctx.batchCtx.addEntity('LSP29EncryptedAssetTitle', titleEntity.id, titleEntity);
 
-  // 2. LSP29EncryptedAssetDescription
-  if ('description' in lsp29 && typeof lsp29.description === 'string') {
+  // 2. Description (optional in v2.0.0)
+  if (lsp29.description !== undefined) {
     const descEntity = new LSP29EncryptedAssetDescription({
       id: uuidv4(),
       lsp29EncryptedAsset: parentRef,
@@ -140,142 +118,105 @@ function parseAndAddSubEntities(
     hctx.batchCtx.addEntity('LSP29EncryptedAssetDescription', descEntity.id, descEntity);
   }
 
-  // 3. LSP29EncryptedAssetFile
-  if ('file' in lsp29 && isLSP29File(lsp29.file)) {
-    const { type, name, size, lastModified, hash } = extractLSP29File(lsp29.file);
-    const fileEntity = new LSP29EncryptedAssetFile({
-      id: uuidv4(),
-      lsp29EncryptedAsset: parentRef,
-      blockNumber: entity.blockNumber,
-      transactionIndex: entity.transactionIndex,
-      logIndex: entity.logIndex,
-      timestamp: entity.timestamp,
-      type,
-      name,
-      size,
-      lastModified,
-      hash,
-    });
-    hctx.batchCtx.addEntity('LSP29EncryptedAssetFile', fileEntity.id, fileEntity);
-  }
+  // 3. File (required in v2.0.0)
+  const fileEntity = new LSP29EncryptedAssetFile({
+    id: uuidv4(),
+    lsp29EncryptedAsset: parentRef,
+    blockNumber: entity.blockNumber,
+    transactionIndex: entity.transactionIndex,
+    logIndex: entity.logIndex,
+    timestamp: entity.timestamp,
+    type: lsp29.file.type,
+    name: lsp29.file.name,
+    size: BigInt(lsp29.file.size),
+    lastModified: lsp29.file.lastModified != null ? BigInt(lsp29.file.lastModified) : null,
+    hash: lsp29.file.hash,
+  });
+  hctx.batchCtx.addEntity('LSP29EncryptedAssetFile', fileEntity.id, fileEntity);
 
-  // 4. LSP29EncryptedAssetEncryption + 5. LSP29AccessControlCondition
-  if ('encryption' in lsp29 && isLSP29Encryption(lsp29.encryption)) {
-    const encryption = lsp29.encryption;
-    const { method, ciphertext, dataToEncryptHash, decryptionCode, decryptionParams } =
-      extractLSP29Encryption(encryption);
+  // 4. Encryption (required in v2.0.0) — provider-first model
+  const encryptionEntity = new LSP29EncryptedAssetEncryption({
+    id: uuidv4(),
+    lsp29EncryptedAsset: parentRef,
+    blockNumber: entity.blockNumber,
+    transactionIndex: entity.transactionIndex,
+    logIndex: entity.logIndex,
+    timestamp: entity.timestamp,
+    provider: lsp29.encryption.provider,
+    method: lsp29.encryption.method,
+    condition:
+      lsp29.encryption.condition != null ? JSON.stringify(lsp29.encryption.condition) : null,
+    encryptedKey:
+      lsp29.encryption.encryptedKey != null ? JSON.stringify(lsp29.encryption.encryptedKey) : null,
+  });
+  hctx.batchCtx.addEntity('LSP29EncryptedAssetEncryption', encryptionEntity.id, encryptionEntity);
 
-    const encryptionEntity = new LSP29EncryptedAssetEncryption({
-      id: uuidv4(),
-      lsp29EncryptedAsset: parentRef,
-      blockNumber: entity.blockNumber,
-      transactionIndex: entity.transactionIndex,
-      logIndex: entity.logIndex,
-      timestamp: entity.timestamp,
-      method,
-      ciphertext,
-      dataToEncryptHash,
-      decryptionCode,
-      decryptionParams,
-    });
-    hctx.batchCtx.addEntity('LSP29EncryptedAssetEncryption', encryptionEntity.id, encryptionEntity);
+  // 5. Encryption params (1:1 with encryption, replaces AccessControlCondition)
+  const params = lsp29.encryption.params;
+  const paramsEntity = new LSP29EncryptedAssetEncryptionParams({
+    id: uuidv4(),
+    encryption: new LSP29EncryptedAssetEncryption({ id: encryptionEntity.id }),
+    blockNumber: entity.blockNumber,
+    transactionIndex: entity.transactionIndex,
+    logIndex: entity.logIndex,
+    timestamp: entity.timestamp,
+    method: params.method,
+    tokenAddress: 'tokenAddress' in params ? params.tokenAddress : null,
+    requiredBalance: 'requiredBalance' in params ? params.requiredBalance : null,
+    requiredTokenId: 'requiredTokenId' in params ? params.requiredTokenId : null,
+    followedAddresses:
+      'followedAddresses' in params ? JSON.stringify(params.followedAddresses) : null,
+    unlockTimestamp: 'unlockTimestamp' in params ? params.unlockTimestamp : null,
+  });
+  hctx.batchCtx.addEntity('LSP29EncryptedAssetEncryptionParams', paramsEntity.id, paramsEntity);
 
-    // Access control conditions (FK → encryption, NOT → asset)
-    if (
-      'accessControlConditions' in encryption &&
-      encryption.accessControlConditions &&
-      Array.isArray(encryption.accessControlConditions)
-    ) {
-      const encryptionRef = new LSP29EncryptedAssetEncryption({ id: encryptionEntity.id });
+  // 6. Chunks (required in v2.0.0) — per-backend JSON columns
+  const chunksEntity = new LSP29EncryptedAssetChunks({
+    id: uuidv4(),
+    lsp29EncryptedAsset: parentRef,
+    blockNumber: entity.blockNumber,
+    transactionIndex: entity.transactionIndex,
+    logIndex: entity.logIndex,
+    timestamp: entity.timestamp,
+    iv: lsp29.chunks.iv,
+    totalSize: BigInt(lsp29.chunks.totalSize),
+    ipfsChunks: lsp29.chunks.ipfs ? JSON.stringify(lsp29.chunks.ipfs) : null,
+    lumeraChunks: lsp29.chunks.lumera ? JSON.stringify(lsp29.chunks.lumera) : null,
+    s3Chunks: lsp29.chunks.s3 ? JSON.stringify(lsp29.chunks.s3) : null,
+    arweaveChunks: lsp29.chunks.arweave ? JSON.stringify(lsp29.chunks.arweave) : null,
+  });
+  hctx.batchCtx.addEntity('LSP29EncryptedAssetChunks', chunksEntity.id, chunksEntity);
 
-      for (let index = 0; index < encryption.accessControlConditions.length; index++) {
-        const condition = encryption.accessControlConditions[index];
-        if (!isLSP29Condition(condition)) continue;
-
-        const extracted = extractLSP29Condition(condition);
-        const conditionEntity = new LSP29AccessControlCondition({
-          id: uuidv4(),
-          encryption: encryptionRef,
-          blockNumber: entity.blockNumber,
-          transactionIndex: entity.transactionIndex,
-          logIndex: entity.logIndex,
-          timestamp: entity.timestamp,
-          conditionIndex: index,
-          contractAddress: extracted.contractAddress,
-          chain: extracted.chain,
-          method: extracted.method,
-          standardContractType: extracted.standardContractType,
-          comparator: extracted.comparator,
-          value: extracted.value,
-          tokenId: extracted.tokenId,
-          followerAddress: extracted.followerAddress,
-          rawCondition: JSON.stringify(condition),
-        });
-        hctx.batchCtx.addEntity('LSP29AccessControlCondition', conditionEntity.id, conditionEntity);
-      }
+  // 7. Images (same nested array structure)
+  for (let imageSetIdx = 0; imageSetIdx < lsp29.images.length; imageSetIdx++) {
+    const imageSet = lsp29.images[imageSetIdx];
+    for (const img of imageSet) {
+      if (!isFileImage(img)) continue;
+      const imageEntity = new LSP29EncryptedAssetImage({
+        id: uuidv4(),
+        lsp29EncryptedAsset: parentRef,
+        blockNumber: entity.blockNumber,
+        transactionIndex: entity.transactionIndex,
+        logIndex: entity.logIndex,
+        timestamp: entity.timestamp,
+        url: img.url,
+        width: img.width,
+        height: img.height,
+        verificationMethod: img.verification.method,
+        verificationData: img.verification.data,
+        verificationSource: 'source' in img.verification ? img.verification.source : null,
+        imageIndex: imageSetIdx,
+      });
+      hctx.batchCtx.addEntity('LSP29EncryptedAssetImage', imageEntity.id, imageEntity);
     }
   }
-
-  // 6. LSP29EncryptedAssetChunks
-  if ('chunks' in lsp29 && isLSP29Chunks(lsp29.chunks)) {
-    const { cids, iv, totalSize } = extractLSP29Chunks(lsp29.chunks);
-    const chunksEntity = new LSP29EncryptedAssetChunks({
-      id: uuidv4(),
-      lsp29EncryptedAsset: parentRef,
-      blockNumber: entity.blockNumber,
-      transactionIndex: entity.transactionIndex,
-      logIndex: entity.logIndex,
-      timestamp: entity.timestamp,
-      cids,
-      iv,
-      totalSize,
-    });
-    hctx.batchCtx.addEntity('LSP29EncryptedAssetChunks', chunksEntity.id, chunksEntity);
-  }
-
-  // 7. LSP29EncryptedAssetImage (nested arrays with imageIndex)
-  if ('images' in lsp29 && lsp29.images && Array.isArray(lsp29.images)) {
-    for (let imageSetIdx = 0; imageSetIdx < lsp29.images.length; imageSetIdx++) {
-      const imageSet = lsp29.images[imageSetIdx];
-      if (!Array.isArray(imageSet)) continue;
-
-      for (const img of imageSet) {
-        if (!isFileImage(img)) continue;
-        const imageEntity = new LSP29EncryptedAssetImage({
-          id: uuidv4(),
-          lsp29EncryptedAsset: parentRef,
-          blockNumber: entity.blockNumber,
-          transactionIndex: entity.transactionIndex,
-          logIndex: entity.logIndex,
-          timestamp: entity.timestamp,
-          url: img.url,
-          width: img.width,
-          height: img.height,
-          verificationMethod: img.verification.method,
-          verificationData: img.verification.data,
-          verificationSource: img.verification.source,
-          imageIndex: imageSetIdx,
-        });
-        hctx.batchCtx.addEntity('LSP29EncryptedAssetImage', imageEntity.id, imageEntity);
-      }
-    }
-  }
-
-  // Return entity-level field updates (version, contentId, revision, createdAt)
-  const version = 'version' in lsp29 && typeof lsp29.version === 'string' ? lsp29.version : null;
-  const contentId = 'id' in lsp29 && typeof lsp29.id === 'string' ? lsp29.id : null;
-  const revision =
-    'revision' in lsp29 && typeof lsp29.revision === 'number' ? lsp29.revision : null;
-  const createdAt =
-    'createdAt' in lsp29 && typeof lsp29.createdAt === 'string' ? lsp29.createdAt : null;
 
   return {
     success: true,
     entityUpdates: {
-      version,
-      contentId,
-      revision,
-      createdAt: createdAt ? new Date(createdAt) : null,
+      version: lsp29.version, // Always "2.0.0"
+      contentId: lsp29.id,
+      revision: lsp29.revision,
     },
   };
 }

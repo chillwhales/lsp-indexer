@@ -33,6 +33,7 @@ import {
   LSP29EncryptedAssetChunks,
   LSP29EncryptedAssetDescription,
   LSP29EncryptedAssetEncryption,
+  LSP29EncryptedAssetEncryptionParams,
   LSP29EncryptedAssetEntry,
   LSP29EncryptedAssetFile,
   LSP29EncryptedAssetImage,
