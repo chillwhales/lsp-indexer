@@ -80,6 +80,7 @@ _None currently._
 |---|-------------|------|--------|-----------|
 | 2 | Release pipeline with versioning for monorepo Dockerfile builds | 2026-03-11 | c0e2ad7 | [2-release-pipeline-with-versioning-for-mon](./quick/2-release-pipeline-with-versioning-for-mon/) |
 | 3 | Add timestamp to all entities missing it (Phase 19 fix) | 2026-03-12 | eecfa83 | [3-add-timestamp-to-all-entities-that-got-b](./quick/3-add-timestamp-to-all-entities-that-got-b/) |
+| 4 | Fix integer overflow error in lsp8TokenIdFormat handler - hexToNumber failing on large token IDs | 2026-03-15 | f757508 | [4-fix-integer-overflow-error-in-lsp8tokeni](./quick/4-fix-integer-overflow-error-in-lsp8tokeni/) |
 | Phase 21 P01 | 8min | 3 tasks | 20 files |
 | Phase 21 P02 | 2min | 2 tasks | 8 files |
 | Phase 20.1 P02 | 7min | 2 tasks | 6 files |
@@ -105,5 +106,7 @@ _None currently._
 - **Decisions:** IPFS backend preferred via selectBackend(entries, 'ipfs')
 
 ---
+
+Last activity: 2026-03-15 - Completed quick task 4: Fix integer overflow error in lsp8TokenIdFormat handler - hexToNumber failing on large token IDs
 
 _Last updated: 2026-03-15 — Completed 24-01 LSP31 URI decoding in LSP29 handler_
