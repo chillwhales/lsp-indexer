@@ -2,7 +2,6 @@ import type {
   EncryptedAsset,
   EncryptedAssetChunks,
   EncryptedAssetEncryption,
-  EncryptedAssetEncryptionParams,
   EncryptedAssetFile,
   EncryptedAssetInclude,
   EncryptedAssetResult,
@@ -15,7 +14,6 @@ import { parseImages } from './utils';
 
 /** Raw Hasura row type from codegen — provides compile-time field name safety. */
 type RawEncryptedAsset = GetEncryptedAssetsQuery['lsp29_encrypted_asset'][number];
-type RawEncryptionParams = NonNullable<NonNullable<RawEncryptedAsset['encryption']>['params']>;
 type RawEncryption = NonNullable<RawEncryptedAsset['encryption']>;
 type RawFile = NonNullable<RawEncryptedAsset['file']>;
 type RawChunks = NonNullable<RawEncryptedAsset['chunks']>;
@@ -25,32 +23,12 @@ type RawChunks = NonNullable<RawEncryptedAsset['chunks']>;
 // ---------------------------------------------------------------------------
 
 /**
- * Parse a raw Hasura `lsp29_encrypted_asset_encryption_params` into `EncryptedAssetEncryptionParams`.
- *
- * Maps snake_case fields to camelCase:
- * - `token_address` → `tokenAddress`
- * - `required_balance` → `requiredBalance`
- * - `required_token_id` → `requiredTokenId`
- * - `followed_addresses` → `followedAddresses`
- * - `unlock_timestamp` → `unlockTimestamp`
- */
-function parseEncryptionParams(raw: RawEncryptionParams): EncryptedAssetEncryptionParams {
-  return {
-    method: raw.method,
-    tokenAddress: raw.token_address ?? null,
-    requiredBalance: raw.required_balance ?? null,
-    requiredTokenId: raw.required_token_id ?? null,
-    followedAddresses: raw.followed_addresses ?? null,
-    unlockTimestamp: raw.unlock_timestamp ?? null,
-  };
-}
-
-/**
  * Parse a raw Hasura `lsp29_encrypted_asset_encryption` into a clean `EncryptedAssetEncryption`.
  *
- * Maps snake_case fields to camelCase. Sub-field presence is controlled by
- * `@include` directives in the GraphQL document — excluded fields are simply
- * absent from `raw`, so `raw.field ?? null` naturally returns `null`.
+ * Maps snake_case fields to camelCase. Method-specific params are flattened
+ * directly on the encryption object (no separate params relation).
+ * Sub-field presence is controlled by `@include` directives in the GraphQL
+ * document — excluded fields are simply absent from `raw`, so `?? null` handles them.
  */
 function parseEncryption(raw: RawEncryption): EncryptedAssetEncryption {
   return {
@@ -58,7 +36,11 @@ function parseEncryption(raw: RawEncryption): EncryptedAssetEncryption {
     method: raw.method ?? null,
     condition: raw.condition ?? null,
     encryptedKey: raw.encrypted_key ?? null,
-    params: raw.params ? parseEncryptionParams(raw.params) : null,
+    tokenAddress: raw.token_address ?? null,
+    requiredBalance: raw.required_balance ?? null,
+    requiredTokenId: raw.required_token_id ?? null,
+    followedAddresses: raw.followed_addresses ?? null,
+    unlockTimestamp: raw.unlock_timestamp ?? null,
   };
 }
 
@@ -152,26 +134,17 @@ export function parseEncryptedAsset(
   };
 
   if (include) {
-    // Normalize include for stripExcluded: dual-form fields (boolean or object) should map
-    // to the field being included/excluded. Convert object forms to boolean for strip.
-    const normalizedInclude: Record<string, boolean | Record<string, unknown> | undefined> = {
-      ...include,
-    };
-    if (typeof include.encryption === 'object' && include.encryption != null) {
-      normalizedInclude.encryption = true; // Object form = included
-    }
-    if (typeof include.file === 'object' && include.file != null) {
-      normalizedInclude.file = true; // Object form = included
-    }
-    if (typeof include.chunks === 'object' && include.chunks != null) {
-      normalizedInclude.chunks = true; // Object form = included
-    }
+    // Pass sub-include objects through to stripExcluded so it can recursively
+    // strip sub-fields. Only normalize universalProfile (handled separately).
     return stripExcluded(
       result,
-      normalizedInclude,
+      include as Record<string, boolean | Record<string, unknown> | undefined>,
       ['address', 'contentId', 'revision'],
       undefined,
       {
+        encryption: { baseFields: [] },
+        file: { baseFields: ['name'] },
+        chunks: { baseFields: [] },
         universalProfile: { baseFields: ['address'] },
       },
     );

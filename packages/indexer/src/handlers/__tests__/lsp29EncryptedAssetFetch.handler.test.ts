@@ -2,13 +2,12 @@
  * Unit tests for LSP29 Encrypted Asset metadata fetch handler.
  *
  * Covers:
- * - META-03: LSP29 sub-entity creation from valid JSON (all 7 types)
+ * - META-03: LSP29 sub-entity creation from valid JSON (all 6 types)
  * - META-04: Head-only gating — no workerPool.fetchBatch when isHead=false
  * - META-05: Error tracking — failed fetches update entity error fields
  * - Empty value path: queueClear for all 6 asset-FK sub-entity types when url is null
- *   (EncryptionParams excluded — FK points to Encryption, cleared via cascade)
  * - entityUpdates: version, contentId, revision returned on success
- * - FK chain: EncryptionParams links to Encryption, not Asset
+ * - Encryption includes flattened method-specific params
  */
 import type { HandlerContext, StoredClearRequest } from '@/core/types';
 import {
@@ -16,7 +15,6 @@ import {
   LSP29EncryptedAssetChunks,
   LSP29EncryptedAssetDescription,
   LSP29EncryptedAssetEncryption,
-  LSP29EncryptedAssetEncryptionParams,
   LSP29EncryptedAssetFile,
   LSP29EncryptedAssetImage,
   LSP29EncryptedAssetTitle,
@@ -258,7 +256,7 @@ describe('LSP29EncryptedAssetFetchHandler - Head-only gating (META-04)', () => {
 });
 
 describe('LSP29EncryptedAssetFetchHandler - Successful fetch (META-03)', () => {
-  it('creates all 7 sub-entity types from valid JSON', async () => {
+  it('creates all 6 sub-entity types from valid JSON', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx, { isHead: true });
 
@@ -291,7 +289,6 @@ describe('LSP29EncryptedAssetFetchHandler - Successful fetch (META-03)', () => {
     expect(addedTypes.has('LSP29EncryptedAssetDescription')).toBe(true);
     expect(addedTypes.has('LSP29EncryptedAssetFile')).toBe(true);
     expect(addedTypes.has('LSP29EncryptedAssetEncryption')).toBe(true);
-    expect(addedTypes.has('LSP29EncryptedAssetEncryptionParams')).toBe(true);
     expect(addedTypes.has('LSP29EncryptedAssetChunks')).toBe(true);
     expect(addedTypes.has('LSP29EncryptedAssetImage')).toBe(true);
   });
@@ -400,7 +397,7 @@ describe('LSP29EncryptedAssetFetchHandler - Successful fetch (META-03)', () => {
     expect(enc.encryptedKey).toBe(JSON.stringify({ messageKit: '0xencryptedkey123' }));
   });
 
-  it('creates EncryptionParams linked to Encryption (not Asset)', async () => {
+  it('creates Encryption with flattened method-specific params', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx, { isHead: true });
 
@@ -424,18 +421,19 @@ describe('LSP29EncryptedAssetFetchHandler - Successful fetch (META-03)', () => {
 
     await LSP29EncryptedAssetFetchHandler.handle(hctx, 'LSP29EncryptedAsset');
 
-    const paramsCalls = batchCtx.addEntity.mock.calls.filter(
-      (c: unknown[]) => c[0] === 'LSP29EncryptedAssetEncryptionParams',
+    const encCalls = batchCtx.addEntity.mock.calls.filter(
+      (c: unknown[]) => c[0] === 'LSP29EncryptedAssetEncryption',
     );
-    expect(paramsCalls.length).toBe(1);
+    expect(encCalls.length).toBe(1);
 
-    // Verify FK is encryption, not lsp29EncryptedAsset
-    const params = paramsCalls[0][2] as LSP29EncryptedAssetEncryptionParams;
-    expect(params.encryption).toBeDefined();
-    expect(params.encryption).not.toBeNull();
-    expect(params.method).toBe('digital-asset-balance');
-    expect(params.tokenAddress).toBe('0xDA1111111111111111111111111111111111111111');
-    expect(params.requiredBalance).toBe('1000');
+    // Verify params are flattened on the Encryption entity (not a separate entity)
+    const enc = encCalls[0][2] as LSP29EncryptedAssetEncryption;
+    expect(enc.method).toBe('digital-asset-balance');
+    expect(enc.tokenAddress).toBe('0xDA1111111111111111111111111111111111111111');
+    expect(enc.requiredBalance).toBe('1000');
+    expect(enc.requiredTokenId).toBeNull();
+    expect(enc.followedAddresses).toBeNull();
+    expect(enc.unlockTimestamp).toBeNull();
   });
 
   it('creates Chunks with per-backend typed arrays and BigInt totalSize', async () => {

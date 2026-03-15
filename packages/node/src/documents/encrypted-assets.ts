@@ -19,7 +19,11 @@ export const GetEncryptedAssetsDocument = graphql(`
     $includeEncryptionMethod: Boolean! = true
     $includeEncryptionCondition: Boolean! = true
     $includeEncryptionEncryptedKey: Boolean! = true
-    $includeEncryptionParams: Boolean! = true
+    $includeEncryptionTokenAddress: Boolean! = true
+    $includeEncryptionRequiredBalance: Boolean! = true
+    $includeEncryptionRequiredTokenId: Boolean! = true
+    $includeEncryptionFollowedAddresses: Boolean! = true
+    $includeEncryptionUnlockTimestamp: Boolean! = true
     $includeFile: Boolean! = true
     $includeFileType: Boolean! = true
     $includeFileSize: Boolean! = true
@@ -74,14 +78,11 @@ export const GetEncryptedAssetsDocument = graphql(`
         method @include(if: $includeEncryptionMethod)
         condition @include(if: $includeEncryptionCondition)
         encrypted_key @include(if: $includeEncryptionEncryptedKey)
-        params @include(if: $includeEncryptionParams) {
-          method
-          token_address
-          required_balance
-          required_token_id
-          followed_addresses
-          unlock_timestamp
-        }
+        token_address @include(if: $includeEncryptionTokenAddress)
+        required_balance @include(if: $includeEncryptionRequiredBalance)
+        required_token_id @include(if: $includeEncryptionRequiredTokenId)
+        followed_addresses @include(if: $includeEncryptionFollowedAddresses)
+        unlock_timestamp @include(if: $includeEncryptionUnlockTimestamp)
       }
 
       file @include(if: $includeFile) {
@@ -191,7 +192,11 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
     $includeEncryptionMethod: Boolean! = true
     $includeEncryptionCondition: Boolean! = true
     $includeEncryptionEncryptedKey: Boolean! = true
-    $includeEncryptionParams: Boolean! = true
+    $includeEncryptionTokenAddress: Boolean! = true
+    $includeEncryptionRequiredBalance: Boolean! = true
+    $includeEncryptionRequiredTokenId: Boolean! = true
+    $includeEncryptionFollowedAddresses: Boolean! = true
+    $includeEncryptionUnlockTimestamp: Boolean! = true
     $includeFile: Boolean! = true
     $includeFileType: Boolean! = true
     $includeFileSize: Boolean! = true
@@ -246,14 +251,11 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
         method @include(if: $includeEncryptionMethod)
         condition @include(if: $includeEncryptionCondition)
         encrypted_key @include(if: $includeEncryptionEncryptedKey)
-        params @include(if: $includeEncryptionParams) {
-          method
-          token_address
-          required_balance
-          required_token_id
-          followed_addresses
-          unlock_timestamp
-        }
+        token_address @include(if: $includeEncryptionTokenAddress)
+        required_balance @include(if: $includeEncryptionRequiredBalance)
+        required_token_id @include(if: $includeEncryptionRequiredTokenId)
+        followed_addresses @include(if: $includeEncryptionFollowedAddresses)
+        unlock_timestamp @include(if: $includeEncryptionUnlockTimestamp)
       }
 
       file @include(if: $includeFile) {

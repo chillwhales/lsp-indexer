@@ -1012,23 +1012,7 @@ type LSP29EncryptedAssetEncryption
   condition: String
   encryptedKey: String
 
-  # Derived — method-specific params
-  params: LSP29EncryptedAssetEncryptionParams @derivedFrom(field: "encryption")
-}
-
-type LSP29EncryptedAssetEncryptionParams
-  @entity
-  @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
-  id: ID! @unique
-  timestamp: DateTime! @index
-  blockNumber: Int! @index
-  transactionIndex: Int! @index
-  logIndex: Int! @index
-  encryption: LSP29EncryptedAssetEncryption! @index @unique
-
-  # Discriminator — matches encryption.method
-  method: String! @index
-
+  # Method-specific params (flattened, sparse columns per method)
   # digital-asset-balance and lsp8-ownership
   tokenAddress: String @index
 

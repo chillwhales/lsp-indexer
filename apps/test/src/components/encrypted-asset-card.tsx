@@ -137,7 +137,12 @@ function EncryptionSection({
 }: {
   encryption: NonNullable<EncryptedAsset['encryption']>;
 }): React.ReactNode {
-  const params = encryption.params;
+  const hasParams =
+    encryption.tokenAddress ||
+    encryption.requiredBalance ||
+    encryption.requiredTokenId ||
+    (encryption.followedAddresses && encryption.followedAddresses.length > 0) ||
+    encryption.unlockTimestamp;
 
   return (
     <Collapsible>
@@ -183,44 +188,42 @@ function EncryptionSection({
             </div>
           )}
         </dl>
-        {params != null && (
+        {hasParams && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1.5">
-              Encryption Params ({params.method})
+              Method Params ({encryption.method})
             </h5>
             <div className="border rounded-md p-2.5 space-y-1 text-xs bg-muted/30">
-              <div className="flex gap-2">
-                <span className="text-muted-foreground w-28 shrink-0">Method</span>
-                <span className="font-mono">{params.method}</span>
-              </div>
-              {params.tokenAddress && (
+              {encryption.tokenAddress && (
                 <div className="flex gap-2">
                   <span className="text-muted-foreground w-28 shrink-0">Token Address</span>
-                  <span className="font-mono break-all">{params.tokenAddress}</span>
+                  <span className="font-mono break-all">{encryption.tokenAddress}</span>
                 </div>
               )}
-              {params.requiredBalance && (
+              {encryption.requiredBalance && (
                 <div className="flex gap-2">
                   <span className="text-muted-foreground w-28 shrink-0">Required Balance</span>
-                  <span className="font-mono">{params.requiredBalance}</span>
+                  <span className="font-mono">{encryption.requiredBalance}</span>
                 </div>
               )}
-              {params.requiredTokenId && (
+              {encryption.requiredTokenId && (
                 <div className="flex gap-2">
                   <span className="text-muted-foreground w-28 shrink-0">Required Token ID</span>
-                  <span className="font-mono">{params.requiredTokenId}</span>
+                  <span className="font-mono">{encryption.requiredTokenId}</span>
                 </div>
               )}
-              {params.followedAddresses && params.followedAddresses.length > 0 && (
+              {encryption.followedAddresses && encryption.followedAddresses.length > 0 && (
                 <div className="flex gap-2">
                   <span className="text-muted-foreground w-28 shrink-0">Followed Addrs</span>
-                  <span className="font-mono break-all">{params.followedAddresses.join(', ')}</span>
+                  <span className="font-mono break-all">
+                    {encryption.followedAddresses.join(', ')}
+                  </span>
                 </div>
               )}
-              {params.unlockTimestamp && (
+              {encryption.unlockTimestamp && (
                 <div className="flex gap-2">
                   <span className="text-muted-foreground w-28 shrink-0">Unlock Timestamp</span>
-                  <span className="font-mono">{params.unlockTimestamp}</span>
+                  <span className="font-mono">{encryption.unlockTimestamp}</span>
                 </div>
               )}
             </div>

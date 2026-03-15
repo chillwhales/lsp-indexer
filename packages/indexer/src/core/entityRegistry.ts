@@ -33,7 +33,6 @@ import {
   LSP29EncryptedAssetChunks,
   LSP29EncryptedAssetDescription,
   LSP29EncryptedAssetEncryption,
-  LSP29EncryptedAssetEncryptionParams,
   LSP29EncryptedAssetEntry,
   LSP29EncryptedAssetFile,
   LSP29EncryptedAssetImage,
@@ -191,7 +190,6 @@ export interface EntityRegistry {
   LSP29EncryptedAssetDescription: LSP29EncryptedAssetDescription;
   LSP29EncryptedAssetFile: LSP29EncryptedAssetFile;
   LSP29EncryptedAssetEncryption: LSP29EncryptedAssetEncryption;
-  LSP29EncryptedAssetEncryptionParams: LSP29EncryptedAssetEncryptionParams;
   LSP29EncryptedAssetChunks: LSP29EncryptedAssetChunks;
   LSP29EncryptedAssetImage: LSP29EncryptedAssetImage;
 }
@@ -306,7 +304,6 @@ export const ENTITY_CONSTRUCTORS: {
   LSP29EncryptedAssetDescription,
   LSP29EncryptedAssetFile,
   LSP29EncryptedAssetEncryption,
-  LSP29EncryptedAssetEncryptionParams,
   LSP29EncryptedAssetChunks,
   LSP29EncryptedAssetImage,
 };

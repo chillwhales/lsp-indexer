@@ -171,7 +171,11 @@ export function buildEncryptedAssetIncludeVars(
     includeEncryptionMethod: encInc === true || (encObj?.method ?? false),
     includeEncryptionCondition: encInc === true || (encObj?.condition ?? false),
     includeEncryptionEncryptedKey: encInc === true || (encObj?.encryptedKey ?? false),
-    includeEncryptionParams: encInc === true || (encObj?.params ?? false),
+    includeEncryptionTokenAddress: encInc === true || (encObj?.tokenAddress ?? false),
+    includeEncryptionRequiredBalance: encInc === true || (encObj?.requiredBalance ?? false),
+    includeEncryptionRequiredTokenId: encInc === true || (encObj?.requiredTokenId ?? false),
+    includeEncryptionFollowedAddresses: encInc === true || (encObj?.followedAddresses ?? false),
+    includeEncryptionUnlockTimestamp: encInc === true || (encObj?.unlockTimestamp ?? false),
 
     // File — top-level + per-sub-field toggles (name is always included, no toggle needed)
     includeFile: isFileIncluded,

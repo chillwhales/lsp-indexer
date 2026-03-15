@@ -14,10 +14,16 @@ import {
 // Sub-type schemas — nested object schemas for encrypted asset relations
 // ---------------------------------------------------------------------------
 
-/** Encryption parameters — method-discriminated params replacing access control conditions. */
-export const EncryptedAssetEncryptionParamsSchema = z.object({
-  /** Discriminator — matches encryption.method */
-  method: z.string(),
+/** Encryption details — provider, method, condition, encrypted key, and method-specific params. */
+export const EncryptedAssetEncryptionSchema = z.object({
+  /** Encryption provider (taco, lit) — null when excluded via sub-include */
+  provider: z.string().nullable(),
+  /** Access control method — null when excluded via sub-include */
+  method: z.string().nullable(),
+  /** Provider-native condition object (JSON string, null = not included) */
+  condition: z.string().nullable(),
+  /** Encrypted key data (JSON string, null = not included) */
+  encryptedKey: z.string().nullable(),
   /** Token address for digital-asset-balance and lsp8-ownership */
   tokenAddress: z.string().nullable(),
   /** Required balance for digital-asset-balance */
@@ -28,20 +34,6 @@ export const EncryptedAssetEncryptionParamsSchema = z.object({
   followedAddresses: z.array(z.string()).nullable(),
   /** Unlock timestamp for time-locked */
   unlockTimestamp: z.string().nullable(),
-});
-
-/** Encryption details — provider, method, condition, encrypted key, and params. */
-export const EncryptedAssetEncryptionSchema = z.object({
-  /** Encryption provider (taco, lit) — null when excluded via sub-include */
-  provider: z.string().nullable(),
-  /** Access control method — null when excluded via sub-include */
-  method: z.string().nullable(),
-  /** Provider-native condition object (JSON string, null = not included) */
-  condition: z.string().nullable(),
-  /** Encrypted key data (JSON string, null = not included) */
-  encryptedKey: z.string().nullable(),
-  /** Method-specific parameters (null = not included) */
-  params: EncryptedAssetEncryptionParamsSchema.nullable(),
 });
 
 /** File metadata for an encrypted asset. */
@@ -189,7 +181,11 @@ export const EncryptedAssetEncryptionIncludeSchema = z.object({
   method: z.boolean().optional(),
   condition: z.boolean().optional(),
   encryptedKey: z.boolean().optional(),
-  params: z.boolean().optional(),
+  tokenAddress: z.boolean().optional(),
+  requiredBalance: z.boolean().optional(),
+  requiredTokenId: z.boolean().optional(),
+  followedAddresses: z.boolean().optional(),
+  unlockTimestamp: z.boolean().optional(),
 });
 
 /** Omit = fetch all fields; set individual fields to opt-in. Sub-relations accept boolean or per-field object. */
@@ -237,7 +233,6 @@ export const UseInfiniteEncryptedAssetsParamsSchema = z.object({
 // Inferred types
 // ---------------------------------------------------------------------------
 
-export type EncryptedAssetEncryptionParams = z.infer<typeof EncryptedAssetEncryptionParamsSchema>;
 export type EncryptedAssetEncryption = z.infer<typeof EncryptedAssetEncryptionSchema>;
 export type EncryptedAssetEncryptionInclude = z.infer<typeof EncryptedAssetEncryptionIncludeSchema>;
 export type EncryptedAssetFile = z.infer<typeof EncryptedAssetFileSchema>;
@@ -283,7 +278,11 @@ type EncryptionIncludeFieldMap = {
   method: 'method';
   condition: 'condition';
   encryptedKey: 'encryptedKey';
-  params: 'params';
+  tokenAddress: 'tokenAddress';
+  requiredBalance: 'requiredBalance';
+  requiredTokenId: 'requiredTokenId';
+  followedAddresses: 'followedAddresses';
+  unlockTimestamp: 'unlockTimestamp';
 };
 
 /**

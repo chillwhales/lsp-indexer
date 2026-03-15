@@ -54,15 +54,23 @@ export function decodeVerifiableUri(dataValue: string): {
 
 /**
  * Safely stringify a value and cap at MAX_JSON_LENGTH.
- * Returns null if the value is nullish or the result exceeds the limit.
- * Logs a warning when truncation occurs.
+ * Returns null if the value is nullish, unstringifiable, or the result exceeds the limit.
+ * Logs a warning when truncation or stringify failure occurs.
  *
  * @param value - The value to stringify
  * @param fieldName - Optional field name for warning log context
  */
 export function safeJsonStringify(value: unknown, fieldName?: string): string | null {
   if (value == null) return null;
-  const json = JSON.stringify(value);
+  let json: string;
+  try {
+    json = JSON.stringify(value);
+  } catch {
+    console.warn(
+      `[safeJsonStringify] Field "${fieldName ?? 'unknown'}" failed to stringify, storing null`,
+    );
+    return null;
+  }
   if (json.length > MAX_JSON_LENGTH) {
     console.warn(
       `[safeJsonStringify] Field "${fieldName ?? 'unknown'}" exceeded ${MAX_JSON_LENGTH} chars (${json.length}), storing null`,
@@ -75,12 +83,19 @@ export function safeJsonStringify(value: unknown, fieldName?: string): string | 
 /**
  * Cap an array of strings at MAX_CHUNK_ARRAY_LENGTH.
  * Returns null if the array is nullish or empty.
+ * Logs a warning when truncation occurs.
  *
  * @param arr - The string array to cap
  */
 export function safeChunkArray(arr: string[] | undefined | null): string[] | null {
   if (!arr || arr.length === 0) return null;
-  return arr.length <= MAX_CHUNK_ARRAY_LENGTH ? arr : arr.slice(0, MAX_CHUNK_ARRAY_LENGTH);
+  if (arr.length > MAX_CHUNK_ARRAY_LENGTH) {
+    console.warn(
+      `[safeChunkArray] Array exceeded ${MAX_CHUNK_ARRAY_LENGTH} elements (${arr.length}), truncating`,
+    );
+    return arr.slice(0, MAX_CHUNK_ARRAY_LENGTH);
+  }
+  return arr;
 }
 
 /**

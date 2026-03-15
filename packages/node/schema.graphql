@@ -5102,6 +5102,7 @@ type lsp29_encrypted_asset_encryption {
   block_number: Int!
   condition: String
   encrypted_key: String
+  followed_addresses: [String!]
   id: String!
   log_index: Int!
 
@@ -5109,12 +5110,13 @@ type lsp29_encrypted_asset_encryption {
   lsp29EncryptedAsset: lsp29_encrypted_asset
   lsp29_encrypted_asset_id: String
   method: String!
-
-  """An object relationship"""
-  params: lsp29_encrypted_asset_encryption_params
   provider: String!
+  required_balance: String
+  required_token_id: String
   timestamp: timestamptz!
+  token_address: String
   transaction_index: Int!
+  unlock_timestamp: String
 }
 
 """
@@ -5159,14 +5161,19 @@ input lsp29_encrypted_asset_encryption_bool_exp {
   block_number: Int_comparison_exp
   condition: String_comparison_exp
   encrypted_key: String_comparison_exp
+  followed_addresses: String_array_comparison_exp
   id: String_comparison_exp
   log_index: Int_comparison_exp
   lsp29EncryptedAsset: lsp29_encrypted_asset_bool_exp
   lsp29_encrypted_asset_id: String_comparison_exp
   method: String_comparison_exp
   provider: String_comparison_exp
+  required_balance: String_comparison_exp
+  required_token_id: String_comparison_exp
   timestamp: timestamptz_comparison_exp
+  token_address: String_comparison_exp
   transaction_index: Int_comparison_exp
+  unlock_timestamp: String_comparison_exp
 }
 
 """aggregate max on columns"""
