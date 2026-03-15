@@ -6,10 +6,10 @@
  * enum value (0 = TOKEN, 1 = NFT, 2 = COLLECTION) from the data value.
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { decodeTokenType } from '@/utils';
+import { decodeTokenType, safeHexToNumber } from '@/utils';
 import { LSP4TokenType } from '@chillwhales/typeorm';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
-import { hexToNumber, isHex } from 'viem';
+import { isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP4TokenType';
@@ -38,7 +38,16 @@ const LSP4TokenTypeHandler: EntityHandler = {
         value:
           !isHex(event.dataValue) || event.dataValue === '0x'
             ? null
-            : decodeTokenType(hexToNumber(event.dataValue)),
+            : (() => {
+                try {
+                  return decodeTokenType(safeHexToNumber(event.dataValue));
+                } catch (error) {
+                  console.warn(
+                    `[LSP4TokenType] Failed to parse token type for ${event.address}: ${error instanceof Error ? error.message : String(error)}`,
+                  );
+                  return null;
+                }
+              })(),
         rawValue: event.dataValue,
         digitalAsset: null, // FK initially null
       });
