@@ -1,5 +1,11 @@
 # @chillwhales/indexer
 
+## 2.3.2
+
+### Patch Changes
+
+- [#323](https://github.com/chillwhales/lsp-indexer/pull/323) [`1cc1dbc`](https://github.com/chillwhales/lsp-indexer/commit/1cc1dbccb8519bddaea2e2e306c2f52501700320) Thanks [@b00ste](https://github.com/b00ste)! - Switch LSP29 handler to LSP31 multi-backend URI decoding with VerifiableURI fallback for backward compatibility
+
 ## 2.3.1
 
 ### Patch Changes
