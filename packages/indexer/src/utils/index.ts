@@ -5,7 +5,7 @@ import { isNumeric } from '@chillwhales/utils';
 import ERC725 from '@erc725/erc725.js';
 import type { Verification } from '@lukso/lsp2-contracts';
 import type { FileAsset, ImageMetadata, LinkMetadata } from '@lukso/lsp3-contracts';
-import { bytesToHex, Hex, hexToBytes, hexToString, isHex, sliceHex } from 'viem';
+import { bytesToHex, Hex, hexToBigInt, hexToBytes, hexToString, isHex, sliceHex } from 'viem';
 
 /**
  * Decode an ERC725Y VerifiableURI-encoded data value into a plain URL.
@@ -111,6 +111,25 @@ export function safeBigInt(value: unknown): bigint | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Safely convert hex to number, handling large uint256 values that exceed MAX_SAFE_INTEGER.
+ * For large values, takes lower 32 bits to extract meaningful enum/small integer values.
+ * @param hex Hex string to convert
+ * @returns Number (safe conversion) or throws for invalid hex
+ */
+export function safeHexToNumber(hex: string): number {
+  const bigIntValue = hexToBigInt(hex as Hex);
+
+  // If value fits in safe integer range, use it directly
+  if (bigIntValue <= Number.MAX_SAFE_INTEGER) {
+    return Number(bigIntValue);
+  }
+
+  // For large values, take lower 32 bits which typically contain the meaningful value
+  // for LSP standards (format types, token types, etc are small integers)
+  return Number(bigIntValue & 0xffffffffn);
 }
 
 export function isNullAddress(address: string): boolean {
