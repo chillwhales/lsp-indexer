@@ -78,6 +78,9 @@ const DecimalsHandler: EntityHandler = {
 
         if (result.success && isHex(result.returnData) && result.returnData !== '0x') {
           try {
+            // decimals() should return uint8 (0-255), validate range
+            const decimalsValue = safeHexToNumber(result.returnData, { maxValue: 255 });
+
             const entity = new Decimals({
               id: da.id,
               address: da.id,
@@ -86,7 +89,7 @@ const DecimalsHandler: EntityHandler = {
               transactionIndex: da.transactionIndex,
               logIndex: da.logIndex,
               digitalAsset: null, // FK initially null — resolved by enrichment queue
-              value: safeHexToNumber(result.returnData),
+              value: decimalsValue, // Safe after validation
             });
 
             // Add to BatchContext — pipeline persists in Step 5.5 persist phase

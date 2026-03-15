@@ -6,8 +6,8 @@
  * encoding format (0 = NUMBER, 1 = STRING, 2 = ADDRESS, 3/4 = BYTES32).
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { decodeTokenIdFormat, safeHexToNumber } from '@/utils';
-import { LSP8TokenIdFormat } from '@chillwhales/typeorm';
+import { decodeTokenIdFormat, safeHexToEnum } from '@/utils';
+import { LSP8TokenIdFormat, LSP8TokenIdFormatEnum } from '@chillwhales/typeorm';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { isHex } from 'viem';
 
@@ -27,6 +27,26 @@ const LSP8TokenIdFormatHandler: EntityHandler = {
       // Filter by data key
       if (event.dataKey !== LSP8_TOKEN_ID_FORMAT_KEY) continue;
 
+      // Decode token ID format value
+      let value: LSP8TokenIdFormatEnum | null = null;
+      if (isHex(event.dataValue) && event.dataValue !== '0x') {
+        try {
+          const formatNumber = safeHexToEnum(event.dataValue);
+          value = decodeTokenIdFormat(formatNumber);
+        } catch (error) {
+          hctx.context.log.warn(
+            {
+              step: 'HANDLE',
+              handler: 'lsp8TokenIdFormat',
+              address: event.address,
+              dataValue: event.dataValue,
+              error: error instanceof Error ? error.message : String(error),
+            },
+            'Failed to parse token ID format',
+          );
+        }
+      }
+
       // Create entity with decoded value
       const entity = new LSP8TokenIdFormat({
         id: event.address,
@@ -35,19 +55,7 @@ const LSP8TokenIdFormatHandler: EntityHandler = {
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
         logIndex: event.logIndex,
-        value:
-          !isHex(event.dataValue) || event.dataValue === '0x'
-            ? null
-            : (() => {
-                try {
-                  return decodeTokenIdFormat(safeHexToNumber(event.dataValue));
-                } catch (error) {
-                  console.warn(
-                    `[LSP8TokenIdFormat] Failed to parse token ID format for ${event.address}: ${error instanceof Error ? error.message : String(error)}`,
-                  );
-                  return null;
-                }
-              })(),
+        value,
         rawValue: event.dataValue,
         digitalAsset: null, // FK initially null
       });

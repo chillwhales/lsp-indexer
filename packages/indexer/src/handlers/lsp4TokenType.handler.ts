@@ -6,8 +6,8 @@
  * enum value (0 = TOKEN, 1 = NFT, 2 = COLLECTION) from the data value.
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { decodeTokenType, safeHexToNumber } from '@/utils';
-import { LSP4TokenType } from '@chillwhales/typeorm';
+import { decodeTokenType, safeHexToEnum } from '@/utils';
+import { LSP4TokenType, LSP4TokenTypeEnum } from '@chillwhales/typeorm';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { isHex } from 'viem';
 
@@ -27,6 +27,26 @@ const LSP4TokenTypeHandler: EntityHandler = {
       // Filter by data key
       if (event.dataKey !== LSP4_TOKEN_TYPE_KEY) continue;
 
+      // Decode token type value
+      let value: LSP4TokenTypeEnum | null = null;
+      if (isHex(event.dataValue) && event.dataValue !== '0x') {
+        try {
+          const typeNumber = safeHexToEnum(event.dataValue);
+          value = decodeTokenType(typeNumber);
+        } catch (error) {
+          hctx.context.log.warn(
+            {
+              step: 'HANDLE',
+              handler: 'lsp4TokenType',
+              address: event.address,
+              dataValue: event.dataValue,
+              error: error instanceof Error ? error.message : String(error),
+            },
+            'Failed to parse token type',
+          );
+        }
+      }
+
       // Create entity with decoded value
       const entity = new LSP4TokenType({
         id: event.address,
@@ -35,19 +55,7 @@ const LSP4TokenTypeHandler: EntityHandler = {
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
         logIndex: event.logIndex,
-        value:
-          !isHex(event.dataValue) || event.dataValue === '0x'
-            ? null
-            : (() => {
-                try {
-                  return decodeTokenType(safeHexToNumber(event.dataValue));
-                } catch (error) {
-                  console.warn(
-                    `[LSP4TokenType] Failed to parse token type for ${event.address}: ${error instanceof Error ? error.message : String(error)}`,
-                  );
-                  return null;
-                }
-              })(),
+        value,
         rawValue: event.dataValue,
         digitalAsset: null, // FK initially null
       });
