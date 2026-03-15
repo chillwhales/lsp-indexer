@@ -1,5 +1,13 @@
 # @chillwhales/indexer
 
+## 2.3.1
+
+### Patch Changes
+
+- [#324](https://github.com/chillwhales/lsp-indexer/pull/324) [`9807f3f`](https://github.com/chillwhales/lsp-indexer/commit/9807f3f3951d3f05ede489034d7d94c2085e1422) Thanks [@b00ste](https://github.com/b00ste)! - Fix IntegerOutOfRangeError when processing large hex values in viem v2.47.4
+
+  Replace `hexToNumber()` with `BigInt()` in `decodeVerifiableUri` and `formatTokenId` functions to handle arbitrarily large hex numbers that exceed JavaScript's safe integer range. This resolves crashes at block 641099 where extremely large hex values caused viem's hexToNumber to throw IntegerOutOfRangeError.
+
 ## 2.3.0
 
 ### Minor Changes
