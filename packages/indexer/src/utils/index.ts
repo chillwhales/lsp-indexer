@@ -137,6 +137,10 @@ export function safeHexToNumber(
     throw new Error(`Invalid hex string: ${preview}`);
   }
 
+  if (hex === '0x') {
+    throw new Error('Empty hex value (0x) — callers should filter before conversion');
+  }
+
   const bigIntValue = hexToBigInt(hex);
   const { maxValue = Number.MAX_SAFE_INTEGER, fallbackBehavior = 'throw' } = options;
 

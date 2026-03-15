@@ -81,27 +81,17 @@ While these values should typically be small integers, the blockchain can contai
     2. Add new utility function:
        ```typescript
        /**
-        * Safely convert hex to number, handling large uint256 values that exceed MAX_SAFE_INTEGER.
-        * For large values, takes lower 32 bits to extract meaningful enum/small integer values.
-        * @param hex Hex string to convert
-        * @returns Number (safe conversion) or throws for invalid hex
+        * Safely convert hex to number with explicit upper-bound validation.
+        * Rejects '0x' as empty data. Out-of-range values throw or return null.
         */
-       export function safeHexToNumber(hex: string): number {
-         const bigIntValue = hexToBigInt(hex);
-         
-         // If value fits in safe integer range, use it directly
-         if (bigIntValue <= Number.MAX_SAFE_INTEGER) {
-           return Number(bigIntValue);
-         }
-         
-         // For large values, take lower 32 bits which typically contain the meaningful value
-         // for LSP standards (format types, token types, etc are small integers)
-         return Number(bigIntValue & 0xFFFFFFFFn);
-       }
+       export function safeHexToNumber(
+         hex: string,
+         options: { maxValue?: number; fallbackBehavior?: 'throw' | 'null' } = {},
+       ): number | null { ... }
        ```
     3. Export the function for use in handlers
     
-    This provides a centralized solution for safe hex to number conversion across all handlers.
+    This provides a centralized solution that validates against explicit upper bounds per caller.
   </action>
   <verify>pnpm --filter=@chillwhales/indexer build</verify>
   <done>Utils module contains safe hex conversion function that handles large uint256 values</done>
@@ -115,21 +105,20 @@ While these values should typically be small integers, the blockchain can contai
     
     **LSP8TokenIdFormat handler:**
     1. Import safeHexToNumber from utils: `import { safeHexToNumber } from '@/utils'`
-    2. Replace `hexToNumber(event.dataValue)` with `safeHexToNumber(event.dataValue)`
-    3. Add try-catch for graceful error handling
+    2. Replace `hexToNumber(event.dataValue)` with `safeHexToNumber(event.dataValue, { maxValue: 104, fallbackBehavior: 'null' })`
+    3. Check for null return and log structured warning for out-of-range values
     
     **LSP4TokenType handler:**
     1. Import safeHexToNumber from utils: `import { safeHexToNumber } from '@/utils'` 
-    2. Replace `hexToNumber(event.dataValue)` with `safeHexToNumber(event.dataValue)`
-    3. Add try-catch for graceful error handling
+    2. Replace `hexToNumber(event.dataValue)` with `safeHexToNumber(event.dataValue, { maxValue: 2, fallbackBehavior: 'null' })`
+    3. Check for null return and log structured warning for out-of-range values
     
     **Decimals handler:**
     1. Import safeHexToNumber from utils: `import { safeHexToNumber } from '@/utils'`
-    2. Replace `hexToNumber(result.returnData)` with `safeHexToNumber(result.returnData)` 
-    3. Update existing try-catch to handle the new function
-    4. Remove the TODO comment about hexToNumber throwing since it's now handled
+    2. Replace `hexToNumber(result.returnData)` with `safeHexToNumber(result.returnData, { maxValue: 255 })`
+    3. Existing try-catch catches throws for out-of-range or invalid values
     
-    Wrap each conversion in try-catch blocks that log warnings but continue processing with null values to prevent indexer crashes.
+    Enum handlers use null fallback with explicit bounds; decimals handler uses throw (caught by existing try-catch).
   </action>
   <verify>grep -r "hexToNumber" packages/indexer/src/handlers/ && echo "Should show no results" || echo "All hexToNumber calls replaced"</verify>
   <done>All handlers use safe hex conversion and include error handling to prevent crashes on large values</done>

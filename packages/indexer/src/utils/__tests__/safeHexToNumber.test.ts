@@ -24,6 +24,10 @@ describe('safeHexToNumber', () => {
     expect(() => safeHexToNumber('')).toThrow('Invalid hex string');
   });
 
+  it('should throw for empty hex value (0x)', () => {
+    expect(() => safeHexToNumber('0x')).toThrow('Empty hex value (0x)');
+  });
+
   it('should throw by default for values exceeding MAX_SAFE_INTEGER', () => {
     const largeHex =
       '0x40199112919948150999530646855489913475678763392411540891239760872716362593079661371844790851736955334099987190114898260946599397906766251924983248562978459922793345579860283878275961985255174039292488777802796671451419062064';
