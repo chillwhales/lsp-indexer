@@ -137,7 +137,7 @@ export function safeHexToNumber(
     throw new Error(`Invalid hex string: ${preview}`);
   }
 
-  const bigIntValue = hexToBigInt(hex as Hex);
+  const bigIntValue = hexToBigInt(hex);
   const { maxValue = Number.MAX_SAFE_INTEGER, fallbackBehavior = 'throw' } = options;
   const maxBigInt = BigInt(maxValue);
 
