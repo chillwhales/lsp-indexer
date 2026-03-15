@@ -9,8 +9,9 @@
  *      Entity: `LSP29EncryptedAssetsLength` (deterministic id = address).
  *
  *   2. **LSP29EncryptedAssets[] index** — prefix match on the index prefix.
- *      Decodes a VerifiableURI from the data value and the array index
- *      from the last 16 bytes of the data key.
+ *      Decodes the metadata URL from the data value (LSP31 multi-backend URI,
+ *      with VerifiableURI fallback) and the array index from the last 16 bytes
+ *      of the data key.
  *      Entity: `LSP29EncryptedAsset` (id = `"{address} - {dataKey}"`).
  *      This is the main metadata entity with URL + fetch tracking fields.
  *
@@ -34,6 +35,7 @@
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { decodeVerifiableUri } from '@/utils';
 import { LSP29DataKeys } from '@chillwhales/lsp29';
+import { isLsp31Uri, parseLsp31Uri, resolveUrl, selectBackend } from '@chillwhales/lsp31';
 import {
   DataChanged,
   LSP29EncryptedAsset,
@@ -128,9 +130,38 @@ function extractLength(
 }
 
 /**
+ * Decode an LSP29 data value to a URL.
+ *
+ * LSP29 uses LSP31 multi-backend URI encoding (0x0031 prefix).
+ * Falls back to VerifiableURI (LSP2) for backward compatibility with pre-v2 data.
+ */
+function decodeLsp29DataValue(dataValue: string): {
+  value: string | null;
+  decodeError: string | null;
+} {
+  // Try LSP31 first (multi-backend URI encoding per LSP29 spec)
+  if (isHex(dataValue) && isLsp31Uri(dataValue)) {
+    try {
+      const parsed = parseLsp31Uri(dataValue);
+      const ordered = selectBackend(parsed.entries, 'ipfs');
+      const url = resolveUrl(ordered[0]);
+      return { value: url, decodeError: null };
+    } catch (error: unknown) {
+      return {
+        value: null,
+        decodeError: error instanceof Error ? error.message : 'Unknown LSP31 decode error',
+      };
+    }
+  }
+
+  // Fall back to VerifiableURI (LSP2) for backward compatibility
+  return decodeVerifiableUri(dataValue);
+}
+
+/**
  * Extract main encrypted asset entity from an LSP29EncryptedAssets[] index event.
  *
- * The data value is a VerifiableURI encoding the metadata URL.
+ * The data value is an LSP31 multi-backend URI (or VerifiableURI for backward compatibility).
  * arrayIndex: last 16 bytes of dataKey converted to BigInt.
  *
  * Entity id: `"{address} - {dataKey}"` — one per array slot.
@@ -145,7 +176,7 @@ function extractFromIndex(
   event: DataChanged,
   hctx: HandlerContext,
 ): void {
-  const { value: url, decodeError } = decodeVerifiableUri(dataValue);
+  const { value: url, decodeError } = decodeLsp29DataValue(dataValue);
 
   const dataKeyBytes = hexToBytes(dataKey as Hex);
   const arrayIndex = dataKeyBytes.length >= 32 ? bytesToBigInt(dataKeyBytes.slice(16)) : null;
