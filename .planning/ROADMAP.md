@@ -253,12 +253,14 @@ Plans:
 
 **Goal:** Make the test app publicly publishable by securing environment variables, implementing conditional tabs, and adding a quick install guide
 **Depends on:** Phase 24
-**Plans:** 0 plans
+**Requirements:** PUB-01, PUB-02, PUB-03, PUB-04, PUB-05, PUB-06
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 25 to break down)
+- [ ] 25-01-PLAN.md — EnvProvider infrastructure, conditional mode toggle, subscription provider hardening
+- [ ] 25-02-PLAN.md — Home page install guide, .env.example, security audit + human verification
 
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-03-15 — Phase 25 added (Test App Public Publish Readiness)_
+_Last updated: 2026-03-15 — Phase 25 planned (2 plans in 2 waves)_
