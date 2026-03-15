@@ -99,20 +99,18 @@ apps/test/src/
 3. `key={mode}` on the `<Tabs>` component forces full remount when switching modes (avoids hook-rule violations)
 4. Each domain page has a `useHooks(mode)` helper that returns either React or Next hook set
 
-**Problem:** Both buttons are always rendered. If `INDEXER_URL` is not set but `NEXT_PUBLIC_INDEXER_URL` is, clicking "Server" will crash because `getServerUrl()` falls back to `NEXT_PUBLIC_INDEXER_URL` — but subscriptions need `getServerWsUrl()` which reads `INDEXER_WS_URL`. The more precise availability matrix:
+**Problem:** Both buttons are always rendered. If only one side's env vars are configured, clicking the other mode will crash at runtime.
 
-| Env Set | Client HTTP | Client WS | Server HTTP | Server WS |
-|---------|------------|-----------|-------------|-----------|
-| `NEXT_PUBLIC_INDEXER_URL` only | Works | Works (derived) | Works (fallback) | Fails |
-| `INDEXER_URL` only | Fails | Fails | Works | Works (derived) |
-| Both set | Works | Works | Works | Works |
-| Neither | Fails | Fails | Fails | Fails |
+**Note on fallback behavior:** The underlying `getServerUrl()` falls back to `NEXT_PUBLIC_INDEXER_URL`, and `getServerWsUrl()` can derive from `getServerUrl()`. So technically, server mode *could* work with only `NEXT_PUBLIC_*` vars set. However, we intentionally use **strict gating** for the tab UI — the table below reflects the *policy decision*, not raw fallback capabilities:
 
-**However**, the user's requirement is simpler: "if only server side is set or only client side is set, don't show the tabs." The practical detection:
-- **Client mode available:** `NEXT_PUBLIC_INDEXER_URL` is set
-- **Server mode available:** `INDEXER_URL` is set OR `NEXT_PUBLIC_INDEXER_URL` is set (due to fallback in `getServerUrl()`)
+| Env Set | Client Tab Shown | Server Tab Shown | Policy Rationale |
+|---------|-----------------|-----------------|------------------|
+| `NEXT_PUBLIC_INDEXER_URL` only | ✓ | ✗ | Server tab requires explicit `INDEXER_URL` — fallback behavior is a convenience, not a signal that server mode is intentionally configured |
+| `INDEXER_URL` only | ✗ | ✓ | Client tab requires `NEXT_PUBLIC_INDEXER_URL` |
+| Both set | ✓ | ✓ | Both modes explicitly configured |
+| Neither | ✗ | ✗ | Nothing configured |
 
-Since `getServerUrl()` falls back to `NEXT_PUBLIC_INDEXER_URL`, server mode is technically always available when client mode is. The only scenario where we hide client is: `INDEXER_URL` set but `NEXT_PUBLIC_INDEXER_URL` not set. The only scenario where we hide server is: neither `INDEXER_URL` nor `NEXT_PUBLIC_INDEXER_URL` set (but then nothing works). Given the user's intent, the cleanest approach:
+The user's requirement is clear: "if only server side is set or only client side is set, don't show the tabs." The strict detection approach:
 - Show **Client** button only if `NEXT_PUBLIC_INDEXER_URL` is set
 - Show **Server** button only if `INDEXER_URL` is set
 - If both set, show both (current behavior)
@@ -207,11 +205,15 @@ export interface EnvAvailability {
 }
 
 export function getEnvAvailability(): EnvAvailability {
+  // Strict detection: each flag checks only its explicit env var.
+  // The underlying env.ts helpers have fallback chains (e.g. getServerUrl()
+  // falls back to NEXT_PUBLIC_INDEXER_URL), but for UI gating we only show
+  // a mode tab when its env var is intentionally configured.
   return {
     hasClientUrl: Boolean(process.env.NEXT_PUBLIC_INDEXER_URL),
-    hasServerUrl: Boolean(process.env.INDEXER_URL) || Boolean(process.env.NEXT_PUBLIC_INDEXER_URL),
-    hasClientWs: Boolean(process.env.NEXT_PUBLIC_INDEXER_WS_URL) || Boolean(process.env.NEXT_PUBLIC_INDEXER_URL),
-    hasServerWs: Boolean(process.env.INDEXER_WS_URL) || Boolean(process.env.INDEXER_URL) || Boolean(process.env.NEXT_PUBLIC_INDEXER_URL),
+    hasServerUrl: Boolean(process.env.INDEXER_URL),
+    hasClientWs: Boolean(process.env.NEXT_PUBLIC_INDEXER_WS_URL),
+    hasServerWs: Boolean(process.env.INDEXER_WS_URL),
   };
 }
 ```
