@@ -62,6 +62,7 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 
 - v1.0: 11 phases (5 original + 5 inserted + 1 gap closure)
 - v1.1: 33 phases (10 main + 12 domain sub-phases + 10 subscription sub-phases + 1 inserted)
+- Phase 23 added: LSP29/LSP31 Decoding Update — update encrypted asset decoding per latest @chillwhales/lsp29 + @chillwhales/lsp31 specs
 
 ### Discovered Todos
 

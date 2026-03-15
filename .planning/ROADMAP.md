@@ -225,8 +225,21 @@ Plans:
 | 20.3. Grafana Dashboard Redesign | v1.2 | 0/1 | Not started | - |
 | 21. Sorting & Package Release | v1.2 | 2/2 | Complete | 2026-03-12 |
 | 22. Database Operations | v1.2 | 0/TBD | Not started | - |
+| 23. LSP29/LSP31 Decoding Update | v1.2 | 0/3 | Not started | - |
+
+### Phase 23: LSP29/LSP31 Decoding Update
+
+**Goal:** Replace all hand-rolled LSP29 code with @chillwhales/lsp29 and @chillwhales/lsp31 packages, redesign entities for v2.0.0 spec, and update all consumer packages with breaking changes
+**Requirements**: LSP29-01, LSP29-02, LSP29-03, LSP29-04, LSP29-05, LSP29-06, LSP29-07, LSP29-08, LSP29-09, LSP29-10
+**Depends on:** Phase 22
+**Plans:** 3 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Package install + schema redesign + typeorm codegen rebuild + entity registry update
+- [ ] 23-02-PLAN.md — Handler rewrite + utils cleanup
+- [ ] 23-03-PLAN.md — Consumer package updates (types + node + react + next) + build verification
 
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-03-12 — Phases 20.1-20.3 inserted (logging overhaul + instrumentation + dashboard redesign)_
+_Last updated: 2026-03-14 — Phase 23 added (LSP29/LSP31 decoding update)_

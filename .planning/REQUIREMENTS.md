@@ -78,6 +78,19 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 - [ ] **OPS-02**: Backup automation configured (scheduled dumps or WAL archiving)
 - [ ] **OPS-03**: Recovery procedure documented and tested
 
+### LSP29/LSP31 Decoding Update
+
+- [ ] **LSP29-01**: `@chillwhales/lsp29` installed as indexer dependency and hand-rolled `src/constants/lsp29.ts` deleted
+- [ ] **LSP29-02**: TypeORM `schema.graphql` entities redesigned for v2.0.0 spec (provider-first encryption, per-backend chunks, encryption params entity replaces access control conditions)
+- [ ] **LSP29-03**: TypeORM codegen rebuilt and all generated entity classes compile cleanly
+- [ ] **LSP29-04**: `lsp29EncryptedAsset.handler.ts` imports data keys from `@chillwhales/lsp29` package (no hand-rolled constants)
+- [ ] **LSP29-05**: `lsp29EncryptedAssetFetch.handler.ts` uses `isLsp29Asset()` type guard from package for JSON validation (no hand-rolled type guards/extractors)
+- [ ] **LSP29-06**: All hand-rolled LSP29 type guards and extractors removed from `src/utils/index.ts`
+- [ ] **LSP29-07**: `types` package `encrypted-assets.ts` Zod schemas match new entity structure (encryption, chunks, params)
+- [ ] **LSP29-08**: `node` package GraphQL documents, parsers, and service rewritten for new Hasura schema
+- [ ] **LSP29-09**: `react` hooks and `next` server actions compile with breaking type changes
+- [ ] **LSP29-10**: Full monorepo builds successfully (`pnpm build`)
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -150,12 +163,22 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-01 | Phase 22 | Pending |
 | OPS-02 | Phase 22 | Pending |
 | OPS-03 | Phase 22 | Pending |
+| LSP29-01 | Phase 23 | Pending |
+| LSP29-02 | Phase 23 | Pending |
+| LSP29-03 | Phase 23 | Pending |
+| LSP29-04 | Phase 23 | Pending |
+| LSP29-05 | Phase 23 | Pending |
+| LSP29-06 | Phase 23 | Pending |
+| LSP29-07 | Phase 23 | Pending |
+| LSP29-08 | Phase 23 | Pending |
+| LSP29-09 | Phase 23 | Pending |
+| LSP29-10 | Phase 23 | Pending |
 
 **Coverage:**
-- v1.2 requirements: 38 total
-- Mapped to phases: 38
+- v1.2 requirements: 48 total
+- Mapped to phases: 48
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-12 — Added SLOG, INST, DASH requirements for Phases 20.1-20.3*
+*Last updated: 2026-03-14 — Added LSP29 requirements for Phase 23*
