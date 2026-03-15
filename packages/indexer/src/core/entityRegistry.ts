@@ -29,7 +29,6 @@ import {
   Follower,
   LSP12IssuedAsset,
   LSP12IssuedAssetsLength,
-  LSP29AccessControlCondition,
   LSP29EncryptedAsset,
   LSP29EncryptedAssetChunks,
   LSP29EncryptedAssetDescription,
@@ -191,7 +190,7 @@ export interface EntityRegistry {
   LSP29EncryptedAssetDescription: LSP29EncryptedAssetDescription;
   LSP29EncryptedAssetFile: LSP29EncryptedAssetFile;
   LSP29EncryptedAssetEncryption: LSP29EncryptedAssetEncryption;
-  LSP29AccessControlCondition: LSP29AccessControlCondition;
+  LSP29EncryptedAssetEncryptionParams: LSP29EncryptedAssetEncryptionParams;
   LSP29EncryptedAssetChunks: LSP29EncryptedAssetChunks;
   LSP29EncryptedAssetImage: LSP29EncryptedAssetImage;
 }
@@ -306,7 +305,7 @@ export const ENTITY_CONSTRUCTORS: {
   LSP29EncryptedAssetDescription,
   LSP29EncryptedAssetFile,
   LSP29EncryptedAssetEncryption,
-  LSP29AccessControlCondition,
+  LSP29EncryptedAssetEncryptionParams,
   LSP29EncryptedAssetChunks,
   LSP29EncryptedAssetImage,
 };

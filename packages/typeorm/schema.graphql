@@ -932,7 +932,6 @@ type LSP29EncryptedAsset @entity @index(fields: ["blockNumber", "transactionInde
   version: String
   title: LSP29EncryptedAssetTitle @derivedFrom(field: "lsp29EncryptedAsset")
   description: LSP29EncryptedAssetDescription @derivedFrom(field: "lsp29EncryptedAsset")
-  createdAt: DateTime @index
 
   # File metadata
   file: LSP29EncryptedAssetFile @derivedFrom(field: "lsp29EncryptedAsset")
@@ -1006,15 +1005,18 @@ type LSP29EncryptedAssetEncryption
   transactionIndex: Int! @index
   logIndex: Int! @index
   lsp29EncryptedAsset: LSP29EncryptedAsset! @index @unique
-  method: String @index
-  ciphertext: String
-  dataToEncryptHash: String
-  accessControlConditions: [LSP29AccessControlCondition!]! @derivedFrom(field: "encryption")
-  decryptionCode: String
-  decryptionParams: String
+
+  # Provider-first encryption model (v2.0.0)
+  provider: String! @index
+  method: String! @index
+  condition: String
+  encryptedKey: String
+
+  # Derived — method-specific params
+  params: LSP29EncryptedAssetEncryptionParams @derivedFrom(field: "encryption")
 }
 
-type LSP29AccessControlCondition
+type LSP29EncryptedAssetEncryptionParams
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
@@ -1022,27 +1024,25 @@ type LSP29AccessControlCondition
   blockNumber: Int! @index
   transactionIndex: Int! @index
   logIndex: Int! @index
-  encryption: LSP29EncryptedAssetEncryption! @index
-  conditionIndex: Int! @index
+  encryption: LSP29EncryptedAssetEncryption! @index @unique
 
-  # Common fields for token-gating conditions
-  contractAddress: String @index
-  chain: String @index
-  method: String @index
+  # Discriminator — matches encryption.method
+  method: String! @index
 
-  # For balance-based conditions (LSP7/LSP8)
-  standardContractType: String @index
-  comparator: String @index
-  value: String @index
+  # digital-asset-balance and lsp8-ownership
+  tokenAddress: String @index
 
-  # For specific token ID conditions (LSP8)
-  tokenId: String @index
+  # digital-asset-balance
+  requiredBalance: String
 
-  # For follower conditions (LSP26)
-  followerAddress: String @index
+  # lsp8-ownership
+  requiredTokenId: String
 
-  # Raw condition JSON for any condition type not parsed above
-  rawCondition: String!
+  # lsp26-follower (stored as JSON array string)
+  followedAddresses: String
+
+  # time-locked
+  unlockTimestamp: String
 }
 
 type LSP29EncryptedAssetChunks
@@ -1054,9 +1054,16 @@ type LSP29EncryptedAssetChunks
   transactionIndex: Int! @index
   logIndex: Int! @index
   lsp29EncryptedAsset: LSP29EncryptedAsset! @index @unique
-  cids: [String!]
+
+  # Encryption IV and total size (common to all backends)
   iv: String
   totalSize: BigInt
+
+  # Per-backend chunk references stored as JSON strings
+  ipfsChunks: String
+  lumeraChunks: String
+  s3Chunks: String
+  arweaveChunks: String
 }
 
 type LSP29EncryptedAssetImage
