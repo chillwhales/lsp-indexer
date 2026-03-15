@@ -11,6 +11,7 @@
  */
 import { EntityCategory, type HandlerContext } from '@/core/types';
 import { LSP29DataKeys } from '@chillwhales/lsp29';
+import { computeContentHash, encodeLsp31Uri } from '@chillwhales/lsp31';
 import {
   DataChanged,
   LSP29EncryptedAsset,
@@ -83,6 +84,14 @@ const TIMESTAMP = new Date('2025-01-15T10:00:00Z');
 const BLOCK_NUMBER = 500;
 const TX_INDEX = 2;
 const LOG_INDEX = 7;
+
+/** LSP31 multi-backend encoded value for testing. */
+const LSP31_ENTRIES = [
+  { backend: 'ipfs' as const, cid: 'QmTestCid1234567890abcdef' },
+  { backend: 's3' as const, bucket: 'test-bucket', key: 'content/file.bin', region: 'us-east-1' },
+];
+const LSP31_CONTENT_HASH = computeContentHash(new Uint8Array([1, 2, 3, 4, 5]));
+const LSP31_DATA_VALUE = encodeLsp31Uri(LSP31_ENTRIES, LSP31_CONTENT_HASH);
 
 /** Create a DataChanged event with the given data key and value. */
 function makeDataChanged(dataKey: string, dataValue: string): DataChanged {
@@ -400,5 +409,80 @@ describe('LSP29EncryptedAssetHandler - Routing', () => {
 
     expect(batchCtx.addEntity).not.toHaveBeenCalled();
     expect(batchCtx.queueEnrichment).not.toHaveBeenCalled();
+  });
+});
+
+describe('LSP29EncryptedAssetHandler - Index key LSP31 decoding', () => {
+  it('decodes LSP31 URI to ipfs:// URL (preferred backend)', async () => {
+    const batchCtx = createMockBatchCtx();
+    const hctx = createMockHandlerContext(batchCtx);
+
+    const indexPrefix = LSP29DataKeys['LSP29EncryptedAssets[]'].index;
+    const dataKey = indexPrefix + padHex(numberToHex(0), { size: 16 }).slice(2);
+
+    const event = makeDataChanged(dataKey, LSP31_DATA_VALUE);
+    batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
+
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+
+    const assetCalls = batchCtx.addEntity.mock.calls.filter(
+      (c: unknown[]) => c[0] === 'LSP29EncryptedAsset',
+    );
+    expect(assetCalls.length).toBe(1);
+    const entity = assetCalls[0][2] as LSP29EncryptedAsset;
+    expect(entity.url).toBe('ipfs://QmTestCid1234567890abcdef');
+    expect(entity.decodeError).toBeNull();
+  });
+
+  it('falls back to VerifiableURI for non-LSP31 data values', async () => {
+    const batchCtx = createMockBatchCtx();
+    const hctx = createMockHandlerContext(batchCtx);
+
+    const indexPrefix = LSP29DataKeys['LSP29EncryptedAssets[]'].index;
+    const dataKey = indexPrefix + padHex(numberToHex(0), { size: 16 }).slice(2);
+
+    // 0x is not LSP31, decodeVerifiableUri returns null/null for empty
+    const event = makeDataChanged(dataKey, '0x');
+    batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
+
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+
+    const assetCalls = batchCtx.addEntity.mock.calls.filter(
+      (c: unknown[]) => c[0] === 'LSP29EncryptedAsset',
+    );
+    expect(assetCalls.length).toBe(1);
+    const entity = assetCalls[0][2] as LSP29EncryptedAsset;
+    expect(entity.url).toBeNull();
+    expect(entity.decodeError).toBeNull();
+  });
+
+  it('returns decodeError for malformed LSP31 value', async () => {
+    const batchCtx = createMockBatchCtx();
+    const hctx = createMockHandlerContext(batchCtx);
+
+    const indexPrefix = LSP29DataKeys['LSP29EncryptedAssets[]'].index;
+    const dataKey = indexPrefix + padHex(numberToHex(0), { size: 16 }).slice(2);
+
+    // Valid hex with LSP31 prefix (0x0031) + correct method/hash-length headers,
+    // but garbled entries region — passes isHex() + isLsp31Uri(), fails parseLsp31Uri()
+    const malformedLsp31 =
+      '0x0031' + // LSP31 reserved prefix
+      '8019f9b1' + // keccak256(bytes) method ID
+      '0020' + // hash length = 32 bytes
+      'aa'.repeat(32) + // 32 bytes of fake hash (valid hex)
+      'deadbeef'.repeat(4); // garbled entries (valid hex, invalid JSON)
+    const event = makeDataChanged(dataKey, malformedLsp31);
+    batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
+
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+
+    const assetCalls = batchCtx.addEntity.mock.calls.filter(
+      (c: unknown[]) => c[0] === 'LSP29EncryptedAsset',
+    );
+    expect(assetCalls.length).toBe(1);
+    const entity = assetCalls[0][2] as LSP29EncryptedAsset;
+    // parseLsp31Uri throws on invalid JSON entries → caught → decodeError set
+    expect(entity.url).toBeNull();
+    expect(entity.decodeError).not.toBeNull();
   });
 });
