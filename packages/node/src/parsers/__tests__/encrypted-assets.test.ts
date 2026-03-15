@@ -20,20 +20,8 @@ function makeRawAsset(
     address: '0xTestAddress',
     content_id: 'cid-1',
     revision: 1,
-    array_index: null,
-    timestamp: null,
-    block_number: null,
-    transaction_index: null,
-    log_index: null,
-    title: null,
-    description: null,
-    encryption: null,
-    file: null,
-    chunks: null,
-    images: null,
-    universalProfile: null,
     ...overrides,
-  } as Parameters<typeof parseEncryptedAsset>[0];
+  } as unknown as Parameters<typeof parseEncryptedAsset>[0];
 }
 
 // ---------------------------------------------------------------------------
