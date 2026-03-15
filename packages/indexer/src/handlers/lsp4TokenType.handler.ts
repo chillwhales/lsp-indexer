@@ -6,7 +6,7 @@
  * enum value (0 = TOKEN, 1 = NFT, 2 = COLLECTION) from the data value.
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { decodeTokenType, safeHexToEnum } from '@/utils';
+import { decodeTokenType, safeHexToNumber } from '@/utils';
 import { LSP4TokenType, LSP4TokenTypeEnum } from '@chillwhales/typeorm';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { isHex } from 'viem';
@@ -27,22 +27,24 @@ const LSP4TokenTypeHandler: EntityHandler = {
       // Filter by data key
       if (event.dataKey !== LSP4_TOKEN_TYPE_KEY) continue;
 
-      // Decode token type value
+      // Decode token type value (0 = TOKEN, 1 = NFT, 2 = COLLECTION)
       let value: LSP4TokenTypeEnum | null = null;
       if (isHex(event.dataValue) && event.dataValue !== '0x') {
-        try {
-          const typeNumber = safeHexToEnum(event.dataValue);
+        const typeNumber = safeHexToNumber(event.dataValue, {
+          maxValue: 2,
+          fallbackBehavior: 'null',
+        });
+        if (typeNumber !== null) {
           value = decodeTokenType(typeNumber);
-        } catch (error) {
+        } else {
           hctx.context.log.warn(
             {
               step: 'HANDLE',
               handler: 'lsp4TokenType',
               address: event.address,
               dataValue: event.dataValue,
-              error: error instanceof Error ? error.message : String(error),
             },
-            'Failed to parse token type',
+            'Token type value out of range (expected 0-2)',
           );
         }
       }

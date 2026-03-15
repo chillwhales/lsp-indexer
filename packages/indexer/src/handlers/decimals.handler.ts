@@ -78,7 +78,7 @@ const DecimalsHandler: EntityHandler = {
 
         if (result.success && isHex(result.returnData) && result.returnData !== '0x') {
           try {
-            // decimals() should return uint8 (0-255), validate range
+            // decimals() returns uint8 (0-255); throws if out of range or invalid hex
             const decimalsValue = safeHexToNumber(result.returnData, { maxValue: 255 });
 
             const entity = new Decimals({
@@ -89,7 +89,7 @@ const DecimalsHandler: EntityHandler = {
               transactionIndex: da.transactionIndex,
               logIndex: da.logIndex,
               digitalAsset: null, // FK initially null — resolved by enrichment queue
-              value: decimalsValue, // Safe after validation
+              value: decimalsValue,
             });
 
             // Add to BatchContext — pipeline persists in Step 5.5 persist phase
@@ -108,12 +108,13 @@ const DecimalsHandler: EntityHandler = {
               timestamp: entity.timestamp.getTime(),
             });
           } catch (error) {
-            // Skip this result if safeHexToNumber throws (e.g., invalid hex)
+            // Skip this result if safeHexToNumber throws (invalid hex or value > 255)
             context.log.warn(
               {
                 step: 'HANDLE',
                 handler: 'decimals',
                 address: da.id,
+                returnData: result.returnData,
                 error: error instanceof Error ? error.message : String(error),
               },
               'Failed to parse decimals value',

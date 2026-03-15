@@ -115,54 +115,43 @@ export function safeBigInt(value: unknown): bigint | null {
 
 /**
  * Safely convert hex to number, handling large uint256 values that exceed MAX_SAFE_INTEGER.
- * @param hex Hex string to convert
- * @param options Configuration for handling large values
- * @param options.maxValue Maximum allowed value (throws if exceeded, unless fallbackBehavior specified)
- * @param options.fallbackBehavior What to do for oversized values: 'throw' | 'null' | 'mask'
- * @returns Number (safe conversion) or null (if fallbackBehavior='null'), throws for invalid hex or oversized values
+ *
+ * Default behavior is strict: throws if the value exceeds `maxValue`.
+ * Callers can opt into returning `null` instead via `fallbackBehavior: 'null'`.
+ *
+ * @param hex Hex string to convert (must pass `isHex`)
+ * @param options.maxValue Upper bound for the result (default: MAX_SAFE_INTEGER)
+ * @param options.fallbackBehavior 'throw' (default) or 'null' when value exceeds maxValue
+ * @returns number when the value is in range, null when fallbackBehavior='null' and out of range
+ * @throws Error on invalid hex or when value exceeds maxValue (default behavior)
  */
 export function safeHexToNumber(
   hex: string,
   options: {
     maxValue?: number;
-    fallbackBehavior?: 'throw' | 'null' | 'mask';
+    fallbackBehavior?: 'throw' | 'null';
   } = {},
 ): number | null {
-  // Validate input is hex
   if (!isHex(hex)) {
-    throw new Error(`Invalid hex string: ${hex}`);
+    const preview = hex.length > 20 ? `${hex.slice(0, 20)}… (${hex.length} chars)` : hex;
+    throw new Error(`Invalid hex string: ${preview}`);
   }
 
   const bigIntValue = hexToBigInt(hex as Hex);
   const { maxValue = Number.MAX_SAFE_INTEGER, fallbackBehavior = 'throw' } = options;
+  const maxBigInt = BigInt(maxValue);
 
-  // If value fits in allowed range, use it directly
-  if (bigIntValue <= maxValue) {
+  if (bigIntValue <= maxBigInt) {
     return Number(bigIntValue);
   }
 
-  // Handle oversized values based on fallback behavior
-  switch (fallbackBehavior) {
-    case 'null':
-      return null;
-    case 'mask':
-      // Take lower 32 bits which typically contain the meaningful value
-      // for LSP standards (format types, token types, etc are small integers)
-      return Number(bigIntValue & 0xffffffffn);
-    case 'throw':
-    default:
-      throw new Error(`Value ${bigIntValue} exceeds maximum allowed value ${maxValue}`);
+  if (fallbackBehavior === 'null') {
+    return null;
   }
-}
 
-/**
- * Safely convert hex to number for LSP enum values (token types, token ID formats).
- * Uses masking fallback for large values to extract meaningful lower bits.
- * @param hex Hex string to convert
- * @returns Number with masking applied for large values
- */
-export function safeHexToEnum(hex: string): number {
-  return safeHexToNumber(hex, { fallbackBehavior: 'mask' }) as number;
+  throw new Error(
+    `Hex value exceeds maximum allowed value ${maxValue} (got ${hex.length > 20 ? `${hex.slice(0, 20)}…` : hex})`,
+  );
 }
 
 export function isNullAddress(address: string): boolean {

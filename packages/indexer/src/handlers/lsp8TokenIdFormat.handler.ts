@@ -6,7 +6,7 @@
  * encoding format (0 = NUMBER, 1 = STRING, 2 = ADDRESS, 3/4 = BYTES32).
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { decodeTokenIdFormat, safeHexToEnum } from '@/utils';
+import { decodeTokenIdFormat, safeHexToNumber } from '@/utils';
 import { LSP8TokenIdFormat, LSP8TokenIdFormatEnum } from '@chillwhales/typeorm';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { isHex } from 'viem';
@@ -27,22 +27,24 @@ const LSP8TokenIdFormatHandler: EntityHandler = {
       // Filter by data key
       if (event.dataKey !== LSP8_TOKEN_ID_FORMAT_KEY) continue;
 
-      // Decode token ID format value
+      // Decode token ID format value (standard 0-4, legacy 100-104)
       let value: LSP8TokenIdFormatEnum | null = null;
       if (isHex(event.dataValue) && event.dataValue !== '0x') {
-        try {
-          const formatNumber = safeHexToEnum(event.dataValue);
+        const formatNumber = safeHexToNumber(event.dataValue, {
+          maxValue: 104,
+          fallbackBehavior: 'null',
+        });
+        if (formatNumber !== null) {
           value = decodeTokenIdFormat(formatNumber);
-        } catch (error) {
+        } else {
           hctx.context.log.warn(
             {
               step: 'HANDLE',
               handler: 'lsp8TokenIdFormat',
               address: event.address,
               dataValue: event.dataValue,
-              error: error instanceof Error ? error.message : String(error),
             },
-            'Failed to parse token ID format',
+            'Token ID format value out of range (expected 0-104)',
           );
         }
       }
