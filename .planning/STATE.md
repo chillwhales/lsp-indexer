@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Readiness
 status: completed
-last_updated: "2026-03-15T10:31:32.966Z"
-last_activity: 2026-03-15 — Completed 23-03 consumer package rewrite for LSP29 v2.0.0
+last_updated: "2026-03-15T19:29:11Z"
+last_activity: 2026-03-15 — Completed 24-01 LSP31 URI decoding in LSP29 handler
 progress:
-  total_phases: 56
-  completed_phases: 48
-  total_plans: 140
-  completed_plans: 125
+  total_phases: 57
+  completed_phases: 49
+  total_plans: 141
+  completed_plans: 126
   percent: 91
 ---
 
@@ -21,15 +21,15 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.2 Production Readiness — Phase 23 LSP29/LSP31 decoding update complete
+**Current focus:** v1.2 Production Readiness — Phase 24 LSP31 URI decoding complete
 
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Phase 23 — LSP29/LSP31 Decoding Update
-- **Plan:** 3 of 3 (Plan 03 complete — phase done)
+- **Phase:** Phase 24 — LSP31 URI Decoding
+- **Plan:** 1 of 1 (Plan 01 complete — phase done)
 - **Status:** Milestone complete
-- **Last activity:** 2026-03-15 — Completed 23-03 consumer package rewrite for LSP29 v2.0.0
+- **Last activity:** 2026-03-15 — Completed 24-01 LSP31 URI decoding in LSP29 handler
 - **Progress:** [█████████░] 91%
 
 ## Milestone History
@@ -47,9 +47,9 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 128 (36 v1.0 + 77 v1.1 + 15 v1.2)
+- **Plans completed:** 129 (36 v1.0 + 77 v1.1 + 16 v1.2)
 - **Plans failed:** 0
-- **Phases completed:** 49 (11 v1.0 + 33 v1.1 + 5 v1.2)
+- **Phases completed:** 50 (11 v1.0 + 33 v1.1 + 6 v1.2)
 - **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 22/26 (v1.2)
 
 ## Accumulated Context
@@ -63,6 +63,7 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - v1.0: 11 phases (5 original + 5 inserted + 1 gap closure)
 - v1.1: 33 phases (10 main + 12 domain sub-phases + 10 subscription sub-phases + 1 inserted)
 - Phase 23 added: LSP29/LSP31 Decoding Update — update encrypted asset decoding per latest @chillwhales/lsp29 + @chillwhales/lsp31 specs
+- Phase 24 added: LSP31 URI Decoding — switch LSP29 handler from VerifiableURI to LSP31 multi-backend URI decoding
 
 ### Discovered Todos
 
@@ -85,22 +86,23 @@ _None currently._
 | Phase 23 P01 | 4min | 2 tasks | 3 files |
 | Phase 23 P02 | 6min | 2 tasks | 6 files |
 | Phase 23 P03 | 10min | 3 tasks | 8 files |
+| Phase 24 P01 | 4min | 2 tasks | 2 files |
 
 ## Session Continuity
 
 ### Last Session
 
 - **Date:** 2026-03-15
-- **Activity:** Executed Phase 23-03 — consumer package rewrite for LSP29 v2.0.0
-- **Outcome:** Rewrote types, node, react, next packages + test app for v2.0.0 encrypted asset structure
+- **Activity:** Executed Phase 24-01 — LSP31 URI decoding in LSP29 handler
+- **Outcome:** Switched extractFromIndex from VerifiableURI to LSP31-first decoding with fallback + 3 new tests
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 23 complete:** All 3 plans executed (schema, handlers, consumer packages)
-- **Next:** Phase transition — no more plans in phase 23
-- **Decisions:** Updated schema.graphql locally for codegen, fixed test app as blocking deviation
+- **Phase 24 complete:** Single plan executed (LSP31 URI decoding)
+- **Next:** Phase transition — no more plans in phase 24
+- **Decisions:** IPFS backend preferred via selectBackend(entries, 'ipfs')
 
 ---
 
-_Last updated: 2026-03-15 — Completed 23-03 consumer package rewrite for LSP29 v2.0.0_
+_Last updated: 2026-03-15 — Completed 24-01 LSP31 URI decoding in LSP29 handler_
