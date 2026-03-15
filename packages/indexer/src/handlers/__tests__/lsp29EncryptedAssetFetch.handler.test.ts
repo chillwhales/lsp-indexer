@@ -5,7 +5,8 @@
  * - META-03: LSP29 sub-entity creation from valid JSON (all 7 types)
  * - META-04: Head-only gating — no workerPool.fetchBatch when isHead=false
  * - META-05: Error tracking — failed fetches update entity error fields
- * - Empty value path: queueClear for all 7 sub-entity types when url is null
+ * - Empty value path: queueClear for all 6 asset-FK sub-entity types when url is null
+ *   (EncryptionParams excluded — FK points to Encryption, cleared via cascade)
  * - entityUpdates: version, contentId, revision returned on success
  * - FK chain: EncryptionParams links to Encryption, not Asset
  */
@@ -160,7 +161,7 @@ const VALID_LSP29_JSON = {
 // ===========================================================================
 
 describe('LSP29EncryptedAssetFetchHandler - Empty value path', () => {
-  it('queues clear for all 7 sub-entity types when url is null', async () => {
+  it('queues clear for all 6 asset-FK sub-entity types when url is null', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -172,8 +173,8 @@ describe('LSP29EncryptedAssetFetchHandler - Empty value path', () => {
 
     await LSP29EncryptedAssetFetchHandler.handle(hctx, 'LSP29EncryptedAsset');
 
-    // 7 sub-entity types in descriptors (6 direct + EncryptionParams via encryption FK)
-    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(7);
+    // 6 sub-entity types with asset FK (EncryptionParams excluded — FK is encryption, not asset)
+    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(6);
 
     const expectedSubEntities = [
       LSP29EncryptedAssetTitle,
@@ -208,7 +209,7 @@ describe('LSP29EncryptedAssetFetchHandler - Empty value path', () => {
 
     await LSP29EncryptedAssetFetchHandler.handle(hctx, 'LSP29EncryptedAsset');
 
-    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(7);
+    expect(batchCtx.queueClearStored).toHaveBeenCalledTimes(6);
   });
 });
 

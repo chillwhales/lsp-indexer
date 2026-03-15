@@ -46,8 +46,8 @@ function parseEncryptionParams(raw: any): EncryptedAssetEncryptionParams {
  */
 function parseEncryption(raw: any): EncryptedAssetEncryption {
   return {
-    provider: raw.provider,
-    method: raw.method,
+    provider: raw.provider ?? null,
+    method: raw.method ?? null,
     condition: raw.condition ?? null,
     encryptedKey: raw.encrypted_key ?? null,
     params: raw.params ? parseEncryptionParams(raw.params) : null,

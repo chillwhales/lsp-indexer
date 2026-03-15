@@ -32,10 +32,10 @@ export const EncryptedAssetEncryptionParamsSchema = z.object({
 
 /** Encryption details — provider, method, condition, encrypted key, and params. */
 export const EncryptedAssetEncryptionSchema = z.object({
-  /** Encryption provider (taco, lit) */
-  provider: z.string(),
-  /** Access control method */
-  method: z.string(),
+  /** Encryption provider (taco, lit) — null when excluded via sub-include */
+  provider: z.string().nullable(),
+  /** Access control method — null when excluded via sub-include */
+  method: z.string().nullable(),
   /** Provider-native condition object (JSON string, null = not included) */
   condition: z.string().nullable(),
   /** Encrypted key data (JSON string, null = not included) */

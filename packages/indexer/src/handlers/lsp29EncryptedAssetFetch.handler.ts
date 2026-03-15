@@ -9,12 +9,16 @@
  *   2. LSP29EncryptedAssetDescription (1:1 with LSP29EncryptedAsset)
  *   3. LSP29EncryptedAssetFile        (1:1 with LSP29EncryptedAsset)
  *   4. LSP29EncryptedAssetEncryption  (1:1 with LSP29EncryptedAsset)
- *   5. LSP29EncryptedAssetEncryptionParams (1:1 with Encryption, FK → Encryption NOT Asset)
- *   6. LSP29EncryptedAssetChunks      (1:1 with LSP29EncryptedAsset)
- *   7. LSP29EncryptedAssetImage       (many per LSP29EncryptedAsset — nested arrays)
+ *   5. LSP29EncryptedAssetChunks      (1:1 with LSP29EncryptedAsset)
+ *   6. LSP29EncryptedAssetImage       (many per LSP29EncryptedAsset — nested arrays)
  *
- * CRITICAL FK CHAIN: LSP29EncryptedAssetEncryptionParams has FK `encryption`
- * pointing to LSP29EncryptedAssetEncryption, NOT to LSP29EncryptedAsset.
+ * NOTE: LSP29EncryptedAssetEncryptionParams (1:1 with Encryption) is also
+ * created during parsing but is NOT in SUB_ENTITY_DESCRIPTORS — its FK
+ * points to Encryption (not Asset), so it cannot be cleared by asset ID.
+ * Params are cleared via DB cascade when their parent Encryption is removed.
+ *
+ * Additionally creates LSP29EncryptedAssetEncryptionParams (1:1 with Encryption),
+ * but this entity is NOT in SUB_ENTITY_DESCRIPTORS — see note above.
  *
  * Uses `isLsp29Asset()` from @chillwhales/lsp29 for v2.0.0 schema validation
  * instead of hand-rolled type guards.
@@ -49,9 +53,10 @@ const ENTITY_KEY = 'LSP29EncryptedAsset';
 // ---------------------------------------------------------------------------
 // Sub-entity descriptors (for queueClear operations)
 // ---------------------------------------------------------------------------
-// NOTE: LSP29EncryptedAssetEncryptionParams FK is `encryption` →
-// LSP29EncryptedAssetEncryption, NOT `lsp29EncryptedAsset` → LSP29EncryptedAsset.
-// Params are 1:1 with encryption (FK encryption), cleared when encryption is removed.
+// LSP29EncryptedAssetEncryptionParams is NOT included here — its FK is `encryption`,
+// not `lsp29EncryptedAsset`. Params are cleared when their parent encryption entities
+// are removed. The pipeline's clear step handles removal of encryptions, which
+// cascades to params via the @unique 1:1 FK constraint.
 
 const SUB_ENTITY_DESCRIPTORS: SubEntityDescriptor[] = [
   { subEntityClass: LSP29EncryptedAssetTitle, fkField: 'lsp29EncryptedAsset' },
@@ -60,8 +65,6 @@ const SUB_ENTITY_DESCRIPTORS: SubEntityDescriptor[] = [
   { subEntityClass: LSP29EncryptedAssetEncryption, fkField: 'lsp29EncryptedAsset' },
   { subEntityClass: LSP29EncryptedAssetChunks, fkField: 'lsp29EncryptedAsset' },
   { subEntityClass: LSP29EncryptedAssetImage, fkField: 'lsp29EncryptedAsset' },
-  // Params are 1:1 with encryption (FK encryption), cleared when encryption is removed
-  { subEntityClass: LSP29EncryptedAssetEncryptionParams, fkField: 'encryption' },
 ];
 
 // ---------------------------------------------------------------------------

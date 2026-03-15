@@ -225,7 +225,7 @@ Plans:
 | 20.3. Grafana Dashboard Redesign | v1.2 | 0/1 | Not started | - |
 | 21. Sorting & Package Release | v1.2 | 2/2 | Complete | 2026-03-12 |
 | 22. Database Operations | v1.2 | 0/TBD | Not started | - |
-| 23. LSP29/LSP31 Decoding Update | 3/3 | Complete    | 2026-03-15 | - |
+| 23. LSP29/LSP31 Decoding Update | v1.2 | 3/3 | Complete | 2026-03-15 |
 
 ### Phase 23: LSP29/LSP31 Decoding Update
 
