@@ -155,23 +155,29 @@ function parseAndAddSubEntities(
   hctx.batchCtx.addEntity('LSP29EncryptedAssetEncryption', encryptionEntity.id, encryptionEntity);
 
   // 5. Encryption params (1:1 with encryption, replaces AccessControlCondition)
+  // Guard: params is required in v2.0.0 (enforced by isLsp29Asset()), but defensive
+  // null check protects against future spec changes or malformed data.
+  // Params is a discriminated union on `method` — properties differ per variant,
+  // so `'prop' in params` is required for safe access across union members.
   const params = lsp29.encryption.params;
-  const paramsEntity = new LSP29EncryptedAssetEncryptionParams({
-    id: uuidv4(),
-    encryption: new LSP29EncryptedAssetEncryption({ id: encryptionEntity.id }),
-    blockNumber: entity.blockNumber,
-    transactionIndex: entity.transactionIndex,
-    logIndex: entity.logIndex,
-    timestamp: entity.timestamp,
-    method: params.method,
-    tokenAddress: 'tokenAddress' in params ? params.tokenAddress : null,
-    requiredBalance: 'requiredBalance' in params ? params.requiredBalance : null,
-    requiredTokenId: 'requiredTokenId' in params ? params.requiredTokenId : null,
-    followedAddresses:
-      'followedAddresses' in params ? JSON.stringify(params.followedAddresses) : null,
-    unlockTimestamp: 'unlockTimestamp' in params ? params.unlockTimestamp : null,
-  });
-  hctx.batchCtx.addEntity('LSP29EncryptedAssetEncryptionParams', paramsEntity.id, paramsEntity);
+  if (params) {
+    const followedAddr = 'followedAddresses' in params ? params.followedAddresses : null;
+    const paramsEntity = new LSP29EncryptedAssetEncryptionParams({
+      id: uuidv4(),
+      encryption: new LSP29EncryptedAssetEncryption({ id: encryptionEntity.id }),
+      blockNumber: entity.blockNumber,
+      transactionIndex: entity.transactionIndex,
+      logIndex: entity.logIndex,
+      timestamp: entity.timestamp,
+      method: params.method,
+      tokenAddress: 'tokenAddress' in params ? params.tokenAddress : null,
+      requiredBalance: 'requiredBalance' in params ? params.requiredBalance : null,
+      requiredTokenId: 'requiredTokenId' in params ? params.requiredTokenId : null,
+      followedAddresses: Array.isArray(followedAddr) ? JSON.stringify(followedAddr) : null,
+      unlockTimestamp: 'unlockTimestamp' in params ? params.unlockTimestamp : null,
+    });
+    hctx.batchCtx.addEntity('LSP29EncryptedAssetEncryptionParams', paramsEntity.id, paramsEntity);
+  }
 
   // 6. Chunks (required in v2.0.0) — per-backend JSON columns
   const chunksEntity = new LSP29EncryptedAssetChunks({
