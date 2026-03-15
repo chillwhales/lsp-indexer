@@ -16,10 +16,11 @@
 
 import { aggregate3StaticLatest } from '@/core/multicall';
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { safeHexToNumber } from '@/utils';
 import { LSP7DigitalAsset } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { Decimals } from '@chillwhales/typeorm';
-import { hexToNumber, isHex } from 'viem';
+import { isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'Decimals';
@@ -77,6 +78,9 @@ const DecimalsHandler: EntityHandler = {
 
         if (result.success && isHex(result.returnData) && result.returnData !== '0x') {
           try {
+            // decimals() returns uint8 (0-255); throws if out of range or invalid hex
+            const decimalsValue = safeHexToNumber(result.returnData, { maxValue: 255 });
+
             const entity = new Decimals({
               id: da.id,
               address: da.id,
@@ -85,7 +89,7 @@ const DecimalsHandler: EntityHandler = {
               transactionIndex: da.transactionIndex,
               logIndex: da.logIndex,
               digitalAsset: null, // FK initially null — resolved by enrichment queue
-              value: hexToNumber(result.returnData),
+              value: decimalsValue,
             });
 
             // Add to BatchContext — pipeline persists in Step 5.5 persist phase
@@ -104,12 +108,13 @@ const DecimalsHandler: EntityHandler = {
               timestamp: entity.timestamp.getTime(),
             });
           } catch (error) {
-            // Skip this result if hexToNumber throws (e.g., value out of range)
+            // Skip this result if safeHexToNumber throws (invalid hex or value > 255)
             context.log.warn(
               {
                 step: 'HANDLE',
                 handler: 'decimals',
                 address: da.id,
+                returnData: result.returnData,
                 error: error instanceof Error ? error.message : String(error),
               },
               'Failed to parse decimals value',

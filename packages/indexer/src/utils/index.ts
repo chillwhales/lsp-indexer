@@ -5,7 +5,7 @@ import { isNumeric } from '@chillwhales/utils';
 import ERC725 from '@erc725/erc725.js';
 import type { Verification } from '@lukso/lsp2-contracts';
 import type { FileAsset, ImageMetadata, LinkMetadata } from '@lukso/lsp3-contracts';
-import { bytesToHex, Hex, hexToBytes, hexToString, isHex, sliceHex } from 'viem';
+import { bytesToHex, Hex, hexToBigInt, hexToBytes, hexToString, isHex, sliceHex } from 'viem';
 
 /**
  * Decode an ERC725Y VerifiableURI-encoded data value into a plain URL.
@@ -111,6 +111,56 @@ export function safeBigInt(value: unknown): bigint | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Safely convert hex to number, handling large uint256 values that exceed MAX_SAFE_INTEGER.
+ *
+ * Default behavior is strict: throws if the value exceeds `maxValue`.
+ * Callers can opt into returning `null` instead via `fallbackBehavior: 'null'`.
+ *
+ * @param hex Hex string to convert (must pass `isHex`)
+ * @param options.maxValue Upper bound for the result (default: MAX_SAFE_INTEGER)
+ * @param options.fallbackBehavior 'throw' (default) or 'null' when value exceeds maxValue
+ * @returns number when the value is in range, null when fallbackBehavior='null' and out of range
+ * @throws Error on invalid hex or when value exceeds maxValue (default behavior)
+ */
+export function safeHexToNumber(
+  hex: string,
+  options: {
+    maxValue?: number;
+    fallbackBehavior?: 'throw' | 'null';
+  } = {},
+): number | null {
+  if (!isHex(hex)) {
+    const preview = hex.length > 66 ? `${hex.slice(0, 66)}… (${hex.length} chars)` : hex;
+    throw new Error(`Invalid hex string: ${preview}`);
+  }
+
+  if (hex === '0x') {
+    throw new Error('Empty hex value (0x) — callers should filter before conversion');
+  }
+
+  const bigIntValue = hexToBigInt(hex);
+  const { maxValue = Number.MAX_SAFE_INTEGER, fallbackBehavior = 'throw' } = options;
+
+  if (!Number.isInteger(maxValue) || maxValue < 0 || maxValue > Number.MAX_SAFE_INTEGER) {
+    throw new Error(`maxValue must be a safe non-negative integer (got ${maxValue})`);
+  }
+
+  const maxBigInt = BigInt(maxValue);
+
+  if (bigIntValue <= maxBigInt) {
+    return Number(bigIntValue);
+  }
+
+  if (fallbackBehavior === 'null') {
+    return null;
+  }
+
+  throw new Error(
+    `Hex value exceeds maximum allowed value ${maxValue} (got ${hex.length > 66 ? `${hex.slice(0, 66)}…` : hex})`,
+  );
 }
 
 export function isNullAddress(address: string): boolean {

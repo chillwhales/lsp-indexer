@@ -6,10 +6,10 @@
  * encoding format (0 = NUMBER, 1 = STRING, 2 = ADDRESS, 3/4 = BYTES32).
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { decodeTokenIdFormat } from '@/utils';
-import { LSP8TokenIdFormat } from '@chillwhales/typeorm';
+import { decodeTokenIdFormat, safeHexToNumber } from '@/utils';
+import { LSP8TokenIdFormat, LSP8TokenIdFormatEnum } from '@chillwhales/typeorm';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
-import { hexToNumber, isHex } from 'viem';
+import { isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP8TokenIdFormat';
@@ -27,6 +27,31 @@ const LSP8TokenIdFormatHandler: EntityHandler = {
       // Filter by data key
       if (event.dataKey !== LSP8_TOKEN_ID_FORMAT_KEY) continue;
 
+      // Decode token ID format value (standard 0-4, legacy 100-104)
+      let value: LSP8TokenIdFormatEnum | null = null;
+      if (isHex(event.dataValue) && event.dataValue !== '0x') {
+        const formatNumber = safeHexToNumber(event.dataValue, {
+          maxValue: 104,
+          fallbackBehavior: 'null',
+        });
+        if (formatNumber !== null) {
+          value = decodeTokenIdFormat(formatNumber);
+        } else {
+          hctx.context.log.warn(
+            {
+              step: 'HANDLE',
+              handler: 'lsp8TokenIdFormat',
+              address: event.address,
+              dataValue:
+                event.dataValue.length > 66
+                  ? `${event.dataValue.slice(0, 66)}… (${event.dataValue.length} chars)`
+                  : event.dataValue,
+            },
+            'Token ID format value out of range (expected 0-104)',
+          );
+        }
+      }
+
       // Create entity with decoded value
       const entity = new LSP8TokenIdFormat({
         id: event.address,
@@ -35,10 +60,7 @@ const LSP8TokenIdFormatHandler: EntityHandler = {
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
         logIndex: event.logIndex,
-        value:
-          !isHex(event.dataValue) || event.dataValue === '0x'
-            ? null
-            : decodeTokenIdFormat(hexToNumber(event.dataValue)),
+        value,
         rawValue: event.dataValue,
         digitalAsset: null, // FK initially null
       });

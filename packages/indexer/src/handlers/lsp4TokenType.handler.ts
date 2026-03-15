@@ -6,10 +6,10 @@
  * enum value (0 = TOKEN, 1 = NFT, 2 = COLLECTION) from the data value.
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { decodeTokenType } from '@/utils';
-import { LSP4TokenType } from '@chillwhales/typeorm';
+import { decodeTokenType, safeHexToNumber } from '@/utils';
+import { LSP4TokenType, LSP4TokenTypeEnum } from '@chillwhales/typeorm';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
-import { hexToNumber, isHex } from 'viem';
+import { isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP4TokenType';
@@ -27,6 +27,31 @@ const LSP4TokenTypeHandler: EntityHandler = {
       // Filter by data key
       if (event.dataKey !== LSP4_TOKEN_TYPE_KEY) continue;
 
+      // Decode token type value (0 = TOKEN, 1 = NFT, 2 = COLLECTION)
+      let value: LSP4TokenTypeEnum | null = null;
+      if (isHex(event.dataValue) && event.dataValue !== '0x') {
+        const typeNumber = safeHexToNumber(event.dataValue, {
+          maxValue: 2,
+          fallbackBehavior: 'null',
+        });
+        if (typeNumber !== null) {
+          value = decodeTokenType(typeNumber);
+        } else {
+          hctx.context.log.warn(
+            {
+              step: 'HANDLE',
+              handler: 'lsp4TokenType',
+              address: event.address,
+              dataValue:
+                event.dataValue.length > 66
+                  ? `${event.dataValue.slice(0, 66)}… (${event.dataValue.length} chars)`
+                  : event.dataValue,
+            },
+            'Token type value out of range (expected 0-2)',
+          );
+        }
+      }
+
       // Create entity with decoded value
       const entity = new LSP4TokenType({
         id: event.address,
@@ -35,10 +60,7 @@ const LSP4TokenTypeHandler: EntityHandler = {
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
         logIndex: event.logIndex,
-        value:
-          !isHex(event.dataValue) || event.dataValue === '0x'
-            ? null
-            : decodeTokenType(hexToNumber(event.dataValue)),
+        value,
         rawValue: event.dataValue,
         digitalAsset: null, // FK initially null
       });
