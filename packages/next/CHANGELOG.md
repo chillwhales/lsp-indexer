@@ -1,5 +1,14 @@
 # @lsp-indexer/next
 
+## 1.2.0
+
+### Patch Changes
+
+- Updated dependencies [[`35eb9b3`](https://github.com/chillwhales/lsp-indexer/commit/35eb9b3eb3fe7bf462958e08b89e353f6fca68c5)]:
+  - @lsp-indexer/types@1.2.0
+  - @lsp-indexer/node@1.2.0
+  - @lsp-indexer/react@1.2.0
+
 ## 1.1.0
 
 ### Patch Changes

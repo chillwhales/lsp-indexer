@@ -1,5 +1,11 @@
 # @lsp-indexer/types
 
+## 1.2.0
+
+### Minor Changes
+
+- [#318](https://github.com/chillwhales/lsp-indexer/pull/318) [`35eb9b3`](https://github.com/chillwhales/lsp-indexer/commit/35eb9b3eb3fe7bf462958e08b89e353f6fca68c5) Thanks [@b00ste](https://github.com/b00ste)! - LSP29 v2.0.0 encrypted asset spec: replace AccessControlCondition with EncryptionParams, provider-first encryption model, per-backend chunk storage (ipfs/lumera/s3/arweave)
+
 ## 1.1.0
 
 ### Minor Changes
