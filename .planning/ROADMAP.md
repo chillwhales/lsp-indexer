@@ -226,7 +226,7 @@ Plans:
 | 21. Sorting & Package Release | v1.2 | 2/2 | Complete | 2026-03-12 |
 | 22. Database Operations | v1.2 | 0/TBD | Not started | - |
 | 23. LSP29/LSP31 Decoding Update | v1.2 | 3/3 | Complete | 2026-03-15 |
-| 24. LSP31 URI Decoding | v1.2 | 1/1 | Complete | 2026-03-15 |
+| 24. LSP31 URI Decoding | v1.2 | Complete    | 2026-03-15 | 2026-03-15 |
 
 ### Phase 23: LSP29/LSP31 Decoding Update
 
@@ -244,7 +244,7 @@ Plans:
 
 **Goal:** Switch LSP29 handler from VerifiableURI (LSP2) to LSP31 URI decoding — LSP29 uses multi-backend entry encoding, not single-URL VerifiableURI
 **Depends on:** Phase 23
-**Plans:** 0/1 plans complete
+**Plans:** 1/1 plans complete
 
 Plans:
 - [x] 24-01-PLAN.md — Switch extractFromIndex to parseLsp31Uri + resolveUrl with VerifiableURI fallback
