@@ -1,4 +1,5 @@
 ---
+'@chillwhales/indexer': major
 '@lsp-indexer/types': major
 '@lsp-indexer/node': major
 ---
