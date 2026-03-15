@@ -5,7 +5,7 @@ import { isNumeric } from '@chillwhales/utils';
 import ERC725 from '@erc725/erc725.js';
 import type { Verification } from '@lukso/lsp2-contracts';
 import type { FileAsset, ImageMetadata, LinkMetadata } from '@lukso/lsp3-contracts';
-import { bytesToHex, Hex, hexToBytes, hexToNumber, hexToString, isHex, sliceHex } from 'viem';
+import { bytesToHex, Hex, hexToBytes, hexToString, isHex, sliceHex } from 'viem';
 
 /**
  * Decode an ERC725Y VerifiableURI-encoded data value into a plain URL.
@@ -20,7 +20,8 @@ export function decodeVerifiableUri(dataValue: string): {
 } {
   const erc725 = new ERC725([]);
 
-  if (!isHex(dataValue) || dataValue === '0x' || hexToNumber(dataValue) === 0)
+  // Check for empty/zero values without using hexToNumber (which crashes on large values)
+  if (!isHex(dataValue) || dataValue === '0x' || BigInt(dataValue) === 0n)
     return { value: null, decodeError: null };
 
   try {
@@ -386,7 +387,8 @@ export function formatTokenId({
 }): string | null {
   switch (lsp8TokenIdFormat) {
     case LSP8TokenIdFormatEnum.NUMBER:
-      return hexToNumber(tokenId as Hex).toString();
+      // Use BigInt to safely handle large numbers that exceed JS safe integer range
+      return BigInt(tokenId as Hex).toString();
     case LSP8TokenIdFormatEnum.STRING:
       return hexToString(bytesToHex(hexToBytes(tokenId as Hex).filter((byte) => byte !== 0)));
     case LSP8TokenIdFormatEnum.ADDRESS:
