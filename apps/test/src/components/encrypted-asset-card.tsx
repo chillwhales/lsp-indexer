@@ -137,7 +137,7 @@ function EncryptionSection({
 }: {
   encryption: NonNullable<EncryptedAsset['encryption']>;
 }): React.ReactNode {
-  const acc = encryption.accessControlConditions;
+  const params = encryption.params;
 
   return (
     <Collapsible>
@@ -150,85 +150,75 @@ function EncryptionSection({
       </CollapsibleTrigger>
       <CollapsibleContent className="mt-2 space-y-3">
         <dl className="space-y-1.5 text-sm">
-          {encryption.method && (
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-32 shrink-0">Provider</dt>
+            <dd className="font-mono text-xs">{encryption.provider}</dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground w-32 shrink-0">Method</dt>
+            <dd className="font-mono text-xs">{encryption.method}</dd>
+          </div>
+          {encryption.condition && (
             <div className="flex gap-2">
-              <dt className="text-muted-foreground w-32 shrink-0">Method</dt>
-              <dd className="font-mono text-xs">{encryption.method}</dd>
-            </div>
-          )}
-          {encryption.ciphertext && (
-            <div className="flex gap-2">
-              <dt className="text-muted-foreground w-32 shrink-0">Ciphertext</dt>
+              <dt className="text-muted-foreground w-32 shrink-0">Condition</dt>
               <dd className="font-mono text-xs break-all">
-                {encryption.ciphertext.length > 100
-                  ? `${encryption.ciphertext.slice(0, 100)}…`
-                  : encryption.ciphertext}
+                {encryption.condition.length > 100
+                  ? `${encryption.condition.slice(0, 100)}…`
+                  : encryption.condition}
               </dd>
             </div>
           )}
-          {encryption.dataToEncryptHash && (
+          {encryption.encryptedKey && (
             <div className="flex gap-2">
-              <dt className="text-muted-foreground w-32 shrink-0">Data Hash</dt>
-              <dd className="font-mono text-xs break-all">{encryption.dataToEncryptHash}</dd>
-            </div>
-          )}
-          {encryption.decryptionCode && (
-            <div className="flex gap-2">
-              <dt className="text-muted-foreground w-32 shrink-0">Decrypt Code</dt>
-              <dd className="font-mono text-xs break-all">{encryption.decryptionCode}</dd>
+              <dt className="text-muted-foreground w-32 shrink-0">Encrypted Key</dt>
+              <dd className="font-mono text-xs break-all">
+                {encryption.encryptedKey.length > 100
+                  ? `${encryption.encryptedKey.slice(0, 100)}…`
+                  : encryption.encryptedKey}
+              </dd>
             </div>
           )}
         </dl>
-        {acc != null && acc.length > 0 && (
+        {params != null && (
           <div>
             <h5 className="text-xs font-medium text-muted-foreground mb-1.5">
-              Access Control Conditions ({acc.length})
+              Encryption Params ({params.method})
             </h5>
-            <div className="space-y-2">
-              {acc.map((cond, i) => (
-                <div key={i} className="border rounded-md p-2.5 space-y-1 text-xs bg-muted/30">
-                  <div className="flex gap-2">
-                    <span className="text-muted-foreground w-28 shrink-0">Index</span>
-                    <span className="font-mono">{cond.conditionIndex}</span>
-                  </div>
-                  {cond.method && (
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground w-28 shrink-0">Method</span>
-                      <span className="font-mono">{cond.method}</span>
-                    </div>
-                  )}
-                  {cond.standardContractType && (
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground w-28 shrink-0">Contract Type</span>
-                      <span className="font-mono">{cond.standardContractType}</span>
-                    </div>
-                  )}
-                  {cond.contractAddress && (
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground w-28 shrink-0">Contract</span>
-                      <span className="font-mono break-all">{cond.contractAddress}</span>
-                    </div>
-                  )}
-                  {cond.comparator && (
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground w-28 shrink-0">Comparator</span>
-                      <span className="font-mono">{cond.comparator}</span>
-                    </div>
-                  )}
-                  {cond.value && (
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground w-28 shrink-0">Value</span>
-                      <span className="font-mono">{cond.value}</span>
-                    </div>
-                  )}
-                  {cond.chain && (
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground w-28 shrink-0">Chain</span>
-                      <span className="font-mono">{cond.chain}</span>
-                    </div>
-                  )}
+            <div className="border rounded-md p-2.5 space-y-1 text-xs bg-muted/30">
+              <div className="flex gap-2">
+                <span className="text-muted-foreground w-28 shrink-0">Method</span>
+                <span className="font-mono">{params.method}</span>
+              </div>
+              {params.tokenAddress && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground w-28 shrink-0">Token Address</span>
+                  <span className="font-mono break-all">{params.tokenAddress}</span>
                 </div>
-              ))}
+              )}
+              {params.requiredBalance && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground w-28 shrink-0">Required Balance</span>
+                  <span className="font-mono">{params.requiredBalance}</span>
+                </div>
+              )}
+              {params.requiredTokenId && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground w-28 shrink-0">Required Token ID</span>
+                  <span className="font-mono">{params.requiredTokenId}</span>
+                </div>
+              )}
+              {params.followedAddresses && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground w-28 shrink-0">Followed Addrs</span>
+                  <span className="font-mono break-all">{params.followedAddresses}</span>
+                </div>
+              )}
+              {params.unlockTimestamp && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground w-28 shrink-0">Unlock Timestamp</span>
+                  <span className="font-mono">{params.unlockTimestamp}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -301,9 +291,6 @@ function ChunksSection({
         <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
           <Layers className="size-3.5" />
           Chunks
-          {chunks.cids != null && chunks.cids.length > 0 && (
-            <span className="text-xs text-muted-foreground/70">({chunks.cids.length} CIDs)</span>
-          )}
           <ChevronDown className="size-3.5" />
         </Button>
       </CollapsibleTrigger>
@@ -321,16 +308,28 @@ function ChunksSection({
               <dd className="font-mono text-xs break-all">{chunks.iv}</dd>
             </div>
           )}
-          {chunks.cids != null && chunks.cids.length > 0 && (
-            <div>
-              <dt className="text-muted-foreground text-xs mb-1">CIDs ({chunks.cids.length})</dt>
-              <div className="space-y-0.5">
-                {chunks.cids.map((cid, i) => (
-                  <dd key={i} className="font-mono text-xs break-all text-muted-foreground">
-                    {cid}
-                  </dd>
-                ))}
-              </div>
+          {chunks.ipfsChunks && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">IPFS Chunks</dt>
+              <dd className="font-mono text-xs break-all">{chunks.ipfsChunks}</dd>
+            </div>
+          )}
+          {chunks.lumeraChunks && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Lumera Chunks</dt>
+              <dd className="font-mono text-xs break-all">{chunks.lumeraChunks}</dd>
+            </div>
+          )}
+          {chunks.s3Chunks && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">S3 Chunks</dt>
+              <dd className="font-mono text-xs break-all">{chunks.s3Chunks}</dd>
+            </div>
+          )}
+          {chunks.arweaveChunks && (
+            <div className="flex gap-2">
+              <dt className="text-muted-foreground w-32 shrink-0">Arweave Chunks</dt>
+              <dd className="font-mono text-xs break-all">{chunks.arweaveChunks}</dd>
             </div>
           )}
         </dl>
