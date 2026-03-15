@@ -131,7 +131,7 @@ function parseAndAddSubEntities(
     timestamp: entity.timestamp,
     type: lsp29.file.type,
     name: lsp29.file.name,
-    size: BigInt(lsp29.file.size),
+    size: lsp29.file.size != null ? BigInt(lsp29.file.size) : null,
     lastModified: lsp29.file.lastModified != null ? BigInt(lsp29.file.lastModified) : null,
     hash: lsp29.file.hash,
   });
@@ -188,7 +188,7 @@ function parseAndAddSubEntities(
     logIndex: entity.logIndex,
     timestamp: entity.timestamp,
     iv: lsp29.chunks.iv,
-    totalSize: BigInt(lsp29.chunks.totalSize),
+    totalSize: lsp29.chunks.totalSize != null ? BigInt(lsp29.chunks.totalSize) : null,
     ipfsChunks: lsp29.chunks.ipfs ? JSON.stringify(lsp29.chunks.ipfs) : null,
     lumeraChunks: lsp29.chunks.lumera ? JSON.stringify(lsp29.chunks.lumera) : null,
     s3Chunks: lsp29.chunks.s3 ? JSON.stringify(lsp29.chunks.s3) : null,
