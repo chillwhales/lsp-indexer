@@ -9,7 +9,7 @@ dependency_graph:
   affects: [lsp8-token-id-format, lsp4-token-type, decimals]
 tech_stack:
   added: [safeHexToNumber-utility]
-  patterns: [safe-conversion, error-handling, lower-32-bits]
+  patterns: [safe-conversion, bounds-checking, null-fallback]
 key_files:
   created: []
   modified: [
@@ -19,8 +19,8 @@ key_files:
     packages/indexer/src/handlers/decimals.handler.ts
   ]
 decisions: [
-  "Use BigInt for conversion then take lower 32 bits for large values",
-  "Add try-catch error handling in all handlers",
+  "Use BigInt for conversion with explicit upper bounds per handler",
+  "Treat out-of-range values as null (enum handlers) or throw (decimals)",
   "Centralize safe conversion logic in utils module"
 ]
 metrics:
@@ -30,11 +30,11 @@ metrics:
 
 # Quick Task 4: Fix Integer Overflow Error in LSP8TokenId Summary
 
-**One-liner:** Fixed integer overflow crashes in handlers by replacing hexToNumber with safe conversion utility that handles large uint256 values
+**One-liner:** Fixed integer overflow crashes in handlers by replacing hexToNumber with safe conversion utility that validates against explicit upper bounds
 
 ## Overview
 
-Fixed critical integer overflow errors across multiple indexer handlers where `hexToNumber()` from viem would crash when processing large uint256 hex values. Created a centralized safe conversion utility that handles values exceeding JavaScript's MAX_SAFE_INTEGER by extracting the lower 32 bits, which contain the meaningful enum values for LSP standards.
+Fixed critical integer overflow errors across multiple indexer handlers where `hexToNumber()` from viem would crash when processing large uint256 hex values. Created a centralized `safeHexToNumber()` utility that converts via BigInt and validates against explicit upper bounds per handler (token type ≤ 2, token ID format ≤ 104, decimals ≤ 255). Out-of-range values are treated as invalid (null for enum handlers, throw for decimals) rather than crashing.
 
 ## Tasks Completed
 
@@ -46,9 +46,9 @@ Fixed critical integer overflow errors across multiple indexer handlers where `h
 
 **Key implementation:**
 - Uses `hexToBigInt` for initial conversion
-- Returns direct number for values within MAX_SAFE_INTEGER
-- Takes lower 32 bits for large values (contains LSP enum values)
-- Prevents crashes while preserving meaningful data
+- Validates against explicit `maxValue` upper bound per caller
+- Returns `null` or throws for out-of-range values (no masking)
+- Prevents crashes while rejecting invalid data
 
 ### Task 2: Update all handlers to use safe conversion
 - **Files:** 
@@ -61,8 +61,8 @@ Fixed critical integer overflow errors across multiple indexer handlers where `h
 
 **Implementation details:**
 - Added imports for `safeHexToNumber` to all affected handlers
-- Wrapped conversions in try-catch blocks for graceful error handling
-- Updated error messages to reflect new safe conversion approach
+- Enum handlers (LSP8, LSP4) use `fallbackBehavior: 'null'` with explicit max bounds
+- Decimals handler uses default throw behavior with `maxValue: 255` inside existing try-catch
 - Maintained backward compatibility with existing small values
 
 ## Deviations from Plan
@@ -74,37 +74,37 @@ None - plan executed exactly as written.
 ✅ **Build passes:** `pnpm --filter=@chillwhales/indexer build` succeeds without errors
 ✅ **All hexToNumber calls replaced:** `grep -r "hexToNumber" packages/indexer/src/handlers/` shows no results  
 ✅ **Backward compatibility maintained:** Small values (format types, token types, decimals) work unchanged
-✅ **Error handling prevents crashes:** Try-catch blocks log warnings but continue processing
+✅ **Error handling prevents crashes:** Out-of-range values return null or are caught, with structured warnings
 ✅ **Centralized utility:** Consistent safe conversion across all handlers
 
 ## Technical Implementation
 
 ### Safe Conversion Strategy
-- **For small values (≤ MAX_SAFE_INTEGER):** Direct number conversion
-- **For large values (> MAX_SAFE_INTEGER):** Extract lower 32 bits using `& 0xFFFFFFFFn`
-- **Rationale:** LSP standard enums (token types, ID formats) are small integers stored in lower bits
+- **For values ≤ maxValue:** Direct number conversion via BigInt
+- **For values > maxValue:** Return `null` (enum handlers) or throw (decimals handler)
+- **Rationale:** Each handler knows its valid range — no silent coercion of invalid data
 
-### Error Handling Pattern
+### Error Handling Patterns
 ```typescript
-try {
-  return decodeFunction(safeHexToNumber(hexValue));
-} catch (error) {
-  console.warn(`Handler failed to parse value: ${error.message}`);
-  return null;
-}
+// Enum handlers (LSP8, LSP4): null fallback + structured warning
+const num = safeHexToNumber(hex, { maxValue: 104, fallbackBehavior: 'null' });
+if (num !== null) { value = decodeTokenIdFormat(num); }
+
+// Decimals handler: throw (caught by existing try-catch)
+const decimals = safeHexToNumber(hex, { maxValue: 255 }) as number;
 ```
 
 ### Files Modified
-1. **utils/index.ts:** Added `safeHexToNumber` utility with BigInt conversion
-2. **lsp8TokenIdFormat.handler.ts:** Safe format enum extraction 
-3. **lsp4TokenType.handler.ts:** Safe token type enum extraction
-4. **decimals.handler.ts:** Safe decimals value extraction
+1. **utils/index.ts:** Added `safeHexToNumber` utility with BigInt conversion + bounds validation
+2. **lsp8TokenIdFormat.handler.ts:** Bounds-checked format enum extraction (max 104)
+3. **lsp4TokenType.handler.ts:** Bounds-checked token type extraction (max 2)
+4. **decimals.handler.ts:** Range-validated decimals extraction (max 255)
 
 ## Impact
 
 - **Reliability:** Eliminated integer overflow crashes in indexer pipeline
-- **Data integrity:** Large values processed correctly while preserving enum meanings  
-- **Maintainability:** Centralized conversion logic for consistent behavior
+- **Data integrity:** Out-of-range values rejected as null/error instead of silently coerced
+- **Maintainability:** Centralized conversion logic with explicit bounds per caller
 - **Performance:** Minimal overhead compared to crash recovery
 
 ## Self-Check: PASSED

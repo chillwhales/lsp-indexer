@@ -133,12 +133,17 @@ export function safeHexToNumber(
   } = {},
 ): number | null {
   if (!isHex(hex)) {
-    const preview = hex.length > 20 ? `${hex.slice(0, 20)}… (${hex.length} chars)` : hex;
+    const preview = hex.length > 66 ? `${hex.slice(0, 66)}… (${hex.length} chars)` : hex;
     throw new Error(`Invalid hex string: ${preview}`);
   }
 
   const bigIntValue = hexToBigInt(hex);
   const { maxValue = Number.MAX_SAFE_INTEGER, fallbackBehavior = 'throw' } = options;
+
+  if (!Number.isInteger(maxValue) || maxValue < 0 || maxValue > Number.MAX_SAFE_INTEGER) {
+    throw new Error(`maxValue must be a safe non-negative integer (got ${maxValue})`);
+  }
+
   const maxBigInt = BigInt(maxValue);
 
   if (bigIntValue <= maxBigInt) {
@@ -150,7 +155,7 @@ export function safeHexToNumber(
   }
 
   throw new Error(
-    `Hex value exceeds maximum allowed value ${maxValue} (got ${hex.length > 20 ? `${hex.slice(0, 20)}…` : hex})`,
+    `Hex value exceeds maximum allowed value ${maxValue} (got ${hex.length > 66 ? `${hex.slice(0, 66)}…` : hex})`,
   );
 }
 

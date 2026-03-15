@@ -107,6 +107,4 @@ _None currently._
 
 ---
 
-Last activity: 2026-03-15 - Completed quick task 4: Fix integer overflow error in lsp8TokenIdFormat handler - hexToNumber failing on large token IDs
-
-_Last updated: 2026-03-15 — Completed 24-01 LSP31 URI decoding in LSP29 handler_
+_Last updated: 2026-03-15 — Completed quick task 4: Fix integer overflow error in lsp8TokenIdFormat handler_

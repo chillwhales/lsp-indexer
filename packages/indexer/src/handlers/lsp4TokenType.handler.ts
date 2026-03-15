@@ -42,7 +42,10 @@ const LSP4TokenTypeHandler: EntityHandler = {
               step: 'HANDLE',
               handler: 'lsp4TokenType',
               address: event.address,
-              dataValue: event.dataValue,
+              dataValue:
+                event.dataValue.length > 66
+                  ? `${event.dataValue.slice(0, 66)}… (${event.dataValue.length} chars)`
+                  : event.dataValue,
             },
             'Token type value out of range (expected 0-2)',
           );

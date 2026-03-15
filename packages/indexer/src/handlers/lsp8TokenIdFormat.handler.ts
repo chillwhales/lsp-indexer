@@ -42,7 +42,10 @@ const LSP8TokenIdFormatHandler: EntityHandler = {
               step: 'HANDLE',
               handler: 'lsp8TokenIdFormat',
               address: event.address,
-              dataValue: event.dataValue,
+              dataValue:
+                event.dataValue.length > 66
+                  ? `${event.dataValue.slice(0, 66)}… (${event.dataValue.length} chars)`
+                  : event.dataValue,
             },
             'Token ID format value out of range (expected 0-104)',
           );
