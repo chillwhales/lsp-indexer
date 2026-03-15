@@ -46,9 +46,13 @@ function createMockBatchCtx(): {
     }),
     addEntity: vi.fn((type: string, id: string, entity: unknown) => {
       if (!entityBags.has(type)) entityBags.set(type, new Map());
-      entityBags.get(type)!.set(id, entity);
+      const bag = entityBags.get(type);
+      if (bag) bag.set(id, entity);
     }),
-    hasEntities: vi.fn((type: string) => entityBags.has(type) && entityBags.get(type)!.size > 0),
+    hasEntities: vi.fn((type: string) => {
+      const bag = entityBags.get(type);
+      return bag != null && bag.size > 0;
+    }),
     queueEnrichment: vi.fn((request: unknown) => enrichmentQueue.push(request)),
     queueClear: vi.fn(),
     queueDelete: vi.fn(),
@@ -99,7 +103,7 @@ function makeDataChanged(dataKey: string, dataValue: string): DataChanged {
 // ---------------------------------------------------------------------------
 
 describe('LSP29EncryptedAssetHandler - Length key', () => {
-  it('creates LSP29EncryptedAssetsLength from valid uint128', () => {
+  it('creates LSP29EncryptedAssetsLength from valid uint128', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -108,7 +112,7 @@ describe('LSP29EncryptedAssetHandler - Length key', () => {
     const event = makeDataChanged(LSP29DataKeys['LSP29EncryptedAssets[]'].length, dataValue);
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     const lengthCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP29EncryptedAssetsLength',
@@ -121,7 +125,7 @@ describe('LSP29EncryptedAssetHandler - Length key', () => {
     expect(entity.rawValue).toBe(dataValue);
   });
 
-  it('stores null value for wrong-length data', () => {
+  it('stores null value for wrong-length data', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -130,7 +134,7 @@ describe('LSP29EncryptedAssetHandler - Length key', () => {
     const event = makeDataChanged(LSP29DataKeys['LSP29EncryptedAssets[]'].length, dataValue);
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     const lengthCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP29EncryptedAssetsLength',
@@ -140,14 +144,14 @@ describe('LSP29EncryptedAssetHandler - Length key', () => {
     expect(entity.value).toBeNull();
   });
 
-  it('stores null value for empty 0x data', () => {
+  it('stores null value for empty 0x data', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
     const event = makeDataChanged(LSP29DataKeys['LSP29EncryptedAssets[]'].length, '0x');
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     const lengthCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP29EncryptedAssetsLength',
@@ -156,7 +160,7 @@ describe('LSP29EncryptedAssetHandler - Length key', () => {
     expect((lengthCalls[0][2] as LSP29EncryptedAssetsLength).value).toBeNull();
   });
 
-  it('queues UP enrichment', () => {
+  it('queues UP enrichment', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -164,7 +168,7 @@ describe('LSP29EncryptedAssetHandler - Length key', () => {
     const event = makeDataChanged(LSP29DataKeys['LSP29EncryptedAssets[]'].length, dataValue);
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     expect(batchCtx.queueEnrichment).toHaveBeenCalledTimes(1);
     expect(batchCtx._enrichmentQueue[0]).toMatchObject({
@@ -177,7 +181,7 @@ describe('LSP29EncryptedAssetHandler - Length key', () => {
 });
 
 describe('LSP29EncryptedAssetHandler - Index key', () => {
-  it('creates LSP29EncryptedAsset with arrayIndex from data key', () => {
+  it('creates LSP29EncryptedAsset with arrayIndex from data key', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -189,7 +193,7 @@ describe('LSP29EncryptedAssetHandler - Index key', () => {
     const event = makeDataChanged(dataKey, '0x');
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     const assetCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP29EncryptedAsset',
@@ -204,7 +208,7 @@ describe('LSP29EncryptedAssetHandler - Index key', () => {
     expect(entity.retryCount).toBe(0);
   });
 
-  it('extracts arrayIndex=5 from data key', () => {
+  it('extracts arrayIndex=5 from data key', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -214,7 +218,7 @@ describe('LSP29EncryptedAssetHandler - Index key', () => {
     const event = makeDataChanged(dataKey, '0x');
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     const assetCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP29EncryptedAsset',
@@ -223,7 +227,7 @@ describe('LSP29EncryptedAssetHandler - Index key', () => {
     expect((assetCalls[0][2] as LSP29EncryptedAsset).arrayIndex).toBe(5n);
   });
 
-  it('queues UP enrichment', () => {
+  it('queues UP enrichment', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -233,7 +237,7 @@ describe('LSP29EncryptedAssetHandler - Index key', () => {
     const event = makeDataChanged(dataKey, '0x');
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     expect(batchCtx.queueEnrichment).toHaveBeenCalledTimes(1);
     expect(batchCtx._enrichmentQueue[0]).toMatchObject({
@@ -246,7 +250,7 @@ describe('LSP29EncryptedAssetHandler - Index key', () => {
 });
 
 describe('LSP29EncryptedAssetHandler - Map key', () => {
-  it('creates LSP29EncryptedAssetEntry with contentIdHash and arrayIndex', () => {
+  it('creates LSP29EncryptedAssetEntry with contentIdHash and arrayIndex', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -260,7 +264,7 @@ describe('LSP29EncryptedAssetHandler - Map key', () => {
     const event = makeDataChanged(dataKey, dataValue);
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     const entryCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP29EncryptedAssetEntry',
@@ -272,7 +276,7 @@ describe('LSP29EncryptedAssetHandler - Map key', () => {
     expect(entity.contentIdHash).toBeDefined();
   });
 
-  it('stores null arrayIndex for non-16-byte data value', () => {
+  it('stores null arrayIndex for non-16-byte data value', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -285,7 +289,7 @@ describe('LSP29EncryptedAssetHandler - Map key', () => {
     const event = makeDataChanged(dataKey, dataValue);
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     const entryCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP29EncryptedAssetEntry',
@@ -294,7 +298,7 @@ describe('LSP29EncryptedAssetHandler - Map key', () => {
     expect((entryCalls[0][2] as LSP29EncryptedAssetEntry).arrayIndex).toBeNull();
   });
 
-  it('queues UP enrichment', () => {
+  it('queues UP enrichment', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -304,7 +308,7 @@ describe('LSP29EncryptedAssetHandler - Map key', () => {
     const event = makeDataChanged(dataKey, dataValue);
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     expect(batchCtx.queueEnrichment).toHaveBeenCalledTimes(1);
     expect(batchCtx._enrichmentQueue[0]).toMatchObject({
@@ -316,7 +320,7 @@ describe('LSP29EncryptedAssetHandler - Map key', () => {
 });
 
 describe('LSP29EncryptedAssetHandler - Revision count key', () => {
-  it('creates LSP29EncryptedAssetRevisionCount from valid uint128', () => {
+  it('creates LSP29EncryptedAssetRevisionCount from valid uint128', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -329,7 +333,7 @@ describe('LSP29EncryptedAssetHandler - Revision count key', () => {
     const event = makeDataChanged(dataKey, dataValue);
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     const revCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP29EncryptedAssetRevisionCount',
@@ -341,7 +345,7 @@ describe('LSP29EncryptedAssetHandler - Revision count key', () => {
     expect(entity.rawValue).toBe(dataValue);
   });
 
-  it('stores null revisionCount for non-16-byte data value', () => {
+  it('stores null revisionCount for non-16-byte data value', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -351,7 +355,7 @@ describe('LSP29EncryptedAssetHandler - Revision count key', () => {
     const event = makeDataChanged(dataKey, dataValue);
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     const revCalls = batchCtx.addEntity.mock.calls.filter(
       (c: unknown[]) => c[0] === 'LSP29EncryptedAssetRevisionCount',
@@ -360,7 +364,7 @@ describe('LSP29EncryptedAssetHandler - Revision count key', () => {
     expect((revCalls[0][2] as LSP29EncryptedAssetRevisionCount).revisionCount).toBeNull();
   });
 
-  it('queues UP enrichment', () => {
+  it('queues UP enrichment', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -370,7 +374,7 @@ describe('LSP29EncryptedAssetHandler - Revision count key', () => {
     const event = makeDataChanged(dataKey, dataValue);
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     expect(batchCtx.queueEnrichment).toHaveBeenCalledTimes(1);
     expect(batchCtx._enrichmentQueue[0]).toMatchObject({
@@ -382,7 +386,7 @@ describe('LSP29EncryptedAssetHandler - Revision count key', () => {
 });
 
 describe('LSP29EncryptedAssetHandler - Routing', () => {
-  it('ignores unrelated data keys', () => {
+  it('ignores unrelated data keys', async () => {
     const batchCtx = createMockBatchCtx();
     const hctx = createMockHandlerContext(batchCtx);
 
@@ -392,7 +396,7 @@ describe('LSP29EncryptedAssetHandler - Routing', () => {
     );
     batchCtx._entityBags.set('DataChanged', new Map([['dc-test-1', event]]));
 
-    LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
+    await LSP29EncryptedAssetHandler.handle(hctx, 'DataChanged');
 
     expect(batchCtx.addEntity).not.toHaveBeenCalled();
     expect(batchCtx.queueEnrichment).not.toHaveBeenCalled();
