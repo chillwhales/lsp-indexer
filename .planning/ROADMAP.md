@@ -249,7 +249,16 @@ Plans:
 Plans:
 - [x] 24-01-PLAN.md — Switch extractFromIndex to parseLsp31Uri + resolveUrl with VerifiableURI fallback
 
+### Phase 25: Test App Public Publish Readiness
+
+**Goal:** Make the test app publicly publishable by securing environment variables, implementing conditional tabs, and adding a quick install guide
+**Depends on:** Phase 24
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 25 to break down)
+
 ---
 
 _Created: 2026-02-06_
-_Last updated: 2026-03-15 — Phase 24 complete (LSP31 URI decoding)_
+_Last updated: 2026-03-15 — Phase 25 added (Test App Public Publish Readiness)_

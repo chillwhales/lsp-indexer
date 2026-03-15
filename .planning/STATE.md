@@ -64,6 +64,7 @@ See `.planning/PROJECT.md` Key Decisions table for full record.
 - v1.1: 33 phases (10 main + 12 domain sub-phases + 10 subscription sub-phases + 1 inserted)
 - Phase 23 added: LSP29/LSP31 Decoding Update — update encrypted asset decoding per latest @chillwhales/lsp29 + @chillwhales/lsp31 specs
 - Phase 24 added: LSP31 URI Decoding — switch LSP29 handler from VerifiableURI to LSP31 multi-backend URI decoding
+- Phase 25 added: Test App Public Publish Readiness — secure env variables, conditional tabs, install guide
 
 ### Discovered Todos
 
