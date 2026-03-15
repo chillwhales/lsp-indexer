@@ -31,9 +31,9 @@
  * Note: clearSubEntities logic is deferred to the metadata fetch handler since
  * that handler re-creates the sub-entities.
  */
-import { LSP29DataKeys } from '@/constants/lsp29';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { decodeVerifiableUri } from '@/utils';
+import { LSP29DataKeys } from '@chillwhales/lsp29';
 import {
   DataChanged,
   LSP29EncryptedAsset,

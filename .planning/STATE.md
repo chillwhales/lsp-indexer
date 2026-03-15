@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Readiness
-status: planning
-last_updated: "2026-03-14T16:38:27.292Z"
-last_activity: 2026-03-14 — Completed 20.2-01 pipeline step timing and batch summary
+status: completed
+last_updated: "2026-03-15T10:31:32.966Z"
+last_activity: 2026-03-15 — Completed 23-03 consumer package rewrite for LSP29 v2.0.0
 progress:
-  total_phases: 55
-  completed_phases: 47
-  total_plans: 136
-  completed_plans: 122
-  percent: 90
+  total_phases: 56
+  completed_phases: 48
+  total_plans: 140
+  completed_plans: 125
+  percent: 91
 ---
 
 # State: LSP Indexer
@@ -21,16 +21,16 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.2 Production Readiness — Phase 20.1 structured logging overhaul complete
+**Current focus:** v1.2 Production Readiness — Phase 23 LSP29/LSP31 decoding update complete
 
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Phase 20.2 — Pipeline Instrumentation
-- **Plan:** 1 of 1 ✅
-- **Status:** Ready to plan
-- **Last activity:** 2026-03-14 — Completed 20.2-01 pipeline step timing and batch summary
-- **Progress:** [█████████░] 90%
+- **Phase:** Phase 23 — LSP29/LSP31 Decoding Update
+- **Plan:** 3 of 3 (Plan 03 complete — phase done)
+- **Status:** Milestone complete
+- **Last activity:** 2026-03-15 — Completed 23-03 consumer package rewrite for LSP29 v2.0.0
+- **Progress:** [█████████░] 91%
 
 ## Milestone History
 
@@ -47,10 +47,10 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 125 (36 v1.0 + 77 v1.1 + 12 v1.2)
+- **Plans completed:** 128 (36 v1.0 + 77 v1.1 + 15 v1.2)
 - **Plans failed:** 0
 - **Phases completed:** 49 (11 v1.0 + 33 v1.1 + 5 v1.2)
-- **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 15/26 (v1.2)
+- **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 22/26 (v1.2)
 
 ## Accumulated Context
 
@@ -82,22 +82,25 @@ _None currently._
 | Phase 21 P02 | 2min | 2 tasks | 8 files |
 | Phase 20.1 P02 | 7min | 2 tasks | 6 files |
 | Phase 20.2 P01 | 4min | 2 tasks | 3 files |
+| Phase 23 P01 | 4min | 2 tasks | 3 files |
+| Phase 23 P02 | 6min | 2 tasks | 6 files |
+| Phase 23 P03 | 10min | 3 tasks | 8 files |
 
 ## Session Continuity
 
 ### Last Session
 
-- **Date:** 2026-03-14
-- **Activity:** Executed Phase 20.2-01 — pipeline step timing and batch summary
-- **Outcome:** performance.now() timing on all 9 pipeline steps + BATCH_SUMMARY log with step timings, entity counts, total duration
+- **Date:** 2026-03-15
+- **Activity:** Executed Phase 23-03 — consumer package rewrite for LSP29 v2.0.0
+- **Outcome:** Rewrote types, node, react, next packages + test app for v2.0.0 encrypted asset structure
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 20.2 complete:** Pipeline instrumentation done (step timing wraps + batch summary log)
-- **Next:** Phase 20.3 dashboard redesign or next production readiness phase
-- **Patterns established:** step-timing-wrap pattern (performance.now() → durationMs log), BATCH_SUMMARY log pattern
+- **Phase 23 complete:** All 3 plans executed (schema, handlers, consumer packages)
+- **Next:** Phase transition — no more plans in phase 23
+- **Decisions:** Updated schema.graphql locally for codegen, fixed test app as blocking deviation
 
 ---
 
-_Last updated: 2026-03-14 — Completed 20.2-01 pipeline step timing and batch summary_
+_Last updated: 2026-03-15 — Completed 23-03 consumer package rewrite for LSP29 v2.0.0_

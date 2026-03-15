@@ -1,5 +1,4 @@
 import type {
-  AccessControlCondition,
   EncryptedAsset,
   EncryptedAssetChunks,
   EncryptedAssetEncryption,
@@ -8,57 +7,40 @@ import type {
   EncryptedAssetResult,
   PartialEncryptedAsset,
 } from '@lsp-indexer/types';
+import type { GetEncryptedAssetsQuery } from '../graphql/graphql';
 import { parseProfile } from './profiles';
 import { stripExcluded } from './strip';
 import { parseImages } from './utils';
+
+/** Raw Hasura row type from codegen — provides compile-time field name safety. */
+type RawEncryptedAsset = GetEncryptedAssetsQuery['lsp29_encrypted_asset'][number];
+type RawEncryption = NonNullable<RawEncryptedAsset['encryption']>;
+type RawFile = NonNullable<RawEncryptedAsset['file']>;
+type RawChunks = NonNullable<RawEncryptedAsset['chunks']>;
 
 // ---------------------------------------------------------------------------
 // Sub-object parsers — helpers for each nested type
 // ---------------------------------------------------------------------------
 
 /**
- * Parse a raw Hasura `lsp29_access_control_condition` into a clean `AccessControlCondition`.
- *
- * Maps all snake_case fields to camelCase:
- * - `condition_index` → `conditionIndex`
- * - `contract_address` → `contractAddress`
- * - `follower_address` → `followerAddress`
- * - `raw_condition` → `rawCondition`
- * - `standard_contract_type` → `standardContractType`
- * - `token_id` → `tokenId`
- */
-function parseAccessControlCondition(raw: any): AccessControlCondition {
-  return {
-    chain: raw.chain ?? null,
-    comparator: raw.comparator ?? null,
-    conditionIndex: raw.condition_index, // Int! — always present
-    contractAddress: raw.contract_address ?? null,
-    followerAddress: raw.follower_address ?? null,
-    method: raw.method ?? null,
-    rawCondition: raw.raw_condition, // String! — always present
-    standardContractType: raw.standard_contract_type ?? null,
-    tokenId: raw.token_id ?? null,
-    value: raw.value ?? null,
-  };
-}
-
-/**
  * Parse a raw Hasura `lsp29_encrypted_asset_encryption` into a clean `EncryptedAssetEncryption`.
  *
- * Maps snake_case fields to camelCase. Sub-field presence is controlled by
- * `@include` directives in the GraphQL document — excluded fields are simply
- * absent from `raw`, so `raw.field ?? null` naturally returns `null`.
+ * Maps snake_case fields to camelCase. Method-specific params are flattened
+ * directly on the encryption object (no separate params relation).
+ * Sub-field presence is controlled by `@include` directives in the GraphQL
+ * document — excluded fields are simply absent from `raw`, so `?? null` handles them.
  */
-function parseEncryption(raw: any): EncryptedAssetEncryption {
+function parseEncryption(raw: RawEncryption): EncryptedAssetEncryption {
   return {
-    ciphertext: raw.ciphertext ?? null,
-    dataToEncryptHash: raw.data_to_encrypt_hash ?? null,
-    decryptionCode: raw.decryption_code ?? null,
-    decryptionParams: raw.decryption_params ?? null,
+    provider: raw.provider ?? null,
     method: raw.method ?? null,
-    accessControlConditions: raw.accessControlConditions
-      ? raw.accessControlConditions.map(parseAccessControlCondition)
-      : null,
+    condition: raw.condition ?? null,
+    encryptedKey: raw.encrypted_key ?? null,
+    tokenAddress: raw.token_address ?? null,
+    requiredBalance: raw.required_balance ?? null,
+    requiredTokenId: raw.required_token_id ?? null,
+    followedAddresses: raw.followed_addresses ?? null,
+    unlockTimestamp: raw.unlock_timestamp ?? null,
   };
 }
 
@@ -72,7 +54,7 @@ function parseEncryption(raw: any): EncryptedAssetEncryption {
  * Sub-field presence is controlled by `@include` directives in the GraphQL
  * document — excluded fields are absent from `raw`, so `?? null` handles them.
  */
-function parseFile(raw: any): EncryptedAssetFile {
+function parseFile(raw: RawFile): EncryptedAssetFile {
   return {
     hash: raw.hash ?? null,
     lastModified: raw.last_modified != null ? Number(raw.last_modified) : null,
@@ -86,15 +68,21 @@ function parseFile(raw: any): EncryptedAssetFile {
  * Parse a raw Hasura `lsp29_encrypted_asset_chunks` into a clean `EncryptedAssetChunks`.
  *
  * Converts `total_size` (numeric) → `totalSize` (number | null).
+ * Maps per-backend chunk fields from snake_case to camelCase.
  *
  * Sub-field presence is controlled by `@include` directives in the GraphQL
  * document — excluded fields are absent from `raw`, so `?? null` handles them.
  */
-function parseChunks(raw: any): EncryptedAssetChunks {
+function parseChunks(raw: RawChunks): EncryptedAssetChunks {
   return {
-    cids: raw.cids ?? null,
     iv: raw.iv ?? null,
     totalSize: raw.total_size != null ? Number(raw.total_size) : null,
+    ipfsCids: raw.ipfs_cids ?? null,
+    lumeraActionIds: raw.lumera_action_ids ?? null,
+    arweaveTransactionIds: raw.arweave_transaction_ids ?? null,
+    s3Keys: raw.s3_keys ?? null,
+    s3Bucket: raw.s3_bucket ?? null,
+    s3Region: raw.s3_region ?? null,
   };
 }
 
@@ -103,13 +91,13 @@ function parseChunks(raw: any): EncryptedAssetChunks {
 // ---------------------------------------------------------------------------
 
 /** Parse a raw Hasura row into a clean domain type. */
-export function parseEncryptedAsset(raw: any): EncryptedAsset;
+export function parseEncryptedAsset(raw: RawEncryptedAsset): EncryptedAsset;
 export function parseEncryptedAsset<const I extends EncryptedAssetInclude>(
-  raw: any,
+  raw: RawEncryptedAsset,
   include: I,
 ): EncryptedAssetResult<I>;
 export function parseEncryptedAsset(
-  raw: any,
+  raw: RawEncryptedAsset,
   include?: EncryptedAssetInclude,
 ): EncryptedAsset | PartialEncryptedAsset {
   // Determine if encryption relation is included (boolean true or object form)
@@ -142,31 +130,21 @@ export function parseEncryptedAsset(
 
     // Universal Profile — parsed as full Profile via parseProfile.
     // Sub-include stripping handled by stripExcluded nestedConfig below.
-    // Uses `as any` cast for structural subtyping (sub-selection may omit `id`).
     universalProfile: raw.universalProfile ? parseProfile(raw.universalProfile) : null,
   };
 
   if (include) {
-    // Normalize include for stripExcluded: dual-form fields (boolean or object) should map
-    // to the field being included/excluded. Convert object forms to boolean for strip.
-    const normalizedInclude: Record<string, boolean | Record<string, unknown> | undefined> = {
-      ...include,
-    };
-    if (typeof include.encryption === 'object' && include.encryption != null) {
-      normalizedInclude.encryption = true; // Object form = included
-    }
-    if (typeof include.file === 'object' && include.file != null) {
-      normalizedInclude.file = true; // Object form = included
-    }
-    if (typeof include.chunks === 'object' && include.chunks != null) {
-      normalizedInclude.chunks = true; // Object form = included
-    }
+    // Pass sub-include objects through to stripExcluded so it can recursively
+    // strip sub-fields. Only normalize universalProfile (handled separately).
     return stripExcluded(
       result,
-      normalizedInclude,
+      include as Record<string, boolean | Record<string, unknown> | undefined>,
       ['address', 'contentId', 'revision'],
       undefined,
       {
+        encryption: { baseFields: [] },
+        file: { baseFields: ['name'] },
+        chunks: { baseFields: [] },
         universalProfile: { baseFields: ['address'] },
       },
     );
@@ -175,13 +153,13 @@ export function parseEncryptedAsset(
 }
 
 /** Batch variant of parseEncryptedAsset. */
-export function parseEncryptedAssets(raw: any[]): EncryptedAsset[];
+export function parseEncryptedAssets(raw: RawEncryptedAsset[]): EncryptedAsset[];
 export function parseEncryptedAssets<const I extends EncryptedAssetInclude>(
-  raw: any[],
+  raw: RawEncryptedAsset[],
   include: I,
 ): EncryptedAssetResult<I>[];
 export function parseEncryptedAssets(
-  raw: any[],
+  raw: RawEncryptedAsset[],
   include?: EncryptedAssetInclude,
 ): (EncryptedAsset | PartialEncryptedAsset)[] {
   if (include) return raw.map((r) => parseEncryptedAsset(r, include));

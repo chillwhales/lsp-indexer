@@ -1,4 +1,4 @@
-import { isNumeric } from '@/utils';
+import { isNumeric } from '@chillwhales/utils';
 import { config as dotenvSetup } from 'dotenv';
 import path from 'path';
 
@@ -60,6 +60,22 @@ export const WORKER_BATCH_SIZE = isNumeric(process.env.WORKER_BATCH_SIZE)
   ? parseInt(process.env.WORKER_BATCH_SIZE)
   : 250;
 
+/**
+ * Maximum length for JSON-stringified metadata fields (condition, encryptedKey, etc.).
+ * Prevents storage of excessively large objects from malicious metadata.
+ */
+export const MAX_JSON_LENGTH = isNumeric(process.env.MAX_JSON_LENGTH)
+  ? parseInt(process.env.MAX_JSON_LENGTH)
+  : 65_536;
+
+/**
+ * Maximum number of elements in chunk/address array columns.
+ * Prevents storage exhaustion from malicious metadata with oversized arrays.
+ */
+export const MAX_CHUNK_ARRAY_LENGTH = isNumeric(process.env.MAX_CHUNK_ARRAY_LENGTH)
+  ? parseInt(process.env.MAX_CHUNK_ARRAY_LENGTH)
+  : 10_000;
+
 export const MULTICALL_ADDRESS = '0x144f4290051C2Ad2aCc9D7b6E8cC0dBe36644869';
 
 export const LSP26_ADDRESS = '0xf01103E5a9909Fc0DBe8166dA7085e0285daDDcA';
@@ -68,6 +84,3 @@ export const LSP23_ADDRESS = '0x2300000A84D25dF63081feAa37ba6b62C4c89a30';
 // Special addresses that cannot be Universal Profiles or Digital Assets
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const DEAD_ADDRESS = '0x000000000000000000000000000000000000dEaD';
-
-// LSP29 Data Keys
-export * from './lsp29';

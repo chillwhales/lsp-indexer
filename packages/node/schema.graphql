@@ -1,3 +1,11 @@
+# STALE SCHEMA WARNING (PR #318):
+# This file was manually patched to add flattened encryption fields (token_address,
+# required_balance, etc.) for the v2.0.0 LSP29 spec. Stale v1.0 types remain in
+# aggregate/ordering/bool_exp sections (e.g., ciphertext, lsp29_access_control_condition,
+# lsp29_encrypted_asset_encryption_params). These do NOT affect query/subscription
+# documents but must be cleaned up by re-dumping after DB migration:
+#   pnpm --filter=@lsp-indexer/node schema:dump
+
 schema {
   query: query_root
   subscription: subscription_root
@@ -4667,15 +4675,20 @@ input lsp29_encrypted_asset_bool_exp {
 columns and relationships of "lsp29_encrypted_asset_chunks"
 """
 type lsp29_encrypted_asset_chunks {
+  arweave_transaction_ids: [String!]
   block_number: Int!
-  cids: [String!]
   id: String!
+  ipfs_cids: [String!]
   iv: String
   log_index: Int!
+  lumera_action_ids: [String!]
 
   """An object relationship"""
   lsp29EncryptedAsset: lsp29_encrypted_asset
   lsp29_encrypted_asset_id: String
+  s3_keys: [String!]
+  s3_bucket: String
+  s3_region: String
   timestamp: timestamptz!
   total_size: numeric
   transaction_index: Int!
@@ -5089,55 +5102,24 @@ type lsp29_encrypted_asset_description_variance_fields {
 columns and relationships of "lsp29_encrypted_asset_encryption"
 """
 type lsp29_encrypted_asset_encryption {
-  """An array relationship"""
-  accessControlConditions(
-    """distinct select on columns"""
-    distinct_on: [lsp29_access_control_condition_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [lsp29_access_control_condition_order_by!]
-
-    """filter the rows returned"""
-    where: lsp29_access_control_condition_bool_exp
-  ): [lsp29_access_control_condition!]!
-
-  """An aggregate relationship"""
-  accessControlConditions_aggregate(
-    """distinct select on columns"""
-    distinct_on: [lsp29_access_control_condition_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [lsp29_access_control_condition_order_by!]
-
-    """filter the rows returned"""
-    where: lsp29_access_control_condition_bool_exp
-  ): lsp29_access_control_condition_aggregate!
   block_number: Int!
-  ciphertext: String
-  data_to_encrypt_hash: String
-  decryption_code: String
-  decryption_params: String
+  condition: String
+  encrypted_key: String
+  followed_addresses: [String!]
   id: String!
   log_index: Int!
 
   """An object relationship"""
   lsp29EncryptedAsset: lsp29_encrypted_asset
   lsp29_encrypted_asset_id: String
-  method: String
+  method: String!
+  provider: String!
+  required_balance: String
+  required_token_id: String
   timestamp: timestamptz!
+  token_address: String
   transaction_index: Int!
+  unlock_timestamp: String
 }
 
 """
@@ -5179,20 +5161,22 @@ input lsp29_encrypted_asset_encryption_bool_exp {
   _and: [lsp29_encrypted_asset_encryption_bool_exp!]
   _not: lsp29_encrypted_asset_encryption_bool_exp
   _or: [lsp29_encrypted_asset_encryption_bool_exp!]
-  accessControlConditions: lsp29_access_control_condition_bool_exp
-  accessControlConditions_aggregate: lsp29_access_control_condition_aggregate_bool_exp
   block_number: Int_comparison_exp
-  ciphertext: String_comparison_exp
-  data_to_encrypt_hash: String_comparison_exp
-  decryption_code: String_comparison_exp
-  decryption_params: String_comparison_exp
+  condition: String_comparison_exp
+  encrypted_key: String_comparison_exp
+  followed_addresses: String_array_comparison_exp
   id: String_comparison_exp
   log_index: Int_comparison_exp
   lsp29EncryptedAsset: lsp29_encrypted_asset_bool_exp
   lsp29_encrypted_asset_id: String_comparison_exp
   method: String_comparison_exp
+  provider: String_comparison_exp
+  required_balance: String_comparison_exp
+  required_token_id: String_comparison_exp
   timestamp: timestamptz_comparison_exp
+  token_address: String_comparison_exp
   transaction_index: Int_comparison_exp
+  unlock_timestamp: String_comparison_exp
 }
 
 """aggregate max on columns"""
@@ -5717,6 +5701,27 @@ input lsp29_encrypted_asset_entry_variance_order_by {
   block_number: order_by
   log_index: order_by
   transaction_index: order_by
+}
+
+"""
+columns and relationships of "lsp29_encrypted_asset_encryption_params"
+"""
+type lsp29_encrypted_asset_encryption_params {
+  block_number: Int!
+  followed_addresses: [String!]
+  id: String!
+  log_index: Int!
+
+  """An object relationship"""
+  lsp29EncryptedAssetEncryption: lsp29_encrypted_asset_encryption
+  lsp29_encrypted_asset_encryption_id: String
+  method: String!
+  required_balance: String
+  required_token_id: String
+  timestamp: timestamptz!
+  token_address: String
+  transaction_index: Int!
+  unlock_timestamp: String
 }
 
 """

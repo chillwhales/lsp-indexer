@@ -1,6 +1,7 @@
-import { DEAD_ADDRESS, ZERO_ADDRESS } from '@/constants';
+import { DEAD_ADDRESS, MAX_CHUNK_ARRAY_LENGTH, MAX_JSON_LENGTH, ZERO_ADDRESS } from '@/constants';
 import { BlockPosition } from '@/core/types';
 import { LSP4TokenTypeEnum, LSP8TokenIdFormatEnum, OperationType } from '@chillwhales/typeorm';
+import { isNumeric } from '@chillwhales/utils';
 import ERC725 from '@erc725/erc725.js';
 import type { Verification } from '@lukso/lsp2-contracts';
 import type { FileAsset, ImageMetadata, LinkMetadata } from '@lukso/lsp3-contracts';
@@ -51,21 +52,66 @@ export function decodeVerifiableUri(dataValue: string): {
   }
 }
 
-export function isNumeric(value: string): boolean {
-  if (typeof value !== 'string') return false;
-  return !isNaN(Number(value)) && !isNaN(parseFloat(value));
+/**
+ * Safely stringify a value and cap at MAX_JSON_LENGTH.
+ * Returns null if the value is nullish, unstringifiable, or the result exceeds the limit.
+ * Logs a warning when truncation or stringify failure occurs.
+ *
+ * @param value - The value to stringify
+ * @param fieldName - Optional field name for warning log context
+ */
+export function safeJsonStringify(value: unknown, fieldName?: string): string | null {
+  if (value == null) return null;
+  let json: string;
+  try {
+    json = JSON.stringify(value);
+  } catch {
+    console.warn(
+      `[safeJsonStringify] Field "${fieldName ?? 'unknown'}" failed to stringify, storing null`,
+    );
+    return null;
+  }
+  if (json.length > MAX_JSON_LENGTH) {
+    console.warn(
+      `[safeJsonStringify] Field "${fieldName ?? 'unknown'}" exceeded ${MAX_JSON_LENGTH} chars (${json.length}), storing null`,
+    );
+    return null;
+  }
+  return json;
 }
 
 /**
- * Check if an address is a null-ish address (zero or dead).
+ * Cap an array of strings at MAX_CHUNK_ARRAY_LENGTH.
+ * Returns null if the array is nullish or empty.
+ * Logs a warning when truncation occurs.
  *
- * These addresses cannot be Universal Profiles or Digital Assets, so they
- * should be filtered out before queueing enrichment requests to avoid
- * wasteful supportsInterface() RPC calls.
- *
- * @param address - The address to check (any casing)
- * @returns true if the address is zero or dead, false otherwise
+ * @param arr - The string array to cap
  */
+export function safeChunkArray(arr: string[] | undefined | null): string[] | null {
+  if (!arr || arr.length === 0) return null;
+  if (arr.length > MAX_CHUNK_ARRAY_LENGTH) {
+    console.warn(
+      `[safeChunkArray] Array exceeded ${MAX_CHUNK_ARRAY_LENGTH} elements (${arr.length}), truncating`,
+    );
+    return arr.slice(0, MAX_CHUNK_ARRAY_LENGTH);
+  }
+  return arr;
+}
+
+/**
+ * Safely convert a value to BigInt, returning null on failure.
+ * Handles string, number, and bigint inputs. Returns null for null/undefined
+ * or values that cannot be parsed (e.g., non-numeric strings).
+ */
+export function safeBigInt(value: unknown): bigint | null {
+  if (value == null) return null;
+  try {
+    return BigInt(value as string | number);
+  } catch {
+    return null;
+  }
+}
+
 export function isNullAddress(address: string): boolean {
   const lower = address.toLowerCase();
   return lower === ZERO_ADDRESS.toLowerCase() || lower === DEAD_ADDRESS.toLowerCase();
@@ -155,218 +201,6 @@ export function getAttributeType(attribute: AttributeMetadata): string | null {
   if (typeof attribute.type === 'string') return attribute.type;
   if (typeof attribute.type === 'number') return attribute.type.toString();
   return null;
-}
-
-// ---------------------------------------------------------------------------
-// LSP29 Encrypted Asset type guards
-// ---------------------------------------------------------------------------
-
-/**
- * LSP29 File metadata structure.
- */
-export interface LSP29FileMetadata {
-  type: string | null;
-  name: string | null;
-  size: number | null;
-  lastModified: number | null;
-  hash: string | null;
-}
-
-/**
- * Type guard for LSP29 File objects.
- * All fields are optional, but object must exist.
- */
-export const isLSP29File = (obj: unknown): obj is LSP29FileMetadata =>
-  obj !== null && obj !== undefined && typeof obj === 'object';
-
-/**
- * Extract LSP29 file fields with validation.
- */
-export function extractLSP29File(file: LSP29FileMetadata): {
-  type: string | null;
-  name: string | null;
-  size: bigint | null;
-  lastModified: bigint | null;
-  hash: string | null;
-} {
-  return {
-    type: 'type' in file && typeof file.type === 'string' ? file.type : null,
-    name: 'name' in file && typeof file.name === 'string' ? file.name : null,
-    size: 'size' in file && typeof file.size === 'number' ? BigInt(file.size) : null,
-    lastModified:
-      'lastModified' in file && typeof file.lastModified === 'number'
-        ? BigInt(file.lastModified)
-        : null,
-    hash: 'hash' in file && typeof file.hash === 'string' ? file.hash : null,
-  };
-}
-
-/**
- * LSP29 Encryption metadata structure.
- */
-export interface LSP29EncryptionMetadata {
-  method: string | null;
-  ciphertext: string | null;
-  dataToEncryptHash: string | null;
-  decryptionCode: string | null;
-  decryptionParams: Record<string, unknown> | null;
-  accessControlConditions: unknown[] | null;
-}
-
-/**
- * Type guard for LSP29 Encryption objects.
- */
-export const isLSP29Encryption = (obj: unknown): obj is LSP29EncryptionMetadata =>
-  obj !== null && obj !== undefined && typeof obj === 'object';
-
-/**
- * Extract LSP29 encryption fields with validation.
- */
-export function extractLSP29Encryption(encryption: LSP29EncryptionMetadata): {
-  method: string | null;
-  ciphertext: string | null;
-  dataToEncryptHash: string | null;
-  decryptionCode: string | null;
-  decryptionParams: string | null;
-} {
-  return {
-    method:
-      'method' in encryption && typeof encryption.method === 'string' ? encryption.method : null,
-    ciphertext:
-      'ciphertext' in encryption && typeof encryption.ciphertext === 'string'
-        ? encryption.ciphertext
-        : null,
-    dataToEncryptHash:
-      'dataToEncryptHash' in encryption && typeof encryption.dataToEncryptHash === 'string'
-        ? encryption.dataToEncryptHash
-        : null,
-    decryptionCode:
-      'decryptionCode' in encryption && typeof encryption.decryptionCode === 'string'
-        ? encryption.decryptionCode
-        : null,
-    decryptionParams:
-      'decryptionParams' in encryption &&
-      encryption.decryptionParams &&
-      typeof encryption.decryptionParams === 'object'
-        ? JSON.stringify(encryption.decryptionParams)
-        : null,
-  };
-}
-
-/**
- * LSP29 Access Control Condition metadata structure.
- */
-export interface LSP29ConditionMetadata {
-  contractAddress: string | null;
-  chain: string | null;
-  method: string | null;
-  standardContractType: string | null;
-  comparator: string | null;
-  returnValueTest: { comparator?: string; value?: string } | null;
-  parameters: string[] | null;
-}
-
-/**
- * Type guard for LSP29 Access Control Condition objects.
- */
-export const isLSP29Condition = (obj: unknown): obj is LSP29ConditionMetadata =>
-  obj !== null && obj !== undefined && typeof obj === 'object';
-
-/**
- * Extract LSP29 condition fields with validation.
- */
-export function extractLSP29Condition(condition: LSP29ConditionMetadata): {
-  contractAddress: string | null;
-  chain: string | null;
-  method: string | null;
-  standardContractType: string | null;
-  comparator: string | null;
-  value: string | null;
-  tokenId: string | null;
-  followerAddress: string | null;
-} {
-  const parameters =
-    'parameters' in condition && Array.isArray(condition.parameters) ? condition.parameters : null;
-  const method =
-    'method' in condition && typeof condition.method === 'string' ? condition.method : null;
-  const returnValueTest =
-    'returnValueTest' in condition &&
-    condition.returnValueTest &&
-    typeof condition.returnValueTest === 'object'
-      ? condition.returnValueTest
-      : null;
-
-  return {
-    contractAddress:
-      'contractAddress' in condition && typeof condition.contractAddress === 'string'
-        ? condition.contractAddress
-        : null,
-    chain: 'chain' in condition && typeof condition.chain === 'string' ? condition.chain : null,
-    method,
-    standardContractType:
-      'standardContractType' in condition && typeof condition.standardContractType === 'string'
-        ? condition.standardContractType
-        : null,
-    comparator:
-      ('comparator' in condition && typeof condition.comparator === 'string'
-        ? condition.comparator
-        : null) ||
-      (returnValueTest &&
-      'comparator' in returnValueTest &&
-      typeof returnValueTest.comparator === 'string'
-        ? returnValueTest.comparator
-        : null),
-    value:
-      returnValueTest && 'value' in returnValueTest && typeof returnValueTest.value === 'string'
-        ? returnValueTest.value
-        : null,
-    tokenId:
-      parameters && parameters.length > 0
-        ? parameters.find(
-            (p): p is string => typeof p === 'string' && p.startsWith('0x') && p.length === 66,
-          ) || null
-        : null,
-    followerAddress:
-      method === 'isFollowing' && parameters && typeof parameters[0] === 'string'
-        ? parameters[0]
-        : null,
-  };
-}
-
-/**
- * LSP29 Chunks metadata structure.
- */
-export interface LSP29ChunksMetadata {
-  cids: string[] | null;
-  iv: string | null;
-  totalSize: number | null;
-}
-
-/**
- * Type guard for LSP29 Chunks objects.
- */
-export const isLSP29Chunks = (obj: unknown): obj is LSP29ChunksMetadata =>
-  obj !== null && obj !== undefined && typeof obj === 'object';
-
-/**
- * Extract LSP29 chunks fields with validation.
- */
-export function extractLSP29Chunks(chunks: LSP29ChunksMetadata): {
-  cids: string[];
-  iv: string | null;
-  totalSize: bigint | null;
-} {
-  return {
-    cids:
-      'cids' in chunks && Array.isArray(chunks.cids)
-        ? chunks.cids.filter((c): c is string => typeof c === 'string')
-        : [],
-    iv: 'iv' in chunks && typeof chunks.iv === 'string' ? chunks.iv : null,
-    totalSize:
-      'totalSize' in chunks && typeof chunks.totalSize === 'number'
-        ? BigInt(chunks.totalSize)
-        : null,
-  };
 }
 
 /**

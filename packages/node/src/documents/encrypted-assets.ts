@@ -15,21 +15,29 @@ export const GetEncryptedAssetsDocument = graphql(`
     $includeTitle: Boolean! = true
     $includeDescription: Boolean! = true
     $includeEncryption: Boolean! = true
+    $includeEncryptionProvider: Boolean! = true
     $includeEncryptionMethod: Boolean! = true
-    $includeEncryptionCiphertext: Boolean! = true
-    $includeEncryptionDataToEncryptHash: Boolean! = true
-    $includeEncryptionDecryptionCode: Boolean! = true
-    $includeEncryptionDecryptionParams: Boolean! = true
-    $includeEncryptionAccessControlConditions: Boolean! = true
+    $includeEncryptionCondition: Boolean! = true
+    $includeEncryptionEncryptedKey: Boolean! = true
+    $includeEncryptionTokenAddress: Boolean! = true
+    $includeEncryptionRequiredBalance: Boolean! = true
+    $includeEncryptionRequiredTokenId: Boolean! = true
+    $includeEncryptionFollowedAddresses: Boolean! = true
+    $includeEncryptionUnlockTimestamp: Boolean! = true
     $includeFile: Boolean! = true
     $includeFileType: Boolean! = true
     $includeFileSize: Boolean! = true
     $includeFileLastModified: Boolean! = true
     $includeFileHash: Boolean! = true
     $includeChunks: Boolean! = true
-    $includeChunksCids: Boolean! = true
     $includeChunksIv: Boolean! = true
     $includeChunksTotalSize: Boolean! = true
+    $includeChunksIpfsCids: Boolean! = true
+    $includeChunksLumeraActionIds: Boolean! = true
+    $includeChunksArweaveTransactionIds: Boolean! = true
+    $includeChunksS3Keys: Boolean! = true
+    $includeChunksS3Bucket: Boolean! = true
+    $includeChunksS3Region: Boolean! = true
     $includeImages: Boolean! = true
     $includeUniversalProfile: Boolean! = true
     $includeUniversalProfileName: Boolean! = true
@@ -66,23 +74,15 @@ export const GetEncryptedAssetsDocument = graphql(`
       }
 
       encryption @include(if: $includeEncryption) {
-        ciphertext @include(if: $includeEncryptionCiphertext)
-        data_to_encrypt_hash @include(if: $includeEncryptionDataToEncryptHash)
-        decryption_code @include(if: $includeEncryptionDecryptionCode)
-        decryption_params @include(if: $includeEncryptionDecryptionParams)
+        provider @include(if: $includeEncryptionProvider)
         method @include(if: $includeEncryptionMethod)
-        accessControlConditions @include(if: $includeEncryptionAccessControlConditions) {
-          chain
-          comparator
-          condition_index
-          contract_address
-          follower_address
-          method
-          raw_condition
-          standard_contract_type
-          token_id
-          value
-        }
+        condition @include(if: $includeEncryptionCondition)
+        encrypted_key @include(if: $includeEncryptionEncryptedKey)
+        token_address @include(if: $includeEncryptionTokenAddress)
+        required_balance @include(if: $includeEncryptionRequiredBalance)
+        required_token_id @include(if: $includeEncryptionRequiredTokenId)
+        followed_addresses @include(if: $includeEncryptionFollowedAddresses)
+        unlock_timestamp @include(if: $includeEncryptionUnlockTimestamp)
       }
 
       file @include(if: $includeFile) {
@@ -94,9 +94,14 @@ export const GetEncryptedAssetsDocument = graphql(`
       }
 
       chunks @include(if: $includeChunks) {
-        cids @include(if: $includeChunksCids)
         iv @include(if: $includeChunksIv)
         total_size @include(if: $includeChunksTotalSize)
+        ipfs_cids @include(if: $includeChunksIpfsCids)
+        lumera_action_ids @include(if: $includeChunksLumeraActionIds)
+        arweave_transaction_ids @include(if: $includeChunksArweaveTransactionIds)
+        s3_keys @include(if: $includeChunksS3Keys)
+        s3_bucket @include(if: $includeChunksS3Bucket)
+        s3_region @include(if: $includeChunksS3Region)
       }
 
       images @include(if: $includeImages) {
@@ -161,7 +166,6 @@ export const GetEncryptedAssetsDocument = graphql(`
         }
       }
     }
-
     lsp29_encrypted_asset_aggregate(where: $where) {
       aggregate {
         count
@@ -184,21 +188,29 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
     $includeTitle: Boolean! = true
     $includeDescription: Boolean! = true
     $includeEncryption: Boolean! = true
+    $includeEncryptionProvider: Boolean! = true
     $includeEncryptionMethod: Boolean! = true
-    $includeEncryptionCiphertext: Boolean! = true
-    $includeEncryptionDataToEncryptHash: Boolean! = true
-    $includeEncryptionDecryptionCode: Boolean! = true
-    $includeEncryptionDecryptionParams: Boolean! = true
-    $includeEncryptionAccessControlConditions: Boolean! = true
+    $includeEncryptionCondition: Boolean! = true
+    $includeEncryptionEncryptedKey: Boolean! = true
+    $includeEncryptionTokenAddress: Boolean! = true
+    $includeEncryptionRequiredBalance: Boolean! = true
+    $includeEncryptionRequiredTokenId: Boolean! = true
+    $includeEncryptionFollowedAddresses: Boolean! = true
+    $includeEncryptionUnlockTimestamp: Boolean! = true
     $includeFile: Boolean! = true
     $includeFileType: Boolean! = true
     $includeFileSize: Boolean! = true
     $includeFileLastModified: Boolean! = true
     $includeFileHash: Boolean! = true
     $includeChunks: Boolean! = true
-    $includeChunksCids: Boolean! = true
     $includeChunksIv: Boolean! = true
     $includeChunksTotalSize: Boolean! = true
+    $includeChunksIpfsCids: Boolean! = true
+    $includeChunksLumeraActionIds: Boolean! = true
+    $includeChunksArweaveTransactionIds: Boolean! = true
+    $includeChunksS3Keys: Boolean! = true
+    $includeChunksS3Bucket: Boolean! = true
+    $includeChunksS3Region: Boolean! = true
     $includeImages: Boolean! = true
     $includeUniversalProfile: Boolean! = true
     $includeUniversalProfileName: Boolean! = true
@@ -235,23 +247,15 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
       }
 
       encryption @include(if: $includeEncryption) {
-        ciphertext @include(if: $includeEncryptionCiphertext)
-        data_to_encrypt_hash @include(if: $includeEncryptionDataToEncryptHash)
-        decryption_code @include(if: $includeEncryptionDecryptionCode)
-        decryption_params @include(if: $includeEncryptionDecryptionParams)
+        provider @include(if: $includeEncryptionProvider)
         method @include(if: $includeEncryptionMethod)
-        accessControlConditions @include(if: $includeEncryptionAccessControlConditions) {
-          chain
-          comparator
-          condition_index
-          contract_address
-          follower_address
-          method
-          raw_condition
-          standard_contract_type
-          token_id
-          value
-        }
+        condition @include(if: $includeEncryptionCondition)
+        encrypted_key @include(if: $includeEncryptionEncryptedKey)
+        token_address @include(if: $includeEncryptionTokenAddress)
+        required_balance @include(if: $includeEncryptionRequiredBalance)
+        required_token_id @include(if: $includeEncryptionRequiredTokenId)
+        followed_addresses @include(if: $includeEncryptionFollowedAddresses)
+        unlock_timestamp @include(if: $includeEncryptionUnlockTimestamp)
       }
 
       file @include(if: $includeFile) {
@@ -263,9 +267,14 @@ export const EncryptedAssetSubscriptionDocument = graphql(`
       }
 
       chunks @include(if: $includeChunks) {
-        cids @include(if: $includeChunksCids)
         iv @include(if: $includeChunksIv)
         total_size @include(if: $includeChunksTotalSize)
+        ipfs_cids @include(if: $includeChunksIpfsCids)
+        lumera_action_ids @include(if: $includeChunksLumeraActionIds)
+        arweave_transaction_ids @include(if: $includeChunksArweaveTransactionIds)
+        s3_keys @include(if: $includeChunksS3Keys)
+        s3_bucket @include(if: $includeChunksS3Bucket)
+        s3_region @include(if: $includeChunksS3Region)
       }
 
       images @include(if: $includeImages) {

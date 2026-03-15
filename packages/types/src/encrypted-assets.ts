@@ -14,44 +14,26 @@ import {
 // Sub-type schemas — nested object schemas for encrypted asset relations
 // ---------------------------------------------------------------------------
 
-/** Access control condition — defines who can decrypt the asset. */
-export const AccessControlConditionSchema = z.object({
-  /** Blockchain chain identifier */
-  chain: z.string().nullable(),
-  /** Comparison operator */
-  comparator: z.string().nullable(),
-  /** Position in conditions array */
-  conditionIndex: z.number(),
-  /** Contract address for the condition */
-  contractAddress: z.string().nullable(),
-  /** Follower address (for social conditions) */
-  followerAddress: z.string().nullable(),
-  /** Access control method */
-  method: z.string().nullable(),
-  /** Raw condition JSON string */
-  rawCondition: z.string(),
-  /** Standard contract type (ERC20, ERC721, etc.) */
-  standardContractType: z.string().nullable(),
-  /** Token ID for NFT conditions */
-  tokenId: z.string().nullable(),
-  /** Threshold value */
-  value: z.string().nullable(),
-});
-
-/** Encryption details — ciphertext, decryption params, and access control conditions. */
+/** Encryption details — provider, method, condition, encrypted key, and method-specific params. */
 export const EncryptedAssetEncryptionSchema = z.object({
-  /** Encrypted ciphertext */
-  ciphertext: z.string().nullable(),
-  /** Hash of original data */
-  dataToEncryptHash: z.string().nullable(),
-  /** Decryption code */
-  decryptionCode: z.string().nullable(),
-  /** Decryption parameters (JSON string) */
-  decryptionParams: z.string().nullable(),
-  /** Encryption method identifier */
+  /** Encryption provider (taco, lit) — null when excluded via sub-include */
+  provider: z.string().nullable(),
+  /** Access control method — null when excluded via sub-include */
   method: z.string().nullable(),
-  /** Access control conditions array (null = not included or empty) */
-  accessControlConditions: z.array(AccessControlConditionSchema).nullable(),
+  /** Provider-native condition object (JSON string, null = not included) */
+  condition: z.string().nullable(),
+  /** Encrypted key data (JSON string, null = not included) */
+  encryptedKey: z.string().nullable(),
+  /** Token address for digital-asset-balance and lsp8-ownership */
+  tokenAddress: z.string().nullable(),
+  /** Required balance for digital-asset-balance */
+  requiredBalance: z.string().nullable(),
+  /** Required token ID for lsp8-ownership */
+  requiredTokenId: z.string().nullable(),
+  /** Followed addresses for lsp26-follower */
+  followedAddresses: z.array(z.string()).nullable(),
+  /** Unlock timestamp for time-locked */
+  unlockTimestamp: z.string().nullable(),
 });
 
 /** File metadata for an encrypted asset. */
@@ -68,14 +50,24 @@ export const EncryptedAssetFileSchema = z.object({
   type: z.string().nullable(),
 });
 
-/** Chunk information for an encrypted asset. */
+/** Chunk information for an encrypted asset — matches LSP29 spec structure. */
 export const EncryptedAssetChunksSchema = z.object({
-  /** IPFS content identifiers for each chunk */
-  cids: z.array(z.string()).nullable(),
-  /** Initialization vector */
+  /** Encryption initialization vector */
   iv: z.string().nullable(),
   /** Total size across all chunks (numeric → number) */
   totalSize: z.number().nullable(),
+  /** IPFS CIDs for chunk storage */
+  ipfsCids: z.array(z.string()).nullable(),
+  /** Lumera action IDs for chunk storage */
+  lumeraActionIds: z.array(z.string()).nullable(),
+  /** Arweave transaction IDs for chunk storage */
+  arweaveTransactionIds: z.array(z.string()).nullable(),
+  /** S3 object keys for chunk storage */
+  s3Keys: z.array(z.string()).nullable(),
+  /** S3 bucket name */
+  s3Bucket: z.string().nullable(),
+  /** S3 region */
+  s3Region: z.string().nullable(),
 });
 
 /** Images grouped by image_index — inner arrays are resolution variants. */
@@ -107,7 +99,7 @@ export const EncryptedAssetSchema = z.object({
   title: z.string().nullable(),
   /** Description text, flattened from description.value wrapper (null = not included or not set) */
   description: z.string().nullable(),
-  /** Encryption details with optional access control conditions (null = not included) */
+  /** Encryption details with provider, method, and optional params (null = not included) */
   encryption: EncryptedAssetEncryptionSchema.nullable(),
   /** File metadata (null = not included) */
   file: EncryptedAssetFileSchema.nullable(),
@@ -174,18 +166,26 @@ export const EncryptedAssetFileIncludeSchema = z.object({
 });
 
 export const EncryptedAssetChunksIncludeSchema = z.object({
-  cids: z.boolean().optional(),
   iv: z.boolean().optional(),
   totalSize: z.boolean().optional(),
+  ipfsCids: z.boolean().optional(),
+  lumeraActionIds: z.boolean().optional(),
+  arweaveTransactionIds: z.boolean().optional(),
+  s3Keys: z.boolean().optional(),
+  s3Bucket: z.boolean().optional(),
+  s3Region: z.boolean().optional(),
 });
 
 export const EncryptedAssetEncryptionIncludeSchema = z.object({
+  provider: z.boolean().optional(),
   method: z.boolean().optional(),
-  ciphertext: z.boolean().optional(),
-  dataToEncryptHash: z.boolean().optional(),
-  decryptionCode: z.boolean().optional(),
-  decryptionParams: z.boolean().optional(),
-  accessControlConditions: z.boolean().optional(),
+  condition: z.boolean().optional(),
+  encryptedKey: z.boolean().optional(),
+  tokenAddress: z.boolean().optional(),
+  requiredBalance: z.boolean().optional(),
+  requiredTokenId: z.boolean().optional(),
+  followedAddresses: z.boolean().optional(),
+  unlockTimestamp: z.boolean().optional(),
 });
 
 /** Omit = fetch all fields; set individual fields to opt-in. Sub-relations accept boolean or per-field object. */
@@ -233,7 +233,6 @@ export const UseInfiniteEncryptedAssetsParamsSchema = z.object({
 // Inferred types
 // ---------------------------------------------------------------------------
 
-export type AccessControlCondition = z.infer<typeof AccessControlConditionSchema>;
 export type EncryptedAssetEncryption = z.infer<typeof EncryptedAssetEncryptionSchema>;
 export type EncryptedAssetEncryptionInclude = z.infer<typeof EncryptedAssetEncryptionIncludeSchema>;
 export type EncryptedAssetFile = z.infer<typeof EncryptedAssetFileSchema>;
@@ -275,12 +274,15 @@ type EncryptedAssetScalarIncludeFieldMap = {
  * No base fields — all fields are opt-in via sub-include.
  */
 type EncryptionIncludeFieldMap = {
+  provider: 'provider';
   method: 'method';
-  ciphertext: 'ciphertext';
-  dataToEncryptHash: 'dataToEncryptHash';
-  decryptionCode: 'decryptionCode';
-  decryptionParams: 'decryptionParams';
-  accessControlConditions: 'accessControlConditions';
+  condition: 'condition';
+  encryptedKey: 'encryptedKey';
+  tokenAddress: 'tokenAddress';
+  requiredBalance: 'requiredBalance';
+  requiredTokenId: 'requiredTokenId';
+  followedAddresses: 'followedAddresses';
+  unlockTimestamp: 'unlockTimestamp';
 };
 
 /**
@@ -299,15 +301,20 @@ type FileIncludeFieldMap = {
  * No base fields — all fields are opt-in via sub-include.
  */
 type ChunksIncludeFieldMap = {
-  cids: 'cids';
   iv: 'iv';
   totalSize: 'totalSize';
+  ipfsCids: 'ipfsCids';
+  lumeraActionIds: 'lumeraActionIds';
+  arweaveTransactionIds: 'arweaveTransactionIds';
+  s3Keys: 's3Keys';
+  s3Bucket: 's3Bucket';
+  s3Region: 's3Region';
 };
 
 /**
  * Resolve encryption based on include parameter.
- * - true → full EncryptedAssetEncryption (all sub-fields)
- * - `{ method: true }` → only method present in type
+ * - true → full EncryptedAssetEncryption (all sub-fields including params)
+ * - `{ provider: true }` → only provider present in type
  * - false/omitted → field absent from type
  */
 type ResolveEncryption<I> = I extends { encryption: infer E }
@@ -342,7 +349,7 @@ type ResolveFile<I> = I extends { file: infer E }
 /**
  * Resolve chunks based on include parameter.
  * - true → full EncryptedAssetChunks (all sub-fields)
- * - `{ cids: true }` → only cids present in type
+ * - `{ ipfsCids: true }` → only ipfsCids present in type
  * - false/omitted → field absent from type
  */
 type ResolveChunks<I> = I extends { chunks: infer E }
@@ -372,10 +379,10 @@ type ResolveUniversalProfile<I> = I extends { universalProfile: infer P }
  * - `EncryptedAssetResult` (no generic) → full `EncryptedAsset` type (backward compatible)
  * - `EncryptedAssetResult<{}>` → `{ address; contentId; revision }` (base fields only)
  * - `EncryptedAssetResult<{ timestamp: true }>` → base + timestamp
- * - `EncryptedAssetResult<{ encryption: true }>` → base + full encryption (with access control conditions)
- * - `EncryptedAssetResult<{ encryption: { accessControlConditions: true } }>` → base + encryption with ACC only
+ * - `EncryptedAssetResult<{ encryption: true }>` → base + full encryption (with params)
+ * - `EncryptedAssetResult<{ encryption: { provider: true } }>` → base + encryption with provider only
  * - `EncryptedAssetResult<{ file: { type: true, size: true } }>` → base + file with type & size (name always included)
- * - `EncryptedAssetResult<{ chunks: { cids: true } }>` → base + chunks with cids only
+ * - `EncryptedAssetResult<{ chunks: { ipfsCids: true } }>` → base + chunks with ipfsCids only
  * - `EncryptedAssetResult<{ universalProfile: { name: true } }>` → base + narrowed profile
  *
  * @example
@@ -383,9 +390,9 @@ type ResolveUniversalProfile<I> = I extends { universalProfile: infer P }
  * type Full = EncryptedAssetResult;                                                    // = EncryptedAsset (all fields)
  * type Minimal = EncryptedAssetResult<{}>;                                             // = { address; contentId; revision }
  * type WithEnc = EncryptedAssetResult<{ encryption: true }>;                           // = base + full encryption
- * type EncSub = EncryptedAssetResult<{ encryption: { method: true } }>;                // = base + encryption (method only)
+ * type EncSub = EncryptedAssetResult<{ encryption: { provider: true } }>;              // = base + encryption (provider only)
  * type WithFile = EncryptedAssetResult<{ file: { type: true, size: true } }>;          // = base + file (type, size + name)
- * type WithChunks = EncryptedAssetResult<{ chunks: { cids: true } }>;                  // = base + chunks (cids only)
+ * type WithChunks = EncryptedAssetResult<{ chunks: { ipfsCids: true } }>;              // = base + chunks (ipfsCids only)
  * type WithProf = EncryptedAssetResult<{ universalProfile: { name: true } }>;          // = base + narrowed profile
  * ```
  */

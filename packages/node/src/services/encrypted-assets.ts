@@ -167,13 +167,15 @@ export function buildEncryptedAssetIncludeVars(
 
     // Encryption — top-level + per-sub-field toggles
     includeEncryption: isEncIncluded,
+    includeEncryptionProvider: encInc === true || (encObj?.provider ?? false),
     includeEncryptionMethod: encInc === true || (encObj?.method ?? false),
-    includeEncryptionCiphertext: encInc === true || (encObj?.ciphertext ?? false),
-    includeEncryptionDataToEncryptHash: encInc === true || (encObj?.dataToEncryptHash ?? false),
-    includeEncryptionDecryptionCode: encInc === true || (encObj?.decryptionCode ?? false),
-    includeEncryptionDecryptionParams: encInc === true || (encObj?.decryptionParams ?? false),
-    includeEncryptionAccessControlConditions:
-      encInc === true || (encObj?.accessControlConditions ?? false),
+    includeEncryptionCondition: encInc === true || (encObj?.condition ?? false),
+    includeEncryptionEncryptedKey: encInc === true || (encObj?.encryptedKey ?? false),
+    includeEncryptionTokenAddress: encInc === true || (encObj?.tokenAddress ?? false),
+    includeEncryptionRequiredBalance: encInc === true || (encObj?.requiredBalance ?? false),
+    includeEncryptionRequiredTokenId: encInc === true || (encObj?.requiredTokenId ?? false),
+    includeEncryptionFollowedAddresses: encInc === true || (encObj?.followedAddresses ?? false),
+    includeEncryptionUnlockTimestamp: encInc === true || (encObj?.unlockTimestamp ?? false),
 
     // File — top-level + per-sub-field toggles (name is always included, no toggle needed)
     includeFile: isFileIncluded,
@@ -184,9 +186,15 @@ export function buildEncryptedAssetIncludeVars(
 
     // Chunks — top-level + per-sub-field toggles
     includeChunks: isChunksIncluded,
-    includeChunksCids: chunksInc === true || (chunksObj?.cids ?? false),
     includeChunksIv: chunksInc === true || (chunksObj?.iv ?? false),
     includeChunksTotalSize: chunksInc === true || (chunksObj?.totalSize ?? false),
+    includeChunksIpfsCids: chunksInc === true || (chunksObj?.ipfsCids ?? false),
+    includeChunksLumeraActionIds: chunksInc === true || (chunksObj?.lumeraActionIds ?? false),
+    includeChunksArweaveTransactionIds:
+      chunksInc === true || (chunksObj?.arweaveTransactionIds ?? false),
+    includeChunksS3Keys: chunksInc === true || (chunksObj?.s3Keys ?? false),
+    includeChunksS3Bucket: chunksInc === true || (chunksObj?.s3Bucket ?? false),
+    includeChunksS3Region: chunksInc === true || (chunksObj?.s3Region ?? false),
 
     // Universal Profile
     includeUniversalProfile: activeUniversalProfile,
