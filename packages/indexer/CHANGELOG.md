@@ -1,5 +1,13 @@
 # @chillwhales/indexer
 
+## 2.3.3
+
+### Patch Changes
+
+- [#329](https://github.com/chillwhales/lsp-indexer/pull/329) [`47c5917`](https://github.com/chillwhales/lsp-indexer/commit/47c59177a36dc12cb7b7ddfd959ab7f5d8b5f9b7) Thanks [@b00ste](https://github.com/b00ste)! - Fix critical integer overflow errors in hex conversion handlers
+
+  Resolves crashes caused by `hexToNumber()` failing on large uint256 hex values in LSP8TokenIdFormat, LSP4TokenType, and decimals handlers. Replaces direct `hexToNumber()` calls with a safe `safeHexToNumber()` utility that validates values against explicit upper bounds per handler (token type ≤ 2, token ID format ≤ 104, decimals ≤ 255) and treats out-of-range values as invalid (null or throw) instead of crashing.
+
 ## 2.3.2
 
 ### Patch Changes
