@@ -173,13 +173,24 @@ export async function queryUnfetchedEntities(
   }
 
   // Priority 3: Retryable network error codes
+  // Must match ALL retryable codes from metadataWorker.ts isRetryableError():
+  //   econnreset, etimedout, eproto, econnaborted, enotfound, eai_again
+  // Plus WORKER_POOL_ERROR from batch-level timeout handling in handleMetadataFetch().
   if (results.length < limit) {
     const p3 = await storeFind(store, entityKey, {
       take: limit - results.length,
       where: {
         url: Not(IsNull()),
         isDataFetched: false,
-        fetchErrorCode: In(['ETIMEDOUT', 'EPROTO']),
+        fetchErrorCode: In([
+          'ETIMEDOUT',
+          'EPROTO',
+          'ECONNABORTED',
+          'ECONNRESET',
+          'ENOTFOUND',
+          'EAI_AGAIN',
+          'WORKER_POOL_ERROR',
+        ]),
         retryCount: LessThan(FETCH_RETRY_COUNT),
       },
     });

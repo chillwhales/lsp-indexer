@@ -42,6 +42,10 @@ function resolveUrl(url: string): string {
   if (url.startsWith('ipfs://')) {
     return url.replace('ipfs://', config.ipfsGateway);
   }
+  // Handle bare IPFS CIDv0 (Qm...) and CIDv1 (bafy.../bafk...) hashes without ipfs:// prefix
+  if (/^Qm[1-9A-HJ-NP-Za-km-z]{44}/.test(url) || /^baf[a-z2-7]{56,}/.test(url)) {
+    return `${config.ipfsGateway}${url}`;
+  }
   return url;
 }
 
@@ -85,7 +89,9 @@ function isRetryableError(error: unknown): boolean {
     }
     // Retryable network errors
     const code = (error.code ?? '').toLowerCase();
-    return ['econnreset', 'etimedout', 'eproto', 'econnaborted', 'enotfound'].includes(code);
+    return ['econnreset', 'etimedout', 'eproto', 'econnaborted', 'enotfound', 'eai_again'].includes(
+      code,
+    );
   }
   return false;
 }
