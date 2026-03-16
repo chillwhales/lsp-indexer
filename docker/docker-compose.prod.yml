@@ -248,12 +248,15 @@ services:
       - loki-data:/loki
       - ./loki/config.yaml:/etc/loki/config.yaml:ro
 
+    # 1GB limit — Loki needs headroom for concurrent LogQL queries with JSON
+    # parsing and unwrap aggregations from the Grafana dashboard (20+ panels,
+    # 30s refresh).  512MB caused intermittent OOM kills → "No data" panels.
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 1G
         reservations:
-          memory: 128M
+          memory: 256M
 
   # ----------------------------------------------------------------------------
   # Prometheus — Metrics Storage
