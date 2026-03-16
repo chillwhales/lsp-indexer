@@ -39,7 +39,7 @@ storage_config:
 ingester:
   wal:
     dir: /loki/wal
-    replay_memory_ceiling: 50MB
+    replay_memory_ceiling: 150MB
   lifecycler:
     address: 127.0.0.1
     ring:
@@ -50,6 +50,17 @@ ingester:
 limits_config:
   # 14 days — edit to change log retention
   retention_period: 336h
+
+  # Query guardrails — prevent individual queries from OOM-killing Loki.
+  # The Grafana dashboard fires 20+ concurrent LogQL queries every 30s;
+  # without limits a single heavy query (max_over_time + unwrap + json) can
+  # allocate hundreds of MB.
+  max_query_series: 5000
+  max_entries_limit_per_query: 10000
+  max_query_parallelism: 16
+
+query_scheduler:
+  max_outstanding_requests_per_tenant: 256
 
 compactor:
   working_directory: /loki/compactor
