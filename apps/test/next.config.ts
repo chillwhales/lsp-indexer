@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
   transpilePackages: [
     '@lsp-indexer/types',
