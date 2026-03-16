@@ -1,3 +1,5 @@
+import 'server-only';
+
 /**
  * Server-only env availability detection.
  *
