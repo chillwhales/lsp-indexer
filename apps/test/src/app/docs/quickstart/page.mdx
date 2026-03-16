@@ -43,7 +43,9 @@ See the [Indexer documentation](/docs/indexer) for detailed configuration and ar
 ## 2. Install Consumer Packages
 
 ```bash
-npm install @lsp-indexer/types @lsp-indexer/node @lsp-indexer/react @lsp-indexer/next
+# Install whichever package you need — transitive deps are included automatically
+npm install @lsp-indexer/react @tanstack/react-query   # client mode
+npm install @lsp-indexer/next @tanstack/react-query     # server mode (Next.js)
 ```
 
 | Package              | Purpose                                                               |
@@ -97,10 +99,11 @@ INDEXER_URL=http://localhost:8080/v1/graphql
 ```tsx
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IndexerSubscriptionProvider } from '@lsp-indexer/react';
+import { useState } from 'react';
 
-const queryClient = new QueryClient();
+export function Providers({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient());
 
-function App({ children }) {
   return (
     <QueryClientProvider client={queryClient}>
       <IndexerSubscriptionProvider>{children}</IndexerSubscriptionProvider>
@@ -117,9 +120,11 @@ function App({ children }) {
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IndexerSubscriptionProvider } from '@lsp-indexer/next';
+import { useState } from 'react';
 
-export function Providers({ children }) {
+export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
+
   return (
     <QueryClientProvider client={queryClient}>
       <IndexerSubscriptionProvider proxyUrl="ws://localhost:4000">
@@ -165,7 +170,7 @@ function ProfileCard({ address }: { address: string }) {
 | `useInfiniteProfiles`    | Infinite scroll   | `useInfiniteProfiles({ filter, pageSize: 20 })` |
 | `useProfileSubscription` | Real-time updates | `useProfileSubscription({ filter })`            |
 
-Replace `Profile` with any domain: `DigitalAsset`, `NFT`, `OwnedAsset`, `Creator`, `Follow`, etc.
+Most domains follow this pattern. Some (like Creators, Follows, Issued Assets) only have list/infinite/subscription hooks — see the [full domain table](/docs/react#available-domains) for details.
 
 ---
 

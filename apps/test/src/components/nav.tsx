@@ -27,6 +27,7 @@ import {
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import React from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -82,7 +83,7 @@ const themeOptions = [
   { value: 'system', label: 'System', icon: Monitor },
 ] as const;
 
-export function AppSidebar() {
+export function AppSidebar(): React.ReactNode {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
 

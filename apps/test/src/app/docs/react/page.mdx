@@ -4,7 +4,7 @@ Client-side React hooks for querying LUKSO blockchain data. The browser connects
 directly — no server needed. Built on top of `@tanstack/react-query`.
 
 ```bash
-npm install @lsp-indexer/react @lsp-indexer/types @lsp-indexer/node @tanstack/react-query
+npm install @lsp-indexer/react @tanstack/react-query
 ```
 
 ---
@@ -155,7 +155,7 @@ All 12 domains follow the same pattern. Replace `Profile` with any domain name:
 | Owned Tokens          | `useOwnedToken`, `useOwnedTokens`, `useInfiniteOwnedTokens`, `useOwnedTokenSubscription`                                                           |
 | Creators              | `useCreators`, `useInfiniteCreators`, `useCreatorSubscription`                                                                                     |
 | Issued Assets         | `useIssuedAssets`, `useInfiniteIssuedAssets`, `useIssuedAssetSubscription`                                                                         |
-| Follows               | `useFollows`, `useInfiniteFollows`, `useFollowCount`, `useIsFollowing`, `useFollowSubscription`                                                    |
+| Follows               | `useFollows`, `useInfiniteFollows`, `useFollowCount`, `useIsFollowing`, `useFollowerSubscription`                                                  |
 | Encrypted Assets      | `useEncryptedAssets`, `useInfiniteEncryptedAssets`, `useEncryptedAssetSubscription`                                                                |
 | Data Changed          | `useDataChangedEvents`, `useInfiniteDataChangedEvents`, `useLatestDataChangedEvent`, `useDataChangedEventSubscription`                             |
 | Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription` |
@@ -248,3 +248,12 @@ Pros: Simple, no server needed, real-time subscriptions via WebSocket.
 Cons: Hasura URL is exposed to the browser, no server-side caching or access control.
 
 For server-side data fetching, see [@lsp-indexer/next](/docs/next).
+
+---
+
+## Next Steps
+
+- [@lsp-indexer/next](/docs/next) — Server actions and hooks for Next.js
+- [@lsp-indexer/node](/docs/node) — Low-level fetch functions, parsers, query keys
+- [Quickstart](/docs/quickstart) — End-to-end setup guide
+- [Domain Playgrounds](/profiles) — Try every hook live

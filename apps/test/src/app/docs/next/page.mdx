@@ -4,7 +4,7 @@ Next.js server actions and hooks — the same API as `@lsp-indexer/react`, but d
 the server. The browser never sees your Hasura endpoint.
 
 ```bash
-npm install @lsp-indexer/next @lsp-indexer/react @lsp-indexer/types @lsp-indexer/node @tanstack/react-query
+npm install @lsp-indexer/next @tanstack/react-query
 ```
 
 ---
@@ -25,19 +25,9 @@ INDEXER_ALLOWED_ORIGINS=https://your-app.com
 Unlike `@lsp-indexer/react`, these variables are **not** prefixed with `NEXT_PUBLIC_` — they're
 only available on the server.
 
-> **Important:** You may need to forward these env vars via `next.config.ts` for them to be
-> available in server actions from transpiled workspace packages:
->
-> ```ts
-> // next.config.ts
-> const nextConfig = {
->   env: {
->     INDEXER_URL: process.env.INDEXER_URL,
->     INDEXER_WS_URL: process.env.INDEXER_WS_URL,
->     INDEXER_ALLOWED_ORIGINS: process.env.INDEXER_ALLOWED_ORIGINS,
->   },
-> };
-> ```
+> **Note:** These variables are read at runtime by server actions via `process.env`. Do **not** add
+> them to the `env` block in `next.config.ts` — that would inline their values into the client
+> bundle, exposing your infrastructure URLs to the browser.
 
 ---
 
@@ -180,15 +170,15 @@ Create a standalone proxy server script:
 
 ```ts
 // ws-proxy.ts
-import { createIndexerProxy } from '@lsp-indexer/next/server';
+import { createProxyServer } from '@lsp-indexer/next/server';
 
-const proxy = createIndexerProxy({
+const { server } = createProxyServer({
   allowedOrigins: process.env.INDEXER_ALLOWED_ORIGINS?.split(','),
   maxConnections: 100,
   maxPayload: 64 * 1024,
 });
 
-proxy.listen(4000, () => {
+server.listen(4000, () => {
   console.log('WS proxy listening on port 4000');
 });
 ```

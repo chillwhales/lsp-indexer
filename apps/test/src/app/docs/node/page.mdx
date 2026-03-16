@@ -85,7 +85,7 @@ All fetch functions accept an `include` parameter to control which related data 
 This reduces payload size and improves performance:
 
 ```ts
-import { fetchProfile } from '@lsp-indexer/node';
+import { fetchProfile, getClientUrl } from '@lsp-indexer/node';
 
 // Only fetch the profile name and owned assets
 const profile = await fetchProfile(getClientUrl(), {
@@ -113,9 +113,9 @@ import { profileKeys, digitalAssetKeys } from '@lsp-indexer/node';
 
 profileKeys.all; // ['profiles']
 profileKeys.lists(); // ['profiles', 'list']
-profileKeys.list({ filter, sort, limit }); // ['profiles', 'list', { filter, sort, limit }]
+profileKeys.list(filter, sort, limit, offset, include); // ['profiles', 'list', { filter, sort, ... }]
 profileKeys.details(); // ['profiles', 'detail']
-profileKeys.detail({ address }); // ['profiles', 'detail', { address }]
+profileKeys.detail(address, include); // ['profiles', 'detail', { address, include }]
 ```
 
 These are used internally by the React and Next.js hooks, but you can also use them directly
@@ -150,25 +150,31 @@ const profile = parseProfile(rawHasuraResponse);
 
 ## Subscription Client
 
-Low-level WebSocket subscription client for real-time data:
+Low-level WebSocket subscription client for real-time data. Manages connection state,
+reconnection detection, and multiple independent subscriptions via `useSyncExternalStore`.
 
 ```ts
 import { SubscriptionClient } from '@lsp-indexer/node';
 
+// Connection is lazy — no explicit connect() needed
 const client = new SubscriptionClient('ws://localhost:8080/v1/graphql');
-client.connect();
 
-const subscription = client.subscribe({
-  query: '...',
-  variables: { ... },
+// Create a subscription instance (used internally by hooks)
+const instance = client.createSubscription(config, options);
+
+// Access reactive state
+instance.data; // TParsed[] — latest data
+instance.error; // Error | null
+instance.isSubscribed; // boolean
+
+// Subscribe to state changes (useSyncExternalStore pattern)
+const unsubscribe = instance.subscribe(() => {
+  console.log('State changed:', instance.data);
 });
-
-subscription.on('data', (data) => { /* handle update */ });
-subscription.on('error', (err) => { /* handle error */ });
 ```
 
-In practice, you'll use the higher-level `useSubscription` hook from `@lsp-indexer/react` or
-`@lsp-indexer/next` instead of the raw client.
+In practice, you'll use the higher-level subscription hooks (`useProfileSubscription`, etc.)
+from `@lsp-indexer/react` or `@lsp-indexer/next` instead of the raw client.
 
 ---
 
@@ -190,9 +196,20 @@ try {
 }
 ```
 
-| Category        | Codes                            |
-| --------------- | -------------------------------- |
-| `CONFIGURATION` | `MISSING_ENV_VAR`, `INVALID_URL` |
-| `NETWORK`       | `FETCH_FAILED`, `TIMEOUT`        |
-| `VALIDATION`    | `INVALID_INPUT`                  |
-| `PARSE`         | `INVALID_RESPONSE`               |
+| Category        | Codes                                                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `CONFIGURATION` | `MISSING_ENV_VAR`, `INVALID_URL`                                                                                       |
+| `NETWORK`       | `NETWORK_TIMEOUT`, `NETWORK_UNREACHABLE`, `NETWORK_ABORTED`, `NETWORK_UNKNOWN`                                         |
+| `HTTP`          | `HTTP_UNAUTHORIZED`, `HTTP_FORBIDDEN`, `HTTP_NOT_FOUND`, `HTTP_TOO_MANY_REQUESTS`, `HTTP_SERVER_ERROR`, `HTTP_UNKNOWN` |
+| `GRAPHQL`       | `GRAPHQL_VALIDATION`, `GRAPHQL_EXECUTION`, `PERMISSION_DENIED`, `GRAPHQL_UNKNOWN`                                      |
+| `PARSE`         | `RESPONSE_NOT_JSON`, `EMPTY_RESPONSE`, `PARSE_FAILED`                                                                  |
+| `VALIDATION`    | `VALIDATION_FAILED`                                                                                                    |
+
+---
+
+## Next Steps
+
+- [@lsp-indexer/react](/docs/react) — Client-side hooks built on these fetch functions
+- [@lsp-indexer/next](/docs/next) — Server actions and hooks for Next.js
+- [Quickstart](/docs/quickstart) — End-to-end setup guide
+- [Domain Playgrounds](/profiles) — Try every hook live
