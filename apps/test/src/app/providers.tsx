@@ -47,7 +47,9 @@ export function Providers({
 
     if (hasServerWs) {
       wrapped = (
-        <NextSubscriptionProvider proxyUrl={`ws://localhost:${wsProxyPort}`}>
+        <NextSubscriptionProvider
+          proxyUrl={`ws://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:${wsProxyPort}`}
+        >
           {wrapped}
         </NextSubscriptionProvider>
       );
