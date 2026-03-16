@@ -75,6 +75,29 @@ docker compose -f docker-compose.prod.yml --env-file ../.env.prod down
 | Monitoring      | Grafana + Loki + Alloy + cAdvisor + Prometheus | Grafana + Loki + Alloy + cAdvisor + Prometheus  |
 | Secrets         | Optional defaults                              | Required (no defaults, including Grafana admin) |
 
+### Enabling Hasura Console in Production
+
+By default, the Hasura console is **disabled** in production for security. To enable it temporarily:
+
+```bash
+# Add to your .env.prod file
+HASURA_GRAPHQL_ENABLE_CONSOLE=true
+HASURA_GRAPHQL_DEV_MODE=true  # Optional: enables detailed error messages
+
+# Restart Hasura container
+docker restart indexer-v2lspindexer-ssheve-hasura  # Replace with your actual container name
+
+# Access console
+open http://your-host:HASURA_PORT/console  # Default port: 8080
+```
+
+**Security Note:** Remember to disable the console after use by setting `HASURA_GRAPHQL_ENABLE_CONSOLE=false` and restarting the container.
+
+**Alternative Access Methods:**
+
+- Use [Hasura CLI](https://hasura.io/docs/latest/hasura-cli/install-hasura-cli/) locally: `hasura console --endpoint http://your-host:PORT`
+- Use GraphiQL or similar tools pointing to `http://your-host:PORT/v1/graphql`
+
 ## Monitoring
 
 The production compose includes a full monitoring stack (Grafana, Loki, Alloy, cAdvisor, Prometheus). Dashboards are available at `GRAFANA_PORT` (default 3000) with anonymous read-only access enabled. Admin login (default `admin`/`admin`) is required for editing dashboards — change the password via `GRAFANA_ADMIN_PASSWORD` in your `.env.prod`.
