@@ -39,7 +39,11 @@ export function Providers({ hasClientWs, hasServerWs, children }: ProvidersProps
     let wrapped = inner;
 
     if (hasServerWs) {
-      wrapped = <NextSubscriptionProvider>{wrapped}</NextSubscriptionProvider>;
+      wrapped = (
+        <NextSubscriptionProvider proxyUrl="ws://localhost:4000">
+          {wrapped}
+        </NextSubscriptionProvider>
+      );
     }
 
     if (hasClientWs) {
