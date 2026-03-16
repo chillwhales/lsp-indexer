@@ -1,0 +1,26 @@
+# Minimal compose for the test/docs app.
+# Copy .env.example to .env and fill in your Hasura endpoint(s), then:
+#
+#   docker compose -f apps/test/docker-compose.yml up --build
+#
+# The NEXT_PUBLIC_* vars are baked in at build time (build args).
+# The rest are injected at runtime via the .env file.
+
+services:
+  test-app:
+    build:
+      context: ../.. # monorepo root
+      dockerfile: apps/test/Dockerfile
+      args:
+        - NEXT_PUBLIC_INDEXER_URL=${NEXT_PUBLIC_INDEXER_URL}
+        - NEXT_PUBLIC_INDEXER_WS_URL=${NEXT_PUBLIC_INDEXER_WS_URL}
+    ports:
+      - '${PORT:-3000}:${PORT:-3000}'
+      - '${WS_PROXY_PORT:-4000}:${WS_PROXY_PORT:-4000}'
+    environment:
+      - PORT=${PORT:-3000}
+      - INDEXER_URL=${INDEXER_URL}
+      - INDEXER_WS_URL=${INDEXER_WS_URL:-}
+      - INDEXER_ALLOWED_ORIGINS=${INDEXER_ALLOWED_ORIGINS:-}
+      - WS_PROXY_PORT=${WS_PROXY_PORT:-4000}
+    restart: unless-stopped
