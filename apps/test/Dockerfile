@@ -19,12 +19,13 @@
 #    - INDEXER_URL=https://your-hasura.com/v1/graphql
 #    - INDEXER_WS_URL=wss://your-hasura.com/v1/graphql
 #    - INDEXER_ALLOWED_ORIGINS=https://your-domain.com
-#    - WS_PROXY_PORT=4000 (optional, default 4000)
+#    - PORT=3000 (optional, default 3000 — Next.js server port)
+#    - WS_PROXY_PORT=4000 (optional, default 4000 — WebSocket proxy port)
 #
 # 4. Port Configuration:
-#    - Primary port: 3000 (Next.js)
-#    - Additional port: 4000 (WebSocket proxy — needs separate port mapping
-#      or a reverse proxy rule in Dokploy/Traefik)
+#    - Primary port: PORT env var, default 3000 (Next.js)
+#    - Additional port: WS_PROXY_PORT env var, default 4000 (WebSocket proxy)
+#    - Both are configurable — update Dokploy port mappings to match
 #
 # 5. Domain/SSL:
 #    - Map your domain to port 3000 in Dokploy
@@ -133,11 +134,13 @@ COPY --from=builder /app/apps/test/.next/static ./apps/test/.next/static
 
 USER nextjs
 
-# Port 3000: Next.js server
-# Port 4000: WebSocket subscription proxy (from instrumentation.ts)
+# Default ports (override via PORT / WS_PROXY_PORT env vars)
+# Next.js server: PORT (default 3000)
+# WebSocket proxy: WS_PROXY_PORT (default 4000, from instrumentation.ts)
 EXPOSE 3000 4000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+ENV WS_PROXY_PORT=4000
 
 CMD ["node", "apps/test/server.js"]
