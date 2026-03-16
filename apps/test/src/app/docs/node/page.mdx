@@ -163,8 +163,8 @@ const client = new SubscriptionClient('ws://localhost:8080/v1/graphql');
 const instance = client.createSubscription(config, options);
 
 // Access reactive state
-instance.data; // TParsed[] — latest data
-instance.error; // Error | null
+instance.data; // TParsed[] | null — null until first data received
+instance.error; // unknown
 instance.isSubscribed; // boolean
 
 // Subscribe to state changes (useSyncExternalStore pattern)

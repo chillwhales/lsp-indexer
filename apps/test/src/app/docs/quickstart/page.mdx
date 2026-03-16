@@ -83,7 +83,7 @@ INDEXER_URL=http://localhost:8080/v1/graphql
 
 ### Both modes
 
-Set all four variables to enable toggling between client and server mode:
+Set both HTTP variables to enable toggling between client and server mode:
 
 ```env
 NEXT_PUBLIC_INDEXER_URL=http://localhost:8080/v1/graphql
@@ -97,6 +97,8 @@ INDEXER_URL=http://localhost:8080/v1/graphql
 ### React (client mode)
 
 ```tsx
+'use client';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IndexerSubscriptionProvider } from '@lsp-indexer/react';
 import { useState } from 'react';
