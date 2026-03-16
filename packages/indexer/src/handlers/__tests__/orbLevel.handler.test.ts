@@ -83,9 +83,191 @@ function createMockHandlerContext(
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+/**
+ * Simulate how TypeORM actually returns entities from store.findOneBy().
+ *
+ * When TypeORM hydrates an entity from the database, relation properties
+ * (ManyToOne, OneToOne) are NOT set on the instance unless explicitly
+ * loaded via `relations: [...]`. The entity only has its column fields.
+ *
+ * This is critical because the OrbLevel constructor uses Object.assign(this, props),
+ * so only properties present on the `props` object become own properties on the
+ * instance. If `digitalAsset` and `nft` aren't in `props`, they won't be
+ * own properties — even though the class declares them with `!`.
+ *
+ * TypeScript's `!` (definite assignment assertion) is compile-time only.
+ * It does NOT generate any runtime code to create the property.
+ */
+function simulateDbLoadedEntity<T>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  EntityClass: new (props?: any) => T,
+  columnValues: Record<string, unknown>,
+): T {
+  // TypeORM hydration: only column values, no relation properties
+  return new EntityClass(columnValues);
+}
+
 describe('OrbLevel handler - Cross-batch FK preservation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('entity created with explicit FK: null has FK as own property (enrichment works)', () => {
+    // When the mint path creates an entity with explicit FK fields
+    const withExplicitNull = new OrbLevel({
+      id: 'test',
+      address: ORBS_ADDRESS,
+      tokenId: '0x01',
+      value: 0,
+      digitalAsset: null,
+      nft: null,
+    });
+
+    // These should be own properties because Object.assign set them
+    expect('digitalAsset' in withExplicitNull).toBe(true);
+    expect('nft' in withExplicitNull).toBe(true);
+  });
+
+  it('DB-loaded entity without relation properties: FK NOT own property (enrichment skipped)', () => {
+    // Simulate how TypeORM returns entities from findOneBy WITHOUT relations
+    const dbLoaded = simulateDbLoadedEntity(OrbLevel, {
+      id: 'test',
+      address: ORBS_ADDRESS,
+      tokenId: '0x01',
+      value: 0,
+      blockNumber: 100,
+      transactionIndex: 0,
+      logIndex: 0,
+      timestamp: new Date(),
+      // NO digitalAsset or nft — TypeORM doesn't set relations unless loaded
+    });
+
+    // These should NOT be own properties — TypeORM didn't set them
+    expect('digitalAsset' in dbLoaded).toBe(false);
+    expect('nft' in dbLoaded).toBe(false);
+  });
+
+  it('spreading DB-loaded entity does NOT create FK properties on new instance', () => {
+    // Simulate DB load without relations
+    const dbLoaded = simulateDbLoadedEntity(OrbLevel, {
+      id: 'test',
+      address: ORBS_ADDRESS,
+      tokenId: '0x01',
+      value: 0,
+      blockNumber: 100,
+      transactionIndex: 0,
+      logIndex: 0,
+      timestamp: new Date(),
+    });
+
+    // Spread into new entity (what the handler does)
+    const respread = new OrbLevel({
+      ...dbLoaded,
+      value: 5, // Update the level
+    });
+
+    // FK fields should STILL be missing — spread can't copy what doesn't exist
+    expect('digitalAsset' in respread).toBe(false);
+    expect('nft' in respread).toBe(false);
+  });
+
+  it('explicit ?? null after spread DOES create FK properties on new instance', () => {
+    // Simulate DB load without relations
+    const dbLoaded = simulateDbLoadedEntity(OrbLevel, {
+      id: 'test',
+      address: ORBS_ADDRESS,
+      tokenId: '0x01',
+      value: 0,
+      blockNumber: 100,
+      transactionIndex: 0,
+      logIndex: 0,
+      timestamp: new Date(),
+    });
+
+    // Spread + explicit FK null (the fix)
+    const withFix = new OrbLevel({
+      ...dbLoaded,
+      value: 5,
+      digitalAsset: dbLoaded.digitalAsset ?? null,
+      nft: dbLoaded.nft ?? null,
+    });
+
+    // FK fields should now exist as own properties
+    expect('digitalAsset' in withFix).toBe(true);
+    expect('nft' in withFix).toBe(true);
+  });
+
+  it('handler output has FK fields when DB entity was loaded WITHOUT relations (the actual bug)', async () => {
+    // THIS IS THE BUG: TypeORM returns entities from findOneBy without
+    // relation properties. The handler spreads this entity, but the spread
+    // can't copy properties that don't exist. The resulting entity added to
+    // BatchContext lacks digitalAsset/nft, causing the enrichment pipeline's
+    // `if (!(request.fkField in entity))` check to skip FK assignment.
+    const tokenId = '0x01';
+    const id = generateTokenId({ address: ORBS_ADDRESS, tokenId });
+
+    // Simulate DB-loaded entity WITHOUT relation properties (realistic)
+    const dbLevel = simulateDbLoadedEntity(OrbLevel, {
+      id,
+      address: ORBS_ADDRESS,
+      tokenId,
+      value: 0,
+      blockNumber: 1000000,
+      transactionIndex: 0,
+      logIndex: 0,
+      timestamp: new Date('2024-01-01T00:00:00Z'),
+    });
+
+    const dbCooldown = simulateDbLoadedEntity(OrbCooldownExpiry, {
+      id,
+      address: ORBS_ADDRESS,
+      tokenId,
+      value: 0,
+      blockNumber: 1000000,
+      transactionIndex: 0,
+      logIndex: 0,
+      timestamp: new Date('2024-01-01T00:00:00Z'),
+    });
+
+    const store = createMockStore([dbLevel], [dbCooldown]);
+    const batchCtx = createMockBatchCtx();
+
+    const event = new TokenIdDataChanged({
+      id: 'event-1',
+      timestamp: new Date('2024-01-02T00:00:00Z'),
+      blockNumber: 2000000,
+      logIndex: 0,
+      transactionIndex: 0,
+      address: ORBS_ADDRESS,
+      tokenId,
+      dataKey: ORB_LEVEL_KEY,
+      dataValue: '0x0000000500000064', // level=5, cooldown=100
+    });
+
+    batchCtx._entityBags.set('TokenIdDataChanged', new Map([[event.id, event]]));
+
+    const hctx = createMockHandlerContext(batchCtx, store);
+
+    // Act
+    await OrbLevelHandler.handle(hctx, 'TokenIdDataChanged');
+
+    // Assert: The entity added to BatchContext must have FK fields as own properties
+    // so the enrichment pipeline's `'digitalAsset' in entity` check passes.
+    const addedLevel = batchCtx._entityBags.get('OrbLevel')?.get(id) as OrbLevel;
+    expect(addedLevel).toBeDefined();
+    expect(addedLevel.value).toBe(5);
+
+    // THIS IS THE KEY ASSERTION: does the output entity have FK fields?
+    expect('digitalAsset' in addedLevel).toBe(true);
+    expect('nft' in addedLevel).toBe(true);
+
+    const addedCooldown = batchCtx._entityBags
+      .get('OrbCooldownExpiry')
+      ?.get(id) as OrbCooldownExpiry;
+    expect(addedCooldown).toBeDefined();
+    expect(addedCooldown.value).toBe(100);
+    expect('digitalAsset' in addedCooldown).toBe(true);
+    expect('nft' in addedCooldown).toBe(true);
   });
 
   it('should preserve digitalAsset and nft FKs when TokenIdDataChanged arrives after mint (entity only in DB)', async () => {
