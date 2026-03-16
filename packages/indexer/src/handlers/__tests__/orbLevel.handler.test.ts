@@ -98,8 +98,8 @@ function createMockHandlerContext(
  * TypeScript's `!` (definite assignment assertion) is compile-time only.
  * It does NOT generate any runtime code to create the property.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function simulateDbLoadedEntity<T>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   EntityClass: new (props?: any) => T,
   columnValues: Record<string, unknown>,
 ): T {
@@ -185,12 +185,11 @@ describe('OrbLevel handler - Cross-batch FK preservation', () => {
     });
 
     // Spread + explicit FK null (the fix)
-    const typed = dbLoaded as OrbLevel;
     const withFix = new OrbLevel({
-      ...typed,
+      ...dbLoaded,
       value: 5,
-      digitalAsset: typed.digitalAsset ?? null,
-      nft: typed.nft ?? null,
+      digitalAsset: dbLoaded.digitalAsset ?? null,
+      nft: dbLoaded.nft ?? null,
     });
 
     // FK fields should now exist as own properties
