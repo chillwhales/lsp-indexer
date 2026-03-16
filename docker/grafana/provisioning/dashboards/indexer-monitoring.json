@@ -612,7 +612,16 @@
             "uid": "loki"
           },
           "expr": "sum by (entityType) (sum_over_time({compose_service=\"indexer\"} | json | step=\"PERSIST_RAW\" | count > 0 | unwrap count [$__interval]))",
-          "legendFormat": "{{entityType}}"
+          "legendFormat": "{{entityType}} (raw)"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (entityType) (sum_over_time({compose_service=\"indexer\"} | json | step=\"PERSIST_DERIVED\" | count > 0 | unwrap count [$__interval]))",
+          "legendFormat": "{{entityType}} (derived)"
         }
       ],
       "fieldConfig": {
