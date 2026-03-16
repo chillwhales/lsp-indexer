@@ -2,6 +2,8 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
+@plugin '@tailwindcss/typography';
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -118,7 +120,24 @@
   * {
     @apply border-border outline-ring/50;
   }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Shiki dual-theme: light by default, dark when .dark class is present */
+html .shiki,
+html .shiki span {
+  color: var(--shiki-light) !important;
+  background-color: var(--shiki-light-bg) !important;
+}
+html.dark .shiki,
+html.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
 }

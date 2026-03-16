@@ -1,11 +1,12 @@
 'use client';
 
-/** Sidebar navigation with domain playground links and theme switcher. */
+/** Sidebar navigation with docs, domain playground links, and theme switcher. */
 import {
   ArrowDownFromLine,
-  BarChart3,
+  Book,
   Calendar,
   ChevronDown,
+  Database,
   FileOutput,
   Hash,
   Heart,
@@ -15,7 +16,9 @@ import {
   Lock,
   Monitor,
   Moon,
+  Package,
   Paintbrush,
+  Rocket,
   Sun,
   Tag,
   User,
@@ -24,6 +27,7 @@ import {
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import React from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -40,8 +44,15 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
-const navLinks = [
-  { href: '/', label: 'Home', icon: Home, available: true },
+const docsLinks = [
+  { href: '/docs/quickstart', label: 'Quickstart', icon: Rocket },
+  { href: '/docs/indexer', label: '@lsp-indexer/indexer', icon: Database },
+  { href: '/docs/node', label: '@lsp-indexer/node', icon: Package },
+  { href: '/docs/react', label: '@lsp-indexer/react', icon: Package },
+  { href: '/docs/next', label: '@lsp-indexer/next', icon: Package },
+] as const;
+
+const playgroundLinks = [
   { href: '/profiles', label: 'Profiles', icon: User, available: true },
   { href: '/digital-assets', label: 'Digital Assets', icon: Image, available: true },
   { href: '/nfts', label: 'NFTs', icon: Layers, available: true },
@@ -64,8 +75,7 @@ const navLinks = [
     icon: ArrowDownFromLine,
     available: true,
   },
-  { href: '/stats', label: 'Stats', icon: BarChart3, available: false },
-];
+] as const;
 
 const themeOptions = [
   { value: 'light', label: 'Light', icon: Sun },
@@ -73,7 +83,7 @@ const themeOptions = [
   { value: 'system', label: 'System', icon: Monitor },
 ] as const;
 
-export function AppSidebar() {
+export function AppSidebar(): React.ReactNode {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
 
@@ -84,10 +94,45 @@ export function AppSidebar() {
         <p className="text-xs text-muted-foreground">React Dev Playground</p>
       </SidebarHeader>
       <SidebarContent>
+        {/* Home — always first */}
+        <SidebarGroup>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname === '/'}>
+                <Link href="/">
+                  <Home />
+                  <span>Home</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        {/* Documentation */}
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            <Book className="mr-1 size-3" />
+            Documentation
+          </SidebarGroupLabel>
+          <SidebarMenu>
+            {docsLinks.map((link) => (
+              <SidebarMenuItem key={link.href}>
+                <SidebarMenuButton asChild isActive={pathname === link.href}>
+                  <Link href={link.href}>
+                    <link.icon />
+                    <span>{link.label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        {/* Domain Playgrounds */}
         <SidebarGroup>
           <SidebarGroupLabel>Domain Playgrounds</SidebarGroupLabel>
           <SidebarMenu>
-            {navLinks.map((link) => (
+            {playgroundLinks.map((link) => (
               <SidebarMenuItem key={link.href}>
                 {link.available ? (
                   <SidebarMenuButton asChild isActive={pathname === link.href}>

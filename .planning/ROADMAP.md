@@ -254,7 +254,7 @@ Plans:
 **Goal:** Make the test app publicly publishable by securing environment variables, implementing conditional tabs, and adding a quick install guide
 **Depends on:** Phase 24
 **Requirements:** PUB-01, PUB-02, PUB-03, PUB-04, PUB-05, PUB-06
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 25-01-PLAN.md — EnvProvider infrastructure, conditional mode toggle, subscription provider hardening
