@@ -1,5 +1,11 @@
 # @chillwhales/indexer
 
+## 2.3.5
+
+### Patch Changes
+
+- [#334](https://github.com/chillwhales/lsp-indexer/pull/334) [`1240296`](https://github.com/chillwhales/lsp-indexer/commit/12402969c0d77e8347b3d32f9a2dcaed5f971ecb) Thanks [@b00ste](https://github.com/b00ste)! - Complete metadata retry coverage for all retryable error codes. The cross-batch retry query only matched ETIMEDOUT and EPROTO, leaving ~45k metadata entries permanently stuck. Now retries all worker-recognized network errors (ECONNABORTED, ECONNRESET, ENOTFOUND, EAI_AGAIN) plus batch-level WORKER_POOL_ERROR. Also resolves bare IPFS CIDv0/CIDv1 hashes missing the ipfs:// prefix.
+
 ## 2.3.4
 
 ### Patch Changes
