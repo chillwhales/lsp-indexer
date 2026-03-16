@@ -18,14 +18,16 @@ export function CopyButton({ text }: { text: string }): React.ReactNode {
     [],
   );
 
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      timerRef.current = setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard API unavailable (non-secure context, permission denied) — ignore silently
-    }
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        setCopied(true);
+        timerRef.current = setTimeout(() => setCopied(false), 2000);
+      },
+      () => {
+        // Clipboard API unavailable (non-secure context, permission denied) — ignore silently
+      },
+    );
   }, [text]);
 
   return (
