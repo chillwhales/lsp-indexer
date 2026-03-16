@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Readiness
 status: completed
-last_updated: "2026-03-15T19:34:00.126Z"
-last_activity: 2026-03-15 — Completed 24-01 LSP31 URI decoding in LSP29 handler
+last_updated: "2026-03-16T06:47:40Z"
+last_activity: 2026-03-16 — Completed 25-01 env availability detection and conditional UI
 progress:
   total_phases: 57
   completed_phases: 49
   total_plans: 141
-  completed_plans: 126
+  completed_plans: 127
   percent: 91
 ---
 
@@ -21,15 +21,15 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer.
 
-**Current focus:** v1.2 Production Readiness — Phase 24 LSP31 URI decoding complete
+**Current focus:** v1.2 Production Readiness — Phase 25 Test App Publish Readiness
 
 ## Current Position
 
 - **Milestone:** v1.2 Production Readiness
-- **Phase:** Phase 24 — LSP31 URI Decoding
-- **Plan:** 1 of 1 (Plan 01 complete — phase done)
-- **Status:** Milestone complete
-- **Last activity:** 2026-03-15 — Completed 24-01 LSP31 URI decoding in LSP29 handler
+- **Phase:** Phase 25 — Test App Public Publish Readiness
+- **Plan:** 1 of 2 (Plan 01 complete)
+- **Status:** In Progress
+- **Last activity:** 2026-03-16 — Completed 25-01 env availability detection and conditional UI
 - **Progress:** [█████████░] 91%
 
 ## Milestone History
@@ -47,7 +47,7 @@ See: `.planning/MILESTONES.md` for accomplishment summaries.
 
 ## Performance Metrics
 
-- **Plans completed:** 129 (36 v1.0 + 77 v1.1 + 16 v1.2)
+- **Plans completed:** 130 (36 v1.0 + 77 v1.1 + 17 v1.2)
 - **Plans failed:** 0
 - **Phases completed:** 50 (11 v1.0 + 33 v1.1 + 6 v1.2)
 - **Requirements delivered:** 45/45 (v1.0), 46/46 (v1.1), 22/26 (v1.2)
@@ -89,22 +89,23 @@ _None currently._
 | Phase 23 P02 | 6min | 2 tasks | 6 files |
 | Phase 23 P03 | 10min | 3 tasks | 8 files |
 | Phase 24 P01 | 4min | 2 tasks | 2 files |
+| Phase 25 P01 | 2min | 2 tasks | 5 files |
 
 ## Session Continuity
 
 ### Last Session
 
-- **Date:** 2026-03-15
-- **Activity:** Executed Phase 24-01 — LSP31 URI decoding in LSP29 handler
-- **Outcome:** Switched extractFromIndex from VerifiableURI to LSP31-first decoding with fallback + 3 new tests
+- **Date:** 2026-03-16
+- **Activity:** Executed Phase 25-01 — env availability detection and conditional UI
+- **Outcome:** Created EnvProvider context, conditional subscription providers, conditional mode toggle
 - **Resume file:** None
 
 ### Context for Next Session
 
-- **Phase 24 complete:** Single plan executed (LSP31 URI decoding)
-- **Next:** Phase transition — no more plans in phase 24
-- **Decisions:** IPFS backend preferred via selectBackend(entries, 'ipfs')
+- **Phase 25 in progress:** Plan 01 complete, Plan 02 remaining
+- **Next:** Execute 25-02-PLAN.md
+- **Decisions:** hasServerUrl checks only INDEXER_URL (no NEXT_PUBLIC fallback); removed hardcoded proxyUrl
 
 ---
 
-_Last updated: 2026-03-15 — Completed quick task 4: Fix integer overflow error in lsp8TokenIdFormat handler_
+_Last updated: 2026-03-16 — Completed 25-01 env availability detection and conditional UI_
