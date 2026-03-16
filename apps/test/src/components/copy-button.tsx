@@ -10,7 +10,7 @@ export function CopyButton({ text }: { text: string }): React.ReactNode {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(text);
+    void navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [text]);

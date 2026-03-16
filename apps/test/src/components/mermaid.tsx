@@ -35,7 +35,7 @@ export function Mermaid({ chart }: MermaidProps): React.ReactNode {
       }
     };
 
-    render();
+    void render();
   }, [chart, id, resolvedTheme]);
 
   if (!svg) {
