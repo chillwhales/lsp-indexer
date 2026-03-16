@@ -1,6 +1,6 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
+milestone: v1.2
 milestone_name: Production Readiness
 status: completed
 last_updated: "2026-03-16T06:47:40Z"
@@ -85,6 +85,7 @@ _None currently._
 | Phase 21 P02 | 2min | 2 tasks | 8 files |
 | Phase 20.1 P02 | 7min | 2 tasks | 6 files |
 | Phase 20.2 P01 | 4min | 2 tasks | 3 files |
+| Phase 20.3 P01 | 2min | 2 tasks | 1 file |
 | Phase 23 P01 | 4min | 2 tasks | 3 files |
 | Phase 23 P02 | 6min | 2 tasks | 6 files |
 | Phase 23 P03 | 10min | 3 tasks | 8 files |
