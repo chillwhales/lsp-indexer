@@ -50,7 +50,8 @@
 # Stage 1: base — shared Node.js + pnpm base image
 # ---------------------------------------------------------------------------
 FROM node:22-alpine AS base
-RUN corepack enable pnpm
+# Install pnpm directly — avoids corepack needing to download pnpm from npm registry
+RUN corepack enable pnpm && corepack prepare pnpm@10.15.0 --activate
 WORKDIR /app
 
 # ---------------------------------------------------------------------------
