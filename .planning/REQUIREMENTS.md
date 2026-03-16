@@ -66,11 +66,11 @@ Requirements for v1.2 Production Readiness. Each maps to roadmap phases.
 
 ### Grafana Dashboard
 
-- [ ] **DASH-01**: Dashboard includes pipeline step latency panel (per-step timing breakdown)
-- [ ] **DASH-02**: Dashboard includes entity throughput panel (entities persisted per batch by type)
-- [ ] **DASH-03**: Dashboard includes verification health panel (valid/invalid/new counts)
-- [ ] **DASH-04**: Dashboard includes metadata fetch progress panel (backlog depth, fetch duration, success/failure)
-- [ ] **DASH-05**: Dashboard includes batch processing time panel (total elapsed per batch)
+- [x] **DASH-01**: Dashboard includes pipeline step latency panel (per-step timing breakdown)
+- [x] **DASH-02**: Dashboard includes entity throughput panel (entities persisted per batch by type)
+- [x] **DASH-03**: Dashboard includes verification health panel (valid/invalid/new counts)
+- [x] **DASH-04**: Dashboard includes metadata fetch progress panel (backlog depth, fetch duration, success/failure)
+- [x] **DASH-05**: Dashboard includes batch processing time panel (total elapsed per batch)
 
 ### Operations
 
@@ -155,11 +155,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INST-01 | Phase 20.2 | Complete |
 | INST-02 | Phase 20.2 | Complete |
 | INST-03 | Phase 20.2 | Complete |
-| DASH-01 | Phase 20.3 | Pending |
-| DASH-02 | Phase 20.3 | Pending |
-| DASH-03 | Phase 20.3 | Pending |
-| DASH-04 | Phase 20.3 | Pending |
-| DASH-05 | Phase 20.3 | Pending |
+| DASH-01 | Phase 20.3 | Complete |
+| DASH-02 | Phase 20.3 | Complete |
+| DASH-03 | Phase 20.3 | Complete |
+| DASH-04 | Phase 20.3 | Complete |
+| DASH-05 | Phase 20.3 | Complete |
 | OPS-01 | Phase 22 | Pending |
 | OPS-02 | Phase 22 | Pending |
 | OPS-03 | Phase 22 | Pending |

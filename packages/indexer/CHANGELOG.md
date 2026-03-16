@@ -1,5 +1,11 @@
 # @chillwhales/indexer
 
+## 2.3.4
+
+### Patch Changes
+
+- [#332](https://github.com/chillwhales/lsp-indexer/pull/332) [`5431425`](https://github.com/chillwhales/lsp-indexer/commit/543142514b65b6176ccdde7d985c0934c3cddf64) Thanks [@b00ste](https://github.com/b00ste)! - Fix OrbLevel/OrbCooldownExpiry FK enrichment failure when updated via TokenIdDataChanged events. TypeORM relation properties loaded from DB are not own enumerable properties, so spreading the entity missed digitalAsset and nft fields, causing the enrichment pipeline to skip FK assignment.
+
 ## 2.3.3
 
 ### Patch Changes

@@ -489,9 +489,536 @@
     },
     {
       "type": "row",
+      "title": "Pipeline Performance",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "Pipeline Step Latency",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "max by (step) (max_over_time({compose_service=\"indexer\"} | json | step != \"\" | step != \"BATCH_SUMMARY\" | durationMs > 0 | unwrap durationMs [$__interval]))",
+          "legendFormat": "{{step}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 30,
+            "pointSize": 5,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal"
+            }
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["mean", "max"]
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 24 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Batch Processing Time",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "max(max_over_time({compose_service=\"indexer\"} | json | step=\"BATCH_SUMMARY\" | unwrap totalDurationMs [$__interval]))",
+          "legendFormat": "Total Batch Time"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 20,
+            "pointSize": 5,
+            "showPoints": "auto"
+          },
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1000 },
+              { "color": "red", "value": 5000 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 24 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Entity Throughput",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (entityType) (sum_over_time({compose_service=\"indexer\"} | json | step=\"PERSIST_RAW\" | count > 0 | unwrap count [$__interval]))",
+          "legendFormat": "{{entityType}} (raw)"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (entityType) (sum_over_time({compose_service=\"indexer\"} | json | step=\"PERSIST_DERIVED\" | count > 0 | unwrap count [$__interval]))",
+          "legendFormat": "{{entityType}} (derived)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 50,
+            "pointSize": 5,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal"
+            }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["sum"]
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 }
+    },
+    {
+      "type": "row",
+      "title": "Verification & Metadata",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Verification Health",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(sum_over_time({compose_service=\"indexer\"} | json | step=\"VERIFY\" | unwrap validCount [$__range]))",
+          "legendFormat": "Valid"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(sum_over_time({compose_service=\"indexer\"} | json | step=\"VERIFY\" | unwrap invalidCount [$__range]))",
+          "legendFormat": "Invalid"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(sum_over_time({compose_service=\"indexer\"} | json | step=\"VERIFY\" | unwrap newCount [$__range]))",
+          "legendFormat": "New"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Invalid" },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "red", "value": 1 }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["last"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value_and_name"
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 33 }
+    },
+    {
+      "type": "stat",
+      "title": "Metadata Fetch Backlog",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (entityKey) (max_over_time({compose_service=\"indexer\"} | json | unfetchedCount > 0 | unwrap unfetchedCount [$__range]))",
+          "legendFormat": "{{entityKey}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 100 },
+              { "color": "red", "value": 500 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["last"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value_and_name"
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 33 }
+    },
+    {
+      "type": "stat",
+      "title": "Avg Batch Time",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "avg(avg_over_time({compose_service=\"indexer\"} | json | step=\"BATCH_SUMMARY\" | unwrap totalDurationMs [$__range]))",
+          "legendFormat": "Avg Batch Time"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1000 },
+              { "color": "red", "value": 5000 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["mean"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 33 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Verification Trends",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(sum_over_time({compose_service=\"indexer\"} | json | step=\"VERIFY\" | unwrap validCount [$__interval]))",
+          "legendFormat": "Valid"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(sum_over_time({compose_service=\"indexer\"} | json | step=\"VERIFY\" | unwrap invalidCount [$__interval]))",
+          "legendFormat": "Invalid"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(sum_over_time({compose_service=\"indexer\"} | json | step=\"VERIFY\" | unwrap newCount [$__interval]))",
+          "legendFormat": "New"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "showPoints": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Invalid" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "red", "mode": "fixed" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Valid" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "green", "mode": "fixed" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "New" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "blue", "mode": "fixed" }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": ["sum"]
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 37 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Metadata Fetch Performance",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "max by (entityKey) (max_over_time({compose_service=\"indexer\"} | json | entityKey != \"\" | durationMs > 0 | unwrap durationMs [$__interval]))",
+          "legendFormat": "{{entityKey}} duration"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (entityKey) (max_over_time({compose_service=\"indexer\"} | json | unfetchedCount > 0 | unwrap unfetchedCount [$__interval]))",
+          "legendFormat": "{{entityKey}} backlog"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (entityKey) (sum_over_time({compose_service=\"indexer\"} | json | totalProcessed > 0 | unwrap totalProcessed [$__interval]))",
+          "legendFormat": "{{entityKey}} processed"
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (entityKey) (sum_over_time({compose_service=\"indexer\"} | json | totalFailed > 0 | unwrap totalFailed [$__interval]))",
+          "legendFormat": "{{entityKey}} failed"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "showPoints": "auto"
+          },
+          "unit": "ms"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*failed.*" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "red", "mode": "fixed" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*(backlog|processed|failed).*" },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["mean", "last"]
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 37 }
+    },
+    {
+      "type": "row",
       "title": "Log Explorer",
       "collapsed": true,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 45 },
       "panels": [
         {
           "type": "logs",
@@ -522,7 +1049,7 @@
             "sortOrder": "Descending",
             "dedupStrategy": "none"
           },
-          "gridPos": { "h": 16, "w": 24, "x": 0, "y": 24 }
+          "gridPos": { "h": 16, "w": 24, "x": 0, "y": 46 }
         }
       ]
     },
@@ -530,7 +1057,7 @@
       "type": "row",
       "title": "Container Metrics",
       "collapsed": true,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 46 },
       "panels": [
         {
           "type": "timeseries",
