@@ -178,7 +178,10 @@ const OrbLevelHandler: EntityHandler = {
             id,
           );
 
-          // Create OrbLevel entity, preserving existing FKs if entity was already created
+          // Create OrbLevel entity, preserving existing FKs if entity was already created.
+          // Explicit FK fields required: TypeORM relation properties loaded from DB are
+          // not own enumerable properties, so Object.assign spread won't copy them.
+          // Without explicit FK fields, the enrichment pipeline's `in` check rejects them.
           const levelEntity = new OrbLevel({
             ...(existingLevel ?? {}),
             id,
@@ -189,11 +192,14 @@ const OrbLevelHandler: EntityHandler = {
             transactionIndex: event.transactionIndex,
             logIndex: event.logIndex,
             value: level,
+            digitalAsset: existingLevel?.digitalAsset ?? null,
+            nft: existingLevel?.nft ?? null,
           });
 
           hctx.batchCtx.addEntity(ORB_LEVEL_TYPE, id, levelEntity);
 
-          // Create OrbCooldownExpiry entity, preserving existing FKs if entity was already created
+          // Create OrbCooldownExpiry entity, preserving existing FKs if entity was already created.
+          // Explicit FK fields required (same reason as OrbLevel above).
           const cooldownEntity = new OrbCooldownExpiry({
             ...(existingCooldown ?? {}),
             id,
@@ -204,6 +210,8 @@ const OrbLevelHandler: EntityHandler = {
             transactionIndex: event.transactionIndex,
             logIndex: event.logIndex,
             value: cooldownExpiry,
+            digitalAsset: existingCooldown?.digitalAsset ?? null,
+            nft: existingCooldown?.nft ?? null,
           });
 
           hctx.batchCtx.addEntity(ORB_COOLDOWN_EXPIRY_TYPE, id, cooldownEntity);
