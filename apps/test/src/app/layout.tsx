@@ -25,6 +25,7 @@ export default function RootLayout({ children }: { children: ReactNode }): React
         <Providers
           hasClientWs={envAvailability.hasClientWs}
           hasServerWs={envAvailability.hasServerWs}
+          wsProxyPort={envAvailability.wsProxyPort}
         >
           <EnvProvider value={envAvailability}>
             <SidebarProvider>

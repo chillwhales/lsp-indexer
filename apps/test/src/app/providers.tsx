@@ -19,10 +19,17 @@ interface ProvidersProps {
   hasClientWs: boolean;
   /** Whether server-side WebSocket env vars are available. */
   hasServerWs: boolean;
+  /** WS proxy port for NextSubscriptionProvider (default 4000). */
+  wsProxyPort: number;
   children: ReactNode;
 }
 
-export function Providers({ hasClientWs, hasServerWs, children }: ProvidersProps): ReactNode {
+export function Providers({
+  hasClientWs,
+  hasServerWs,
+  wsProxyPort,
+  children,
+}: ProvidersProps): ReactNode {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -40,7 +47,7 @@ export function Providers({ hasClientWs, hasServerWs, children }: ProvidersProps
 
     if (hasServerWs) {
       wrapped = (
-        <NextSubscriptionProvider proxyUrl="ws://localhost:4000">
+        <NextSubscriptionProvider proxyUrl={`ws://localhost:${wsProxyPort}`}>
           {wrapped}
         </NextSubscriptionProvider>
       );
