@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 - **Phase:** Phase 25 — Test App Public Publish Readiness
 - **Plan:** 1 of 2 (Plan 01 complete)
 - **Status:** In Progress
-- **Last activity:** 2026-03-16 — Completed 25-01 env availability detection and conditional UI
+- **Last activity:** 2026-03-16 — Completed quick task 6: deploy apps/test using dokploy
 - **Progress:** [█████████░] 91%
 
 ## Milestone History
