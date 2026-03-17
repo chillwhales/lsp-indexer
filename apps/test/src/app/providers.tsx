@@ -1,12 +1,11 @@
 'use client';
 
 /**
- * Client providers — conditionally mounts subscription provider based on env availability.
+ * Client providers — mounts subscription provider when WS env vars are configured.
  *
  * Uses @lsp-indexer/react subscription hooks for all subscriptions. When a WS proxy is
  * configured (server-side env vars), the provider connects through the proxy to keep the
- * Hasura URL hidden from the browser. Otherwise, it connects directly using the client-side
- * WebSocket URL.
+ * Hasura URL hidden from the browser.
  *
  * Next.js does not support WebSocket connections in API routes, so subscriptions always use
  * the React subscription provider — either direct or through the WS proxy.
@@ -43,16 +42,12 @@ export function Providers({ hasWs, wsUrl, children }: ProvidersProps): ReactNode
       }),
   );
 
-  /** Wrap children in subscription provider only when WS is available. */
-  function wrapSubscriptionProvider(inner: ReactNode): ReactNode {
-    if (!hasWs) return inner;
-    return <IndexerSubscriptionProvider wsUrl={wsUrl}>{inner}</IndexerSubscriptionProvider>;
-  }
-
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <QueryClientProvider client={queryClient}>
-        {wrapSubscriptionProvider(<TooltipProvider>{children}</TooltipProvider>)}
+        <IndexerSubscriptionProvider wsUrl={wsUrl}>
+          <TooltipProvider>{children}</TooltipProvider>
+        </IndexerSubscriptionProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );
