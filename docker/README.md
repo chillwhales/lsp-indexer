@@ -10,6 +10,8 @@ Docker deployment for LSP Indexer.
 - **`.env.prod.example`** — Production environment template
 - **`manage.sh`** — Management script (35+ commands)
 - **`entrypoint.sh`** — Container entrypoint (migrations + Hasura config + start)
+- **`backup.sh`** — Automated PostgreSQL backup with integrity verification and retention cleanup
+- **`restore.sh`** — Interactive database restore with safety confirmation
 
 ## Features
 
@@ -103,6 +105,12 @@ Logs from all containers are collected by Grafana Alloy and stored in Loki (14-d
 ./manage.sh db-dump           # Backup
 ./manage.sh db-restore file   # Restore
 
+# Backup
+./manage.sh backup            # Run manual backup now
+./manage.sh backup-list       # List available backups with sizes
+./manage.sh backup-verify F   # Verify backup file integrity
+./manage.sh backup-restore F  # Full recovery from backup (stops services, restores, restarts)
+
 # System
 ./manage.sh stats             # Resource usage
 ./manage.sh env               # Show environment
@@ -116,6 +124,7 @@ See [../docs/docker/](../docs/docker/):
 - [QUICKSTART.md](../docs/docker/QUICKSTART.md) — Get started in 5 minutes
 - [REFERENCE.md](../docs/docker/REFERENCE.md) — Complete guide
 - [ARCHITECTURE.md](../docs/docker/ARCHITECTURE.md) — Design overview
+- [BACKUP.md](../docs/docker/BACKUP.md) — Backup strategy and recovery runbook
 
 ## Environment Configuration
 

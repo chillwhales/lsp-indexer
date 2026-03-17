@@ -85,6 +85,14 @@ Create the comprehensive backup/recovery runbook at `docs/docker/BACKUP.md`, upd
 - `docker/README.md` — existing file (~100 lines) with Files list, Features, Quick Start, Management Commands, Documentation sections
 - `apps/test/src/app/docs/indexer/page.mdx` — existing file (180 lines) with sections through "Next Steps"
 
+## Observability Impact
+
+This task is documentation-only — no runtime behavior changes.
+
+- **Inspection surfaces**: `docs/docker/BACKUP.md` serves as the canonical runbook for operators; `docker/README.md` and the indexer MDX page provide discoverability cross-references.
+- **Failure visibility**: If the MDX page has syntax errors, `pnpm build` will fail with a compile error pointing to the MDX file and line number.
+- **Future agent signals**: `grep -q 'BACKUP.md' docker/README.md` confirms the cross-reference exists; `grep -q 'Backup' apps/test/src/app/docs/indexer/page.mdx` confirms the MDX section exists.
+
 ## Expected Output
 
 - `docs/docker/BACKUP.md` — new file (~150-200 lines) with complete backup/recovery runbook

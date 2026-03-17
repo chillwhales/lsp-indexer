@@ -172,6 +172,45 @@ The indexer produces these main entity types:
 
 ---
 
+## Database Backup & Recovery
+
+The production Docker Compose stack includes an automated backup sidecar that runs
+`pg_dump` on a configurable cron schedule with a default 7-day retention policy. Because
+all indexed data is re-derivable from the LUKSO blockchain, the strategy optimizes for
+fast recovery over zero-data-loss.
+
+### Backup Environment Variables
+
+| Variable                | Default     | Description                                    |
+| ----------------------- | ----------- | ---------------------------------------------- |
+| `BACKUP_SCHEDULE`       | `0 2 * * *` | Cron schedule (default: daily at 2 AM UTC)     |
+| `BACKUP_RETENTION_DAYS` | `7`         | Days to keep backups before automatic deletion |
+| `BACKUP_DIR`            | `/backups`  | Backup directory inside the container          |
+| `BACKUP_ENABLED`        | `true`      | Set to `false` to disable the backup sidecar   |
+
+### Management Commands
+
+```bash
+cd docker
+
+# Run a manual backup immediately
+./manage.sh backup
+
+# List available backups with sizes
+./manage.sh backup-list
+
+# Verify a backup file is not corrupt
+./manage.sh backup-verify backup-20260317-020000.dump
+
+# Full recovery: stops services, restores database, restarts everything
+./manage.sh backup-restore backup-20260317-020000.dump
+```
+
+For complete recovery procedures, troubleshooting, and off-site backup strategies, see the
+[backup runbook](https://github.com/chillwhales/lsp-indexer/blob/main/docs/docker/BACKUP.md).
+
+---
+
 ## Next Steps
 
 - [Quickstart](/docs/quickstart) — Install consumer packages and start querying

@@ -61,7 +61,7 @@
   - Verify: `docker compose -f docker/docker-compose.prod.yml config --quiet 2>&1` validates, `grep -c 'backup' docker/manage.sh` ≥ 4, `grep -q 'BACKUP_SCHEDULE' .env.example`
   - Done when: compose validates, manage.sh has all 4 backup commands in dispatcher + help, env vars documented
 
-- [ ] **T03: Write backup runbook documentation and update indexer docs page** `est:30m`
+- [x] **T03: Write backup runbook documentation and update indexer docs page** `est:30m`
   - Why: Requirements OPS-01 and OPS-03 require documented strategy and recovery procedure. AGENTS.md requires indexer docs page update for any Docker/env changes.
   - Files: `docs/docker/BACKUP.md`, `docker/README.md`, `apps/test/src/app/docs/indexer/page.mdx`
   - Do: Create `docs/docker/BACKUP.md` covering: backup strategy rationale (re-derivable data, fast recovery over zero-loss), automated schedule configuration, manual backup procedure, recovery procedure (8-step walkthrough), backup verification, retention policy, troubleshooting common issues. Update `docker/README.md` to add backup entry in Files table and link to BACKUP.md in Documentation section. Add a "Database Backup & Recovery" section to `apps/test/src/app/docs/indexer/page.mdx` before the "Next Steps" section.
