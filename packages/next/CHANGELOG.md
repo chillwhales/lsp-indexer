@@ -1,5 +1,55 @@
 # @lsp-indexer/next
 
+## 2.0.0
+
+### Major Changes
+
+- [#340](https://github.com/chillwhales/lsp-indexer/pull/340) [`ab1b873`](https://github.com/chillwhales/lsp-indexer/commit/ab1b873fa059d6f998a5987e44eac7af26089409) Thanks [@b00ste](https://github.com/b00ste)! - **BREAKING:** Remove subscription hooks, provider, and client from `@lsp-indexer/next`.
+
+  All subscriptions now use `@lsp-indexer/react` hooks pointed at the WS proxy
+  (`NEXT_PUBLIC_INDEXER_WS_URL`). Next.js cannot hold WebSocket connections in API routes,
+  so a separate subscription provider in the Next.js package was unnecessary complexity.
+
+  **BREAKING:** Server actions are now exported from `@lsp-indexer/next/actions` (separate entry point).
+
+  The root import (`@lsp-indexer/next`) exports query hooks only. This separation ensures
+  server action code (with `"use server"` directive) is never bundled into the client JS,
+  preventing server env var leaks (`INDEXER_URL`).
+
+  ### Migration
+
+  ```diff
+  - import { IndexerSubscriptionProvider } from '@lsp-indexer/next';
+  + import { IndexerSubscriptionProvider } from '@lsp-indexer/react';
+
+  - import { getProfile } from '@lsp-indexer/next';
+  + import { getProfile } from '@lsp-indexer/next/actions';
+
+  - import { useProfileSubscription } from '@lsp-indexer/next';
+  + import { useProfileSubscription } from '@lsp-indexer/react';
+  ```
+
+  ### Removed exports
+
+  - `SubscriptionClient`
+  - `SubscriptionClientContext`
+  - `IndexerSubscriptionProvider`
+  - `useSubscription`
+  - 12 domain subscription hooks (`useProfileSubscription`, `useDigitalAssetSubscription`, etc.)
+
+  ### What stays in `@lsp-indexer/next`
+
+  - Query hooks (`useProfile`, `useProfiles`, `useInfiniteProfiles`, etc.) — root import
+  - Server actions (`getProfile`, `getProfiles`, etc.) — `@lsp-indexer/next/actions`
+  - WS proxy (`createProxyServer`) — `@lsp-indexer/next/server`
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @lsp-indexer/types@2.0.0
+  - @lsp-indexer/node@2.0.0
+  - @lsp-indexer/react@2.0.0
+
 ## 1.2.0
 
 ### Patch Changes
