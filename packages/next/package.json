@@ -8,6 +8,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./actions": {
+      "types": "./dist/actions.d.ts",
+      "default": "./dist/actions.js"
+    },
     "./server": {
       "types": "./dist/server.d.ts",
       "default": "./dist/server.js"
@@ -15,6 +19,9 @@
   },
   "typesVersions": {
     "*": {
+      "actions": [
+        "./dist/actions.d.ts"
+      ],
       "server": [
         "./dist/server.d.ts"
       ]

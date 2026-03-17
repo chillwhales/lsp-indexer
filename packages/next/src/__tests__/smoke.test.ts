@@ -18,11 +18,13 @@ import {
   getOwnedAssets,
   getOwnedToken,
   getOwnedTokens,
-  // Server actions
   getProfile,
   getProfiles,
   getTokenIdDataChangedEvents,
   getUniversalReceiverEvents,
+} from '../actions';
+
+import {
   useCreators,
   useDataChangedEvents,
   useDigitalAsset,
