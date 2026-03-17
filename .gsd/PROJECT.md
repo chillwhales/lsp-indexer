@@ -135,6 +135,13 @@ All v1.1 milestone work (Phases 7–16) merged through pull requests targeting `
 | @chillwhales package migration | Reduced local code, aligned with shared ecosystem | ✓ Good — v1.1 |
 | v1 cleanup + v2 canonical promotion | Single indexer, no ambiguity | ✓ Good — v1.1 |
 
+## Milestone Sequence
+
+| ID   | Title                                | Status   |
+| ---- | ------------------------------------ | -------- |
+| M001 | Migration (v1.0 → v1.2)             | active   |
+| M002 | Docs Site & AI Agent Compatibility   | queued   |
+
 ---
 
-_Last updated: 2026-03-08 after v1.2 milestone started_
+_Last updated: 2026-03-17 after M002 queued_
