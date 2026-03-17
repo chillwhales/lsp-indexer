@@ -29,34 +29,37 @@ Grafana dashboard displays Subsquid processor (sqd) logs
 
 New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block ordering changes
 
-### OPS-01 — PostgreSQL backup strategy defined and documented
+### OPS-03 — Recovery procedure documented and tested
 
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: inferred
-- Primary Slice: none yet
+- Primary Slice: S30
+- Validation: 6-step recovery procedure in BACKUP.md, restore.sh with interactive confirmation and drop/recreate, manage.sh backup-restore with service orchestration
+
+Recovery procedure documented and tested
+
+## Validated
+
+### OPS-01 — PostgreSQL backup strategy defined and documented
+
+- Status: validated
+- Class: core-capability
+- Source: inferred
+- Primary Slice: S30
+- Validation: docs/docker/BACKUP.md contains complete strategy — pg_dump rationale, schedule config, retention policy, troubleshooting table
 
 PostgreSQL backup strategy defined and documented
 
 ### OPS-02 — Backup automation configured (scheduled dumps or WAL archiving)
 
-- Status: active
+- Status: validated
 - Class: core-capability
 - Source: inferred
-- Primary Slice: none yet
+- Primary Slice: S30
+- Validation: Backup sidecar in docker-compose.prod.yml runs pg_dump via cron (BACKUP_SCHEDULE), configurable retention (BACKUP_RETENTION_DAYS), backup-data volume for persistent storage
 
 Backup automation configured (scheduled dumps or WAL archiving)
-
-### OPS-03 — Recovery procedure documented and tested
-
-- Status: active
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Recovery procedure documented and tested
-
-## Validated
 
 ### DOCK-01 — Production docker-compose pulls `ghcr.io/chillwhales/lsp-indexer:latest` and runs indexer + PostgreSQL + Hasura
 

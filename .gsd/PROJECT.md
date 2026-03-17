@@ -70,7 +70,7 @@ The indexer is complete (v1.0) and the consumer package layer is complete (v1.1)
 - [ ] Block ordering fields on all entities
 - [ ] Oldest/newest sorting across all 12 domains
 - [ ] Grafana monitoring dashboards
-- [ ] Database backups + recovery procedure
+- [x] Database backups + recovery procedure
 - [ ] Version normalization (0.1.0 for private packages)
 
 ### Deferred
