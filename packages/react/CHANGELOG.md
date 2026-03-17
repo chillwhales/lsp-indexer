@@ -1,5 +1,13 @@
 # @lsp-indexer/react
 
+## 2.0.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @lsp-indexer/types@2.0.0
+  - @lsp-indexer/node@2.0.0
+
 ## 1.2.0
 
 ### Patch Changes
