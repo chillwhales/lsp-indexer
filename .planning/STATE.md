@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Readiness
 status: completed
-last_updated: "2026-03-16T06:47:40Z"
-last_activity: 2026-03-16 — Completed 25-01 env availability detection and conditional UI
+last_updated: "2026-03-16T17:09:28Z"
+last_activity: 2026-03-16 — Completed Quick Task 6 deploy apps/test using Dokploy
 progress:
   total_phases: 57
   completed_phases: 49
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 - **Phase:** Phase 25 — Test App Public Publish Readiness
 - **Plan:** 1 of 2 (Plan 01 complete)
 - **Status:** In Progress
-- **Last activity:** 2026-03-16 — Completed 25-01 env availability detection and conditional UI
+- **Last activity:** 2026-03-16 — Completed quick task 6: deploy apps/test using dokploy
 - **Progress:** [█████████░] 91%
 
 ## Milestone History
@@ -81,6 +81,7 @@ _None currently._
 | 2 | Release pipeline with versioning for monorepo Dockerfile builds | 2026-03-11 | c0e2ad7 | [2-release-pipeline-with-versioning-for-mon](./quick/2-release-pipeline-with-versioning-for-mon/) |
 | 3 | Add timestamp to all entities missing it (Phase 19 fix) | 2026-03-12 | eecfa83 | [3-add-timestamp-to-all-entities-that-got-b](./quick/3-add-timestamp-to-all-entities-that-got-b/) |
 | 4 | Fix integer overflow error in lsp8TokenIdFormat handler - hexToNumber failing on large token IDs | 2026-03-15 | f757508 | [4-fix-integer-overflow-error-in-lsp8tokeni](./quick/4-fix-integer-overflow-error-in-lsp8tokeni/) |
+| 6 | Deploy apps/test using Dokploy — multi-stage Dockerfile + standalone output | 2026-03-16 | 2ca20cf | [6-deploy-apps-test-using-dokploy](./quick/6-deploy-apps-test-using-dokploy/) |
 | Phase 21 P01 | 8min | 3 tasks | 20 files |
 | Phase 21 P02 | 2min | 2 tasks | 8 files |
 | Phase 20.1 P02 | 7min | 2 tasks | 6 files |
@@ -97,8 +98,8 @@ _None currently._
 ### Last Session
 
 - **Date:** 2026-03-16
-- **Activity:** Executed Phase 25-01 — env availability detection and conditional UI
-- **Outcome:** Created EnvProvider context, conditional subscription providers, conditional mode toggle
+- **Activity:** Executed Quick Task 6 — Deploy apps/test using Dokploy
+- **Outcome:** Created multi-stage Dockerfile (260MB image), .dockerignore, added standalone output to next.config.ts
 - **Resume file:** None
 
 ### Context for Next Session
@@ -106,7 +107,8 @@ _None currently._
 - **Phase 25 in progress:** Plan 01 complete, Plan 02 remaining
 - **Next:** Execute 25-02-PLAN.md
 - **Decisions:** hasServerUrl checks only INDEXER_URL (no NEXT_PUBLIC fallback); removed hardcoded proxyUrl
+- **Quick-6 complete:** Dockerfile at apps/test/Dockerfile, ready for Dokploy deployment
 
 ---
 
-_Last updated: 2026-03-16 — Completed 25-01 env availability detection and conditional UI_
+_Last updated: 2026-03-16 — Completed Quick Task 6 deploy apps/test using Dokploy_
