@@ -67,7 +67,8 @@ graph LR
 
 ### @lsp-indexer/next
 
-Next.js server actions and hooks — same API, but data stays on the server.
+Next.js server actions and query hooks — same data-fetching API, but data stays on the server.
+Subscriptions use `@lsp-indexer/react` hooks pointed at a WS proxy.
 
 ```mermaid
 graph LR
@@ -76,8 +77,9 @@ graph LR
 ```
 
 - Server actions for every domain (`getProfile`, `getDigitalAssets`, ...)
-- Same hook API as `@lsp-indexer/react`
-- WebSocket subscription proxy
+- Same query hook API as `@lsp-indexer/react`
+- WebSocket proxy server (`@lsp-indexer/next/server`) for hiding Hasura URL
+- Subscriptions use `@lsp-indexer/react` — Next.js cannot hold WebSocket connections
 - Hasura URL never exposed to browser
 
 [Documentation →](/docs/next)

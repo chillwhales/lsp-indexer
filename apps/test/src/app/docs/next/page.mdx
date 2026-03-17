@@ -1,7 +1,8 @@
 # @lsp-indexer/next
 
-Next.js server actions and hooks — the same API as `@lsp-indexer/react`, but data flows through
-the server. The browser never sees your Hasura endpoint.
+Next.js server actions and query hooks — the same data-fetching API as `@lsp-indexer/react`, but
+data flows through the server. The browser never sees your Hasura endpoint. Subscriptions use
+`@lsp-indexer/react` hooks (see [why](#why-subscriptions-use-lsp-indexerreact)).
 
 ```bash
 npm install @lsp-indexer/next @tanstack/react-query
@@ -33,27 +34,36 @@ only available on the server.
 
 ## How It Differs from @lsp-indexer/react
 
-|                     | `@lsp-indexer/react`      | `@lsp-indexer/next`               |
-| ------------------- | ------------------------- | --------------------------------- |
-| Data path           | Browser → Hasura          | Browser → Server Action → Hasura  |
-| Env vars            | `NEXT_PUBLIC_INDEXER_URL` | `INDEXER_URL`                     |
-| Hasura URL exposure | Visible in browser        | Hidden on server                  |
-| Hook API            | Same                      | Same                              |
-| Subscriptions       | Direct WebSocket          | WS proxy (port 4000)              |
-| Server components   | No                        | Server actions via `'use server'` |
-| Access control      | Hasura permissions only   | Server-side middleware possible   |
+|                     | `@lsp-indexer/react`      | `@lsp-indexer/next`                    |
+| ------------------- | ------------------------- | -------------------------------------- |
+| Data path           | Browser → Hasura          | Browser → Server Action → Hasura       |
+| Env vars            | `NEXT_PUBLIC_INDEXER_URL` | `INDEXER_URL`                          |
+| Hasura URL exposure | Visible in browser        | Hidden on server                       |
+| Hook API            | Same                      | Same                                   |
+| Subscriptions       | Direct WebSocket          | Use `@lsp-indexer/react` with WS proxy |
+| Server components   | No                        | Server actions via `'use server'`      |
+| Access control      | Hasura permissions only   | Server-side middleware possible        |
 
 ---
 
 ## Provider Setup
+
+`@lsp-indexer/next` provides server actions and query hooks — it does **not** include subscription
+hooks or a subscription provider. Subscriptions always use `@lsp-indexer/react` (see
+[why](#why-subscriptions-use-lsp-indexerreact) below).
+
+To use both server actions and subscriptions, set up the React subscription provider pointed at
+the WS proxy so the Hasura URL stays hidden from the browser:
 
 ```tsx
 // app/providers.tsx
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { IndexerSubscriptionProvider } from '@lsp-indexer/next';
+import { IndexerSubscriptionProvider } from '@lsp-indexer/react';
 import { useState } from 'react';
+
+const wsProxyPort = 4000;
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -65,7 +75,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <IndexerSubscriptionProvider proxyUrl="ws://localhost:4000">
+      <IndexerSubscriptionProvider wsUrl={`ws://localhost:${wsProxyPort}`}>
         {children}
       </IndexerSubscriptionProvider>
     </QueryClientProvider>
@@ -73,8 +83,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
 }
 ```
 
-> The `proxyUrl` defaults to `/api/graphql`. In development, use `ws://localhost:4000` to point
-> to the standalone WS proxy. In production, deploy the proxy and set the URL accordingly.
+> **Tip:** In production, replace `ws://localhost:4000` with the deployed WS proxy URL.
+> The proxy keeps the real Hasura WebSocket URL hidden from the browser.
 
 ---
 
@@ -155,13 +165,20 @@ Every domain has server actions matching the fetch functions:
 
 ---
 
-## WebSocket Subscription Proxy
+## Why Subscriptions Use @lsp-indexer/react
 
-Server-side subscriptions work through a WebSocket proxy that sits between the browser and Hasura.
-This keeps the Hasura WebSocket URL hidden from the client.
+Next.js does not support WebSocket connections in API routes — serverless functions are
+short-lived and stateless, so they cannot hold a persistent WebSocket connection open.
+Because of this, **all subscription hooks live in `@lsp-indexer/react`**, not in
+`@lsp-indexer/next`.
+
+When you need real-time data in a Next.js app while keeping the Hasura URL hidden, use
+the `@lsp-indexer/react` subscription hooks pointed at a WS proxy (provided by
+`@lsp-indexer/next/server`). The proxy runs as a standalone process on port 4000 and
+forwards WebSocket frames to Hasura.
 
 ```
-Browser → WS Proxy (port 4000) → Hasura WebSocket
+Browser → @lsp-indexer/react → WS Proxy (port 4000) → Hasura WebSocket
 ```
 
 ### Setting Up the Proxy
@@ -205,14 +222,14 @@ server.listen(4000, () => {
 
 ### Vercel / Serverless
 
-Server actions work out of the box on Vercel. For subscriptions, you need a separate
-long-running process for the WS proxy (Vercel functions are short-lived).
+Server actions work out of the box on Vercel. Subscriptions use `@lsp-indexer/react` hooks,
+so you need a separate long-running process for the WS proxy (Vercel functions are short-lived).
 
 Options:
 
 - Deploy the WS proxy on a VPS or container alongside your Hasura instance
 - Use a managed WebSocket service
-- Skip server-side subscriptions and use `@lsp-indexer/react` subscriptions directly
+- Point `@lsp-indexer/react` directly at Hasura (exposes the Hasura URL to the browser)
 
 ### Self-hosted
 
@@ -250,7 +267,7 @@ Use `@lsp-indexer/react` when:
 
 - You want the simplest setup (no server needed)
 - Your Hasura endpoint is public or protected by Hasura's own permissions
-- You need direct WebSocket subscriptions
+- You need direct WebSocket subscriptions without a proxy
 
 Use `@lsp-indexer/next` when:
 
@@ -258,6 +275,10 @@ Use `@lsp-indexer/next` when:
 - You need server-side rendering or server components
 - You want to add server-side middleware (auth, rate limiting, logging)
 - You're already using Next.js
+
+> **Note:** Subscriptions always use `@lsp-indexer/react` hooks regardless of which package
+> you use for data fetching. When using `@lsp-indexer/next`, point the React subscription
+> provider at the WS proxy to keep the Hasura URL hidden (see [Provider Setup](#provider-setup)).
 
 ---
 
