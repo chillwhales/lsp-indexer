@@ -13,24 +13,19 @@
 import { IndexerSubscriptionProvider } from '@lsp-indexer/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface ProvidersProps {
-  /** Whether WebSocket subscriptions are available (either client or server WS env vars). */
-  hasWs: boolean;
-  /**
-   * WebSocket URL for subscriptions.
-   * When WS proxy is available: `ws://hostname:4000` (Hasura URL stays hidden).
-   * When only client WS is available: uses NEXT_PUBLIC_INDEXER_WS_URL directly.
-   * Undefined when no WS env vars are configured.
-   */
-  wsUrl?: string;
+  /** Whether server-side WS proxy is available (INDEXER_WS_URL or INDEXER_URL set). */
+  hasServerWs: boolean;
+  /** WS proxy port (default 4000). */
+  wsProxyPort: number;
   children: ReactNode;
 }
 
-export function Providers({ hasWs, wsUrl, children }: ProvidersProps): ReactNode {
+export function Providers({ hasServerWs, wsProxyPort, children }: ProvidersProps): ReactNode {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -41,6 +36,16 @@ export function Providers({ hasWs, wsUrl, children }: ProvidersProps): ReactNode
         },
       }),
   );
+
+  // Build WS proxy URL client-side using the browser's hostname so it works
+  // in both local dev (localhost) and production (your-domain.com).
+  const wsUrl = useMemo(() => {
+    if (!hasServerWs) return undefined;
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    const protocol =
+      typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss' : 'ws';
+    return `${protocol}://${hostname}:${wsProxyPort}`;
+  }, [hasServerWs, wsProxyPort]);
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
