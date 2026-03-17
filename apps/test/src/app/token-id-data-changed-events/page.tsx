@@ -9,13 +9,12 @@ import {
   useInfiniteTokenIdDataChangedEvents as useInfiniteTokenIdDataChangedEventsNext,
   useLatestTokenIdDataChangedEvent as useLatestTokenIdDataChangedEventNext,
   useTokenIdDataChangedEvents as useTokenIdDataChangedEventsNext,
-  useTokenIdDataChangedEventSubscription as useTokenIdDataChangedEventSubscriptionNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteTokenIdDataChangedEvents as useInfiniteTokenIdDataChangedEventsReact,
   useLatestTokenIdDataChangedEvent as useLatestTokenIdDataChangedEventReact,
+  useTokenIdDataChangedEventSubscription,
   useTokenIdDataChangedEvents as useTokenIdDataChangedEventsReact,
-  useTokenIdDataChangedEventSubscription as useTokenIdDataChangedEventSubscriptionReact,
 } from '@lsp-indexer/react';
 import {
   type SortDirection,
@@ -26,20 +25,20 @@ import {
 } from '@lsp-indexer/types';
 
 import {
-  type FilterFieldConfig,
-  type HookMode,
-  type SortOption,
-  buildNestedInclude,
   DIGITAL_ASSET_INCLUDE_FIELDS,
   ErrorAlert,
+  type FilterFieldConfig,
   FilterFieldsRow,
+  type HookMode,
   IncludeToggles,
   NFT_INCLUDE_FIELDS,
   PlaygroundPageLayout,
   ResultsList,
   SortControls,
+  type SortOption,
   SubIncludeSection,
   TOKEN_ID_DATA_CHANGED_EVENT_INCLUDE_FIELDS,
+  buildNestedInclude,
   useFilterFields,
   useIncludeToggles,
   useSubInclude,
@@ -181,7 +180,7 @@ type TokenIdDataChangedHooks = {
   useLatestTokenIdDataChangedEvent: typeof useLatestTokenIdDataChangedEventReact;
   useTokenIdDataChangedEvents: typeof useTokenIdDataChangedEventsReact;
   useInfiniteTokenIdDataChangedEvents: typeof useInfiniteTokenIdDataChangedEventsReact;
-  useTokenIdDataChangedEventSubscription: typeof useTokenIdDataChangedEventSubscriptionReact;
+  useTokenIdDataChangedEventSubscription: typeof useTokenIdDataChangedEventSubscription;
 };
 
 function useTokenIdDataChangedHooks(mode: HookMode): TokenIdDataChangedHooks {
@@ -190,14 +189,14 @@ function useTokenIdDataChangedHooks(mode: HookMode): TokenIdDataChangedHooks {
       useLatestTokenIdDataChangedEvent: useLatestTokenIdDataChangedEventNext,
       useTokenIdDataChangedEvents: useTokenIdDataChangedEventsNext,
       useInfiniteTokenIdDataChangedEvents: useInfiniteTokenIdDataChangedEventsNext,
-      useTokenIdDataChangedEventSubscription: useTokenIdDataChangedEventSubscriptionNext,
+      useTokenIdDataChangedEventSubscription,
     };
   }
   return {
     useLatestTokenIdDataChangedEvent: useLatestTokenIdDataChangedEventReact,
     useTokenIdDataChangedEvents: useTokenIdDataChangedEventsReact,
     useInfiniteTokenIdDataChangedEvents: useInfiniteTokenIdDataChangedEventsReact,
-    useTokenIdDataChangedEventSubscription: useTokenIdDataChangedEventSubscriptionReact,
+    useTokenIdDataChangedEventSubscription,
   };
 }
 

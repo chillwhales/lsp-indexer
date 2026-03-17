@@ -1,7 +1,7 @@
 'use client';
 
+import { getLatestTokenIdDataChangedEvent } from '@lsp-indexer/next/actions';
 import { createUseLatestTokenIdDataChangedEvent } from '@lsp-indexer/react';
-import { getLatestTokenIdDataChangedEvent } from '../../actions/token-id-data-changed-events';
 
 /** Fetch the most recent TokenIdDataChanged event matching a filter via server action. */
 export const useLatestTokenIdDataChangedEvent = createUseLatestTokenIdDataChangedEvent(

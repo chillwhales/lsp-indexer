@@ -1,7 +1,7 @@
 'use client';
 
+import { getTokenIdDataChangedEvents } from '@lsp-indexer/next/actions';
 import { createUseTokenIdDataChangedEvents } from '@lsp-indexer/react';
-import { getTokenIdDataChangedEvents } from '../../actions/token-id-data-changed-events';
 
 /** Paginated TokenIdDataChanged event list via Next.js server action. */
 export const useTokenIdDataChangedEvents = createUseTokenIdDataChangedEvents(

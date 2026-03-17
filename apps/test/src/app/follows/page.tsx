@@ -6,14 +6,13 @@ import React, { useState } from 'react';
 
 import {
   useFollowCount as useFollowCountNext,
-  useFollowerSubscription as useFollowerSubscriptionNext,
   useFollows as useFollowsNext,
   useInfiniteFollows as useInfiniteFollowsNext,
   useIsFollowing as useIsFollowingNext,
 } from '@lsp-indexer/next';
 import {
   useFollowCount as useFollowCountReact,
-  useFollowerSubscription as useFollowerSubscriptionReact,
+  useFollowerSubscription,
   useFollows as useFollowsReact,
   useInfiniteFollows as useInfiniteFollowsReact,
   useIsFollowing as useIsFollowingReact,
@@ -115,7 +114,7 @@ type FollowerHooks = {
   useInfiniteFollows: typeof useInfiniteFollowsReact;
   useFollowCount: typeof useFollowCountReact;
   useIsFollowing: typeof useIsFollowingReact;
-  useFollowerSubscription: typeof useFollowerSubscriptionReact;
+  useFollowerSubscription: typeof useFollowerSubscription;
 };
 
 function useFollowerHooks(mode: HookMode): FollowerHooks {
@@ -125,7 +124,7 @@ function useFollowerHooks(mode: HookMode): FollowerHooks {
       useInfiniteFollows: useInfiniteFollowsNext,
       useFollowCount: useFollowCountNext,
       useIsFollowing: useIsFollowingNext,
-      useFollowerSubscription: useFollowerSubscriptionNext,
+      useFollowerSubscription,
     };
   }
   return {
@@ -133,7 +132,7 @@ function useFollowerHooks(mode: HookMode): FollowerHooks {
     useInfiniteFollows: useInfiniteFollowsReact,
     useFollowCount: useFollowCountReact,
     useIsFollowing: useIsFollowingReact,
-    useFollowerSubscription: useFollowerSubscriptionReact,
+    useFollowerSubscription,
   };
 }
 

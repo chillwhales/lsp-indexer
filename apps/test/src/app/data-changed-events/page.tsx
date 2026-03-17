@@ -7,13 +7,12 @@ import React, { useState } from 'react';
 
 import {
   useDataChangedEvents as useDataChangedEventsNext,
-  useDataChangedEventSubscription as useDataChangedEventSubscriptionNext,
   useInfiniteDataChangedEvents as useInfiniteDataChangedEventsNext,
   useLatestDataChangedEvent as useLatestDataChangedEventNext,
 } from '@lsp-indexer/next';
 import {
   useDataChangedEvents as useDataChangedEventsReact,
-  useDataChangedEventSubscription as useDataChangedEventSubscriptionReact,
+  useDataChangedEventSubscription,
   useInfiniteDataChangedEvents as useInfiniteDataChangedEventsReact,
   useLatestDataChangedEvent as useLatestDataChangedEventReact,
 } from '@lsp-indexer/react';
@@ -168,7 +167,7 @@ type DataChangedHooks = {
   useLatestDataChangedEvent: typeof useLatestDataChangedEventReact;
   useDataChangedEvents: typeof useDataChangedEventsReact;
   useInfiniteDataChangedEvents: typeof useInfiniteDataChangedEventsReact;
-  useDataChangedEventSubscription: typeof useDataChangedEventSubscriptionReact;
+  useDataChangedEventSubscription: typeof useDataChangedEventSubscription;
 };
 
 function useDataChangedHooks(mode: HookMode): DataChangedHooks {
@@ -177,14 +176,14 @@ function useDataChangedHooks(mode: HookMode): DataChangedHooks {
       useLatestDataChangedEvent: useLatestDataChangedEventNext,
       useDataChangedEvents: useDataChangedEventsNext,
       useInfiniteDataChangedEvents: useInfiniteDataChangedEventsNext,
-      useDataChangedEventSubscription: useDataChangedEventSubscriptionNext,
+      useDataChangedEventSubscription,
     };
   }
   return {
     useLatestDataChangedEvent: useLatestDataChangedEventReact,
     useDataChangedEvents: useDataChangedEventsReact,
     useInfiniteDataChangedEvents: useInfiniteDataChangedEventsReact,
-    useDataChangedEventSubscription: useDataChangedEventSubscriptionReact,
+    useDataChangedEventSubscription,
   };
 }
 

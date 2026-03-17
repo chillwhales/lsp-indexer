@@ -7,13 +7,12 @@ import React, { useState } from 'react';
 import {
   useDigitalAsset as useDigitalAssetNext,
   useDigitalAssets as useDigitalAssetsNext,
-  useDigitalAssetSubscription as useDigitalAssetSubscriptionNext,
   useInfiniteDigitalAssets as useInfiniteDigitalAssetsNext,
 } from '@lsp-indexer/next';
 import {
   useDigitalAsset as useDigitalAssetReact,
   useDigitalAssets as useDigitalAssetsReact,
-  useDigitalAssetSubscription as useDigitalAssetSubscriptionReact,
+  useDigitalAssetSubscription,
   useInfiniteDigitalAssets as useInfiniteDigitalAssetsReact,
 } from '@lsp-indexer/react';
 import {
@@ -95,14 +94,14 @@ function useHooks(mode: HookMode) {
       useDigitalAsset: useDigitalAssetNext,
       useDigitalAssets: useDigitalAssetsNext,
       useInfiniteDigitalAssets: useInfiniteDigitalAssetsNext,
-      useDigitalAssetSubscription: useDigitalAssetSubscriptionNext,
+      useDigitalAssetSubscription,
     };
   }
   return {
     useDigitalAsset: useDigitalAssetReact,
     useDigitalAssets: useDigitalAssetsReact,
     useInfiniteDigitalAssets: useInfiniteDigitalAssetsReact,
-    useDigitalAssetSubscription: useDigitalAssetSubscriptionReact,
+    useDigitalAssetSubscription,
   };
 }
 

@@ -3,8 +3,8 @@
 #
 #   docker compose -f apps/test/docker-compose.yml up --build
 #
-# The NEXT_PUBLIC_* vars are baked in at build time (build args).
-# The rest are injected at runtime via the .env file.
+# NEXT_PUBLIC_* vars are baked in at build time (build args).
+# Server-side vars (INDEXER_URL, etc.) are injected at runtime.
 
 services:
   test-app:

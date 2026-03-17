@@ -22,11 +22,7 @@ export default function RootLayout({ children }: { children: ReactNode }): React
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen font-sans antialiased">
-        <Providers
-          hasClientWs={envAvailability.hasClientWs}
-          hasServerWs={envAvailability.hasServerWs}
-          wsProxyPort={envAvailability.wsProxyPort}
-        >
+        <Providers>
           <EnvProvider value={envAvailability}>
             <SidebarProvider>
               <AppSidebar />

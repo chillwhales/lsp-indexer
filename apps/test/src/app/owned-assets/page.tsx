@@ -8,13 +8,12 @@ import {
   useInfiniteOwnedAssets as useInfiniteOwnedAssetsNext,
   useOwnedAsset as useOwnedAssetNext,
   useOwnedAssets as useOwnedAssetsNext,
-  useOwnedAssetSubscription as useOwnedAssetSubscriptionNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteOwnedAssets as useInfiniteOwnedAssetsReact,
   useOwnedAsset as useOwnedAssetReact,
   useOwnedAssets as useOwnedAssetsReact,
-  useOwnedAssetSubscription as useOwnedAssetSubscriptionReact,
+  useOwnedAssetSubscription,
 } from '@lsp-indexer/react';
 import {
   type OwnedAssetFilter,
@@ -115,14 +114,14 @@ function useHooks(mode: HookMode) {
       useOwnedAsset: useOwnedAssetNext,
       useOwnedAssets: useOwnedAssetsNext,
       useInfiniteOwnedAssets: useInfiniteOwnedAssetsNext,
-      useOwnedAssetSubscription: useOwnedAssetSubscriptionNext,
+      useOwnedAssetSubscription,
     };
   }
   return {
     useOwnedAsset: useOwnedAssetReact,
     useOwnedAssets: useOwnedAssetsReact,
     useInfiniteOwnedAssets: useInfiniteOwnedAssetsReact,
-    useOwnedAssetSubscription: useOwnedAssetSubscriptionReact,
+    useOwnedAssetSubscription,
   };
 }
 

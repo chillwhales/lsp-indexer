@@ -6,12 +6,11 @@ import React, { useState } from 'react';
 
 import {
   useCreators as useCreatorsNext,
-  useCreatorSubscription as useCreatorSubscriptionNext,
   useInfiniteCreators as useInfiniteCreatorsNext,
 } from '@lsp-indexer/next';
 import {
   useCreators as useCreatorsReact,
-  useCreatorSubscription as useCreatorSubscriptionReact,
+  useCreatorSubscription,
   useInfiniteCreators as useInfiniteCreatorsReact,
 } from '@lsp-indexer/react';
 import {
@@ -114,7 +113,7 @@ const SORT_OPTIONS: SortOption[] = [
 type CreatorHooks = {
   useCreators: typeof useCreatorsReact;
   useInfiniteCreators: typeof useInfiniteCreatorsReact;
-  useCreatorSubscription: typeof useCreatorSubscriptionReact;
+  useCreatorSubscription: typeof useCreatorSubscription;
 };
 
 function useCreatorHooks(mode: HookMode): CreatorHooks {
@@ -122,13 +121,13 @@ function useCreatorHooks(mode: HookMode): CreatorHooks {
     return {
       useCreators: useCreatorsNext,
       useInfiniteCreators: useInfiniteCreatorsNext,
-      useCreatorSubscription: useCreatorSubscriptionNext,
+      useCreatorSubscription,
     };
   }
   return {
     useCreators: useCreatorsReact,
     useInfiniteCreators: useInfiniteCreatorsReact,
-    useCreatorSubscription: useCreatorSubscriptionReact,
+    useCreatorSubscription,
   };
 }
 

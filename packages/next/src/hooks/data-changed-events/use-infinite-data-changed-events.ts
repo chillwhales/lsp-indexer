@@ -1,7 +1,7 @@
 'use client';
 
+import { getDataChangedEvents } from '@lsp-indexer/next/actions';
 import { createUseInfiniteDataChangedEvents } from '@lsp-indexer/react';
-import { getDataChangedEvents } from '../../actions/data-changed-events';
 
 /** Infinite scroll DataChanged events via Next.js server action. */
 export const useInfiniteDataChangedEvents =

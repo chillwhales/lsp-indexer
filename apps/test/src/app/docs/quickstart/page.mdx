@@ -77,8 +77,13 @@ Data flows through Next.js server actions. Set the server-only vars:
 ```env
 # .env.local
 INDEXER_URL=http://localhost:8080/v1/graphql
-# Optional — for server-side subscriptions via WS proxy
+
+# Subscriptions: point browser at the WS proxy (keeps Hasura URL hidden)
+NEXT_PUBLIC_INDEXER_WS_URL=ws://localhost:4000
+# Upstream Hasura WS for the proxy (falls back to INDEXER_URL with ws://)
 # INDEXER_WS_URL=ws://localhost:8080/v1/graphql
+# Required for WS proxy CORS validation
+INDEXER_ALLOWED_ORIGINS=http://localhost:3000
 ```
 
 ### Both modes
@@ -88,6 +93,9 @@ Set both HTTP variables to enable toggling between client and server mode:
 ```env
 NEXT_PUBLIC_INDEXER_URL=http://localhost:8080/v1/graphql
 INDEXER_URL=http://localhost:8080/v1/graphql
+# For subscriptions via WS proxy
+NEXT_PUBLIC_INDEXER_WS_URL=ws://localhost:4000
+INDEXER_ALLOWED_ORIGINS=http://localhost:3000
 ```
 
 ---
@@ -116,12 +124,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
 ### Next.js (server mode)
 
+Subscriptions always use `@lsp-indexer/react` hooks (Next.js does not support WebSocket
+connections in API routes). Set `NEXT_PUBLIC_INDEXER_WS_URL` to your WS proxy URL
+(from `@lsp-indexer/next/server`) to keep the Hasura URL hidden:
+
 ```tsx
 // app/providers.tsx
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { IndexerSubscriptionProvider } from '@lsp-indexer/next';
+import { IndexerSubscriptionProvider } from '@lsp-indexer/react';
 import { useState } from 'react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -129,9 +141,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <IndexerSubscriptionProvider proxyUrl="ws://localhost:4000">
-        {children}
-      </IndexerSubscriptionProvider>
+      <IndexerSubscriptionProvider>{children}</IndexerSubscriptionProvider>
     </QueryClientProvider>
   );
 }

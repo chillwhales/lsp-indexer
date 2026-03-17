@@ -8,13 +8,12 @@ import {
   useInfiniteNfts as useInfiniteNftsNext,
   useNft as useNftNext,
   useNfts as useNftsNext,
-  useNftSubscription as useNftSubscriptionNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteNfts as useInfiniteNftsReact,
   useNft as useNftReact,
   useNfts as useNftsReact,
-  useNftSubscription as useNftSubscriptionReact,
+  useNftSubscription,
 } from '@lsp-indexer/react';
 import {
   type NftFilter,
@@ -122,14 +121,14 @@ function useHooks(mode: HookMode) {
       useNft: useNftNext,
       useNfts: useNftsNext,
       useInfiniteNfts: useInfiniteNftsNext,
-      useNftSubscription: useNftSubscriptionNext,
+      useNftSubscription,
     };
   }
   return {
     useNft: useNftReact,
     useNfts: useNftsReact,
     useInfiniteNfts: useInfiniteNftsReact,
-    useNftSubscription: useNftSubscriptionReact,
+    useNftSubscription,
   };
 }
 

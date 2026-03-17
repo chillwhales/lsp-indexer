@@ -103,7 +103,8 @@ RUN pnpm --filter=@lsp-indexer/types build && \
     pnpm --filter=@lsp-indexer/react build && \
     pnpm --filter=@lsp-indexer/next build
 
-# NEXT_PUBLIC_* vars must be available at build time (baked into JS bundle)
+# NEXT_PUBLIC_* vars are baked into the client JS bundle at build time.
+# Server-side vars (INDEXER_URL, etc.) are read at runtime — no build arg needed.
 ARG NEXT_PUBLIC_INDEXER_URL
 ARG NEXT_PUBLIC_INDEXER_WS_URL
 ENV NEXT_PUBLIC_INDEXER_URL=$NEXT_PUBLIC_INDEXER_URL

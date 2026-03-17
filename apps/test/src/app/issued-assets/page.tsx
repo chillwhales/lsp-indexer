@@ -7,12 +7,11 @@ import React, { useState } from 'react';
 import {
   useInfiniteIssuedAssets as useInfiniteIssuedAssetsNext,
   useIssuedAssets as useIssuedAssetsNext,
-  useIssuedAssetSubscription as useIssuedAssetSubscriptionNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteIssuedAssets as useInfiniteIssuedAssetsReact,
   useIssuedAssets as useIssuedAssetsReact,
-  useIssuedAssetSubscription as useIssuedAssetSubscriptionReact,
+  useIssuedAssetSubscription,
 } from '@lsp-indexer/react';
 import {
   type IssuedAssetFilter,
@@ -114,7 +113,7 @@ const SORT_OPTIONS: SortOption[] = [
 type IssuedAssetHooks = {
   useIssuedAssets: typeof useIssuedAssetsReact;
   useInfiniteIssuedAssets: typeof useInfiniteIssuedAssetsReact;
-  useIssuedAssetSubscription: typeof useIssuedAssetSubscriptionReact;
+  useIssuedAssetSubscription: typeof useIssuedAssetSubscription;
 };
 
 function useIssuedAssetHooks(mode: HookMode): IssuedAssetHooks {
@@ -122,13 +121,13 @@ function useIssuedAssetHooks(mode: HookMode): IssuedAssetHooks {
     return {
       useIssuedAssets: useIssuedAssetsNext,
       useInfiniteIssuedAssets: useInfiniteIssuedAssetsNext,
-      useIssuedAssetSubscription: useIssuedAssetSubscriptionNext,
+      useIssuedAssetSubscription,
     };
   }
   return {
     useIssuedAssets: useIssuedAssetsReact,
     useInfiniteIssuedAssets: useInfiniteIssuedAssetsReact,
-    useIssuedAssetSubscription: useIssuedAssetSubscriptionReact,
+    useIssuedAssetSubscription,
   };
 }
 

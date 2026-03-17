@@ -8,12 +8,11 @@ import React, { useState } from 'react';
 import {
   useInfiniteUniversalReceiverEvents as useInfiniteUniversalReceiverEventsNext,
   useUniversalReceiverEvents as useUniversalReceiverEventsNext,
-  useUniversalReceiverEventSubscription as useUniversalReceiverEventSubscriptionNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteUniversalReceiverEvents as useInfiniteUniversalReceiverEventsReact,
   useUniversalReceiverEvents as useUniversalReceiverEventsReact,
-  useUniversalReceiverEventSubscription as useUniversalReceiverEventSubscriptionReact,
+  useUniversalReceiverEventSubscription,
 } from '@lsp-indexer/react';
 import {
   type SortDirection,
@@ -151,7 +150,7 @@ const SORT_OPTIONS: SortOption[] = [
 type UniversalReceiverEventHooks = {
   useUniversalReceiverEvents: typeof useUniversalReceiverEventsReact;
   useInfiniteUniversalReceiverEvents: typeof useInfiniteUniversalReceiverEventsReact;
-  useUniversalReceiverEventSubscription: typeof useUniversalReceiverEventSubscriptionReact;
+  useUniversalReceiverEventSubscription: typeof useUniversalReceiverEventSubscription;
 };
 
 function useUniversalReceiverEventHooks(mode: HookMode): UniversalReceiverEventHooks {
@@ -159,13 +158,13 @@ function useUniversalReceiverEventHooks(mode: HookMode): UniversalReceiverEventH
     return {
       useUniversalReceiverEvents: useUniversalReceiverEventsNext,
       useInfiniteUniversalReceiverEvents: useInfiniteUniversalReceiverEventsNext,
-      useUniversalReceiverEventSubscription: useUniversalReceiverEventSubscriptionNext,
+      useUniversalReceiverEventSubscription,
     };
   }
   return {
     useUniversalReceiverEvents: useUniversalReceiverEventsReact,
     useInfiniteUniversalReceiverEvents: useInfiniteUniversalReceiverEventsReact,
-    useUniversalReceiverEventSubscription: useUniversalReceiverEventSubscriptionReact,
+    useUniversalReceiverEventSubscription,
   };
 }
 
