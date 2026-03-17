@@ -44,3 +44,23 @@ logs/
 .gsd/milestones/**/continue.md
 .bg-shell/
 .planning/
+
+# ── GSD baseline (auto-generated) ──
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+*.code-workspace
+.env.*
+!.env.example
+build/
+__pycache__/
+*.pyc
+.venv/
+venv/
+target/
+vendor/
+.cache/
+tmp/
