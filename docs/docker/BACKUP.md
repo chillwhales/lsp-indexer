@@ -12,13 +12,13 @@ you a quick restore path while keeping operational complexity low.
 The indexer uses **`pg_dump --format=custom`** (compressed, custom-format dumps) instead
 of WAL archiving or streaming replication. This choice is deliberate:
 
-| Consideration       | pg_dump (chosen)                            | WAL archiving                              |
-| -------------------- | ------------------------------------------- | ------------------------------------------ |
-| Complexity           | Single command, no WAL config               | Requires `archive_command`, storage infra   |
-| Recovery granularity | Point-in-time snapshots                     | Continuous point-in-time recovery           |
-| Data nature          | Re-derivable from blockchain                | Designed for irreplaceable data             |
-| Docker integration   | Works with existing Compose sidecar pattern | Needs shared volumes, custom PG config      |
-| Storage              | ~50-200 MB per backup (compressed)          | WAL segments accumulate rapidly             |
+| Consideration        | pg_dump (chosen)                            | WAL archiving                             |
+| -------------------- | ------------------------------------------- | ----------------------------------------- |
+| Complexity           | Single command, no WAL config               | Requires `archive_command`, storage infra |
+| Recovery granularity | Point-in-time snapshots                     | Continuous point-in-time recovery         |
+| Data nature          | Re-derivable from blockchain                | Designed for irreplaceable data           |
+| Docker integration   | Works with existing Compose sidecar pattern | Needs shared volumes, custom PG config    |
+| Storage              | ~50-200 MB per backup (compressed)          | WAL segments accumulate rapidly           |
 
 Since the indexer can always re-sync from block 0 as a last resort, the simplicity and
 reliability of `pg_dump` snapshots is the right trade-off.
@@ -47,11 +47,11 @@ container that runs `pg_dump` on a cron schedule.
 
 Set these variables in your `.env.prod` file:
 
-| Variable                | Default       | Description                                        |
-| ----------------------- | ------------- | -------------------------------------------------- |
-| `BACKUP_SCHEDULE`       | `0 2 * * *`   | Cron schedule (default: daily at 2 AM UTC)         |
-| `BACKUP_RETENTION_DAYS` | `7`           | Days to keep backups before automatic deletion     |
-| `BACKUP_ENABLED`        | `true`        | Set to `false` to disable cron scheduling          |
+| Variable                | Default     | Description                                    |
+| ----------------------- | ----------- | ---------------------------------------------- |
+| `BACKUP_SCHEDULE`       | `0 2 * * *` | Cron schedule (default: daily at 2 AM UTC)     |
+| `BACKUP_RETENTION_DAYS` | `7`         | Days to keep backups before automatic deletion |
+| `BACKUP_ENABLED`        | `true`      | Set to `false` to disable cron scheduling      |
 
 **Schedule examples:**
 
@@ -146,20 +146,24 @@ services, restores the database, and restarts everything in the correct order.
 1. **Confirmation** — You must type `restore` to proceed (prevents accidental restores)
 
 2. **Stop indexer** — Prevents new writes during restoration
+
    ```
    docker compose stop indexer
    ```
 
 3. **Stop Hasura** — Prevents metadata conflicts during schema changes
+
    ```
    docker compose stop hasura data-connector-agent
    ```
 
 4. **Restore database** — Runs `pg_restore` with these flags:
+
    - `--clean` — Drops existing objects before restoring
    - `--if-exists` — Avoids errors for objects that don't exist yet
    - `--no-owner` — Skips ownership changes (uses the connected user)
    - `--no-privileges` — Skips privilege grants
+
    ```
    pg_restore --clean --if-exists --no-owner --no-privileges --dbname=$PGDATABASE <file>
    ```
@@ -206,13 +210,13 @@ docker compose -f docker-compose.prod.yml --env-file ../.env.prod logs --tail=20
 
 ## Troubleshooting
 
-| Problem                | Cause                                  | Solution                                                              |
-| ---------------------- | -------------------------------------- | --------------------------------------------------------------------- |
-| No backups found       | Sidecar not running / volume not mounted | Check `docker ps`, verify `backup-data` volume exists                |
-| Backup failed          | PostgreSQL not ready / disk full       | Check postgres health (`./manage.sh --prod health`), check disk space        |
-| Restore failed         | Backup file corrupt / wrong format     | Run `./manage.sh --prod backup-verify <file>`, ensure `.dump` format         |
-| Services won't restart | Port conflicts / config errors         | Check `docker logs <container>`, run `./manage.sh --prod health`             |
-| Cron not running       | Schedule syntax error                  | Check `docker exec <backup-container> crontab -l` for the active schedule |
+| Problem                | Cause                                    | Solution                                                                  |
+| ---------------------- | ---------------------------------------- | ------------------------------------------------------------------------- |
+| No backups found       | Sidecar not running / volume not mounted | Check `docker ps`, verify `backup-data` volume exists                     |
+| Backup failed          | PostgreSQL not ready / disk full         | Check postgres health (`./manage.sh --prod health`), check disk space     |
+| Restore failed         | Backup file corrupt / wrong format       | Run `./manage.sh --prod backup-verify <file>`, ensure `.dump` format      |
+| Services won't restart | Port conflicts / config errors           | Check `docker logs <container>`, run `./manage.sh --prod health`          |
+| Cron not running       | Schedule syntax error                    | Check `docker exec <backup-container> crontab -l` for the active schedule |
 
 ### Viewing Backup Logs
 
