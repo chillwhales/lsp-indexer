@@ -6,20 +6,12 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   output: 'standalone',
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
-  transpilePackages: [
-    '@lsp-indexer/types',
-    '@lsp-indexer/node',
-    '@lsp-indexer/react',
-    '@lsp-indexer/next',
-  ],
+  transpilePackages: ['@lsp-indexer/types', '@lsp-indexer/react'],
+  serverExternalPackages: ['@lsp-indexer/next', '@lsp-indexer/node'],
   outputFileTracingRoot: resolve(import.meta.dirname, '../../'),
   env: {
     NEXT_PUBLIC_INDEXER_URL: process.env.NEXT_PUBLIC_INDEXER_URL,
     NEXT_PUBLIC_INDEXER_WS_URL: process.env.NEXT_PUBLIC_INDEXER_WS_URL,
-    INDEXER_URL: process.env.INDEXER_URL,
-    INDEXER_WS_URL: process.env.INDEXER_WS_URL,
-    INDEXER_ALLOWED_ORIGINS: process.env.INDEXER_ALLOWED_ORIGINS,
-    WS_PROXY_PORT: process.env.WS_PROXY_PORT,
   },
 };
 

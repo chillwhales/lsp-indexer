@@ -23,10 +23,6 @@ import {
   getProfiles,
   getTokenIdDataChangedEvents,
   getUniversalReceiverEvents,
-  IndexerSubscriptionProvider,
-  // Subscription infrastructure
-  SubscriptionClient,
-  SubscriptionClientContext,
   useCreators,
   useDataChangedEvents,
   useDigitalAsset,
@@ -59,7 +55,6 @@ import {
   // Hooks
   useProfile,
   useProfiles,
-  useSubscription,
   useTokenIdDataChangedEvents,
   useUniversalReceiverEvents,
 } from '../index';
@@ -147,21 +142,6 @@ describe('@lsp-indexer/next', () => {
       expect(typeof useLatestTokenIdDataChangedEvent).toBe('function');
       expect(typeof useUniversalReceiverEvents).toBe('function');
       expect(typeof useInfiniteUniversalReceiverEvents).toBe('function');
-      expect(typeof useSubscription).toBe('function');
-    });
-  });
-
-  describe('subscription infrastructure', () => {
-    it('exports SubscriptionClient', () => {
-      expect(SubscriptionClient).toBeDefined();
-    });
-
-    it('exports SubscriptionClientContext', () => {
-      expect(SubscriptionClientContext).toBeDefined();
-    });
-
-    it('exports IndexerSubscriptionProvider', () => {
-      expect(IndexerSubscriptionProvider).toBeDefined();
     });
   });
 });

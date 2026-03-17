@@ -12,23 +12,30 @@ npm install @lsp-indexer/next @tanstack/react-query
 
 ## Environment Setup
 
-Set the server-only env vars (never exposed to the browser):
+Server-side env vars (never exposed to the browser):
 
 ```env
 # .env.local
 INDEXER_URL=http://localhost:8080/v1/graphql
-# Optional — for server-side WS proxy subscriptions
-INDEXER_WS_URL=ws://localhost:8080/v1/graphql
-# Required for WS proxy in production
-INDEXER_ALLOWED_ORIGINS=https://your-app.com
+# Upstream Hasura WS for the proxy (falls back to INDEXER_URL with ws://)
+# INDEXER_WS_URL=ws://localhost:8080/v1/graphql
+# Required for WS proxy CORS validation (dev and production)
+INDEXER_ALLOWED_ORIGINS=http://localhost:3000
 ```
 
-Unlike `@lsp-indexer/react`, these variables are **not** prefixed with `NEXT_PUBLIC_` — they're
-only available on the server.
+Client-side env var for subscriptions:
 
-> **Note:** These variables are read at runtime by server actions via `process.env`. Do **not** add
-> them to the `env` block in `next.config.ts` — that would inline their values into the client
-> bundle, exposing your infrastructure URLs to the browser.
+```env
+# Browser connects to the WS proxy at this URL (not directly to Hasura)
+NEXT_PUBLIC_INDEXER_WS_URL=ws://localhost:4000
+```
+
+> **Two WS URLs:** `NEXT_PUBLIC_INDEXER_WS_URL` is where the **browser** connects (the WS proxy).
+> `INDEXER_WS_URL` is where the **proxy** connects (upstream Hasura). The browser never sees the
+> Hasura URL.
+
+> **Note:** Server-side variables are read at runtime via `process.env`. Do **not** add them to the
+> `env` block in `next.config.ts` — that would inline their values into the client bundle.
 
 ---
 
@@ -252,6 +259,9 @@ services:
   app:
     build: .
     ports: ['3000:3000']
+    environment:
+      # Browser connects to the WS proxy for subscriptions
+      NEXT_PUBLIC_INDEXER_WS_URL: ws://ws-proxy:4000
   ws-proxy:
     build: .
     command: node ws-proxy.js
