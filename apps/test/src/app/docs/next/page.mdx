@@ -52,8 +52,14 @@ only available on the server.
 hooks or a subscription provider. Subscriptions always use `@lsp-indexer/react` (see
 [why](#why-subscriptions-use-lsp-indexerreact) below).
 
-To use both server actions and subscriptions, set up the React subscription provider pointed at
-the WS proxy so the Hasura URL stays hidden from the browser:
+To use both server actions and subscriptions, set up the React subscription provider.
+Set `NEXT_PUBLIC_INDEXER_WS_URL` to your WS proxy URL so the upstream Hasura URL stays
+hidden from the browser:
+
+```env
+# .env.local
+NEXT_PUBLIC_INDEXER_WS_URL=wss://your-ws-proxy.example.com/v1/graphql
+```
 
 ```tsx
 // app/providers.tsx
@@ -62,8 +68,6 @@ the WS proxy so the Hasura URL stays hidden from the browser:
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IndexerSubscriptionProvider } from '@lsp-indexer/react';
 import { useState } from 'react';
-
-const wsProxyPort = 4000;
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -75,16 +79,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <IndexerSubscriptionProvider wsUrl={`ws://localhost:${wsProxyPort}`}>
-        {children}
-      </IndexerSubscriptionProvider>
+      <IndexerSubscriptionProvider>{children}</IndexerSubscriptionProvider>
     </QueryClientProvider>
   );
 }
 ```
 
-> **Tip:** In production, replace `ws://localhost:4000` with the deployed WS proxy URL.
-> The proxy keeps the real Hasura WebSocket URL hidden from the browser.
+> The provider reads `NEXT_PUBLIC_INDEXER_WS_URL` automatically. Point it at
+> your WS proxy to keep the real Hasura URL hidden from the browser.
 
 ---
 

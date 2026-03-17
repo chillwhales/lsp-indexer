@@ -117,8 +117,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
 ### Next.js (server mode)
 
 Subscriptions always use `@lsp-indexer/react` hooks (Next.js does not support WebSocket
-connections in API routes). Point the React subscription provider at the WS proxy from
-`@lsp-indexer/next/server` to keep the Hasura URL hidden:
+connections in API routes). Set `NEXT_PUBLIC_INDEXER_WS_URL` to your WS proxy URL
+(from `@lsp-indexer/next/server`) to keep the Hasura URL hidden:
 
 ```tsx
 // app/providers.tsx
@@ -133,9 +133,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <IndexerSubscriptionProvider wsUrl="ws://localhost:4000">
-        {children}
-      </IndexerSubscriptionProvider>
+      <IndexerSubscriptionProvider>{children}</IndexerSubscriptionProvider>
     </QueryClientProvider>
   );
 }

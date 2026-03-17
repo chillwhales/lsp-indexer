@@ -233,14 +233,9 @@ const { data, isConnected, isSubscribed, error } = useDigitalAssetSubscription({
 ```
 
 > **Using with `@lsp-indexer/next`?** If you use `@lsp-indexer/next` for server actions but still
-> want real-time subscriptions, use `@lsp-indexer/react` subscription hooks and point the provider
-> at the WS proxy from `@lsp-indexer/next/server`. This keeps the Hasura URL hidden from the
-> browser while enabling real-time updates:
->
-> ```tsx
-> <IndexerSubscriptionProvider wsUrl="ws://localhost:4000">
-> ```
->
+> want real-time subscriptions, use `@lsp-indexer/react` subscription hooks and set
+> `NEXT_PUBLIC_INDEXER_WS_URL` to your WS proxy URL (from `@lsp-indexer/next/server`).
+> This keeps the Hasura URL hidden from the browser while enabling real-time updates.
 > See the [@lsp-indexer/next docs](/docs/next#why-subscriptions-use-lsp-indexerreact) for details.
 
 ---
