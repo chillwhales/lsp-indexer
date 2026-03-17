@@ -2,24 +2,6 @@
 
 ## Active
 
-### MNTR-01 — Grafana dashboard displays all structured log output from the indexer
-
-- Status: active
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Grafana dashboard displays all structured log output from the indexer
-
-### MNTR-02 — Grafana dashboard displays Subsquid processor (sqd) logs
-
-- Status: active
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Grafana dashboard displays Subsquid processor (sqd) logs
-
 ### RELD-01 — New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block ordering changes
 
 - Status: active
@@ -40,6 +22,26 @@ New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block orderi
 Recovery procedure documented and tested
 
 ## Validated
+
+### MNTR-01 — Grafana dashboard displays all structured log output from the indexer
+
+- Status: validated
+- Class: core-capability
+- Source: inferred
+- Primary Slice: S25
+- Validation: Grafana Log Explorer panel with Alloy collecting all indexer container logs to Loki; structured fields queryable by step/handler/component
+
+Grafana dashboard displays all structured log output from the indexer
+
+### MNTR-02 — Grafana dashboard displays Subsquid processor (sqd) logs
+
+- Status: validated
+- Class: core-capability
+- Source: inferred
+- Primary Slice: S25
+- Validation: Alloy collects ALL Docker container logs including sqd processor output; Log Explorer and block progress panels surface sqd data
+
+Grafana dashboard displays Subsquid processor (sqd) logs
 
 ### OPS-01 — PostgreSQL backup strategy defined and documented
 
