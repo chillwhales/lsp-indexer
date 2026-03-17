@@ -43,3 +43,4 @@ logs/
 .gsd/milestones/**/*-CONTINUE.md
 .gsd/milestones/**/continue.md
 .bg-shell/
+.planning/
