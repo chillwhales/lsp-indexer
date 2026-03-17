@@ -104,14 +104,11 @@ RUN pnpm --filter=@lsp-indexer/types build && \
     pnpm --filter=@lsp-indexer/next build
 
 # NEXT_PUBLIC_* vars are baked into the client JS bundle at build time.
-# INDEXER_URL is needed at build time because transpilePackages inlines
-# process.env references — but it only runs server-side (via 'use server').
+# Server-side vars (INDEXER_URL, etc.) are read at runtime — no build arg needed.
 ARG NEXT_PUBLIC_INDEXER_URL
 ARG NEXT_PUBLIC_INDEXER_WS_URL
-ARG INDEXER_URL
 ENV NEXT_PUBLIC_INDEXER_URL=$NEXT_PUBLIC_INDEXER_URL
 ENV NEXT_PUBLIC_INDEXER_WS_URL=$NEXT_PUBLIC_INDEXER_WS_URL
-ENV INDEXER_URL=$INDEXER_URL
 
 # Build the Next.js test app (standalone output)
 RUN pnpm --filter=test build

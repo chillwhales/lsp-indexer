@@ -126,12 +126,13 @@ function MyComponent() {
 
 ## Server Actions
 
-Under the hood, each hook calls a Next.js server action. You can also use server actions directly
-in Server Components or Route Handlers:
+Under the hood, each hook calls a Next.js server action. Server actions are exported from
+a **separate entry point** (`@lsp-indexer/next/actions`) to ensure they never leak into the
+client bundle. You can also use them directly in Server Components or Route Handlers:
 
 ```tsx
 // In a Server Component
-import { getProfile, getDigitalAssets } from '@lsp-indexer/next';
+import { getProfile, getDigitalAssets } from '@lsp-indexer/next/actions';
 
 export default async function Page() {
   const profile = await getProfile({ address: '0x...' });
@@ -223,7 +224,7 @@ server.listen(4000, () => {
 | ------------------------- | ------------------- | ---------------------------------- |
 | `INDEXER_WS_URL`          | If no `INDEXER_URL` | WebSocket endpoint for Hasura      |
 | `INDEXER_URL`             | Fallback            | HTTP URL, auto-derived to `wss://` |
-| `INDEXER_ALLOWED_ORIGINS` | Production          | Comma-separated allowed origins    |
+| `INDEXER_ALLOWED_ORIGINS` | Dev + Production    | Comma-separated allowed origins    |
 
 ---
 
@@ -260,8 +261,9 @@ services:
     build: .
     ports: ['3000:3000']
     environment:
-      # Browser connects to the WS proxy for subscriptions
-      NEXT_PUBLIC_INDEXER_WS_URL: ws://ws-proxy:4000
+      INDEXER_URL: http://hasura:8080/v1/graphql
+      # Browser connects to the WS proxy — use the publicly accessible URL
+      NEXT_PUBLIC_INDEXER_WS_URL: ws://localhost:4000
   ws-proxy:
     build: .
     command: node ws-proxy.js
