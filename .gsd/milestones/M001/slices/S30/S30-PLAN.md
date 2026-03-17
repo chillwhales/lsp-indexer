@@ -47,7 +47,7 @@
 
 ## Tasks
 
-- [ ] **T01: Create backup and restore shell scripts** `est:45m`
+- [x] **T01: Create backup and restore shell scripts** `est:45m`
   - Why: These are the core deliverables — everything else (sidecar, manage.sh, docs) layers on top of these scripts
   - Files: `docker/backup.sh`, `docker/restore.sh`
   - Do: Create `docker/backup.sh` with `pg_dump --format=custom`, timestamped filenames, configurable retention cleanup, `pg_restore --list` integrity verification, structured log output. Create `docker/restore.sh` with interactive safety confirmations, service stop/start orchestration (stop indexer → stop hasura → drop/recreate DB → pg_restore → restart), and step-by-step progress logging. Both scripts must handle missing env vars gracefully (exit with descriptive error). Scripts use `PGHOST`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` env vars (standard PostgreSQL client vars).
