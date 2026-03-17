@@ -6,12 +6,11 @@ import React, { useState } from 'react';
 
 import {
   useEncryptedAssets as useEncryptedAssetsNext,
-  useEncryptedAssetSubscription as useEncryptedAssetSubscriptionNext,
   useInfiniteEncryptedAssets as useInfiniteEncryptedAssetsNext,
 } from '@lsp-indexer/next';
 import {
   useEncryptedAssets as useEncryptedAssetsReact,
-  useEncryptedAssetSubscription as useEncryptedAssetSubscriptionReact,
+  useEncryptedAssetSubscription,
   useInfiniteEncryptedAssets as useInfiniteEncryptedAssetsReact,
 } from '@lsp-indexer/react';
 import {
@@ -125,7 +124,7 @@ const SORT_OPTIONS: SortOption[] = [
 type EncryptedAssetHooks = {
   useEncryptedAssets: typeof useEncryptedAssetsReact;
   useInfiniteEncryptedAssets: typeof useInfiniteEncryptedAssetsReact;
-  useEncryptedAssetSubscription: typeof useEncryptedAssetSubscriptionReact;
+  useEncryptedAssetSubscription: typeof useEncryptedAssetSubscription;
 };
 
 function useEncryptedAssetHooks(mode: HookMode): EncryptedAssetHooks {
@@ -133,13 +132,13 @@ function useEncryptedAssetHooks(mode: HookMode): EncryptedAssetHooks {
     return {
       useEncryptedAssets: useEncryptedAssetsNext,
       useInfiniteEncryptedAssets: useInfiniteEncryptedAssetsNext,
-      useEncryptedAssetSubscription: useEncryptedAssetSubscriptionNext,
+      useEncryptedAssetSubscription,
     };
   }
   return {
     useEncryptedAssets: useEncryptedAssetsReact,
     useInfiniteEncryptedAssets: useInfiniteEncryptedAssetsReact,
-    useEncryptedAssetSubscription: useEncryptedAssetSubscriptionReact,
+    useEncryptedAssetSubscription,
   };
 }
 

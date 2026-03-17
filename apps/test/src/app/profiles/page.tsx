@@ -7,13 +7,12 @@ import React, { useState } from 'react';
 import {
   useInfiniteProfiles as useInfiniteProfilesNext,
   useProfile as useProfileNext,
-  useProfileSubscription as useProfileSubscriptionNext,
   useProfiles as useProfilesNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteProfiles as useInfiniteProfilesReact,
   useProfile as useProfileReact,
-  useProfileSubscription as useProfileSubscriptionReact,
+  useProfileSubscription,
   useProfiles as useProfilesReact,
 } from '@lsp-indexer/react';
 import {
@@ -77,14 +76,14 @@ function useHooks(mode: HookMode) {
       useProfile: useProfileNext,
       useProfiles: useProfilesNext,
       useInfiniteProfiles: useInfiniteProfilesNext,
-      useProfileSubscription: useProfileSubscriptionNext,
+      useProfileSubscription,
     };
   }
   return {
     useProfile: useProfileReact,
     useProfiles: useProfilesReact,
     useInfiniteProfiles: useInfiniteProfilesReact,
-    useProfileSubscription: useProfileSubscriptionReact,
+    useProfileSubscription,
   };
 }
 

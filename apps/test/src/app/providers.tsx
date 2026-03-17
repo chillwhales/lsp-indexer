@@ -1,13 +1,17 @@
 'use client';
 
 /**
- * Client providers — conditionally mounts subscription providers based on env availability.
+ * Client providers — conditionally mounts subscription provider based on env availability.
  *
- * Subscription providers only mount when their respective WebSocket env vars are configured,
- * preventing runtime errors from missing connection URLs.
+ * Uses @lsp-indexer/react subscription hooks for all subscriptions. When a WS proxy is
+ * configured (server-side env vars), the provider connects through the proxy to keep the
+ * Hasura URL hidden from the browser. Otherwise, it connects directly using the client-side
+ * WebSocket URL.
+ *
+ * Next.js does not support WebSocket connections in API routes, so subscriptions always use
+ * the React subscription provider — either direct or through the WS proxy.
  */
-import { IndexerSubscriptionProvider as NextSubscriptionProvider } from '@lsp-indexer/next';
-import { IndexerSubscriptionProvider as ReactSubscriptionProvider } from '@lsp-indexer/react';
+import { IndexerSubscriptionProvider } from '@lsp-indexer/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { useState, type ReactNode } from 'react';
@@ -15,21 +19,19 @@ import { useState, type ReactNode } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface ProvidersProps {
-  /** Whether client-side WebSocket env vars are available. */
-  hasClientWs: boolean;
-  /** Whether server-side WebSocket env vars are available. */
-  hasServerWs: boolean;
-  /** WS proxy port for NextSubscriptionProvider (default 4000). */
-  wsProxyPort: number;
+  /** Whether WebSocket subscriptions are available (either client or server WS env vars). */
+  hasWs: boolean;
+  /**
+   * WebSocket URL for subscriptions.
+   * When WS proxy is available: `ws://hostname:4000` (Hasura URL stays hidden).
+   * When only client WS is available: uses NEXT_PUBLIC_INDEXER_WS_URL directly.
+   * Undefined when no WS env vars are configured.
+   */
+  wsUrl?: string;
   children: ReactNode;
 }
 
-export function Providers({
-  hasClientWs,
-  hasServerWs,
-  wsProxyPort,
-  children,
-}: ProvidersProps): ReactNode {
+export function Providers({ hasWs, wsUrl, children }: ProvidersProps): ReactNode {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -41,31 +43,16 @@ export function Providers({
       }),
   );
 
-  /** Wrap children in subscription providers only when WS env vars are available. */
-  function wrapSubscriptionProviders(inner: ReactNode): ReactNode {
-    let wrapped = inner;
-
-    if (hasServerWs) {
-      wrapped = (
-        <NextSubscriptionProvider
-          proxyUrl={`ws://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:${wsProxyPort}`}
-        >
-          {wrapped}
-        </NextSubscriptionProvider>
-      );
-    }
-
-    if (hasClientWs) {
-      wrapped = <ReactSubscriptionProvider>{wrapped}</ReactSubscriptionProvider>;
-    }
-
-    return wrapped;
+  /** Wrap children in subscription provider only when WS is available. */
+  function wrapSubscriptionProvider(inner: ReactNode): ReactNode {
+    if (!hasWs) return inner;
+    return <IndexerSubscriptionProvider wsUrl={wsUrl}>{inner}</IndexerSubscriptionProvider>;
   }
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <QueryClientProvider client={queryClient}>
-        {wrapSubscriptionProviders(<TooltipProvider>{children}</TooltipProvider>)}
+        {wrapSubscriptionProvider(<TooltipProvider>{children}</TooltipProvider>)}
       </QueryClientProvider>
     </ThemeProvider>
   );

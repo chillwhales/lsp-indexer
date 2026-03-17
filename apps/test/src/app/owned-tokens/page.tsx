@@ -8,13 +8,12 @@ import {
   useInfiniteOwnedTokens as useInfiniteOwnedTokensNext,
   useOwnedToken as useOwnedTokenNext,
   useOwnedTokens as useOwnedTokensNext,
-  useOwnedTokenSubscription as useOwnedTokenSubscriptionNext,
 } from '@lsp-indexer/next';
 import {
   useInfiniteOwnedTokens as useInfiniteOwnedTokensReact,
   useOwnedToken as useOwnedTokenReact,
   useOwnedTokens as useOwnedTokensReact,
-  useOwnedTokenSubscription as useOwnedTokenSubscriptionReact,
+  useOwnedTokenSubscription,
 } from '@lsp-indexer/react';
 import {
   type OwnedTokenFilter,
@@ -112,14 +111,14 @@ function useHooks(mode: HookMode) {
       useOwnedToken: useOwnedTokenNext,
       useOwnedTokens: useOwnedTokensNext,
       useInfiniteOwnedTokens: useInfiniteOwnedTokensNext,
-      useOwnedTokenSubscription: useOwnedTokenSubscriptionNext,
+      useOwnedTokenSubscription,
     };
   }
   return {
     useOwnedToken: useOwnedTokenReact,
     useOwnedTokens: useOwnedTokensReact,
     useInfiniteOwnedTokens: useInfiniteOwnedTokensReact,
-    useOwnedTokenSubscription: useOwnedTokenSubscriptionReact,
+    useOwnedTokenSubscription,
   };
 }
 
