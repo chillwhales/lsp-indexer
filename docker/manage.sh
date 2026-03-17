@@ -348,6 +348,64 @@ cmd_clean() {
   fi
 }
 
+cmd_backup() {
+  log_info "Running manual backup..."
+  docker exec "${COMPOSE_PROJECT_NAME:-lsp-indexer}"-backup /backup.sh
+  log_success "Manual backup complete"
+}
+
+cmd_backup_list() {
+  log_info "Available backups:"
+  docker exec "${COMPOSE_PROJECT_NAME:-lsp-indexer}"-backup sh -c \
+    'ls -lhS ${BACKUP_DIR:-/backups}/backup-*.dump 2>/dev/null || echo "No backups found"'
+}
+
+cmd_backup_verify() {
+  local FILE="${1:?Usage: ./manage.sh backup-verify <filename>}"
+  log_info "Verifying backup: $FILE..."
+  docker exec "${COMPOSE_PROJECT_NAME:-lsp-indexer}"-backup sh -c \
+    "pg_restore --list \${BACKUP_DIR:-/backups}/$FILE > /dev/null"
+  log_success "Backup verified: $FILE"
+}
+
+cmd_backup_restore() {
+  local FILE="${1:?Usage: ./manage.sh backup-restore <filename>}"
+  COMPOSE_OPTS=$(get_compose_opts)
+
+  log_warning "FULL RECOVERY PROCEDURE"
+  log_warning "This will stop services and restore from: $FILE"
+  read -p "Type 'restore' to confirm: " CONFIRM
+  if [ "$CONFIRM" != "restore" ]; then
+    log_info "Cancelled"
+    return
+  fi
+
+  log_info "Step 1: Stopping indexer..."
+  # shellcheck disable=SC2086
+  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS stop indexer
+
+  log_info "Step 2: Stopping Hasura..."
+  # shellcheck disable=SC2086
+  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS stop hasura data-connector-agent
+
+  log_info "Step 3: Restoring database..."
+  docker exec "${COMPOSE_PROJECT_NAME:-lsp-indexer}"-backup sh -c \
+    "pg_restore --clean --if-exists --no-owner --no-privileges --dbname=\$PGDATABASE \${BACKUP_DIR:-/backups}/$FILE"
+
+  log_info "Step 4: Restarting Hasura..."
+  # shellcheck disable=SC2086
+  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS start data-connector-agent hasura
+
+  log_info "Step 5: Waiting for Hasura health..."
+  sleep 10
+
+  log_info "Step 6: Restarting indexer..."
+  # shellcheck disable=SC2086
+  docker compose -f "$COMPOSE_FILE" $COMPOSE_OPTS start indexer
+
+  log_success "Recovery complete. Verify: ./manage.sh health"
+}
+
 cmd_help() {
   cat << EOF
 Docker Management Script for Indexer
@@ -376,6 +434,12 @@ Database:
   db-dump            Backup database to file
   db-restore file    Restore database from file
   db-reset           Drop and recreate database (DESTRUCTIVE!)
+
+Backup:
+  backup             Run manual backup now
+  backup-list        List available backups with sizes
+  backup-verify F    Verify backup file integrity
+  backup-restore F   Full recovery from backup (stops services, restores, restarts)
 
 System:
   shell [service]    Open shell in container (default: indexer)
@@ -428,6 +492,10 @@ case "$COMMAND" in
   db-dump)          cmd_db_dump "$@" ;;
   db-restore)       cmd_db_restore "$@" ;;
   db-reset)         cmd_db_reset "$@" ;;
+  backup)           cmd_backup "$@" ;;
+  backup-list)      cmd_backup_list "$@" ;;
+  backup-verify)    cmd_backup_verify "$@" ;;
+  backup-restore)   cmd_backup_restore "$@" ;;
   logs-export)      cmd_logs_export "$@" ;;
   logs-cleanup)     cmd_logs_cleanup "$@" ;;
   health)           cmd_health "$@" ;;

@@ -416,6 +416,43 @@ services:
         reservations:
           memory: 128M
 
+  # ----------------------------------------------------------------------------
+  # Backup — Automated PostgreSQL Backups
+  # ----------------------------------------------------------------------------
+  backup:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-backup
+    image: postgres:17-alpine
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - backup-data:/backups
+      - ./backup.sh:/backup.sh:ro
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}
+      PGDATABASE: ${POSTGRES_DB:-postgres}
+      BACKUP_DIR: ${BACKUP_DIR:-/backups}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        echo "${BACKUP_SCHEDULE:-0 2 * * *} /backup.sh" | crontab -
+        crond -f -l 2
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+
 # ==============================================================================
 # Persistent Volumes
 # ==============================================================================
@@ -448,6 +485,10 @@ volumes:
 
   # Prometheus metric data — stores scraped time-series metrics
   prometheus-data:
+    driver: local
+
+  # Backup data — stores pg_dump backup files with configurable retention
+  backup-data:
     driver: local
 # ==============================================================================
 # Networks (optional)

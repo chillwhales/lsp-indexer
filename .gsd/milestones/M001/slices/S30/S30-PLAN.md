@@ -54,7 +54,7 @@
   - Verify: `shellcheck docker/backup.sh docker/restore.sh` passes, `bash -n docker/backup.sh && bash -n docker/restore.sh` passes
   - Done when: both scripts exist, are executable, pass shellcheck and bash syntax validation
 
-- [ ] **T02: Wire backup sidecar into Docker Compose and manage.sh** `est:30m`
+- [x] **T02: Wire backup sidecar into Docker Compose and manage.sh** `est:30m`
   - Why: Connects the scripts to the production infrastructure — adds the cron sidecar, new manage.sh commands, and env var documentation
   - Files: `docker/docker-compose.prod.yml`, `docker/manage.sh`, `.env.example`
   - Do: Add `backup` service to `docker-compose.prod.yml` using `postgres:17-alpine` image with crond entrypoint, `backup-data` volume, and standard PG env vars. Add `backup-data` volume to the volumes section. Add four new commands to `manage.sh`: `cmd_backup` (runs backup.sh in the postgres container), `cmd_backup_list` (lists backup files with sizes/dates from backup volume), `cmd_backup_verify` (runs `pg_restore --list` on a specified backup file), `cmd_backup_restore` (runs restore.sh). Update help text. Add `BACKUP_SCHEDULE`, `BACKUP_RETENTION_DAYS`, `BACKUP_DIR`, `BACKUP_ENABLED` to `.env.example` with documentation comments.

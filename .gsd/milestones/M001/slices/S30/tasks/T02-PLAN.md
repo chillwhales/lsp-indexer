@@ -180,6 +180,13 @@ Connect the backup/restore scripts (from T01) to the production infrastructure. 
 - `docker/manage.sh` — existing 350+ line management script with `cmd_` function pattern
 - `.env.example` — existing env var template at repo root
 
+## Observability Impact
+
+- **New runtime signals:** Backup sidecar container emits `[BACKUP]`-prefixed log lines via Docker json-file driver → Alloy → Loki pipeline. Cron execution history visible in `docker logs <backup-container>`.
+- **New inspection surfaces:** `./manage.sh backup-list` lists backup files with sizes/dates. `./manage.sh backup-verify <file>` re-runs integrity verification on demand. `docker exec <backup-container> crontab -l` shows the active cron schedule.
+- **Failure visibility:** Backup sidecar restarts on crash (`unless-stopped`). Cron failures are logged with `[BACKUP] ERROR` prefix and exit code 1. `./manage.sh health` does not yet check backup sidecar health (future enhancement).
+- **Diagnostic commands:** `docker logs ${COMPOSE_PROJECT_NAME:-lsp-indexer}-backup` — cron execution history and backup script output. `docker exec ${COMPOSE_PROJECT_NAME:-lsp-indexer}-backup ls -lhS /backups/` — list backup files directly.
+
 ## Expected Output
 
 - `docker/docker-compose.prod.yml` — updated with backup service (10th service) and backup-data volume (6th volume)
