@@ -11,6 +11,8 @@
 
 New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block ordering changes
 
+## Validated
+
 ### OPS-03 — Recovery procedure documented and tested
 
 - Status: validated
@@ -20,8 +22,6 @@ New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block orderi
 - Validation: 6-step recovery procedure in BACKUP.md, restore.sh with interactive confirmation and drop/recreate, manage.sh backup-restore with service orchestration
 
 Recovery procedure documented and tested
-
-## Validated
 
 ### MNTR-01 — Grafana dashboard displays all structured log output from the indexer
 

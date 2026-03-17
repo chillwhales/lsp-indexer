@@ -51,8 +51,7 @@ Set these variables in your `.env.prod` file:
 | ----------------------- | ------------- | -------------------------------------------------- |
 | `BACKUP_SCHEDULE`       | `0 2 * * *`   | Cron schedule (default: daily at 2 AM UTC)         |
 | `BACKUP_RETENTION_DAYS` | `7`           | Days to keep backups before automatic deletion     |
-| `BACKUP_DIR`            | `/backups`    | Backup directory inside the container              |
-| `BACKUP_ENABLED`        | `true`        | Set to `false` to skip starting the backup sidecar |
+| `BACKUP_ENABLED`        | `true`        | Set to `false` to disable cron scheduling          |
 
 **Schedule examples:**
 
@@ -71,7 +70,7 @@ Set `BACKUP_ENABLED=false` in your `.env.prod` and restart:
 docker compose -f docker-compose.prod.yml --env-file ../.env.prod up -d
 ```
 
-The backup container will not start.
+The backup container will stay running but skip cron scheduling (sleeps indefinitely).
 
 ---
 
@@ -81,7 +80,7 @@ Trigger a backup immediately without waiting for the cron schedule:
 
 ```bash
 cd docker
-./manage.sh backup
+./manage.sh --prod backup
 ```
 
 Example output:
@@ -105,7 +104,7 @@ Example output:
 View all available backups with sizes:
 
 ```bash
-./manage.sh backup-list
+./manage.sh --prod backup-list
 ```
 
 Example output:
@@ -124,7 +123,7 @@ Example output:
 Check that a backup file is not corrupt and can be restored:
 
 ```bash
-./manage.sh backup-verify backup-20260317-020000.dump
+./manage.sh --prod backup-verify backup-20260317-020000.dump
 ```
 
 This runs `pg_restore --list` against the backup file, which parses the custom-format
@@ -135,11 +134,11 @@ If the file is corrupt or not a valid custom-format dump, this command fails.
 
 ## Recovery Procedure
 
-The `manage.sh backup-restore` command orchestrates a full recovery. It stops dependent
+The `manage.sh --prod backup-restore` command orchestrates a full recovery. It stops dependent
 services, restores the database, and restarts everything in the correct order.
 
 ```bash
-./manage.sh backup-restore backup-20260317-020000.dump
+./manage.sh --prod backup-restore backup-20260317-020000.dump
 ```
 
 ### What Happens (Step by Step)
@@ -173,7 +172,7 @@ services, restores the database, and restarts everything in the correct order.
 
 7. **Verify** — Check that everything is healthy:
    ```bash
-   ./manage.sh health
+   ./manage.sh --prod health
    ```
 
 ### Post-Recovery Verification
@@ -182,12 +181,12 @@ After a restore, verify data integrity:
 
 ```bash
 # Check service health
-./manage.sh health
+./manage.sh --prod health
 
 # Verify entity counts (should match pre-backup values)
-./manage.sh db-query 'SELECT count(*) FROM transfer;'
-./manage.sh db-query 'SELECT count(*) FROM profile;'
-./manage.sh db-query 'SELECT count(*) FROM digital_asset;'
+./manage.sh --prod db-query 'SELECT count(*) FROM transfer;'
+./manage.sh --prod db-query 'SELECT count(*) FROM profile;'
+./manage.sh --prod db-query 'SELECT count(*) FROM digital_asset;'
 
 # Check indexer progress (should resume from restored block)
 docker compose -f docker-compose.prod.yml --env-file ../.env.prod logs --tail=20 indexer
@@ -210,9 +209,9 @@ docker compose -f docker-compose.prod.yml --env-file ../.env.prod logs --tail=20
 | Problem                | Cause                                  | Solution                                                              |
 | ---------------------- | -------------------------------------- | --------------------------------------------------------------------- |
 | No backups found       | Sidecar not running / volume not mounted | Check `docker ps`, verify `backup-data` volume exists                |
-| Backup failed          | PostgreSQL not ready / disk full       | Check postgres health (`./manage.sh health`), check disk space        |
-| Restore failed         | Backup file corrupt / wrong format     | Run `./manage.sh backup-verify <file>`, ensure `.dump` format         |
-| Services won't restart | Port conflicts / config errors         | Check `docker logs <container>`, run `./manage.sh health`             |
+| Backup failed          | PostgreSQL not ready / disk full       | Check postgres health (`./manage.sh --prod health`), check disk space        |
+| Restore failed         | Backup file corrupt / wrong format     | Run `./manage.sh --prod backup-verify <file>`, ensure `.dump` format         |
+| Services won't restart | Port conflicts / config errors         | Check `docker logs <container>`, run `./manage.sh --prod health`             |
 | Cron not running       | Schedule syntax error                  | Check `docker exec <backup-container> crontab -l` for the active schedule |
 
 ### Viewing Backup Logs
@@ -268,7 +267,7 @@ database and let the indexer re-sync from block 0:
 
 ```bash
 cd docker
-./manage.sh db-reset
+./manage.sh --prod db-reset
 ```
 
 This is a **complete data recovery** because all indexed data is derived from on-chain events.

@@ -17,7 +17,7 @@
 #
 # Usage:
 #   cd docker
-#   cp .env.prod.example ../.env.prod
+#   cp ../.env.example ../.env.prod
 #   nano ../.env.prod  # Set REQUIRED variables
 #   docker compose -f docker-compose.prod.yml --env-file ../.env.prod up -d
 #   docker compose -f docker-compose.prod.yml --env-file ../.env.prod logs -f indexer
@@ -434,11 +434,16 @@ services:
       PGUSER: ${POSTGRES_USER:-postgres}
       PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}
       PGDATABASE: ${POSTGRES_DB:-postgres}
-      BACKUP_DIR: ${BACKUP_DIR:-/backups}
+      BACKUP_DIR: /backups
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+      BACKUP_ENABLED: ${BACKUP_ENABLED:-true}
     entrypoint: ['/bin/sh', '-c']
     command:
       - |
+        if [ "$${BACKUP_ENABLED}" = "false" ]; then
+          echo "[BACKUP] Backups disabled (BACKUP_ENABLED=false). Sleeping."
+          exec sleep infinity
+        fi
         echo "${BACKUP_SCHEDULE:-0 2 * * *} /backup.sh" | crontab -
         crond -f -l 2
     logging:

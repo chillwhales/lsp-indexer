@@ -40,7 +40,7 @@ Environment variables:
   PGHOST                 PostgreSQL host (required)
   PGUSER                 PostgreSQL user (default: postgres)
   PGPASSWORD             PostgreSQL password (required)
-  PGDATABASE             PostgreSQL database (default: squid)
+  PGDATABASE             PostgreSQL database (default: postgres)
 EOF
   exit 0
 }
@@ -56,7 +56,7 @@ esac
 BACKUP_DIR="${BACKUP_DIR:-/backups}"
 BACKUP_RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-7}"
 PGUSER="${PGUSER:-postgres}"
-PGDATABASE="${PGDATABASE:-squid}"
+PGDATABASE="${PGDATABASE:-postgres}"
 
 # ---- Validate required env vars -------------------------------------------
 

@@ -185,8 +185,7 @@ fast recovery over zero-data-loss.
 | ----------------------- | ----------- | ---------------------------------------------- |
 | `BACKUP_SCHEDULE`       | `0 2 * * *` | Cron schedule (default: daily at 2 AM UTC)     |
 | `BACKUP_RETENTION_DAYS` | `7`         | Days to keep backups before automatic deletion |
-| `BACKUP_DIR`            | `/backups`  | Backup directory inside the container          |
-| `BACKUP_ENABLED`        | `true`      | Set to `false` to disable the backup sidecar   |
+| `BACKUP_ENABLED`        | `true`      | Set to `false` to disable cron scheduling      |
 
 ### Management Commands
 
@@ -194,16 +193,16 @@ fast recovery over zero-data-loss.
 cd docker
 
 # Run a manual backup immediately
-./manage.sh backup
+./manage.sh --prod backup
 
 # List available backups with sizes
-./manage.sh backup-list
+./manage.sh --prod backup-list
 
 # Verify a backup file is not corrupt
-./manage.sh backup-verify backup-20260317-020000.dump
+./manage.sh --prod backup-verify backup-20260317-020000.dump
 
 # Full recovery: stops services, restores database, restarts everything
-./manage.sh backup-restore backup-20260317-020000.dump
+./manage.sh --prod backup-restore backup-20260317-020000.dump
 ```
 
 For complete recovery procedures, troubleshooting, and off-site backup strategies, see the

@@ -46,7 +46,7 @@ Environment variables:
   PGHOST       PostgreSQL host (required)
   PGUSER       PostgreSQL user (default: postgres)
   PGPASSWORD   PostgreSQL password (required)
-  PGDATABASE   PostgreSQL database (default: squid)
+  PGDATABASE   PostgreSQL database (default: postgres)
 EOF
   exit 0
 }
@@ -61,7 +61,7 @@ esac
 
 BACKUP_DIR="${BACKUP_DIR:-/backups}"
 PGUSER="${PGUSER:-postgres}"
-PGDATABASE="${PGDATABASE:-squid}"
+PGDATABASE="${PGDATABASE:-postgres}"
 
 # ---- Validate required env vars -------------------------------------------
 
@@ -121,9 +121,9 @@ echo ""
 echo "╔═══════════════════════════════════════════════════════════════╗"
 echo "║  WARNING: DESTRUCTIVE OPERATION                             ║"
 echo "║                                                             ║"
-echo "║  This will DESTROY the current database '${PGDATABASE}'"
+printf "║  This will DESTROY the current database %-21s ║\n" "'${PGDATABASE}'"
 echo "║  and replace it with the backup:                            ║"
-echo "║  ${FILENAME}"
+printf "║  %-58s ║\n" "${FILENAME}"
 echo "║                                                             ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo ""
@@ -140,13 +140,13 @@ fi
 START_TS=$(date +%s)
 
 log "Step 2/4: Dropping database '${PGDATABASE}'..."
-if ! dropdb --if-exists -h "$PGHOST" -U "$PGUSER" "$PGDATABASE"; then
+if ! dropdb --if-exists --maintenance-db=template1 -h "$PGHOST" -U "$PGUSER" "$PGDATABASE"; then
   log_error "Failed to drop database '${PGDATABASE}'."
   exit 1
 fi
 
 log "Step 3/4: Creating database '${PGDATABASE}'..."
-if ! createdb -h "$PGHOST" -U "$PGUSER" "$PGDATABASE"; then
+if ! createdb --maintenance-db=template1 -h "$PGHOST" -U "$PGUSER" "$PGDATABASE"; then
   log_error "Failed to create database '${PGDATABASE}'."
   exit 1
 fi

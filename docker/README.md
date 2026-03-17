@@ -7,8 +7,7 @@ Docker deployment for LSP Indexer.
 - **`Dockerfile`** — Multi-stage optimized build (~400MB)
 - **`docker-compose.yml`** — Development orchestration (builds from source)
 - **`docker-compose.prod.yml`** — Production orchestration with released Docker image
-- **`.env.prod.example`** — Production environment template
-- **`manage.sh`** — Management script (35+ commands)
+- **`manage.sh`** — Management script (35+ commands, use `--prod` for production stack)
 - **`entrypoint.sh`** — Container entrypoint (migrations + Hasura config + start)
 - **`backup.sh`** — Automated PostgreSQL backup with integrity verification and retention cleanup
 - **`restore.sh`** — Interactive database restore with safety confirmation
@@ -53,7 +52,7 @@ The production compose file uses the pre-built Docker image from GitHub Containe
 cd docker
 
 # Copy and configure production environment
-cp .env.prod.example ../.env.prod
+cp ../.env.example ../.env.prod
 nano ../.env.prod  # Set REQUIRED: POSTGRES_PASSWORD, HASURA_GRAPHQL_ADMIN_SECRET, RPC_URL
 
 # Start production stack
@@ -105,11 +104,11 @@ Logs from all containers are collected by Grafana Alloy and stored in Loki (14-d
 ./manage.sh db-dump           # Backup
 ./manage.sh db-restore file   # Restore
 
-# Backup
-./manage.sh backup            # Run manual backup now
-./manage.sh backup-list       # List available backups with sizes
-./manage.sh backup-verify F   # Verify backup file integrity
-./manage.sh backup-restore F  # Full recovery from backup (stops services, restores, restarts)
+# Backup (production only — requires --prod flag)
+./manage.sh --prod backup            # Run manual backup now
+./manage.sh --prod backup-list       # List available backups with sizes
+./manage.sh --prod backup-verify F   # Verify backup file integrity
+./manage.sh --prod backup-restore F  # Full recovery from backup (stops services, restores, restarts)
 
 # System
 ./manage.sh stats             # Resource usage

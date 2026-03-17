@@ -9,9 +9,28 @@
 
 set -e
 
-COMPOSE_FILE="docker-compose.yml"
 PROJECT_NAME="lsp-indexer"
-ENV_FILE="../.env"
+
+# ---- Prod mode (--prod flag) ------------------------------------------------
+# Detect --prod anywhere in args; strip it so it doesn't reach the case dispatch
+PROD_MODE=false
+ARGS=()
+for arg in "$@"; do
+  if [ "$arg" = "--prod" ]; then
+    PROD_MODE=true
+  else
+    ARGS+=("$arg")
+  fi
+done
+set -- "${ARGS[@]}"
+
+if [ "$PROD_MODE" = true ]; then
+  COMPOSE_FILE="docker-compose.prod.yml"
+  ENV_FILE="../.env.prod"
+else
+  COMPOSE_FILE="docker-compose.yml"
+  ENV_FILE="../.env"
+fi
 
 # Safely read a value from .env without executing it
 read_env_value() {
@@ -364,7 +383,7 @@ cmd_backup_verify() {
   local FILE="${1:?Usage: ./manage.sh backup-verify <filename>}"
   log_info "Verifying backup: $FILE..."
   docker exec "${COMPOSE_PROJECT_NAME:-lsp-indexer}"-backup sh -c \
-    "pg_restore --list \${BACKUP_DIR:-/backups}/$FILE > /dev/null"
+    'pg_restore --list "${BACKUP_DIR:-/backups}/$1" > /dev/null' _ "$FILE"
   log_success "Backup verified: $FILE"
 }
 
@@ -390,7 +409,7 @@ cmd_backup_restore() {
 
   log_info "Step 3: Restoring database..."
   docker exec "${COMPOSE_PROJECT_NAME:-lsp-indexer}"-backup sh -c \
-    "pg_restore --clean --if-exists --no-owner --no-privileges --dbname=\$PGDATABASE \${BACKUP_DIR:-/backups}/$FILE"
+    'pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$PGDATABASE" "${BACKUP_DIR:-/backups}/$1"' _ "$FILE"
 
   log_info "Step 4: Restarting Hasura..."
   # shellcheck disable=SC2086
@@ -410,7 +429,10 @@ cmd_help() {
   cat << EOF
 Docker Management Script for Indexer
 
-Usage: ./manage.sh [command] [args]
+Usage: ./manage.sh [--prod] [command] [args]
+
+Options:
+  --prod             Use production compose file (docker-compose.prod.yml + .env.prod)
 
 Service Management:
   start              Start all services (checks ENABLE_HASURA in .env)
