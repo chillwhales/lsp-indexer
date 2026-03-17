@@ -11,4 +11,5 @@ packages/node/schema.graphql
 pnpm-lock.yaml
 .next/
 .planning/
+.gsd/
 dist/
