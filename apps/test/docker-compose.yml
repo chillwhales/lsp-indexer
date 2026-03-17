@@ -3,8 +3,9 @@
 #
 #   docker compose -f apps/test/docker-compose.yml up --build
 #
-# The NEXT_PUBLIC_* vars are baked in at build time (build args).
-# The rest are injected at runtime via the .env file.
+# NEXT_PUBLIC_* and INDEXER_URL are baked in at build time (build args).
+# transpilePackages inlines process.env at build — server vars are still
+# only executed server-side via 'use server' actions.
 
 services:
   test-app:
@@ -14,6 +15,7 @@ services:
       args:
         - NEXT_PUBLIC_INDEXER_URL=${NEXT_PUBLIC_INDEXER_URL:-}
         - NEXT_PUBLIC_INDEXER_WS_URL=${NEXT_PUBLIC_INDEXER_WS_URL:-}
+        - INDEXER_URL=${INDEXER_URL}
     ports:
       - '${PORT:-3000}:${PORT:-3000}'
       - '${WS_PROXY_PORT:-4000}:${WS_PROXY_PORT:-4000}'
