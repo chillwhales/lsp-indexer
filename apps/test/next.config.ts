@@ -6,23 +6,13 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   output: 'standalone',
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
-  transpilePackages: [
-    '@lsp-indexer/types',
-    '@lsp-indexer/node',
-    '@lsp-indexer/react',
-    '@lsp-indexer/next',
-  ],
+  // All @lsp-indexer packages are pre-built by tsup — no transpilation needed.
+  // Do NOT add them to transpilePackages: it inlines process.env at build time,
+  // which leaks server-side env vars (INDEXER_URL) into the client bundle.
   outputFileTracingRoot: resolve(import.meta.dirname, '../../'),
   env: {
     NEXT_PUBLIC_INDEXER_URL: process.env.NEXT_PUBLIC_INDEXER_URL,
     NEXT_PUBLIC_INDEXER_WS_URL: process.env.NEXT_PUBLIC_INDEXER_WS_URL,
-    // Server-side vars — needed because transpilePackages inlines process.env
-    // at build time. These are only used inside 'use server' actions so they
-    // never reach the browser despite being in the env block.
-    INDEXER_URL: process.env.INDEXER_URL,
-    INDEXER_WS_URL: process.env.INDEXER_WS_URL,
-    INDEXER_ALLOWED_ORIGINS: process.env.INDEXER_ALLOWED_ORIGINS,
-    WS_PROXY_PORT: process.env.WS_PROXY_PORT,
   },
 };
 
