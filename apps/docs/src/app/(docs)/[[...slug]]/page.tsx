@@ -1,3 +1,4 @@
+import { AnchorProvider } from 'fumadocs-core/toc';
 import { TOCItems, Toc } from 'fumadocs-ui/components/layout/toc';
 import { DocsBody } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
@@ -18,19 +19,21 @@ export default async function Page({ params }: Props): Promise<ReactNode> {
   const Mdx = page.data.body;
 
   return (
-    <div className="flex flex-row gap-6 p-6 max-w-screen-xl mx-auto w-full">
-      <article className="flex-1 min-w-0">
-        <DocsBody>
-          <Mdx />
-        </DocsBody>
-      </article>
-      {page.data.toc.length > 0 && (
-        <Toc className="hidden xl:flex w-56 shrink-0 flex-col gap-3 sticky top-6 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
-          <p className="text-sm font-medium text-foreground">On this page</p>
-          <TOCItems items={page.data.toc} />
-        </Toc>
-      )}
-    </div>
+    <AnchorProvider toc={page.data.toc}>
+      <div className="flex flex-row gap-6 p-6 max-w-screen-xl mx-auto w-full">
+        <article className="flex-1 min-w-0">
+          <DocsBody>
+            <Mdx />
+          </DocsBody>
+        </article>
+        {page.data.toc.length > 0 && (
+          <Toc className="hidden xl:flex w-56 shrink-0 flex-col gap-3 sticky top-6 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
+            <p className="text-sm font-medium text-foreground">On this page</p>
+            <TOCItems items={page.data.toc} />
+          </Toc>
+        )}
+      </div>
+    </AnchorProvider>
   );
 }
 
