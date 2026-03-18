@@ -1,7 +1,9 @@
-import { source } from '@/lib/source';
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/page';
+import { TOCItems, Toc } from 'fumadocs-ui/components/layout/toc';
+import { DocsBody } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
+
+import { source } from '@/lib/source';
 
 interface Props {
   params: Promise<{ slug?: string[] }>;
@@ -16,13 +18,19 @@ export default async function Page({ params }: Props): Promise<ReactNode> {
   const Mdx = page.data.body;
 
   return (
-    <DocsPage toc={page.data.toc}>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
-      <DocsBody>
-        <Mdx />
-      </DocsBody>
-    </DocsPage>
+    <div className="flex flex-row gap-6 p-6 max-w-screen-xl mx-auto w-full">
+      <article className="flex-1 min-w-0">
+        <DocsBody>
+          <Mdx />
+        </DocsBody>
+      </article>
+      {page.data.toc.length > 0 && (
+        <Toc className="hidden xl:flex w-56 shrink-0 flex-col gap-3 sticky top-6 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
+          <p className="text-sm font-medium text-foreground">On this page</p>
+          <TOCItems items={page.data.toc} />
+        </Toc>
+      )}
+    </div>
   );
 }
 

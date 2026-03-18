@@ -45,11 +45,11 @@ import {
 } from '@/components/ui/sidebar';
 
 const docsLinks = [
-  { href: '/docs/quickstart', label: 'Quickstart', icon: Rocket },
-  { href: '/docs/indexer', label: '@lsp-indexer/indexer', icon: Database },
-  { href: '/docs/node', label: '@lsp-indexer/node', icon: Package },
-  { href: '/docs/react', label: '@lsp-indexer/react', icon: Package },
-  { href: '/docs/next', label: '@lsp-indexer/next', icon: Package },
+  { href: '/quickstart', label: 'Quickstart', icon: Rocket },
+  { href: '/indexer', label: '@lsp-indexer/indexer', icon: Database },
+  { href: '/node', label: '@lsp-indexer/node', icon: Package },
+  { href: '/react', label: '@lsp-indexer/react', icon: Package },
+  { href: '/next', label: '@lsp-indexer/next', icon: Package },
 ] as const;
 
 const playgroundLinks = [
