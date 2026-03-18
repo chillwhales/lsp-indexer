@@ -18,14 +18,14 @@
 
 ## Tasks
 
-- [x] **T01: Create context7.json** `est:15m`
+- [ ] **T01: Create context7.json** `est:15m`
   - Why: Enables Context7 MCP to index `@lsp-indexer` so AI tools can discover and fetch docs via `resolve_library` / `get_library_docs`
   - Files: `apps/docs/public/context7.json`
   - Do: (1) Fetch `https://context7.com/docs` or inspect an existing library's context7.json to confirm the schema (expected fields: `libraryId`, `version`, `title`, `description`, `pages[]` with `url`, `title`, `description`). (2) Write `apps/docs/public/context7.json` — use `libraryId: "chillwhales/lsp-indexer"`, `version` matching current `@lsp-indexer/node` version from `packages/node/package.json`. List all 5 pages with deployed URLs (`https://lsp-indexer.chillwhales.io/docs/{slug}` — use this as placeholder; update when domain is finalized). (3) Validate: `python3 -m json.tool apps/docs/public/context7.json`.
   - Verify: JSON is valid; has `libraryId`, `version`, `title`, `description`, 5-entry `pages` array
   - Done when: File exists, parses cleanly, has correct structure
 
-- [x] **T02: Wire generate:check into CI** `est:15m`
+- [ ] **T02: Wire generate:check into CI** `est:15m`
   - Why: Prevents stale `.md` sidecars from ever merging — the script from S03 already does the check; this just plugs it into the PR gate
   - Files: `.github/workflows/ci.yml`
   - Do: (1) Open `.github/workflows/ci.yml`. Add a new job `docs-check` (or an additional step in an existing build job). The job should: check out the repo, install deps (`pnpm install --frozen-lockfile`), run `pnpm --filter docs generate:check`. If this job is a separate entry, give it `needs: []` so it runs in parallel with other CI jobs — it's fast and has no dependencies. (2) The job fails loudly if sidecars are stale — the script already prints which slugs need updating and exits 1. (3) Consider adding a comment in the job explaining that developers must run `pnpm --filter docs generate` and commit the updated `.md` files whenever they change an MDX source.

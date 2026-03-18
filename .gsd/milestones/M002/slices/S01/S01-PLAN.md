@@ -21,7 +21,7 @@
 
 ## Tasks
 
-- [x] **T01: Rename directory and update all references** `est:20m`
+- [ ] **T01: Rename directory and update all references** `est:20m`
   - Why: Clean rename with zero behavior change — makes the app's purpose clear and sets up S02–S04
   - Files: `apps/docs/package.json`, `apps/docs/Dockerfile`, `apps/docs/docker-compose.yml`, `.github/workflows/*.yml` (if any reference `apps/test`), `pnpm-lock.yaml` (regenerated)
   - Do: (1) `mv apps/test apps/docs`. (2) Update `apps/docs/package.json` — change `"name": "test"` to `"name": "docs"`. (3) Check `apps/docs/Dockerfile` for any hardcoded `apps/test` path strings and update to `apps/docs`. (4) Update `apps/docs/docker-compose.yml` service name from `test-app` to `docs-app` (optional cosmetic, but good hygiene). (5) Grep `.github/workflows/` for any `apps/test` references and update. (6) Grep root-level config files (`turbo.json` if present, etc.) for `apps/test`. (7) Run `pnpm install` to regenerate lockfile with new package name. (8) Run `pnpm --filter docs build`.

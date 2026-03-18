@@ -25,14 +25,14 @@
 
 ## Tasks
 
-- [x] **T01: generate-md.mjs script** `est:25m`
+- [ ] **T01: generate-md.mjs script** `est:25m`
   - Why: The script is the source of truth for .md sidecar generation and the CI check — both generate mode and check mode use the same strip-frontmatter logic
   - Files: `apps/docs/scripts/generate-md.mjs`, `apps/docs/package.json`
   - Do: (1) Create `apps/docs/scripts/generate-md.mjs` as a Node.js ESM script. Define `SLUGS = ['quickstart', 'indexer', 'node', 'react', 'next']`. For each slug: read `content/docs/{slug}.mdx` as UTF-8, strip the leading frontmatter block (`/^---[\s\S]*?---\n*/`), trim leading whitespace. (2) In default (generate) mode: `mkdirSync('public/llm', { recursive: true })`, write `public/llm/{slug}.md`. Print which files were written. Exit 0. (3) In `--check` mode: for each slug, read the existing `public/llm/{slug}.md` (if it doesn't exist, it's stale). Compare to the stripped MDX content. Collect all stale slugs. If any stale, print each slug name + "needs update" and exit 1. If all match, print "All sidecars up to date" and exit 0. (4) Parse `--check` from `process.argv`. (5) Add `"generate": "node scripts/generate-md.mjs"` and `"generate:check": "node scripts/generate-md.mjs --check"` to `apps/docs/package.json` scripts. (6) Run `pnpm --filter docs generate` — verify 5 `.md` files created in `public/llm/`.
   - Verify: Script exits 0 in both modes on clean state; exits 1 after modifying a source MDX
   - Done when: Both modes work as described; 5 `.md` files present in `public/llm/`
 
-- [x] **T02: llms.txt and llms-full.txt route handlers** `est:20m`
+- [ ] **T02: llms.txt and llms-full.txt route handlers** `est:20m`
   - Why: AI agents need a quick-context summary (llms.txt) and a full-content dump (llms-full.txt) — served as route handlers since they're dynamic aggregations, not static files
   - Files: `apps/docs/app/llms.txt/route.ts`, `apps/docs/app/llms-full.txt/route.ts`
   - Do: (1) Create `apps/docs/app/llms.txt/route.ts` — export `GET()` returning `Response` with `Content-Type: text/plain`. Content: project name, tagline, list of 5 docs pages with one-line descriptions, and note: "Per-page markdown: /llm/{slug}.md". (2) Create `apps/docs/app/llms-full.txt/route.ts` — export `GET()` that reads all 5 `public/llm/{slug}.md` files (already generated, no stripping needed), concatenates with `\n\n---\n\n# {title}\n\n` separators (hardcode the 5 titles), returns as `text/plain`. Reading from `public/llm/` keeps this handler lean — it reuses the already-generated sidecars.

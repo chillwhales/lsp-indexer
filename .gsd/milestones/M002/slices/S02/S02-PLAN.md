@@ -41,21 +41,21 @@
 
 ## Tasks
 
-- [x] **T01: Install Fumadocs and configure content source** `est:30m`
+- [ ] **T01: Install Fumadocs and configure content source** `est:30m`
   - Why: Fumadocs needs a content source config (`source.config.ts`) and the MDX content to be in the right location before the layout can render anything
   - Files: `apps/docs/package.json`, `apps/docs/next.config.ts`, `apps/docs/source.config.ts`, `apps/docs/lib/source.ts`
   - Do: (1) Add `fumadocs-core`, `fumadocs-ui`, `fumadocs-mdx` to `apps/docs/package.json` deps. (2) Update `apps/docs/next.config.ts` to use `createMDX` from `fumadocs-mdx/config` instead of (or alongside) `@next/mdx`. (3) Create `apps/docs/source.config.ts` using `defineCollections` + `defineConfig` from `fumadocs-mdx/config` — define a `docs` collection pointing at `./content/docs`. (4) Create `apps/docs/lib/source.ts` that loads the collection via `loader` from `fumadocs-core/source`. (5) Run `pnpm install`.
   - Verify: `pnpm --filter docs build` exits 0 (even before migrating content)
   - Done when: Fumadocs deps installed, source config compiles, build passes
 
-- [x] **T02: Migrate MDX content files** `est:20m`
+- [ ] **T02: Migrate MDX content files** `est:20m`
   - Why: The existing 5 MDX pages live in `app/docs/*/page.mdx` — they need to move to `content/docs/*.mdx` with Fumadocs-compatible frontmatter
   - Files: `apps/docs/content/docs/quickstart.mdx`, `indexer.mdx`, `node.mdx`, `react.mdx`, `next.mdx`, `apps/docs/content/docs/meta.json`
   - Do: (1) Create `apps/docs/content/docs/` directory. (2) For each of the 5 docs pages, copy content from `apps/docs/app/docs/{name}/page.mdx` to `apps/docs/content/docs/{name}.mdx` — add frontmatter `title` and `description`. Handle mermaid diagrams: if `fumadocs-mdx` supports remark-mermaid, add the plugin; otherwise convert mermaid blocks to static SVG or a client component. (3) Create `apps/docs/content/docs/meta.json` with `{ "pages": ["quickstart", "indexer", "node", "react", "next"] }` for sidebar order. (4) Delete the old `apps/docs/app/docs/{quickstart,indexer,node,react,next}/` directories. (5) Run `pnpm --filter docs build`.
   - Verify: Build exits 0; no missing-file errors for the old page.mdx paths
   - Done when: Content migrated, old dirs removed, build passes
 
-- [x] **T03: Wire Fumadocs layout for docs routes** `est:30m`
+- [ ] **T03: Wire Fumadocs layout for docs routes** `est:30m`
   - Why: The docs subtree (`/docs/*`) needs its own layout using `DocsLayout` from `fumadocs-ui` — this replaces the current custom prose layout without touching the root layout that serves the playground
   - Files: `apps/docs/app/docs/layout.tsx`, `apps/docs/app/docs/[[...slug]]/page.tsx`, `apps/docs/app/layout.tsx` (check for RootProvider), `apps/docs/app/globals.css` (add Fumadocs theme)
   - Do: (1) Replace `apps/docs/app/docs/layout.tsx` with a Fumadocs `DocsLayout` that takes `tree` from `source.pageTree`. Import `RootProvider` from `fumadocs-ui/provider` — if it's not already in the root layout, add it there (it must wrap the entire app). (2) Create (or replace) `apps/docs/app/docs/[[...slug]]/page.tsx` as the Fumadocs catch-all: call `source.getPage(params.slug)` and render with `DocsPage` + `DocsBody` from `fumadocs-ui`. (3) Import Fumadocs CSS (`fumadocs-ui/style.css`) in `globals.css` or the layout. (4) Run dev server, navigate to `/docs/quickstart` and confirm Fumadocs sidebar and content render. (5) Navigate to `/profiles` and confirm playground still works.
