@@ -1,10 +1,7 @@
 import { readFileSync } from 'fs';
-import { dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { resolve } from 'path';
 
 import { NextResponse } from 'next/server';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const SLUGS = [
   { slug: 'quickstart', title: 'Quickstart' },
@@ -14,16 +11,16 @@ const SLUGS = [
   { slug: 'next', title: '@lsp-indexer/next' },
 ] as const;
 
-// Resolve public/llm relative to this file's location.
-// In standalone output the server runs from .next/standalone — process.cwd() would be wrong.
-const LLM_DIR = resolve(__dirname, '../../../../public/llm');
+// In standalone output, server.js calls process.chdir(__dirname) so
+// process.cwd() === the app directory at runtime, making this path correct
+// both locally (cwd = apps/docs/) and in the Docker image.
+const LLM_DIR = resolve(process.cwd(), 'public/llm');
 
 export function GET(): NextResponse {
   const parts: string[] = [];
 
   for (const { slug } of SLUGS) {
-    const mdPath = resolve(LLM_DIR, `${slug}.md`);
-    const content = readFileSync(mdPath, 'utf-8');
+    const content = readFileSync(resolve(LLM_DIR, `${slug}.md`), 'utf-8');
     parts.push(content);
   }
 
