@@ -65,5 +65,5 @@
   > After this: Add 5 new panel groups to the Grafana dashboard that surface pipeline health, entity throughput, verification status, and metadata fetch progress using structured log data from Phases 20.
 - [x] **S29: Sorting Consumer Package Release** `risk:medium` `depends:[S28]`
   > After this: Add consistent `newest`/`oldest` block-order sorting across all 12 domain types and services.
-- [ ] **S30: Database Operations — Backup strategy, automation, and recovery procedure** `risk:medium` `depends:[S29]`
-  > After this: unit tests prove Database Operations — Backup strategy, automation, and recovery procedure works
+- [ ] ~~**S30: Database Operations — Backup strategy, automation, and recovery procedure** `risk:medium` `depends:[S29]`~~
+  > **Deferred** — VPS/volume-level snapshots cover the backup need; a pg_dump sidecar adds complexity without benefit. M001 marked complete without S30.

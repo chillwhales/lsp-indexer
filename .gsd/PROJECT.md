@@ -8,38 +8,35 @@ The LSP Indexer is an open-source blockchain event indexer for the LUKSO network
 
 Any developer can query LUKSO blockchain data through type-safe React hooks backed by a reliable indexer — without needing to understand the underlying blockchain, GraphQL schema, or indexing pipeline.
 
-## Current Milestone: v1.2 Production Readiness
+## Current Milestone: M002 — Docs Site & AI Agent Compatibility
 
-**Goal:** Make the indexer production-ready with block-level ordering, sorting support across all consumer packages, monitoring, and operational infrastructure.
-
-**Target features:**
-
-- Production Docker Compose using released `ghcr.io/chillwhales/lsp-indexer` image
-- Block ordering fields (blockNumber, transactionIndex, logIndex) on all entities
-- Oldest/newest sorting across all 12 query domains in all consumer packages
-- Grafana monitoring dashboards (structured logs + sqd logs)
-- Database backup strategy and recovery procedure
-- Version normalization for private packages
+**Status:** Queued (M001 completed 2026-03-17)
 
 ## Current State
 
-**Shipped:** v1.1 React Hooks Package (2026-03-08)
+**Shipped:** v1.2 Production Readiness (2026-03-17, M001 complete)
 
-The indexer is complete (v1.0) and the consumer package layer is complete (v1.1). Four publishable npm packages provide type-safe access to all 12 indexer query domains:
+The full stack is production-ready: indexer v2 with 6-step pipeline, 4 publishable npm packages at v1.1.0, production Docker Compose with monitoring stack, and operational tooling.
 
-- **`@lsp-indexer/types`** — Zod schemas + inferred TS types (zero framework deps)
-- **`@lsp-indexer/node`** — services, parsers, documents, codegen, query keys, execute, errors
-- **`@lsp-indexer/react`** — TanStack Query hooks (browser → Hasura directly)
-- **`@lsp-indexer/next`** — server actions + hooks routing through server (browser → server → Hasura)
+**Key deliverables from M001:**
+
+- **Indexer v2** — 6-step pipeline (EXTRACT → PERSIST RAW → HANDLE → PERSIST DERIVED → VERIFY → ENRICH), 11 EventPlugins, 29 EntityHandlers, 3 metadata fetchers
+- **Consumer packages** — `@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next` at v1.1.0
+- **12 query domains** — Profiles, Digital Assets, NFTs, Owned Assets, Owned Tokens, Followers, Creators, Issued Assets, Encrypted Assets, Data Changed Events, Token ID Data Changed Events, Universal Receiver Events
+- **12 subscription hooks** — graphql-ws WebSocket with TanStack Query cache integration
+- **12 server action sets** — Next.js `'use server'` with Zod input validation
+- **Block ordering** — blockNumber, transactionIndex, logIndex on all 72+ entities with newest/oldest sorting
+- **Production Docker Compose** — 9 services (indexer, postgres, hasura, loki, prometheus, alloy, cadvisor, grafana)
+- **Monitoring** — Grafana dashboard with panels covering pipeline latency, entity throughput, verification health, metadata fetch, error analysis, container metrics
+- **CI/CD** — Layered 9-job pipeline, changesets release flow, preview releases, shared reusable workflows
 
 **Stats:**
 
-- 4 publishable packages with ESM+CJS+DTS builds
-- 12 query domains: Profiles, Digital Assets, NFTs, Owned Assets, Owned Tokens, Followers, Creators, Issued Assets, Encrypted Assets, Data Changed Events, Token ID Data Changed Events, Universal Receiver Events
-- 12 subscription hooks (graphql-ws WebSocket with TanStack Query cache integration)
-- 12 server action sets (Next.js `'use server'` with Zod input validation)
+- 4 publishable packages with ESM+CJS+DTS builds (v1.1.0)
+- 7 internal packages (abi, typeorm, indexer, comparison-tool + 3 deleted)
 - Prisma-style include type narrowing (excluded fields absent from TypeScript types)
-- Layered CI pipeline, changesets release flow, shared reusable workflows
+- 71-key entity registry with compile-time type enforcement and runtime validation
+- 103 consumer package tests, 292/306 indexer tests passing (14 known LSP29 test mismatches)
 
 ## Requirements
 
@@ -63,15 +60,16 @@ The indexer is complete (v1.0) and the consumer package layer is complete (v1.1)
 - ✓ v1 indexer cleanup, canonical package promotion — v1.1
 - ✓ Consumer-facing JSDoc on all public APIs — v1.1
 - ✓ Layered CI/CD pipeline with changesets, preview releases, shared infra — v1.1
+- ✓ Production Docker Compose (PG + Hasura + monitoring) — v1.2
+- ✓ Block ordering fields on all entities — v1.2
+- ✓ Oldest/newest sorting across all 12 domains — v1.2
+- ✓ Grafana monitoring dashboards (structured logs + sqd logs) — v1.2
+- ✓ Version normalization (0.1.0 for private packages) — v1.2
+- ✓ Structured logging overhaul + pipeline instrumentation — v1.2
 
 ### Active
 
-- [ ] Production Docker Compose (released image + PG + Hasura)
-- [ ] Block ordering fields on all entities
-- [ ] Oldest/newest sorting across all 12 domains
-- [ ] Grafana monitoring dashboards
-- [ ] Database backups + recovery procedure
-- [ ] Version normalization (0.1.0 for private packages)
+- [ ] Docker image release to ghcr.io/chillwhales/lsp-indexer (RELD-01) — automatically triggered by CI on merge to main
 
 ### Deferred
 
@@ -81,6 +79,7 @@ The indexer is complete (v1.0) and the consumer package layer is complete (v1.1)
 - Domain-specific stale time tuning — deferred from v1.1
 - Multi-instance deployment with failover — deferred from v1.2
 - Auto-scaling / Kubernetes — deferred from v1.2
+- Database backup automation (S30) — deferred; VPS/volume-level snapshots cover the need
 
 ### Out of Scope
 
@@ -93,23 +92,21 @@ The indexer is complete (v1.0) and the consumer package layer is complete (v1.1)
 
 ## Context
 
-- **Monorepo**: 7 packages — `abi` (contract types), `typeorm` (schema/models), `indexer` (canonical V2), `types` (Zod schemas), `node` (services/parsers/codegen), `react` (TanStack Query hooks), `next` (server actions + hooks)
+- **Monorepo**: 7 packages — `abi` (contract types), `typeorm` (schema/models), `indexer` (canonical), `types` (Zod schemas), `node` (services/parsers/codegen), `react` (TanStack Query hooks), `next` (server actions + hooks)
 - **Apps**: `apps/test` — Next.js 16 playground with all 12 domains, client/server mode toggle, subscription demos
 - **Stack**: TypeScript, Subsquid EVM Processor, TypeORM + PostgreSQL, Hasura GraphQL, Viem, Node.js 22, TanStack Query, graphql-ws
 - **Schema**: ~80+ TypeORM entities generated from `schema.graphql`, mapping 1:1 to LUKSO LSP standards
-- **V1 is live in production** on Docker + VPS, indexing LUKSO mainnet
+- **Production**: Docker + VPS, indexing LUKSO mainnet
 - **CI/CD**: Layered GitHub Actions pipeline (lint, typecheck, build, test, publint+attw), changesets release flow, preview releases via pkg-pr-new, shared reusable workflows in `chillwhales/.github`
+- **Monitoring**: Grafana + Loki + Alloy + Prometheus + cAdvisor in production compose
 
-## Branching & PR Workflow (v1.1)
+## Branching & PR Workflow
 
-**Integration branch:** `refactor/indexer-v2-react`
-
-All v1.1 milestone work (Phases 7–16) merged through pull requests targeting `refactor/indexer-v2-react`. Feature branches named `feat/<plan-description>`, PRs always target the integration branch.
+All PRs target `main`. GSD auto-mode uses `milestone/<MID>` as the working branch (one PR per slice). See `.gsd/preferences.md` for full workflow details.
 
 ## Constraints
 
-- **Data parity**: V2 must produce identical database state to V1
-- **Zero downtime**: V1 stays live during V2 validation
+- **Data parity**: V2 produces identical database state to V1 (validated via comparison tool)
 - **Existing schema**: TypeORM entities and `schema.graphql` shared — no breaking changes
 - **Subsquid framework**: Must use Subsquid's `EvmBatchProcessor` and `TypeormDatabase`
 - **LUKSO RPC**: Rate limited (default 10 req/s), finality at 75 blocks (~15 min)
@@ -135,6 +132,13 @@ All v1.1 milestone work (Phases 7–16) merged through pull requests targeting `
 | @chillwhales package migration | Reduced local code, aligned with shared ecosystem | ✓ Good — v1.1 |
 | v1 cleanup + v2 canonical promotion | Single indexer, no ambiguity | ✓ Good — v1.1 |
 
+## Milestone Sequence
+
+| ID   | Title                                | Status   |
+| ---- | ------------------------------------ | -------- |
+| M001 | Migration (v1.0 → v1.2)             | completed |
+| M002 | Docs Site & AI Agent Compatibility   | queued    |
+
 ---
 
-_Last updated: 2026-03-08 after v1.2 milestone started_
+_Last updated: 2026-03-18 — M001 complete, S30 deferred_

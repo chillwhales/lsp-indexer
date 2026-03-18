@@ -18,20 +18,15 @@ Marked S25 as `[x]` in roadmap.
 
 ## Remaining Work
 
-**S30 (Database Operations)** is the only remaining slice. OPS-01/02/03 requirements need:
-- Documented backup strategy (pg_dump schedule, retention, storage location)
-- Automated backup script/cron (beyond the existing manual `manage.sh db-dump`)
-- Recovery procedure documentation + tested restore workflow
-
-`manage.sh` already has `db-dump` and `db-restore` commands — S30 builds on that foundation.
+**S30 (Database Operations)** was the final planned slice but has been **deferred** — VPS/volume-level snapshots cover the backup need without the complexity of a pg_dump sidecar. OPS-01/02/03 requirements are deferred accordingly. M001 is marked complete without S30.
 
 ## Requirement Coverage
 
 - MNTR-01, MNTR-02, MNTR-03 — satisfied by S25+S26+S27+S28 (monitoring stack + structured logging + instrumentation + dashboard)
-- RELD-01 — satisfied (docker.yml workflow + Dockerfile + block ordering in schema)
+- RELD-01 — infrastructure ready (docker.yml workflow + Dockerfile + block ordering in schema); release pending merge to main
 - SORT-01 through SORT-05 — validated by S29
 - RELP-01 — validated by S29 (1.1.0 release)
-- OPS-01, OPS-02, OPS-03 — **remain active**, owned by S30
+- OPS-01, OPS-02, OPS-03 — **deferred** with S30 (VPS/volume snapshots cover the backup need)
 
 No changes to roadmap ordering or slice definitions needed. S30 is the final slice.
 
@@ -41,4 +36,4 @@ No success criteria defined in roadmap — vacuously satisfied.
 
 ## Decision
 
-Roadmap confirmed. S25 marked complete. S30 is the sole remaining slice.
+Roadmap confirmed. S25 marked complete. S30 deferred — M001 is complete.

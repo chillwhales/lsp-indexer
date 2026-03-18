@@ -2,24 +2,6 @@
 
 ## Active
 
-### MNTR-01 — Grafana dashboard displays all structured log output from the indexer
-
-- Status: active
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Grafana dashboard displays all structured log output from the indexer
-
-### MNTR-02 — Grafana dashboard displays Subsquid processor (sqd) logs
-
-- Status: active
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Grafana dashboard displays Subsquid processor (sqd) logs
-
 ### RELD-01 — New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block ordering changes
 
 - Status: active
@@ -29,34 +11,27 @@ Grafana dashboard displays Subsquid processor (sqd) logs
 
 New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block ordering changes
 
-### OPS-01 — PostgreSQL backup strategy defined and documented
-
-- Status: active
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-PostgreSQL backup strategy defined and documented
-
-### OPS-02 — Backup automation configured (scheduled dumps or WAL archiving)
-
-- Status: active
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Backup automation configured (scheduled dumps or WAL archiving)
-
-### OPS-03 — Recovery procedure documented and tested
-
-- Status: active
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Recovery procedure documented and tested
-
 ## Validated
+
+### MNTR-01 — Grafana dashboard displays all structured log output from the indexer
+
+- Status: validated
+- Class: core-capability
+- Source: inferred
+- Primary Slice: S25
+- Validation: Grafana Log Explorer panel with Alloy collecting all indexer container logs to Loki; structured fields queryable by step/handler/component
+
+Grafana dashboard displays all structured log output from the indexer
+
+### MNTR-02 — Grafana dashboard displays Subsquid processor (sqd) logs
+
+- Status: validated
+- Class: core-capability
+- Source: inferred
+- Primary Slice: S25
+- Validation: Alloy collects ALL Docker container logs including sqd processor output; Log Explorer and block progress panels surface sqd data
+
+Grafana dashboard displays Subsquid processor (sqd) logs
 
 ### DOCK-01 — Production docker-compose pulls `ghcr.io/chillwhales/lsp-indexer:latest` and runs indexer + PostgreSQL + Hasura
 
@@ -437,5 +412,33 @@ All hand-rolled LSP29 type guards and extractors removed from `src/utils/index.t
 Full monorepo builds successfully (`pnpm build`)
 
 ## Deferred
+
+### OPS-01 — PostgreSQL backup strategy defined and documented
+
+- Status: deferred
+- Class: core-capability
+- Source: inferred
+- Notes: VPS/volume-level snapshots cover the backup need. pg_dump sidecar added unnecessary complexity. S30 deferred.
+
+PostgreSQL backup strategy defined and documented
+
+### OPS-02 — Backup automation configured (scheduled dumps or WAL archiving)
+
+- Status: deferred
+- Class: core-capability
+- Source: inferred
+- Notes: Deferred with OPS-01. Use managed Postgres or volume snapshots for any future automation need.
+
+Backup automation configured (scheduled dumps or WAL archiving)
+
+### OPS-03 — Recovery procedure documented and tested
+
+- Status: deferred
+- Class: core-capability
+- Source: inferred
+- Primary Slice: S30
+- Notes: S30 deferred — VPS/volume-level snapshots cover recovery. Full re-sync from block 0 remains the documented last-resort path.
+
+Recovery procedure documented and tested
 
 ## Out of Scope
