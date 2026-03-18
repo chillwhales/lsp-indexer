@@ -1,9 +1,6 @@
-<!-- This file is auto-generated from content/docs/node.mdx — do not edit directly. Run `pnpm --filter docs generate` to regenerate. -->
+<!-- This file is auto-generated from src/app/docs/node/page.mdx — do not edit directly. Run `pnpm --filter docs generate` to regenerate. -->
 
----
-title: "@lsp-indexer/node"
-description: Low-level GraphQL fetch functions, parsers, query key factories, and subscription client.
----
+# @lsp-indexer/node
 
 The foundational package — provides low-level GraphQL fetch functions, parsers, query key factories,
 env helpers, and the subscription client. Both `@lsp-indexer/react` and `@lsp-indexer/next` are built

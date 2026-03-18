@@ -1,4 +1,4 @@
-import { createMDX } from 'fumadocs-mdx/next';
+import createMDX from '@next/mdx';
 import { resolve } from 'path';
 
 import type { NextConfig } from 'next';
@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
   },
 };
 
-const withMDX = createMDX({ outDir: 'src/generated/fumadocs' });
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: ['remark-gfm'],
+  },
+});
 
 export default withMDX(nextConfig);

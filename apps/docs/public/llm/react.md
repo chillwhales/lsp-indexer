@@ -1,9 +1,6 @@
-<!-- This file is auto-generated from content/docs/react.mdx — do not edit directly. Run `pnpm --filter docs generate` to regenerate. -->
+<!-- This file is auto-generated from src/app/docs/react/page.mdx — do not edit directly. Run `pnpm --filter docs generate` to regenerate. -->
 
----
-title: "@lsp-indexer/react"
-description: Client-side React hooks for querying LUKSO blockchain data.
----
+# @lsp-indexer/react
 
 Client-side React hooks for querying LUKSO blockchain data. The browser connects to Hasura
 directly — no server needed. Built on top of `@tanstack/react-query`.

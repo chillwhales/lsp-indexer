@@ -5,11 +5,6 @@
   "description": "LUKSO blockchain indexer with React and Next.js hooks for querying LSP-standard entities (Universal Profiles, Digital Assets, NFTs, and more) via Hasura GraphQL.",
   "pages": [
     {
-      "url": "https://lsp-indexer.chillwhales.io/llm/index.md",
-      "title": "@lsp-indexer",
-      "description": "Overview of the @lsp-indexer monorepo — packages, supported domains, and quick example."
-    },
-    {
       "url": "https://lsp-indexer.chillwhales.io/llm/quickstart.md",
       "title": "Quickstart",
       "description": "Get up and running with @lsp-indexer in under 5 minutes."

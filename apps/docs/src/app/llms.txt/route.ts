@@ -21,7 +21,6 @@ Universal Receiver Events.
 
 ## Documentation Pages
 
-- Overview: /llm/index.md
 - Quickstart: /llm/quickstart.md
 - Indexer: /llm/indexer.md
 - @lsp-indexer/node: /llm/node.md

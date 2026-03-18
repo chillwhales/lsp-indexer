@@ -1,9 +1,6 @@
-<!-- This file is auto-generated from content/docs/indexer.mdx — do not edit directly. Run `pnpm --filter docs generate` to regenerate. -->
+<!-- This file is auto-generated from src/app/docs/indexer/page.mdx — do not edit directly. Run `pnpm --filter docs generate` to regenerate. -->
 
----
-title: Indexer
-description: Architecture and configuration of the @lsp-indexer blockchain processor.
----
+# @lsp-indexer/indexer
 
 The indexer is a [Subsquid](https://subsquid.io/)-based blockchain processor that listens to
 LUKSO L1 events, decodes them according to LSP standards, and writes normalized data to PostgreSQL.

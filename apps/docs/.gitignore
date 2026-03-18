@@ -2,4 +2,3 @@
 out/
 node_modules/
 .env.local
-src/generated/fumadocs/
