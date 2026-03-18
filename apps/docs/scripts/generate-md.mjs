@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
-const SLUGS = ['quickstart', 'indexer', 'node', 'react', 'next'];
+const SLUGS = ['index', 'quickstart', 'indexer', 'node', 'react', 'next'];
 const isCheck = process.argv.includes('--check');
 
 /** Strip leading YAML frontmatter block (---\n...\n---\n) and trim leading whitespace. */

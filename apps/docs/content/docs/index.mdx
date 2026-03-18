@@ -1,9 +1,12 @@
-# @lsp-indexer
+---
+title: '@lsp-indexer'
+description: Type-safe React hooks and Next.js server actions for querying LUKSO blockchain data.
+---
 
 Type-safe React hooks and Next.js server actions for querying LUKSO blockchain data.
 Powered by a Subsquid indexer, PostgreSQL, and Hasura GraphQL.
 
-[Get started →](/docs/quickstart)
+[Get started →](/quickstart)
 
 ---
 
@@ -47,7 +50,7 @@ The foundation that `react` and `next` packages build on.
 - React Query key factories (`profileKeys`, `digitalAssetKeys`, ...)
 - Subscription client for real-time WebSocket data
 
-[Documentation →](/docs/node)
+[Documentation →](/node)
 
 ### @lsp-indexer/react
 
@@ -63,7 +66,7 @@ graph LR
 - Real-time subscription hooks
 - No server required — simple setup
 
-[Documentation →](/docs/react)
+[Documentation →](/react)
 
 ### @lsp-indexer/next
 
@@ -82,7 +85,7 @@ graph LR
 - Subscriptions use `@lsp-indexer/react` — Next.js cannot hold WebSocket connections
 - Hasura URL never exposed to browser
 
-[Documentation →](/docs/next)
+[Documentation →](/next)
 
 ---
 
@@ -128,6 +131,6 @@ function ProfileCard({ address }: { address: string }) {
 
 ## Next Steps
 
-- [Quickstart Guide](/docs/quickstart) — Install, configure, and start querying
-- [Running the Indexer](/docs/indexer) — Docker setup, architecture, monitoring
+- [Quickstart Guide](/quickstart) — Install, configure, and start querying
+- [Running the Indexer](/indexer) — Docker setup, architecture, monitoring
 - [Domain Playgrounds](/profiles) — Try every hook live in the sidebar

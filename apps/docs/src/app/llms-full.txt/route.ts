@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import { NextResponse } from 'next/server';
 
 const SLUGS = [
+  { slug: 'index', title: '@lsp-indexer' },
   { slug: 'quickstart', title: 'Quickstart' },
   { slug: 'indexer', title: 'Indexer' },
   { slug: 'node', title: '@lsp-indexer/node' },
