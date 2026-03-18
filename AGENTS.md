@@ -8,13 +8,13 @@ Guidelines for AI coding agents working in this repository.
 
 | Change                                     | Update                                                                            |
 | ------------------------------------------ | --------------------------------------------------------------------------------- |
-| New hook or server action                  | `apps/docs/content/docs/react.mdx` and/or `content/docs/next.mdx`                 |
-| New fetch function, parser, or key factory | `apps/docs/content/docs/node.mdx`                                                 |
-| New type, filter, sort, or include field   | `apps/docs/content/docs/node.mdx` and domain tables in `content/docs/react.mdx`   |
-| New domain (e.g., new entity type)         | All docs pages + supported domains table in `apps/docs/content/docs/index.mdx`    |
-| Indexer pipeline, Docker, or env changes   | `apps/docs/content/docs/indexer.mdx`                                              |
+| New hook or server action                  | `apps/docs/src/app/docs/react/page.mdx` and/or `docs/next/page.mdx`              |
+| New fetch function, parser, or key factory | `apps/docs/src/app/docs/node/page.mdx`                                           |
+| New type, filter, sort, or include field   | `apps/docs/src/app/docs/node/page.mdx` and domain tables in `docs/react/page.mdx`|
+| New domain (e.g., new entity type)         | All docs pages + supported domains table in `apps/docs/src/app/(home)/page.mdx`  |
+| Indexer pipeline, Docker, or env changes   | `apps/docs/src/app/docs/indexer/page.mdx`                                        |
 | New env variable                           | `apps/docs/.env.example` + quickstart + relevant package docs                     |
-| Subscription or provider changes           | `content/docs/react.mdx` and/or `content/docs/next.mdx` + quickstart              |
+| Subscription or provider changes           | `docs/react/page.mdx` and/or `docs/next/page.mdx` + quickstart                   |
 
 **Do NOT skip documentation. Outdated docs are worse than no docs.**
 

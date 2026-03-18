@@ -63,7 +63,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Check .md sidecars are up to date
         # Developers must run `pnpm --filter docs generate` and commit updated .md
-        # files whenever they modify a content/docs/*.mdx source file.
+        # files whenever they modify a src/app/docs/*/page.mdx source file.
         run: pnpm --filter docs generate:check
 
   # ---------------------------------------------------------------------------
