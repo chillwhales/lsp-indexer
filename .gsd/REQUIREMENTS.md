@@ -204,14 +204,14 @@ All 4 packages (`types`, `node`, `react`, `next`) released with sorting support
 
 `@chillwhales/indexer` package.json version set to 0.1.0
 
-### VERS-04 — `apps/test` package.json version set to 0.1.0
+### VERS-04 — `apps/docs` package.json version set to 0.1.0
 
 - Status: validated
 - Class: core-capability
 - Source: inferred
 - Primary Slice: none yet
 
-`apps/test` package.json version set to 0.1.0
+`apps/docs` package.json version set to 0.1.0
 
 ### SLOG-01 — All `console.*` calls in indexer source migrated to structured Subsquid logger output, except worker threads where logger is unavailable, with queryable fields
 

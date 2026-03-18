@@ -4,17 +4,17 @@ Guidelines for AI coding agents working in this repository.
 
 ## ⚠️ Documentation — MANDATORY
 
-**Every code change MUST include corresponding documentation updates.** The test app (`apps/test`) contains MDX documentation pages that serve as the public-facing docs for the `@lsp-indexer` packages. When you modify any package (`node`, `react`, `next`, `types`, or the indexer), you MUST update the relevant docs page(s):
+**Every code change MUST include corresponding documentation updates.** The docs app (`apps/docs`) contains MDX documentation pages that serve as the public-facing docs for the `@lsp-indexer` packages. When you modify any package (`node`, `react`, `next`, `types`, or the indexer), you MUST update the relevant docs page(s):
 
 | Change                                     | Update                                                                            |
 | ------------------------------------------ | --------------------------------------------------------------------------------- |
-| New hook or server action                  | `apps/test/src/app/docs/react/page.mdx` and/or `docs/next/page.mdx`               |
-| New fetch function, parser, or key factory | `apps/test/src/app/docs/node/page.mdx`                                            |
-| New type, filter, sort, or include field   | `apps/test/src/app/docs/node/page.mdx` and domain tables in `docs/react/page.mdx` |
-| New domain (e.g., new entity type)         | All docs pages + supported domains table in `apps/test/src/app/(home)/page.mdx`   |
-| Indexer pipeline, Docker, or env changes   | `apps/test/src/app/docs/indexer/page.mdx`                                         |
-| New env variable                           | `apps/test/.env.example` + quickstart + relevant package docs                     |
-| Subscription or provider changes           | `docs/react/page.mdx` and/or `docs/next/page.mdx` + quickstart                    |
+| New hook or server action                  | `apps/docs/content/docs/react.mdx` and/or `content/docs/next.mdx`                 |
+| New fetch function, parser, or key factory | `apps/docs/content/docs/node.mdx`                                                 |
+| New type, filter, sort, or include field   | `apps/docs/content/docs/node.mdx` and domain tables in `content/docs/react.mdx`   |
+| New domain (e.g., new entity type)         | All docs pages + supported domains table in `apps/docs/content/docs/index.mdx`    |
+| Indexer pipeline, Docker, or env changes   | `apps/docs/content/docs/indexer.mdx`                                              |
+| New env variable                           | `apps/docs/.env.example` + quickstart + relevant package docs                     |
+| Subscription or provider changes           | `content/docs/react.mdx` and/or `content/docs/next.mdx` + quickstart              |
 
 **Do NOT skip documentation. Outdated docs are worse than no docs.**
 
