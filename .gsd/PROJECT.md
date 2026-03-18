@@ -60,7 +60,7 @@ The full stack is production-ready: indexer v2 with 6-step pipeline, 4 publishab
 - ✓ v1 indexer cleanup, canonical package promotion — v1.1
 - ✓ Consumer-facing JSDoc on all public APIs — v1.1
 - ✓ Layered CI/CD pipeline with changesets, preview releases, shared infra — v1.1
-- ✓ Production Docker Compose (released image + PG + Hasura + monitoring) — v1.2
+- ✓ Production Docker Compose (PG + Hasura + monitoring) — v1.2
 - ✓ Block ordering fields on all entities — v1.2
 - ✓ Oldest/newest sorting across all 12 domains — v1.2
 - ✓ Grafana monitoring dashboards (structured logs + sqd logs) — v1.2
@@ -69,7 +69,7 @@ The full stack is production-ready: indexer v2 with 6-step pipeline, 4 publishab
 
 ### Active
 
-- [ ] Docker image release to ghcr.io/chillwhales/lsp-indexer (RELD-01) — pending first merge to main
+- [ ] Docker image release to ghcr.io/chillwhales/lsp-indexer (RELD-01) — automatically triggered by CI on merge to main
 
 ### Deferred
 

@@ -33,16 +33,6 @@ Grafana dashboard displays all structured log output from the indexer
 
 Grafana dashboard displays Subsquid processor (sqd) logs
 
-### OPS-03 — Recovery procedure documented and tested
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: S30
-- Validation: Full re-sync from block 0 documented as recovery path; VPS/volume snapshots cover point-in-time restore
-
-Recovery procedure documented and tested
-
 ### DOCK-01 — Production docker-compose pulls `ghcr.io/chillwhales/lsp-indexer:latest` and runs indexer + PostgreSQL + Hasura
 
 - Status: validated
@@ -440,5 +430,15 @@ PostgreSQL backup strategy defined and documented
 - Notes: Deferred with OPS-01. Use managed Postgres or volume snapshots for any future automation need.
 
 Backup automation configured (scheduled dumps or WAL archiving)
+
+### OPS-03 — Recovery procedure documented and tested
+
+- Status: deferred
+- Class: core-capability
+- Source: inferred
+- Primary Slice: S30
+- Notes: S30 deferred — VPS/volume-level snapshots cover recovery. Full re-sync from block 0 remains the documented last-resort path.
+
+Recovery procedure documented and tested
 
 ## Out of Scope
