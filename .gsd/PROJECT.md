@@ -102,9 +102,7 @@ The full stack is production-ready: indexer v2 with 6-step pipeline, 4 publishab
 
 ## Branching & PR Workflow
 
-**Integration branch:** `main`
-
-All milestone work merged through pull requests targeting `main`. Feature branches named `feat/<description>`, PRs always target `main`.
+All PRs target `main`. GSD auto-mode uses `milestone/<MID>` as the working branch (one PR per slice). See `.gsd/preferences.md` for full workflow details.
 
 ## Constraints
 

@@ -23,7 +23,7 @@ Marked S25 as `[x]` in roadmap.
 ## Requirement Coverage
 
 - MNTR-01, MNTR-02, MNTR-03 — satisfied by S25+S26+S27+S28 (monitoring stack + structured logging + instrumentation + dashboard)
-- RELD-01 — satisfied (docker.yml workflow + Dockerfile + block ordering in schema)
+- RELD-01 — infrastructure ready (docker.yml workflow + Dockerfile + block ordering in schema); release pending merge to main
 - SORT-01 through SORT-05 — validated by S29
 - RELP-01 — validated by S29 (1.1.0 release)
 - OPS-01, OPS-02, OPS-03 — **deferred** with S30 (VPS/volume snapshots cover the backup need)
