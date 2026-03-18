@@ -45,12 +45,32 @@ jobs:
       base-branch: main
 
   # ---------------------------------------------------------------------------
+  # Docs sidecar check — ensures .md sidecars are committed and up to date
+  # ---------------------------------------------------------------------------
+  docs-check:
+    name: Docs Sidecar Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check .md sidecars are up to date
+        # Developers must run `pnpm --filter docs generate` and commit updated .md
+        # files whenever they modify a src/app/docs/*/page.mdx source file.
+        run: pnpm --filter docs generate:check
+
+  # ---------------------------------------------------------------------------
   # Gate — single required check for branch protection
   # ---------------------------------------------------------------------------
   ci-pass:
     name: CI Pass
     runs-on: ubuntu-latest
-    needs: [build-test, quality]
+    needs: [build-test, quality, docs-check]
     if: always()
     steps:
       - name: Check all jobs passed
@@ -61,6 +81,10 @@ jobs:
           fi
           if [[ "${{ needs.quality.result }}" != "success" ]]; then
             echo "quality failed"
+            exit 1
+          fi
+          if [[ "${{ needs.docs-check.result }}" != "success" ]]; then
+            echo "docs-check failed"
             exit 1
           fi
           echo "All checks passed"

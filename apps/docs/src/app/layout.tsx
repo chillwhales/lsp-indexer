@@ -12,8 +12,8 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'LSP Indexer React — Test App',
-  description: 'Dev playground for testing @lsp-indexer/react hooks',
+  title: 'LSP Indexer Docs',
+  description: 'Developer documentation and playground for @lsp-indexer',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }): ReactNode {

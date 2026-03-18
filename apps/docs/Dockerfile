@@ -1,5 +1,5 @@
 # ==============================================================================
-# Dockerfile for apps/test (Next.js test/docs app)
+# Dockerfile for apps/docs (Next.js test/docs app)
 # ==============================================================================
 #
 # DOKPLOY DEPLOYMENT GUIDE
@@ -8,8 +8,8 @@
 # 1. Create a new Application in Dokploy
 #    - Source: Git (point to this repo)
 #    - Build type: Dockerfile
-#    - Dockerfile path: apps/test/Dockerfile
-#    - Docker context: . (monorepo root — NOT apps/test)
+#    - Dockerfile path: apps/docs/Dockerfile
+#    - Docker context: . (monorepo root — NOT apps/docs)
 #
 # 2. Build Arguments (REQUIRED — these are baked into the JS bundle):
 #    - NEXT_PUBLIC_INDEXER_URL=https://your-hasura.com/v1/graphql
@@ -36,7 +36,7 @@
 # 6. Health Check:
 #    - Dokploy can use: curl -f http://localhost:3000/ || exit 1
 #
-# Build locally: docker build -f apps/test/Dockerfile \
+# Build locally: docker build -f apps/docs/Dockerfile \
 #   --build-arg NEXT_PUBLIC_INDEXER_URL=https://... \
 #   --build-arg NEXT_PUBLIC_INDEXER_WS_URL=wss://... \
 #   -t lsp-indexer-test .
@@ -67,7 +67,7 @@ COPY packages/types/package.json ./packages/types/
 COPY packages/node/package.json ./packages/node/
 COPY packages/react/package.json ./packages/react/
 COPY packages/next/package.json ./packages/next/
-COPY apps/test/package.json ./apps/test/
+COPY apps/docs/package.json ./apps/docs/
 
 # Install all dependencies (dev + prod needed for build)
 RUN pnpm install --frozen-lockfile
@@ -83,7 +83,7 @@ COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
 COPY --from=deps /app/packages/node/node_modules ./packages/node/node_modules
 COPY --from=deps /app/packages/react/node_modules ./packages/react/node_modules
 COPY --from=deps /app/packages/next/node_modules ./packages/next/node_modules
-COPY --from=deps /app/apps/test/node_modules ./apps/test/node_modules
+COPY --from=deps /app/apps/docs/node_modules ./apps/docs/node_modules
 
 # Copy workspace config (needed for pnpm --filter commands)
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
@@ -95,7 +95,7 @@ COPY packages/react ./packages/react
 COPY packages/next ./packages/next
 
 # Copy full source for the test app
-COPY apps/test ./apps/test
+COPY apps/docs ./apps/docs
 
 # Build workspace packages in dependency order
 RUN pnpm --filter=@lsp-indexer/types build && \
@@ -111,7 +111,7 @@ ENV NEXT_PUBLIC_INDEXER_URL=$NEXT_PUBLIC_INDEXER_URL
 ENV NEXT_PUBLIC_INDEXER_WS_URL=$NEXT_PUBLIC_INDEXER_WS_URL
 
 # Build the Next.js test app (standalone output)
-RUN pnpm --filter=test build
+RUN pnpm --filter=docs build
 
 # ---------------------------------------------------------------------------
 # Stage 4: runner — minimal production image
@@ -126,12 +126,12 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Copy standalone output (preserves monorepo structure due to outputFileTracingRoot)
-COPY --from=builder /app/apps/test/.next/standalone ./
-COPY --from=builder /app/apps/test/.next/static ./apps/test/.next/static
+COPY --from=builder /app/apps/docs/.next/standalone ./
+COPY --from=builder /app/apps/docs/.next/static ./apps/docs/.next/static
 
-# NOTE: apps/test/public does not exist currently. If a public/ directory is
+# NOTE: apps/docs/public does not exist currently. If a public/ directory is
 # added later, uncomment the following line:
-# COPY --from=builder /app/apps/test/public ./apps/test/public
+# COPY --from=builder /app/apps/docs/public ./apps/docs/public
 
 USER nextjs
 
@@ -144,4 +144,4 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 ENV WS_PROXY_PORT=4000
 
-CMD ["node", "apps/test/server.js"]
+CMD ["node", "apps/docs/server.js"]

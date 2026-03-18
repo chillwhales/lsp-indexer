@@ -1,0 +1,218 @@
+<!-- This file is auto-generated from src/app/docs/node/page.mdx.
+     Do not edit directly — run `pnpm --filter docs generate` to regenerate. -->
+
+# @lsp-indexer/node
+
+The foundational package — provides low-level GraphQL fetch functions, parsers, query key factories,
+env helpers, and the subscription client. Both `@lsp-indexer/react` and `@lsp-indexer/next` are built
+on top of this.
+
+```bash
+npm install @lsp-indexer/node
+```
+
+---
+
+## Environment Helpers
+
+The package provides URL helpers that read environment variables at runtime:
+
+```ts
+import { getClientUrl, getServerUrl, getClientWsUrl, getServerWsUrl } from '@lsp-indexer/node';
+
+// Client-side (reads NEXT_PUBLIC_INDEXER_URL)
+const clientUrl = getClientUrl();
+
+// Server-side (reads INDEXER_URL, falls back to NEXT_PUBLIC_INDEXER_URL)
+const serverUrl = getServerUrl();
+
+// WebSocket URLs (reads WS vars, falls back to HTTP URL with wss://)
+const clientWs = getClientWsUrl();
+const serverWs = getServerWsUrl();
+```
+
+| Function           | Env Var                      | Fallback                      |
+| ------------------ | ---------------------------- | ----------------------------- |
+| `getClientUrl()`   | `NEXT_PUBLIC_INDEXER_URL`    | throws                        |
+| `getServerUrl()`   | `INDEXER_URL`                | `NEXT_PUBLIC_INDEXER_URL`     |
+| `getClientWsUrl()` | `NEXT_PUBLIC_INDEXER_WS_URL` | derived from `getClientUrl()` |
+| `getServerWsUrl()` | `INDEXER_WS_URL`             | derived from `getServerUrl()` |
+
+All functions validate URLs and throw `IndexerError` with category `CONFIGURATION` on invalid input.
+
+---
+
+## Fetch Functions
+
+Every domain has a pair of fetch functions — one for single entities, one for lists:
+
+```ts
+import { fetchProfile, fetchProfiles, getClientUrl } from '@lsp-indexer/node';
+
+// Fetch a single profile
+const profile = await fetchProfile(getClientUrl(), { address: '0x...' });
+
+// Fetch a paginated list
+const { profiles, totalCount } = await fetchProfiles(getClientUrl(), {
+  filter: { name: 'vitalik' },
+  sort: { field: 'name', direction: 'asc' },
+  limit: 10,
+  offset: 0,
+});
+```
+
+### Available fetch functions
+
+| Domain                | Single                               | List                            |
+| --------------------- | ------------------------------------ | ------------------------------- |
+| Profiles              | `fetchProfile`                       | `fetchProfiles`                 |
+| Digital Assets        | `fetchDigitalAsset`                  | `fetchDigitalAssets`            |
+| NFTs                  | `fetchNft`                           | `fetchNfts`                     |
+| Owned Assets          | `fetchOwnedAsset`                    | `fetchOwnedAssets`              |
+| Owned Tokens          | `fetchOwnedToken`                    | `fetchOwnedTokens`              |
+| Creators              | —                                    | `fetchCreators`                 |
+| Issued Assets         | —                                    | `fetchIssuedAssets`             |
+| Follows               | —                                    | `fetchFollows`                  |
+| Encrypted Assets      | —                                    | `fetchEncryptedAssets`          |
+| Data Changed          | `fetchLatestDataChangedEvent`        | `fetchDataChangedEvents`        |
+| Token ID Data Changed | `fetchLatestTokenIdDataChangedEvent` | `fetchTokenIdDataChangedEvents` |
+| Universal Receiver    | —                                    | `fetchUniversalReceiverEvents`  |
+
+Additional: `fetchFollowCount`, `fetchIsFollowing`.
+
+---
+
+## Include Fields (Partial Selects)
+
+All fetch functions accept an `include` parameter to control which related data is returned.
+This reduces payload size and improves performance:
+
+```ts
+import { fetchProfile, getClientUrl } from '@lsp-indexer/node';
+
+// Only fetch the profile name and owned assets
+const profile = await fetchProfile(getClientUrl(), {
+  address: '0x...',
+  include: {
+    ownedAssets: true,
+    issuedAssets: false,
+    creators: false,
+  },
+});
+// profile.ownedAssets → OwnedAsset[]
+// profile.issuedAssets → undefined (not included)
+```
+
+The return type narrows automatically based on which fields you include — full TypeScript inference.
+
+---
+
+## Query Key Factories
+
+For React Query cache management, every domain exports a key factory:
+
+```ts
+import { profileKeys, digitalAssetKeys } from '@lsp-indexer/node';
+
+profileKeys.all; // ['profiles']
+profileKeys.lists(); // ['profiles', 'list']
+profileKeys.list(filter, sort, limit, offset, include); // ['profiles', 'list', { filter, sort, ... }]
+profileKeys.details(); // ['profiles', 'detail']
+profileKeys.detail(address, include); // ['profiles', 'detail', { address, include }]
+```
+
+These are used internally by the React and Next.js hooks, but you can also use them directly
+for manual cache invalidation:
+
+```ts
+import { useQueryClient } from '@tanstack/react-query';
+import { profileKeys } from '@lsp-indexer/node';
+
+const queryClient = useQueryClient();
+queryClient.invalidateQueries({ queryKey: profileKeys.lists() });
+```
+
+---
+
+## Parsers
+
+Raw Hasura responses are parsed into typed domain objects. Parsers handle:
+
+- Nested relationship mapping
+- Null safety for optional fields
+- Include-aware partial selects (omits fields not in `include`)
+
+```ts
+import { parseProfile, parseProfiles } from '@lsp-indexer/node';
+
+// Usually called internally by fetch functions, but available for custom use
+const profile = parseProfile(rawHasuraResponse);
+```
+
+---
+
+## Subscription Client
+
+Low-level WebSocket subscription client for real-time data. Manages connection state,
+reconnection detection, and multiple independent subscriptions via `useSyncExternalStore`.
+
+```ts
+import { SubscriptionClient } from '@lsp-indexer/node';
+
+// Connection is lazy — no explicit connect() needed
+const client = new SubscriptionClient('ws://localhost:8080/v1/graphql');
+
+// Create a subscription instance (used internally by hooks)
+const instance = client.createSubscription(config, options);
+
+// Access reactive state
+instance.data; // TParsed[] | null — null until first data received
+instance.error; // unknown
+instance.isSubscribed; // boolean
+
+// Subscribe to state changes (useSyncExternalStore pattern)
+const unsubscribe = instance.subscribe(() => {
+  console.log('State changed:', instance.data);
+});
+```
+
+In practice, you'll use the higher-level subscription hooks (`useProfileSubscription`, etc.)
+from `@lsp-indexer/react` instead of the raw client.
+
+---
+
+## Error Handling
+
+All errors are wrapped in `IndexerError` with structured metadata:
+
+```ts
+import { IndexerError } from '@lsp-indexer/node';
+
+try {
+  const url = getClientUrl();
+} catch (err) {
+  if (err instanceof IndexerError) {
+    console.log(err.category); // 'CONFIGURATION'
+    console.log(err.code); // 'MISSING_ENV_VAR'
+    console.log(err.message); // 'NEXT_PUBLIC_INDEXER_URL is not set...'
+  }
+}
+```
+
+| Category        | Codes                                                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `CONFIGURATION` | `MISSING_ENV_VAR`, `INVALID_URL`                                                                                       |
+| `NETWORK`       | `NETWORK_TIMEOUT`, `NETWORK_UNREACHABLE`, `NETWORK_ABORTED`, `NETWORK_UNKNOWN`                                         |
+| `HTTP`          | `HTTP_UNAUTHORIZED`, `HTTP_FORBIDDEN`, `HTTP_NOT_FOUND`, `HTTP_TOO_MANY_REQUESTS`, `HTTP_SERVER_ERROR`, `HTTP_UNKNOWN` |
+| `GRAPHQL`       | `GRAPHQL_VALIDATION`, `GRAPHQL_EXECUTION`, `PERMISSION_DENIED`, `GRAPHQL_UNKNOWN`                                      |
+| `PARSE`         | `RESPONSE_NOT_JSON`, `EMPTY_RESPONSE`, `PARSE_FAILED`                                                                  |
+| `VALIDATION`    | `VALIDATION_FAILED`                                                                                                    |
+
+---
+
+## Next Steps
+
+- [@lsp-indexer/react](/docs/react) — Client-side hooks built on these fetch functions
+- [@lsp-indexer/next](/docs/next) — Server actions and hooks for Next.js
+- [Quickstart](/docs/quickstart) — End-to-end setup guide
+- [Domain Playgrounds](/profiles) — Try every hook live

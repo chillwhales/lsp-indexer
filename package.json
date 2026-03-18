@@ -19,7 +19,7 @@
     "start": "pnpm --filter=@chillwhales/indexer start",
     "compare": "pnpm --filter=@chillwhales/comparison-tool compare",
     "codegen": "pnpm --filter @lsp-indexer/node codegen",
-    "dev:test": "pnpm --filter test dev",
+    "dev:docs": "pnpm --filter docs dev",
     "build:react": "pnpm --filter @lsp-indexer/react build",
     "build:all": "pnpm build",
     "validate:publint": "pnpm --filter '@lsp-indexer/*' exec publint",

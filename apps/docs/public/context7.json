@@ -1,0 +1,33 @@
+{
+  "libraryId": "chillwhales/lsp-indexer",
+  "version": "2.0.0",
+  "title": "@lsp-indexer",
+  "description": "LUKSO blockchain indexer with React and Next.js hooks for querying LSP-standard entities (Universal Profiles, Digital Assets, NFTs, and more) via Hasura GraphQL.",
+  "pages": [
+    {
+      "url": "https://indexer.chillwhales.dev/llm/quickstart.md",
+      "title": "Quickstart",
+      "description": "Get up and running with @lsp-indexer in under 5 minutes."
+    },
+    {
+      "url": "https://indexer.chillwhales.dev/llm/indexer.md",
+      "title": "Indexer",
+      "description": "Architecture and configuration of the @lsp-indexer blockchain processor."
+    },
+    {
+      "url": "https://indexer.chillwhales.dev/llm/node.md",
+      "title": "@lsp-indexer/node",
+      "description": "Low-level GraphQL fetch functions, parsers, query key factories, and subscription client."
+    },
+    {
+      "url": "https://indexer.chillwhales.dev/llm/react.md",
+      "title": "@lsp-indexer/react",
+      "description": "Client-side React hooks for querying LUKSO blockchain data."
+    },
+    {
+      "url": "https://indexer.chillwhales.dev/llm/next.md",
+      "title": "@lsp-indexer/next",
+      "description": "Next.js server actions and query hooks for server-side data fetching."
+    }
+  ]
+}
