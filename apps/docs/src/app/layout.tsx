@@ -22,9 +22,9 @@ export default function RootLayout({ children }: { children: ReactNode }): React
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen font-sans antialiased">
         <Providers>
-          <RootProvider>
-            <AppShell envAvailability={envAvailability}>{children}</AppShell>
-          </RootProvider>
+          <AppShell envAvailability={envAvailability}>
+            <RootProvider>{children}</RootProvider>
+          </AppShell>
         </Providers>
       </body>
     </html>
