@@ -16,6 +16,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-const withMDX = createMDX();
+const withMDX = createMDX({ outDir: 'src/generated/fumadocs' });
 
 export default withMDX(nextConfig);
