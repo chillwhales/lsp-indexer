@@ -128,10 +128,7 @@ RUN addgroup --system --gid 1001 nodejs && \
 # Copy standalone output (preserves monorepo structure due to outputFileTracingRoot)
 COPY --from=builder /app/apps/docs/.next/standalone ./
 COPY --from=builder /app/apps/docs/.next/static ./apps/docs/.next/static
-
-# NOTE: apps/docs/public does not exist currently. If a public/ directory is
-# added later, uncomment the following line:
-# COPY --from=builder /app/apps/docs/public ./apps/docs/public
+COPY --from=builder /app/apps/docs/public ./apps/docs/public
 
 USER nextjs
 
