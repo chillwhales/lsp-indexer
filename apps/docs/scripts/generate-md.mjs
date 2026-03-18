@@ -15,23 +15,19 @@ const ROOT = resolve(__dirname, '..');
 const SLUGS = ['quickstart', 'indexer', 'node', 'react', 'next'];
 const isCheck = process.argv.includes('--check');
 
-/** Extract title from frontmatter (title: "...") */
-function extractTitle(content) {
-  const match = content.match(/^---[\s\S]*?^title:\s*["']?(.+?)["']?\s*$/m);
-  return match ? match[1] : null;
-}
-
 /** Strip leading YAML frontmatter block (---\n...\n---\n) and trim leading whitespace. */
 function stripFrontmatter(content) {
   const stripped = content.replace(/^---[\s\S]*?---\n*/, '');
   return stripped.trimStart();
 }
 
-/** Build final .md content: # {title}\n\n{body} */
-function buildMd(content) {
-  const title = extractTitle(content);
+/** Build final .md content: auto-generated comment + frontmatter + body */
+function buildMd(content, slug) {
   const body = stripFrontmatter(content);
-  return title ? `# ${title}\n\n${body}` : body;
+  const frontmatterMatch = content.match(/^(---[\s\S]*?---)\n*/);
+  const frontmatter = frontmatterMatch ? frontmatterMatch[1] : '';
+  const comment = `<!-- This file is auto-generated from content/docs/${slug}.mdx — do not edit directly. Run \`pnpm --filter docs generate\` to regenerate. -->`;
+  return frontmatter ? `${comment}\n\n${frontmatter}\n\n${body}` : `${comment}\n\n${body}`;
 }
 
 const stale = [];
@@ -41,7 +37,7 @@ for (const slug of SLUGS) {
   const mdPath = resolve(ROOT, 'public/llm', `${slug}.md`);
 
   const mdxContent = readFileSync(mdxPath, 'utf-8');
-  const final = buildMd(mdxContent);
+  const final = buildMd(mdxContent, slug);
 
   if (isCheck) {
     let existing;

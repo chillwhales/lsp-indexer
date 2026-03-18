@@ -1,4 +1,9 @@
-# Quickstart
+<!-- This file is auto-generated from content/docs/quickstart.mdx — do not edit directly. Run `pnpm --filter docs generate` to regenerate. -->
+
+---
+title: Quickstart
+description: Get up and running with @lsp-indexer in under 5 minutes.
+---
 
 Get up and running with `@lsp-indexer` in under 5 minutes. This guide covers running the indexer
 and using the consumer packages in your React or Next.js app.

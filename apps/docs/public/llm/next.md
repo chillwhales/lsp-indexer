@@ -1,4 +1,9 @@
-# @lsp-indexer/next
+<!-- This file is auto-generated from content/docs/next.mdx — do not edit directly. Run `pnpm --filter docs generate` to regenerate. -->
+
+---
+title: "@lsp-indexer/next"
+description: Next.js server actions and query hooks for server-side data fetching.
+---
 
 Next.js server actions and query hooks — the same data-fetching API as `@lsp-indexer/react`, but
 data flows through the server. The browser never sees your Hasura endpoint. Subscriptions use
