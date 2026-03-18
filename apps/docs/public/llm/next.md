@@ -1,4 +1,5 @@
-<!-- This file is auto-generated from src/app/docs/next/page.mdx — do not edit directly. Run `pnpm --filter docs generate` to regenerate. -->
+<!-- This file is auto-generated from src/app/docs/next/page.mdx.
+     Do not edit directly — run `pnpm --filter docs generate` to regenerate. -->
 
 # @lsp-indexer/next
 
