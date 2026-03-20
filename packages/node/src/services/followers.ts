@@ -306,10 +306,10 @@ export async function fetchIsFollowingBatch(
 ): Promise<IsFollowingBatchResult> {
   const { pairs } = params;
 
-  // Initialize all pairs as false
+  // Initialize all pairs as false (normalize keys to lowercase for consistent lookup)
   const results: IsFollowingBatchResult = new Map();
   for (const pair of pairs) {
-    const key = `${pair.followerAddress}:${pair.followedAddress}`;
+    const key = `${pair.followerAddress.toLowerCase()}:${pair.followedAddress.toLowerCase()}`;
     results.set(key, false);
   }
 
@@ -355,9 +355,9 @@ export async function fetchIsFollowingBatch(
     includeFollowedProfileFollowingCount: false,
   });
 
-  // Set matched pairs to true
+  // Set matched pairs to true (normalize to lowercase to match input keys)
   for (const row of result.follower) {
-    const key = `${row.follower_address}:${row.followed_address}`;
+    const key = `${row.follower_address.toLowerCase()}:${row.followed_address.toLowerCase()}`;
     if (results.has(key)) {
       results.set(key, true);
     }

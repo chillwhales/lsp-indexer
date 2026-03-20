@@ -11,6 +11,8 @@ import type { FollowerFilter, FollowerInclude, FollowerSort, UseIsFollowingBatch
  * followerKeys.count(address)               → ['followers', 'count', address]
  * followerKeys.isFollowings()               → ['followers', 'is-following']
  * followerKeys.isFollowing(f, d)            → ['followers', 'is-following', f, d]
+ * followerKeys.isFollowingBatches()         → ['followers', 'is-following-batch']
+ * followerKeys.isFollowingBatch(pairs)      → ['followers', 'is-following-batch', pairs]
  * ```
  */
 export const followerKeys = {

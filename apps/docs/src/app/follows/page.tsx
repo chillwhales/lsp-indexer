@@ -32,6 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 
 import { FollowerCard } from '@/components/follower-card';
@@ -499,9 +500,9 @@ function BatchIsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
             (one per line, format: followerAddress:followedAddress)
           </span>
         </Label>
-        <textarea
+        <Textarea
           id="batch-pairs"
-          className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="min-h-[120px] font-mono"
           placeholder={`0xFollower1:0xFollowed1\n0xFollower2:0xFollowed2\n0xFollower3:0xFollowed3`}
           value={input}
           onChange={(e) => setInput(e.target.value)}
