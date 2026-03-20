@@ -35,6 +35,11 @@ export type UseIsFollowingReturn = {
   isFollowing: boolean;
 } & Omit<UseQueryResult<boolean, Error>, 'data'>;
 
+/** Flat return shape for useIsFollowingBatch — Map of pair keys to boolean + query state */
+export type UseIsFollowingBatchReturn = {
+  results: Map<string, boolean>;
+} & Omit<UseQueryResult<Map<string, boolean>, Error>, 'data'>;
+
 /**
  * Base params for `useFollowerSubscription`.
  *

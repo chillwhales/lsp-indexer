@@ -1,13 +1,23 @@
 'use client';
 
 /** Follows playground — LSP26 social graph: list, infinite, count, is-following, and subscriptions. */
-import { Hash, InfinityIcon, Radio, UserCheck, Users, Wifi, WifiOff } from 'lucide-react';
+import {
+  Hash,
+  InfinityIcon,
+  Radio,
+  UserCheck,
+  Users,
+  UsersRound,
+  Wifi,
+  WifiOff,
+} from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useFollowCount as useFollowCountNext,
   useFollows as useFollowsNext,
   useInfiniteFollows as useInfiniteFollowsNext,
+  useIsFollowingBatch as useIsFollowingBatchNext,
   useIsFollowing as useIsFollowingNext,
 } from '@lsp-indexer/next';
 import {
@@ -15,6 +25,7 @@ import {
   useFollowerSubscription,
   useFollows as useFollowsReact,
   useInfiniteFollows as useInfiniteFollowsReact,
+  useIsFollowingBatch as useIsFollowingBatchReact,
   useIsFollowing as useIsFollowingReact,
 } from '@lsp-indexer/react';
 import {
@@ -31,6 +42,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 
 import { FollowerCard } from '@/components/follower-card';
 import {
@@ -114,6 +126,7 @@ type FollowerHooks = {
   useInfiniteFollows: typeof useInfiniteFollowsReact;
   useFollowCount: typeof useFollowCountReact;
   useIsFollowing: typeof useIsFollowingReact;
+  useIsFollowingBatch: typeof useIsFollowingBatchReact;
   useFollowerSubscription: typeof useFollowerSubscription;
 };
 
@@ -124,6 +137,7 @@ function useFollowerHooks(mode: HookMode): FollowerHooks {
       useInfiniteFollows: useInfiniteFollowsNext,
       useFollowCount: useFollowCountNext,
       useIsFollowing: useIsFollowingNext,
+      useIsFollowingBatch: useIsFollowingBatchNext,
       useFollowerSubscription,
     };
   }
@@ -132,6 +146,7 @@ function useFollowerHooks(mode: HookMode): FollowerHooks {
     useInfiniteFollows: useInfiniteFollowsReact,
     useFollowCount: useFollowCountReact,
     useIsFollowing: useIsFollowingReact,
+    useIsFollowingBatch: useIsFollowingBatchReact,
     useFollowerSubscription,
   };
 }
@@ -461,6 +476,106 @@ function IsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
   );
 }
 
+function BatchIsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
+  const { useIsFollowingBatch } = useFollowerHooks(mode);
+  const [input, setInput] = useState('');
+  const [pairs, setPairs] = useState<Array<{ followerAddress: string; followedAddress: string }>>(
+    [],
+  );
+
+  function parsePairs(): void {
+    const lines = input
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean);
+    const parsed = lines
+      .map((line) => {
+        const [follower, followed] = line.split(':').map((s) => s.trim());
+        if (follower && followed) return { followerAddress: follower, followedAddress: followed };
+        return null;
+      })
+      .filter(Boolean) as Array<{ followerAddress: string; followedAddress: string }>;
+    setPairs(parsed);
+  }
+
+  const { results, isLoading, error } = useIsFollowingBatch({ pairs });
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <Label htmlFor="batch-pairs">
+          Address Pairs{' '}
+          <span className="text-muted-foreground font-normal">
+            (one per line, format: followerAddress:followedAddress)
+          </span>
+        </Label>
+        <Textarea
+          id="batch-pairs"
+          className="min-h-[120px] font-mono"
+          placeholder={`0xFollower1:0xFollowed1\n0xFollower2:0xFollowed2\n0xFollower3:0xFollowed3`}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+        />
+      </div>
+
+      <button
+        type="button"
+        onClick={parsePairs}
+        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"
+      >
+        Check Pairs ({input.split('\n').filter((l) => l.trim()).length})
+      </button>
+
+      {error && <ErrorAlert error={error} />}
+
+      {isLoading && pairs.length > 0 && (
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-48" />
+          </CardHeader>
+        </Card>
+      )}
+
+      {!isLoading && pairs.length > 0 && !error && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">
+              Results ({results.size} pair{results.size !== 1 ? 's' : ''})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {pairs.map((pair) => {
+                const key = `${pair.followerAddress.toLowerCase()}:${pair.followedAddress.toLowerCase()}`;
+                const isFollowing = results.get(key) ?? false;
+                return (
+                  <div key={key} className="flex items-center gap-3 text-sm font-mono">
+                    <Badge
+                      variant={isFollowing ? 'default' : 'secondary'}
+                      className="w-8 justify-center"
+                    >
+                      {isFollowing ? '✓' : '✗'}
+                    </Badge>
+                    <span className="truncate">
+                      {pair.followerAddress} → {pair.followedAddress}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {pairs.length === 0 && !isLoading && (
+        <p className="text-sm text-muted-foreground">
+          Enter address pairs above and click &quot;Check Pairs&quot; to see results.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function SubscriptionTab({ mode }: { mode: HookMode }): React.ReactNode {
   const { useFollowerSubscription } = useFollowerHooks(mode);
   const state = useListState();
@@ -555,7 +670,8 @@ export default function FollowsPage(): React.ReactNode {
           Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollows</code>,{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useInfiniteFollows</code>,{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowCount</code>,{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useIsFollowing</code>, and{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useIsFollowing</code>,{' '}
+          <code className="text-xs bg-muted px-1 py-0.5 rounded">useIsFollowingBatch</code>, and{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowerSubscription</code>{' '}
           hooks against live Hasura data.
         </>
@@ -584,6 +700,12 @@ export default function FollowsPage(): React.ReactNode {
           label: 'Is Following',
           icon: <UserCheck className="size-4" />,
           render: (mode) => <IsFollowingTab mode={mode} />,
+        },
+        {
+          value: 'batch-is-following',
+          label: 'Batch',
+          icon: <UsersRound className="size-4" />,
+          render: (mode) => <BatchIsFollowingTab mode={mode} />,
         },
         {
           value: 'subscription',

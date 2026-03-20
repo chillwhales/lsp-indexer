@@ -1,4 +1,9 @@
-import type { FollowerFilter, FollowerInclude, FollowerSort } from '@lsp-indexer/types';
+import type {
+  FollowerFilter,
+  FollowerInclude,
+  FollowerSort,
+  UseIsFollowingBatchParams,
+} from '@lsp-indexer/types';
 
 /**
  * **Hierarchy:**
@@ -11,6 +16,8 @@ import type { FollowerFilter, FollowerInclude, FollowerSort } from '@lsp-indexer
  * followerKeys.count(address)               → ['followers', 'count', address]
  * followerKeys.isFollowings()               → ['followers', 'is-following']
  * followerKeys.isFollowing(f, d)            → ['followers', 'is-following', f, d]
+ * followerKeys.isFollowingBatches()         → ['followers', 'is-following-batch']
+ * followerKeys.isFollowingBatch(pairs)      → ['followers', 'is-following-batch', pairs]
  * ```
  */
 export const followerKeys = {
@@ -37,4 +44,9 @@ export const followerKeys = {
 
   isFollowing: (followerAddress: string, followedAddress: string) =>
     [...followerKeys.isFollowings(), followerAddress, followedAddress] as const,
+
+  isFollowingBatches: () => [...followerKeys.all, 'is-following-batch'] as const,
+
+  isFollowingBatch: (pairs: UseIsFollowingBatchParams['pairs']) =>
+    [...followerKeys.isFollowingBatches(), pairs] as const,
 } as const;

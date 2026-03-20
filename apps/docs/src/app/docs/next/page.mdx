@@ -158,20 +158,41 @@ export default async function Page() {
 
 Every domain has server actions matching the fetch functions:
 
-| Domain                | Actions                                                           |
-| --------------------- | ----------------------------------------------------------------- |
-| Profiles              | `getProfile`, `getProfiles`                                       |
-| Digital Assets        | `getDigitalAsset`, `getDigitalAssets`                             |
-| NFTs                  | `getNft`, `getNfts`                                               |
-| Owned Assets          | `getOwnedAsset`, `getOwnedAssets`                                 |
-| Owned Tokens          | `getOwnedToken`, `getOwnedTokens`                                 |
-| Creators              | `getCreators`                                                     |
-| Issued Assets         | `getIssuedAssets`                                                 |
-| Follows               | `getFollows`, `getFollowCount`, `getIsFollowing`                  |
-| Encrypted Assets      | `getEncryptedAssets`                                              |
-| Data Changed          | `getDataChangedEvents`, `getLatestDataChangedEvent`               |
-| Token ID Data Changed | `getTokenIdDataChangedEvents`, `getLatestTokenIdDataChangedEvent` |
-| Universal Receiver    | `getUniversalReceiverEvents`                                      |
+| Domain                | Actions                                                                 |
+| --------------------- | ----------------------------------------------------------------------- |
+| Profiles              | `getProfile`, `getProfiles`                                             |
+| Digital Assets        | `getDigitalAsset`, `getDigitalAssets`                                   |
+| NFTs                  | `getNft`, `getNfts`                                                     |
+| Owned Assets          | `getOwnedAsset`, `getOwnedAssets`                                       |
+| Owned Tokens          | `getOwnedToken`, `getOwnedTokens`                                       |
+| Creators              | `getCreators`                                                           |
+| Issued Assets         | `getIssuedAssets`                                                       |
+| Follows               | `getFollows`, `getFollowCount`, `getIsFollowing`, `getIsFollowingBatch` |
+| Encrypted Assets      | `getEncryptedAssets`                                                    |
+| Data Changed          | `getDataChangedEvents`, `getLatestDataChangedEvent`                     |
+| Token ID Data Changed | `getTokenIdDataChangedEvents`, `getLatestTokenIdDataChangedEvent`       |
+| Universal Receiver    | `getUniversalReceiverEvents`                                            |
+
+---
+
+## Batch Follow Checking
+
+`useIsFollowingBatch` checks multiple follower→followed pairs in a single query via the `getIsFollowingBatch` server action. Returns a `Map<string, boolean>` keyed by `"followerAddress:followedAddress"`.
+
+```tsx
+import { useIsFollowingBatch } from '@lsp-indexer/next';
+
+const pairs = [
+  { followerAddress: '0xFollower1', followedAddress: '0xFollowed1' },
+  { followerAddress: '0xFollower2', followedAddress: '0xFollowed2' },
+];
+
+const { results, isLoading, error } = useIsFollowingBatch({ pairs });
+// Keys are lowercased — any address casing is accepted as input:
+// results.get('0xfollower1:0xfollowed1') → true | false
+```
+
+The server action (`getIsFollowingBatch`) serializes the `Map` as a `Record<string, boolean>` over the wire. The hook reconstructs the `Map` on the client. The Hasura URL stays hidden from the browser.
 
 ---
 

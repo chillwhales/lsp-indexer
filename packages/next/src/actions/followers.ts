@@ -5,6 +5,7 @@ import {
   fetchFollowCount,
   fetchFollows,
   fetchIsFollowing,
+  fetchIsFollowingBatch,
   getServerUrl,
 } from '@lsp-indexer/node';
 import {
@@ -14,8 +15,10 @@ import {
   type FollowerResult,
   type FollowerSort,
   type PartialFollower,
+  type UseIsFollowingBatchParams,
   UseFollowCountParamsSchema,
   UseFollowsParamsSchema,
+  UseIsFollowingBatchParamsSchema,
   UseIsFollowingParamsSchema,
 } from '@lsp-indexer/types';
 import { validateInput } from './validate';
@@ -65,4 +68,13 @@ export async function getIsFollowing(
 ): Promise<boolean> {
   validateInput(UseIsFollowingParamsSchema, { followerAddress, followedAddress }, 'getIsFollowing');
   return await fetchIsFollowing(getServerUrl(), { followerAddress, followedAddress });
+}
+
+/** Server action: check multiple follower→followed pairs in one query. Returns Record (Map serialized for wire). */
+export async function getIsFollowingBatch(
+  pairs: UseIsFollowingBatchParams['pairs'],
+): Promise<Record<string, boolean>> {
+  validateInput(UseIsFollowingBatchParamsSchema, { pairs }, 'getIsFollowingBatch');
+  const resultMap = await fetchIsFollowingBatch(getServerUrl(), { pairs });
+  return Object.fromEntries(resultMap);
 }

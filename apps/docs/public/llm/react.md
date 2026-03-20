@@ -158,11 +158,41 @@ All 12 domains follow the same pattern. Replace `Profile` with any domain name:
 | Owned Tokens          | `useOwnedToken`, `useOwnedTokens`, `useInfiniteOwnedTokens`, `useOwnedTokenSubscription`                                                           |
 | Creators              | `useCreators`, `useInfiniteCreators`, `useCreatorSubscription`                                                                                     |
 | Issued Assets         | `useIssuedAssets`, `useInfiniteIssuedAssets`, `useIssuedAssetSubscription`                                                                         |
-| Follows               | `useFollows`, `useInfiniteFollows`, `useFollowCount`, `useIsFollowing`, `useFollowerSubscription`                                                  |
+| Follows               | `useFollows`, `useInfiniteFollows`, `useFollowCount`, `useIsFollowing`, `useIsFollowingBatch`, `useFollowerSubscription`                           |
 | Encrypted Assets      | `useEncryptedAssets`, `useInfiniteEncryptedAssets`, `useEncryptedAssetSubscription`                                                                |
 | Data Changed          | `useDataChangedEvents`, `useInfiniteDataChangedEvents`, `useLatestDataChangedEvent`, `useDataChangedEventSubscription`                             |
 | Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription` |
 | Universal Receiver    | `useUniversalReceiverEvents`, `useInfiniteUniversalReceiverEvents`, `useUniversalReceiverEventSubscription`                                        |
+
+---
+
+## Batch Follow Checking
+
+`useIsFollowingBatch` checks multiple follower→followed address pairs in a single Hasura query. Returns a `Map<string, boolean>` keyed by `"followerAddress:followedAddress"`.
+
+### Parameters
+
+| Parameter | Type                                                          | Required | Description                              |
+| --------- | ------------------------------------------------------------- | -------- | ---------------------------------------- |
+| `pairs`   | `Array<{ followerAddress: string; followedAddress: string }>` | Yes      | Address pairs to check follow status for |
+
+### Usage
+
+```tsx
+import { useIsFollowingBatch } from '@lsp-indexer/react';
+
+const pairs = [
+  { followerAddress: '0xFollower1', followedAddress: '0xFollowed1' },
+  { followerAddress: '0xFollower2', followedAddress: '0xFollowed2' },
+];
+
+const { results, isLoading, error } = useIsFollowingBatch({ pairs });
+// Keys are lowercased — any address casing is accepted as input:
+// results.get('0xfollower1:0xfollowed1') → true | false
+// results.get('0xfollower2:0xfollowed2') → true | false
+```
+
+The hook is disabled when `pairs` is empty — no query is fired and `results` defaults to an empty `Map`. All pairs default to `false`; a missing row means "not following", not an error.
 
 ---
 

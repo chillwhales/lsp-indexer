@@ -5,7 +5,9 @@ import type {
   FollowerInclude,
   FollowerResult,
   FollowerSort,
+  IsFollowingBatchResult,
   PartialFollower,
+  UseIsFollowingBatchParams,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
 import {
@@ -290,6 +292,84 @@ export async function fetchIsFollowing(
   });
 
   return result.follower.length > 0;
+}
+
+/**
+ * Check multiple follower→followed pairs in a single Hasura query.
+ *
+ * Builds an `_or` clause with one `_and` per pair, queries with all includes
+ * disabled for efficiency, and returns a `Map<"followerAddress:followedAddress", boolean>`.
+ */
+export async function fetchIsFollowingBatch(
+  url: string,
+  params: UseIsFollowingBatchParams,
+): Promise<IsFollowingBatchResult> {
+  const { pairs } = params;
+
+  // Initialize all pairs as false (normalize keys to lowercase for consistent lookup)
+  const results: IsFollowingBatchResult = new Map();
+  for (const pair of pairs) {
+    const key = `${pair.followerAddress.toLowerCase()}:${pair.followedAddress.toLowerCase()}`;
+    results.set(key, false);
+  }
+
+  // Short-circuit on empty input
+  if (results.size === 0) return results;
+
+  // Deduplicate pairs by normalized key before building the query
+  const uniquePairs = [...results.keys()].map((key) => {
+    const [follower, followed] = key.split(':');
+    return { followerAddress: follower, followedAddress: followed };
+  });
+
+  // Build _or clause — one _and per unique pair
+  const orConditions = uniquePairs.map((pair) => ({
+    _and: [
+      { follower_address: { _ilike: escapeLike(pair.followerAddress) } },
+      { followed_address: { _ilike: escapeLike(pair.followedAddress) } },
+    ] as Follower_Bool_Exp[],
+  }));
+
+  const result = await execute(url, GetFollowersDocument, {
+    where: { _or: orConditions },
+    limit: uniquePairs.length,
+    // Disable all includes for efficiency — we only need follower_address and followed_address
+    includeTimestamp: false,
+    includeAddress: false,
+    includeBlockNumber: false,
+    includeTransactionIndex: false,
+    includeLogIndex: false,
+    includeFollowerProfile: false,
+    includeFollowerProfileName: false,
+    includeFollowerProfileDescription: false,
+    includeFollowerProfileTags: false,
+    includeFollowerProfileLinks: false,
+    includeFollowerProfileAvatar: false,
+    includeFollowerProfileImage: false,
+    includeFollowerProfileBackgroundImage: false,
+    includeFollowerProfileFollowerCount: false,
+    includeFollowerProfileFollowingCount: false,
+    includeFollowedProfile: false,
+    includeFollowedProfileName: false,
+    includeFollowedProfileDescription: false,
+    includeFollowedProfileTags: false,
+    includeFollowedProfileLinks: false,
+    includeFollowedProfileAvatar: false,
+    includeFollowedProfileImage: false,
+    includeFollowedProfileBackgroundImage: false,
+    includeFollowedProfileFollowerCount: false,
+    includeFollowedProfileFollowingCount: false,
+  });
+
+  // Set matched pairs to true (normalize to lowercase to match input keys)
+  for (const row of result.follower) {
+    const key = `${row.follower_address.toLowerCase()}:${row.followed_address.toLowerCase()}`;
+    if (results.has(key)) {
+      results.set(key, true);
+    }
+  }
+
+  return results;
 }
 
 // ---------------------------------------------------------------------------

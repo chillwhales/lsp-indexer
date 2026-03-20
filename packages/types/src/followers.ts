@@ -147,6 +147,20 @@ export const UseIsFollowingParamsSchema = z.object({
   followedAddress: z.string(),
 });
 
+/** Schema for a single follower→followed pair */
+export const IsFollowingBatchPairSchema = z.object({
+  /** The address that might be following */
+  followerAddress: z.string(),
+  /** The address that might be followed */
+  followedAddress: z.string(),
+});
+
+/** Params for useIsFollowingBatch — check multiple follower→followed pairs at once */
+export const UseIsFollowingBatchParamsSchema = z.object({
+  /** Array of follower→followed pairs to check */
+  pairs: z.array(IsFollowingBatchPairSchema),
+});
+
 // ---------------------------------------------------------------------------
 // Inferred types
 // ---------------------------------------------------------------------------
@@ -161,6 +175,17 @@ export type UseFollowsParams = z.infer<typeof UseFollowsParamsSchema>;
 export type UseInfiniteFollowsParams = z.infer<typeof UseInfiniteFollowsParamsSchema>;
 export type UseFollowCountParams = z.infer<typeof UseFollowCountParamsSchema>;
 export type UseIsFollowingParams = z.infer<typeof UseIsFollowingParamsSchema>;
+export type IsFollowingBatchPair = z.infer<typeof IsFollowingBatchPairSchema>;
+export type UseIsFollowingBatchParams = z.infer<typeof UseIsFollowingBatchParamsSchema>;
+
+/**
+ * Result type for batch isFollowing.
+ *
+ * Keys are `"follower:followed"` with both addresses lowercased, e.g.
+ * `"0xabc...123:0xdef...456"`. Consumers should lowercase both addresses
+ * before calling `results.get(key)`.
+ */
+export type IsFollowingBatchResult = Map<string, boolean>;
 
 // ---------------------------------------------------------------------------
 // Conditional include result type
