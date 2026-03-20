@@ -10,14 +10,14 @@ Any developer can query LUKSO blockchain data through type-safe React hooks back
 
 ## Current State
 
-**Shipped:** v1.2 Production Readiness (M001 complete)
+**Shipped:** v1.3 Mutual Follow Hooks (M004 complete)
 
-The full stack is production-ready: indexer with 6-step pipeline, 4 publishable npm packages at v1.1.0, production Docker Compose with monitoring stack, and operational tooling. 12 query domains, 12 subscription hooks, 12 server action sets, block ordering on all entities, Grafana monitoring, layered CI/CD.
+The full stack is production-ready: indexer with 6-step pipeline, 4 publishable npm packages, production Docker Compose with monitoring stack, and operational tooling. 15 query domains (12 original + 3 mutual follow families), 12 subscription hooks, 15 server action sets, block ordering on all entities, Grafana monitoring, layered CI/CD. Three social graph intersection hooks — mutual follows, mutual followers, and followed-by-my-follows — with infinite scroll variants, ProfileInclude type narrowing, playground page, and full docs.
 
 ## Architecture / Key Patterns
 
 - **Monorepo**: 7 packages — `abi`, `typeorm`, `indexer`, `types` (Zod schemas), `node` (services/parsers/codegen), `react` (TanStack Query hooks), `next` (server actions + hooks)
-- **Apps**: `apps/test` — Next.js 16 playground with all 12 domains
+- **Apps**: `apps/docs` — Next.js 16 playground with all 15 domains + MDX documentation
 - **Stack**: TypeScript, Subsquid EVM Processor, TypeORM + PostgreSQL, Hasura GraphQL, Viem, Node.js 22, TanStack Query, graphql-ws
 - **Patterns**: Prisma-style include type narrowing, 3-overload generic `<const I>`, TkDodo query key factories, dual-package hooks (react direct / next via server actions)
 
