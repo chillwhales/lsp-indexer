@@ -54,16 +54,16 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Rename apps/test → apps/docs** `risk:low` `depends:[]`
+- [x] **S01: Rename apps/test → apps/docs** `risk:low` `depends:[]`
   > After this: `apps/test` is gone, `apps/docs` exists with package name `docs`, `pnpm --filter docs build` exits 0, and the app runs identically to before at `http://localhost:3001` — all 12 playground pages functional, docs layout unchanged, Dockerfile and docker-compose.yml updated.
 
-- [ ] **S02: Migrate Docs Section to Fumadocs** `risk:high` `depends:[S01]`
+- [x] **S02: Migrate Docs Section to Fumadocs** `risk:high` `depends:[S01]`
   > After this: The docs section at `/docs/*` is powered by Fumadocs with proper sidebar navigation, full-text search, and syntax highlighting. All 5 docs pages render correctly. The playground sidebar and playground routes continue to work alongside Fumadocs. Proven by running `pnpm --filter docs dev` and navigating both playground and docs routes in a browser.
 
-- [ ] **S03: AI Compatibility — llms.txt, llms-full.txt, .md Sidecars** `risk:medium` `depends:[S02]`
+- [x] **S03: AI Compatibility — llms.txt, llms-full.txt, .md Sidecars** `risk:medium` `depends:[S02]`
   > After this: `curl http://localhost:3001/llms.txt` returns a project summary, `curl http://localhost:3001/llms-full.txt` returns all docs concatenated, and `curl http://localhost:3001/llm/quickstart.md` returns raw markdown — all served from `public/llm/` static files (no Fumadocs route collision).
 
-- [ ] **S04: context7.json + CI Sidecar Validation** `risk:low` `depends:[S03]`
+- [x] **S04: context7.json + CI Sidecar Validation** `risk:low` `depends:[S03]`
   > After this: `public/context7.json` lists all 5 doc pages in Context7 format, `pnpm --filter docs generate:check` exits 0 on a clean repo and exits 1 when a `.mdx` source diverges from its sidecar output — with the check wired into CI.
 
 ## Boundary Map
