@@ -2,16 +2,19 @@
 
 ## Active
 
-### RELD-01 — New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block ordering changes
-
-- Status: active
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block ordering changes
+(No active requirements remaining)
 
 ## Validated
+
+### RELD-01 — New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block ordering changes
+
+- Status: validated
+- Class: core-capability
+- Source: inferred
+- Primary Slice: S25
+- Validation: Release workflow (.github/workflows/release.yml) builds and pushes Docker image to ghcr.io on merge to main. Production docker-compose.prod.yml pulls the released image.
+
+New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block ordering changes
 
 ### MNTR-01 — Grafana dashboard displays all structured log output from the indexer
 

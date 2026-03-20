@@ -66,10 +66,11 @@ The full stack is production-ready: indexer v2 with 6-step pipeline, 4 publishab
 - ✓ Grafana monitoring dashboards (structured logs + sqd logs) — v1.2
 - ✓ Version normalization (0.1.0 for private packages) — v1.2
 - ✓ Structured logging overhaul + pipeline instrumentation — v1.2
+- ✓ Docker image release to ghcr.io/chillwhales/lsp-indexer — v1.2 (CI-triggered on merge)
 
 ### Active
 
-- [ ] Docker image release to ghcr.io/chillwhales/lsp-indexer (RELD-01) — automatically triggered by CI on merge to main
+(No active requirements remaining)
 
 ### Deferred
 
@@ -141,4 +142,4 @@ All PRs target `main`. GSD auto-mode uses `milestone/<MID>` as the working branc
 
 ---
 
-_Last updated: 2026-03-18 — M001 complete, S30 deferred_
+_Last updated: 2026-03-20 — M001 complete, all requirements validated or deferred, S30 deferred_
