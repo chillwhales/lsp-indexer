@@ -47,7 +47,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Mutual Follow Hooks — Full Stack** `risk:low` `depends:[]`
+- [x] **S01: Mutual Follow Hooks — Full Stack** `risk:low` `depends:[]`
   > After this: All 3 hooks return correct profile intersections from live Hasura in both `@lsp-indexer/react` and `@lsp-indexer/next`, with infinite scroll and include narrowing.
 
 - [ ] **S02: Build Validation & Docs** `risk:low` `depends:[S01]`

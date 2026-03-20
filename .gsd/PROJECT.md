@@ -28,4 +28,4 @@ See `.gsd/REQUIREMENTS.md` for the explicit capability contract, requirement sta
 ## Milestone Sequence
 
 - [x] M001: Migration (v1.0 → v1.2) — complete
-- [ ] M004: Mutual Follow Hooks — social graph intersection queries
+- [ ] M004: Mutual Follow Hooks — S01 complete (full stack hooks), S02 pending (build validation & docs)

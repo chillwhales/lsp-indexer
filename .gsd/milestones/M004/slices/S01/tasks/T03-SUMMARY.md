@@ -65,6 +65,10 @@ The task plan specified `address` as the param for `getFollowedByMyFollows`, but
 | server action grep | `grep -c 'getMutualFollow\|getFollowedByMyFollow'` | 0 | ✅ pass (15 ≥ 6) | <1s |
 | types schema grep | `grep -c 'MutualFollow\|FollowedByMyFollow'` | 0 | ✅ pass (19 ≥ 12) | <1s |
 
+## Diagnostics
+
+Server actions validate input via `validateInput()` which throws `ZodError` with field-level detail before any network call. Hasura GraphQL errors propagate via `execute()` as structured `GraphQLError` objects. To inspect server action wiring, check that each action file imports from `@lsp-indexer/node` services and delegates with `getServerUrl()`. Next.js client hooks are thin wrappers — any runtime failure surfaces through TanStack Query's `error` / `isError` state.
+
 ## Slice Verification Status (Final Task)
 
 All 5 slice verification checks pass:
