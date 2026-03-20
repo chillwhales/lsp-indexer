@@ -50,7 +50,7 @@ This milestone is complete only when all are true:
 - [x] **S01: Mutual Follow Hooks — Full Stack** `risk:low` `depends:[]`
   > After this: All 3 hooks return correct profile intersections from live Hasura in both `@lsp-indexer/react` and `@lsp-indexer/next`, with infinite scroll and include narrowing.
 
-- [ ] **S02: Build Validation & Docs** `risk:low` `depends:[S01]`
+- [x] **S02: Build Validation & Docs** `risk:low` `depends:[S01]`
   > After this: All 4 packages build clean, test app playground page exercises the 3 new hooks, docs pages updated.
 
 ## Boundary Map
