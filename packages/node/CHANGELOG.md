@@ -1,5 +1,22 @@
 # @lsp-indexer/node
 
+## 2.1.0
+
+### Minor Changes
+
+- [#348](https://github.com/chillwhales/lsp-indexer/pull/348) [`8e87755`](https://github.com/chillwhales/lsp-indexer/commit/8e8775508e9de11d848cee1a9bf6d086cfe5bee2) Thanks [@b00ste](https://github.com/b00ste)! - Add `useIsFollowingBatch` hook for checking multiple follower→followed pairs in a single query
+
+  - Add `IsFollowingBatchPairSchema`, `UseIsFollowingBatchParamsSchema` Zod schemas and inferred types
+  - Add `fetchIsFollowingBatch` service with `_or` Hasura query returning `Map<string, boolean>`
+  - Add `followerKeys.isFollowingBatch(pairs)` cache key factory entry
+  - Add `createUseIsFollowingBatch` factory and `useIsFollowingBatch` hook in `@lsp-indexer/react`
+  - Add `getIsFollowingBatch` server action and `useIsFollowingBatch` hook in `@lsp-indexer/next`
+
+### Patch Changes
+
+- Updated dependencies [[`8e87755`](https://github.com/chillwhales/lsp-indexer/commit/8e8775508e9de11d848cee1a9bf6d086cfe5bee2)]:
+  - @lsp-indexer/types@2.1.0
+
 ## 2.0.0
 
 ### Patch Changes
