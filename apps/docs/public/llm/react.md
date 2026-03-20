@@ -187,8 +187,9 @@ const pairs = [
 ];
 
 const { results, isLoading, error } = useIsFollowingBatch({ pairs });
-// results.get('0xFollower1:0xFollowed1') → true | false
-// results.get('0xFollower2:0xFollowed2') → true | false
+// Keys are lowercased — any address casing is accepted as input:
+// results.get('0xfollower1:0xfollowed1') → true | false
+// results.get('0xfollower2:0xfollowed2') → true | false
 ```
 
 The hook is disabled when `pairs` is empty — no query is fired and `results` defaults to an empty `Map`. All pairs default to `false`; a missing row means "not following", not an error.

@@ -191,7 +191,8 @@ const pairs = [
 ];
 
 const { results, isLoading, error } = useIsFollowingBatch({ pairs });
-// results.get('0xFollower1:0xFollowed1') → true | false
+// Keys are lowercased — any address casing is accepted as input:
+// results.get('0xfollower1:0xfollowed1') → true | false
 ```
 
 The server action (`getIsFollowingBatch`) serializes the `Map` as a `Record<string, boolean>` over the wire. The hook reconstructs the `Map` on the client. The Hasura URL stays hidden from the browser.

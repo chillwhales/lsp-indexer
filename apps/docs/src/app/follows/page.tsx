@@ -546,7 +546,7 @@ function BatchIsFollowingTab({ mode }: { mode: HookMode }): React.ReactNode {
           <CardContent>
             <div className="space-y-2">
               {pairs.map((pair) => {
-                const key = `${pair.followerAddress}:${pair.followedAddress}`;
+                const key = `${pair.followerAddress.toLowerCase()}:${pair.followedAddress.toLowerCase()}`;
                 const isFollowing = results.get(key) ?? false;
                 return (
                   <div key={key} className="flex items-center gap-3 text-sm font-mono">

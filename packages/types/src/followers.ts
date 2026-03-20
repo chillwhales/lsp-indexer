@@ -178,7 +178,13 @@ export type UseIsFollowingParams = z.infer<typeof UseIsFollowingParamsSchema>;
 export type IsFollowingBatchPair = z.infer<typeof IsFollowingBatchPairSchema>;
 export type UseIsFollowingBatchParams = z.infer<typeof UseIsFollowingBatchParamsSchema>;
 
-/** Result type for batch isFollowing — map of `"followerAddress:followedAddress"` → boolean */
+/**
+ * Result type for batch isFollowing.
+ *
+ * Keys are `"follower:followed"` with both addresses lowercased, e.g.
+ * `"0xabc...123:0xdef...456"`. Consumers should lowercase both addresses
+ * before calling `results.get(key)`.
+ */
 export type IsFollowingBatchResult = Map<string, boolean>;
 
 // ---------------------------------------------------------------------------
