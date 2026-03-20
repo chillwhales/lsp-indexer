@@ -155,7 +155,7 @@ All 12 domains follow the same pattern. Replace `Profile` with any domain name:
 | Owned Tokens          | `useOwnedToken`, `useOwnedTokens`, `useInfiniteOwnedTokens`, `useOwnedTokenSubscription`                                                           |
 | Creators              | `useCreators`, `useInfiniteCreators`, `useCreatorSubscription`                                                                                     |
 | Issued Assets         | `useIssuedAssets`, `useInfiniteIssuedAssets`, `useIssuedAssetSubscription`                                                                         |
-| Follows               | `useFollows`, `useInfiniteFollows`, `useFollowCount`, `useIsFollowing`, `useIsFollowingBatch`, `useFollowerSubscription`                                                  |
+| Follows               | `useFollows`, `useInfiniteFollows`, `useFollowCount`, `useIsFollowing`, `useIsFollowingBatch`, `useFollowerSubscription`                           |
 | Encrypted Assets      | `useEncryptedAssets`, `useInfiniteEncryptedAssets`, `useEncryptedAssetSubscription`                                                                |
 | Data Changed          | `useDataChangedEvents`, `useInfiniteDataChangedEvents`, `useLatestDataChangedEvent`, `useDataChangedEventSubscription`                             |
 | Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription` |
@@ -169,9 +169,9 @@ All 12 domains follow the same pattern. Replace `Profile` with any domain name:
 
 ### Parameters
 
-| Parameter | Type                                                         | Required | Description                                    |
-| --------- | ------------------------------------------------------------ | -------- | ---------------------------------------------- |
-| `pairs`   | `Array<{ followerAddress: string; followedAddress: string }>` | Yes      | Address pairs to check follow status for       |
+| Parameter | Type                                                          | Required | Description                              |
+| --------- | ------------------------------------------------------------- | -------- | ---------------------------------------- |
+| `pairs`   | `Array<{ followerAddress: string; followedAddress: string }>` | Yes      | Address pairs to check follow status for |
 
 ### Usage
 

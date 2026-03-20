@@ -1,4 +1,9 @@
-import type { FollowerFilter, FollowerInclude, FollowerSort, UseIsFollowingBatchParams } from '@lsp-indexer/types';
+import type {
+  FollowerFilter,
+  FollowerInclude,
+  FollowerSort,
+  UseIsFollowingBatchParams,
+} from '@lsp-indexer/types';
 
 /**
  * **Hierarchy:**

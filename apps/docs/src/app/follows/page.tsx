@@ -1,23 +1,32 @@
 'use client';
 
 /** Follows playground — LSP26 social graph: list, infinite, count, is-following, and subscriptions. */
-import { Hash, InfinityIcon, Radio, UserCheck, Users, UsersRound, Wifi, WifiOff } from 'lucide-react';
+import {
+  Hash,
+  InfinityIcon,
+  Radio,
+  UserCheck,
+  Users,
+  UsersRound,
+  Wifi,
+  WifiOff,
+} from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
   useFollowCount as useFollowCountNext,
   useFollows as useFollowsNext,
   useInfiniteFollows as useInfiniteFollowsNext,
-  useIsFollowing as useIsFollowingNext,
   useIsFollowingBatch as useIsFollowingBatchNext,
+  useIsFollowing as useIsFollowingNext,
 } from '@lsp-indexer/next';
 import {
   useFollowCount as useFollowCountReact,
   useFollowerSubscription,
   useFollows as useFollowsReact,
   useInfiniteFollows as useInfiniteFollowsReact,
-  useIsFollowing as useIsFollowingReact,
   useIsFollowingBatch as useIsFollowingBatchReact,
+  useIsFollowing as useIsFollowingReact,
 } from '@lsp-indexer/react';
 import {
   type FollowerFilter,
@@ -32,8 +41,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 
 import { FollowerCard } from '@/components/follower-card';
 import {
