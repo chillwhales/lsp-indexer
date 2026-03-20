@@ -2,6 +2,8 @@ import type {
   FollowerFilter,
   FollowerInclude,
   FollowerSort,
+  ProfileInclude,
+  ProfileSort,
   UseIsFollowingBatchParams,
 } from '@lsp-indexer/types';
 
@@ -49,4 +51,108 @@ export const followerKeys = {
 
   isFollowingBatch: (pairs: UseIsFollowingBatchParams['pairs']) =>
     [...followerKeys.isFollowingBatches(), pairs] as const,
+
+  // ---------------------------------------------------------------------------
+  // Mutual follow keys
+  // ---------------------------------------------------------------------------
+
+  mutualFollows: (
+    addressA: string,
+    addressB: string,
+    sort?: ProfileSort,
+    limit?: number,
+    offset?: number,
+    include?: ProfileInclude,
+  ) =>
+    [
+      ...followerKeys.all,
+      'mutual-follows',
+      'list',
+      addressA,
+      addressB,
+      sort,
+      limit,
+      offset,
+      include,
+    ] as const,
+
+  infiniteMutualFollows: (
+    addressA: string,
+    addressB: string,
+    sort?: ProfileSort,
+    include?: ProfileInclude,
+  ) =>
+    [...followerKeys.all, 'mutual-follows', 'infinite', addressA, addressB, sort, include] as const,
+
+  mutualFollowers: (
+    addressA: string,
+    addressB: string,
+    sort?: ProfileSort,
+    limit?: number,
+    offset?: number,
+    include?: ProfileInclude,
+  ) =>
+    [
+      ...followerKeys.all,
+      'mutual-followers',
+      'list',
+      addressA,
+      addressB,
+      sort,
+      limit,
+      offset,
+      include,
+    ] as const,
+
+  infiniteMutualFollowers: (
+    addressA: string,
+    addressB: string,
+    sort?: ProfileSort,
+    include?: ProfileInclude,
+  ) =>
+    [
+      ...followerKeys.all,
+      'mutual-followers',
+      'infinite',
+      addressA,
+      addressB,
+      sort,
+      include,
+    ] as const,
+
+  followedByMyFollows: (
+    myAddress: string,
+    targetAddress: string,
+    sort?: ProfileSort,
+    limit?: number,
+    offset?: number,
+    include?: ProfileInclude,
+  ) =>
+    [
+      ...followerKeys.all,
+      'followed-by-my-follows',
+      'list',
+      myAddress,
+      targetAddress,
+      sort,
+      limit,
+      offset,
+      include,
+    ] as const,
+
+  infiniteFollowedByMyFollows: (
+    myAddress: string,
+    targetAddress: string,
+    sort?: ProfileSort,
+    include?: ProfileInclude,
+  ) =>
+    [
+      ...followerKeys.all,
+      'followed-by-my-follows',
+      'infinite',
+      myAddress,
+      targetAddress,
+      sort,
+      include,
+    ] as const,
 } as const;

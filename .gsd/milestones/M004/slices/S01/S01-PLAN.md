@@ -24,6 +24,14 @@
 - `cd /home/coder/lsp-indexer/.gsd/worktrees/M004 && pnpm --filter=@lsp-indexer/node build` — exits 0
 - `cd /home/coder/lsp-indexer/.gsd/worktrees/M004 && pnpm --filter=@lsp-indexer/react build` — exits 0
 - `cd /home/coder/lsp-indexer/.gsd/worktrees/M004 && pnpm --filter=@lsp-indexer/next build` — exits 0
+- `cd /home/coder/lsp-indexer/.gsd/worktrees/M004 && grep -c 'MutualFollow\|FollowedByMyFollow' packages/types/src/followers.ts` — returns >= 12 (schemas + types present)
+
+## Observability / Diagnostics
+
+- **Build errors**: TypeScript compiler errors surface via `pnpm build` — no runtime logging needed for type/schema definitions.
+- **Runtime failure signals**: Service functions propagate Hasura GraphQL errors via `execute()` — callers see structured `GraphQLError` with query details. No try/catch wrapping needed (consistent with existing service pattern).
+- **Inspectable surfaces**: Consumers can inspect query key arrays at runtime to verify cache key structure. Zod schemas provide runtime `.parse()` validation of params before they reach service functions.
+- **Redaction**: No secrets handled — only blockchain addresses (public data).
 
 ## Integration Closure
 
@@ -33,7 +41,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add Zod schemas, service functions, and query keys for mutual follow queries** `est:45m`
+- [x] **T01: Add Zod schemas, service functions, and query keys for mutual follow queries** `est:45m`
   - Why: Foundation layer — types, data-fetching logic, and cache keys that all hooks depend on
   - Files: `packages/types/src/followers.ts`, `packages/node/src/services/followers.ts`, `packages/node/src/keys/followers.ts`
   - Do: Add 6 Zod param schemas (3 base + 3 infinite) to types. Add 3 `fetch*` service functions to node that call `fetchProfiles` with composed `_and` where-clauses. Add 6 query key entries to follower keys. Service functions must build `Universal_Profile_Bool_Exp` directly (not use `ProfileFilter`) because they need two simultaneous `followedBy`/`followed` conditions.
