@@ -314,10 +314,16 @@ export async function fetchIsFollowingBatch(
   }
 
   // Short-circuit on empty input
-  if (pairs.length === 0) return results;
+  if (results.size === 0) return results;
 
-  // Build _or clause — one _and per pair
-  const orConditions = pairs.map((pair) => ({
+  // Deduplicate pairs by normalized key before building the query
+  const uniquePairs = [...results.keys()].map((key) => {
+    const [follower, followed] = key.split(':');
+    return { followerAddress: follower, followedAddress: followed };
+  });
+
+  // Build _or clause — one _and per unique pair
+  const orConditions = uniquePairs.map((pair) => ({
     _and: [
       { follower_address: { _ilike: escapeLike(pair.followerAddress) } },
       { followed_address: { _ilike: escapeLike(pair.followedAddress) } },
@@ -326,7 +332,7 @@ export async function fetchIsFollowingBatch(
 
   const result = await execute(url, GetFollowersDocument, {
     where: { _or: orConditions },
-    limit: pairs.length,
+    limit: uniquePairs.length,
     // Disable all includes for efficiency — we only need follower_address and followed_address
     includeTimestamp: false,
     includeAddress: false,
