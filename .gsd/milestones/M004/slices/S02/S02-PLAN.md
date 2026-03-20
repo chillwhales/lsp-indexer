@@ -37,7 +37,7 @@
   - Verify: `test -f apps/docs/src/app/mutual-follows/page.tsx && grep -q 'mutual-follows' apps/docs/src/components/nav.tsx`
   - Done when: Playground page exists with all 6 tabs and nav link is present
 
-- [ ] **T02: Update node, react, and next docs pages with mutual follow APIs** `est:30m`
+- [x] **T02: Update node, react, and next docs pages with mutual follow APIs** `est:30m`
   - Why: AGENTS.md mandates docs updates for every new hook/action/function. Milestone definition-of-done requires "Docs updated". Closes R008 via final build validation.
   - Files: `apps/docs/src/app/docs/node/page.mdx`, `apps/docs/src/app/docs/react/page.mdx`, `apps/docs/src/app/docs/next/page.mdx`
   - Do: (1) In node docs, add a "Mutual Follows" row to the fetch functions table with `fetchMutualFollows`, `fetchMutualFollowers`, `fetchFollowedByMyFollows`. (2) In react docs, add a "Mutual Follows" row to the domain hooks table listing all 6 hooks, plus a usage section showing `addressA`/`addressB` params and include narrowing. (3) In next docs, add a "Mutual Follows" row to server actions table with `getMutualFollows`, `getMutualFollowers`, `getFollowedByMyFollows`, plus add 6 Next.js hooks to hooks listing, plus usage section.
@@ -51,3 +51,10 @@
 - `apps/docs/src/app/docs/node/page.mdx`
 - `apps/docs/src/app/docs/react/page.mdx`
 - `apps/docs/src/app/docs/next/page.mdx`
+
+## Observability / Diagnostics
+
+- **Build verification**: `pnpm --filter=docs build` exit code is the primary signal — MDX parse errors or broken imports surface as build failures with file:line details in stderr
+- **Playground error visibility**: Each mutual follow tab renders `ErrorAlert` inline when the hook returns an error (network, GraphQL, or validation)
+- **React Query devtools**: In dev mode, cache entries under `followerKeys.mutualFollows`, `followerKeys.mutualFollowers`, `followerKeys.followedByMyFollows` show query state, staleness, and refetch timing
+- **Failure path**: If the Hasura endpoint is unreachable, hooks return `IndexerError` with category `NETWORK` — rendered by `ErrorAlert` in the playground and logged to browser console
