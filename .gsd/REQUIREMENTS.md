@@ -2,41 +2,6 @@
 
 This file is the explicit capability and coverage contract for the project.
 
-## Active
-
-### R005 — Next.js hooks routing through server actions + server action exports for all three mutual follow queries
-- Class: core-capability
-- Status: active
-- Description: Next.js hooks routing through server actions + server action exports for all three mutual follow queries
-- Why it matters: Consumer packages must expose hooks for Next.js apps keeping endpoint hidden
-- Source: inferred
-- Primary owning slice: M004/S01
-- Supporting slices: none
-- Validation: pnpm --filter=@lsp-indexer/next build exits 0. 3 server actions with Zod validation, 6 hooks exported.
-- Notes: S01 delivered 3 server actions + 6 Next.js client hooks routing through server actions.
-
-### R006 — Returned profiles support the existing ProfileInclude type narrowing — consumers can opt into specific profile fields
-- Class: quality-attribute
-- Status: active
-- Description: Returned profiles support the existing ProfileInclude type narrowing — consumers can opt into specific profile fields
-- Why it matters: Consistency with existing hook API patterns (DX-04)
-- Source: inferred
-- Primary owning slice: M004/S01
-- Supporting slices: none
-- Validation: All factories use const I extends ProfileInclude generic with 3 overloads. Compiles clean.
-- Notes: S01 delivered 3-overload ProfileInclude narrowing on all hooks and server actions.
-
-### R007 — `useInfiniteMutualFollows`, `useInfiniteMutualFollowers`, `useInfiniteFollowedByMyFollows` with offset-based pagination
-- Class: core-capability
-- Status: active
-- Description: `useInfiniteMutualFollows`, `useInfiniteMutualFollowers`, `useInfiniteFollowedByMyFollows` with offset-based pagination
-- Why it matters: Social lists can be long — infinite scroll is table stakes
-- Source: inferred
-- Primary owning slice: M004/S01
-- Supporting slices: none
-- Validation: useInfiniteMutualFollows, useInfiniteMutualFollowers, useInfiniteFollowedByMyFollows all compile. Runtime pagination validation pending S02.
-- Notes: S01 delivered 3 infinite scroll variants with offset-based pagination via createUseInfinite factories.
-
 ## Validated
 
 ### R001 — Given two addresses A and B, return the set of profiles that both A and B follow. Computed server-side via Hasura nested `followedBy` relationship filters.
@@ -83,6 +48,39 @@ This file is the explicit capability and coverage contract for the project.
 - Validation: S01: 6 React hooks exported. S02: playground page imports all 6 React hooks with HookMode toggle, docs list all 6 in domain table. Full build exits 0.
 - Notes: S01 delivered 6 React hooks calling Hasura directly via getClientUrl().
 
+### R005 — Next.js hooks routing through server actions + server action exports for all three mutual follow queries
+- Class: core-capability
+- Status: validated
+- Description: Next.js hooks routing through server actions + server action exports for all three mutual follow queries
+- Why it matters: Consumer packages must expose hooks for Next.js apps keeping endpoint hidden
+- Source: inferred
+- Primary owning slice: M004/S01
+- Supporting slices: none
+- Validation: pnpm --filter=@lsp-indexer/next build exits 0. 3 server actions with 'use server' directive + Zod validation in packages/next/src/actions/followers.ts. 6 Next.js hooks exported from packages/next/src/hooks/followers/index.ts. Playground page exercises all hooks.
+- Notes: S01 delivered 3 server actions + 6 Next.js client hooks routing through server actions.
+
+### R006 — Returned profiles support the existing ProfileInclude type narrowing — consumers can opt into specific profile fields
+- Class: quality-attribute
+- Status: validated
+- Description: Returned profiles support the existing ProfileInclude type narrowing — consumers can opt into specific profile fields
+- Why it matters: Consistency with existing hook API patterns (DX-04)
+- Source: inferred
+- Primary owning slice: M004/S01
+- Supporting slices: none
+- Validation: All service functions and factories use `<const I extends ProfileInclude>` with 3-overload signatures. TypeScript compilation across all 4 packages validates type narrowing works correctly.
+- Notes: S01 delivered 3-overload ProfileInclude narrowing on all hooks and server actions.
+
+### R007 — `useInfiniteMutualFollows`, `useInfiniteMutualFollowers`, `useInfiniteFollowedByMyFollows` with offset-based pagination
+- Class: core-capability
+- Status: validated
+- Description: `useInfiniteMutualFollows`, `useInfiniteMutualFollowers`, `useInfiniteFollowedByMyFollows` with offset-based pagination
+- Why it matters: Social lists can be long — infinite scroll is table stakes
+- Source: inferred
+- Primary owning slice: M004/S01
+- Supporting slices: none
+- Validation: useInfiniteMutualFollows, useInfiniteMutualFollowers, useInfiniteFollowedByMyFollows all present in react and next packages with offset-based pagination via createUseInfinite factory. Build passes. Playground page includes infinite scroll tabs.
+- Notes: S01 delivered 3 infinite scroll variants with offset-based pagination via createUseInfinite factories.
+
 ### R008 — types, node, react, next all compile with zero errors after changes
 - Class: quality-attribute
 - Status: validated
@@ -102,14 +100,14 @@ This file is the explicit capability and coverage contract for the project.
 | R002 | core-capability | validated | M004/S01 | none | S01: service function + hooks compile. S02: playground page exercises useMutualFollowers with include/sort controls, docs list fetchMutualFollowers. Full 5-package build exits 0. |
 | R003 | core-capability | validated | M004/S01 | none | S01: service function + hooks compile. S02: playground page exercises useFollowedByMyFollows with myAddress/targetAddress inputs, docs list fetchFollowedByMyFollows. Full 5-package build exits 0. |
 | R004 | core-capability | validated | M004/S01 | none | S01: 6 React hooks exported. S02: playground page imports all 6 React hooks with HookMode toggle, docs list all 6 in domain table. Full build exits 0. |
-| R005 | core-capability | active | M004/S01 | none | pnpm --filter=@lsp-indexer/next build exits 0. 3 server actions with Zod validation, 6 hooks exported. |
-| R006 | quality-attribute | active | M004/S01 | none | All factories use const I extends ProfileInclude generic with 3 overloads. Compiles clean. |
-| R007 | core-capability | active | M004/S01 | none | useInfiniteMutualFollows, useInfiniteMutualFollowers, useInfiniteFollowedByMyFollows all compile. Runtime pagination validation pending S02. |
+| R005 | core-capability | validated | M004/S01 | none | pnpm --filter=@lsp-indexer/next build exits 0. 3 server actions with 'use server' directive + Zod validation in packages/next/src/actions/followers.ts. 6 Next.js hooks exported from packages/next/src/hooks/followers/index.ts. Playground page exercises all hooks. |
+| R006 | quality-attribute | validated | M004/S01 | none | All service functions and factories use `<const I extends ProfileInclude>` with 3-overload signatures. TypeScript compilation across all 4 packages validates type narrowing works correctly. |
+| R007 | core-capability | validated | M004/S01 | none | useInfiniteMutualFollows, useInfiniteMutualFollowers, useInfiniteFollowedByMyFollows all present in react and next packages with offset-based pagination via createUseInfinite factory. Build passes. Playground page includes infinite scroll tabs. |
 | R008 | quality-attribute | validated | M004/S02 | none | All 5 packages (types, node, react, next, docs) build with zero errors. Verified by pnpm build across all filters. |
 
 ## Coverage Summary
 
-- Active requirements: 3
-- Mapped to slices: 3
-- Validated: 5 (R001, R002, R003, R004, R008)
+- Active requirements: 0
+- Mapped to slices: 0
+- Validated: 8 (R001, R002, R003, R004, R005, R006, R007, R008)
 - Unmapped active requirements: 0
