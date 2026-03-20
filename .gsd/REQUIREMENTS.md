@@ -2,446 +2,122 @@
 
 ## Active
 
-(No active requirements remaining)
+### R001 — `useMutualFollows` returns profiles both addresses follow
+- Class: core-capability
+- Status: active
+- Description: Given two addresses A and B, return the set of profiles that both A and B follow. Computed server-side via Hasura nested `followedBy` relationship filters.
+- Why it matters: Core social graph feature — "what do we have in common?"
+- Source: user
+- Primary owning slice: M004/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Query uses `universal_profile` where `followedBy` contains both A and B as `follower_address`
+
+### R002 — `useMutualFollowers` returns profiles that follow both addresses
+- Class: core-capability
+- Status: active
+- Description: Given two addresses A and B, return profiles that follow both A and B. Computed server-side via Hasura nested `followed` relationship filters.
+- Why it matters: Core social graph feature — "who follows both of us?"
+- Source: user
+- Primary owning slice: M004/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Query uses `universal_profile` where `followed` contains both A and B as `followed_address`
+
+### R003 — `useFollowedByMyFollows` returns profiles user follows who also follow target
+- Class: core-capability
+- Status: active
+- Description: Given user's address and a target profile, return profiles from user's following list that also follow the target. "People you follow who also follow this profile."
+- Why it matters: Social proof — shows familiar faces in a profile's follower list
+- Source: user
+- Primary owning slice: M004/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Query uses `universal_profile` where `followedBy` has user AND `followed` has target
+
+### R004 — All three hooks available in `@lsp-indexer/react`
+- Class: core-capability
+- Status: active
+- Description: React hooks calling Hasura directly via `getClientUrl()` for all three mutual follow queries
+- Why it matters: Consumer packages must expose the hooks for direct browser usage
+- Source: inferred
+- Primary owning slice: M004/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Follows established dual-package hook pattern
+
+### R005 — All three hooks available in `@lsp-indexer/next`
+- Class: core-capability
+- Status: active
+- Description: Next.js hooks routing through server actions + server action exports for all three mutual follow queries
+- Why it matters: Consumer packages must expose hooks for Next.js apps keeping endpoint hidden
+- Source: inferred
+- Primary owning slice: M004/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Follows established dual-package hook pattern
+
+### R006 — Include-based type narrowing on returned profiles
+- Class: quality-attribute
+- Status: active
+- Description: Returned profiles support the existing ProfileInclude type narrowing — consumers can opt into specific profile fields
+- Why it matters: Consistency with existing hook API patterns (DX-04)
+- Source: inferred
+- Primary owning slice: M004/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Uses existing ProfileInclude, ProfileResult<I> machinery
+
+### R007 — Infinite scroll variants for all three hooks
+- Class: core-capability
+- Status: active
+- Description: `useInfiniteMutualFollows`, `useInfiniteMutualFollowers`, `useInfiniteFollowedByMyFollows` with offset-based pagination
+- Why it matters: Social lists can be long — infinite scroll is table stakes
+- Source: inferred
+- Primary owning slice: M004/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Follows established useInfinite* pattern with separate query key namespace
+
+### R008 — All 4 packages build and typecheck clean
+- Class: quality-attribute
+- Status: active
+- Description: types, node, react, next all compile with zero errors after changes
+- Why it matters: Publish readiness
+- Source: inferred
+- Primary owning slice: M004/S02
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Build verification as final gate
 
 ## Validated
 
-### RELD-01 — New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block ordering changes
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: S25
-- Validation: Release workflow (.github/workflows/release.yml) builds and pushes Docker image to ghcr.io on merge to main. Production docker-compose.prod.yml pulls the released image.
-
-New Docker image released to `ghcr.io/chillwhales/lsp-indexer` with block ordering changes
-
-### MNTR-01 — Grafana dashboard displays all structured log output from the indexer
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: S25
-- Validation: Grafana Log Explorer panel with Alloy collecting all indexer container logs to Loki; structured fields queryable by step/handler/component
-
-Grafana dashboard displays all structured log output from the indexer
-
-### MNTR-02 — Grafana dashboard displays Subsquid processor (sqd) logs
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: S25
-- Validation: Alloy collects ALL Docker container logs including sqd processor output; Log Explorer and block progress panels surface sqd data
-
-Grafana dashboard displays Subsquid processor (sqd) logs
-
-### DOCK-01 — Production docker-compose pulls `ghcr.io/chillwhales/lsp-indexer:latest` and runs indexer + PostgreSQL + Hasura
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Production docker-compose pulls `ghcr.io/chillwhales/lsp-indexer:latest` and runs indexer + PostgreSQL + Hasura
-
-### DOCK-02 — Local docker-compose (existing) remains the default for development
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Local docker-compose (existing) remains the default for development
-
-### DOCK-03 — Production compose is configurable via environment variables (RPC URL, DB credentials, Hasura secrets)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Production compose is configurable via environment variables (RPC URL, DB credentials, Hasura secrets)
-
-### BORD-01 — Every TypeORM entity has `blockNumber`, `transactionIndex`, and `logIndex` columns
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Every TypeORM entity has `blockNumber`, `transactionIndex`, and `logIndex` columns
-
-### BORD-02 — All EventPlugins populate block/tx/log fields from the decoded event context
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-All EventPlugins populate block/tx/log fields from the decoded event context
-
-### BORD-03 — All EntityHandlers populate block/tx/log fields from the triggering event
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-All EntityHandlers populate block/tx/log fields from the triggering event
-
-### BORD-04 — UniversalProfile, DigitalAsset, and NFT entities retain block/tx/log from the oldest (first) event — later updates do not overwrite these fields
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-UniversalProfile, DigitalAsset, and NFT entities retain block/tx/log from the oldest (first) event — later updates do not overwrite these fields
-
-### BORD-05 — schema.graphql updated with block ordering fields on all entities
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-schema.graphql updated with block ordering fields on all entities
-
-### BORD-06 — TypeORM codegen rebuilt and all entities compile cleanly
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-TypeORM codegen rebuilt and all entities compile cleanly
-
-### MNTR-03 — Monitoring stack (Grafana + log collector) included in production docker-compose
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Monitoring stack (Grafana + log collector) included in production docker-compose
-
-### SORT-01 — All 12 query domain services support sorting by oldest and newest based on blockNumber, transactionIndex, logIndex
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-All 12 query domain services support sorting by oldest and newest based on blockNumber, transactionIndex, logIndex
-
-### SORT-02 — All 12 subscription hooks support oldest/newest sort order
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-All 12 subscription hooks support oldest/newest sort order
-
-### SORT-03 — All 12 React hooks support oldest/newest sort order parameter
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-All 12 React hooks support oldest/newest sort order parameter
-
-### SORT-04 — All 12 Next.js server actions support oldest/newest sort order parameter
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-All 12 Next.js server actions support oldest/newest sort order parameter
-
-### SORT-05 — Sort parameter propagates through types, documents, parsers, and services
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Sort parameter propagates through types, documents, parsers, and services
-
-### RELP-01 — All 4 packages (`types`, `node`, `react`, `next`) released with sorting support
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-All 4 packages (`types`, `node`, `react`, `next`) released with sorting support
-
-### VERS-01 — `@chillwhales/abi` package.json version set to 0.1.0
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-`@chillwhales/abi` package.json version set to 0.1.0
-
-### VERS-02 — `@chillwhales/typeorm` package.json version set to 0.1.0
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-`@chillwhales/typeorm` package.json version set to 0.1.0
-
-### VERS-03 — `@chillwhales/indexer` package.json version set to 0.1.0
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-`@chillwhales/indexer` package.json version set to 0.1.0
-
-### VERS-04 — `apps/docs` package.json version set to 0.1.0
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-`apps/docs` package.json version set to 0.1.0
-
-### SLOG-01 — All `console.*` calls in indexer source migrated to structured Subsquid logger output, except worker threads where logger is unavailable, with queryable fields
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-All `console.*` calls in indexer source migrated to structured Subsquid logger output, except worker threads where logger is unavailable, with queryable fields
-
-### SLOG-02 — All `JSON.stringify()` anti-pattern log calls converted to proper `(attrs, message)` pattern
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-All `JSON.stringify()` anti-pattern log calls converted to proper `(attrs, message)` pattern
-
-### SLOG-03 — All template string log messages in `metadataFetch.ts` converted to structured attrs
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-All template string log messages in `metadataFetch.ts` converted to structured attrs
-
-### SLOG-04 — All startup logs in `app/index.ts` include structured metadata fields
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-All startup logs in `app/index.ts` include structured metadata fields
-
-### INST-01 — Every pipeline step (EXTRACT through RESOLVE) emits timing data (`durationMs`)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Every pipeline step (EXTRACT through RESOLVE) emits timing data (`durationMs`)
-
-### INST-02 — Batch summary log emitted at end of `processBatch()` with block range, entity counts, step timings, total elapsed
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Batch summary log emitted at end of `processBatch()` with block range, entity counts, step timings, total elapsed
-
-### INST-03 — EXTRACT and HANDLE steps have dedicated loggers (currently silent)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-EXTRACT and HANDLE steps have dedicated loggers (currently silent)
-
-### DASH-01 — Dashboard includes pipeline step latency panel (per-step timing breakdown)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Dashboard includes pipeline step latency panel (per-step timing breakdown)
-
-### DASH-02 — Dashboard includes entity throughput panel (entities persisted per batch by type)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Dashboard includes entity throughput panel (entities persisted per batch by type)
-
-### DASH-03 — Dashboard includes verification health panel (valid/invalid/new counts)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Dashboard includes verification health panel (valid/invalid/new counts)
-
-### DASH-04 — Dashboard includes metadata fetch progress panel (backlog depth, fetch duration, success/failure)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Dashboard includes metadata fetch progress panel (backlog depth, fetch duration, success/failure)
-
-### DASH-05 — Dashboard includes batch processing time panel (total elapsed per batch)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Dashboard includes batch processing time panel (total elapsed per batch)
-
-### LSP29-01 — `@chillwhales/lsp29` installed as indexer dependency and hand-rolled `src/constants/lsp29.ts` deleted
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-`@chillwhales/lsp29` installed as indexer dependency and hand-rolled `src/constants/lsp29.ts` deleted
-
-### LSP29-02 — TypeORM `schema.graphql` entities redesigned for v2.0.0 spec (provider-first encryption, per-backend chunks, encryption params entity replaces access control conditions)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-TypeORM `schema.graphql` entities redesigned for v2.0.0 spec (provider-first encryption, per-backend chunks, encryption params entity replaces access control conditions)
-
-### LSP29-03 — TypeORM codegen rebuilt and all generated entity classes compile cleanly
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-TypeORM codegen rebuilt and all generated entity classes compile cleanly
-
-### LSP29-04 — `lsp29EncryptedAsset.handler.ts` imports data keys from `@chillwhales/lsp29` package (no hand-rolled constants)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-`lsp29EncryptedAsset.handler.ts` imports data keys from `@chillwhales/lsp29` package (no hand-rolled constants)
-
-### LSP29-05 — `lsp29EncryptedAssetFetch.handler.ts` uses `isLsp29Asset()` type guard from package for JSON validation (no hand-rolled type guards/extractors)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-`lsp29EncryptedAssetFetch.handler.ts` uses `isLsp29Asset()` type guard from package for JSON validation (no hand-rolled type guards/extractors)
-
-### LSP29-06 — All hand-rolled LSP29 type guards and extractors removed from `src/utils/index.ts`
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-All hand-rolled LSP29 type guards and extractors removed from `src/utils/index.ts`
-
-### LSP29-07 — `types` package `encrypted-assets.ts` Zod schemas match new entity structure (encryption, chunks, params)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-`types` package `encrypted-assets.ts` Zod schemas match new entity structure (encryption, chunks, params)
-
-### LSP29-08 — `node` package GraphQL documents, parsers, and service rewritten for new Hasura schema
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-`node` package GraphQL documents, parsers, and service rewritten for new Hasura schema
-
-### LSP29-09 — `react` hooks and `next` server actions compile with breaking type changes
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-`react` hooks and `next` server actions compile with breaking type changes
-
-### LSP29-10 — Full monorepo builds successfully (`pnpm build`)
-
-- Status: validated
-- Class: core-capability
-- Source: inferred
-- Primary Slice: none yet
-
-Full monorepo builds successfully (`pnpm build`)
+(No validated requirements yet — M004 not started)
 
 ## Deferred
 
-### OPS-01 — PostgreSQL backup strategy defined and documented
-
-- Status: deferred
-- Class: core-capability
-- Source: inferred
-- Notes: VPS/volume-level snapshots cover the backup need. pg_dump sidecar added unnecessary complexity. S30 deferred.
-
-PostgreSQL backup strategy defined and documented
-
-### OPS-02 — Backup automation configured (scheduled dumps or WAL archiving)
-
-- Status: deferred
-- Class: core-capability
-- Source: inferred
-- Notes: Deferred with OPS-01. Use managed Postgres or volume snapshots for any future automation need.
-
-Backup automation configured (scheduled dumps or WAL archiving)
-
-### OPS-03 — Recovery procedure documented and tested
-
-- Status: deferred
-- Class: core-capability
-- Source: inferred
-- Primary Slice: S30
-- Notes: S30 deferred — VPS/volume-level snapshots cover recovery. Full re-sync from block 0 remains the documented last-resort path.
-
-Recovery procedure documented and tested
+(None)
 
 ## Out of Scope
+
+(None)
+
+## Traceability
+
+| ID | Class | Status | Primary owner | Supporting | Proof |
+|---|---|---|---|---|---|
+| R001 | core-capability | active | M004/S01 | none | unmapped |
+| R002 | core-capability | active | M004/S01 | none | unmapped |
+| R003 | core-capability | active | M004/S01 | none | unmapped |
+| R004 | core-capability | active | M004/S01 | none | unmapped |
+| R005 | core-capability | active | M004/S01 | none | unmapped |
+| R006 | quality-attribute | active | M004/S01 | none | unmapped |
+| R007 | core-capability | active | M004/S01 | none | unmapped |
+| R008 | quality-attribute | active | M004/S02 | none | unmapped |
+
+## Coverage Summary
+
+- Active requirements: 8
+- Mapped to slices: 8
+- Validated: 0
+- Unmapped active requirements: 0
