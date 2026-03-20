@@ -55,7 +55,7 @@
   - Verify: `pnpm --filter=@lsp-indexer/react build` exits 0
   - Done when: 6 hooks exported from `@lsp-indexer/react` with correct `ProfileResult<I>` type narrowing
 
-- [ ] **T03: Add Next.js server actions and client hooks** `est:30m`
+- [x] **T03: Add Next.js server actions and client hooks** `est:30m`
   - Why: Completes the full stack — Next.js apps get server-action-routed hooks keeping Hasura endpoint hidden
   - Files: `packages/next/src/actions/followers.ts`, `packages/next/src/hooks/followers/use-mutual-follows.ts`, `packages/next/src/hooks/followers/use-mutual-followers.ts`, `packages/next/src/hooks/followers/use-followed-by-my-follows.ts`, `packages/next/src/hooks/followers/use-infinite-mutual-follows.ts`, `packages/next/src/hooks/followers/use-infinite-mutual-followers.ts`, `packages/next/src/hooks/followers/use-infinite-followed-by-my-follows.ts`, `packages/next/src/hooks/followers/index.ts`
   - Do: Add 3 server actions (`getMutualFollows`, `getMutualFollowers`, `getFollowedByMyFollows`) to followers.ts with 3-overload signatures + Zod validation. Wire 6 Next.js client hooks using the factory functions from `@lsp-indexer/react` + server actions. Update barrel exports.
