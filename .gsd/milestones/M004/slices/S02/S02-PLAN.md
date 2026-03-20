@@ -30,7 +30,7 @@
 
 ## Tasks
 
-- [ ] **T01: Create mutual follows playground page with nav link** `est:45m`
+- [x] **T01: Create mutual follows playground page with nav link** `est:45m`
   - Why: Milestone requires a test app playground page that exercises all 6 mutual follow hooks against live Hasura. This is the primary integration proof.
   - Files: `apps/docs/src/app/mutual-follows/page.tsx`, `apps/docs/src/components/nav.tsx`
   - Do: Create playground page following the exact pattern of `apps/docs/src/app/follows/page.tsx`. 6 tabs (Mutual Follows, Infinite Mutual Follows, Mutual Followers, Infinite Mutual Followers, Followed By My Follows, Infinite Followed By My Follows). Each tab has two address inputs (`addressA`/`addressB` or `myAddress`/`targetAddress`), include toggles via `PROFILE_INCLUDE_FIELDS`, sort controls, and a `HookMode` toggle for React vs Next imports. Results render via `ProfileCard` (not `FollowerCard`). Add nav link entry in `playgroundLinks` array after the follows entry.
