@@ -167,11 +167,31 @@ Every domain has server actions matching the fetch functions:
 | Owned Tokens          | `getOwnedToken`, `getOwnedTokens`                                 |
 | Creators              | `getCreators`                                                     |
 | Issued Assets         | `getIssuedAssets`                                                 |
-| Follows               | `getFollows`, `getFollowCount`, `getIsFollowing`                  |
+| Follows               | `getFollows`, `getFollowCount`, `getIsFollowing`, `getIsFollowingBatch` |
 | Encrypted Assets      | `getEncryptedAssets`                                              |
 | Data Changed          | `getDataChangedEvents`, `getLatestDataChangedEvent`               |
 | Token ID Data Changed | `getTokenIdDataChangedEvents`, `getLatestTokenIdDataChangedEvent` |
 | Universal Receiver    | `getUniversalReceiverEvents`                                      |
+
+---
+
+## Batch Follow Checking
+
+`useIsFollowingBatch` checks multiple follower→followed pairs in a single query via the `getIsFollowingBatch` server action. Returns a `Map<string, boolean>` keyed by `"followerAddress:followedAddress"`.
+
+```tsx
+import { useIsFollowingBatch } from '@lsp-indexer/next';
+
+const pairs = [
+  { followerAddress: '0xFollower1', followedAddress: '0xFollowed1' },
+  { followerAddress: '0xFollower2', followedAddress: '0xFollowed2' },
+];
+
+const { results, isLoading, error } = useIsFollowingBatch({ pairs });
+// results.get('0xFollower1:0xFollowed1') → true | false
+```
+
+The server action (`getIsFollowingBatch`) serializes the `Map` as a `Record<string, boolean>` over the wire. The hook reconstructs the `Map` on the client. The Hasura URL stays hidden from the browser.
 
 ---
 

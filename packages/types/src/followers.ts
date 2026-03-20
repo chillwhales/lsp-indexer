@@ -147,6 +147,19 @@ export const UseIsFollowingParamsSchema = z.object({
   followedAddress: z.string(),
 });
 
+/** Params for useIsFollowingBatch — check multiple follower→followed pairs at once */
+export const UseIsFollowingBatchParamsSchema = z.object({
+  /** Array of follower→followed pairs to check */
+  pairs: z.array(
+    z.object({
+      /** The address that might be following */
+      followerAddress: z.string(),
+      /** The address that might be followed */
+      followedAddress: z.string(),
+    }),
+  ),
+});
+
 // ---------------------------------------------------------------------------
 // Inferred types
 // ---------------------------------------------------------------------------
@@ -161,6 +174,10 @@ export type UseFollowsParams = z.infer<typeof UseFollowsParamsSchema>;
 export type UseInfiniteFollowsParams = z.infer<typeof UseInfiniteFollowsParamsSchema>;
 export type UseFollowCountParams = z.infer<typeof UseFollowCountParamsSchema>;
 export type UseIsFollowingParams = z.infer<typeof UseIsFollowingParamsSchema>;
+export type UseIsFollowingBatchParams = z.infer<typeof UseIsFollowingBatchParamsSchema>;
+
+/** Result type for batch isFollowing — map of `"followerAddress:followedAddress"` → boolean */
+export type IsFollowingBatchResult = Map<string, boolean>;
 
 // ---------------------------------------------------------------------------
 // Conditional include result type
