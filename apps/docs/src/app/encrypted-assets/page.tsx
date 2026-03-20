@@ -78,7 +78,7 @@ const ALL_FILTERS: FilterFieldConfig[] = [
   {
     key: 'encryptionMethod',
     label: 'Encryption Method',
-    placeholder: 'e.g. Lit Protocol',
+    placeholder: 'e.g. TACo Protocol',
     width: 'w-48',
   },
   {
