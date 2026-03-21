@@ -149,20 +149,20 @@ function LiveProfiles() {
 
 All 12 domains follow the same pattern. Replace `Profile` with any domain name:
 
-| Domain                | Hooks                                                                                                                                              |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Profiles              | `useProfile`, `useProfiles`, `useInfiniteProfiles`, `useProfileSubscription`                                                                       |
-| Digital Assets        | `useDigitalAsset`, `useDigitalAssets`, `useInfiniteDigitalAssets`, `useDigitalAssetSubscription`                                                   |
-| NFTs                  | `useNft`, `useNfts`, `useInfiniteNfts`, `useNftSubscription`                                                                                       |
-| Owned Assets          | `useOwnedAsset`, `useOwnedAssets`, `useInfiniteOwnedAssets`, `useOwnedAssetSubscription`                                                           |
-| Owned Tokens          | `useOwnedToken`, `useOwnedTokens`, `useInfiniteOwnedTokens`, `useOwnedTokenSubscription`                                                           |
-| Creators              | `useCreators`, `useInfiniteCreators`, `useCreatorSubscription`                                                                                     |
-| Issued Assets         | `useIssuedAssets`, `useInfiniteIssuedAssets`, `useIssuedAssetSubscription`                                                                         |
-| Follows               | `useFollows`, `useInfiniteFollows`, `useFollowCount`, `useIsFollowing`, `useIsFollowingBatch`, `useFollowerSubscription`                           |
-| Encrypted Assets      | `useEncryptedAssets`, `useInfiniteEncryptedAssets`, `useEncryptedAssetSubscription`                                                                |
-| Data Changed          | `useDataChangedEvents`, `useInfiniteDataChangedEvents`, `useLatestDataChangedEvent`, `useDataChangedEventSubscription`                             |
-| Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription` |
-| Universal Receiver    | `useUniversalReceiverEvents`, `useInfiniteUniversalReceiverEvents`, `useUniversalReceiverEventSubscription`                                        |
+| Domain                | Hooks                                                                                                                                                                                                                                                                                    |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profiles              | `useProfile`, `useProfiles`, `useInfiniteProfiles`, `useProfileSubscription`                                                                                                                                                                                                             |
+| Digital Assets        | `useDigitalAsset`, `useDigitalAssets`, `useInfiniteDigitalAssets`, `useDigitalAssetSubscription`                                                                                                                                                                                         |
+| NFTs                  | `useNft`, `useNfts`, `useInfiniteNfts`, `useNftSubscription`                                                                                                                                                                                                                             |
+| Owned Assets          | `useOwnedAsset`, `useOwnedAssets`, `useInfiniteOwnedAssets`, `useOwnedAssetSubscription`                                                                                                                                                                                                 |
+| Owned Tokens          | `useOwnedToken`, `useOwnedTokens`, `useInfiniteOwnedTokens`, `useOwnedTokenSubscription`                                                                                                                                                                                                 |
+| Creators              | `useCreators`, `useInfiniteCreators`, `useCreatorSubscription`                                                                                                                                                                                                                           |
+| Issued Assets         | `useIssuedAssets`, `useInfiniteIssuedAssets`, `useIssuedAssetSubscription`                                                                                                                                                                                                               |
+| Follows               | `useFollows`, `useInfiniteFollows`, `useFollowCount`, `useIsFollowing`, `useIsFollowingBatch`, `useFollowerSubscription`, `useMutualFollows`, `useInfiniteMutualFollows`, `useMutualFollowers`, `useInfiniteMutualFollowers`, `useFollowedByMyFollows`, `useInfiniteFollowedByMyFollows` |
+| Encrypted Assets      | `useEncryptedAssets`, `useInfiniteEncryptedAssets`, `useEncryptedAssetSubscription`                                                                                                                                                                                                      |
+| Data Changed          | `useDataChangedEvents`, `useInfiniteDataChangedEvents`, `useLatestDataChangedEvent`, `useDataChangedEventSubscription`                                                                                                                                                                   |
+| Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription`                                                                                                                                       |
+| Universal Receiver    | `useUniversalReceiverEvents`, `useInfiniteUniversalReceiverEvents`, `useUniversalReceiverEventSubscription`                                                                                                                                                                              |
 
 ---
 
@@ -193,6 +193,92 @@ const { results, isLoading, error } = useIsFollowingBatch({ pairs });
 ```
 
 The hook is disabled when `pairs` is empty — no query is fired and `results` defaults to an empty `Map`. All pairs default to `false`; a missing row means "not following", not an error.
+
+---
+
+## Mutual Follow Queries
+
+Three hook families query intersection relationships across the follow graph. Each comes in a
+standard paginated version and an infinite-scroll version. All hooks accept a single params object
+and return `{ profiles, totalCount, isLoading, error, isFetching }`. Queries stay idle until both
+addresses are provided.
+
+| Hook                             | Description                                                            |
+| -------------------------------- | ---------------------------------------------------------------------- |
+| `useMutualFollows`               | Profiles that both `addressA` and `addressB` follow                    |
+| `useInfiniteMutualFollows`       | Infinite-scroll variant of `useMutualFollows`                          |
+| `useMutualFollowers`             | Profiles that follow both `addressA` and `addressB`                    |
+| `useInfiniteMutualFollowers`     | Infinite-scroll variant of `useMutualFollowers`                        |
+| `useFollowedByMyFollows`         | Profiles that `myAddress` follows and that also follow `targetAddress` |
+| `useInfiniteFollowedByMyFollows` | Infinite-scroll variant of `useFollowedByMyFollows`                    |
+
+### Parameters
+
+**`useMutualFollows` / `useMutualFollowers`:**
+
+| Param      | Type             | Required | Description                    |
+| ---------- | ---------------- | -------- | ------------------------------ |
+| `addressA` | `string`         | Yes      | First address                  |
+| `addressB` | `string`         | Yes      | Second address                 |
+| `sort`     | `ProfileSort`    | No       | Sort field, direction, nulls   |
+| `limit`    | `number`         | No       | Max results (default: server)  |
+| `offset`   | `number`         | No       | Pagination offset              |
+| `include`  | `ProfileInclude` | No       | Include narrowing for profiles |
+
+**`useFollowedByMyFollows`:**
+
+| Param           | Type             | Required | Description                    |
+| --------------- | ---------------- | -------- | ------------------------------ |
+| `myAddress`     | `string`         | Yes      | Your address                   |
+| `targetAddress` | `string`         | Yes      | Target profile address         |
+| `sort`          | `ProfileSort`    | No       | Sort field, direction, nulls   |
+| `limit`         | `number`         | No       | Max results (default: server)  |
+| `offset`        | `number`         | No       | Pagination offset              |
+| `include`       | `ProfileInclude` | No       | Include narrowing for profiles |
+
+Infinite variants (`useInfiniteMutualFollows`, etc.) replace `limit`/`offset` with `pageSize?: number`.
+
+### Usage
+
+```tsx
+import { useMutualFollows } from '@lsp-indexer/react';
+import type { ProfileInclude } from '@lsp-indexer/types';
+
+const include: ProfileInclude = { ownedAssets: true, tags: true };
+
+function MutualFollows({ addressA, addressB }: { addressA: string; addressB: string }) {
+  const { profiles, totalCount, isLoading, error } = useMutualFollows({
+    addressA,
+    addressB,
+    sort: { field: 'name', direction: 'asc' },
+    limit: 10,
+    include,
+  });
+
+  if (isLoading) return <p>Loading…</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  return (
+    <div>
+      <p>{totalCount} mutual follows</p>
+      {profiles?.map((p) => (
+        <div key={p.address}>
+          {p.name}
+          {/* p.ownedAssets is typed — include narrowing works */}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+`useFollowedByMyFollows` uses `myAddress` and `targetAddress` instead of `addressA`/`addressB`:
+
+```tsx
+import { useFollowedByMyFollows } from '@lsp-indexer/react';
+
+const { profiles } = useFollowedByMyFollows({ myAddress, targetAddress, limit: 20 });
+```
 
 ---
 

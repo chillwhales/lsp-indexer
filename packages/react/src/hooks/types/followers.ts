@@ -1,4 +1,4 @@
-import type { FetchFollowsResult } from '@lsp-indexer/node';
+import type { FetchFollowsResult, FetchProfilesResult } from '@lsp-indexer/node';
 import type {
   FollowCount,
   FollowerFilter,
@@ -65,3 +65,58 @@ export interface UseFollowerSubscriptionParams {
   /** Callback when WebSocket reconnects after a drop */
   onReconnect?: () => void;
 }
+
+// ---------------------------------------------------------------------------
+// Mutual follow return types (all return profiles, not followers)
+// ---------------------------------------------------------------------------
+
+/** Flat return shape for useMutualFollows — profiles array + totalCount + query state */
+export type UseMutualFollowsReturn<F> = { profiles: F[]; totalCount: number } & Omit<
+  UseQueryResult<FetchProfilesResult<F>, Error>,
+  'data'
+>;
+
+/** Flat return shape for useInfiniteMutualFollows — profiles array + infinite scroll controls + query state */
+export type UseInfiniteMutualFollowsReturn<F> = {
+  profiles: F[];
+  hasNextPage: boolean;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  isFetchingNextPage: boolean;
+} & Omit<
+  UseInfiniteQueryResult<InfiniteData<FetchProfilesResult<F>>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;
+
+/** Flat return shape for useMutualFollowers — profiles array + totalCount + query state */
+export type UseMutualFollowersReturn<F> = { profiles: F[]; totalCount: number } & Omit<
+  UseQueryResult<FetchProfilesResult<F>, Error>,
+  'data'
+>;
+
+/** Flat return shape for useInfiniteMutualFollowers — profiles array + infinite scroll controls + query state */
+export type UseInfiniteMutualFollowersReturn<F> = {
+  profiles: F[];
+  hasNextPage: boolean;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  isFetchingNextPage: boolean;
+} & Omit<
+  UseInfiniteQueryResult<InfiniteData<FetchProfilesResult<F>>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;
+
+/** Flat return shape for useFollowedByMyFollows — profiles array + totalCount + query state */
+export type UseFollowedByMyFollowsReturn<F> = { profiles: F[]; totalCount: number } & Omit<
+  UseQueryResult<FetchProfilesResult<F>, Error>,
+  'data'
+>;
+
+/** Flat return shape for useInfiniteFollowedByMyFollows — profiles array + infinite scroll controls + query state */
+export type UseInfiniteFollowedByMyFollowsReturn<F> = {
+  profiles: F[];
+  hasNextPage: boolean;
+  fetchNextPage: UseInfiniteQueryResult['fetchNextPage'];
+  isFetchingNextPage: boolean;
+} & Omit<
+  UseInfiniteQueryResult<InfiniteData<FetchProfilesResult<F>>, Error>,
+  'data' | 'hasNextPage' | 'fetchNextPage' | 'isFetchingNextPage'
+>;

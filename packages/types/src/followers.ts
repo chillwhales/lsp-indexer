@@ -5,6 +5,7 @@ import type { IncludeResult, PartialExcept } from './include-types';
 import {
   ProfileIncludeSchema,
   ProfileSchema,
+  ProfileSortSchema,
   type Profile,
   type ProfileInclude,
   type ProfileResult,
@@ -139,6 +140,67 @@ export const UseFollowCountParamsSchema = z.object({
   address: z.string(),
 });
 
+// ---------------------------------------------------------------------------
+// Mutual follow hook parameter schemas — 6 hooks (3 base + 3 infinite)
+// ---------------------------------------------------------------------------
+
+/** Params for useMutualFollows — profiles that both addressA and addressB follow */
+export const UseMutualFollowsParamsSchema = z.object({
+  addressA: z.string(),
+  addressB: z.string(),
+  sort: ProfileSortSchema.optional(),
+  limit: z.number().optional(),
+  offset: z.number().optional(),
+  include: ProfileIncludeSchema.optional(),
+});
+
+/** Params for useInfiniteMutualFollows — infinite scroll variant */
+export const UseInfiniteMutualFollowsParamsSchema = z.object({
+  addressA: z.string(),
+  addressB: z.string(),
+  sort: ProfileSortSchema.optional(),
+  pageSize: z.number().optional(),
+  include: ProfileIncludeSchema.optional(),
+});
+
+/** Params for useMutualFollowers — profiles that follow both addressA and addressB */
+export const UseMutualFollowersParamsSchema = z.object({
+  addressA: z.string(),
+  addressB: z.string(),
+  sort: ProfileSortSchema.optional(),
+  limit: z.number().optional(),
+  offset: z.number().optional(),
+  include: ProfileIncludeSchema.optional(),
+});
+
+/** Params for useInfiniteMutualFollowers — infinite scroll variant */
+export const UseInfiniteMutualFollowersParamsSchema = z.object({
+  addressA: z.string(),
+  addressB: z.string(),
+  sort: ProfileSortSchema.optional(),
+  pageSize: z.number().optional(),
+  include: ProfileIncludeSchema.optional(),
+});
+
+/** Params for useFollowedByMyFollows — profiles followed by target that my follows also follow */
+export const UseFollowedByMyFollowsParamsSchema = z.object({
+  myAddress: z.string(),
+  targetAddress: z.string(),
+  sort: ProfileSortSchema.optional(),
+  limit: z.number().optional(),
+  offset: z.number().optional(),
+  include: ProfileIncludeSchema.optional(),
+});
+
+/** Params for useInfiniteFollowedByMyFollows — infinite scroll variant */
+export const UseInfiniteFollowedByMyFollowsParamsSchema = z.object({
+  myAddress: z.string(),
+  targetAddress: z.string(),
+  sort: ProfileSortSchema.optional(),
+  pageSize: z.number().optional(),
+  include: ProfileIncludeSchema.optional(),
+});
+
 /** Params for useIsFollowing — check if one address follows another */
 export const UseIsFollowingParamsSchema = z.object({
   /** The address that might be following */
@@ -177,6 +239,16 @@ export type UseFollowCountParams = z.infer<typeof UseFollowCountParamsSchema>;
 export type UseIsFollowingParams = z.infer<typeof UseIsFollowingParamsSchema>;
 export type IsFollowingBatchPair = z.infer<typeof IsFollowingBatchPairSchema>;
 export type UseIsFollowingBatchParams = z.infer<typeof UseIsFollowingBatchParamsSchema>;
+export type UseMutualFollowsParams = z.infer<typeof UseMutualFollowsParamsSchema>;
+export type UseInfiniteMutualFollowsParams = z.infer<typeof UseInfiniteMutualFollowsParamsSchema>;
+export type UseMutualFollowersParams = z.infer<typeof UseMutualFollowersParamsSchema>;
+export type UseInfiniteMutualFollowersParams = z.infer<
+  typeof UseInfiniteMutualFollowersParamsSchema
+>;
+export type UseFollowedByMyFollowsParams = z.infer<typeof UseFollowedByMyFollowsParamsSchema>;
+export type UseInfiniteFollowedByMyFollowsParams = z.infer<
+  typeof UseInfiniteFollowedByMyFollowsParamsSchema
+>;
 
 /**
  * Result type for batch isFollowing.

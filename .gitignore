@@ -64,3 +64,4 @@ target/
 vendor/
 .cache/
 tmp/
+core

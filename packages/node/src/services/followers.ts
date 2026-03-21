@@ -7,6 +7,10 @@ import type {
   FollowerSort,
   IsFollowingBatchResult,
   PartialFollower,
+  PartialProfile,
+  ProfileInclude,
+  ProfileResult,
+  ProfileSort,
   UseIsFollowingBatchParams,
 } from '@lsp-indexer/types';
 import { execute } from '../client/execute';
@@ -15,13 +19,21 @@ import {
   GetFollowCountDocument,
   GetFollowersDocument,
 } from '../documents/followers';
+import { GetProfilesDocument } from '../documents/profiles';
 import type {
   Follower_Bool_Exp,
   Follower_Order_By,
   FollowerSubscriptionSubscription,
+  Universal_Profile_Bool_Exp,
 } from '../graphql/graphql';
 import { parseFollowers } from '../parsers/followers';
-import { buildProfileIncludeVars } from './profiles';
+import { parseProfiles } from '../parsers/profiles';
+import {
+  buildProfileIncludeDirectives,
+  buildProfileIncludeVars,
+  buildProfileOrderBy,
+  type FetchProfilesResult,
+} from './profiles';
 import {
   buildBlockOrderSort,
   escapeLike,
@@ -370,6 +382,244 @@ export async function fetchIsFollowingBatch(
   }
 
   return results;
+}
+
+// ---------------------------------------------------------------------------
+// Mutual follow service functions — query universal_profile with relationship filters
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch profiles that both addressA and addressB follow (mutual follows).
+ *
+ * Queries `universal_profile` with two nested `followedBy` conditions — each profile
+ * must appear in both A's and B's followed lists.
+ */
+export async function fetchMutualFollows(
+  url: string,
+  params: {
+    addressA: string;
+    addressB: string;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+  },
+): Promise<FetchProfilesResult>;
+export async function fetchMutualFollows<const I extends ProfileInclude>(
+  url: string,
+  params: {
+    addressA: string;
+    addressB: string;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+    include: I;
+  },
+): Promise<FetchProfilesResult<ProfileResult<I>>>;
+export async function fetchMutualFollows(
+  url: string,
+  params: {
+    addressA: string;
+    addressB: string;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+    include?: ProfileInclude;
+  },
+): Promise<FetchProfilesResult<PartialProfile>>;
+export async function fetchMutualFollows(
+  url: string,
+  params: {
+    addressA: string;
+    addressB: string;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+    include?: ProfileInclude;
+  },
+): Promise<FetchProfilesResult<PartialProfile>> {
+  const where: Universal_Profile_Bool_Exp = {
+    _and: [
+      { followedBy: { follower_address: { _ilike: escapeLike(params.addressA) } } },
+      { followedBy: { follower_address: { _ilike: escapeLike(params.addressB) } } },
+    ],
+  };
+  const orderBy = buildProfileOrderBy(params.sort) ?? buildBlockOrderSort('desc');
+  const includeVars = buildProfileIncludeDirectives(params.include);
+
+  const result = await execute(url, GetProfilesDocument, {
+    where,
+    order_by: orderBy,
+    limit: params.limit,
+    offset: params.offset,
+    ...includeVars,
+  });
+
+  if (params.include) {
+    return {
+      profiles: parseProfiles(result.universal_profile, params.include),
+      totalCount: result.universal_profile_aggregate?.aggregate?.count ?? 0,
+    };
+  }
+  return {
+    profiles: parseProfiles(result.universal_profile),
+    totalCount: result.universal_profile_aggregate?.aggregate?.count ?? 0,
+  };
+}
+
+/**
+ * Fetch profiles that follow both addressA and addressB (mutual followers).
+ *
+ * Queries `universal_profile` with two nested `followed` conditions — each profile
+ * must be following both A and B.
+ */
+export async function fetchMutualFollowers(
+  url: string,
+  params: {
+    addressA: string;
+    addressB: string;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+  },
+): Promise<FetchProfilesResult>;
+export async function fetchMutualFollowers<const I extends ProfileInclude>(
+  url: string,
+  params: {
+    addressA: string;
+    addressB: string;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+    include: I;
+  },
+): Promise<FetchProfilesResult<ProfileResult<I>>>;
+export async function fetchMutualFollowers(
+  url: string,
+  params: {
+    addressA: string;
+    addressB: string;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+    include?: ProfileInclude;
+  },
+): Promise<FetchProfilesResult<PartialProfile>>;
+export async function fetchMutualFollowers(
+  url: string,
+  params: {
+    addressA: string;
+    addressB: string;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+    include?: ProfileInclude;
+  },
+): Promise<FetchProfilesResult<PartialProfile>> {
+  const where: Universal_Profile_Bool_Exp = {
+    _and: [
+      { followed: { followed_address: { _ilike: escapeLike(params.addressA) } } },
+      { followed: { followed_address: { _ilike: escapeLike(params.addressB) } } },
+    ],
+  };
+  const orderBy = buildProfileOrderBy(params.sort) ?? buildBlockOrderSort('desc');
+  const includeVars = buildProfileIncludeDirectives(params.include);
+
+  const result = await execute(url, GetProfilesDocument, {
+    where,
+    order_by: orderBy,
+    limit: params.limit,
+    offset: params.offset,
+    ...includeVars,
+  });
+
+  if (params.include) {
+    return {
+      profiles: parseProfiles(result.universal_profile, params.include),
+      totalCount: result.universal_profile_aggregate?.aggregate?.count ?? 0,
+    };
+  }
+  return {
+    profiles: parseProfiles(result.universal_profile),
+    totalCount: result.universal_profile_aggregate?.aggregate?.count ?? 0,
+  };
+}
+
+/**
+ * Fetch profiles that myAddress follows AND that also follow targetAddress.
+ *
+ * "Which of my follows also follow this target?" — useful for social proof.
+ * Queries `universal_profile` with `followedBy` (my follows) + `followed` (following target).
+ */
+export async function fetchFollowedByMyFollows(
+  url: string,
+  params: {
+    myAddress: string;
+    targetAddress: string;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+  },
+): Promise<FetchProfilesResult>;
+export async function fetchFollowedByMyFollows<const I extends ProfileInclude>(
+  url: string,
+  params: {
+    myAddress: string;
+    targetAddress: string;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+    include: I;
+  },
+): Promise<FetchProfilesResult<ProfileResult<I>>>;
+export async function fetchFollowedByMyFollows(
+  url: string,
+  params: {
+    myAddress: string;
+    targetAddress: string;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+    include?: ProfileInclude;
+  },
+): Promise<FetchProfilesResult<PartialProfile>>;
+export async function fetchFollowedByMyFollows(
+  url: string,
+  params: {
+    myAddress: string;
+    targetAddress: string;
+    sort?: ProfileSort;
+    limit?: number;
+    offset?: number;
+    include?: ProfileInclude;
+  },
+): Promise<FetchProfilesResult<PartialProfile>> {
+  const where: Universal_Profile_Bool_Exp = {
+    _and: [
+      { followedBy: { follower_address: { _ilike: escapeLike(params.myAddress) } } },
+      { followed: { followed_address: { _ilike: escapeLike(params.targetAddress) } } },
+    ],
+  };
+  const orderBy = buildProfileOrderBy(params.sort) ?? buildBlockOrderSort('desc');
+  const includeVars = buildProfileIncludeDirectives(params.include);
+
+  const result = await execute(url, GetProfilesDocument, {
+    where,
+    order_by: orderBy,
+    limit: params.limit,
+    offset: params.offset,
+    ...includeVars,
+  });
+
+  if (params.include) {
+    return {
+      profiles: parseProfiles(result.universal_profile, params.include),
+      totalCount: result.universal_profile_aggregate?.aggregate?.count ?? 0,
+    };
+  }
+  return {
+    profiles: parseProfiles(result.universal_profile),
+    totalCount: result.universal_profile_aggregate?.aggregate?.count ?? 0,
+  };
 }
 
 // ---------------------------------------------------------------------------

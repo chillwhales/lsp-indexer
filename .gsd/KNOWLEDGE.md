@@ -60,3 +60,19 @@ gh pr create -R chillwhales/lsp-indexer --base main --title "feat(S02): Migrate 
 ### Recovery
 
 Once a squash-merge has landed and the branch is deleted, per-slice PR history cannot be recovered. A single milestone-level PR is the best available substitute.
+
+## [2026-03-20] M004: Mutual follow hooks bypass fetchProfiles — pattern for multi-condition relationship queries
+
+### Pattern
+
+When a hook needs two simultaneous relationship filter conditions (e.g., "profiles followed by BOTH address A and address B"), the existing `fetchProfiles` helper cannot be used because it builds its own where-clause from `ProfileFilter`. Instead, call `execute()` directly with a composed `Universal_Profile_Bool_Exp` using `_and` + nested relationship filters.
+
+This pattern was established in D004 and applies to any future hook that needs multi-condition relationship filters.
+
+### Key detail
+
+Mandatory params (no `= {}` default) are correct for intersection queries — calling `useMutualFollows()` without two addresses is nonsensical. This differs from `useProfiles()` which can be called with no filters. See D005.
+
+### Fragility warning
+
+The `_and` where-clause constructs `followedBy`/`followed` relationship names as string keys. If Hasura schema renames these relationships, queries return empty results silently (no GraphQL error). There is no compile-time protection for relationship field names inside `Universal_Profile_Bool_Exp`.

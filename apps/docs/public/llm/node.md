@@ -63,22 +63,31 @@ const { profiles, totalCount } = await fetchProfiles(getClientUrl(), {
 
 ### Available fetch functions
 
-| Domain                | Single                               | List                            |
-| --------------------- | ------------------------------------ | ------------------------------- |
-| Profiles              | `fetchProfile`                       | `fetchProfiles`                 |
-| Digital Assets        | `fetchDigitalAsset`                  | `fetchDigitalAssets`            |
-| NFTs                  | `fetchNft`                           | `fetchNfts`                     |
-| Owned Assets          | `fetchOwnedAsset`                    | `fetchOwnedAssets`              |
-| Owned Tokens          | `fetchOwnedToken`                    | `fetchOwnedTokens`              |
-| Creators              | —                                    | `fetchCreators`                 |
-| Issued Assets         | —                                    | `fetchIssuedAssets`             |
-| Follows               | —                                    | `fetchFollows`                  |
-| Encrypted Assets      | —                                    | `fetchEncryptedAssets`          |
-| Data Changed          | `fetchLatestDataChangedEvent`        | `fetchDataChangedEvents`        |
-| Token ID Data Changed | `fetchLatestTokenIdDataChangedEvent` | `fetchTokenIdDataChangedEvents` |
-| Universal Receiver    | —                                    | `fetchUniversalReceiverEvents`  |
+| Domain                | Single                               | List                                                                                     |
+| --------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Profiles              | `fetchProfile`                       | `fetchProfiles`                                                                          |
+| Digital Assets        | `fetchDigitalAsset`                  | `fetchDigitalAssets`                                                                     |
+| NFTs                  | `fetchNft`                           | `fetchNfts`                                                                              |
+| Owned Assets          | `fetchOwnedAsset`                    | `fetchOwnedAssets`                                                                       |
+| Owned Tokens          | `fetchOwnedToken`                    | `fetchOwnedTokens`                                                                       |
+| Creators              | —                                    | `fetchCreators`                                                                          |
+| Issued Assets         | —                                    | `fetchIssuedAssets`                                                                      |
+| Follows               | —                                    | `fetchFollows`, `fetchMutualFollows`, `fetchMutualFollowers`, `fetchFollowedByMyFollows` |
+| Encrypted Assets      | —                                    | `fetchEncryptedAssets`                                                                   |
+| Data Changed          | `fetchLatestDataChangedEvent`        | `fetchDataChangedEvents`                                                                 |
+| Token ID Data Changed | `fetchLatestTokenIdDataChangedEvent` | `fetchTokenIdDataChangedEvents`                                                          |
+| Universal Receiver    | —                                    | `fetchUniversalReceiverEvents`                                                           |
 
 Additional: `fetchFollowCount`, `fetchIsFollowing`.
+
+**Mutual follow queries** are intersection queries across the follow graph:
+
+- `fetchMutualFollows(url, { addressA, addressB, sort?, limit?, offset?, include? })` — profiles that both `addressA` and `addressB` follow
+- `fetchMutualFollowers(url, { addressA, addressB, sort?, limit?, offset?, include? })` — profiles that follow both `addressA` and `addressB`
+- `fetchFollowedByMyFollows(url, { myAddress, targetAddress, sort?, limit?, offset?, include? })` — profiles that `myAddress` follows and that also follow `targetAddress`
+
+All three accept `sort`, `limit`, `offset`, and `include` options and return
+`{ profiles, totalCount }` — the same shape as `fetchProfiles`.
 
 ---
 

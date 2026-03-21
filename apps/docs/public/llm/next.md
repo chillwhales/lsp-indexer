@@ -161,20 +161,20 @@ export default async function Page() {
 
 Every domain has server actions matching the fetch functions:
 
-| Domain                | Actions                                                                 |
-| --------------------- | ----------------------------------------------------------------------- |
-| Profiles              | `getProfile`, `getProfiles`                                             |
-| Digital Assets        | `getDigitalAsset`, `getDigitalAssets`                                   |
-| NFTs                  | `getNft`, `getNfts`                                                     |
-| Owned Assets          | `getOwnedAsset`, `getOwnedAssets`                                       |
-| Owned Tokens          | `getOwnedToken`, `getOwnedTokens`                                       |
-| Creators              | `getCreators`                                                           |
-| Issued Assets         | `getIssuedAssets`                                                       |
-| Follows               | `getFollows`, `getFollowCount`, `getIsFollowing`, `getIsFollowingBatch` |
-| Encrypted Assets      | `getEncryptedAssets`                                                    |
-| Data Changed          | `getDataChangedEvents`, `getLatestDataChangedEvent`                     |
-| Token ID Data Changed | `getTokenIdDataChangedEvents`, `getLatestTokenIdDataChangedEvent`       |
-| Universal Receiver    | `getUniversalReceiverEvents`                                            |
+| Domain                | Actions                                                                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profiles              | `getProfile`, `getProfiles`                                                                                                                 |
+| Digital Assets        | `getDigitalAsset`, `getDigitalAssets`                                                                                                       |
+| NFTs                  | `getNft`, `getNfts`                                                                                                                         |
+| Owned Assets          | `getOwnedAsset`, `getOwnedAssets`                                                                                                           |
+| Owned Tokens          | `getOwnedToken`, `getOwnedTokens`                                                                                                           |
+| Creators              | `getCreators`                                                                                                                               |
+| Issued Assets         | `getIssuedAssets`                                                                                                                           |
+| Follows               | `getFollows`, `getFollowCount`, `getIsFollowing`, `getIsFollowingBatch`, `getMutualFollows`, `getMutualFollowers`, `getFollowedByMyFollows` |
+| Encrypted Assets      | `getEncryptedAssets`                                                                                                                        |
+| Data Changed          | `getDataChangedEvents`, `getLatestDataChangedEvent`                                                                                         |
+| Token ID Data Changed | `getTokenIdDataChangedEvents`, `getLatestTokenIdDataChangedEvent`                                                                           |
+| Universal Receiver    | `getUniversalReceiverEvents`                                                                                                                |
 
 ---
 
@@ -196,6 +196,73 @@ const { results, isLoading, error } = useIsFollowingBatch({ pairs });
 ```
 
 The server action (`getIsFollowingBatch`) serializes the `Map` as a `Record<string, boolean>` over the wire. The hook reconstructs the `Map` on the client. The Hasura URL stays hidden from the browser.
+
+---
+
+## Mutual Follow Queries
+
+`@lsp-indexer/next` provides 6 mutual follow hooks that mirror the `@lsp-indexer/react` API —
+data flows through server actions so the Hasura URL stays hidden from the browser.
+
+| Hook                             | Server Action            | Description                                                            |
+| -------------------------------- | ------------------------ | ---------------------------------------------------------------------- |
+| `useMutualFollows`               | `getMutualFollows`       | Profiles that both `addressA` and `addressB` follow                    |
+| `useInfiniteMutualFollows`       | `getMutualFollows`       | Infinite-scroll variant                                                |
+| `useMutualFollowers`             | `getMutualFollowers`     | Profiles that follow both `addressA` and `addressB`                    |
+| `useInfiniteMutualFollowers`     | `getMutualFollowers`     | Infinite-scroll variant                                                |
+| `useFollowedByMyFollows`         | `getFollowedByMyFollows` | Profiles that `myAddress` follows and that also follow `targetAddress` |
+| `useInfiniteFollowedByMyFollows` | `getFollowedByMyFollows` | Infinite-scroll variant                                                |
+
+### Usage
+
+The hook API is identical to `@lsp-indexer/react` — swap the import:
+
+```tsx
+import { useMutualFollows } from '@lsp-indexer/next';
+import type { ProfileInclude } from '@lsp-indexer/types';
+
+const include: ProfileInclude = { ownedAssets: true };
+
+function MutualFollows({ addressA, addressB }: { addressA: string; addressB: string }) {
+  const { profiles, totalCount, isLoading } = useMutualFollows({
+    addressA,
+    addressB,
+    sort: { field: 'name', direction: 'asc' },
+    limit: 10,
+    include,
+  });
+
+  return (
+    <div>
+      <p>{totalCount} mutual follows</p>
+      {profiles?.map((p) => <div key={p.address}>{p.name}</div>)}
+    </div>
+  );
+}
+```
+
+### Server Actions in Server Components
+
+```tsx
+import { getMutualFollows, getFollowedByMyFollows } from '@lsp-indexer/next/actions';
+
+export default async function Page() {
+  const { profiles } = await getMutualFollows({ addressA: '0x...', addressB: '0x...', limit: 10 });
+  const { profiles: suggested } = await getFollowedByMyFollows({
+    myAddress: '0x...',
+    targetAddress: '0x...',
+    limit: 5,
+  });
+
+  return (
+    <ul>
+      {profiles.map((p) => (
+        <li key={p.address}>{p.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
 
 ---
 
