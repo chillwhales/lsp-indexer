@@ -45,7 +45,7 @@
   - Verify: `pnpm --filter=@lsp-indexer/types build && pnpm --filter=@lsp-indexer/node build`
   - Done when: Both packages build with zero errors, new types and function exported
 
-- [ ] **T02: Add React batch factory, return type, and concrete hook** `est:25m`
+- [x] **T02: Add React batch factory, return type, and concrete hook** `est:25m`
   - Why: Consumers need a React hook with include type narrowing — the factory pattern separates the query function from the hook shape
   - Files: `packages/react/src/hooks/types/encrypted-assets.ts`, `packages/react/src/hooks/factories/encrypted-assets/create-use-encrypted-assets-batch.ts`, `packages/react/src/hooks/factories/encrypted-assets/index.ts`, `packages/react/src/hooks/encrypted-assets/use-encrypted-assets-batch.ts`, `packages/react/src/hooks/encrypted-assets/index.ts`
   - Do: Add `UseEncryptedAssetsBatchReturn<F>` to react types (like `UseEncryptedAssetsReturn` but without `totalCount`). Create factory `createUseEncryptedAssetsBatch` using direct `useQuery` (like `createUseIsFollowingBatch`) with 3-overload include narrowing (like `createUseEncryptedAssets`). Query key: `encryptedAssetKeys.batch(tuples, include)`. Enabled when `tuples.length > 0`. Create concrete hook wiring factory to `fetchEncryptedAssetsBatch(getClientUrl(), params)`. Update both barrel index files.

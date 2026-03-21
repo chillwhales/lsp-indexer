@@ -1,4 +1,4 @@
-import type { FetchEncryptedAssetsResult } from '@lsp-indexer/node';
+import type { FetchEncryptedAssetsBatchResult, FetchEncryptedAssetsResult } from '@lsp-indexer/node';
 import type {
   EncryptedAssetFilter,
   EncryptedAssetInclude,
@@ -48,3 +48,9 @@ export interface UseEncryptedAssetSubscriptionParams {
   /** Callback when WebSocket reconnects after a drop */
   onReconnect?: () => void;
 }
+
+/** Flat return shape for useEncryptedAssetsBatch — encryptedAssets array + query state (no totalCount) */
+export type UseEncryptedAssetsBatchReturn<F> = { encryptedAssets: F[] } & Omit<
+  UseQueryResult<FetchEncryptedAssetsBatchResult<F>, Error>,
+  'data'
+>;
