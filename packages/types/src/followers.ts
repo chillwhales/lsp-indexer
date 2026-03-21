@@ -242,7 +242,9 @@ export type UseIsFollowingBatchParams = z.infer<typeof UseIsFollowingBatchParams
 export type UseMutualFollowsParams = z.infer<typeof UseMutualFollowsParamsSchema>;
 export type UseInfiniteMutualFollowsParams = z.infer<typeof UseInfiniteMutualFollowsParamsSchema>;
 export type UseMutualFollowersParams = z.infer<typeof UseMutualFollowersParamsSchema>;
-export type UseInfiniteMutualFollowersParams = z.infer<typeof UseInfiniteMutualFollowersParamsSchema>;
+export type UseInfiniteMutualFollowersParams = z.infer<
+  typeof UseInfiniteMutualFollowersParamsSchema
+>;
 export type UseFollowedByMyFollowsParams = z.infer<typeof UseFollowedByMyFollowsParamsSchema>;
 export type UseInfiniteFollowedByMyFollowsParams = z.infer<
   typeof UseInfiniteFollowedByMyFollowsParamsSchema

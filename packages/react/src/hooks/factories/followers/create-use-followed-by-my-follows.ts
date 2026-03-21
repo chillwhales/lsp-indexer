@@ -13,9 +13,7 @@ import { createUseList } from '../create-use-list';
 type FollowedByMyFollowsListParams = UseFollowedByMyFollowsParams & { include?: ProfileInclude };
 
 export function createUseFollowedByMyFollows(
-  queryFn: (
-    params: FollowedByMyFollowsListParams,
-  ) => Promise<FetchProfilesResult<PartialProfile>>,
+  queryFn: (params: FollowedByMyFollowsListParams) => Promise<FetchProfilesResult<PartialProfile>>,
 ) {
   const impl = createUseList<
     FollowedByMyFollowsListParams,

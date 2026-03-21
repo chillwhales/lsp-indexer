@@ -22,8 +22,7 @@ export function createUseInfiniteMutualFollows(
     PartialProfile,
     FetchProfilesResult<PartialProfile>
   >({
-    queryKey: (p) =>
-      followerKeys.infiniteMutualFollows(p.addressA, p.addressB, p.sort, p.include),
+    queryKey: (p) => followerKeys.infiniteMutualFollows(p.addressA, p.addressB, p.sort, p.include),
     queryFn,
     extractItems: (r) => r.profiles,
     enabled: (p) => Boolean(p.addressA) && Boolean(p.addressB),
