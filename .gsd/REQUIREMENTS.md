@@ -4,28 +4,6 @@ This file is the explicit capability and coverage contract for the project.
 
 ## Active
 
-### R009 — Service function accepts an array of `{ address, contentId, revision }` tuples and queries Hasura using `_or`/`_and` where-clauses. Address comparison uses `_ilike` (checksummed ≡ non-checksummed). contentId uses `_eq`, revision uses `_eq`.
-- Class: core-capability
-- Status: active
-- Description: Service function accepts an array of `{ address, contentId, revision }` tuples and queries Hasura using `_or`/`_and` where-clauses. Address comparison uses `_ilike` (checksummed ≡ non-checksummed). contentId uses `_eq`, revision uses `_eq`.
-- Why it matters: Bookmarks reference encrypted assets by unique tuple — no way to batch-fetch them with the current single-filter API without N round trips.
-- Source: user
-- Primary owning slice: M005/S01
-- Supporting slices: none
-- Validation: S01: fetchEncryptedAssetsBatch builds _or/_and where-clauses with _ilike for address and _eq for contentId/revision. pnpm --filter=@lsp-indexer/node build exits 0. S02: docs document the function.
-- Notes: Follows `fetchIsFollowingBatch` pattern with `_or`/`_and` clauses.
-
-### R010 — Batch results support the same 3-overload `<const I extends EncryptedAssetInclude>` pattern as `fetchEncryptedAssets`, so consumers get precise type narrowing on included fields.
-- Class: quality-attribute
-- Status: active
-- Description: Batch results support the same 3-overload `<const I extends EncryptedAssetInclude>` pattern as `fetchEncryptedAssets`, so consumers get precise type narrowing on included fields.
-- Why it matters: Consistency with existing API — batch shouldn't be a second-class citizen.
-- Source: inferred
-- Primary owning slice: M005/S01
-- Supporting slices: none
-- Validation: S01: fetchEncryptedAssetsBatch, createUseEncryptedAssetsBatch, and getEncryptedAssetsBatch all use 3-overload `<const I extends EncryptedAssetInclude>` pattern. types+node+react+next build exits 0. S02: docs confirm pattern.
-- Notes: Same overload pattern as fetchEncryptedAssets.
-
 ### R011 — React hook via factory pattern calling Hasura directly. Next.js hook routing through a server action with Zod validation. Both support EncryptedAssetInclude narrowing.
 - Class: core-capability
 - Status: active
@@ -127,6 +105,28 @@ This file is the explicit capability and coverage contract for the project.
 - Validation: All 5 packages (types, node, react, next, docs) build with zero errors. Verified by pnpm build across all filters.
 - Notes: S02 validated — full build chain exits 0 including docs app with MDX pages and playground page.
 
+### R009 — Service function accepts an array of `{ address, contentId, revision }` tuples and queries Hasura using `_or`/`_and` where-clauses. Address comparison uses `_ilike` (checksummed ≡ non-checksummed). contentId uses `_eq`, revision uses `_eq`.
+- Class: core-capability
+- Status: validated
+- Description: Service function accepts an array of `{ address, contentId, revision }` tuples and queries Hasura using `_or`/`_and` where-clauses. Address comparison uses `_ilike` (checksummed ≡ non-checksummed). contentId uses `_eq`, revision uses `_eq`.
+- Why it matters: Bookmarks reference encrypted assets by unique tuple — no way to batch-fetch them with the current single-filter API without N round trips.
+- Source: user
+- Primary owning slice: M005/S01
+- Supporting slices: none
+- Validation: fetchEncryptedAssetsBatch builds _or/_and where-clauses with _ilike for address, _eq for contentId/revision. pnpm --filter=@lsp-indexer/node build exits 0. Docs document the function in node, react, and next pages.
+- Notes: Follows `fetchIsFollowingBatch` pattern with `_or`/`_and` clauses.
+
+### R010 — Batch results support the same 3-overload `<const I extends EncryptedAssetInclude>` pattern as `fetchEncryptedAssets`, so consumers get precise type narrowing on included fields.
+- Class: quality-attribute
+- Status: validated
+- Description: Batch results support the same 3-overload `<const I extends EncryptedAssetInclude>` pattern as `fetchEncryptedAssets`, so consumers get precise type narrowing on included fields.
+- Why it matters: Consistency with existing API — batch shouldn't be a second-class citizen.
+- Source: inferred
+- Primary owning slice: M005/S01
+- Supporting slices: none
+- Validation: fetchEncryptedAssetsBatch, createUseEncryptedAssetsBatch, and getEncryptedAssetsBatch all use 3-overload <const I extends EncryptedAssetInclude> pattern. All 4 consumer packages build with zero errors.
+- Notes: Same overload pattern as fetchEncryptedAssets.
+
 ### R012 — Encrypted assets docs page documents `fetchEncryptedAssetsBatch`, `useEncryptedAssetsBatch`, batch tuple params, and usage examples.
 - Class: quality-attribute
 - Status: validated
@@ -172,8 +172,8 @@ This file is the explicit capability and coverage contract for the project.
 | R006 | quality-attribute | validated | M004/S01 | none | All service functions and factories use `<const I extends ProfileInclude>` with 3-overload signatures. TypeScript compilation across all 4 packages validates type narrowing works correctly. |
 | R007 | core-capability | validated | M004/S01 | none | useInfiniteMutualFollows, useInfiniteMutualFollowers, useInfiniteFollowedByMyFollows all present in react and next packages with offset-based pagination via createUseInfinite factory. Build passes. Playground page includes infinite scroll tabs. |
 | R008 | quality-attribute | validated | M004/S02 | none | All 5 packages (types, node, react, next, docs) build with zero errors. Verified by pnpm build across all filters. |
-| R009 | core-capability | active | M005/S01 | none | S01: fetchEncryptedAssetsBatch builds _or/_and where-clauses with _ilike for address and _eq for contentId/revision. pnpm --filter=@lsp-indexer/node build exits 0. S02: docs document the function. |
-| R010 | quality-attribute | active | M005/S01 | none | S01: fetchEncryptedAssetsBatch, createUseEncryptedAssetsBatch, and getEncryptedAssetsBatch all use 3-overload `<const I extends EncryptedAssetInclude>` pattern. types+node+react+next build exits 0. S02: docs confirm pattern. |
+| R009 | core-capability | validated | M005/S01 | none | fetchEncryptedAssetsBatch builds _or/_and where-clauses with _ilike for address, _eq for contentId/revision. pnpm --filter=@lsp-indexer/node build exits 0. Docs document the function in node, react, and next pages. |
+| R010 | quality-attribute | validated | M005/S01 | none | fetchEncryptedAssetsBatch, createUseEncryptedAssetsBatch, and getEncryptedAssetsBatch all use 3-overload <const I extends EncryptedAssetInclude> pattern. All 4 consumer packages build with zero errors. |
 | R011 | core-capability | active | M005/S01 | none | S01: useEncryptedAssetsBatch React hook via factory + useEncryptedAssetsBatch Next.js hook via server action with Zod validation. Both support EncryptedAssetInclude narrowing. pnpm build exits 0 for react and next. S02: docs document hooks. |
 | R012 | quality-attribute | validated | M005/S02 | none | All three docs pages contain batch API documentation: `fetchEncryptedAssetsBatch` in node docs, `useEncryptedAssetsBatch` in react and next docs, `getEncryptedAssetsBatch` in next docs, `EncryptedAssetBatchTuple` in react docs. Verified by grep checks. |
 | R013 | quality-attribute | validated | M005/S02 | none | `.changeset/add-encrypted-assets-batch.md` exists with all four packages (`@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`) listed as `minor`. |
@@ -181,7 +181,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ## Coverage Summary
 
-- Active requirements: 3
-- Mapped to slices: 3
-- Validated: 11 (R001, R002, R003, R004, R005, R006, R007, R008, R012, R013, R014)
+- Active requirements: 1
+- Mapped to slices: 1
+- Validated: 13 (R001, R002, R003, R004, R005, R006, R007, R008, R009, R010, R012, R013, R014)
 - Unmapped active requirements: 0
