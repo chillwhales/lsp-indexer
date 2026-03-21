@@ -172,7 +172,7 @@ Every domain has server actions matching the fetch functions:
 | Data Changed          | `getDataChangedEvents`, `getLatestDataChangedEvent`                     |
 | Token ID Data Changed | `getTokenIdDataChangedEvents`, `getLatestTokenIdDataChangedEvent`       |
 | Universal Receiver    | `getUniversalReceiverEvents`                                            |
-| Mutual Follows        | `getMutualFollows`, `getMutualFollowers`, `getFollowedByMyFollows`       |
+| Mutual Follows        | `getMutualFollows`, `getMutualFollowers`, `getFollowedByMyFollows`      |
 
 ---
 
@@ -202,14 +202,14 @@ The server action (`getIsFollowingBatch`) serializes the `Map` as a `Record<stri
 `@lsp-indexer/next` provides 6 mutual follow hooks that mirror the `@lsp-indexer/react` API —
 data flows through server actions so the Hasura URL stays hidden from the browser.
 
-| Hook                            | Server Action              | Description                                                         |
-| ------------------------------- | -------------------------- | ------------------------------------------------------------------- |
-| `useMutualFollows`              | `getMutualFollows`         | Profiles that both `addressA` and `addressB` follow                 |
-| `useInfiniteMutualFollows`      | `getMutualFollows`         | Infinite-scroll variant                                             |
-| `useMutualFollowers`            | `getMutualFollowers`       | Profiles that follow both `addressA` and `addressB`                 |
-| `useInfiniteMutualFollowers`    | `getMutualFollowers`       | Infinite-scroll variant                                             |
-| `useFollowedByMyFollows`        | `getFollowedByMyFollows`  | Profiles followed by `targetAddress` that also follow `myAddress`   |
-| `useInfiniteFollowedByMyFollows`| `getFollowedByMyFollows`  | Infinite-scroll variant                                             |
+| Hook                             | Server Action            | Description                                                       |
+| -------------------------------- | ------------------------ | ----------------------------------------------------------------- |
+| `useMutualFollows`               | `getMutualFollows`       | Profiles that both `addressA` and `addressB` follow               |
+| `useInfiniteMutualFollows`       | `getMutualFollows`       | Infinite-scroll variant                                           |
+| `useMutualFollowers`             | `getMutualFollowers`     | Profiles that follow both `addressA` and `addressB`               |
+| `useInfiniteMutualFollowers`     | `getMutualFollowers`     | Infinite-scroll variant                                           |
+| `useFollowedByMyFollows`         | `getFollowedByMyFollows` | Profiles followed by `targetAddress` that also follow `myAddress` |
+| `useInfiniteFollowedByMyFollows` | `getFollowedByMyFollows` | Infinite-scroll variant                                           |
 
 ### Usage
 
@@ -252,7 +252,9 @@ export default async function Page() {
 
   return (
     <ul>
-      {profiles.map((p) => <li key={p.address}>{p.name}</li>)}
+      {profiles.map((p) => (
+        <li key={p.address}>{p.name}</li>
+      ))}
     </ul>
   );
 }

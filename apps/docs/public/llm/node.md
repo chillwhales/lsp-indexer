@@ -63,22 +63,32 @@ const { profiles, totalCount } = await fetchProfiles(getClientUrl(), {
 
 ### Available fetch functions
 
-| Domain                | Single                               | List                            |
-| --------------------- | ------------------------------------ | ------------------------------- |
-| Profiles              | `fetchProfile`                       | `fetchProfiles`                 |
-| Digital Assets        | `fetchDigitalAsset`                  | `fetchDigitalAssets`            |
-| NFTs                  | `fetchNft`                           | `fetchNfts`                     |
-| Owned Assets          | `fetchOwnedAsset`                    | `fetchOwnedAssets`              |
-| Owned Tokens          | `fetchOwnedToken`                    | `fetchOwnedTokens`              |
-| Creators              | —                                    | `fetchCreators`                 |
-| Issued Assets         | —                                    | `fetchIssuedAssets`             |
-| Follows               | —                                    | `fetchFollows`                  |
-| Encrypted Assets      | —                                    | `fetchEncryptedAssets`          |
-| Data Changed          | `fetchLatestDataChangedEvent`        | `fetchDataChangedEvents`        |
-| Token ID Data Changed | `fetchLatestTokenIdDataChangedEvent` | `fetchTokenIdDataChangedEvents` |
-| Universal Receiver    | —                                    | `fetchUniversalReceiverEvents`  |
+| Domain                | Single                               | List                                                                     |
+| --------------------- | ------------------------------------ | ------------------------------------------------------------------------ |
+| Profiles              | `fetchProfile`                       | `fetchProfiles`                                                          |
+| Digital Assets        | `fetchDigitalAsset`                  | `fetchDigitalAssets`                                                     |
+| NFTs                  | `fetchNft`                           | `fetchNfts`                                                              |
+| Owned Assets          | `fetchOwnedAsset`                    | `fetchOwnedAssets`                                                       |
+| Owned Tokens          | `fetchOwnedToken`                    | `fetchOwnedTokens`                                                       |
+| Creators              | —                                    | `fetchCreators`                                                          |
+| Issued Assets         | —                                    | `fetchIssuedAssets`                                                      |
+| Follows               | —                                    | `fetchFollows`                                                           |
+| Encrypted Assets      | —                                    | `fetchEncryptedAssets`                                                   |
+| Data Changed          | `fetchLatestDataChangedEvent`        | `fetchDataChangedEvents`                                                 |
+| Token ID Data Changed | `fetchLatestTokenIdDataChangedEvent` | `fetchTokenIdDataChangedEvents`                                          |
+| Universal Receiver    | —                                    | `fetchUniversalReceiverEvents`                                           |
+| Mutual Follows        | —                                    | `fetchMutualFollows`, `fetchMutualFollowers`, `fetchFollowedByMyFollows` |
 
 Additional: `fetchFollowCount`, `fetchIsFollowing`.
+
+**Mutual Follow queries** are intersection queries across the follow graph:
+
+- `fetchMutualFollows(url, addressA, addressB, opts)` — profiles that both `addressA` and `addressB` follow
+- `fetchMutualFollowers(url, addressA, addressB, opts)` — profiles that follow both `addressA` and `addressB`
+- `fetchFollowedByMyFollows(url, myAddress, targetAddress, opts)` — profiles followed by `targetAddress` that also follow `myAddress`
+
+All three accept standard `filter`, `sort`, `limit`, `offset`, and `include` options and return
+`{ profiles, totalCount }` — the same shape as `fetchProfiles`.
 
 ---
 

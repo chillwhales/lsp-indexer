@@ -146,20 +146,20 @@ function LiveProfiles() {
 
 All 12 domains follow the same pattern. Replace `Profile` with any domain name:
 
-| Domain                | Hooks                                                                                                                                              |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Profiles              | `useProfile`, `useProfiles`, `useInfiniteProfiles`, `useProfileSubscription`                                                                       |
-| Digital Assets        | `useDigitalAsset`, `useDigitalAssets`, `useInfiniteDigitalAssets`, `useDigitalAssetSubscription`                                                   |
-| NFTs                  | `useNft`, `useNfts`, `useInfiniteNfts`, `useNftSubscription`                                                                                       |
-| Owned Assets          | `useOwnedAsset`, `useOwnedAssets`, `useInfiniteOwnedAssets`, `useOwnedAssetSubscription`                                                           |
-| Owned Tokens          | `useOwnedToken`, `useOwnedTokens`, `useInfiniteOwnedTokens`, `useOwnedTokenSubscription`                                                           |
-| Creators              | `useCreators`, `useInfiniteCreators`, `useCreatorSubscription`                                                                                     |
-| Issued Assets         | `useIssuedAssets`, `useInfiniteIssuedAssets`, `useIssuedAssetSubscription`                                                                         |
-| Follows               | `useFollows`, `useInfiniteFollows`, `useFollowCount`, `useIsFollowing`, `useIsFollowingBatch`, `useFollowerSubscription`                           |
-| Encrypted Assets      | `useEncryptedAssets`, `useInfiniteEncryptedAssets`, `useEncryptedAssetSubscription`                                                                |
-| Data Changed          | `useDataChangedEvents`, `useInfiniteDataChangedEvents`, `useLatestDataChangedEvent`, `useDataChangedEventSubscription`                             |
-| Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription` |
-| Universal Receiver    | `useUniversalReceiverEvents`, `useInfiniteUniversalReceiverEvents`, `useUniversalReceiverEventSubscription`                                        |
+| Domain                | Hooks                                                                                                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profiles              | `useProfile`, `useProfiles`, `useInfiniteProfiles`, `useProfileSubscription`                                                                                   |
+| Digital Assets        | `useDigitalAsset`, `useDigitalAssets`, `useInfiniteDigitalAssets`, `useDigitalAssetSubscription`                                                               |
+| NFTs                  | `useNft`, `useNfts`, `useInfiniteNfts`, `useNftSubscription`                                                                                                   |
+| Owned Assets          | `useOwnedAsset`, `useOwnedAssets`, `useInfiniteOwnedAssets`, `useOwnedAssetSubscription`                                                                       |
+| Owned Tokens          | `useOwnedToken`, `useOwnedTokens`, `useInfiniteOwnedTokens`, `useOwnedTokenSubscription`                                                                       |
+| Creators              | `useCreators`, `useInfiniteCreators`, `useCreatorSubscription`                                                                                                 |
+| Issued Assets         | `useIssuedAssets`, `useInfiniteIssuedAssets`, `useIssuedAssetSubscription`                                                                                     |
+| Follows               | `useFollows`, `useInfiniteFollows`, `useFollowCount`, `useIsFollowing`, `useIsFollowingBatch`, `useFollowerSubscription`                                       |
+| Encrypted Assets      | `useEncryptedAssets`, `useInfiniteEncryptedAssets`, `useEncryptedAssetSubscription`                                                                            |
+| Data Changed          | `useDataChangedEvents`, `useInfiniteDataChangedEvents`, `useLatestDataChangedEvent`, `useDataChangedEventSubscription`                                         |
+| Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription`             |
+| Universal Receiver    | `useUniversalReceiverEvents`, `useInfiniteUniversalReceiverEvents`, `useUniversalReceiverEventSubscription`                                                    |
 | Mutual Follows        | `useMutualFollows`, `useInfiniteMutualFollows`, `useMutualFollowers`, `useInfiniteMutualFollowers`, `useFollowedByMyFollows`, `useInfiniteFollowedByMyFollows` |
 
 ---
@@ -199,14 +199,14 @@ The hook is disabled when `pairs` is empty — no query is fired and `results` d
 Three hook families query intersection relationships across the follow graph. Each comes in a
 standard paginated version and an infinite-scroll version:
 
-| Hook                            | Description                                                         |
-| ------------------------------- | ------------------------------------------------------------------- |
-| `useMutualFollows`              | Profiles that both `addressA` and `addressB` follow                 |
-| `useInfiniteMutualFollows`      | Infinite-scroll variant of `useMutualFollows`                       |
-| `useMutualFollowers`            | Profiles that follow both `addressA` and `addressB`                 |
-| `useInfiniteMutualFollowers`    | Infinite-scroll variant of `useMutualFollowers`                     |
-| `useFollowedByMyFollows`        | Profiles followed by `targetAddress` that also follow `myAddress`   |
-| `useInfiniteFollowedByMyFollows`| Infinite-scroll variant of `useFollowedByMyFollows`                 |
+| Hook                             | Description                                                       |
+| -------------------------------- | ----------------------------------------------------------------- |
+| `useMutualFollows`               | Profiles that both `addressA` and `addressB` follow               |
+| `useInfiniteMutualFollows`       | Infinite-scroll variant of `useMutualFollows`                     |
+| `useMutualFollowers`             | Profiles that follow both `addressA` and `addressB`               |
+| `useInfiniteMutualFollowers`     | Infinite-scroll variant of `useMutualFollowers`                   |
+| `useFollowedByMyFollows`         | Profiles followed by `targetAddress` that also follow `myAddress` |
+| `useInfiniteFollowedByMyFollows` | Infinite-scroll variant of `useFollowedByMyFollows`               |
 
 ### Usage
 

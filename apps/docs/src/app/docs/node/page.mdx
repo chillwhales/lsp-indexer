@@ -60,20 +60,20 @@ const { profiles, totalCount } = await fetchProfiles(getClientUrl(), {
 
 ### Available fetch functions
 
-| Domain                | Single                               | List                            |
-| --------------------- | ------------------------------------ | ------------------------------- |
-| Profiles              | `fetchProfile`                       | `fetchProfiles`                 |
-| Digital Assets        | `fetchDigitalAsset`                  | `fetchDigitalAssets`            |
-| NFTs                  | `fetchNft`                           | `fetchNfts`                     |
-| Owned Assets          | `fetchOwnedAsset`                    | `fetchOwnedAssets`              |
-| Owned Tokens          | `fetchOwnedToken`                    | `fetchOwnedTokens`              |
-| Creators              | —                                    | `fetchCreators`                 |
-| Issued Assets         | —                                    | `fetchIssuedAssets`             |
-| Follows               | —                                    | `fetchFollows`                  |
-| Encrypted Assets      | —                                    | `fetchEncryptedAssets`          |
-| Data Changed          | `fetchLatestDataChangedEvent`        | `fetchDataChangedEvents`        |
-| Token ID Data Changed | `fetchLatestTokenIdDataChangedEvent` | `fetchTokenIdDataChangedEvents` |
-| Universal Receiver    | —                                    | `fetchUniversalReceiverEvents`  |
+| Domain                | Single                               | List                                                                     |
+| --------------------- | ------------------------------------ | ------------------------------------------------------------------------ |
+| Profiles              | `fetchProfile`                       | `fetchProfiles`                                                          |
+| Digital Assets        | `fetchDigitalAsset`                  | `fetchDigitalAssets`                                                     |
+| NFTs                  | `fetchNft`                           | `fetchNfts`                                                              |
+| Owned Assets          | `fetchOwnedAsset`                    | `fetchOwnedAssets`                                                       |
+| Owned Tokens          | `fetchOwnedToken`                    | `fetchOwnedTokens`                                                       |
+| Creators              | —                                    | `fetchCreators`                                                          |
+| Issued Assets         | —                                    | `fetchIssuedAssets`                                                      |
+| Follows               | —                                    | `fetchFollows`                                                           |
+| Encrypted Assets      | —                                    | `fetchEncryptedAssets`                                                   |
+| Data Changed          | `fetchLatestDataChangedEvent`        | `fetchDataChangedEvents`                                                 |
+| Token ID Data Changed | `fetchLatestTokenIdDataChangedEvent` | `fetchTokenIdDataChangedEvents`                                          |
+| Universal Receiver    | —                                    | `fetchUniversalReceiverEvents`                                           |
 | Mutual Follows        | —                                    | `fetchMutualFollows`, `fetchMutualFollowers`, `fetchFollowedByMyFollows` |
 
 Additional: `fetchFollowCount`, `fetchIsFollowing`.

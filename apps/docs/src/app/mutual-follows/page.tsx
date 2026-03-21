@@ -31,7 +31,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-import { ProfileCard } from '@/components/profile-card';
 import {
   type HookMode,
   type SortOption,
@@ -44,6 +43,7 @@ import {
   SortControls,
   useIncludeToggles,
 } from '@/components/playground';
+import { ProfileCard } from '@/components/profile-card';
 
 // ---------------------------------------------------------------------------
 // Shared sort options (these hooks return profiles)
@@ -242,7 +242,7 @@ function MutualFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(p, i) => <ProfileCard profile={p} />}
+        renderItem={(p) => <ProfileCard profile={p} />}
         getKey={(p) => p.address}
         label="mutual follows"
         totalCount={totalCount}
@@ -290,7 +290,7 @@ function InfiniteMutualFollowsTab({ mode }: { mode: HookMode }): React.ReactNode
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(p, i) => <ProfileCard profile={p} />}
+        renderItem={(p) => <ProfileCard profile={p} />}
         getKey={(p) => p.address}
         label="mutual follows"
         hasActiveFilter={Boolean(addressA) || Boolean(addressB)}
@@ -338,7 +338,7 @@ function MutualFollowersTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(p, i) => <ProfileCard profile={p} />}
+        renderItem={(p) => <ProfileCard profile={p} />}
         getKey={(p) => p.address}
         label="mutual followers"
         totalCount={totalCount}
@@ -386,7 +386,7 @@ function InfiniteMutualFollowersTab({ mode }: { mode: HookMode }): React.ReactNo
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(p, i) => <ProfileCard profile={p} />}
+        renderItem={(p) => <ProfileCard profile={p} />}
         getKey={(p) => p.address}
         label="mutual followers"
         hasActiveFilter={Boolean(addressA) || Boolean(addressB)}
@@ -434,7 +434,7 @@ function FollowedByMyFollowsTab({ mode }: { mode: HookMode }): React.ReactNode {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(p, i) => <ProfileCard profile={p} />}
+        renderItem={(p) => <ProfileCard profile={p} />}
         getKey={(p) => p.address}
         label="followed by my follows"
         totalCount={totalCount}
@@ -482,7 +482,7 @@ function InfiniteFollowedByMyFollowsTab({ mode }: { mode: HookMode }): React.Rea
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        renderItem={(p, i) => <ProfileCard profile={p} />}
+        renderItem={(p) => <ProfileCard profile={p} />}
         getKey={(p) => p.address}
         label="followed by my follows"
         hasActiveFilter={Boolean(myAddress) || Boolean(targetAddress)}
@@ -502,8 +502,7 @@ export default function MutualFollowsPage(): React.ReactNode {
       title="Mutual Follows"
       description={
         <>
-          Exercise{' '}
-          <code className="text-xs bg-muted px-1 py-0.5 rounded">useMutualFollows</code>,{' '}
+          Exercise <code className="text-xs bg-muted px-1 py-0.5 rounded">useMutualFollows</code>,{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useMutualFollowers</code>,{' '}
           <code className="text-xs bg-muted px-1 py-0.5 rounded">useFollowedByMyFollows</code>, and
           their infinite variants against live Hasura data.

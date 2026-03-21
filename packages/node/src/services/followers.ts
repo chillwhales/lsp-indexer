@@ -8,7 +8,6 @@ import type {
   IsFollowingBatchResult,
   PartialFollower,
   PartialProfile,
-  Profile,
   ProfileInclude,
   ProfileResult,
   ProfileSort,
@@ -31,10 +30,10 @@ import { parseFollowers } from '../parsers/followers';
 import { parseProfiles } from '../parsers/profiles';
 import {
   buildProfileIncludeDirectives,
+  buildProfileIncludeVars,
   buildProfileOrderBy,
   type FetchProfilesResult,
 } from './profiles';
-import { buildProfileIncludeVars } from './profiles';
 import {
   buildBlockOrderSort,
   escapeLike,
