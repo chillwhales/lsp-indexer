@@ -24,6 +24,7 @@ export function createUseMutualFollows(
       followerKeys.mutualFollows(p.addressA, p.addressB, p.sort, p.limit, p.offset, p.include),
     queryFn,
     extractItems: (r) => r.profiles,
+    enabled: (p) => Boolean(p.addressA) && Boolean(p.addressB),
   });
 
   function useMutualFollows<const I extends ProfileInclude>(

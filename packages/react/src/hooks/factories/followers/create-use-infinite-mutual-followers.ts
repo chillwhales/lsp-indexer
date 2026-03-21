@@ -28,6 +28,7 @@ export function createUseInfiniteMutualFollowers(
       followerKeys.infiniteMutualFollowers(p.addressA, p.addressB, p.sort, p.include),
     queryFn,
     extractItems: (r) => r.profiles,
+    enabled: (p) => Boolean(p.addressA) && Boolean(p.addressB),
   });
 
   function useInfiniteMutualFollowers<const I extends ProfileInclude>(

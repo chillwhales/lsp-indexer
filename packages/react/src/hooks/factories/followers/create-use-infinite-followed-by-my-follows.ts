@@ -28,6 +28,7 @@ export function createUseInfiniteFollowedByMyFollows(
       followerKeys.infiniteFollowedByMyFollows(p.myAddress, p.targetAddress, p.sort, p.include),
     queryFn,
     extractItems: (r) => r.profiles,
+    enabled: (p) => Boolean(p.myAddress) && Boolean(p.targetAddress),
   });
 
   function useInfiniteFollowedByMyFollows<const I extends ProfileInclude>(

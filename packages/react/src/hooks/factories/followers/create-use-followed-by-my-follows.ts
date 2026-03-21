@@ -33,6 +33,7 @@ export function createUseFollowedByMyFollows(
       ),
     queryFn,
     extractItems: (r) => r.profiles,
+    enabled: (p) => Boolean(p.myAddress) && Boolean(p.targetAddress),
   });
 
   function useFollowedByMyFollows<const I extends ProfileInclude>(
