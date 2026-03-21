@@ -49,7 +49,7 @@ This milestone is complete only when all are true:
 - [x] **S01: Batch fetch across all packages** `risk:low` `depends:[]`
   > After this: `useEncryptedAssetsBatch` returns encrypted assets for an array of `(address, contentId, revision)` tuples in one Hasura query. Verified by `pnpm build` across types, node, react, next.
 
-- [ ] **S02: Docs, changeset & build verification** `risk:low` `depends:[S01]`
+- [x] **S02: Docs, changeset & build verification** `risk:low` `depends:[S01]`
   > After this: Docs page documents batch API, changeset ready for minor release, full 5-package build passes including docs.
 
 ## Boundary Map

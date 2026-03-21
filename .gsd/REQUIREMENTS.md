@@ -37,39 +37,6 @@ This file is the explicit capability and coverage contract for the project.
 - Validation: S01: useEncryptedAssetsBatch React hook via factory + useEncryptedAssetsBatch Next.js hook via server action with Zod validation. Both support EncryptedAssetInclude narrowing. pnpm build exits 0 for react and next. S02: docs document hooks.
 - Notes: No infinite scroll variant — batch is for a known finite set of tuples.
 
-### R012 — Encrypted assets docs page documents `fetchEncryptedAssetsBatch`, `useEncryptedAssetsBatch`, batch tuple params, and usage examples.
-- Class: quality-attribute
-- Status: active
-- Description: Encrypted assets docs page documents `fetchEncryptedAssetsBatch`, `useEncryptedAssetsBatch`, batch tuple params, and usage examples.
-- Why it matters: Outdated docs are worse than no docs.
-- Source: inferred
-- Primary owning slice: M005/S02
-- Supporting slices: none
-- Validation: unmapped
-- Notes: none
-
-### R013 — Changeset created for minor version bump. All four packages are in a fixed group — one changeset bumps all together.
-- Class: quality-attribute
-- Status: active
-- Description: Changeset created for minor version bump. All four packages are in a fixed group — one changeset bumps all together.
-- Why it matters: Consumers can install the new batch capability.
-- Source: user
-- Primary owning slice: M005/S02
-- Supporting slices: none
-- Validation: unmapped
-- Notes: `.changeset/config.json` has fixed group for all four packages.
-
-### R014 — types, node, react, next, and docs all compile with zero errors after all changes.
-- Class: quality-attribute
-- Status: active
-- Description: types, node, react, next, and docs all compile with zero errors after all changes.
-- Why it matters: Publish readiness.
-- Source: inferred
-- Primary owning slice: M005/S02
-- Supporting slices: M005/S01
-- Validation: unmapped
-- Notes: none
-
 ## Validated
 
 ### R001 — Given two addresses A and B, return the set of profiles that both A and B follow. Computed server-side via Hasura nested `followedBy` relationship filters.
@@ -160,6 +127,39 @@ This file is the explicit capability and coverage contract for the project.
 - Validation: All 5 packages (types, node, react, next, docs) build with zero errors. Verified by pnpm build across all filters.
 - Notes: S02 validated — full build chain exits 0 including docs app with MDX pages and playground page.
 
+### R012 — Encrypted assets docs page documents `fetchEncryptedAssetsBatch`, `useEncryptedAssetsBatch`, batch tuple params, and usage examples.
+- Class: quality-attribute
+- Status: validated
+- Description: Encrypted assets docs page documents `fetchEncryptedAssetsBatch`, `useEncryptedAssetsBatch`, batch tuple params, and usage examples.
+- Why it matters: Outdated docs are worse than no docs.
+- Source: inferred
+- Primary owning slice: M005/S02
+- Supporting slices: none
+- Validation: All three docs pages contain batch API documentation: `fetchEncryptedAssetsBatch` in node docs, `useEncryptedAssetsBatch` in react and next docs, `getEncryptedAssetsBatch` in next docs, `EncryptedAssetBatchTuple` in react docs. Verified by grep checks.
+- Notes: none
+
+### R013 — Changeset created for minor version bump. All four packages are in a fixed group — one changeset bumps all together.
+- Class: quality-attribute
+- Status: validated
+- Description: Changeset created for minor version bump. All four packages are in a fixed group — one changeset bumps all together.
+- Why it matters: Consumers can install the new batch capability.
+- Source: user
+- Primary owning slice: M005/S02
+- Supporting slices: none
+- Validation: `.changeset/add-encrypted-assets-batch.md` exists with all four packages (`@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`) listed as `minor`.
+- Notes: `.changeset/config.json` has fixed group for all four packages.
+
+### R014 — types, node, react, next, and docs all compile with zero errors after all changes.
+- Class: quality-attribute
+- Status: validated
+- Description: types, node, react, next, and docs all compile with zero errors after all changes.
+- Why it matters: Publish readiness.
+- Source: inferred
+- Primary owning slice: M005/S02
+- Supporting slices: M005/S01
+- Validation: `pnpm build` exits 0 across all 5 packages (types, node, react, next, docs). Docs build generated all 22 static pages successfully.
+- Notes: none
+
 ## Traceability
 
 | ID | Class | Status | Primary owner | Supporting | Proof |
@@ -175,13 +175,13 @@ This file is the explicit capability and coverage contract for the project.
 | R009 | core-capability | active | M005/S01 | none | S01: fetchEncryptedAssetsBatch builds _or/_and where-clauses with _ilike for address and _eq for contentId/revision. pnpm --filter=@lsp-indexer/node build exits 0. S02: docs document the function. |
 | R010 | quality-attribute | active | M005/S01 | none | S01: fetchEncryptedAssetsBatch, createUseEncryptedAssetsBatch, and getEncryptedAssetsBatch all use 3-overload `<const I extends EncryptedAssetInclude>` pattern. types+node+react+next build exits 0. S02: docs confirm pattern. |
 | R011 | core-capability | active | M005/S01 | none | S01: useEncryptedAssetsBatch React hook via factory + useEncryptedAssetsBatch Next.js hook via server action with Zod validation. Both support EncryptedAssetInclude narrowing. pnpm build exits 0 for react and next. S02: docs document hooks. |
-| R012 | quality-attribute | active | M005/S02 | none | unmapped |
-| R013 | quality-attribute | active | M005/S02 | none | unmapped |
-| R014 | quality-attribute | active | M005/S02 | M005/S01 | unmapped |
+| R012 | quality-attribute | validated | M005/S02 | none | All three docs pages contain batch API documentation: `fetchEncryptedAssetsBatch` in node docs, `useEncryptedAssetsBatch` in react and next docs, `getEncryptedAssetsBatch` in next docs, `EncryptedAssetBatchTuple` in react docs. Verified by grep checks. |
+| R013 | quality-attribute | validated | M005/S02 | none | `.changeset/add-encrypted-assets-batch.md` exists with all four packages (`@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`) listed as `minor`. |
+| R014 | quality-attribute | validated | M005/S02 | M005/S01 | `pnpm build` exits 0 across all 5 packages (types, node, react, next, docs). Docs build generated all 22 static pages successfully. |
 
 ## Coverage Summary
 
-- Active requirements: 6
-- Mapped to slices: 6
-- Validated: 8 (R001, R002, R003, R004, R005, R006, R007, R008)
+- Active requirements: 3
+- Mapped to slices: 3
+- Validated: 11 (R001, R002, R003, R004, R005, R006, R007, R008, R012, R013, R014)
 - Unmapped active requirements: 0
