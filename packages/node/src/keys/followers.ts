@@ -20,6 +20,15 @@ import type {
  * followerKeys.isFollowing(f, d)            → ['followers', 'is-following', f, d]
  * followerKeys.isFollowingBatches()         → ['followers', 'is-following-batch']
  * followerKeys.isFollowingBatch(pairs)      → ['followers', 'is-following-batch', pairs]
+ * followerKeys.mutualFollowsAll()           → ['followers', 'mutual-follows']
+ * followerKeys.mutualFollows(...)           → ['followers', 'mutual-follows', 'list', ...]
+ * followerKeys.infiniteMutualFollows(...)   → ['followers', 'mutual-follows', 'infinite', ...]
+ * followerKeys.mutualFollowersAll()         → ['followers', 'mutual-followers']
+ * followerKeys.mutualFollowers(...)         → ['followers', 'mutual-followers', 'list', ...]
+ * followerKeys.infiniteMutualFollowers(...) → ['followers', 'mutual-followers', 'infinite', ...]
+ * followerKeys.followedByMyFollowsAll()     → ['followers', 'followed-by-my-follows']
+ * followerKeys.followedByMyFollows(...)     → ['followers', 'followed-by-my-follows', 'list', ...]
+ * followerKeys.infiniteFollowedByMyFollows(...) → ['followers', 'followed-by-my-follows', 'infinite', ...]
  * ```
  */
 export const followerKeys = {
@@ -56,6 +65,8 @@ export const followerKeys = {
   // Mutual follow keys
   // ---------------------------------------------------------------------------
 
+  mutualFollowsAll: () => [...followerKeys.all, 'mutual-follows'] as const,
+
   mutualFollows: (
     addressA: string,
     addressB: string,
@@ -65,8 +76,7 @@ export const followerKeys = {
     include?: ProfileInclude,
   ) =>
     [
-      ...followerKeys.all,
-      'mutual-follows',
+      ...followerKeys.mutualFollowsAll(),
       'list',
       addressA,
       addressB,
@@ -81,8 +91,9 @@ export const followerKeys = {
     addressB: string,
     sort?: ProfileSort,
     include?: ProfileInclude,
-  ) =>
-    [...followerKeys.all, 'mutual-follows', 'infinite', addressA, addressB, sort, include] as const,
+  ) => [...followerKeys.mutualFollowsAll(), 'infinite', addressA, addressB, sort, include] as const,
+
+  mutualFollowersAll: () => [...followerKeys.all, 'mutual-followers'] as const,
 
   mutualFollowers: (
     addressA: string,
@@ -93,8 +104,7 @@ export const followerKeys = {
     include?: ProfileInclude,
   ) =>
     [
-      ...followerKeys.all,
-      'mutual-followers',
+      ...followerKeys.mutualFollowersAll(),
       'list',
       addressA,
       addressB,
@@ -110,15 +120,9 @@ export const followerKeys = {
     sort?: ProfileSort,
     include?: ProfileInclude,
   ) =>
-    [
-      ...followerKeys.all,
-      'mutual-followers',
-      'infinite',
-      addressA,
-      addressB,
-      sort,
-      include,
-    ] as const,
+    [...followerKeys.mutualFollowersAll(), 'infinite', addressA, addressB, sort, include] as const,
+
+  followedByMyFollowsAll: () => [...followerKeys.all, 'followed-by-my-follows'] as const,
 
   followedByMyFollows: (
     myAddress: string,
@@ -129,8 +133,7 @@ export const followerKeys = {
     include?: ProfileInclude,
   ) =>
     [
-      ...followerKeys.all,
-      'followed-by-my-follows',
+      ...followerKeys.followedByMyFollowsAll(),
       'list',
       myAddress,
       targetAddress,
@@ -147,8 +150,7 @@ export const followerKeys = {
     include?: ProfileInclude,
   ) =>
     [
-      ...followerKeys.all,
-      'followed-by-my-follows',
+      ...followerKeys.followedByMyFollowsAll(),
       'infinite',
       myAddress,
       targetAddress,

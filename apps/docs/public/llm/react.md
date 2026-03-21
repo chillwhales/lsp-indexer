@@ -200,16 +200,44 @@ The hook is disabled when `pairs` is empty — no query is fired and `results` d
 ## Mutual Follow Hooks
 
 Three hook families query intersection relationships across the follow graph. Each comes in a
-standard paginated version and an infinite-scroll version:
+standard paginated version and an infinite-scroll version. All hooks accept a single params object
+and return `{ profiles, totalCount, isLoading, error, isFetching }`. Queries stay idle until both
+addresses are provided.
 
-| Hook                             | Description                                                       |
-| -------------------------------- | ----------------------------------------------------------------- |
-| `useMutualFollows`               | Profiles that both `addressA` and `addressB` follow               |
-| `useInfiniteMutualFollows`       | Infinite-scroll variant of `useMutualFollows`                     |
-| `useMutualFollowers`             | Profiles that follow both `addressA` and `addressB`               |
-| `useInfiniteMutualFollowers`     | Infinite-scroll variant of `useMutualFollowers`                   |
-| `useFollowedByMyFollows`         | Profiles followed by `targetAddress` that also follow `myAddress` |
-| `useInfiniteFollowedByMyFollows` | Infinite-scroll variant of `useFollowedByMyFollows`               |
+| Hook                             | Description                                                            |
+| -------------------------------- | ---------------------------------------------------------------------- |
+| `useMutualFollows`               | Profiles that both `addressA` and `addressB` follow                    |
+| `useInfiniteMutualFollows`       | Infinite-scroll variant of `useMutualFollows`                          |
+| `useMutualFollowers`             | Profiles that follow both `addressA` and `addressB`                    |
+| `useInfiniteMutualFollowers`     | Infinite-scroll variant of `useMutualFollowers`                        |
+| `useFollowedByMyFollows`         | Profiles that `myAddress` follows and that also follow `targetAddress` |
+| `useInfiniteFollowedByMyFollows` | Infinite-scroll variant of `useFollowedByMyFollows`                    |
+
+### Parameters
+
+**`useMutualFollows` / `useMutualFollowers`:**
+
+| Param      | Type             | Required | Description                    |
+| ---------- | ---------------- | -------- | ------------------------------ |
+| `addressA` | `string`         | Yes      | First address                  |
+| `addressB` | `string`         | Yes      | Second address                 |
+| `sort`     | `ProfileSort`    | No       | Sort field, direction, nulls   |
+| `limit`    | `number`         | No       | Max results (default: server)  |
+| `offset`   | `number`         | No       | Pagination offset              |
+| `include`  | `ProfileInclude` | No       | Include narrowing for profiles |
+
+**`useFollowedByMyFollows`:**
+
+| Param           | Type             | Required | Description                    |
+| --------------- | ---------------- | -------- | ------------------------------ |
+| `myAddress`     | `string`         | Yes      | Your address                   |
+| `targetAddress` | `string`         | Yes      | Target profile address         |
+| `sort`          | `ProfileSort`    | No       | Sort field, direction, nulls   |
+| `limit`         | `number`         | No       | Max results (default: server)  |
+| `offset`        | `number`         | No       | Pagination offset              |
+| `include`       | `ProfileInclude` | No       | Include narrowing for profiles |
+
+Infinite variants (`useInfiniteMutualFollows`, etc.) replace `limit`/`offset` with `pageSize?: number`.
 
 ### Usage
 
@@ -220,7 +248,9 @@ import type { ProfileInclude } from '@lsp-indexer/types';
 const include: ProfileInclude = { ownedAssets: true, tags: true };
 
 function MutualFollows({ addressA, addressB }: { addressA: string; addressB: string }) {
-  const { profiles, totalCount, isLoading, error } = useMutualFollows(addressA, addressB, {
+  const { profiles, totalCount, isLoading, error } = useMutualFollows({
+    addressA,
+    addressB,
     sort: { field: 'name', direction: 'asc' },
     limit: 10,
     include,
@@ -248,7 +278,7 @@ function MutualFollows({ addressA, addressB }: { addressA: string; addressB: str
 ```tsx
 import { useFollowedByMyFollows } from '@lsp-indexer/react';
 
-const { profiles } = useFollowedByMyFollows(myAddress, targetAddress, { limit: 20 });
+const { profiles } = useFollowedByMyFollows({ myAddress, targetAddress, limit: 20 });
 ```
 
 ---
