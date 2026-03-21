@@ -36,7 +36,7 @@
   - Verify: `grep -q "fetchEncryptedAssetsBatch" apps/docs/src/app/docs/node/page.mdx && grep -q "useEncryptedAssetsBatch" apps/docs/src/app/docs/react/page.mdx && grep -q "useEncryptedAssetsBatch" apps/docs/src/app/docs/next/page.mdx && grep -q "EncryptedAssetBatchTuple" apps/docs/src/app/docs/react/page.mdx`
   - Done when: All three docs pages contain batch encrypted asset documentation with params, usage examples, and updated domain tables.
 
-- [ ] **T02: Create changeset and verify full 5-package build** `est:10m`
+- [x] **T02: Create changeset and verify full 5-package build** `est:10m`
   - Why: R013 requires a changeset for minor release. R014 requires all 5 packages (including docs) to build with zero errors. This is the final verification gate for the milestone.
   - Files: `.changeset/add-encrypted-assets-batch.md`
   - Do: (1) Create `.changeset/add-encrypted-assets-batch.md` with YAML frontmatter listing all four packages as `minor` and a summary line + bullet list of changes (follow exact format from M003's `add-use-is-following-batch.md`). (2) Run `pnpm build` and verify all 5 packages exit 0. If docs build fails, diagnose MDX syntax issues in the pages edited by T01.

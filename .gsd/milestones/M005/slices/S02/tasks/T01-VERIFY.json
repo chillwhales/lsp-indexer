@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M005/S02/T01",
+  "timestamp": 1774127489408,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -q \"useEncryptedAssetsBatch\" apps/docs/src/app/docs/react/page.mdx",
+      "exitCode": 0,
+      "durationMs": 2,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q \"useEncryptedAssetsBatch\" apps/docs/src/app/docs/next/page.mdx",
+      "exitCode": 0,
+      "durationMs": 1,
+      "verdict": "pass"
+    }
+  ]
+}
