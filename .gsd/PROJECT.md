@@ -29,3 +29,4 @@ See `.gsd/REQUIREMENTS.md` for the explicit capability contract, requirement sta
 
 - [x] M001: Migration (v1.0 → v1.2) — complete
 - [x] M004: Mutual Follow Hooks — complete (3 mutual follow hook families, playground page, docs)
+- [ ] M005: Batch Encrypted Asset Fetch — fetch multiple encrypted assets by `(address, contentId, revision)` tuples in one round trip
