@@ -161,21 +161,20 @@ export default async function Page() {
 
 Every domain has server actions matching the fetch functions:
 
-| Domain                | Actions                                                                 |
-| --------------------- | ----------------------------------------------------------------------- |
-| Profiles              | `getProfile`, `getProfiles`                                             |
-| Digital Assets        | `getDigitalAsset`, `getDigitalAssets`                                   |
-| NFTs                  | `getNft`, `getNfts`                                                     |
-| Owned Assets          | `getOwnedAsset`, `getOwnedAssets`                                       |
-| Owned Tokens          | `getOwnedToken`, `getOwnedTokens`                                       |
-| Creators              | `getCreators`                                                           |
-| Issued Assets         | `getIssuedAssets`                                                       |
-| Follows               | `getFollows`, `getFollowCount`, `getIsFollowing`, `getIsFollowingBatch` |
-| Encrypted Assets      | `getEncryptedAssets`                                                    |
-| Data Changed          | `getDataChangedEvents`, `getLatestDataChangedEvent`                     |
-| Token ID Data Changed | `getTokenIdDataChangedEvents`, `getLatestTokenIdDataChangedEvent`       |
-| Universal Receiver    | `getUniversalReceiverEvents`                                            |
-| Mutual Follows        | `getMutualFollows`, `getMutualFollowers`, `getFollowedByMyFollows`      |
+| Domain                | Actions                                                                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profiles              | `getProfile`, `getProfiles`                                                                                                                 |
+| Digital Assets        | `getDigitalAsset`, `getDigitalAssets`                                                                                                       |
+| NFTs                  | `getNft`, `getNfts`                                                                                                                         |
+| Owned Assets          | `getOwnedAsset`, `getOwnedAssets`                                                                                                           |
+| Owned Tokens          | `getOwnedToken`, `getOwnedTokens`                                                                                                           |
+| Creators              | `getCreators`                                                                                                                               |
+| Issued Assets         | `getIssuedAssets`                                                                                                                           |
+| Follows               | `getFollows`, `getFollowCount`, `getIsFollowing`, `getIsFollowingBatch`, `getMutualFollows`, `getMutualFollowers`, `getFollowedByMyFollows` |
+| Encrypted Assets      | `getEncryptedAssets`                                                                                                                        |
+| Data Changed          | `getDataChangedEvents`, `getLatestDataChangedEvent`                                                                                         |
+| Token ID Data Changed | `getTokenIdDataChangedEvents`, `getLatestTokenIdDataChangedEvent`                                                                           |
+| Universal Receiver    | `getUniversalReceiverEvents`                                                                                                                |
 
 ---
 
@@ -200,7 +199,7 @@ The server action (`getIsFollowingBatch`) serializes the `Map` as a `Record<stri
 
 ---
 
-## Mutual Follow Hooks
+## Mutual Follow Queries
 
 `@lsp-indexer/next` provides 6 mutual follow hooks that mirror the `@lsp-indexer/react` API —
 data flows through server actions so the Hasura URL stays hidden from the browser.
