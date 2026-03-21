@@ -1,5 +1,11 @@
 # @lsp-indexer/types
 
+## 2.2.0
+
+### Minor Changes
+
+- [#350](https://github.com/chillwhales/lsp-indexer/pull/350) [`54a0b42`](https://github.com/chillwhales/lsp-indexer/commit/54a0b423ee0b80b181509ad77f709e224e2e06db) Thanks [@b00ste](https://github.com/b00ste)! - Add mutual follow hooks: `useMutualFollows`, `useMutualFollowers`, `useFollowedByMyFollows` with infinite scroll variants, ProfileInclude type narrowing, and Next.js server action routing.
+
 ## 2.1.0
 
 ### Minor Changes
