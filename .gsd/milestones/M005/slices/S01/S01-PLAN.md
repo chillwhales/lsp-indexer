@@ -52,7 +52,7 @@
   - Verify: `pnpm --filter=@lsp-indexer/react build`
   - Done when: React package builds, `createUseEncryptedAssetsBatch` and `useEncryptedAssetsBatch` exported
 
-- [ ] **T03: Add Next.js server action and batch hook** `est:20m`
+- [x] **T03: Add Next.js server action and batch hook** `est:20m`
   - Why: Next.js consumers need server-side data fetching through actions with Zod validation
   - Files: `packages/next/src/actions/encrypted-assets.ts`, `packages/next/src/hooks/encrypted-assets/use-encrypted-assets-batch.ts`, `packages/next/src/hooks/encrypted-assets/index.ts`
   - Do: Add `getEncryptedAssetsBatch` server action with 3-overload signatures matching `fetchEncryptedAssetsBatch`, Zod validation via `UseEncryptedAssetsBatchParamsSchema`. Create concrete Next.js hook wiring `createUseEncryptedAssetsBatch` factory to the server action. Update barrel index.
