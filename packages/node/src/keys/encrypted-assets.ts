@@ -1,4 +1,5 @@
 import type {
+  EncryptedAssetBatchTuple,
   EncryptedAssetFilter,
   EncryptedAssetInclude,
   EncryptedAssetSort,
@@ -12,6 +13,8 @@ import type {
  * encryptedAssetKeys.list(...)                    → ['encryptedAssets', 'list', ...]
  * encryptedAssetKeys.infinites()                  → ['encryptedAssets', 'infinite']
  * encryptedAssetKeys.infinite(...)                → ['encryptedAssets', 'infinite', ...]
+ * encryptedAssetKeys.batches()                    → ['encryptedAssets', 'batch']
+ * encryptedAssetKeys.batch(...)                   → ['encryptedAssets', 'batch', ...]
  * ```
  */
 export const encryptedAssetKeys = {
@@ -34,4 +37,9 @@ export const encryptedAssetKeys = {
     sort?: EncryptedAssetSort,
     include?: EncryptedAssetInclude,
   ) => [...encryptedAssetKeys.infinites(), filter, sort, include] as const,
+
+  batches: () => [...encryptedAssetKeys.all, 'batch'] as const,
+
+  batch: (tuples: EncryptedAssetBatchTuple[], include?: EncryptedAssetInclude) =>
+    [...encryptedAssetKeys.batches(), tuples, include] as const,
 } as const;

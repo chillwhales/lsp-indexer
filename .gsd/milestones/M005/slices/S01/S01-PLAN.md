@@ -23,6 +23,13 @@
 - `pnpm --filter=@lsp-indexer/react build` exits 0
 - `pnpm --filter=@lsp-indexer/next build` exits 0
 
+## Observability / Diagnostics
+
+- **Build failure signals**: Each `pnpm --filter=<pkg> build` exits non-zero with tsc/tsup errors visible in stderr — type mismatches surface immediately.
+- **Runtime query inspection**: `fetchEncryptedAssetsBatch` delegates to `execute()` which logs GraphQL errors to console. Empty-tuple short-circuit returns `{ encryptedAssets: [] }` without hitting the network.
+- **Failure-path verification**: Pass an empty `tuples` array to confirm short-circuit path; pass invalid include fields to see TypeScript catch the error at compile time.
+- **Zod validation**: `UseEncryptedAssetsBatchParamsSchema.parse()` throws `ZodError` with structured `.issues` for invalid input (wrong types, missing fields).
+
 ## Integration Closure
 
 - Upstream surfaces consumed: `GetEncryptedAssetsDocument`, `parseEncryptedAssets`, `buildEncryptedAssetIncludeVars`, `escapeLike` from node package; `EncryptedAssetInclude*` types from types package
@@ -31,7 +38,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add batch types, key factory, and service function (types + node)** `est:30m`
+- [x] **T01: Add batch types, key factory, and service function (types + node)** `est:30m`
   - Why: Foundation — all downstream hooks depend on the Zod schemas, TS types, query keys, and service function
   - Files: `packages/types/src/encrypted-assets.ts`, `packages/node/src/keys/encrypted-assets.ts`, `packages/node/src/services/encrypted-assets.ts`
   - Do: Add `EncryptedAssetBatchTupleSchema`, `UseEncryptedAssetsBatchParamsSchema`, and inferred types to types package. Add `batches()` and `batch()` to key factory. Add `FetchEncryptedAssetsBatchResult<P>` (no totalCount) and `fetchEncryptedAssetsBatch` with 3-overload signatures. Build `_or` clause with `_and` per tuple: address uses `_ilike` via `escapeLike`, contentId uses `_eq`, revision uses `_eq`. Execute via `GetEncryptedAssetsDocument` with `buildEncryptedAssetIncludeVars`. Parse via `parseEncryptedAssets`. Return `{ encryptedAssets: P[] }`.
