@@ -4,16 +4,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ## Active
 
-### R011 — React hook via factory pattern calling Hasura directly. Next.js hook routing through a server action with Zod validation. Both support EncryptedAssetInclude narrowing.
-- Class: core-capability
-- Status: active
-- Description: React hook via factory pattern calling Hasura directly. Next.js hook routing through a server action with Zod validation. Both support EncryptedAssetInclude narrowing.
-- Why it matters: Consumers need hooks, not just a service function.
-- Source: inferred
-- Primary owning slice: M005/S01
-- Supporting slices: none
-- Validation: S01: useEncryptedAssetsBatch React hook via factory + useEncryptedAssetsBatch Next.js hook via server action with Zod validation. Both support EncryptedAssetInclude narrowing. pnpm build exits 0 for react and next. S02: docs document hooks.
-- Notes: No infinite scroll variant — batch is for a known finite set of tuples.
+_No active requirements._
 
 ## Validated
 
@@ -127,6 +118,17 @@ This file is the explicit capability and coverage contract for the project.
 - Validation: fetchEncryptedAssetsBatch, createUseEncryptedAssetsBatch, and getEncryptedAssetsBatch all use 3-overload <const I extends EncryptedAssetInclude> pattern. All 4 consumer packages build with zero errors.
 - Notes: Same overload pattern as fetchEncryptedAssets.
 
+### R011 — React hook via factory pattern calling Hasura directly. Next.js hook routing through a server action with Zod validation. Both support EncryptedAssetInclude narrowing.
+- Class: core-capability
+- Status: validated
+- Description: React hook via factory pattern calling Hasura directly. Next.js hook routing through a server action with Zod validation. Both support EncryptedAssetInclude narrowing.
+- Why it matters: Consumers need hooks, not just a service function.
+- Source: inferred
+- Primary owning slice: M005/S01
+- Supporting slices: none
+- Validation: useEncryptedAssetsBatch React hook via createUseEncryptedAssetsBatch factory + useEncryptedAssetsBatch Next.js hook via getEncryptedAssetsBatch server action with Zod validation. Both support EncryptedAssetInclude narrowing. pnpm build exits 0 for react and next. Docs document hooks in react and next pages.
+- Notes: No infinite scroll variant — batch is for a known finite set of tuples.
+
 ### R012 — Encrypted assets docs page documents `fetchEncryptedAssetsBatch`, `useEncryptedAssetsBatch`, batch tuple params, and usage examples.
 - Class: quality-attribute
 - Status: validated
@@ -174,14 +176,14 @@ This file is the explicit capability and coverage contract for the project.
 | R008 | quality-attribute | validated | M004/S02 | none | All 5 packages (types, node, react, next, docs) build with zero errors. Verified by pnpm build across all filters. |
 | R009 | core-capability | validated | M005/S01 | none | fetchEncryptedAssetsBatch builds _or/_and where-clauses with _ilike for address, _eq for contentId/revision. pnpm --filter=@lsp-indexer/node build exits 0. Docs document the function in node, react, and next pages. |
 | R010 | quality-attribute | validated | M005/S01 | none | fetchEncryptedAssetsBatch, createUseEncryptedAssetsBatch, and getEncryptedAssetsBatch all use 3-overload <const I extends EncryptedAssetInclude> pattern. All 4 consumer packages build with zero errors. |
-| R011 | core-capability | active | M005/S01 | none | S01: useEncryptedAssetsBatch React hook via factory + useEncryptedAssetsBatch Next.js hook via server action with Zod validation. Both support EncryptedAssetInclude narrowing. pnpm build exits 0 for react and next. S02: docs document hooks. |
+| R011 | core-capability | validated | M005/S01 | none | useEncryptedAssetsBatch React hook via createUseEncryptedAssetsBatch factory + useEncryptedAssetsBatch Next.js hook via getEncryptedAssetsBatch server action with Zod validation. Both support EncryptedAssetInclude narrowing. pnpm build exits 0 for react and next. Docs document hooks. |
 | R012 | quality-attribute | validated | M005/S02 | none | All three docs pages contain batch API documentation: `fetchEncryptedAssetsBatch` in node docs, `useEncryptedAssetsBatch` in react and next docs, `getEncryptedAssetsBatch` in next docs, `EncryptedAssetBatchTuple` in react docs. Verified by grep checks. |
 | R013 | quality-attribute | validated | M005/S02 | none | `.changeset/add-encrypted-assets-batch.md` exists with all four packages (`@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`) listed as `minor`. |
 | R014 | quality-attribute | validated | M005/S02 | M005/S01 | `pnpm build` exits 0 across all 5 packages (types, node, react, next, docs). Docs build generated all 22 static pages successfully. |
 
 ## Coverage Summary
 
-- Active requirements: 1
-- Mapped to slices: 1
-- Validated: 13 (R001, R002, R003, R004, R005, R006, R007, R008, R009, R010, R012, R013, R014)
+- Active requirements: 0
+- Mapped to slices: 0
+- Validated: 14 (R001, R002, R003, R004, R005, R006, R007, R008, R009, R010, R011, R012, R013, R014)
 - Unmapped active requirements: 0

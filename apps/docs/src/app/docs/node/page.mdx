@@ -150,7 +150,7 @@ The return type narrows automatically based on which fields you include — full
 For React Query cache management, every domain exports a key factory:
 
 ```ts
-import { profileKeys, digitalAssetKeys } from '@lsp-indexer/node';
+import { profileKeys, digitalAssetKeys, encryptedAssetKeys } from '@lsp-indexer/node';
 
 profileKeys.all; // ['profiles']
 profileKeys.lists(); // ['profiles', 'list']
@@ -159,7 +159,7 @@ profileKeys.details(); // ['profiles', 'detail']
 profileKeys.detail(address, include); // ['profiles', 'detail', { address, include }]
 
 // Batch key factories
-encryptedAssetKeys.batch(tuples, include); // ['encrypted-assets', 'batch', { tuples, include }]
+encryptedAssetKeys.batch(tuples, include); // ['encryptedAssets', 'batch', tuples, include]
 ```
 
 These are used internally by the React and Next.js hooks, but you can also use them directly
