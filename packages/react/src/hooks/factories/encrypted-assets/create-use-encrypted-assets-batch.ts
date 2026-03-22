@@ -38,7 +38,7 @@ export function createUseEncryptedAssetsBatch(
     });
 
     return {
-      encryptedAssets: (data?.encryptedAssets ?? EMPTY) as PartialEncryptedAsset[],
+      encryptedAssets: data?.encryptedAssets ?? EMPTY,
       ...rest,
     };
   }
