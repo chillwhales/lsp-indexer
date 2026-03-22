@@ -73,12 +73,14 @@ const { profiles, totalCount } = await fetchProfiles(getClientUrl(), {
 | Creators              | —                                    | `fetchCreators`                                                                          |
 | Issued Assets         | —                                    | `fetchIssuedAssets`                                                                      |
 | Follows               | —                                    | `fetchFollows`, `fetchMutualFollows`, `fetchMutualFollowers`, `fetchFollowedByMyFollows` |
-| Encrypted Assets      | —                                    | `fetchEncryptedAssets`                                                                   |
+| Encrypted Assets      | —                                    | `fetchEncryptedAssets`, `fetchEncryptedAssetsBatch`                                      |
 | Data Changed          | `fetchLatestDataChangedEvent`        | `fetchDataChangedEvents`                                                                 |
 | Token ID Data Changed | `fetchLatestTokenIdDataChangedEvent` | `fetchTokenIdDataChangedEvents`                                                          |
 | Universal Receiver    | —                                    | `fetchUniversalReceiverEvents`                                                           |
 
 Additional: `fetchFollowCount`, `fetchIsFollowing`.
+
+Additional: `fetchEncryptedAssetsBatch` — batch-fetches multiple encrypted assets by `(address, contentId, revision)` tuples.
 
 **Mutual follow queries** are intersection queries across the follow graph:
 
@@ -88,6 +90,36 @@ Additional: `fetchFollowCount`, `fetchIsFollowing`.
 
 All three accept `sort`, `limit`, `offset`, and `include` options and return
 `{ profiles, totalCount }` — the same shape as `fetchProfiles`.
+
+---
+
+## Batch Encrypted Asset Fetch
+
+`fetchEncryptedAssetsBatch` fetches multiple encrypted assets by `(address, contentId, revision)` tuples in a single Hasura query.
+
+### Parameters
+
+| Parameter | Type                         | Required | Description                                                                  |
+| --------- | ---------------------------- | -------- | ---------------------------------------------------------------------------- |
+| `tuples`  | `EncryptedAssetBatchTuple[]` | Yes      | Array of `{ address: string, contentId: string, revision: number }` to fetch |
+| `include` | `EncryptedAssetInclude`      | No       | Narrow which related fields are returned — full TypeScript inference         |
+
+### Usage
+
+```ts
+import { fetchEncryptedAssetsBatch, getClientUrl } from '@lsp-indexer/node';
+
+const { encryptedAssets } = await fetchEncryptedAssetsBatch(getClientUrl(), {
+  tuples: [
+    { address: '0xAssetAddress1', contentId: 'content-1', revision: 1 },
+    { address: '0xAssetAddress2', contentId: 'content-2', revision: 0 },
+  ],
+  include: { digitalAsset: true },
+});
+// encryptedAssets → EncryptedAsset[] (one per matched tuple)
+```
+
+Empty `tuples` short-circuits — no network call is made and `encryptedAssets` returns `[]`. Address matching is case-insensitive. The return shape is `{ encryptedAssets: P[] }` (no `totalCount`).
 
 ---
 
@@ -121,13 +153,16 @@ The return type narrows automatically based on which fields you include — full
 For React Query cache management, every domain exports a key factory:
 
 ```ts
-import { profileKeys, digitalAssetKeys } from '@lsp-indexer/node';
+import { profileKeys, digitalAssetKeys, encryptedAssetKeys } from '@lsp-indexer/node';
 
 profileKeys.all; // ['profiles']
 profileKeys.lists(); // ['profiles', 'list']
 profileKeys.list(filter, sort, limit, offset, include); // ['profiles', 'list', { filter, sort, ... }]
 profileKeys.details(); // ['profiles', 'detail']
 profileKeys.detail(address, include); // ['profiles', 'detail', { address, include }]
+
+// Batch key factories
+encryptedAssetKeys.batch(tuples, include); // ['encryptedAssets', 'batch', tuples, include]
 ```
 
 These are used internally by the React and Next.js hooks, but you can also use them directly

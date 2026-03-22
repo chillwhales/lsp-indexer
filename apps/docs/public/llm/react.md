@@ -159,7 +159,7 @@ All 12 domains follow the same pattern. Replace `Profile` with any domain name:
 | Creators              | `useCreators`, `useInfiniteCreators`, `useCreatorSubscription`                                                                                                                                                                                                                           |
 | Issued Assets         | `useIssuedAssets`, `useInfiniteIssuedAssets`, `useIssuedAssetSubscription`                                                                                                                                                                                                               |
 | Follows               | `useFollows`, `useInfiniteFollows`, `useFollowCount`, `useIsFollowing`, `useIsFollowingBatch`, `useFollowerSubscription`, `useMutualFollows`, `useInfiniteMutualFollows`, `useMutualFollowers`, `useInfiniteMutualFollowers`, `useFollowedByMyFollows`, `useInfiniteFollowedByMyFollows` |
-| Encrypted Assets      | `useEncryptedAssets`, `useInfiniteEncryptedAssets`, `useEncryptedAssetSubscription`                                                                                                                                                                                                      |
+| Encrypted Assets      | `useEncryptedAssets`, `useInfiniteEncryptedAssets`, `useEncryptedAssetsBatch`, `useEncryptedAssetSubscription`                                                                                                                                                                           |
 | Data Changed          | `useDataChangedEvents`, `useInfiniteDataChangedEvents`, `useLatestDataChangedEvent`, `useDataChangedEventSubscription`                                                                                                                                                                   |
 | Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription`                                                                                                                                       |
 | Universal Receiver    | `useUniversalReceiverEvents`, `useInfiniteUniversalReceiverEvents`, `useUniversalReceiverEventSubscription`                                                                                                                                                                              |
@@ -193,6 +193,38 @@ const { results, isLoading, error } = useIsFollowingBatch({ pairs });
 ```
 
 The hook is disabled when `pairs` is empty — no query is fired and `results` defaults to an empty `Map`. All pairs default to `false`; a missing row means "not following", not an error.
+
+---
+
+## Batch Encrypted Asset Fetch
+
+`useEncryptedAssetsBatch` fetches multiple encrypted assets by `(address, contentId, revision)` tuples in a single Hasura query.
+
+### Parameters
+
+| Parameter | Type                         | Required | Description                                                                  |
+| --------- | ---------------------------- | -------- | ---------------------------------------------------------------------------- |
+| `tuples`  | `EncryptedAssetBatchTuple[]` | Yes      | Array of `{ address: string, contentId: string, revision: number }` to fetch |
+| `include` | `EncryptedAssetInclude`      | No       | Narrow which related fields are returned — full TypeScript inference         |
+
+### Usage
+
+```tsx
+import { useEncryptedAssetsBatch } from '@lsp-indexer/react';
+
+const tuples = [
+  { address: '0xAssetAddress1', contentId: 'content-1', revision: 1 },
+  { address: '0xAssetAddress2', contentId: 'content-2', revision: 0 },
+];
+
+const { encryptedAssets, isLoading, error } = useEncryptedAssetsBatch({
+  tuples,
+  include: { digitalAsset: true },
+});
+// encryptedAssets → EncryptedAsset[] (one per matched tuple)
+```
+
+The hook is disabled when `tuples` is empty — no query is fired and `encryptedAssets` defaults to `[]`. `EncryptedAssetInclude` narrows the return type. The return shape has no `totalCount`.
 
 ---
 
