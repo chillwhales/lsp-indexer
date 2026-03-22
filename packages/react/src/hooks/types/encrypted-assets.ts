@@ -1,4 +1,7 @@
-import type { FetchEncryptedAssetsBatchResult, FetchEncryptedAssetsResult } from '@lsp-indexer/node';
+import type {
+  FetchEncryptedAssetsBatchResult,
+  FetchEncryptedAssetsResult,
+} from '@lsp-indexer/node';
 import type {
   EncryptedAssetFilter,
   EncryptedAssetInclude,

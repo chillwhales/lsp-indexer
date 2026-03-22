@@ -12,7 +12,9 @@ import type { UseEncryptedAssetsBatchReturn } from '../../types';
 type BatchQueryParams = UseEncryptedAssetsBatchParams & { include?: EncryptedAssetInclude };
 
 export function createUseEncryptedAssetsBatch(
-  queryFn: (params: BatchQueryParams) => Promise<FetchEncryptedAssetsBatchResult<PartialEncryptedAsset>>,
+  queryFn: (
+    params: BatchQueryParams,
+  ) => Promise<FetchEncryptedAssetsBatchResult<PartialEncryptedAsset>>,
 ) {
   function useEncryptedAssetsBatch<const I extends EncryptedAssetInclude>(
     params: UseEncryptedAssetsBatchParams & { include: I },

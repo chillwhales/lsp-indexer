@@ -156,7 +156,7 @@ All 12 domains follow the same pattern. Replace `Profile` with any domain name:
 | Creators              | `useCreators`, `useInfiniteCreators`, `useCreatorSubscription`                                                                                                                                                                                                                           |
 | Issued Assets         | `useIssuedAssets`, `useInfiniteIssuedAssets`, `useIssuedAssetSubscription`                                                                                                                                                                                                               |
 | Follows               | `useFollows`, `useInfiniteFollows`, `useFollowCount`, `useIsFollowing`, `useIsFollowingBatch`, `useFollowerSubscription`, `useMutualFollows`, `useInfiniteMutualFollows`, `useMutualFollowers`, `useInfiniteMutualFollowers`, `useFollowedByMyFollows`, `useInfiniteFollowedByMyFollows` |
-| Encrypted Assets      | `useEncryptedAssets`, `useInfiniteEncryptedAssets`, `useEncryptedAssetsBatch`, `useEncryptedAssetSubscription`                                                                                                                                                                          |
+| Encrypted Assets      | `useEncryptedAssets`, `useInfiniteEncryptedAssets`, `useEncryptedAssetsBatch`, `useEncryptedAssetSubscription`                                                                                                                                                                           |
 | Data Changed          | `useDataChangedEvents`, `useInfiniteDataChangedEvents`, `useLatestDataChangedEvent`, `useDataChangedEventSubscription`                                                                                                                                                                   |
 | Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription`                                                                                                                                       |
 | Universal Receiver    | `useUniversalReceiverEvents`, `useInfiniteUniversalReceiverEvents`, `useUniversalReceiverEventSubscription`                                                                                                                                                                              |
@@ -199,10 +199,10 @@ The hook is disabled when `pairs` is empty — no query is fired and `results` d
 
 ### Parameters
 
-| Parameter | Type                          | Required | Description                                                                   |
-| --------- | ----------------------------- | -------- | ----------------------------------------------------------------------------- |
-| `tuples`  | `EncryptedAssetBatchTuple[]`  | Yes      | Array of `{ address: string, contentId: string, revision: number }` to fetch  |
-| `include` | `EncryptedAssetInclude`       | No       | Narrow which related fields are returned — full TypeScript inference           |
+| Parameter | Type                         | Required | Description                                                                  |
+| --------- | ---------------------------- | -------- | ---------------------------------------------------------------------------- |
+| `tuples`  | `EncryptedAssetBatchTuple[]` | Yes      | Array of `{ address: string, contentId: string, revision: number }` to fetch |
+| `include` | `EncryptedAssetInclude`      | No       | Narrow which related fields are returned — full TypeScript inference         |
 
 ### Usage
 
