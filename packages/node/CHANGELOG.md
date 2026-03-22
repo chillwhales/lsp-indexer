@@ -1,5 +1,23 @@
 # @lsp-indexer/node
 
+## 2.3.0
+
+### Minor Changes
+
+- [#355](https://github.com/chillwhales/lsp-indexer/pull/355) [`2cfa1ec`](https://github.com/chillwhales/lsp-indexer/commit/2cfa1ec0cd9520514c7afdb30fd7b9ea05fe4364) Thanks [@b00ste](https://github.com/b00ste)! - Add batch encrypted asset fetch for multiple `(address, contentId, revision)` tuples in a single query
+
+  - Add `EncryptedAssetBatchTupleSchema`, `UseEncryptedAssetsBatchParamsSchema` Zod schemas and inferred types
+  - Add `fetchEncryptedAssetsBatch` service with `_or`/`_and` Hasura query and 3-overload include narrowing
+  - Add `encryptedAssetKeys.batch()` cache key factory entry
+  - Add `createUseEncryptedAssetsBatch` factory and `useEncryptedAssetsBatch` hook in `@lsp-indexer/react`
+  - Add `getEncryptedAssetsBatch` server action and `useEncryptedAssetsBatch` hook in `@lsp-indexer/next`
+  - Add batch encrypted asset documentation to node, react, and next docs pages
+
+### Patch Changes
+
+- Updated dependencies [[`2cfa1ec`](https://github.com/chillwhales/lsp-indexer/commit/2cfa1ec0cd9520514c7afdb30fd7b9ea05fe4364)]:
+  - @lsp-indexer/types@2.3.0
+
 ## 2.2.0
 
 ### Minor Changes
