@@ -111,12 +111,15 @@ const { encryptedAssets } = await fetchEncryptedAssetsBatch(getClientUrl(), {
     { address: '0xAssetAddress1', contentId: 'content-1', revision: 1 },
     { address: '0xAssetAddress2', contentId: 'content-2', revision: 0 },
   ],
-  include: { digitalAsset: true },
+  include: { encryption: true },
 });
 // encryptedAssets → EncryptedAsset[] (one per matched tuple)
 ```
 
-Empty `tuples` short-circuits — no network call is made and `encryptedAssets` returns `[]`. Address matching is case-insensitive. The return shape is `{ encryptedAssets: P[] }` (no `totalCount`).
+Empty `tuples` short-circuits — no network call is made and `encryptedAssets` returns `[]`.
+If no tuples match, `encryptedAssets` returns `[]` — no error is thrown.
+Address matching is case-insensitive. Duplicate tuples are not deduplicated — pass unique tuples.
+The return shape is `{ encryptedAssets: P[] }` (no `totalCount`).
 
 ---
 

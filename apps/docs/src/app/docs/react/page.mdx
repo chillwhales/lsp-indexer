@@ -216,12 +216,15 @@ const tuples = [
 
 const { encryptedAssets, isLoading, error } = useEncryptedAssetsBatch({
   tuples,
-  include: { digitalAsset: true },
+  include: { encryption: true },
 });
 // encryptedAssets → EncryptedAsset[] (one per matched tuple)
 ```
 
-The hook is disabled when `tuples` is empty — no query is fired and `encryptedAssets` defaults to `[]`. `EncryptedAssetInclude` narrows the return type. The return shape has no `totalCount`.
+The hook is disabled when `tuples` is empty — no query is fired and `encryptedAssets` defaults to `[]`.
+If no tuples match, `encryptedAssets` returns `[]` — no error is thrown.
+Address matching is case-insensitive. Duplicate tuples are not deduplicated — pass unique tuples.
+`EncryptedAssetInclude` narrows the return type. The return shape has no `totalCount`.
 
 ---
 

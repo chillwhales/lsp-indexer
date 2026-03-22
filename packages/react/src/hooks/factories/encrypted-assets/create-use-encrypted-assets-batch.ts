@@ -11,6 +11,9 @@ import type { UseEncryptedAssetsBatchReturn } from '../../types';
 
 type BatchQueryParams = UseEncryptedAssetsBatchParams & { include?: EncryptedAssetInclude };
 
+/** Stable empty array to avoid re-renders when the query is disabled/loading. */
+const EMPTY_RESULTS: PartialEncryptedAsset[] = [];
+
 export function createUseEncryptedAssetsBatch(
   queryFn: (
     params: BatchQueryParams,
@@ -37,7 +40,7 @@ export function createUseEncryptedAssetsBatch(
     });
 
     return {
-      encryptedAssets: data?.encryptedAssets ?? [],
+      encryptedAssets: data?.encryptedAssets ?? EMPTY_RESULTS,
       ...rest,
     };
   }

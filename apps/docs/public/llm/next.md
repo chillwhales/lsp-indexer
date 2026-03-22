@@ -213,12 +213,15 @@ const tuples = [
 
 const { encryptedAssets, isLoading, error } = useEncryptedAssetsBatch({
   tuples,
-  include: { digitalAsset: true },
+  include: { encryption: true },
 });
 // encryptedAssets → EncryptedAsset[] (one per matched tuple)
 ```
 
-The server action (`getEncryptedAssetsBatch`) validates input via Zod and fetches from Hasura server-side. The Hasura URL stays hidden from the browser. Empty `tuples` short-circuits — no query is fired.
+The server action (`getEncryptedAssetsBatch`) validates input via Zod and fetches from Hasura server-side. The Hasura URL stays hidden from the browser.
+Empty `tuples` short-circuits — no query is fired.
+If no tuples match, `encryptedAssets` returns `[]` — no error is thrown.
+Address matching is case-insensitive. Duplicate tuples are not deduplicated — pass unique tuples.
 
 ---
 
