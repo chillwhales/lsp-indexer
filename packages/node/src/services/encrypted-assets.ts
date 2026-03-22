@@ -1,5 +1,6 @@
 import type {
   EncryptedAsset,
+  EncryptedAssetBatchTuple,
   EncryptedAssetFilter,
   EncryptedAssetInclude,
   EncryptedAssetResult,
@@ -315,5 +316,62 @@ export async function fetchEncryptedAssets(
   return {
     encryptedAssets: parseEncryptedAssets(result.lsp29_encrypted_asset),
     totalCount: result.lsp29_encrypted_asset_aggregate?.aggregate?.count ?? 0,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Batch service function — fetch multiple encrypted assets by (address, contentId, revision) tuples
+// ---------------------------------------------------------------------------
+
+export interface FetchEncryptedAssetsBatchResult<P = EncryptedAsset> {
+  encryptedAssets: P[];
+}
+
+/** Fetch encrypted assets matching `(address, contentId, revision)` tuples in a single round trip. */
+export async function fetchEncryptedAssetsBatch(
+  url: string,
+  params: { tuples: EncryptedAssetBatchTuple[] },
+): Promise<FetchEncryptedAssetsBatchResult>;
+export async function fetchEncryptedAssetsBatch<const I extends EncryptedAssetInclude>(
+  url: string,
+  params: { tuples: EncryptedAssetBatchTuple[]; include: I },
+): Promise<FetchEncryptedAssetsBatchResult<EncryptedAssetResult<I>>>;
+export async function fetchEncryptedAssetsBatch(
+  url: string,
+  params: { tuples: EncryptedAssetBatchTuple[]; include?: EncryptedAssetInclude },
+): Promise<FetchEncryptedAssetsBatchResult<PartialEncryptedAsset>>;
+export async function fetchEncryptedAssetsBatch(
+  url: string,
+  params: { tuples: EncryptedAssetBatchTuple[]; include?: EncryptedAssetInclude },
+): Promise<FetchEncryptedAssetsBatchResult<PartialEncryptedAsset>> {
+  const { tuples } = params;
+
+  // Short-circuit on empty tuples
+  if (tuples.length === 0) return { encryptedAssets: [] };
+
+  // Build _or clause — one _and per tuple
+  const orConditions = tuples.map((t) => ({
+    _and: [
+      { address: { _ilike: escapeLike(t.address) } },
+      { content_id: { _eq: t.contentId } },
+      { revision: { _eq: t.revision } },
+    ] as Lsp29_Encrypted_Asset_Bool_Exp[],
+  }));
+
+  const includeVars = buildEncryptedAssetIncludeVars(params.include);
+
+  const result = await execute(url, GetEncryptedAssetsDocument, {
+    where: { _or: orConditions },
+    limit: tuples.length,
+    ...includeVars,
+  });
+
+  if (params.include) {
+    return {
+      encryptedAssets: parseEncryptedAssets(result.lsp29_encrypted_asset, params.include),
+    };
+  }
+  return {
+    encryptedAssets: parseEncryptedAssets(result.lsp29_encrypted_asset),
   };
 }

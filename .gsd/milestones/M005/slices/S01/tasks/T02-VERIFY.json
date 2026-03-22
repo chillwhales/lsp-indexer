@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M005/S01/T02",
+  "timestamp": 1774126731180,
+  "passed": false,
+  "discoverySource": "package-json",
+  "checks": [
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "durationMs": 4769,
+      "verdict": "pass"
+    },
+    {
+      "command": "npm run lint",
+      "exitCode": 1,
+      "durationMs": 3584,
+      "verdict": "fail"
+    },
+    {
+      "command": "npm run test",
+      "exitCode": 1,
+      "durationMs": 1042,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

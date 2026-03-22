@@ -10,9 +10,10 @@ Any developer can query LUKSO blockchain data through type-safe React hooks back
 
 ## Current State
 
-**Shipped:** v1.3 Mutual Follow Hooks (M004 complete)
+**Shipped:** v1.4 Batch Encrypted Asset Fetch (M005 complete)
+**In progress:** none
 
-The full stack is production-ready: indexer with 6-step pipeline, 4 publishable npm packages, production Docker Compose with monitoring stack, and operational tooling. 15 query domains (12 original + 3 mutual follow families), 12 subscription hooks, 15 server action sets, block ordering on all entities, Grafana monitoring, layered CI/CD. Three social graph intersection hooks — mutual follows, mutual followers, and followed-by-my-follows — with infinite scroll variants, ProfileInclude type narrowing, playground page, and full docs.
+The full stack is production-ready: indexer with 6-step pipeline, 4 publishable npm packages, production Docker Compose with monitoring stack, and operational tooling. 15 query domains (12 original + 3 mutual follow families), 12 subscription hooks, 15 server action sets, block ordering on all entities, Grafana monitoring, layered CI/CD. Three social graph intersection hooks — mutual follows, mutual followers, and followed-by-my-follows — with infinite scroll variants, ProfileInclude type narrowing, playground page, and full docs. Batch encrypted asset fetch by `(address, contentId, revision)` tuples with `_or`/`_and` Hasura pattern, React and Next.js hooks with EncryptedAssetInclude type narrowing, changeset ready for minor release.
 
 ## Architecture / Key Patterns
 
@@ -29,3 +30,4 @@ See `.gsd/REQUIREMENTS.md` for the explicit capability contract, requirement sta
 
 - [x] M001: Migration (v1.0 → v1.2) — complete
 - [x] M004: Mutual Follow Hooks — complete (3 mutual follow hook families, playground page, docs)
+- [x] M005: Batch Encrypted Asset Fetch — fetch multiple encrypted assets by `(address, contentId, revision)` tuples in one round trip

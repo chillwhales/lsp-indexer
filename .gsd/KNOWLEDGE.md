@@ -76,3 +76,26 @@ Mandatory params (no `= {}` default) are correct for intersection queries — ca
 ### Fragility warning
 
 The `_and` where-clause constructs `followedBy`/`followed` relationship names as string keys. If Hasura schema renames these relationships, queries return empty results silently (no GraphQL error). There is no compile-time protection for relationship field names inside `Universal_Profile_Bool_Exp`.
+
+## [2026-03-21] M005: Batch tuple lookup pattern — _or/_and with existing query documents
+
+### Pattern
+
+When fetching entities by an array of unique compound keys (e.g., `(address, contentId, revision)` tuples), build `_or` with one `_and` per tuple and pass it to the existing query document. No new GraphQL document needed — just a dynamically composed where-clause.
+
+This pattern is now used by two domains:
+- `fetchIsFollowingBatch` (followers) — `_or` of `{ follower_address _ilike, following_address _ilike }` pairs
+- `fetchEncryptedAssetsBatch` (encrypted assets) — `_or` of `{ address _ilike, content_id _eq, revision _eq }` tuples
+
+### Key detail
+
+Batch hooks use `useQuery` directly, not `createUseList` — batch results are finite (known tuple count) with no pagination or `totalCount`. The `enabled: tuples.length > 0` guard and a stable `EMPTY` array reference prevent unnecessary queries and re-renders.
+
+### Reuse checklist for future batch domains
+
+1. Add `BatchTupleSchema` + `UseBatchParamsSchema` to types package
+2. Add `keys.batch(tuples, include?)` to key factory
+3. Add `fetchXBatch` service with 3-overload include narrowing, empty-tuple short-circuit, `_or`/`_and` where-clause
+4. Add `createUseXBatch` factory with direct `useQuery`, not `createUseList`
+5. Add concrete React hook, Next.js server action + hook
+6. Update barrel indexes in all packages

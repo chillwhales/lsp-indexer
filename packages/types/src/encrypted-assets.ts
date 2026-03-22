@@ -209,8 +209,21 @@ export const EncryptedAssetIncludeSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Hook parameter schemas — 2 hooks (no singular hook)
+// Hook parameter schemas — 3 hooks (no singular hook)
 // ---------------------------------------------------------------------------
+
+/** Single (address, contentId, revision) tuple for batch lookups. */
+export const EncryptedAssetBatchTupleSchema = z.object({
+  address: z.string(),
+  contentId: z.string(),
+  revision: z.number(),
+});
+
+/** Params for useEncryptedAssetsBatch — fetch multiple encrypted assets by tuple. */
+export const UseEncryptedAssetsBatchParamsSchema = z.object({
+  tuples: z.array(EncryptedAssetBatchTupleSchema),
+  include: EncryptedAssetIncludeSchema.optional(),
+});
 
 /** Params for useEncryptedAssets — paginated list of encrypted assets */
 export const UseEncryptedAssetsParamsSchema = z.object({
@@ -245,6 +258,8 @@ export type EncryptedAssetFilter = z.infer<typeof EncryptedAssetFilterSchema>;
 export type EncryptedAssetSortField = z.infer<typeof EncryptedAssetSortFieldSchema>;
 export type EncryptedAssetSort = z.infer<typeof EncryptedAssetSortSchema>;
 export type EncryptedAssetInclude = z.infer<typeof EncryptedAssetIncludeSchema>;
+export type EncryptedAssetBatchTuple = z.infer<typeof EncryptedAssetBatchTupleSchema>;
+export type UseEncryptedAssetsBatchParams = z.infer<typeof UseEncryptedAssetsBatchParamsSchema>;
 export type UseEncryptedAssetsParams = z.infer<typeof UseEncryptedAssetsParamsSchema>;
 export type UseInfiniteEncryptedAssetsParams = z.infer<
   typeof UseInfiniteEncryptedAssetsParamsSchema

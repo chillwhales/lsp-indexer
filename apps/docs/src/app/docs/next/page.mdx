@@ -168,7 +168,7 @@ Every domain has server actions matching the fetch functions:
 | Creators              | `getCreators`                                                                                                                               |
 | Issued Assets         | `getIssuedAssets`                                                                                                                           |
 | Follows               | `getFollows`, `getFollowCount`, `getIsFollowing`, `getIsFollowingBatch`, `getMutualFollows`, `getMutualFollowers`, `getFollowedByMyFollows` |
-| Encrypted Assets      | `getEncryptedAssets`                                                                                                                        |
+| Encrypted Assets      | `getEncryptedAssets`, `getEncryptedAssetsBatch`                                                                                             |
 | Data Changed          | `getDataChangedEvents`, `getLatestDataChangedEvent`                                                                                         |
 | Token ID Data Changed | `getTokenIdDataChangedEvents`, `getLatestTokenIdDataChangedEvent`                                                                           |
 | Universal Receiver    | `getUniversalReceiverEvents`                                                                                                                |
@@ -193,6 +193,32 @@ const { results, isLoading, error } = useIsFollowingBatch({ pairs });
 ```
 
 The server action (`getIsFollowingBatch`) serializes the `Map` as a `Record<string, boolean>` over the wire. The hook reconstructs the `Map` on the client. The Hasura URL stays hidden from the browser.
+
+---
+
+## Batch Encrypted Asset Fetch
+
+`useEncryptedAssetsBatch` fetches multiple encrypted assets by `(address, contentId, revision)` tuples in a single query via the `getEncryptedAssetsBatch` server action.
+
+```tsx
+import { useEncryptedAssetsBatch } from '@lsp-indexer/next';
+
+const tuples = [
+  { address: '0xAssetAddress1', contentId: 'content-1', revision: 1 },
+  { address: '0xAssetAddress2', contentId: 'content-2', revision: 0 },
+];
+
+const { encryptedAssets, isLoading, error } = useEncryptedAssetsBatch({
+  tuples,
+  include: { encryption: true },
+});
+// encryptedAssets → EncryptedAsset[] (one per matched tuple)
+```
+
+The server action (`getEncryptedAssetsBatch`) validates input via Zod and fetches from Hasura server-side. The Hasura URL stays hidden from the browser.
+Empty `tuples` short-circuits — no query is fired.
+If no tuples match, `encryptedAssets` returns `[]` — no error is thrown.
+Address matching is case-insensitive. Duplicate tuples are not deduplicated — pass unique tuples.
 
 ---
 
