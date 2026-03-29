@@ -1,0 +1,6 @@
+# Ephemeral runtime artifacts — do not track
+state-manifest.json
+event-log.jsonl
+journal/
+runtime/
+activity/

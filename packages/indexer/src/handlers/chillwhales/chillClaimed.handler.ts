@@ -13,11 +13,11 @@
 import { CHILL_ADDRESS, CHILLWHALES_ADDRESS } from '@/constants/chillwhales';
 import { aggregate3StaticLatest } from '@/core/multicall';
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { generateTokenId, isNullAddress } from '@/utils';
+import { generateTokenId, isNullAddress, safeHexToBool } from '@/utils';
 import { CHILL } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { ChillClaimed, Transfer } from '@chillwhales/typeorm';
-import { getAddress, hexToBool, isAddressEqual, isHex } from 'viem';
+import { getAddress, isAddressEqual, isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'ChillClaimed';
@@ -171,7 +171,7 @@ const ChillClaimedHandler: EntityHandler = {
         result[index] &&
         result[index].success &&
         isHex(result[index].returnData) &&
-        hexToBool(result[index].returnData)
+        safeHexToBool(result[index].returnData)
       ) {
         // Update entity value to true
         const updatedEntity = new ChillClaimed({
