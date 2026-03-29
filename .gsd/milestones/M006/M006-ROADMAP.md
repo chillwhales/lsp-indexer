@@ -6,4 +6,4 @@ Fix the production crash in the indexer's VERIFY step where viem's hexToBool() t
 ## Slice Overview
 | ID | Slice | Risk | Depends | Done | After this |
 |----|-------|------|---------|------|------------|
-| S01 | Defensive hexToBool hardening | low | — | ⬜ | After this: pnpm --filter=@chillwhales/indexer build passes. All 3 hexToBool call sites use safeHexToBool. rg hexToBool shows only the safe wrapper definition and its usages. |
+| S01 | Defensive hexToBool hardening | low | — | ✅ | After this: pnpm --filter=@chillwhales/indexer build passes. All 3 hexToBool call sites use safeHexToBool. rg hexToBool shows only the safe wrapper definition and its usages. |

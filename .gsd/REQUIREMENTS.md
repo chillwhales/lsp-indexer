@@ -4,29 +4,31 @@ This file is the explicit capability and coverage contract for the project.
 
 ## Active
 
+(none)
+
+## Validated
+
 ### R015 — Safe `supportsInterface` return parsing
 - Class: failure-visibility
-- Status: active
+- Status: validated
 - Description: The VERIFY step's `multicallVerify` must handle non-boolean hex values from `supportsInterface` without crashing. Any return data that is not a valid ABI-encoded boolean (`0x...0001` or `0x...0000`) must be treated as `false` (interface not supported).
 - Why it matters: A rogue contract returning garbage hex crashes the indexer into an infinite restart loop (issue #357). The indexer must be resilient to malformed on-chain data.
 - Source: user
 - Primary owning slice: M006/S01
 - Supporting slices: none
-- Validation: unmapped
-- Notes: Crash at block 7,137,664. viem's `hexToBool()` throws `InvalidHexBooleanError` on non-`0x0`/`0x1` values.
+- Validation: safeHexToBool wraps hexToBool in try-catch returning false on error. pnpm --filter=@chillwhales/indexer build passes. The crash-inducing code path now returns false instead of throwing InvalidHexBooleanError.
+- Notes: Crash at block 7,137,664. Only 2 call sites existed (orbsClaimed, chillClaimed) — verification.ts does not use hexToBool.
 
 ### R016 — All `hexToBool` call sites hardened
 - Class: quality-attribute
-- Status: active
-- Description: Every call site in the indexer that uses viem's `hexToBool()` — `verification.ts`, `orbsClaimed.handler.ts`, `chillClaimed.handler.ts` — must use the safe helper instead.
-- Why it matters: The same crash pattern exists in 3 locations. Fixing only the reported one leaves two more time bombs.
+- Status: validated
+- Description: Every call site in the indexer that uses viem's `hexToBool()` must use the safe helper instead.
+- Why it matters: The same crash pattern exists in multiple locations. Fixing only the reported one leaves time bombs.
 - Source: inferred
 - Primary owning slice: M006/S01
 - Supporting slices: none
-- Validation: unmapped
-- Notes: All 3 sites follow the identical `r.success && isHex(r.returnData) && hexToBool(r.returnData)` pattern.
-
-## Validated
+- Validation: rg hexToBool packages/indexer/src/ shows only 3 matches, all inside the safe wrapper in utils/index.ts. Zero raw hexToBool calls remain in handlers or core files.
+- Notes: Only 2 call sites existed (not 3 as originally estimated — verification.ts does not use hexToBool).
 
 ### R001 — Given two addresses A and B, return the set of profiles that both A and B follow. Computed server-side via Hasura nested `followedBy` relationship filters.
 - Class: core-capability
@@ -200,12 +202,12 @@ This file is the explicit capability and coverage contract for the project.
 | R012 | quality-attribute | validated | M005/S02 | none | validated |
 | R013 | quality-attribute | validated | M005/S02 | none | validated |
 | R014 | quality-attribute | validated | M005/S02 | M005/S01 | validated |
-| R015 | failure-visibility | active | M006/S01 | none | unmapped |
-| R016 | quality-attribute | active | M006/S01 | none | unmapped |
+| R015 | failure-visibility | validated | M006/S01 | none | validated |
+| R016 | quality-attribute | validated | M006/S01 | none | validated |
 
 ## Coverage Summary
 
-- Active requirements: 2
-- Mapped to slices: 2
-- Validated: 14 (R001–R014)
+- Active requirements: 0
+- Mapped to slices: 0
+- Validated: 16 (R001–R016)
 - Unmapped active requirements: 0
