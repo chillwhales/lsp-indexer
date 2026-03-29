@@ -15,7 +15,8 @@ import { INTERFACE_ID_LSP7, INTERFACE_ID_LSP7_PREVIOUS } from '@lukso/lsp7-contr
 import { INTERFACE_ID_LSP8, INTERFACE_ID_LSP8_PREVIOUS } from '@lukso/lsp8-contracts';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
-import { type Hex, hexToBool, isHex } from 'viem';
+import { type Hex, isHex } from 'viem';
+import { safeHexToBool } from '@/utils';
 
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { aggregate3StaticLatest } from './multicall';
@@ -230,7 +231,7 @@ async function multicallVerify(
       r.success &&
       isHex(r.returnData) &&
       r.returnData !== '0x' &&
-      hexToBool(r.returnData)
+      safeHexToBool(r.returnData)
     );
   });
 }
