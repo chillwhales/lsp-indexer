@@ -1,4 +1,4 @@
-# M006: 
+# M006: Fix InvalidHexBooleanError Crash
 
 ## Vision
 Fix the production crash in the indexer's VERIFY step where viem's hexToBool() throws InvalidHexBooleanError on non-boolean hex from supportsInterface. Replace all 3 call sites with a safe helper that treats invalid hex as false. Unblock the indexer from its restart loop at block 7,137,664.

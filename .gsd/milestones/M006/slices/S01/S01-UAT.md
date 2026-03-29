@@ -1,11 +1,6 @@
 # S01: Defensive hexToBool hardening — UAT
 
 **Milestone:** M006
-**Written:** 2026-03-29T09:49:00.133Z
-
-# S01: Defensive hexToBool hardening — UAT
-
-**Milestone:** M006
 **Written:** 2026-03-29
 
 ## UAT Type
@@ -36,19 +31,25 @@ Run `pnpm --filter=@chillwhales/indexer build` — should exit 0 with no errors.
 2. Find the `safeHexToBool` function
 3. **Expected:** Function signature is `function safeHexToBool(hex: Hex): boolean`. Body wraps `hexToBool(hex)` in try-catch, returning `false` on error.
 
-### 3. orbsClaimed handler uses safe wrapper
+### 3. verification.ts uses safe wrapper
+
+1. Open `packages/indexer/src/core/verification.ts`
+2. Search for `safeHexToBool`
+3. **Expected:** `safeHexToBool` is imported from `@/utils` and used in `multicallVerify()` where `hexToBool` was previously called. No `hexToBool` import from viem exists.
+
+### 4. orbsClaimed handler uses safe wrapper
 
 1. Open `packages/indexer/src/handlers/chillwhales/orbsClaimed.handler.ts`
 2. Search for `safeHexToBool`
 3. **Expected:** `safeHexToBool` is imported from `@/utils` and used where `hexToBool` was previously called. No `hexToBool` import from viem exists.
 
-### 4. chillClaimed handler uses safe wrapper
+### 5. chillClaimed handler uses safe wrapper
 
 1. Open `packages/indexer/src/handlers/chillwhales/chillClaimed.handler.ts`
 2. Search for `safeHexToBool`
 3. **Expected:** `safeHexToBool` is imported from `@/utils` and used where `hexToBool` was previously called. No `hexToBool` import from viem exists.
 
-### 5. Build compiles clean
+### 6. Build compiles clean
 
 1. Run `pnpm --filter=@chillwhales/indexer build`
 2. **Expected:** Exit code 0, no TypeScript errors.
@@ -78,4 +79,4 @@ Run `pnpm --filter=@chillwhales/indexer build` — should exit 0 with no errors.
 
 ## Notes for Tester
 
-The original plan listed `verification.ts` as a third call site, but it does not contain `hexToBool`. Only 2 handler files were modified. This is correct — verify that `verification.ts` indeed has no `hexToBool` usage if in doubt.
+All 3 call sites listed in the original plan were real: `verification.ts`, `orbsClaimed.handler.ts`, and `chillClaimed.handler.ts`. The `verification.ts` migration was initially missed and added during PR review. When you run `rg hexToBool packages/indexer/src/`, you should see matches only in `packages/indexer/src/utils/index.ts`. When you run `rg safeHexToBool packages/indexer/src/`, you should see matches in all three migrated files plus `utils/index.ts`.

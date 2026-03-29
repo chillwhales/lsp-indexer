@@ -16,19 +16,19 @@ This file is the explicit capability and coverage contract for the project.
 - Source: user
 - Primary owning slice: M006/S01
 - Supporting slices: none
-- Validation: safeHexToBool wraps hexToBool in try-catch returning false on error. pnpm --filter=@chillwhales/indexer build passes. The crash-inducing code path now returns false instead of throwing InvalidHexBooleanError.
-- Notes: Crash at block 7,137,664. Only 2 call sites existed (orbsClaimed, chillClaimed) — verification.ts does not use hexToBool.
+- Validation: safeHexToBool wraps hexToBool in try-catch returning false on error. pnpm --filter=@chillwhales/indexer build passes. The crash-inducing code path in verification.ts now returns false instead of throwing InvalidHexBooleanError.
+- Notes: Crash at block 7,137,664. All 3 call sites migrated (verification.ts, orbsClaimed.handler.ts, chillClaimed.handler.ts).
 
 ### R016 — All `hexToBool` call sites hardened
 - Class: quality-attribute
 - Status: validated
-- Description: Every call site in the indexer that uses viem's `hexToBool()` must use the safe helper instead.
+- Description: Every call site in the indexer that uses viem's `hexToBool()` — `verification.ts`, `orbsClaimed.handler.ts`, `chillClaimed.handler.ts` — must use the safe helper instead.
 - Why it matters: The same crash pattern exists in multiple locations. Fixing only the reported one leaves time bombs.
 - Source: inferred
 - Primary owning slice: M006/S01
 - Supporting slices: none
-- Validation: rg hexToBool packages/indexer/src/ shows only 3 matches, all inside the safe wrapper in utils/index.ts. Zero raw hexToBool calls remain in handlers or core files.
-- Notes: Only 2 call sites existed (not 3 as originally estimated — verification.ts does not use hexToBool).
+- Validation: rg hexToBool packages/indexer/src/ shows only 3 matches, all inside the safe wrapper in utils/index.ts. Zero raw hexToBool calls remain in handlers or core files. All 3 call sites migrated.
+- Notes: All 3 call sites (verification.ts, orbsClaimed.handler.ts, chillClaimed.handler.ts) migrated to safeHexToBool.
 
 ### R001 — Given two addresses A and B, return the set of profiles that both A and B follow. Computed server-side via Hasura nested `followedBy` relationship filters.
 - Class: core-capability

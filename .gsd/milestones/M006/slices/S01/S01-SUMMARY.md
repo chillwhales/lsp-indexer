@@ -10,6 +10,7 @@ affects:
   []
 key_files:
   - packages/indexer/src/utils/index.ts
+  - packages/indexer/src/core/verification.ts
   - packages/indexer/src/handlers/chillwhales/orbsClaimed.handler.ts
   - packages/indexer/src/handlers/chillwhales/chillClaimed.handler.ts
 key_decisions:
@@ -34,7 +35,7 @@ blocker_discovered: false
 
 Created `safeHexToBool(hex: Hex): boolean` in `packages/indexer/src/utils/index.ts` following the existing safe wrapper pattern (`safeBigInt`, `safeHexToNumber`, `safeJsonStringify`). The wrapper catches any error from viem's `hexToBool` and returns `false`, treating invalid hex as a negative boolean rather than crashing.
 
-Replaced raw `hexToBool` calls in both handler files — `orbsClaimed.handler.ts` and `chillClaimed.handler.ts`. The task plan listed 3 call sites including `verification.ts`, but that file does not contain `hexToBool`. Only 2 actual call sites existed.
+Replaced raw `hexToBool` calls in all 3 call sites: `verification.ts` (the primary crash site in `multicallVerify()`), `orbsClaimed.handler.ts`, and `chillClaimed.handler.ts`. The `verification.ts` migration was caught during PR review — the initial pass missed it due to the root `.gitignore` `core` pattern hiding `packages/indexer/src/core/` from `git add`.
 
 The fix unblocks the indexer from its restart loop at block 7,137,664 where `supportsInterface` returned non-boolean hex data that viem's `hexToBool` rejected with `InvalidHexBooleanError`.
 
@@ -61,7 +62,7 @@ None.
 
 ## Deviations
 
-Task plan listed `packages/indexer/src/core/verification.ts` as a call site, but it does not contain `hexToBool`. Only 2 call sites existed (both in handlers/chillwhales/), not 3.
+The initial pass missed `packages/indexer/src/core/verification.ts` as a call site. The root `.gitignore` `core` entry hides `packages/indexer/src/core/` from `git add`, contributing to the oversight. Fixed during PR review.
 
 ## Known Limitations
 
@@ -74,5 +75,6 @@ None.
 ## Files Created/Modified
 
 - `packages/indexer/src/utils/index.ts` — Added safeHexToBool wrapper and hexToBool import from viem
+- `packages/indexer/src/core/verification.ts` — Replaced raw hexToBool with safeHexToBool import (primary crash site)
 - `packages/indexer/src/handlers/chillwhales/orbsClaimed.handler.ts` — Replaced raw hexToBool with safeHexToBool import
 - `packages/indexer/src/handlers/chillwhales/chillClaimed.handler.ts` — Replaced raw hexToBool with safeHexToBool import

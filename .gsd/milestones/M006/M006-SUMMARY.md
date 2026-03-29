@@ -7,10 +7,11 @@ key_decisions:
   - D009: safeHexToBool returns false on error (not null) — matches boolean domain where invalid hex means 'does not support interface'
 key_files:
   - packages/indexer/src/utils/index.ts
+  - packages/indexer/src/core/verification.ts
   - packages/indexer/src/handlers/chillwhales/orbsClaimed.handler.ts
   - packages/indexer/src/handlers/chillwhales/chillClaimed.handler.ts
 lessons_learned:
-  - Always verify call site counts with rg before planning — the context document listed verification.ts as a call site but it does not contain hexToBool. Trust grep over documentation.
+  - The .gitignore root-level `core` pattern hides packages/indexer/src/core/ from git add — requires `git add -f`. This caused the initial miss of verification.ts as a call site during the first pass.
   - The safe wrapper pattern (safeBigInt, safeHexToNumber, safeHexToBool) in utils/index.ts is the established pattern for any viem decoder that throws on malformed input. Future viem decoders that can throw should get a safe* wrapper here.
 ---
 
@@ -24,14 +25,14 @@ The indexer was stuck in an infinite restart loop at block 7,137,664 — a contr
 
 S01 created a `safeHexToBool(hex: Hex): boolean` utility in `packages/indexer/src/utils/index.ts`, following the existing safe wrapper pattern (`safeBigInt`, `safeHexToNumber`). The wrapper catches any error from viem's `hexToBool` and returns `false` — semantically correct since invalid hex means the contract doesn't properly implement the interface.
 
-The task plan identified 3 call sites (verification.ts, orbsClaimed.handler.ts, chillClaimed.handler.ts), but investigation revealed `verification.ts` does not contain `hexToBool`. Only 2 actual call sites existed — both in the chillwhales handlers. Both were updated to import `safeHexToBool` from `@/utils` instead of `hexToBool` from `viem`. The raw `hexToBool` import was removed from both handler files.
+All 3 call sites were migrated to `safeHexToBool`: `verification.ts` (the primary crash site in `multicallVerify()`), `orbsClaimed.handler.ts`, and `chillClaimed.handler.ts`. The raw `hexToBool` import was removed from all three files. The `verification.ts` migration was caught during PR review — the initial pass missed it due to the root `.gitignore` `core` pattern hiding `packages/indexer/src/core/` from `git add`.
 
 The indexer package builds cleanly with zero TypeScript errors. No raw `hexToBool` calls remain outside the safe wrapper definition.
 
 ## Success Criteria Results
 
 - **pnpm --filter=@chillwhales/indexer build passes**: ✅ Build exits 0 with zero errors
-- **All hexToBool call sites use safeHexToBool**: ✅ Both call sites in orbsClaimed.handler.ts and chillClaimed.handler.ts replaced. verification.ts did not contain hexToBool (deviation from plan, not a gap).
+- **All hexToBool call sites use safeHexToBool**: ✅ All 3 call sites (verification.ts, orbsClaimed.handler.ts, chillClaimed.handler.ts) replaced with safeHexToBool.
 - **rg hexToBool shows only the safe wrapper definition and its usages**: ✅ Only 3 matches, all in utils/index.ts (import, JSDoc, implementation). Zero raw calls in handlers or core files.
 
 ## Definition of Done Results
@@ -42,12 +43,12 @@ The indexer package builds cleanly with zero TypeScript errors. No raw `hexToBoo
 
 ## Requirement Outcomes
 
-- **R015** (Safe supportsInterface return parsing): active → validated — `safeHexToBool` wraps `hexToBool` in try-catch returning false. Build passes. The crash-inducing code path now returns false instead of throwing.
-- **R016** (All hexToBool call sites hardened): active → validated — All call sites in the indexer use `safeHexToBool`. `rg hexToBool` shows only the wrapper definition in utils/index.ts. Note: only 2 call sites existed (not 3 as originally estimated — verification.ts does not use hexToBool).
+- **R015** (Safe supportsInterface return parsing): active → validated — `safeHexToBool` wraps `hexToBool` in try-catch returning false. Build passes. The crash-inducing code path in `verification.ts` now returns false instead of throwing.
+- **R016** (All hexToBool call sites hardened): active → validated — All 3 call sites in the indexer use `safeHexToBool`. `rg hexToBool` shows only the wrapper definition in utils/index.ts.
 
 ## Deviations
 
-Task plan listed 3 hexToBool call sites including verification.ts, but only 2 existed (both in handlers/chillwhales/). The deviation was caught during execution and documented in the slice summary.
+The initial S01 pass missed the `verification.ts` call site. The root `.gitignore` has a `core` entry that hides `packages/indexer/src/core/` from `git add`, which contributed to the oversight. Caught during PR review and fixed in a follow-up commit.
 
 ## Follow-ups
 
