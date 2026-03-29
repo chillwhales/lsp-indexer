@@ -1,5 +1,11 @@
 # @chillwhales/indexer
 
+## 2.3.6
+
+### Patch Changes
+
+- [#358](https://github.com/chillwhales/lsp-indexer/pull/358) [`c382912`](https://github.com/chillwhales/lsp-indexer/commit/c3829129c6d6f117d554601637a7c90fe2d14ba5) Thanks [@b00ste](https://github.com/b00ste)! - Add safeHexToBool wrapper to prevent InvalidHexBooleanError crash on rogue supportsInterface responses
+
 ## 2.3.5
 
 ### Patch Changes
