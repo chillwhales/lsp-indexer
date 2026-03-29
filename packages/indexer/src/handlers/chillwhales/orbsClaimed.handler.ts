@@ -16,11 +16,11 @@
 import { CHILLWHALES_ADDRESS, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { aggregate3StaticLatest } from '@/core/multicall';
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { generateTokenId, isNullAddress } from '@/utils';
+import { generateTokenId, isNullAddress, safeHexToBool } from '@/utils';
 import { ORBS } from '@chillwhales/abi';
 import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
 import { OrbsClaimed, Transfer } from '@chillwhales/typeorm';
-import { getAddress, hexToBool, isAddressEqual, isHex } from 'viem';
+import { getAddress, isAddressEqual, isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'OrbsClaimed';
@@ -174,7 +174,7 @@ const OrbsClaimedHandler: EntityHandler = {
         result[index] &&
         result[index].success &&
         isHex(result[index].returnData) &&
-        hexToBool(result[index].returnData)
+        safeHexToBool(result[index].returnData)
       ) {
         // Update entity value to true
         const updatedEntity = new OrbsClaimed({

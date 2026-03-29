@@ -5,7 +5,16 @@ import { isNumeric } from '@chillwhales/utils';
 import ERC725 from '@erc725/erc725.js';
 import type { Verification } from '@lukso/lsp2-contracts';
 import type { FileAsset, ImageMetadata, LinkMetadata } from '@lukso/lsp3-contracts';
-import { bytesToHex, Hex, hexToBigInt, hexToBytes, hexToString, isHex, sliceHex } from 'viem';
+import {
+  bytesToHex,
+  Hex,
+  hexToBigInt,
+  hexToBool,
+  hexToBytes,
+  hexToString,
+  isHex,
+  sliceHex,
+} from 'viem';
 
 /**
  * Decode an ERC725Y VerifiableURI-encoded data value into a plain URL.
@@ -110,6 +119,23 @@ export function safeBigInt(value: unknown): bigint | null {
     return BigInt(value as string | number);
   } catch {
     return null;
+  }
+}
+
+/**
+ * Safely convert a hex value to boolean, returning false on any error.
+ *
+ * Wraps viem's `hexToBool` which throws on invalid hex (e.g. multi-word ABI-encoded
+ * return data). This prevents pipeline crashes on unexpected Multicall3 return formats.
+ *
+ * @param hex - Hex string to convert
+ * @returns boolean value, or false if conversion fails
+ */
+export function safeHexToBool(hex: Hex): boolean {
+  try {
+    return hexToBool(hex);
+  } catch {
+    return false;
   }
 }
 
