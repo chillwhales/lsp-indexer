@@ -160,6 +160,7 @@ All 12 domains follow the same pattern. Replace `Profile` with any domain name:
 | Data Changed          | `useDataChangedEvents`, `useInfiniteDataChangedEvents`, `useLatestDataChangedEvent`, `useDataChangedEventSubscription`                                                                                                                                                                   |
 | Token ID Data Changed | `useTokenIdDataChangedEvents`, `useInfiniteTokenIdDataChangedEvents`, `useLatestTokenIdDataChangedEvent`, `useTokenIdDataChangedEventSubscription`                                                                                                                                       |
 | Universal Receiver    | `useUniversalReceiverEvents`, `useInfiniteUniversalReceiverEvents`, `useUniversalReceiverEventSubscription`                                                                                                                                                                              |
+| Collection Attributes | `useCollectionAttributes`                                                                                                                                                                                                                                                                |
 
 ---
 
@@ -314,6 +315,55 @@ const { profiles } = useFollowedByMyFollows({ myAddress, targetAddress, limit: 2
 
 ---
 
+## Collection Attributes
+
+`useCollectionAttributes` fetches the distinct `{key, value}` attribute pairs across all NFTs in a collection, along with the total NFT count. Useful for building trait filters, rarity explorers, and collection overviews.
+
+### Parameters
+
+| Parameter           | Type     | Required | Description                              |
+| ------------------- | -------- | -------- | ---------------------------------------- |
+| `collectionAddress` | `string` | Yes      | Contract address of the NFT collection   |
+
+### Return Shape
+
+| Field        | Type                     | Description                                       |
+| ------------ | ------------------------ | ------------------------------------------------- |
+| `attributes` | `CollectionAttribute[]`  | Distinct `{ key, value, type }` attribute entries  |
+| `totalCount` | `number`                 | Total number of NFTs in the collection             |
+| `isLoading`  | `boolean`                | `true` while the initial fetch is in progress      |
+| `error`      | `Error \| null`          | Error object if the query failed                   |
+
+### Usage
+
+```tsx
+import { useCollectionAttributes } from '@lsp-indexer/react';
+
+function TraitFilter({ collectionAddress }: { collectionAddress: string }) {
+  const { attributes, totalCount, isLoading, error } = useCollectionAttributes({
+    collectionAddress,
+  });
+
+  if (isLoading) return <p>Loading traits…</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  return (
+    <div>
+      <p>{totalCount} NFTs in collection</p>
+      <ul>
+        {attributes?.map((attr) => (
+          <li key={`${attr.key}:${attr.value}`}>
+            {attr.key}: {attr.value} {attr.type && <span>({attr.type})</span>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+---
+
 ## Include Fields
 
 Control which related data is fetched to reduce payload size:
@@ -335,6 +385,40 @@ const { profile } = useProfile({ address: '0x...', include });
 ```
 
 The TypeScript return type narrows automatically based on your include selection.
+
+### NFT Include Fields
+
+NFTs support granular include control for chillwhales-specific fields. These are excluded by
+default to reduce payload size — opt in only when needed:
+
+```tsx
+import { useNfts } from '@lsp-indexer/react';
+import type { NftInclude } from '@lsp-indexer/types';
+
+const include: NftInclude = {
+  score: true,
+  rank: true,
+  chillClaimed: true,
+  orbsClaimed: true,
+  level: true,
+  cooldownExpiry: true,
+  faction: true,
+  collection: { name: true },
+  holder: { name: true },
+};
+
+const { nfts } = useNfts({
+  filter: { collectionAddress: '0x...' },
+  include,
+});
+// nfts[0].score → number | null (included)
+// nfts[0].description → undefined (not included)
+```
+
+All NFT include fields: `formattedTokenId`, `name`, `description`, `category`, `icons`, `images`,
+`links`, `attributes`, `timestamp`, `blockNumber`, `transactionIndex`, `logIndex`, `score`, `rank`,
+`chillClaimed`, `orbsClaimed`, `level`, `cooldownExpiry`, `faction`. Relations: `collection`
+(accepts `boolean | DigitalAssetInclude`), `holder` (accepts `boolean | ProfileInclude`).
 
 ---
 
@@ -361,6 +445,36 @@ const { digitalAssets } = useDigitalAssets({ filter, sort, limit: 10 });
 
 Filters support partial string matching, exact matches, and address lookups depending on the
 domain. Sort supports `asc`/`desc` direction and `first`/`last` null positioning.
+
+### NFT Filters and Sorting
+
+NFTs support chillwhales-specific filter fields and score-based sorting:
+
+```tsx
+import type { NftFilter, NftSort } from '@lsp-indexer/types';
+
+const filter: NftFilter = {
+  collectionAddress: '0x...',
+  chillClaimed: false,      // Only unclaimed
+  orbsClaimed: false,
+  maxLevel: 5,              // Level 5 or below
+  cooldownExpiryBefore: Math.floor(Date.now() / 1000), // Cooldown expired
+};
+
+const sort: NftSort = {
+  field: 'score',           // Sort by chillwhales score
+  direction: 'desc',
+  nulls: 'last',
+};
+
+const { nfts } = useNfts({ filter, sort, limit: 20 });
+```
+
+**NFT filter fields:** `collectionAddress`, `tokenId`, `formattedTokenId`, `name`, `holderAddress`,
+`isBurned`, `isMinted`, `chillClaimed`, `orbsClaimed`, `maxLevel`, `cooldownExpiryBefore`.
+
+**NFT sort fields:** `newest`, `oldest`, `tokenId`, `formattedTokenId`, `score`.
+`newest`/`oldest` use deterministic block-order; `direction`/`nulls` are ignored for those values.
 
 ---
 

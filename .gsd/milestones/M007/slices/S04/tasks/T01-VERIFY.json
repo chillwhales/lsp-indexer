@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M007/S04/T01",
+  "timestamp": 1774870137811,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -q 'fetchCollectionAttributes' apps/docs/src/app/docs/node/page.mdx",
+      "exitCode": 0,
+      "durationMs": 2,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'collectionAttributeKeys' apps/docs/src/app/docs/node/page.mdx",
+      "exitCode": 0,
+      "durationMs": 2,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'Collection Attributes' apps/docs/src/app/\\(home\\)/page.mdx",
+      "exitCode": 0,
+      "durationMs": 2,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'chillClaimed' apps/docs/src/app/docs/node/page.mdx",
+      "exitCode": 0,
+      "durationMs": 1,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'NftSortField' apps/docs/src/app/docs/node/page.mdx",
+      "exitCode": 0,
+      "durationMs": 2,
+      "verdict": "pass"
+    }
+  ]
+}

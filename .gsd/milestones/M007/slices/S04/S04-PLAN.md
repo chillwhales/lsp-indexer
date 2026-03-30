@@ -18,7 +18,7 @@ Steps:
   - Estimate: 30m
   - Files: apps/docs/src/app/docs/node/page.mdx, apps/docs/src/app/(home)/page.mdx
   - Verify: grep -q 'fetchCollectionAttributes' apps/docs/src/app/docs/node/page.mdx && grep -q 'collectionAttributeKeys' apps/docs/src/app/docs/node/page.mdx && grep -q 'Collection Attributes' apps/docs/src/app/\(home\)/page.mdx && grep -q 'chillClaimed' apps/docs/src/app/docs/node/page.mdx && grep -q 'NftSortField' apps/docs/src/app/docs/node/page.mdx
-- [ ] **T02: Update react + next docs and run final full-workspace build verification** — Update `apps/docs/src/app/docs/react/page.mdx` and `apps/docs/src/app/docs/next/page.mdx` with all new S01–S03 content, then run `pnpm build` to verify the full 9-project workspace builds clean.
+- [x] **T02: Added Collection Attributes domain sections and NFT chillwhales include/filter/sort field documentation to react and next docs pages; full 9-project workspace build verified clean** — Update `apps/docs/src/app/docs/react/page.mdx` and `apps/docs/src/app/docs/next/page.mdx` with all new S01–S03 content, then run `pnpm build` to verify the full 9-project workspace builds clean.
 
 Steps:
 1. Read `apps/docs/src/app/docs/react/page.mdx` and identify insertion points.
