@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M007/S03/T02",
+  "timestamp": 1774869727622,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "pnpm --filter=@lsp-indexer/react build",
+      "exitCode": 0,
+      "durationMs": 2231,
+      "verdict": "pass"
+    },
+    {
+      "command": "pnpm --filter=@lsp-indexer/next build",
+      "exitCode": 0,
+      "durationMs": 2615,
+      "verdict": "pass"
+    },
+    {
+      "command": "pnpm build",
+      "exitCode": 0,
+      "durationMs": 24631,
+      "verdict": "pass"
+    }
+  ]
+}
