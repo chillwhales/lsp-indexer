@@ -55,7 +55,7 @@
   - Estimate: 30m
   - Files: packages/types/src/collection-attributes.ts, packages/types/src/index.ts, packages/node/src/documents/collection-attributes.ts, packages/node/src/graphql/graphql.ts, packages/node/src/services/collection-attributes.ts, packages/node/src/keys/collection-attributes.ts, packages/node/src/index.ts
   - Verify: pnpm --filter=@lsp-indexer/types build && pnpm --filter=@lsp-indexer/node codegen && pnpm --filter=@lsp-indexer/node build
-- [ ] **T02: React + Next: collection-attributes factory, hooks, action, barrel exports, full build** — Wire the consumer packages: React factory + concrete hook + return type, Next.js server action + hook, all barrel exports, and verify with full `pnpm build`.
+- [x] **T02: Added createUseCollectionAttributes factory, concrete React hook, Next.js server action with Zod validation, and Next.js hook — all barrel-exported, full pnpm build passing** — Wire the consumer packages: React factory + concrete hook + return type, Next.js server action + hook, all barrel exports, and verify with full `pnpm build`.
 
 ## Steps
 

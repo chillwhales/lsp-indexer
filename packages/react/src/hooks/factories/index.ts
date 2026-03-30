@@ -5,6 +5,7 @@ export * from './create-use-list';
 export * from './create-use-subscription';
 
 // Domain factories
+export * from './collection-attributes';
 export * from './creators';
 export * from './data-changed-events';
 export * from './digital-assets';
