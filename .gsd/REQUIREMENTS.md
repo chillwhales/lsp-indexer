@@ -6,7 +6,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ### R017 — Lsp4Attribute includes score and rarity fields
 - Class: core-capability
-- Status: active
+- Status: validated
 - Description: The Lsp4Attribute Zod schema and type must include `score: number | null` and `rarity: number | null` fields, matching the `LSP4MetadataAttribute` entity's `score: Float` and `rarity: Float` columns in the indexer schema.
 - Why it matters: The frontend needs attribute-level score and rarity data for NFT trait display and rarity calculations.
 - Source: user
@@ -17,7 +17,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ### R018 — NFT type includes score and rank from LSP4Metadata derived entities
 - Class: core-capability
-- Status: active
+- Status: validated
 - Description: The Nft type must include `score: number | null` and `rank: number | null` fields. These come from `LSP4MetadataScore.value` and `LSP4MetadataRank.value` via the NFT's `lsp4Metadata` relation. NftInclude must have `score` and `rank` boolean flags. NftSortField must include `score`.
 - Why it matters: NFTs need to be queryable and sortable by rarity score and rank.
 - Source: user
@@ -28,7 +28,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ### R019 — NFT type includes chillwhales custom fields
 - Class: core-capability
-- Status: active
+- Status: validated
 - Description: The Nft type must include `chillClaimed: boolean | null`, `orbsClaimed: boolean | null`, `level: number | null`, `cooldownExpiry: number | null`, `faction: string | null`. These come from dedicated entities (ChillClaimed, OrbsClaimed, OrbLevel, OrbCooldownExpiry, OrbFaction) with @derivedFrom(field: "nft") relations on the NFT entity. NftInclude must have corresponding boolean flags.
 - Why it matters: The chillwhales frontend needs game-specific NFT properties for display and interaction logic.
 - Source: user
@@ -39,7 +39,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ### R020 — NftFilter supports chillwhales custom field filtering
 - Class: core-capability
-- Status: active
+- Status: validated
 - Description: NftFilter must support `chillClaimed: boolean` (equals), `orbsClaimed: boolean` (equals), `maxLevel: number` (less-than), `cooldownExpiryBefore: number` (less-than-or-equal). These translate to nested Hasura relationship filters on the corresponding derived entities.
 - Why it matters: The frontend filters NFTs by claim status, orb level, and cooldown expiry for game mechanics.
 - Source: user
@@ -50,7 +50,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ### R021 — NftSortField supports score sorting
 - Class: core-capability
-- Status: active
+- Status: validated
 - Description: NftSortField must include `score` to allow sorting NFTs by their rarity score (LSP4Metadata → LSP4MetadataScore.value).
 - Why it matters: The frontend needs to sort collection views by rarity score.
 - Source: user
@@ -61,7 +61,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ### R022 — getCollectionAttributes server action + useCollectionAttributes hook
 - Class: core-capability
-- Status: active
+- Status: validated
 - Description: A new query vertical that fetches all distinct {key, value} pairs for a collection address from `lsp4_metadata_attribute`, plus the total NFT count in that collection. Exposed as a `fetchCollectionAttributes` service function, `getCollectionAttributes` Next.js server action, and `useCollectionAttributes` React/Next.js hooks.
 - Why it matters: The frontend needs attribute facets to build filter dropdown menus for NFT collections.
 - Source: user
@@ -72,7 +72,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ### R023 — OwnedTokenNftInclude exposes score, rank, and chillwhales custom fields
 - Class: core-capability
-- Status: active
+- Status: validated
 - Description: When querying owned tokens with `include: { nft: { score: true, rank: true, chillClaimed: true, ... } }`, the nested NFT must include the new custom fields. OwnedTokenNftInclude inherits from NftInclude (minus collection/holder), so the new fields must flow through. The OwnedTokenNftScalarFieldMap and owned-token GraphQL documents must be updated.
 - Why it matters: The frontend queries owned tokens with nested NFT data including game properties.
 - Source: user
@@ -83,7 +83,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ### R024 — OwnedAsset holder include returns full profile shape
 - Class: quality-attribute
-- Status: active
+- Status: validated
 - Description: OwnedAssetInclude.holder with profile sub-include (name, description, tags, profileImage, backgroundImage) must return the correct Profile shape. This should already work via the existing `holder: z.union([z.boolean(), ProfileIncludeSchema])` pattern — needs verification, not new code.
 - Why it matters: The frontend shows holder profile data when listing owned assets.
 - Source: user
@@ -94,7 +94,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ### R025 — Full stack propagation for all changes
 - Class: quality-attribute
-- Status: active
+- Status: validated
 - Description: All type changes must propagate through the full package stack: types (Zod schemas) → node (GraphQL documents, parsers, services, key factories) → react (hook factories) → next (server actions + hooks). The 5-package build must pass cleanly.
 - Why it matters: Incomplete propagation creates runtime failures or type mismatches between packages.
 - Source: inferred
@@ -105,7 +105,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ### R026 — Documentation updated for all changes
 - Class: quality-attribute
-- Status: active
+- Status: validated
 - Description: Docs pages (apps/docs) must be updated to reflect all new/changed types, hooks, filters, sort fields, and server actions per the AGENTS.md documentation matrix.
 - Why it matters: Outdated docs are worse than no docs (per AGENTS.md).
 - Source: inferred
@@ -227,16 +227,16 @@ This file is the explicit capability and coverage contract for the project.
 
 | ID | Class | Status | Primary owner | Supporting | Proof |
 |---|---|---|---|---|---|
-| R017 | core-capability | active | M007/S01 | none | unmapped |
-| R018 | core-capability | active | M007/S01 | none | unmapped |
-| R019 | core-capability | active | M007/S01 | none | unmapped |
-| R020 | core-capability | active | M007/S02 | none | unmapped |
-| R021 | core-capability | active | M007/S01 | none | unmapped |
-| R022 | core-capability | active | M007/S03 | none | unmapped |
-| R023 | core-capability | active | M007/S02 | none | unmapped |
-| R024 | quality-attribute | active | M007/S01 | none | unmapped |
-| R025 | quality-attribute | active | M007/S04 | M007/S01, S02, S03 | unmapped |
-| R026 | quality-attribute | active | M007/S04 | none | unmapped |
+| R017 | core-capability | validated | M007/S01 | none | validated |
+| R018 | core-capability | validated | M007/S01 | none | validated |
+| R019 | core-capability | validated | M007/S01 | none | validated |
+| R020 | core-capability | validated | M007/S02 | none | validated |
+| R021 | core-capability | validated | M007/S01 | none | validated |
+| R022 | core-capability | validated | M007/S03 | none | validated |
+| R023 | core-capability | validated | M007/S02 | none | validated |
+| R024 | quality-attribute | validated | M007/S01 | none | validated |
+| R025 | quality-attribute | validated | M007/S04 | M007/S01, S02, S03 | validated |
+| R026 | quality-attribute | validated | M007/S04 | none | validated |
 | R015 | failure-visibility | validated | M006/S01 | none | validated |
 | R016 | quality-attribute | validated | M006/S01 | none | validated |
 | R001 | core-capability | validated | M004/S01 | none | validated |

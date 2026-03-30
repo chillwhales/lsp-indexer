@@ -10,10 +10,9 @@ Any developer can query LUKSO blockchain data through type-safe React hooks back
 
 ## Current State
 
-**Shipped:** v1.4 Batch Encrypted Asset Fetch (M005 complete), InvalidHexBooleanError crash fix (M006 complete)
-**In progress:** M007 — extending NFT types, includes, filters, and hooks to expose chillwhales custom fields and collection attributes.
+**Shipped:** v1.4 Batch Encrypted Asset Fetch (M005 complete), InvalidHexBooleanError crash fix (M006 complete), Chillwhales NFT Extensions (M007 complete)
 
-The full stack is production-ready: indexer with 6-step pipeline, 4 publishable npm packages, production Docker Compose with monitoring stack, and operational tooling. 15 query domains (12 original + 3 mutual follow families), 12 subscription hooks, 15 server action sets, block ordering on all entities, Grafana monitoring, layered CI/CD. Three social graph intersection hooks — mutual follows, mutual followers, and followed-by-my-follows — with infinite scroll variants, ProfileInclude type narrowing, playground page, and full docs. Batch encrypted asset fetch by `(address, contentId, revision)` tuples with `_or`/`_and` Hasura pattern, React and Next.js hooks with EncryptedAssetInclude type narrowing, changeset ready for minor release. Defensive `safeHexToBool` wrapper prevents pipeline crashes on rogue `supportsInterface` responses.
+The full stack is production-ready: indexer with 6-step pipeline, 4 publishable npm packages, production Docker Compose with monitoring stack, and operational tooling. 15 query domains (12 original + 3 mutual follow families) plus collection-attributes aggregate query, 12 subscription hooks, 15 server action sets, block ordering on all entities, Grafana monitoring, layered CI/CD. Three social graph intersection hooks — mutual follows, mutual followers, and followed-by-my-follows — with infinite scroll variants, ProfileInclude type narrowing, playground page, and full docs. Batch encrypted asset fetch by `(address, contentId, revision)` tuples with `_or`/`_and` Hasura pattern, React and Next.js hooks with EncryptedAssetInclude type narrowing, changeset ready for minor release. Defensive `safeHexToBool` wrapper prevents pipeline crashes on rogue `supportsInterface` responses. NFTs extended with 7 chillwhales-specific fields (score, rank, chillClaimed, orbsClaimed, level, cooldownExpiry, faction), 4 game-property filters, score sorting, and a collection-attributes query vertical for filter facet dropdowns.
 
 ## Architecture / Key Patterns
 
@@ -32,4 +31,4 @@ See `.gsd/REQUIREMENTS.md` for the explicit capability contract, requirement sta
 - [x] M004: Mutual Follow Hooks — complete (3 mutual follow hook families, playground page, docs)
 - [x] M005: Batch Encrypted Asset Fetch — fetch multiple encrypted assets by `(address, contentId, revision)` tuples in one round trip
 - [x] M006: Fix InvalidHexBooleanError crash — defensive hardening of `supportsInterface` verification to handle rogue contract responses
-- [ ] M007: Chillwhales NFT Extensions — extend NFT types, includes, filters, sort, and hooks with score/rank/chillwhales custom fields + collection attributes query
+- [x] M007: Chillwhales NFT Extensions — 7 chillwhales NFT fields, 4 game-property filters, score sorting, collection-attributes query vertical, full docs
