@@ -1,10 +1,12 @@
-# S02: NftFilter + OwnedToken propagation
+---
+estimated_steps: 26
+estimated_files: 2
+skills_used: []
+---
 
-**Goal:** NFTs filterable by chillClaimed, orbsClaimed, maxLevel, cooldownExpiryBefore; full 5-package build passes including OwnedToken propagation verification.
-**Demo:** After this: After this: NFTs filterable by chillClaimed/orbsClaimed/maxLevel/cooldownExpiryBefore; getOwnedTokens returns nested NFT custom fields with include narrowing.
+# T01: Add 4 NftFilter fields and wire buildNftWhere conditions
 
-## Tasks
-- [x] **T01: Added chillClaimed, orbsClaimed, maxLevel, and cooldownExpiryBefore filter fields to NftFilterSchema and wired corresponding Hasura relationship conditions in buildNftWhere** — Add chillClaimed, orbsClaimed, maxLevel, and cooldownExpiryBefore filter fields to NftFilterSchema in the types package, then add corresponding conditions to buildNftWhere in the node services package. Each filter maps to a nested Hasura relationship condition. Verify full 5-package build passes.
+Add chillClaimed, orbsClaimed, maxLevel, and cooldownExpiryBefore filter fields to NftFilterSchema in the types package, then add corresponding conditions to buildNftWhere in the node services package. Each filter maps to a nested Hasura relationship condition. Verify full 5-package build passes.
 
 ## Steps
 
@@ -38,6 +40,21 @@
 - `pnpm --filter=@lsp-indexer/types build` exits 0
 - `pnpm --filter=@lsp-indexer/node build` exits 0
 - `pnpm build` exits 0 (all 9 workspace projects)
-  - Estimate: 20m
-  - Files: packages/types/src/nfts.ts, packages/node/src/services/nfts.ts
-  - Verify: pnpm --filter=@lsp-indexer/types build && pnpm --filter=@lsp-indexer/node build && pnpm build
+
+## Inputs
+
+- `packages/types/src/nfts.ts`
+- `packages/node/src/services/nfts.ts`
+- `packages/node/src/graphql/graphql.ts`
+
+## Expected Output
+
+- `packages/types/src/nfts.ts`
+- `packages/types/dist/nfts.js`
+- `packages/types/dist/nfts.d.ts`
+- `packages/node/src/services/nfts.ts`
+- `packages/node/dist/services/nfts.js`
+
+## Verification
+
+pnpm --filter=@lsp-indexer/types build && pnpm --filter=@lsp-indexer/node build && pnpm build

@@ -110,6 +110,14 @@ export const NftFilterSchema = z.object({
   isBurned: z.boolean().optional(),
   /** Filter by minted status */
   isMinted: z.boolean().optional(),
+  /** Filter NFTs by CHILL claimed status */
+  chillClaimed: z.boolean().optional(),
+  /** Filter NFTs by ORBS claimed status */
+  orbsClaimed: z.boolean().optional(),
+  /** Filter NFTs at or below this level */
+  maxLevel: z.number().optional(),
+  /** Filter NFTs whose cooldown expires before this unix timestamp */
+  cooldownExpiryBefore: z.number().optional(),
 });
 
 // ---------------------------------------------------------------------------

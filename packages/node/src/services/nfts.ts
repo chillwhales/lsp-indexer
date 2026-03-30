@@ -73,6 +73,30 @@ export function buildNftWhere(filter?: NftFilter): Nft_Bool_Exp {
     });
   }
 
+  if (filter.chillClaimed !== undefined) {
+    conditions.push({
+      chillClaimed: { value: { _eq: filter.chillClaimed } },
+    });
+  }
+
+  if (filter.orbsClaimed !== undefined) {
+    conditions.push({
+      orbsClaimed: { value: { _eq: filter.orbsClaimed } },
+    });
+  }
+
+  if (filter.maxLevel !== undefined) {
+    conditions.push({
+      level: { value: { _lte: filter.maxLevel } },
+    });
+  }
+
+  if (filter.cooldownExpiryBefore !== undefined) {
+    conditions.push({
+      cooldownExpiry: { value: { _lte: filter.cooldownExpiryBefore } },
+    });
+  }
+
   if (conditions.length === 0) return {};
   if (conditions.length === 1) return conditions[0];
   return { _and: conditions };
