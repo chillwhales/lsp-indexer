@@ -47,6 +47,10 @@ export const Lsp4AttributeSchema = z.object({
   value: z.string(),
   /** e.g., "string", "number", "date" */
   type: z.string(),
+  /** Numeric score derived from the attribute (chillwhales-specific) */
+  score: z.number().nullable(),
+  /** Rarity score for this attribute across the collection (chillwhales-specific) */
+  rarity: z.number().nullable(),
 });
 
 // ---------------------------------------------------------------------------

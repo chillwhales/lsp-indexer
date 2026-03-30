@@ -4,190 +4,241 @@ This file is the explicit capability and coverage contract for the project.
 
 ## Active
 
-(none)
+### R017 — Lsp4Attribute includes score and rarity fields
+- Class: core-capability
+- Status: active
+- Description: The Lsp4Attribute Zod schema and type must include `score: number | null` and `rarity: number | null` fields, matching the `LSP4MetadataAttribute` entity's `score: Float` and `rarity: Float` columns in the indexer schema.
+- Why it matters: The frontend needs attribute-level score and rarity data for NFT trait display and rarity calculations.
+- Source: user
+- Primary owning slice: M007/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Currently Lsp4AttributeSchema only has {key, value, type}. The Hasura schema already exposes score and rarity as numeric fields on lsp4_metadata_attribute.
+
+### R018 — NFT type includes score and rank from LSP4Metadata derived entities
+- Class: core-capability
+- Status: active
+- Description: The Nft type must include `score: number | null` and `rank: number | null` fields. These come from `LSP4MetadataScore.value` and `LSP4MetadataRank.value` via the NFT's `lsp4Metadata` relation. NftInclude must have `score` and `rank` boolean flags. NftSortField must include `score`.
+- Why it matters: NFTs need to be queryable and sortable by rarity score and rank.
+- Source: user
+- Primary owning slice: M007/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: LSP4MetadataScore and LSP4MetadataRank are @derivedFrom(field: "lsp4Metadata") on LSP4Metadata. Each has a single `value: Int` field. The Hasura schema exposes these as `lsp4_metadata_score` and `lsp4_metadata_rank` object relationships on `lsp4_metadata`.
+
+### R019 — NFT type includes chillwhales custom fields
+- Class: core-capability
+- Status: active
+- Description: The Nft type must include `chillClaimed: boolean | null`, `orbsClaimed: boolean | null`, `level: number | null`, `cooldownExpiry: number | null`, `faction: string | null`. These come from dedicated entities (ChillClaimed, OrbsClaimed, OrbLevel, OrbCooldownExpiry, OrbFaction) with @derivedFrom(field: "nft") relations on the NFT entity. NftInclude must have corresponding boolean flags.
+- Why it matters: The chillwhales frontend needs game-specific NFT properties for display and interaction logic.
+- Source: user
+- Primary owning slice: M007/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Each entity has a single `.value` field. Hasura exposes them as object relationships on `nft` (chillClaimed, orbsClaimed, level, cooldownExpiry, faction).
+
+### R020 — NftFilter supports chillwhales custom field filtering
+- Class: core-capability
+- Status: active
+- Description: NftFilter must support `chillClaimed: boolean` (equals), `orbsClaimed: boolean` (equals), `maxLevel: number` (less-than), `cooldownExpiryBefore: number` (less-than-or-equal). These translate to nested Hasura relationship filters on the corresponding derived entities.
+- Why it matters: The frontend filters NFTs by claim status, orb level, and cooldown expiry for game mechanics.
+- Source: user
+- Primary owning slice: M007/S02
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Filter patterns: `chillClaimed: { value: { _eq: X } }`, `level: { value: { _lt: X } }`, `cooldownExpiry: { value: { _lte: X } }`.
+
+### R021 — NftSortField supports score sorting
+- Class: core-capability
+- Status: active
+- Description: NftSortField must include `score` to allow sorting NFTs by their rarity score (LSP4Metadata → LSP4MetadataScore.value).
+- Why it matters: The frontend needs to sort collection views by rarity score.
+- Source: user
+- Primary owning slice: M007/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Sort translates to `{ lsp4Metadata: { score: { value: asc/desc } } }` or similar nested Hasura order_by.
+
+### R022 — getCollectionAttributes server action + useCollectionAttributes hook
+- Class: core-capability
+- Status: active
+- Description: A new query vertical that fetches all distinct {key, value} pairs for a collection address from `lsp4_metadata_attribute`, plus the total NFT count in that collection. Exposed as a `fetchCollectionAttributes` service function, `getCollectionAttributes` Next.js server action, and `useCollectionAttributes` React/Next.js hooks.
+- Why it matters: The frontend needs attribute facets to build filter dropdown menus for NFT collections.
+- Source: user
+- Primary owning slice: M007/S03
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Uses Hasura distinct_on for attribute deduplication. Total count from nft_aggregate where address matches collection.
+
+### R023 — OwnedTokenNftInclude exposes score, rank, and chillwhales custom fields
+- Class: core-capability
+- Status: active
+- Description: When querying owned tokens with `include: { nft: { score: true, rank: true, chillClaimed: true, ... } }`, the nested NFT must include the new custom fields. OwnedTokenNftInclude inherits from NftInclude (minus collection/holder), so the new fields must flow through. The OwnedTokenNftScalarFieldMap and owned-token GraphQL documents must be updated.
+- Why it matters: The frontend queries owned tokens with nested NFT data including game properties.
+- Source: user
+- Primary owning slice: M007/S02
+- Supporting slices: none
+- Validation: unmapped
+- Notes: OwnedTokenNftIncludeSchema is `NftIncludeSchema.omit({ collection: true, holder: true })` — new fields on NftIncludeSchema automatically appear, but the scalar field map and document need manual updates.
+
+### R024 — OwnedAsset holder include returns full profile shape
+- Class: quality-attribute
+- Status: active
+- Description: OwnedAssetInclude.holder with profile sub-include (name, description, tags, profileImage, backgroundImage) must return the correct Profile shape. This should already work via the existing `holder: z.union([z.boolean(), ProfileIncludeSchema])` pattern — needs verification, not new code.
+- Why it matters: The frontend shows holder profile data when listing owned assets.
+- Source: user
+- Primary owning slice: M007/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Quick verification task — confirm the existing wiring works.
+
+### R025 — Full stack propagation for all changes
+- Class: quality-attribute
+- Status: active
+- Description: All type changes must propagate through the full package stack: types (Zod schemas) → node (GraphQL documents, parsers, services, key factories) → react (hook factories) → next (server actions + hooks). The 5-package build must pass cleanly.
+- Why it matters: Incomplete propagation creates runtime failures or type mismatches between packages.
+- Source: inferred
+- Primary owning slice: M007/S04
+- Supporting slices: M007/S01, M007/S02, M007/S03
+- Validation: unmapped
+- Notes: Each slice verifies its own build. S04 does the final full-stack verification.
+
+### R026 — Documentation updated for all changes
+- Class: quality-attribute
+- Status: active
+- Description: Docs pages (apps/docs) must be updated to reflect all new/changed types, hooks, filters, sort fields, and server actions per the AGENTS.md documentation matrix.
+- Why it matters: Outdated docs are worse than no docs (per AGENTS.md).
+- Source: inferred
+- Primary owning slice: M007/S04
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Covers node docs (new types, filters, sort), react docs (domain tables), next docs (new server actions/hooks).
 
 ## Validated
 
 ### R015 — Safe `supportsInterface` return parsing
 - Class: failure-visibility
 - Status: validated
-- Description: The VERIFY step's `multicallVerify` must handle non-boolean hex values from `supportsInterface` without crashing. Any return data that is not a valid ABI-encoded boolean (`0x...0001` or `0x...0000`) must be treated as `false` (interface not supported).
-- Why it matters: A rogue contract returning garbage hex crashes the indexer into an infinite restart loop (issue #357). The indexer must be resilient to malformed on-chain data.
+- Description: The VERIFY step's `multicallVerify` must handle non-boolean hex values from `supportsInterface` without crashing.
+- Why it matters: A rogue contract returning garbage hex crashes the indexer into an infinite restart loop.
 - Source: user
 - Primary owning slice: M006/S01
 - Supporting slices: none
-- Validation: safeHexToBool wraps hexToBool in try-catch returning false on error. pnpm --filter=@chillwhales/indexer build passes. The crash-inducing code path in verification.ts now returns false instead of throwing InvalidHexBooleanError.
-- Notes: Crash at block 7,137,664. All 3 call sites migrated (verification.ts, orbsClaimed.handler.ts, chillClaimed.handler.ts).
+- Validation: safeHexToBool wraps hexToBool in try-catch returning false on error. pnpm --filter=@chillwhales/indexer build passes.
+- Notes: All 3 call sites migrated.
 
 ### R016 — All `hexToBool` call sites hardened
 - Class: quality-attribute
 - Status: validated
-- Description: Every call site in the indexer that uses viem's `hexToBool()` — `verification.ts`, `orbsClaimed.handler.ts`, `chillClaimed.handler.ts` — must use the safe helper instead.
-- Why it matters: The same crash pattern exists in multiple locations. Fixing only the reported one leaves time bombs.
+- Description: Every call site using viem's `hexToBool()` must use the safe helper instead.
+- Why it matters: The same crash pattern exists in multiple locations.
 - Source: inferred
 - Primary owning slice: M006/S01
 - Supporting slices: none
-- Validation: rg hexToBool packages/indexer/src/ shows only 3 matches, all inside the safe wrapper in utils/index.ts. Zero raw hexToBool calls remain in handlers or core files. All 3 call sites migrated.
-- Notes: All 3 call sites (verification.ts, orbsClaimed.handler.ts, chillClaimed.handler.ts) migrated to safeHexToBool.
+- Validation: rg hexToBool shows only 3 matches inside the safe wrapper.
+- Notes: All 3 call sites migrated to safeHexToBool.
 
-### R001 — Given two addresses A and B, return the set of profiles that both A and B follow. Computed server-side via Hasura nested `followedBy` relationship filters.
+### R001 — Mutual follows query
 - Class: core-capability
 - Status: validated
-- Description: Given two addresses A and B, return the set of profiles that both A and B follow. Computed server-side via Hasura nested `followedBy` relationship filters.
-- Why it matters: Core social graph feature — "what do we have in common?"
+- Description: Given two addresses A and B, return the set of profiles that both A and B follow.
+- Why it matters: Core social graph feature.
 - Source: user
 - Primary owning slice: M004/S01
 - Supporting slices: none
-- Validation: S01: service function + hooks compile. S02: playground page exercises useMutualFollows with include/sort controls, docs list fetchMutualFollows. Full 5-package build exits 0.
-- Notes: S01 delivered compile-time contract. Service function uses _and where-clause with dual followedBy filters.
+- Validation: validated
+- Notes: Uses _and where-clause with dual followedBy filters.
 
-### R002 — Given two addresses A and B, return profiles that follow both A and B. Computed server-side via Hasura nested `followed` relationship filters.
+### R002 — Mutual followers query
 - Class: core-capability
 - Status: validated
-- Description: Given two addresses A and B, return profiles that follow both A and B. Computed server-side via Hasura nested `followed` relationship filters.
-- Why it matters: Core social graph feature — "who follows both of us?"
+- Description: Given two addresses A and B, return profiles that follow both A and B.
+- Why it matters: Core social graph feature.
 - Source: user
 - Primary owning slice: M004/S01
 - Supporting slices: none
-- Validation: S01: service function + hooks compile. S02: playground page exercises useMutualFollowers with include/sort controls, docs list fetchMutualFollowers. Full 5-package build exits 0.
-- Notes: S01 delivered compile-time contract. Service function uses _and where-clause with dual followed filters.
+- Validation: validated
+- Notes: Uses _and where-clause with dual followed filters.
 
-### R003 — Given user's address and a target profile, return profiles from user's following list that also follow the target. "People you follow who also follow this profile."
+### R003 — Followed-by-my-follows query
 - Class: core-capability
 - Status: validated
-- Description: Given user's address and a target profile, return profiles from user's following list that also follow the target. "People you follow who also follow this profile."
-- Why it matters: Social proof — shows familiar faces in a profile's follower list
+- Description: Given user's address and a target profile, return profiles from user's following list that also follow the target.
+- Why it matters: Social proof in follower lists.
 - Source: user
 - Primary owning slice: M004/S01
 - Supporting slices: none
-- Validation: S01: service function + hooks compile. S02: playground page exercises useFollowedByMyFollows with myAddress/targetAddress inputs, docs list fetchFollowedByMyFollows. Full 5-package build exits 0.
-- Notes: S01 delivered compile-time contract. Uses myAddress + targetAddress params (plan said single address — corrected).
+- Validation: validated
+- Notes: Uses myAddress + targetAddress params.
 
-### R004 — React hooks calling Hasura directly via `getClientUrl()` for all three mutual follow queries
+### R004 — React hooks for mutual follow queries
 - Class: core-capability
 - Status: validated
-- Description: React hooks calling Hasura directly via `getClientUrl()` for all three mutual follow queries
-- Why it matters: Consumer packages must expose the hooks for direct browser usage
+- Description: React hooks calling Hasura directly via getClientUrl() for all three mutual follow queries.
+- Why it matters: Consumer packages must expose hooks for direct browser usage.
 - Source: inferred
 - Primary owning slice: M004/S01
 - Supporting slices: none
-- Validation: S01: 6 React hooks exported. S02: playground page imports all 6 React hooks with HookMode toggle, docs list all 6 in domain table. Full build exits 0.
-- Notes: S01 delivered 6 React hooks calling Hasura directly via getClientUrl().
+- Validation: validated
+- Notes: 6 React hooks exported.
 
-### R005 — Next.js hooks routing through server actions + server action exports for all three mutual follow queries
+### R005 — Next.js hooks and server actions for mutual follow queries
 - Class: core-capability
 - Status: validated
-- Description: Next.js hooks routing through server actions + server action exports for all three mutual follow queries
-- Why it matters: Consumer packages must expose hooks for Next.js apps keeping endpoint hidden
+- Description: Next.js hooks routing through server actions for all three mutual follow queries.
+- Why it matters: Consumer packages must expose hooks for Next.js apps.
 - Source: inferred
 - Primary owning slice: M004/S01
 - Supporting slices: none
-- Validation: pnpm --filter=@lsp-indexer/next build exits 0. 3 server actions with 'use server' directive + Zod validation in packages/next/src/actions/followers.ts. 6 Next.js hooks exported from packages/next/src/hooks/followers/index.ts. Playground page exercises all hooks.
-- Notes: S01 delivered 3 server actions + 6 Next.js client hooks routing through server actions.
+- Validation: validated
+- Notes: 3 server actions + 6 Next.js hooks.
 
-### R006 — Returned profiles support the existing ProfileInclude type narrowing — consumers can opt into specific profile fields
+### R006 — ProfileInclude type narrowing on mutual follow results
 - Class: quality-attribute
 - Status: validated
-- Description: Returned profiles support the existing ProfileInclude type narrowing — consumers can opt into specific profile fields
-- Why it matters: Consistency with existing hook API patterns (DX-04)
+- Description: Returned profiles support the existing ProfileInclude type narrowing.
+- Why it matters: Consistency with existing hook API patterns.
 - Source: inferred
 - Primary owning slice: M004/S01
 - Supporting slices: none
-- Validation: All service functions and factories use `<const I extends ProfileInclude>` with 3-overload signatures. TypeScript compilation across all 4 packages validates type narrowing works correctly.
-- Notes: S01 delivered 3-overload ProfileInclude narrowing on all hooks and server actions.
+- Validation: validated
+- Notes: 3-overload ProfileInclude narrowing on all hooks and server actions.
 
-### R007 — `useInfiniteMutualFollows`, `useInfiniteMutualFollowers`, `useInfiniteFollowedByMyFollows` with offset-based pagination
+### R007 — Infinite scroll variants for mutual follow hooks
 - Class: core-capability
 - Status: validated
-- Description: `useInfiniteMutualFollows`, `useInfiniteMutualFollowers`, `useInfiniteFollowedByMyFollows` with offset-based pagination
-- Why it matters: Social lists can be long — infinite scroll is table stakes
-- Source: inferred
-- Primary owning slice: M004/S01
-- Supporting slices: none
-- Validation: useInfiniteMutualFollows, useInfiniteMutualFollowers, useInfiniteFollowedByMyFollows all present in react and next packages with offset-based pagination via createUseInfinite factory. Build passes. Playground page includes infinite scroll tabs.
-- Notes: S01 delivered 3 infinite scroll variants with offset-based pagination via createUseInfinite factories.
-
-### R008 — types, node, react, next all compile with zero errors after changes
-- Class: quality-attribute
-- Status: validated
-- Description: types, node, react, next all compile with zero errors after changes
-- Why it matters: Publish readiness
-- Source: inferred
-- Primary owning slice: M004/S02
-- Supporting slices: none
-- Validation: All 5 packages (types, node, react, next, docs) build with zero errors. Verified by pnpm build across all filters.
-- Notes: S02 validated — full build chain exits 0 including docs app with MDX pages and playground page.
-
-### R009 — Service function accepts an array of `{ address, contentId, revision }` tuples and queries Hasura using `_or`/`_and` where-clauses.
-- Class: core-capability
-- Status: validated
-- Description: Service function accepts an array of `{ address, contentId, revision }` tuples and queries Hasura using `_or`/`_and` where-clauses. Address comparison uses `_ilike` (checksummed ≡ non-checksummed). contentId uses `_eq`, revision uses `_eq`.
-- Why it matters: Bookmarks reference encrypted assets by unique tuple — no way to batch-fetch them with the current single-filter API without N round trips.
+- Description: useInfiniteMutualFollows, useInfiniteMutualFollowers, useInfiniteFollowedByMyFollows with offset-based pagination.
+- Why it matters: Large result sets need infinite scroll.
 - Source: user
-- Primary owning slice: M005/S01
+- Primary owning slice: M004/S01
 - Supporting slices: none
-- Validation: fetchEncryptedAssetsBatch builds _or/_and where-clauses with _ilike for address, _eq for contentId/revision. pnpm --filter=@lsp-indexer/node build exits 0. Docs document the function in node, react, and next pages.
-- Notes: Follows `fetchIsFollowingBatch` pattern with `_or`/`_and` clauses.
+- Validation: validated
+- Notes: All 3 infinite scroll variants delivered.
 
-### R010 — Batch results support the same 3-overload `<const I extends EncryptedAssetInclude>` pattern as `fetchEncryptedAssets`
-- Class: quality-attribute
-- Status: validated
-- Description: Batch results support the same 3-overload `<const I extends EncryptedAssetInclude>` pattern as `fetchEncryptedAssets`, so consumers get precise type narrowing on included fields.
-- Why it matters: Consistency with existing API — batch shouldn't be a second-class citizen.
-- Source: inferred
-- Primary owning slice: M005/S01
-- Supporting slices: none
-- Validation: fetchEncryptedAssetsBatch, createUseEncryptedAssetsBatch, and getEncryptedAssetsBatch all use 3-overload <const I extends EncryptedAssetInclude> pattern. All 4 consumer packages build with zero errors.
-- Notes: Same overload pattern as fetchEncryptedAssets.
+## Deferred
 
-### R011 — React hook via factory pattern calling Hasura directly. Next.js hook routing through a server action with Zod validation.
-- Class: core-capability
-- Status: validated
-- Description: React hook via factory pattern calling Hasura directly. Next.js hook routing through a server action with Zod validation. Both support EncryptedAssetInclude narrowing.
-- Why it matters: Consumers need hooks, not just a service function.
-- Source: inferred
-- Primary owning slice: M005/S01
-- Supporting slices: none
-- Validation: useEncryptedAssetsBatch React hook via createUseEncryptedAssetsBatch factory + useEncryptedAssetsBatch Next.js hook via getEncryptedAssetsBatch server action with Zod validation. Both support EncryptedAssetInclude narrowing. pnpm build exits 0 for react and next. Docs document hooks in react and next pages.
-- Notes: No infinite scroll variant — batch is for a known finite set of tuples.
+(none)
 
-### R012 — Encrypted assets docs page documents batch API
-- Class: quality-attribute
-- Status: validated
-- Description: Encrypted assets docs page documents `fetchEncryptedAssetsBatch`, `useEncryptedAssetsBatch`, batch tuple params, and usage examples.
-- Why it matters: Outdated docs are worse than no docs.
-- Source: inferred
-- Primary owning slice: M005/S02
-- Supporting slices: none
-- Validation: All three docs pages contain batch API documentation: `fetchEncryptedAssetsBatch` in node docs, `useEncryptedAssetsBatch` in react and next docs, `getEncryptedAssetsBatch` in next docs, `EncryptedAssetBatchTuple` in react docs. Verified by grep checks.
-- Notes: none
+## Out of Scope
 
-### R013 — Changeset created for minor version bump
-- Class: quality-attribute
-- Status: validated
-- Description: Changeset created for minor version bump. All four packages are in a fixed group — one changeset bumps all together.
-- Why it matters: Consumers can install the new batch capability.
-- Source: user
-- Primary owning slice: M005/S02
-- Supporting slices: none
-- Validation: `.changeset/add-encrypted-assets-batch.md` exists with all four packages (`@lsp-indexer/types`, `@lsp-indexer/node`, `@lsp-indexer/react`, `@lsp-indexer/next`) listed as `minor`.
-- Notes: `.changeset/config.json` has fixed group for all four packages.
-
-### R014 — types, node, react, next, and docs all compile with zero errors after all changes
-- Class: quality-attribute
-- Status: validated
-- Description: types, node, react, next, and docs all compile with zero errors after all changes
-- Why it matters: Publish readiness.
-- Source: inferred
-- Primary owning slice: M005/S02
-- Supporting slices: M005/S01
-- Validation: `pnpm build` exits 0 across all 5 packages (types, node, react, next, docs). Docs build generated all 22 static pages successfully.
-- Notes: none
+(none)
 
 ## Traceability
 
 | ID | Class | Status | Primary owner | Supporting | Proof |
 |---|---|---|---|---|---|
+| R017 | core-capability | active | M007/S01 | none | unmapped |
+| R018 | core-capability | active | M007/S01 | none | unmapped |
+| R019 | core-capability | active | M007/S01 | none | unmapped |
+| R020 | core-capability | active | M007/S02 | none | unmapped |
+| R021 | core-capability | active | M007/S01 | none | unmapped |
+| R022 | core-capability | active | M007/S03 | none | unmapped |
+| R023 | core-capability | active | M007/S02 | none | unmapped |
+| R024 | quality-attribute | active | M007/S01 | none | unmapped |
+| R025 | quality-attribute | active | M007/S04 | M007/S01, S02, S03 | unmapped |
+| R026 | quality-attribute | active | M007/S04 | none | unmapped |
+| R015 | failure-visibility | validated | M006/S01 | none | validated |
+| R016 | quality-attribute | validated | M006/S01 | none | validated |
 | R001 | core-capability | validated | M004/S01 | none | validated |
 | R002 | core-capability | validated | M004/S01 | none | validated |
 | R003 | core-capability | validated | M004/S01 | none | validated |
@@ -195,19 +246,10 @@ This file is the explicit capability and coverage contract for the project.
 | R005 | core-capability | validated | M004/S01 | none | validated |
 | R006 | quality-attribute | validated | M004/S01 | none | validated |
 | R007 | core-capability | validated | M004/S01 | none | validated |
-| R008 | quality-attribute | validated | M004/S02 | none | validated |
-| R009 | core-capability | validated | M005/S01 | none | validated |
-| R010 | quality-attribute | validated | M005/S01 | none | validated |
-| R011 | core-capability | validated | M005/S01 | none | validated |
-| R012 | quality-attribute | validated | M005/S02 | none | validated |
-| R013 | quality-attribute | validated | M005/S02 | none | validated |
-| R014 | quality-attribute | validated | M005/S02 | M005/S01 | validated |
-| R015 | failure-visibility | validated | M006/S01 | none | validated |
-| R016 | quality-attribute | validated | M006/S01 | none | validated |
 
 ## Coverage Summary
 
-- Active requirements: 0
-- Mapped to slices: 0
-- Validated: 16 (R001–R016)
+- Active requirements: 10
+- Mapped to slices: 10
+- Validated: 9
 - Unmapped active requirements: 0

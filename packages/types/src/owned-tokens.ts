@@ -220,6 +220,13 @@ type OwnedTokenNftScalarFieldMap = {
   images: 'images';
   links: 'links';
   attributes: 'attributes';
+  score: 'score';
+  rank: 'rank';
+  chillClaimed: 'chillClaimed';
+  orbsClaimed: 'orbsClaimed';
+  level: 'level';
+  cooldownExpiry: 'cooldownExpiry';
+  faction: 'faction';
 };
 
 /**
