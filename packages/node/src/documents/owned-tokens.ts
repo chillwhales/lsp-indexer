@@ -43,6 +43,13 @@ export const GetOwnedTokenDocument = graphql(`
     $includeNftBlockNumber: Boolean! = true
     $includeNftTransactionIndex: Boolean! = true
     $includeNftLogIndex: Boolean! = true
+    $includeNftScore: Boolean! = true
+    $includeNftRank: Boolean! = true
+    $includeNftChillClaimed: Boolean! = true
+    $includeNftOrbsClaimed: Boolean! = true
+    $includeNftLevel: Boolean! = true
+    $includeNftCooldownExpiry: Boolean! = true
+    $includeNftFaction: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeOwnedAssetBalance: Boolean! = true
     $includeOwnedAssetTimestamp: Boolean! = true
@@ -169,6 +176,12 @@ export const GetOwnedTokenDocument = graphql(`
           category @include(if: $includeNftCategory) {
             value
           }
+          score @include(if: $includeNftScore) {
+            value
+          }
+          rank @include(if: $includeNftRank) {
+            value
+          }
           icon @include(if: $includeNftIcons) {
             url
             width
@@ -192,6 +205,8 @@ export const GetOwnedTokenDocument = graphql(`
             key
             value
             type
+            score
+            rarity
           }
         }
         lsp4MetadataBaseUri {
@@ -204,6 +219,12 @@ export const GetOwnedTokenDocument = graphql(`
           category @include(if: $includeNftCategory) {
             value
           }
+          score @include(if: $includeNftScore) {
+            value
+          }
+          rank @include(if: $includeNftRank) {
+            value
+          }
           icon @include(if: $includeNftIcons) {
             url
             width
@@ -227,7 +248,24 @@ export const GetOwnedTokenDocument = graphql(`
             key
             value
             type
+            score
+            rarity
           }
+        }
+        chillClaimed @include(if: $includeNftChillClaimed) {
+          value
+        }
+        orbsClaimed @include(if: $includeNftOrbsClaimed) {
+          value
+        }
+        level @include(if: $includeNftLevel) {
+          value
+        }
+        cooldownExpiry @include(if: $includeNftCooldownExpiry) {
+          value
+        }
+        faction @include(if: $includeNftFaction) {
+          value
         }
       }
       ownedAsset @include(if: $includeOwnedAsset) {
@@ -342,6 +380,13 @@ export const GetOwnedTokensDocument = graphql(`
     $includeNftBlockNumber: Boolean! = true
     $includeNftTransactionIndex: Boolean! = true
     $includeNftLogIndex: Boolean! = true
+    $includeNftScore: Boolean! = true
+    $includeNftRank: Boolean! = true
+    $includeNftChillClaimed: Boolean! = true
+    $includeNftOrbsClaimed: Boolean! = true
+    $includeNftLevel: Boolean! = true
+    $includeNftCooldownExpiry: Boolean! = true
+    $includeNftFaction: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeOwnedAssetBalance: Boolean! = true
     $includeOwnedAssetTimestamp: Boolean! = true
@@ -468,6 +513,12 @@ export const GetOwnedTokensDocument = graphql(`
           category @include(if: $includeNftCategory) {
             value
           }
+          score @include(if: $includeNftScore) {
+            value
+          }
+          rank @include(if: $includeNftRank) {
+            value
+          }
           icon @include(if: $includeNftIcons) {
             url
             width
@@ -491,6 +542,8 @@ export const GetOwnedTokensDocument = graphql(`
             key
             value
             type
+            score
+            rarity
           }
         }
         lsp4MetadataBaseUri {
@@ -503,6 +556,12 @@ export const GetOwnedTokensDocument = graphql(`
           category @include(if: $includeNftCategory) {
             value
           }
+          score @include(if: $includeNftScore) {
+            value
+          }
+          rank @include(if: $includeNftRank) {
+            value
+          }
           icon @include(if: $includeNftIcons) {
             url
             width
@@ -526,7 +585,24 @@ export const GetOwnedTokensDocument = graphql(`
             key
             value
             type
+            score
+            rarity
           }
+        }
+        chillClaimed @include(if: $includeNftChillClaimed) {
+          value
+        }
+        orbsClaimed @include(if: $includeNftOrbsClaimed) {
+          value
+        }
+        level @include(if: $includeNftLevel) {
+          value
+        }
+        cooldownExpiry @include(if: $includeNftCooldownExpiry) {
+          value
+        }
+        faction @include(if: $includeNftFaction) {
+          value
         }
       }
       ownedAsset @include(if: $includeOwnedAsset) {
@@ -645,6 +721,13 @@ export const OwnedTokenSubscriptionDocument = graphql(`
     $includeNftBlockNumber: Boolean! = true
     $includeNftTransactionIndex: Boolean! = true
     $includeNftLogIndex: Boolean! = true
+    $includeNftScore: Boolean! = true
+    $includeNftRank: Boolean! = true
+    $includeNftChillClaimed: Boolean! = true
+    $includeNftOrbsClaimed: Boolean! = true
+    $includeNftLevel: Boolean! = true
+    $includeNftCooldownExpiry: Boolean! = true
+    $includeNftFaction: Boolean! = true
     $includeOwnedAsset: Boolean! = true
     $includeOwnedAssetBalance: Boolean! = true
     $includeOwnedAssetTimestamp: Boolean! = true
@@ -771,6 +854,12 @@ export const OwnedTokenSubscriptionDocument = graphql(`
           category @include(if: $includeNftCategory) {
             value
           }
+          score @include(if: $includeNftScore) {
+            value
+          }
+          rank @include(if: $includeNftRank) {
+            value
+          }
           icon @include(if: $includeNftIcons) {
             url
             width
@@ -794,6 +883,8 @@ export const OwnedTokenSubscriptionDocument = graphql(`
             key
             value
             type
+            score
+            rarity
           }
         }
         lsp4MetadataBaseUri {
@@ -806,6 +897,12 @@ export const OwnedTokenSubscriptionDocument = graphql(`
           category @include(if: $includeNftCategory) {
             value
           }
+          score @include(if: $includeNftScore) {
+            value
+          }
+          rank @include(if: $includeNftRank) {
+            value
+          }
           icon @include(if: $includeNftIcons) {
             url
             width
@@ -829,7 +926,24 @@ export const OwnedTokenSubscriptionDocument = graphql(`
             key
             value
             type
+            score
+            rarity
           }
+        }
+        chillClaimed @include(if: $includeNftChillClaimed) {
+          value
+        }
+        orbsClaimed @include(if: $includeNftOrbsClaimed) {
+          value
+        }
+        level @include(if: $includeNftLevel) {
+          value
+        }
+        cooldownExpiry @include(if: $includeNftCooldownExpiry) {
+          value
+        }
+        faction @include(if: $includeNftFaction) {
+          value
         }
       }
       ownedAsset @include(if: $includeOwnedAsset) {

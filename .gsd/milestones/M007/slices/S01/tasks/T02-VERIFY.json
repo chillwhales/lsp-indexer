@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M007/S01/T02",
+  "timestamp": 1774868222651,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "pnpm --filter=@lsp-indexer/node codegen",
+      "exitCode": 0,
+      "durationMs": 1227,
+      "verdict": "pass"
+    },
+    {
+      "command": "pnpm --filter=@lsp-indexer/node build",
+      "exitCode": 0,
+      "durationMs": 3753,
+      "verdict": "pass"
+    }
+  ]
+}

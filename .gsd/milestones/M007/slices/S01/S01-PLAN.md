@@ -82,7 +82,7 @@
   - Estimate: 45m
   - Files: packages/node/src/documents/nfts.ts, packages/node/src/graphql/graphql.ts, packages/node/src/parsers/nfts.ts, packages/node/src/parsers/utils.ts, packages/node/src/services/nfts.ts
   - Verify: pnpm --filter=@lsp-indexer/node codegen && pnpm --filter=@lsp-indexer/node build
-- [ ] **T03: Extend owned-token documents and verify full 5-package build** — Add the 7 new NFT fields to the owned-token document's NFT sub-selection, update the owned-token service include-var builder, and verify the full 5-package build.
+- [x] **T03: Added 7 includeNft* variables and field selections (score, rank, chillClaimed, orbsClaimed, level, cooldownExpiry, faction) to all 3 owned-token GraphQL documents; codegen and full 5-package build pass** — Add the 7 new NFT fields to the owned-token document's NFT sub-selection, update the owned-token service include-var builder, and verify the full 5-package build.
 
 ## Steps
 
