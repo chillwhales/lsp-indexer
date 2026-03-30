@@ -1,7 +1,13 @@
 import { collectionAttributeKeys } from '@lsp-indexer/node';
-import type { CollectionAttributesResult, UseCollectionAttributesParams } from '@lsp-indexer/types';
+import type {
+  CollectionAttribute,
+  CollectionAttributesResult,
+  UseCollectionAttributesParams,
+} from '@lsp-indexer/types';
 import { useQuery } from '@tanstack/react-query';
 import type { UseCollectionAttributesReturn } from '../../types';
+
+const EMPTY: CollectionAttribute[] = [];
 
 export function createUseCollectionAttributes(
   queryFn: (collectionAddress: string) => Promise<CollectionAttributesResult>,
@@ -18,7 +24,7 @@ export function createUseCollectionAttributes(
     });
 
     return {
-      attributes: data?.attributes ?? [],
+      attributes: data?.attributes ?? EMPTY,
       totalCount: data?.totalCount ?? 0,
       ...rest,
     };

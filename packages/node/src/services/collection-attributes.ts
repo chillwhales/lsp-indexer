@@ -14,16 +14,18 @@ export async function fetchCollectionAttributes(
   params: { collectionAddress: string },
 ): Promise<CollectionAttributesResult> {
   const data = await execute(url, GetCollectionAttributesDocument, {
-    collectionAddress: `%${escapeLike(params.collectionAddress)}%`,
+    collectionAddress: escapeLike(params.collectionAddress),
     distinctOn: ['key', 'value'],
   });
 
   return {
-    attributes: data.lsp4_metadata_attribute.map((attr) => ({
-      key: attr.key ?? '',
-      value: attr.value ?? '',
-      type: attr.type ?? null,
-    })),
+    attributes: data.lsp4_metadata_attribute
+      .filter((attr) => attr.key != null && attr.value != null)
+      .map((attr) => ({
+        key: attr.key!,
+        value: attr.value!,
+        type: attr.type ?? null,
+      })),
     totalCount: data.nft_aggregate.aggregate?.count ?? 0,
   };
 }

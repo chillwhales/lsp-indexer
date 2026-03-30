@@ -121,6 +121,7 @@ export function buildNftOrderBy(sort?: NftSort): Nft_Order_By[] | undefined {
     case 'score':
       return [
         { lsp4Metadata: { score: { value: orderDir(sort.direction, sort.nulls) } } },
+        { lsp4MetadataBaseUri: { score: { value: orderDir(sort.direction, sort.nulls) } } },
         ...buildBlockOrderSort('desc'),
       ];
     default:
