@@ -1,3 +1,4 @@
+export * from './collection-attributes';
 export * from './common';
 export * from './creators';
 export * from './data-changed-events';

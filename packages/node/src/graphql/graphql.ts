@@ -27072,6 +27072,14 @@ export type Universal_Receiver_Variance_Order_By = {
   value?: InputMaybe<Order_By>;
 };
 
+export type GetCollectionAttributesQueryVariables = Exact<{
+  collectionAddress: Scalars['String']['input'];
+  distinctOn?: InputMaybe<Array<Lsp4_Metadata_Attribute_Select_Column> | Lsp4_Metadata_Attribute_Select_Column>;
+}>;
+
+
+export type GetCollectionAttributesQuery = { __typename?: 'query_root', lsp4_metadata_attribute: Array<{ __typename?: 'lsp4_metadata_attribute', key?: string | null, value?: string | null, type?: string | null }>, nft_aggregate: { __typename?: 'nft_aggregate', aggregate?: { __typename?: 'nft_aggregate_fields', count: number } | null } };
+
 export type GetCreatorsQueryVariables = Exact<{
   where?: InputMaybe<Lsp4_Creator_Bool_Exp>;
   order_by?: InputMaybe<Array<Lsp4_Creator_Order_By> | Lsp4_Creator_Order_By>;
@@ -28551,6 +28559,24 @@ export class TypedDocumentString<TResult, TVariables>
   }
 }
 
+export const GetCollectionAttributesDocument = new TypedDocumentString(`
+    query GetCollectionAttributes($collectionAddress: String!, $distinctOn: [lsp4_metadata_attribute_select_column!]) {
+  lsp4_metadata_attribute(
+    distinct_on: $distinctOn
+    order_by: [{key: asc}, {value: asc}]
+    where: {lsp4Metadata: {address: {_ilike: $collectionAddress}}}
+  ) {
+    key
+    value
+    type
+  }
+  nft_aggregate(where: {address: {_ilike: $collectionAddress}}) {
+    aggregate {
+      count
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<GetCollectionAttributesQuery, GetCollectionAttributesQueryVariables>;
 export const GetCreatorsDocument = new TypedDocumentString(`
     query GetCreators($where: lsp4_creator_bool_exp, $order_by: [lsp4_creator_order_by!], $limit: Int, $offset: Int, $includeArrayIndex: Boolean! = true, $includeInterfaceId: Boolean! = true, $includeTimestamp: Boolean! = true, $includeBlockNumber: Boolean! = true, $includeTransactionIndex: Boolean! = true, $includeLogIndex: Boolean! = true, $includeCreatorProfile: Boolean! = true, $includeCreatorProfileName: Boolean! = true, $includeCreatorProfileDescription: Boolean! = true, $includeCreatorProfileTags: Boolean! = true, $includeCreatorProfileLinks: Boolean! = true, $includeCreatorProfileAvatar: Boolean! = true, $includeCreatorProfileImage: Boolean! = true, $includeCreatorProfileBackgroundImage: Boolean! = true, $includeCreatorProfileFollowerCount: Boolean! = true, $includeCreatorProfileFollowingCount: Boolean! = true, $includeCreatorProfileTimestamp: Boolean! = true, $includeCreatorProfileBlockNumber: Boolean! = true, $includeCreatorProfileTransactionIndex: Boolean! = true, $includeCreatorProfileLogIndex: Boolean! = true, $includeDigitalAsset: Boolean! = true, $includeDigitalAssetName: Boolean! = true, $includeDigitalAssetSymbol: Boolean! = true, $includeDigitalAssetTokenType: Boolean! = true, $includeDigitalAssetDecimals: Boolean! = true, $includeDigitalAssetTotalSupply: Boolean! = true, $includeDigitalAssetDescription: Boolean! = true, $includeDigitalAssetCategory: Boolean! = true, $includeDigitalAssetIcons: Boolean! = true, $includeDigitalAssetImages: Boolean! = true, $includeDigitalAssetLinks: Boolean! = true, $includeDigitalAssetAttributes: Boolean! = true, $includeDigitalAssetOwner: Boolean! = true, $includeDigitalAssetHolderCount: Boolean! = true, $includeDigitalAssetCreatorCount: Boolean! = true, $includeDigitalAssetReferenceContract: Boolean! = true, $includeDigitalAssetTokenIdFormat: Boolean! = true, $includeDigitalAssetBaseUri: Boolean! = true, $includeDigitalAssetTimestamp: Boolean! = true, $includeDigitalAssetBlockNumber: Boolean! = true, $includeDigitalAssetTransactionIndex: Boolean! = true, $includeDigitalAssetLogIndex: Boolean! = true) {
   lsp4_creator(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
