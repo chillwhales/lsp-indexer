@@ -1,5 +1,16 @@
 # @lsp-indexer/node
 
+## 2.4.0
+
+### Minor Changes
+
+- [#360](https://github.com/chillwhales/lsp-indexer/pull/360) [`493173b`](https://github.com/chillwhales/lsp-indexer/commit/493173b82c93cc08f54b0dc2f0949f992d93474b) Thanks [@b00ste](https://github.com/b00ste)! - Add chillwhales NFT extensions: 7 custom fields (score, rank, chillClaimed, orbsClaimed, level, cooldownExpiry, faction), 4 game-property filters, score sorting, and collection-attributes query vertical.
+
+### Patch Changes
+
+- Updated dependencies [[`493173b`](https://github.com/chillwhales/lsp-indexer/commit/493173b82c93cc08f54b0dc2f0949f992d93474b)]:
+  - @lsp-indexer/types@2.4.0
+
 ## 2.3.0
 
 ### Minor Changes
