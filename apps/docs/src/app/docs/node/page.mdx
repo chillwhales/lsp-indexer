@@ -130,9 +130,9 @@ The return shape is `{ encryptedAssets: P[] }` (no `totalCount`).
 
 ### Parameters
 
-| Parameter           | Type     | Required | Description                                      |
-| ------------------- | -------- | -------- | ------------------------------------------------ |
-| `collectionAddress` | `string` | Yes      | Contract address of the NFT collection to query  |
+| Parameter           | Type     | Required | Description                                     |
+| ------------------- | -------- | -------- | ----------------------------------------------- |
+| `collectionAddress` | `string` | Yes      | Contract address of the NFT collection to query |
 
 ### Usage
 
@@ -179,15 +179,15 @@ The return type narrows automatically based on which fields you include — full
 
 NFTs support additional include fields for chillwhales-specific game data:
 
-| Field            | Type                | Description                                       |
-| ---------------- | ------------------- | ------------------------------------------------- |
-| `score`          | `number \| null`    | Chillwhales score                                 |
-| `rank`           | `number \| null`    | Rank within the collection by score               |
-| `chillClaimed`   | `boolean \| null`   | Whether the CHILL token has been claimed           |
-| `orbsClaimed`    | `boolean \| null`   | Whether the ORBS token has been claimed            |
-| `level`          | `number \| null`    | Current level (chillwhales game mechanic)          |
-| `cooldownExpiry` | `number \| null`    | Cooldown expiry as unix epoch                      |
-| `faction`        | `string \| null`    | Faction membership (chillwhales game mechanic)     |
+| Field            | Type              | Description                                    |
+| ---------------- | ----------------- | ---------------------------------------------- |
+| `score`          | `number \| null`  | Chillwhales score                              |
+| `rank`           | `number \| null`  | Rank within the collection by score            |
+| `chillClaimed`   | `boolean \| null` | Whether the CHILL token has been claimed       |
+| `orbsClaimed`    | `boolean \| null` | Whether the ORBS token has been claimed        |
+| `level`          | `number \| null`  | Current level (chillwhales game mechanic)      |
+| `cooldownExpiry` | `number \| null`  | Cooldown expiry as unix epoch                  |
+| `faction`        | `string \| null`  | Faction membership (chillwhales game mechanic) |
 
 ```ts
 import { fetchNfts, getClientUrl } from '@lsp-indexer/node';
@@ -204,11 +204,11 @@ const { nfts } = await fetchNfts(getClientUrl(), {
 
 NFTs support additional filter fields for chillwhales game state:
 
-| Field                  | Type      | Description                                        |
-| ---------------------- | --------- | -------------------------------------------------- |
-| `chillClaimed`         | `boolean` | Filter by CHILL claimed status                     |
-| `orbsClaimed`          | `boolean` | Filter by ORBS claimed status                      |
-| `maxLevel`             | `number`  | Filter NFTs at or below this level                 |
+| Field                  | Type      | Description                                                   |
+| ---------------------- | --------- | ------------------------------------------------------------- |
+| `chillClaimed`         | `boolean` | Filter by CHILL claimed status                                |
+| `orbsClaimed`          | `boolean` | Filter by ORBS claimed status                                 |
+| `maxLevel`             | `number`  | Filter NFTs at or below this level                            |
 | `cooldownExpiryBefore` | `number`  | Filter NFTs whose cooldown expires before this unix timestamp |
 
 ### NFT Sort Fields
@@ -234,7 +234,12 @@ Available `NftSortField` values: `newest`, `oldest`, `tokenId`, `formattedTokenI
 For React Query cache management, every domain exports a key factory:
 
 ```ts
-import { profileKeys, digitalAssetKeys, encryptedAssetKeys, collectionAttributeKeys } from '@lsp-indexer/node';
+import {
+  profileKeys,
+  digitalAssetKeys,
+  encryptedAssetKeys,
+  collectionAttributeKeys,
+} from '@lsp-indexer/node';
 
 profileKeys.all; // ['profiles']
 profileKeys.lists(); // ['profiles', 'list']

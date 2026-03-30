@@ -321,18 +321,18 @@ const { profiles } = useFollowedByMyFollows({ myAddress, targetAddress, limit: 2
 
 ### Parameters
 
-| Parameter           | Type     | Required | Description                              |
-| ------------------- | -------- | -------- | ---------------------------------------- |
-| `collectionAddress` | `string` | Yes      | Contract address of the NFT collection   |
+| Parameter           | Type     | Required | Description                            |
+| ------------------- | -------- | -------- | -------------------------------------- |
+| `collectionAddress` | `string` | Yes      | Contract address of the NFT collection |
 
 ### Return Shape
 
-| Field        | Type                     | Description                                       |
-| ------------ | ------------------------ | ------------------------------------------------- |
-| `attributes` | `CollectionAttribute[]`  | Distinct `{ key, value, type }` attribute entries  |
-| `totalCount` | `number`                 | Total number of NFTs in the collection             |
-| `isLoading`  | `boolean`                | `true` while the initial fetch is in progress      |
-| `error`      | `Error \| null`          | Error object if the query failed                   |
+| Field        | Type                    | Description                                       |
+| ------------ | ----------------------- | ------------------------------------------------- |
+| `attributes` | `CollectionAttribute[]` | Distinct `{ key, value, type }` attribute entries |
+| `totalCount` | `number`                | Total number of NFTs in the collection            |
+| `isLoading`  | `boolean`               | `true` while the initial fetch is in progress     |
+| `error`      | `Error \| null`         | Error object if the query failed                  |
 
 ### Usage
 
@@ -455,14 +455,14 @@ import type { NftFilter, NftSort } from '@lsp-indexer/types';
 
 const filter: NftFilter = {
   collectionAddress: '0x...',
-  chillClaimed: false,      // Only unclaimed
+  chillClaimed: false, // Only unclaimed
   orbsClaimed: false,
-  maxLevel: 5,              // Level 5 or below
+  maxLevel: 5, // Level 5 or below
   cooldownExpiryBefore: Math.floor(Date.now() / 1000), // Cooldown expired
 };
 
 const sort: NftSort = {
-  field: 'score',           // Sort by chillwhales score
+  field: 'score', // Sort by chillwhales score
   direction: 'desc',
   nulls: 'last',
 };
