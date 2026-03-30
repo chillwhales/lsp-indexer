@@ -73,6 +73,30 @@ export function buildNftWhere(filter?: NftFilter): Nft_Bool_Exp {
     });
   }
 
+  if (filter.chillClaimed !== undefined) {
+    conditions.push({
+      chillClaimed: { value: { _eq: filter.chillClaimed } },
+    });
+  }
+
+  if (filter.orbsClaimed !== undefined) {
+    conditions.push({
+      orbsClaimed: { value: { _eq: filter.orbsClaimed } },
+    });
+  }
+
+  if (filter.maxLevel !== undefined) {
+    conditions.push({
+      level: { value: { _lte: filter.maxLevel } },
+    });
+  }
+
+  if (filter.cooldownExpiryBefore !== undefined) {
+    conditions.push({
+      cooldownExpiry: { value: { _lte: filter.cooldownExpiryBefore } },
+    });
+  }
+
   if (conditions.length === 0) return {};
   if (conditions.length === 1) return conditions[0];
   return { _and: conditions };
@@ -92,6 +116,12 @@ export function buildNftOrderBy(sort?: NftSort): Nft_Order_By[] | undefined {
     case 'formattedTokenId':
       return [
         { formatted_token_id: orderDir(sort.direction, sort.nulls ?? 'last') },
+        ...buildBlockOrderSort('desc'),
+      ];
+    case 'score':
+      return [
+        { lsp4Metadata: { score: { value: orderDir(sort.direction, sort.nulls) } } },
+        { lsp4MetadataBaseUri: { score: { value: orderDir(sort.direction, sort.nulls) } } },
         ...buildBlockOrderSort('desc'),
       ];
     default:
@@ -124,6 +154,13 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
     includeBlockNumber: include.blockNumber ?? false,
     includeTransactionIndex: include.transactionIndex ?? false,
     includeLogIndex: include.logIndex ?? false,
+    includeScore: include.score ?? false,
+    includeRank: include.rank ?? false,
+    includeChillClaimed: include.chillClaimed ?? false,
+    includeOrbsClaimed: include.orbsClaimed ?? false,
+    includeLevel: include.level ?? false,
+    includeCooldownExpiry: include.cooldownExpiry ?? false,
+    includeFaction: include.faction ?? false,
   };
 
   // Collection sub-includes: reuse DA include builder, remap includeDigitalAsset* → includeCollection*.
@@ -171,6 +208,13 @@ export function buildNftIncludeVars(
     includeNftBlockNumber: include.blockNumber ?? false,
     includeNftTransactionIndex: include.transactionIndex ?? false,
     includeNftLogIndex: include.logIndex ?? false,
+    includeNftScore: include.score ?? false,
+    includeNftRank: include.rank ?? false,
+    includeNftChillClaimed: include.chillClaimed ?? false,
+    includeNftOrbsClaimed: include.orbsClaimed ?? false,
+    includeNftLevel: include.level ?? false,
+    includeNftCooldownExpiry: include.cooldownExpiry ?? false,
+    includeNftFaction: include.faction ?? false,
   };
 }
 

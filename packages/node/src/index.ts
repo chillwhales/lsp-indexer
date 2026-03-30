@@ -5,6 +5,7 @@ export * from './errors';
 export * from './client';
 
 // Services
+export * from './services/collection-attributes';
 export * from './services/creators';
 export * from './services/data-changed-events';
 export * from './services/digital-assets';
@@ -34,6 +35,7 @@ export * from './parsers/token-id-data-changed-events';
 export * from './parsers/universal-receiver-events';
 
 // Query key factories
+export * from './keys/collection-attributes';
 export * from './keys/creators';
 export * from './keys/data-changed-events';
 export * from './keys/digital-assets';
@@ -48,6 +50,7 @@ export * from './keys/token-id-data-changed-events';
 export * from './keys/universal-receiver-events';
 
 // GraphQL documents
+export * from './documents/collection-attributes';
 export * from './documents/creators';
 export * from './documents/data-changed-events';
 export * from './documents/digital-assets';

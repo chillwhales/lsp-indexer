@@ -75,6 +75,20 @@ export const NftSchema = z.object({
   transactionIndex: z.number().nullable(),
   /** Log index within the transaction (null when excluded via include) */
   logIndex: z.number().nullable(),
+  /** Chillwhales score (null when excluded via include or not a chillwhales NFT) */
+  score: z.number().nullable(),
+  /** Rank within the collection by score (null when excluded or not scored) */
+  rank: z.number().nullable(),
+  /** Whether the CHILL token has been claimed for this NFT */
+  chillClaimed: z.boolean().nullable(),
+  /** Whether the ORBS token has been claimed for this NFT */
+  orbsClaimed: z.boolean().nullable(),
+  /** Current level of the NFT (chillwhales game mechanic) */
+  level: z.number().nullable(),
+  /** Cooldown expiry timestamp as unix epoch (null when not on cooldown) */
+  cooldownExpiry: z.number().nullable(),
+  /** Faction membership (chillwhales game mechanic) */
+  faction: z.string().nullable(),
 });
 
 // ---------------------------------------------------------------------------
@@ -96,6 +110,14 @@ export const NftFilterSchema = z.object({
   isBurned: z.boolean().optional(),
   /** Filter by minted status */
   isMinted: z.boolean().optional(),
+  /** Filter NFTs by CHILL claimed status */
+  chillClaimed: z.boolean().optional(),
+  /** Filter NFTs by ORBS claimed status */
+  orbsClaimed: z.boolean().optional(),
+  /** Filter NFTs at or below this level */
+  maxLevel: z.number().optional(),
+  /** Filter NFTs whose cooldown expires before this unix timestamp */
+  cooldownExpiryBefore: z.number().optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -103,7 +125,13 @@ export const NftFilterSchema = z.object({
 // ---------------------------------------------------------------------------
 
 /** `newest`/`oldest` use deterministic block-order; `direction`/`nulls` ignored for those. */
-export const NftSortFieldSchema = z.enum(['newest', 'oldest', 'tokenId', 'formattedTokenId']);
+export const NftSortFieldSchema = z.enum([
+  'newest',
+  'oldest',
+  'tokenId',
+  'formattedTokenId',
+  'score',
+]);
 
 export const NftSortSchema = z.object({
   field: NftSortFieldSchema,
@@ -145,6 +173,20 @@ export const NftIncludeSchema = z.object({
   transactionIndex: z.boolean().optional(),
   /** Include log index */
   logIndex: z.boolean().optional(),
+  /** Include chillwhales score */
+  score: z.boolean().optional(),
+  /** Include rank within collection */
+  rank: z.boolean().optional(),
+  /** Include CHILL claimed status */
+  chillClaimed: z.boolean().optional(),
+  /** Include ORBS claimed status */
+  orbsClaimed: z.boolean().optional(),
+  /** Include level */
+  level: z.boolean().optional(),
+  /** Include cooldown expiry */
+  cooldownExpiry: z.boolean().optional(),
+  /** Include faction */
+  faction: z.boolean().optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -228,6 +270,13 @@ type NftScalarIncludeFieldMap = {
   blockNumber: 'blockNumber';
   transactionIndex: 'transactionIndex';
   logIndex: 'logIndex';
+  score: 'score';
+  rank: 'rank';
+  chillClaimed: 'chillClaimed';
+  orbsClaimed: 'orbsClaimed';
+  level: 'level';
+  cooldownExpiry: 'cooldownExpiry';
+  faction: 'faction';
 };
 
 /**

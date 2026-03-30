@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M007/S03/T01",
+  "timestamp": 1774869613409,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "pnpm --filter=@lsp-indexer/types build",
+      "exitCode": 0,
+      "durationMs": 1464,
+      "verdict": "pass"
+    },
+    {
+      "command": "pnpm --filter=@lsp-indexer/node codegen",
+      "exitCode": 0,
+      "durationMs": 1299,
+      "verdict": "pass"
+    },
+    {
+      "command": "pnpm --filter=@lsp-indexer/node build",
+      "exitCode": 0,
+      "durationMs": 4090,
+      "verdict": "pass"
+    }
+  ]
+}

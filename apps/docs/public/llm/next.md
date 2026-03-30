@@ -175,6 +175,7 @@ Every domain has server actions matching the fetch functions:
 | Data Changed          | `getDataChangedEvents`, `getLatestDataChangedEvent`                                                                                         |
 | Token ID Data Changed | `getTokenIdDataChangedEvents`, `getLatestTokenIdDataChangedEvent`                                                                           |
 | Universal Receiver    | `getUniversalReceiverEvents`                                                                                                                |
+| Collection Attributes | `getCollectionAttributes`                                                                                                                   |
 
 ---
 
@@ -289,6 +290,124 @@ export default async function Page() {
   );
 }
 ```
+
+---
+
+## Collection Attributes
+
+`useCollectionAttributes` fetches distinct `{key, value}` attribute pairs for a collection via the `getCollectionAttributes` server action. The Hasura URL stays hidden from the browser.
+
+### Hook Usage
+
+```tsx
+import { useCollectionAttributes } from '@lsp-indexer/next';
+
+function TraitFilter({ collectionAddress }: { collectionAddress: string }) {
+  const { attributes, totalCount, isLoading, error } = useCollectionAttributes({
+    collectionAddress,
+  });
+
+  if (isLoading) return <p>Loading traits…</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  return (
+    <div>
+      <p>{totalCount} NFTs in collection</p>
+      <ul>
+        {attributes?.map((attr) => (
+          <li key={`${attr.key}:${attr.value}`}>
+            {attr.key}: {attr.value}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+### Server Action in Server Components
+
+```tsx
+import { getCollectionAttributes } from '@lsp-indexer/next/actions';
+
+export default async function CollectionPage({ address }: { address: string }) {
+  const { attributes, totalCount } = await getCollectionAttributes(address);
+
+  return (
+    <div>
+      <p>{totalCount} NFTs</p>
+      <ul>
+        {attributes.map((attr) => (
+          <li key={`${attr.key}:${attr.value}`}>
+            {attr.key}: {attr.value}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+---
+
+## NFT Include, Filter, and Sort Fields
+
+NFTs support chillwhales-specific include fields, filters, and sort options. These apply to both
+the hook API (`useNfts`, `useInfiniteNfts`, `useNft`) and the server actions (`getNfts`, `getNft`).
+
+### NFT Include Fields
+
+Opt in to chillwhales-specific fields to reduce payload size:
+
+```tsx
+import { useNfts } from '@lsp-indexer/next';
+import type { NftInclude } from '@lsp-indexer/types';
+
+const include: NftInclude = {
+  score: true,
+  rank: true,
+  chillClaimed: true,
+  orbsClaimed: true,
+  level: true,
+  cooldownExpiry: true,
+  faction: true,
+};
+
+const { nfts } = useNfts({ filter: { collectionAddress: '0x...' }, include });
+```
+
+All NFT include fields: `formattedTokenId`, `name`, `description`, `category`, `icons`, `images`,
+`links`, `attributes`, `timestamp`, `blockNumber`, `transactionIndex`, `logIndex`, `score`, `rank`,
+`chillClaimed`, `orbsClaimed`, `level`, `cooldownExpiry`, `faction`. Relations: `collection`
+(`boolean | DigitalAssetInclude`), `holder` (`boolean | ProfileInclude`).
+
+### NFT Filters
+
+```tsx
+import type { NftFilter } from '@lsp-indexer/types';
+
+const filter: NftFilter = {
+  collectionAddress: '0x...',
+  chillClaimed: false,
+  orbsClaimed: false,
+  maxLevel: 5,
+  cooldownExpiryBefore: Math.floor(Date.now() / 1000),
+};
+```
+
+Filter fields: `collectionAddress`, `tokenId`, `formattedTokenId`, `name`, `holderAddress`,
+`isBurned`, `isMinted`, `chillClaimed`, `orbsClaimed`, `maxLevel`, `cooldownExpiryBefore`.
+
+### NFT Sort Fields
+
+```tsx
+import type { NftSort } from '@lsp-indexer/types';
+
+const sort: NftSort = { field: 'score', direction: 'desc', nulls: 'last' };
+```
+
+Sort fields: `newest`, `oldest`, `tokenId`, `formattedTokenId`, `score`.
+`newest`/`oldest` use deterministic block-order; `direction`/`nulls` are ignored for those values.
 
 ---
 

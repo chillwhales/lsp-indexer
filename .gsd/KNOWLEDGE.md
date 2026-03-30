@@ -99,3 +99,27 @@ Batch hooks use `useQuery` directly, not `createUseList` — batch results are f
 4. Add `createUseXBatch` factory with direct `useQuery`, not `createUseList`
 5. Add concrete React hook, Next.js server action + hook
 6. Update barrel indexes in all packages
+
+## [2026-03-30] M007: Collection-attributes simple-query pattern for non-paginated aggregate queries
+
+### Pattern
+
+When a domain needs a flat list of aggregate results (not paginated, not infinite-scrollable), use the "simple-query" pattern established by `useFollowCount` and now `useCollectionAttributes`:
+
+1. Direct `useQuery` (not `createUseList`/`createUseInfinite`)
+2. `enabled` guard on the primary parameter (e.g., `!!collectionAddress`)
+3. `distinct_on` + matching `order_by` for Hasura deduplication
+4. `_aggregate` in the same document for total count
+5. Stable `EMPTY` array reference to prevent re-renders
+
+This pattern is lighter than the paginated pattern and appropriate when the result set is bounded.
+
+## [2026-03-30] M007: OwnedToken NFT sub-selection inherits NftInclude via .omit()
+
+OwnedTokenNftIncludeSchema is defined as `NftIncludeSchema.omit({ collection: true, holder: true })`. When new fields are added to NftIncludeSchema, they automatically appear in OwnedTokenNftIncludeSchema. However, three things still need manual updates:
+
+1. `OwnedTokenNftScalarFieldMap` — must add entries for new fields
+2. Owned-token GraphQL documents — must add `$includeNft*` variable declarations and field selections
+3. Codegen must be re-run after document changes
+
+The `buildNftIncludeVars` function can serve both NFT and owned-token documents when the owned-token variables follow the `$includeNft*` prefix convention.

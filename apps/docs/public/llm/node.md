@@ -77,6 +77,7 @@ const { profiles, totalCount } = await fetchProfiles(getClientUrl(), {
 | Data Changed          | `fetchLatestDataChangedEvent`        | `fetchDataChangedEvents`                                                                 |
 | Token ID Data Changed | `fetchLatestTokenIdDataChangedEvent` | `fetchTokenIdDataChangedEvents`                                                          |
 | Universal Receiver    | —                                    | `fetchUniversalReceiverEvents`                                                           |
+| Collection Attributes | —                                    | `fetchCollectionAttributes`                                                              |
 
 Additional: `fetchFollowCount`, `fetchIsFollowing`.
 
@@ -126,6 +127,34 @@ The return shape is `{ encryptedAssets: P[] }` (no `totalCount`).
 
 ---
 
+## Collection Attributes
+
+`fetchCollectionAttributes` fetches distinct `{key, value}` attribute pairs and the total NFT count for a collection address.
+
+### Parameters
+
+| Parameter           | Type     | Required | Description                                     |
+| ------------------- | -------- | -------- | ----------------------------------------------- |
+| `collectionAddress` | `string` | Yes      | Contract address of the NFT collection to query |
+
+### Usage
+
+```ts
+import { fetchCollectionAttributes, getClientUrl } from '@lsp-indexer/node';
+
+const { attributes, totalCount } = await fetchCollectionAttributes(getClientUrl(), {
+  collectionAddress: '0xCollectionAddress',
+});
+// attributes → CollectionAttribute[] — distinct { key, value, type } pairs
+// totalCount → number — total NFTs in the collection
+```
+
+Each `CollectionAttribute` has `key` (string), `value` (string), and `type` (string | null).
+Uses `distinct_on: [key, value]` to deduplicate across all NFTs in the collection.
+Address matching is case-insensitive.
+
+---
+
 ## Include Fields (Partial Selects)
 
 All fetch functions accept an `include` parameter to control which related data is returned.
@@ -149,6 +178,58 @@ const profile = await fetchProfile(getClientUrl(), {
 
 The return type narrows automatically based on which fields you include — full TypeScript inference.
 
+### NFT Include Fields
+
+NFTs support additional include fields for chillwhales-specific game data:
+
+| Field            | Type              | Description                                    |
+| ---------------- | ----------------- | ---------------------------------------------- |
+| `score`          | `number \| null`  | Chillwhales score                              |
+| `rank`           | `number \| null`  | Rank within the collection by score            |
+| `chillClaimed`   | `boolean \| null` | Whether the CHILL token has been claimed       |
+| `orbsClaimed`    | `boolean \| null` | Whether the ORBS token has been claimed        |
+| `level`          | `number \| null`  | Current level (chillwhales game mechanic)      |
+| `cooldownExpiry` | `number \| null`  | Cooldown expiry as unix epoch                  |
+| `faction`        | `string \| null`  | Faction membership (chillwhales game mechanic) |
+
+```ts
+import { fetchNfts, getClientUrl } from '@lsp-indexer/node';
+
+const { nfts } = await fetchNfts(getClientUrl(), {
+  filter: { collectionAddress: '0x...' },
+  include: { score: true, rank: true, chillClaimed: true, faction: true },
+});
+// nfts[0].score → number | null
+// nfts[0].rank → number | null
+```
+
+### NFT Filter Fields
+
+NFTs support additional filter fields for chillwhales game state:
+
+| Field                  | Type      | Description                                                   |
+| ---------------------- | --------- | ------------------------------------------------------------- |
+| `chillClaimed`         | `boolean` | Filter by CHILL claimed status                                |
+| `orbsClaimed`          | `boolean` | Filter by ORBS claimed status                                 |
+| `maxLevel`             | `number`  | Filter NFTs at or below this level                            |
+| `cooldownExpiryBefore` | `number`  | Filter NFTs whose cooldown expires before this unix timestamp |
+
+### NFT Sort Fields
+
+The `NftSortField` enum now includes `score` for ranking NFTs by their chillwhales score:
+
+```ts
+import { fetchNfts, getClientUrl } from '@lsp-indexer/node';
+
+const { nfts } = await fetchNfts(getClientUrl(), {
+  filter: { collectionAddress: '0x...' },
+  sort: { field: 'score', direction: 'desc', nulls: 'last' },
+  include: { score: true, rank: true },
+});
+```
+
+Available `NftSortField` values: `newest`, `oldest`, `tokenId`, `formattedTokenId`, `score`.
+
 ---
 
 ## Query Key Factories
@@ -156,7 +237,12 @@ The return type narrows automatically based on which fields you include — full
 For React Query cache management, every domain exports a key factory:
 
 ```ts
-import { profileKeys, digitalAssetKeys, encryptedAssetKeys } from '@lsp-indexer/node';
+import {
+  profileKeys,
+  digitalAssetKeys,
+  encryptedAssetKeys,
+  collectionAttributeKeys,
+} from '@lsp-indexer/node';
 
 profileKeys.all; // ['profiles']
 profileKeys.lists(); // ['profiles', 'list']
@@ -166,6 +252,11 @@ profileKeys.detail(address, include); // ['profiles', 'detail', { address, inclu
 
 // Batch key factories
 encryptedAssetKeys.batch(tuples, include); // ['encryptedAssets', 'batch', tuples, include]
+
+// Collection attribute key factories
+collectionAttributeKeys.all; // ['collection-attributes']
+collectionAttributeKeys.lists(); // ['collection-attributes', 'list']
+collectionAttributeKeys.list(collectionAddress); // ['collection-attributes', 'list', collectionAddress]
 ```
 
 These are used internally by the React and Next.js hooks, but you can also use them directly

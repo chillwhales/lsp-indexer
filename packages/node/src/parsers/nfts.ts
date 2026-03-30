@@ -69,6 +69,16 @@ export function parseNft(raw: RawNft, include?: NftInclude): Nft | PartialNft {
     images: parseImages(direct?.images) ?? parseImages(baseUri?.images),
     links: parseLinks(direct?.links) ?? parseLinks(baseUri?.links) ?? null,
     attributes: parseAttributes(direct?.attributes) ?? parseAttributes(baseUri?.attributes) ?? null,
+
+    // Chillwhales fields — score/rank from metadata, others from direct NFT relations
+    score: direct?.score?.value ?? baseUri?.score?.value ?? null,
+    rank: direct?.rank?.value ?? baseUri?.rank?.value ?? null,
+    chillClaimed: raw.chillClaimed?.value ?? null,
+    orbsClaimed: raw.orbsClaimed?.value ?? null,
+    level: raw.level?.value ?? null,
+    cooldownExpiry: raw.cooldownExpiry?.value ?? null,
+    faction: raw.faction?.value ?? null,
+
     timestamp: raw.timestamp ?? null,
     blockNumber: raw.block_number ?? null,
     transactionIndex: raw.transaction_index ?? null,

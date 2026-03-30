@@ -53,12 +53,24 @@ export function parseLinks(
 /** Parse attributes array — returns `null` if input is nullish. */
 export function parseAttributes(
   attrs:
-    | ReadonlyArray<{ key?: string | null; value?: string | null; type?: string | null }>
+    | ReadonlyArray<{
+        key?: string | null;
+        value?: string | null;
+        type?: string | null;
+        score?: string | number | null;
+        rarity?: string | number | null;
+      }>
     | null
     | undefined,
 ): Lsp4Attribute[] | null {
   if (!attrs) return null;
-  return attrs.map((a) => ({ key: a.key ?? '', value: a.value ?? '', type: a.type ?? '' }));
+  return attrs.map((a) => ({
+    key: a.key ?? '',
+    value: a.value ?? '',
+    type: a.type ?? '',
+    score: a.score != null ? (Number.isNaN(Number(a.score)) ? null : Number(a.score)) : null,
+    rarity: a.rarity != null ? (Number.isNaN(Number(a.rarity)) ? null : Number(a.rarity)) : null,
+  }));
 }
 
 /** Parse images into a matrix grouped by `image_index`. */
