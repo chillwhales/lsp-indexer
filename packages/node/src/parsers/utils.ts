@@ -68,8 +68,8 @@ export function parseAttributes(
     key: a.key ?? '',
     value: a.value ?? '',
     type: a.type ?? '',
-    score: a.score != null ? Number(a.score) : null,
-    rarity: a.rarity != null ? Number(a.rarity) : null,
+    score: a.score != null ? (Number.isNaN(Number(a.score)) ? null : Number(a.score)) : null,
+    rarity: a.rarity != null ? (Number.isNaN(Number(a.rarity)) ? null : Number(a.rarity)) : null,
   }));
 }
 

@@ -208,8 +208,8 @@ type ResolveOwnedTokenDA<I> = I extends { digitalAsset: infer C }
 /**
  * Scalar field map for the NFT sub-include within OwnedToken context.
  *
- * OwnedTokenNftInclude has 8 fields (NftInclude minus collection/holder — those
- * are sibling relations on owned_token, not nested within the NFT block).
+ * OwnedTokenNftInclude has 19 scalar fields (NftInclude minus collection/holder —
+ * those are sibling relations on owned_token, not nested within the NFT block).
  */
 type OwnedTokenNftScalarFieldMap = {
   formattedTokenId: 'formattedTokenId';
@@ -220,6 +220,10 @@ type OwnedTokenNftScalarFieldMap = {
   images: 'images';
   links: 'links';
   attributes: 'attributes';
+  timestamp: 'timestamp';
+  blockNumber: 'blockNumber';
+  transactionIndex: 'transactionIndex';
+  logIndex: 'logIndex';
   score: 'score';
   rank: 'rank';
   chillClaimed: 'chillClaimed';
@@ -233,7 +237,7 @@ type OwnedTokenNftScalarFieldMap = {
  * Resolve the nested `nft` relation based on the include parameter.
  *
  * When `include` has `nft` as an `OwnedTokenNftInclude` object, the nft field is
- * present and narrowed using `IncludeResult` with NFT base fields + the 8 scalar
+ * present and narrowed using `IncludeResult` with NFT base fields + the 19 scalar
  * sub-include fields. Otherwise, it's absent from the type.
  */
 type ResolveOwnedTokenNft<I> = I extends { nft: infer N }
