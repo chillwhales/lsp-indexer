@@ -52,13 +52,13 @@ export const GetNftDocument = graphql(`
     $includeHolderBlockNumber: Boolean! = true
     $includeHolderTransactionIndex: Boolean! = true
     $includeHolderLogIndex: Boolean! = true
-    $includeScore: Boolean! = true
-    $includeRank: Boolean! = true
-    $includeChillClaimed: Boolean! = true
-    $includeOrbsClaimed: Boolean! = true
-    $includeLevel: Boolean! = true
-    $includeCooldownExpiry: Boolean! = true
-    $includeFaction: Boolean! = true
+    $includeScore: Boolean! = false
+    $includeRank: Boolean! = false
+    $includeChillClaimed: Boolean! = false
+    $includeOrbsClaimed: Boolean! = false
+    $includeLevel: Boolean! = false
+    $includeCooldownExpiry: Boolean! = false
+    $includeFaction: Boolean! = false
   ) {
     nft(where: $where, limit: 1) {
       id
@@ -362,13 +362,13 @@ export const GetNftsDocument = graphql(`
     $includeHolderBlockNumber: Boolean! = true
     $includeHolderTransactionIndex: Boolean! = true
     $includeHolderLogIndex: Boolean! = true
-    $includeScore: Boolean! = true
-    $includeRank: Boolean! = true
-    $includeChillClaimed: Boolean! = true
-    $includeOrbsClaimed: Boolean! = true
-    $includeLevel: Boolean! = true
-    $includeCooldownExpiry: Boolean! = true
-    $includeFaction: Boolean! = true
+    $includeScore: Boolean! = false
+    $includeRank: Boolean! = false
+    $includeChillClaimed: Boolean! = false
+    $includeOrbsClaimed: Boolean! = false
+    $includeLevel: Boolean! = false
+    $includeCooldownExpiry: Boolean! = false
+    $includeFaction: Boolean! = false
   ) {
     nft(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       id
@@ -679,13 +679,13 @@ export const NftSubscriptionDocument = graphql(`
     $includeHolderBlockNumber: Boolean! = true
     $includeHolderTransactionIndex: Boolean! = true
     $includeHolderLogIndex: Boolean! = true
-    $includeScore: Boolean! = true
-    $includeRank: Boolean! = true
-    $includeChillClaimed: Boolean! = true
-    $includeOrbsClaimed: Boolean! = true
-    $includeLevel: Boolean! = true
-    $includeCooldownExpiry: Boolean! = true
-    $includeFaction: Boolean! = true
+    $includeScore: Boolean! = false
+    $includeRank: Boolean! = false
+    $includeChillClaimed: Boolean! = false
+    $includeOrbsClaimed: Boolean! = false
+    $includeLevel: Boolean! = false
+    $includeCooldownExpiry: Boolean! = false
+    $includeFaction: Boolean! = false
   ) {
     nft(where: $where, order_by: $order_by, limit: $limit) {
       id
