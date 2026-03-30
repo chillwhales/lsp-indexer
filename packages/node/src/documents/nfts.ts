@@ -52,6 +52,13 @@ export const GetNftDocument = graphql(`
     $includeHolderBlockNumber: Boolean! = true
     $includeHolderTransactionIndex: Boolean! = true
     $includeHolderLogIndex: Boolean! = true
+    $includeScore: Boolean! = true
+    $includeRank: Boolean! = true
+    $includeChillClaimed: Boolean! = true
+    $includeOrbsClaimed: Boolean! = true
+    $includeLevel: Boolean! = true
+    $includeCooldownExpiry: Boolean! = true
+    $includeFaction: Boolean! = true
   ) {
     nft(where: $where, limit: 1) {
       id
@@ -64,6 +71,21 @@ export const GetNftDocument = graphql(`
       transaction_index @include(if: $includeTransactionIndex)
       log_index @include(if: $includeLogIndex)
       formatted_token_id @include(if: $includeFormattedTokenId)
+      chillClaimed @include(if: $includeChillClaimed) {
+        value
+      }
+      orbsClaimed @include(if: $includeOrbsClaimed) {
+        value
+      }
+      level @include(if: $includeLevel) {
+        value
+      }
+      cooldownExpiry @include(if: $includeCooldownExpiry) {
+        value
+      }
+      faction @include(if: $includeFaction) {
+        value
+      }
       digitalAsset @include(if: $includeCollection) {
         id
         address
@@ -205,6 +227,12 @@ export const GetNftDocument = graphql(`
         category @include(if: $includeCategory) {
           value
         }
+        score @include(if: $includeScore) {
+          value
+        }
+        rank @include(if: $includeRank) {
+          value
+        }
         icon @include(if: $includeIcons) {
           url
           width
@@ -228,6 +256,8 @@ export const GetNftDocument = graphql(`
           key
           value
           type
+          score
+          rarity
         }
       }
       lsp4MetadataBaseUri {
@@ -240,6 +270,12 @@ export const GetNftDocument = graphql(`
         category @include(if: $includeCategory) {
           value
         }
+        score @include(if: $includeScore) {
+          value
+        }
+        rank @include(if: $includeRank) {
+          value
+        }
         icon @include(if: $includeIcons) {
           url
           width
@@ -263,6 +299,8 @@ export const GetNftDocument = graphql(`
           key
           value
           type
+          score
+          rarity
         }
       }
     }
@@ -324,6 +362,13 @@ export const GetNftsDocument = graphql(`
     $includeHolderBlockNumber: Boolean! = true
     $includeHolderTransactionIndex: Boolean! = true
     $includeHolderLogIndex: Boolean! = true
+    $includeScore: Boolean! = true
+    $includeRank: Boolean! = true
+    $includeChillClaimed: Boolean! = true
+    $includeOrbsClaimed: Boolean! = true
+    $includeLevel: Boolean! = true
+    $includeCooldownExpiry: Boolean! = true
+    $includeFaction: Boolean! = true
   ) {
     nft(where: $where, order_by: $order_by, limit: $limit, offset: $offset) {
       id
@@ -336,6 +381,21 @@ export const GetNftsDocument = graphql(`
       transaction_index @include(if: $includeTransactionIndex)
       log_index @include(if: $includeLogIndex)
       formatted_token_id @include(if: $includeFormattedTokenId)
+      chillClaimed @include(if: $includeChillClaimed) {
+        value
+      }
+      orbsClaimed @include(if: $includeOrbsClaimed) {
+        value
+      }
+      level @include(if: $includeLevel) {
+        value
+      }
+      cooldownExpiry @include(if: $includeCooldownExpiry) {
+        value
+      }
+      faction @include(if: $includeFaction) {
+        value
+      }
       digitalAsset @include(if: $includeCollection) {
         id
         address
@@ -477,6 +537,12 @@ export const GetNftsDocument = graphql(`
         category @include(if: $includeCategory) {
           value
         }
+        score @include(if: $includeScore) {
+          value
+        }
+        rank @include(if: $includeRank) {
+          value
+        }
         icon @include(if: $includeIcons) {
           url
           width
@@ -500,6 +566,8 @@ export const GetNftsDocument = graphql(`
           key
           value
           type
+          score
+          rarity
         }
       }
       lsp4MetadataBaseUri {
@@ -512,6 +580,12 @@ export const GetNftsDocument = graphql(`
         category @include(if: $includeCategory) {
           value
         }
+        score @include(if: $includeScore) {
+          value
+        }
+        rank @include(if: $includeRank) {
+          value
+        }
         icon @include(if: $includeIcons) {
           url
           width
@@ -535,6 +609,8 @@ export const GetNftsDocument = graphql(`
           key
           value
           type
+          score
+          rarity
         }
       }
     }
@@ -603,6 +679,13 @@ export const NftSubscriptionDocument = graphql(`
     $includeHolderBlockNumber: Boolean! = true
     $includeHolderTransactionIndex: Boolean! = true
     $includeHolderLogIndex: Boolean! = true
+    $includeScore: Boolean! = true
+    $includeRank: Boolean! = true
+    $includeChillClaimed: Boolean! = true
+    $includeOrbsClaimed: Boolean! = true
+    $includeLevel: Boolean! = true
+    $includeCooldownExpiry: Boolean! = true
+    $includeFaction: Boolean! = true
   ) {
     nft(where: $where, order_by: $order_by, limit: $limit) {
       id
@@ -615,6 +698,21 @@ export const NftSubscriptionDocument = graphql(`
       transaction_index @include(if: $includeTransactionIndex)
       log_index @include(if: $includeLogIndex)
       formatted_token_id @include(if: $includeFormattedTokenId)
+      chillClaimed @include(if: $includeChillClaimed) {
+        value
+      }
+      orbsClaimed @include(if: $includeOrbsClaimed) {
+        value
+      }
+      level @include(if: $includeLevel) {
+        value
+      }
+      cooldownExpiry @include(if: $includeCooldownExpiry) {
+        value
+      }
+      faction @include(if: $includeFaction) {
+        value
+      }
       digitalAsset @include(if: $includeCollection) {
         id
         address
@@ -756,6 +854,12 @@ export const NftSubscriptionDocument = graphql(`
         category @include(if: $includeCategory) {
           value
         }
+        score @include(if: $includeScore) {
+          value
+        }
+        rank @include(if: $includeRank) {
+          value
+        }
         icon @include(if: $includeIcons) {
           url
           width
@@ -779,6 +883,8 @@ export const NftSubscriptionDocument = graphql(`
           key
           value
           type
+          score
+          rarity
         }
       }
       lsp4MetadataBaseUri {
@@ -791,6 +897,12 @@ export const NftSubscriptionDocument = graphql(`
         category @include(if: $includeCategory) {
           value
         }
+        score @include(if: $includeScore) {
+          value
+        }
+        rank @include(if: $includeRank) {
+          value
+        }
         icon @include(if: $includeIcons) {
           url
           width
@@ -814,6 +926,8 @@ export const NftSubscriptionDocument = graphql(`
           key
           value
           type
+          score
+          rarity
         }
       }
     }

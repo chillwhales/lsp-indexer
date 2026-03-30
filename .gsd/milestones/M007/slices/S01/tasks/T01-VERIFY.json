@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M007/S01/T01",
+  "timestamp": 1774867848996,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "pnpm --filter=@lsp-indexer/types build",
+      "exitCode": 0,
+      "durationMs": 1288,
+      "verdict": "pass"
+    }
+  ]
+}

@@ -34,7 +34,7 @@
   - Estimate: 20m
   - Files: packages/types/src/common.ts, packages/types/src/nfts.ts, packages/types/src/owned-tokens.ts
   - Verify: pnpm --filter=@lsp-indexer/types build
-- [ ] **T02: Add fields to NFT documents, run codegen, update parsers and services** — Extend the 3 NFT GraphQL documents with new @include variables and field selections, run codegen, then update parsers and services to handle the new fields.
+- [x] **T02: Extended all 3 NFT GraphQL documents with 7 new @include fields, regenerated codegen, updated parseNft/parseAttributes/buildIncludeVars/buildNftOrderBy for chillwhales fields** — Extend the 3 NFT GraphQL documents with new @include variables and field selections, run codegen, then update parsers and services to handle the new fields.
 
 ## Steps
 

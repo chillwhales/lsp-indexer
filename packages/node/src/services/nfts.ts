@@ -94,6 +94,11 @@ export function buildNftOrderBy(sort?: NftSort): Nft_Order_By[] | undefined {
         { formatted_token_id: orderDir(sort.direction, sort.nulls ?? 'last') },
         ...buildBlockOrderSort('desc'),
       ];
+    case 'score':
+      return [
+        { lsp4Metadata: { score: { value: orderDir(sort.direction, sort.nulls) } } },
+        ...buildBlockOrderSort('desc'),
+      ];
     default:
       return undefined;
   }
@@ -124,6 +129,13 @@ function buildIncludeVars(include?: NftInclude): Record<string, boolean> {
     includeBlockNumber: include.blockNumber ?? false,
     includeTransactionIndex: include.transactionIndex ?? false,
     includeLogIndex: include.logIndex ?? false,
+    includeScore: include.score ?? false,
+    includeRank: include.rank ?? false,
+    includeChillClaimed: include.chillClaimed ?? false,
+    includeOrbsClaimed: include.orbsClaimed ?? false,
+    includeLevel: include.level ?? false,
+    includeCooldownExpiry: include.cooldownExpiry ?? false,
+    includeFaction: include.faction ?? false,
   };
 
   // Collection sub-includes: reuse DA include builder, remap includeDigitalAsset* → includeCollection*.
@@ -171,6 +183,13 @@ export function buildNftIncludeVars(
     includeNftBlockNumber: include.blockNumber ?? false,
     includeNftTransactionIndex: include.transactionIndex ?? false,
     includeNftLogIndex: include.logIndex ?? false,
+    includeNftScore: include.score ?? false,
+    includeNftRank: include.rank ?? false,
+    includeNftChillClaimed: include.chillClaimed ?? false,
+    includeNftOrbsClaimed: include.orbsClaimed ?? false,
+    includeNftLevel: include.level ?? false,
+    includeNftCooldownExpiry: include.cooldownExpiry ?? false,
+    includeNftFaction: include.faction ?? false,
   };
 }
 
