@@ -1,0 +1,58 @@
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, DateTimeColumn as DateTimeColumn_, IntColumn as IntColumn_, StringColumn as StringColumn_, ManyToOne as ManyToOne_} from "@subsquid/typeorm-store"
+import * as marshal from "./marshal"
+import {PrimaryContractDeployment} from "./_primaryContractDeployment"
+import {SecondaryContractDeployment} from "./_secondaryContractDeployment"
+import {UniversalProfile} from "./universalProfile.model"
+
+@Index_(["blockNumber", "transactionIndex", "logIndex"], {unique: false})
+@Entity_()
+export class DeployedContracts {
+    constructor(props?: Partial<DeployedContracts>) {
+        Object.assign(this, props)
+    }
+
+    @PrimaryColumn_()
+    id!: string
+
+    @Index_()
+    @DateTimeColumn_({nullable: false})
+    timestamp!: Date
+
+    @IntColumn_({nullable: false})
+    blockNumber!: number
+
+    @Index_()
+    @IntColumn_({nullable: false})
+    logIndex!: number
+
+    @Index_()
+    @IntColumn_({nullable: false})
+    transactionIndex!: number
+
+    @Index_()
+    @StringColumn_({nullable: false})
+    address!: string
+
+    @StringColumn_({nullable: false})
+    primaryContract!: string
+
+    @StringColumn_({nullable: false})
+    secondaryContract!: string
+
+    @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : new PrimaryContractDeployment(undefined, obj)}, nullable: false})
+    primaryContractDeployment!: PrimaryContractDeployment
+
+    @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : new SecondaryContractDeployment(undefined, obj)}, nullable: false})
+    secondaryContractDeployment!: SecondaryContractDeployment
+
+    @Index_()
+    @StringColumn_({nullable: false})
+    postDeploymentModule!: string
+
+    @StringColumn_({nullable: false})
+    postDeploymentModuleCalldata!: string
+
+    @Index_()
+    @ManyToOne_(() => UniversalProfile, {nullable: true})
+    universalProfile!: UniversalProfile | undefined | null
+}

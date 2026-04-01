@@ -1,0 +1,53 @@
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, IntColumn as IntColumn_, DateTimeColumn as DateTimeColumn_, StringColumn as StringColumn_, ManyToOne as ManyToOne_, BigIntColumn as BigIntColumn_} from "@subsquid/typeorm-store"
+import {UniversalProfile} from "./universalProfile.model"
+import {DigitalAsset} from "./digitalAsset.model"
+
+@Index_(["blockNumber", "transactionIndex", "logIndex"], {unique: false})
+@Entity_()
+export class LSP12IssuedAsset {
+    constructor(props?: Partial<LSP12IssuedAsset>) {
+        Object.assign(this, props)
+    }
+
+    @PrimaryColumn_()
+    id!: string
+
+    @IntColumn_({nullable: false})
+    blockNumber!: number
+
+    @Index_()
+    @IntColumn_({nullable: false})
+    transactionIndex!: number
+
+    @Index_()
+    @IntColumn_({nullable: false})
+    logIndex!: number
+
+    @Index_()
+    @DateTimeColumn_({nullable: false})
+    timestamp!: Date
+
+    @Index_()
+    @StringColumn_({nullable: false})
+    address!: string
+
+    @Index_()
+    @ManyToOne_(() => UniversalProfile, {nullable: true})
+    universalProfile!: UniversalProfile
+
+    @Index_()
+    @StringColumn_({nullable: false})
+    assetAddress!: string
+
+    @Index_()
+    @ManyToOne_(() => DigitalAsset, {nullable: true})
+    issuedAsset!: DigitalAsset | undefined | null
+
+    @Index_()
+    @BigIntColumn_({nullable: true})
+    arrayIndex!: bigint | undefined | null
+
+    @Index_()
+    @StringColumn_({nullable: true})
+    interfaceId!: string | undefined | null
+}

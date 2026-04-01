@@ -237,15 +237,27 @@ importers:
       '@erc725/erc725.js':
         specifier: ^0.28.1
         version: 0.28.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)
+      '@erc725/smart-contracts':
+        specifier: ^8.0.1
+        version: 8.0.1
       '@lukso/lsp0-contracts':
         specifier: 0.15.5
         version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp12-contracts':
         specifier: ^0.15.4
         version: 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp14-contracts':
+        specifier: ^0.15.5
+        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp2-contracts':
         specifier: ^0.15.4
         version: 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp23-contracts':
+        specifier: ^0.15.5
+        version: 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@lukso/lsp26-contracts':
+        specifier: ^0.1.7
+        version: 0.1.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp3-contracts':
         specifier: 0.16.6
         version: 0.16.6(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -264,12 +276,24 @@ importers:
       '@lukso/lsp8-contracts':
         specifier: 0.16.7
         version: 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@subsquid/evm-abi':
+        specifier: ^0.3.1
+        version: 0.3.1
+      '@subsquid/evm-codec':
+        specifier: ^0.3.0
+        version: 0.3.0
       '@subsquid/evm-processor':
         specifier: ^1.27.2
         version: 1.27.2
+      '@subsquid/hasura-configuration':
+        specifier: ^2.0.0
+        version: 2.0.0(@subsquid/big-decimal@1.0.0)(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2))
       '@subsquid/logger':
         specifier: ^1.4.0
         version: 1.4.0
+      '@subsquid/typeorm-migration':
+        specifier: ^1.3.0
+        version: 1.3.0(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)))
       '@subsquid/typeorm-store':
         specifier: ^1.5.1
         version: 1.5.1(@subsquid/big-decimal@1.0.0)(typeorm@0.3.25(pg@8.15.6)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.13.3)(@types/node@24.2.0)(typescript@5.9.2)))
@@ -301,6 +325,12 @@ importers:
         specifier: ^2.47.0
         version: 2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)
     devDependencies:
+      '@subsquid/evm-typegen':
+        specifier: ^4.4.0
+        version: 4.4.0
+      '@subsquid/typeorm-codegen':
+        specifier: ^2.0.2
+        version: 2.0.2(@subsquid/big-decimal@1.0.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@types/node':
         specifier: ^24.1.0
         version: 24.2.0
