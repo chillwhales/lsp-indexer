@@ -23,9 +23,7 @@ FROM base AS deps
 # Copy pnpm workspace configuration
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 
-# Copy all package.json files for workspace resolution
-COPY packages/abi/package.json ./packages/abi/
-COPY packages/typeorm/package.json ./packages/typeorm/
+# Copy package.json for indexer workspace resolution
 COPY packages/indexer/package.json ./packages/indexer/
 
 # Install all dependencies (production + dev for build)
@@ -43,22 +41,16 @@ WORKDIR /app
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/abi/node_modules ./packages/abi/node_modules
-COPY --from=deps /app/packages/typeorm/node_modules ./packages/typeorm/node_modules
 COPY --from=deps /app/packages/indexer/node_modules ./packages/indexer/node_modules
 
 # Copy workspace configuration
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 
-# Copy source code for packages needed by indexer
-COPY packages/abi ./packages/abi
-COPY packages/typeorm ./packages/typeorm
+# Copy source code for indexer
 COPY packages/indexer ./packages/indexer
 
-# Build all packages
-RUN pnpm --filter=@chillwhales/abi build && \
-    pnpm --filter=@chillwhales/typeorm build && \
-    pnpm --filter=@chillwhales/indexer build
+# Build indexer (includes ABI codegen, entity codegen, and TypeScript compilation)
+RUN pnpm --filter=@chillwhales/indexer build
 
 # ==============================================================================
 # Stage 3: Runtime
@@ -72,18 +64,14 @@ WORKDIR /app
 # Copy pnpm workspace config
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 
-# Copy package.json files for workspace structure
-COPY packages/abi/package.json ./packages/abi/
-COPY packages/typeorm/package.json ./packages/typeorm/
+# Copy package.json for indexer workspace structure
 COPY packages/indexer/package.json ./packages/indexer/
 
 # Copy built artifacts from builder stage
-COPY --from=builder /app/packages/abi/lib ./packages/abi/lib
-COPY --from=builder /app/packages/typeorm/lib ./packages/typeorm/lib
-COPY --from=builder /app/packages/typeorm/schema.graphql ./packages/typeorm/
 COPY --from=builder /app/packages/indexer/lib ./packages/indexer/lib
+COPY --from=builder /app/packages/indexer/schema.graphql ./packages/indexer/
 
-# Note: packages/typeorm/db is NOT copied - it's generated at runtime by TypeORM migrations
+# Note: db/ is NOT copied - it's generated at runtime by TypeORM migrations
 # The db/ directory is gitignored and created automatically by @subsquid/typeorm-store
 
 # Copy runtime source files needed by ts-node

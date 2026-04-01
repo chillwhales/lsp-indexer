@@ -63,7 +63,7 @@
   - Estimate: 30m
   - Files: packages/indexer/package.json, packages/indexer/src/model.ts, packages/indexer/src/plugins/events/lsp7Transfer.plugin.ts, packages/indexer/src/plugins/events/lsp8Transfer.plugin.ts, packages/indexer/src/plugins/events/dataChanged.plugin.ts, packages/indexer/src/handlers/decimals.handler.ts, packages/indexer/src/handlers/chillwhales/orbsClaimed.handler.ts, packages/indexer/src/handlers/chillwhales/chillClaimed.handler.ts
   - Verify: pnpm --filter=@chillwhales/indexer build && test $(rg '@chillwhales/abi|@chillwhales/typeorm' packages/indexer/src/ --type ts | wc -l) -eq 0 && ! rg '@chillwhales/abi|@chillwhales/typeorm' packages/indexer/package.json -q
-- [ ] **T03: Update Docker, entrypoint, and root package.json references** — Update all infrastructure files that reference the old `packages/abi/` and `packages/typeorm/` paths to point at `packages/indexer/` instead.
+- [x] **T03: Removed all packages/abi and packages/typeorm references from Dockerfile, entrypoint.sh, and root package.json — only packages/indexer remains** — Update all infrastructure files that reference the old `packages/abi/` and `packages/typeorm/` paths to point at `packages/indexer/` instead.
 
 ## Steps
 
