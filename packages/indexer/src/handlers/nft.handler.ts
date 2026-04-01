@@ -15,8 +15,8 @@
 import { ZERO_ADDRESS } from '@/constants';
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { generateTokenId } from '@/utils';
 import { NFT } from '@/model';
+import { generateTokenId } from '@/utils';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'NFT';

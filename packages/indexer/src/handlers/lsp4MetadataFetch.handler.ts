@@ -21,6 +21,19 @@
 import { createComponentLogger } from '@/core/logger';
 import { EntityHandler, HandlerContext } from '@/core/types';
 import {
+  LSP4Metadata,
+  LSP4MetadataAsset,
+  LSP4MetadataAttribute,
+  LSP4MetadataCategory,
+  LSP4MetadataDescription,
+  LSP4MetadataIcon,
+  LSP4MetadataImage,
+  LSP4MetadataLink,
+  LSP4MetadataName,
+  LSP4MetadataRank,
+  LSP4MetadataScore,
+} from '@/model';
+import {
   getAttributeType,
   isAttribute,
   isFileAsset,
@@ -34,19 +47,6 @@ import {
   MetadataFetchConfig,
   SubEntityDescriptor,
 } from '@/utils/metadataFetch';
-import {
-  LSP4Metadata,
-  LSP4MetadataAsset,
-  LSP4MetadataAttribute,
-  LSP4MetadataCategory,
-  LSP4MetadataDescription,
-  LSP4MetadataIcon,
-  LSP4MetadataImage,
-  LSP4MetadataLink,
-  LSP4MetadataName,
-  LSP4MetadataRank,
-  LSP4MetadataScore,
-} from '@/model';
 import { isNumeric } from '@chillwhales/utils';
 import { v4 as uuidv4 } from 'uuid';
 

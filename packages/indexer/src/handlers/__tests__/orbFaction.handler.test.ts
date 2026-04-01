@@ -7,8 +7,8 @@
  */
 import { ORB_FACTION_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { type HandlerContext } from '@/core/types';
-import { generateTokenId } from '@/utils';
 import { OrbFaction, TokenIdDataChanged } from '@/model';
+import { generateTokenId } from '@/utils';
 import { Store } from '@subsquid/typeorm-store';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OrbFactionHandler from '../chillwhales/orbFaction.handler';

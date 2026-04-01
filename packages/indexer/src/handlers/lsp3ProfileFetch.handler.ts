@@ -19,12 +19,6 @@
  */
 import { createComponentLogger } from '@/core/logger';
 import { EntityHandler, HandlerContext } from '@/core/types';
-import { isFileAsset, isFileImage, isLink } from '@/utils';
-import {
-  handleMetadataFetch,
-  MetadataFetchConfig,
-  SubEntityDescriptor,
-} from '@/utils/metadataFetch';
 import {
   LSP3Profile,
   LSP3ProfileAsset,
@@ -35,6 +29,12 @@ import {
   LSP3ProfileName,
   LSP3ProfileTag,
 } from '@/model';
+import { isFileAsset, isFileImage, isLink } from '@/utils';
+import {
+  handleMetadataFetch,
+  MetadataFetchConfig,
+  SubEntityDescriptor,
+} from '@/utils/metadataFetch';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

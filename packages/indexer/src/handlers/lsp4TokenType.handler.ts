@@ -6,8 +6,8 @@
  * enum value (0 = TOKEN, 1 = NFT, 2 = COLLECTION) from the data value.
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { decodeTokenType, safeHexToNumber } from '@/utils';
 import { LSP4TokenType, LSP4TokenTypeEnum } from '@/model';
+import { decodeTokenType, safeHexToNumber } from '@/utils';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { isHex } from 'viem';
 

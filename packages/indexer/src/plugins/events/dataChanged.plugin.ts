@@ -17,8 +17,8 @@
  * deferred to EntityHandlers (see #103: DataKey handler architecture).
  * As a plain export, this plugin is auto-discovered by PluginRegistry.discover().
  */
-import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { ERC725Y } from '@/abi';
+import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { DataChanged } from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 

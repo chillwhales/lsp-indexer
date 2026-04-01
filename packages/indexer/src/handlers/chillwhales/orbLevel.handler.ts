@@ -27,8 +27,8 @@
 import { ORB_LEVEL_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { resolveEntity } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { generateTokenId } from '@/utils';
 import { OrbCooldownExpiry, OrbLevel } from '@/model';
+import { generateTokenId } from '@/utils';
 import {
   bytesToNumber,
   getAddress,

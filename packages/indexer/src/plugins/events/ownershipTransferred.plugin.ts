@@ -11,10 +11,10 @@
  * UniversalProfileOwner and DigitalAssetOwner updates will be implemented
  * as EntityHandlers in future issues (see #105: Transfer-derived entity handlers).
  */
-import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
-import { isNullAddress } from '@/utils';
 import { LSP14Ownable2Step } from '@/abi';
+import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { OwnershipTransferred } from '@/model';
+import { isNullAddress } from '@/utils';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

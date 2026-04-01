@@ -13,13 +13,13 @@
  * **Key difference from ChillClaimed:** Uses ORBS contract and getChillwhaleClaimStatus function
  * instead of CHILL contract and getClaimedStatusFor.
  */
+import { ORBS } from '@/abi';
+import { Aggregate3StaticReturn } from '@/abi/Multicall3';
 import { CHILLWHALES_ADDRESS, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { aggregate3StaticLatest } from '@/core/multicall';
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { generateTokenId, isNullAddress, safeHexToBool } from '@/utils';
-import { ORBS } from '@/abi';
-import { Aggregate3StaticReturn } from '@/abi/Multicall3';
 import { OrbsClaimed, Transfer } from '@/model';
+import { generateTokenId, isNullAddress, safeHexToBool } from '@/utils';
 import { getAddress, isAddressEqual, isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag

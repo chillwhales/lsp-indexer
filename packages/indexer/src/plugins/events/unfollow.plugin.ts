@@ -15,6 +15,7 @@
  * `Follower` current-state entity removal is implemented by the FollowerHandler
  * EntityHandler.
  */
+import { LSP26FollowerSystem } from '@/abi';
 import { LSP26_ADDRESS } from '@/constants';
 import {
   EntityCategory,
@@ -23,7 +24,6 @@ import {
   type IBatchContext,
   type Log,
 } from '@/core/types';
-import { LSP26FollowerSystem } from '@/abi';
 import { Unfollow } from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 

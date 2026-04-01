@@ -11,8 +11,8 @@
  * - HNDL-07: OwnedToken.ownedAsset FK is set directly when parent exists
  */
 import { EntityCategory, type HandlerContext } from '@/core/types';
-import { generateOwnedAssetId, generateOwnedTokenId } from '@/utils';
 import { OwnedAsset, OwnedToken, Transfer } from '@/model';
+import { generateOwnedAssetId, generateOwnedTokenId } from '@/utils';
 import { Store } from '@subsquid/typeorm-store';
 import { describe, expect, it, vi } from 'vitest';
 import OwnedAssetsHandler from '../ownedAssets.handler';

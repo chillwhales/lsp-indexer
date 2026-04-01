@@ -17,8 +17,8 @@
  * that handler re-creates the sub-entities.
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
-import { decodeVerifiableUri, generateTokenId } from '@/utils';
 import { LSP4Metadata } from '@/model';
+import { decodeVerifiableUri, generateTokenId } from '@/utils';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 
 // Entity type key used in the BatchContext entity bag
