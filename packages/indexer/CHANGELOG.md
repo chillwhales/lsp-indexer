@@ -1,5 +1,11 @@
 # @chillwhales/indexer
 
+## 2.4.0
+
+### Minor Changes
+
+- [#364](https://github.com/chillwhales/lsp-indexer/pull/364) [`e189c89`](https://github.com/chillwhales/lsp-indexer/commit/e189c89b2419e1fc12dbb5666fb1008037ffd4cb) Thanks [@b00ste](https://github.com/b00ste)! - Consolidate ABI and TypeORM codegen into indexer package. Removes `@chillwhales/abi` and `@chillwhales/typeorm` — single package with integrated codegen and one build step.
+
 ## 2.3.6
 
 ### Patch Changes
