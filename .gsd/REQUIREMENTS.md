@@ -4,229 +4,453 @@ This file is the explicit capability and coverage contract for the project.
 
 ## Active
 
+### R027 — Package consolidation (abi + typeorm → indexer)
+- Class: core-capability
+- Status: active
+- Description: The `@chillwhales/abi` and `@chillwhales/typeorm` packages must be merged into `@chillwhales/indexer`. ABI codegen (`squid-evm-typegen`) and entity codegen (`squid-typeorm-codegen`) run from within the indexer package. `schema.graphql` moves to `packages/indexer/`. Zero imports of the old package names remain.
+- Why it matters: Three packages for one indexer adds unnecessary build complexity and cross-package wiring. Consolidation simplifies the build, removes inter-package dependencies, and makes multi-chain changes atomic.
+- Source: user
+- Primary owning slice: M008/S01
+- Supporting slices: M008/S02
+- Validation: unmapped
+- Notes: `abi` and `typeorm` have zero consumers outside the indexer package.
+
+### R028 — Chain configuration registry
+- Class: core-capability
+- Status: active
+- Description: All chain-specific constants (SQD gateway, RPC URL, multicall address, IPFS gateway, rate limits, finality confirmation) must be read from a typed chain config registry instead of hardcoded constants. LUKSO mainnet is the default chain config.
+- Why it matters: Multi-chain requires per-chain parameterization. Hardcoded LUKSO constants prevent adding new chains.
+- Source: user
+- Primary owning slice: M009/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Currently hardcoded in `packages/indexer/src/constants/index.ts`.
+
+### R029 — Network discriminator on all entities
+- Class: core-capability
+- Status: active
+- Description: Every TypeORM entity in `schema.graphql` must have a `network: String! @index` column identifying which chain the data came from.
+- Why it matters: Enables per-chain filtering and prevents ambiguity when the same event type exists on multiple chains.
+- Source: collaborative
+- Primary owning slice: M009/S02
+- Supporting slices: none
+- Validation: unmapped
+- Notes: 51 entity types in schema.graphql. Hasura auto-exposes the column as a filterable field.
+
+### R030 — Network-prefixed deterministic IDs
+- Class: core-capability
+- Status: active
+- Description: All deterministic entity IDs (address-based like `event.address`, composite like `generateTokenId()`, string-composite like `"{address} - {dataKey}"`) must include a network prefix (e.g. `lukso:0xabc...`). UUID-based event entity IDs stay as-is.
+- Why it matters: Without network-prefixed IDs, the same contract address on two chains produces ID collisions.
+- Source: collaborative
+- Primary owning slice: M009/S02
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Affected patterns: address-based (UP, DA, LSP4TokenName, etc.), composite (NFT via generateTokenId), string-composite (LSP29, LSP6). UUIDs are already globally unique.
+
+### R031 — Backfill migration for existing LUKSO data
+- Class: core-capability
+- Status: active
+- Description: A non-destructive SQL migration must backfill all existing LUKSO rows: add `network` column with default `'lukso'`, prefix all deterministic IDs with `lukso:`, and update all FK references pointing to those IDs.
+- Why it matters: Existing production LUKSO data must be preserved and correctly tagged.
+- Source: collaborative
+- Primary owning slice: M009/S02
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Must update both ID columns and FK columns that reference them. UUID-based IDs don't need prefixing.
+
+### R032 — Per-chain plugin supportedChains declarations
+- Class: core-capability
+- Status: active
+- Description: Every EventPlugin and EntityHandler must declare a `supportedChains` field listing which chains it applies to. The processor factory only registers plugins/handlers matching the current chain.
+- Why it matters: Non-LSP chains don't have LSP-specific events. Plugin filtering prevents registering irrelevant handlers.
+- Source: user
+- Primary owning slice: M009/S03
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Chillwhales handlers: `supportedChains: ['lukso']`. LSP handlers: `supportedChains: ['lukso', 'lukso-testnet']`. Standard EVM handlers (if added later): broader chain lists.
+
+### R033 — Parameterized processor factory
+- Class: core-capability
+- Status: active
+- Description: A factory function creates an `EvmBatchProcessor` from a chain config, wires it with the filtered plugin/handler set, and runs it. The entry point is parameterized — one binary, multiple chain instances via env vars.
+- Why it matters: Avoids duplicating entry point files per chain. Single codebase produces chain-specific processors.
+- Source: collaborative
+- Primary owning slice: M009/S03
+- Supporting slices: none
+- Validation: unmapped
+- Notes: SQD pattern: separate entry points or env-parameterized single binary. We chose parameterized.
+
+### R034 — Per-chain Docker service definitions
+- Class: operability
+- Status: active
+- Description: `docker-compose.yml` must define separate indexer services per chain, each with chain-specific env vars (gateway, RPC, rate limits), all writing to the shared Postgres instance.
+- Why it matters: Production deployment needs per-chain service management, health checks, and resource limits.
+- Source: collaborative
+- Primary owning slice: M009/S04
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Each service runs the same image with different CHAIN env var.
+
+### R035 — LUKSO testnet as second chain proof
+- Class: integration
+- Status: active
+- Description: The LUKSO testnet must run as a second processor alongside mainnet, writing to the same Postgres. Both chains' data must be queryable via Hasura with `network` filter.
+- Why it matters: Proves multi-chain works end-to-end with same ABIs before tackling non-LSP chains.
+- Source: user
+- Primary owning slice: M009/S05
+- Supporting slices: none
+- Validation: unmapped
+- Notes: LUKSO testnet uses same LSP ABIs, different RPC/gateway URLs.
+
+### R036 — LUKSO parity — zero regressions after refactor
+- Class: constraint
+- Status: active
+- Description: The LUKSO mainnet indexer must produce identical behavior after every refactor milestone. Build succeeds, processor starts, events are decoded correctly, entities persist with correct data.
+- Why it matters: User's top priority — LUKSO parity is non-negotiable.
+- Source: user
+- Primary owning slice: M008, M009
+- Supporting slices: all slices in M008 and M009
+- Validation: unmapped
+- Notes: Cross-cutting constraint verified at every slice boundary.
+
+### R037 — Network filter on all consumer filter types
+- Class: core-capability
+- Status: active
+- Description: Every Zod filter schema in `@lsp-indexer/types` must include an optional `network: string` field. All GraphQL documents in `@lsp-indexer/node` must pass the network variable to Hasura where-clauses.
+- Why it matters: Consumer packages must support per-chain and cross-chain queries.
+- Source: collaborative
+- Primary owning slice: M010/S01
+- Supporting slices: none
+- Validation: unmapped
+- Notes: 13 filter types, 13 GraphQL documents.
+
+### R038 — Network-aware React hooks
+- Class: core-capability
+- Status: active
+- Description: All React hooks in `@lsp-indexer/react` must accept optional `network` param via filter, propagate it to queries. Omitting network returns all chains.
+- Why it matters: Frontend apps need to scope queries by chain.
+- Source: collaborative
+- Primary owning slice: M010/S02
+- Supporting slices: none
+- Validation: unmapped
+- Notes: 161 React hook files.
+
+### R039 — Network-aware Next.js server actions + hooks
+- Class: core-capability
+- Status: active
+- Description: All Next.js server actions and hooks in `@lsp-indexer/next` must pass network through from caller to Hasura query.
+- Why it matters: Next.js apps need chain-scoped data fetching.
+- Source: collaborative
+- Primary owning slice: M010/S03
+- Supporting slices: none
+- Validation: unmapped
+- Notes: 75 Next.js action/hook files.
+
+### R040 — Consumer package docs updated for network param
+- Class: quality-attribute
+- Status: active
+- Description: All docs pages in `apps/docs` must document the new `network` parameter on filter types, hooks, and server actions.
+- Why it matters: Docs must reflect the API surface.
+- Source: inferred
+- Primary owning slice: M010/S04
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Per AGENTS.md: outdated docs are worse than no docs.
+
+## Validated
+
 ### R017 — Lsp4Attribute includes score and rarity fields
 - Class: core-capability
 - Status: validated
-- Description: The Lsp4Attribute Zod schema and type must include `score: number | null` and `rarity: number | null` fields, matching the `LSP4MetadataAttribute` entity's `score: Float` and `rarity: Float` columns in the indexer schema.
-- Why it matters: The frontend needs attribute-level score and rarity data for NFT trait display and rarity calculations.
+- Description: The Lsp4Attribute Zod schema and type must include `score: number | null` and `rarity: number | null` fields.
+- Why it matters: NFT trait display and rarity calculations.
 - Source: user
 - Primary owning slice: M007/S01
 - Supporting slices: none
-- Validation: unmapped
-- Notes: Currently Lsp4AttributeSchema only has {key, value, type}. The Hasura schema already exposes score and rarity as numeric fields on lsp4_metadata_attribute.
+- Validation: validated
+- Notes: Delivered in M007.
 
 ### R018 — NFT type includes score and rank from LSP4Metadata derived entities
 - Class: core-capability
 - Status: validated
-- Description: The Nft type must include `score: number | null` and `rank: number | null` fields. These come from `LSP4MetadataScore.value` and `LSP4MetadataRank.value` via the NFT's `lsp4Metadata` relation. NftInclude must have `score` and `rank` boolean flags. NftSortField must include `score`.
-- Why it matters: NFTs need to be queryable and sortable by rarity score and rank.
+- Description: Nft type includes `score` and `rank` fields, NftSortField includes `score`.
+- Why it matters: NFTs queryable and sortable by rarity.
 - Source: user
 - Primary owning slice: M007/S01
 - Supporting slices: none
-- Validation: unmapped
-- Notes: LSP4MetadataScore and LSP4MetadataRank are @derivedFrom(field: "lsp4Metadata") on LSP4Metadata. Each has a single `value: Int` field. The Hasura schema exposes these as `lsp4_metadata_score` and `lsp4_metadata_rank` object relationships on `lsp4_metadata`.
+- Validation: validated
+- Notes: Delivered in M007.
 
 ### R019 — NFT type includes chillwhales custom fields
 - Class: core-capability
 - Status: validated
-- Description: The Nft type must include `chillClaimed: boolean | null`, `orbsClaimed: boolean | null`, `level: number | null`, `cooldownExpiry: number | null`, `faction: string | null`. These come from dedicated entities (ChillClaimed, OrbsClaimed, OrbLevel, OrbCooldownExpiry, OrbFaction) with @derivedFrom(field: "nft") relations on the NFT entity. NftInclude must have corresponding boolean flags.
-- Why it matters: The chillwhales frontend needs game-specific NFT properties for display and interaction logic.
+- Description: Nft type includes chillClaimed, orbsClaimed, level, cooldownExpiry, faction.
+- Why it matters: Game-specific NFT properties for display and interaction.
 - Source: user
 - Primary owning slice: M007/S01
 - Supporting slices: none
-- Validation: unmapped
-- Notes: Each entity has a single `.value` field. Hasura exposes them as object relationships on `nft` (chillClaimed, orbsClaimed, level, cooldownExpiry, faction).
+- Validation: validated
+- Notes: Delivered in M007.
 
 ### R020 — NftFilter supports chillwhales custom field filtering
 - Class: core-capability
 - Status: validated
-- Description: NftFilter must support `chillClaimed: boolean` (equals), `orbsClaimed: boolean` (equals), `maxLevel: number` (less-than), `cooldownExpiryBefore: number` (less-than-or-equal). These translate to nested Hasura relationship filters on the corresponding derived entities.
-- Why it matters: The frontend filters NFTs by claim status, orb level, and cooldown expiry for game mechanics.
+- Description: NftFilter supports chillClaimed, orbsClaimed, maxLevel, cooldownExpiryBefore.
+- Why it matters: Frontend filters NFTs by game mechanics.
 - Source: user
 - Primary owning slice: M007/S02
 - Supporting slices: none
-- Validation: unmapped
-- Notes: Filter patterns: `chillClaimed: { value: { _eq: X } }`, `level: { value: { _lt: X } }`, `cooldownExpiry: { value: { _lte: X } }`.
+- Validation: validated
+- Notes: Delivered in M007.
 
 ### R021 — NftSortField supports score sorting
 - Class: core-capability
 - Status: validated
-- Description: NftSortField must include `score` to allow sorting NFTs by their rarity score (LSP4Metadata → LSP4MetadataScore.value).
-- Why it matters: The frontend needs to sort collection views by rarity score.
+- Description: NftSortField includes `score`.
+- Why it matters: Sort collection views by rarity score.
 - Source: user
 - Primary owning slice: M007/S01
 - Supporting slices: none
-- Validation: unmapped
-- Notes: Sort translates to `{ lsp4Metadata: { score: { value: asc/desc } } }` or similar nested Hasura order_by.
+- Validation: validated
+- Notes: Delivered in M007.
 
 ### R022 — getCollectionAttributes server action + useCollectionAttributes hook
 - Class: core-capability
 - Status: validated
-- Description: A new query vertical that fetches all distinct {key, value} pairs for a collection address from `lsp4_metadata_attribute`, plus the total NFT count in that collection. Exposed as a `fetchCollectionAttributes` service function, `getCollectionAttributes` Next.js server action, and `useCollectionAttributes` React/Next.js hooks.
-- Why it matters: The frontend needs attribute facets to build filter dropdown menus for NFT collections.
+- Description: Query vertical for distinct {key, value} pairs per collection + total NFT count.
+- Why it matters: Attribute facets for filter dropdowns.
 - Source: user
 - Primary owning slice: M007/S03
 - Supporting slices: none
-- Validation: unmapped
-- Notes: Uses Hasura distinct_on for attribute deduplication. Total count from nft_aggregate where address matches collection.
+- Validation: validated
+- Notes: Delivered in M007.
 
 ### R023 — OwnedTokenNftInclude exposes score, rank, and chillwhales custom fields
 - Class: core-capability
 - Status: validated
-- Description: When querying owned tokens with `include: { nft: { score: true, rank: true, chillClaimed: true, ... } }`, the nested NFT must include the new custom fields. OwnedTokenNftInclude inherits from NftInclude (minus collection/holder), so the new fields must flow through. The OwnedTokenNftScalarFieldMap and owned-token GraphQL documents must be updated.
-- Why it matters: The frontend queries owned tokens with nested NFT data including game properties.
+- Description: Nested NFT in owned token queries includes new custom fields.
+- Why it matters: Frontend queries owned tokens with game properties.
 - Source: user
 - Primary owning slice: M007/S02
 - Supporting slices: none
-- Validation: unmapped
-- Notes: OwnedTokenNftIncludeSchema is `NftIncludeSchema.omit({ collection: true, holder: true })` — new fields on NftIncludeSchema automatically appear, but the scalar field map and document need manual updates.
+- Validation: validated
+- Notes: Delivered in M007.
 
 ### R024 — OwnedAsset holder include returns full profile shape
 - Class: quality-attribute
 - Status: validated
-- Description: OwnedAssetInclude.holder with profile sub-include (name, description, tags, profileImage, backgroundImage) must return the correct Profile shape. This should already work via the existing `holder: z.union([z.boolean(), ProfileIncludeSchema])` pattern — needs verification, not new code.
-- Why it matters: The frontend shows holder profile data when listing owned assets.
+- Description: OwnedAssetInclude.holder with profile sub-include returns correct shape.
+- Why it matters: Frontend shows holder profile data.
 - Source: user
 - Primary owning slice: M007/S01
 - Supporting slices: none
-- Validation: unmapped
-- Notes: Quick verification task — confirm the existing wiring works.
+- Validation: validated
+- Notes: Delivered in M007.
 
 ### R025 — Full stack propagation for all changes
 - Class: quality-attribute
 - Status: validated
-- Description: All type changes must propagate through the full package stack: types (Zod schemas) → node (GraphQL documents, parsers, services, key factories) → react (hook factories) → next (server actions + hooks). The 5-package build must pass cleanly.
-- Why it matters: Incomplete propagation creates runtime failures or type mismatches between packages.
+- Description: All type changes propagate through full package stack.
+- Why it matters: Incomplete propagation creates runtime failures.
 - Source: inferred
 - Primary owning slice: M007/S04
-- Supporting slices: M007/S01, M007/S02, M007/S03
-- Validation: unmapped
-- Notes: Each slice verifies its own build. S04 does the final full-stack verification.
+- Supporting slices: M007/S01, S02, S03
+- Validation: validated
+- Notes: Delivered in M007.
 
 ### R026 — Documentation updated for all changes
 - Class: quality-attribute
 - Status: validated
-- Description: Docs pages (apps/docs) must be updated to reflect all new/changed types, hooks, filters, sort fields, and server actions per the AGENTS.md documentation matrix.
-- Why it matters: Outdated docs are worse than no docs (per AGENTS.md).
+- Description: Docs pages updated for all M007 changes.
+- Why it matters: Docs must reflect reality.
 - Source: inferred
 - Primary owning slice: M007/S04
 - Supporting slices: none
-- Validation: unmapped
-- Notes: Covers node docs (new types, filters, sort), react docs (domain tables), next docs (new server actions/hooks).
-
-## Validated
+- Validation: validated
+- Notes: Delivered in M007.
 
 ### R015 — Safe `supportsInterface` return parsing
 - Class: failure-visibility
 - Status: validated
-- Description: The VERIFY step's `multicallVerify` must handle non-boolean hex values from `supportsInterface` without crashing.
-- Why it matters: A rogue contract returning garbage hex crashes the indexer into an infinite restart loop.
+- Description: safeHexToBool wraps hexToBool with error handling.
+- Why it matters: Prevents pipeline crash on rogue contracts.
 - Source: user
 - Primary owning slice: M006/S01
 - Supporting slices: none
-- Validation: safeHexToBool wraps hexToBool in try-catch returning false on error. pnpm --filter=@chillwhales/indexer build passes.
-- Notes: All 3 call sites migrated.
+- Validation: validated
+- Notes: Delivered in M006.
 
 ### R016 — All `hexToBool` call sites hardened
 - Class: quality-attribute
 - Status: validated
-- Description: Every call site using viem's `hexToBool()` must use the safe helper instead.
-- Why it matters: The same crash pattern exists in multiple locations.
+- Description: All hexToBool call sites use safe wrapper.
+- Why it matters: Consistent crash prevention.
 - Source: inferred
 - Primary owning slice: M006/S01
 - Supporting slices: none
-- Validation: rg hexToBool shows only 3 matches inside the safe wrapper.
-- Notes: All 3 call sites migrated to safeHexToBool.
+- Validation: validated
+- Notes: Delivered in M006.
 
 ### R001 — Mutual follows query
 - Class: core-capability
 - Status: validated
-- Description: Given two addresses A and B, return the set of profiles that both A and B follow.
+- Description: Given two addresses, return profiles both follow.
 - Why it matters: Core social graph feature.
 - Source: user
 - Primary owning slice: M004/S01
 - Supporting slices: none
 - Validation: validated
-- Notes: Uses _and where-clause with dual followedBy filters.
+- Notes: Delivered in M004.
 
 ### R002 — Mutual followers query
 - Class: core-capability
 - Status: validated
-- Description: Given two addresses A and B, return profiles that follow both A and B.
+- Description: Given two addresses, return profiles that follow both.
 - Why it matters: Core social graph feature.
 - Source: user
 - Primary owning slice: M004/S01
 - Supporting slices: none
 - Validation: validated
-- Notes: Uses _and where-clause with dual followed filters.
+- Notes: Delivered in M004.
 
 ### R003 — Followed-by-my-follows query
 - Class: core-capability
 - Status: validated
-- Description: Given user's address and a target profile, return profiles from user's following list that also follow the target.
+- Description: Return profiles from user's following that also follow a target.
 - Why it matters: Social proof in follower lists.
 - Source: user
 - Primary owning slice: M004/S01
 - Supporting slices: none
 - Validation: validated
-- Notes: Uses myAddress + targetAddress params.
+- Notes: Delivered in M004.
 
 ### R004 — React hooks for mutual follow queries
 - Class: core-capability
 - Status: validated
-- Description: React hooks calling Hasura directly via getClientUrl() for all three mutual follow queries.
-- Why it matters: Consumer packages must expose hooks for direct browser usage.
+- Description: React hooks for all three mutual follow queries.
+- Why it matters: Consumer packages expose hooks for browser usage.
 - Source: inferred
 - Primary owning slice: M004/S01
 - Supporting slices: none
 - Validation: validated
-- Notes: 6 React hooks exported.
+- Notes: Delivered in M004.
 
 ### R005 — Next.js hooks and server actions for mutual follow queries
 - Class: core-capability
 - Status: validated
-- Description: Next.js hooks routing through server actions for all three mutual follow queries.
-- Why it matters: Consumer packages must expose hooks for Next.js apps.
+- Description: Next.js hooks routing through server actions.
+- Why it matters: Next.js app support.
 - Source: inferred
 - Primary owning slice: M004/S01
 - Supporting slices: none
 - Validation: validated
-- Notes: 3 server actions + 6 Next.js hooks.
+- Notes: Delivered in M004.
 
 ### R006 — ProfileInclude type narrowing on mutual follow results
 - Class: quality-attribute
 - Status: validated
-- Description: Returned profiles support the existing ProfileInclude type narrowing.
-- Why it matters: Consistency with existing hook API patterns.
+- Description: Returned profiles support ProfileInclude type narrowing.
+- Why it matters: Consistency with existing API patterns.
 - Source: inferred
 - Primary owning slice: M004/S01
 - Supporting slices: none
 - Validation: validated
-- Notes: 3-overload ProfileInclude narrowing on all hooks and server actions.
+- Notes: Delivered in M004.
 
 ### R007 — Infinite scroll variants for mutual follow hooks
 - Class: core-capability
 - Status: validated
-- Description: useInfiniteMutualFollows, useInfiniteMutualFollowers, useInfiniteFollowedByMyFollows with offset-based pagination.
-- Why it matters: Large result sets need infinite scroll.
+- Description: Infinite scroll hooks for all three mutual follow queries.
+- Why it matters: Large result sets need pagination.
 - Source: user
 - Primary owning slice: M004/S01
 - Supporting slices: none
 - Validation: validated
-- Notes: All 3 infinite scroll variants delivered.
+- Notes: Delivered in M004.
 
 ## Deferred
 
-(none)
+### R041 — Non-LSP chain plugin authoring (e.g. ERC-20 events)
+- Class: core-capability
+- Status: deferred
+- Description: Author event plugins for standard EVM events (ERC-20 Transfer, ERC-721 Transfer, ERC-1155 TransferSingle/Batch) for non-LSP chains.
+- Why it matters: Multi-chain only indexes LSP events until non-LSP plugins are authored.
+- Source: collaborative
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Deferred — LUKSO testnet proof uses same LSP ABIs. Non-LSP plugin work happens when onboarding a non-LSP chain.
+
+### R042 — Per-chain rate limit configuration
+- Class: operability
+- Status: deferred
+- Description: Each chain config should support independent RPC rate limits.
+- Why it matters: Different RPC providers have different rate limit thresholds.
+- Source: collaborative
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Deferred — LUKSO testnet likely shares same rate limit profile. Becomes important with heterogeneous chains.
+
+### R043 — Per-chain IPFS gateway configuration
+- Class: operability
+- Status: deferred
+- Description: Each chain config should support a chain-specific IPFS gateway URL.
+- Why it matters: LUKSO uses universalprofile.cloud IPFS gateway; other chains may use different gateways.
+- Source: collaborative
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: unmapped
+- Notes: Deferred — LUKSO testnet uses same IPFS gateway.
 
 ## Out of Scope
 
-(none)
+### R044 — Cross-chain aggregate Hasura views
+- Class: anti-feature
+- Status: out-of-scope
+- Description: Custom Hasura views that aggregate data across chains (e.g. combined transfer totals).
+- Why it matters: Prevents scope creep. Omitting the `network` filter already returns all-chain data.
+- Source: collaborative
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: n/a
+- Notes: Natural Hasura behavior gives cross-chain queries for free.
+
+### R045 — Generalized chillwhales handlers
+- Class: anti-feature
+- Status: out-of-scope
+- Description: Making chillwhales-specific handlers (chillClaimed, orbLevel, orbFaction, etc.) generic for any chain.
+- Why it matters: Prevents unnecessary abstraction of project-specific game mechanics.
+- Source: user
+- Primary owning slice: none
+- Supporting slices: none
+- Validation: n/a
+- Notes: Chillwhales handlers stay LUKSO-only via `supportedChains: ['lukso']`.
 
 ## Traceability
 
 | ID | Class | Status | Primary owner | Supporting | Proof |
 |---|---|---|---|---|---|
+| R027 | core-capability | active | M008/S01 | M008/S02 | unmapped |
+| R028 | core-capability | active | M009/S01 | none | unmapped |
+| R029 | core-capability | active | M009/S02 | none | unmapped |
+| R030 | core-capability | active | M009/S02 | none | unmapped |
+| R031 | core-capability | active | M009/S02 | none | unmapped |
+| R032 | core-capability | active | M009/S03 | none | unmapped |
+| R033 | core-capability | active | M009/S03 | none | unmapped |
+| R034 | operability | active | M009/S04 | none | unmapped |
+| R035 | integration | active | M009/S05 | none | unmapped |
+| R036 | constraint | active | M008, M009 | all | unmapped |
+| R037 | core-capability | active | M010/S01 | none | unmapped |
+| R038 | core-capability | active | M010/S02 | none | unmapped |
+| R039 | core-capability | active | M010/S03 | none | unmapped |
+| R040 | quality-attribute | active | M010/S04 | none | unmapped |
+| R041 | core-capability | deferred | none | none | unmapped |
+| R042 | operability | deferred | none | none | unmapped |
+| R043 | operability | deferred | none | none | unmapped |
+| R044 | anti-feature | out-of-scope | none | none | n/a |
+| R045 | anti-feature | out-of-scope | none | none | n/a |
 | R017 | core-capability | validated | M007/S01 | none | validated |
 | R018 | core-capability | validated | M007/S01 | none | validated |
 | R019 | core-capability | validated | M007/S01 | none | validated |
@@ -249,7 +473,9 @@ This file is the explicit capability and coverage contract for the project.
 
 ## Coverage Summary
 
-- Active requirements: 10
-- Mapped to slices: 10
-- Validated: 9
+- Active requirements: 14
+- Mapped to slices: 14
+- Validated: 19
+- Deferred: 3
+- Out of scope: 2
 - Unmapped active requirements: 0
