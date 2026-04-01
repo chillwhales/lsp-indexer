@@ -11,10 +11,7 @@ export default tseslint.config(
       '**/dist/',
       '**/.pnpm-store/',
 
-      // Codegen output — not checked into git
-      'packages/abi/src/',
-      'packages/typeorm/src/',
-      'packages/typeorm/db/',
+      // Codegen output — auto-generated, don't lint
       'packages/indexer/src/abi/',
       'packages/indexer/src/model/',
 
