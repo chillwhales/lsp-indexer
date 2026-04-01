@@ -20,33 +20,28 @@ Guidelines for AI coding agents working in this repository.
 
 ## Project Overview
 
-LUKSO blockchain indexer — pnpm monorepo with 3 packages:
+LUKSO blockchain indexer — pnpm monorepo with a single indexer package:
 
-| Package                | Purpose                              | Build                                      |
-| ---------------------- | ------------------------------------ | ------------------------------------------ |
-| `@chillwhales/abi`     | ABI codegen (Subsquid typegen)       | `pnpm --filter=@chillwhales/abi build`     |
-| `@chillwhales/typeorm` | Entity codegen from `schema.graphql` | `pnpm --filter=@chillwhales/typeorm build` |
-| `@chillwhales/indexer` | Blockchain indexer (active)          | `pnpm --filter=@chillwhales/indexer build` |
+| Package                | Purpose                                                 | Build                                      |
+| ---------------------- | ------------------------------------------------------- | ------------------------------------------ |
+| `@chillwhales/indexer` | Blockchain indexer with integrated ABI + entity codegen | `pnpm --filter=@chillwhales/indexer build` |
 
 Stack: TypeScript, Subsquid framework, TypeORM, Hasura GraphQL, LUKSO LSP standards.
 
 ## Build & Dev Commands
 
 ```bash
-# Build specific package (most common)
+# Build the indexer (runs codegen + tsc)
 pnpm --filter=@chillwhales/indexer build
 
 # Build all packages
 pnpm build
 
-# Rebuild typeorm after schema.graphql changes (codegen + tsc)
-pnpm --filter=@chillwhales/typeorm build
-
 # Format all files
 pnpm format
 ```
 
-**Important**: If `Follower` or other entity imports fail in indexer, rebuild typeorm first — codegen generates entities from `packages/typeorm/schema.graphql`.
+**Important**: If `Follower` or other entity imports fail, rebuild the indexer — codegen generates entities from `packages/indexer/schema.graphql`.
 
 There are no tests, no ESLint, and no git hooks configured. The only code quality tool is Prettier.
 
@@ -71,7 +66,7 @@ Import statements are automatically organized by `prettier-plugin-organize-impor
 ```typescript
 import { v4 as uuidv4 } from 'uuid';
 import { LSP5DataKeys } from '@lukso/lsp5-contracts';
-import { LSP5ReceivedAsset } from '@chillwhales/typeorm';
+import { LSP5ReceivedAsset } from '@/model';
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToHex, Hex, hexToBytes } from 'viem';
 import { mergeUpsertEntities, populateByUP } from '@/core/pluginHelpers';

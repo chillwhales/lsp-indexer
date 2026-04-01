@@ -51,55 +51,32 @@ The project is organized as a monorepo with several packages:
 
 ```mermaid
 graph TD
-    A[packages/] --> B[abi/]
-    A --> C[indexer/]
-    A --> D[typeorm/]
-
-    subgraph abi_
-        B1[package.json]
-        B2[custom/]
-        B3[scripts/codegen.sh]
-    end
+    A[packages/] --> C[indexer/]
 
     subgraph indexer_
         C1[src/app/]
         C2[src/utils/]
         C3[src/constants/]
-        C4[src/types/]
-    end
-
-    subgraph typeorm_
-        D1[package.json]
-        D2[schema.graphql]
+        C4[src/core/]
+        C5[abi/ - ABI JSON + codegen]
+        C6[schema.graphql - entity codegen]
     end
 ```
 
-### `packages/abi/`
-
-Contains ABI (Application Binary Interface) definitions for smart contracts. These are used to decode events from the blockchain.
-
-- **Key Files**:
-  - `package.json`
-  - `custom/` - Custom ABI files that need to be tarnsformed.
-  - `scripts/codegen.sh` - Script used to transform the the JSON ABI to TypeScript ABI.
-
 ### `packages/indexer/`
 
-The main indexer package that listens to blockchain events and processes them.
+The main indexer package with integrated ABI and entity codegen. Listens to blockchain events, processes them through a 6-step pipeline, and writes normalized data to PostgreSQL.
 
 - **Key Directories**:
-  - `src/app/` - Main application logic
+  - `src/app/` - Main application logic (bootstrap, processor, pipeline config)
+  - `src/core/` - Pipeline orchestrator, registry, batch context, verification
+  - `src/plugins/events/` - EventPlugins (one per event type)
+  - `src/handlers/` - EntityHandlers (derived entity creation)
   - `src/utils/` - Utility functions for processing data
   - `src/constants/` - Constant values used throughout the project
-  - `src/types/` - TypeScript type definitions
-
-### `packages/typeorm/`
-
-Handles database schema and migrations using TypeORM.
-
-- **Key Files**:
-  - `package.json`
-  - `schema.graphql` - GraphQL schema for data querying
+  - `abi/custom/` - ABI JSON files for codegen
+  - `schema.graphql` - Entity schema for TypeORM codegen
+  - `scripts/` - Codegen scripts (ABI typegen, entity codegen)
 
 ## Event Processing Flow
 

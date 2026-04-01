@@ -23,15 +23,14 @@ jobs:
       format-command: pnpm format:check
       typecheck-command: pnpm typecheck
       test-command: pnpm test:coverage
-      pre-lint-command: 'pnpm --filter=@chillwhales/abi build && pnpm --filter=@chillwhales/typeorm build'
+      pre-lint-command: 'pnpm --filter=@chillwhales/indexer build'
       test-node-versions: '[20, 22]'
       artifact-paths: |
         packages/types/dist
         packages/node/dist
         packages/react/dist
         packages/next/dist
-        packages/abi/lib
-        packages/typeorm/lib
+        packages/indexer/lib
 
   # ---------------------------------------------------------------------------
   # Quality checks (shared from chillwhales/.github)

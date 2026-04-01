@@ -18,7 +18,7 @@ Fixtures use the Subsquid SDK's block format. Each fixture represents a single b
 
 - Block header (height, hash, timestamp, parentHash) — synthetic values
 - Logs array (address, topics, data, transactionHash, logIndex) — real topic0 hashes, synthetic addresses
-- **Real elements:** Event topic0 hashes from `@chillwhales/abi` (LSP7, LSP8, DataChanged)
+- **Real elements:** Event topic0 hashes from the indexer's ABI codegen (LSP7, LSP8, DataChanged)
 - **Synthetic elements:** Addresses (`0x1234...`, `0xdead...`), hashes, block numbers for privacy/simplicity
 
 ## Selection Criteria
@@ -35,7 +35,7 @@ Fixtures use the Subsquid SDK's block format. Each fixture represents a single b
 ## Adding New Fixtures
 
 1. Create synthetic block fixture matching Subsquid block structure
-2. Use **real topic0 hashes** from `@chillwhales/abi` for event types
+2. Use **real topic0 hashes** from the indexer's ABI codegen for event types
 3. Use **synthetic addresses/hashes** for privacy (e.g., `0x1234...`, `0xabcd...`)
 4. Save as JSON with descriptive filename
 5. Update this README with fixture purpose and event types

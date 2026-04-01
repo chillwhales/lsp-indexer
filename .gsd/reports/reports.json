@@ -1,7 +1,7 @@
 {
   "version": 1,
   "projectName": "lsp-indexer",
-  "projectPath": "/home/coder/lsp-indexer",
+  "projectPath": ".",
   "gsdVersion": "2.58.0",
   "entries": [
     {

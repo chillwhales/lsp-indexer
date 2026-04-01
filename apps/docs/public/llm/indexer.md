@@ -127,11 +127,7 @@ For development on the indexer itself:
 # Install dependencies
 pnpm install
 
-# Build codegen packages first
-pnpm --filter=@chillwhales/abi build
-pnpm --filter=@chillwhales/typeorm build
-
-# Build the indexer
+# Build the indexer (runs codegen + tsc)
 pnpm --filter=@chillwhales/indexer build
 
 # Run (requires PostgreSQL and Hasura running)

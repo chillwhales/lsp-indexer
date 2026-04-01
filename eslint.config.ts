@@ -14,6 +14,7 @@ export default tseslint.config(
       // Codegen output — auto-generated, don't lint
       'packages/indexer/src/abi/',
       'packages/indexer/src/model/',
+      'packages/indexer/db/',
 
       // Codegen output — auto-generated, don't lint
       'packages/node/src/graphql/',

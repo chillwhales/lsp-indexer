@@ -70,7 +70,7 @@ docker compose -f docker-compose.yml --env-file ../.env ps
 
    - Compiles TypeScript (`pnpm build`)
    - Generates typeorm entities from `schema.graphql`
-   - Builds all packages: `abi` → `typeorm` → `indexer`
+   - Builds the indexer (runs codegen + tsc in one step)
 
 3. **Stage 3: Runner**
    - Minimal production image
@@ -291,10 +291,10 @@ Migrations run automatically on container startup via TypeORM.
 
 ```bash
 # View migration status (from host)
-docker exec lsp-indexer pnpm --filter=@chillwhales/typeorm migration:show
+docker exec lsp-indexer pnpm --filter=@chillwhales/indexer migration:show
 
 # Manual migration (if needed)
-docker exec lsp-indexer pnpm --filter=@chillwhales/typeorm migration:apply
+docker exec lsp-indexer pnpm --filter=@chillwhales/indexer migration:apply
 ```
 
 ### Database Reset
