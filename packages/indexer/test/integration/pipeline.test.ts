@@ -10,7 +10,7 @@ import {
   IMetadataWorkerPool,
   VerificationResult,
 } from '@/core/types';
-import { DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
+import { DigitalAsset, UniversalProfile } from '@/model';
 import { Store } from '@subsquid/typeorm-store';
 import fs from 'fs';
 import path from 'path';
