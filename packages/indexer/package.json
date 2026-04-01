@@ -1,7 +1,7 @@
 {
   "name": "@chillwhales/indexer",
   "private": true,
-  "version": "2.3.6",
+  "version": "2.4.0",
   "description": "LUKSO blockchain indexer — plugin architecture",
   "keywords": [],
   "author": "b00ste",
