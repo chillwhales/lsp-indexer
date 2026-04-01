@@ -17,7 +17,7 @@
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler } from '@/core/types';
 import { isNullAddress } from '@/utils';
-import { TotalSupply, Transfer } from '@chillwhales/typeorm';
+import { TotalSupply, Transfer } from '@/model';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 
 // Entity type key used in the BatchContext entity bag

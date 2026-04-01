@@ -23,8 +23,8 @@ import {
   type IBatchContext,
   type Log,
 } from '@/core/types';
-import { LSP26FollowerSystem } from '@chillwhales/abi';
-import { Unfollow } from '@chillwhales/typeorm';
+import { LSP26FollowerSystem } from '@/abi';
+import { Unfollow } from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

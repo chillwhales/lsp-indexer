@@ -11,8 +11,8 @@
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { isNullAddress } from '@/utils';
-import { LSP0ERC725Account } from '@chillwhales/abi';
-import { UniversalReceiver } from '@chillwhales/typeorm';
+import { LSP0ERC725Account } from '@/abi';
+import { UniversalReceiver } from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

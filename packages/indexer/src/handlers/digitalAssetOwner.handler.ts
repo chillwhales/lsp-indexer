@@ -18,7 +18,7 @@
  */
 
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { DigitalAssetOwner } from '@chillwhales/typeorm';
+import { DigitalAssetOwner } from '@/model';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'DigitalAssetOwner';

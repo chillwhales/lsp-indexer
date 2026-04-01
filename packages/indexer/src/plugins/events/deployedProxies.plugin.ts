@@ -13,12 +13,12 @@
  */
 import { LSP23_ADDRESS } from '@/constants';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
-import { LSP23LinkedContractsFactory } from '@chillwhales/abi';
+import { LSP23LinkedContractsFactory } from '@/abi';
 import {
   DeployedERC1167Proxies,
   PrimaryContractDeploymentInit,
   SecondaryContractDeploymentInit,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

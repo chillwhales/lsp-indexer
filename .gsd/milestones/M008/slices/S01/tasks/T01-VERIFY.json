@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M008/S01/T01",
+  "timestamp": 1775031625475,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "pnpm --filter=@chillwhales/indexer codegen",
+      "exitCode": 0,
+      "durationMs": 618,
+      "verdict": "pass"
+    },
+    {
+      "command": "ls packages/indexer/src/abi/index.ts",
+      "exitCode": 0,
+      "durationMs": 3,
+      "verdict": "pass"
+    },
+    {
+      "command": "ls packages/indexer/src/model/index.ts",
+      "exitCode": 0,
+      "durationMs": 2,
+      "verdict": "pass"
+    }
+  ]
+}

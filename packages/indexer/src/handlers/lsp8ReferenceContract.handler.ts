@@ -6,7 +6,7 @@
  * reference contract address value.
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { LSP8ReferenceContract } from '@chillwhales/typeorm';
+import { LSP8ReferenceContract } from '@/model';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { isHex } from 'viem';
 

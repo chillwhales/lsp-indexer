@@ -9,7 +9,7 @@
  * - Should handle empty event bags
  */
 import { EntityCategory, type HandlerContext } from '@/core/types';
-import { OwnershipTransferred, UniversalProfileOwner } from '@chillwhales/typeorm';
+import { OwnershipTransferred, UniversalProfileOwner } from '@/model';
 import { describe, expect, it, vi } from 'vitest';
 import UniversalProfileOwnerHandler from '../universalProfileOwner.handler';
 

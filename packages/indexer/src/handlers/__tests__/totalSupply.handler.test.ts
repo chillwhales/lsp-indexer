@@ -5,7 +5,7 @@
  * - HNDL-01: FK field is preserved during entity reconstruction (regression test for #146)
  */
 import { EntityCategory, type HandlerContext } from '@/core/types';
-import { TotalSupply, Transfer } from '@chillwhales/typeorm';
+import { TotalSupply, Transfer } from '@/model';
 import { Store } from '@subsquid/typeorm-store';
 import { v4 as uuidv4 } from 'uuid';
 import { zeroAddress } from 'viem';

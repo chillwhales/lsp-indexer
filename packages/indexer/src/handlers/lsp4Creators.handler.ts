@@ -34,7 +34,7 @@
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
-import { DataChanged, LSP4Creator, LSP4CreatorsLength } from '@chillwhales/typeorm';
+import { DataChanged, LSP4Creator, LSP4CreatorsLength } from '@/model';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 

@@ -9,7 +9,7 @@
  * - Should handle empty event bags
  */
 import { EntityCategory, type HandlerContext } from '@/core/types';
-import { DigitalAssetOwner, OwnershipTransferred } from '@chillwhales/typeorm';
+import { DigitalAssetOwner, OwnershipTransferred } from '@/model';
 import { describe, expect, it, vi } from 'vitest';
 import DigitalAssetOwnerHandler from '../digitalAssetOwner.handler';
 

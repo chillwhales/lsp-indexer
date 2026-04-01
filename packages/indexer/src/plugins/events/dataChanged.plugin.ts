@@ -18,8 +18,8 @@
  * As a plain export, this plugin is auto-discovered by PluginRegistry.discover().
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
-import { ERC725Y } from '@chillwhales/abi';
-import { DataChanged } from '@chillwhales/typeorm';
+import { ERC725Y } from '@/abi';
+import { DataChanged } from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

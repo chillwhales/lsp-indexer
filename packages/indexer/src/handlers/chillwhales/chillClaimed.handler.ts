@@ -14,9 +14,9 @@ import { CHILL_ADDRESS, CHILLWHALES_ADDRESS } from '@/constants/chillwhales';
 import { aggregate3StaticLatest } from '@/core/multicall';
 import { EntityCategory, EntityHandler } from '@/core/types';
 import { generateTokenId, isNullAddress, safeHexToBool } from '@/utils';
-import { CHILL } from '@chillwhales/abi';
-import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
-import { ChillClaimed, Transfer } from '@chillwhales/typeorm';
+import { CHILL } from '@/abi';
+import { Aggregate3StaticReturn } from '@/abi/Multicall3';
+import { ChillClaimed, Transfer } from '@/model';
 import { getAddress, isAddressEqual, isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag

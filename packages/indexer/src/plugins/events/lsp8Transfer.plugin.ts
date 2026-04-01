@@ -19,8 +19,8 @@
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { isNullAddress } from '@/utils';
-import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
-import { Transfer } from '@chillwhales/typeorm';
+import { LSP8IdentifiableDigitalAsset } from '@/abi';
+import { Transfer } from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

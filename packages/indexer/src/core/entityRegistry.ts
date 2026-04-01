@@ -88,7 +88,7 @@ import {
   UniversalProfile,
   UniversalProfileOwner,
   UniversalReceiver,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { FindManyOptions, Store } from '@subsquid/typeorm-store';
 import { FindOptionsWhere, In } from 'typeorm';
 

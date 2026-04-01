@@ -18,7 +18,7 @@ import {
   LSP29EncryptedAssetEntry,
   LSP29EncryptedAssetRevisionCount,
   LSP29EncryptedAssetsLength,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { numberToHex, padHex } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import LSP29EncryptedAssetHandler from '../lsp29EncryptedAsset.handler';

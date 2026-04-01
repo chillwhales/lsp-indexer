@@ -12,7 +12,7 @@
  */
 import { EntityCategory, type HandlerContext } from '@/core/types';
 import { generateOwnedAssetId, generateOwnedTokenId } from '@/utils';
-import { OwnedAsset, OwnedToken, Transfer } from '@chillwhales/typeorm';
+import { OwnedAsset, OwnedToken, Transfer } from '@/model';
 import { Store } from '@subsquid/typeorm-store';
 import { describe, expect, it, vi } from 'vitest';
 import OwnedAssetsHandler from '../ownedAssets.handler';

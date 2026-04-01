@@ -14,7 +14,7 @@
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
 import { decodeVerifiableUri } from '@/utils';
-import { LSP3Profile } from '@chillwhales/typeorm';
+import { LSP3Profile } from '@/model';
 import { LSP3DataKeys } from '@lukso/lsp3-contracts';
 
 // Entity type key used in the BatchContext entity bag

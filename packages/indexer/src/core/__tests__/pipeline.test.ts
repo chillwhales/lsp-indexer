@@ -6,7 +6,7 @@ import {
   TotalSupply,
   Transfer,
   UniversalProfile,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { Store } from '@subsquid/typeorm-store';
 import { describe, expect, it, vi } from 'vitest';
 import { processBatch, VerifyFn } from '../pipeline';

@@ -34,7 +34,7 @@ import {
   LSP3ProfileLink,
   LSP3ProfileName,
   LSP3ProfileTag,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

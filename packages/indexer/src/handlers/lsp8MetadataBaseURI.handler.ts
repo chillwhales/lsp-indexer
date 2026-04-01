@@ -10,7 +10,7 @@
  *   - Remaining bytes: UTF-8 encoded base URI string
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { LSP8TokenMetadataBaseURI } from '@chillwhales/typeorm';
+import { LSP8TokenMetadataBaseURI } from '@/model';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { concat, hexToString, isHex, keccak256, sliceHex, toHex } from 'viem';
 

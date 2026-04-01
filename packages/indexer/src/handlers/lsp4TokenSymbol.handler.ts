@@ -6,7 +6,7 @@
  * token symbol string from the data value.
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { LSP4TokenSymbol } from '@chillwhales/typeorm';
+import { LSP4TokenSymbol } from '@/model';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { hexToString, isHex } from 'viem';
 

@@ -11,7 +11,7 @@
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
-import { LSP4Metadata, LSP8TokenMetadataBaseURI, NFT, Transfer } from '@chillwhales/typeorm';
+import { LSP4Metadata, LSP8TokenMetadataBaseURI, NFT, Transfer } from '@/model';
 import { In } from 'typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 

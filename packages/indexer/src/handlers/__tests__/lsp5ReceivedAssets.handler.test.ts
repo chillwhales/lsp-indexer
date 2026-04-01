@@ -7,7 +7,7 @@
  * - Ensures no data loss when events fire across batch boundaries
  */
 import { type HandlerContext } from '@/core/types';
-import { DataChanged, LSP5ReceivedAsset } from '@chillwhales/typeorm';
+import { DataChanged, LSP5ReceivedAsset } from '@/model';
 import { LSP5DataKeys } from '@lukso/lsp5-contracts';
 import { Store } from '@subsquid/typeorm-store';
 import { bytesToHex, hexToBytes } from 'viem';

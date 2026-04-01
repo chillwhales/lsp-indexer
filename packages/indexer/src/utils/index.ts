@@ -1,6 +1,6 @@
 import { DEAD_ADDRESS, MAX_CHUNK_ARRAY_LENGTH, MAX_JSON_LENGTH, ZERO_ADDRESS } from '@/constants';
 import { BlockPosition } from '@/core/types';
-import { LSP4TokenTypeEnum, LSP8TokenIdFormatEnum, OperationType } from '@chillwhales/typeorm';
+import { LSP4TokenTypeEnum, LSP8TokenIdFormatEnum, OperationType } from '@/model';
 import { isNumeric } from '@chillwhales/utils';
 import ERC725 from '@erc725/erc725.js';
 import type { Verification } from '@lukso/lsp2-contracts';

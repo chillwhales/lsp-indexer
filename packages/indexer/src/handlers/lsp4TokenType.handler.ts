@@ -7,7 +7,7 @@
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
 import { decodeTokenType, safeHexToNumber } from '@/utils';
-import { LSP4TokenType, LSP4TokenTypeEnum } from '@chillwhales/typeorm';
+import { LSP4TokenType, LSP4TokenTypeEnum } from '@/model';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { isHex } from 'viem';
 

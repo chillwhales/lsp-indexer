@@ -25,7 +25,7 @@ import { ORB_FACTION_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { resolveEntity } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler } from '@/core/types';
 import { generateTokenId } from '@/utils';
-import { OrbFaction } from '@chillwhales/typeorm';
+import { OrbFaction } from '@/model';
 import { getAddress, Hex, hexToString, isAddressEqual, zeroAddress } from 'viem';
 
 // ---------------------------------------------------------------------------

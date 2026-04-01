@@ -17,7 +17,7 @@ import {
   LSP3ProfileLink,
   LSP3ProfileName,
   LSP3ProfileTag,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { describe, expect, it, vi } from 'vitest';
 import LSP3ProfileFetchHandler from '../lsp3ProfileFetch.handler';
 

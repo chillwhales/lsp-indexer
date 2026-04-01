@@ -16,7 +16,7 @@
  */
 import { EntityCategory, type EntityHandler } from '@/core/types';
 import { generateFollowId } from '@/utils';
-import { Follower } from '@chillwhales/typeorm';
+import { Follower } from '@/model';
 
 const FOLLOWER_TYPE = 'Follower';
 

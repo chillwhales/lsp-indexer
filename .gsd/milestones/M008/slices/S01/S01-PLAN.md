@@ -39,7 +39,7 @@
   - Estimate: 45m
   - Files: packages/indexer/package.json, packages/indexer/scripts/abi-codegen.sh, packages/indexer/schema.graphql, packages/indexer/abi/custom/CHILL.json, packages/indexer/abi/custom/Multicall3.json, packages/indexer/abi/custom/ORBS.json, packages/indexer/src/model.ts
   - Verify: pnpm --filter=@chillwhales/indexer codegen && ls packages/indexer/src/abi/index.ts && ls packages/indexer/src/model/index.ts && test $(ls packages/indexer/src/abi/*.ts | wc -l) -gt 40 && test $(ls packages/indexer/src/model/generated/*.ts | wc -l) -gt 70
-- [ ] **T02: Rewrite all imports and remove workspace dependencies** — Replace every `@chillwhales/abi` and `@chillwhales/typeorm` import in the indexer with local path aliases, remove the workspace dependencies, and verify the full build passes.
+- [x] **T02: Replaced 71 @chillwhales/abi and @chillwhales/typeorm imports with local path aliases and removed both workspace deps from package.json — build passes clean** — Replace every `@chillwhales/abi` and `@chillwhales/typeorm` import in the indexer with local path aliases, remove the workspace dependencies, and verify the full build passes.
 
 ## Steps
 

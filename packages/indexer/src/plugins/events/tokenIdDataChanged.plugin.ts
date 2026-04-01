@@ -18,8 +18,8 @@
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
-import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
-import { TokenIdDataChanged } from '@chillwhales/typeorm';
+import { LSP8IdentifiableDigitalAsset } from '@/abi';
+import { TokenIdDataChanged } from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

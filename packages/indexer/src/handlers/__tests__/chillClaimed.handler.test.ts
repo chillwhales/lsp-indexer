@@ -18,7 +18,7 @@ import { CHILLWHALES_ADDRESS } from '@/constants/chillwhales';
 import { aggregate3StaticLatest } from '@/core/multicall';
 import { EntityCategory, type HandlerContext } from '@/core/types';
 import { generateTokenId } from '@/utils';
-import { ChillClaimed, Transfer } from '@chillwhales/typeorm';
+import { ChillClaimed, Transfer } from '@/model';
 import { Store } from '@subsquid/typeorm-store';
 import { zeroAddress } from 'viem';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

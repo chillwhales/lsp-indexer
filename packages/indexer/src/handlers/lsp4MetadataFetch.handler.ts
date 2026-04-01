@@ -46,7 +46,7 @@ import {
   LSP4MetadataName,
   LSP4MetadataRank,
   LSP4MetadataScore,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { isNumeric } from '@chillwhales/utils';
 import { v4 as uuidv4 } from 'uuid';
 

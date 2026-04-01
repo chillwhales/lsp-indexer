@@ -42,7 +42,7 @@ import {
   LSP29EncryptedAssetEntry,
   LSP29EncryptedAssetRevisionCount,
   LSP29EncryptedAssetsLength,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
 // ---------------------------------------------------------------------------

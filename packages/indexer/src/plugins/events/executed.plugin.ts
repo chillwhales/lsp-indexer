@@ -11,8 +11,8 @@
  */
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 import { decodeOperationType, isNullAddress } from '@/utils';
-import { ERC725X } from '@chillwhales/abi';
-import { Executed } from '@chillwhales/typeorm';
+import { ERC725X } from '@/abi';
+import { Executed } from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
