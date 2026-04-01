@@ -11,10 +11,10 @@ export default tseslint.config(
       '**/dist/',
       '**/.pnpm-store/',
 
-      // Codegen output — not checked into git
-      'packages/abi/src/',
-      'packages/typeorm/src/',
-      'packages/typeorm/db/',
+      // Codegen output — auto-generated, don't lint
+      'packages/indexer/src/abi/',
+      'packages/indexer/src/model/',
+      'packages/indexer/db/',
 
       // Codegen output — auto-generated, don't lint
       'packages/node/src/graphql/',
@@ -105,7 +105,7 @@ export default tseslint.config(
       // Allow require() for dynamic plugin loading in registry
       '@typescript-eslint/no-require-imports': 'warn',
 
-      // Codegen enums from @chillwhales/typeorm resolve as error types in CI,
+      // Codegen enums from indexer codegen resolve as error types in CI,
       // causing false positives on union types like `LSP4TokenTypeEnum | null`
       '@typescript-eslint/no-redundant-type-constituents': 'off',
 

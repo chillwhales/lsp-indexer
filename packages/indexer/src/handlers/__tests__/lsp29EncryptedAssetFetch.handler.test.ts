@@ -18,7 +18,7 @@ import {
   LSP29EncryptedAssetFile,
   LSP29EncryptedAssetImage,
   LSP29EncryptedAssetTitle,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { describe, expect, it, vi } from 'vitest';
 import LSP29EncryptedAssetFetchHandler from '../lsp29EncryptedAssetFetch.handler';
 

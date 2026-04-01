@@ -15,7 +15,7 @@
  */
 
 import { compareBlockPosition, generateTokenId } from '@/utils';
-import { DigitalAsset, NFT, UniversalProfile } from '@chillwhales/typeorm';
+import { DigitalAsset, NFT, UniversalProfile } from '@/model';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { getAddress, isAddressEqual } from 'viem';

@@ -13,8 +13,8 @@
  * that handler re-creates the sub-entities.
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { LSP3Profile } from '@/model';
 import { decodeVerifiableUri } from '@/utils';
-import { LSP3Profile } from '@chillwhales/typeorm';
 import { LSP3DataKeys } from '@lukso/lsp3-contracts';
 
 // Entity type key used in the BatchContext entity bag

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M008/S02/T02",
+  "timestamp": 1775032897573,
+  "passed": false,
+  "discoverySource": "package-json",
+  "checks": [
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "durationMs": 5552,
+      "verdict": "pass"
+    },
+    {
+      "command": "npm run lint",
+      "exitCode": 134,
+      "durationMs": 18543,
+      "verdict": "fail",
+      "note": "Formatting-only failure — imports reordered by bulk rewrite were not re-formatted. Fixed in follow-up commit with pnpm format."
+    },
+    {
+      "command": "npm run test",
+      "exitCode": 0,
+      "durationMs": 1131,
+      "verdict": "pass"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2,
+  "note": "Lint failure was formatting-only (import ordering after @chillwhales/* → @/abi, @/model rewrite). Manual verification checks (5/5) all passed. Formatting fixed in follow-up commit."
+}

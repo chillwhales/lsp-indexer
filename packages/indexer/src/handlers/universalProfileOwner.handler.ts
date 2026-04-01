@@ -18,7 +18,7 @@
  */
 
 import { EntityCategory, EntityHandler } from '@/core/types';
-import { UniversalProfileOwner } from '@chillwhales/typeorm';
+import { UniversalProfileOwner } from '@/model';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'UniversalProfileOwner';

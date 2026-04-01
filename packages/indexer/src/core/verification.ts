@@ -8,8 +8,8 @@
  * Categories: UniversalProfile (LSP0), DigitalAsset (LSP7/LSP8), NFT (no-op).
  */
 
-import { LSP0ERC725Account, LSP7DigitalAsset } from '@chillwhales/abi';
-import { DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
+import { LSP0ERC725Account, LSP7DigitalAsset } from '@/abi';
+import { DigitalAsset, UniversalProfile } from '@/model';
 import { INTERFACE_ID_LSP0 } from '@lukso/lsp0-contracts';
 import { INTERFACE_ID_LSP7, INTERFACE_ID_LSP7_PREVIOUS } from '@lukso/lsp7-contracts';
 import { INTERFACE_ID_LSP8, INTERFACE_ID_LSP8_PREVIOUS } from '@lukso/lsp8-contracts';
@@ -18,7 +18,7 @@ import { In } from 'typeorm';
 import { type Hex, isHex } from 'viem';
 import { safeHexToBool } from '@/utils';
 
-import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
+import { Aggregate3StaticReturn } from '@/abi/Multicall3';
 import { aggregate3StaticLatest } from './multicall';
 import { BlockPosition, Context, EntityCategory, VerificationResult } from './types';
 

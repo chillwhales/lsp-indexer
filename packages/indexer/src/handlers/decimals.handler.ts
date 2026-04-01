@@ -14,12 +14,12 @@
  *   - Handles Multicall3 failures gracefully (some assets may not have decimals)
  */
 
+import { LSP7DigitalAsset } from '@/abi';
+import { Aggregate3StaticReturn } from '@/abi/Multicall3';
 import { aggregate3StaticLatest } from '@/core/multicall';
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { Decimals } from '@/model';
 import { safeHexToNumber } from '@/utils';
-import { LSP7DigitalAsset } from '@chillwhales/abi';
-import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
-import { Decimals } from '@chillwhales/typeorm';
 import { isHex } from 'viem';
 
 // Entity type key used in the BatchContext entity bag

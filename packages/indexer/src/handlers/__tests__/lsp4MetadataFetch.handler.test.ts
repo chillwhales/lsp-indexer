@@ -22,7 +22,7 @@ import {
   LSP4MetadataName,
   LSP4MetadataRank,
   LSP4MetadataScore,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { describe, expect, it, vi } from 'vitest';
 import LSP4MetadataFetchHandler from '../lsp4MetadataFetch.handler';
 

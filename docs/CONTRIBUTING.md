@@ -23,9 +23,7 @@ Thank you for considering contributing to the LSP Indexer! We welcome all types 
 
 The LSP Indexer is a monorepo organized into several packages:
 
-- `packages/abi/`: Contains ABI definitions for smart contracts.
-- `packages/indexer/`: The main indexer package that listens to blockchain events.
-- `packages/typeorm/`: TypeORM setup and database schema.
+- `packages/indexer/`: The main indexer package with integrated ABI and entity codegen.
 
 Each package has its own `package.json` and TypeScript configuration. The main entry point is in `packages/indexer/src/app/index.ts`.
 

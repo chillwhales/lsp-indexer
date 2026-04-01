@@ -37,7 +37,7 @@
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
-import { DataChanged, LSP5ReceivedAsset, LSP5ReceivedAssetsLength } from '@chillwhales/typeorm';
+import { DataChanged, LSP5ReceivedAsset, LSP5ReceivedAssetsLength } from '@/model';
 import { LSP5DataKeys } from '@lukso/lsp5-contracts';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 

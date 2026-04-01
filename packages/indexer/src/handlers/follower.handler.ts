@@ -15,8 +15,8 @@
  * - No direct `store.*` calls — follows pipeline conventions
  */
 import { EntityCategory, type EntityHandler } from '@/core/types';
+import { Follower } from '@/model';
 import { generateFollowId } from '@/utils';
-import { Follower } from '@chillwhales/typeorm';
 
 const FOLLOWER_TYPE = 'Follower';
 

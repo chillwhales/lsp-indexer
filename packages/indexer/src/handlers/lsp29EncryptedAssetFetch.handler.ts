@@ -20,13 +20,6 @@
  */
 import { createComponentLogger } from '@/core/logger';
 import { EntityHandler, HandlerContext } from '@/core/types';
-import { isFileImage, safeBigInt, safeChunkArray, safeJsonStringify } from '@/utils';
-import {
-  handleMetadataFetch,
-  MetadataFetchConfig,
-  SubEntityDescriptor,
-} from '@/utils/metadataFetch';
-import { isLsp29Asset } from '@chillwhales/lsp29';
 import {
   LSP29EncryptedAsset,
   LSP29EncryptedAssetChunks,
@@ -35,7 +28,14 @@ import {
   LSP29EncryptedAssetFile,
   LSP29EncryptedAssetImage,
   LSP29EncryptedAssetTitle,
-} from '@chillwhales/typeorm';
+} from '@/model';
+import { isFileImage, safeBigInt, safeChunkArray, safeJsonStringify } from '@/utils';
+import {
+  handleMetadataFetch,
+  MetadataFetchConfig,
+  SubEntityDescriptor,
+} from '@/utils/metadataFetch';
+import { isLsp29Asset } from '@chillwhales/lsp29';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

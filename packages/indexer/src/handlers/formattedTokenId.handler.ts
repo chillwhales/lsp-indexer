@@ -16,8 +16,8 @@
  */
 
 import { EntityHandler } from '@/core/types';
+import { LSP8TokenIdFormat, NFT } from '@/model';
 import { formatTokenId } from '@/utils';
-import { LSP8TokenIdFormat, NFT } from '@chillwhales/typeorm';
 import { In } from 'typeorm';
 import { isHex } from 'viem';
 

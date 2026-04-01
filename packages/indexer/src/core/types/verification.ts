@@ -7,7 +7,7 @@
  * - EnrichmentRequest: Deferred FK resolution request for verified addresses
  */
 
-import { DigitalAsset, UniversalProfile } from '@chillwhales/typeorm';
+import { DigitalAsset, UniversalProfile } from '@/model';
 import type { EntityRegistry } from '../entityRegistry';
 import { Entity, FKFields } from './entity';
 

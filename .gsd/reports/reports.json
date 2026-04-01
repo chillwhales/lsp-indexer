@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "projectName": "lsp-indexer",
+  "projectPath": ".",
+  "gsdVersion": "2.58.0",
+  "entries": [
+    {
+      "filename": "M008-2026-04-01T08-48-38.html",
+      "generatedAt": "2026-04-01T08:48:38.890Z",
+      "milestoneId": "M008",
+      "milestoneTitle": "M008: Package Consolidation",
+      "label": "M008: M008: Package Consolidation",
+      "kind": "milestone",
+      "totalCost": 38.67781999999998,
+      "totalTokens": 53996621,
+      "totalDuration": 5230092,
+      "doneSlices": 45,
+      "totalSlices": 45,
+      "doneMilestones": 8,
+      "totalMilestones": 10,
+      "phase": "pre-planning"
+    }
+  ]
+}

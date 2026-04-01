@@ -7,8 +7,8 @@
  */
 import { ORB_LEVEL_KEY, ORBS_ADDRESS } from '@/constants/chillwhales';
 import { type HandlerContext } from '@/core/types';
+import { OrbCooldownExpiry, OrbLevel, TokenIdDataChanged } from '@/model';
 import { generateTokenId } from '@/utils';
-import { OrbCooldownExpiry, OrbLevel, TokenIdDataChanged } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OrbLevelHandler from '../chillwhales/orbLevel.handler';

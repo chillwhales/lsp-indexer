@@ -9,10 +9,10 @@
  * and DigitalAsset (could be either type).
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  */
+import { ERC725X } from '@/abi';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { Executed } from '@/model';
 import { decodeOperationType, isNullAddress } from '@/utils';
-import { ERC725X } from '@chillwhales/abi';
-import { Executed } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

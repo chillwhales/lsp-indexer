@@ -22,8 +22,8 @@
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { OwnedAsset, OwnedToken } from '@/model';
 import { generateOwnedAssetId, generateOwnedTokenId, isNullAddress } from '@/utils';
-import { OwnedAsset, OwnedToken } from '@chillwhales/typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 
 // Entity type keys used in the BatchContext entity bag

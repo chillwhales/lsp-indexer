@@ -123,3 +123,26 @@ OwnedTokenNftIncludeSchema is defined as `NftIncludeSchema.omit({ collection: tr
 3. Codegen must be re-run after document changes
 
 The `buildNftIncludeVars` function can serve both NFT and owned-token documents when the owned-token variables follow the `$includeNft*` prefix convention.
+
+## [2026-04-01] M008: Package consolidation — ABI barrel skip-self guard pattern
+
+### Pattern
+
+When a codegen script generates a barrel file (`index.ts`) inside the same directory as the generated files it re-exports, the barrel must exclude itself from the glob to avoid circular re-exports. The `abi-codegen.sh` script in `packages/indexer/scripts/` writes to `src/abi/index.ts` and uses a skip-self guard:
+
+```bash
+for f in src/abi/*.ts; do
+  [[ "$f" == "src/abi/index.ts" ]] && continue
+  # ... export line
+done
+```
+
+This pattern applies whenever a generated barrel lives alongside its exports rather than in a parent directory.
+
+### Lesson: sed bulk import rewrites need two passes for multi-line imports
+
+When rewriting imports with `sed` (e.g., `@chillwhales/typeorm` → `@/model`), single-line patterns can miss imports that span multiple lines. A second pass targeting just the string literal (not the full import statement) catches these cases.
+
+### Lesson: Scope stale-reference cleanup by file type
+
+When removing packages, scoping stale reference fixes to code files (ts/json/yaml) and deferring docs/config cleanup keeps the slice focused. Documentation references to removed packages are harmless and can be cleaned up separately.

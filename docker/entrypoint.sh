@@ -3,8 +3,8 @@ set -e
 
 echo "🚀 Indexer starting..."
 
-# Navigate to typeorm package to run migrations
-cd /app/packages/typeorm
+# Navigate to indexer package to run migrations
+cd /app/packages/indexer
 
 echo "📊 Generating database migrations from schema.graphql..."
 pnpm migration:generate || {

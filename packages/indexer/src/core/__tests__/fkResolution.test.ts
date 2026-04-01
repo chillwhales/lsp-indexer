@@ -21,7 +21,7 @@ import {
   LSP4Metadata,
   NFT,
   UniversalProfile,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { Store } from '@subsquid/typeorm-store';
 import { describe, expect, it, vi } from 'vitest';
 

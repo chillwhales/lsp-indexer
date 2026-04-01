@@ -10,15 +10,15 @@
  * - Edge cases: wrong-length values, empty data
  */
 import { EntityCategory, type HandlerContext } from '@/core/types';
-import { LSP29DataKeys } from '@chillwhales/lsp29';
-import { computeContentHash, encodeLsp31Uri } from '@chillwhales/lsp31';
 import {
   DataChanged,
   LSP29EncryptedAsset,
   LSP29EncryptedAssetEntry,
   LSP29EncryptedAssetRevisionCount,
   LSP29EncryptedAssetsLength,
-} from '@chillwhales/typeorm';
+} from '@/model';
+import { LSP29DataKeys } from '@chillwhales/lsp29';
+import { computeContentHash, encodeLsp31Uri } from '@chillwhales/lsp31';
 import { numberToHex, padHex } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import LSP29EncryptedAssetHandler from '../lsp29EncryptedAsset.handler';

@@ -6,8 +6,8 @@
  * (decimals, totalSupply, etc.) to batch contract reads efficiently.
  */
 import { MULTICALL_ADDRESS } from '@/constants';
-import { Multicall3 } from '@chillwhales/abi';
-import { Aggregate3StaticReturn } from '@chillwhales/abi/lib/abi/Multicall3';
+import { Multicall3 } from '@/abi';
+import { Aggregate3StaticReturn } from '@/abi/Multicall3';
 import { Context } from './types';
 
 /**

@@ -6,7 +6,7 @@
  * - resolveEntities: bulk entity lookup (batch + DB merge)
  * - Edge cases: empty IDs, batch-only, DB-only, mixed sources
  */
-import { DataChanged } from '@chillwhales/typeorm';
+import { DataChanged } from '@/model';
 import type { Store } from '@subsquid/typeorm-store';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { resolveEntities, resolveEntity } from '../handlerHelpers';

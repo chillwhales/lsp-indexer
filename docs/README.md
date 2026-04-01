@@ -24,9 +24,7 @@ Welcome to the LSP Indexer documentation.
 - **[Main README](../README.md)** — Project overview and getting started
 - **[Planning Artifacts](../.planning/)** — GSD project planning and roadmaps
 - **[Package Documentation](../packages/)** — Individual package docs
-  - [abi](../packages/abi/) — Contract ABIs
-  - [typeorm](../packages/typeorm/) — Database entities and migrations
-  - [indexer](../packages/indexer/) — Blockchain indexer with plugin architecture
+  - [indexer](../packages/indexer/) — Blockchain indexer with integrated ABI + entity codegen
 
 ## Quick Links
 

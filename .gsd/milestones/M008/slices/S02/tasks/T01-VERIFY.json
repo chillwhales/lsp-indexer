@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M008/S02/T01",
+  "timestamp": 1775032792553,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "test ! -d packages/abi",
+      "exitCode": 0,
+      "durationMs": 3,
+      "verdict": "pass"
+    },
+    {
+      "command": "test ! -d packages/typeorm",
+      "exitCode": 0,
+      "durationMs": 1,
+      "verdict": "pass"
+    },
+    {
+      "command": "pnpm --filter=@chillwhales/indexer build",
+      "exitCode": 0,
+      "durationMs": 4607,
+      "verdict": "pass"
+    },
+    {
+      "command": "pnpm build",
+      "exitCode": 0,
+      "durationMs": 28272,
+      "verdict": "pass"
+    }
+  ]
+}

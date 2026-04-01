@@ -6,8 +6,8 @@
  * - HNDL-02: Unfollow events queue deletion of Follower entities using unfollowedAddress
  */
 import { EntityCategory, type HandlerContext } from '@/core/types';
+import { Follow, Follower, Unfollow } from '@/model';
 import { generateFollowId } from '@/utils';
-import { Follow, Follower, Unfollow } from '@chillwhales/typeorm';
 import { describe, expect, it, vi } from 'vitest';
 import FollowerHandler from '../follower.handler';
 

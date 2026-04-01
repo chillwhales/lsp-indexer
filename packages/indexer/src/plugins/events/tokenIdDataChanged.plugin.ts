@@ -17,9 +17,9 @@
  * The emitting address is queued for verification as a DigitalAsset.
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  */
+import { LSP8IdentifiableDigitalAsset } from '@/abi';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
-import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
-import { TokenIdDataChanged } from '@chillwhales/typeorm';
+import { TokenIdDataChanged } from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

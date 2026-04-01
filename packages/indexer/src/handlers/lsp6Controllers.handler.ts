@@ -51,7 +51,7 @@ import {
   LSP6Controller,
   LSP6ControllersLength,
   LSP6Permission,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { decodePermissions, decodeValueType } from '@erc725/erc725.js';
 import { LSP6DataKeys } from '@lukso/lsp6-contracts';
 import { type Hex, bytesToBigInt, bytesToHex, hexToBigInt, hexToBytes, isHex } from 'viem';

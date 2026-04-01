@@ -1,4 +1,4 @@
-import { DataChanged, Follow, Follower, Transfer } from '@chillwhales/typeorm';
+import { DataChanged, Follow, Follower, Transfer } from '@/model';
 import { describe, expect, it } from 'vitest';
 import { BatchContext } from '../batchContext';
 import { EnrichmentRequest, EntityCategory } from '../types';

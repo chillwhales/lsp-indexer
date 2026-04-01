@@ -11,8 +11,8 @@
  * - Queues enrichment for digitalAsset and nft FKs
  */
 import { EntityCategory, type HandlerContext } from '@/core/types';
+import { LSP4Metadata, LSP8TokenMetadataBaseURI, NFT, Transfer } from '@/model';
 import { generateTokenId } from '@/utils';
-import { LSP4Metadata, LSP8TokenMetadataBaseURI, NFT, Transfer } from '@chillwhales/typeorm';
 import { Store } from '@subsquid/typeorm-store';
 import { zeroAddress } from 'viem';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

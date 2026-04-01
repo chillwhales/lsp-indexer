@@ -10,8 +10,8 @@
  * automatically fetched by the existing lsp4MetadataFetch handler.
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { LSP4Metadata, LSP8TokenMetadataBaseURI, NFT, Transfer } from '@/model';
 import { generateTokenId } from '@/utils';
-import { LSP4Metadata, LSP8TokenMetadataBaseURI, NFT, Transfer } from '@chillwhales/typeorm';
 import { In } from 'typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 

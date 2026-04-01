@@ -17,10 +17,10 @@
  * TotalSupply and OwnedAssets updates will be implemented as EntityHandlers
  * in future issues (see #105: Transfer-derived entity handlers).
  */
+import { LSP8IdentifiableDigitalAsset } from '@/abi';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+import { Transfer } from '@/model';
 import { isNullAddress } from '@/utils';
-import { LSP8IdentifiableDigitalAsset } from '@chillwhales/abi';
-import { Transfer } from '@chillwhales/typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

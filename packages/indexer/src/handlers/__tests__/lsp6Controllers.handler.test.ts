@@ -21,7 +21,7 @@ import {
   LSP6AllowedERC725YDataKey,
   LSP6Controller,
   LSP6Permission,
-} from '@chillwhales/typeorm';
+} from '@/model';
 import { describe, expect, it, vi } from 'vitest';
 import LSP6ControllersHandler from '../lsp6Controllers.handler';
 
