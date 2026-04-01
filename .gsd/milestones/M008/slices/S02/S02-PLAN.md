@@ -28,7 +28,7 @@
   - Estimate: 15m
   - Files: packages/abi/, packages/typeorm/, packages/indexer/test/integration/pipeline.test.ts, eslint.config.ts, pnpm-lock.yaml
   - Verify: test ! -d packages/abi && test ! -d packages/typeorm && pnpm --filter=@chillwhales/indexer build && pnpm build
-- [ ] **T02: Verify full workspace parity and zero stale references** — Run comprehensive verification to confirm the workspace is clean: no stale references remain anywhere, the correct 6 packages exist, and builds pass.
+- [x] **T02: Confirmed 6-package workspace with zero stale @chillwhales/abi or @chillwhales/typeorm references and full build passing** — Run comprehensive verification to confirm the workspace is clean: no stale references remain anywhere, the correct 6 packages exist, and builds pass.
 
 ## Steps
 
