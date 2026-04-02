@@ -59,7 +59,7 @@ owned_token.owned_asset_id
   - Estimate: 2h
   - Files: packages/typeorm/db/migrations/backfill-network.sql, packages/typeorm/db/migrations/verify-backfill.sql
   - Verify: Test SQL syntax: grep -c 'UPDATE' packages/typeorm/db/migrations/backfill-network.sql returns >= 130 (27+ PK updates + ~103 FK updates). grep -c 'DISABLE TRIGGER ALL' packages/typeorm/db/migrations/backfill-network.sql returns 71. grep -c 'ENABLE TRIGGER ALL' packages/typeorm/db/migrations/backfill-network.sql returns 71. grep -c 'ADD COLUMN IF NOT EXISTS network' packages/typeorm/db/migrations/backfill-network.sql returns 71. test -f packages/typeorm/db/migrations/verify-backfill.sql.
-- [ ] **T02: Fix LSP12IssuedAsset handler bug, update entrypoint.sh, and verify build** — Three changes:
+- [x] **T02: Fixed 3 missing prefixId() calls in LSP12IssuedAssets handler and added backfill migration step to docker/entrypoint.sh** — Three changes:
 
 1. **Fix LSP12IssuedAsset handler bug** — In `packages/indexer/src/handlers/lsp12IssuedAssets.handler.ts`, the ID generation at lines ~179 and ~264 uses `const id = \`${address} - ${assetAddress}\`` without prefixId(). Fix both to use `const id = prefixId(hctx.batchCtx.network, \`${address} - ${assetAddress}\`)`. Import prefixId from `@/utils` if not already imported.
 

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M009/S02/T01",
+  "timestamp": 1775113959949,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "Test SQL syntax: grep -c 'UPDATE' packages/typeorm/db/migrations/backfill-network.sql returns >= 130 (27+ PK updates + ~103 FK updates). grep -c 'DISABLE TRIGGER ALL' packages/typeorm/db/migrations/backfill-network.sql returns 71. grep -c 'ENABLE TRIGGER ALL' packages/typeorm/db/migrations/backfill-network.sql returns 71. grep -c 'ADD COLUMN IF NOT EXISTS network' packages/typeorm/db/migrations/backfill-network.sql returns 71. test -f packages/typeorm/db/migrations/verify-backfill.sql.",
+      "exitCode": 2,
+      "durationMs": 2,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

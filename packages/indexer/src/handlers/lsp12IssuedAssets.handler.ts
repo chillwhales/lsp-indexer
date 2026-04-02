@@ -74,11 +74,11 @@ const LSP12IssuedAssetsHandler: EntityHandler = {
       if (dataKey.startsWith(LSP12_ISSUED_ASSETS_INDEX_PREFIX)) {
         if (isHex(dataValue) && hexToBytes(dataValue).length === 20) {
           const assetAddress = dataValue;
-          potentialIds.push(`${address} - ${assetAddress}`);
+          potentialIds.push(prefixId(hctx.batchCtx.network, `${address} - ${assetAddress}`));
         }
       } else if (dataKey.startsWith(LSP12_ISSUED_ASSETS_MAP_PREFIX)) {
         const assetAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
-        potentialIds.push(`${address} - ${assetAddress}`);
+        potentialIds.push(prefixId(hctx.batchCtx.network, `${address} - ${assetAddress}`));
       }
     }
 
@@ -176,7 +176,7 @@ function extractFromIndex(
 
   const assetAddress = dataValue;
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
-  const id = `${address} - ${assetAddress}`;
+  const id = prefixId(hctx.batchCtx.network, `${address} - ${assetAddress}`);
 
   // Check if entity exists in EITHER batch OR database
   const existing = existingAssets.get(id);
@@ -261,7 +261,7 @@ function extractFromMap(
 
   const interfaceId = isValidValue ? bytesToHex(dataValueBytes.slice(0, 4)) : null;
   const arrayIndex = isValidValue ? bytesToBigInt(dataValueBytes.slice(4)) : null;
-  const id = `${address} - ${assetAddress}`;
+  const id = prefixId(hctx.batchCtx.network, `${address} - ${assetAddress}`);
 
   // Check if entity exists in EITHER batch OR database
   const existing = existingAssets.get(id);
