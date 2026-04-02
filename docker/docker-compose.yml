@@ -211,8 +211,8 @@ services:
 
       # Blockchain data sources
       RPC_URL: ${RPC_URL_ETHEREUM:-https://eth.drpc.org}
-      RPC_RATE_LIMIT: ${RPC_RATE_LIMIT_ETHEREUM:-10}
-      FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION_ETHEREUM:-12}
+      RPC_RATE_LIMIT: ${RPC_RATE_LIMIT:-10}
+      FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION:-12}
 
       # IPFS & Metadata
       IPFS_GATEWAY: ${IPFS_GATEWAY:-https://api.universalprofile.cloud/ipfs/}
@@ -278,8 +278,8 @@ services:
 
       # Blockchain data sources
       RPC_URL: ${RPC_URL_ETHEREUM_SEPOLIA:-https://sepolia.drpc.org}
-      RPC_RATE_LIMIT: ${RPC_RATE_LIMIT_ETHEREUM_SEPOLIA:-10}
-      FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION_ETHEREUM_SEPOLIA:-12}
+      RPC_RATE_LIMIT: ${RPC_RATE_LIMIT:-10}
+      FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION:-12}
 
       # IPFS & Metadata
       IPFS_GATEWAY: ${IPFS_GATEWAY:-https://api.universalprofile.cloud/ipfs/}
