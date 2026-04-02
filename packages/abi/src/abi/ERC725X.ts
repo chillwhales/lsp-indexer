@@ -1,0 +1,54 @@
+import * as p from '@subsquid/evm-codec'
+import { event, fun, viewFun, indexed, ContractBase } from '@subsquid/evm-abi'
+import type { EventParams as EParams, FunctionArguments, FunctionReturn } from '@subsquid/evm-abi'
+
+export const events = {
+    ContractCreated: event("0xa1fb700aaee2ae4a2ff6f91ce7eba292f89c2f5488b8ec4c5c5c8150692595c3", "ContractCreated(uint256,address,uint256,bytes32)", {"operationType": indexed(p.uint256), "contractAddress": indexed(p.address), "value": p.uint256, "salt": indexed(p.bytes32)}),
+    Executed: event("0x4810874456b8e6487bd861375cf6abd8e1c8bb5858c8ce36a86a04dabfac199e", "Executed(uint256,address,uint256,bytes4)", {"operationType": indexed(p.uint256), "target": indexed(p.address), "value": p.uint256, "selector": indexed(p.bytes4)}),
+    OwnershipTransferred: event("0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0", "OwnershipTransferred(address,address)", {"previousOwner": indexed(p.address), "newOwner": indexed(p.address)}),
+}
+
+export const functions = {
+    execute: fun("0x44c028fe", "execute(uint256,address,uint256,bytes)", {"operationType": p.uint256, "target": p.address, "value": p.uint256, "data": p.bytes}, p.bytes),
+    executeBatch: fun("0x31858452", "executeBatch(uint256[],address[],uint256[],bytes[])", {"operationsType": p.array(p.uint256), "targets": p.array(p.address), "values": p.array(p.uint256), "datas": p.array(p.bytes)}, p.array(p.bytes)),
+    owner: viewFun("0x8da5cb5b", "owner()", {}, p.address),
+    renounceOwnership: fun("0x715018a6", "renounceOwnership()", {}, ),
+    supportsInterface: viewFun("0x01ffc9a7", "supportsInterface(bytes4)", {"interfaceId": p.bytes4}, p.bool),
+    transferOwnership: fun("0xf2fde38b", "transferOwnership(address)", {"newOwner": p.address}, ),
+}
+
+export class Contract extends ContractBase {
+
+    owner() {
+        return this.eth_call(functions.owner, {})
+    }
+
+    supportsInterface(interfaceId: SupportsInterfaceParams["interfaceId"]) {
+        return this.eth_call(functions.supportsInterface, {interfaceId})
+    }
+}
+
+/// Event types
+export type ContractCreatedEventArgs = EParams<typeof events.ContractCreated>
+export type ExecutedEventArgs = EParams<typeof events.Executed>
+export type OwnershipTransferredEventArgs = EParams<typeof events.OwnershipTransferred>
+
+/// Function types
+export type ExecuteParams = FunctionArguments<typeof functions.execute>
+export type ExecuteReturn = FunctionReturn<typeof functions.execute>
+
+export type ExecuteBatchParams = FunctionArguments<typeof functions.executeBatch>
+export type ExecuteBatchReturn = FunctionReturn<typeof functions.executeBatch>
+
+export type OwnerParams = FunctionArguments<typeof functions.owner>
+export type OwnerReturn = FunctionReturn<typeof functions.owner>
+
+export type RenounceOwnershipParams = FunctionArguments<typeof functions.renounceOwnership>
+export type RenounceOwnershipReturn = FunctionReturn<typeof functions.renounceOwnership>
+
+export type SupportsInterfaceParams = FunctionArguments<typeof functions.supportsInterface>
+export type SupportsInterfaceReturn = FunctionReturn<typeof functions.supportsInterface>
+
+export type TransferOwnershipParams = FunctionArguments<typeof functions.transferOwnership>
+export type TransferOwnershipReturn = FunctionReturn<typeof functions.transferOwnership>
+

@@ -149,7 +149,7 @@ services:
       FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION:-75}
 
       # IPFS & Metadata
-      IPFS_GATEWAY: ${IPFS_GATEWAY:-https://api.universalprofile.cloud/ipfs/}
+      IPFS_GATEWAY: ${IPFS_GATEWAY:-https://ipfs.io/ipfs/}
       FETCH_LIMIT: ${FETCH_LIMIT:-10000}
       FETCH_BATCH_SIZE: ${FETCH_BATCH_SIZE:-1000}
       FETCH_RETRY_COUNT: ${FETCH_RETRY_COUNT:-5}
@@ -215,7 +215,7 @@ services:
       FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION_ETHEREUM:-12}
 
       # IPFS & Metadata
-      IPFS_GATEWAY: ${IPFS_GATEWAY:-https://api.universalprofile.cloud/ipfs/}
+      IPFS_GATEWAY: ${IPFS_GATEWAY:-https://ipfs.io/ipfs/}
       FETCH_LIMIT: ${FETCH_LIMIT:-10000}
       FETCH_BATCH_SIZE: ${FETCH_BATCH_SIZE:-1000}
       FETCH_RETRY_COUNT: ${FETCH_RETRY_COUNT:-5}
@@ -282,7 +282,7 @@ services:
       FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION_ETHEREUM_SEPOLIA:-12}
 
       # IPFS & Metadata
-      IPFS_GATEWAY: ${IPFS_GATEWAY:-https://api.universalprofile.cloud/ipfs/}
+      IPFS_GATEWAY: ${IPFS_GATEWAY:-https://ipfs.io/ipfs/}
       FETCH_LIMIT: ${FETCH_LIMIT:-10000}
       FETCH_BATCH_SIZE: ${FETCH_BATCH_SIZE:-1000}
       FETCH_RETRY_COUNT: ${FETCH_RETRY_COUNT:-5}

@@ -67,10 +67,11 @@ export const ETHEREUM_MAINNET: ChainConfig = {
   finalityConfirmation: 12,
   gateway: 'https://v2.archive.subsquid.io/network/ethereum-mainnet',
   multicallAddress: '0xcA11bde05977b3631167028862bE2a173976CA11',
-  ipfsGateway: 'https://api.universalprofile.cloud/ipfs/',
+  ipfsGateway: 'https://ipfs.io/ipfs/',
   contracts: {
-    lsp26Address: '0x0000000000000000000000000000000000000000',
-    lsp23Address: '0x0000000000000000000000000000000000000000',
+    // CREATE2 via Nick Factory — same address on every EVM chain
+    lsp26Address: '0xf01103E5a9909Fc0DBe8166dA7085e0285daDDcA',
+    lsp23Address: '0x2300000A84D25dF63081feAa37ba6b62C4c89a30',
     lsp23FromBlock: 0,
     lsp26FromBlock: 0,
   },
@@ -84,10 +85,11 @@ export const ETHEREUM_SEPOLIA: ChainConfig = {
   finalityConfirmation: 12,
   gateway: 'https://v2.archive.subsquid.io/network/ethereum-sepolia',
   multicallAddress: '0xcA11bde05977b3631167028862bE2a173976CA11',
-  ipfsGateway: 'https://api.universalprofile.cloud/ipfs/',
+  ipfsGateway: 'https://ipfs.io/ipfs/',
   contracts: {
-    lsp26Address: '0x0000000000000000000000000000000000000000',
-    lsp23Address: '0x0000000000000000000000000000000000000000',
+    // CREATE2 via Nick Factory — same address on every EVM chain
+    lsp26Address: '0xf01103E5a9909Fc0DBe8166dA7085e0285daDDcA',
+    lsp23Address: '0x2300000A84D25dF63081feAa37ba6b62C4c89a30',
     lsp23FromBlock: 0,
     lsp26FromBlock: 0,
   },
