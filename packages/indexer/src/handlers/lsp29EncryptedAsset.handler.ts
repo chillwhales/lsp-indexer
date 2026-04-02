@@ -63,6 +63,7 @@ const LSP29_REVISION_COUNT_PREFIX: string = LSP29DataKeys.LSP29EncryptedAssetRev
 
 const LSP29EncryptedAssetHandler: EntityHandler = {
   name: 'lsp29EncryptedAsset',
+  supportedChains: ['lukso', 'lukso-testnet'],
   listensToBag: ['DataChanged'],
 
   handle(hctx, _triggeredBy): void {

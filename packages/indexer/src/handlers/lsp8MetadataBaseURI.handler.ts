@@ -36,6 +36,7 @@ const KECCAK_HEADER = concat([
 
 const LSP8MetadataBaseURIHandler: EntityHandler = {
   name: 'lsp8MetadataBaseURI',
+  supportedChains: ['lukso', 'lukso-testnet'],
   listensToBag: ['DataChanged'],
 
   handle(hctx, _triggeredBy): void {

@@ -25,6 +25,7 @@ const ENTITY_TYPE = 'DigitalAssetOwner';
 
 const DigitalAssetOwnerHandler: EntityHandler = {
   name: 'digitalAssetOwner',
+  supportedChains: ['lukso', 'lukso-testnet'],
   listensToBag: ['OwnershipTransferred'],
   postVerification: true,
 

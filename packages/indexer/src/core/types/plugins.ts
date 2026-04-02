@@ -35,6 +35,9 @@ export interface EventPlugin {
     fromBlock: number;
   };
 
+  /** Which chain IDs this plugin supports (e.g. ['lukso', 'lukso-testnet']) */
+  readonly supportedChains: string[];
+
   /** Which address categories this plugin needs verified */
   readonly requiresVerification: EntityCategory[];
 

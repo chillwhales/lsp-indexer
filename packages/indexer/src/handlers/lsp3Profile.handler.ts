@@ -24,6 +24,7 @@ const LSP3_DATA_KEY: string = LSP3DataKeys.LSP3Profile;
 
 const LSP3ProfileHandler: EntityHandler = {
   name: 'lsp3Profile',
+  supportedChains: ['lukso', 'lukso-testnet'],
   listensToBag: ['DataChanged'],
 
   handle(hctx, _triggeredBy): void {

@@ -326,33 +326,48 @@ export const isFileImage = (obj: unknown): obj is ImageMetadata =>
   isVerification(obj.verification);
 
 /**
+ * Prefix a deterministic ID with the network name.
+ *
+ * Format: `"{network}:{id}"`
+ */
+export function prefixId(network: string, id: string): string {
+  return `${network}:${id}`;
+}
+
+/**
  * Generate a deterministic NFT entity ID from contract address and tokenId.
  *
- * Format: `"{address} - {tokenId}"`
+ * Format: `"{address} - {tokenId}"` or `"{network}:{address} - {tokenId}"` when network is provided.
  */
 export function generateTokenId({
   address,
   tokenId,
+  network,
 }: {
   address: string;
   tokenId: string;
+  network?: string;
 }): string {
-  return `${address} - ${tokenId}`;
+  const base = `${address} - ${tokenId}`;
+  return network ? prefixId(network, base) : base;
 }
 
 /**
  * Generate a deterministic Follow entity ID from follower and followed addresses.
  *
- * Format: `"{followerAddress} - {followedAddress}"`
+ * Format: `"{followerAddress} - {followedAddress}"` or `"{network}:{followerAddress} - {followedAddress}"` when network is provided.
  */
 export function generateFollowId({
   followerAddress,
   followedAddress,
+  network,
 }: {
   followerAddress: string;
   followedAddress: string;
+  network?: string;
 }): string {
-  return `${followerAddress} - ${followedAddress}`;
+  const base = `${followerAddress} - ${followedAddress}`;
+  return network ? prefixId(network, base) : base;
 }
 
 /**

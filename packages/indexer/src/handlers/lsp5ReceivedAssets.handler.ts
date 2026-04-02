@@ -56,6 +56,7 @@ const LSP5_RECEIVED_ASSETS_MAP_PREFIX: string = LSP5DataKeys.LSP5ReceivedAssetsM
 
 const LSP5ReceivedAssetsHandler: EntityHandler = {
   name: 'lsp5ReceivedAssets',
+  supportedChains: ['lukso', 'lukso-testnet'],
   listensToBag: ['DataChanged'],
 
   async handle(hctx, _triggeredBy): Promise<void> {

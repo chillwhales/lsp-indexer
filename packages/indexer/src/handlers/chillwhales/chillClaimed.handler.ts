@@ -27,6 +27,7 @@ const BATCH_SIZE = 500;
 
 const ChillClaimedHandler: EntityHandler = {
   name: 'chillClaimed',
+  supportedChains: ['lukso'],
   listensToBag: ['LSP8Transfer'],
   postVerification: false,
 

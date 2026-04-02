@@ -28,6 +28,7 @@ const LSP4_METADATA_KEY: string = LSP4DataKeys.LSP4Metadata;
 
 const LSP4MetadataHandler: EntityHandler = {
   name: 'lsp4Metadata',
+  supportedChains: ['lukso', 'lukso-testnet'],
   listensToBag: ['DataChanged', 'TokenIdDataChanged'],
 
   handle(hctx, triggeredBy): void {

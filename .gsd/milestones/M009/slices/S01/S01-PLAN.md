@@ -43,7 +43,7 @@ Create the typed ChainConfig interface and LUKSO mainnet/testnet configs. Add `n
   - Estimate: 1h30m
   - Files: packages/indexer/src/config/chainConfig.ts, packages/indexer/schema.graphql, packages/typeorm/schema.graphql
   - Verify: pnpm --filter=@chillwhales/typeorm build && grep -c 'network: String! @index' packages/indexer/schema.graphql | grep -q 51 && diff packages/indexer/schema.graphql packages/typeorm/schema.graphql && test -f packages/indexer/src/config/chainConfig.ts
-- [ ] **T02: Add supportedChains to plugin/handler interfaces and all implementations, update deterministic ID helpers** — ## Description
+- [x] **T02: Added supportedChains to EventPlugin/EntityHandler interfaces, declared chains on all 40 plugins/handlers, and created prefixId helper with optional network param on generateTokenId/generateFollowId** — ## Description
 
 Add `supportedChains` to EventPlugin and EntityHandler interfaces. Update all 11 plugins and 29 handlers to declare which chains they support. Create the network-prefixed ID helper. Update all deterministic ID generation to use the network prefix. UUID-based IDs stay as-is (per D015).
 

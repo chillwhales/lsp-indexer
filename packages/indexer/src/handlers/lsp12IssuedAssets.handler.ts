@@ -53,6 +53,7 @@ const LSP12_ISSUED_ASSETS_MAP_PREFIX: string = LSP12DataKeys.LSP12IssuedAssetsMa
 
 const LSP12IssuedAssetsHandler: EntityHandler = {
   name: 'lsp12IssuedAssets',
+  supportedChains: ['lukso', 'lukso-testnet'],
   listensToBag: ['DataChanged'],
 
   async handle(hctx, _triggeredBy): Promise<void> {

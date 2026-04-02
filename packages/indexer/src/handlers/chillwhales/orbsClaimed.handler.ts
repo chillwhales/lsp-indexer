@@ -30,6 +30,7 @@ const BATCH_SIZE = 500;
 
 const OrbsClaimedHandler: EntityHandler = {
   name: 'orbsClaimed',
+  supportedChains: ['lukso'],
   listensToBag: ['LSP8Transfer'],
   postVerification: false,
 

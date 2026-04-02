@@ -47,6 +47,7 @@ const ORB_COOLDOWN_EXPIRY_TYPE = 'OrbCooldownExpiry';
 
 const OrbLevelHandler: EntityHandler = {
   name: 'orbLevel',
+  supportedChains: ['lukso'],
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
   async handle(hctx, triggeredBy): Promise<void> {

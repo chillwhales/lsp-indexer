@@ -18,6 +18,7 @@ const LSP8_TOKEN_ID_FORMAT_KEY: string = LSP8DataKeys.LSP8TokenIdFormat;
 
 const LSP8TokenIdFormatHandler: EntityHandler = {
   name: 'lsp8TokenIdFormat',
+  supportedChains: ['lukso', 'lukso-testnet'],
   listensToBag: ['DataChanged'],
 
   handle(hctx, _triggeredBy): void {

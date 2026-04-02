@@ -34,6 +34,7 @@ const UnfollowPlugin: EventPlugin = {
   name: 'unfollow',
   topic0: LSP26FollowerSystem.events.Unfollow.topic,
   contractFilter: { address: LSP26_ADDRESS, fromBlock: 3179471 },
+  supportedChains: ['lukso', 'lukso-testnet'],
   requiresVerification: [EntityCategory.UniversalProfile],
 
   // ---------------------------------------------------------------------------

@@ -25,6 +25,7 @@ const ENTITY_TYPE = 'TotalSupply';
 
 const TotalSupplyHandler: EntityHandler = {
   name: 'totalSupply',
+  supportedChains: ['lukso', 'lukso-testnet'],
   listensToBag: ['LSP7Transfer', 'LSP8Transfer'],
 
   async handle(hctx, triggeredBy): Promise<void> {

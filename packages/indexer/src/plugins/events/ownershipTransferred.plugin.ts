@@ -23,6 +23,7 @@ const ENTITY_TYPE = 'OwnershipTransferred';
 const OwnershipTransferredPlugin: EventPlugin = {
   name: 'ownershipTransferred',
   topic0: LSP14Ownable2Step.events.OwnershipTransferred.topic,
+  supportedChains: ['lukso', 'lukso-testnet'],
   requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------

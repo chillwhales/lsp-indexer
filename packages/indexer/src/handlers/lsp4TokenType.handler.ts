@@ -18,6 +18,7 @@ const LSP4_TOKEN_TYPE_KEY: string = LSP4DataKeys.LSP4TokenType;
 
 const LSP4TokenTypeHandler: EntityHandler = {
   name: 'lsp4TokenType',
+  supportedChains: ['lukso', 'lukso-testnet'],
   listensToBag: ['DataChanged'],
 
   handle(hctx, _triggeredBy): void {

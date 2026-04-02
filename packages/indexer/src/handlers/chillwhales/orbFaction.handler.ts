@@ -35,6 +35,7 @@ const ORB_FACTION_TYPE = 'OrbFaction';
 
 const OrbFactionHandler: EntityHandler = {
   name: 'orbFaction',
+  supportedChains: ['lukso'],
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
   async handle(hctx, triggeredBy): Promise<void> {

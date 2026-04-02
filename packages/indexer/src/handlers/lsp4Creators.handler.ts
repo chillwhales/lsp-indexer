@@ -53,6 +53,7 @@ const LSP4_CREATORS_MAP_PREFIX: string = LSP4DataKeys.LSP4CreatorsMap;
 
 const LSP4CreatorsHandler: EntityHandler = {
   name: 'lsp4Creators',
+  supportedChains: ['lukso', 'lukso-testnet'],
   listensToBag: ['DataChanged'],
 
   async handle(hctx, _triggeredBy): Promise<void> {

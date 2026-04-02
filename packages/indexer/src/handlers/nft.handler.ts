@@ -26,6 +26,7 @@ const ZERO_ADDRESS_LOWER = ZERO_ADDRESS.toLowerCase();
 
 const NFTHandler: EntityHandler = {
   name: 'nft',
+  supportedChains: ['lukso', 'lukso-testnet'],
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
   async handle(hctx, triggeredBy): Promise<void> {

@@ -34,6 +34,7 @@ const FollowPlugin: EventPlugin = {
   name: 'follow',
   topic0: LSP26FollowerSystem.events.Follow.topic,
   contractFilter: { address: LSP26_ADDRESS, fromBlock: 3179471 },
+  supportedChains: ['lukso', 'lukso-testnet'],
   requiresVerification: [EntityCategory.UniversalProfile],
 
   // ---------------------------------------------------------------------------

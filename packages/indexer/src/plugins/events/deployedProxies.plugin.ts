@@ -28,6 +28,7 @@ const DeployedProxiesPlugin: EventPlugin = {
   name: 'deployedProxies',
   topic0: LSP23LinkedContractsFactory.events.DeployedERC1167Proxies.topic,
   contractFilter: { address: LSP23_ADDRESS, fromBlock: 1143651 },
+  supportedChains: ['lukso', 'lukso-testnet'],
   requiresVerification: [EntityCategory.UniversalProfile],
 
   // ---------------------------------------------------------------------------
