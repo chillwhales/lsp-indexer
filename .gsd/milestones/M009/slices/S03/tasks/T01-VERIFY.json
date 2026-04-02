@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M009/S03/T01",
+  "timestamp": 1775114611340,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -q 'postgresql-client' docker/Dockerfile",
+      "exitCode": 0,
+      "durationMs": 2,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'migrations.*sql' docker/Dockerfile",
+      "exitCode": 0,
+      "durationMs": 2,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'SKIP_MIGRATIONS' docker/entrypoint.sh",
+      "exitCode": 0,
+      "durationMs": 2,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'indexer-testnet' docker/docker-compose.yml",
+      "exitCode": 0,
+      "durationMs": 2,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'CHAIN_ID' docker/docker-compose.yml",
+      "exitCode": 0,
+      "durationMs": 1,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'RPC_URL_TESTNET' .env.example",
+      "exitCode": 0,
+      "durationMs": 2,
+      "verdict": "pass"
+    },
+    {
+      "command": "echo 'All checks pass'",
+      "exitCode": 0,
+      "durationMs": 1,
+      "verdict": "pass"
+    }
+  ]
+}

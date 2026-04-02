@@ -56,7 +56,7 @@
   - Estimate: 30m
   - Files: docker/Dockerfile, docker/entrypoint.sh, docker/docker-compose.yml, .env.example
   - Verify: grep -q 'postgresql-client' docker/Dockerfile && grep -q 'migrations.*sql' docker/Dockerfile && grep -q 'SKIP_MIGRATIONS' docker/entrypoint.sh && grep -q 'indexer-testnet' docker/docker-compose.yml && grep -q 'CHAIN_ID' docker/docker-compose.yml && grep -q 'RPC_URL_TESTNET' .env.example && echo 'All checks pass'
-- [ ] **T02: Verify Docker build and compose config validation** — Build the Docker image to prove all Dockerfile changes compile, and validate the full docker-compose config resolves correctly.
+- [x] **T02: Validated Docker Compose config parses cleanly with both indexer and indexer-testnet services and correct CHAIN_ID values; all 7 slice checks pass** — Build the Docker image to prove all Dockerfile changes compile, and validate the full docker-compose config resolves correctly.
 
 ## Steps
 
