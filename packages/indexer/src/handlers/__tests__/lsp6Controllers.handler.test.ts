@@ -49,7 +49,7 @@ const LSP6_ALLOWED_DATA_KEYS_PREFIX = '0x4b80742de2bf866c29110000';
 // ---------------------------------------------------------------------------
 const UP_ADDRESS = '0x1111111111111111111111111111111111111111';
 const CONTROLLER_ADDRESS = '0xaabbccddee112233445566778899001122334455';
-const CONTROLLER_ID = `${UP_ADDRESS} - ${CONTROLLER_ADDRESS}`;
+const CONTROLLER_ID = prefixId('lukso', `${UP_ADDRESS} - ${CONTROLLER_ADDRESS}`);
 
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper

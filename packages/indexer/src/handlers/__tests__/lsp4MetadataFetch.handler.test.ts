@@ -980,8 +980,8 @@ describe('LSP4MetadataFetchHandler - Worker pool errors', () => {
 
     // Verify warning was logged (includes batch number now)
     expect(hctx.context.log.warn).toHaveBeenCalledWith(
-      expect.any(Error),
-      expect.stringContaining('Metadata fetch batch 1/1 failed'),
+      expect.objectContaining({ error: expect.stringContaining('Worker pool crashed') }),
+      'Metadata fetch batch failed',
     );
 
     // Entity is updated with error fields to prevent infinite retries
@@ -1025,8 +1025,8 @@ describe('LSP4MetadataFetchHandler - Worker pool errors', () => {
 
     // Verify error was logged
     expect(hctx.context.log.warn).toHaveBeenCalledWith(
-      expect.any(Error),
-      expect.stringContaining('Metadata fetch batch 1/1 failed'),
+      expect.objectContaining({ error: expect.stringContaining('Worker pool crashed') }),
+      'Metadata fetch batch failed',
     );
   });
 });

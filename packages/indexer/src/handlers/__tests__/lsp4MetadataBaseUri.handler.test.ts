@@ -118,9 +118,10 @@ function createBaseURI(
 
 function createNFT(tokenId: string, formattedTokenId: string | null = null): NFT {
   return new NFT({
-    id: generateTokenId({ address: TEST_ADDRESS, tokenId }),
+    id: generateTokenId({ network: 'lukso', address: TEST_ADDRESS, tokenId }),
     tokenId,
     address: TEST_ADDRESS,
+    network: 'lukso',
     formattedTokenId,
     digitalAsset: null,
     isMinted: true,
@@ -261,7 +262,7 @@ describe('LSP4MetadataBaseUriHandler - Mint Path', () => {
     const lsp4Entities = batchCtx._entityBags.get('LSP4Metadata');
     expect(lsp4Entities?.size).toBe(1);
 
-    const expectedId = prefixId('lukso', `BaseURI - ${generateTokenId({ address: TEST_ADDRESS, tokenId })}`);
+    const expectedId = prefixId('lukso', `BaseURI - ${generateTokenId({ network: 'lukso', address: TEST_ADDRESS, tokenId })}`);
     expect(lsp4Entities?.has(expectedId)).toBe(true);
 
     const entity = lsp4Entities?.get(expectedId) as LSP4Metadata;

@@ -1,10 +1,12 @@
-# S02: Backfill Migration
+---
+estimated_steps: 36
+estimated_files: 2
+skills_used: []
+---
 
-**Goal:** Write an idempotent, transactional SQL migration that backfills existing LUKSO data: adds network='lukso' column to all 71 entity tables, prefixes all deterministic IDs with 'lukso:', updates all ~103 FK references consistently, and fixes the LSP12IssuedAsset handler bug. Update docker/entrypoint.sh to run the migration.
-**Demo:** After this: Apply SQL migration to a PostgreSQL database with existing LUKSO data. All rows get network='lukso'. All deterministic IDs are prefixed with 'lukso:'. All FK references updated consistently. Row counts preserved. FK constraint checks pass.
+# T01: Write the complete backfill SQL migration script
 
-## Tasks
-- [x] **T01: Wrote idempotent backfill-network.sql (33 PK + 103 FK updates across 71 tables) and verify-backfill.sql FK integrity checker** — Write a hand-written SQL migration (per D018) that transforms all existing LUKSO data to the multi-chain schema. The script must:
+Write a hand-written SQL migration (per D018) that transforms all existing LUKSO data to the multi-chain schema. The script must:
 
 1. Run inside a single BEGIN/COMMIT transaction
 2. Use ALTER TABLE ... DISABLE TRIGGER ALL on every table to bypass FK checks during updates
@@ -56,26 +58,16 @@ lsp29_encrypted_asset_chunks.lsp29_encrypted_asset_id, lsp29_encrypted_asset_des
 
 Referenced by owned_asset (1 FK):
 owned_token.owned_asset_id
-  - Estimate: 2h
-  - Files: packages/typeorm/db/migrations/backfill-network.sql, packages/typeorm/db/migrations/verify-backfill.sql
-  - Verify: Test SQL syntax: grep -c 'UPDATE' packages/typeorm/db/migrations/backfill-network.sql returns >= 130 (27+ PK updates + ~103 FK updates). grep -c 'DISABLE TRIGGER ALL' packages/typeorm/db/migrations/backfill-network.sql returns 71. grep -c 'ENABLE TRIGGER ALL' packages/typeorm/db/migrations/backfill-network.sql returns 71. grep -c 'ADD COLUMN IF NOT EXISTS network' packages/typeorm/db/migrations/backfill-network.sql returns 71. test -f packages/typeorm/db/migrations/verify-backfill.sql.
-- [ ] **T02: Fix LSP12IssuedAsset handler bug, update entrypoint.sh, and verify build** — Three changes:
 
-1. **Fix LSP12IssuedAsset handler bug** — In `packages/indexer/src/handlers/lsp12IssuedAssets.handler.ts`, the ID generation at lines ~179 and ~264 uses `const id = \`${address} - ${assetAddress}\`` without prefixId(). Fix both to use `const id = prefixId(hctx.batchCtx.network, \`${address} - ${assetAddress}\`)`. Import prefixId from `@/utils` if not already imported.
+## Inputs
 
-2. **Update docker/entrypoint.sh** — Add a step to run the hand-written backfill migration AFTER the auto-generated migrations but BEFORE starting the indexer. The backfill should run via `psql` using DATABASE_URL or via a custom script. Since squid-typeorm-migration only runs auto-generated TypeORM migrations, the hand-written SQL needs a separate execution path. Add:
-```sh
-echo "📊 Running backfill migration..."
-if [ -f /app/packages/typeorm/db/migrations/backfill-network.sql ]; then
-  psql "$DB_URL" -f /app/packages/typeorm/db/migrations/backfill-network.sql
-  echo "✅ Backfill migration applied"
-else
-  echo "ℹ️  No backfill migration found - skipping"
-fi
-```
-The DB_URL should be constructed from the existing DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS env vars that Subsquid uses, or use the DB_URL env var directly if available.
+- `packages/indexer/schema.graphql`
 
-3. **Run build and tests** — Verify `pnpm --filter=@chillwhales/indexer build` and `pnpm --filter=@chillwhales/indexer test` both pass.
-  - Estimate: 45m
-  - Files: packages/indexer/src/handlers/lsp12IssuedAssets.handler.ts, docker/entrypoint.sh
-  - Verify: pnpm --filter=@chillwhales/indexer build exits 0. pnpm --filter=@chillwhales/indexer test exits 0. grep -q 'prefixId' packages/indexer/src/handlers/lsp12IssuedAssets.handler.ts (confirms fix). grep -q 'backfill-network.sql' docker/entrypoint.sh (confirms entrypoint update).
+## Expected Output
+
+- `packages/typeorm/db/migrations/backfill-network.sql`
+- `packages/typeorm/db/migrations/verify-backfill.sql`
+
+## Verification
+
+Test SQL syntax: grep -c 'UPDATE' packages/typeorm/db/migrations/backfill-network.sql returns >= 130 (27+ PK updates + ~103 FK updates). grep -c 'DISABLE TRIGGER ALL' packages/typeorm/db/migrations/backfill-network.sql returns 71. grep -c 'ENABLE TRIGGER ALL' packages/typeorm/db/migrations/backfill-network.sql returns 71. grep -c 'ADD COLUMN IF NOT EXISTS network' packages/typeorm/db/migrations/backfill-network.sql returns 71. test -f packages/typeorm/db/migrations/verify-backfill.sql.

@@ -151,7 +151,7 @@ describe('lsp5ReceivedAssets handler - Cross-batch merge', () => {
     // Simulate: Batch 1 had Index event, Batch 2 has Map event
     const upAddress = '0x1234567890123456789012345678901234567890';
     const assetAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const id = `${upAddress} - ${assetAddress}`;
+    const id = prefixId('lukso', `${upAddress} - ${assetAddress}`);
 
     // Existing entity in DB from Batch 1 (Index event only)
     const existingAsset = new LSP5ReceivedAsset({
@@ -195,7 +195,7 @@ describe('lsp5ReceivedAssets handler - Cross-batch merge', () => {
     // Simulate: Batch 1 had Map event, Batch 2 has Index event
     const upAddress = '0x2234567890123456789012345678901234567890';
     const assetAddress = '0xbbcdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const id = `${upAddress} - ${assetAddress}`;
+    const id = prefixId('lukso', `${upAddress} - ${assetAddress}`);
 
     // Existing entity in DB from Batch 1 (Map event only)
     const existingAsset = new LSP5ReceivedAsset({
@@ -239,7 +239,7 @@ describe('lsp5ReceivedAssets handler - Cross-batch merge', () => {
     // Typical case: Both Index and Map fire in same batch
     const upAddress = '0x3334567890123456789012345678901234567890';
     const assetAddress = '0xccbdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const id = `${upAddress} - ${assetAddress}`;
+    const id = prefixId('lukso', `${upAddress} - ${assetAddress}`);
 
     const store = createMockStore(); // Empty DB
     const batchCtx = createMockBatchCtx();
@@ -281,7 +281,7 @@ describe('lsp5ReceivedAssets handler - Cross-batch merge', () => {
     // Edge case: Enrichment populated FK in batch 1, Map arrives in batch 2
     const upAddress = '0x4434567890123456789012345678901234567890';
     const assetAddress = '0xddbdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const id = `${upAddress} - ${assetAddress}`;
+    const id = prefixId('lukso', `${upAddress} - ${assetAddress}`);
 
     // Existing entity with FK populated by enrichment
     const existingAsset = new LSP5ReceivedAsset({

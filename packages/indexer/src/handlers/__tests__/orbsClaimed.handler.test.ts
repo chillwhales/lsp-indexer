@@ -152,7 +152,7 @@ describe('OrbsClaimedHandler - Phase 1 (Mint Detection)', () => {
 
       await OrbsClaimedHandler.handle(hctx, 'LSP8Transfer');
 
-      const expectedId = generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId });
+      const expectedId = generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId });
 
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'OrbsClaimed',
@@ -192,7 +192,7 @@ describe('OrbsClaimedHandler - Phase 1 (Mint Detection)', () => {
 
       await OrbsClaimedHandler.handle(hctx, 'LSP8Transfer');
 
-      const expectedId = generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId });
+      const expectedId = generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId });
 
       // Should queue enrichment for digitalAsset FK
       expect(batchCtx.queueEnrichment).toHaveBeenCalledWith({
@@ -389,7 +389,7 @@ describe('OrbsClaimedHandler - Phase 2 (On-chain Verification)', () => {
       const batchCtx = createMockBatchCtx();
       const tokenId = '0x0000000000000000000000000000000000000000000000000000000000000001';
       const unclaimedEntity = new OrbsClaimed({
-        id: generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId }),
+        id: generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId }),
         address: CHILLWHALES_ADDRESS,
         tokenId,
         digitalAsset: null,
@@ -410,7 +410,7 @@ describe('OrbsClaimedHandler - Phase 2 (On-chain Verification)', () => {
 
       await OrbsClaimedHandler.handle(hctx, 'LSP8Transfer');
 
-      const expectedId = generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId });
+      const expectedId = generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId });
 
       // Should update entity with value=true
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
@@ -427,7 +427,7 @@ describe('OrbsClaimedHandler - Phase 2 (On-chain Verification)', () => {
       const batchCtx = createMockBatchCtx();
       const tokenId = '0x0000000000000000000000000000000000000000000000000000000000000001';
       const unclaimedEntity = new OrbsClaimed({
-        id: generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId }),
+        id: generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId }),
         address: CHILLWHALES_ADDRESS,
         tokenId,
         digitalAsset: null,
@@ -509,7 +509,7 @@ describe('OrbsClaimedHandler - Phase 2 (On-chain Verification)', () => {
       const batchCtx = createMockBatchCtx();
       const tokenId = '0x0000000000000000000000000000000000000000000000000000000000000001';
       const unclaimedEntity = new OrbsClaimed({
-        id: generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId }),
+        id: generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId }),
         address: CHILLWHALES_ADDRESS,
         tokenId,
         digitalAsset: null,
@@ -536,7 +536,7 @@ describe('OrbsClaimedHandler - Phase 2 (On-chain Verification)', () => {
       const batchCtx = createMockBatchCtx();
       const tokenId = '0x0000000000000000000000000000000000000000000000000000000000000001';
       const unclaimedEntity = new OrbsClaimed({
-        id: generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId }),
+        id: generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId }),
         address: CHILLWHALES_ADDRESS,
         tokenId,
         digitalAsset: null,

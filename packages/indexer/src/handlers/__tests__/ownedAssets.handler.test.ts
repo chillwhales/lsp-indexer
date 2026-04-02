@@ -411,7 +411,8 @@ describe('OwnedAssetsHandler', () => {
       const tokenId = '0x0000000000000000000000000000000000000000000000000000000000000001';
 
       const existingToken = new OwnedToken({
-        id: generateOwnedTokenId({ owner: sender, address: assetAddress, tokenId }),
+        id: generateOwnedTokenId({ network: 'lukso', owner: sender, address: assetAddress, tokenId }),
+        network: 'lukso',
         blockNumber: 90,
         transactionIndex: 0,
         logIndex: 0,
@@ -464,7 +465,8 @@ describe('OwnedAssetsHandler', () => {
       const tokenId = '0x0000000000000000000000000000000000000000000000000000000000000001';
 
       const existingToken = new OwnedToken({
-        id: generateOwnedTokenId({ owner: sender, address: assetAddress, tokenId }),
+        id: generateOwnedTokenId({ network: 'lukso', owner: sender, address: assetAddress, tokenId }),
+        network: 'lukso',
         blockNumber: 90,
         transactionIndex: 0,
         logIndex: 0,
@@ -563,7 +565,7 @@ describe('OwnedAssetsHandler', () => {
       await OwnedAssetsHandler.handle(hctx, 'LSP8Transfer');
 
       const ownedTokens = batchCtx.getEntities<OwnedToken>('OwnedToken');
-      const receiverId = generateOwnedTokenId({ owner: receiver, address: assetAddress, tokenId });
+      const receiverId = generateOwnedTokenId({ network: 'lukso', owner: receiver, address: assetAddress, tokenId });
       const receiverToken = ownedTokens.get(receiverId);
 
       // ownedAsset FK should be set directly (not queued for enrichment)

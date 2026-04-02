@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 // Integration tests use console.log for debugging output
+import { LUKSO_MAINNET } from '@/config/chainConfig';
 import { PipelineConfig, VerifyFn, processBatch } from '@/core/pipeline';
 import { PluginRegistry } from '@/core/registry';
 import {
@@ -299,6 +300,8 @@ describe('Pipeline Integration', () => {
         registry,
         verifyAddresses: mockVerify,
         workerPool: mockWorkerPool,
+        network: 'lukso',
+        chainConfig: LUKSO_MAINNET,
       };
 
       // Execute pipeline
@@ -331,6 +334,8 @@ describe('Pipeline Integration', () => {
         registry,
         verifyAddresses: mockVerify,
         workerPool: mockWorkerPool,
+        network: 'lukso',
+        chainConfig: LUKSO_MAINNET,
       };
 
       await processBatch(ctx, pipelineConfig);
@@ -365,6 +370,8 @@ describe('Pipeline Integration', () => {
         registry,
         verifyAddresses: mockVerify,
         workerPool: mockWorkerPool,
+        network: 'lukso',
+        chainConfig: LUKSO_MAINNET,
       };
 
       await processBatch(ctx, pipelineConfig);
@@ -428,6 +435,8 @@ describe('Pipeline Integration', () => {
         registry,
         verifyAddresses: mockVerify,
         workerPool: mockWorkerPool,
+        network: 'lukso',
+        chainConfig: LUKSO_MAINNET,
       };
 
       await processBatch(ctx, pipelineConfig);

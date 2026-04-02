@@ -197,8 +197,9 @@ function createMockVerifyFn(
         newEntities.set(
           addr,
           new UniversalProfile({
-            id: addr,
+            id: prefixId('lukso', addr),
             address: addr,
+            network: 'lukso',
             blockNumber: 0,
             transactionIndex: 0,
             logIndex: 0,
@@ -209,8 +210,9 @@ function createMockVerifyFn(
         newEntities.set(
           addr,
           new DigitalAsset({
-            id: addr,
+            id: prefixId('lukso', addr),
             address: addr,
+            network: 'lukso',
             blockNumber: 0,
             transactionIndex: 0,
             logIndex: 0,

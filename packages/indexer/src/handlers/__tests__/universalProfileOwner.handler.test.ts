@@ -243,8 +243,8 @@ describe('UniversalProfileOwnerHandler', () => {
       expect(batchCtx.addEntity).toHaveBeenCalledTimes(1);
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'UniversalProfileOwner',
-        verifiedAddress,
-        expect.objectContaining({ id: verifiedAddress }),
+        prefixId('lukso', verifiedAddress),
+        expect.objectContaining({ id: prefixId('lukso', verifiedAddress) }),
       );
 
       // Should queue only one enrichment
@@ -389,12 +389,12 @@ describe('UniversalProfileOwnerHandler', () => {
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'UniversalProfileOwner',
         prefixId('lukso', upAddress1),
-        expect.objectContaining({ id: upAddress1 }),
+        expect.objectContaining({ id: prefixId('lukso', upAddress1) }),
       );
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'UniversalProfileOwner',
         prefixId('lukso', upAddress2),
-        expect.objectContaining({ id: upAddress2 }),
+        expect.objectContaining({ id: prefixId('lukso', upAddress2) }),
       );
 
       // Should queue two enrichments
