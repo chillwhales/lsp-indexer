@@ -19,19 +19,6 @@ else
 
   echo "✅ Database migrations applied successfully"
 
-  # Run hand-written backfill migration (idempotent)
-  echo "📊 Running backfill migration..."
-  if [ -f /app/packages/indexer/db/migrations/backfill-network.sql ]; then
-    # Construct DB_URL from Subsquid env vars if not already set
-    if [ -z "$DB_URL" ]; then
-      DB_URL="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
-    fi
-    psql "$DB_URL" -f /app/packages/indexer/db/migrations/backfill-network.sql
-    echo "✅ Backfill migration applied"
-  else
-    echo "ℹ️  No backfill migration found - skipping"
-  fi
-
   # Configure Hasura (always runs)
   echo "🔧 Waiting for Hasura to be ready..."
 

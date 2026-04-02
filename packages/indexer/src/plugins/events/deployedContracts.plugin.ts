@@ -30,7 +30,7 @@ const DeployedContractsPlugin: EventPlugin = {
   name: 'deployedContracts',
   topic0: LSP23LinkedContractsFactory.events.DeployedContracts.topic,
   contractFilter: { address: LSP23_ADDRESS, fromBlock: 1143651 },
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile],
 
   // ---------------------------------------------------------------------------

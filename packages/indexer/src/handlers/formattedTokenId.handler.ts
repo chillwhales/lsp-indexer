@@ -26,7 +26,7 @@ const NFT_ENTITY_TYPE = 'NFT';
 
 const FormattedTokenIdHandler: EntityHandler = {
   name: 'formattedTokenId',
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['LSP8Transfer', 'DataChanged'],
   dependsOn: ['lsp8TokenIdFormat'],
 

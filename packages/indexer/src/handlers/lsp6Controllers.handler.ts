@@ -77,7 +77,7 @@ const LSP6_ALLOWED_DATA_KEYS_PREFIX = LSP6DataKeys['AddressPermissions:AllowedER
 
 const LSP6ControllersHandler: EntityHandler = {
   name: 'lsp6Controllers',
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['DataChanged'],
 
   async handle(hctx, _triggeredBy): Promise<void> {

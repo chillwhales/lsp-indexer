@@ -22,7 +22,7 @@ const TRANSFER_ENTITY_TYPE = 'LSP8Transfer';
 
 const LSP4MetadataBaseUriHandler: EntityHandler = {
   name: 'lsp4MetadataBaseUri',
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['LSP8Transfer', 'LSP8TokenMetadataBaseURI'],
   dependsOn: ['lsp8MetadataBaseURI', 'nft', 'formattedTokenId'],
 

@@ -18,7 +18,7 @@ const LSP4_TOKEN_NAME_KEY: string = LSP4DataKeys.LSP4TokenName;
 
 const LSP4TokenNameHandler: EntityHandler = {
   name: 'lsp4TokenName',
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['DataChanged'],
 
   handle(hctx, _triggeredBy): void {

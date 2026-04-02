@@ -22,7 +22,7 @@ const FOLLOWER_TYPE = 'Follower';
 
 const FollowerHandler: EntityHandler = {
   name: 'follower',
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['Follow', 'Unfollow'],
 
   handle(hctx, triggeredBy): void {

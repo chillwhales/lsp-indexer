@@ -21,7 +21,7 @@ const ENTITY_TYPE = 'Executed';
 const ExecutedPlugin: EventPlugin = {
   name: 'executed',
   topic0: ERC725X.events.Executed.topic,
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------

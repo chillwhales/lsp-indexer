@@ -28,7 +28,7 @@ const ENTITY_TYPE = 'DataChanged';
 const DataChangedPlugin: EventPlugin = {
   name: 'dataChanged',
   topic0: ERC725Y.events.DataChanged.topic,
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------

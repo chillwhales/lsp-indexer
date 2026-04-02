@@ -26,7 +26,7 @@ const ENTITY_TYPE = 'UniversalProfileOwner';
 
 const UniversalProfileOwnerHandler: EntityHandler = {
   name: 'universalProfileOwner',
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['OwnershipTransferred'],
   postVerification: true,
 

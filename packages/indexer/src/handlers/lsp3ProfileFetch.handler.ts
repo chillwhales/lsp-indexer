@@ -239,7 +239,7 @@ const fetchConfig: MetadataFetchConfig<'LSP3Profile'> = {
 
 const LSP3ProfileFetchHandler: EntityHandler = {
   name: 'lsp3ProfileFetch',
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['LSP3Profile'],
   dependsOn: ['lsp3Profile'],
   drainAtHead: true,

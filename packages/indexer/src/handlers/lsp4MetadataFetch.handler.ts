@@ -318,7 +318,7 @@ const config: MetadataFetchConfig<'LSP4Metadata'> = {
 
 const LSP4MetadataFetchHandler: EntityHandler = {
   name: 'lsp4MetadataFetch',
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['LSP4Metadata'],
   dependsOn: ['lsp4Metadata'],
   drainAtHead: true,

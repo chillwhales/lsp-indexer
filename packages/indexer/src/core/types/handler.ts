@@ -53,7 +53,7 @@ export interface EntityHandler {
   /** Unique handler name (e.g. 'lsp4TokenName', 'totalSupply', 'nft') */
   readonly name: string;
 
-  /** Which chain IDs this handler supports (e.g. ['lukso', 'lukso-testnet']) */
+  /** Which chain IDs this handler supports (e.g. ['lukso', 'ethereum', 'ethereum-sepolia']) */
   readonly supportedChains: string[];
 
   /** Subscribe to BatchContext entity bag keys (e.g. ['DataChanged', 'LSP8Transfer']) */

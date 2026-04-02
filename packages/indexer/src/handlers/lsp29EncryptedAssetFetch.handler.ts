@@ -223,7 +223,7 @@ const fetchConfig: MetadataFetchConfig<'LSP29EncryptedAsset'> = {
 
 const LSP29EncryptedAssetFetchHandler: EntityHandler = {
   name: 'lsp29EncryptedAssetFetch',
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['LSP29EncryptedAsset'],
   dependsOn: ['lsp29EncryptedAsset'],
   drainAtHead: true,

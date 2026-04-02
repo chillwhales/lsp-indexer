@@ -21,7 +21,7 @@ const ENTITY_TYPE = 'UniversalReceiver';
 const UniversalReceiverPlugin: EventPlugin = {
   name: 'universalReceiver',
   topic0: LSP0ERC725Account.events.UniversalReceiver.topic,
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------

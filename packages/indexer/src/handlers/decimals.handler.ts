@@ -30,7 +30,7 @@ const BATCH_SIZE = 100;
 
 const DecimalsHandler: EntityHandler = {
   name: 'decimals',
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['LSP7Transfer', 'LSP8Transfer', 'DataChanged'],
   postVerification: true,
 

@@ -32,7 +32,7 @@ const OWNED_TOKEN_TYPE = 'OwnedToken';
 
 const OwnedAssetsHandler: EntityHandler = {
   name: 'ownedAssets',
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['LSP7Transfer', 'LSP8Transfer'],
 
   async handle(hctx, triggeredBy): Promise<void> {

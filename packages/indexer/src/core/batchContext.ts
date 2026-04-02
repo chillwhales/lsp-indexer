@@ -31,7 +31,7 @@ import {
  * A new BatchContext is created for each batch — no state carries over.
  */
 export class BatchContext implements IBatchContext {
-  /** The network identifier for this batch (e.g. 'lukso', 'lukso-testnet'). */
+  /** The network identifier for this batch (e.g. 'lukso', 'ethereum', 'ethereum-sepolia'). */
   readonly network: string;
 
   /**

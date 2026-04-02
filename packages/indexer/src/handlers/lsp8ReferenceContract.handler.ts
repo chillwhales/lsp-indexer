@@ -18,7 +18,7 @@ const LSP8_REFERENCE_CONTRACT_KEY: string = LSP8DataKeys.LSP8ReferenceContract;
 
 const LSP8ReferenceContractHandler: EntityHandler = {
   name: 'lsp8ReferenceContract',
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['DataChanged'],
 
   handle(hctx, _triggeredBy): void {

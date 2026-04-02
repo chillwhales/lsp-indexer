@@ -26,7 +26,7 @@ const ENTITY_TYPE = 'LSP7Transfer';
 const LSP7TransferPlugin: EventPlugin = {
   name: 'lsp7Transfer',
   topic0: LSP7DigitalAsset.events.Transfer.topic,
-  supportedChains: ['lukso', 'lukso-testnet'],
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------

@@ -159,15 +159,15 @@ services:
           memory: 1G
 
   # ----------------------------------------------------------------------------
-  # Indexer Testnet — LUKSO Testnet Blockchain Indexer
-  # Shares PostgreSQL with mainnet; skips migrations (leader/follower pattern)
+  # Indexer Ethereum — Ethereum Mainnet Blockchain Indexer
+  # Shares PostgreSQL with LUKSO; skips migrations (leader/follower pattern)
   # ----------------------------------------------------------------------------
-  indexer-testnet:
-    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-indexer-testnet
+  indexer-ethereum:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-indexer-ethereum
     image: lsp-indexer:latest
     restart: unless-stopped
 
-    # Wait for PostgreSQL + mainnet indexer (which runs migrations)
+    # Wait for PostgreSQL + LUKSO indexer (which runs migrations)
     depends_on:
       postgres:
         condition: service_healthy
@@ -184,23 +184,83 @@ services:
 
     # Mount logs directory for persistent storage
     volumes:
-      - indexer-testnet-logs:/app/packages/indexer/logs
+      - indexer-ethereum-logs:/app/packages/indexer/logs
 
-    # Testnet-specific environment variables
+    # Ethereum-specific environment variables
     environment:
       # Chain identifier for multi-chain support
-      CHAIN_ID: lukso-testnet
+      CHAIN_ID: ethereum
 
-      # Skip migrations — mainnet indexer is the leader
+      # Skip migrations — LUKSO indexer is the leader
       SKIP_MIGRATIONS: "true"
 
-      # Database connection (shared with mainnet)
+      # Database connection (shared with LUKSO)
       DB_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
 
-      # Blockchain data sources (RPC-only, no SQD gateway for testnet)
-      RPC_URL: ${RPC_URL_TESTNET:-https://rpc.testnet.lukso.network}
-      RPC_RATE_LIMIT: ${RPC_RATE_LIMIT_TESTNET:-10}
-      FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION_TESTNET:-75}
+      # Blockchain data sources
+      RPC_URL: ${RPC_URL_ETHEREUM:-https://eth.drpc.org}
+      RPC_RATE_LIMIT: ${RPC_RATE_LIMIT_ETHEREUM:-10}
+      FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION_ETHEREUM:-12}
+
+      # IPFS & Metadata
+      IPFS_GATEWAY: ${IPFS_GATEWAY:-https://api.universalprofile.cloud/ipfs/}
+      FETCH_LIMIT: ${FETCH_LIMIT:-10000}
+      FETCH_BATCH_SIZE: ${FETCH_BATCH_SIZE:-1000}
+      FETCH_RETRY_COUNT: ${FETCH_RETRY_COUNT:-5}
+      METADATA_WORKER_POOL_SIZE: ${METADATA_WORKER_POOL_SIZE:-4}
+
+      # Logging
+      NODE_ENV: ${NODE_ENV:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_DIR: /app/packages/indexer/logs
+      INDEXER_ENABLE_FILE_LOGGER: ${INDEXER_ENABLE_FILE_LOGGER:-true}
+
+      # Hasura configuration (for entrypoint script — skipped due to SKIP_MIGRATIONS)
+      HASURA_GRAPHQL_ENDPOINT: ${HASURA_GRAPHQL_ENDPOINT:-http://hasura:8080}
+
+  # ----------------------------------------------------------------------------
+  # Indexer Ethereum Sepolia — Ethereum Sepolia Testnet Blockchain Indexer
+  # Shares PostgreSQL with LUKSO; skips migrations (leader/follower pattern)
+  # ----------------------------------------------------------------------------
+  indexer-ethereum-sepolia:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-indexer-ethereum-sepolia
+    image: lsp-indexer:latest
+    restart: unless-stopped
+
+    # Wait for PostgreSQL + LUKSO indexer (which runs migrations)
+    depends_on:
+      postgres:
+        condition: service_healthy
+      indexer:
+        condition: service_healthy
+
+    # Health check - verify indexer process is running
+    healthcheck:
+      test: ['CMD', 'pgrep', '-f', 'ts-node.*lib/app/index.js']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # Mount logs directory for persistent storage
+    volumes:
+      - indexer-ethereum-sepolia-logs:/app/packages/indexer/logs
+
+    # Ethereum Sepolia-specific environment variables
+    environment:
+      # Chain identifier for multi-chain support
+      CHAIN_ID: ethereum-sepolia
+
+      # Skip migrations — LUKSO indexer is the leader
+      SKIP_MIGRATIONS: "true"
+
+      # Database connection (shared with LUKSO)
+      DB_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
+
+      # Blockchain data sources
+      RPC_URL: ${RPC_URL_ETHEREUM_SEPOLIA:-https://sepolia.drpc.org}
+      RPC_RATE_LIMIT: ${RPC_RATE_LIMIT_ETHEREUM_SEPOLIA:-10}
+      FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION_ETHEREUM_SEPOLIA:-12}
 
       # IPFS & Metadata
       IPFS_GATEWAY: ${IPFS_GATEWAY:-https://api.universalprofile.cloud/ipfs/}
@@ -521,8 +581,12 @@ volumes:
     #   o: bind
     #   device: ${LOG_DIR:-./logs}
 
-  # Indexer testnet logs — separate volume for testnet indexer
-  indexer-testnet-logs:
+  # Indexer Ethereum logs — separate volume for Ethereum indexer
+  indexer-ethereum-logs:
+    driver: local
+
+  # Indexer Ethereum Sepolia logs — separate volume for Ethereum Sepolia indexer
+  indexer-ethereum-sepolia-logs:
     driver: local
 
   # Grafana dashboard data — operator edits persist across restarts
