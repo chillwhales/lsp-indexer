@@ -82,12 +82,6 @@ COPY --from=builder /app/packages/indexer/tsconfig.json ./packages/indexer/
 # Using --no-frozen-lockfile temporarily until lockfile is updated locally
 RUN pnpm install --prod --no-frozen-lockfile
 
-# Install postgresql-client for psql (used by entrypoint.sh for backfill migrations)
-RUN apk add --no-cache postgresql-client
-
-# Copy hand-written SQL migrations (backfill-network.sql, verify-backfill.sql)
-COPY packages/typeorm/db/migrations/*.sql ./packages/typeorm/db/migrations/
-
 # Copy entrypoint script for running migrations before starting indexer
 COPY docker/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
