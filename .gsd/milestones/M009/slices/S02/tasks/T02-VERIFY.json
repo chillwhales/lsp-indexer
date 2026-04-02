@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M009/S02/T02",
+  "timestamp": 1775114093273,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "pnpm --filter=@chillwhales/indexer build exits 0. pnpm --filter=@chillwhales/indexer test exits 0. grep -q 'prefixId' packages/indexer/src/handlers/lsp12IssuedAssets.handler.ts (confirms fix). grep -q 'backfill-network.sql' docker/entrypoint.sh (confirms entrypoint update).",
+      "exitCode": 2,
+      "durationMs": 3,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}
