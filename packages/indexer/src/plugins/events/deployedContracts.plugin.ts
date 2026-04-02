@@ -51,6 +51,7 @@ const DeployedContractsPlugin: EventPlugin = {
 
     const entity = new DeployedContracts({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

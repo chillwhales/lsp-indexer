@@ -37,6 +37,7 @@
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { prefixId } from '@/utils';
 import { DataChanged, LSP5ReceivedAsset, LSP5ReceivedAssetsLength } from '@/model';
 import { LSP5DataKeys } from '@lukso/lsp5-contracts';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
@@ -118,7 +119,8 @@ function extractLength(
   hctx: HandlerContext,
 ): void {
   const entity = new LSP5ReceivedAssetsLength({
-    id: address,
+    id: prefixId(hctx.batchCtx.network, address),
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,
@@ -170,7 +172,7 @@ function extractFromIndex(
 
   const assetAddress = dataValue;
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
-  const id = `${address} - ${assetAddress}`;
+  const id = prefixId(hctx.batchCtx.network, `${address} - ${assetAddress}`);
 
   // Check if entity already exists (from batch OR database OR Map event)
   const existing = existingAssets.get(id);
@@ -188,6 +190,7 @@ function extractFromIndex(
 
   const entity = new LSP5ReceivedAsset({
     id,
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,
@@ -254,7 +257,7 @@ function extractFromMap(
 
   const interfaceId = isValidValue ? bytesToHex(dataValueBytes.slice(0, 4)) : null;
   const arrayIndex = isValidValue ? bytesToBigInt(dataValueBytes.slice(4)) : null;
-  const id = `${address} - ${assetAddress}`;
+  const id = prefixId(hctx.batchCtx.network, `${address} - ${assetAddress}`);
 
   // Check if entity already exists (from batch OR database OR Index event)
   const existing = existingAssets.get(id);
@@ -273,6 +276,7 @@ function extractFromMap(
 
   const entity = new LSP5ReceivedAsset({
     id,
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,

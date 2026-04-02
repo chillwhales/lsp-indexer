@@ -13,8 +13,8 @@
  * that handler re-creates the sub-entities.
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { decodeVerifiableUri, prefixId } from '@/utils';
 import { LSP3Profile } from '@/model';
-import { decodeVerifiableUri } from '@/utils';
 import { LSP3DataKeys } from '@lukso/lsp3-contracts';
 
 // Entity type key used in the BatchContext entity bag
@@ -39,7 +39,8 @@ const LSP3ProfileHandler: EntityHandler = {
 
       // Create entity (deterministic id = address)
       const entity = new LSP3Profile({
-        id: event.address,
+        id: prefixId(hctx.batchCtx.network, event.address),
+        network: hctx.batchCtx.network,
         address: event.address,
         timestamp: event.timestamp,
         blockNumber: event.blockNumber,

@@ -18,6 +18,7 @@
  */
 
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { prefixId } from '@/utils';
 import { UniversalProfileOwner } from '@/model';
 
 // Entity type key used in the BatchContext entity bag
@@ -47,7 +48,8 @@ const UniversalProfileOwnerHandler: EntityHandler = {
       if (!verifiedUPs.valid.has(event.address)) continue;
 
       const entity = new UniversalProfileOwner({
-        id: event.address,
+        id: prefixId(batchCtx.network, event.address),
+        network: batchCtx.network,
         timestamp: event.timestamp,
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,

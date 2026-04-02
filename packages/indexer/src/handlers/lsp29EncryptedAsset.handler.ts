@@ -33,6 +33,9 @@
  * that handler re-creates the sub-entities.
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { decodeVerifiableUri, prefixId } from '@/utils';
+import { LSP29DataKeys } from '@chillwhales/lsp29';
+import { isLsp31Uri, parseLsp31Uri, resolveUrl, selectBackend } from '@chillwhales/lsp31';
 import {
   DataChanged,
   LSP29EncryptedAsset,
@@ -40,9 +43,6 @@ import {
   LSP29EncryptedAssetRevisionCount,
   LSP29EncryptedAssetsLength,
 } from '@/model';
-import { decodeVerifiableUri } from '@/utils';
-import { LSP29DataKeys } from '@chillwhales/lsp29';
-import { isLsp31Uri, parseLsp31Uri, resolveUrl, selectBackend } from '@chillwhales/lsp31';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
 
 // ---------------------------------------------------------------------------
@@ -103,7 +103,8 @@ function extractLength(
   hctx: HandlerContext,
 ): void {
   const entity = new LSP29EncryptedAssetsLength({
-    id: address,
+    id: prefixId(hctx.batchCtx.network, address),
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,
@@ -183,7 +184,8 @@ function extractFromIndex(
   const arrayIndex = dataKeyBytes.length >= 32 ? bytesToBigInt(dataKeyBytes.slice(16)) : null;
 
   const entity = new LSP29EncryptedAsset({
-    id: `${address} - ${dataKey}`,
+    id: prefixId(hctx.batchCtx.network, `${address} - ${dataKey}`),
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,
@@ -235,7 +237,8 @@ function extractFromMap(
   const arrayIndex = dataValueBytes.length === 16 ? bytesToBigInt(dataValueBytes) : null;
 
   const entity = new LSP29EncryptedAssetEntry({
-    id: `${address} - ${contentIdHash}`,
+    id: prefixId(hctx.batchCtx.network, `${address} - ${contentIdHash}`),
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,
@@ -283,7 +286,8 @@ function extractRevisionCount(
   const revisionCount = dataValueBytes.length === 16 ? bytesToBigInt(dataValueBytes) : null;
 
   const entity = new LSP29EncryptedAssetRevisionCount({
-    id: `${address} - ${contentIdHash}`,
+    id: prefixId(hctx.batchCtx.network, `${address} - ${contentIdHash}`),
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,

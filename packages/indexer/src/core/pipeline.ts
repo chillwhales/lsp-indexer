@@ -15,7 +15,7 @@
  */
 
 import { ChainConfig } from '@/config/chainConfig';
-import { compareBlockPosition, generateTokenId } from '@/utils';
+import { compareBlockPosition, generateTokenId, prefixId } from '@/utils';
 import { DigitalAsset, NFT, UniversalProfile } from '@/model';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
@@ -610,7 +610,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
         }
 
         // Type-safe FK assignment using helper
-        enrichEntity(entity, request, createFkStub(request));
+        enrichEntity(entity, request, createFkStub(request, network));
         hasValidFk = true;
       }
 
@@ -688,18 +688,18 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
  * These are TypeORM entity instances with only the `id` field set,
  * used as foreign key references.
  */
-function createFkStub(request: StoredEnrichmentRequest): RegisteredEntity {
+function createFkStub(request: StoredEnrichmentRequest, network: string): RegisteredEntity {
   switch (request.category) {
     case EntityCategory.UniversalProfile:
-      return new UniversalProfile({ id: request.address });
+      return new UniversalProfile({ id: prefixId(network, request.address) });
     case EntityCategory.DigitalAsset:
-      return new DigitalAsset({ id: request.address });
+      return new DigitalAsset({ id: prefixId(network, request.address) });
     case EntityCategory.NFT:
       if (!request.tokenId) {
         throw new Error(`NFT enrichment request missing tokenId for address ${request.address}`);
       }
       return new NFT({
-        id: generateTokenId({ address: request.address, tokenId: request.tokenId }),
+        id: generateTokenId({ network, address: request.address, tokenId: request.tokenId }),
       });
     default: {
       const _exhaustive: never = request.category;

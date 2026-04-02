@@ -86,6 +86,7 @@ function parseAndAddSubEntities(
   // 1. Title (required in v2.0.0)
   const titleEntity = new LSP29EncryptedAssetTitle({
     id: uuidv4(),
+    network: hctx.batchCtx.network,
     lsp29EncryptedAsset: parentRef,
     blockNumber: entity.blockNumber,
     transactionIndex: entity.transactionIndex,
@@ -99,6 +100,7 @@ function parseAndAddSubEntities(
   if (lsp29.description !== undefined) {
     const descEntity = new LSP29EncryptedAssetDescription({
       id: uuidv4(),
+      network: hctx.batchCtx.network,
       lsp29EncryptedAsset: parentRef,
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
@@ -112,6 +114,7 @@ function parseAndAddSubEntities(
   // 3. File (required in v2.0.0)
   const fileEntity = new LSP29EncryptedAssetFile({
     id: uuidv4(),
+    network: hctx.batchCtx.network,
     lsp29EncryptedAsset: parentRef,
     blockNumber: entity.blockNumber,
     transactionIndex: entity.transactionIndex,
@@ -131,6 +134,7 @@ function parseAndAddSubEntities(
   const params = lsp29.encryption.params;
   const encryptionEntity = new LSP29EncryptedAssetEncryption({
     id: uuidv4(),
+    network: hctx.batchCtx.network,
     lsp29EncryptedAsset: parentRef,
     blockNumber: entity.blockNumber,
     transactionIndex: entity.transactionIndex,
@@ -153,6 +157,7 @@ function parseAndAddSubEntities(
   // 5. Chunks (required in v2.0.0) — per-backend typed columns matching LSP29 spec
   const chunksEntity = new LSP29EncryptedAssetChunks({
     id: uuidv4(),
+    network: hctx.batchCtx.network,
     lsp29EncryptedAsset: parentRef,
     blockNumber: entity.blockNumber,
     transactionIndex: entity.transactionIndex,
@@ -176,6 +181,7 @@ function parseAndAddSubEntities(
       if (!isFileImage(img)) continue;
       const imageEntity = new LSP29EncryptedAssetImage({
         id: uuidv4(),
+        network: hctx.batchCtx.network,
         lsp29EncryptedAsset: parentRef,
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,

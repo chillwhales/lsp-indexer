@@ -44,6 +44,7 @@
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, type EntityHandler, type HandlerContext } from '@/core/types';
+import { prefixId } from '@/utils';
 import {
   DataChanged,
   LSP6AllowedCall,
@@ -219,7 +220,8 @@ function extractLength(
   hctx: HandlerContext,
 ): void {
   const entity = new LSP6ControllersLength({
-    id: address,
+    id: prefixId(hctx.batchCtx.network, address),
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,
@@ -274,7 +276,7 @@ function extractFromIndex(
   // (which derive controllerAddress from the data key, not the data value).
   const controllerAddress = bytesToHex(hexToBytes(dataValue));
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
-  const id = `${address} - ${controllerAddress}`;
+  const id = prefixId(hctx.batchCtx.network, `${address} - ${controllerAddress}`);
 
   // Check if entity exists in EITHER batch OR database
   const existing = existingControllers.get(id);
@@ -288,6 +290,7 @@ function extractFromIndex(
 
   const entity = new LSP6Controller({
     id,
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,
@@ -348,7 +351,7 @@ function extractPermissions(
   existingControllers: Map<string, LSP6Controller>,
 ): void {
   const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
-  const id = `${address} - ${controllerAddress}`;
+  const id = prefixId(hctx.batchCtx.network, `${address} - ${controllerAddress}`);
 
   // Get or create the merged controller entity
   const controller = getOrCreateController(
@@ -368,6 +371,7 @@ function extractPermissions(
     for (const [permissionName, permissionValue] of Object.entries(permissions)) {
       const permEntity = new LSP6Permission({
         id: `${id} - ${permissionName}`,
+        network: hctx.batchCtx.network,
         timestamp: event.timestamp,
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
@@ -404,7 +408,7 @@ function extractAllowedCalls(
   existingControllers: Map<string, LSP6Controller>,
 ): void {
   const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
-  const id = `${address} - ${controllerAddress}`;
+  const id = prefixId(hctx.batchCtx.network, `${address} - ${controllerAddress}`);
 
   // Get or create the merged controller entity
   const controller = getOrCreateController(
@@ -425,6 +429,7 @@ function extractAllowedCalls(
       const callBytes = hexToBytes(allowedCalls[i] as Hex);
       const callEntity = new LSP6AllowedCall({
         id: `${id} - ${i}`,
+        network: hctx.batchCtx.network,
         timestamp: event.timestamp,
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
@@ -471,7 +476,7 @@ function extractAllowedDataKeys(
   existingControllers: Map<string, LSP6Controller>,
 ): void {
   const controllerAddress = bytesToHex(hexToBytes(dataKey as Hex).slice(12));
-  const id = `${address} - ${controllerAddress}`;
+  const id = prefixId(hctx.batchCtx.network, `${address} - ${controllerAddress}`);
 
   // Get or create the merged controller entity
   const controller = getOrCreateController(
@@ -491,6 +496,7 @@ function extractAllowedDataKeys(
     for (let i = 0; i < allowedKeys.length; i++) {
       const keyEntity = new LSP6AllowedERC725YDataKey({
         id: `${id} - ${i}`,
+        network: hctx.batchCtx.network,
         timestamp: event.timestamp,
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,
@@ -535,7 +541,7 @@ function getOrCreateController(
   hctx: HandlerContext,
   existingControllers: Map<string, LSP6Controller>,
 ): LSP6Controller {
-  const id = `${address} - ${controllerAddress}`;
+  const id = prefixId(hctx.batchCtx.network, `${address} - ${controllerAddress}`);
   const existing = existingControllers.get(id);
 
   if (existing) {
@@ -548,6 +554,7 @@ function getOrCreateController(
   const entity = new LSP6Controller({
     id,
     address,
+    network: hctx.batchCtx.network,
     timestamp,
     blockNumber: event.blockNumber,
     transactionIndex: event.transactionIndex,

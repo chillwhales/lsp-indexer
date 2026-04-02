@@ -18,6 +18,7 @@
  */
 
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { prefixId } from '@/utils';
 import { DigitalAssetOwner } from '@/model';
 
 // Entity type key used in the BatchContext entity bag
@@ -48,7 +49,8 @@ const DigitalAssetOwnerHandler: EntityHandler = {
       if (!verifiedDAs.valid.has(event.address)) continue;
 
       const entity = new DigitalAssetOwner({
-        id: event.address,
+        id: prefixId(batchCtx.network, event.address),
+        network: batchCtx.network,
         timestamp: event.timestamp,
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,

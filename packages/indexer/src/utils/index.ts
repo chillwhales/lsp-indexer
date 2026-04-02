@@ -433,28 +433,34 @@ export function decodeOperationType(operationType: bigint): OperationType | null
 export function generateOwnedAssetId({
   owner,
   address,
+  network,
 }: {
   owner: string;
   address: string;
+  network?: string;
 }): string {
-  return `${owner}:${address}`;
+  const base = `${owner}:${address}`;
+  return network ? prefixId(network, base) : base;
 }
 
 /**
  * Generate a deterministic OwnedToken entity ID from owner, contract address, and tokenId.
  *
- * Format: `"{owner}:{address}:{tokenId}"`
+ * Format: `"{owner}:{address}:{tokenId}"` or `"{network}:{owner}:{address}:{tokenId}"` when network is provided.
  */
 export function generateOwnedTokenId({
   owner,
   address,
   tokenId,
+  network,
 }: {
   owner: string;
   address: string;
   tokenId: string;
+  network?: string;
 }): string {
-  return `${owner}:${address}:${tokenId}`;
+  const base = `${owner}:${address}:${tokenId}`;
+  return network ? prefixId(network, base) : base;
 }
 
 /**

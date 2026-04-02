@@ -43,6 +43,7 @@ const TokenIdDataChangedPlugin: EventPlugin = {
 
     const entity = new TokenIdDataChanged({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

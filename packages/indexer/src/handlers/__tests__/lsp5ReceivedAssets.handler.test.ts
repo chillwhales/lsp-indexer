@@ -13,6 +13,7 @@ import { Store } from '@subsquid/typeorm-store';
 import { bytesToHex, hexToBytes } from 'viem';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import LSP5ReceivedAssetsHandler from '../lsp5ReceivedAssets.handler';
+import { prefixId } from '@/utils';
 
 // ---------------------------------------------------------------------------
 // Data key constants
@@ -24,6 +25,7 @@ const LSP5_RECEIVED_ASSETS_MAP_PREFIX: string = LSP5DataKeys.LSP5ReceivedAssetsM
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
+  network: string;
   getEntities: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
   queueEnrichment: ReturnType<typeof vi.fn>;
@@ -32,6 +34,7 @@ function createMockBatchCtx(): {
   const entityBags = new Map<string, Map<string, unknown>>();
 
   return {
+    network: 'lukso',
     getEntities: vi.fn(<T>(type: string): Map<string, T> => {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
     }),

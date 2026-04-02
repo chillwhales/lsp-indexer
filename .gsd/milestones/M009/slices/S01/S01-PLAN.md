@@ -145,7 +145,7 @@ Replace the singleton processor with a parameterized factory. Thread `network` t
   - Estimate: 2h30m
   - Files: packages/indexer/src/app/processorFactory.ts, packages/indexer/src/app/index.ts, packages/indexer/src/app/config.ts, packages/indexer/src/app/bootstrap.ts, packages/indexer/src/app/processor.ts, packages/indexer/src/core/types/batchContext.ts, packages/indexer/src/core/batchContext.ts, packages/indexer/src/core/pipeline.ts, packages/indexer/src/core/multicall.ts, packages/indexer/src/core/verification.ts, packages/indexer/src/constants/index.ts, packages/indexer/src/plugins/events/follow.plugin.ts, packages/indexer/src/plugins/events/unfollow.plugin.ts, packages/indexer/src/plugins/events/deployedContracts.plugin.ts, packages/indexer/src/plugins/events/deployedProxies.plugin.ts
   - Verify: pnpm --filter=@chillwhales/indexer build && test ! -f packages/indexer/src/app/processor.ts && test -f packages/indexer/src/app/processorFactory.ts
-- [ ] **T04: Set network field on all entity creation sites, fix tests, verify build and zero hardcoded constants** — ## Description
+- [x] **T04: Set network field on all 71 entity creation sites across 11 plugins and 29 handlers, prefixed all deterministic IDs, fixed schema gap (71 vs 51 entities), and partially updated tests** — ## Description
 
 After T03 wires the network through BatchContext and pipeline, every entity creation site across all plugins and handlers must set `network: ctx.network` (or `hctx.batchCtx.network`). Update existing vitest tests to account for the new network field. Run final build and audit.
 

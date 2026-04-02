@@ -10,6 +10,7 @@
  * - Attribute score/rarity field parsing (string, number, non-numeric)
  */
 import type { HandlerContext, StoredClearRequest } from '@/core/types';
+import { prefixId } from '@/utils';
 import {
   LSP4Metadata,
   LSP4MetadataAsset,
@@ -30,6 +31,7 @@ import LSP4MetadataFetchHandler from '../lsp4MetadataFetch.handler';
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
+  network: string;
   getEntities: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
   hasEntities: ReturnType<typeof vi.fn>;
@@ -52,6 +54,7 @@ function createMockBatchCtx(): {
   });
 
   return {
+    network: 'lukso',
     getEntities: getEntitiesFn,
     addEntity: vi.fn((type: string, id: string, entity: unknown) => {
       if (!entityBags.has(type)) entityBags.set(type, new Map());

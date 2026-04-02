@@ -11,6 +11,7 @@ import { Store } from '@subsquid/typeorm-store';
 import { describe, expect, it, vi } from 'vitest';
 import { processBatch, VerifyFn } from '../pipeline';
 import { LUKSO_MAINNET } from '../../config/chainConfig';
+import { prefixId } from '@/utils';
 import { PluginRegistry } from '../registry';
 import {
   Block,
@@ -436,7 +437,7 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       (e) => e.id === 't1' && e.digitalAsset !== undefined && e.digitalAsset !== null,
     );
     expect(enrichedTransfer).toBeDefined();
-    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda' });
+    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: prefixId('lukso', '0xda') });
   });
 });
 
@@ -750,7 +751,7 @@ describe('Pipeline Step 5: VERIFY', () => {
     // Core entities should be upserted in step 5
     const mockStore = store;
     const upEntity = mockStore.upsertedEntities.find(
-      (e) => e.id === '0xup1' && e.address === '0xup1',
+      (e) => e.id === prefixId('lukso', '0xup1') && e.address === '0xup1',
     );
     expect(upEntity).toBeDefined();
   });
@@ -849,8 +850,8 @@ describe('Pipeline Step 5: VERIFY', () => {
 
     // Verify entities were actually created
     const mockStore = store;
-    expect(mockStore.upsertedEntities.find((e) => e.id === '0xup1')).toBeDefined();
-    expect(mockStore.upsertedEntities.find((e) => e.id === '0xda1')).toBeDefined();
+    expect(mockStore.upsertedEntities.find((e) => e.id === prefixId('lukso', '0xup1'))).toBeDefined();
+    expect(mockStore.upsertedEntities.find((e) => e.id === prefixId('lukso', '0xda1'))).toBeDefined();
   });
 });
 
@@ -904,10 +905,10 @@ describe('Pipeline Step 6: ENRICH', () => {
     const enrichedTransfer = mockStore.upsertedEntities.find((e) => {
       const digitalAsset = e.digitalAsset;
       if (typeof digitalAsset !== 'object' || digitalAsset === null) return false;
-      return e.id === 't1' && 'id' in digitalAsset && digitalAsset.id === '0xda1';
+      return e.id === 't1' && 'id' in digitalAsset && digitalAsset.id === prefixId('lukso', '0xda1');
     });
     expect(enrichedTransfer).toBeDefined();
-    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda1' });
+    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: prefixId('lukso', '0xda1') });
   });
 
   it('should leave FK null for invalid addresses', async () => {
@@ -1039,9 +1040,9 @@ describe('Pipeline Step 6: ENRICH', () => {
       (e) => e.id === 't1' && e.fromProfile !== undefined && e.fromProfile !== null,
     );
     expect(enrichedTransfer).toBeDefined();
-    expect(enrichedTransfer?.fromProfile).toMatchObject({ id: '0xup1' });
-    expect(enrichedTransfer?.toProfile).toMatchObject({ id: '0xup2' });
-    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda1' });
+    expect(enrichedTransfer?.fromProfile).toMatchObject({ id: prefixId('lukso', '0xup1') });
+    expect(enrichedTransfer?.toProfile).toMatchObject({ id: prefixId('lukso', '0xup2') });
+    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: prefixId('lukso', '0xda1') });
   });
 
   it('should skip enrichment and warn when FK field does not exist on entity', async () => {
@@ -1208,13 +1209,13 @@ describe('Pipeline Integration', () => {
 
     // Step 5: Core entities should be created
     expect(
-      mockStore.upsertedEntities.find((e) => e.id === '0xup1' && e.address === '0xup1'),
+      mockStore.upsertedEntities.find((e) => e.id === prefixId('lukso', '0xup1') && e.address === '0xup1'),
     ).toBeDefined();
     expect(
-      mockStore.upsertedEntities.find((e) => e.id === '0xup2' && e.address === '0xup2'),
+      mockStore.upsertedEntities.find((e) => e.id === prefixId('lukso', '0xup2') && e.address === '0xup2'),
     ).toBeDefined();
     expect(
-      mockStore.upsertedEntities.find((e) => e.id === '0xda1' && e.address === '0xda1'),
+      mockStore.upsertedEntities.find((e) => e.id === prefixId('lukso', '0xda1') && e.address === '0xda1'),
     ).toBeDefined();
 
     // Step 6: Transfer should be enriched with FKs
@@ -1222,9 +1223,9 @@ describe('Pipeline Integration', () => {
       (e) => e.id === 't1' && e.fromProfile !== undefined && e.fromProfile !== null,
     );
     expect(enrichedTransfer).toBeDefined();
-    expect(enrichedTransfer?.fromProfile).toMatchObject({ id: '0xup1' });
-    expect(enrichedTransfer?.toProfile).toMatchObject({ id: '0xup2' });
-    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda1' });
+    expect(enrichedTransfer?.fromProfile).toMatchObject({ id: prefixId('lukso', '0xup1') });
+    expect(enrichedTransfer?.toProfile).toMatchObject({ id: prefixId('lukso', '0xup2') });
+    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: prefixId('lukso', '0xda1') });
   });
 
   it('should emit BATCH_SUMMARY log with timing and entity counts', async () => {

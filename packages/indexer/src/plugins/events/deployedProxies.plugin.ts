@@ -51,6 +51,7 @@ const DeployedProxiesPlugin: EventPlugin = {
 
     const entity = new DeployedERC1167Proxies({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

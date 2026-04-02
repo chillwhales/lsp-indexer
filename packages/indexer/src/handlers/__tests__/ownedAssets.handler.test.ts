@@ -16,6 +16,7 @@ import { generateOwnedAssetId, generateOwnedTokenId } from '@/utils';
 import { Store } from '@subsquid/typeorm-store';
 import { describe, expect, it, vi } from 'vitest';
 import OwnedAssetsHandler from '../ownedAssets.handler';
+import { prefixId } from '@/utils';
 
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper
@@ -27,6 +28,7 @@ function createMockBatchCtx() {
   const enrichmentQueue: unknown[] = [];
 
   const mockCtx = {
+    network: 'lukso',
     getEntities<T>(type: string): Map<string, T> {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
     },
@@ -150,10 +152,8 @@ describe('OwnedAssetsHandler', () => {
       await OwnedAssetsHandler.handle(hctx, 'LSP7Transfer');
 
       // Should create OwnedAsset for receiver
-      const receiverId = generateOwnedAssetId({
-        owner: transfer.to,
-        address: transfer.address,
-      });
+      const receiverId = generateOwnedAssetId({ network: 'lukso', owner: transfer.to, address: transfer.address,
+       });
       const ownedAssets = batchCtx.getEntities<OwnedAsset>('OwnedAsset');
 
       expect(ownedAssets.has(receiverId)).toBe(true);
@@ -173,7 +173,7 @@ describe('OwnedAssetsHandler', () => {
 
       // Existing OwnedAsset for sender with balance 5000
       const existingSenderAsset = new OwnedAsset({
-        id: generateOwnedAssetId({ owner: sender, address: assetAddress }),
+        id: generateOwnedAssetId({ network: 'lukso', owner: sender, address: assetAddress  }),
         blockNumber: 90,
         transactionIndex: 0,
         logIndex: 0,
@@ -187,7 +187,7 @@ describe('OwnedAssetsHandler', () => {
 
       // Existing OwnedAsset for receiver with balance 2000
       const existingReceiverAsset = new OwnedAsset({
-        id: generateOwnedAssetId({ owner: receiver, address: assetAddress }),
+        id: generateOwnedAssetId({ network: 'lukso', owner: receiver, address: assetAddress  }),
         blockNumber: 90,
         transactionIndex: 0,
         logIndex: 0,
@@ -235,7 +235,7 @@ describe('OwnedAssetsHandler', () => {
 
       // Sender has exact balance being transferred
       const existingSenderAsset = new OwnedAsset({
-        id: generateOwnedAssetId({ owner: sender, address: assetAddress }),
+        id: generateOwnedAssetId({ network: 'lukso', owner: sender, address: assetAddress  }),
         blockNumber: 90,
         transactionIndex: 0,
         logIndex: 0,
@@ -291,10 +291,8 @@ describe('OwnedAssetsHandler', () => {
 
       await OwnedAssetsHandler.handle(hctx, 'LSP7Transfer');
 
-      const receiverId = generateOwnedAssetId({
-        owner: transfer.to,
-        address: transfer.address,
-      });
+      const receiverId = generateOwnedAssetId({ network: 'lukso', owner: transfer.to, address: transfer.address,
+       });
 
       // Should queue enrichment for digitalAsset FK
       expect(batchCtx.queueEnrichment).toHaveBeenCalledWith(
@@ -328,7 +326,7 @@ describe('OwnedAssetsHandler', () => {
 
       // Simulate entity loaded from DB where FK fields might be missing as own properties
       const existingAsset = new OwnedAsset({
-        id: generateOwnedAssetId({ owner: sender, address: assetAddress }),
+        id: generateOwnedAssetId({ network: 'lukso', owner: sender, address: assetAddress  }),
         blockNumber: 90,
         transactionIndex: 0,
         logIndex: 0,
@@ -393,11 +391,8 @@ describe('OwnedAssetsHandler', () => {
 
       expect(transfer.tokenId).toBeDefined();
       if (!transfer.tokenId) throw new Error('tokenId is required for this test');
-      const tokenId = generateOwnedTokenId({
-        owner: transfer.to,
-        address: transfer.address,
-        tokenId: transfer.tokenId,
-      });
+      const tokenId = generateOwnedTokenId({ network: 'lukso', owner: transfer.to, address: transfer.address, tokenId: transfer.tokenId,
+       });
 
       expect(ownedTokens.has(tokenId)).toBe(true);
       const ownedToken = ownedTokens.get(tokenId);
@@ -540,7 +535,7 @@ describe('OwnedAssetsHandler', () => {
 
       // Existing OwnedAsset for receiver (from prior LSP7 transfer or same batch)
       const existingOwnedAsset = new OwnedAsset({
-        id: generateOwnedAssetId({ owner: receiver, address: assetAddress }),
+        id: generateOwnedAssetId({ network: 'lukso', owner: receiver, address: assetAddress  }),
         blockNumber: 90,
         transactionIndex: 0,
         logIndex: 0,
@@ -622,23 +617,20 @@ describe('OwnedAssetsHandler', () => {
       expect(ownedTokens.size).toBe(1);
 
       // Verify LSP7 receiver balance is correct (not doubled)
-      const receiver1AssetId = generateOwnedAssetId({ owner: receiver1, address: assetAddress });
+      const receiver1AssetId = generateOwnedAssetId({ network: 'lukso', owner: receiver1, address: assetAddress  });
       const receiver1Asset = ownedAssets.get(receiver1AssetId);
       expect(receiver1Asset).toBeDefined();
       expect(receiver1Asset?.balance).toBe(1000n); // Not 2000n (would indicate double-processing)
 
       // Verify LSP8 receiver has both OwnedAsset and OwnedToken
-      const receiver2AssetId = generateOwnedAssetId({ owner: receiver2, address: assetAddress });
+      const receiver2AssetId = generateOwnedAssetId({ network: 'lukso', owner: receiver2, address: assetAddress  });
       const receiver2Asset = ownedAssets.get(receiver2AssetId);
       expect(receiver2Asset).toBeDefined();
       expect(receiver2Asset?.balance).toBe(1n);
 
       if (!lsp8Transfer.tokenId) throw new Error('tokenId is required for LSP8 transfer');
-      const receiver2TokenId = generateOwnedTokenId({
-        owner: receiver2,
-        address: assetAddress,
-        tokenId: lsp8Transfer.tokenId,
-      });
+      const receiver2TokenId = generateOwnedTokenId({ network: 'lukso', owner: receiver2, address: assetAddress, tokenId: lsp8Transfer.tokenId,
+       });
       const receiver2Token = ownedTokens.get(receiver2TokenId);
       expect(receiver2Token).toBeDefined();
 
@@ -692,13 +684,13 @@ describe('OwnedAssetsHandler', () => {
       expect(ownedAssets.size).toBe(1);
       expect(ownedTokens.size).toBe(0);
 
-      const receiver1AssetId = generateOwnedAssetId({ owner: receiver1, address: assetAddress });
+      const receiver1AssetId = generateOwnedAssetId({ network: 'lukso', owner: receiver1, address: assetAddress  });
       const receiver1Asset = ownedAssets.get(receiver1AssetId);
       expect(receiver1Asset).toBeDefined();
       expect(receiver1Asset?.balance).toBe(1000n);
 
       // LSP8 receiver should NOT have been processed
-      const receiver2AssetId = generateOwnedAssetId({ owner: receiver2, address: assetAddress });
+      const receiver2AssetId = generateOwnedAssetId({ network: 'lukso', owner: receiver2, address: assetAddress  });
       expect(ownedAssets.has(receiver2AssetId)).toBe(false);
     });
 
@@ -744,21 +736,18 @@ describe('OwnedAssetsHandler', () => {
       expect(ownedTokens.size).toBe(1);
 
       // LSP7 receiver should NOT have been processed
-      const receiver1AssetId = generateOwnedAssetId({ owner: receiver1, address: assetAddress });
+      const receiver1AssetId = generateOwnedAssetId({ network: 'lukso', owner: receiver1, address: assetAddress  });
       expect(ownedAssets.has(receiver1AssetId)).toBe(false);
 
       // LSP8 receiver should have both OwnedAsset and OwnedToken
-      const receiver2AssetId = generateOwnedAssetId({ owner: receiver2, address: assetAddress });
+      const receiver2AssetId = generateOwnedAssetId({ network: 'lukso', owner: receiver2, address: assetAddress  });
       const receiver2Asset = ownedAssets.get(receiver2AssetId);
       expect(receiver2Asset).toBeDefined();
       expect(receiver2Asset?.balance).toBe(1n);
 
       if (!lsp8Transfer.tokenId) throw new Error('tokenId is required for LSP8 transfer');
-      const receiver2TokenId = generateOwnedTokenId({
-        owner: receiver2,
-        address: assetAddress,
-        tokenId: lsp8Transfer.tokenId,
-      });
+      const receiver2TokenId = generateOwnedTokenId({ network: 'lukso', owner: receiver2, address: assetAddress, tokenId: lsp8Transfer.tokenId,
+       });
       const receiver2Token = ownedTokens.get(receiver2TokenId);
       expect(receiver2Token).toBeDefined();
     });
@@ -804,13 +793,13 @@ describe('OwnedAssetsHandler', () => {
       const ownedTokens = batchCtx.getEntities<OwnedToken>('OwnedToken');
 
       // Verify address A has OwnedAsset with balance 100 (not 200 from double-processing)
-      const addressAAssetId = generateOwnedAssetId({ owner: addressA, address: assetAddress });
+      const addressAAssetId = generateOwnedAssetId({ network: 'lukso', owner: addressA, address: assetAddress  });
       const addressAAsset = ownedAssets.get(addressAAssetId);
       expect(addressAAsset).toBeDefined();
       expect(addressAAsset?.balance).toBe(100n); // CRITICAL: not 200n
 
       // Verify address B has OwnedAsset with balance 1 (not 2 from double-processing)
-      const addressBAssetId = generateOwnedAssetId({ owner: addressB, address: assetAddress });
+      const addressBAssetId = generateOwnedAssetId({ network: 'lukso', owner: addressB, address: assetAddress  });
       const addressBAsset = ownedAssets.get(addressBAssetId);
       expect(addressBAsset).toBeDefined();
       expect(addressBAsset?.balance).toBe(1n); // CRITICAL: not 2n
@@ -819,11 +808,8 @@ describe('OwnedAssetsHandler', () => {
       expect(ownedTokens.size).toBe(1);
 
       if (!lsp8Transfer.tokenId) throw new Error('tokenId is required for LSP8 transfer');
-      const addressBTokenId = generateOwnedTokenId({
-        owner: addressB,
-        address: assetAddress,
-        tokenId: lsp8Transfer.tokenId,
-      });
+      const addressBTokenId = generateOwnedTokenId({ network: 'lukso', owner: addressB, address: assetAddress, tokenId: lsp8Transfer.tokenId,
+       });
       const addressBToken = ownedTokens.get(addressBTokenId);
       expect(addressBToken).toBeDefined();
     });

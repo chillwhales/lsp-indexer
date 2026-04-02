@@ -44,6 +44,7 @@ const LSP8TransferPlugin: EventPlugin = {
 
     const entity = new Transfer({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

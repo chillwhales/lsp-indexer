@@ -51,10 +51,11 @@ const ChillClaimedHandler: EntityHandler = {
     // Create ChillClaimed entities for new mints
     if (mintTransfers.length > 0) {
       for (const event of mintTransfers) {
-        const id = generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId: event.tokenId });
+        const id = generateTokenId({ network: batchCtx.network, address: CHILLWHALES_ADDRESS, tokenId: event.tokenId });
 
         const entity = new ChillClaimed({
           id,
+          network: batchCtx.network,
           address: CHILLWHALES_ADDRESS,
           timestamp: event.timestamp,
           blockNumber: event.blockNumber,

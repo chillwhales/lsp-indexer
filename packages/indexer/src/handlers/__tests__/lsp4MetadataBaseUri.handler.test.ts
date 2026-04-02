@@ -17,11 +17,13 @@ import { Store } from '@subsquid/typeorm-store';
 import { zeroAddress } from 'viem';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import LSP4MetadataBaseUriHandler from '../lsp4MetadataBaseUri.handler';
+import { prefixId } from '@/utils';
 
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
+  network: string;
   getEntities: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
   queueEnrichment: ReturnType<typeof vi.fn>;
@@ -32,6 +34,7 @@ function createMockBatchCtx(): {
   const enrichmentQueue: unknown[] = [];
 
   return {
+    network: 'lukso',
     getEntities: vi.fn(<T>(type: string): Map<string, T> => {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
     }),
@@ -181,9 +184,9 @@ describe('LSP4MetadataBaseUriHandler - Base URI Changed Path', () => {
     expect(lsp4Entities?.size).toBe(3);
 
     // Verify entity IDs
-    const expectedId1 = `BaseURI - ${generateTokenId({ address: TEST_ADDRESS, tokenId: '0x01' })}`;
-    const expectedId2 = `BaseURI - ${generateTokenId({ address: TEST_ADDRESS, tokenId: '0x02' })}`;
-    const expectedId3 = `BaseURI - ${generateTokenId({ address: TEST_ADDRESS, tokenId: '0x03' })}`;
+    const expectedId1 = prefixId('lukso', `BaseURI - ${generateTokenId({ network: 'lukso', address: TEST_ADDRESS, tokenId: '0x01'  })}`);
+    const expectedId2 = prefixId('lukso', `BaseURI - ${generateTokenId({ network: 'lukso', address: TEST_ADDRESS, tokenId: '0x02'  })}`);
+    const expectedId3 = prefixId('lukso', `BaseURI - ${generateTokenId({ network: 'lukso', address: TEST_ADDRESS, tokenId: '0x03'  })}`);
 
     expect(lsp4Entities?.has(expectedId1)).toBe(true);
     expect(lsp4Entities?.has(expectedId2)).toBe(true);
@@ -258,7 +261,7 @@ describe('LSP4MetadataBaseUriHandler - Mint Path', () => {
     const lsp4Entities = batchCtx._entityBags.get('LSP4Metadata');
     expect(lsp4Entities?.size).toBe(1);
 
-    const expectedId = `BaseURI - ${generateTokenId({ address: TEST_ADDRESS, tokenId })}`;
+    const expectedId = prefixId('lukso', `BaseURI - ${generateTokenId({ address: TEST_ADDRESS, tokenId })}`);
     expect(lsp4Entities?.has(expectedId)).toBe(true);
 
     const entity = lsp4Entities?.get(expectedId) as LSP4Metadata;

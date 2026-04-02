@@ -102,6 +102,7 @@ function parseAndAddSubEntities(
   if ('name' in lsp4Metadata && typeof lsp4Metadata.name === 'string') {
     const nameEntity = new LSP4MetadataName({
       id: uuidv4(),
+      network: hctx.batchCtx.network,
       lsp4Metadata: parentRef,
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
@@ -116,6 +117,7 @@ function parseAndAddSubEntities(
   if ('description' in lsp4Metadata && typeof lsp4Metadata.description === 'string') {
     const descEntity = new LSP4MetadataDescription({
       id: uuidv4(),
+      network: hctx.batchCtx.network,
       lsp4Metadata: parentRef,
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
@@ -130,6 +132,7 @@ function parseAndAddSubEntities(
   if ('category' in lsp4Metadata && typeof lsp4Metadata.category === 'string') {
     const catEntity = new LSP4MetadataCategory({
       id: uuidv4(),
+      network: hctx.batchCtx.network,
       lsp4Metadata: parentRef,
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
@@ -146,6 +149,7 @@ function parseAndAddSubEntities(
       if (!isLink(link)) continue;
       const linkEntity = new LSP4MetadataLink({
         id: uuidv4(),
+        network: hctx.batchCtx.network,
         lsp4Metadata: parentRef,
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
@@ -166,6 +170,7 @@ function parseAndAddSubEntities(
         imageSet.filter(isFileImage).forEach((img) => {
           const imgEntity = new LSP4MetadataImage({
             id: uuidv4(),
+            network: hctx.batchCtx.network,
             lsp4Metadata: parentRef,
             blockNumber: entity.blockNumber,
             transactionIndex: entity.transactionIndex,
@@ -190,6 +195,7 @@ function parseAndAddSubEntities(
       if (!isFileImage(iconItem)) continue;
       const iconEntity = new LSP4MetadataIcon({
         id: uuidv4(),
+        network: hctx.batchCtx.network,
         lsp4Metadata: parentRef,
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
@@ -213,6 +219,7 @@ function parseAndAddSubEntities(
       const { url, fileType, verification } = asset;
       const assetEntity = new LSP4MetadataAsset({
         id: uuidv4(),
+        network: hctx.batchCtx.network,
         lsp4Metadata: parentRef,
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
@@ -241,6 +248,7 @@ function parseAndAddSubEntities(
 
       const attrEntity = new LSP4MetadataAttribute({
         id: uuidv4(),
+        network: hctx.batchCtx.network,
         lsp4Metadata: parentRef,
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
@@ -262,6 +270,7 @@ function parseAndAddSubEntities(
     if (attr.key === 'Score' && attr.value && isNumeric(attr.value)) {
       const scoreEntity = new LSP4MetadataScore({
         id: uuidv4(),
+        network: hctx.batchCtx.network,
         lsp4Metadata: parentRef,
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
@@ -278,6 +287,7 @@ function parseAndAddSubEntities(
     if (attr.key === 'Rank' && attr.value && isNumeric(attr.value)) {
       const rankEntity = new LSP4MetadataRank({
         id: uuidv4(),
+        network: hctx.batchCtx.network,
         lsp4Metadata: parentRef,
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,

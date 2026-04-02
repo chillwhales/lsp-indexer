@@ -39,7 +39,7 @@ const NFTHandler: EntityHandler = {
       const transfers = hctx.batchCtx.getEntities('LSP8Transfer');
 
       for (const transfer of transfers.values()) {
-        const nftId = generateTokenId({ address: transfer.address, tokenId: transfer.tokenId });
+        const nftId = generateTokenId({ network: hctx.batchCtx.network, address: transfer.address, tokenId: transfer.tokenId });
 
         // Mint event: from === zero address
         if (transfer.from.toLowerCase() === ZERO_ADDRESS_LOWER) {
@@ -47,6 +47,7 @@ const NFTHandler: EntityHandler = {
             nftId,
             new NFT({
               id: nftId,
+              network: hctx.batchCtx.network,
               tokenId: transfer.tokenId,
               address: transfer.address,
               timestamp: transfer.timestamp,
@@ -66,6 +67,7 @@ const NFTHandler: EntityHandler = {
             nftId,
             new NFT({
               id: nftId,
+              network: hctx.batchCtx.network,
               tokenId: transfer.tokenId,
               address: transfer.address,
               timestamp: transfer.timestamp,
@@ -92,7 +94,7 @@ const NFTHandler: EntityHandler = {
       // Collect potential NFT IDs from TokenIdDataChanged events
       const potentialNewIds: string[] = [];
       for (const event of events.values()) {
-        const nftId = generateTokenId({ address: event.address, tokenId: event.tokenId });
+        const nftId = generateTokenId({ network: hctx.batchCtx.network, address: event.address, tokenId: event.tokenId });
         potentialNewIds.push(nftId);
       }
 
@@ -106,13 +108,14 @@ const NFTHandler: EntityHandler = {
 
       // Create stubs only for NFTs that don't exist in either source
       for (const event of events.values()) {
-        const nftId = generateTokenId({ address: event.address, tokenId: event.tokenId });
+        const nftId = generateTokenId({ network: hctx.batchCtx.network, address: event.address, tokenId: event.tokenId });
 
         if (!existingNFTs.has(nftId)) {
           nfts.set(
             nftId,
             new NFT({
               id: nftId,
+              network: hctx.batchCtx.network,
               tokenId: event.tokenId,
               address: event.address,
               timestamp: event.timestamp,

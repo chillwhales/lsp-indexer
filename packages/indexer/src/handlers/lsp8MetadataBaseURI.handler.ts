@@ -13,6 +13,7 @@ import { EntityCategory, EntityHandler } from '@/core/types';
 import { LSP8TokenMetadataBaseURI } from '@/model';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { concat, hexToString, isHex, keccak256, sliceHex, toHex } from 'viem';
+import { prefixId } from '@/utils';
 
 // Entity type key used in the BatchContext entity bag
 const ENTITY_TYPE = 'LSP8TokenMetadataBaseURI';
@@ -48,7 +49,8 @@ const LSP8MetadataBaseURIHandler: EntityHandler = {
 
       // Create entity with decoded base URI
       const entity = new LSP8TokenMetadataBaseURI({
-        id: event.address,
+        id: prefixId(hctx.batchCtx.network, event.address),
+        network: hctx.batchCtx.network,
         address: event.address,
         timestamp: event.timestamp,
         blockNumber: event.blockNumber,

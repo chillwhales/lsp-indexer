@@ -34,6 +34,7 @@
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { prefixId } from '@/utils';
 import { DataChanged, LSP12IssuedAsset, LSP12IssuedAssetsLength } from '@/model';
 import { LSP12DataKeys } from '@lukso/lsp12-contracts';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
@@ -121,7 +122,8 @@ function extractLength(
   hctx: HandlerContext,
 ): void {
   const entity = new LSP12IssuedAssetsLength({
-    id: address,
+    id: prefixId(hctx.batchCtx.network, address),
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,
@@ -192,6 +194,7 @@ function extractFromIndex(
 
   const entity = new LSP12IssuedAsset({
     id,
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,
@@ -277,6 +280,7 @@ function extractFromMap(
 
   const entity = new LSP12IssuedAsset({
     id,
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,

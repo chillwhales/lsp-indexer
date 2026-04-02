@@ -85,6 +85,7 @@ const DecimalsHandler: EntityHandler = {
 
             const entity = new Decimals({
               id: da.id,
+              network: batchCtx.network,
               address: da.id,
               timestamp: da.timestamp,
               blockNumber: da.blockNumber,

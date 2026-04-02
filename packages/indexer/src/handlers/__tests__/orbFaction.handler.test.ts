@@ -17,6 +17,7 @@ import OrbFactionHandler from '../chillwhales/orbFaction.handler';
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
+  network: string;
   getEntities: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
   queueEnrichment: ReturnType<typeof vi.fn>;
@@ -25,6 +26,7 @@ function createMockBatchCtx(): {
   const entityBags = new Map<string, Map<string, unknown>>();
 
   return {
+    network: 'lukso',
     getEntities: vi.fn(<T>(type: string): Map<string, T> => {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
     }),
@@ -86,7 +88,7 @@ describe('OrbFaction handler - Cross-batch FK preservation', () => {
     // Simulate: Batch 1 minted the orb and enrichment populated FKs
     // Batch 2 receives TokenIdDataChanged to update faction
     const tokenId = '0x01';
-    const id = generateTokenId({ address: ORBS_ADDRESS, tokenId });
+    const id = generateTokenId({ network: 'lukso', address: ORBS_ADDRESS, tokenId });
 
     // Existing entity in DB with FKs already populated by enrichment
     const existingFaction = new OrbFaction({
@@ -138,7 +140,7 @@ describe('OrbFaction handler - Cross-batch FK preservation', () => {
   it('should handle entity not found in batch or DB (first TokenIdDataChanged before mint)', async () => {
     // Edge case: TokenIdDataChanged arrives before Transfer mint event
     const tokenId = '0x02';
-    const id = generateTokenId({ address: ORBS_ADDRESS, tokenId });
+    const id = generateTokenId({ network: 'lukso', address: ORBS_ADDRESS, tokenId });
 
     const store = createMockStore(); // Empty DB
     const batchCtx = createMockBatchCtx();
@@ -176,7 +178,7 @@ describe('OrbFaction handler - Cross-batch FK preservation', () => {
   it('should prioritize batch entity over DB entity (intra-batch update)', async () => {
     // Simulate: Same batch has mint (in batch) and TokenIdDataChanged
     const tokenId = '0x03';
-    const id = generateTokenId({ address: ORBS_ADDRESS, tokenId });
+    const id = generateTokenId({ network: 'lukso', address: ORBS_ADDRESS, tokenId });
 
     // Entity exists in DB from previous batch
     const dbFaction = new OrbFaction({

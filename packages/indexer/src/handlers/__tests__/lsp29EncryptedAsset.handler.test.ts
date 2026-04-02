@@ -10,6 +10,9 @@
  * - Edge cases: wrong-length values, empty data
  */
 import { EntityCategory, type HandlerContext } from '@/core/types';
+import { LSP29DataKeys } from '@chillwhales/lsp29';
+import { computeContentHash, encodeLsp31Uri } from '@chillwhales/lsp31';
+import { prefixId } from '@/utils';
 import {
   DataChanged,
   LSP29EncryptedAsset,
@@ -17,8 +20,6 @@ import {
   LSP29EncryptedAssetRevisionCount,
   LSP29EncryptedAssetsLength,
 } from '@/model';
-import { LSP29DataKeys } from '@chillwhales/lsp29';
-import { computeContentHash, encodeLsp31Uri } from '@chillwhales/lsp31';
 import { numberToHex, padHex } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import LSP29EncryptedAssetHandler from '../lsp29EncryptedAsset.handler';
@@ -27,6 +28,7 @@ import LSP29EncryptedAssetHandler from '../lsp29EncryptedAsset.handler';
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
+  network: string;
   getEntities: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
   hasEntities: ReturnType<typeof vi.fn>;
@@ -42,6 +44,7 @@ function createMockBatchCtx(): {
   const enrichmentQueue: unknown[] = [];
 
   return {
+    network: 'lukso',
     getEntities: vi.fn(<T>(type: string): Map<string, T> => {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
     }),
@@ -128,7 +131,7 @@ describe('LSP29EncryptedAssetHandler - Length key', () => {
     );
     expect(lengthCalls.length).toBe(1);
     const entity = lengthCalls[0][2] as LSP29EncryptedAssetsLength;
-    expect(entity.id).toBe(ADDRESS);
+    expect(entity.id).toBe(prefixId('lukso', ADDRESS));
     expect(entity.address).toBe(ADDRESS);
     expect(entity.value).toBe(3n);
     expect(entity.rawValue).toBe(dataValue);
@@ -209,7 +212,7 @@ describe('LSP29EncryptedAssetHandler - Index key', () => {
     );
     expect(assetCalls.length).toBe(1);
     const entity = assetCalls[0][2] as LSP29EncryptedAsset;
-    expect(entity.id).toBe(`${ADDRESS} - ${dataKey}`);
+    expect(entity.id).toBe(prefixId('lukso', `${ADDRESS} - ${dataKey}`));
     expect(entity.address).toBe(ADDRESS);
     expect(entity.arrayIndex).toBe(0n);
     expect(entity.url).toBeNull();

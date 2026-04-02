@@ -49,6 +49,7 @@ const FollowPlugin: EventPlugin = {
 
     const entity = new Follow({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

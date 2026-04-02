@@ -53,18 +53,18 @@ const OwnedAssetsHandler: EntityHandler = {
 
     for (const { address, from, to, tokenId } of allTransfers) {
       if (!isAddressEqual(getAddress(from), zeroAddress)) {
-        ownedAssetIds.add(generateOwnedAssetId({ owner: from, address }));
+        ownedAssetIds.add(generateOwnedAssetId({ network: hctx.batchCtx.network, owner: from, address }));
       }
       if (!isAddressEqual(getAddress(to), zeroAddress)) {
-        ownedAssetIds.add(generateOwnedAssetId({ owner: to, address }));
+        ownedAssetIds.add(generateOwnedAssetId({ network: hctx.batchCtx.network, owner: to, address }));
       }
 
       if (tokenId) {
         if (!isAddressEqual(getAddress(from), zeroAddress)) {
-          ownedTokenIds.add(generateOwnedTokenId({ owner: from, address, tokenId }));
+          ownedTokenIds.add(generateOwnedTokenId({ network: hctx.batchCtx.network, owner: from, address, tokenId }));
         }
         if (!isAddressEqual(getAddress(to), zeroAddress)) {
-          ownedTokenIds.add(generateOwnedTokenId({ owner: to, address, tokenId }));
+          ownedTokenIds.add(generateOwnedTokenId({ network: hctx.batchCtx.network, owner: to, address, tokenId }));
         }
       }
     }
@@ -93,7 +93,7 @@ const OwnedAssetsHandler: EntityHandler = {
 
       // --- OwnedAsset: decrement sender (floor at 0 to prevent underflow) ---
       if (!isAddressEqual(getAddress(from), zeroAddress)) {
-        const fromId = generateOwnedAssetId({ owner: from, address });
+        const fromId = generateOwnedAssetId({ network: hctx.batchCtx.network, owner: from, address });
         const existing = updatedOwnedAssetsMap.get(fromId) ?? existingOwnedAssetsMap.get(fromId);
 
         if (existing) {
@@ -117,7 +117,7 @@ const OwnedAssetsHandler: EntityHandler = {
 
       // --- OwnedAsset: increment receiver ---
       if (!isAddressEqual(getAddress(to), zeroAddress)) {
-        const toId = generateOwnedAssetId({ owner: to, address });
+        const toId = generateOwnedAssetId({ network: hctx.batchCtx.network, owner: to, address });
         const existing = updatedOwnedAssetsMap.get(toId) ?? existingOwnedAssetsMap.get(toId);
 
         if (existing) {
@@ -142,6 +142,7 @@ const OwnedAssetsHandler: EntityHandler = {
             toId,
             new OwnedAsset({
               id: toId,
+              network: hctx.batchCtx.network,
               blockNumber,
               transactionIndex,
               logIndex,
@@ -158,7 +159,7 @@ const OwnedAssetsHandler: EntityHandler = {
 
       // --- OwnedToken: mark sender's token for deletion ---
       if (tokenId && !isAddressEqual(getAddress(from), zeroAddress)) {
-        const fromId = generateOwnedTokenId({ owner: from, address, tokenId });
+        const fromId = generateOwnedTokenId({ network: hctx.batchCtx.network, owner: from, address, tokenId });
         const existing = updatedOwnedTokensMap.get(fromId) ?? existingOwnedTokensMap.get(fromId);
 
         if (existing) {
@@ -184,7 +185,7 @@ const OwnedAssetsHandler: EntityHandler = {
 
       // --- OwnedToken: add to receiver ---
       if (tokenId && !isAddressEqual(getAddress(to), zeroAddress)) {
-        const toId = generateOwnedTokenId({ owner: to, address, tokenId });
+        const toId = generateOwnedTokenId({ network: hctx.batchCtx.network, owner: to, address, tokenId });
         const existing = updatedOwnedTokensMap.get(toId) ?? existingOwnedTokensMap.get(toId);
 
         if (existing) {
@@ -212,6 +213,7 @@ const OwnedAssetsHandler: EntityHandler = {
             toId,
             new OwnedToken({
               id: toId,
+              network: hctx.batchCtx.network,
               blockNumber,
               transactionIndex,
               logIndex,
@@ -345,7 +347,7 @@ const OwnedAssetsHandler: EntityHandler = {
 
       // Queue enrichment for ownedAsset FK
       // The parent OwnedAsset may have been created in this same batch
-      const parentAssetId = generateOwnedAssetId({ owner: entity.owner, address: entity.address });
+      const parentAssetId = generateOwnedAssetId({ network: hctx.batchCtx.network, owner: entity.owner, address: entity.address });
       const parentExists =
         updatedOwnedAssetsMap.has(parentAssetId) || existingOwnedAssetsMap.has(parentAssetId);
 

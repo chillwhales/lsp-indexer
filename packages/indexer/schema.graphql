@@ -169,6 +169,7 @@ type DeployedERC1167Proxies
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   timestamp: DateTime! @index
   blockNumber: Int! @index
   logIndex: Int! @index
@@ -369,6 +370,7 @@ type NFT
   @index(fields: ["tokenId", "digitalAsset"])
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   timestamp: DateTime! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
@@ -402,6 +404,7 @@ type OwnedAsset
   @index(fields: ["address", "owner"])
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
   logIndex: Int! @index
@@ -422,6 +425,7 @@ type OwnedToken
   @index(fields: ["address", "tokenId", "owner"])
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
   logIndex: Int! @index
@@ -508,6 +512,7 @@ type LSP5ReceivedAssetsLength
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
   logIndex: Int! @index
@@ -600,6 +605,7 @@ type LSP6AllowedERC725YDataKey
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   timestamp: DateTime! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
@@ -638,6 +644,7 @@ type LSP8TokenMetadataBaseURI
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
   logIndex: Int! @index
@@ -652,6 +659,7 @@ type LSP12IssuedAssetsLength
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
   logIndex: Int! @index
@@ -718,6 +726,7 @@ type LSP3ProfileDescription
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   timestamp: DateTime! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
@@ -783,6 +792,7 @@ type LSP3ProfileBackgroundImage
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   timestamp: DateTime! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
@@ -842,6 +852,7 @@ type LSP4MetadataDescription
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   timestamp: DateTime! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
@@ -1006,6 +1017,7 @@ type LSP29EncryptedAssetTitle
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   timestamp: DateTime! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
@@ -1018,6 +1030,7 @@ type LSP29EncryptedAssetDescription
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   timestamp: DateTime! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
@@ -1030,6 +1043,7 @@ type LSP29EncryptedAssetFile
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   timestamp: DateTime! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
@@ -1046,6 +1060,7 @@ type LSP29EncryptedAssetEncryption
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   timestamp: DateTime! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
@@ -1079,6 +1094,7 @@ type LSP29EncryptedAssetChunks
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   timestamp: DateTime! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
@@ -1102,6 +1118,7 @@ type LSP29EncryptedAssetImage
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   timestamp: DateTime! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
@@ -1120,6 +1137,7 @@ type LSP29EncryptedAssetsLength
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
   logIndex: Int! @index
@@ -1134,6 +1152,7 @@ type LSP29EncryptedAssetEntry
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
   logIndex: Int! @index
@@ -1148,6 +1167,7 @@ type LSP29EncryptedAssetRevisionCount
   @entity
   @index(fields: ["blockNumber", "transactionIndex", "logIndex"]) {
   id: ID! @unique
+  network: String! @index
   blockNumber: Int! @index
   transactionIndex: Int! @index
   logIndex: Int! @index

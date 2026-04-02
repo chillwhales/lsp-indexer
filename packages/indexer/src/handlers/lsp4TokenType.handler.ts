@@ -6,8 +6,8 @@
  * enum value (0 = TOKEN, 1 = NFT, 2 = COLLECTION) from the data value.
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { decodeTokenType, safeHexToNumber, prefixId } from '@/utils';
 import { LSP4TokenType, LSP4TokenTypeEnum } from '@/model';
-import { decodeTokenType, safeHexToNumber } from '@/utils';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { isHex } from 'viem';
 
@@ -55,7 +55,8 @@ const LSP4TokenTypeHandler: EntityHandler = {
 
       // Create entity with decoded value
       const entity = new LSP4TokenType({
-        id: event.address,
+        id: prefixId(hctx.batchCtx.network, event.address),
+        network: hctx.batchCtx.network,
         address: event.address,
         timestamp: event.timestamp,
         blockNumber: event.blockNumber,

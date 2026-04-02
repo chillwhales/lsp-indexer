@@ -6,8 +6,8 @@
  * encoding format (0 = NUMBER, 1 = STRING, 2 = ADDRESS, 3/4 = BYTES32).
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { decodeTokenIdFormat, safeHexToNumber, prefixId } from '@/utils';
 import { LSP8TokenIdFormat, LSP8TokenIdFormatEnum } from '@/model';
-import { decodeTokenIdFormat, safeHexToNumber } from '@/utils';
 import { LSP8DataKeys } from '@lukso/lsp8-contracts';
 import { isHex } from 'viem';
 
@@ -55,7 +55,8 @@ const LSP8TokenIdFormatHandler: EntityHandler = {
 
       // Create entity with decoded value
       const entity = new LSP8TokenIdFormat({
-        id: event.address,
+        id: prefixId(hctx.batchCtx.network, event.address),
+        network: hctx.batchCtx.network,
         address: event.address,
         timestamp: event.timestamp,
         blockNumber: event.blockNumber,

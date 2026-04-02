@@ -16,7 +16,7 @@ import { INTERFACE_ID_LSP8, INTERFACE_ID_LSP8_PREVIOUS } from '@lukso/lsp8-contr
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { type Hex, isHex } from 'viem';
-import { safeHexToBool } from '@/utils';
+import { prefixId, safeHexToBool } from '@/utils';
 
 import { Aggregate3StaticReturn } from '@/abi/Multicall3';
 import { aggregate3StaticLatest } from './multicall';
@@ -374,7 +374,7 @@ async function verifyWithInterface(
       newEntities.set(
         addr,
         new UniversalProfile({
-          id: addr,
+          id: prefixId(network, addr),
           address: addr,
           network,
           timestamp: new Date(blockPos.timestamp),
@@ -393,7 +393,7 @@ async function verifyWithInterface(
       newEntities.set(
         addr,
         new DigitalAsset({
-          id: addr,
+          id: prefixId(network, addr),
           address: addr,
           network,
           timestamp: new Date(blockPos.timestamp),

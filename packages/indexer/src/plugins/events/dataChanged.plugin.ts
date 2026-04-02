@@ -42,6 +42,7 @@ const DataChangedPlugin: EventPlugin = {
 
     const entity = new DataChanged({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,
