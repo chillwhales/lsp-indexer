@@ -78,6 +78,32 @@ services:
           memory: 512M
 
   # ----------------------------------------------------------------------------
+  # Migrations — runs once, configures DB schema + Hasura, then exits
+  # All indexer services depend on this completing successfully.
+  # ----------------------------------------------------------------------------
+  migrations:
+    container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-migrations
+    image: lsp-indexer:latest
+    restart: 'no'
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    entrypoint: ['/app/migrate.sh']
+
+    environment:
+      DB_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
+      HASURA_GRAPHQL_ENDPOINT: ${HASURA_GRAPHQL_ENDPOINT:-http://hasura:8080}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set in .env}
+
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  # ----------------------------------------------------------------------------
   # Indexer — LUKSO Blockchain Indexer
   # ----------------------------------------------------------------------------
   indexer:
@@ -92,12 +118,9 @@ services:
     image: lsp-indexer:latest
     restart: unless-stopped
 
-    # Wait for PostgreSQL to be healthy before starting
-    # Note: Hasura/data-connector start in parallel but indexer doesn't wait
-    # (entrypoint script waits for Hasura to be ready before configuring)
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
 
     # Health check - verify indexer process is running
     healthcheck:
@@ -138,10 +161,6 @@ services:
       LOG_DIR: /app/packages/indexer/logs
       INDEXER_ENABLE_FILE_LOGGER: ${INDEXER_ENABLE_FILE_LOGGER:-true}
 
-      # Hasura configuration (for entrypoint script)
-      HASURA_GRAPHQL_ENDPOINT: ${HASURA_GRAPHQL_ENDPOINT:-http://hasura:8080}
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set in .env}
-
     # Logging configuration for Docker
     logging:
       driver: 'json-file'
@@ -160,19 +179,15 @@ services:
 
   # ----------------------------------------------------------------------------
   # Indexer Ethereum — Ethereum Mainnet Blockchain Indexer
-  # Shares PostgreSQL with LUKSO; skips migrations (leader/follower pattern)
   # ----------------------------------------------------------------------------
   indexer-ethereum:
     container_name: ${COMPOSE_PROJECT_NAME:-lsp-indexer}-indexer-ethereum
     image: lsp-indexer:latest
     restart: unless-stopped
 
-    # Wait for PostgreSQL + LUKSO indexer (which runs migrations)
     depends_on:
-      postgres:
-        condition: service_healthy
-      indexer:
-        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
 
     # Health check - verify indexer process is running
     healthcheck:
@@ -190,9 +205,6 @@ services:
     environment:
       # Chain identifier for multi-chain support
       CHAIN_ID: ethereum
-
-      # Skip migrations — LUKSO indexer is the leader
-      SKIP_MIGRATIONS: "true"
 
       # Database connection (shared with LUKSO)
       DB_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
@@ -214,10 +226,6 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       LOG_DIR: /app/packages/indexer/logs
       INDEXER_ENABLE_FILE_LOGGER: ${INDEXER_ENABLE_FILE_LOGGER:-true}
-
-      # Hasura configuration (for entrypoint script — skipped due to SKIP_MIGRATIONS)
-      HASURA_GRAPHQL_ENDPOINT: ${HASURA_GRAPHQL_ENDPOINT:-http://hasura:8080}
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set in .env}
 
     # Logging configuration for Docker
     logging:
@@ -244,12 +252,9 @@ services:
     image: lsp-indexer:latest
     restart: unless-stopped
 
-    # Wait for PostgreSQL + LUKSO indexer (which runs migrations)
     depends_on:
-      postgres:
-        condition: service_healthy
-      indexer:
-        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
 
     # Health check - verify indexer process is running
     healthcheck:
@@ -267,9 +272,6 @@ services:
     environment:
       # Chain identifier for multi-chain support
       CHAIN_ID: ethereum-sepolia
-
-      # Skip migrations — LUKSO indexer is the leader
-      SKIP_MIGRATIONS: "true"
 
       # Database connection (shared with LUKSO)
       DB_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
@@ -291,10 +293,6 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       LOG_DIR: /app/packages/indexer/logs
       INDEXER_ENABLE_FILE_LOGGER: ${INDEXER_ENABLE_FILE_LOGGER:-true}
-
-      # Hasura configuration (for entrypoint script — skipped due to SKIP_MIGRATIONS)
-      HASURA_GRAPHQL_ENDPOINT: ${HASURA_GRAPHQL_ENDPOINT:-http://hasura:8080}
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set in .env}
 
     # Logging configuration for Docker
     logging:
