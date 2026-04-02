@@ -1,0 +1,44 @@
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, IntColumn as IntColumn_, DateTimeColumn as DateTimeColumn_, StringColumn as StringColumn_, OneToOne as OneToOne_, JoinColumn as JoinColumn_, BigIntColumn as BigIntColumn_} from "@subsquid/typeorm-store"
+import {UniversalProfile} from "./universalProfile.model"
+
+@Index_(["blockNumber", "transactionIndex", "logIndex"], {unique: false})
+@Entity_()
+export class LSP29EncryptedAssetsLength {
+    constructor(props?: Partial<LSP29EncryptedAssetsLength>) {
+        Object.assign(this, props)
+    }
+
+    @PrimaryColumn_()
+    id!: string
+
+    @IntColumn_({nullable: false})
+    blockNumber!: number
+
+    @Index_()
+    @IntColumn_({nullable: false})
+    transactionIndex!: number
+
+    @Index_()
+    @IntColumn_({nullable: false})
+    logIndex!: number
+
+    @Index_()
+    @DateTimeColumn_({nullable: false})
+    timestamp!: Date
+
+    @Index_()
+    @StringColumn_({nullable: false})
+    address!: string
+
+    @Index_({unique: true})
+    @OneToOne_(() => UniversalProfile, {nullable: true})
+    @JoinColumn_()
+    universalProfile!: UniversalProfile
+
+    @Index_()
+    @BigIntColumn_({nullable: true})
+    value!: bigint | undefined | null
+
+    @StringColumn_({nullable: false})
+    rawValue!: string
+}
