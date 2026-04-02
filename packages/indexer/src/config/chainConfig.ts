@@ -5,6 +5,12 @@
 // Every chain the indexer supports must have an entry in CHAIN_CONFIGS.
 // ---------------------------------------------------------------------------
 
+import { LSP23_FACTORY } from '@chillwhales/lsp23';
+import { LSP26_FOLLOWER_SYSTEM } from '@chillwhales/lsp26';
+
+// Zero address fallback for contracts not deployed on a chain
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 /**
  * Static configuration for a single EVM chain supported by the indexer.
  *
@@ -52,8 +58,8 @@ export const LUKSO_MAINNET: ChainConfig = {
   multicallAddress: '0x144f4290051C2Ad2aCc9D7b6E8cC0dBe36644869',
   ipfsGateway: 'https://api.universalprofile.cloud/ipfs/',
   contracts: {
-    lsp26Address: '0xf01103E5a9909Fc0DBe8166dA7085e0285daDDcA',
-    lsp23Address: '0x2300000A84D25dF63081feAa37ba6b62C4c89a30',
+    lsp26Address: LSP26_FOLLOWER_SYSTEM.address,
+    lsp23Address: LSP23_FACTORY.address,
     lsp23FromBlock: 0,
     lsp26FromBlock: 0,
   },
@@ -69,9 +75,8 @@ export const ETHEREUM_MAINNET: ChainConfig = {
   multicallAddress: '0xcA11bde05977b3631167028862bE2a173976CA11',
   ipfsGateway: 'https://ipfs.io/ipfs/',
   contracts: {
-    lsp26Address: '0x0000000000000000000000000000000000000000',
-    // CREATE2 via Nick Factory — same address on every EVM chain
-    lsp23Address: '0x2300000A84D25dF63081feAa37ba6b62C4c89a30',
+    lsp26Address: ZERO_ADDRESS, // LSP26 not deployed on Ethereum
+    lsp23Address: LSP23_FACTORY.address,
     lsp23FromBlock: 0,
     lsp26FromBlock: 0,
   },
@@ -87,9 +92,8 @@ export const ETHEREUM_SEPOLIA: ChainConfig = {
   multicallAddress: '0xcA11bde05977b3631167028862bE2a173976CA11',
   ipfsGateway: 'https://ipfs.io/ipfs/',
   contracts: {
-    lsp26Address: '0x0000000000000000000000000000000000000000',
-    // CREATE2 via Nick Factory — same address on every EVM chain
-    lsp23Address: '0x2300000A84D25dF63081feAa37ba6b62C4c89a30',
+    lsp26Address: ZERO_ADDRESS, // LSP26 not deployed on Ethereum Sepolia
+    lsp23Address: LSP23_FACTORY.address,
     lsp23FromBlock: 0,
     lsp26FromBlock: 0,
   },

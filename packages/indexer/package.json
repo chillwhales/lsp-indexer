@@ -24,6 +24,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@chillwhales/lsp23": "^0.1.3",
+    "@chillwhales/lsp26": "^0.1.0",
     "@chillwhales/lsp29": "0.1.3",
     "@chillwhales/lsp31": "0.1.2",
     "@chillwhales/utils": "^0.2.1",
@@ -32,9 +34,9 @@
     "@lukso/lsp0-contracts": "0.15.5",
     "@lukso/lsp12-contracts": "^0.15.4",
     "@lukso/lsp14-contracts": "^0.15.5",
+    "@lukso/lsp2-contracts": "^0.15.4",
     "@lukso/lsp23-contracts": "^0.15.5",
     "@lukso/lsp26-contracts": "^0.1.7",
-    "@lukso/lsp2-contracts": "^0.15.4",
     "@lukso/lsp3-contracts": "0.16.6",
     "@lukso/lsp4-contracts": "0.16.7",
     "@lukso/lsp5-contracts": "^0.15.4",

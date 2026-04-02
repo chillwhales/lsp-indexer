@@ -24,7 +24,8 @@ import {
 } from '@/core/types';
 
 // LSP26 FollowerSystem singleton contract address (same on mainnet + testnet)
-const LSP26_ADDRESS = '0xf01103E5a9909Fc0DBe8166dA7085e0285daDDcA';
+import { LSP26_FOLLOWER_SYSTEM } from '@chillwhales/lsp26';
+const LSP26_ADDRESS = LSP26_FOLLOWER_SYSTEM.address;
 import { LSP26FollowerSystem } from '@/abi';
 import { Unfollow } from '@/model';
 import { v4 as uuidv4 } from 'uuid';

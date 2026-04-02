@@ -14,7 +14,8 @@
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
 
 // LSP23 LinkedContractsFactory singleton contract address (same on mainnet + testnet)
-const LSP23_ADDRESS = '0x2300000A84D25dF63081feAa37ba6b62C4c89a30';
+import { LSP23_FACTORY } from '@chillwhales/lsp23';
+const LSP23_ADDRESS = LSP23_FACTORY.address;
 import { LSP23LinkedContractsFactory } from '@/abi';
 import {
   DeployedERC1167Proxies,
