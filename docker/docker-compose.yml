@@ -217,6 +217,23 @@ services:
 
       # Hasura configuration (for entrypoint script — skipped due to SKIP_MIGRATIONS)
       HASURA_GRAPHQL_ENDPOINT: ${HASURA_GRAPHQL_ENDPOINT:-http://hasura:8080}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET must be set in .env}
+
+    # Logging configuration for Docker
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '100m'
+        max-file: '10'
+        compress: 'true'
+
+    # Resource limits (adjust based on your server)
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 1G
 
   # ----------------------------------------------------------------------------
   # Indexer Ethereum Sepolia — Ethereum Sepolia Testnet Blockchain Indexer
