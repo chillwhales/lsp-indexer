@@ -18,6 +18,7 @@
  */
 
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { prefixId } from '@/utils';
 import { UniversalProfileOwner } from '@/model';
 
 // Entity type key used in the BatchContext entity bag
@@ -25,6 +26,7 @@ const ENTITY_TYPE = 'UniversalProfileOwner';
 
 const UniversalProfileOwnerHandler: EntityHandler = {
   name: 'universalProfileOwner',
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['OwnershipTransferred'],
   postVerification: true,
 
@@ -46,7 +48,8 @@ const UniversalProfileOwnerHandler: EntityHandler = {
       if (!verifiedUPs.valid.has(event.address)) continue;
 
       const entity = new UniversalProfileOwner({
-        id: event.address,
+        id: prefixId(batchCtx.network, event.address),
+        network: batchCtx.network,
         timestamp: event.timestamp,
         blockNumber: event.blockNumber,
         transactionIndex: event.transactionIndex,

@@ -30,11 +30,12 @@ const BATCH_SIZE = 500;
 
 const OrbsClaimedHandler: EntityHandler = {
   name: 'orbsClaimed',
+  supportedChains: ['lukso'],
   listensToBag: ['LSP8Transfer'],
   postVerification: false,
 
   async handle(hctx, _triggeredBy): Promise<void> {
-    const { context, batchCtx, isHead, store } = hctx;
+    const { context, batchCtx, isHead, store, multicallAddress } = hctx;
 
     // PHASE 1: Mint detection (runs every batch)
     // Filter LSP8Transfer events to Chillwhale mints (from zero address to CHILLWHALES_ADDRESS)
@@ -53,10 +54,11 @@ const OrbsClaimedHandler: EntityHandler = {
     // Create OrbsClaimed entities for new mints
     if (mintTransfers.length > 0) {
       for (const event of mintTransfers) {
-        const id = generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId: event.tokenId });
+        const id = generateTokenId({ network: batchCtx.network, address: CHILLWHALES_ADDRESS, tokenId: event.tokenId });
 
         const entity = new OrbsClaimed({
           id,
+          network: batchCtx.network,
           address: CHILLWHALES_ADDRESS,
           timestamp: event.timestamp,
           blockNumber: event.blockNumber,
@@ -142,6 +144,7 @@ const OrbsClaimedHandler: EntityHandler = {
             allowFailure: true,
             callData: ORBS.functions.getChillwhaleClaimStatus.encode({ tokenId: entity.tokenId }),
           })),
+          multicallAddress,
         );
         result.push(...batchResults);
       } catch (error) {

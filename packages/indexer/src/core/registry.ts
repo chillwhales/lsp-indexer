@@ -72,9 +72,12 @@ export class PluginRegistry implements IPluginRegistry {
   private readonly eventPlugins = new Map<string, EventPlugin>();
   private readonly entityHandlers: EntityHandler[] = [];
   private readonly logger: Logger | null;
+  /** Chain ID used to filter plugins/handlers by supportedChains. If null, all are accepted. */
+  private readonly chainId: string | null;
 
-  constructor(logger?: Logger) {
+  constructor(logger?: Logger, chainId?: string) {
     this.logger = logger?.child({ step: 'BOOTSTRAP', component: 'registry' }) ?? null;
+    this.chainId = chainId ?? null;
   }
 
   /**
@@ -106,6 +109,14 @@ export class PluginRegistry implements IPluginRegistry {
         }
 
         if (isEventPlugin(plugin)) {
+          // Filter by supportedChains if a chain ID is set
+          if (this.chainId && !plugin.supportedChains.includes(this.chainId)) {
+            this.logger?.info(
+              { file, pluginName: plugin.name, chainId: this.chainId },
+              'Skipping plugin — chain not in supportedChains',
+            );
+            continue;
+          }
           if (this.eventPlugins.has(plugin.topic0)) {
             const existing = this.eventPlugins.get(plugin.topic0);
             throw new Error(
@@ -151,6 +162,14 @@ export class PluginRegistry implements IPluginRegistry {
         }
 
         if (isEntityHandler(handler)) {
+          // Filter by supportedChains if a chain ID is set
+          if (this.chainId && !handler.supportedChains.includes(this.chainId)) {
+            this.logger?.info(
+              { file, handlerName: handler.name, chainId: this.chainId },
+              'Skipping handler — chain not in supportedChains',
+            );
+            continue;
+          }
           const existing = this.entityHandlers.find((h) => h.name === handler.name);
           if (existing) {
             throw new Error(

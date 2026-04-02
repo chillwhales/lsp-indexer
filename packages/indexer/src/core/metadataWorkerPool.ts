@@ -12,7 +12,7 @@
  * await pool.shutdown();
  * ```
  */
-import { FETCH_RETRY_COUNT, IPFS_GATEWAY, WORKER_BATCH_SIZE } from '@/constants';
+import { FETCH_RETRY_COUNT, WORKER_BATCH_SIZE } from '@/constants';
 import crypto from 'crypto';
 import path from 'path';
 import type pino from 'pino';
@@ -38,7 +38,7 @@ interface WorkerFetchResult extends FetchResult {
 export interface MetadataWorkerPoolConfig {
   /** Number of worker threads to spawn. Default: 4 */
   poolSize?: number;
-  /** IPFS gateway URL. Default: from IPFS_GATEWAY constant */
+  /** IPFS gateway URL (from ChainConfig) */
   ipfsGateway?: string;
   /** Per-request timeout in milliseconds. Default: 30_000 */
   requestTimeoutMs?: number;
@@ -266,7 +266,7 @@ export class MetadataWorkerPool implements IMetadataWorkerPool {
 
   constructor(config: MetadataWorkerPoolConfig = {}) {
     const poolSize = config.poolSize ?? 4;
-    const ipfsGateway = config.ipfsGateway ?? IPFS_GATEWAY;
+    const ipfsGateway = config.ipfsGateway ?? 'https://api.universalprofile.cloud/ipfs/';
     const requestTimeoutMs = config.requestTimeoutMs ?? 30_000;
     this.maxRetries = config.maxRetries ?? FETCH_RETRY_COUNT;
     this.retryBaseDelayMs = config.retryBaseDelayMs ?? 1_000;

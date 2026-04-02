@@ -16,8 +16,8 @@
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { isNullAddress, prefixId } from '@/utils';
 import { TotalSupply, Transfer } from '@/model';
-import { isNullAddress } from '@/utils';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 
 // Entity type key used in the BatchContext entity bag
@@ -25,6 +25,7 @@ const ENTITY_TYPE = 'TotalSupply';
 
 const TotalSupplyHandler: EntityHandler = {
   name: 'totalSupply',
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['LSP7Transfer', 'LSP8Transfer'],
 
   async handle(hctx, triggeredBy): Promise<void> {
@@ -73,7 +74,8 @@ const TotalSupplyHandler: EntityHandler = {
 
       if (!entity) {
         entity = new TotalSupply({
-          id: address,
+          id: prefixId(hctx.batchCtx.network, address),
+          network: hctx.batchCtx.network,
           timestamp,
           blockNumber: transfer.blockNumber,
           transactionIndex: transfer.transactionIndex,

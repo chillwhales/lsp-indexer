@@ -33,6 +33,7 @@ vi.mock('@/core/multicall', () => ({
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
+  network: string;
   getEntities: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
   queueEnrichment: ReturnType<typeof vi.fn>;
@@ -43,6 +44,7 @@ function createMockBatchCtx(): {
   const enrichmentQueue: unknown[] = [];
 
   return {
+    network: 'lukso',
     getEntities: vi.fn(<T>(type: string): Map<string, T> => {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
     }),
@@ -150,7 +152,7 @@ describe('ChillClaimedHandler - Phase 1 (Mint Detection)', () => {
 
       await ChillClaimedHandler.handle(hctx, 'LSP8Transfer');
 
-      const expectedId = generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId });
+      const expectedId = generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId });
 
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'ChillClaimed',
@@ -190,7 +192,7 @@ describe('ChillClaimedHandler - Phase 1 (Mint Detection)', () => {
 
       await ChillClaimedHandler.handle(hctx, 'LSP8Transfer');
 
-      const expectedId = generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId });
+      const expectedId = generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId });
 
       // Should queue enrichment for digitalAsset FK
       expect(batchCtx.queueEnrichment).toHaveBeenCalledWith({
@@ -341,10 +343,8 @@ describe('ChillClaimedHandler - Phase 2 (On-chain Verification)', () => {
     it('queries database for unclaimed ChillClaimed entities (value=false)', async () => {
       const batchCtx = createMockBatchCtx();
       const unclaimedEntity = new ChillClaimed({
-        id: generateTokenId({
-          address: CHILLWHALES_ADDRESS,
-          tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
-        }),
+        id: generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
+         }),
         address: CHILLWHALES_ADDRESS,
         tokenId: '0x0000000000000000000000000000000000000000000000000000000000000001',
         digitalAsset: null,
@@ -389,7 +389,7 @@ describe('ChillClaimedHandler - Phase 2 (On-chain Verification)', () => {
       const batchCtx = createMockBatchCtx();
       const tokenId = '0x0000000000000000000000000000000000000000000000000000000000000001';
       const unclaimedEntity = new ChillClaimed({
-        id: generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId }),
+        id: generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId }),
         address: CHILLWHALES_ADDRESS,
         tokenId,
         digitalAsset: null,
@@ -410,7 +410,7 @@ describe('ChillClaimedHandler - Phase 2 (On-chain Verification)', () => {
 
       await ChillClaimedHandler.handle(hctx, 'LSP8Transfer');
 
-      const expectedId = generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId });
+      const expectedId = generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId });
 
       // Should update entity with value=true
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
@@ -427,7 +427,7 @@ describe('ChillClaimedHandler - Phase 2 (On-chain Verification)', () => {
       const batchCtx = createMockBatchCtx();
       const tokenId = '0x0000000000000000000000000000000000000000000000000000000000000001';
       const unclaimedEntity = new ChillClaimed({
-        id: generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId }),
+        id: generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId }),
         address: CHILLWHALES_ADDRESS,
         tokenId,
         digitalAsset: null,
@@ -458,7 +458,7 @@ describe('ChillClaimedHandler - Phase 2 (On-chain Verification)', () => {
       const tokenId2 = '0x0000000000000000000000000000000000000000000000000000000000000002';
 
       const unclaimed1 = new ChillClaimed({
-        id: generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId: tokenId1 }),
+        id: generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId: tokenId1  }),
         address: CHILLWHALES_ADDRESS,
         tokenId: tokenId1,
         digitalAsset: null,
@@ -467,7 +467,7 @@ describe('ChillClaimedHandler - Phase 2 (On-chain Verification)', () => {
       });
 
       const unclaimed2 = new ChillClaimed({
-        id: generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId: tokenId2 }),
+        id: generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId: tokenId2  }),
         address: CHILLWHALES_ADDRESS,
         tokenId: tokenId2,
         digitalAsset: null,
@@ -509,7 +509,7 @@ describe('ChillClaimedHandler - Phase 2 (On-chain Verification)', () => {
       const batchCtx = createMockBatchCtx();
       const tokenId = '0x0000000000000000000000000000000000000000000000000000000000000001';
       const unclaimedEntity = new ChillClaimed({
-        id: generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId }),
+        id: generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId }),
         address: CHILLWHALES_ADDRESS,
         tokenId,
         digitalAsset: null,
@@ -536,7 +536,7 @@ describe('ChillClaimedHandler - Phase 2 (On-chain Verification)', () => {
       const batchCtx = createMockBatchCtx();
       const tokenId = '0x0000000000000000000000000000000000000000000000000000000000000001';
       const unclaimedEntity = new ChillClaimed({
-        id: generateTokenId({ address: CHILLWHALES_ADDRESS, tokenId }),
+        id: generateTokenId({ network: 'lukso', address: CHILLWHALES_ADDRESS, tokenId }),
         address: CHILLWHALES_ADDRESS,
         tokenId,
         digitalAsset: null,

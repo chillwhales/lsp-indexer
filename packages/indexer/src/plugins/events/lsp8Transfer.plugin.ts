@@ -29,6 +29,7 @@ const ENTITY_TYPE = 'LSP8Transfer';
 const LSP8TransferPlugin: EventPlugin = {
   name: 'lsp8Transfer',
   topic0: LSP8IdentifiableDigitalAsset.events.Transfer.topic,
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------
@@ -43,6 +44,7 @@ const LSP8TransferPlugin: EventPlugin = {
 
     const entity = new Transfer({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

@@ -13,6 +13,7 @@ import { Store } from '@subsquid/typeorm-store';
 import { bytesToHex, hexToBytes } from 'viem';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import LSP5ReceivedAssetsHandler from '../lsp5ReceivedAssets.handler';
+import { prefixId } from '@/utils';
 
 // ---------------------------------------------------------------------------
 // Data key constants
@@ -24,6 +25,7 @@ const LSP5_RECEIVED_ASSETS_MAP_PREFIX: string = LSP5DataKeys.LSP5ReceivedAssetsM
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
+  network: string;
   getEntities: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
   queueEnrichment: ReturnType<typeof vi.fn>;
@@ -32,6 +34,7 @@ function createMockBatchCtx(): {
   const entityBags = new Map<string, Map<string, unknown>>();
 
   return {
+    network: 'lukso',
     getEntities: vi.fn(<T>(type: string): Map<string, T> => {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
     }),
@@ -148,7 +151,7 @@ describe('lsp5ReceivedAssets handler - Cross-batch merge', () => {
     // Simulate: Batch 1 had Index event, Batch 2 has Map event
     const upAddress = '0x1234567890123456789012345678901234567890';
     const assetAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const id = `${upAddress} - ${assetAddress}`;
+    const id = prefixId('lukso', `${upAddress} - ${assetAddress}`);
 
     // Existing entity in DB from Batch 1 (Index event only)
     const existingAsset = new LSP5ReceivedAsset({
@@ -192,7 +195,7 @@ describe('lsp5ReceivedAssets handler - Cross-batch merge', () => {
     // Simulate: Batch 1 had Map event, Batch 2 has Index event
     const upAddress = '0x2234567890123456789012345678901234567890';
     const assetAddress = '0xbbcdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const id = `${upAddress} - ${assetAddress}`;
+    const id = prefixId('lukso', `${upAddress} - ${assetAddress}`);
 
     // Existing entity in DB from Batch 1 (Map event only)
     const existingAsset = new LSP5ReceivedAsset({
@@ -236,7 +239,7 @@ describe('lsp5ReceivedAssets handler - Cross-batch merge', () => {
     // Typical case: Both Index and Map fire in same batch
     const upAddress = '0x3334567890123456789012345678901234567890';
     const assetAddress = '0xccbdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const id = `${upAddress} - ${assetAddress}`;
+    const id = prefixId('lukso', `${upAddress} - ${assetAddress}`);
 
     const store = createMockStore(); // Empty DB
     const batchCtx = createMockBatchCtx();
@@ -278,7 +281,7 @@ describe('lsp5ReceivedAssets handler - Cross-batch merge', () => {
     // Edge case: Enrichment populated FK in batch 1, Map arrives in batch 2
     const upAddress = '0x4434567890123456789012345678901234567890';
     const assetAddress = '0xddbdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const id = `${upAddress} - ${assetAddress}`;
+    const id = prefixId('lukso', `${upAddress} - ${assetAddress}`);
 
     // Existing entity with FK populated by enrichment
     const existingAsset = new LSP5ReceivedAsset({

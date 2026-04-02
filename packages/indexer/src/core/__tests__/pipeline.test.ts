@@ -10,6 +10,8 @@ import {
 import { Store } from '@subsquid/typeorm-store';
 import { describe, expect, it, vi } from 'vitest';
 import { processBatch, VerifyFn } from '../pipeline';
+import { LUKSO_MAINNET } from '../../config/chainConfig';
+import { prefixId } from '@/utils';
 import { PluginRegistry } from '../registry';
 import {
   Block,
@@ -195,8 +197,9 @@ function createMockVerifyFn(
         newEntities.set(
           addr,
           new UniversalProfile({
-            id: addr,
+            id: prefixId('lukso', addr),
             address: addr,
+            network: 'lukso',
             blockNumber: 0,
             transactionIndex: 0,
             logIndex: 0,
@@ -207,8 +210,9 @@ function createMockVerifyFn(
         newEntities.set(
           addr,
           new DigitalAsset({
-            id: addr,
+            id: prefixId('lukso', addr),
             address: addr,
+            network: 'lukso',
             blockNumber: 0,
             transactionIndex: 0,
             logIndex: 0,
@@ -243,6 +247,7 @@ describe('Pipeline Step 1: EXTRACT', () => {
       name: 'plugin1',
       topic0: topic1,
       requiresVerification: [],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: extractMock1,
     };
 
@@ -250,6 +255,7 @@ describe('Pipeline Step 1: EXTRACT', () => {
       name: 'plugin2',
       topic0: topic2,
       requiresVerification: [],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: extractMock2,
     };
 
@@ -266,6 +272,8 @@ describe('Pipeline Step 1: EXTRACT', () => {
       registry,
       verifyAddresses: createMockVerifyFn(),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     expect(extractMock1).toHaveBeenCalledTimes(2);
@@ -283,6 +291,7 @@ describe('Pipeline Step 1: EXTRACT', () => {
       topic0: topic,
       contractFilter: { address: targetAddress, fromBlock: 0 },
       requiresVerification: [],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: extractMock,
     };
 
@@ -301,6 +310,8 @@ describe('Pipeline Step 1: EXTRACT', () => {
       registry,
       verifyAddresses: createMockVerifyFn(),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     expect(extractMock).toHaveBeenCalledTimes(1);
@@ -313,6 +324,7 @@ describe('Pipeline Step 1: EXTRACT', () => {
       name: 'test-plugin',
       topic0: topic,
       requiresVerification: [],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity('DataChanged', 'entity-1', mkDataChanged('entity-1'));
       },
@@ -328,6 +340,8 @@ describe('Pipeline Step 1: EXTRACT', () => {
       registry,
       verifyAddresses: createMockVerifyFn(),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     // Verify entity was persisted in step 2
@@ -347,6 +361,7 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity('DataChanged', 'e1', mkDataChanged('e1'));
         ctx.addEntity('Follow', 'e2', mkFollow('e2'));
@@ -363,6 +378,8 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       registry,
       verifyAddresses: createMockVerifyFn(),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     const mockStore = store;
@@ -376,6 +393,7 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity(
           'LSP7Transfer',
@@ -406,6 +424,8 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       registry,
       verifyAddresses: createMockVerifyFn(new Set(['0xda']), new Set(['0xda'])),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     // Step 2: Entity should be inserted (called once)
@@ -419,7 +439,7 @@ describe('Pipeline Step 2: PERSIST RAW', () => {
       (e) => e.id === 't1' && e.digitalAsset !== undefined && e.digitalAsset !== null,
     );
     expect(enrichedTransfer).toBeDefined();
-    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda' });
+    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: prefixId('lukso', '0xda') });
   });
 });
 
@@ -433,6 +453,7 @@ describe('Pipeline Step 3: HANDLE', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity('DataChanged', 'e1', mkDataChanged('e1'));
         ctx.addEntity('Follow', 'e2', mkFollow('e2'));
@@ -443,6 +464,7 @@ describe('Pipeline Step 3: HANDLE', () => {
     const handler: EntityHandler = {
       name: 'test-handler',
       listensToBag: ['DataChanged', 'Follow'],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       handle: handleMock,
     };
 
@@ -457,6 +479,8 @@ describe('Pipeline Step 3: HANDLE', () => {
       registry,
       verifyAddresses: createMockVerifyFn(),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     expect(handleMock).toHaveBeenCalledTimes(2);
@@ -469,6 +493,7 @@ describe('Pipeline Step 3: HANDLE', () => {
     const handler: EntityHandler = {
       name: 'test-handler',
       listensToBag: ['OrbsClaimed'],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       handle: handleMock,
     };
 
@@ -482,6 +507,8 @@ describe('Pipeline Step 3: HANDLE', () => {
       registry,
       verifyAddresses: createMockVerifyFn(),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     expect(handleMock).not.toHaveBeenCalled();
@@ -492,6 +519,7 @@ describe('Pipeline Step 3: HANDLE', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity('DataChanged', 'e1', mkDataChanged('e1'));
       },
@@ -500,6 +528,7 @@ describe('Pipeline Step 3: HANDLE', () => {
     const handler: EntityHandler = {
       name: 'test-handler',
       listensToBag: ['DataChanged'],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       handle: (hctx, triggeredBy) => {
         const events = hctx.batchCtx.getEntities(triggeredBy);
         for (const event of events.values()) {
@@ -523,6 +552,8 @@ describe('Pipeline Step 3: HANDLE', () => {
       registry,
       verifyAddresses: createMockVerifyFn(),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     // Derived entity should be persisted in step 4 via upsert
@@ -536,6 +567,7 @@ describe('Pipeline Step 3: HANDLE', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity('DataChanged', 'e1', mkDataChanged('e1'));
       },
@@ -544,6 +576,7 @@ describe('Pipeline Step 3: HANDLE', () => {
     const handler: EntityHandler = {
       name: 'bad-handler',
       listensToBag: ['DataChanged'],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       handle: (hctx) => {
         // Handler incorrectly tries to add to the same type key
         hctx.batchCtx.addEntity('DataChanged', 'e2', mkDataChanged('e2'));
@@ -562,7 +595,9 @@ describe('Pipeline Step 3: HANDLE', () => {
         registry,
         verifyAddresses: createMockVerifyFn(),
         workerPool: mockWorkerPool,
-      }),
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
+    }),
     ).rejects.toThrow(/Handler attempted to add entity to raw type 'DataChanged'/);
   });
 });
@@ -577,6 +612,7 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity('DataChanged', 'e1', mkDataChanged('e1'));
       },
@@ -585,6 +621,7 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
     const handler: EntityHandler = {
       name: 'test-handler',
       listensToBag: ['DataChanged'],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       handle: (hctx) => {
         hctx.batchCtx.addEntity('Follower', 'd1', mkFollower('d1'));
       },
@@ -601,6 +638,8 @@ describe('Pipeline Step 4: PERSIST DERIVED', () => {
       registry,
       verifyAddresses: createMockVerifyFn(),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     // Raw event should be inserted
@@ -622,6 +661,7 @@ describe('Pipeline Step 5: VERIFY', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity('LSP7Transfer', 'e1', mkTransfer('e1', { address: '0xda1' }));
         ctx.queueEnrichment<Transfer>({
@@ -661,6 +701,8 @@ describe('Pipeline Step 5: VERIFY', () => {
       registry,
       verifyAddresses: verifyFn,
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     expect(verifyFn).toHaveBeenCalledWith(
@@ -677,6 +719,7 @@ describe('Pipeline Step 5: VERIFY', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.UniversalProfile],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity('LSP7Transfer', 'e1', mkTransfer('e1'));
         ctx.queueEnrichment<Transfer>({
@@ -703,12 +746,14 @@ describe('Pipeline Step 5: VERIFY', () => {
       registry,
       verifyAddresses: createMockVerifyFn(new Set(['0xup1']), new Set(['0xup1'])),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     // Core entities should be upserted in step 5
     const mockStore = store;
     const upEntity = mockStore.upsertedEntities.find(
-      (e) => e.id === '0xup1' && e.address === '0xup1',
+      (e) => e.id === prefixId('lukso', '0xup1') && e.address === '0xup1',
     );
     expect(upEntity).toBeDefined();
   });
@@ -718,6 +763,7 @@ describe('Pipeline Step 5: VERIFY', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity('LSP7Transfer', 'e1', mkTransfer('e1'));
         ctx.queueEnrichment<Transfer>({
@@ -755,6 +801,8 @@ describe('Pipeline Step 5: VERIFY', () => {
       registry,
       verifyAddresses: createMockVerifyFn(new Set(['0xup1', '0xda1']), new Set(['0xup1', '0xda1'])),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     // store.upsert should be called at least once per category
@@ -804,8 +852,8 @@ describe('Pipeline Step 5: VERIFY', () => {
 
     // Verify entities were actually created
     const mockStore = store;
-    expect(mockStore.upsertedEntities.find((e) => e.id === '0xup1')).toBeDefined();
-    expect(mockStore.upsertedEntities.find((e) => e.id === '0xda1')).toBeDefined();
+    expect(mockStore.upsertedEntities.find((e) => e.id === prefixId('lukso', '0xup1'))).toBeDefined();
+    expect(mockStore.upsertedEntities.find((e) => e.id === prefixId('lukso', '0xda1'))).toBeDefined();
   });
 });
 
@@ -819,6 +867,7 @@ describe('Pipeline Step 6: ENRICH', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity(
           'LSP7Transfer',
@@ -849,6 +898,8 @@ describe('Pipeline Step 6: ENRICH', () => {
       registry,
       verifyAddresses: createMockVerifyFn(new Set(['0xda1']), new Set(['0xda1'])),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     // Find the enriched entity in upsertCalls (should be called twice: step 5 for core, step 6 for enrichment)
@@ -856,10 +907,10 @@ describe('Pipeline Step 6: ENRICH', () => {
     const enrichedTransfer = mockStore.upsertedEntities.find((e) => {
       const digitalAsset = e.digitalAsset;
       if (typeof digitalAsset !== 'object' || digitalAsset === null) return false;
-      return e.id === 't1' && 'id' in digitalAsset && digitalAsset.id === '0xda1';
+      return e.id === 't1' && 'id' in digitalAsset && digitalAsset.id === prefixId('lukso', '0xda1');
     });
     expect(enrichedTransfer).toBeDefined();
-    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda1' });
+    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: prefixId('lukso', '0xda1') });
   });
 
   it('should leave FK null for invalid addresses', async () => {
@@ -867,6 +918,7 @@ describe('Pipeline Step 6: ENRICH', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity(
           'LSP7Transfer',
@@ -897,6 +949,8 @@ describe('Pipeline Step 6: ENRICH', () => {
       registry,
       verifyAddresses: createMockVerifyFn(new Set(), new Set()),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     // Entity should be inserted in step 2, but NOT enriched in step 6
@@ -915,6 +969,7 @@ describe('Pipeline Step 6: ENRICH', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity(
           'LSP7Transfer',
@@ -977,6 +1032,8 @@ describe('Pipeline Step 6: ENRICH', () => {
         new Set(['0xup1', '0xup2', '0xda1']),
       ),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     // Find enriched entity
@@ -985,9 +1042,9 @@ describe('Pipeline Step 6: ENRICH', () => {
       (e) => e.id === 't1' && e.fromProfile !== undefined && e.fromProfile !== null,
     );
     expect(enrichedTransfer).toBeDefined();
-    expect(enrichedTransfer?.fromProfile).toMatchObject({ id: '0xup1' });
-    expect(enrichedTransfer?.toProfile).toMatchObject({ id: '0xup2' });
-    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda1' });
+    expect(enrichedTransfer?.fromProfile).toMatchObject({ id: prefixId('lukso', '0xup1') });
+    expect(enrichedTransfer?.toProfile).toMatchObject({ id: prefixId('lukso', '0xup2') });
+    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: prefixId('lukso', '0xda1') });
   });
 
   it('should skip enrichment and warn when FK field does not exist on entity', async () => {
@@ -995,6 +1052,7 @@ describe('Pipeline Step 6: ENRICH', () => {
       name: 'test-plugin',
       topic0: '0xtopic',
       requiresVerification: [EntityCategory.DigitalAsset],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         // Use DataChanged which does NOT have a 'digitalAsset' FK field
         ctx.addEntity('DataChanged', 't1', mkDataChanged('t1', { address: '0xda1' }));
@@ -1022,6 +1080,8 @@ describe('Pipeline Step 6: ENRICH', () => {
       registry,
       verifyAddresses: createMockVerifyFn(new Set(['0xda1']), new Set(['0xda1'])),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     // Entity should be inserted in Step 2 (raw persistence)
@@ -1054,6 +1114,7 @@ describe('Pipeline Integration', () => {
       name: 'transfer-plugin',
       topic0: '0xtransfer',
       requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity(
           'LSP7Transfer',
@@ -1107,6 +1168,7 @@ describe('Pipeline Integration', () => {
     const handler: EntityHandler = {
       name: 'total-supply-handler',
       listensToBag: ['LSP7Transfer'],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       handle: (hctx, triggeredBy) => {
         const transfers = hctx.batchCtx.getEntities(triggeredBy);
         for (const transfer of transfers.values()) {
@@ -1136,6 +1198,8 @@ describe('Pipeline Integration', () => {
         new Set(['0xup1', '0xup2', '0xda1']),
       ),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     // Step 2: Raw Transfer should be inserted
@@ -1147,13 +1211,13 @@ describe('Pipeline Integration', () => {
 
     // Step 5: Core entities should be created
     expect(
-      mockStore.upsertedEntities.find((e) => e.id === '0xup1' && e.address === '0xup1'),
+      mockStore.upsertedEntities.find((e) => e.id === prefixId('lukso', '0xup1') && e.address === '0xup1'),
     ).toBeDefined();
     expect(
-      mockStore.upsertedEntities.find((e) => e.id === '0xup2' && e.address === '0xup2'),
+      mockStore.upsertedEntities.find((e) => e.id === prefixId('lukso', '0xup2') && e.address === '0xup2'),
     ).toBeDefined();
     expect(
-      mockStore.upsertedEntities.find((e) => e.id === '0xda1' && e.address === '0xda1'),
+      mockStore.upsertedEntities.find((e) => e.id === prefixId('lukso', '0xda1') && e.address === '0xda1'),
     ).toBeDefined();
 
     // Step 6: Transfer should be enriched with FKs
@@ -1161,9 +1225,9 @@ describe('Pipeline Integration', () => {
       (e) => e.id === 't1' && e.fromProfile !== undefined && e.fromProfile !== null,
     );
     expect(enrichedTransfer).toBeDefined();
-    expect(enrichedTransfer?.fromProfile).toMatchObject({ id: '0xup1' });
-    expect(enrichedTransfer?.toProfile).toMatchObject({ id: '0xup2' });
-    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: '0xda1' });
+    expect(enrichedTransfer?.fromProfile).toMatchObject({ id: prefixId('lukso', '0xup1') });
+    expect(enrichedTransfer?.toProfile).toMatchObject({ id: prefixId('lukso', '0xup2') });
+    expect(enrichedTransfer?.digitalAsset).toMatchObject({ id: prefixId('lukso', '0xda1') });
   });
 
   it('should emit BATCH_SUMMARY log with timing and entity counts', async () => {
@@ -1174,6 +1238,7 @@ describe('Pipeline Integration', () => {
       name: 'test-plugin',
       topic0: topic,
       requiresVerification: [],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       extract: (_log: Log, _block: Block, ctx: IBatchContext) => {
         ctx.addEntity('DataChanged', 'dc1', mkDataChanged('dc1'));
         ctx.addEntity('DataChanged', 'dc2', mkDataChanged('dc2'));
@@ -1185,6 +1250,7 @@ describe('Pipeline Integration', () => {
     const handler: EntityHandler = {
       name: 'test-handler',
       listensToBag: ['DataChanged'],
+      supportedChains: ["lukso", "ethereum", "ethereum-sepolia"],
       handle: (hctx, triggeredBy) => {
         const events = hctx.batchCtx.getEntities(triggeredBy);
         if (events.size > 0) {
@@ -1204,6 +1270,8 @@ describe('Pipeline Integration', () => {
       registry,
       verifyAddresses: createMockVerifyFn(),
       workerPool: mockWorkerPool,
+      network: "lukso",
+      chainConfig: LUKSO_MAINNET,
     });
 
     // Find the BATCH_SUMMARY log call

@@ -11,10 +11,17 @@
  * The primaryContract address is queued for verification as a UniversalProfile.
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  */
-import { LSP23LinkedContractsFactory } from '@/abi';
-import { LSP23_ADDRESS } from '@/constants';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
-import { DeployedContracts, PrimaryContractDeployment, SecondaryContractDeployment } from '@/model';
+
+// LSP23 LinkedContractsFactory singleton contract address (same on mainnet + testnet)
+import { LSP23_FACTORY } from '@chillwhales/lsp23';
+const LSP23_ADDRESS = LSP23_FACTORY.address;
+import { LSP23LinkedContractsFactory } from '@/abi';
+import {
+  DeployedContracts,
+  PrimaryContractDeployment,
+  SecondaryContractDeployment,
+} from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag
@@ -24,6 +31,7 @@ const DeployedContractsPlugin: EventPlugin = {
   name: 'deployedContracts',
   topic0: LSP23LinkedContractsFactory.events.DeployedContracts.topic,
   contractFilter: { address: LSP23_ADDRESS, fromBlock: 1143651 },
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile],
 
   // ---------------------------------------------------------------------------
@@ -44,6 +52,7 @@ const DeployedContractsPlugin: EventPlugin = {
 
     const entity = new DeployedContracts({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

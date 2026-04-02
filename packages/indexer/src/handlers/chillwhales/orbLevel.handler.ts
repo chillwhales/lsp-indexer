@@ -47,6 +47,7 @@ const ORB_COOLDOWN_EXPIRY_TYPE = 'OrbCooldownExpiry';
 
 const OrbLevelHandler: EntityHandler = {
   name: 'orbLevel',
+  supportedChains: ['lukso'],
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
   async handle(hctx, triggeredBy): Promise<void> {
@@ -63,11 +64,12 @@ const OrbLevelHandler: EntityHandler = {
         if (!isAddressEqual(getAddress(transfer.from), zeroAddress)) continue;
 
         // Generate NFT id
-        const id = generateTokenId({ address: transfer.address, tokenId: transfer.tokenId });
+        const id = generateTokenId({ network: hctx.batchCtx.network, address: transfer.address, tokenId: transfer.tokenId });
 
         // Create OrbLevel entity with default value 0
         const levelEntity = new OrbLevel({
           id,
+          network: hctx.batchCtx.network,
           address: transfer.address,
           tokenId: transfer.tokenId,
           timestamp: transfer.timestamp,
@@ -84,6 +86,7 @@ const OrbLevelHandler: EntityHandler = {
         // Create OrbCooldownExpiry entity with default value 0
         const cooldownEntity = new OrbCooldownExpiry({
           id,
+          network: hctx.batchCtx.network,
           address: transfer.address,
           tokenId: transfer.tokenId,
           timestamp: transfer.timestamp,
@@ -161,7 +164,7 @@ const OrbLevelHandler: EntityHandler = {
         if (event.dataKey !== ORB_LEVEL_KEY) continue;
 
         // Generate NFT id
-        const id = generateTokenId({ address: event.address, tokenId: event.tokenId });
+        const id = generateTokenId({ network: hctx.batchCtx.network, address: event.address, tokenId: event.tokenId });
 
         // Decode packed data value: [level(uint32), cooldownExpiry(uint32)]
         if (isHex(event.dataValue) && hexToBytes(event.dataValue).length >= 8) {
@@ -185,6 +188,7 @@ const OrbLevelHandler: EntityHandler = {
           const levelEntity = new OrbLevel({
             ...(existingLevel ?? {}),
             id,
+            network: hctx.batchCtx.network,
             address: event.address,
             tokenId: event.tokenId,
             timestamp: event.timestamp,
@@ -203,6 +207,7 @@ const OrbLevelHandler: EntityHandler = {
           const cooldownEntity = new OrbCooldownExpiry({
             ...(existingCooldown ?? {}),
             id,
+            network: hctx.batchCtx.network,
             address: event.address,
             tokenId: event.tokenId,
             timestamp: event.timestamp,

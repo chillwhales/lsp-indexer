@@ -22,6 +22,7 @@ const FOLLOWER_TYPE = 'Follower';
 
 const FollowerHandler: EntityHandler = {
   name: 'follower',
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['Follow', 'Unfollow'],
 
   handle(hctx, triggeredBy): void {
@@ -31,12 +32,14 @@ const FollowerHandler: EntityHandler = {
 
       for (const follow of follows.values()) {
         const id = generateFollowId({
+          network: hctx.batchCtx.network,
           followerAddress: follow.followerAddress,
           followedAddress: follow.followedAddress,
         });
 
         const entity = new Follower({
           id,
+          network: hctx.batchCtx.network,
           timestamp: follow.timestamp,
           blockNumber: follow.blockNumber,
           logIndex: follow.logIndex,
@@ -84,6 +87,7 @@ const FollowerHandler: EntityHandler = {
       for (const unfollow of unfollows.values()) {
         // CRITICAL: Use unfollowedAddress (NOT followedAddress) for ID generation
         const id = generateFollowId({
+          network: hctx.batchCtx.network,
           followerAddress: unfollow.followerAddress,
           followedAddress: unfollow.unfollowedAddress,
         });

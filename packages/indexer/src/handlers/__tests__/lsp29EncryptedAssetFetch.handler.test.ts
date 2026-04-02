@@ -10,6 +10,7 @@
  * - Encryption includes flattened method-specific params
  */
 import type { HandlerContext, StoredClearRequest } from '@/core/types';
+import { prefixId } from '@/utils';
 import {
   LSP29EncryptedAsset,
   LSP29EncryptedAssetChunks,
@@ -26,6 +27,7 @@ import LSP29EncryptedAssetFetchHandler from '../lsp29EncryptedAssetFetch.handler
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
+  network: string;
   getEntities: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
   hasEntities: ReturnType<typeof vi.fn>;
@@ -48,6 +50,7 @@ function createMockBatchCtx(): {
   });
 
   return {
+    network: 'lukso',
     getEntities: getEntitiesFn,
     addEntity: vi.fn((type: string, id: string, entity: unknown) => {
       if (!entityBags.has(type)) entityBags.set(type, new Map());
@@ -123,7 +126,7 @@ const VALID_LSP29_JSON = {
       method: 'digital-asset-balance',
       params: {
         method: 'digital-asset-balance',
-        tokenAddress: '0xDA1111111111111111111111111111111111111111',
+        tokenAddress: '0xDA11111111111111111111111111111111111111',
         requiredBalance: '1000',
       },
       condition: { chain: 'lukso', version: 2 },
@@ -140,7 +143,7 @@ const VALID_LSP29_JSON = {
           url: 'ipfs://QmImg1',
           width: 512,
           height: 512,
-          verification: { method: 'keccak256(bytes)', data: '0ximg1hash' },
+          verification: { method: 'keccak256(bytes)', data: '0x' + 'ab'.repeat(32) },
         },
       ],
       [
@@ -148,7 +151,7 @@ const VALID_LSP29_JSON = {
           url: 'ipfs://QmImg2',
           width: 128,
           height: 128,
-          verification: { method: 'keccak256(bytes)', data: '0ximg2hash' },
+          verification: { method: 'keccak256(bytes)', data: '0x' + 'cd'.repeat(32) },
         },
       ],
     ],
@@ -430,7 +433,7 @@ describe('LSP29EncryptedAssetFetchHandler - Successful fetch (META-03)', () => {
     // Verify params are flattened on the Encryption entity (not a separate entity)
     const enc = encCalls[0][2] as LSP29EncryptedAssetEncryption;
     expect(enc.method).toBe('digital-asset-balance');
-    expect(enc.tokenAddress).toBe('0xDA1111111111111111111111111111111111111111');
+    expect(enc.tokenAddress).toBe('0xDA11111111111111111111111111111111111111');
     expect(enc.requiredBalance).toBe('1000');
     expect(enc.requiredTokenId).toBeNull();
     expect(enc.followedAddresses).toBeNull();
@@ -708,7 +711,7 @@ describe('LSP29EncryptedAssetFetchHandler - Encryption method variants', () => {
   it('lsp8-ownership: sets tokenAddress and requiredTokenId', async () => {
     const fixture = makeFixtureWithParams({
       method: 'lsp8-ownership',
-      tokenAddress: '0xNFT1111111111111111111111111111111111111111',
+      tokenAddress: '0xAF11111111111111111111111111111111111111',
       requiredTokenId: '0x000000000000000000000000000000000000000000000000000000000000002a',
     });
     const batchCtx = await runSuccessfulFetch(fixture);
@@ -719,7 +722,7 @@ describe('LSP29EncryptedAssetFetchHandler - Encryption method variants', () => {
     expect(encCalls.length).toBe(1);
     const enc = encCalls[0][2] as LSP29EncryptedAssetEncryption;
     expect(enc.method).toBe('lsp8-ownership');
-    expect(enc.tokenAddress).toBe('0xNFT1111111111111111111111111111111111111111');
+    expect(enc.tokenAddress).toBe('0xAF11111111111111111111111111111111111111');
     expect(enc.requiredTokenId).toBe(
       '0x000000000000000000000000000000000000000000000000000000000000002a',
     );
@@ -731,7 +734,7 @@ describe('LSP29EncryptedAssetFetchHandler - Encryption method variants', () => {
   it('lsp26-follower: sets followedAddresses array', async () => {
     const fixture = makeFixtureWithParams({
       method: 'lsp26-follower',
-      followedAddresses: ['0xAddr1', '0xAddr2', '0xAddr3'],
+      followedAddresses: ['0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', '0xcccccccccccccccccccccccccccccccccccccccc'],
     });
     const batchCtx = await runSuccessfulFetch(fixture);
 
@@ -741,7 +744,7 @@ describe('LSP29EncryptedAssetFetchHandler - Encryption method variants', () => {
     expect(encCalls.length).toBe(1);
     const enc = encCalls[0][2] as LSP29EncryptedAssetEncryption;
     expect(enc.method).toBe('lsp26-follower');
-    expect(enc.followedAddresses).toEqual(['0xAddr1', '0xAddr2', '0xAddr3']);
+    expect(enc.followedAddresses).toEqual(['0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', '0xcccccccccccccccccccccccccccccccccccccccc']);
     expect(enc.tokenAddress).toBeNull();
     expect(enc.requiredBalance).toBeNull();
     expect(enc.requiredTokenId).toBeNull();

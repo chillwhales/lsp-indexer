@@ -84,12 +84,14 @@ RUN pnpm install --prod --no-frozen-lockfile
 
 # Copy entrypoint script for running migrations before starting indexer
 COPY docker/entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+COPY docker/migrate.sh /app/migrate.sh
+RUN chmod +x /app/entrypoint.sh /app/migrate.sh
 
 # Create logs directory with proper permissions
 RUN mkdir -p /app/packages/indexer/logs && \
     chown -R node:node /app && \
-    chown node:node /app/entrypoint.sh
+    chown node:node /app/entrypoint.sh && \
+    chown node:node /app/migrate.sh
 
 # Switch to non-root user for security
 USER node

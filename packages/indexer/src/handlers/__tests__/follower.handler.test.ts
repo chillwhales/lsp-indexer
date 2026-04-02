@@ -15,6 +15,7 @@ import FollowerHandler from '../follower.handler';
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
+  network: string;
   getEntities: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
   hasEntities: ReturnType<typeof vi.fn>;
@@ -32,6 +33,7 @@ function createMockBatchCtx(): {
   const enrichmentQueue: unknown[] = [];
 
   return {
+    network: 'lukso',
     getEntities: vi.fn(<T>(type: string): Map<string, T> => {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
     }),
@@ -135,14 +137,10 @@ describe('FollowerHandler - Follow events (HNDL-01)', () => {
     // Verify addEntity called with type 'Follower' and deterministic IDs
     expect(batchCtx.addEntity).toHaveBeenCalledTimes(2);
 
-    const expectedId1 = generateFollowId({
-      followerAddress: '0xAAA0000000000000000000000000000000000001',
-      followedAddress: '0xBBB0000000000000000000000000000000000002',
-    });
-    const expectedId2 = generateFollowId({
-      followerAddress: '0xCCC0000000000000000000000000000000000003',
-      followedAddress: '0xDDD0000000000000000000000000000000000004',
-    });
+    const expectedId1 = generateFollowId({ network: 'lukso', followerAddress: '0xAAA0000000000000000000000000000000000001', followedAddress: '0xBBB0000000000000000000000000000000000002',
+     });
+    const expectedId2 = generateFollowId({ network: 'lukso', followerAddress: '0xCCC0000000000000000000000000000000000003', followedAddress: '0xDDD0000000000000000000000000000000000004',
+     });
 
     expect(batchCtx.addEntity).toHaveBeenCalledWith(
       'Follower',
@@ -213,10 +211,8 @@ describe('FollowerHandler - Follow events (HNDL-01)', () => {
     // Should queue 2 enrichment requests per Follow entity
     expect(batchCtx.queueEnrichment).toHaveBeenCalledTimes(2);
 
-    const expectedId = generateFollowId({
-      followerAddress: '0xAAA0000000000000000000000000000000000001',
-      followedAddress: '0xBBB0000000000000000000000000000000000002',
-    });
+    const expectedId = generateFollowId({ network: 'lukso', followerAddress: '0xAAA0000000000000000000000000000000000001', followedAddress: '0xBBB0000000000000000000000000000000000002',
+     });
 
     expect(batchCtx.queueEnrichment).toHaveBeenCalledWith({
       category: EntityCategory.UniversalProfile,
@@ -265,10 +261,8 @@ describe('FollowerHandler - Unfollow events (HNDL-02)', () => {
     expect(deleteRequest.entityClass).toBe(Follower);
     expect(deleteRequest.entities).toHaveLength(1);
 
-    const expectedId = generateFollowId({
-      followerAddress: '0xAAA0000000000000000000000000000000000001',
-      followedAddress: '0xBBB0000000000000000000000000000000000002',
-    });
+    const expectedId = generateFollowId({ network: 'lukso', followerAddress: '0xAAA0000000000000000000000000000000000001', followedAddress: '0xBBB0000000000000000000000000000000000002',
+     });
     expect(deleteRequest.entities[0].id).toBe(expectedId);
   });
 
@@ -291,17 +285,13 @@ describe('FollowerHandler - Unfollow events (HNDL-02)', () => {
     };
 
     // The ID should use unfollowedAddress, not any other address
-    const correctId = generateFollowId({
-      followerAddress: '0xAAA0000000000000000000000000000000000001',
-      followedAddress: '0xEEE0000000000000000000000000000000000005',
-    });
+    const correctId = generateFollowId({ network: 'lukso', followerAddress: '0xAAA0000000000000000000000000000000000001', followedAddress: '0xEEE0000000000000000000000000000000000005',
+     });
     expect(deleteRequest.entities[0].id).toBe(correctId);
 
     // Verify it does NOT match some wrong address
-    const wrongId = generateFollowId({
-      followerAddress: '0xAAA0000000000000000000000000000000000001',
-      followedAddress: '0xWRONG',
-    });
+    const wrongId = generateFollowId({ network: 'lukso', followerAddress: '0xAAA0000000000000000000000000000000000001', followedAddress: '0xWRONG',
+     });
     expect(deleteRequest.entities[0].id).not.toBe(wrongId);
   });
 

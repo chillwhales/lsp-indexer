@@ -10,8 +10,8 @@
  * automatically fetched by the existing lsp4MetadataFetch handler.
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { generateTokenId, prefixId } from '@/utils';
 import { LSP4Metadata, LSP8TokenMetadataBaseURI, NFT, Transfer } from '@/model';
-import { generateTokenId } from '@/utils';
 import { In } from 'typeorm';
 import { getAddress, isAddressEqual, zeroAddress } from 'viem';
 
@@ -22,6 +22,7 @@ const TRANSFER_ENTITY_TYPE = 'LSP8Transfer';
 
 const LSP4MetadataBaseUriHandler: EntityHandler = {
   name: 'lsp4MetadataBaseUri',
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['LSP8Transfer', 'LSP8TokenMetadataBaseURI'],
   dependsOn: ['lsp8MetadataBaseURI', 'nft', 'formattedTokenId'],
 
@@ -71,7 +72,7 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
     );
 
     for (const nft of contractNFTs) {
-      const entityId = `BaseURI - ${generateTokenId({ address, tokenId: nft.tokenId })}`;
+      const entityId = prefixId(hctx.batchCtx.network, `BaseURI - ${generateTokenId({ network: hctx.batchCtx.network, address, tokenId: nft.tokenId })}`);
 
       // Derive URL: baseUri.endsWith('/') ? baseUri + formattedTokenId : baseUri + '/' + formattedTokenId
       // Use formattedTokenId when available, fall back to raw tokenId
@@ -85,6 +86,7 @@ async function handleBaseUriChanged(hctx: HandlerContext): Promise<void> {
 
       const entity = new LSP4Metadata({
         id: entityId,
+        network: hctx.batchCtx.network,
         address,
         timestamp,
         blockNumber: baseUriEntity.blockNumber,
@@ -188,7 +190,7 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
     if (!baseUri) continue; // No base URI for this collection
 
     // Look up NFT entity from batch to get formattedTokenId
-    const nftId = generateTokenId({ address: mint.address, tokenId: mint.tokenId });
+    const nftId = generateTokenId({ network: hctx.batchCtx.network, address: mint.address, tokenId: mint.tokenId });
     const nft = hctx.batchCtx.getEntities('NFT').get(nftId);
 
     // Use formattedTokenId when available, fall back to raw tokenId
@@ -202,10 +204,11 @@ async function handleMints(hctx: HandlerContext): Promise<void> {
           : `${baseUri.value}/${tokenIdForUrl}`
         : null;
 
-    const entityId = `BaseURI - ${nftId}`;
+    const entityId = prefixId(hctx.batchCtx.network, `BaseURI - ${nftId}`);
 
     const entity = new LSP4Metadata({
       id: entityId,
+      network: hctx.batchCtx.network,
       address: mint.address,
       timestamp: baseUri.timestamp,
       blockNumber: mint.blockNumber,

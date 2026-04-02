@@ -94,7 +94,7 @@ const BASE_URI_LSP4_ID = `BaseURI - ${NFT_ID}`;
 describe('FK Resolution (Step 7: RESOLVE)', () => {
   describe('UniversalProfile.lsp3Profile', () => {
     it('resolves FK when UP in batch and LSP3Profile in batch', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
       const store = createMockStore();
       const log = createMockLogger();
 
@@ -132,7 +132,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
     });
 
     it('resolves FK when UP in batch and LSP3Profile in DB', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
       const dbLsp3 = new LSP3Profile({ id: UP_ADDRESS });
 
       const store = createMockStore({
@@ -160,7 +160,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
     });
 
     it('leaves FK null when LSP3Profile does not exist', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
       const store = createMockStore();
       const log = createMockLogger();
 
@@ -183,7 +183,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
     });
 
     it('reverse pass: resolves FK when LSP3Profile in batch and UP in DB', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
 
       // LSP3Profile in batch
       const lsp3 = new LSP3Profile({
@@ -217,7 +217,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
     });
 
     it('skips if FK is already set on source entity', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
       const store = createMockStore();
       const log = createMockLogger();
 
@@ -264,7 +264,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
 
   describe('DigitalAsset.lsp4Metadata', () => {
     it('resolves FK when DA in batch and LSP4Metadata in batch', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
       const store = createMockStore();
       const log = createMockLogger();
 
@@ -300,7 +300,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
     });
 
     it('reverse pass: resolves FK when LSP4Metadata in batch and DA in DB', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
 
       // Contract-level LSP4Metadata in batch
       const lsp4 = new LSP4Metadata({
@@ -336,7 +336,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
 
   describe('NFT.lsp4Metadata', () => {
     it('resolves FK when NFT in batch and per-token LSP4Metadata in batch', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
       const store = createMockStore();
       const log = createMockLogger();
 
@@ -377,7 +377,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
 
   describe('NFT.lsp4MetadataBaseUri', () => {
     it('resolves FK when NFT in batch and BaseURI LSP4Metadata in batch', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
       const store = createMockStore();
       const log = createMockLogger();
 
@@ -416,7 +416,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
     });
 
     it('reverse pass: resolves FK when BaseURI LSP4Metadata in batch and NFT in DB', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
 
       // BaseURI LSP4Metadata in batch
       const lsp4BaseUri = new LSP4Metadata({
@@ -454,7 +454,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
     });
 
     it('reverse pass: does NOT populate lsp4MetadataBaseUri from non-BaseURI metadata', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
 
       // Per-token LSP4Metadata in batch (id = "{address} - {tokenId}", no BaseURI prefix)
       const lsp4PerToken = new LSP4Metadata({
@@ -498,7 +498,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
 
     it('correctly derives source ID from BaseURI target ID', async () => {
       // Verify the ID derivation: "BaseURI - {address} - {tokenId}" -> "{address} - {tokenId}"
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
 
       // BaseURI LSP4Metadata in batch
       const lsp4 = new LSP4Metadata({
@@ -534,7 +534,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
 
   describe('Deduplication', () => {
     it('does not re-resolve source in reverse pass if already resolved in forward pass', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
       const store = createMockStore();
       const log = createMockLogger();
 
@@ -570,7 +570,7 @@ describe('FK Resolution (Step 7: RESOLVE)', () => {
 
   describe('Empty batch', () => {
     it('does nothing when no relevant entities in batch', async () => {
-      const batchCtx = new BatchContext();
+      const batchCtx = new BatchContext('lukso');
       const store = createMockStore();
       const log = createMockLogger();
 

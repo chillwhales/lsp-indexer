@@ -28,6 +28,7 @@ const ENTITY_TYPE = 'DataChanged';
 const DataChangedPlugin: EventPlugin = {
   name: 'dataChanged',
   topic0: ERC725Y.events.DataChanged.topic,
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------
@@ -41,6 +42,7 @@ const DataChangedPlugin: EventPlugin = {
 
     const entity = new DataChanged({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

@@ -44,6 +44,7 @@ function createMockStore(): {
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(entities: Map<string, TestEntity>): IBatchContext {
   return {
+    network: 'lukso',
     getEntities: vi.fn(() => entities),
   } as unknown as IBatchContext;
 }

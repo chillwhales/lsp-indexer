@@ -6,6 +6,7 @@
  * token symbol string from the data value.
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { prefixId } from '@/utils';
 import { LSP4TokenSymbol } from '@/model';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { hexToString, isHex } from 'viem';
@@ -17,6 +18,7 @@ const LSP4_TOKEN_SYMBOL_KEY: string = LSP4DataKeys.LSP4TokenSymbol;
 
 const LSP4TokenSymbolHandler: EntityHandler = {
   name: 'lsp4TokenSymbol',
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['DataChanged'],
 
   handle(hctx, _triggeredBy): void {
@@ -28,7 +30,8 @@ const LSP4TokenSymbolHandler: EntityHandler = {
 
       // Create entity with decoded value
       const entity = new LSP4TokenSymbol({
-        id: event.address,
+        id: prefixId(hctx.batchCtx.network, event.address),
+        network: hctx.batchCtx.network,
         address: event.address,
         timestamp: event.timestamp,
         blockNumber: event.blockNumber,

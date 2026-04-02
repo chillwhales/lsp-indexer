@@ -30,11 +30,12 @@ const BATCH_SIZE = 100;
 
 const DecimalsHandler: EntityHandler = {
   name: 'decimals',
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['LSP7Transfer', 'LSP8Transfer', 'DataChanged'],
   postVerification: true,
 
   async handle(hctx, _triggeredBy): Promise<void> {
-    const { context, batchCtx } = hctx;
+    const { context, batchCtx, multicallAddress } = hctx;
 
     // Read newly verified Digital Assets from the verification phase
     const newDAs = batchCtx.getVerified(EntityCategory.DigitalAsset).newEntities;
@@ -57,6 +58,7 @@ const DecimalsHandler: EntityHandler = {
             allowFailure: true,
             callData: LSP7DigitalAsset.functions.decimals.encode({}),
           })),
+          multicallAddress,
         );
       } catch (error) {
         // Skip this batch — some assets won't get decimals
@@ -83,6 +85,7 @@ const DecimalsHandler: EntityHandler = {
 
             const entity = new Decimals({
               id: da.id,
+              network: batchCtx.network,
               address: da.id,
               timestamp: da.timestamp,
               blockNumber: da.blockNumber,

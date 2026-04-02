@@ -17,8 +17,8 @@
  * that handler re-creates the sub-entities.
  */
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { decodeVerifiableUri, generateTokenId, prefixId } from '@/utils';
 import { LSP4Metadata } from '@/model';
-import { decodeVerifiableUri, generateTokenId } from '@/utils';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 
 // Entity type key used in the BatchContext entity bag
@@ -28,6 +28,7 @@ const LSP4_METADATA_KEY: string = LSP4DataKeys.LSP4Metadata;
 
 const LSP4MetadataHandler: EntityHandler = {
   name: 'lsp4Metadata',
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['DataChanged', 'TokenIdDataChanged'],
 
   handle(hctx, triggeredBy): void {
@@ -55,7 +56,8 @@ function handleDataChanged(hctx: HandlerContext): void {
 
     // Create entity (id = address)
     const entity = new LSP4Metadata({
-      id: event.address,
+      id: prefixId(hctx.batchCtx.network, event.address),
+      network: hctx.batchCtx.network,
       address: event.address,
       timestamp: event.timestamp,
       blockNumber: event.blockNumber,
@@ -102,11 +104,12 @@ function handleTokenIdDataChanged(hctx: HandlerContext): void {
     const { value: url, decodeError } = decodeVerifiableUri(event.dataValue);
 
     // Generate NFT id
-    const nftId = generateTokenId({ address: event.address, tokenId: event.tokenId });
+    const nftId = generateTokenId({ network: hctx.batchCtx.network, address: event.address, tokenId: event.tokenId });
 
     // Create entity (id = "{address} - {tokenId}")
     const entity = new LSP4Metadata({
       id: nftId,
+      network: hctx.batchCtx.network,
       address: event.address,
       timestamp: event.timestamp,
       blockNumber: event.blockNumber,

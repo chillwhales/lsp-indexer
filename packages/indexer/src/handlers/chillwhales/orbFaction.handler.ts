@@ -35,6 +35,7 @@ const ORB_FACTION_TYPE = 'OrbFaction';
 
 const OrbFactionHandler: EntityHandler = {
   name: 'orbFaction',
+  supportedChains: ['lukso'],
   listensToBag: ['LSP8Transfer', 'TokenIdDataChanged'],
 
   async handle(hctx, triggeredBy): Promise<void> {
@@ -51,11 +52,12 @@ const OrbFactionHandler: EntityHandler = {
         if (!isAddressEqual(getAddress(transfer.from), zeroAddress)) continue;
 
         // Generate NFT id
-        const id = generateTokenId({ address: transfer.address, tokenId: transfer.tokenId });
+        const id = generateTokenId({ network: hctx.batchCtx.network, address: transfer.address, tokenId: transfer.tokenId });
 
         // Create OrbFaction entity with default value 'Neutral'
         const entity = new OrbFaction({
           id,
+          network: hctx.batchCtx.network,
           address: transfer.address,
           tokenId: transfer.tokenId,
           timestamp: transfer.timestamp,
@@ -108,7 +110,7 @@ const OrbFactionHandler: EntityHandler = {
         if (event.dataKey !== ORB_FACTION_KEY) continue;
 
         // Generate NFT id
-        const id = generateTokenId({ address: event.address, tokenId: event.tokenId });
+        const id = generateTokenId({ network: hctx.batchCtx.network, address: event.address, tokenId: event.tokenId });
         const faction = hexToString(event.dataValue as Hex);
 
         // Resolve entity from batch AND database (cross-batch FK preservation)
@@ -118,6 +120,7 @@ const OrbFactionHandler: EntityHandler = {
         const entity = new OrbFaction({
           ...(existing ?? {}),
           id,
+          network: hctx.batchCtx.network,
           address: event.address,
           tokenId: event.tokenId,
           timestamp: event.timestamp,

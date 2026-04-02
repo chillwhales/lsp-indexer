@@ -9,6 +9,7 @@
  * - Enrichment: UP enrichment queued for both universalProfile and controllerProfile FKs
  */
 import { resolveEntities } from '@/core/handlerHelpers';
+import { prefixId } from '@/utils';
 import {
   EntityCategory,
   type HandlerContext,
@@ -48,12 +49,13 @@ const LSP6_ALLOWED_DATA_KEYS_PREFIX = '0x4b80742de2bf866c29110000';
 // ---------------------------------------------------------------------------
 const UP_ADDRESS = '0x1111111111111111111111111111111111111111';
 const CONTROLLER_ADDRESS = '0xaabbccddee112233445566778899001122334455';
-const CONTROLLER_ID = `${UP_ADDRESS} - ${CONTROLLER_ADDRESS}`;
+const CONTROLLER_ID = prefixId('lukso', `${UP_ADDRESS} - ${CONTROLLER_ADDRESS}`);
 
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
+  network: string;
   getEntities: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
   hasEntities: ReturnType<typeof vi.fn>;
@@ -73,6 +75,7 @@ function createMockBatchCtx(): {
   const persistHints = new Map<string, unknown>();
 
   return {
+    network: 'lukso',
     getEntities: vi.fn(<T>(type: string): Map<string, T> => {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
     }),

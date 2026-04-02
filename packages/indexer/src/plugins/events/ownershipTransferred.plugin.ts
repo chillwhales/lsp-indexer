@@ -23,6 +23,7 @@ const ENTITY_TYPE = 'OwnershipTransferred';
 const OwnershipTransferredPlugin: EventPlugin = {
   name: 'ownershipTransferred',
   topic0: LSP14Ownable2Step.events.OwnershipTransferred.topic,
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------
@@ -36,6 +37,7 @@ const OwnershipTransferredPlugin: EventPlugin = {
 
     const entity = new OwnershipTransferred({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

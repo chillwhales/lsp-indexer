@@ -12,11 +12,13 @@ import { EntityCategory, type HandlerContext } from '@/core/types';
 import { OwnershipTransferred, UniversalProfileOwner } from '@/model';
 import { describe, expect, it, vi } from 'vitest';
 import UniversalProfileOwnerHandler from '../universalProfileOwner.handler';
+import { prefixId } from '@/utils';
 
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
+  network: string;
   getEntities: ReturnType<typeof vi.fn>;
   getVerified: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
@@ -30,6 +32,7 @@ function createMockBatchCtx(): {
   const verifiedUPs = new Set<string>();
 
   return {
+    network: 'lukso',
     getEntities: vi.fn(<T>(type: string): Map<string, T> => {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
     }),
@@ -116,9 +119,9 @@ describe('UniversalProfileOwnerHandler', () => {
       // Should create UniversalProfileOwner entity
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'UniversalProfileOwner',
-        upAddress,
+        prefixId('lukso', upAddress),
         expect.objectContaining({
-          id: upAddress,
+          id: prefixId('lukso', upAddress),
           address: newOwner,
           timestamp: event.timestamp,
         }),
@@ -163,7 +166,7 @@ describe('UniversalProfileOwnerHandler', () => {
         category: EntityCategory.UniversalProfile,
         address: upAddress,
         entityType: 'UniversalProfileOwner',
-        entityId: upAddress,
+        entityId: prefixId('lukso', upAddress),
         fkField: 'universalProfile',
         timestamp: new Date('2024-01-01T00:00:00Z').getTime(),
         blockNumber: 100,
@@ -240,8 +243,8 @@ describe('UniversalProfileOwnerHandler', () => {
       expect(batchCtx.addEntity).toHaveBeenCalledTimes(1);
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'UniversalProfileOwner',
-        verifiedAddress,
-        expect.objectContaining({ id: verifiedAddress }),
+        prefixId('lukso', verifiedAddress),
+        expect.objectContaining({ id: prefixId('lukso', verifiedAddress) }),
       );
 
       // Should queue only one enrichment
@@ -385,13 +388,13 @@ describe('UniversalProfileOwnerHandler', () => {
       expect(batchCtx.addEntity).toHaveBeenCalledTimes(2);
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'UniversalProfileOwner',
-        upAddress1,
-        expect.objectContaining({ id: upAddress1 }),
+        prefixId('lukso', upAddress1),
+        expect.objectContaining({ id: prefixId('lukso', upAddress1) }),
       );
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'UniversalProfileOwner',
-        upAddress2,
-        expect.objectContaining({ id: upAddress2 }),
+        prefixId('lukso', upAddress2),
+        expect.objectContaining({ id: prefixId('lukso', upAddress2) }),
       );
 
       // Should queue two enrichments

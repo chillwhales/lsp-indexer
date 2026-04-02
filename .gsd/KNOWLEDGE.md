@@ -124,25 +124,19 @@ OwnedTokenNftIncludeSchema is defined as `NftIncludeSchema.omit({ collection: tr
 
 The `buildNftIncludeVars` function can serve both NFT and owned-token documents when the owned-token variables follow the `$includeNft*` prefix convention.
 
-## [2026-04-01] M008: Package consolidation — ABI barrel skip-self guard pattern
+## [2026-04-02] M009: Multi-chain infrastructure patterns
 
-### Pattern
+### Subsquid multi-processor stateSchema isolation
+When running multiple Subsquid processors against the same PostgreSQL database, each MUST use a distinct `stateSchema` value in the `TypeormDatabase` constructor (e.g., `squid_processor_lukso`, `squid_processor_lukso_testnet`). Subsquid uses SERIALIZABLE isolation on its internal status table — shared stateSchema causes serialization conflicts.
 
-When a codegen script generates a barrel file (`index.ts`) inside the same directory as the generated files it re-exports, the barrel must exclude itself from the glob to avoid circular re-exports. The `abi-codegen.sh` script in `packages/indexer/scripts/` writes to `src/abi/index.ts` and uses a skip-self guard:
+### Deterministic vs UUID ID prefixing
+Only deterministic IDs (address-based, composite keys) need network prefixing for multi-chain. UUIDs are globally unique by definition and don't need prefixing. This distinction saved ~11 entity types from unnecessary PK/FK migration rewrites.
 
-```bash
-for f in src/abi/*.ts; do
-  [[ "$f" == "src/abi/index.ts" ]] && continue
-  # ... export line
-done
-```
+### Leader/follower Docker migration pattern
+When multiple Docker services share one PostgreSQL, use SKIP_MIGRATIONS env var. The leader service runs TypeORM migrations, backfill SQL, and Hasura config. Follower services set `SKIP_MIGRATIONS=true` and `depends_on` the leader with `service_healthy` condition.
 
-This pattern applies whenever a generated barrel lives alongside its exports rather than in a parent directory.
+### Hand-written SQL for PK/FK rewrites
+TypeORM auto-generated migrations cannot handle PK prefix cascading (adding `lukso:` prefix to all deterministic IDs and their FK references). Hand-written SQL with `WHERE NOT LIKE 'lukso:%'` idempotency guards is the correct approach. Always disable/re-enable triggers during bulk PK updates.
 
-### Lesson: sed bulk import rewrites need two passes for multi-line imports
-
-When rewriting imports with `sed` (e.g., `@chillwhales/typeorm` → `@/model`), single-line patterns can miss imports that span multiple lines. A second pass targeting just the string literal (not the full import statement) catches these cases.
-
-### Lesson: Scope stale-reference cleanup by file type
-
-When removing packages, scoping stale reference fixes to code files (ts/json/yaml) and deferring docs/config cleanup keeps the slice focused. Documentation references to removed packages are harmless and can be cleaned up separately.
+### Entity count accuracy
+Schema.graphql had 71 entities, not the 51 estimated during planning. Always count from the actual schema file, not from planning estimates — entity additions from prior milestones compound silently.

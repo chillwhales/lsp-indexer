@@ -11,9 +11,12 @@
  * The primaryContract address is queued for verification as a UniversalProfile.
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  */
-import { LSP23LinkedContractsFactory } from '@/abi';
-import { LSP23_ADDRESS } from '@/constants';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
+
+// LSP23 LinkedContractsFactory singleton contract address (same on mainnet + testnet)
+import { LSP23_FACTORY } from '@chillwhales/lsp23';
+const LSP23_ADDRESS = LSP23_FACTORY.address;
+import { LSP23LinkedContractsFactory } from '@/abi';
 import {
   DeployedERC1167Proxies,
   PrimaryContractDeploymentInit,
@@ -28,6 +31,7 @@ const DeployedProxiesPlugin: EventPlugin = {
   name: 'deployedProxies',
   topic0: LSP23LinkedContractsFactory.events.DeployedERC1167Proxies.topic,
   contractFilter: { address: LSP23_ADDRESS, fromBlock: 1143651 },
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile],
 
   // ---------------------------------------------------------------------------
@@ -48,6 +52,7 @@ const DeployedProxiesPlugin: EventPlugin = {
 
     const entity = new DeployedERC1167Proxies({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

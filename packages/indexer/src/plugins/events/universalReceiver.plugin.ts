@@ -21,6 +21,7 @@ const ENTITY_TYPE = 'UniversalReceiver';
 const UniversalReceiverPlugin: EventPlugin = {
   name: 'universalReceiver',
   topic0: LSP0ERC725Account.events.UniversalReceiver.topic,
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------
@@ -35,6 +36,7 @@ const UniversalReceiverPlugin: EventPlugin = {
 
     const entity = new UniversalReceiver({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

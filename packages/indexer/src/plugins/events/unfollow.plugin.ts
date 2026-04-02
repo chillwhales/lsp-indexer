@@ -15,8 +15,6 @@
  * `Follower` current-state entity removal is implemented by the FollowerHandler
  * EntityHandler.
  */
-import { LSP26FollowerSystem } from '@/abi';
-import { LSP26_ADDRESS } from '@/constants';
 import {
   EntityCategory,
   type Block,
@@ -24,6 +22,11 @@ import {
   type IBatchContext,
   type Log,
 } from '@/core/types';
+
+// LSP26 FollowerSystem singleton contract address (same on mainnet + testnet)
+import { LSP26_FOLLOWER_SYSTEM } from '@chillwhales/lsp26';
+const LSP26_ADDRESS = LSP26_FOLLOWER_SYSTEM.address;
+import { LSP26FollowerSystem } from '@/abi';
 import { Unfollow } from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -34,6 +37,7 @@ const UnfollowPlugin: EventPlugin = {
   name: 'unfollow',
   topic0: LSP26FollowerSystem.events.Unfollow.topic,
   contractFilter: { address: LSP26_ADDRESS, fromBlock: 3179471 },
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile],
 
   // ---------------------------------------------------------------------------
@@ -46,6 +50,7 @@ const UnfollowPlugin: EventPlugin = {
 
     const entity = new Unfollow({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

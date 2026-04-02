@@ -12,11 +12,13 @@ import { EntityCategory, type HandlerContext } from '@/core/types';
 import { DigitalAssetOwner, OwnershipTransferred } from '@/model';
 import { describe, expect, it, vi } from 'vitest';
 import DigitalAssetOwnerHandler from '../digitalAssetOwner.handler';
+import { prefixId } from '@/utils';
 
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper
 // ---------------------------------------------------------------------------
 function createMockBatchCtx(): {
+  network: string;
   getEntities: ReturnType<typeof vi.fn>;
   getVerified: ReturnType<typeof vi.fn>;
   addEntity: ReturnType<typeof vi.fn>;
@@ -30,6 +32,7 @@ function createMockBatchCtx(): {
   const verifiedDAs = new Set<string>();
 
   return {
+    network: 'lukso',
     getEntities: vi.fn(<T>(type: string): Map<string, T> => {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
     }),
@@ -116,9 +119,9 @@ describe('DigitalAssetOwnerHandler', () => {
       // Should create DigitalAssetOwner entity
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'DigitalAssetOwner',
-        daAddress,
+        prefixId('lukso', daAddress),
         expect.objectContaining({
-          id: daAddress,
+          id: prefixId('lukso', daAddress),
           address: newOwner,
           timestamp: event.timestamp,
         }),
@@ -163,7 +166,7 @@ describe('DigitalAssetOwnerHandler', () => {
         category: EntityCategory.DigitalAsset,
         address: daAddress,
         entityType: 'DigitalAssetOwner',
-        entityId: daAddress,
+        entityId: prefixId('lukso', daAddress),
         fkField: 'digitalAsset',
         timestamp: new Date('2024-01-01T00:00:00Z').getTime(),
         blockNumber: 100,
@@ -240,8 +243,8 @@ describe('DigitalAssetOwnerHandler', () => {
       expect(batchCtx.addEntity).toHaveBeenCalledTimes(1);
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'DigitalAssetOwner',
-        verifiedAddress,
-        expect.objectContaining({ id: verifiedAddress }),
+        prefixId('lukso', verifiedAddress),
+        expect.objectContaining({ id: prefixId('lukso', verifiedAddress) }),
       );
 
       // Should queue only one enrichment
@@ -385,13 +388,13 @@ describe('DigitalAssetOwnerHandler', () => {
       expect(batchCtx.addEntity).toHaveBeenCalledTimes(2);
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'DigitalAssetOwner',
-        daAddress1,
-        expect.objectContaining({ id: daAddress1 }),
+        prefixId('lukso', daAddress1),
+        expect.objectContaining({ id: prefixId('lukso', daAddress1) }),
       );
       expect(batchCtx.addEntity).toHaveBeenCalledWith(
         'DigitalAssetOwner',
-        daAddress2,
-        expect.objectContaining({ id: daAddress2 }),
+        prefixId('lukso', daAddress2),
+        expect.objectContaining({ id: prefixId('lukso', daAddress2) }),
       );
 
       // Should queue two enrichments

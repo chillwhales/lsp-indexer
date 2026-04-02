@@ -116,6 +116,9 @@ export type StoredClearRequest = Omit<ClearRequest<Entity>, 'fkField'> & {
  * A new BatchContext is created for each batch — no state carries over.
  */
 export interface IBatchContext {
+  /** The network identifier for this batch (e.g. 'lukso', 'ethereum', 'ethereum-sepolia'). */
+  readonly network: string;
+
   // Typed entity storage — compile-time bag key validation
   addEntity<K extends keyof EntityRegistry>(type: K, id: string, entity: EntityRegistry[K]): void;
   getEntities<K extends keyof EntityRegistry>(type: K): Map<string, EntityRegistry[K]>;

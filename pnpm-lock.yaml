@@ -62,7 +62,7 @@ importers:
         version: 0.1.1(@babel/core@7.29.0)
       '@chillwhales/lsp1':
         specifier: ^0.1.1
-        version: 0.1.1(@babel/core@7.29.0)
+        version: 0.1.1(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lsp-indexer/next':
         specifier: workspace:*
         version: link:../../packages/next
@@ -179,6 +179,12 @@ importers:
 
   packages/indexer:
     dependencies:
+      '@chillwhales/lsp23':
+        specifier: ^0.1.3
+        version: 0.1.3(@babel/core@7.29.0)(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(viem@2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6))
+      '@chillwhales/lsp26':
+        specifier: ^0.1.0
+        version: 0.1.0
       '@chillwhales/lsp29':
         specifier: 0.1.3
         version: 0.1.3(viem@2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6))
@@ -834,6 +840,16 @@ packages:
     resolution: {integrity: sha512-HYc/uope/PGz4HdRMP4zvLSEI+BoMJNo8FaChSzZi6yRXgO4n+figQn9hOgS9ehsCwWsvvZjc4RL6kfZHoq1Tw==}
     engines: {node: '>=22'}
 
+  '@chillwhales/lsp23@0.1.3':
+    resolution: {integrity: sha512-hvyWLFL95LuEs496nFve5usSBukTtfrsrAIcIfBHa71ALgYr5KkNoMvFq6zXKpnxGsbH4UOSzYqRHpoRqvcmnw==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      viem: ^2.47.0
+
+  '@chillwhales/lsp26@0.1.0':
+    resolution: {integrity: sha512-0MCJ1EGINIytPl1WUc/ThzZ1YKn/R2QdfxJqXM29vD7HiVAJ+NUbiiG2WgU5JOT670jOL9oG2zsuz4OtZ4cwMA==}
+    engines: {node: '>=22'}
+
   '@chillwhales/lsp29@0.1.3':
     resolution: {integrity: sha512-Z+4e2D4T+QWnx8wGlCS06cmPWKHArXiLwyBpf+vOGM439d8uHq6Emg4lYot5ek7NoKf8Yt4RAklAaxSoFvlh6Q==}
     engines: {node: '>=22'}
@@ -851,6 +867,16 @@ packages:
     engines: {node: '>=22'}
     peerDependencies:
       viem: ^2.47.0
+
+  '@chillwhales/lsp6@0.2.1':
+    resolution: {integrity: sha512-6xchDMz3ZyZ1lz0XOc5kUYDh0ROf/U/AcFDm1ceTC2xzBo7dgIREitMlsfoGzRm+gA5SUj3/W/s9LcI/MiXBhw==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      viem: ^2.47.0
+
+  '@chillwhales/up@0.1.0':
+    resolution: {integrity: sha512-yKFuVaDpYPwK/AGSLEVajDP/Ru6iHAjdrMlzMB/NkUPDYY2Itw5B73ao73LUvUycTP8Rj4gCrfCntEtjCn+xEw==}
+    engines: {node: '>=22'}
 
   '@chillwhales/utils@0.2.1':
     resolution: {integrity: sha512-koKnge48ds8E9vXAEYyXF3RE2dGUt7kqylggiDN8zldr2VVPc/ZFSYfqYjbFZ09hBgLjpw866z/SfDO4dMfTyA==}
@@ -893,6 +919,9 @@ packages:
 
   '@erc725/erc725.js@0.28.1':
     resolution: {integrity: sha512-LKHZzHz7JeRHZzsPZjRqmu7UmCtGtalABm0eb1q6jQtmsEThEyMshdY5O4GbZuvUDLXS0fayRAlY3AF8TvuZ5A==}
+
+  '@erc725/erc725.js@0.28.2':
+    resolution: {integrity: sha512-KALjQbGkZKEx6J404xt3J9KNZZgyp9ZzhZeYbieWrLtQPA5bWz5yJYIZj+aMCntEpdXudKXVDA/MdEiNF9s58g==}
 
   '@erc725/smart-contracts@6.0.0':
     resolution: {integrity: sha512-6okutGGL9xbg/MSgAof2FU1UcSNE/z3p9TORlROVGaM3gi1A6FQQ7fDqtBYkPtvHureX8yS9gP7xPt3PRbP43Q==}
@@ -9956,7 +9985,7 @@ snapshots:
       '@lukso/lsp5-contracts': 0.15.4(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp6-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp8-contracts': 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp9-contracts': 0.15.5(@babel/core@7.29.0)
+      '@lukso/lsp9-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       zod: 4.3.6
     transitivePeerDependencies:
       - '@babel/core'
@@ -9981,14 +10010,14 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@chillwhales/lsp1@0.1.1(@babel/core@7.29.0)':
+  '@chillwhales/lsp1@0.1.1(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@lukso/lsp0-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp14-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp26-contracts': 0.1.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp7-contracts': 0.16.8(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp8-contracts': 0.16.7(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@lukso/lsp9-contracts': 0.15.5(@babel/core@7.29.0)
+      '@lukso/lsp9-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       zod: 4.3.6
     transitivePeerDependencies:
       - '@babel/core'
@@ -9996,6 +10025,26 @@ snapshots:
       - encoding
       - supports-color
       - utf-8-validate
+
+  '@chillwhales/lsp23@0.1.3(@babel/core@7.29.0)(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(viem@2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6))':
+    dependencies:
+      '@chillwhales/lsp1': 0.1.1(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@chillwhales/lsp2': 0.2.1(viem@2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6))
+      '@chillwhales/lsp6': 0.2.1(@babel/core@7.29.0)(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(viem@2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6))
+      '@chillwhales/up': 0.1.0
+      '@erc725/erc725.js': 0.28.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)
+      '@lukso/universalprofile-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      viem: 2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)
+      zod: 4.3.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - typescript
+      - utf-8-validate
+
+  '@chillwhales/lsp26@0.1.0': {}
 
   '@chillwhales/lsp29@0.1.3(viem@2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6))':
     dependencies:
@@ -10012,6 +10061,23 @@ snapshots:
     dependencies:
       viem: 2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)
       zod: 4.3.6
+
+  '@chillwhales/lsp6@0.2.1(@babel/core@7.29.0)(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(viem@2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6))':
+    dependencies:
+      '@chillwhales/utils': 0.2.1(viem@2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6))
+      '@erc725/erc725.js': 0.28.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)
+      '@lukso/lsp6-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      viem: 2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)
+      zod: 4.3.6
+    transitivePeerDependencies:
+      - '@babel/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - typescript
+      - utf-8-validate
+
+  '@chillwhales/up@0.1.0': {}
 
   '@chillwhales/utils@0.2.1(viem@2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6))':
     dependencies:
@@ -10064,6 +10130,17 @@ snapshots:
       tslib: 2.8.1
 
   '@erc725/erc725.js@0.28.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)':
+    dependencies:
+      cross-fetch: 4.1.0
+      viem: 2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - typescript
+      - utf-8-validate
+      - zod
+
+  '@erc725/erc725.js@0.28.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)':
     dependencies:
       cross-fetch: 4.1.0
       viem: 2.47.4(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.3.6)
@@ -11987,7 +12064,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@lukso/lsp9-contracts@0.15.5(@babel/core@7.29.0)':
+  '@lukso/lsp9-contracts@0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@erc725/smart-contracts': 7.0.0(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@lukso/lsp1-contracts': 0.15.5(@babel/core@7.29.0)(bufferutil@4.0.9)(utf-8-validate@5.0.10)

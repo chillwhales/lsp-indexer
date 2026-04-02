@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { zeroAddress } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import TotalSupplyHandler from '../totalSupply.handler';
+import { prefixId } from '@/utils';
 
 // ---------------------------------------------------------------------------
 // Mock BatchContext helper
@@ -21,6 +22,7 @@ function createMockBatchCtx() {
   const enrichmentQueue: unknown[] = [];
 
   const mockCtx = {
+    network: 'lukso',
     getEntities<T>(type: string): Map<string, T> {
       return (entityBags.get(type) || new Map()) as Map<string, T>;
     },
@@ -225,7 +227,7 @@ describe('TotalSupplyHandler', () => {
           category: EntityCategory.DigitalAsset,
           address: assetAddress,
           entityType: 'TotalSupply',
-          entityId: assetAddress,
+          entityId: prefixId('lukso', assetAddress),
           fkField: 'digitalAsset',
         }),
       );

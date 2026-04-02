@@ -28,6 +28,7 @@ const ENTITY_TYPE = 'TokenIdDataChanged';
 const TokenIdDataChangedPlugin: EventPlugin = {
   name: 'tokenIdDataChanged',
   topic0: LSP8IdentifiableDigitalAsset.events.TokenIdDataChanged.topic,
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------
@@ -42,6 +43,7 @@ const TokenIdDataChangedPlugin: EventPlugin = {
 
     const entity = new TokenIdDataChanged({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

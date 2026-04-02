@@ -16,7 +16,7 @@ import { INTERFACE_ID_LSP8, INTERFACE_ID_LSP8_PREVIOUS } from '@lukso/lsp8-contr
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
 import { type Hex, isHex } from 'viem';
-import { safeHexToBool } from '@/utils';
+import { prefixId, safeHexToBool } from '@/utils';
 
 import { Aggregate3StaticReturn } from '@/abi/Multicall3';
 import { aggregate3StaticLatest } from './multicall';
@@ -153,6 +153,10 @@ export interface VerificationConfig {
   cacheMaxSize?: number;
   /** Multicall batch size. Default: 100 */
   batchSize?: number;
+  /** Multicall3 contract address for this chain */
+  multicallAddress: string;
+  /** Network identifier for setting on new entities */
+  network: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -176,6 +180,7 @@ async function multicallVerify(
   addresses: string[],
   callData: Hex,
   batchSize: number,
+  multicallAddress: string,
 ): Promise<boolean[]> {
   if (addresses.length === 0) return [];
 
@@ -189,6 +194,7 @@ async function multicallVerify(
       aggregate3StaticLatest(
         context,
         batch.map((target) => ({ target, allowFailure: true, callData })),
+        multicallAddress,
       ),
     );
   }
@@ -212,7 +218,7 @@ async function multicallVerify(
             result.push(
               ...(await aggregate3StaticLatest(context, [
                 { target, allowFailure: true, callData },
-              ])),
+              ], multicallAddress)),
             );
           } catch {
             // Address verification failed entirely — treat as invalid
@@ -265,6 +271,8 @@ async function verifyWithInterface(
   cache: VerificationCache,
   batchSize: number,
   blockPositionByAddress: Map<string, BlockPosition>,
+  multicallAddress: string,
+  network: string,
 ): Promise<InternalVerificationResult> {
   const addressArray = [...addresses];
 
@@ -332,7 +340,7 @@ async function verifyWithInterface(
       `Verifying supportsInterface for ${category}`,
     );
 
-    const results = await multicallVerify(context, unverified, callData, batchSize);
+    const results = await multicallVerify(context, unverified, callData, batchSize, multicallAddress);
     const stillUnverified: string[] = [];
 
     for (let i = 0; i < unverified.length; i++) {
@@ -366,8 +374,9 @@ async function verifyWithInterface(
       newEntities.set(
         addr,
         new UniversalProfile({
-          id: addr,
+          id: prefixId(network, addr),
           address: addr,
+          network,
           timestamp: new Date(blockPos.timestamp),
           blockNumber: blockPos.blockNumber,
           transactionIndex: blockPos.transactionIndex,
@@ -384,8 +393,9 @@ async function verifyWithInterface(
       newEntities.set(
         addr,
         new DigitalAsset({
-          id: addr,
+          id: prefixId(network, addr),
           address: addr,
+          network,
           timestamp: new Date(blockPos.timestamp),
           blockNumber: blockPos.blockNumber,
           transactionIndex: blockPos.transactionIndex,
@@ -420,7 +430,7 @@ async function verifyWithInterface(
  * ```
  */
 export function createVerifyFn(
-  config: VerificationConfig = {},
+  config: VerificationConfig,
 ): (
   category: EntityCategory,
   addresses: Set<string>,
@@ -430,6 +440,7 @@ export function createVerifyFn(
 ) => Promise<VerificationResult> {
   const cache = new VerificationCache(config.cacheMaxSize ?? 50_000);
   const batchSize = config.batchSize ?? DEFAULT_BATCH_SIZE;
+  const { multicallAddress, network } = config;
 
   /**
    * Verify addresses for a given EntityCategory.
@@ -481,6 +492,8 @@ export function createVerifyFn(
         cache,
         batchSize,
         blockPositionByAddress,
+        multicallAddress,
+        network,
       );
 
     return {

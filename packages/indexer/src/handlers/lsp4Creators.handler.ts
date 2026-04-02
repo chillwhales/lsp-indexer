@@ -34,6 +34,7 @@
  */
 import { resolveEntities } from '@/core/handlerHelpers';
 import { EntityCategory, EntityHandler, HandlerContext } from '@/core/types';
+import { prefixId } from '@/utils';
 import { DataChanged, LSP4Creator, LSP4CreatorsLength } from '@/model';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { bytesToBigInt, bytesToHex, Hex, hexToBigInt, hexToBytes, isHex } from 'viem';
@@ -53,6 +54,7 @@ const LSP4_CREATORS_MAP_PREFIX: string = LSP4DataKeys.LSP4CreatorsMap;
 
 const LSP4CreatorsHandler: EntityHandler = {
   name: 'lsp4Creators',
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['DataChanged'],
 
   async handle(hctx, _triggeredBy): Promise<void> {
@@ -120,7 +122,8 @@ function extractLength(
   hctx: HandlerContext,
 ): void {
   const entity = new LSP4CreatorsLength({
-    id: address,
+    id: prefixId(hctx.batchCtx.network, address),
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,
@@ -173,7 +176,7 @@ function extractFromIndex(
 
   const creatorAddress = dataValue;
   const arrayIndex = bytesToBigInt(hexToBytes(dataKey as Hex).slice(16));
-  const id = `${address} - ${creatorAddress}`;
+  const id = prefixId(hctx.batchCtx.network, `${address} - ${creatorAddress}`);
 
   // Check if entity exists in EITHER batch OR database
   const existing = existingCreators.get(id);
@@ -191,6 +194,7 @@ function extractFromIndex(
 
   const entity = new LSP4Creator({
     id,
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,
@@ -257,7 +261,7 @@ function extractFromMap(
 
   const interfaceId = isValidValue ? bytesToHex(dataValueBytes.slice(0, 4)) : null;
   const arrayIndex = isValidValue ? bytesToBigInt(dataValueBytes.slice(4)) : null;
-  const id = `${address} - ${creatorAddress}`;
+  const id = prefixId(hctx.batchCtx.network, `${address} - ${creatorAddress}`);
 
   // Check if entity exists in EITHER batch OR database
   const existing = existingCreators.get(id);
@@ -276,6 +280,7 @@ function extractFromMap(
 
   const entity = new LSP4Creator({
     id,
+    network: hctx.batchCtx.network,
     address,
     timestamp,
     blockNumber: event.blockNumber,

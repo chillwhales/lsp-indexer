@@ -6,6 +6,7 @@
  * token name string from the data value.
  */
 import { EntityCategory, EntityHandler } from '@/core/types';
+import { prefixId } from '@/utils';
 import { LSP4TokenName } from '@/model';
 import { LSP4DataKeys } from '@lukso/lsp4-contracts';
 import { hexToString, isHex } from 'viem';
@@ -17,6 +18,7 @@ const LSP4_TOKEN_NAME_KEY: string = LSP4DataKeys.LSP4TokenName;
 
 const LSP4TokenNameHandler: EntityHandler = {
   name: 'lsp4TokenName',
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['DataChanged'],
 
   handle(hctx, _triggeredBy): void {
@@ -28,7 +30,8 @@ const LSP4TokenNameHandler: EntityHandler = {
 
       // Create entity with decoded value
       const entity = new LSP4TokenName({
-        id: event.address,
+        id: prefixId(hctx.batchCtx.network, event.address),
+        network: hctx.batchCtx.network,
         address: event.address,
         timestamp: event.timestamp,
         blockNumber: event.blockNumber,

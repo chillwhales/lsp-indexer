@@ -21,6 +21,7 @@ const ENTITY_TYPE = 'Executed';
 const ExecutedPlugin: EventPlugin = {
   name: 'executed',
   topic0: ERC725X.events.Executed.topic,
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   requiresVerification: [EntityCategory.UniversalProfile, EntityCategory.DigitalAsset],
 
   // ---------------------------------------------------------------------------
@@ -34,6 +35,7 @@ const ExecutedPlugin: EventPlugin = {
 
     const entity = new Executed({
       id: uuidv4(),
+      network: ctx.network,
       timestamp: new Date(timestamp),
       blockNumber: height,
       logIndex,

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T04",
+  "unitId": "M009/S01/T04",
+  "timestamp": 1775111012020,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "pnpm --filter=@chillwhales/indexer build",
+      "exitCode": 2,
+      "durationMs": 2141,
+      "verdict": "fail"
+    },
+    {
+      "command": "pnpm --filter=@chillwhales/indexer test",
+      "exitCode": 2,
+      "durationMs": 2355,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

@@ -14,7 +14,8 @@
  * No JSON.stringify calls — attributes are passed as native objects for jq filtering.
  */
 
-import { compareBlockPosition, generateTokenId } from '@/utils';
+import { ChainConfig } from '@/config/chainConfig';
+import { compareBlockPosition, generateTokenId, prefixId } from '@/utils';
 import { DigitalAsset, NFT, UniversalProfile } from '@/model';
 import { Store } from '@subsquid/typeorm-store';
 import { In } from 'typeorm';
@@ -62,6 +63,10 @@ export interface PipelineConfig {
   registry: PluginRegistry;
   verifyAddresses: VerifyFn;
   workerPool: IMetadataWorkerPool;
+  /** Network identifier (e.g. 'lukso') threaded to BatchContext */
+  network: string;
+  /** Full chain configuration for downstream use */
+  chainConfig: ChainConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -188,8 +193,8 @@ function enrichEntity(
  * A failed store operation in any step halts the pipeline for the batch.
  */
 export async function processBatch(context: Context, config: PipelineConfig): Promise<void> {
-  const { registry, verifyAddresses, workerPool } = config;
-  const batchCtx = new BatchContext();
+  const { registry, verifyAddresses, workerPool, network, chainConfig } = config;
+  const batchCtx = new BatchContext(network);
 
   // Compute block range for structured log context
   const blockRange =
@@ -276,6 +281,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     isHead: context.isHead,
     batchCtx,
     workerPool,
+    multicallAddress: chainConfig.multicallAddress,
   };
 
   const step3Handlers = registry.getAllEntityHandlers().filter((h) => !h.postVerification);
@@ -604,7 +610,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
         }
 
         // Type-safe FK assignment using helper
-        enrichEntity(entity, request, createFkStub(request));
+        enrichEntity(entity, request, createFkStub(request, network));
         hasValidFk = true;
       }
 
@@ -682,18 +688,18 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
  * These are TypeORM entity instances with only the `id` field set,
  * used as foreign key references.
  */
-function createFkStub(request: StoredEnrichmentRequest): RegisteredEntity {
+function createFkStub(request: StoredEnrichmentRequest, network: string): RegisteredEntity {
   switch (request.category) {
     case EntityCategory.UniversalProfile:
-      return new UniversalProfile({ id: request.address });
+      return new UniversalProfile({ id: prefixId(network, request.address) });
     case EntityCategory.DigitalAsset:
-      return new DigitalAsset({ id: request.address });
+      return new DigitalAsset({ id: prefixId(network, request.address) });
     case EntityCategory.NFT:
       if (!request.tokenId) {
         throw new Error(`NFT enrichment request missing tokenId for address ${request.address}`);
       }
       return new NFT({
-        id: generateTokenId({ address: request.address, tokenId: request.tokenId }),
+        id: generateTokenId({ network, address: request.address, tokenId: request.tokenId }),
       });
     default: {
       const _exhaustive: never = request.category;

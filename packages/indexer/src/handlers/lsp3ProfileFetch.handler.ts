@@ -82,6 +82,7 @@ function parseAndAddSubEntities(
   if ('name' in lsp3Profile && typeof lsp3Profile.name === 'string') {
     const nameEntity = new LSP3ProfileName({
       id: uuidv4(),
+      network: hctx.batchCtx.network,
       lsp3Profile: parentRef,
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
@@ -96,6 +97,7 @@ function parseAndAddSubEntities(
   if ('description' in lsp3Profile && typeof lsp3Profile.description === 'string') {
     const descEntity = new LSP3ProfileDescription({
       id: uuidv4(),
+      network: hctx.batchCtx.network,
       lsp3Profile: parentRef,
       blockNumber: entity.blockNumber,
       transactionIndex: entity.transactionIndex,
@@ -112,6 +114,7 @@ function parseAndAddSubEntities(
       if (typeof tag !== 'string') continue;
       const tagEntity = new LSP3ProfileTag({
         id: uuidv4(),
+        network: hctx.batchCtx.network,
         lsp3Profile: parentRef,
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
@@ -129,6 +132,7 @@ function parseAndAddSubEntities(
       if (!isLink(link)) continue;
       const linkEntity = new LSP3ProfileLink({
         id: uuidv4(),
+        network: hctx.batchCtx.network,
         lsp3Profile: parentRef,
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
@@ -148,6 +152,7 @@ function parseAndAddSubEntities(
       const { url, fileType, verification } = item;
       const assetEntity = new LSP3ProfileAsset({
         id: uuidv4(),
+        network: hctx.batchCtx.network,
         lsp3Profile: parentRef,
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
@@ -173,6 +178,7 @@ function parseAndAddSubEntities(
       if (!isFileImage(img)) continue;
       const imageEntity = new LSP3ProfileImage({
         id: uuidv4(),
+        network: hctx.batchCtx.network,
         lsp3Profile: parentRef,
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
@@ -199,6 +205,7 @@ function parseAndAddSubEntities(
       if (!isFileImage(img)) continue;
       const bgEntity = new LSP3ProfileBackgroundImage({
         id: uuidv4(),
+        network: hctx.batchCtx.network,
         lsp3Profile: parentRef,
         blockNumber: entity.blockNumber,
         transactionIndex: entity.transactionIndex,
@@ -232,6 +239,7 @@ const fetchConfig: MetadataFetchConfig<'LSP3Profile'> = {
 
 const LSP3ProfileFetchHandler: EntityHandler = {
   name: 'lsp3ProfileFetch',
+  supportedChains: ['lukso', 'ethereum', 'ethereum-sepolia'],
   listensToBag: ['LSP3Profile'],
   dependsOn: ['lsp3Profile'],
   drainAtHead: true,
