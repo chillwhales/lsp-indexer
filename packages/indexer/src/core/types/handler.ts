@@ -29,6 +29,8 @@ export interface HandlerContext {
   batchCtx: IBatchContext;
   /** Metadata worker pool for async fetching */
   workerPool: IMetadataWorkerPool;
+  /** Multicall3 contract address for this chain */
+  multicallAddress: string;
 }
 
 /**

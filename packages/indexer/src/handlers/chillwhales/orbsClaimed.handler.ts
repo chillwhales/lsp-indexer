@@ -35,7 +35,7 @@ const OrbsClaimedHandler: EntityHandler = {
   postVerification: false,
 
   async handle(hctx, _triggeredBy): Promise<void> {
-    const { context, batchCtx, isHead, store } = hctx;
+    const { context, batchCtx, isHead, store, multicallAddress } = hctx;
 
     // PHASE 1: Mint detection (runs every batch)
     // Filter LSP8Transfer events to Chillwhale mints (from zero address to CHILLWHALES_ADDRESS)
@@ -143,6 +143,7 @@ const OrbsClaimedHandler: EntityHandler = {
             allowFailure: true,
             callData: ORBS.functions.getChillwhaleClaimStatus.encode({ tokenId: entity.tokenId }),
           })),
+          multicallAddress,
         );
         result.push(...batchResults);
       } catch (error) {

@@ -35,7 +35,7 @@ const DecimalsHandler: EntityHandler = {
   postVerification: true,
 
   async handle(hctx, _triggeredBy): Promise<void> {
-    const { context, batchCtx } = hctx;
+    const { context, batchCtx, multicallAddress } = hctx;
 
     // Read newly verified Digital Assets from the verification phase
     const newDAs = batchCtx.getVerified(EntityCategory.DigitalAsset).newEntities;
@@ -58,6 +58,7 @@ const DecimalsHandler: EntityHandler = {
             allowFailure: true,
             callData: LSP7DigitalAsset.functions.decimals.encode({}),
           })),
+          multicallAddress,
         );
       } catch (error) {
         // Skip this batch — some assets won't get decimals

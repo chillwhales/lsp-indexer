@@ -15,8 +15,6 @@
  * `Follower` current-state entity removal is implemented by the FollowerHandler
  * EntityHandler.
  */
-import { LSP26FollowerSystem } from '@/abi';
-import { LSP26_ADDRESS } from '@/constants';
 import {
   EntityCategory,
   type Block,
@@ -24,6 +22,10 @@ import {
   type IBatchContext,
   type Log,
 } from '@/core/types';
+
+// LSP26 FollowerSystem singleton contract address (same on mainnet + testnet)
+const LSP26_ADDRESS = '0xf01103E5a9909Fc0DBe8166dA7085e0285daDDcA';
+import { LSP26FollowerSystem } from '@/abi';
 import { Unfollow } from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 

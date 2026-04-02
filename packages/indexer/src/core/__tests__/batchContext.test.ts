@@ -48,7 +48,7 @@ function fl(id: string): Follow {
 
 describe('BatchContext - Enrichment Queue', () => {
   it('should start with an empty enrichment queue', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
     const queue = ctx.getEnrichmentQueue();
 
     expect(queue).toEqual([]);
@@ -56,7 +56,7 @@ describe('BatchContext - Enrichment Queue', () => {
   });
 
   it('should queue a single enrichment request', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     const request: EnrichmentRequest<Transfer> = {
       category: EntityCategory.DigitalAsset,
@@ -78,7 +78,7 @@ describe('BatchContext - Enrichment Queue', () => {
   });
 
   it('should queue multiple enrichment requests', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     const request1: EnrichmentRequest<Transfer> = {
       category: EntityCategory.DigitalAsset,
@@ -130,7 +130,7 @@ describe('BatchContext - Enrichment Queue', () => {
   });
 
   it('should preserve all fields in enrichment requests', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     const requestWithTokenId: EnrichmentRequest<Transfer> = {
       category: EntityCategory.NFT,
@@ -178,7 +178,7 @@ describe('BatchContext - Enrichment Queue', () => {
   });
 
   it('should maintain insertion order in the queue', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     const requests: EnrichmentRequest<Transfer>[] = [];
     for (let i = 0; i < 10; i++) {
@@ -205,7 +205,7 @@ describe('BatchContext - Enrichment Queue', () => {
   });
 
   it('should allow same entity to be enriched multiple times with different fields', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     const request1: EnrichmentRequest<Transfer> = {
       category: EntityCategory.UniversalProfile,
@@ -246,7 +246,7 @@ describe('BatchContext - Enrichment Queue', () => {
 
 describe('BatchContext - Raw Entity Type Sealing', () => {
   it('should allow adding entities before sealing', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     ctx.addEntity('DataChanged', 'e1', dc('e1'));
     ctx.addEntity('DataChanged', 'e2', dc('e2'));
@@ -259,7 +259,7 @@ describe('BatchContext - Raw Entity Type Sealing', () => {
   });
 
   it('should seal raw entity type keys', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     ctx.addEntity('DataChanged', 'e1', dc('e1'));
     ctx.addEntity('LSP7Transfer', 't1', tr('t1'));
@@ -273,7 +273,7 @@ describe('BatchContext - Raw Entity Type Sealing', () => {
   });
 
   it('should throw when adding to sealed type', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     ctx.addEntity('DataChanged', 'e1', dc('e1'));
     ctx.sealRawEntityTypes();
@@ -284,7 +284,7 @@ describe('BatchContext - Raw Entity Type Sealing', () => {
   });
 
   it('should throw with clear error message mentioning Step 2', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     ctx.addEntity('LSP7Transfer', 't1', tr('t1'));
     ctx.sealRawEntityTypes();
@@ -295,7 +295,7 @@ describe('BatchContext - Raw Entity Type Sealing', () => {
   });
 
   it('should not throw for new entity types after sealing', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     ctx.addEntity('DataChanged', 'e1', dc('e1'));
     ctx.sealRawEntityTypes();
@@ -325,7 +325,7 @@ describe('BatchContext - Raw Entity Type Sealing', () => {
   });
 
   it('should allow sealing empty context', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     expect(() => {
       ctx.sealRawEntityTypes();
@@ -339,12 +339,12 @@ describe('BatchContext - Raw Entity Type Sealing', () => {
 
 describe('BatchContext - Entity Count', () => {
   it('should return zero for empty context', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
     expect(ctx.getTotalEntityCount()).toBe(0);
   });
 
   it('should count entities in single type bag', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     ctx.addEntity('DataChanged', 'e1', dc('e1'));
     ctx.addEntity('DataChanged', 'e2', dc('e2'));
@@ -354,7 +354,7 @@ describe('BatchContext - Entity Count', () => {
   });
 
   it('should count entities across multiple type bags', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     ctx.addEntity('DataChanged', 'e1', dc('e1'));
     ctx.addEntity('DataChanged', 'e2', dc('e2'));
@@ -367,7 +367,7 @@ describe('BatchContext - Entity Count', () => {
   });
 
   it('should return zero after adding and removing all entities', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     ctx.addEntity('DataChanged', 'e1', dc('e1'));
     ctx.addEntity('LSP7Transfer', 't1', tr('t1'));
@@ -382,7 +382,7 @@ describe('BatchContext - Entity Count', () => {
   });
 
   it('should handle mixed entity operations', () => {
-    const ctx = new BatchContext();
+    const ctx = new BatchContext('lukso');
 
     // Add some entities
     ctx.addEntity('DataChanged', 'e1', dc('e1'));

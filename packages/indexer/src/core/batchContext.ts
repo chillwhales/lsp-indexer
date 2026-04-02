@@ -31,6 +31,9 @@ import {
  * A new BatchContext is created for each batch — no state carries over.
  */
 export class BatchContext implements IBatchContext {
+  /** The network identifier for this batch (e.g. 'lukso', 'lukso-testnet'). */
+  readonly network: string;
+
   /**
    * Entity storage: entityType → (entityId → entity)
    *
@@ -100,6 +103,10 @@ export class BatchContext implements IBatchContext {
    * queueDelete<T>(), which validates entity type at compile time.
    */
   private readonly deleteQueue: StoredDeleteRequest[] = [];
+
+  constructor(network: string) {
+    this.network = network;
+  }
 
   // -------------------------------------------------------------------------
   // Entity storage

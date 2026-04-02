@@ -11,10 +11,16 @@
  * The primaryContract address is queued for verification as a UniversalProfile.
  * FK resolution happens in the enrichment phase (Step 6 of pipeline).
  */
-import { LSP23LinkedContractsFactory } from '@/abi';
-import { LSP23_ADDRESS } from '@/constants';
 import { Block, EntityCategory, EventPlugin, IBatchContext, Log } from '@/core/types';
-import { DeployedContracts, PrimaryContractDeployment, SecondaryContractDeployment } from '@/model';
+
+// LSP23 LinkedContractsFactory singleton contract address (same on mainnet + testnet)
+const LSP23_ADDRESS = '0x2300000A84D25dF63081feAa37ba6b62C4c89a30';
+import { LSP23LinkedContractsFactory } from '@/abi';
+import {
+  DeployedContracts,
+  PrimaryContractDeployment,
+  SecondaryContractDeployment,
+} from '@/model';
 import { v4 as uuidv4 } from 'uuid';
 
 // Entity type key used in the BatchContext entity bag

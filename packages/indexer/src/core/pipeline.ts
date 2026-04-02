@@ -14,6 +14,7 @@
  * No JSON.stringify calls — attributes are passed as native objects for jq filtering.
  */
 
+import { ChainConfig } from '@/config/chainConfig';
 import { compareBlockPosition, generateTokenId } from '@/utils';
 import { DigitalAsset, NFT, UniversalProfile } from '@/model';
 import { Store } from '@subsquid/typeorm-store';
@@ -62,6 +63,10 @@ export interface PipelineConfig {
   registry: PluginRegistry;
   verifyAddresses: VerifyFn;
   workerPool: IMetadataWorkerPool;
+  /** Network identifier (e.g. 'lukso') threaded to BatchContext */
+  network: string;
+  /** Full chain configuration for downstream use */
+  chainConfig: ChainConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -188,8 +193,8 @@ function enrichEntity(
  * A failed store operation in any step halts the pipeline for the batch.
  */
 export async function processBatch(context: Context, config: PipelineConfig): Promise<void> {
-  const { registry, verifyAddresses, workerPool } = config;
-  const batchCtx = new BatchContext();
+  const { registry, verifyAddresses, workerPool, network, chainConfig } = config;
+  const batchCtx = new BatchContext(network);
 
   // Compute block range for structured log context
   const blockRange =
@@ -276,6 +281,7 @@ export async function processBatch(context: Context, config: PipelineConfig): Pr
     isHead: context.isHead,
     batchCtx,
     workerPool,
+    multicallAddress: chainConfig.multicallAddress,
   };
 
   const step3Handlers = registry.getAllEntityHandlers().filter((h) => !h.postVerification);

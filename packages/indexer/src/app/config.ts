@@ -3,10 +3,12 @@
  *
  * Assembles the PipelineConfig object required by processBatch, injecting:
  * - PluginRegistry (passed in from bootstrap)
- * - verifyAddresses function (from verification module)
+ * - verifyAddresses function (from verification module, config-aware)
  * - MetadataWorkerPool instance (for IPFS/HTTP fetching)
+ * - Network + ChainConfig for multi-chain support
  */
 
+import { ChainConfig } from '@/config/chainConfig';
 import { MetadataWorkerPool } from '@/core/metadataWorkerPool';
 import { PipelineConfig } from '@/core/pipeline';
 import { PluginRegistry } from '@/core/registry';
@@ -16,11 +18,16 @@ import type { Logger } from '@subsquid/logger';
 /**
  * Creates the pipeline configuration object for processBatch.
  *
- * @param registry - Fully initialized PluginRegistry with all plugins and handlers
- * @param logger - Subsquid Logger instance for structured logging
- * @returns PipelineConfig with registry, verifyAddresses function, and worker pool
+ * @param registry    - Fully initialized PluginRegistry with all plugins and handlers
+ * @param logger      - Subsquid Logger instance for structured logging
+ * @param chainConfig - Chain configuration for multi-chain support
+ * @returns PipelineConfig with registry, verifyAddresses function, worker pool, and chain info
  */
-export function createPipelineConfig(registry: PluginRegistry, logger: Logger): PipelineConfig {
+export function createPipelineConfig(
+  registry: PluginRegistry,
+  logger: Logger,
+  chainConfig: ChainConfig,
+): PipelineConfig {
   // Read and validate worker pool size from environment variable
   const defaultPoolSize = 4;
   const poolSizeRaw = process.env.METADATA_WORKER_POOL_SIZE;
@@ -39,14 +46,19 @@ export function createPipelineConfig(registry: PluginRegistry, logger: Logger): 
     'MetadataWorkerPool configured',
   );
 
-  const workerPool = new MetadataWorkerPool({ poolSize });
+  const workerPool = new MetadataWorkerPool({ poolSize, ipfsGateway: chainConfig.ipfsGateway });
 
-  // Create verification function with LRU cache
-  const verifyAddresses = createVerifyFn();
+  // Create verification function with LRU cache and chain-specific multicall address
+  const verifyAddresses = createVerifyFn({
+    multicallAddress: chainConfig.multicallAddress,
+    network: chainConfig.network,
+  });
 
   return {
     registry,
     verifyAddresses,
     workerPool,
+    network: chainConfig.network,
+    chainConfig,
   };
 }
