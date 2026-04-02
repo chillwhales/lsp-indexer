@@ -10,15 +10,15 @@ Any developer can query LUKSO blockchain data through type-safe React hooks back
 
 ## Current State
 
-**Shipped:** v1.4 Batch Encrypted Asset Fetch (M005 complete), InvalidHexBooleanError crash fix (M006 complete), Chillwhales NFT Extensions (M007 complete), Package Consolidation (M008 complete)
+**Shipped:** v1.4 Batch Encrypted Asset Fetch (M005 complete), InvalidHexBooleanError crash fix (M006 complete), Chillwhales NFT Extensions (M007 complete), Package Consolidation (M008 complete), Multi-chain Indexer Infrastructure (M009 complete)
 
-The full stack is production-ready: indexer with 6-step pipeline, 4 publishable npm packages, production Docker Compose with monitoring stack, and operational tooling. 15 query domains (12 original + 3 mutual follow families) plus collection-attributes aggregate query, 12 subscription hooks, 15 server action sets, block ordering on all entities, Grafana monitoring, layered CI/CD. Three social graph intersection hooks — mutual follows, mutual followers, and followed-by-my-follows — with infinite scroll variants, ProfileInclude type narrowing, playground page, and full docs. Batch encrypted asset fetch by `(address, contentId, revision)` tuples with `_or`/`_and` Hasura pattern, React and Next.js hooks with EncryptedAssetInclude type narrowing, changeset ready for minor release. Defensive `safeHexToBool` wrapper prevents pipeline crashes on rogue `supportsInterface` responses. NFTs extended with 7 chillwhales-specific fields (score, rank, chillClaimed, orbsClaimed, level, cooldownExpiry, faction), 4 game-property filters, score sorting, and a collection-attributes query vertical for filter facet dropdowns. @chillwhales/abi and @chillwhales/typeorm merged into @chillwhales/indexer — single package with integrated ABI and entity codegen, one build step.
+The full stack is production-ready: indexer with 6-step pipeline, 4 publishable npm packages, production Docker Compose with monitoring stack, and operational tooling. 15 query domains (12 original + 3 mutual follow families) plus collection-attributes aggregate query, 12 subscription hooks, 15 server action sets, block ordering on all entities, Grafana monitoring, layered CI/CD. Three social graph intersection hooks — mutual follows, mutual followers, and followed-by-my-follows — with infinite scroll variants, ProfileInclude type narrowing, playground page, and full docs. Batch encrypted asset fetch by `(address, contentId, revision)` tuples with `_or`/`_and` Hasura pattern, React and Next.js hooks with EncryptedAssetInclude type narrowing, changeset ready for minor release. Defensive `safeHexToBool` wrapper prevents pipeline crashes on rogue `supportsInterface` responses. NFTs extended with 7 chillwhales-specific fields (score, rank, chillClaimed, orbsClaimed, level, cooldownExpiry, faction), 4 game-property filters, score sorting, and a collection-attributes query vertical for filter facet dropdowns. Indexer is now structurally multi-chain: typed ChainConfig registry, network column on all 71 entities, network-prefixed deterministic IDs, supportedChains on all plugins/handlers, parameterized processor factory, idempotent backfill migration (33 PK + 103 FK updates), and dual-chain Docker infrastructure (LUKSO mainnet + testnet with leader/follower migration pattern).
 
-**In progress:** Multi-chain infrastructure — building chain config registry and network-aware schema (M009), propagating network dimension through consumer packages (M010).
+**In progress:** Propagating network dimension through consumer packages (M010).
 
 ## Architecture / Key Patterns
 
-- **Monorepo**: 6 packages — `indexer` (blockchain indexer with integrated ABI + entity codegen), `types` (Zod schemas), `node` (services/parsers/codegen), `react` (TanStack Query hooks), `next` (server actions + hooks), `comparison-tool`.
+- **Monorepo**: 6 packages — `indexer` (pipeline + ABI codegen + TypeORM entities), `types` (Zod schemas), `node` (services/parsers/codegen), `react` (TanStack Query hooks), `next` (server actions + hooks), `typeorm` (schema.graphql + migrations). Multi-chain via ChainConfig registry + per-chain Docker services.
 - **Apps**: `apps/docs` — Next.js 16 playground with all 15 domains + MDX documentation
 - **Stack**: TypeScript, Subsquid EVM Processor, TypeORM + PostgreSQL, Hasura GraphQL, Viem, Node.js 22, TanStack Query, graphql-ws
 - **Patterns**: Prisma-style include type narrowing, 3-overload generic `<const I>`, TkDodo query key factories, dual-package hooks (react direct / next via server actions)
@@ -34,6 +34,6 @@ See `.gsd/REQUIREMENTS.md` for the explicit capability contract, requirement sta
 - [x] M005: Batch Encrypted Asset Fetch — fetch multiple encrypted assets by `(address, contentId, revision)` tuples in one round trip
 - [x] M006: Fix InvalidHexBooleanError crash — defensive hardening of `supportsInterface` verification to handle rogue contract responses
 - [x] M007: Chillwhales NFT Extensions — 7 chillwhales NFT fields, 4 game-property filters, score sorting, collection-attributes query vertical, full docs
-- [x] M008: Package Consolidation — merged `abi` + `typeorm` into `indexer` for single-package build
-- [ ] M009: Multi-chain Indexer Infrastructure — chain config registry, network column, parameterized processor, LUKSO testnet proof
+- [x] M008: Package Consolidation — merge `abi` + `typeorm` into `indexer` for single-package build
+- [x] M009: Multi-chain Indexer Infrastructure — chain config registry, network column on 71 entities, parameterized processor factory, backfill migration, dual-chain Docker (LUKSO mainnet + testnet)
 - [ ] M010: Multi-chain Consumer Packages — network filter on all types, hooks, server actions, docs
