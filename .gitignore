@@ -4,6 +4,9 @@ dist/
 node_modules/
 packages/indexer/src/abi/
 packages/indexer/src/model/
+# Legacy generated dirs (removed in M008 but may exist locally)
+packages/abi/src/
+packages/typeorm/
 .env
 .vscode/
 
