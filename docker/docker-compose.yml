@@ -143,10 +143,10 @@ services:
       DB_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
 
       # Blockchain data sources
-      SQD_GATEWAY: ${SQD_GATEWAY:-https://v2.archive.subsquid.io/network/lukso-mainnet}
-      RPC_URL: ${RPC_URL:-https://rpc.lukso.sigmacore.io}
-      RPC_RATE_LIMIT: ${RPC_RATE_LIMIT:-10}
-      FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION:-75}
+      SQD_GATEWAY: ${SQD_GATEWAY_LUKSO:-https://v2.archive.subsquid.io/network/lukso-mainnet}
+      RPC_URL: ${RPC_URL_LUKSO:-https://rpc.lukso.sigmacore.io}
+      RPC_RATE_LIMIT: ${RPC_RATE_LIMIT_LUKSO:-10}
+      FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION_LUKSO:-75}
 
       # IPFS & Metadata
       IPFS_GATEWAY: ${IPFS_GATEWAY:-https://ipfs.io/ipfs/}
