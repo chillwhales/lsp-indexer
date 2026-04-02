@@ -2,11 +2,6 @@ lib/
 !apps/**/src/lib/
 dist/
 node_modules/
-packages/abi/src/
-packages/indexer/src/abi/
-packages/typeorm/src/
-packages/typeorm/db/
-packages/typeorm/hasura_metadata.json
 packages/indexer/src/abi/
 packages/indexer/src/model/
 .env
