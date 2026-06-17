@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lsp-indexer.fullname" . }}-hasura
+  labels:
+    {{- include "lsp-indexer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: hasura
+spec:
+  replicas: {{ .Values.hasura.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "lsp-indexer.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: hasura
+  template:
+    metadata:
+      labels:
+        {{- include "lsp-indexer.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: hasura
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: hasura
+          image: "{{ .Values.hasura.image.repository }}:{{ .Values.hasura.image.tag }}"
+          imagePullPolicy: {{ .Values.hasura.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.user | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: {{ .Values.secrets.keys.postgresPassword }}
+            - name: PG_DATABASE_URL
+              value: {{ include "lsp-indexer.databaseUrl" . | quote }}
+            - name: HASURA_GRAPHQL_DATABASE_URL
+              value: {{ include "lsp-indexer.databaseUrl" . | quote }}
+            - name: HASURA_GRAPHQL_METADATA_DATABASE_URL
+              value: {{ include "lsp-indexer.databaseUrl" . | quote }}
+            - name: HASURA_GRAPHQL_ADMIN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: {{ .Values.secrets.keys.hasuraAdminSecret }}
+            - name: HASURA_GRAPHQL_METADATA_DEFAULTS
+              value: {{ printf "{\"backend_configs\":{\"dataconnector\":{\"athena\":{\"uri\":\"http://%s-data-connector-agent:8081/api/v1/athena\"},\"mariadb\":{\"uri\":\"http://%s-data-connector-agent:8081/api/v1/mariadb\"},\"mysql8\":{\"uri\":\"http://%s-data-connector-agent:8081/api/v1/mysql\"},\"oracle\":{\"uri\":\"http://%s-data-connector-agent:8081/api/v1/oracle\"},\"snowflake\":{\"uri\":\"http://%s-data-connector-agent:8081/api/v1/snowflake\"}}}}" (include "lsp-indexer.fullname" .) (include "lsp-indexer.fullname" .) (include "lsp-indexer.fullname" .) (include "lsp-indexer.fullname" .) (include "lsp-indexer.fullname" .) | quote }}
+            {{- range $name, $value := .Values.hasura.env }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 2
+          resources:
+            {{- toYaml .Values.hasura.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lsp-indexer.fullname" . }}-hasura
+  labels:
+    {{- include "lsp-indexer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: hasura
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ .Values.hasura.service.port }}
+      targetPort: http
+  selector:
+    {{- include "lsp-indexer.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: hasura

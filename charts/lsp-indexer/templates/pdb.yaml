@@ -1,0 +1,15 @@
+{{- if and .Values.pdb.enabled (gt (int .Values.docs.replicaCount) 1) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "lsp-indexer.fullname" . }}-docs
+  labels:
+    {{- include "lsp-indexer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: docs
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "lsp-indexer.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: docs
+{{- end }}

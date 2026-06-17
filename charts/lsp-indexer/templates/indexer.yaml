@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lsp-indexer.fullname" . }}-indexer
+  labels:
+    {{- include "lsp-indexer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: indexer
+spec:
+  replicas: {{ .Values.indexer.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "lsp-indexer.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: indexer
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        {{- include "lsp-indexer.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: indexer
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: indexer
+          image: "{{ .Values.indexer.image.repository }}:{{ .Values.indexer.image.tag }}"
+          imagePullPolicy: {{ .Values.indexer.image.pullPolicy }}
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.user | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: {{ .Values.secrets.keys.postgresPassword }}
+            - name: DB_URL
+              value: {{ include "lsp-indexer.databaseUrl" . | quote }}
+            - name: RPC_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: {{ .Values.secrets.keys.rpcUrl }}
+            - name: HASURA_GRAPHQL_ADMIN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: {{ .Values.secrets.keys.hasuraAdminSecret }}
+            - name: HASURA_GRAPHQL_ENDPOINT
+              value: {{ printf "http://%s-hasura:8080" (include "lsp-indexer.fullname" .) | quote }}
+            {{- range $name, $value := .Values.indexer.env }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- if .Values.indexer.logs.enabled }}
+          volumeMounts:
+            - name: logs
+              mountPath: /app/packages/indexer/logs
+          {{- end }}
+          resources:
+            {{- toYaml .Values.indexer.resources | nindent 12 }}
+      {{- if .Values.indexer.logs.enabled }}
+      volumes:
+        - name: logs
+          persistentVolumeClaim:
+            claimName: {{ include "lsp-indexer.fullname" . }}-indexer-logs
+      {{- end }}
+---
+{{- if .Values.indexer.logs.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "lsp-indexer.fullname" . }}-indexer-logs
+  labels:
+    {{- include "lsp-indexer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: indexer
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.indexer.logs.storageClass }}
+  storageClassName: {{ .Values.indexer.logs.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.indexer.logs.size }}
+{{- end }}
