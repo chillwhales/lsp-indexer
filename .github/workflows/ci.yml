@@ -63,32 +63,3 @@ jobs:
       build-command: pnpm --filter docs generate:check
       test-node-versions: '[]'
       artifact-paths: package.json
-
-  # ---------------------------------------------------------------------------
-  # Gate — single required check for branch protection
-  # ---------------------------------------------------------------------------
-  ci-pass:
-    name: CI Pass
-    runs-on: ubuntu-latest
-    needs: [build-test, quality, helm, docs-check]
-    if: always()
-    steps:
-      - name: Check all jobs passed
-        run: |
-          if [[ "${{ needs.build-test.result }}" != "success" ]]; then
-            echo "build-test failed"
-            exit 1
-          fi
-          if [[ "${{ needs.quality.result }}" != "success" ]]; then
-            echo "quality failed"
-            exit 1
-          fi
-          if [[ "${{ needs.helm.result }}" != "success" ]]; then
-            echo "helm failed"
-            exit 1
-          fi
-          if [[ "${{ needs.docs-check.result }}" != "success" ]]; then
-            echo "docs-check failed"
-            exit 1
-          fi
-          echo "All checks passed"
