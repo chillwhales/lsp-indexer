@@ -51,7 +51,7 @@ spec:
     - host: {{ .Values.ingress.host }}
       http:
         paths:
-          - path: /graphql
+          - path: {{ .Values.ingress.graphql.path | quote }}
             pathType: Exact
             backend:
               service:

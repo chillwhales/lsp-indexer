@@ -28,6 +28,6 @@ jobs:
           {
             "image": "lsp-indexer-docs",
             "dockerfile": "apps/docs/Dockerfile",
-            "build-args": "NEXT_PUBLIC_INDEXER_URL=https://indexer.chillwhales.dev/graphql\nNEXT_PUBLIC_INDEXER_WS_URL=wss://indexer.chillwhales.dev/graphql"
+            "build-args": "NEXT_PUBLIC_INDEXER_URL=https://indexer.chillwhales.dev/v1/graphql\nNEXT_PUBLIC_INDEXER_WS_URL=wss://indexer.chillwhales.dev/v1/graphql"
           }
         ]

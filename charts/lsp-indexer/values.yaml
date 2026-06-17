@@ -144,8 +144,8 @@ docs:
     PORT: "3000"
     WS_PROXY_PORT: "4000"
     HOSTNAME: 0.0.0.0
-    INDEXER_URL: https://indexer.chillwhales.dev/graphql
-    INDEXER_WS_URL: wss://indexer.chillwhales.dev/graphql
+    INDEXER_URL: https://indexer.chillwhales.dev/v1/graphql
+    INDEXER_WS_URL: wss://indexer.chillwhales.dev/v1/graphql
     INDEXER_ALLOWED_ORIGINS: https://indexer.chillwhales.dev
   resources:
     requests:
@@ -165,6 +165,7 @@ ingress:
     annotations:
       nginx.ingress.kubernetes.io/ssl-redirect: "false"
   graphql:
+    path: /v1/graphql
     annotations:
       nginx.ingress.kubernetes.io/ssl-redirect: "false"
       nginx.ingress.kubernetes.io/rewrite-target: /v1/graphql
