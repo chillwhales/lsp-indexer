@@ -54,24 +54,15 @@ jobs:
       validate-templates: false
 
   # ---------------------------------------------------------------------------
-  # Docs sidecar check — ensures .md sidecars are committed and up to date
+  # Docs sidecar check
   # ---------------------------------------------------------------------------
   docs-check:
-    name: Docs Sidecar Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Check .md sidecars are up to date
-        # Developers must run `pnpm --filter docs generate` and commit updated .md
-        # files whenever they modify a src/app/docs/*/page.mdx source file.
-        run: pnpm --filter docs generate:check
+    uses: kethalia/workflows/.github/workflows/ci-build-lint-test.yml@v3.2.0
+    with:
+      node-version: 22
+      build-command: pnpm --filter docs generate:check
+      test-node-versions: '[]'
+      artifact-paths: package.json
 
   # ---------------------------------------------------------------------------
   # Gate — single required check for branch protection
