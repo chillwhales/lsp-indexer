@@ -20,7 +20,7 @@ jobs:
       node-version: 22
       build-command: pnpm build
       lint-command: pnpm lint
-      format-command: pnpm format:check
+      format-command: pnpm format:check && pnpm --filter docs generate:check
       typecheck-command: pnpm typecheck
       test-command: pnpm test:coverage
       pre-lint-command: 'pnpm --filter=@chillwhales/indexer build'
@@ -52,14 +52,3 @@ jobs:
     with:
       charts: charts/lsp-indexer
       validate-templates: false
-
-  # ---------------------------------------------------------------------------
-  # Docs sidecar check
-  # ---------------------------------------------------------------------------
-  docs-check:
-    uses: kethalia/workflows/.github/workflows/ci-build-lint-test.yml@v4
-    with:
-      node-version: 22
-      build-command: pnpm --filter docs generate:check
-      test-node-versions: '[]'
-      artifact-paths: package.json
