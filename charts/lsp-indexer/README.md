@@ -6,8 +6,8 @@ Umbrella chart for running the LSP Indexer on Kubernetes.
 
 - Docs app is served at `https://indexer.chillwhales.dev/`.
 - Hasura stays internal except for the exact public GraphQL route
-  `https://indexer.chillwhales.dev/graphql`.
-- The `/graphql` ingress rewrites to Hasura's native `/v1/graphql` endpoint.
+  `https://indexer.chillwhales.dev/v1/graphql`.
+- The `/v1/graphql` ingress routes to Hasura's native `/v1/graphql` endpoint.
 - Hasura console, metadata, and health endpoints are not exposed through ingress.
 - Runtime secrets are supplied by existing Kubernetes Secrets, usually sealed in
   the GitOps repository.
@@ -48,8 +48,8 @@ The repository publishes two images through the `Build images` workflow:
 
 The docs image currently bakes these public build-time variables:
 
-- `NEXT_PUBLIC_INDEXER_URL=https://indexer.chillwhales.dev/graphql`
-- `NEXT_PUBLIC_INDEXER_WS_URL=wss://indexer.chillwhales.dev/graphql`
+- `NEXT_PUBLIC_INDEXER_URL=https://indexer.chillwhales.dev/v1/graphql`
+- `NEXT_PUBLIC_INDEXER_WS_URL=wss://indexer.chillwhales.dev/v1/graphql`
 
 If preview environments need per-PR hosts later, move the docs app to runtime
 public configuration before adding an ApplicationSet.
