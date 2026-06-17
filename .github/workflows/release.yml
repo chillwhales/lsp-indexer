@@ -28,6 +28,7 @@ jobs:
     if: needs.release.outputs.published == 'true'
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       packages: read
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
@@ -73,6 +74,38 @@ jobs:
           SOURCE_TAG: ${{ steps.plan.outputs.source-tag }}
         run: |
           set -euo pipefail
+          echo "Waiting for the Build images workflow for ${GITHUB_SHA}"
+          for attempt in $(seq 1 120); do
+            run_json="$(
+              gh run list \
+                --workflow "Build images" \
+                --commit "${GITHUB_SHA}" \
+                --event push \
+                --limit 1 \
+                --json status,conclusion,url \
+                --jq '.[0] // {}'
+            )"
+            status="$(jq -r '.status // ""' <<<"${run_json}")"
+            conclusion="$(jq -r '.conclusion // ""' <<<"${run_json}")"
+            url="$(jq -r '.url // ""' <<<"${run_json}")"
+            if [ -z "${status}" ]; then
+              echo "Build images run not visible yet."
+            elif [ "${status}" = "completed" ] && [ "${conclusion}" = "success" ]; then
+              echo "Build images succeeded: ${url}"
+              break
+            elif [ "${status}" = "completed" ]; then
+              echo "::error::Build images completed with conclusion '${conclusion}': ${url}"
+              exit 1
+            else
+              echo "Build images status: ${status} (${url})"
+            fi
+            if [ "${attempt}" = "120" ]; then
+              echo "::error::Timed out waiting for Build images workflow"
+              exit 1
+            fi
+            sleep 10
+          done
+
           echo "${GH_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
           for image in lsp-indexer lsp-indexer-docs; do
             ref="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${image}:${SOURCE_TAG}"

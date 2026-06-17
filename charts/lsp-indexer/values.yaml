@@ -98,6 +98,13 @@ hasura:
     HASURA_GRAPHQL_DEV_MODE: "false"
     HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup,http-log,webhook-log,websocket-log,query-log
     HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+  metadataDefaults:
+    dataConnectors:
+      athena: athena
+      mariadb: mariadb
+      mysql8: mysql
+      oracle: oracle
+      snowflake: snowflake
   resources:
     requests:
       cpu: 100m
@@ -113,6 +120,7 @@ dataConnector:
     pullPolicy: IfNotPresent
   service:
     port: 8081
+  healthPath: /api/v1/athena/health
   env:
     QUARKUS_LOG_LEVEL: ERROR
     QUARKUS_OPENTELEMETRY_ENABLED: "false"

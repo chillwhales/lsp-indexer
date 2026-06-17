@@ -51,4 +51,7 @@ jobs:
     uses: kethalia/workflows/.github/workflows/helm-lint.yml@v4
     with:
       charts: charts/lsp-indexer
-      validate-templates: false
+      validate-templates: true
+      kubeconform-schema-locations: |
+        default
+        https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json

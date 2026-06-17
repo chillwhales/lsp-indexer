@@ -27,7 +27,20 @@ app.kubernetes.io/name: {{ include "lsp-indexer.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
-{{- define "lsp-indexer.databaseUrl" -}}
+{{- define "lsp-indexer.databaseHost" -}}
 {{- $host := default (printf "%s-rw" (include "lsp-indexer.fullname" .)) .Values.postgres.host -}}
-{{- printf "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@%s:%v/%s" $host .Values.postgres.port .Values.postgres.database -}}
+{{- $host -}}
+{{- end -}}
+
+{{- define "lsp-indexer.databaseAddress" -}}
+{{- printf "%s:%v/%s" (include "lsp-indexer.databaseHost" .) .Values.postgres.port .Values.postgres.database -}}
+{{- end -}}
+
+{{- define "lsp-indexer.hasuraMetadataDefaults" -}}
+{{- $connectorBaseUrl := printf "http://%s-data-connector-agent:8081/api/v1" (include "lsp-indexer.fullname" .) -}}
+{{- $dataconnector := dict -}}
+{{- range $name, $path := .Values.hasura.metadataDefaults.dataConnectors -}}
+{{- $_ := set $dataconnector $name (dict "uri" (printf "%s/%s" $connectorBaseUrl $path)) -}}
+{{- end -}}
+{{- dict "backend_configs" (dict "dataconnector" $dataconnector) | toJson -}}
 {{- end -}}

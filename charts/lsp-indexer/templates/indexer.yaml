@@ -36,7 +36,7 @@ spec:
                   name: {{ .Values.secrets.existingSecret }}
                   key: {{ .Values.secrets.keys.postgresPassword }}
             - name: DB_URL
-              value: {{ include "lsp-indexer.databaseUrl" . | quote }}
+              value: {{ printf "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@%s" (include "lsp-indexer.databaseAddress" .) | quote }}
             - name: RPC_URL
               valueFrom:
                 secretKeyRef:

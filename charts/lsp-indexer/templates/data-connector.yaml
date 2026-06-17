@@ -31,13 +31,13 @@ spec:
             {{- end }}
           readinessProbe:
             httpGet:
-              path: /api/v1/athena/health
+              path: {{ .Values.dataConnector.healthPath | quote }}
               port: http
             periodSeconds: 10
             timeoutSeconds: 2
           livenessProbe:
             httpGet:
-              path: /api/v1/athena/health
+              path: {{ .Values.dataConnector.healthPath | quote }}
               port: http
             initialDelaySeconds: 30
             periodSeconds: 20
