@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lsp-indexer.fullname" . }}-data-connector-agent
+  labels:
+    {{- include "lsp-indexer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: data-connector-agent
+spec:
+  replicas: {{ .Values.dataConnector.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "lsp-indexer.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: data-connector-agent
+  template:
+    metadata:
+      labels:
+        {{- include "lsp-indexer.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: data-connector-agent
+    spec:
+      containers:
+        - name: data-connector-agent
+          image: "{{ .Values.dataConnector.image.repository }}:{{ .Values.dataConnector.image.tag }}"
+          imagePullPolicy: {{ .Values.dataConnector.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8081
+          env:
+            {{- range $name, $value := .Values.dataConnector.env }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.dataConnector.healthPath | quote }}
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.dataConnector.healthPath | quote }}
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 2
+          resources:
+            {{- toYaml .Values.dataConnector.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lsp-indexer.fullname" . }}-data-connector-agent
+  labels:
+    {{- include "lsp-indexer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: data-connector-agent
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ .Values.dataConnector.service.port }}
+      targetPort: http
+  selector:
+    {{- include "lsp-indexer.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: data-connector-agent

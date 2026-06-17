@@ -1,0 +1,176 @@
+global:
+  imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+secrets:
+  # Existing Secret read by indexer, Hasura, and CNPG bootstrap references.
+  # Expected keys by default:
+  # - POSTGRES_PASSWORD
+  # - HASURA_GRAPHQL_ADMIN_SECRET
+  # - RPC_URL
+  existingSecret: lsp-indexer-secrets
+  keys:
+    postgresPassword: POSTGRES_PASSWORD
+    hasuraAdminSecret: HASURA_GRAPHQL_ADMIN_SECRET
+    rpcUrl: RPC_URL
+
+cnpg:
+  enabled: true
+  instances: 2
+  imageName: ""
+  bootstrap:
+    database: postgres
+    owner: postgres
+    # Existing kubernetes.io/basic-auth Secret for CNPG initdb.
+    # It must contain `username` and `password`.
+    secretName: lsp-indexer-db
+  storage:
+    size: 20Gi
+    storageClass: longhorn
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+  postgresql:
+    parameters:
+      max_wal_size: 2GB
+      shared_buffers: 512MB
+      checkpoint_timeout: 15min
+      work_mem: 64MB
+      log_min_duration_statement: "500"
+  backup:
+    enabled: false
+    existingSecret: cnpg-minio-credentials
+    destinationPath: s3://cnpg-backups/lsp-indexer
+    endpointURL: http://minio.infrastructure.svc.cluster.local:9000
+
+postgres:
+  # Defaults to `<release-fullname>-rw` when empty.
+  host: ""
+  port: 5432
+  database: postgres
+  user: postgres
+
+indexer:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/chillwhales/lsp-indexer
+    tag: sha-operator-required
+    pullPolicy: IfNotPresent
+  env:
+    SQD_GATEWAY: https://v2.archive.subsquid.io/network/lukso-mainnet
+    RPC_RATE_LIMIT: "10"
+    FINALITY_CONFIRMATION: "75"
+    IPFS_GATEWAY: https://api.universalprofile.cloud/ipfs/
+    FETCH_LIMIT: "10000"
+    FETCH_BATCH_SIZE: "1000"
+    FETCH_RETRY_COUNT: "5"
+    METADATA_WORKER_POOL_SIZE: "4"
+    NODE_ENV: production
+    LOG_LEVEL: info
+    LOG_DIR: /app/packages/indexer/logs
+    INDEXER_ENABLE_FILE_LOGGER: "false"
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      memory: 4Gi
+  logs:
+    enabled: false
+    size: 2Gi
+    storageClass: longhorn
+
+hasura:
+  replicaCount: 1
+  image:
+    repository: hasura/graphql-engine
+    tag: v2.46.0
+    pullPolicy: IfNotPresent
+  service:
+    port: 8080
+  env:
+    HASURA_GRAPHQL_ENABLE_CONSOLE: "false"
+    HASURA_GRAPHQL_DEV_MODE: "false"
+    HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup,http-log,webhook-log,websocket-log,query-log
+    HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+  metadataDefaults:
+    dataConnectors:
+      athena: athena
+      mariadb: mariadb
+      mysql8: mysql
+      oracle: oracle
+      snowflake: snowflake
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+
+dataConnector:
+  replicaCount: 1
+  image:
+    repository: hasura/graphql-data-connector
+    tag: v2.46.0
+    pullPolicy: IfNotPresent
+  service:
+    port: 8081
+  healthPath: /api/v1/athena/health
+  env:
+    QUARKUS_LOG_LEVEL: ERROR
+    QUARKUS_OPENTELEMETRY_ENABLED: "false"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+docs:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/chillwhales/lsp-indexer-docs
+    tag: sha-operator-required
+    pullPolicy: IfNotPresent
+  service:
+    port: 3000
+    wsPort: 4000
+  env:
+    PORT: "3000"
+    WS_PROXY_PORT: "4000"
+    HOSTNAME: 0.0.0.0
+    INDEXER_URL: https://indexer.chillwhales.dev/graphql
+    INDEXER_WS_URL: wss://indexer.chillwhales.dev/graphql
+    INDEXER_ALLOWED_ORIGINS: https://indexer.chillwhales.dev
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  host: indexer.chillwhales.dev
+  tls:
+    enabled: true
+    secretName: chillwhales-wildcard-tls
+  docs:
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  graphql:
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/rewrite-target: /v1/graphql
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+
+pdb:
+  enabled: true
+  minAvailable: 1

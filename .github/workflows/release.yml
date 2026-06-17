@@ -10,97 +10,134 @@ concurrency:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
       id-token: write
-    outputs:
-      published: ${{ steps.changesets.outputs.published }}
-      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
-      indexerVersion: ${{ steps.check-indexer.outputs.version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    uses: kethalia/workflows/.github/workflows/release-changesets.yml@v4
+    with:
+      publish-command: pnpm ci:publish
+      setup-command: pnpm build
+      pr-title: "chore: version packages"
+      commit-message: "chore: version packages"
+    secrets: inherit
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm build
-
-      - name: Create release PR or publish
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          commit: 'chore: version packages'
-          title: 'chore: version packages'
-          publish: pnpm ci:publish
-          version: pnpm changeset version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Check if indexer was published
-        id: check-indexer
-        if: steps.changesets.outputs.published == 'true'
-        run: |
-          VERSION=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | select(.name == "@chillwhales/indexer") | .version')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-
-  # ---------------------------------------------------------------------------
-  # Docker image — builds and pushes when indexer version is bumped
-  # ---------------------------------------------------------------------------
-  docker:
+  prepare-image-promotion:
+    name: Prepare image promotion
     needs: [release]
-    if: needs.release.outputs.indexerVersion != ''
+    if: needs.release.outputs.published == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      packages: read
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      source-tag: ${{ steps.plan.outputs.source-tag }}
+      version: ${{ steps.plan.outputs.version }}
+    steps:
+      - name: Build retag plan
+        id: plan
+        env:
+          PUBLISHED_PACKAGES: ${{ needs.release.outputs['published-packages'] }}
+        run: |
+          set -euo pipefail
+          version="$(jq -r '
+            [
+              .[]
+              | select(.name == "@chillwhales/indexer" or (.name | startswith("@lsp-indexer/")))
+              | .version
+            ][0] // ""
+          ' <<<"${PUBLISHED_PACKAGES}")"
+          if [ -z "${version}" ]; then
+            echo "No indexer package version found in publishedPackages; skipping image promotion."
+            echo 'matrix={"include":[]}' >> "$GITHUB_OUTPUT"
+            echo "source-tag=" >> "$GITHUB_OUTPUT"
+            echo "version=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          source_tag="sha-${GITHUB_SHA::7}"
+          matrix="$(jq -nc --arg version "${version}" '{
+            include: [
+              { image: "lsp-indexer", version: $version },
+              { image: "lsp-indexer-docs", version: $version }
+            ]
+          }')"
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
+          echo "source-tag=${source_tag}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for source images
+        if: steps.plan.outputs.matrix != '{"include":[]}'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_TAG: ${{ steps.plan.outputs.source-tag }}
+        run: |
+          set -euo pipefail
+          echo "Waiting for the Build images workflow for ${GITHUB_SHA}"
+          for attempt in $(seq 1 120); do
+            run_json="$(
+              gh run list \
+                --workflow "Build images" \
+                --commit "${GITHUB_SHA}" \
+                --event push \
+                --limit 1 \
+                --json status,conclusion,url \
+                --jq '.[0] // {}'
+            )"
+            status="$(jq -r '.status // ""' <<<"${run_json}")"
+            conclusion="$(jq -r '.conclusion // ""' <<<"${run_json}")"
+            url="$(jq -r '.url // ""' <<<"${run_json}")"
+            if [ -z "${status}" ]; then
+              echo "Build images run not visible yet."
+            elif [ "${status}" = "completed" ] && [ "${conclusion}" = "success" ]; then
+              echo "Build images succeeded: ${url}"
+              break
+            elif [ "${status}" = "completed" ]; then
+              echo "::error::Build images completed with conclusion '${conclusion}': ${url}"
+              exit 1
+            else
+              echo "Build images status: ${status} (${url})"
+            fi
+            if [ "${attempt}" = "120" ]; then
+              echo "::error::Timed out waiting for Build images workflow"
+              exit 1
+            fi
+            sleep 10
+          done
+
+          echo "${GH_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
+          for image in lsp-indexer lsp-indexer-docs; do
+            ref="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${image}:${SOURCE_TAG}"
+            echo "Waiting for ${ref}"
+            for attempt in $(seq 1 60); do
+              if docker manifest inspect "${ref}" >/dev/null 2>&1; then
+                echo "Found ${ref}"
+                break
+              fi
+              if [ "${attempt}" = "60" ]; then
+                echo "::error::Timed out waiting for ${ref}"
+                exit 1
+              fi
+              sleep 20
+            done
+          done
+
+  promote-images:
+    name: Promote ${{ matrix.image }}
+    needs: [prepare-image-promotion]
+    if: needs.prepare-image-promotion.outputs.matrix != '{"include":[]}'
     permissions:
       contents: read
       packages: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Compute image tags
-        id: meta
-        run: |
-          SHA=$(git rev-parse --short HEAD)
-          IMAGE="ghcr.io/chillwhales/lsp-indexer"
-          VERSION="${{ needs.release.outputs.indexerVersion }}"
-          TAGS="${IMAGE}:${SHA},${IMAGE}:v${VERSION},${IMAGE}:latest"
-
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "sha=${SHA}" >> $GITHUB_OUTPUT
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: docker/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/chillwhales/lsp-indexer
-            org.opencontainers.image.description=LUKSO blockchain indexer
-            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.created=${{ github.event.head_commit.timestamp || github.event.repository.updated_at }}
-            org.opencontainers.image.licenses=MIT
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare-image-promotion.outputs.matrix) }}
+    uses: kethalia/workflows/.github/workflows/retag-image.yml@v4
+    with:
+      image: ${{ matrix.image }}
+      source-tag: ${{ needs.prepare-image-promotion.outputs.source-tag }}
+      dest-tags: |
+        v${{ matrix.version }}
+        latest
+    secrets: inherit

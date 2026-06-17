@@ -1,0 +1,47 @@
+{{- if .Values.cnpg.enabled }}
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ include "lsp-indexer.fullname" . }}
+  labels:
+    {{- include "lsp-indexer.labels" . | nindent 4 }}
+spec:
+  instances: {{ .Values.cnpg.instances }}
+  {{- if .Values.cnpg.imageName }}
+  imageName: {{ .Values.cnpg.imageName | quote }}
+  {{- end }}
+  bootstrap:
+    initdb:
+      database: {{ .Values.cnpg.bootstrap.database | quote }}
+      owner: {{ .Values.cnpg.bootstrap.owner | quote }}
+      secret:
+        name: {{ .Values.cnpg.bootstrap.secretName }}
+  storage:
+    size: {{ .Values.cnpg.storage.size }}
+    {{- if .Values.cnpg.storage.storageClass }}
+    storageClass: {{ .Values.cnpg.storage.storageClass }}
+    {{- end }}
+  {{- with .Values.cnpg.postgresql.parameters }}
+  postgresql:
+    parameters:
+      {{- toYaml . | nindent 6 }}
+  {{- end }}
+  {{- with .Values.cnpg.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if .Values.cnpg.backup.enabled }}
+  backup:
+    barmanObjectStore:
+      destinationPath: {{ .Values.cnpg.backup.destinationPath | quote }}
+      endpointURL: {{ .Values.cnpg.backup.endpointURL | quote }}
+      s3Credentials:
+        accessKeyId:
+          name: {{ .Values.cnpg.backup.existingSecret }}
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: {{ .Values.cnpg.backup.existingSecret }}
+          key: SECRET_ACCESS_KEY
+    retentionPolicy: 30d
+  {{- end }}
+{{- end }}

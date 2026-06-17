@@ -1,0 +1,33 @@
+name: Build images
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: build-images-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+    uses: kethalia/workflows/.github/workflows/build-stack.yml@v4
+    secrets: inherit
+    with:
+      push: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+      services: |
+        [
+          {
+            "image": "lsp-indexer",
+            "dockerfile": "docker/Dockerfile"
+          },
+          {
+            "image": "lsp-indexer-docs",
+            "dockerfile": "apps/docs/Dockerfile",
+            "build-args": "NEXT_PUBLIC_INDEXER_URL=https://indexer.chillwhales.dev/graphql\nNEXT_PUBLIC_INDEXER_WS_URL=wss://indexer.chillwhales.dev/graphql"
+          }
+        ]
