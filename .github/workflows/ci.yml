@@ -15,7 +15,7 @@ jobs:
   # Build, lint, test pipeline (shared from kethalia/workflows)
   # ---------------------------------------------------------------------------
   build-test:
-    uses: kethalia/workflows/.github/workflows/ci-build-lint-test.yml@v3.2.0
+    uses: kethalia/workflows/.github/workflows/ci-build-lint-test.yml@v4
     with:
       node-version: 22
       build-command: pnpm build
@@ -37,7 +37,7 @@ jobs:
   # ---------------------------------------------------------------------------
   quality:
     needs: [build-test]
-    uses: kethalia/workflows/.github/workflows/ci-quality.yml@v3.2.0
+    uses: kethalia/workflows/.github/workflows/ci-quality.yml@v4
     with:
       verify-command: pnpm validate:publish
       changeset-check: ${{ github.base_ref == 'main' }}
@@ -48,7 +48,7 @@ jobs:
   # Helm chart check
   # ---------------------------------------------------------------------------
   helm:
-    uses: kethalia/workflows/.github/workflows/helm-lint.yml@v3.2.0
+    uses: kethalia/workflows/.github/workflows/helm-lint.yml@v4
     with:
       charts: charts/lsp-indexer
       validate-templates: false
@@ -57,7 +57,7 @@ jobs:
   # Docs sidecar check
   # ---------------------------------------------------------------------------
   docs-check:
-    uses: kethalia/workflows/.github/workflows/ci-build-lint-test.yml@v3.2.0
+    uses: kethalia/workflows/.github/workflows/ci-build-lint-test.yml@v4
     with:
       node-version: 22
       build-command: pnpm --filter docs generate:check
