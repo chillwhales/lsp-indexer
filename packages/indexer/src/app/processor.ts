@@ -1,4 +1,4 @@
-import { FINALITY_CONFIRMATION, RPC_RATE_LIMIT, RPC_URL, SQD_GATEWAY } from '@/constants';
+import { FINALITY_CONFIRMATION, RPC_RATE_LIMIT, RPC_URL, SQD_API_KEY, SQD_GATEWAY } from '@/constants';
 import { EvmBatchProcessor } from '@subsquid/evm-processor';
 
 /**
@@ -9,7 +9,7 @@ import { EvmBatchProcessor } from '@subsquid/evm-processor';
  */
 
 export const processor = new EvmBatchProcessor()
-  .setGateway(SQD_GATEWAY)
+  .setGateway(SQD_API_KEY ? { url: SQD_GATEWAY, apiKey: SQD_API_KEY } : SQD_GATEWAY)
   .setRpcEndpoint({
     url: RPC_URL,
     rateLimit: RPC_RATE_LIMIT,

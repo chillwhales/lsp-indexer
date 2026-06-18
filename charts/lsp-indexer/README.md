@@ -22,6 +22,7 @@ Umbrella chart for running the LSP Indexer on Kubernetes.
 | --- | --- |
 | `HASURA_GRAPHQL_ADMIN_SECRET` | Hasura admin secret used by Hasura and the indexer entrypoint |
 | `RPC_URL` | LUKSO RPC endpoint consumed by the indexer |
+| `SQD_API_KEY` | Optional SQD legacy gateway API key consumed by the indexer when `secrets.keys.sqdApiKey` is set |
 
 `cnpg.bootstrap.secretName` is an existing `kubernetes.io/basic-auth` Secret
 used by CloudNativePG during `initdb`. By default, Hasura and the indexer also
@@ -77,6 +78,8 @@ docs:
 
 secrets:
   existingSecret: lsp-indexer-secrets
+  keys:
+    sqdApiKey: SQD_API_KEY
 
 cnpg:
   bootstrap:

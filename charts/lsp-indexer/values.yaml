@@ -9,10 +9,13 @@ secrets:
   # Expected keys by default:
   # - HASURA_GRAPHQL_ADMIN_SECRET
   # - RPC_URL
+  # Optional keys:
+  # - SQD_API_KEY, when secrets.keys.sqdApiKey is non-empty
   existingSecret: lsp-indexer-secrets
   keys:
     hasuraAdminSecret: HASURA_GRAPHQL_ADMIN_SECRET
     rpcUrl: RPC_URL
+    sqdApiKey: ""
 
 cnpg:
   enabled: true
