@@ -36,6 +36,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- printf "%s:%v/%s" (include "lsp-indexer.databaseHost" .) .Values.postgres.port .Values.postgres.database -}}
 {{- end -}}
 
+{{- define "lsp-indexer.postgresPasswordSecretName" -}}
+{{- default .Values.cnpg.bootstrap.secretName .Values.postgres.passwordSecret.name -}}
+{{- end -}}
+
 {{- define "lsp-indexer.encodedPostgresPasswordScript" -}}
 encoded_postgres_password="$(printf '%s' "$POSTGRES_PASSWORD" | sed -e 's/%/%25/g' -e 's/+/%2B/g' -e 's#/#%2F#g' -e 's/=/%3D/g' -e 's/:/%3A/g' -e 's/@/%40/g' -e 's/#/%23/g' -e 's/&/%26/g' -e 's/ /%20/g')"
 {{- end -}}

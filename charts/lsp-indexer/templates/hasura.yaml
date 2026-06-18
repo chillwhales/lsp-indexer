@@ -44,8 +44,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.existingSecret }}
-                  key: {{ .Values.secrets.keys.postgresPassword }}
+                  name: {{ include "lsp-indexer.postgresPasswordSecretName" . }}
+                  key: {{ .Values.postgres.passwordSecret.key }}
             - name: HASURA_GRAPHQL_ADMIN_SECRET
               valueFrom:
                 secretKeyRef:

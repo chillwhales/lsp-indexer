@@ -5,14 +5,12 @@ nameOverride: ""
 fullnameOverride: ""
 
 secrets:
-  # Existing Secret read by indexer, Hasura, and CNPG bootstrap references.
+  # Existing Secret read by indexer and Hasura for non-database runtime secrets.
   # Expected keys by default:
-  # - POSTGRES_PASSWORD
   # - HASURA_GRAPHQL_ADMIN_SECRET
   # - RPC_URL
   existingSecret: lsp-indexer-secrets
   keys:
-    postgresPassword: POSTGRES_PASSWORD
     hasuraAdminSecret: HASURA_GRAPHQL_ADMIN_SECRET
     rpcUrl: RPC_URL
 
@@ -54,6 +52,11 @@ postgres:
   port: 5432
   database: postgres
   user: postgres
+  # Defaults to the CNPG bootstrap secret so app runtime credentials cannot
+  # drift from the database owner password.
+  passwordSecret:
+    name: ""
+    key: password
 
 indexer:
   replicaCount: 1
