@@ -1,5 +1,11 @@
 # @chillwhales/indexer
 
+## 2.4.3
+
+### Patch Changes
+
+- [#377](https://github.com/chillwhales/lsp-indexer/pull/377) [`bef605f`](https://github.com/chillwhales/lsp-indexer/commit/bef605f7377114a9c5f3b3d0e0820ab327b22e1a) Thanks [@b00ste](https://github.com/b00ste)! - Fix Kubernetes GraphQL ingress routing so `/v1/graphql` takes precedence over the docs catch-all.
+
 ## 2.4.2
 
 ### Patch Changes
