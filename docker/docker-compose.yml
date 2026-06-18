@@ -118,6 +118,7 @@ services:
 
       # Blockchain data sources
       SQD_GATEWAY: ${SQD_GATEWAY:-https://v2.archive.subsquid.io/network/lukso-mainnet}
+      SQD_API_KEY: ${SQD_API_KEY:-}
       RPC_URL: ${RPC_URL:-https://rpc.lukso.sigmacore.io}
       RPC_RATE_LIMIT: ${RPC_RATE_LIMIT:-10}
       FINALITY_CONFIRMATION: ${FINALITY_CONFIRMATION:-75}
