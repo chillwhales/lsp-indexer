@@ -25,6 +25,16 @@ spec:
         - name: hasura
           image: "{{ .Values.hasura.image.repository }}:{{ .Values.hasura.image.tag }}"
           imagePullPolicy: {{ .Values.hasura.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              {{- include "lsp-indexer.databaseUrlScript" . | nindent 14 }}
+              export PG_DATABASE_URL="${database_url}"
+              export HASURA_GRAPHQL_DATABASE_URL="${database_url}"
+              export HASURA_GRAPHQL_METADATA_DATABASE_URL="${database_url}"
+              exec graphql-engine serve
           ports:
             - name: http
               containerPort: 8080
@@ -36,12 +46,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.existingSecret }}
                   key: {{ .Values.secrets.keys.postgresPassword }}
-            - name: PG_DATABASE_URL
-              value: {{ printf "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@%s" (include "lsp-indexer.databaseAddress" .) | quote }}
-            - name: HASURA_GRAPHQL_DATABASE_URL
-              value: {{ printf "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@%s" (include "lsp-indexer.databaseAddress" .) | quote }}
-            - name: HASURA_GRAPHQL_METADATA_DATABASE_URL
-              value: {{ printf "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@%s" (include "lsp-indexer.databaseAddress" .) | quote }}
             - name: HASURA_GRAPHQL_ADMIN_SECRET
               valueFrom:
                 secretKeyRef:

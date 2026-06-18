@@ -27,6 +27,14 @@ spec:
         - name: indexer
           image: "{{ .Values.indexer.image.repository }}:{{ .Values.indexer.image.tag }}"
           imagePullPolicy: {{ .Values.indexer.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              {{- include "lsp-indexer.databaseUrlScript" . | nindent 14 }}
+              export DB_URL="${database_url}"
+              exec /app/entrypoint.sh
           env:
             - name: POSTGRES_USER
               value: {{ .Values.postgres.user | quote }}
@@ -35,8 +43,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.existingSecret }}
                   key: {{ .Values.secrets.keys.postgresPassword }}
-            - name: DB_URL
-              value: {{ printf "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@%s" (include "lsp-indexer.databaseAddress" .) | quote }}
             - name: RPC_URL
               valueFrom:
                 secretKeyRef:

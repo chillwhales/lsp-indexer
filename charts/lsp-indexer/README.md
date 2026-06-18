@@ -35,9 +35,9 @@ used by CloudNativePG during `initdb`. It must contain:
 In production the same password should back both Secrets so the app database URL
 and CNPG bootstrap owner credentials agree.
 
-The rendered database URLs use Kubernetes environment variable expansion for
-`POSTGRES_PASSWORD`; credentials are read from Secrets at pod startup rather than
-embedded into Helm-rendered manifests.
+The rendered deployments read credentials from Secrets at pod startup and
+percent-encode `POSTGRES_PASSWORD` before constructing database URLs. Generated
+passwords may contain URL-reserved characters such as `+`, `/`, and `=`.
 
 ## Images
 
