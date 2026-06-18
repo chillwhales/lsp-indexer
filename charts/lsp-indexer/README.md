@@ -25,9 +25,9 @@ Umbrella chart for running the LSP Indexer on Kubernetes.
 
 `cnpg.bootstrap.secretName` is an existing `kubernetes.io/basic-auth` Secret
 used by CloudNativePG during `initdb`. By default, Hasura and the indexer also
-read `postgres.passwordSecret.key` from this Secret for their database URLs so
-runtime credentials cannot drift from the database owner password. It must
-contain:
+read the username and password keys specified by `postgres.passwordSecret` from
+this Secret for their database URLs so runtime credentials cannot drift from the
+database owner credentials. It must contain:
 
 | Key | Purpose |
 | --- | --- |
