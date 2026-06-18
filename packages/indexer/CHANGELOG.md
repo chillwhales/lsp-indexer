@@ -1,5 +1,11 @@
 # @chillwhales/indexer
 
+## 2.4.1
+
+### Patch Changes
+
+- [#373](https://github.com/chillwhales/lsp-indexer/pull/373) [`6f6f1e2`](https://github.com/chillwhales/lsp-indexer/commit/6f6f1e2b672289a3b301b8eb79058031b326106f) Thanks [@b00ste](https://github.com/b00ste)! - Support SQD legacy gateway API keys for self-hosted indexer deployments and pass the key through Docker Compose.
+
 ## 2.4.0
 
 ### Minor Changes
