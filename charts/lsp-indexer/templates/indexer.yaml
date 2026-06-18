@@ -37,12 +37,15 @@ spec:
               exec /app/entrypoint.sh
           env:
             - name: POSTGRES_USER
-              value: {{ .Values.postgres.user | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "lsp-indexer.postgresPasswordSecretName" . }}
+                  key: {{ .Values.postgres.passwordSecret.userKey }}
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.existingSecret }}
-                  key: {{ .Values.secrets.keys.postgresPassword }}
+                  name: {{ include "lsp-indexer.postgresPasswordSecretName" . }}
+                  key: {{ .Values.postgres.passwordSecret.key }}
             - name: RPC_URL
               valueFrom:
                 secretKeyRef:
