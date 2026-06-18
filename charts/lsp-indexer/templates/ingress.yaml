@@ -52,7 +52,7 @@ spec:
       http:
         paths:
           - path: {{ .Values.ingress.graphql.path | quote }}
-            pathType: Exact
+            pathType: {{ .Values.ingress.graphql.pathType }}
             backend:
               service:
                 name: {{ include "lsp-indexer.fullname" . }}-hasura

@@ -7,7 +7,8 @@ Umbrella chart for running the LSP Indexer on Kubernetes.
 - Docs app is served at `https://indexer.chillwhales.dev/`.
 - Hasura stays internal except for the exact public GraphQL route
   `https://indexer.chillwhales.dev/v1/graphql`.
-- The `/v1/graphql` ingress routes to Hasura's native `/v1/graphql` endpoint.
+- The `/v1/graphql` ingress uses a prefix path that routes to Hasura's native
+  `/v1/graphql` endpoint before the docs catch-all route.
 - Hasura console, metadata, and health endpoints are not exposed through ingress.
 - Runtime secrets are supplied by existing Kubernetes Secrets, usually sealed in
   the GitOps repository.

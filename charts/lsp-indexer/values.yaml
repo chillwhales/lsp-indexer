@@ -175,6 +175,7 @@ ingress:
       nginx.ingress.kubernetes.io/ssl-redirect: "false"
   graphql:
     path: /v1/graphql
+    pathType: Prefix
     annotations:
       nginx.ingress.kubernetes.io/ssl-redirect: "false"
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
