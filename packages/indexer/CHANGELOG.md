@@ -1,5 +1,11 @@
 # @chillwhales/indexer
 
+## 2.4.2
+
+### Patch Changes
+
+- [#375](https://github.com/chillwhales/lsp-indexer/pull/375) [`57150d6`](https://github.com/chillwhales/lsp-indexer/commit/57150d6661a5cbc44d0d57cc431a094a5940a59f) Thanks [@b00ste](https://github.com/b00ste)! - Fix release image promotion so Docker images are retagged after package releases.
+
 ## 2.4.1
 
 ### Patch Changes
