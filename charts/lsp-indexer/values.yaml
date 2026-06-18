@@ -46,7 +46,7 @@ cnpg:
     destinationPath: s3://cnpg-backups/lsp-indexer
     endpointURL: http://minio.infrastructure.svc.cluster.local:9000
     accessKeyIdKey: ACCESS_KEY_ID
-    secretAccessKeyKey: ACCESS_SECRET_KEY
+    secretAccessKeyKey: SECRET_ACCESS_KEY
 
 postgres:
   # Defaults to `<release-fullname>-rw` when empty.

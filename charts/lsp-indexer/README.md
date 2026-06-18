@@ -42,7 +42,8 @@ The chart defaults to a dedicated `lsp_indexer` database and owner rather than
 the PostgreSQL superuser role. When backups are enabled, CNPG reads the S3 access
 key from `cnpg.backup.accessKeyIdKey` and the S3 secret key from
 `cnpg.backup.secretAccessKeyKey`; these default to `ACCESS_KEY_ID` and
-`ACCESS_SECRET_KEY`.
+`SECRET_ACCESS_KEY`. Set `cnpg.backup.secretAccessKeyKey` in the values overlay
+when a cluster uses a different Secret key name.
 
 ## Images
 
