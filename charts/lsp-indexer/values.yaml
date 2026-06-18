@@ -19,8 +19,8 @@ cnpg:
   instances: 2
   imageName: ""
   bootstrap:
-    database: postgres
-    owner: postgres
+    database: lsp_indexer
+    owner: lsp_indexer
     # Existing kubernetes.io/basic-auth Secret for CNPG initdb.
     # It must contain `username` and `password`.
     secretName: lsp-indexer-db
@@ -45,13 +45,15 @@ cnpg:
     existingSecret: cnpg-minio-credentials
     destinationPath: s3://cnpg-backups/lsp-indexer
     endpointURL: http://minio.infrastructure.svc.cluster.local:9000
+    accessKeyIdKey: ACCESS_KEY_ID
+    secretAccessKeyKey: ACCESS_SECRET_KEY
 
 postgres:
   # Defaults to `<release-fullname>-rw` when empty.
   host: ""
   port: 5432
-  database: postgres
-  user: postgres
+  database: lsp_indexer
+  user: lsp_indexer
   # Defaults to the CNPG bootstrap secret so app runtime credentials cannot
   # drift from the database owner password.
   passwordSecret:

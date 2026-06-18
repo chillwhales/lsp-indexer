@@ -38,10 +38,10 @@ spec:
       s3Credentials:
         accessKeyId:
           name: {{ .Values.cnpg.backup.existingSecret }}
-          key: ACCESS_KEY_ID
+          key: {{ .Values.cnpg.backup.accessKeyIdKey }}
         secretAccessKey:
           name: {{ .Values.cnpg.backup.existingSecret }}
-          key: SECRET_ACCESS_KEY
+          key: {{ .Values.cnpg.backup.secretAccessKeyKey }}
     retentionPolicy: 30d
   {{- end }}
 {{- end }}
