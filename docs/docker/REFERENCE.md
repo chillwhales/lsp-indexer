@@ -93,6 +93,9 @@ DB_URL=postgresql://postgres:postgres@postgres:5432/postgres
 
 # Blockchain RPC (REQUIRED — update with your endpoint)
 RPC_URL=https://rpc.lukso.sigmacore.io
+
+# SQD legacy gateway API key (REQUIRED for self-hosted v2 archive access)
+SQD_API_KEY=your-sqd-api-key
 ```
 
 ### Optional Variables (with defaults)
