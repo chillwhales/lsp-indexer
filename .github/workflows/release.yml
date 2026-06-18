@@ -78,6 +78,7 @@ jobs:
           for attempt in $(seq 1 120); do
             run_json="$(
               gh run list \
+                --repo "${GITHUB_REPOSITORY}" \
                 --workflow "Build images" \
                 --commit "${GITHUB_SHA}" \
                 --event push \
