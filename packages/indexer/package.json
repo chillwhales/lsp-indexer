@@ -43,11 +43,11 @@
     "@lukso/lsp8-contracts": "0.16.7",
     "@subsquid/evm-abi": "^0.3.1",
     "@subsquid/evm-codec": "^0.3.0",
-    "@subsquid/evm-processor": "^1.27.2",
+    "@subsquid/evm-processor": "^1.30.1",
     "@subsquid/hasura-configuration": "^2.0.0",
-    "@subsquid/logger": "^1.4.0",
-    "@subsquid/typeorm-migration": "^1.3.0",
-    "@subsquid/typeorm-store": "^1.5.1",
+    "@subsquid/logger": "^1.6.0",
+    "@subsquid/typeorm-migration": "^1.3.1",
+    "@subsquid/typeorm-store": "^1.9.1",
     "axios": "^1.11.0",
     "data-urls": "^5.0.0",
     "dotenv": "^17.2.1",
@@ -59,8 +59,8 @@
     "viem": "^2.47.0"
   },
   "devDependencies": {
-    "@subsquid/evm-typegen": "^4.4.0",
-    "@subsquid/typeorm-codegen": "^2.0.2",
+    "@subsquid/evm-typegen": "^4.6.0",
+    "@subsquid/typeorm-codegen": "^2.2.0",
     "@types/node": "^24.1.0",
     "typescript": "^5.9.2",
     "vitest": "^2.1.8"

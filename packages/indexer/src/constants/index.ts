@@ -8,6 +8,7 @@ dotenvSetup({ path: path.resolve(__dirname, '../../../../.env') });
 
 export const SQD_GATEWAY =
   process.env.SQD_GATEWAY || 'https://v2.archive.subsquid.io/network/lukso-mainnet';
+export const SQD_API_KEY = process.env.SQD_API_KEY || undefined;
 export const RPC_URL = process.env.RPC_URL || 'https://rpc.lukso.sigmacore.io';
 export const RPC_RATE_LIMIT = isNumeric(process.env.RPC_RATE_LIMIT)
   ? parseInt(process.env.RPC_RATE_LIMIT)
