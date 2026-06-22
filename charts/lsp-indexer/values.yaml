@@ -30,6 +30,10 @@ cnpg:
   storage:
     size: 20Gi
     storageClass: longhorn
+  walStorage:
+    enabled: false
+    size: 10Gi
+    storageClass: longhorn
   resources:
     requests:
       cpu: 250m
@@ -50,6 +54,9 @@ cnpg:
     endpointURL: http://minio.infrastructure.svc.cluster.local:9000
     accessKeyIdKey: ACCESS_KEY_ID
     secretAccessKeyKey: SECRET_ACCESS_KEY
+    reflector:
+      enabled: false
+      sourceNamespace: infrastructure
 
 postgres:
   # Defaults to `<release-fullname>-rw` when empty.

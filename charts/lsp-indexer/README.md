@@ -47,6 +47,16 @@ key from `cnpg.backup.accessKeyIdKey` and the S3 secret key from
 `SECRET_ACCESS_KEY`. Set `cnpg.backup.secretAccessKeyKey` in the values overlay
 when a cluster uses a different Secret key name.
 
+Set `cnpg.walStorage.enabled=true` to provision a dedicated CNPG WAL volume.
+This keeps WAL growth isolated from the main PGDATA volume and follows CNPG's
+native `spec.walStorage` behavior.
+
+When `cnpg.backup.reflector.enabled=true`, the chart creates an empty Secret
+shell named by `cnpg.backup.existingSecret` in the release namespace. Emberstack
+Reflector copies the sensitive S3 keys from
+`<cnpg.backup.reflector.sourceNamespace>/<cnpg.backup.existingSecret>` into that
+shell before CNPG reads it.
+
 ## Images
 
 The repository publishes two images through the `Build images` workflow:
@@ -85,8 +95,14 @@ secrets:
 cnpg:
   bootstrap:
     secretName: lsp-indexer-db
+  walStorage:
+    enabled: true
+    size: 10Gi
   backup:
     enabled: true
     existingSecret: cnpg-minio-credentials
     destinationPath: s3://cnpg-backups/lsp-indexer
+    reflector:
+      enabled: true
+      sourceNamespace: infrastructure
 ```

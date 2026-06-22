@@ -21,6 +21,13 @@ spec:
     {{- if .Values.cnpg.storage.storageClass }}
     storageClass: {{ .Values.cnpg.storage.storageClass }}
     {{- end }}
+  {{- if .Values.cnpg.walStorage.enabled }}
+  walStorage:
+    size: {{ .Values.cnpg.walStorage.size }}
+    {{- if .Values.cnpg.walStorage.storageClass }}
+    storageClass: {{ .Values.cnpg.walStorage.storageClass }}
+    {{- end }}
+  {{- end }}
   {{- with .Values.cnpg.postgresql.parameters }}
   postgresql:
     parameters:
