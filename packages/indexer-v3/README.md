@@ -98,9 +98,9 @@ advancing the cursor.
 ## Domain projections
 
 The event command also runs the v3 projection pipeline. It deduplicates verification candidates by
-exact block, interface category, and address; batches current and legacy LSP0/LSP7/LSP8 interface
-checks through the configured Multicall3 deployment; and pins every read to its triggering block.
-Decimals are accepted only for verified LSP7 assets.
+exact block, interface category, and address; executes current and legacy LSP0/LSP7/LSP8 interface
+checks through the configured Multicall3 deployment in bounded batches; and pins every read to its
+triggering block. Decimals are accepted only for verified LSP7 assets.
 
 The reducer applies only newly inserted facts in block/transaction/log order and atomically writes:
 

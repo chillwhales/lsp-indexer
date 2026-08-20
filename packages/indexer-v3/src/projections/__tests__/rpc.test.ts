@@ -1,6 +1,8 @@
+import { toHex } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import { loadRuntimeConfig } from '../../config/index.js';
 import type { NetworkRpcClient } from '../../rpc/index.js';
+import { MAX_MULTICALL_BATCH_SIZE } from '../batching.js';
 import {
   createProjectionCallExecutor,
   resolveProjectionVerifications,
@@ -103,5 +105,24 @@ describe('block-pinned projection RPC reads', () => {
         (): Promise<[]> => Promise.resolve([]),
       ),
     ).rejects.toThrow('returned 0 results for 1 calls');
+  });
+
+  it('bounds large exact-block plans without changing candidate order', async () => {
+    const batchSizes: number[] = [];
+    const candidates = Array.from({ length: 72 }, (_, index) => ({
+      blockNumber: 10,
+      address: toHex(BigInt(index + 1), { size: 20 }),
+      category: 'digitalAsset' as const,
+    }));
+    const execute: ProjectionCallExecutor = (_blockNumber, calls) => {
+      batchSizes.push(calls.length);
+      return Promise.resolve(calls.map(() => ({ status: 'failure' as const })));
+    };
+
+    const result = await resolveProjectionVerifications(candidates, execute);
+
+    expect(batchSizes).toEqual([MAX_MULTICALL_BATCH_SIZE, 4]);
+    expect(result).toHaveLength(candidates.length);
+    expect(result.map(({ address }) => address)).toEqual(candidates.map(({ address }) => address));
   });
 });

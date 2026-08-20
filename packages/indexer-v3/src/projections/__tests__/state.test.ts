@@ -1,5 +1,8 @@
+import type { SQL } from 'drizzle-orm';
+import { PgDialect } from 'drizzle-orm/pg-core';
 import { toHex } from 'viem';
 import { describe, expect, it } from 'vitest';
+import { createDeterministicId, createTokenEntityId } from '../../db/identity.js';
 import {
   chillwhalesNfts,
   controllers,
@@ -47,6 +50,7 @@ function event(
 function fakeTransaction(
   rows: ReadonlyMap<unknown, readonly unknown[]>,
   selected: Set<unknown>,
+  predicates?: Map<unknown, SQL>,
 ): PersistenceHandlerContext['tx'] {
   const transaction = {
     select() {
@@ -54,7 +58,8 @@ function fakeTransaction(
         from(table: unknown) {
           selected.add(table);
           return {
-            where(): Promise<readonly unknown[]> {
+            where(predicate: SQL): Promise<readonly unknown[]> {
+              predicates?.set(table, predicate);
               return Promise.resolve(rows.get(table) ?? []);
             },
           };
@@ -121,8 +126,24 @@ describe('projection state loader', () => {
       [chillwhalesNfts, [{ address: asset, tokenId }]],
     ]);
     const selected = new Set<unknown>();
+    const predicates = new Map<unknown, SQL>();
+    const claimStatusUpdates = [
+      {
+        address: asset,
+        tokenId,
+        chillClaimed: true,
+        orbsClaimed: false,
+        blockNumber: 10,
+        blockHash: toHex(10n, { size: 32 }),
+      },
+    ];
 
-    const state = await loadProjectionState(fakeTransaction(rows, selected), 42, events);
+    const state = await loadProjectionState(
+      fakeTransaction(rows, selected, predicates),
+      42,
+      events,
+      claimStatusUpdates,
+    );
 
     expect(selected).toEqual(new Set(rows.keys()));
     expect(state.universalProfiles.has(firstProfile)).toBe(true);
@@ -135,6 +156,51 @@ describe('projection state loader', () => {
     expect(state.issuedAssets.has(`${firstProfile}:${asset}`)).toBe(true);
     expect(state.controllers.has(`${firstProfile}:${secondProfile}`)).toBe(true);
     expect(state.chillwhalesNfts.has(`${asset}:${tokenId}`)).toBe(true);
+
+    const dialect = new PgDialect();
+    const nftPredicate = predicates.get(nfts);
+    const ownedAssetPredicate = predicates.get(ownedAssets);
+    const ownedTokenPredicate = predicates.get(ownedTokens);
+    const followerPredicate = predicates.get(followerEdges);
+    const extensionPredicate = predicates.get(chillwhalesNfts);
+    if (
+      nftPredicate == null ||
+      ownedAssetPredicate == null ||
+      ownedTokenPredicate == null ||
+      followerPredicate == null ||
+      extensionPredicate == null
+    ) {
+      throw new Error('Expected exact-token projection predicates');
+    }
+    const nftQuery = dialect.sqlToQuery(nftPredicate);
+    const ownedAssetQuery = dialect.sqlToQuery(ownedAssetPredicate);
+    const ownedTokenQuery = dialect.sqlToQuery(ownedTokenPredicate);
+    const followerQuery = dialect.sqlToQuery(followerPredicate);
+    const extensionQuery = dialect.sqlToQuery(extensionPredicate);
+    expect(nftQuery.sql).toContain('"nfts"."id" in');
+    expect(nftQuery.params).toContain(createTokenEntityId(42, asset, tokenId));
+    expect(ownedAssetQuery.sql).toContain('"owned_assets"."id" in');
+    expect(ownedAssetQuery.params).toEqual(
+      expect.arrayContaining([
+        createDeterministicId('owned-asset', 42, [firstProfile, asset]),
+        createDeterministicId('owned-asset', 42, [secondProfile, asset]),
+      ]),
+    );
+    expect(ownedTokenQuery.sql).toContain('"owned_tokens"."id" in');
+    expect(ownedTokenQuery.params).toEqual(
+      expect.arrayContaining([
+        createDeterministicId('owned-token', 42, [firstProfile, asset, tokenId]),
+        createDeterministicId('owned-token', 42, [secondProfile, asset, tokenId]),
+      ]),
+    );
+    expect(followerQuery.sql).toContain('"follower_edges"."id" in');
+    expect(followerQuery.params).toContain(
+      createDeterministicId('follower', 42, [firstProfile, secondProfile]),
+    );
+    expect(extensionQuery.sql).toContain('"chillwhales_nfts"."id" in');
+    expect(extensionQuery.params).toContain(
+      createDeterministicId('chillwhales-nft', 42, [asset, tokenId]),
+    );
   });
 
   it('does not issue table reads for an empty event and extension update set', async () => {
@@ -155,5 +221,27 @@ describe('projection state loader', () => {
 
     expect(selected.size).toBe(0);
     expect(stateRows.every((rows) => rows.size === 0)).toBe(true);
+  });
+
+  it('loads a full NFT collection only for collection-wide derived-value changes', async () => {
+    const selected = new Set<unknown>();
+    const predicates = new Map<unknown, SQL>();
+    const baseUriChange = event(0, {
+      address: asset,
+      eventName: 'DataChanged',
+      eventDomain: 'erc725y',
+      decoded: { dataKey: DATA_KEYS.lsp8MetadataBaseUri, dataValue: '0x' },
+    });
+
+    await loadProjectionState(fakeTransaction(new Map(), selected, predicates), 42, [
+      baseUriChange,
+    ]);
+
+    const nftPredicate = predicates.get(nfts);
+    if (nftPredicate == null) throw new Error('Expected a collection NFT predicate');
+    const query = new PgDialect().sqlToQuery(nftPredicate);
+    expect(query.sql).toContain('"nfts"."address" in');
+    expect(query.sql).not.toContain('"nfts"."id" in');
+    expect(query.params).toContain(asset);
   });
 });

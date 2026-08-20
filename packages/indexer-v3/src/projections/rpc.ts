@@ -1,6 +1,7 @@
 import { getAddress, type Hex } from 'viem';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkRpcClient } from '../rpc/index.js';
+import { createMulticallBatches } from './batching.js';
 import type { VerificationCandidate, VerificationCategory } from './candidates.js';
 import { INTERFACE_IDS } from './standards.js';
 
@@ -214,31 +215,36 @@ export async function resolveProjectionVerifications(
     ([left], [right]) => left - right,
   )) {
     const planned = blockCandidates.flatMap(planCandidate);
-    const results = await execute(
-      blockNumber,
-      planned.map(({ call }) => call),
-    );
-    if (results.length !== planned.length) {
-      throw new Error(
-        `RPC multicall at block ${blockNumber} returned ${results.length} results for ${planned.length} calls`,
-      );
-    }
-
     const accumulators = new Map<string, CandidateAccumulator>();
-    for (let index = 0; index < planned.length; index++) {
-      const current = planned[index];
-      const result = results[index];
-      if (current == null || result == null) {
-        throw new Error(`RPC multicall at block ${blockNumber} omitted result ${index}`);
-      }
-      const key = verificationKey(
-        current.candidate.blockNumber,
-        current.candidate.category,
-        current.candidate.address,
+    let resultOffset = 0;
+    for (const plannedBatch of createMulticallBatches(planned)) {
+      const results = await execute(
+        blockNumber,
+        plannedBatch.map(({ call }) => call),
       );
-      const accumulator = accumulators.get(key) ?? createAccumulator(current.candidate);
-      accumulateResult(accumulator, current, result);
-      accumulators.set(key, accumulator);
+      if (results.length !== plannedBatch.length) {
+        throw new Error(
+          `RPC multicall at block ${blockNumber} returned ${results.length} results for ${plannedBatch.length} calls`,
+        );
+      }
+      for (let index = 0; index < plannedBatch.length; index++) {
+        const current = plannedBatch[index];
+        const result = results[index];
+        if (current == null || result == null) {
+          throw new Error(
+            `RPC multicall at block ${blockNumber} omitted result ${resultOffset + index}`,
+          );
+        }
+        const key = verificationKey(
+          current.candidate.blockNumber,
+          current.candidate.category,
+          current.candidate.address,
+        );
+        const accumulator = accumulators.get(key) ?? createAccumulator(current.candidate);
+        accumulateResult(accumulator, current, result);
+        accumulators.set(key, accumulator);
+      }
+      resultOffset += plannedBatch.length;
     }
     verifications.push(...[...accumulators.values()].map(finalizeAccumulator));
   }

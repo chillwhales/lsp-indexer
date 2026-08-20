@@ -339,10 +339,11 @@ existing state scope needed by those facts, applies them in canonical order, del
 or zero-balance rows, and upserts the resulting current state. Exact replay can validate an existing
 fact but cannot apply it twice.
 
-Interface verification is planned per exact `(block, category, address)` and supports current and
-legacy LSP0, LSP7, and LSP8 IDs. Transport or response-shape failures fail the batch. Individual
-contract-call failures classify that candidate as invalid; they do not delete its raw event or
-ERC725Y value. Decimals are accepted only for a verified LSP7 asset.
+Interface verification is planned per exact `(block, category, address)`, split into bounded
+sequential Multicall requests at that block, and supports current and legacy LSP0, LSP7, and LSP8
+IDs. Transport or response-shape failures fail the batch. Individual contract-call failures
+classify that candidate as invalid; they do not delete its raw event or ERC725Y value. Decimals are
+accepted only for a verified LSP7 asset.
 
 The initial product extension is Chillwhales on LUKSO Mainnet. Mint defaults and Orb token-data
 updates use the same deterministic reducer. Unresolved CHILL and ORBS claim flags are polled only at

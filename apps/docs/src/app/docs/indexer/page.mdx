@@ -251,7 +251,8 @@ cursor unchanged.
 
 The event pipe also performs deterministic current-state reduction. It deduplicates verification
 candidates by exact block, category, and address; checks current and legacy LSP0/LSP7/LSP8 interface
-IDs through the configured Multicall3 contract; and pins every RPC read to its triggering block.
+IDs through the configured Multicall3 contract in bounded batches; and pins every RPC read to its
+triggering block.
 
 Only newly inserted event facts reach the reducer. Facts are applied in block, transaction, and log
 order to produce verified Universal Profiles and digital assets; NFTs; supply; UP-scoped asset and

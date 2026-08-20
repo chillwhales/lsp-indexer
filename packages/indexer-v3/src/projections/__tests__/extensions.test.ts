@@ -4,6 +4,7 @@ import { loadRuntimeConfig } from '../../config/index.js';
 import type { NetworkDatabase } from '../../db/client.js';
 import type { EventFactRecord, EventIngestionBatch } from '../../events/decode.js';
 import type { NetworkRpcClient } from '../../rpc/index.js';
+import { MAX_MULTICALL_BATCH_SIZE } from '../batching.js';
 import {
   createClaimStatusCallExecutor,
   loadClaimStatusCandidates,
@@ -199,5 +200,24 @@ describe('Chillwhales product extension reads', () => {
     mint.address = CHILLWHALES_EXTENSION.orbsAddress;
 
     await expect(loadClaimStatusCandidates(fakeDatabase([]), runtime, batch)).resolves.toEqual([]);
+  });
+
+  it('bounds large claim plans while preserving every candidate', async () => {
+    const batchSizes: number[] = [];
+    const candidates = Array.from({ length: 251 }, (_, index) => ({
+      address: CHILLWHALES_EXTENSION.collectionAddress,
+      tokenId: toHex(BigInt(index), { size: 32 }),
+      checkChill: true,
+      checkOrbs: true,
+    }));
+    const execute: ClaimStatusCallExecutor = (_blockNumber, calls) => {
+      batchSizes.push(calls.length);
+      return Promise.resolve(calls.map(() => ({ status: 'success' as const, value: false })));
+    };
+
+    await expect(
+      resolveClaimStatusUpdates(candidates, 100, toHex(100n, { size: 32 }), execute),
+    ).resolves.toEqual([]);
+    expect(batchSizes).toEqual([MAX_MULTICALL_BATCH_SIZE, 2]);
   });
 });

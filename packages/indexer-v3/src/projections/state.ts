@@ -1,4 +1,9 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, or } from 'drizzle-orm';
+import {
+  createDeterministicId,
+  createRelationshipId,
+  createTokenEntityId,
+} from '../db/identity.js';
 import {
   chillwhalesNfts,
   controllers,
@@ -15,7 +20,7 @@ import type { PersistenceHandlerContext } from '../db/target.js';
 import type { EventFactRecord } from '../events/decode.js';
 import { collectEventVerificationCandidates } from './candidates.js';
 import type { ClaimStatusUpdate } from './extensions.js';
-import { CHILLWHALES_EXTENSION, DATA_KEYS } from './standards.js';
+import { CHILLWHALES_EXTENSION, DATA_KEYS, ZERO_ADDRESS, isNullAddress } from './standards.js';
 
 export type UniversalProfileRow = typeof universalProfiles.$inferSelect;
 export type DigitalAssetRow = typeof digitalAssets.$inferSelect;
@@ -44,14 +49,15 @@ export interface ProjectionState {
 interface ProjectionScope {
   profileAddresses: Set<string>;
   assetAddresses: Set<string>;
-  nftAssetAddresses: Set<string>;
-  balanceOwners: Set<string>;
-  balanceAssets: Set<string>;
-  followerAddresses: Set<string>;
+  nftIds: Set<string>;
+  nftCollectionAddresses: Set<string>;
+  ownedAssetIds: Set<string>;
+  ownedTokenIds: Set<string>;
+  followerEdgeIds: Set<string>;
   creatorAssets: Set<string>;
   issuerProfiles: Set<string>;
   controllerProfiles: Set<string>;
-  extensionAssets: Set<string>;
+  extensionIds: Set<string>;
 }
 
 function readString(event: EventFactRecord, key: string): string | null {
@@ -71,18 +77,22 @@ export function ownedTokenKey(owner: string, address: string, tokenId: string): 
   return `${owner}:${address}:${tokenId}`;
 }
 
-function createProjectionScope(events: readonly EventFactRecord[]): ProjectionScope {
+function createProjectionScope(
+  chainId: number,
+  events: readonly EventFactRecord[],
+): ProjectionScope {
   const scope: ProjectionScope = {
     profileAddresses: new Set(),
     assetAddresses: new Set(),
-    nftAssetAddresses: new Set(),
-    balanceOwners: new Set(),
-    balanceAssets: new Set(),
-    followerAddresses: new Set(),
+    nftIds: new Set(),
+    nftCollectionAddresses: new Set(),
+    ownedAssetIds: new Set(),
+    ownedTokenIds: new Set(),
+    followerEdgeIds: new Set(),
     creatorAssets: new Set(),
     issuerProfiles: new Set(),
     controllerProfiles: new Set(),
-    extensionAssets: new Set(),
+    extensionIds: new Set(),
   };
 
   for (const event of events) {
@@ -96,35 +106,56 @@ function createProjectionScope(events: readonly EventFactRecord[]): ProjectionSc
     if (event.decoded == null) continue;
 
     if (event.eventName === 'Transfer') {
-      scope.balanceAssets.add(event.address);
       for (const key of ['from', 'to']) {
         const address = readString(event, key);
-        if (address != null) scope.balanceOwners.add(address);
+        if (address == null || isNullAddress(address)) continue;
+        scope.ownedAssetIds.add(
+          createRelationshipId('owned-asset', chainId, [address, event.address]),
+        );
       }
       if (event.eventDomain === 'lsp8') {
-        scope.nftAssetAddresses.add(event.address);
+        const tokenId = readString(event, 'tokenId');
+        if (tokenId == null) continue;
+        scope.nftIds.add(createTokenEntityId(chainId, event.address, tokenId));
+        for (const key of ['from', 'to']) {
+          const ownerAddress = readString(event, key);
+          if (ownerAddress == null || isNullAddress(ownerAddress)) continue;
+          scope.ownedTokenIds.add(
+            createDeterministicId('owned-token', chainId, [ownerAddress, event.address, tokenId]),
+          );
+        }
+        const from = readString(event, 'from');
         if (
-          event.address === CHILLWHALES_EXTENSION.collectionAddress ||
-          event.address === CHILLWHALES_EXTENSION.orbsAddress
+          from === ZERO_ADDRESS &&
+          (event.address === CHILLWHALES_EXTENSION.collectionAddress ||
+            event.address === CHILLWHALES_EXTENSION.orbsAddress)
         ) {
-          scope.extensionAssets.add(event.address);
+          scope.extensionIds.add(
+            createDeterministicId('chillwhales-nft', chainId, [event.address, tokenId]),
+          );
         }
       }
     } else if (event.eventName === 'TokenIdDataChanged') {
-      scope.nftAssetAddresses.add(event.address);
+      const tokenId = readString(event, 'tokenId');
+      if (tokenId == null) continue;
+      scope.nftIds.add(createTokenEntityId(chainId, event.address, tokenId));
       if (event.address === CHILLWHALES_EXTENSION.orbsAddress) {
-        scope.extensionAssets.add(event.address);
+        scope.extensionIds.add(
+          createDeterministicId('chillwhales-nft', chainId, [event.address, tokenId]),
+        );
       }
     } else if (event.eventName === 'Follow') {
       const follower = readString(event, 'followerAddress');
       const followed = readString(event, 'followedAddress');
-      if (follower != null) scope.followerAddresses.add(follower);
-      if (followed != null) scope.followerAddresses.add(followed);
+      if (follower != null && followed != null) {
+        scope.followerEdgeIds.add(createRelationshipId('follower', chainId, [follower, followed]));
+      }
     } else if (event.eventName === 'Unfollow') {
       const follower = readString(event, 'followerAddress');
       const followed = readString(event, 'unfollowedAddress');
-      if (follower != null) scope.followerAddresses.add(follower);
-      if (followed != null) scope.followerAddresses.add(followed);
+      if (follower != null && followed != null) {
+        scope.followerEdgeIds.add(createRelationshipId('follower', chainId, [follower, followed]));
+      }
     } else if (event.eventName === 'DataChanged') {
       const dataKey = readString(event, 'dataKey');
       if (dataKey == null) continue;
@@ -152,7 +183,7 @@ function createProjectionScope(events: readonly EventFactRecord[]): ProjectionSc
         scope.controllerProfiles.add(event.address);
       }
       if (dataKey === DATA_KEYS.lsp8TokenIdFormat || dataKey === DATA_KEYS.lsp8MetadataBaseUri) {
-        scope.nftAssetAddresses.add(event.address);
+        scope.nftCollectionAddresses.add(event.address);
       }
     }
   }
@@ -170,8 +201,23 @@ export async function loadProjectionState(
   events: readonly EventFactRecord[],
   claimStatusUpdates: readonly ClaimStatusUpdate[] = [],
 ): Promise<ProjectionState> {
-  const scope = createProjectionScope(events);
-  for (const update of claimStatusUpdates) scope.extensionAssets.add(update.address);
+  const scope = createProjectionScope(chainId, events);
+  for (const update of claimStatusUpdates) {
+    scope.extensionIds.add(
+      createDeterministicId('chillwhales-nft', chainId, [update.address, update.tokenId]),
+    );
+  }
+  const nftCondition =
+    scope.nftIds.size > 0 && scope.nftCollectionAddresses.size > 0
+      ? or(
+          inArray(nfts.id, [...scope.nftIds]),
+          inArray(nfts.address, [...scope.nftCollectionAddresses]),
+        )
+      : scope.nftIds.size > 0
+        ? inArray(nfts.id, [...scope.nftIds])
+        : scope.nftCollectionAddresses.size > 0
+          ? inArray(nfts.address, [...scope.nftCollectionAddresses])
+          : null;
   const [
     profileRows,
     assetRows,
@@ -206,15 +252,13 @@ export async function loadProjectionState(
               inArray(digitalAssets.address, [...scope.assetAddresses]),
             ),
           ),
-    scope.nftAssetAddresses.size === 0
+    nftCondition == null
       ? Promise.resolve([])
       : tx
           .select()
           .from(nfts)
-          .where(
-            and(eq(nfts.chainId, chainId), inArray(nfts.address, [...scope.nftAssetAddresses])),
-          ),
-    scope.balanceOwners.size === 0 || scope.balanceAssets.size === 0
+          .where(and(eq(nfts.chainId, chainId), nftCondition)),
+    scope.ownedAssetIds.size === 0
       ? Promise.resolve([])
       : tx
           .select()
@@ -222,11 +266,10 @@ export async function loadProjectionState(
           .where(
             and(
               eq(ownedAssets.chainId, chainId),
-              inArray(ownedAssets.ownerAddress, [...scope.balanceOwners]),
-              inArray(ownedAssets.assetAddress, [...scope.balanceAssets]),
+              inArray(ownedAssets.id, [...scope.ownedAssetIds]),
             ),
           ),
-    scope.balanceOwners.size === 0 || scope.nftAssetAddresses.size === 0
+    scope.ownedTokenIds.size === 0
       ? Promise.resolve([])
       : tx
           .select()
@@ -234,11 +277,10 @@ export async function loadProjectionState(
           .where(
             and(
               eq(ownedTokens.chainId, chainId),
-              inArray(ownedTokens.ownerAddress, [...scope.balanceOwners]),
-              inArray(ownedTokens.assetAddress, [...scope.nftAssetAddresses]),
+              inArray(ownedTokens.id, [...scope.ownedTokenIds]),
             ),
           ),
-    scope.followerAddresses.size === 0
+    scope.followerEdgeIds.size === 0
       ? Promise.resolve([])
       : tx
           .select()
@@ -246,8 +288,7 @@ export async function loadProjectionState(
           .where(
             and(
               eq(followerEdges.chainId, chainId),
-              inArray(followerEdges.followerAddress, [...scope.followerAddresses]),
-              inArray(followerEdges.followedAddress, [...scope.followerAddresses]),
+              inArray(followerEdges.id, [...scope.followerEdgeIds]),
             ),
           ),
     scope.creatorAssets.size === 0
@@ -283,7 +324,7 @@ export async function loadProjectionState(
               inArray(controllers.profileAddress, [...scope.controllerProfiles]),
             ),
           ),
-    scope.extensionAssets.size === 0
+    scope.extensionIds.size === 0
       ? Promise.resolve([])
       : tx
           .select()
@@ -291,7 +332,7 @@ export async function loadProjectionState(
           .where(
             and(
               eq(chillwhalesNfts.chainId, chainId),
-              inArray(chillwhalesNfts.address, [...scope.extensionAssets]),
+              inArray(chillwhalesNfts.id, [...scope.extensionIds]),
             ),
           ),
   ]);

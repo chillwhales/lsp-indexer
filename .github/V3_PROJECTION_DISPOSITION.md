@@ -10,7 +10,8 @@ chain-scoped current-state tables.
 ## Shared projection contract
 
 - Interface candidates are deduplicated by exact `(block, category, address)` and read through
-  Multicall3 at that block. Current and legacy LSP0, LSP7, and LSP8 interface IDs are supported.
+  bounded Multicall3 batches at that block. Current and legacy LSP0, LSP7, and LSP8 interface IDs
+  are supported.
 - A transport error or malformed multicall response aborts the batch. A failed individual contract
   call is an invalid candidate. Raw facts and raw ERC725Y values remain stored either way.
 - Typed UP and digital-asset rows are created only after successful verification. Invalid optional

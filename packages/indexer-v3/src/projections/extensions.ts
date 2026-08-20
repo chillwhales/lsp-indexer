@@ -5,6 +5,7 @@ import type { NetworkDatabase } from '../db/client.js';
 import { chillwhalesNfts } from '../db/schema.js';
 import type { EventIngestionBatch } from '../events/decode.js';
 import type { NetworkRpcClient } from '../rpc/index.js';
+import { createMulticallBatches } from './batching.js';
 import { CHILLWHALES_EXTENSION, ZERO_ADDRESS } from './standards.js';
 
 const CHILL_CLAIM_ABI = [
@@ -198,35 +199,40 @@ export async function resolveClaimStatusUpdates(
   ]);
   if (planned.length === 0) return [];
 
-  const results = await execute(
-    blockNumber,
-    planned.map(({ call }) => call),
-  );
-  if (results.length !== planned.length) {
-    throw new Error(
-      `Claim-status multicall at block ${blockNumber} returned ${results.length} results for ${planned.length} calls`,
-    );
-  }
-
   const updates = new Map<string, ClaimStatusUpdate>();
-  for (let index = 0; index < planned.length; index++) {
-    const current = planned[index];
-    const result = results[index];
-    if (current == null || result == null) {
-      throw new Error(`Claim-status multicall at block ${blockNumber} omitted result ${index}`);
-    }
-    if (result.status !== 'success' || !result.value) continue;
-    const update = updates.get(current.candidate.tokenId) ?? {
-      address: current.candidate.address,
-      tokenId: current.candidate.tokenId,
-      chillClaimed: false,
-      orbsClaimed: false,
+  let resultOffset = 0;
+  for (const plannedBatch of createMulticallBatches(planned)) {
+    const results = await execute(
       blockNumber,
-      blockHash,
-    };
-    if (current.call.kind === 'chill') update.chillClaimed = true;
-    else update.orbsClaimed = true;
-    updates.set(current.candidate.tokenId, update);
+      plannedBatch.map(({ call }) => call),
+    );
+    if (results.length !== plannedBatch.length) {
+      throw new Error(
+        `Claim-status multicall at block ${blockNumber} returned ${results.length} results for ${plannedBatch.length} calls`,
+      );
+    }
+    for (let index = 0; index < plannedBatch.length; index++) {
+      const current = plannedBatch[index];
+      const result = results[index];
+      if (current == null || result == null) {
+        throw new Error(
+          `Claim-status multicall at block ${blockNumber} omitted result ${resultOffset + index}`,
+        );
+      }
+      if (result.status !== 'success' || !result.value) continue;
+      const update = updates.get(current.candidate.tokenId) ?? {
+        address: current.candidate.address,
+        tokenId: current.candidate.tokenId,
+        chillClaimed: false,
+        orbsClaimed: false,
+        blockNumber,
+        blockHash,
+      };
+      if (current.call.kind === 'chill') update.chillClaimed = true;
+      else update.orbsClaimed = true;
+      updates.set(current.candidate.tokenId, update);
+    }
+    resultOffset += plannedBatch.length;
   }
   return [...updates.values()];
 }
