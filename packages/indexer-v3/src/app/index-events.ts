@@ -14,6 +14,7 @@ async function indexEvents(context: NetworkProgramContext): Promise<void> {
       runtime: context.runtime,
       databaseConfig,
       db: createNetworkDatabase(pool),
+      rpc: context.rpc,
       ...(context.logger == null ? {} : { logger: context.logger }),
       ...(context.metrics == null ? {} : { metrics: context.metrics }),
     });

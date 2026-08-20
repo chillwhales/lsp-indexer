@@ -253,6 +253,9 @@ export const nfts = pgTable(
     chainId: bigint('chain_id', { mode: 'number' }).notNull(),
     address: varchar('address', { length: 42 }).notNull(),
     tokenId: varchar('token_id', { length: 66 }).notNull(),
+    formattedTokenId: text('formatted_token_id'),
+    isMinted: boolean('is_minted').notNull().default(false),
+    isBurned: boolean('is_burned').notNull().default(false),
     ownerAddress: varchar('owner_address', { length: 42 }),
     tokenUri: text('token_uri'),
     verification: verificationStatus('verification').notNull().default('unknown'),
@@ -438,6 +441,7 @@ export const creators = pgTable(
     assetAddress: varchar('asset_address', { length: 42 }).notNull(),
     creatorAddress: varchar('creator_address', { length: 42 }).notNull(),
     arrayIndex: numeric('array_index', { precision: 39, scale: 0, mode: 'bigint' }).notNull(),
+    interfaceId: varchar('interface_id', { length: 10 }),
     verified: boolean('verified').notNull().default(false),
     lastBlockNumber: bigint('last_block_number', { mode: 'number' }).notNull(),
     lastBlockHash: varchar('last_block_hash', { length: 66 }).notNull(),
@@ -470,6 +474,10 @@ export const creators = pgTable(
     check('creators_asset_check', sql`${table.assetAddress} ~ '^0x[0-9a-f]{40}$'`),
     check('creators_creator_check', sql`${table.creatorAddress} ~ '^0x[0-9a-f]{40}$'`),
     check('creators_array_index_check', sql`${table.arrayIndex} >= 0`),
+    check(
+      'creators_interface_id_check',
+      sql`${table.interfaceId} IS NULL OR ${table.interfaceId} ~ '^0x[0-9a-f]{8}$'`,
+    ),
     check('creators_block_check', sql`${table.lastBlockNumber} >= 0`),
     check('creators_block_hash_check', sql`${table.lastBlockHash} ~ '^0x[0-9a-f]{64}$'`),
   ],
@@ -484,6 +492,7 @@ export const issuedAssets = pgTable(
     issuerAddress: varchar('issuer_address', { length: 42 }).notNull(),
     assetAddress: varchar('asset_address', { length: 42 }).notNull(),
     arrayIndex: numeric('array_index', { precision: 39, scale: 0, mode: 'bigint' }).notNull(),
+    interfaceId: varchar('interface_id', { length: 10 }),
     lastBlockNumber: bigint('last_block_number', { mode: 'number' }).notNull(),
     lastBlockHash: varchar('last_block_hash', { length: 66 }).notNull(),
     lastTransactionHash: varchar('last_transaction_hash', { length: 66 }),
@@ -520,6 +529,10 @@ export const issuedAssets = pgTable(
     check('issued_assets_issuer_check', sql`${table.issuerAddress} ~ '^0x[0-9a-f]{40}$'`),
     check('issued_assets_asset_check', sql`${table.assetAddress} ~ '^0x[0-9a-f]{40}$'`),
     check('issued_assets_array_index_check', sql`${table.arrayIndex} >= 0`),
+    check(
+      'issued_assets_interface_id_check',
+      sql`${table.interfaceId} IS NULL OR ${table.interfaceId} ~ '^0x[0-9a-f]{8}$'`,
+    ),
     check('issued_assets_block_check', sql`${table.lastBlockNumber} >= 0`),
     check('issued_assets_block_hash_check', sql`${table.lastBlockHash} ~ '^0x[0-9a-f]{64}$'`),
   ],
@@ -533,6 +546,7 @@ export const controllers = pgTable(
     chainId: bigint('chain_id', { mode: 'number' }).notNull(),
     profileAddress: varchar('profile_address', { length: 42 }).notNull(),
     controllerAddress: varchar('controller_address', { length: 42 }).notNull(),
+    arrayIndex: integer('array_index'),
     permissions: varchar('permissions', { length: 66 }),
     allowedCalls: jsonb('allowed_calls').$type<string[]>(),
     allowedDataKeys: jsonb('allowed_data_keys').$type<string[]>(),
@@ -548,6 +562,11 @@ export const controllers = pgTable(
       name: 'controllers_pk',
     }),
     uniqueIndex('controllers_id_uidx').on(table.id),
+    uniqueIndex('controllers_array_index_uidx').on(
+      table.chainId,
+      table.profileAddress,
+      table.arrayIndex,
+    ),
     index('controllers_controller_idx').on(table.controllerAddress),
     foreignKey({
       columns: [table.network, table.chainId],
@@ -562,11 +581,63 @@ export const controllers = pgTable(
     check('controllers_profile_check', sql`${table.profileAddress} ~ '^0x[0-9a-f]{40}$'`),
     check('controllers_controller_check', sql`${table.controllerAddress} ~ '^0x[0-9a-f]{40}$'`),
     check(
+      'controllers_array_index_check',
+      sql`${table.arrayIndex} IS NULL OR ${table.arrayIndex} >= 0`,
+    ),
+    check(
       'controllers_permissions_check',
       sql`${table.permissions} IS NULL OR ${table.permissions} ~ '^0x[0-9a-f]{64}$'`,
     ),
     check('controllers_block_check', sql`${table.lastBlockNumber} >= 0`),
     check('controllers_block_hash_check', sql`${table.lastBlockHash} ~ '^0x[0-9a-f]{64}$'`),
+  ],
+);
+
+export const chillwhalesNfts = pgTable(
+  'chillwhales_nfts',
+  {
+    id: text('id').notNull(),
+    network: text('network').notNull(),
+    chainId: bigint('chain_id', { mode: 'number' }).notNull(),
+    address: varchar('address', { length: 42 }).notNull(),
+    tokenId: varchar('token_id', { length: 66 }).notNull(),
+    chillClaimed: boolean('chill_claimed').notNull().default(false),
+    orbsClaimed: boolean('orbs_claimed').notNull().default(false),
+    level: integer('level'),
+    cooldownExpiry: bigint('cooldown_expiry', { mode: 'number' }),
+    faction: text('faction'),
+    lastBlockNumber: bigint('last_block_number', { mode: 'number' }).notNull(),
+    lastBlockHash: varchar('last_block_hash', { length: 66 }).notNull(),
+    lastTransactionHash: varchar('last_transaction_hash', { length: 66 }),
+    lastTransactionIndex: integer('last_transaction_index'),
+    lastLogIndex: integer('last_log_index'),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.chainId, table.address, table.tokenId],
+      name: 'chillwhales_nfts_pk',
+    }),
+    uniqueIndex('chillwhales_nfts_id_uidx').on(table.id),
+    index('chillwhales_nfts_game_idx').on(table.address, table.level, table.cooldownExpiry),
+    foreignKey({
+      columns: [table.network, table.chainId],
+      foreignColumns: [networkConfig.network, networkConfig.chainId],
+      name: 'chillwhales_nfts_network_fk',
+    }).onDelete('restrict'),
+    foreignKey({
+      columns: [table.chainId, table.address, table.tokenId],
+      foreignColumns: [nfts.chainId, nfts.address, nfts.tokenId],
+      name: 'chillwhales_nfts_nft_fk',
+    }).onDelete('cascade'),
+    check('chillwhales_nfts_address_check', sql`${table.address} ~ '^0x[0-9a-f]{40}$'`),
+    check('chillwhales_nfts_token_id_check', sql`${table.tokenId} ~ '^0x[0-9a-f]{64}$'`),
+    check('chillwhales_nfts_level_check', sql`${table.level} IS NULL OR ${table.level} >= 0`),
+    check(
+      'chillwhales_nfts_cooldown_check',
+      sql`${table.cooldownExpiry} IS NULL OR ${table.cooldownExpiry} >= 0`,
+    ),
+    check('chillwhales_nfts_block_check', sql`${table.lastBlockNumber} >= 0`),
+    check('chillwhales_nfts_block_hash_check', sql`${table.lastBlockHash} ~ '^0x[0-9a-f]{64}$'`),
   ],
 );
 
@@ -797,6 +868,10 @@ export const nftsRelations = relations(nfts, ({ one, many }) => ({
     references: [digitalAssets.chainId, digitalAssets.address],
   }),
   owners: many(ownedTokens),
+  chillwhales: one(chillwhalesNfts, {
+    fields: [nfts.chainId, nfts.address, nfts.tokenId],
+    references: [chillwhalesNfts.chainId, chillwhalesNfts.address, chillwhalesNfts.tokenId],
+  }),
 }));
 
 /** Every table changed in a Pipes batch and therefore registered for rollback snapshots. */
@@ -812,6 +887,7 @@ export const rollbackTables = [
   creators,
   issuedAssets,
   controllers,
+  chillwhalesNfts,
   dataValues,
   metadataRevisions,
   metadataJobs,
@@ -831,6 +907,7 @@ export const publicTables = [
   creators,
   issuedAssets,
   controllers,
+  chillwhalesNfts,
   dataValues,
   metadataRevisions,
   indexedHeads,

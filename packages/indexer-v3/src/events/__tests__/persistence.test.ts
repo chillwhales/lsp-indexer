@@ -145,22 +145,25 @@ function createBatch(position = 0): EventIngestionBatch {
 describe('event persistence writer', () => {
   it('handles an empty batch without issuing database writes', async () => {
     const { tx, state } = createFakeTransaction();
-    await persistEventBatch(
+    const result = await persistEventBatch(
       { tx },
       { blocks: [], events: [], decodedEvents: 0, malformedEvents: 0 },
     );
     expect(state.insertSizes).toEqual({ blocks: [], events: [] });
+    expect(result.insertedEventIds).toEqual(new Set());
   });
 
   it('inserts new records and accepts only an equivalent replay', async () => {
     const { tx, state } = createFakeTransaction();
     const batch = createBatch();
-    await persistEventBatch({ tx }, batch);
-    await persistEventBatch({ tx }, batch);
+    const first = await persistEventBatch({ tx }, batch);
+    const replay = await persistEventBatch({ tx }, batch);
 
     expect(state.blocks).toHaveLength(1);
     expect(state.events).toHaveLength(1);
     expect(state.insertSizes).toEqual({ blocks: [1, 1], events: [1, 1] });
+    expect(first.insertedEventIds).toEqual(new Set([batch.events[0]?.id]));
+    expect(replay.insertedEventIds).toEqual(new Set());
   });
 
   it('rejects a conflicting persisted block', async () => {

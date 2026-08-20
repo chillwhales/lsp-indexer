@@ -20,7 +20,14 @@ import {
   createEventIngestionOutput,
   createEventPersistenceTarget,
   ERC725Y_EVENT_ABI,
+  LSP7_EVENT_ABI,
 } from '../../events/index.js';
+import {
+  collectProjectionCandidates,
+  createProjectionPersistenceTarget,
+  type ProjectionBatch,
+  type ProjectionVerification,
+} from '../../projections/index.js';
 import { createNetworkDatabase, createNetworkPool, type NetworkDatabase } from '../client.js';
 import {
   loadDatabaseMigrationConfig,
@@ -55,6 +62,7 @@ import {
   indexedHeads,
   issuedAssets,
   metadataJobs,
+  ownedAssets,
   rollbackTables,
   universalProfiles,
 } from '../schema.js';
@@ -459,12 +467,12 @@ describe.sequential('PostgreSQL persistence', () => {
       ORDER BY schemaname
     `);
     expect(tableCounts.rows).toHaveLength(3);
-    expect(tableCounts.rows.every(({ count }) => Number(count) === 18)).toBe(true);
+    expect(tableCounts.rows.every(({ count }) => Number(count) === 19)).toBe(true);
 
     const views = await testAdminPool.query<{ count: string }>(
       `SELECT count(*) AS count FROM pg_views WHERE schemaname = 'api'`,
     );
-    expect(Number(views.rows[0]?.count)).toBe(14);
+    expect(Number(views.rows[0]?.count)).toBe(15);
 
     const enums = await testAdminPool.query<{ schema: string; count: string }>(`
       SELECT n.nspname AS schema, count(*) AS count
@@ -2283,5 +2291,132 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     expect(await countRows(ethereumPool, 'blocks')).toBe(1);
     expect(await countRows(ethereumPool, 'event_facts')).toBe(1);
     expect(await countRows(ethereumPool, 'sqd_cursor')).toBe(0);
+  });
+
+  it('keeps projections idempotent on replay and restores ownership across a fork', async () => {
+    const projectionRuntime = loadRuntimeConfig({
+      INDEXER_NETWORK: 'ethereum-mainnet',
+      INDEXER_FROM_BLOCK: '20',
+      INDEXER_TO_BLOCK: '21',
+    });
+    const mintLog = encodeEvent({
+      abi: LSP7_EVENT_ABI,
+      eventName: 'Transfer',
+      address: testAddress,
+      args: {
+        operator: firstOwner,
+        from: '0x0000000000000000000000000000000000000000',
+        to: firstOwner,
+        amount: 10n,
+        force: true,
+        data: '0x',
+      },
+    });
+    const transferLog = encodeEvent({
+      abi: LSP7_EVENT_ABI,
+      eventName: 'Transfer',
+      address: testAddress,
+      args: {
+        operator: firstOwner,
+        from: firstOwner,
+        to: secondOwner,
+        amount: 4n,
+        force: true,
+        data: '0x',
+      },
+    });
+    const mintBlock = mockBlock({
+      number: 20,
+      timestamp: 1_700_000_020,
+      hash: hashFor(120),
+      parentHash: block0.header.hash,
+      transactions: [{ logs: [mintLog] }],
+    });
+    const transferBlock = mockBlock({
+      number: 21,
+      timestamp: 1_700_000_021,
+      hash: hashFor(121),
+      parentHash: mintBlock.header.hash,
+      transactions: [{ logs: [transferLog] }],
+    });
+    const projectionTarget = createProjectionPersistenceTarget({
+      runtime: projectionRuntime,
+      db: ethereumDb,
+      unfinalizedBlocksRetention: 100,
+    });
+
+    async function runProjectionFixture(): Promise<void> {
+      const portal = await mockEvmPortalStream({
+        blocks: [mintBlock, transferBlock],
+        finalized: { number: block0.header.number, hash: block0.header.hash },
+      });
+      try {
+        const outputs = createEventIngestionOutput(projectionRuntime).pipe({
+          transform(facts): ProjectionBatch {
+            const verifications: ProjectionVerification[] = collectProjectionCandidates(facts).map(
+              (candidate) => ({
+                ...candidate,
+                status: 'verified',
+                standard: candidate.category === 'digitalAsset' ? 'lsp7' : null,
+                decimals: candidate.category === 'digitalAsset' ? 18 : null,
+              }),
+            );
+            return { facts, verifications, claimStatusUpdates: [] };
+          },
+        });
+        const stream = evmPortalStream({
+          id: projectionRuntime.streamId,
+          portal: portal.url,
+          outputs,
+          logger: 'error',
+          profiler: false,
+        }).pipe((data, ctx) => createPersistenceBatch(projectionRuntime, data, ctx));
+        await stream.pipeTo(projectionTarget);
+      } finally {
+        await portal.close();
+      }
+    }
+
+    await runProjectionFixture();
+    expect(await ethereumDb.select().from(digitalAssets)).toEqual([
+      expect.objectContaining({ address: testAddress, totalSupply: '10' }),
+    ]);
+    expect(await ethereumDb.select().from(ownedAssets).orderBy(ownedAssets.ownerAddress)).toEqual([
+      expect.objectContaining({ ownerAddress: firstOwner, balance: '6' }),
+      expect.objectContaining({ ownerAddress: secondOwner, balance: '4' }),
+    ]);
+
+    await ethereumPool.query('DELETE FROM sqd_cursor');
+    await runProjectionFixture();
+    expect(await ethereumDb.select().from(ownedAssets).orderBy(ownedAssets.ownerAddress)).toEqual([
+      expect.objectContaining({ ownerAddress: firstOwner, balance: '6' }),
+      expect.objectContaining({ ownerAddress: secondOwner, balance: '4' }),
+    ]);
+
+    if (projectionTarget.resolveFork == null) {
+      throw new Error('Projection target must support forks');
+    }
+    await projectionTarget.resolveFork([
+      {
+        number: mintBlock.header.number,
+        hash: mintBlock.header.hash,
+        timestamp: mintBlock.header.timestamp,
+      },
+    ]);
+    expect(await ethereumDb.select().from(ownedAssets)).toEqual([
+      expect.objectContaining({ ownerAddress: firstOwner, balance: '10' }),
+    ]);
+    expect(await countRows(ethereumPool, 'event_facts')).toBe(1);
+
+    await projectionTarget.resolveFork([
+      {
+        number: block0.header.number,
+        hash: block0.header.hash,
+        timestamp: block0.header.timestamp,
+      },
+    ]);
+    expect(await countRows(ethereumPool, 'digital_assets')).toBe(0);
+    expect(await countRows(ethereumPool, 'owned_assets')).toBe(0);
+    expect(await countRows(ethereumPool, 'event_facts')).toBe(0);
   });
 });

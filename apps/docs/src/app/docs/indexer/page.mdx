@@ -15,18 +15,19 @@ production validation are complete. The current alpha foundation includes:
 - A typed catalog for LUKSO Mainnet, Ethereum Mainnet, and Ethereum Sepolia
 - One validated production network per process with stable EIP-155 Pipes identity
 - Portal dataset, coverage, and real-time capability checks
-- RPC chain-ID and configured-contract bytecode validation, plus a Viem client for later
-  block-pinned contract reads
+- RPC chain-ID and configured-contract bytecode validation plus block-pinned Multicall reads
 - Pipes EVM field selection and a bounded raw-log source probe
 - Narrow Pipes-native queries and ABI decoding for all 11 v2 event-plugin signatures
+- Current and legacy LSP0/LSP7/LSP8 verification with deterministic domain reducers
+- UP, digital-asset, NFT, ownership, follower, registry, supply, and product-extension projections
 - Drizzle tables and repeatable migrations for isolated PostgreSQL schemas per network
 - Official Pipes PostgreSQL target wiring with atomic data, indexed-head, snapshot, and cursor writes
 - Deterministic chain-scoped IDs, read-only cross-network API views, and PostgreSQL fork tests
 - A local-only multi-network runner for source development
 
-It does **not** yet include verified domain reducers, metadata workers, applied Hasura metadata, or
-the v3 consumer package contracts. Those land in subsequent v3 goals and the v2 implementation
-remains the production path meanwhile.
+It does **not** yet include the external metadata workers, applied Hasura metadata, or the v3
+consumer package contracts. Those land in subsequent v3 goals and the v2 implementation remains
+the production path meanwhile.
 
 ### Multi-chain process model
 
@@ -94,8 +95,8 @@ is checked before the relevant program runs.
 
 `db:migrate` applies the same schema-relative Drizzle migrations to each enabled network. Each
 chain schema has canonical block and event facts; profile, digital-asset, NFT, ownership, follower,
-creator, issued-asset, permission, ERC725Y, metadata, and indexed-head projections; a durable
-metadata queue; and the Pipes cursor. All 15 application tables changed by ingestion have primary
+creator, issued-asset, permission, ERC725Y, Chillwhales, metadata, and indexed-head projections; a
+durable metadata queue; and the Pipes cursor. All 16 application tables changed by ingestion have primary
 keys and are registered with the official Pipes rollback target. A cluster-wide advisory lock
 rejects concurrent migration commands. Raw event facts reference the exact canonical block hash,
 and indexed heads reference that same exact block identity. Before advancing the head, the target
@@ -246,7 +247,28 @@ A known topic with malformed ABI data is still stored with its event name and do
 range are not stored. Malformed fundamental provenance fails the transaction, leaving the Pipes
 cursor unchanged.
 
-Run one network's raw event pipe after database migration and readiness checks:
+### V3 domain projections
+
+The event pipe also performs deterministic current-state reduction. It deduplicates verification
+candidates by exact block, category, and address; checks current and legacy LSP0/LSP7/LSP8 interface
+IDs through the configured Multicall3 contract; and pins every RPC read to its triggering block.
+
+Only newly inserted event facts reach the reducer. Facts are applied in block, transaction, and log
+order to produce verified Universal Profiles and digital assets; NFTs; supply; UP-scoped asset and
+token ownership; follower tombstones; creators; issued assets; controllers and permissions; and
+raw ERC725Y current values. NFT formatting and base-URI changes also update existing NFT token
+locations.
+
+Invalid interface candidates do not create typed rows, but their raw facts and ERC725Y values remain
+available. RPC transport or result-shape failures abort the batch before the cursor commits. Exact
+replay can validate existing deterministic facts but cannot double-apply balances or supply.
+
+LUKSO Mainnet additionally enables a Chillwhales extension for CHILL/ORBS claim flags and Orb level,
+cooldown, and faction. Claim reads happen only at the Portal's available head and use that exact
+block rather than RPC `latest`. Other networks neither query nor populate the extension. External
+IPFS/HTTP metadata fetching remains a separate v3 goal.
+
+Run one network's event and projection pipe after database migration and readiness checks:
 
 ```bash
 INDEXER_NETWORK=ethereum-mainnet \

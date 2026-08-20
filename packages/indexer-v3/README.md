@@ -4,9 +4,9 @@ Multi-chain LSP indexer built from scratch on the SQD Pipes SDK.
 
 > **Alpha implementation:** this package provides the typed network catalog, validated
 > single-network runtime, Portal and RPC readiness checks, Pipes EVM source construction,
-> PostgreSQL/Drizzle persistence, v2-parity raw LSP event ingestion, and a bounded source probe. It
-> does not yet build verified domain projections or expose the final v3 GraphQL contract, so it is
-> not a replacement for the production v2 indexer.
+> PostgreSQL/Drizzle persistence, v2-parity raw LSP event ingestion, block-pinned verification, and
+> deterministic LSP domain projections. It does not yet run the external metadata workers or expose
+> the final v3 GraphQL/package contract, so it is not a replacement for the production v2 indexer.
 
 ## Requirements
 
@@ -39,9 +39,10 @@ The Pipes `devRunner` wrapper is available for local multi-network development o
 must keep network processes isolated so a crash, CPU spike, or provider failure on one chain does
 not stop another.
 
-Each chain schema contains the same 17-table Drizzle model: canonical blocks and raw event facts;
+Each chain schema contains the same 18-table Drizzle model: canonical blocks and raw event facts;
 profiles, digital assets, NFTs, ownership, followers, creators, issued assets, permissions,
-ERC725Y data, metadata revisions, metadata jobs, indexed head, and the Pipes cursor. Fifteen
+ERC725Y data, the network-gated Chillwhales extension, metadata revisions, metadata jobs, indexed
+head, and the Pipes cursor. Sixteen
 application tables are registered with the official Pipes rollback target. Snapshot tables,
 functions, triggers, and cursors are created and used only inside that chain schema.
 Creator and issued-asset ERC725Y array indexes retain their complete unsigned 128-bit range as
@@ -93,6 +94,32 @@ A known topic with a syntactically valid raw log is retained with `decoded = nul
 fails. Unknown topics, wrong singleton addresses, pre-deployment singleton logs, and unavailable
 network capabilities are excluded. Invalid fundamental provenance fails the atomic batch instead of
 advancing the cursor.
+
+## Domain projections
+
+The event command also runs the v3 projection pipeline. It deduplicates verification candidates by
+exact block, interface category, and address; batches current and legacy LSP0/LSP7/LSP8 interface
+checks through the configured Multicall3 deployment; and pins every read to its triggering block.
+Decimals are accepted only for verified LSP7 assets.
+
+The reducer applies only newly inserted facts in block/transaction/log order and atomically writes:
+
+- Universal Profiles and digital assets, including owner, standard, decimals, supply, and LSP4/LSP8
+  scalar state
+- NFTs with raw and formatted token IDs, mint/burn state, owner, and derived base-URI location
+- UP-scoped asset balances and token ownership
+- Follower tombstones, creators, issued assets, controllers, permissions, and raw ERC725Y values
+- The LUKSO-only Chillwhales extension for claim flags and Orb level, cooldown, and faction
+
+A failed individual interface call produces no typed entity. Its raw event and ERC725Y value remain
+stored. A transport or malformed-response failure aborts the transaction and leaves the cursor at
+the preceding position. Exact replay validates existing deterministic facts but does not reduce
+them again, preventing double-applied balances and supply.
+
+CHILL and ORBS claim checks run only at the Portal's available head and are pinned to that exact
+block. They are monotonic false-to-true updates. IPFS/HTTP metadata parsing and publication remain
+owned by the later metadata-worker goal; the projection pipeline already persists their durable
+chain inputs.
 
 ## Configuration
 
@@ -238,8 +265,8 @@ blocks, logs, and the network-scoped stream identity, refuses to run without `IN
 fails unless the source returns every block exactly once in ascending order across the inclusive
 range; it is a source diagnostic, not the domain indexer.
 
-After migrations and readiness checks pass, run the raw event indexer for exactly one configured
-network:
+After migrations and readiness checks pass, run the event and projection indexer for exactly one
+configured network:
 
 ```bash
 INDEXER_NETWORK=ethereum-mainnet \
@@ -247,9 +274,9 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
   pnpm --filter @chillwhales/indexer-v3 index:events
 ```
 
-The command uses the narrow event query, query-aware decoder, official rollback-aware Drizzle
-target, and the same stable per-network cursor ID. Add `INDEXER_FROM_BLOCK` and
-`INDEXER_TO_BLOCK` for a bounded backfill or fixture run.
+The command uses the narrow event query, query-aware decoder, block-pinned RPC planner,
+deterministic reducer, official rollback-aware Drizzle target, and the same stable per-network
+cursor ID. Add `INDEXER_FROM_BLOCK` and `INDEXER_TO_BLOCK` for a bounded backfill or fixture run.
 
 Run local validation:
 
@@ -272,5 +299,6 @@ and reorg acceptance suite.
 See the repository's [v3 architecture](../../.github/V3_ARCHITECTURE.md),
 [database contract](../../.github/V3_SCHEMA.md),
 [raw event disposition](../../.github/V3_EVENT_DISPOSITION.md),
+[projection disposition](../../.github/V3_PROJECTION_DISPOSITION.md),
 [roadmap](../../.github/V3_ROADMAP.md), and
 [acceptance gates](../../.github/V3_ACCEPTANCE_GATES.md).

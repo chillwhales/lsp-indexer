@@ -296,10 +296,11 @@ The Pipes target receives rollback retention from the validated network database
 `DATABASE_UNFINALIZED_BLOCKS_RETENTION` has no independent construction-time fallback. A fork may
 move the finalized watermark backwards only by restoring its tracked snapshot.
 
-The initial #382 schema has canonical `blocks` and `event_facts`; current profiles, assets, NFTs,
-owned assets and tokens, follower edges, creators, issued assets, controllers, and ERC725Y values;
-metadata revisions and durable jobs; indexed head visibility; network identity; and the Pipes cursor.
-The raw fact shape is stable while #383 and #384 add event-specific decoding and reduction logic.
+The #382 schema has canonical `blocks` and `event_facts`; current profiles, assets, NFTs, owned
+assets and tokens, follower edges, creators, issued assets, controllers, ERC725Y values, and
+network-gated product extensions; metadata revisions and durable jobs; indexed-head visibility;
+network identity; and the Pipes cursor. #383 supplies stable raw event decoding and #384 supplies
+the verification, reduction, and atomic projection writer.
 
 ### Schema evolution gates
 
@@ -332,6 +333,21 @@ V3 stores three categories deliberately:
 A raw fact is retained even if later verification says its address does not implement an expected
 interface. Verification affects typed relationships and projections, not historical truth. This
 preserves the useful v2 behavior without porting its enrichment queue implementation.
+
+The reducer receives only event IDs inserted by the current transaction. It loads the smallest
+existing state scope needed by those facts, applies them in canonical order, deletes stale registry
+or zero-balance rows, and upserts the resulting current state. Exact replay can validate an existing
+fact but cannot apply it twice.
+
+Interface verification is planned per exact `(block, category, address)` and supports current and
+legacy LSP0, LSP7, and LSP8 IDs. Transport or response-shape failures fail the batch. Individual
+contract-call failures classify that candidate as invalid; they do not delete its raw event or
+ERC725Y value. Decimals are accepted only for a verified LSP7 asset.
+
+The initial product extension is Chillwhales on LUKSO Mainnet. Mint defaults and Orb token-data
+updates use the same deterministic reducer. Unresolved CHILL and ORBS claim flags are polled only at
+the Portal's available head, pinned to that exact block, and move monotonically from false to true.
+Other networks do not query or populate the extension.
 
 ## Metadata subsystem
 

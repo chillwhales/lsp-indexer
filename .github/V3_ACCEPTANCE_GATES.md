@@ -58,10 +58,12 @@ and cursor/snapshot assertions.
 
 - [x] Every event decoded by the 11 v2 event plugins has a documented v3 disposition in
       [`V3_EVENT_DISPOSITION.md`](./V3_EVENT_DISPOSITION.md).
-- [ ] Every projection produced by the 29 v2 handlers has a documented v3 disposition.
+- [x] Every projection produced by the 29 v2 handlers has a documented v3 disposition in
+      [`V3_PROJECTION_DISPOSITION.md`](./V3_PROJECTION_DISPOSITION.md).
 - [ ] Profiles, digital assets, NFTs, ownership, followers, creators, issued assets, metadata,
       permissions, supply, and product extensions pass domain invariants.
-- [ ] Invalid interface claims retain raw facts without creating false typed projections.
+- [x] Invalid interface claims retain raw facts and ERC725Y values without creating false typed
+      projections.
 - [ ] V2 and v3 comparison at the same finalized height has zero unexplained shared-field
       differences.
 
