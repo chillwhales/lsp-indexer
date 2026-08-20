@@ -6,7 +6,106 @@ Hasura then exposes that database as a GraphQL API.
 
 ---
 
-## Architecture
+## Indexer v3 alpha development
+
+V3 is being built from scratch in `packages/indexer-v3` on the SQD Pipes SDK. It runs beside the
+deployable v2 indexer until domain parity, reorg correctness, package v3 releases, and shadow
+production validation are complete. The current alpha foundation includes:
+
+- A typed catalog for LUKSO Mainnet, Ethereum Mainnet, and Ethereum Sepolia
+- One validated production network per process with stable EIP-155 Pipes identity
+- Portal dataset, coverage, and real-time capability checks
+- RPC chain-ID and configured-contract bytecode validation, plus a Viem client for later
+  block-pinned contract reads
+- Pipes EVM field selection and a bounded raw-log source probe
+- A local-only multi-network runner plus an integration test that backfills two sources concurrently
+
+It does **not** yet include Drizzle persistence, LSP decoding, projections, metadata processing,
+Hasura views, or the v3 consumer package contracts. Those land in the subsequent v3 goals and the
+v2 implementation remains the production path meanwhile.
+
+### Multi-chain process model
+
+```mermaid
+flowchart LR
+  PortalA[Portal: network A] --> PipeA[Pipes process A]
+  PortalB[Portal: network B] --> PipeB[Pipes process B]
+  RpcA[RPC: network A] --> PipeA
+  RpcB[RPC: network B] --> PipeB
+  PipeA -. future .-> SchemaA[(chain_a schema)]
+  PipeB -. future .-> SchemaB[(chain_b schema)]
+```
+
+Production uses one process or container per network. The SDK's multi-pipe development runner is
+not a production supervisor: separate processes provide failure isolation and independent scaling.
+Stream IDs and future database schemas are deterministic and cannot collide across the initial
+catalog.
+
+| Network key        | Chain ID | Pipes stream ID                  | Reserved database schema |
+| ------------------ | -------: | -------------------------------- | ------------------------ |
+| `lukso-mainnet`    |       42 | `lsp-indexer:v3:eip155:42`       | `chain_lukso_mainnet`    |
+| `ethereum-mainnet` |        1 | `lsp-indexer:v3:eip155:1`        | `chain_ethereum_mainnet` |
+| `ethereum-sepolia` | 11155111 | `lsp-indexer:v3:eip155:11155111` | `chain_ethereum_sepolia` |
+
+The registry also carries optional LSP23 factory and LSP26 follower-system deployments with their
+first safe indexing block. An unavailable contract is omitted instead of using the zero address.
+Later domain decoders can therefore select contract-scoped capabilities without scattering chain
+allowlists through event modules.
+
+### V3 environment variables
+
+| Variable                          | Required | Default or behavior                                         |
+| --------------------------------- | -------- | ----------------------------------------------------------- |
+| `INDEXER_NETWORK`                 | Yes      | One network key from the table above                        |
+| `INDEXER_FROM_BLOCK`              | No       | Configured network start block                              |
+| `INDEXER_TO_BLOCK`                | No       | Inclusive bound; required for `probe:network`               |
+| `SQD_PORTAL_URL`                  | No       | Selected network's catalog URL                              |
+| `RPC_URL`                         | No       | Generic RPC override                                        |
+| `RPC_URL_LUKSO_MAINNET`           | No       | Network override; takes priority over `RPC_URL`             |
+| `RPC_URL_ETHEREUM_MAINNET`        | No       | Network override; takes priority over `RPC_URL`             |
+| `RPC_URL_ETHEREUM_SEPOLIA`        | No       | Network override; takes priority over `RPC_URL`             |
+| `INDEXER_ALLOW_HISTORICAL_SOURCE` | No       | `false`; explicit opt-in for an unbounded historical source |
+| `INDEXER_METRICS_PORT`            | No       | `9090` for the local development runner                     |
+
+Every URL, integer, boolean, block range, network key, Portal dataset, Portal starting height, RPC
+chain ID, and configured contract deployment is checked before the network program runs.
+
+### Validate a source
+
+V3 requires Node.js 22.15 or newer. Check readiness without consuming blocks:
+
+```bash
+INDEXER_NETWORK=ethereum-mainnet \
+  pnpm --filter @chillwhales/indexer-v3 check:network
+```
+
+Exercise the real Pipes stream with a small inclusive range:
+
+```bash
+INDEXER_NETWORK=ethereum-mainnet \
+INDEXER_FROM_BLOCK=22000000 \
+INDEXER_TO_BLOCK=22000010 \
+  pnpm --filter @chillwhales/indexer-v3 probe:network
+```
+
+The probe intentionally refuses an unbounded range. It reports the selected network and stream ID,
+batch count, block count, log count, and first and last blocks, without writing data. It fails unless
+the source returns both inclusive range boundaries, so a partial response is not reported as a
+successful diagnostic.
+
+### LUKSO live-source gate
+
+The current LUKSO Mainnet Portal metadata reports `real_time: false`. Bounded historical reads are
+supported. Setting `INDEXER_ALLOW_HISTORICAL_SOURCE=true` only acknowledges an unbounded historical
+source; it does not provide head-following behavior. V3 cannot replace production until an official
+real-time Portal or Pipes RPC source passes the restart, finality, and reorg acceptance suite.
+
+The implementation decisions and remaining gates are tracked in the repository's
+`V3_ARCHITECTURE.md`, `V3_ROADMAP.md`, and `V3_ACCEPTANCE_GATES.md` documents.
+
+---
+
+## Current v2 architecture
 
 ```mermaid
 graph LR

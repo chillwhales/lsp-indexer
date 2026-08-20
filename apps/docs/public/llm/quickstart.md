@@ -14,6 +14,9 @@ and using the consumer packages in your React or Next.js app.
 - Docker & Docker Compose (for the indexer)
 - A LUKSO RPC endpoint (public: `https://rpc.lukso.sigmacore.io`)
 
+> This production quickstart continues to use the v2 indexer while v3 is developed and validated
+> in parallel. V3 requires Node.js 22.15 or newer and must use separate runtime and database state.
+
 ---
 
 ## 1. Run the Indexer
@@ -40,6 +43,28 @@ docker compose --env-file ../.env logs -f indexer
 Once running, your Hasura GraphQL endpoint is at `http://localhost:8080/v1/graphql`.
 
 See the [Indexer documentation](/docs/indexer) for detailed configuration and architecture.
+
+### Try the v3 Pipes source foundation
+
+V3 is not production-ready yet, but contributors can validate a configured Portal and RPC pair and
+run a small bounded source probe:
+
+```bash
+# Requires Node.js >=22.15
+pnpm install
+
+INDEXER_NETWORK=ethereum-mainnet \
+  pnpm --filter @chillwhales/indexer-v3 check:network
+
+INDEXER_NETWORK=ethereum-mainnet \
+INDEXER_FROM_BLOCK=22000000 \
+INDEXER_TO_BLOCK=22000010 \
+  pnpm --filter @chillwhales/indexer-v3 probe:network
+```
+
+The probe reads raw blocks and logs through the SQD Pipes SDK but does not persist or expose LSP
+domains yet. See [Indexer v3 development](/docs/indexer#indexer-v3-alpha-development) for the
+network catalog, safety checks, and environment variables.
 
 ---
 

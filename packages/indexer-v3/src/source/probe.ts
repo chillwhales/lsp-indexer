@@ -1,0 +1,86 @@
+import type { Logger, LogLevel, MetricsServer } from '@subsquid/pipes';
+import type { RuntimeConfig } from '../config/index.js';
+import { createRuntimeProbeQuery } from './query.js';
+import { createNetworkStream } from './stream.js';
+
+export interface RuntimeProbeOptions {
+  runtime: RuntimeConfig;
+  logger?: Logger | LogLevel;
+  metrics?: MetricsServer;
+}
+
+export interface RuntimeProbeSummary {
+  network: string;
+  chainId: number;
+  streamId: string;
+  fromBlock: number;
+  toBlock: number;
+  firstBlock: number | null;
+  lastBlock: number | null;
+  batches: number;
+  blocks: number;
+  logs: number;
+  complete: true;
+}
+
+/** Fail a bounded source diagnostic unless both requested block boundaries were observed. */
+export function assertRuntimeProbeCompleteness(
+  expectedFrom: number,
+  expectedTo: number,
+  firstBlock: number | null,
+  lastBlock: number | null,
+): void {
+  if (firstBlock !== expectedFrom || lastBlock !== expectedTo) {
+    throw new Error(
+      `Pipes source returned an incomplete range: expected ${expectedFrom}-${expectedTo}, received ${firstBlock ?? 'none'}-${lastBlock ?? 'none'}`,
+    );
+  }
+}
+
+/** Consume a bounded raw-log range to exercise the real Pipes source path. */
+export async function runRuntimeProbe(options: RuntimeProbeOptions): Promise<RuntimeProbeSummary> {
+  const toBlock = options.runtime.range.to;
+  if (toBlock == null) {
+    throw new Error('The runtime probe requires INDEXER_TO_BLOCK to prevent an unbounded scan');
+  }
+
+  const stream = createNetworkStream({
+    runtime: options.runtime,
+    outputs: createRuntimeProbeQuery(options.runtime.range),
+    ...(options.logger == null ? {} : { logger: options.logger }),
+    ...(options.metrics == null ? {} : { metrics: options.metrics }),
+  });
+
+  let batches = 0;
+  let blocks = 0;
+  let logs = 0;
+  let firstBlock: number | null = null;
+  let lastBlock: number | null = null;
+
+  for await (const { data } of stream) {
+    batches += 1;
+    blocks += data.length;
+
+    for (const block of data) {
+      firstBlock ??= block.header.number;
+      lastBlock = block.header.number;
+      logs += block.logs.length;
+    }
+  }
+
+  assertRuntimeProbeCompleteness(options.runtime.range.from, toBlock, firstBlock, lastBlock);
+
+  return {
+    network: options.runtime.network.key,
+    chainId: options.runtime.network.chainId,
+    streamId: options.runtime.streamId,
+    fromBlock: options.runtime.range.from,
+    toBlock,
+    firstBlock,
+    lastBlock,
+    batches,
+    blocks,
+    logs,
+    complete: true,
+  };
+}
