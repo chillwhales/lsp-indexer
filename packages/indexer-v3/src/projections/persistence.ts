@@ -18,6 +18,8 @@ import {
 } from '../db/schema.js';
 import { createPersistenceTarget, type PersistenceHandlerContext } from '../db/target.js';
 import { persistEventBatch } from '../events/persistence.js';
+import { applyMetadataSourcePlan } from '../metadata/queue.js';
+import { planMetadataSources } from '../metadata/source.js';
 import type { ProjectionBatch } from './output.js';
 import { reduceProjectionEvents, type ProjectionMutations } from './reducer.js';
 import { loadProjectionState } from './state.js';
@@ -439,6 +441,7 @@ export async function persistProjectionBatch(
     batch.claimStatusUpdates,
   );
   await applyProjectionMutations(context.tx, mutations);
+  await applyMetadataSourcePlan(context.tx, planMetadataSources(runtime, state, mutations, events));
 }
 
 /** Create the rollback-aware target for raw facts and v3 current-state projections. */

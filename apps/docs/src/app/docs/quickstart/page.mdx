@@ -71,6 +71,16 @@ DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
 INDEXER_NETWORK=ethereum-mainnet \
 DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
   pnpm --filter @chillwhales/indexer-v3 db:check
+
+# Run the network's event/projection pipe and metadata worker as separate processes
+INDEXER_NETWORK=ethereum-mainnet \
+DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
+  pnpm --filter @chillwhales/indexer-v3 index:events
+
+INDEXER_NETWORK=ethereum-mainnet \
+DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
+METADATA_METRICS_PORT=9091 \
+  pnpm --filter @chillwhales/indexer-v3 metadata:worker
 ```
 
 The v3 database variables are:
@@ -89,14 +99,27 @@ The v3 database variables are:
 | `DATABASE_LOCK_TIMEOUT_MS`              | Lock timeout; defaults to `10000` milliseconds                   |
 | `DATABASE_IDLE_TRANSACTION_TIMEOUT_MS`  | Idle transaction timeout; defaults to `60000` milliseconds       |
 | `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | Defaults to max(`1000`, finality × 4) and must exceed finality   |
+| `METADATA_CONCURRENCY`                  | Concurrent jobs per worker; defaults to `8`                      |
+| `METADATA_POLL_INTERVAL_MS`             | Idle queue poll interval; defaults to `1000` milliseconds        |
+| `METADATA_REQUEST_TIMEOUT_MS`           | Per-request timeout; defaults to `15000` milliseconds            |
+| `METADATA_MAX_RESPONSE_BYTES`           | Response limit; defaults to `2097152` bytes                      |
+| `METADATA_MAX_REDIRECTS`                | Redirect limit; defaults to `3`                                  |
+| `METADATA_MAX_ATTEMPTS`                 | Attempts before terminal failure; defaults to `6`                |
+| `METADATA_RETRY_BASE_MS`                | Initial durable retry delay; defaults to `5000` milliseconds     |
+| `METADATA_RETRY_MAX_MS`                 | Maximum retry delay; defaults to `1800000` milliseconds          |
+| `METADATA_LEASE_TIMEOUT_MS`             | Crash-recovery lease; defaults to `300000` milliseconds          |
+| `METADATA_METRICS_PORT`                 | Worker metrics port; defaults to `9091`                           |
+| `METADATA_IPFS_GATEWAY`                 | Override the selected network's configured IPFS gateway          |
+| `METADATA_RUN_ONCE`                     | Process one bounded claim batch and exit; defaults to `false`    |
 
 Replace `<NETWORK>` with an uppercase catalog key whose hyphens become underscores, such as
 `DATABASE_URL_ETHEREUM_MAINNET` or `DATABASE_RUNTIME_LOGIN_LUKSO_MAINNET`.
 
-This creates isolated chain schemas and unified read-only API views, but complete LSP domain
-decoding and the public v3 packages are still under development. The v3 alpha also persists the
-LUKSO Mainnet-only `chillwhales_nfts` domain for CHILL/ORBS claims and Orb state; it has no Node,
-React, or Next.js consumer API yet. See
+This creates isolated chain schemas and unified read-only API views. Metadata jobs are committed
+with their chain projections and drained only after finality, with durable retries and stale-result
+protection. The v3 alpha also persists the LUKSO Mainnet-only `chillwhales_nfts` domain for
+CHILL/ORBS claims and Orb state. Applied Hasura metadata and the Node, React, and Next.js v3
+consumer APIs are still under development. See
 [Indexer v3 development](/docs/indexer#indexer-v3-alpha-development) for the schema model, safety
 checks, and environment variables.
 

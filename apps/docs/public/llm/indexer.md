@@ -26,11 +26,11 @@ production validation are complete. The current alpha foundation includes:
 - Drizzle tables and repeatable migrations for isolated PostgreSQL schemas per network
 - Official Pipes PostgreSQL target wiring with atomic data, indexed-head, snapshot, and cursor writes
 - Deterministic chain-scoped IDs, read-only cross-network API views, and PostgreSQL fork tests
+- Finalized durable metadata jobs and independently scalable LSP3/LSP4/LSP8/LSP29 workers
 - A local-only multi-network runner for source development
 
-It does **not** yet include the external metadata workers, applied Hasura metadata, or the v3
-consumer package contracts. Those land in subsequent v3 goals and the v2 implementation remains
-the production path meanwhile.
+It does **not** yet include applied Hasura metadata or the v3 consumer package contracts. Those land
+in subsequent v3 goals and the v2 implementation remains the production path meanwhile.
 
 The new `chillwhales_nfts` domain is available only as a LUKSO Mainnet v3 alpha projection. It
 stores CHILL/ORBS claim flags and Orb level, cooldown, and faction state; Node, React, and Next.js
@@ -46,6 +46,10 @@ flowchart LR
   RpcB[RPC: network B] --> PipeB
   PipeA --> SchemaA[(chain_a schema)]
   PipeB --> SchemaB[(chain_b schema)]
+  SchemaA <--> WorkerA[Metadata worker A]
+  SchemaB <--> WorkerB[Metadata worker B]
+  WorkerA --> Content[IPFS / HTTP]
+  WorkerB --> Content
   SchemaA --> API[(read-only api views)]
   SchemaB --> API
 ```
@@ -93,6 +97,18 @@ through event modules.
 | `DATABASE_LOCK_TIMEOUT_MS`              | No       | `10000`                                                     |
 | `DATABASE_IDLE_TRANSACTION_TIMEOUT_MS`  | No       | `60000`                                                     |
 | `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | No       | Defaults to max(`1000`, finality × 4); must exceed finality |
+| `METADATA_CONCURRENCY`                  | No       | `8` jobs per worker                                         |
+| `METADATA_POLL_INTERVAL_MS`             | No       | `1000`                                                      |
+| `METADATA_REQUEST_TIMEOUT_MS`           | No       | `15000`                                                     |
+| `METADATA_MAX_RESPONSE_BYTES`           | No       | `2097152`                                                   |
+| `METADATA_MAX_REDIRECTS`                | No       | `3`                                                         |
+| `METADATA_MAX_ATTEMPTS`                 | No       | `6`                                                         |
+| `METADATA_RETRY_BASE_MS`                | No       | `5000`                                                      |
+| `METADATA_RETRY_MAX_MS`                 | No       | `1800000`                                                   |
+| `METADATA_LEASE_TIMEOUT_MS`             | No       | `300000`; must exceed the request timeout                   |
+| `METADATA_METRICS_PORT`                 | No       | `9091`; make unique for colocated network workers           |
+| `METADATA_IPFS_GATEWAY`                 | No       | Selected network's configured gateway                       |
+| `METADATA_RUN_ONCE`                     | No       | `false`; process one bounded claim batch and exit           |
 
 Every URL, integer, boolean, block range, network key, Portal dataset, Portal starting height, RPC
 chain ID, configured contract deployment, database role, database schema, and stored chain identity
@@ -210,7 +226,8 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
 
 The PostgreSQL 17 integration suite creates a disposable database and proves clean and repeatable
 migrations, same-address cross-chain isolation, writer privileges, atomic failure, deterministic
-replay, snapshot placement, and one- and multi-block rollback:
+replay, snapshot placement, one- and multi-block rollback, finalized metadata claims, lease
+recovery, and stale-write rejection:
 
 ```bash
 TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/postgres \
@@ -301,12 +318,13 @@ or loses LSP0 verification, even when the triggering fact is unrelated to the cr
 LUKSO Mainnet additionally enables a Chillwhales extension for CHILL/ORBS claim flags and Orb level,
 cooldown, and faction. Clearing or replacing packed Orb level data with fewer than eight bytes
 clears both level and cooldown without disturbing faction. Claim reads happen only at the Portal's
-available head and use its exact number and hash rather than RPC `latest`. Each head checks at most 250 tokens, prioritizing new
-mints and then due unresolved rows. Successful false results are checked again after 720 blocks;
-individual failed calls retry after 30 blocks. Polling-only heads load the extension row together
-with its verified asset guard before applying status or retry-schedule updates. Other networks
-neither query nor populate the extension. External IPFS/HTTP metadata fetching remains a separate
-v3 goal.
+available head and use its exact number and hash rather than RPC `latest`. Each head checks at most
+250 tokens, prioritizing new mints and then due unresolved rows. Successful false results are
+checked again after 720 blocks; individual failed calls retry after 30 blocks. Polling-only heads
+load the extension row together with its verified asset guard before applying status or
+retry-schedule updates. Other networks neither query nor populate the extension. The same
+projection transaction creates or supersedes durable metadata jobs from verified LSP3/LSP4 values,
+LSP29 array entries, and derived LSP8 token locations; external fetches run only in the worker.
 
 Run one network's event and projection pipe after database migration and readiness checks:
 
@@ -320,6 +338,30 @@ Use `INDEXER_TO_BLOCK` to bound an initial replay. A custom `INDEXER_FROM_BLOCK`
 a contiguous continuation from an existing cursor; a fresh or reset projection database must begin
 at the configured network start. Production still uses one isolated process per network; this
 command does not turn the local development runner into a supervisor.
+
+### V3 metadata workers
+
+The projection transaction creates or supersedes metadata jobs from verified LSP3 and LSP4
+VerifiableURIs, LSP29 encrypted-asset entries (including LSP31 multi-storage references), and
+derived LSP8 token URIs. HTTP and IPFS access happens only in the separate worker after the source
+block is finalized:
+
+```bash
+INDEXER_NETWORK=ethereum-mainnet \
+DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
+  pnpm --filter @chillwhales/indexer-v3 metadata:worker
+```
+
+Workers use bounded concurrency, durable retry timestamps, jittered exponential backoff,
+`FOR UPDATE SKIP LOCKED`, and expiring processing leases. Multiple replicas may drain the same
+network queue. Each worker reloads the current source before the request and inside the publication
+transaction; a changed URI, hash, or source revision cancels the stale result.
+
+Requests enforce HTTP(S)-only public targets, timeouts, response-size and redirect limits, UTF-8 and
+JSON parsing, LSP schema checks, and LSP2/LSP31 keccak verification where supplied on chain. Metrics
+on `METADATA_METRICS_PORT` report claims, outcomes, retries, backlog, queue latency, request latency,
+and response bytes. The metadata worker needs only the network database connection; it does not
+open Portal or RPC connections.
 
 ### Validate a source
 

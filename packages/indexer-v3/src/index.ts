@@ -1,6 +1,7 @@
 export * from './config/index.js';
 export * from './db/index.js';
 export * from './events/index.js';
+export * from './metadata/index.js';
 export * from './projections/index.js';
 export * from './rpc/index.js';
 export * from './runtime/index.js';

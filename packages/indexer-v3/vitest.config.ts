@@ -15,6 +15,8 @@ export default defineConfig({
         'src/db/client.ts',
         'src/db/migrate.ts',
         'src/db/readiness.ts',
+        // SQL locking/finality/settlement paths run against PostgreSQL in the persistence suite.
+        'src/metadata/queue.ts',
         'src/**/*.test.ts',
         'src/**/__tests__/**',
       ],

@@ -5,8 +5,9 @@ Multi-chain LSP indexer built from scratch on the SQD Pipes SDK.
 > **Alpha implementation:** this package provides the typed network catalog, validated
 > single-network runtime, Portal and RPC readiness checks, Pipes EVM source construction,
 > PostgreSQL/Drizzle persistence, v2-parity raw LSP event ingestion, block-pinned verification, and
-> deterministic LSP domain projections. It does not yet run the external metadata workers or expose
-> the final v3 GraphQL/package contract, so it is not a replacement for the production v2 indexer.
+> deterministic LSP domain projections. It also includes finalized, durable metadata workers for
+> LSP3, LSP4, LSP8, and LSP29 sources. It does not yet expose the final v3 GraphQL/package contract,
+> so it is not a replacement for the production v2 indexer.
 
 ## Requirements
 
@@ -144,8 +145,28 @@ number and hash. Each head processes at most 250 tokens, prioritizing new mints 
 tokens. An unresolved token is scheduled 720 blocks later after a successful false result or 30
 blocks later after an individual failed call; true flags remain monotonic. Polling-only heads load
 the extension row together with its verified asset guard before applying status or retry-schedule
-updates. IPFS/HTTP metadata parsing and publication remain owned by the later metadata-worker goal;
-the projection pipeline already persists their durable chain inputs.
+updates. The same projection transaction creates or
+supersedes durable metadata jobs from verified LSP3/LSP4 values, LSP29 array entries, and derived
+LSP8 token locations.
+
+## Metadata lifecycle
+
+Metadata fetching is a separate process for each selected network. It never performs HTTP or IPFS
+work inside the Pipes transaction. A worker claims only jobs at or below the committed finalized
+watermark, uses bounded concurrency and `FOR UPDATE SKIP LOCKED`, and recovers an expired
+`processing` lease after a crash or restart. Multiple replicas for the same network can therefore
+drain one queue safely.
+
+Every request has a timeout, response-size limit, redirect limit, UTF-8 and JSON validation, and
+public HTTP(S) target validation. LSP2/LSP31 keccak hashes are checked before LSP3, LSP4, or LSP29
+content is accepted. Retryable transport and HTTP failures use durable, jittered exponential
+backoff; malformed content and exhausted attempts become terminal failures.
+
+The worker reloads the exact current chain source before fetching and again in the serializable
+publication transaction. A changed URI, hash, token location, or source revision cancels the old
+job, so a slow response cannot overwrite newer canonical state. Successful content is stored as a
+deterministic `metadata_revisions` row with its source provenance. Job state remains internal and
+is exposed through metrics rather than the public API views.
 
 ## Configuration
 
@@ -173,6 +194,18 @@ the projection pipeline already persists their durable chain inputs.
 | `DATABASE_LOCK_TIMEOUT_MS`              | No       | Lock timeout; defaults to `10000`                           |
 | `DATABASE_IDLE_TRANSACTION_TIMEOUT_MS`  | No       | Idle transaction timeout; defaults to `60000`               |
 | `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | No       | Defaults to max(`1000`, finality × 4); must exceed finality |
+| `METADATA_CONCURRENCY`                  | No       | Concurrent jobs per worker; defaults to `8`                 |
+| `METADATA_POLL_INTERVAL_MS`             | No       | Idle queue poll interval; defaults to `1000`                |
+| `METADATA_REQUEST_TIMEOUT_MS`           | No       | Per-request timeout; defaults to `15000`                    |
+| `METADATA_MAX_RESPONSE_BYTES`           | No       | Response limit; defaults to `2097152`                       |
+| `METADATA_MAX_REDIRECTS`                | No       | Redirect limit; defaults to `3`                             |
+| `METADATA_MAX_ATTEMPTS`                 | No       | Attempts before terminal failure; defaults to `6`           |
+| `METADATA_RETRY_BASE_MS`                | No       | Initial durable retry delay; defaults to `5000`             |
+| `METADATA_RETRY_MAX_MS`                 | No       | Maximum retry delay; defaults to `1800000`                  |
+| `METADATA_LEASE_TIMEOUT_MS`             | No       | Crash-recovery lease; defaults to `300000`                  |
+| `METADATA_METRICS_PORT`                 | No       | Worker metrics port; defaults to `9091`                     |
+| `METADATA_IPFS_GATEWAY`                 | No       | Override the selected network's gateway                     |
+| `METADATA_RUN_ONCE`                     | No       | Drain one claim batch and exit; defaults to `false`         |
 
 URLs, ranges, boolean values, the network key, Portal dataset identity, Portal coverage, RPC chain
 ID, and configured contract bytecode are validated before a network program starts. A
@@ -313,6 +346,18 @@ deterministic reducer, official rollback-aware Drizzle target, and the same stab
 cursor ID. `INDEXER_TO_BLOCK` can bound an initial replay. A custom `INDEXER_FROM_BLOCK` is only for
 a contiguous continuation from an existing cursor; use `probe:network` for arbitrary source
 fixtures that intentionally start later.
+
+Run the independent metadata worker against the same network schema:
+
+```bash
+INDEXER_NETWORK=ethereum-mainnet \
+DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
+  pnpm --filter @chillwhales/indexer-v3 metadata:worker
+```
+
+Give each concurrently hosted network worker a unique `METADATA_METRICS_PORT`. Set
+`METADATA_RUN_ONCE=true` to claim at most one bounded batch for a job runner or diagnostic. The
+worker needs database readiness, but it does not require Portal or RPC connectivity.
 
 Run local validation:
 
