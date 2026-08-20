@@ -18,14 +18,15 @@ production validation are complete. The current alpha foundation includes:
 - RPC chain-ID and configured-contract bytecode validation, plus a Viem client for later
   block-pinned contract reads
 - Pipes EVM field selection and a bounded raw-log source probe
+- Narrow Pipes-native queries and ABI decoding for all 11 v2 event-plugin signatures
 - Drizzle tables and repeatable migrations for isolated PostgreSQL schemas per network
 - Official Pipes PostgreSQL target wiring with atomic data, indexed-head, snapshot, and cursor writes
 - Deterministic chain-scoped IDs, read-only cross-network API views, and PostgreSQL fork tests
 - A local-only multi-network runner for source development
 
-It does **not** yet include complete LSP decoding and reducers, metadata workers, applied Hasura
-metadata, or the v3 consumer package contracts. Those land in subsequent v3 goals and the v2
-implementation remains the production path meanwhile.
+It does **not** yet include verified domain reducers, metadata workers, applied Hasura metadata, or
+the v3 consumer package contracts. Those land in subsequent v3 goals and the v2 implementation
+remains the production path meanwhile.
 
 ### Multi-chain process model
 
@@ -212,6 +213,49 @@ The released Pipes target does not reconcile existing snapshot tables when track
 V3 therefore rejects pending schema migrations whenever rollback snapshot tables exist, even when
 they are empty. During alpha, use a fresh rebuild unless the repository owner approves a tested
 snapshot-preserving procedure.
+
+### V3 raw event ingestion
+
+The production event query selects only the signatures handled by the 11 v2 plugins. Global events
+are topic-filtered; LSP23 and LSP26 events additionally use the selected network's configured
+singleton address and deployment block. The query also requests and persists every block header,
+including blocks without a matching event, so canonical parent links and the exact indexed-head
+block identity remain continuous without storing unrelated logs. Pipes millisecond timestamps are
+persisted directly.
+
+| Event                    | Stored domain | Scope                |
+| ------------------------ | ------------- | -------------------- |
+| `DataChanged`            | `erc725y`     | Global exact topic   |
+| `Executed`               | `erc725x`     | Global exact topic   |
+| `UniversalReceiver`      | `lsp0`        | Global exact topic   |
+| LSP7 `Transfer`          | `lsp7`        | Global exact topic   |
+| LSP8 `Transfer`          | `lsp8`        | Global exact topic   |
+| `OwnershipTransferred`   | `lsp14`       | Global exact topic   |
+| `TokenIdDataChanged`     | `lsp8`        | Global exact topic   |
+| `Follow`, `Unfollow`     | `lsp26`       | Configured singleton |
+| `DeployedContracts`      | `lsp23`       | Configured singleton |
+| `DeployedERC1167Proxies` | `lsp23`       | Configured singleton |
+
+Every event fact includes network and chain identity; block number, hash, parent hash, and
+timestamp; transaction hash and index; log index; and the lossless raw address, topics, and data.
+The ID is deterministic from chain ID and log position. Decoded fields retain their familiar v2
+names, while unsigned integers are JSON decimal strings and LSP8 transfers retain `amount: "1"`.
+
+A known topic with malformed ABI data is still stored with its event name and domain and
+`decoded = null`. Unknown topics and LSP23/LSP26 logs outside their configured address or deployment
+range are not stored. Malformed fundamental provenance fails the transaction, leaving the Pipes
+cursor unchanged.
+
+Run one network's raw event pipe after database migration and readiness checks:
+
+```bash
+INDEXER_NETWORK=ethereum-mainnet \
+DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
+  pnpm --filter @chillwhales/indexer-v3 index:events
+```
+
+Use `INDEXER_FROM_BLOCK` and `INDEXER_TO_BLOCK` for a bounded run. Production still uses one isolated
+process per network; this command does not turn the local development runner into a supervisor.
 
 ### Validate a source
 

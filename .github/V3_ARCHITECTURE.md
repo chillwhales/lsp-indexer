@@ -134,7 +134,9 @@ RPC, Multicall3, start height, finality, and deployed contract capabilities are 
 ## Source and decoding boundary
 
 Each network builds one EVM source with named decoder outputs. The source selects only required
-block, transaction, and log fields. Decoded events always retain:
+block, transaction, and log fields. It still requests every block header, including blocks without
+a selected log, so persisted canonical history and indexed-head identities remain continuous.
+Decoded events always retain:
 
 - Network key and EIP-155 chain ID
 - Block number, block hash, parent hash, and timestamp
@@ -276,7 +278,8 @@ natural key.
 
 For each batch:
 
-1. Pipes fetches and decodes selected events.
+1. Narrow Pipes topic/address/range queries fetch selected events; Pipes-native ABI codecs decode
+   known payloads while retaining a known-topic raw fact when payload decoding fails.
 2. Pure transforms normalize facts and derive block-pinned RPC read requests.
 3. RPC reads complete at the triggering block; failure leaves the cursor unchanged.
 4. The Drizzle target opens a serializable transaction and acquires the Pipes advisory lock.

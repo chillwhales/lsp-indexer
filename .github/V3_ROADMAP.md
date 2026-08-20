@@ -9,6 +9,7 @@ The governing design documents are:
 - [V3 architecture and decisions](./V3_ARCHITECTURE.md)
 - [V3 package and domain compatibility contract](./V3_COMPATIBILITY.md)
 - [V3 production acceptance gates](./V3_ACCEPTANCE_GATES.md)
+- [V3 raw event disposition](./V3_EVENT_DISPOSITION.md)
 
 ## Product boundary
 

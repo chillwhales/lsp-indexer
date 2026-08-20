@@ -1,6 +1,11 @@
 import { evmPortalStream, evmQuery } from '@subsquid/pipes/evm';
 import { mockPortal } from '@subsquid/pipes/testing';
-import { mockBlock, mockEvmPortalStream, type PortalBlock } from '@subsquid/pipes/testing/evm';
+import {
+  encodeEvent,
+  mockBlock,
+  mockEvmPortalStream,
+  type PortalBlock,
+} from '@subsquid/pipes/testing/evm';
 import { eq } from 'drizzle-orm';
 import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -11,6 +16,11 @@ import { Pool } from 'pg';
 import { toHex, type Hex } from 'viem';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadRuntimeConfig, type RuntimeConfig } from '../../config/index.js';
+import {
+  createEventIngestionOutput,
+  createEventPersistenceTarget,
+  ERC725Y_EVENT_ABI,
+} from '../../events/index.js';
 import { createNetworkDatabase, createNetworkPool, type NetworkDatabase } from '../client.js';
 import {
   loadDatabaseMigrationConfig,
@@ -2131,5 +2141,147 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     } finally {
       await rm(temporaryDirectory, { recursive: true, force: true });
     }
+  });
+
+  it('persists, replays, and rolls back decoded and malformed raw events end to end', async () => {
+    const eventRuntime = loadRuntimeConfig({
+      INDEXER_NETWORK: 'ethereum-mainnet',
+      INDEXER_FROM_BLOCK: '10',
+      INDEXER_TO_BLOCK: '10',
+    });
+    const validLog = encodeEvent({
+      abi: ERC725Y_EVENT_ABI,
+      eventName: 'DataChanged',
+      address: testAddress,
+      args: { dataKey, dataValue: '0x1234' },
+    });
+    const bridgeBlocks: PortalBlock[] = [];
+    let parentHash = block1.header.hash;
+    for (let number = 2; number < 10; number += 1) {
+      const block = mockBlock({
+        number,
+        timestamp: 1_700_000_000_000 + number * 1_000,
+        hash: hashFor(300 + number),
+        parentHash,
+      });
+      bridgeBlocks.push(block);
+      parentHash = block.header.hash;
+    }
+    const eventBlock = mockBlock({
+      number: 10,
+      timestamp: 1_700_000_010_000,
+      hash: hashFor(110),
+      parentHash,
+      transactions: [{ logs: [validLog, { ...validLog, data: '0x00' }] }],
+    });
+    const eventTarget = createEventPersistenceTarget({
+      runtime: eventRuntime,
+      databaseConfig: ethereumDatabaseConfig,
+      db: ethereumDb,
+    });
+
+    async function runEventFixture(
+      selectedBlock: PortalBlock = eventBlock,
+      includeBridge = true,
+    ): Promise<void> {
+      const portal = await mockEvmPortalStream({
+        blocks: includeBridge ? [...bridgeBlocks, selectedBlock] : [selectedBlock],
+        finalized: { number: block1.header.number, hash: block1.header.hash },
+      });
+      try {
+        const stream = evmPortalStream({
+          id: eventRuntime.streamId,
+          portal: portal.url,
+          outputs: createEventIngestionOutput(eventRuntime),
+          logger: 'error',
+          profiler: false,
+        }).pipe((data, ctx) => createPersistenceBatch(eventRuntime, data, ctx));
+        await stream.pipeTo(eventTarget);
+      } finally {
+        await portal.close();
+      }
+    }
+
+    await runEventFixture();
+    const firstRows = await ethereumDb
+      .select()
+      .from(eventFacts)
+      .where(eq(eventFacts.blockNumber, eventBlock.header.number))
+      .orderBy(eventFacts.logIndex);
+    expect(firstRows).toHaveLength(2);
+    expect(firstRows[0]).toMatchObject({
+      id: 'eip155:1:log:10:0:0',
+      network: 'ethereum-mainnet',
+      chainId: 1,
+      blockNumber: 10,
+      blockHash: eventBlock.header.hash,
+      parentHash: eventBlock.header.parentHash,
+      transactionHash: eventBlock.logs[0]?.transactionHash,
+      transactionIndex: 0,
+      logIndex: 0,
+      address: testAddress,
+      eventName: 'DataChanged',
+      eventDomain: 'erc725y',
+      decoded: { dataKey, dataValue: '0x1234' },
+    });
+    expect(firstRows[1]).toMatchObject({
+      id: 'eip155:1:log:10:0:1',
+      eventName: 'DataChanged',
+      eventDomain: 'erc725y',
+      decoded: null,
+      data: '0x00',
+    });
+
+    const firstDigest = await testAdminPool.query<{ digest: string }>(`
+      SELECT md5(jsonb_agg(to_jsonb(e) ORDER BY e.log_index)::text) AS digest
+      FROM chain_ethereum_mainnet.event_facts e
+      WHERE e.block_number = 10
+    `);
+    await ethereumPool.query('DELETE FROM sqd_cursor');
+
+    const conflictingLog = encodeEvent({
+      abi: ERC725Y_EVENT_ABI,
+      eventName: 'DataChanged',
+      address: testAddress,
+      args: { dataKey, dataValue: '0xbeef' },
+    });
+    const conflictingBlock = mockBlock({
+      number: eventBlock.header.number,
+      timestamp: eventBlock.header.timestamp,
+      hash: eventBlock.header.hash,
+      parentHash: eventBlock.header.parentHash,
+      transactions: [{ logs: [conflictingLog, { ...validLog, data: '0x00' }] }],
+    });
+    await expect(runEventFixture(conflictingBlock, false)).rejects.toThrow(
+      'Conflicting persisted event for deterministic ID eip155:1:log:10:0:0',
+    );
+    expect(await countRows(ethereumPool, 'sqd_cursor')).toBe(0);
+
+    await runEventFixture(eventBlock, false);
+    const replayDigest = await testAdminPool.query<{ digest: string }>(`
+      SELECT md5(jsonb_agg(to_jsonb(e) ORDER BY e.log_index)::text) AS digest
+      FROM chain_ethereum_mainnet.event_facts e
+      WHERE e.block_number = 10
+    `);
+    expect(replayDigest.rows[0]?.digest).toBe(firstDigest.rows[0]?.digest);
+    expect(
+      await ethereumDb
+        .select()
+        .from(eventFacts)
+        .where(eq(eventFacts.blockNumber, eventBlock.header.number)),
+    ).toHaveLength(2);
+
+    if (eventTarget.resolveFork == null) throw new Error('Event target must support forks');
+    const cursor = await eventTarget.resolveFork([
+      {
+        number: block1.header.number,
+        hash: block1.header.hash,
+        timestamp: block1.header.timestamp,
+      },
+    ]);
+    expect(cursor).toMatchObject({ number: block1.header.number, hash: block1.header.hash });
+    expect(await countRows(ethereumPool, 'blocks')).toBe(1);
+    expect(await countRows(ethereumPool, 'event_facts')).toBe(1);
+    expect(await countRows(ethereumPool, 'sqd_cursor')).toBe(0);
   });
 });

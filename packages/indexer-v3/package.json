@@ -16,6 +16,8 @@
     "db:generate": "drizzle-kit generate --config=drizzle.config.ts && tsx src/app/normalize-migrations.ts",
     "db:migrations:check": "tsx src/app/normalize-migrations.ts --check",
     "db:migrate": "tsx src/app/migrate-database.ts",
+    "index:events": "tsx src/app/index-events.ts",
+    "index:events:built": "node lib/app/index-events.js",
     "probe:network": "tsx src/app/probe-network.ts",
     "probe:network:built": "node lib/app/probe-network.js",
     "test": "vitest run",

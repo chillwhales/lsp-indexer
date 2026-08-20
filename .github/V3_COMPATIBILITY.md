@@ -97,6 +97,10 @@ Existing event domains not yet exposed through the packages remain available to 
 they meet the v3 schema, permission, and documentation requirements. New package domains are added
 through their own issues and documentation rather than silently appearing during parity work.
 
+The ingestion-level field and behavior mapping for all 11 legacy event plugins is recorded in
+[`V3_EVENT_DISPOSITION.md`](./V3_EVENT_DISPOSITION.md). Public package exposure remains governed by
+the domain matrix and the #386–#388 API tasks.
+
 ## Result-shape rules
 
 - `network` and `chainId` are required on every top-level domain result.
