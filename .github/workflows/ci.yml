@@ -15,6 +15,9 @@ jobs:
   # Build, lint, test pipeline (shared from kethalia/workflows)
   # ---------------------------------------------------------------------------
   build-test:
+    permissions:
+      contents: read
+      pull-requests: write
     uses: kethalia/workflows/.github/workflows/ci-build-lint-test.yml@v4
     with:
       node-version: 22
