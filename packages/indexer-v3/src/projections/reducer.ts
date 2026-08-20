@@ -170,6 +170,7 @@ function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): 
         context.state.universalProfiles.set(candidate.address, {
           ...existing,
           verification: 'verified',
+          ...provenance(event),
         });
         context.changes.universalProfiles.add(candidate.address);
       }
@@ -208,6 +209,7 @@ function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): 
               ? (verification.standard ?? 'unknown')
               : existing.standard,
           decimals: existing.decimals ?? verification.decimals,
+          ...provenance(event),
         });
         context.changes.digitalAssets.add(candidate.address);
       }
@@ -275,14 +277,19 @@ function persistDataValue(context: ReducerContext, event: EventFactRecord): void
   });
 }
 
-function reformatNfts(context: ReducerContext, address: string): void {
-  const asset = context.state.digitalAssets.get(address);
+function reformatNfts(context: ReducerContext, event: EventFactRecord): void {
+  const asset = context.state.digitalAssets.get(event.address);
   if (asset == null) return;
   for (const [key, nft] of context.state.nfts) {
-    if (nft.address !== address) continue;
+    if (nft.address !== event.address) continue;
     const formattedTokenId = formatTokenId(nft.tokenId, asset.tokenIdFormat);
     const tokenUri = deriveTokenUri(asset.baseUri, formattedTokenId ?? nft.tokenId);
-    context.state.nfts.set(key, { ...nft, formattedTokenId, tokenUri });
+    context.state.nfts.set(key, {
+      ...nft,
+      formattedTokenId,
+      tokenUri,
+      ...provenance(event),
+    });
     context.changes.nfts.add(key);
   }
 }
@@ -305,12 +312,12 @@ function reduceAssetScalar(context: ReducerContext, event: EventFactRecord): voi
         ? decoded
         : null;
     updateAsset(context, event, { tokenIdFormat });
-    reformatNfts(context, event.address);
+    reformatNfts(context, event);
   } else if (dataKey === DATA_KEYS.lsp8ReferenceContract) {
     updateAsset(context, event, { tokenIdReferenceContract: decodeAddressValue(dataValue) });
   } else if (dataKey === DATA_KEYS.lsp8MetadataBaseUri) {
     updateAsset(context, event, { baseUri: decodeLsp8BaseUri(dataValue) });
-    reformatNfts(context, event.address);
+    reformatNfts(context, event);
   }
 }
 

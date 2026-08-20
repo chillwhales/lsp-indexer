@@ -184,9 +184,8 @@ describe('deterministic v3 domain reducer', () => {
     const baseUri = `0x0000000000000000${stringToHex('ipfs://collection').slice(2)}`;
     const setup = [
       dataChanged(runtime, 1, asset, DATA_KEYS.lsp8TokenIdFormat, '0x00'),
-      dataChanged(runtime, 2, asset, DATA_KEYS.lsp8MetadataBaseUri, baseUri),
-      transfer(runtime, 3, asset, 'lsp8', ZERO_ADDRESS, alice, '1'),
-      transfer(runtime, 4, asset, 'lsp8', alice, bob, '1'),
+      transfer(runtime, 2, asset, 'lsp8', ZERO_ADDRESS, alice, '1'),
+      transfer(runtime, 3, asset, 'lsp8', alice, bob, '1'),
     ];
     const state = emptyState();
     const first = reduceProjectionEvents(
@@ -201,7 +200,7 @@ describe('deterministic v3 domain reducer', () => {
         tokenId,
         formattedTokenId: '42',
         ownerAddress: bob,
-        tokenUri: 'ipfs://collection/42',
+        tokenUri: null,
         isMinted: true,
         isBurned: false,
       }),
@@ -213,21 +212,37 @@ describe('deterministic v3 domain reducer', () => {
       expect.objectContaining({ ownerAddress: bob, balance: '1' }),
     ]);
 
-    const burn = transfer(runtime, 5, asset, 'lsp8', bob, ZERO_ADDRESS, '1');
+    const baseUriChange = dataChanged(runtime, 4, asset, DATA_KEYS.lsp8MetadataBaseUri, baseUri);
     const second = reduceProjectionEvents(
+      runtime,
+      state,
+      [baseUriChange],
+      verifications([baseUriChange], [], new Map([[asset, 'lsp8']])),
+    );
+    expect(second.nfts).toEqual([
+      expect.objectContaining({
+        tokenUri: 'ipfs://collection/42',
+        lastBlockNumber: 4,
+        lastBlockHash: baseUriChange.blockHash,
+        lastTransactionHash: baseUriChange.transactionHash,
+      }),
+    ]);
+
+    const burn = transfer(runtime, 5, asset, 'lsp8', bob, ZERO_ADDRESS, '1');
+    const third = reduceProjectionEvents(
       runtime,
       state,
       [burn],
       verifications([burn], [bob], new Map([[asset, 'lsp8']])),
     );
-    expect(second.nfts).toEqual([
+    expect(third.nfts).toEqual([
       expect.objectContaining({ ownerAddress: null, isMinted: false, isBurned: true }),
     ]);
-    expect(second.digitalAssets).toEqual([expect.objectContaining({ totalSupply: '0' })]);
-    expect(second.ownedAssets).toEqual([]);
-    expect(second.ownedTokens).toEqual([]);
-    expect(second.deletedOwnedAssetIds).toHaveLength(1);
-    expect(second.deletedOwnedTokenIds).toHaveLength(1);
+    expect(third.digitalAssets).toEqual([expect.objectContaining({ totalSupply: '0' })]);
+    expect(third.ownedAssets).toEqual([]);
+    expect(third.ownedTokens).toEqual([]);
+    expect(third.deletedOwnedAssetIds).toHaveLength(1);
+    expect(third.deletedOwnedTokenIds).toHaveLength(1);
   });
 
   it('merges creator, issued-asset, and controller registries and cleans shrunk arrays', () => {
