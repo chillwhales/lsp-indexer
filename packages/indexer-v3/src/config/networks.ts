@@ -181,9 +181,22 @@ export function createStreamId(chainId: number): string {
   return `lsp-indexer:v3:eip155:${chainId}`;
 }
 
+function isLowercaseAlphanumeric(value: string): boolean {
+  if (value.length === 0) return false;
+
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    const isDigit = code >= 48 && code <= 57;
+    const isLowercaseLetter = code >= 97 && code <= 122;
+    if (!isDigit && !isLowercaseLetter) return false;
+  }
+
+  return true;
+}
+
 /** Safe PostgreSQL schema name for a configured network. */
 export function createNetworkSchema(networkKey: string): string {
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(networkKey)) {
+  if (!networkKey.split('-').every(isLowercaseAlphanumeric)) {
     throw new Error(`Network key "${networkKey}" is not lowercase kebab case`);
   }
   return `chain_${networkKey.replaceAll('-', '_')}`;

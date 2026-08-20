@@ -3,7 +3,6 @@ import {
   defineChain,
   http,
   type Address,
-  type Hex,
   type PublicClient,
   type Transport,
 } from 'viem';
@@ -11,13 +10,9 @@ import type { ContractDeployment, NetworkContracts, RuntimeConfig } from '../con
 
 export type NetworkRpcClient = PublicClient<Transport>;
 
-export interface RpcChainReader {
-  getChainId(): Promise<number>;
-}
+export type RpcChainReader = Pick<NetworkRpcClient, 'getChainId'>;
 
-export interface RpcReadinessClient extends RpcChainReader {
-  getCode(parameters: { address: Address }): Promise<Hex | undefined>;
-}
+export type RpcReadinessClient = Pick<NetworkRpcClient, 'getChainId' | 'getCode'>;
 
 export interface ConfiguredContractReadiness {
   name: keyof NetworkContracts;
@@ -65,7 +60,7 @@ export async function assertConfiguredContracts(
   rpc: RpcReadinessClient,
   runtime: RuntimeConfig,
 ): Promise<ConfiguredContractReadiness[]> {
-  const deployments: Array<[keyof NetworkContracts, ContractDeployment | undefined]> = [
+  const deployments: [keyof NetworkContracts, ContractDeployment | undefined][] = [
     ['lsp23Factory', runtime.network.contracts.lsp23Factory],
     ['lsp26FollowerSystem', runtime.network.contracts.lsp26FollowerSystem],
   ];

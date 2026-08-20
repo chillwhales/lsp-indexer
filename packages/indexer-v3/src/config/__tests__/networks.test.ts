@@ -47,5 +47,8 @@ describe('network registry', () => {
     );
     expect(() => createNetworkSchema('Ethereum Mainnet')).toThrow('lowercase kebab case');
     expect(() => createNetworkSchema('../ethereum')).toThrow('lowercase kebab case');
+    expect(() => createNetworkSchema('ethereum--mainnet')).toThrow('lowercase kebab case');
+    expect(() => createNetworkSchema('ethereum-')).toThrow('lowercase kebab case');
+    expect(() => createNetworkSchema('')).toThrow('lowercase kebab case');
   });
 });

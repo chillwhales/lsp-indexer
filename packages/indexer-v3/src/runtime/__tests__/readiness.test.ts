@@ -1,4 +1,3 @@
-import type { Hex } from 'viem';
 import { describe, expect, it, vi } from 'vitest';
 import { loadRuntimeConfig } from '../../config/index.js';
 import type { RpcReadinessClient } from '../../rpc/index.js';
@@ -29,7 +28,7 @@ describe('network readiness', () => {
       getChainId(): Promise<number> {
         return Promise.resolve(1);
       },
-      getCode(): Promise<Hex | undefined> {
+      getCode(): Promise<`0x${string}` | undefined> {
         return Promise.resolve('0x01');
       },
     };

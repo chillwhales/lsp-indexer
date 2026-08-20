@@ -1,12 +1,13 @@
-import type { Logger, LogLevel, MetricsServer } from '@subsquid/pipes';
 import type { RuntimeConfig } from '../config/index.js';
 import { createRuntimeProbeQuery } from './query.js';
-import { createNetworkStream } from './stream.js';
+import { createNetworkStream, type NetworkStreamOptions } from './stream.js';
+
+type RuntimeProbeOutputs = ReturnType<typeof createRuntimeProbeQuery>;
 
 export interface RuntimeProbeOptions {
   runtime: RuntimeConfig;
-  logger?: Logger | LogLevel;
-  metrics?: MetricsServer;
+  logger?: NetworkStreamOptions<RuntimeProbeOutputs>['logger'];
+  metrics?: NetworkStreamOptions<RuntimeProbeOutputs>['metrics'];
 }
 
 export interface RuntimeProbeSummary {

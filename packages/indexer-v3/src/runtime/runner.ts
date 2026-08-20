@@ -1,5 +1,5 @@
 import type { Logger, MetricsServer } from '@subsquid/pipes';
-import { devRunner, type PipeContext } from '@subsquid/pipes/runtime/node';
+import { devRunner } from '@subsquid/pipes/runtime/node';
 import { loadRuntimeConfig, type RuntimeConfig } from '../config/index.js';
 import { createNetworkRpcClient, type NetworkRpcClient } from '../rpc/index.js';
 import { verifyNetworkReadiness, type NetworkReadiness } from './readiness.js';
@@ -12,6 +12,8 @@ export interface NetworkProgramContext {
   metrics?: MetricsServer;
 }
 
+// Codacy's standalone ESLint profile applies the base rule to type-only parameter names.
+// eslint-disable-next-line no-unused-vars
 export type NetworkProgram = (context: NetworkProgramContext) => Promise<unknown>;
 
 export interface RunNetworkProgramOptions {
@@ -22,11 +24,9 @@ export interface RunNetworkProgramOptions {
   rpc?: NetworkRpcClient;
 }
 
-export interface DevelopmentPipeDefinition {
-  id: string;
-  params: { network: string };
-  handler(context: PipeContext<{ network: string }>): Promise<unknown>;
-}
+export type DevelopmentPipeDefinition = Parameters<
+  typeof devRunner<{ network: string }>
+>[0][number];
 
 /** Validate one production network and run its pipe program. */
 export async function runNetworkProgram(
@@ -88,14 +88,15 @@ export function createDevelopmentRunner(
   program: NetworkProgram,
   env: NodeJS.ProcessEnv = process.env,
 ): ReturnType<typeof devRunner<{ network: string }>> {
-  const definitions = createDevelopmentPipeDefinitions(networks, program, env);
-  const firstDefinition = definitions[0];
-  if (!firstDefinition) {
+  const firstNetwork = networks.at(0);
+  if (firstNetwork == null) {
     throw new Error('At least one development network is required');
   }
+
+  const definitions = createDevelopmentPipeDefinitions(networks, program, env);
   const runtime = loadRuntimeConfig({
     ...env,
-    INDEXER_NETWORK: firstDefinition.params.network,
+    INDEXER_NETWORK: firstNetwork,
   });
 
   return devRunner(definitions, {

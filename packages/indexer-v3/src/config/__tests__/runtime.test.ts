@@ -8,7 +8,7 @@ function createEnv(overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
   };
 }
 
-const INVALID_ENVIRONMENTS: Array<[NodeJS.ProcessEnv, string]> = [
+const INVALID_ENVIRONMENTS: [NodeJS.ProcessEnv, string][] = [
   [{}, 'INDEXER_NETWORK is required'],
   [createEnv({ INDEXER_FROM_BLOCK: '-1' }), 'INDEXER_FROM_BLOCK must be a safe integer'],
   [createEnv({ INDEXER_TO_BLOCK: '1.5' }), 'INDEXER_TO_BLOCK must be a safe integer'],

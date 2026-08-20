@@ -1,4 +1,3 @@
-import type { Hex } from 'viem';
 import { describe, expect, it } from 'vitest';
 import { loadRuntimeConfig } from '../../config/index.js';
 import {
@@ -9,12 +8,12 @@ import {
   type RpcReadinessClient,
 } from '../client.js';
 
-function createReadinessRpc(chainId: number, code: Hex | undefined): RpcReadinessClient {
+function createReadinessRpc(chainId: number, code: `0x${string}` | undefined): RpcReadinessClient {
   return {
     getChainId(): Promise<number> {
       return Promise.resolve(chainId);
     },
-    getCode(): Promise<Hex | undefined> {
+    getCode(): Promise<`0x${string}` | undefined> {
       return Promise.resolve(code);
     },
   };

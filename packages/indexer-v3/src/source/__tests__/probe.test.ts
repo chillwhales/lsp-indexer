@@ -25,7 +25,11 @@ function createRuntime(
 }
 
 async function closePortals(portals: readonly MockPortal[]): Promise<void> {
-  await Promise.all(portals.map(async (portal) => await portal.close()));
+  await Promise.all(
+    portals.map(async (portal) => {
+      await portal.close();
+    }),
+  );
 }
 
 describe('runtime source probe', () => {
@@ -106,11 +110,11 @@ describe('runtime source probe', () => {
   });
 
   it('fails when a source result does not contain both requested boundaries', () => {
-    expect(() => assertRuntimeProbeCompleteness(10, 11, 10, 10)).toThrow(
-      'incomplete range: expected 10-11, received 10-10',
-    );
-    expect(() => assertRuntimeProbeCompleteness(10, 11, null, null)).toThrow(
-      'incomplete range: expected 10-11, received none-none',
-    );
+    expect(() => {
+      assertRuntimeProbeCompleteness(10, 11, 10, 10);
+    }).toThrow('incomplete range: expected 10-11, received 10-10');
+    expect(() => {
+      assertRuntimeProbeCompleteness(10, 11, null, null);
+    }).toThrow('incomplete range: expected 10-11, received none-none');
   });
 });
