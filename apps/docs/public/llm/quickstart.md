@@ -62,9 +62,24 @@ INDEXER_TO_BLOCK=22000010 \
   pnpm --filter @chillwhales/indexer-v3 probe:network
 ```
 
-The probe reads raw blocks and logs through the SQD Pipes SDK but does not persist or expose LSP
-domains yet. See [Indexer v3 development](/docs/indexer#indexer-v3-alpha-development) for the
-network catalog, safety checks, and environment variables.
+The probe reads raw blocks and logs without writing. To exercise the v3 PostgreSQL foundation,
+first create a dedicated database and runtime login, then apply all network schemas with a separate
+migration credential:
+
+```bash
+DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
+DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
+  pnpm --filter @chillwhales/indexer-v3 db:migrate
+
+INDEXER_NETWORK=ethereum-mainnet \
+DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
+  pnpm --filter @chillwhales/indexer-v3 db:check
+```
+
+This creates isolated chain schemas and unified read-only API views, but complete LSP domain
+decoding and the public v3 packages are still under development. See
+[Indexer v3 development](/docs/indexer#indexer-v3-alpha-development) for the schema model, safety
+checks, and environment variables.
 
 ---
 

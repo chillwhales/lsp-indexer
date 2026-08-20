@@ -23,7 +23,7 @@ jobs:
       node-version: 22
       build-command: pnpm build
       lint-command: pnpm lint
-      format-command: pnpm format:check && pnpm --filter docs generate:check
+      format-command: pnpm format:check && pnpm --filter docs generate:check && pnpm --filter @chillwhales/indexer-v3 db:migrations:check
       typecheck-command: pnpm typecheck
       test-command: |
         if [ "$(node -p "process.versions.node.split('.')[0]")" -lt 22 ]; then
@@ -40,12 +40,47 @@ jobs:
         packages/next/dist
         packages/indexer/lib
         packages/indexer-v3/lib
+        packages/indexer-v3/drizzle
+
+  # ---------------------------------------------------------------------------
+  # V3 PostgreSQL migrations, isolation, atomicity, and rollback integration
+  # ---------------------------------------------------------------------------
+  persistence:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Test v3 persistence against PostgreSQL 17
+        run: pnpm --filter @chillwhales/indexer-v3 test:persistence
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
 
   # ---------------------------------------------------------------------------
   # Quality checks (shared from kethalia/workflows)
   # ---------------------------------------------------------------------------
   quality:
-    needs: [build-test]
+    needs: [build-test, persistence]
     uses: kethalia/workflows/.github/workflows/ci-quality.yml@v4
     with:
       verify-command: pnpm validate:publish

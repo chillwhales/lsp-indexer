@@ -183,6 +183,8 @@ V3 prevents that class of corruption structurally:
 - Every network owns a PostgreSQL schema such as `chain_lukso_mainnet`.
 - Each indexer connection uses only its network schema for mutable chain tables, snapshot tables,
   rollback functions, and Pipes cursor state.
+- The fixed runtime search path is `chain_<network>,lsp_v3,public`; `lsp_v3` contains only immutable
+  enum types shared so cross-network union views have compatible PostgreSQL column types.
 - Application table names remain identical across network schemas so one Drizzle definition and one
   migration series can be applied repeatedly.
 - No indexer role receives write access to another network schema.
@@ -197,6 +199,11 @@ supports exposing PostgreSQL views to both queries and subscriptions:
 Adding a network is a migration operation: create its schema, apply every v3 migration, validate its
 constraints, replace the affected `api` views transactionally, and apply Hasura metadata. It is not
 a runtime `CREATE TABLE` side effect.
+
+Drizzle Kit emits `public` qualifiers for unqualified schemas. The checked-in migration generation
+step removes enum DDL (the immutable catalog is bootstrapped once in `lsp_v3`) and normalizes other
+references to schema-relative SQL. CI rejects any remaining `public` qualifier. Migration history
+stores and verifies each normalized SQL hash, so editing an applied migration is detected as drift.
 
 ### Data conventions
 
@@ -252,6 +259,11 @@ For each batch:
 Domain logic may read existing state inside step 6. It must not keep an unversioned in-memory mirror.
 Any future stateful transform must implement and test the Pipes rollback hook.
 
+The initial #382 schema has canonical `blocks` and `event_facts`; current profiles, assets, NFTs,
+owned assets and tokens, follower edges, creators, issued assets, controllers, and ERC725Y values;
+metadata revisions and durable jobs; indexed head visibility; network identity; and the Pipes cursor.
+The raw fact shape is stable while #383 and #384 add event-specific decoding and reduction logic.
+
 ### Schema evolution gates
 
 The released target does not reconcile snapshot tables after tracked columns are added:
@@ -259,6 +271,10 @@ The released target does not reconcile snapshot tables after tracked columns are
 fresh-database rebuilds are acceptable. Production migrations cannot add or change tracked columns
 until the released SDK safely reconciles snapshots or an owner-approved migration procedure proves
 that rollback data is preserved.
+
+The migration runner enforces that rule: if a pending migration exists and any rollback snapshot
+table contains rows, it fails before executing the migration. PostgreSQL integration tests exercise
+that refusal with a synthetic tracked-table schema change.
 
 The bounded-finality fix is also still a draft:
 [subsquid/pipes-sdk#143](https://github.com/subsquid/pipes-sdk/pull/143). Backfill completion evidence
@@ -324,6 +340,7 @@ Node contract. All cache keys and subscriptions include network identity.
 
 The detailed preservation and breaking-change rules are in
 [V3_COMPATIBILITY.md](./V3_COMPATIBILITY.md).
+The implemented PostgreSQL object and rollback contract is in [V3_SCHEMA.md](./V3_SCHEMA.md).
 
 ## Development and cutover layout
 
