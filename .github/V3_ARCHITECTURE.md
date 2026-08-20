@@ -10,7 +10,7 @@ must preserve the decisions below.
 
 | ID   | Decision                                                                                                                                         |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| A001 | Build v3 beside v2 in `packages/indexer-v3` until the final cutover; do not adapt the v2 pipeline.                                               |
+| A001 | Build v3 beside v2 in `packages/indexer-v3` through the post-cutover rollback window; do not adapt the v2 pipeline.                              |
 | A002 | Run one isolated Pipes process or container per network in production.                                                                           |
 | A003 | Use one shared PostgreSQL cluster, but isolate mutable Pipes tables and rollback snapshots in a physical schema per network.                     |
 | A004 | Expose a unified, read-only `api` schema composed from cross-network PostgreSQL views and track that schema in Hasura.                           |
@@ -18,8 +18,8 @@ must preserve the decisions below.
 | A006 | Use stable EIP-155 chain IDs plus stable network keys everywhere; never infer a network from an address.                                         |
 | A007 | Use deterministic event and projection IDs. V3 does not create random IDs for replayable chain data.                                             |
 | A008 | Keep raw event facts separate from mutable current-state projections.                                                                            |
-| A009 | Perform block-pinned RPC reads before the database transaction and commit their results with the triggering batch.                               |
-| A010 | Queue metadata work transactionally, but fetch external metadata outside the Pipes transaction only after its source block is finalized.         |
+| A009 | Bind RPC reads to the triggering block identity and reject results if the provider cannot verify that exact hash.                                |
+| A010 | Queue immutable metadata revisions transactionally, but fetch outside Pipes only after the source block is finalized.                            |
 | A011 | Keep Hasura as the query and subscription runtime while replacing the old Squid and TypeORM stack.                                               |
 | A012 | Preserve familiar high-level package APIs, but make network scope explicit and version all breaking contracts as v3.                             |
 
@@ -143,10 +143,13 @@ block, transaction, and log fields. Decoded events always retain:
 The released event decoder already provides block hash, timestamp, transaction hash, transaction
 index, and log index. V3 must not throw that provenance away when producing domain facts.
 
-RPC calls used for `supportsInterface`, decimals, ownership, or other state reads are made at the
-triggering block number whenever the RPC method supports it. They run in a transform before the
-database transaction so a slow provider does not hold database locks. Failure aborts the batch;
-because the cursor has not committed, retry starts from the same canonical position.
+RPC calls used for `supportsInterface`, decimals, ownership, or other state reads carry the
+triggering block number and hash. When a client supports EIP-1898, it reads by hash. A number-only
+client must verify that the provider maps that number to the triggering hash immediately before and
+after each read. A mismatch on either side rejects the result instead of mixing state from two
+forks. Reads run in a transform before the database transaction so a slow provider does not hold
+database locks. Any failure aborts the batch; because the cursor has not committed, retry starts
+from the same canonical position.
 
 ### Current source gates
 
@@ -281,6 +284,13 @@ revision in its predicate, so an old response cannot replace newer on-chain meta
 next-attempt time, terminal error, response size, content type, and latency are observable. IPFS and
 HTTP side effects are never performed inside the Pipes database transaction.
 
+Each source revision has an immutable deterministic job identity, and job state is registered with
+the Pipes rollback target. If unfinalized revision B supersedes a processing job for finalized
+revision A, B snapshots A before cancelling it. Settlement by A's old claim writes nothing. Rolling
+B back removes B and restores A's prior job and lease; normal expired-lease recovery then reclaims A
+and can publish its immutable revision. #385 must include a PostgreSQL integration test for this
+exact A → B → rollback → A recovery sequence.
+
 ## Query and package boundary
 
 Hasura tracks the `api` views, their manually configured relationships, permissions, and live-query
@@ -299,7 +309,7 @@ The detailed preservation and breaking-change rules are in
 During development:
 
 ```text
-packages/indexer/       # deployable v2 reference until final cutover
+packages/indexer/       # deployable v2 reference through the rollback window
 packages/indexer-v3/    # clean Pipes implementation
 ```
 
@@ -307,15 +317,18 @@ V3 uses a new database or database cluster for backfill and shadow validation. I
 the production v2 tables. The comparison tool compares v2 and v3 endpoints at a shared finalized
 height.
 
-At final cutover, after every gate passes:
+The final integration PR stays draft throughout production validation and the rollback window. The
+cutover sequence is:
 
 1. Stop v3 schema changes and complete a final clean replay or verified migration.
 2. Run v2 and v3 in parallel through the agreed finalized height.
-3. Publish the v3 packages and switch consumers during the documented window.
-4. Retain a tested rollback path to the v2 endpoint.
-5. Only the repository owner may merge the integration PR to `main`.
-6. Delete the v2 runtime and rename `packages/indexer-v3` to `packages/indexer` in the final program
-   work, not in an early foundation PR.
+3. Cut production and consumers to the reviewed v3 candidate during the documented window while
+   retaining the deployable v2 source, artifacts, database, and endpoint.
+4. Exercise and retain the tested v2 rollback path for the full owner-approved rollback window.
+5. Only after that window closes with owner sign-off, delete the v2 runtime and rename
+   `packages/indexer-v3` to `packages/indexer` on `lsp-indexer-v3`; then rerun the final build,
+   replay, package, parity, and recovery gates.
+6. Only the repository owner may mark PR #391 ready and merge `lsp-indexer-v3` to `main`.
 
 ## Explicit non-goals
 

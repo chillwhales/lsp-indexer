@@ -141,7 +141,9 @@ Each public domain needs all of the following before its v3 task is complete:
 
 ## V2 deletion boundary
 
-The v2 runtime remains available only for comparison and rollback until #389 passes. The final v3
-program deletes legacy processor, TypeORM, schema codegen, pipeline, and deployment paths. It does
-not delete published v2 npm versions; consumers can remain pinned while following the migration
-guide. No v2 compatibility shim runs inside the production v3 indexer.
+The v2 runtime remains available for comparison and rollback through #389's production cutover and
+the full owner-approved rollback window. Only after that window closes with signed-off recovery
+evidence does the final v3 program delete the legacy processor, TypeORM, schema codegen, pipeline,
+and deployment paths. It does not delete published v2 npm versions; consumers can remain pinned
+while following the migration guide. No v2 compatibility shim runs inside the production v3
+indexer.

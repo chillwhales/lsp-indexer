@@ -139,7 +139,10 @@ exercise log.
 - [ ] V3 runs against a separate shadow database until parity, freshness, and recovery gates pass.
 - [ ] Cutover and rollback procedures name owners, commands, checkpoints, and stop conditions.
 - [ ] V2 remains available for the agreed rollback window.
-- [ ] Legacy production dependencies and code are deleted only after validation evidence is final.
+- [ ] The rollback window closes with explicit owner sign-off before any v2 source, artifact,
+      database, or endpoint required for rollback is deleted.
+- [ ] Legacy production dependencies and code are deleted only after that sign-off, followed by a
+      clean final replay, parity comparison, recovery drill, and package build.
 - [ ] Epic #390 and goals #380–#389 are complete with evidence linked.
 - [ ] The final integration PR remains draft until the repository owner personally marks it ready.
 - [ ] Only the repository owner merges `lsp-indexer-v3` to `main`.

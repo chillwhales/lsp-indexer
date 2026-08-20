@@ -44,7 +44,8 @@ at the documented domain behavior level rather than by retaining the v2 database
 8. **Observability is part of correctness.** Each network exposes progress, lag, throughput, RPC
    health, metadata backlog, failures, and rollback activity.
 9. **V2 remains deployable during validation.** V3 uses separate state and runs in shadow until all
-   parity and production gates pass.
+   parity and production gates pass, and v2 remains available through the agreed post-cutover
+   rollback window.
 
 ## Delivery goals
 
@@ -89,4 +90,5 @@ the maintenance goals of the rewrite.
 The draft integration PR from `lsp-indexer-v3` to `main` remains open for the full program. Agents
 must never mark it ready or merge it. Only
 [@b00ste](https://github.com/b00ste) may personally perform the final merge after #389 confirms that
-v3 is fully working in shadow production and every goal in #390 is complete.
+v3 is fully working in production, the rollback window is signed off, legacy cleanup is complete,
+and every goal in #390 is complete.
