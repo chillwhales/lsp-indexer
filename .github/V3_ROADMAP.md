@@ -4,6 +4,12 @@ LSP Indexer v3 is a from-scratch, multi-chain indexer built on the SQD Pipes SDK
 tracked by [epic #390](https://github.com/chillwhales/lsp-indexer/issues/390) and integrated through
 the permanent `lsp-indexer-v3` branch.
 
+The governing design documents are:
+
+- [V3 architecture and decisions](./V3_ARCHITECTURE.md)
+- [V3 package and domain compatibility contract](./V3_COMPATIBILITY.md)
+- [V3 production acceptance gates](./V3_ACCEPTANCE_GATES.md)
+
 ## Product boundary
 
 V3 will replace the legacy Squid processor, TypeORM persistence, generated entity classes, batch
