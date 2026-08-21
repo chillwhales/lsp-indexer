@@ -1,0 +1,34 @@
+{
+  "name": "@chillwhales/indexer-v3",
+  "version": "3.0.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "description": "Multi-chain LSP indexer built on the SQD Pipes SDK",
+  "engines": {
+    "node": ">=22.15.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "check:network": "tsx src/app/check-network.ts",
+    "check:network:built": "node lib/app/check-network.js",
+    "clean": "rm -rf lib/ coverage/",
+    "probe:network": "tsx src/app/probe-network.ts",
+    "probe:network:built": "node lib/app/probe-network.js",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@subsquid/pipes": "1.0.0-beta.3",
+    "viem": "2.47.0",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "24.2.0",
+    "@vitest/coverage-v8": "4.0.18",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "vitest": "4.0.18"
+  }
+}

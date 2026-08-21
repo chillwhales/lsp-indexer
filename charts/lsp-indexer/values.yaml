@@ -1,8 +1,8 @@
 global:
   imagePullSecrets: []
 
-nameOverride: ""
-fullnameOverride: ""
+nameOverride: ''
+fullnameOverride: ''
 
 secrets:
   # Existing Secret read by indexer and Hasura for non-database runtime secrets.
@@ -15,12 +15,12 @@ secrets:
   keys:
     hasuraAdminSecret: HASURA_GRAPHQL_ADMIN_SECRET
     rpcUrl: RPC_URL
-    sqdApiKey: ""
+    sqdApiKey: ''
 
 cnpg:
   enabled: true
   instances: 2
-  imageName: ""
+  imageName: ''
   bootstrap:
     database: lsp_indexer
     owner: lsp_indexer
@@ -46,7 +46,7 @@ cnpg:
       shared_buffers: 512MB
       checkpoint_timeout: 15min
       work_mem: 64MB
-      log_min_duration_statement: "500"
+      log_min_duration_statement: '500'
   backup:
     enabled: false
     existingSecret: cnpg-minio-credentials
@@ -60,14 +60,14 @@ cnpg:
 
 postgres:
   # Defaults to `<release-fullname>-rw` when empty.
-  host: ""
+  host: ''
   port: 5432
   database: lsp_indexer
   user: lsp_indexer
   # Defaults to the CNPG bootstrap secret so app runtime credentials cannot
   # drift from the database owner password.
   passwordSecret:
-    name: ""
+    name: ''
     userKey: username
     key: password
 
@@ -79,17 +79,17 @@ indexer:
     pullPolicy: IfNotPresent
   env:
     SQD_GATEWAY: https://v2.archive.subsquid.io/network/lukso-mainnet
-    RPC_RATE_LIMIT: "10"
-    FINALITY_CONFIRMATION: "75"
+    RPC_RATE_LIMIT: '10'
+    FINALITY_CONFIRMATION: '75'
     IPFS_GATEWAY: https://api.universalprofile.cloud/ipfs/
-    FETCH_LIMIT: "10000"
-    FETCH_BATCH_SIZE: "1000"
-    FETCH_RETRY_COUNT: "5"
-    METADATA_WORKER_POOL_SIZE: "4"
+    FETCH_LIMIT: '10000'
+    FETCH_BATCH_SIZE: '1000'
+    FETCH_RETRY_COUNT: '5'
+    METADATA_WORKER_POOL_SIZE: '4'
     NODE_ENV: production
     LOG_LEVEL: info
     LOG_DIR: /app/packages/indexer/logs
-    INDEXER_ENABLE_FILE_LOGGER: "false"
+    INDEXER_ENABLE_FILE_LOGGER: 'false'
   resources:
     requests:
       cpu: 500m
@@ -110,8 +110,8 @@ hasura:
   service:
     port: 8080
   env:
-    HASURA_GRAPHQL_ENABLE_CONSOLE: "false"
-    HASURA_GRAPHQL_DEV_MODE: "false"
+    HASURA_GRAPHQL_ENABLE_CONSOLE: 'false'
+    HASURA_GRAPHQL_DEV_MODE: 'false'
     HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup,http-log,webhook-log,websocket-log,query-log
     HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
   metadataDefaults:
@@ -139,7 +139,7 @@ dataConnector:
   healthPath: /api/v1/athena/health
   env:
     QUARKUS_LOG_LEVEL: ERROR
-    QUARKUS_OPENTELEMETRY_ENABLED: "false"
+    QUARKUS_OPENTELEMETRY_ENABLED: 'false'
   resources:
     requests:
       cpu: 50m
@@ -157,8 +157,8 @@ docs:
     port: 3000
     wsPort: 4000
   env:
-    PORT: "3000"
-    WS_PROXY_PORT: "4000"
+    PORT: '3000'
+    WS_PROXY_PORT: '4000'
     HOSTNAME: 0.0.0.0
     INDEXER_URL: https://indexer.chillwhales.dev/v1/graphql
     INDEXER_WS_URL: wss://indexer.chillwhales.dev/v1/graphql
@@ -179,14 +179,14 @@ ingress:
     secretName: chillwhales-wildcard-tls
   docs:
     annotations:
-      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/ssl-redirect: 'false'
   graphql:
     path: /v1/graphql
     pathType: Prefix
     annotations:
-      nginx.ingress.kubernetes.io/ssl-redirect: "false"
-      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+      nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+      nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
 
 pdb:
   enabled: true

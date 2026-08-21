@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, refactor/indexer-v2-react]
+    branches: [main, refactor/indexer-v2-react, lsp-indexer-v3]
   pull_request:
-    branches: [main, refactor/indexer-v2-react]
+    branches: [main, refactor/indexer-v2-react, lsp-indexer-v3]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,6 +15,9 @@ jobs:
   # Build, lint, test pipeline (shared from kethalia/workflows)
   # ---------------------------------------------------------------------------
   build-test:
+    permissions:
+      contents: read
+      pull-requests: write
     uses: kethalia/workflows/.github/workflows/ci-build-lint-test.yml@v4
     with:
       node-version: 22
@@ -22,7 +25,12 @@ jobs:
       lint-command: pnpm lint
       format-command: pnpm format:check && pnpm --filter docs generate:check
       typecheck-command: pnpm typecheck
-      test-command: pnpm test:coverage
+      test-command: |
+        if [ "$(node -p "process.versions.node.split('.')[0]")" -lt 22 ]; then
+          INCLUDE_INDEXER_V3=false pnpm test:coverage
+        else
+          pnpm test:coverage
+        fi
       pre-lint-command: 'pnpm --filter=@chillwhales/indexer build'
       test-node-versions: '[20, 22]'
       artifact-paths: |
@@ -31,6 +39,7 @@ jobs:
         packages/react/dist
         packages/next/dist
         packages/indexer/lib
+        packages/indexer-v3/lib
 
   # ---------------------------------------------------------------------------
   # Quality checks (shared from kethalia/workflows)
