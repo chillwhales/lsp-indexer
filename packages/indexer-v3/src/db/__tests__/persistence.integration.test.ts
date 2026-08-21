@@ -1,4 +1,5 @@
 import { evmPortalStream, evmQuery } from '@subsquid/pipes/evm';
+import { mockPortal } from '@subsquid/pipes/testing';
 import { mockBlock, mockEvmPortalStream, type PortalBlock } from '@subsquid/pipes/testing/evm';
 import { eq } from 'drizzle-orm';
 import { readMigrationFiles } from 'drizzle-orm/migrator';
@@ -281,10 +282,10 @@ async function runBlocks(
   const first = selectedBlocks.at(0);
   const last = selectedBlocks.at(-1);
   if (first == null || last == null) throw new Error('At least one test block is required');
-  const portal = await mockEvmPortalStream({
-    blocks: selectedBlocks,
-    ...(finalized == null ? {} : { finalized }),
-  });
+  const portal =
+    finalized == null
+      ? await mockPortal([{ statusCode: 200, data: selectedBlocks }])
+      : await mockEvmPortalStream({ blocks: selectedBlocks, finalized });
   try {
     const output = evmQuery()
       .addRange({ from: first.header.number, to: last.header.number })
@@ -621,7 +622,7 @@ describe.sequential('PostgreSQL persistence', () => {
         topics: [topic0],
         data: '0x',
       }),
-    ).rejects.toMatchObject({ code: '23503' });
+    ).rejects.toMatchObject({ cause: { code: '23503' } });
   });
 
   it('creates every rollback artifact inside only the selected chain schema', async () => {
