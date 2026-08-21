@@ -189,8 +189,9 @@ V3 prevents that class of corruption structurally:
   migration series can be applied repeatedly.
 - Deterministic schema-owner and writer roles are capability-limited `NOLOGIN NOINHERIT` roles
   with no direct or transitive memberships in other roles.
-- Every runtime login is unique to one network. Startup checks the underlying `session_user` for
-  superuser status, foreign writer memberships, and direct or inherited foreign write access.
+- Every runtime login is unique to one network. Migration and startup check the underlying
+  `session_user` for superuser status, any reachable role other than its assigned writer, and direct
+  or inherited foreign write access.
 - No indexer credential receives write access to another network schema.
 - The migration test must prove the target's unqualified trigger SQL stays inside the configured
   connection `search_path`; otherwise #382 must select separate databases instead.
@@ -199,9 +200,10 @@ The shared `api` schema contains read-only `UNION ALL` views over enabled networ
 includes `network` and `chain_id`, and relationships include network identity in their join. Hasura
 supports exposing PostgreSQL views to both queries and subscriptions:
 [Hasura view documentation](https://github.com/hasura/graphql-engine/blob/master/docs/docs/schema/postgres/views.mdx).
-The migrator rejects unexpected tables or views in this schema and grants the API reader `SELECT`
-only on the enumerated public views. Existing shared enums must match the canonical labels and
-ordering exactly before any chain migration proceeds.
+The migrator rejects unexpected tables, views, functions, or procedures in this schema and grants
+the API reader schema access and `SELECT` only after that inventory check, limited to the enumerated
+public views. Existing shared enums must match the canonical labels and ordering exactly before any
+chain migration proceeds.
 
 Adding a network is a migration operation: create its schema, apply every v3 migration, validate its
 constraints, replace the affected `api` views transactionally, and apply Hasura metadata. It is not

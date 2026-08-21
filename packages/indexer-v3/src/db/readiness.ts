@@ -22,7 +22,7 @@ interface ForeignWritePrivilegeRow extends Record<string, unknown> {
   schema: string;
 }
 
-interface ForeignWriterRoleRow extends Record<string, unknown> {
+interface ReachableRoleRow extends Record<string, unknown> {
   role: string;
 }
 
@@ -35,7 +35,7 @@ export interface DatabaseReadiness {
   schemaVersion: number;
 }
 
-/** Verify role, search path, seed identity, and cross-network write isolation at startup. */
+/** Verify role, search path, seed identity, and credential isolation at startup. */
 export async function verifyDatabaseReadiness(
   db: NetworkDatabase,
   runtime: RuntimeConfig,
@@ -105,20 +105,26 @@ export async function verifyDatabaseReadiness(
     foreignSchemas.map((schema) => sql`${schema}`),
     sql`, `,
   );
-  const foreignRoleList = sql.join(
-    foreignSchemas.map((schema) => sql`${createNetworkDatabaseRole(schema)}`),
-    sql`, `,
-  );
-  const membershipResult = await db.execute<ForeignWriterRoleRow>(sql`
-    SELECT candidate.rolname AS role
-    FROM pg_roles candidate
-    WHERE candidate.rolname IN (${foreignRoleList})
-      AND pg_has_role(session_user, candidate.oid, 'MEMBER')
-    ORDER BY candidate.rolname
+  const membershipResult = await db.execute<ReachableRoleRow>(sql`
+    WITH RECURSIVE memberships(role_id) AS (
+      SELECT membership.roleid
+      FROM pg_auth_members membership
+      JOIN pg_roles member_role ON member_role.oid = membership.member
+      WHERE member_role.rolname = session_user
+      UNION
+      SELECT membership.roleid
+      FROM pg_auth_members membership
+      JOIN memberships inherited ON inherited.role_id = membership.member
+    )
+    SELECT role.rolname AS role
+    FROM memberships
+    JOIN pg_roles role ON role.oid = memberships.role_id
+    WHERE role.rolname <> ${expectedRole}
+    ORDER BY role.rolname
   `);
   if (membershipResult.rows.length > 0) {
     throw new Error(
-      `Database session user can assume foreign network roles: ${membershipResult.rows.map(({ role }) => role).join(', ')}`,
+      `Database session user can assume roles outside "${expectedRole}": ${membershipResult.rows.map(({ role }) => role).join(', ')}`,
     );
   }
   const privilegeResult = await db.execute<ForeignWritePrivilegeRow>(sql`

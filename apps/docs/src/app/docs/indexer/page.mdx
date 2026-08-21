@@ -83,7 +83,7 @@ through event modules.
 | `DATABASE_STATEMENT_TIMEOUT_MS`         | No       | `60000`                                                     |
 | `DATABASE_LOCK_TIMEOUT_MS`              | No       | `10000`                                                     |
 | `DATABASE_IDLE_TRANSACTION_TIMEOUT_MS`  | No       | `60000`                                                     |
-| `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | No       | At least `1000` and greater than network finality           |
+| `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | No       | Defaults to max(`1000`, finality × 4); must exceed finality |
 
 Every URL, integer, boolean, block range, network key, Portal dataset, Portal starting height, RPC
 chain ID, configured contract deployment, database role, database schema, and stored chain identity
@@ -104,13 +104,15 @@ writer role and connects with `chain_<network>,lsp_v3,public` as its fixed `sear
 `lsp_v3` schema contains only four immutable enum types so `api` views can `UNION ALL` identical
 columns across chains; existing definitions must match their canonical labels and ordering. The
 `api` schema excludes migration history, cursors, metadata jobs, snapshots, functions, and triggers.
-Unexpected API relations abort migration, and the API reader receives `SELECT` only on the
-enumerated public views.
+Unexpected API relations or routines abort migration, and the API reader receives schema access and
+`SELECT` only after that inventory check, limited to the enumerated public views.
 
 Create runtime login roles through your PostgreSQL provisioning system, then grant them during the
-one-shot migration. Each login must be unique to one network and must not have elevated PostgreSQL
-capabilities. Deterministic schema owner and writer roles remain capability-limited
-`NOLOGIN NOINHERIT` roles without direct or transitive memberships in other roles:
+one-shot migration. Each login must be unique to one network, must not have elevated PostgreSQL
+capabilities, and may reach only its assigned network writer role. Migration and startup both reject
+direct or transitive memberships in any other role. Deterministic schema owner and writer roles
+remain capability-limited `NOLOGIN NOINHERIT` roles without direct or transitive memberships in
+other roles:
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \

@@ -3,7 +3,6 @@ import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { fileURLToPath } from 'node:url';
 import { Pool, type PoolClient } from 'pg';
-import { createNetworkSchema, getNetworkKeys } from '../config/index.js';
 import type { DatabaseMigrationConfig, DatabaseMigrationNetwork } from './config.js';
 import {
   API_OWNER_ROLE,
@@ -13,7 +12,6 @@ import {
   SHARED_ENUMS,
   SHARED_SCHEMA,
   assertPostgresIdentifier,
-  createNetworkDatabaseRole,
   quotePostgresIdentifier,
 } from './names.js';
 import * as schema from './schema.js';
@@ -55,6 +53,11 @@ interface SharedEnumDefinitionRow {
 interface ApiRelationRow {
   kind: string;
   name: string;
+}
+
+interface ApiRoutineRow {
+  kind: string;
+  signature: string;
 }
 
 interface SchemaOwnerRow {
@@ -146,8 +149,13 @@ async function ensureNoLoginRole(client: PoolClient, role: string): Promise<void
   }
 }
 
-async function ensureExistingLoginRole(client: PoolClient, role: string): Promise<void> {
+async function ensureExistingLoginRole(
+  client: PoolClient,
+  role: string,
+  assignedWriterRole: string,
+): Promise<void> {
   const validated = assertPostgresIdentifier(role, 'runtime login');
+  const validatedWriterRole = assertPostgresIdentifier(assignedWriterRole, 'database role');
   const existing = await readRoleAttributes(client, validated);
   if (existing == null) {
     throw new Error(`Configured runtime login "${validated}" does not exist`);
@@ -157,15 +165,14 @@ async function ensureExistingLoginRole(client: PoolClient, role: string): Promis
       `Configured runtime login "${validated}" must be LOGIN, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS`,
     );
   }
-}
-
-async function findReachableWriterRoles(
-  client: PoolClient,
-  runtimeLogin: string,
-  writerRoles: readonly string[],
-): Promise<string[]> {
-  const candidates = new Set(writerRoles);
-  return (await readReachableRoles(client, runtimeLogin)).filter((role) => candidates.has(role));
+  const unexpectedRoles = (await readReachableRoles(client, validated)).filter(
+    (reachableRole) => reachableRole !== validatedWriterRole,
+  );
+  if (unexpectedRoles.length > 0) {
+    throw new Error(
+      `Configured runtime login "${validated}" must not be a member of roles other than "${validatedWriterRole}": ${unexpectedRoles.join(', ')}`,
+    );
+  }
 }
 
 async function ensureOwnedSchema(client: PoolClient, name: string, owner: string): Promise<void> {
@@ -249,6 +256,24 @@ async function findUnexpectedApiRelations(
   return result.rows;
 }
 
+async function findUnexpectedApiRoutines(client: PoolClient): Promise<ApiRoutineRow[]> {
+  const result = await client.query<ApiRoutineRow>(
+    `SELECT CASE routine.prokind
+              WHEN 'a' THEN 'aggregate'
+              WHEN 'f' THEN 'function'
+              WHEN 'p' THEN 'procedure'
+              WHEN 'w' THEN 'window function'
+            END AS kind,
+            routine.proname || '(' || pg_get_function_identity_arguments(routine.oid) || ')' AS signature
+     FROM pg_proc routine
+     JOIN pg_namespace namespace ON namespace.oid = routine.pronamespace
+     WHERE namespace.nspname = $1
+     ORDER BY routine.proname, pg_get_function_identity_arguments(routine.oid)`,
+    [API_SCHEMA],
+  );
+  return result.rows;
+}
+
 async function prepareRolesAndSchemas(
   client: PoolClient,
   networks: readonly DatabaseMigrationNetwork[],
@@ -271,9 +296,6 @@ async function prepareRolesAndSchemas(
     await ensureOwnedSchema(client, SHARED_SCHEMA, API_OWNER_ROLE);
     await ensureSharedEnums(client);
     await client.query(
-      `GRANT USAGE ON SCHEMA ${quotePostgresIdentifier(API_SCHEMA)} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
-    );
-    await client.query(
       `GRANT USAGE ON SCHEMA ${quotePostgresIdentifier(SHARED_SCHEMA)} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
     );
 
@@ -293,27 +315,9 @@ async function prepareRolesAndSchemas(
         `GRANT USAGE ON TYPE ${sharedTypes} TO ${quotePostgresIdentifier(network.role)}, ${quotePostgresIdentifier(API_READER_ROLE)}`,
       );
       if (network.runtimeLogin != null) {
-        await ensureExistingLoginRole(client, network.runtimeLogin);
+        await ensureExistingLoginRole(client, network.runtimeLogin, network.role);
         await client.query(
           `GRANT ${quotePostgresIdentifier(network.role)} TO ${quotePostgresIdentifier(network.runtimeLogin)}`,
-        );
-      }
-    }
-
-    const writerRoles = getNetworkKeys().map((network) =>
-      createNetworkDatabaseRole(createNetworkSchema(network)),
-    );
-    for (const network of networks) {
-      if (network.runtimeLogin == null) continue;
-      const foreignRoles = writerRoles.filter((role) => role !== network.role);
-      const reachableRoles = await findReachableWriterRoles(
-        client,
-        network.runtimeLogin,
-        foreignRoles,
-      );
-      if (reachableRoles.length > 0) {
-        throw new Error(
-          `Configured runtime login "${network.runtimeLogin}" can assume foreign network roles: ${reachableRoles.join(', ')}`,
         );
       }
     }
@@ -485,6 +489,12 @@ async function rebuildApiViews(
         `API schema contains unexpected relations: ${unexpectedRelations.map(({ kind, name }) => `${name} (${kind})`).join(', ')}`,
       );
     }
+    const unexpectedRoutines = await findUnexpectedApiRoutines(client);
+    if (unexpectedRoutines.length > 0) {
+      throw new Error(
+        `API schema contains unexpected routines: ${unexpectedRoutines.map(({ kind, signature }) => `${signature} (${kind})`).join(', ')}`,
+      );
+    }
     await client.query(
       `REVOKE SELECT ON ALL TABLES IN SCHEMA ${quotePostgresIdentifier(API_SCHEMA)} FROM ${quotePostgresIdentifier(API_READER_ROLE)}`,
     );
@@ -495,6 +505,9 @@ async function rebuildApiViews(
       .join(', ');
     await client.query(
       `GRANT SELECT ON ${publicViewList} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
+    );
+    await client.query(
+      `GRANT USAGE ON SCHEMA ${quotePostgresIdentifier(API_SCHEMA)} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
     );
     await client.query('COMMIT');
   } catch (error) {

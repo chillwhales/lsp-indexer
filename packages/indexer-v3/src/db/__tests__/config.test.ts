@@ -79,6 +79,15 @@ describe('database configuration', () => {
     ).toThrow('distinct login role');
   });
 
+  it('accepts an explicit rollback retention below the default floor when it exceeds finality', () => {
+    const config = loadNetworkDatabaseConfig(runtime(), {
+      DATABASE_URL: 'postgresql://example.test/indexer',
+      DATABASE_UNFINALIZED_BLOCKS_RETENTION: '13',
+    });
+
+    expect(config.unfinalizedBlocksRetention).toBe(13);
+  });
+
   it.each([
     () => loadNetworkDatabaseConfig(runtime(), {}),
     () => loadNetworkDatabaseConfig(runtime(), { DATABASE_URL: 'https://example.test' }),

@@ -72,7 +72,7 @@ track only the `api` views, not chain schemas or internal job/cursor tables.
 | `DATABASE_POOL_MAX`                     | No       | Runtime connection limit; defaults to `10`                  |
 | `DATABASE_STATEMENT_TIMEOUT_MS`         | No       | Statement timeout; defaults to `60000`                      |
 | `DATABASE_LOCK_TIMEOUT_MS`              | No       | Lock timeout; defaults to `10000`                           |
-| `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | No       | Cursor/snapshot retention; defaults to at least `1000`      |
+| `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | No       | Defaults to max(`1000`, finality × 4); must exceed finality |
 
 URLs, ranges, boolean values, the network key, Portal dataset identity, Portal coverage, RPC chain
 ID, and configured contract bytecode are validated before a network program starts. A
@@ -84,11 +84,13 @@ The migration command is separate from every indexer process. It creates the imm
 type schema, one physical schema and non-login writer role per enabled network, Drizzle migration
 history and cursor tables, and the read-only `api` views. A cluster-wide advisory lock rejects
 concurrent migration commands. Runtime login roles must already exist; provide their names to grant
-each login only its matching writer role. Every login must be unique to one network and must not
-have elevated PostgreSQL capabilities. Existing deterministic owner and writer roles are accepted
-only when they remain `NOLOGIN NOINHERIT`, capability-limited, and have no direct or transitive role
-memberships. Pre-existing shared enums must match the canonical labels and ordering. The API reader
-receives `SELECT` only on the enumerated public views, and unexpected API relations abort migration.
+each login only its matching writer role. Every login must be unique to one network, must not have
+elevated PostgreSQL capabilities, and may reach no role other than its assigned writer. Migration and
+startup reject direct or transitive memberships in any other role. Existing deterministic owner and
+writer roles are accepted only when they remain `NOLOGIN NOINHERIT`, capability-limited, and have no
+direct or transitive role memberships. Pre-existing shared enums must match the canonical labels and
+ordering. The API reader receives schema access and `SELECT` only after unexpected API relations and
+routines are rejected, limited to the enumerated public views.
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
@@ -104,7 +106,7 @@ chain_<network>,lsp_v3,public
 
 Check the role, schema, seeded chain identity, and lack of cross-network write privileges before
 starting a pipe. Readiness validates both the assumed writer role and the underlying session login,
-including superuser status and foreign writer memberships:
+including superuser status and every reachable role membership:
 
 ```bash
 INDEXER_NETWORK=ethereum-mainnet \
