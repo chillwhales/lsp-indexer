@@ -47,6 +47,16 @@ interface RoleNameRow {
   role: string;
 }
 
+interface SharedEnumDefinitionRow {
+  kind: string;
+  labels: string[];
+}
+
+interface ApiRelationRow {
+  kind: string;
+  name: string;
+}
+
 interface SchemaOwnerRow {
   owner: string;
 }
@@ -62,10 +72,6 @@ interface MigrationHistoryRow {
 
 interface TableNameRow {
   tableName: string;
-}
-
-interface ExistsRow {
-  exists: boolean;
 }
 
 interface LockRow {
@@ -97,6 +103,27 @@ function hasElevatedCapabilities(role: RoleAttributesRow): boolean {
   );
 }
 
+async function readReachableRoles(client: PoolClient, memberRole: string): Promise<string[]> {
+  const result = await client.query<RoleNameRow>(
+    `WITH RECURSIVE memberships(role_id) AS (
+       SELECT membership.roleid
+       FROM pg_auth_members membership
+       JOIN pg_roles member_role ON member_role.oid = membership.member
+       WHERE member_role.rolname = $1
+       UNION
+       SELECT membership.roleid
+       FROM pg_auth_members membership
+       JOIN memberships inherited ON inherited.role_id = membership.member
+     )
+     SELECT role.rolname AS role
+     FROM memberships
+     JOIN pg_roles role ON role.oid = memberships.role_id
+     ORDER BY role.rolname`,
+    [memberRole],
+  );
+  return result.rows.map(({ role }) => role);
+}
+
 async function ensureNoLoginRole(client: PoolClient, role: string): Promise<void> {
   const validated = assertPostgresIdentifier(role, 'database role');
   const existing = await readRoleAttributes(client, validated);
@@ -109,6 +136,12 @@ async function ensureNoLoginRole(client: PoolClient, role: string): Promise<void
   if (existing.canLogin || existing.inheritPrivileges || hasElevatedCapabilities(existing)) {
     throw new Error(
       `Existing database role "${validated}" must be NOLOGIN, NOINHERIT, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS`,
+    );
+  }
+  const reachableRoles = await readReachableRoles(client, validated);
+  if (reachableRoles.length > 0) {
+    throw new Error(
+      `Existing database role "${validated}" must not be a member of other roles: ${reachableRoles.join(', ')}`,
     );
   }
 }
@@ -131,25 +164,8 @@ async function findReachableWriterRoles(
   runtimeLogin: string,
   writerRoles: readonly string[],
 ): Promise<string[]> {
-  const result = await client.query<RoleNameRow>(
-    `WITH RECURSIVE memberships(role_id) AS (
-       SELECT membership.roleid
-       FROM pg_auth_members membership
-       JOIN pg_roles member_role ON member_role.oid = membership.member
-       WHERE member_role.rolname = $1
-       UNION
-       SELECT membership.roleid
-       FROM pg_auth_members membership
-       JOIN memberships inherited ON inherited.role_id = membership.member
-     )
-     SELECT candidate.rolname AS role
-     FROM memberships
-     JOIN pg_roles candidate ON candidate.oid = memberships.role_id
-     WHERE candidate.rolname = ANY($2::text[])
-     ORDER BY candidate.rolname`,
-    [runtimeLogin, writerRoles],
-  );
-  return result.rows.map(({ role }) => role);
+  const candidates = new Set(writerRoles);
+  return (await readReachableRoles(client, runtimeLogin)).filter((role) => candidates.has(role));
 }
 
 async function ensureOwnedSchema(client: PoolClient, name: string, owner: string): Promise<void> {
@@ -180,21 +196,57 @@ function quotePostgresLiteral(value: string): string {
 async function ensureSharedEnums(client: PoolClient): Promise<void> {
   await client.query(`SET LOCAL ROLE ${quotePostgresIdentifier(API_OWNER_ROLE)}`);
   for (const [name, values] of Object.entries(SHARED_ENUMS)) {
-    const exists = await client.query<ExistsRow>(
-      `SELECT EXISTS(
-         SELECT 1
-         FROM pg_type t
-         JOIN pg_namespace n ON n.oid = t.typnamespace
-         WHERE n.nspname = $1 AND t.typname = $2
-       ) AS exists`,
+    const definition = await client.query<SharedEnumDefinitionRow>(
+      `SELECT shared_type.typtype AS kind,
+              ARRAY(
+                SELECT enum_value.enumlabel::text
+                FROM pg_enum enum_value
+                WHERE enum_value.enumtypid = shared_type.oid
+                ORDER BY enum_value.enumsortorder
+              ) AS labels
+       FROM pg_type shared_type
+       JOIN pg_namespace namespace ON namespace.oid = shared_type.typnamespace
+       WHERE namespace.nspname = $1 AND shared_type.typname = $2`,
       [SHARED_SCHEMA, name],
     );
-    if (exists.rows[0]?.exists) continue;
+    const existing = definition.rows[0];
+    if (existing != null) {
+      const labelsMatch =
+        existing.labels.length === values.length &&
+        values.every((value, index) => existing.labels[index] === value);
+      if (existing.kind !== 'e' || !labelsMatch) {
+        const actual =
+          existing.kind === 'e'
+            ? JSON.stringify(existing.labels)
+            : `non-enum PostgreSQL type kind "${existing.kind}"`;
+        throw new Error(
+          `Existing shared type "${SHARED_SCHEMA}.${name}" must be an enum with labels in this order: ${JSON.stringify(values)}; found ${actual}`,
+        );
+      }
+      continue;
+    }
     await client.query(
       `CREATE TYPE ${quotePostgresIdentifier(SHARED_SCHEMA)}.${quotePostgresIdentifier(name)} AS ENUM (${values.map(quotePostgresLiteral).join(', ')})`,
     );
   }
   await client.query('RESET ROLE');
+}
+
+async function findUnexpectedApiRelations(
+  client: PoolClient,
+  viewNames: readonly string[],
+): Promise<ApiRelationRow[]> {
+  const result = await client.query<ApiRelationRow>(
+    `SELECT relation.relkind AS kind, relation.relname AS name
+     FROM pg_class relation
+     JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+     WHERE namespace.nspname = $1
+       AND relation.relkind IN ('r', 'p', 'v', 'm', 'f')
+       AND NOT (relation.relkind = 'v' AND relation.relname = ANY($2::text[]))
+     ORDER BY relation.relname`,
+    [API_SCHEMA, viewNames],
+  );
+  return result.rows;
 }
 
 async function prepareRolesAndSchemas(
@@ -427,8 +479,22 @@ async function rebuildApiViews(
         `CREATE OR REPLACE VIEW ${quotePostgresIdentifier(API_SCHEMA)}.${view} WITH (security_barrier = true) AS ${selections}`,
       );
     }
+    const unexpectedRelations = await findUnexpectedApiRelations(client, viewNames);
+    if (unexpectedRelations.length > 0) {
+      throw new Error(
+        `API schema contains unexpected relations: ${unexpectedRelations.map(({ kind, name }) => `${name} (${kind})`).join(', ')}`,
+      );
+    }
     await client.query(
-      `GRANT SELECT ON ALL TABLES IN SCHEMA ${quotePostgresIdentifier(API_SCHEMA)} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
+      `REVOKE SELECT ON ALL TABLES IN SCHEMA ${quotePostgresIdentifier(API_SCHEMA)} FROM ${quotePostgresIdentifier(API_READER_ROLE)}`,
+    );
+    const publicViewList = viewNames
+      .map(
+        (viewName) => `${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier(viewName)}`,
+      )
+      .join(', ');
+    await client.query(
+      `GRANT SELECT ON ${publicViewList} TO ${quotePostgresIdentifier(API_READER_ROLE)}`,
     );
     await client.query('COMMIT');
   } catch (error) {

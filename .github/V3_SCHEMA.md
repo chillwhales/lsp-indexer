@@ -90,14 +90,17 @@ chain schema.
 
 Drizzle Kit generates one schema-relative migration series. The normalization step removes its
 default `public` qualifiers and enum creation; the migration owner creates shared enum types once in
-`lsp_v3`. Each chain has an independent migration history whose normalized hashes are verified on
-every run. A cluster-wide advisory lock rejects concurrent migration commands, and reapplying the
-same plan is idempotent.
+`lsp_v3` and rejects any pre-existing definition whose labels or ordering differ. Deterministic
+owner and writer roles must be capability-limited non-login roles without direct or transitive role
+memberships. Each chain has an independent migration history whose normalized hashes are verified
+on every run. A cluster-wide advisory lock rejects concurrent migration commands, and reapplying
+the same plan is idempotent.
 
 After every enabled chain is current, the migrator transactionally replaces 14 security-barrier
 views in `api` with `UNION ALL` selections. Internal jobs, cursor history, network identity,
-migration history, and rollback artifacts are intentionally absent. Hasura and future packages must
-join, filter, cache, and subscribe with both `network` and `chain_id`.
+migration history, and rollback artifacts are intentionally absent. Unexpected API relations abort
+the rebuild, and the reader receives `SELECT` only on those 14 enumerated views. Hasura and future
+packages must join, filter, cache, and subscribe with both `network` and `chain_id`.
 
 Pipes `1.0.0-beta.3` does not reconcile a snapshot table after a tracked column changes. A pending
 migration therefore fails before execution whenever any snapshot table exists, even if retention

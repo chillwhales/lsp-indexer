@@ -102,13 +102,15 @@ and indexed heads retain a known finalized watermark when a later source batch o
 Mutable state is never shared across chains. The runtime login assumes one deterministic non-login
 writer role and connects with `chain_<network>,lsp_v3,public` as its fixed `search_path`. The
 `lsp_v3` schema contains only four immutable enum types so `api` views can `UNION ALL` identical
-columns across chains. The `api` schema excludes migration history, cursors, metadata jobs,
-snapshots, functions, and triggers.
+columns across chains; existing definitions must match their canonical labels and ordering. The
+`api` schema excludes migration history, cursors, metadata jobs, snapshots, functions, and triggers.
+Unexpected API relations abort migration, and the API reader receives `SELECT` only on the
+enumerated public views.
 
 Create runtime login roles through your PostgreSQL provisioning system, then grant them during the
 one-shot migration. Each login must be unique to one network and must not have elevated PostgreSQL
 capabilities. Deterministic schema owner and writer roles remain capability-limited
-`NOLOGIN NOINHERIT` roles:
+`NOLOGIN NOINHERIT` roles without direct or transitive memberships in other roles:
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \

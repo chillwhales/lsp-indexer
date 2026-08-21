@@ -187,7 +187,8 @@ V3 prevents that class of corruption structurally:
   enum types shared so cross-network union views have compatible PostgreSQL column types.
 - Application table names remain identical across network schemas so one Drizzle definition and one
   migration series can be applied repeatedly.
-- Deterministic schema-owner and writer roles are capability-limited `NOLOGIN NOINHERIT` roles.
+- Deterministic schema-owner and writer roles are capability-limited `NOLOGIN NOINHERIT` roles
+  with no direct or transitive memberships in other roles.
 - Every runtime login is unique to one network. Startup checks the underlying `session_user` for
   superuser status, foreign writer memberships, and direct or inherited foreign write access.
 - No indexer credential receives write access to another network schema.
@@ -198,6 +199,9 @@ The shared `api` schema contains read-only `UNION ALL` views over enabled networ
 includes `network` and `chain_id`, and relationships include network identity in their join. Hasura
 supports exposing PostgreSQL views to both queries and subscriptions:
 [Hasura view documentation](https://github.com/hasura/graphql-engine/blob/master/docs/docs/schema/postgres/views.mdx).
+The migrator rejects unexpected tables or views in this schema and grants the API reader `SELECT`
+only on the enumerated public views. Existing shared enums must match the canonical labels and
+ordering exactly before any chain migration proceeds.
 
 Adding a network is a migration operation: create its schema, apply every v3 migration, validate its
 constraints, replace the affected `api` views transactionally, and apply Hasura metadata. It is not
@@ -276,8 +280,8 @@ until the released SDK safely reconciles snapshots or an owner-approved migratio
 that rollback data is preserved.
 
 The migration runner enforces that rule: if a pending migration exists and any rollback snapshot
-table contains rows, it fails before executing the migration. PostgreSQL integration tests exercise
-that refusal with a synthetic tracked-table schema change.
+table exists, even when empty, it fails before executing the migration. PostgreSQL integration tests
+exercise that refusal with a synthetic tracked-table schema change.
 
 The bounded-finality fix is also still a draft:
 [subsquid/pipes-sdk#143](https://github.com/subsquid/pipes-sdk/pull/143). Backfill completion evidence

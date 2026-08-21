@@ -26,8 +26,11 @@ import {
 import { migrateDatabase } from '../migrate.js';
 import {
   API_OWNER_ROLE,
+  API_READER_ROLE,
+  API_SCHEMA,
   DATABASE_SCHEMA_VERSION,
   quotePostgresIdentifier,
+  SHARED_ENUMS,
   SHARED_SCHEMA,
 } from '../names.js';
 import { verifyDatabaseReadiness } from '../readiness.js';
@@ -149,6 +152,20 @@ async function createRuntimeLogin(pool: Pool, role: string): Promise<void> {
   await pool.query(
     `CREATE ROLE ${quotePostgresIdentifier(role)} LOGIN PASSWORD '${runtimePassword}'`,
   );
+}
+
+async function executeAsRole(pool: Pool, role: string, query: string): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query(`SET ROLE ${quotePostgresIdentifier(role)}`);
+    await client.query(query);
+  } finally {
+    try {
+      await client.query('RESET ROLE');
+    } finally {
+      client.release();
+    }
+  }
 }
 
 function runtimeDatabaseUrl(network: keyof typeof runtimeLogins): string {
@@ -445,6 +462,80 @@ describe.sequential('PostgreSQL persistence', () => {
       } finally {
         await controlPool.query(`ALTER ROLE ${quotePostgresIdentifier(role)} NOLOGIN NOINHERIT`);
       }
+    }
+  });
+
+  it('rejects memberships on pre-existing deterministic roles', async () => {
+    const ethereumRole = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    )?.role;
+    if (ethereumRole == null) throw new Error('Expected the Ethereum writer role');
+    const bridgeRole = `v3_test_bridge_${suiteSuffix}`;
+
+    await controlPool.query(`CREATE ROLE ${quotePostgresIdentifier(bridgeRole)} NOLOGIN NOINHERIT`);
+    try {
+      await controlPool.query(
+        `GRANT ${quotePostgresIdentifier(API_OWNER_ROLE)} TO ${quotePostgresIdentifier(bridgeRole)}`,
+      );
+      await controlPool.query(
+        `GRANT ${quotePostgresIdentifier(bridgeRole)} TO ${quotePostgresIdentifier(ethereumRole)}`,
+      );
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `Existing database role "${ethereumRole}" must not be a member of other roles: ${API_OWNER_ROLE}, ${bridgeRole}`,
+      );
+    } finally {
+      await controlPool.query(
+        `REVOKE ${quotePostgresIdentifier(bridgeRole)} FROM ${quotePostgresIdentifier(ethereumRole)}`,
+      );
+      await controlPool.query(
+        `REVOKE ${quotePostgresIdentifier(API_OWNER_ROLE)} FROM ${quotePostgresIdentifier(bridgeRole)}`,
+      );
+      await controlPool.query(`DROP ROLE ${quotePostgresIdentifier(bridgeRole)}`);
+    }
+  });
+
+  it('rejects pre-existing shared enums with mismatched labels', async () => {
+    const enumName = 'metadata_job_status';
+    const expectedLabel = SHARED_ENUMS[enumName][1];
+    const unexpectedLabel = 'unexpected_processing';
+    const qualifiedEnum = `${quotePostgresIdentifier(SHARED_SCHEMA)}.${quotePostgresIdentifier(enumName)}`;
+    await executeAsRole(
+      testAdminPool,
+      API_OWNER_ROLE,
+      `ALTER TYPE ${qualifiedEnum} RENAME VALUE '${expectedLabel}' TO '${unexpectedLabel}'`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `Existing shared type "${SHARED_SCHEMA}.${enumName}" must be an enum with labels in this order`,
+      );
+    } finally {
+      await executeAsRole(
+        testAdminPool,
+        API_OWNER_ROLE,
+        `ALTER TYPE ${qualifiedEnum} RENAME VALUE '${unexpectedLabel}' TO '${expectedLabel}'`,
+      );
+    }
+  });
+
+  it('rejects unexpected API relations instead of granting reader access', async () => {
+    const relationName = 'unexpected_internal_data';
+    const qualifiedRelation = `${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier(relationName)}`;
+    await executeAsRole(
+      testAdminPool,
+      API_OWNER_ROLE,
+      `CREATE TABLE ${qualifiedRelation} (secret text NOT NULL)`,
+    );
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `API schema contains unexpected relations: ${relationName} (r)`,
+      );
+      const privilege = await testAdminPool.query<{ allowed: boolean }>(
+        `SELECT has_table_privilege($1, $2, 'SELECT') AS allowed`,
+        [API_READER_ROLE, `${API_SCHEMA}.${relationName}`],
+      );
+      expect(privilege.rows[0]?.allowed).toBe(false);
+    } finally {
+      await executeAsRole(testAdminPool, API_OWNER_ROLE, `DROP TABLE ${qualifiedRelation}`);
     }
   });
 

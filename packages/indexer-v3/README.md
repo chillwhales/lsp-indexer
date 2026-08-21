@@ -86,7 +86,9 @@ history and cursor tables, and the read-only `api` views. A cluster-wide advisor
 concurrent migration commands. Runtime login roles must already exist; provide their names to grant
 each login only its matching writer role. Every login must be unique to one network and must not
 have elevated PostgreSQL capabilities. Existing deterministic owner and writer roles are accepted
-only when they remain `NOLOGIN NOINHERIT` and capability-limited.
+only when they remain `NOLOGIN NOINHERIT`, capability-limited, and have no direct or transitive role
+memberships. Pre-existing shared enums must match the canonical labels and ordering. The API reader
+receives `SELECT` only on the enumerated public views, and unexpected API relations abort migration.
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
