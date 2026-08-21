@@ -29,8 +29,9 @@ Pipes identity and a separate PostgreSQL schema reserved for the persistence wor
 | `ethereum-sepolia` | 11155111 | `lsp-indexer:v3:eip155:11155111` | `chain_ethereum_sepolia` |
 
 Well-known LSP23 and LSP26 deployments are optional typed capabilities in the same registry. A
-contract that is not deployed is absent; v3 never substitutes the zero address. This lets later
-domain decoders derive their contract filters from configuration instead of per-plugin chain lists.
+contract that is not deployed is absent; v3 never substitutes the zero address. The exported
+registry and every nested configuration value are read-only and frozen. This lets later domain
+decoders derive their contract filters from configuration instead of per-plugin chain lists.
 
 The Pipes `devRunner` wrapper is available for local multi-network development only. Production
 must keep network processes isolated so a crash, CPU spike, or provider failure on one chain does
@@ -74,8 +75,8 @@ INDEXER_TO_BLOCK=22000010 \
 ```
 
 The probe reports batches, blocks, logs, and the network-scoped stream identity. It refuses to run
-without `INDEXER_TO_BLOCK` and fails if the source does not return both requested range boundaries;
-it is a source diagnostic, not the domain indexer.
+without `INDEXER_TO_BLOCK` and fails unless the source returns every block exactly once in ascending
+order across the inclusive range; it is a source diagnostic, not the domain indexer.
 
 Run local validation:
 

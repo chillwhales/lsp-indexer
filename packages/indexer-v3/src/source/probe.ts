@@ -57,15 +57,23 @@ export async function runRuntimeProbe(options: RuntimeProbeOptions): Promise<Run
   let logs = 0;
   let firstBlock: number | null = null;
   let lastBlock: number | null = null;
+  let expectedBlock = options.runtime.range.from;
 
   for await (const { data } of stream) {
     batches += 1;
     blocks += data.length;
 
     for (const block of data) {
+      if (block.header.number !== expectedBlock) {
+        throw new Error(
+          `Pipes source returned a non-contiguous range: expected block ${expectedBlock}, received ${block.header.number}`,
+        );
+      }
+
       firstBlock ??= block.header.number;
       lastBlock = block.header.number;
       logs += block.logs.length;
+      expectedBlock += 1;
     }
   }
 

@@ -41,6 +41,29 @@ describe('network registry', () => {
     expect(NETWORKS['ethereum-sepolia'].contracts.lsp26FollowerSystem).toBeUndefined();
   });
 
+  it('deeply freezes exported network configurations', () => {
+    const network = getNetworkConfig('lukso-mainnet');
+
+    expect(Object.isFrozen(NETWORKS)).toBe(true);
+    expect(Object.isFrozen(network)).toBe(true);
+    expect(Object.isFrozen(network.nativeCurrency)).toBe(true);
+    expect(Object.isFrozen(network.portal)).toBe(true);
+    expect(Object.isFrozen(network.rpc)).toBe(true);
+    expect(Object.isFrozen(network.contracts)).toBe(true);
+    expect(Object.isFrozen(network.contracts.lsp23Factory)).toBe(true);
+    expect(Object.isFrozen(network.contracts.lsp26FollowerSystem)).toBe(true);
+    expect(Object.isFrozen(network.extensions)).toBe(true);
+
+    expect(Reflect.set(network, 'chainId', 1)).toBe(false);
+    expect(Reflect.set(network.rpc, 'defaultUrl', 'https://attacker.invalid')).toBe(false);
+    expect(Reflect.set(network.extensions, '0', 'mutated')).toBe(false);
+    expect(getNetworkConfig('lukso-mainnet').chainId).toBe(42);
+    expect(getNetworkConfig('lukso-mainnet').rpc.defaultUrl).toBe(
+      'https://rpc.mainnet.lukso.network',
+    );
+    expect(getNetworkConfig('lukso-mainnet').extensions).toEqual(['chillwhales']);
+  });
+
   it('rejects unknown networks and unsafe schema keys', () => {
     expect(() => getNetworkConfig('polygon-mainnet')).toThrow(
       'Expected one of: lukso-mainnet, ethereum-mainnet, ethereum-sepolia',

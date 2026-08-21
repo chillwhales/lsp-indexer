@@ -1,47 +1,59 @@
 import type { Address } from 'viem';
 
 export interface NativeCurrencyConfig {
-  name: string;
-  symbol: string;
-  decimals: number;
+  readonly name: string;
+  readonly symbol: string;
+  readonly decimals: number;
 }
 
 export interface PortalConfig {
-  dataset: string;
-  url: string;
-  expectedRealtime: boolean;
+  readonly dataset: string;
+  readonly url: string;
+  readonly expectedRealtime: boolean;
 }
 
 export interface RpcConfig {
-  environmentVariable: string;
-  defaultUrl: string;
-  batchSize: number;
-  batchWaitMs: number;
+  readonly environmentVariable: string;
+  readonly defaultUrl: string;
+  readonly batchSize: number;
+  readonly batchWaitMs: number;
 }
 
 export interface ContractDeployment {
-  address: Address;
-  fromBlock: number;
+  readonly address: Address;
+  readonly fromBlock: number;
 }
 
 export interface NetworkContracts {
-  lsp23Factory?: ContractDeployment;
-  lsp26FollowerSystem?: ContractDeployment;
+  readonly lsp23Factory?: ContractDeployment;
+  readonly lsp26FollowerSystem?: ContractDeployment;
 }
 
 export interface NetworkConfig {
-  key: string;
-  chainId: number;
-  displayName: string;
-  nativeCurrency: NativeCurrencyConfig;
-  startBlock: number;
-  finalityConfirmations: number;
-  portal: PortalConfig;
-  rpc: RpcConfig;
-  multicallAddress: Address;
-  ipfsGateway: string;
-  contracts: NetworkContracts;
-  extensions: readonly string[];
+  readonly key: string;
+  readonly chainId: number;
+  readonly displayName: string;
+  readonly nativeCurrency: NativeCurrencyConfig;
+  readonly startBlock: number;
+  readonly finalityConfirmations: number;
+  readonly portal: PortalConfig;
+  readonly rpc: RpcConfig;
+  readonly multicallAddress: Address;
+  readonly ipfsGateway: string;
+  readonly contracts: NetworkContracts;
+  readonly extensions: readonly string[];
+}
+
+function freezeNetworkConfig(config: NetworkConfig): void {
+  Object.freeze(config.nativeCurrency);
+  Object.freeze(config.portal);
+  Object.freeze(config.rpc);
+  for (const deployment of Object.values(config.contracts)) {
+    Object.freeze(deployment);
+  }
+  Object.freeze(config.contracts);
+  Object.freeze(config.extensions);
+  Object.freeze(config);
 }
 
 const NETWORK_DEFINITIONS = {
@@ -150,6 +162,10 @@ const NETWORK_DEFINITIONS = {
     extensions: [],
   },
 } satisfies Record<string, NetworkConfig>;
+
+for (const network of Object.values(NETWORK_DEFINITIONS)) {
+  freezeNetworkConfig(network);
+}
 
 export type NetworkKey = keyof typeof NETWORK_DEFINITIONS;
 

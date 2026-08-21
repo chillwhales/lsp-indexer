@@ -109,6 +109,23 @@ describe('runtime source probe', () => {
     );
   });
 
+  it('fails when a source omits an interior block', async () => {
+    const portal = await mockEvmPortalStream({
+      blocks: [mockBlock({ number: 100 }), mockBlock({ number: 102 })],
+    });
+
+    try {
+      await expect(
+        runRuntimeProbe({
+          runtime: createRuntime('ethereum-mainnet', portal.url, 100, 102),
+          logger: 'error',
+        }),
+      ).rejects.toThrow('non-contiguous range: expected block 101, received 102');
+    } finally {
+      await portal.close();
+    }
+  });
+
   it('fails when a source result does not contain both requested boundaries', () => {
     expect(() => {
       assertRuntimeProbeCompleteness(10, 11, 10, 10);

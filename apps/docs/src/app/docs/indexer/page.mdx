@@ -49,8 +49,9 @@ catalog.
 
 The registry also carries optional LSP23 factory and LSP26 follower-system deployments with their
 first safe indexing block. An unavailable contract is omitted instead of using the zero address.
-Later domain decoders can therefore select contract-scoped capabilities without scattering chain
-allowlists through event modules.
+The exported registry and every nested configuration value are read-only and frozen. Later domain
+decoders can therefore select contract-scoped capabilities without scattering chain allowlists
+through event modules.
 
 ### V3 environment variables
 
@@ -90,8 +91,8 @@ INDEXER_TO_BLOCK=22000010 \
 
 The probe intentionally refuses an unbounded range. It reports the selected network and stream ID,
 batch count, block count, log count, and first and last blocks, without writing data. It fails unless
-the source returns both inclusive range boundaries, so a partial response is not reported as a
-successful diagnostic.
+the source returns every block exactly once in ascending order across the inclusive range, so a
+partial response is not reported as a successful diagnostic.
 
 ### LUKSO live-source gate
 
