@@ -1,6 +1,7 @@
 import { evmPortalStream, evmQuery } from '@subsquid/pipes/evm';
 import { mockBlock, mockEvmPortalStream, type PortalBlock } from '@subsquid/pipes/testing/evm';
 import { eq } from 'drizzle-orm';
+import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -22,7 +23,12 @@ import {
   createMetadataRevisionId,
 } from '../identity.js';
 import { migrateDatabase } from '../migrate.js';
-import { DATABASE_SCHEMA_VERSION, quotePostgresIdentifier, SHARED_SCHEMA } from '../names.js';
+import {
+  API_OWNER_ROLE,
+  DATABASE_SCHEMA_VERSION,
+  quotePostgresIdentifier,
+  SHARED_SCHEMA,
+} from '../names.js';
 import { verifyDatabaseReadiness } from '../readiness.js';
 import {
   blocks,
@@ -39,6 +45,9 @@ if (configuredSourceDatabaseUrl == null) {
   throw new Error('TEST_DATABASE_URL is required for the PostgreSQL persistence suite');
 }
 const sourceDatabaseUrl: string = configuredSourceDatabaseUrl;
+const migrationCount = readMigrationFiles({
+  migrationsFolder: fileURLToPath(new URL('../../../drizzle', import.meta.url)),
+}).length;
 
 interface TestBlock {
   header: {
@@ -59,6 +68,10 @@ interface MigrationJournal {
     tag: string;
     breakpoints: boolean;
   }[];
+}
+
+interface SnapshotTableRow {
+  tableName: string;
 }
 
 type TestTarget = ReturnType<typeof createPersistenceTarget<TestBlock[]>>;
@@ -257,13 +270,20 @@ function createTestTarget(failAtBlock?: number): TestTarget {
   });
 }
 
-async function runBlocks(currentTarget: TestTarget, selectedBlocks: PortalBlock[]): Promise<void> {
+async function runBlocks(
+  currentTarget: TestTarget,
+  selectedBlocks: PortalBlock[],
+  finalized: { number: number; hash: string } | null = {
+    number: block0.header.number,
+    hash: block0.header.hash,
+  },
+): Promise<void> {
   const first = selectedBlocks.at(0);
   const last = selectedBlocks.at(-1);
   if (first == null || last == null) throw new Error('At least one test block is required');
   const portal = await mockEvmPortalStream({
     blocks: selectedBlocks,
-    finalized: { number: block0.header.number, hash: block0.header.hash },
+    ...(finalized == null ? {} : { finalized }),
   });
   try {
     const output = evmQuery()
@@ -290,6 +310,34 @@ async function countRows(pool: Pool, qualifiedTable: string): Promise<number> {
     `SELECT count(*) AS count FROM ${qualifiedTable}`,
   );
   return Number(result.rows[0]?.count ?? 0);
+}
+
+async function createPendingMigrationDirectory(): Promise<{
+  migrationsDirectory: string;
+  temporaryDirectory: string;
+}> {
+  const temporaryDirectory = await mkdtemp(join(tmpdir(), 'lsp-v3-migrations-'));
+  const migrationsDirectory = join(temporaryDirectory, 'drizzle');
+  await cp(fileURLToPath(new URL('../../../drizzle', import.meta.url)), migrationsDirectory, {
+    recursive: true,
+  });
+  const journalPath = join(migrationsDirectory, 'meta', '_journal.json');
+  const journal = JSON.parse(await readFile(journalPath, 'utf8')) as MigrationJournal;
+  const previous = journal.entries.at(-1);
+  if (previous == null) throw new Error('Expected existing Drizzle migrations');
+  journal.entries.push({
+    idx: previous.idx + 1,
+    version: previous.version,
+    when: previous.when + 1,
+    tag: 'pending_test_schema_change',
+    breakpoints: true,
+  });
+  await writeFile(journalPath, `${JSON.stringify(journal, null, 2)}\n`);
+  await writeFile(
+    join(migrationsDirectory, 'pending_test_schema_change.sql'),
+    'ALTER TABLE universal_profiles ADD COLUMN forbidden_schema_change text;\n',
+  );
+  return { migrationsDirectory, temporaryDirectory };
 }
 
 beforeAll(async (): Promise<void> => {
@@ -379,7 +427,33 @@ describe.sequential('PostgreSQL persistence', () => {
           testAdminPool,
           `${quotePostgresIdentifier(network.schema)}.${quotePostgresIdentifier('__drizzle_migrations')}`,
         ),
-      ).toBe(2);
+      ).toBe(migrationCount);
+    }
+  });
+
+  it('rejects unsafe attributes on pre-existing deterministic roles', async () => {
+    const ethereumRole = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    )?.role;
+    if (ethereumRole == null) throw new Error('Expected the Ethereum writer role');
+
+    for (const role of [API_OWNER_ROLE, ethereumRole]) {
+      await controlPool.query(`ALTER ROLE ${quotePostgresIdentifier(role)} LOGIN INHERIT`);
+      try {
+        await expect(migrateDatabase(migrationConfig)).rejects.toThrow('NOLOGIN, NOINHERIT');
+      } finally {
+        await controlPool.query(`ALTER ROLE ${quotePostgresIdentifier(role)} NOLOGIN NOINHERIT`);
+      }
+    }
+  });
+
+  it('rejects elevated runtime login capabilities', async () => {
+    const runtimeLogin = runtimeLogins['ethereum-mainnet'];
+    await controlPool.query(`ALTER ROLE ${quotePostgresIdentifier(runtimeLogin)} SUPERUSER`);
+    try {
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow('NOSUPERUSER');
+    } finally {
+      await controlPool.query(`ALTER ROLE ${quotePostgresIdentifier(runtimeLogin)} NOSUPERUSER`);
     }
   });
 
@@ -422,6 +496,26 @@ describe.sequential('PostgreSQL persistence', () => {
       await testAdminPool.query(
         'UPDATE chain_ethereum_mainnet.network_config SET schema_version = $1',
         [DATABASE_SCHEMA_VERSION],
+      );
+    }
+  });
+
+  it('rejects credentials that can assume another network writer role', async () => {
+    const sepoliaRole = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-sepolia',
+    )?.role;
+    if (sepoliaRole == null) throw new Error('Expected the Sepolia writer role');
+    const runtimeLogin = runtimeLogins['ethereum-mainnet'];
+    await controlPool.query(
+      `GRANT ${quotePostgresIdentifier(sepoliaRole)} TO ${quotePostgresIdentifier(runtimeLogin)}`,
+    );
+    try {
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        'foreign network roles',
+      );
+    } finally {
+      await controlPool.query(
+        `REVOKE ${quotePostgresIdentifier(sepoliaRole)} FROM ${quotePostgresIdentifier(runtimeLogin)}`,
       );
     }
   });
@@ -491,6 +585,45 @@ describe.sequential('PostgreSQL persistence', () => {
     expect((await ethereumDb.select().from(indexedHeads))[0]?.blockNumber).toBe(2);
   });
 
+  it('preserves a known finalized watermark when a later batch omits finality', async () => {
+    const before = (await ethereumDb.select().from(indexedHeads))[0];
+    expect(before).toMatchObject({
+      finalizedBlockNumber: block0.header.number,
+      finalizedBlockHash: block0.header.hash,
+    });
+
+    await ethereumPool.query('DELETE FROM sqd_cursor');
+    await runBlocks(target, [block1, block2], null);
+
+    const after = (await ethereumDb.select().from(indexedHeads))[0];
+    expect(after).toMatchObject({
+      blockNumber: block2.header.number,
+      finalizedBlockNumber: block0.header.number,
+      finalizedBlockHash: block0.header.hash,
+    });
+  });
+
+  it('rejects an event whose block hash disagrees with its referenced block', async () => {
+    await expect(
+      ethereumDb.insert(eventFacts).values({
+        id: createEventId(ethereumRuntime.network.chainId, block1.header.number, 0, 99),
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        blockNumber: block1.header.number,
+        blockHash: block2.header.hash,
+        parentHash: block0.header.hash,
+        blockTimestamp: new Date(block1.header.timestamp * 1_000),
+        transactionHash: hashFor(199),
+        transactionIndex: 0,
+        logIndex: 99,
+        address: testAddress,
+        topic0,
+        topics: [topic0],
+        data: '0x',
+      }),
+    ).rejects.toMatchObject({ code: '23503' });
+  });
+
   it('creates every rollback artifact inside only the selected chain schema', async () => {
     const expected = rollbackTables.length;
     const inventory = await testAdminPool.query<{
@@ -523,29 +656,8 @@ describe.sequential('PostgreSQL persistence', () => {
   });
 
   it('refuses tracked schema evolution while rollback snapshots contain data', async () => {
-    const temporaryDirectory = await mkdtemp(join(tmpdir(), 'lsp-v3-migrations-'));
-    const migrationsDirectory = join(temporaryDirectory, 'drizzle');
+    const { migrationsDirectory, temporaryDirectory } = await createPendingMigrationDirectory();
     try {
-      await cp(fileURLToPath(new URL('../../../drizzle', import.meta.url)), migrationsDirectory, {
-        recursive: true,
-      });
-      const journalPath = join(migrationsDirectory, 'meta', '_journal.json');
-      const journal = JSON.parse(await readFile(journalPath, 'utf8')) as MigrationJournal;
-      const previous = journal.entries.at(-1);
-      if (previous == null) throw new Error('Expected existing Drizzle migrations');
-      journal.entries.push({
-        idx: previous.idx + 1,
-        version: previous.version,
-        when: previous.when + 1,
-        tag: '0002_test_schema_change',
-        breakpoints: true,
-      });
-      await writeFile(journalPath, `${JSON.stringify(journal, null, 2)}\n`);
-      await writeFile(
-        join(migrationsDirectory, '0002_test_schema_change.sql'),
-        'ALTER TABLE universal_profiles ADD COLUMN forbidden_schema_change text;\n',
-      );
-
       const ethereumMigration = {
         connectionString: migrationConfig.connectionString,
         networks: migrationConfig.networks.filter(
@@ -553,7 +665,7 @@ describe.sequential('PostgreSQL persistence', () => {
         ),
       };
       await expect(migrateDatabase(ethereumMigration, { migrationsDirectory })).rejects.toThrow(
-        'rollback snapshots contain data',
+        'rollback snapshot artifacts exist',
       );
 
       const column = await testAdminPool.query<{ exists: boolean }>(`
@@ -644,5 +756,36 @@ describe.sequential('PostgreSQL persistence', () => {
       .from(universalProfiles)
       .where(eq(universalProfiles.address, collisionAddress));
     expect(sepoliaCollision).toHaveLength(1);
+  });
+
+  it('refuses tracked schema evolution when rollback snapshot tables are empty', async () => {
+    const snapshotTables = await testAdminPool.query<SnapshotTableRow>(`
+      SELECT tablename AS "tableName"
+      FROM pg_tables
+      WHERE schemaname = 'chain_ethereum_mainnet'
+        AND right(tablename, 11) = '__snapshots'
+      ORDER BY tablename
+    `);
+    expect(snapshotTables.rows).toHaveLength(rollbackTables.length);
+    for (const { tableName } of snapshotTables.rows) {
+      const qualifiedTable = `${quotePostgresIdentifier('chain_ethereum_mainnet')}.${quotePostgresIdentifier(tableName)}`;
+      await testAdminPool.query(`TRUNCATE TABLE ${qualifiedTable}`);
+      expect(await countRows(testAdminPool, qualifiedTable)).toBe(0);
+    }
+
+    const { migrationsDirectory, temporaryDirectory } = await createPendingMigrationDirectory();
+    try {
+      const ethereumMigration = {
+        connectionString: migrationConfig.connectionString,
+        networks: migrationConfig.networks.filter(
+          ({ network }) => network.key === 'ethereum-mainnet',
+        ),
+      };
+      await expect(migrateDatabase(ethereumMigration, { migrationsDirectory })).rejects.toThrow(
+        'rollback snapshot artifacts exist',
+      );
+    } finally {
+      await rm(temporaryDirectory, { recursive: true, force: true });
+    }
   });
 });

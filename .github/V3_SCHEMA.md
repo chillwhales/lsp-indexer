@@ -22,7 +22,8 @@ One PostgreSQL cluster contains four kinds of schema:
 The runtime search path is always `chain_<network>,lsp_v3,public`. The released Pipes rollback
 tracker emits unqualified DDL and rollback SQL, so pinning that search path is a correctness
 requirement rather than a convenience. Startup readiness rejects the wrong current role or schema
-and any write privilege on another configured chain schema.
+and checks the underlying session login as well: it cannot be a superuser, hold a foreign writer
+membership, or have direct or inherited write privileges on another configured chain schema.
 
 ## Table inventory
 
@@ -57,8 +58,10 @@ tables. The official target manages `sqd_cursor` separately in the same serializ
 
 `event_facts` retains raw emitting address, topics, data, decoded JSON when available, and complete
 block/transaction/log provenance. Interface verification never determines whether this historical
-fact survives. Event-specific decoding added in #383 may populate `event_name`, `event_domain`, and
-`decoded` without weakening the raw identity.
+fact survives. Its `(chain_id, block_number, block_hash)` foreign key must match the exact canonical
+`blocks` row, so a cursor reset cannot attach new-fork facts to a stale block height. Event-specific
+decoding added in #383 may populate `event_name`, `event_domain`, and `decoded` without weakening
+the raw identity.
 
 Current projections carry `network`, `chain_id`, and their last block hash and number. Event-driven
 projections also retain transaction and log position. Domain reducers in #384 must apply updates in
@@ -74,7 +77,8 @@ DISTINCT` unique constraints, preventing duplicate contract-wide ERC725Y or meta
 The official `drizzleTarget` owns the serializable transaction and advisory cursor lock. The v3
 wrapper registers all mutable application tables, calls the domain writer, upserts `indexed_heads`,
 and lets Pipes save its cursor before one commit. Any thrown decoder, RPC, reducer, constraint, or
-database error rolls the entire batch back.
+database error rolls the entire batch back. When a source batch omits a finalized cursor, the
+indexed head retains its previously known finalized number and hash.
 
 For an unfinalized block, triggers retain the earliest before-image per primary key and block. Fork
 resolution deletes facts first, restores parent rows before children, removes consumed snapshots,
@@ -96,5 +100,6 @@ migration history, and rollback artifacts are intentionally absent. Hasura and f
 join, filter, cache, and subscribe with both `network` and `chain_id`.
 
 Pipes `1.0.0-beta.3` does not reconcile a snapshot table after a tracked column changes. A pending
-migration therefore fails before execution when any snapshot table contains rows. Alpha databases
-must be rebuilt, or the repository owner must approve a separately tested preservation procedure.
+migration therefore fails before execution whenever any snapshot table exists, even if retention
+has emptied it. Alpha databases must be rebuilt, or the repository owner must approve a separately
+tested preservation procedure.

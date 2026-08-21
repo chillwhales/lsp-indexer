@@ -3,6 +3,7 @@ import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { fileURLToPath } from 'node:url';
 import { Pool, type PoolClient } from 'pg';
+import { createNetworkSchema, getNetworkKeys } from '../config/index.js';
 import type { DatabaseMigrationConfig, DatabaseMigrationNetwork } from './config.js';
 import {
   API_OWNER_ROLE,
@@ -12,6 +13,7 @@ import {
   SHARED_ENUMS,
   SHARED_SCHEMA,
   assertPostgresIdentifier,
+  createNetworkDatabaseRole,
   quotePostgresIdentifier,
 } from './names.js';
 import * as schema from './schema.js';
@@ -31,8 +33,18 @@ export interface DatabaseMigrationResult {
   publicViews: string[];
 }
 
-interface RoleRow {
-  exists: boolean;
+interface RoleAttributesRow {
+  bypassRls: boolean;
+  canLogin: boolean;
+  createDatabase: boolean;
+  createRole: boolean;
+  inheritPrivileges: boolean;
+  replication: boolean;
+  superuser: boolean;
+}
+
+interface RoleNameRow {
+  role: string;
 }
 
 interface SchemaOwnerRow {
@@ -60,25 +72,84 @@ interface LockRow {
   acquired: boolean;
 }
 
-async function roleExists(client: PoolClient, role: string): Promise<boolean> {
-  const result = await client.query<RoleRow>(
-    'SELECT EXISTS(SELECT 1 FROM pg_roles WHERE rolname = $1) AS exists',
+async function readRoleAttributes(
+  client: PoolClient,
+  role: string,
+): Promise<RoleAttributesRow | undefined> {
+  const result = await client.query<RoleAttributesRow>(
+    `SELECT rolbypassrls AS "bypassRls",
+            rolcanlogin AS "canLogin",
+            rolcreatedb AS "createDatabase",
+            rolcreaterole AS "createRole",
+            rolinherit AS "inheritPrivileges",
+            rolreplication AS replication,
+            rolsuper AS superuser
+     FROM pg_roles
+     WHERE rolname = $1`,
     [role],
   );
-  return result.rows[0]?.exists ?? false;
+  return result.rows[0];
+}
+
+function hasElevatedCapabilities(role: RoleAttributesRow): boolean {
+  return (
+    role.bypassRls || role.createDatabase || role.createRole || role.replication || role.superuser
+  );
 }
 
 async function ensureNoLoginRole(client: PoolClient, role: string): Promise<void> {
   const validated = assertPostgresIdentifier(role, 'database role');
-  if (await roleExists(client, validated)) return;
-  await client.query(`CREATE ROLE ${quotePostgresIdentifier(validated)} NOLOGIN NOINHERIT`);
+  const existing = await readRoleAttributes(client, validated);
+  if (existing == null) {
+    await client.query(
+      `CREATE ROLE ${quotePostgresIdentifier(validated)} NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`,
+    );
+    return;
+  }
+  if (existing.canLogin || existing.inheritPrivileges || hasElevatedCapabilities(existing)) {
+    throw new Error(
+      `Existing database role "${validated}" must be NOLOGIN, NOINHERIT, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS`,
+    );
+  }
 }
 
 async function ensureExistingLoginRole(client: PoolClient, role: string): Promise<void> {
   const validated = assertPostgresIdentifier(role, 'runtime login');
-  if (!(await roleExists(client, validated))) {
+  const existing = await readRoleAttributes(client, validated);
+  if (existing == null) {
     throw new Error(`Configured runtime login "${validated}" does not exist`);
   }
+  if (!existing.canLogin || hasElevatedCapabilities(existing)) {
+    throw new Error(
+      `Configured runtime login "${validated}" must be LOGIN, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS`,
+    );
+  }
+}
+
+async function findReachableWriterRoles(
+  client: PoolClient,
+  runtimeLogin: string,
+  writerRoles: readonly string[],
+): Promise<string[]> {
+  const result = await client.query<RoleNameRow>(
+    `WITH RECURSIVE memberships(role_id) AS (
+       SELECT membership.roleid
+       FROM pg_auth_members membership
+       JOIN pg_roles member_role ON member_role.oid = membership.member
+       WHERE member_role.rolname = $1
+       UNION
+       SELECT membership.roleid
+       FROM pg_auth_members membership
+       JOIN memberships inherited ON inherited.role_id = membership.member
+     )
+     SELECT candidate.rolname AS role
+     FROM memberships
+     JOIN pg_roles candidate ON candidate.oid = memberships.role_id
+     WHERE candidate.rolname = ANY($2::text[])
+     ORDER BY candidate.rolname`,
+    [runtimeLogin, writerRoles],
+  );
+  return result.rows.map(({ role }) => role);
 }
 
 async function ensureOwnedSchema(client: PoolClient, name: string, owner: string): Promise<void> {
@@ -109,7 +180,7 @@ function quotePostgresLiteral(value: string): string {
 async function ensureSharedEnums(client: PoolClient): Promise<void> {
   await client.query(`SET LOCAL ROLE ${quotePostgresIdentifier(API_OWNER_ROLE)}`);
   for (const [name, values] of Object.entries(SHARED_ENUMS)) {
-    const exists = await client.query<RoleRow>(
+    const exists = await client.query<ExistsRow>(
       `SELECT EXISTS(
          SELECT 1
          FROM pg_type t
@@ -177,6 +248,24 @@ async function prepareRolesAndSchemas(
       }
     }
 
+    const writerRoles = getNetworkKeys().map((network) =>
+      createNetworkDatabaseRole(createNetworkSchema(network)),
+    );
+    for (const network of networks) {
+      if (network.runtimeLogin == null) continue;
+      const foreignRoles = writerRoles.filter((role) => role !== network.role);
+      const reachableRoles = await findReachableWriterRoles(
+        client,
+        network.runtimeLogin,
+        foreignRoles,
+      );
+      if (reachableRoles.length > 0) {
+        throw new Error(
+          `Configured runtime login "${network.runtimeLogin}" can assume foreign network roles: ${reachableRoles.join(', ')}`,
+        );
+      }
+    }
+
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');
@@ -225,15 +314,10 @@ async function assertSnapshotEvolutionSafe(
      ORDER BY tablename`,
     [networkSchema],
   );
-  for (const { tableName } of tables.rows) {
-    const result = await client.query<ExistsRow>(
-      `SELECT EXISTS(SELECT 1 FROM ${quotePostgresIdentifier(networkSchema)}.${quotePostgresIdentifier(tableName)} LIMIT 1) AS exists`,
+  if (tables.rows.length > 0) {
+    throw new Error(
+      `Pending schema migrations cannot run in "${networkSchema}" while rollback snapshot artifacts exist. Rebuild the alpha database or use an owner-approved snapshot-preserving procedure.`,
     );
-    if (result.rows[0]?.exists) {
-      throw new Error(
-        `Pending schema migrations cannot run in "${networkSchema}" while rollback snapshots contain data. Rebuild the alpha database or use an owner-approved snapshot-preserving procedure.`,
-      );
-    }
   }
 }
 

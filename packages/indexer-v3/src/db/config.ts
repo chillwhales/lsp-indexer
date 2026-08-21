@@ -6,6 +6,7 @@ import {
   type RuntimeConfig,
 } from '../config/index.js';
 import {
+  assertPostgresIdentifier,
   createNetworkDatabaseRole,
   createNetworkDatabaseVariable,
   createRuntimeLoginVariable,
@@ -71,7 +72,7 @@ function readInteger(
 function readRuntimeLogin(env: NodeJS.ProcessEnv, network: string): string | undefined {
   const variable = createRuntimeLoginVariable(network);
   const value = env[variable]?.trim();
-  return value || undefined;
+  return value ? assertPostgresIdentifier(value, variable) : undefined;
 }
 
 function readMigrationNetworks(value: string | undefined): string[] {
@@ -166,6 +167,12 @@ export function loadDatabaseMigrationConfig(
       ...(runtimeLogin == null ? {} : { runtimeLogin }),
     };
   });
+  const runtimeLogins = networks.flatMap(({ runtimeLogin }) =>
+    runtimeLogin == null ? [] : [runtimeLogin],
+  );
+  if (new Set(runtimeLogins).size !== runtimeLogins.length) {
+    throw new Error('Each DATABASE_RUNTIME_LOGIN_<NETWORK> must identify a distinct login role');
+  }
 
   return { connectionString, networks };
 }

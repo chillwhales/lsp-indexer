@@ -107,14 +107,21 @@ async function writeIndexedHead(
   head: PersistenceHead,
 ): Promise<void> {
   validateHead(runtime, head);
+  const finalizedValues =
+    head.finalizedBlockNumber == null || head.finalizedBlockHash == null
+      ? undefined
+      : {
+          finalizedBlockNumber: head.finalizedBlockNumber,
+          finalizedBlockHash: head.finalizedBlockHash.toLowerCase(),
+        };
   const values = {
     network: head.network,
     chainId: head.chainId,
     blockNumber: head.blockNumber,
     blockHash: head.blockHash.toLowerCase(),
     blockTimestamp: head.blockTimestamp,
-    finalizedBlockNumber: head.finalizedBlockNumber ?? null,
-    finalizedBlockHash: head.finalizedBlockHash?.toLowerCase() ?? null,
+    finalizedBlockNumber: finalizedValues?.finalizedBlockNumber ?? null,
+    finalizedBlockHash: finalizedValues?.finalizedBlockHash ?? null,
     updatedAt: new Date(),
   };
   await tx
@@ -126,8 +133,7 @@ async function writeIndexedHead(
         blockNumber: values.blockNumber,
         blockHash: values.blockHash,
         blockTimestamp: values.blockTimestamp,
-        finalizedBlockNumber: values.finalizedBlockNumber,
-        finalizedBlockHash: values.finalizedBlockHash,
+        ...finalizedValues,
         updatedAt: values.updatedAt,
       },
     });

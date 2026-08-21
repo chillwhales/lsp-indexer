@@ -96,7 +96,8 @@ chain schema has canonical block and event facts; profile, digital-asset, NFT, o
 creator, issued-asset, permission, ERC725Y, metadata, and indexed-head projections; a durable
 metadata queue; and the Pipes cursor. All 15 application tables changed by ingestion have primary
 keys and are registered with the official Pipes rollback target. A cluster-wide advisory lock
-rejects concurrent migration commands.
+rejects concurrent migration commands. Raw event facts reference the exact canonical block hash,
+and indexed heads retain a known finalized watermark when a later source batch omits finality.
 
 Mutable state is never shared across chains. The runtime login assumes one deterministic non-login
 writer role and connects with `chain_<network>,lsp_v3,public` as its fixed `search_path`. The
@@ -105,7 +106,9 @@ columns across chains. The `api` schema excludes migration history, cursors, met
 snapshots, functions, and triggers.
 
 Create runtime login roles through your PostgreSQL provisioning system, then grant them during the
-one-shot migration:
+one-shot migration. Each login must be unique to one network and must not have elevated PostgreSQL
+capabilities. Deterministic schema owner and writer roles remain capability-limited
+`NOLOGIN NOINHERIT` roles:
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
@@ -114,7 +117,8 @@ DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
 ```
 
 Verify that a runtime connection has the expected role and schema and cannot write another
-network:
+network. Readiness checks both the assumed role and the underlying session login for superuser
+status, foreign writer memberships, and foreign write privileges:
 
 ```bash
 INDEXER_NETWORK=ethereum-mainnet \
@@ -132,9 +136,9 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/postgres \
 ```
 
 The released Pipes target does not reconcile existing snapshot tables when tracked columns change.
-V3 therefore rejects pending schema migrations while any rollback snapshot contains rows. During
-alpha, use a fresh rebuild unless the repository owner approves a tested snapshot-preserving
-procedure.
+V3 therefore rejects pending schema migrations whenever rollback snapshot tables exist, even when
+they are empty. During alpha, use a fresh rebuild unless the repository owner approves a tested
+snapshot-preserving procedure.
 
 ### Validate a source
 

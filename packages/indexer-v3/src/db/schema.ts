@@ -77,6 +77,7 @@ export const blocks = pgTable(
     primaryKey({ columns: [table.chainId, table.number], name: 'blocks_pk' }),
     uniqueIndex('blocks_id_uidx').on(table.id),
     uniqueIndex('blocks_chain_hash_uidx').on(table.chainId, table.hash),
+    uniqueIndex('blocks_chain_number_hash_uidx').on(table.chainId, table.number, table.hash),
     foreignKey({
       columns: [table.network, table.chainId],
       foreignColumns: [networkConfig.network, networkConfig.chainId],
@@ -129,8 +130,8 @@ export const eventFacts = pgTable(
       name: 'event_facts_network_fk',
     }).onDelete('restrict'),
     foreignKey({
-      columns: [table.chainId, table.blockNumber],
-      foreignColumns: [blocks.chainId, blocks.number],
+      columns: [table.chainId, table.blockNumber, table.blockHash],
+      foreignColumns: [blocks.chainId, blocks.number, blocks.hash],
       name: 'event_facts_block_fk',
     }).onDelete('cascade'),
     check('event_facts_block_number_check', sql`${table.blockNumber} >= 0`),

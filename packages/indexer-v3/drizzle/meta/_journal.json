@@ -15,6 +15,13 @@
       "when": 1787234373641,
       "tag": "0001_wet_stingray",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787299321678,
+      "tag": "0002_watery_ikaris",
+      "breakpoints": true
     }
   ]
 }

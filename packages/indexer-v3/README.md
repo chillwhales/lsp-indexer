@@ -43,6 +43,8 @@ profiles, digital assets, NFTs, ownership, followers, creators, issued assets, p
 ERC725Y data, metadata revisions, metadata jobs, indexed head, and the Pipes cursor. Fifteen
 application tables are registered with the official Pipes rollback target. Snapshot tables,
 functions, triggers, and cursors are created and used only inside that chain schema.
+Raw events reference the exact `(chain_id, block_number, block_hash)` block identity. Indexed heads
+retain the last known finalized watermark when a later source batch omits finality.
 
 The immutable enum types live in `lsp_v3`; sharing only those types lets read-only `api` views use
 `UNION ALL` across chain schemas. No mutable chain row or rollback artifact is shared. Hasura will
@@ -82,7 +84,9 @@ The migration command is separate from every indexer process. It creates the imm
 type schema, one physical schema and non-login writer role per enabled network, Drizzle migration
 history and cursor tables, and the read-only `api` views. A cluster-wide advisory lock rejects
 concurrent migration commands. Runtime login roles must already exist; provide their names to grant
-each login only its matching writer role.
+each login only its matching writer role. Every login must be unique to one network and must not
+have elevated PostgreSQL capabilities. Existing deterministic owner and writer roles are accepted
+only when they remain `NOLOGIN NOINHERIT` and capability-limited.
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
@@ -97,7 +101,8 @@ chain_<network>,lsp_v3,public
 ```
 
 Check the role, schema, seeded chain identity, and lack of cross-network write privileges before
-starting a pipe:
+starting a pipe. Readiness validates both the assumed writer role and the underlying session login,
+including superuser status and foreign writer memberships:
 
 ```bash
 INDEXER_NETWORK=ethereum-mainnet \
@@ -107,8 +112,9 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
 
 Generated migrations are normalized to stay schema-relative. `db:migrations:check` rejects a
 public-schema qualifier. Because Pipes beta.3 does not reconcile snapshot tables after tracked
-columns change, pending migrations fail safely when rollback snapshots contain rows; alpha
-operators must rebuild the database or use an owner-approved preservation procedure.
+columns change, pending migrations fail safely whenever rollback snapshot tables exist, even when
+they are empty; alpha operators must rebuild the database or use an owner-approved preservation
+procedure.
 
 ## Commands
 

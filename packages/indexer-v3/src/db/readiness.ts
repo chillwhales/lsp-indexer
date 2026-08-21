@@ -6,6 +6,8 @@ import { DATABASE_SCHEMA_VERSION, SHARED_SCHEMA, createNetworkDatabaseRole } fro
 interface DatabaseIdentityRow extends Record<string, unknown> {
   currentRole: string;
   currentSchema: string | null;
+  sessionUser: string;
+  sessionUserIsSuperuser: boolean;
   searchPath: string;
   searchPathSchemas: string[];
 }
@@ -18,6 +20,10 @@ interface NetworkConfigRow extends Record<string, unknown> {
 
 interface ForeignWritePrivilegeRow extends Record<string, unknown> {
   schema: string;
+}
+
+interface ForeignWriterRoleRow extends Record<string, unknown> {
+  role: string;
 }
 
 export interface DatabaseReadiness {
@@ -37,6 +43,11 @@ export async function verifyDatabaseReadiness(
   const identity = await db.execute<DatabaseIdentityRow>(sql`
     SELECT current_role AS "currentRole",
            current_schema() AS "currentSchema",
+           session_user AS "sessionUser",
+           COALESCE(
+             (SELECT rolsuper FROM pg_roles WHERE rolname = session_user),
+             false
+           ) AS "sessionUserIsSuperuser",
            current_setting('search_path') AS "searchPath",
            current_schemas(false)::text[] AS "searchPathSchemas"
   `);
@@ -46,6 +57,9 @@ export async function verifyDatabaseReadiness(
   const expectedRole = createNetworkDatabaseRole(runtime.databaseSchema);
   if (row.currentRole !== expectedRole) {
     throw new Error(`Database role is "${row.currentRole}"; expected "${expectedRole}"`);
+  }
+  if (row.sessionUserIsSuperuser) {
+    throw new Error(`Database session user "${row.sessionUser}" must not be a superuser`);
   }
   if (row.currentSchema !== runtime.databaseSchema) {
     throw new Error(
@@ -91,28 +105,56 @@ export async function verifyDatabaseReadiness(
     foreignSchemas.map((schema) => sql`${schema}`),
     sql`, `,
   );
+  const foreignRoleList = sql.join(
+    foreignSchemas.map((schema) => sql`${createNetworkDatabaseRole(schema)}`),
+    sql`, `,
+  );
+  const membershipResult = await db.execute<ForeignWriterRoleRow>(sql`
+    SELECT candidate.rolname AS role
+    FROM pg_roles candidate
+    WHERE candidate.rolname IN (${foreignRoleList})
+      AND pg_has_role(session_user, candidate.oid, 'MEMBER')
+    ORDER BY candidate.rolname
+  `);
+  if (membershipResult.rows.length > 0) {
+    throw new Error(
+      `Database session user can assume foreign network roles: ${membershipResult.rows.map(({ role }) => role).join(', ')}`,
+    );
+  }
   const privilegeResult = await db.execute<ForeignWritePrivilegeRow>(sql`
-    SELECT n.nspname AS schema
-     FROM pg_namespace n
-     WHERE n.nspname IN (${foreignSchemaList})
-       AND (
-         has_schema_privilege(current_role, n.oid, 'CREATE')
-         OR EXISTS (
-           SELECT 1 FROM pg_class c
-           WHERE c.relnamespace = n.oid
-             AND c.relkind IN ('r', 'p')
-             AND (
-               has_table_privilege(current_role, c.oid, 'INSERT')
-               OR has_table_privilege(current_role, c.oid, 'UPDATE')
-               OR has_table_privilege(current_role, c.oid, 'DELETE')
-               OR has_table_privilege(current_role, c.oid, 'TRUNCATE')
-             )
-         )
-       )
+    WITH RECURSIVE reachable_roles(role_id) AS (
+      SELECT oid
+      FROM pg_roles
+      WHERE rolname = session_user
+      UNION
+      SELECT membership.roleid
+      FROM pg_auth_members membership
+      JOIN reachable_roles reachable ON reachable.role_id = membership.member
+    )
+    SELECT DISTINCT namespace.nspname AS schema
+    FROM pg_namespace namespace
+    CROSS JOIN reachable_roles reachable
+    WHERE namespace.nspname IN (${foreignSchemaList})
+      AND (
+        has_schema_privilege(reachable.role_id, namespace.oid, 'CREATE')
+        OR EXISTS (
+          SELECT 1
+          FROM pg_class relation
+          WHERE relation.relnamespace = namespace.oid
+            AND relation.relkind IN ('r', 'p')
+            AND (
+              has_table_privilege(reachable.role_id, relation.oid, 'INSERT')
+              OR has_table_privilege(reachable.role_id, relation.oid, 'UPDATE')
+              OR has_table_privilege(reachable.role_id, relation.oid, 'DELETE')
+              OR has_table_privilege(reachable.role_id, relation.oid, 'TRUNCATE')
+            )
+        )
+      )
+    ORDER BY namespace.nspname
   `);
   if (privilegeResult.rows.length > 0) {
     throw new Error(
-      `Database role can write foreign network schemas: ${privilegeResult.rows.map(({ schema }) => schema).join(', ')}`,
+      `Database credential can write foreign network schemas: ${privilegeResult.rows.map(({ schema }) => schema).join(', ')}`,
     );
   }
 

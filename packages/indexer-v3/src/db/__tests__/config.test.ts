@@ -69,6 +69,16 @@ describe('database configuration', () => {
     ]);
   });
 
+  it('rejects a runtime login shared by multiple networks', () => {
+    expect(() =>
+      loadDatabaseMigrationConfig({
+        DATABASE_ADMIN_URL: 'postgresql://example.test/indexer',
+        DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET: 'shared_runtime',
+        DATABASE_RUNTIME_LOGIN_ETHEREUM_SEPOLIA: 'shared_runtime',
+      }),
+    ).toThrow('distinct login role');
+  });
+
   it.each([
     () => loadNetworkDatabaseConfig(runtime(), {}),
     () => loadNetworkDatabaseConfig(runtime(), { DATABASE_URL: 'https://example.test' }),
@@ -87,6 +97,11 @@ describe('database configuration', () => {
       loadDatabaseMigrationConfig({
         DATABASE_ADMIN_URL: 'postgresql://example.test/indexer',
         DATABASE_MIGRATION_NETWORKS: 'ethereum-mainnet,ethereum-mainnet',
+      }),
+    () =>
+      loadDatabaseMigrationConfig({
+        DATABASE_ADMIN_URL: 'postgresql://example.test/indexer',
+        DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET: 'Unsafe Runtime Login',
       }),
   ])('rejects unsafe database configuration', (operation) => {
     expect(operation).toThrow();

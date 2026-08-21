@@ -187,7 +187,10 @@ V3 prevents that class of corruption structurally:
   enum types shared so cross-network union views have compatible PostgreSQL column types.
 - Application table names remain identical across network schemas so one Drizzle definition and one
   migration series can be applied repeatedly.
-- No indexer role receives write access to another network schema.
+- Deterministic schema-owner and writer roles are capability-limited `NOLOGIN NOINHERIT` roles.
+- Every runtime login is unique to one network. Startup checks the underlying `session_user` for
+  superuser status, foreign writer memberships, and direct or inherited foreign write access.
+- No indexer credential receives write access to another network schema.
 - The migration test must prove the target's unqualified trigger SQL stays inside the configured
   connection `search_path`; otherwise #382 must select separate databases instead.
 
