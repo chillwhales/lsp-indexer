@@ -45,6 +45,10 @@ snapshot inventory.
       cursor to the common ancestor.
 - [ ] Forking one network cannot change another network's data or snapshots.
 - [ ] Block-pinned RPC responses are committed with their triggering block and roll back with it.
+- [ ] Contract-level reverts, unsupported selectors, and invalid return values are isolated per call:
+      the raw fact commits, no false typed projection is created, and the network cursor advances.
+- [ ] RPC transport failures and block-identity mismatches abort without changing data or cursor, and
+      retry the same canonical batch.
 - [ ] Duplicate delivery cannot create duplicate facts or double-apply balances and tallies.
 
 Evidence: deterministic checksums, fault-injection tests, synthetic fork fixtures, database queries,
@@ -71,10 +75,17 @@ with the validation run.
 - [ ] Invalid, oversized, timed-out, and unavailable content reaches documented retry or terminal
       states.
 - [ ] IPFS gateway failover and HTTP behavior are covered without holding indexer transactions open.
+- [ ] Metadata retrieval accepts only documented schemes and rejects loopback, link-local, private,
+      carrier-grade NAT, multicast, reserved, and other non-public IPv4 and IPv6 destinations after
+      DNS resolution and again after every redirect.
+- [ ] DNS rebinding, mixed public/private DNS answers, IP-literal encodings, and redirects cannot
+      bypass destination validation or the production egress policy.
+- [ ] VerifiableURI content is hashed as exact fetched bytes before parsing or publishing; mismatched
+      digests and unsupported verification methods never update metadata projections.
 - [ ] Backlog, age, attempts, failure reasons, latency, and throughput are observable per network.
 
-Evidence: worker integration tests, race fixtures, retry timing tests, and dashboard screenshots or
-exported dashboard definitions.
+Evidence: worker integration tests, race fixtures, retry timing tests, SSRF fixtures, content-hash
+vectors, and dashboard screenshots or exported dashboard definitions.
 
 ## G5 — Query and subscription API
 

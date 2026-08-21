@@ -148,8 +148,14 @@ triggering block number and hash. When a client supports EIP-1898, it reads by h
 client must verify that the provider maps that number to the triggering hash immediately before and
 after each read. A mismatch on either side rejects the result instead of mixing state from two
 forks. Reads run in a transform before the database transaction so a slow provider does not hold
-database locks. Any failure aborts the batch; because the cursor has not committed, retry starts
-from the same canonical position.
+database locks. Provider transport failures and block-identity mismatches abort the batch; because
+the cursor has not committed, retry starts from the same canonical position.
+
+Deterministic contract-level failures are isolated per call. A revert, unsupported selector, or
+invalid return value records an invalid or unknown verification result, preserves the raw fact, and
+does not abort the batch or any other call. A failed verification result cannot create a typed
+relationship or projection. This prevents a malicious or nonconforming emitter from indefinitely
+stalling one network's cursor.
 
 ### Current source gates
 
@@ -276,13 +282,27 @@ preserves the useful v2 behavior without porting its enrichment queue implementa
 ## Metadata subsystem
 
 Network transactions write durable metadata jobs containing the source natural key, source block,
-data key, content URI, content hash or revision, and status. Workers claim jobs with bounded
-concurrency and `FOR UPDATE SKIP LOCKED`.
+data key, content URI, declared verification method and digest when present, immutable source
+revision, and status. Workers claim jobs with bounded concurrency and `FOR UPDATE SKIP LOCKED`.
 
 Workers process only jobs whose source block is finalized. A successful write includes the source
 revision in its predicate, so an old response cannot replace newer on-chain metadata. Retry state,
 next-attempt time, terminal error, response size, content type, and latency are observable. IPFS and
 HTTP side effects are never performed inside the Pipes database transaction.
+
+Metadata locations are untrusted contract input. The worker uses a closed scheme allowlist: bounded
+`data:` content, `ipfs:` through an operator-configured gateway, `https:`, and `http:` only when the
+owner explicitly enables it. Every network request normalizes IP literals, resolves all DNS A and
+AAAA answers, and rejects loopback, link-local, private, carrier-grade NAT, multicast, reserved, and
+other non-public destinations before opening a connection. The client connects only to the validated
+address, preserves the validated hostname for TLS, caps redirects, and repeats scheme and address
+validation for every redirect. Production egress policy independently blocks the same destinations.
+
+Workers retain the exact fetched bytes until verification finishes. When the source declares a
+VerifiableURI method and digest, the worker computes that method over those bytes before parsing or
+publishing them. A digest mismatch or unsupported method may use the bounded retry policy but can
+never update a metadata projection; its terminal state and reason remain observable. Content without
+a declared digest is explicitly unverified and is never presented as verified chain state.
 
 Each source revision has an immutable deterministic job identity, and job state is registered with
 the Pipes rollback target. If unfinalized revision B supersedes a processing job for finalized
