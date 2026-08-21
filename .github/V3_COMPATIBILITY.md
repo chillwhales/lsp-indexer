@@ -105,7 +105,10 @@ through their own issues and documentation rather than silently appearing during
   familiar consumption; v3 does not force consumers through a nested provenance object.
 - Addresses remain `0x` strings. Storage normalizes case, and response formatting is consistent
   across every domain.
-- Big integer amounts remain decimal strings in JSON and TypeScript.
+- Big integer amounts are decimal strings at the GraphQL/JSON transport boundary.
+- `@lsp-indexer/node` parses `totalSupply`, owned-asset `balance`, universal-receiver `value`, and
+  future big integer amounts to JavaScript `bigint` before result validation. React and Next expose
+  the same parsed values, preserving the v2 runtime and Zod contract.
 - An unavailable optional include is omitted according to the existing include result machinery; a
   requested relationship that is genuinely absent is `null` or an empty array as documented.
 - Every list has deterministic tie-break sorting based on chain provenance or its natural key.

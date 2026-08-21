@@ -30,15 +30,16 @@ acceptance gates, and the affected goal issue in the same pull request.
 
 The initial implementation spike targets exact versions rather than floating prerelease tags:
 
-| Component         | Baseline       | Reason                                             |
-| ----------------- | -------------- | -------------------------------------------------- |
-| Node.js           | `>=22.15.0`    | Required by the published Pipes package            |
-| `@subsquid/pipes` | `1.0.0-beta.3` | Current published release when #380 was researched |
-| `drizzle-orm`     | `0.44.7`       | Pipes peer dependency                              |
-| `pg`              | `8.16.3`       | Pipes peer dependency                              |
+| Component         | Baseline       | Reason                                                |
+| ----------------- | -------------- | ----------------------------------------------------- |
+| Node.js           | `22.15.0`      | Exact minimum required by the published Pipes package |
+| `@subsquid/pipes` | `1.0.0-beta.3` | Current published release when #380 was researched    |
+| `drizzle-orm`     | `0.44.7`       | Pipes peer dependency                                 |
+| `pg`              | `8.16.3`       | Pipes peer dependency                                 |
 
-The baseline is evidence for the architecture, not permission to ship an outdated beta. Every SDK
-upgrade is reviewed explicitly, and production uses an exact version. Primary references:
+The baseline is evidence for the architecture, not permission to ship an outdated beta. Every
+runtime or SDK upgrade is reviewed explicitly, and production uses an exact version. Primary
+references:
 
 - [Pipes v1.0.0-beta.3 release](https://github.com/subsquid/pipes-sdk/releases/tag/pipes-v1.0.0-beta.3)
 - [Pipes quickstart](https://docs.sqd.dev/en/sdk/pipes-sdk/evm/quickstart)

@@ -105,6 +105,9 @@ consistency output, and reconnect tests.
 - [ ] `@lsp-indexer/types`, `node`, `react`, and `next` all report version `3.0.0` in release
       artifacts.
 - [ ] Every retained high-level v2 operation has a tested v3 operation or a documented removal.
+- [ ] `totalSupply`, owned-asset `balance`, universal-receiver `value`, and future big integer fields
+      cross the GraphQL/JSON boundary as decimal strings but validate and return as JavaScript
+      `bigint` from Node, React, and Next.
 - [ ] Network identity appears in request validation, cache keys, result validation, and
       subscriptions.
 - [ ] Package builds, type checks, unit tests, smoke tests, `publint`, and `attw` pass from packed
