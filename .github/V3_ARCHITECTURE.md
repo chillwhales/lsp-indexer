@@ -189,6 +189,9 @@ V3 prevents that class of corruption structurally:
   migration series can be applied repeatedly.
 - Deterministic schema-owner and writer roles are capability-limited `NOLOGIN NOINHERIT` roles
   with no direct or transitive memberships in other roles.
+- The migrator inventories the reverse membership graph for every writer role. Only the migration
+  admin and configured runtime login may reach it; credential rotation requires revoking the old
+  login's membership before rerunning migrations.
 - Every runtime login is unique to one network. Migration and startup check the underlying
   `session_user` for superuser status, any reachable role other than its assigned writer, and direct
   or inherited foreign write access.
@@ -262,11 +265,15 @@ For each batch:
 4. The Drizzle target opens a serializable transaction and acquires the Pipes advisory lock.
 5. Raw facts are inserted idempotently.
 6. Current-state projections are reduced in canonical block, transaction, and log order.
-7. Metadata jobs and indexed-head visibility are updated.
+7. Metadata jobs and indexed-head visibility are updated. The head must reference the exact stored
+   block identity, and its finalized watermark can only advance during forward processing.
 8. Pipes commits data, rollback snapshots, finalized watermark, and cursor atomically.
 
 Domain logic may read existing state inside step 6. It must not keep an unversioned in-memory mirror.
 Any future stateful transform must implement and test the Pipes rollback hook.
+The Pipes target receives rollback retention from the validated network database configuration;
+`DATABASE_UNFINALIZED_BLOCKS_RETENTION` has no independent construction-time fallback. A fork may
+move the finalized watermark backwards only by restoring its tracked snapshot.
 
 The initial #382 schema has canonical `blocks` and `event_facts`; current profiles, assets, NFTs,
 owned assets and tokens, follower edges, creators, issued assets, controllers, and ERC725Y values;

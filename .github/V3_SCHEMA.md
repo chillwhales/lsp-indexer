@@ -22,8 +22,8 @@ One PostgreSQL cluster contains four kinds of schema:
 The runtime search path is always `chain_<network>,lsp_v3,public`. The released Pipes rollback
 tracker emits unqualified DDL and rollback SQL, so pinning that search path is a correctness
 requirement rather than a convenience. Startup readiness rejects the wrong current role or schema
-and checks the underlying session login as well: it cannot be a superuser, hold a foreign writer
-membership, or have direct or inherited write privileges on another configured chain schema.
+and checks the underlying session login as well: it cannot be a superuser, reach an unexpected role,
+or have direct or inherited write privileges on another configured chain schema.
 
 ## Table inventory
 
@@ -63,6 +63,11 @@ fact survives. Its `(chain_id, block_number, block_hash)` foreign key must match
 decoding added in #383 may populate `event_name`, `event_domain`, and `decoded` without weakening
 the raw identity.
 
+`indexed_heads` uses the same exact block-identity foreign key. A replay range with no matching
+events therefore cannot publish a new head hash while the old canonical block remains at that
+height. Deleting a block cascades to its head row, while Pipes orders tracked rollback operations so
+parent blocks are restored before their dependent heads.
+
 Current projections carry `network`, `chain_id`, and their last block hash and number. Event-driven
 projections also retain transaction and log position. Domain reducers in #384 must apply updates in
 canonical block, transaction, and log order and use idempotent inserts/upserts.
@@ -78,7 +83,10 @@ The official `drizzleTarget` owns the serializable transaction and advisory curs
 wrapper registers all mutable application tables, calls the domain writer, upserts `indexed_heads`,
 and lets Pipes save its cursor before one commit. Any thrown decoder, RPC, reducer, constraint, or
 database error rolls the entire batch back. When a source batch omits a finalized cursor, the
-indexed head retains its previously known finalized number and hash.
+indexed head retains its previously known finalized number and hash. A lower finalized cursor also
+cannot reduce that watermark during forward processing; only restoration of the tracked head
+snapshot may move it backwards during fork handling. The target takes rollback retention directly
+from the validated network database configuration.
 
 For an unfinalized block, triggers retain the earliest before-image per primary key and block. Fork
 resolution deletes facts first, restores parent rows before children, removes consumed snapshots,
@@ -92,9 +100,11 @@ Drizzle Kit generates one schema-relative migration series. The normalization st
 default `public` qualifiers and enum creation; the migration owner creates shared enum types once in
 `lsp_v3` and rejects any pre-existing definition whose labels or ordering differ. Deterministic
 owner and writer roles must be capability-limited non-login roles without direct or transitive role
-memberships. Each chain has an independent migration history whose normalized hashes are verified
-on every run. A cluster-wide advisory lock rejects concurrent migration commands, and reapplying
-the same plan is idempotent.
+memberships. The migrator traverses the reverse membership graph for each writer and fails if any
+role other than the migration admin or configured runtime login can reach it; an old login must be
+revoked before credential rotation. Each chain has an independent migration history whose
+normalized hashes are verified on every run. A cluster-wide advisory lock rejects concurrent
+migration commands, and reapplying the same plan is idempotent.
 
 After every enabled chain is current, the migrator transactionally replaces 14 security-barrier
 views in `api` with `UNION ALL` selections. Internal jobs, cursor history, network identity,

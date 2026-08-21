@@ -1,7 +1,9 @@
 import type { BlockCursor, HookContext } from '@subsquid/pipes';
 import { drizzleTarget, type Transaction } from '@subsquid/pipes/targets/drizzle/node-postgres';
+import { sql } from 'drizzle-orm';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from './client.js';
+import type { NetworkDatabaseConfig } from './config.js';
 import { normalizeBytes32 } from './identity.js';
 import { CURSOR_TABLE } from './names.js';
 import { verifyDatabaseReadiness } from './readiness.js';
@@ -36,9 +38,24 @@ export interface PersistenceHandlerContext {
 
 export interface PersistenceTargetOptions<T> {
   runtime: RuntimeConfig;
+  databaseConfig: NetworkDatabaseConfig;
   db: NetworkDatabase;
   onData(context: PersistenceHandlerContext, payload: T): Promise<unknown>;
-  unfinalizedBlocksRetention?: number;
+}
+
+function validateDatabaseConfig(
+  runtime: RuntimeConfig,
+  databaseConfig: NetworkDatabaseConfig,
+): void {
+  if (databaseConfig.schema !== runtime.databaseSchema) {
+    throw new Error('Persistence database schema does not match the target network');
+  }
+  if (
+    !Number.isSafeInteger(databaseConfig.unfinalizedBlocksRetention) ||
+    databaseConfig.unfinalizedBlocksRetention <= runtime.network.finalityConfirmations
+  ) {
+    throw new Error('Persistence rollback retention must exceed network finality');
+  }
 }
 
 function validateHead(runtime: RuntimeConfig, head: PersistenceHead): void {
@@ -114,6 +131,23 @@ async function writeIndexedHead(
           finalizedBlockNumber: head.finalizedBlockNumber,
           finalizedBlockHash: head.finalizedBlockHash.toLowerCase(),
         };
+  const finalizedUpdate =
+    finalizedValues == null
+      ? undefined
+      : {
+          finalizedBlockNumber: sql<number | null>`CASE
+            WHEN ${indexedHeads.finalizedBlockNumber} IS NULL
+              OR ${finalizedValues.finalizedBlockNumber} >= ${indexedHeads.finalizedBlockNumber}
+            THEN ${finalizedValues.finalizedBlockNumber}
+            ELSE ${indexedHeads.finalizedBlockNumber}
+          END`,
+          finalizedBlockHash: sql<string | null>`CASE
+            WHEN ${indexedHeads.finalizedBlockNumber} IS NULL
+              OR ${finalizedValues.finalizedBlockNumber} >= ${indexedHeads.finalizedBlockNumber}
+            THEN ${finalizedValues.finalizedBlockHash}
+            ELSE ${indexedHeads.finalizedBlockHash}
+          END`,
+        };
   const values = {
     network: head.network,
     chainId: head.chainId,
@@ -133,7 +167,7 @@ async function writeIndexedHead(
         blockNumber: values.blockNumber,
         blockHash: values.blockHash,
         blockTimestamp: values.blockTimestamp,
-        ...finalizedValues,
+        ...finalizedUpdate,
         updatedAt: values.updatedAt,
       },
     });
@@ -143,6 +177,7 @@ async function writeIndexedHead(
 export function createPersistenceTarget<T>(
   options: PersistenceTargetOptions<T>,
 ): ReturnType<typeof drizzleTarget<PersistenceBatch<T>>> {
+  validateDatabaseConfig(options.runtime, options.databaseConfig);
   return drizzleTarget<PersistenceBatch<T>>({
     db: options.db,
     tables: rollbackTables,
@@ -151,9 +186,7 @@ export function createPersistenceTarget<T>(
         schema: options.runtime.databaseSchema,
         table: CURSOR_TABLE,
         id: options.runtime.streamId,
-        unfinalizedBlocksRetention:
-          options.unfinalizedBlocksRetention ??
-          Math.max(1_000, options.runtime.network.finalityConfirmations * 4),
+        unfinalizedBlocksRetention: options.databaseConfig.unfinalizedBlocksRetention,
       },
       transaction: { isolationLevel: 'serializable' },
     },

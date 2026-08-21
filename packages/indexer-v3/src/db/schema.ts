@@ -719,6 +719,11 @@ export const indexedHeads = pgTable(
       foreignColumns: [networkConfig.network, networkConfig.chainId],
       name: 'indexed_heads_network_fk',
     }).onDelete('restrict'),
+    foreignKey({
+      columns: [table.chainId, table.blockNumber, table.blockHash],
+      foreignColumns: [blocks.chainId, blocks.number, blocks.hash],
+      name: 'indexed_heads_block_fk',
+    }).onDelete('cascade'),
     check('indexed_heads_block_number_check', sql`${table.blockNumber} >= 0`),
     check('indexed_heads_block_hash_check', sql`${table.blockHash} ~ '^0x[0-9a-f]{64}$'`),
     check(

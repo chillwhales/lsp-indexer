@@ -100,7 +100,11 @@ creator, issued-asset, permission, ERC725Y, metadata, and indexed-head projectio
 metadata queue; and the Pipes cursor. All 15 application tables changed by ingestion have primary
 keys and are registered with the official Pipes rollback target. A cluster-wide advisory lock
 rejects concurrent migration commands. Raw event facts reference the exact canonical block hash,
-and indexed heads retain a known finalized watermark when a later source batch omits finality.
+and indexed heads reference that same exact block identity. During forward processing, indexed heads
+retain a known finalized watermark when a later source batch omits finality or reports a lower
+height; only Pipes rollback restoration moves it backwards. The target consumes the loaded database
+configuration directly, so `DATABASE_UNFINALIZED_BLOCKS_RETENTION` controls Pipes retention without
+a second fallback.
 
 Mutable state is never shared across chains. The runtime login assumes one deterministic non-login
 writer role and connects with `chain_<network>,lsp_v3,public` as its fixed `search_path`. The
@@ -115,7 +119,9 @@ one-shot migration. Each login must be unique to one network, must not have elev
 capabilities, and may reach only its assigned network writer role. Migration and startup both reject
 direct or transitive memberships in any other role. Deterministic schema owner and writer roles
 remain capability-limited `NOLOGIN NOINHERIT` roles without direct or transitive memberships in
-other roles:
+other roles. Migration also inventories every role that can reach a writer role and allows only the
+migration admin and that network's configured runtime login. Revoke the previous login's writer
+membership before rotating credentials:
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
@@ -125,7 +131,7 @@ DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
 
 Verify that a runtime connection has the expected role and schema and cannot write another
 network. Readiness checks both the assumed role and the underlying session login for superuser
-status, foreign writer memberships, and foreign write privileges:
+status, every reachable role membership, and foreign write privileges:
 
 ```bash
 INDEXER_NETWORK=ethereum-mainnet \

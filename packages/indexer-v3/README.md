@@ -43,8 +43,10 @@ profiles, digital assets, NFTs, ownership, followers, creators, issued assets, p
 ERC725Y data, metadata revisions, metadata jobs, indexed head, and the Pipes cursor. Fifteen
 application tables are registered with the official Pipes rollback target. Snapshot tables,
 functions, triggers, and cursors are created and used only inside that chain schema.
-Raw events reference the exact `(chain_id, block_number, block_hash)` block identity. Indexed heads
-retain the last known finalized watermark when a later source batch omits finality.
+Raw events and indexed heads reference the exact `(chain_id, block_number, block_hash)` block
+identity. During forward processing, indexed heads retain the last known finalized watermark when a
+later source batch omits finality or reports a lower finalized height; Pipes snapshot restoration is
+the only path that moves the watermark backwards during a fork.
 
 The immutable enum types live in `lsp_v3`; sharing only those types lets read-only `api` views use
 `UNION ALL` across chain schemas. No mutable chain row or rollback artifact is shared. Hasura will
@@ -77,6 +79,8 @@ track only the `api` views, not chain schemas or internal job/cursor tables.
 URLs, ranges, boolean values, the network key, Portal dataset identity, Portal coverage, RPC chain
 ID, and configured contract bytecode are validated before a network program starts. A
 network-specific RPC or database variable takes priority over its generic counterpart.
+The persistence target consumes this loaded database configuration directly, including
+`DATABASE_UNFINALIZED_BLOCKS_RETENTION`; there is no separate target-level fallback.
 
 ## Database setup
 
@@ -88,9 +92,11 @@ each login only its matching writer role. Every login must be unique to one netw
 elevated PostgreSQL capabilities, and may reach no role other than its assigned writer. Migration and
 startup reject direct or transitive memberships in any other role. Existing deterministic owner and
 writer roles are accepted only when they remain `NOLOGIN NOINHERIT`, capability-limited, and have no
-direct or transitive role memberships. Pre-existing shared enums must match the canonical labels and
-ordering. The API reader receives schema access and `SELECT` only after unexpected API relations and
-routines are rejected, limited to the enumerated public views.
+direct or transitive role memberships. The migrator also inventories every role that can reach each
+writer role and permits only the migration admin and the currently configured runtime login. Revoke
+an old login's writer membership before rotating its replacement. Pre-existing shared enums must
+match the canonical labels and ordering. The API reader receives schema access and `SELECT` only
+after unexpected API relations and routines are rejected, limited to the enumerated public views.
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \

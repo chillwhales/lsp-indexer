@@ -127,6 +127,46 @@ async function readReachableRoles(client: PoolClient, memberRole: string): Promi
   return result.rows.map(({ role }) => role);
 }
 
+async function readRolesReachingRole(client: PoolClient, grantedRole: string): Promise<string[]> {
+  const result = await client.query<RoleNameRow>(
+    `WITH RECURSIVE memberships(member_id) AS (
+       SELECT membership.member
+       FROM pg_auth_members membership
+       JOIN pg_roles granted_role ON granted_role.oid = membership.roleid
+       WHERE granted_role.rolname = $1
+       UNION
+       SELECT membership.member
+       FROM pg_auth_members membership
+       JOIN memberships inherited ON inherited.member_id = membership.roleid
+     )
+     SELECT role.rolname AS role
+     FROM memberships
+     JOIN pg_roles role ON role.oid = memberships.member_id
+     ORDER BY role.rolname`,
+    [grantedRole],
+  );
+  return result.rows.map(({ role }) => role);
+}
+
+async function ensureExclusiveRoleMembers(
+  client: PoolClient,
+  role: string,
+  allowedMembers: readonly string[],
+): Promise<void> {
+  const validatedRole = assertPostgresIdentifier(role, 'database role');
+  const allowed = new Set(
+    allowedMembers.map((member) => assertPostgresIdentifier(member, 'allowed role member')),
+  );
+  const unexpectedMembers = (await readRolesReachingRole(client, validatedRole)).filter(
+    (member) => !allowed.has(member),
+  );
+  if (unexpectedMembers.length > 0) {
+    throw new Error(
+      `Database writer role "${validatedRole}" has unexpected direct or transitive members: ${unexpectedMembers.join(', ')}. Revoke their membership before retrying`,
+    );
+  }
+}
+
 async function ensureNoLoginRole(client: PoolClient, role: string): Promise<void> {
   const validated = assertPostgresIdentifier(role, 'database role');
   const existing = await readRoleAttributes(client, validated);
@@ -316,6 +356,12 @@ async function prepareRolesAndSchemas(
       );
       if (network.runtimeLogin != null) {
         await ensureExistingLoginRole(client, network.runtimeLogin, network.role);
+      }
+      await ensureExclusiveRoleMembers(client, network.role, [
+        currentUser,
+        ...(network.runtimeLogin == null ? [] : [network.runtimeLogin]),
+      ]);
+      if (network.runtimeLogin != null) {
         await client.query(
           `GRANT ${quotePostgresIdentifier(network.role)} TO ${quotePostgresIdentifier(network.runtimeLogin)}`,
         );

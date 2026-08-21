@@ -16,6 +16,7 @@ import {
   loadDatabaseMigrationConfig,
   loadNetworkDatabaseConfig,
   type DatabaseMigrationConfig,
+  type NetworkDatabaseConfig,
 } from '../config.js';
 import {
   createAddressId,
@@ -120,11 +121,18 @@ const block3 = mockBlock({
   hash: hashFor(3),
   parentHash: block2.header.hash,
 });
+const alternateBlock2 = mockBlock({
+  number: 2,
+  timestamp: 1_700_000_002,
+  hash: hashFor(202),
+  parentHash: block1.header.hash,
+});
 
 let controlPool: Pool;
 let testAdminPool: Pool;
 let migrationConfig: DatabaseMigrationConfig;
 let ethereumRuntime: RuntimeConfig;
+let ethereumDatabaseConfig: NetworkDatabaseConfig;
 let ethereumPool: Pool;
 let ethereumDb: NetworkDatabase;
 let sepoliaPool: Pool;
@@ -174,6 +182,7 @@ function runtimeDatabaseUrl(network: keyof typeof runtimeLogins): string {
 
 function createRuntimeDatabase(network: keyof typeof runtimeLogins): {
   runtime: RuntimeConfig;
+  config: NetworkDatabaseConfig;
   pool: Pool;
   db: NetworkDatabase;
 } {
@@ -181,16 +190,17 @@ function createRuntimeDatabase(network: keyof typeof runtimeLogins): {
   const config = loadNetworkDatabaseConfig(runtime, {
     DATABASE_URL: runtimeDatabaseUrl(network),
     DATABASE_POOL_MAX: '2',
+    DATABASE_UNFINALIZED_BLOCKS_RETENTION: '100',
   });
   const pool = createNetworkPool(config);
-  return { runtime, pool, db: createNetworkDatabase(pool) };
+  return { runtime, config, pool, db: createNetworkDatabase(pool) };
 }
 
-function createTestTarget(failAtBlock?: number): TestTarget {
+function createTestTarget(failAtBlock?: number, includeEvents = true): TestTarget {
   return createPersistenceTarget<TestBlock[]>({
     runtime: ethereumRuntime,
+    databaseConfig: ethereumDatabaseConfig,
     db: ethereumDb,
-    unfinalizedBlocksRetention: 100,
     async onData({ tx }, batch): Promise<void> {
       for (const block of batch) {
         const { number, hash, parentHash, timestamp } = block.header;
@@ -206,28 +216,30 @@ function createTestTarget(failAtBlock?: number): TestTarget {
             timestamp: new Date(timestamp * 1_000),
           })
           .onConflictDoNothing();
-        await tx
-          .insert(eventFacts)
-          .values({
-            id: createEventId(ethereumRuntime.network.chainId, number, 0, 0),
-            network: ethereumRuntime.network.key,
-            chainId: ethereumRuntime.network.chainId,
-            blockNumber: number,
-            blockHash: hash,
-            parentHash,
-            blockTimestamp: new Date(timestamp * 1_000),
-            transactionHash: hashFor(number + 20),
-            transactionIndex: 0,
-            logIndex: 0,
-            address: testAddress,
-            topic0,
-            topics: [topic0],
-            data: '0x',
-            eventName: 'TestEvent',
-            eventDomain: 'test',
-            decoded: { number },
-          })
-          .onConflictDoNothing();
+        if (includeEvents) {
+          await tx
+            .insert(eventFacts)
+            .values({
+              id: createEventId(ethereumRuntime.network.chainId, number, 0, 0),
+              network: ethereumRuntime.network.key,
+              chainId: ethereumRuntime.network.chainId,
+              blockNumber: number,
+              blockHash: hash,
+              parentHash,
+              blockTimestamp: new Date(timestamp * 1_000),
+              transactionHash: hashFor(number + 20),
+              transactionIndex: 0,
+              logIndex: 0,
+              address: testAddress,
+              topic0,
+              topics: [topic0],
+              data: '0x',
+              eventName: 'TestEvent',
+              eventDomain: 'test',
+              decoded: { number },
+            })
+            .onConflictDoNothing();
+        }
 
         const ownerAddress = number === 1 ? firstOwner : secondOwner;
         const profileValues = {
@@ -375,6 +387,7 @@ beforeAll(async (): Promise<void> => {
 
   const ethereum = createRuntimeDatabase('ethereum-mainnet');
   ethereumRuntime = ethereum.runtime;
+  ethereumDatabaseConfig = ethereum.config;
   ethereumPool = ethereum.pool;
   ethereumDb = ethereum.db;
   const sepolia = createRuntimeDatabase('ethereum-sepolia');
@@ -600,6 +613,38 @@ describe.sequential('PostgreSQL persistence', () => {
     }
   });
 
+  it('rejects stale direct and transitive members of a network writer role', async () => {
+    const ethereumRole = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    )?.role;
+    if (ethereumRole == null) throw new Error('Expected the Ethereum writer role');
+    const retiredLogin = `v3_test_retired_${suiteSuffix}`;
+    const bridgeRole = `v3_test_writer_bridge_${suiteSuffix}`;
+
+    await controlPool.query(`CREATE ROLE ${quotePostgresIdentifier(retiredLogin)} LOGIN`);
+    await controlPool.query(`CREATE ROLE ${quotePostgresIdentifier(bridgeRole)} NOLOGIN NOINHERIT`);
+    try {
+      await controlPool.query(
+        `GRANT ${quotePostgresIdentifier(ethereumRole)} TO ${quotePostgresIdentifier(bridgeRole)}`,
+      );
+      await controlPool.query(
+        `GRANT ${quotePostgresIdentifier(bridgeRole)} TO ${quotePostgresIdentifier(retiredLogin)}`,
+      );
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(
+        `Database writer role "${ethereumRole}" has unexpected direct or transitive members: ${retiredLogin}, ${bridgeRole}. Revoke their membership before retrying`,
+      );
+    } finally {
+      await controlPool.query(
+        `REVOKE ${quotePostgresIdentifier(bridgeRole)} FROM ${quotePostgresIdentifier(retiredLogin)}`,
+      );
+      await controlPool.query(
+        `REVOKE ${quotePostgresIdentifier(ethereumRole)} FROM ${quotePostgresIdentifier(bridgeRole)}`,
+      );
+      await controlPool.query(`DROP ROLE ${quotePostgresIdentifier(retiredLogin)}`);
+      await controlPool.query(`DROP ROLE ${quotePostgresIdentifier(bridgeRole)}`);
+    }
+  });
+
   it('rejects concurrent migration commands', async () => {
     const lockClient = await testAdminPool.connect();
     try {
@@ -746,6 +791,28 @@ describe.sequential('PostgreSQL persistence', () => {
     });
   });
 
+  it('does not move the finalized watermark backwards during forward processing', async () => {
+    await ethereumPool.query('DELETE FROM sqd_cursor');
+    await runBlocks(target, [block1, block2], {
+      number: block1.header.number,
+      hash: block1.header.hash,
+    });
+    expect((await ethereumDb.select().from(indexedHeads))[0]).toMatchObject({
+      finalizedBlockNumber: block1.header.number,
+      finalizedBlockHash: block1.header.hash,
+    });
+
+    await ethereumPool.query('DELETE FROM sqd_cursor');
+    await runBlocks(target, [block1, block2], {
+      number: block0.header.number,
+      hash: block0.header.hash,
+    });
+    expect((await ethereumDb.select().from(indexedHeads))[0]).toMatchObject({
+      finalizedBlockNumber: block1.header.number,
+      finalizedBlockHash: block1.header.hash,
+    });
+  });
+
   it('rejects an event whose block hash disagrees with its referenced block', async () => {
     await expect(
       ethereumDb.insert(eventFacts).values({
@@ -765,6 +832,28 @@ describe.sequential('PostgreSQL persistence', () => {
         data: '0x',
       }),
     ).rejects.toMatchObject({ cause: { code: '23503' } });
+  });
+
+  it('rejects a no-event replay whose indexed head disagrees with the canonical block', async () => {
+    await ethereumPool.query('DELETE FROM sqd_cursor');
+    await expect(
+      runBlocks(createTestTarget(undefined, false), [alternateBlock2]),
+    ).rejects.toMatchObject({ cause: { code: '23503', constraint: 'indexed_heads_block_fk' } });
+
+    expect(await countRows(ethereumPool, 'blocks')).toBe(2);
+    expect(await countRows(ethereumPool, 'event_facts')).toBe(2);
+    expect((await ethereumDb.select().from(indexedHeads))[0]).toMatchObject({
+      blockNumber: block2.header.number,
+      blockHash: block2.header.hash,
+    });
+    expect(
+      (
+        await ethereumDb
+          .select()
+          .from(universalProfiles)
+          .where(eq(universalProfiles.address, testAddress))
+      )[0],
+    ).toMatchObject({ lastBlockHash: block2.header.hash });
   });
 
   it('creates every rollback artifact inside only the selected chain schema', async () => {
