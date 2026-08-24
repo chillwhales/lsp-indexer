@@ -8,7 +8,7 @@ import {
   mockEvmPortalStream,
   type PortalBlock,
 } from '@subsquid/pipes/testing/evm';
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -4581,5 +4581,45 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         fetchedAt: new Date(tokenCreatedAt.getTime() + 1),
       }),
     ).toBe('cancelled');
+
+    await ethereumDb
+      .update(universalProfiles)
+      .set({
+        verification: 'verified',
+        lastBlockNumber: 103,
+        lastBlockHash: hashFor(203),
+      })
+      .where(eq(universalProfiles.address, metadataAddress));
+    await ethereumDb.transaction((tx) =>
+      applyMetadataSourcePlan(tx, {
+        scopes: [thirdSource],
+        sources: [thirdSource],
+        rejected: [],
+      }),
+    );
+    const productionClockClaims = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 100,
+      leaseTimeoutMs: 2_000,
+    });
+    const productionClockClaim = productionClockClaims.find(({ id }) => id === thirdSource.id);
+    if (productionClockClaim == null) {
+      throw new Error('Expected a claim scheduled entirely from the PostgreSQL clock');
+    }
+    const precision = await ethereumDb.execute<{ millisecondAligned: boolean }>(sql`
+      SELECT ${metadataJobs.claimedAt} = date_trunc('milliseconds', ${metadataJobs.claimedAt}) AS "millisecondAligned"
+      FROM ${metadataJobs}
+      WHERE ${metadataJobs.id} = ${productionClockClaim.id}
+    `);
+    expect(precision.rows).toEqual([{ millisecondAligned: true }]);
+    expect(
+      await completeMetadataJob(ethereumDb, ethereumRuntime, productionClockClaim, {
+        content: { LSP3Profile: { name: 'Database-clock claim' } },
+        contentUri: productionClockClaim.contentUri,
+        contentHash: productionClockClaim.contentHash ?? hashFor(0),
+        contentType: 'application/json',
+        contentLength: 10,
+        fetchedAt: new Date(),
+      }),
+    ).toBe('succeeded');
   });
 });

@@ -376,6 +376,15 @@ describe('metadata transport', () => {
       false,
     );
 
+    const malformedLocation = mockFetch([
+      new Response(null, { status: 302, headers: { location: 'https://[' } }),
+    ]);
+    await expectFetchFailure(
+      fetchMetadata(createSource(), createConfig(malformedLocation.fetchImplementation)),
+      'location is malformed',
+      false,
+    );
+
     const tooMany = mockFetch([
       new Response(null, { status: 302, headers: { location: '/one' } }),
       new Response(null, { status: 302, headers: { location: '/two' } }),

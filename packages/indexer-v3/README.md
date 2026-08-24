@@ -161,11 +161,12 @@ wake an idle poll immediately and close the metrics server and database pool aft
 settles.
 
 Every request has a timeout, response-size limit, redirect limit, UTF-8 and JSON validation, and
-public HTTP(S) target validation. LSP2/LSP31 keccak hashes are checked before LSP3, LSP4, or LSP29
-content is accepted. IPFS schemes are normalized case-insensitively. LSP31 sources accept at most
-five supported locations and try each location, including every configured gateway for each IPFS
-entry. Retryable transport and HTTP failures use durable, jittered exponential backoff; malformed
-content and exhausted attempts become terminal failures.
+public HTTP(S) target validation. Missing or malformed redirect locations fail terminally instead of
+consuming retry attempts. LSP2/LSP31 keccak hashes are checked before LSP3, LSP4, or LSP29 content is
+accepted. IPFS schemes are normalized case-insensitively. LSP31 sources accept at most five supported
+locations and try each location, including every configured gateway for each IPFS entry. Retryable
+transport and HTTP failures use durable, jittered exponential backoff; malformed content and
+exhausted attempts become terminal failures.
 
 The worker reloads the exact current chain source before fetching and again in the serializable
 publication transaction. A finalized URI, hash, token location, verification, or source-revision

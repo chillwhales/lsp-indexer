@@ -483,7 +483,13 @@ async function fetchResponse(
       if (location == null) {
         throw new MetadataRequestError('Metadata redirect omitted its location', false);
       }
-      current = assertPublicHttpUrl(new URL(location, current).toString(), config.allowHttp);
+      let redirectUrl: URL;
+      try {
+        redirectUrl = new URL(location, current);
+      } catch {
+        throw new MetadataRequestError('Metadata redirect location is malformed', false);
+      }
+      current = assertPublicHttpUrl(redirectUrl.toString(), config.allowHttp);
       continue;
     }
     if (!response.ok) {

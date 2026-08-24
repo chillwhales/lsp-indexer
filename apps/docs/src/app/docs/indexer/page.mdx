@@ -395,6 +395,8 @@ oldest age and maximum attempts, queue/request latency, and response bytes. The 
 the network database connection; it does not open Portal or RPC connections. Full-history backlog,
 oldest-age, and maximum-attempt gauges refresh every 30 seconds instead of after every claim batch;
 per-job counters and latency histograms remain immediate.
+Missing or malformed redirect locations are terminal response failures and do not consume the
+worker's retry budget.
 
 ### Validate a source
 

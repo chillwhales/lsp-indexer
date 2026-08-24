@@ -512,7 +512,7 @@ export async function claimMetadataJobs(
   options: ClaimMetadataJobsOptions,
 ): Promise<MetadataJob[]> {
   return db.transaction(async (tx): Promise<MetadataJob[]> => {
-    const claimedAt = options.now ?? sql<Date>`transaction_timestamp()`;
+    const claimedAt = options.now ?? sql<Date>`date_trunc('milliseconds', transaction_timestamp())`;
     const staleBefore =
       options.now == null
         ? sql<Date>`transaction_timestamp() - (${options.leaseTimeoutMs} * interval '1 millisecond')`
