@@ -9,6 +9,10 @@ describe('runtime probe query', () => {
     expect(query.getRequests()).toEqual([
       {
         range: { from: 100, to: 200 },
+        request: { includeAllBlocks: true },
+      },
+      {
+        range: { from: 100, to: 200 },
         request: { logs: [{}] },
       },
     ]);
@@ -18,11 +22,13 @@ describe('runtime probe query', () => {
     const query = createRuntimeProbeQuery({ from: 'latest', to: '+10' });
 
     expect(query.getRequests()[0]?.range).toEqual({ from: 'latest', to: 10 });
+    expect(query.getRequests()[0]?.request).toEqual({ includeAllBlocks: true });
   });
 
   it('keeps block zero as an explicit inclusive end', () => {
     const query = createRuntimeProbeQuery({ from: 0, to: 0 });
 
     expect(query.getRequests()[0]?.range).toEqual({ from: 0, to: 0 });
+    expect(query.getRequests()[1]?.range).toEqual({ from: 0, to: 0 });
   });
 });

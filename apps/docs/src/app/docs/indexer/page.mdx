@@ -18,11 +18,14 @@ production validation are complete. The current alpha foundation includes:
 - RPC chain-ID and configured-contract bytecode validation, plus a Viem client for later
   block-pinned contract reads
 - Pipes EVM field selection and a bounded raw-log source probe
-- A local-only multi-network runner plus an integration test that backfills two sources concurrently
+- Drizzle tables and repeatable migrations for isolated PostgreSQL schemas per network
+- Official Pipes PostgreSQL target wiring with atomic data, indexed-head, snapshot, and cursor writes
+- Deterministic chain-scoped IDs, read-only cross-network API views, and PostgreSQL fork tests
+- A local-only multi-network runner for source development
 
-It does **not** yet include Drizzle persistence, LSP decoding, projections, metadata processing,
-Hasura views, or the v3 consumer package contracts. Those land in the subsequent v3 goals and the
-v2 implementation remains the production path meanwhile.
+It does **not** yet include complete LSP decoding and reducers, metadata workers, applied Hasura
+metadata, or the v3 consumer package contracts. Those land in subsequent v3 goals and the v2
+implementation remains the production path meanwhile.
 
 ### Multi-chain process model
 
@@ -32,8 +35,10 @@ flowchart LR
   PortalB[Portal: network B] --> PipeB[Pipes process B]
   RpcA[RPC: network A] --> PipeA
   RpcB[RPC: network B] --> PipeB
-  PipeA -. future .-> SchemaA[(chain_a schema)]
-  PipeB -. future .-> SchemaB[(chain_b schema)]
+  PipeA --> SchemaA[(chain_a schema)]
+  PipeB --> SchemaB[(chain_b schema)]
+  SchemaA --> API[(read-only api views)]
+  SchemaB --> API
 ```
 
 Production uses one process or container per network. The SDK's multi-pipe development runner is
@@ -41,7 +46,7 @@ not a production supervisor: separate processes provide failure isolation and in
 Stream IDs and future database schemas are deterministic and cannot collide across the initial
 catalog.
 
-| Network key        | Chain ID | Pipes stream ID                  | Reserved database schema |
+| Network key        | Chain ID | Pipes stream ID                  | Database schema          |
 | ------------------ | -------: | -------------------------------- | ------------------------ |
 | `lukso-mainnet`    |       42 | `lsp-indexer:v3:eip155:42`       | `chain_lukso_mainnet`    |
 | `ethereum-mainnet` |        1 | `lsp-indexer:v3:eip155:1`        | `chain_ethereum_mainnet` |
@@ -55,21 +60,158 @@ through event modules.
 
 ### V3 environment variables
 
-| Variable                          | Required | Default or behavior                                         |
-| --------------------------------- | -------- | ----------------------------------------------------------- |
-| `INDEXER_NETWORK`                 | Yes      | One network key from the table above                        |
-| `INDEXER_FROM_BLOCK`              | No       | Configured network start block                              |
-| `INDEXER_TO_BLOCK`                | No       | Inclusive bound; required for `probe:network`               |
-| `SQD_PORTAL_URL`                  | No       | Selected network's catalog URL                              |
-| `RPC_URL`                         | No       | Generic RPC override                                        |
-| `RPC_URL_LUKSO_MAINNET`           | No       | Network override; takes priority over `RPC_URL`             |
-| `RPC_URL_ETHEREUM_MAINNET`        | No       | Network override; takes priority over `RPC_URL`             |
-| `RPC_URL_ETHEREUM_SEPOLIA`        | No       | Network override; takes priority over `RPC_URL`             |
-| `INDEXER_ALLOW_HISTORICAL_SOURCE` | No       | `false`; explicit opt-in for an unbounded historical source |
-| `INDEXER_METRICS_PORT`            | No       | `9090` for the local development runner                     |
+| Variable                                | Required | Default or behavior                                         |
+| --------------------------------------- | -------- | ----------------------------------------------------------- |
+| `INDEXER_NETWORK`                       | Yes      | One network key from the table above                        |
+| `INDEXER_FROM_BLOCK`                    | No       | Configured network start block                              |
+| `INDEXER_TO_BLOCK`                      | No       | Inclusive bound; required for `probe:network`               |
+| `SQD_PORTAL_URL`                        | No       | Selected network's catalog URL                              |
+| `RPC_URL`                               | No       | Generic RPC override                                        |
+| `RPC_URL_LUKSO_MAINNET`                 | No       | Network override; takes priority over `RPC_URL`             |
+| `RPC_URL_ETHEREUM_MAINNET`              | No       | Network override; takes priority over `RPC_URL`             |
+| `RPC_URL_ETHEREUM_SEPOLIA`              | No       | Network override; takes priority over `RPC_URL`             |
+| `INDEXER_ALLOW_HISTORICAL_SOURCE`       | No       | `false`; explicit opt-in for an unbounded historical source |
+| `INDEXER_METRICS_PORT`                  | No       | `9090` for the local development runner                     |
+| `DATABASE_URL`                          | Runtime  | Generic runtime PostgreSQL URL                              |
+| `DATABASE_URL_<NETWORK>`                | No       | Network override; takes priority over `DATABASE_URL`        |
+| `DATABASE_ADMIN_URL`                    | Migrate  | Admin URL for the one-shot migration command                |
+| `DATABASE_MIGRATION_NETWORKS`           | No       | Enabled comma-separated set; defaults to all networks       |
+| `DATABASE_RUNTIME_LOGIN_<NETWORK>`      | No       | Existing login granted only its network writer role         |
+| `DATABASE_POOL_MAX`                     | No       | `10`                                                        |
+| `DATABASE_CONNECTION_TIMEOUT_MS`        | No       | `10000`                                                     |
+| `DATABASE_IDLE_TIMEOUT_MS`              | No       | `30000`                                                     |
+| `DATABASE_STATEMENT_TIMEOUT_MS`         | No       | `60000`                                                     |
+| `DATABASE_LOCK_TIMEOUT_MS`              | No       | `10000`                                                     |
+| `DATABASE_IDLE_TRANSACTION_TIMEOUT_MS`  | No       | `60000`                                                     |
+| `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | No       | Defaults to max(`1000`, finality × 4); must exceed finality |
 
 Every URL, integer, boolean, block range, network key, Portal dataset, Portal starting height, RPC
-chain ID, and configured contract deployment is checked before the network program runs.
+chain ID, configured contract deployment, database role, database schema, and stored chain identity
+is checked before the relevant program runs.
+
+### V3 persistence model
+
+`db:migrate` applies the same schema-relative Drizzle migrations to each enabled network. Each
+chain schema has canonical block and event facts; profile, digital-asset, NFT, ownership, follower,
+creator, issued-asset, permission, ERC725Y, metadata, and indexed-head projections; a durable
+metadata queue; and the Pipes cursor. All 15 application tables changed by ingestion have primary
+keys and are registered with the official Pipes rollback target. A cluster-wide advisory lock
+rejects concurrent migration commands. Raw event facts reference the exact canonical block hash,
+and indexed heads reference that same exact block identity. Before advancing the head, the target
+validates every parent link after the previously indexed head, so a replay cannot retain a stale
+intermediate block and append a disconnected tip. Forward writes cannot move the indexed head
+backwards; only Pipes rollback restoration can do that. Pipes cursor timestamps are milliseconds
+and are converted directly to PostgreSQL timestamps without rescaling. Both current and finalized
+head identities must reference exact canonical block rows. During forward processing, indexed heads
+retain a known finalized watermark when a later source batch omits finality or reports a lower
+height. An advancing finalized pair is accepted only when its local canonical block has the same
+hash; a finalized block outside the stored range does not advance the watermark, and the finalized
+number and hash must both be present or both be null. When a live source reports finality ahead of a
+historical backfill cursor, the target records the processed cursor and its hash as the highest
+finalized block available locally. The target consumes the loaded database configuration directly, so
+`DATABASE_UNFINALIZED_BLOCKS_RETENTION` controls Pipes retention without a second fallback.
+ERC725Y creator and issued-asset array indexes are unsigned 128-bit values stored as
+`numeric(39, 0)` and mapped to TypeScript `bigint`, so adversarial high data-key indexes cannot
+truncate or abort a batch. Every raw event topic array must be one-dimensional, nonempty, null-free,
+contain only canonical lowercase bytes32 values, and start with the separately indexed `topic0`.
+
+Mutable state is never shared across chains. The runtime login assumes one deterministic non-login
+writer role and connects with `chain_<network>,lsp_v3,public` as its fixed `search_path`. The
+`lsp_v3` schema contains only four immutable enum types so `api` views can `UNION ALL` identical
+columns across chains; existing definitions must match their canonical labels and ordering, and any
+other shared-schema object aborts migration. The `api` schema excludes migration history, cursors,
+metadata jobs, snapshots, functions, and triggers. Unexpected API relations or routines abort
+migration. Every chain schema's schema, relation, sequence, column, routine, type, and default ACLs
+are also inventoried. Only its writer's privileges plus the API owner's non-grantable schema `USAGE`
+and `SELECT` on enumerated public tables are accepted. PostgreSQL's non-grantable `PUBLIC USAGE` on
+writer-owned table row types, including Pipes snapshots, is the sole ambient exception; `PUBLIC`
+lacks chain-schema usage and relation privileges, so it cannot expose rows. The API reader may not
+own a schema, relation, routine, type, or database and may hold only shared-enum usage, API schema
+usage, and `SELECT` on the enumerated public views; any inventoried stale privilege aborts migration.
+The inventory includes privileges inherited from PostgreSQL's `PUBLIC` pseudo-role and implicit
+default ACLs on reachable user-defined routines and types. Public type usage is removed from the
+shared enums and API view row types, and a publicly executable custom routine—including a
+default-public `SECURITY DEFINER` routine—aborts migration. Migration installs a restrictive writer
+function default and normalizes existing chain functions so Pipes rollback functions never retain
+PostgreSQL's implicit `PUBLIC EXECUTE`.
+Runtime readiness separately expands the active credential's effective `PUBLIC` privileges across
+schemas, relations, columns, routines, types, the database, and default ACLs. Its allowlist is limited
+to PostgreSQL's ambient system access, non-grantable connection and temporary-database access, and
+canonical shared-enum usage. `PUBLIC CREATE`, grant options, and reachable custom routines abort
+startup.
+
+Before applying table migrations, `db:migrate` removes the enumerated API views so PostgreSQL can
+change source columns that existing views depend on, then rebuilds the views after every enabled
+schema is current. View removal, all enabled network migrations, and view replacement share one
+PostgreSQL transaction, so a failure on any chain or during the rebuild rolls back earlier chain
+changes and restores the prior views. Migration and startup also inventory the migration table,
+cursor, and every expected chain table, plus the migration history sequence, and require the
+deterministic writer role to own each one. A preflight with pending migrations audits all existing
+expected objects while permitting latest-schema tables that the pending migrations have not created
+yet; the post-migration audit requires the complete inventory. A deterministic PostgreSQL 17
+live-catalog fingerprint covers all
+non-snapshot tables and sequences, relation settings, columns and defaults, constraints, indexes,
+and sequence parameters. Migration verifies a fully current schema before changing it and verifies
+every schema afterward; startup readiness checks it again. Out-of-band added or dropped columns,
+foreign keys, checks, indexes, and other reviewed storage objects are rejected even when the Drizzle
+journal still matches. Dynamic Pipes `__snapshots` tables are excluded.
+
+Create runtime login roles through your PostgreSQL provisioning system, then grant them during the
+one-shot migration. Each login must be unique to one network, remain `LOGIN NOSUPERUSER NOCREATEDB
+NOCREATEROLE NOREPLICATION NOBYPASSRLS`, and may reach only its assigned network writer role.
+Migration and startup both revalidate every capability and reject direct or transitive memberships
+in any other role. Deterministic schema owner and writer roles remain `NOLOGIN NOINHERIT
+NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS` roles without direct or transitive
+memberships in other roles. Migration also inventories every role that can reach a writer role and
+allows only the migration admin and that network's configured runtime login. Runtime membership may
+not carry `ADMIN OPTION` and must carry `SET OPTION` so the runtime pool can assume the writer role.
+Migration and startup revalidate both membership options. Only the current migration admin may
+reach the API owner role. Revoke the previous membership before rotating either credential.
+Because a PostgreSQL session can `RESET ROLE`, migration and startup also reject direct ACLs,
+object ownership, default ACLs, and policy references held by the underlying runtime login; the only
+permitted direct database ACL is non-grantable `CONNECT` on the current database. The writer itself
+may own or receive privileges only inside its assigned chain schema.
+Its privileges outside that schema are non-grantable `USAGE` on `lsp_v3` and the four canonical
+shared enums, plus a global function default ACL containing only the writer's own `EXECUTE`; that
+default exists solely to remove implicit `PUBLIC EXECUTE`. Read-only grants on another chain,
+shared-schema `CREATE`, grant options, foreign ownership, other default privileges, and policy
+references all abort migration and readiness. Programmatic migration calls require every schema and
+writer role to match the deterministic mapping for its network, reject reserved mappings and
+duplicate identities, and require an existing chain schema to contain only its expected singleton
+`network_config` identity:
+
+```bash
+DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
+DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
+  pnpm --filter @chillwhales/indexer-v3 db:migrate
+```
+
+Verify that a runtime connection has the expected role and schema and remains inside its privilege
+boundary. Readiness checks both the assumed role and the underlying session login for superuser
+status, login and inheritance flags, database/role creation, replication, row-security bypass,
+every reachable role membership, direct privilege or ownership dependencies, complete chain ACL
+and ownership drift, effective `PUBLIC` privileges, live-catalog fingerprint drift, and foreign
+write privileges:
+
+```bash
+INDEXER_NETWORK=ethereum-mainnet \
+DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
+  pnpm --filter @chillwhales/indexer-v3 db:check
+```
+
+The PostgreSQL 17 integration suite creates a disposable database and proves clean and repeatable
+migrations, same-address cross-chain isolation, writer privileges, atomic failure, deterministic
+replay, snapshot placement, and one- and multi-block rollback:
+
+```bash
+TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/postgres \
+  pnpm --filter @chillwhales/indexer-v3 test:persistence
+```
+
+The released Pipes target does not reconcile existing snapshot tables when tracked columns change.
+V3 therefore rejects pending schema migrations whenever rollback snapshot tables exist, even when
+they are empty. During alpha, use a fresh rebuild unless the repository owner approves a tested
+snapshot-preserving procedure.
 
 ### Validate a source
 
@@ -89,10 +231,11 @@ INDEXER_TO_BLOCK=22000010 \
   pnpm --filter @chillwhales/indexer-v3 probe:network
 ```
 
-The probe intentionally refuses an unbounded range. It reports the selected network and stream ID,
-batch count, block count, log count, and first and last blocks, without writing data. It fails unless
-the source returns every block exactly once in ascending order across the inclusive range, so a
-partial response is not reported as a successful diagnostic.
+The probe intentionally refuses an unbounded range and explicitly requests empty blocks as well as
+blocks containing logs. It reports the selected network and stream ID, batch count, block count, log
+count, and first and last blocks, without writing data. It fails unless the source returns every
+block exactly once in ascending order across the inclusive range, so a partial response is not
+reported as a successful diagnostic.
 
 ### LUKSO live-source gate
 

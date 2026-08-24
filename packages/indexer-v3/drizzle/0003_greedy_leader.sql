@@ -1,0 +1,1 @@
+ALTER TABLE "indexed_heads" ADD CONSTRAINT "indexed_heads_block_fk" FOREIGN KEY ("chain_id","block_number","block_hash") REFERENCES "blocks"("chain_id","number","hash") ON DELETE cascade ON UPDATE no action;

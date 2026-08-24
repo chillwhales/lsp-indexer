@@ -59,9 +59,44 @@ INDEXER_TO_BLOCK=22000010 \
   pnpm --filter @chillwhales/indexer-v3 probe:network
 ```
 
-The probe reads raw blocks and logs through the SQD Pipes SDK but does not persist or expose LSP
-domains yet. See [Indexer v3 development](/docs/indexer#indexer-v3-alpha-development) for the
-network catalog, safety checks, and environment variables.
+The probe reads raw blocks and logs without writing. To exercise the v3 PostgreSQL foundation,
+first create a dedicated database and runtime login, then apply all network schemas with a separate
+migration credential:
+
+```bash
+DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
+DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
+  pnpm --filter @chillwhales/indexer-v3 db:migrate
+
+INDEXER_NETWORK=ethereum-mainnet \
+DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v3 \
+  pnpm --filter @chillwhales/indexer-v3 db:check
+```
+
+The v3 database variables are:
+
+| Variable                                | Scope and default                                                |
+| --------------------------------------- | ---------------------------------------------------------------- |
+| `DATABASE_URL`                          | Generic runtime PostgreSQL URL                                   |
+| `DATABASE_URL_<NETWORK>`                | Per-network override; takes priority over `DATABASE_URL`         |
+| `DATABASE_ADMIN_URL`                    | Separate admin URL used only by `db:migrate`                     |
+| `DATABASE_MIGRATION_NETWORKS`           | Comma-separated migration set; defaults to every catalog network |
+| `DATABASE_RUNTIME_LOGIN_<NETWORK>`      | Existing login that receives only its matching writer role       |
+| `DATABASE_POOL_MAX`                     | Runtime connection limit; defaults to `10`                       |
+| `DATABASE_CONNECTION_TIMEOUT_MS`        | Connection timeout; defaults to `10000` milliseconds             |
+| `DATABASE_IDLE_TIMEOUT_MS`              | Idle connection timeout; defaults to `30000` milliseconds        |
+| `DATABASE_STATEMENT_TIMEOUT_MS`         | Statement timeout; defaults to `60000` milliseconds              |
+| `DATABASE_LOCK_TIMEOUT_MS`              | Lock timeout; defaults to `10000` milliseconds                   |
+| `DATABASE_IDLE_TRANSACTION_TIMEOUT_MS`  | Idle transaction timeout; defaults to `60000` milliseconds       |
+| `DATABASE_UNFINALIZED_BLOCKS_RETENTION` | Defaults to max(`1000`, finality × 4) and must exceed finality   |
+
+Replace `<NETWORK>` with an uppercase catalog key whose hyphens become underscores, such as
+`DATABASE_URL_ETHEREUM_MAINNET` or `DATABASE_RUNTIME_LOGIN_LUKSO_MAINNET`.
+
+This creates isolated chain schemas and unified read-only API views, but complete LSP domain
+decoding and the public v3 packages are still under development. See
+[Indexer v3 development](/docs/indexer#indexer-v3-alpha-development) for the schema model, safety
+checks, and environment variables.
 
 ---
 

@@ -12,21 +12,30 @@
     "check:network": "tsx src/app/check-network.ts",
     "check:network:built": "node lib/app/check-network.js",
     "clean": "rm -rf lib/ coverage/",
+    "db:check": "tsx src/app/check-database.ts",
+    "db:generate": "drizzle-kit generate --config=drizzle.config.ts && tsx src/app/normalize-migrations.ts",
+    "db:migrations:check": "tsx src/app/normalize-migrations.ts --check",
+    "db:migrate": "tsx src/app/migrate-database.ts",
     "probe:network": "tsx src/app/probe-network.ts",
     "probe:network:built": "node lib/app/probe-network.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:persistence": "vitest run --config=vitest.integration.config.ts",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@subsquid/pipes": "1.0.0-beta.3",
+    "drizzle-orm": "0.44.7",
+    "pg": "8.16.3",
     "viem": "2.47.0",
     "zod": "4.3.6"
   },
   "devDependencies": {
     "@types/node": "24.2.0",
+    "@types/pg": "8.15.6",
     "@vitest/coverage-v8": "4.0.18",
+    "drizzle-kit": "0.31.10",
     "tsx": "4.20.6",
     "typescript": "5.9.3",
     "vitest": "4.0.18"
