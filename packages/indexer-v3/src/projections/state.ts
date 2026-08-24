@@ -203,6 +203,7 @@ export async function loadProjectionState(
 ): Promise<ProjectionState> {
   const scope = createProjectionScope(chainId, events);
   for (const update of claimStatusUpdates) {
+    scope.assetAddresses.add(update.address);
     scope.extensionIds.add(
       createDeterministicId('chillwhales-nft', chainId, [update.address, update.tokenId]),
     );

@@ -286,8 +286,10 @@ LUKSO Mainnet additionally enables a Chillwhales extension for CHILL/ORBS claim 
 cooldown, and faction. Claim reads happen only at the Portal's available head and use its exact
 number and hash rather than RPC `latest`. Each head checks at most 250 tokens, prioritizing new
 mints and then due unresolved rows. Successful false results are checked again after 720 blocks;
-individual failed calls retry after 30 blocks. Other networks neither query nor populate the
-extension. External IPFS/HTTP metadata fetching remains a separate v3 goal.
+individual failed calls retry after 30 blocks. Polling-only heads load the extension row together
+with its verified asset guard before applying status or retry-schedule updates. Other networks
+neither query nor populate the extension. External IPFS/HTTP metadata fetching remains a separate
+v3 goal.
 
 Run one network's event and projection pipe after database migration and readiness checks:
 

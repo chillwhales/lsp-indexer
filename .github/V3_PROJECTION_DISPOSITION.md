@@ -68,7 +68,8 @@ The Chillwhales extension is enabled only by the LUKSO Mainnet network catalog e
 reads are monotonic and bounded to 250 tokens per head, with new mints ahead of due stored rows. A
 successful false result is scheduled 720 blocks later and an individual failed call 30 blocks
 later; a transport or result-shape failure aborts the batch. Polling uses the Portal head's exact
-number and hash, never unpinned RPC `latest`.
+number and hash, never unpinned RPC `latest`. Polling-only heads load both the extension row and its
+verified asset guard so status and retry-schedule updates cannot be dropped.
 
 ## Ordering and invalid-reference semantics
 

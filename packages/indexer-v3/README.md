@@ -127,9 +127,10 @@ batch.
 CHILL and ORBS claim checks run only at the Portal's available head and are pinned to its exact
 number and hash. Each head processes at most 250 tokens, prioritizing new mints and then due stored
 tokens. An unresolved token is scheduled 720 blocks later after a successful false result or 30
-blocks later after an individual failed call; true flags remain monotonic. IPFS/HTTP metadata
-parsing and publication remain owned by the later metadata-worker goal; the projection pipeline
-already persists their durable chain inputs.
+blocks later after an individual failed call; true flags remain monotonic. Polling-only heads load
+the extension row together with its verified asset guard before applying status or retry-schedule
+updates. IPFS/HTTP metadata parsing and publication remain owned by the later metadata-worker goal;
+the projection pipeline already persists their durable chain inputs.
 
 ## Configuration
 

@@ -224,6 +224,34 @@ describe('projection state loader', () => {
     expect(stateRows.every((rows) => rows.size === 0)).toBe(true);
   });
 
+  it('loads the verified asset and extension row for a polling-only claim update', async () => {
+    const rows = new Map<unknown, readonly unknown[]>([
+      [digitalAssets, [{ address: asset, verification: 'verified' }]],
+      [chillwhalesNfts, [{ address: asset, tokenId }]],
+    ]);
+    const selected = new Set<unknown>();
+    const state = await loadProjectionState(
+      fakeTransaction(rows, selected),
+      42,
+      [],
+      [
+        {
+          address: asset,
+          tokenId,
+          chillClaimed: true,
+          orbsClaimed: false,
+          blockNumber: 10,
+          blockHash: toHex(10n, { size: 32 }),
+          nextCheckBlock: 730,
+        },
+      ],
+    );
+
+    expect(selected).toEqual(new Set([digitalAssets, chillwhalesNfts]));
+    expect(state.digitalAssets.has(asset)).toBe(true);
+    expect(state.chillwhalesNfts.has(`${asset}:${tokenId}`)).toBe(true);
+  });
+
   it('loads a full NFT collection only for collection-wide derived-value changes', async () => {
     const selected = new Set<unknown>();
     const predicates = new Map<unknown, SQL>();
