@@ -4,10 +4,17 @@ import type { NetworkDatabase } from './client.js';
 import { DATABASE_SCHEMA_VERSION, SHARED_SCHEMA, createNetworkDatabaseRole } from './names.js';
 import {
   createChainObjectOwnershipQuery,
+  createPublicPrivilegeBoundaryQuery,
   createWriterRoleBoundaryQuery,
   formatChainObjectOwnership,
   type ChainObjectOwnershipRow,
+  type PublicPrivilegeRow,
 } from './roleBoundary.js';
+import {
+  assertChainSchemaFingerprint,
+  createChainSchemaFingerprintQuery,
+  type ChainSchemaFingerprintRow,
+} from './schemaFingerprint.js';
 
 interface DatabaseIdentityRow extends Record<string, unknown> {
   currentRole: string;
@@ -207,6 +214,18 @@ export async function verifyDatabaseReadiness(
       `Database writer role "${expectedRole}" must own every expected object in schema "${runtime.databaseSchema}": ${formatChainObjectOwnership(ownershipResult.rows)}`,
     );
   }
+  const publicPrivilegeResult = await db.execute<PublicPrivilegeRow>(
+    createPublicPrivilegeBoundaryQuery(),
+  );
+  if (publicPrivilegeResult.rows.length > 0) {
+    throw new Error(
+      `Database credential inherits unexpected PUBLIC privileges: ${publicPrivilegeResult.rows.map(({ kind, object, privilege }) => `${object} (${kind} ${privilege})`).join(', ')}`,
+    );
+  }
+  const fingerprintResult = await db.execute<ChainSchemaFingerprintRow>(
+    createChainSchemaFingerprintQuery(runtime.databaseSchema),
+  );
+  assertChainSchemaFingerprint(runtime.databaseSchema, fingerprintResult.rows[0]?.fingerprint);
   const privilegeResult = await db.execute<ForeignWritePrivilegeRow>(sql`
     WITH RECURSIVE reachable_roles(role_id) AS (
       SELECT oid

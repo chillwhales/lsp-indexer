@@ -121,14 +121,23 @@ is rejected unless it contains only the four canonical enums and their PostgreSQ
 types. The API reader is rejected if it owns a schema, relation, routine, type, or database, or has
 direct or effective `PUBLIC` access outside shared-enum usage, API schema usage, and `SELECT` on the
 enumerated public views. Publicly executable custom routines, including default-public `SECURITY
-DEFINER` routines, are rejected.
+DEFINER` routines, are rejected. Runtime readiness independently audits the active credential's
+effective `PUBLIC` privileges across schemas, relations, columns, routines, types, the database, and
+default ACLs. Its explicit allowlist covers only ambient system access, non-grantable connection and
+temporary-database access, and canonical shared-enum usage; `PUBLIC CREATE`, grant options, and
+reachable custom routines are startup failures.
 
 The migrator drops the enumerated API views before source-table migrations and rebuilds them after
 every enabled schema is current, allowing column removal, reordering, and type changes. A rejected
 migration attempts to restore the views before returning. Migration and startup require the writer
 to own the migration table and its sequence, the cursor, and every expected chain table. Before a
 pending migration, the ownership audit permits latest-schema tables that have not been created yet,
-then requires the complete inventory after migration.
+then requires the complete inventory after migration. A deterministic PostgreSQL 17 catalog
+fingerprint additionally covers all non-snapshot tables and sequences, relation settings, columns
+and defaults, constraints, indexes, and sequence parameters. It runs before changing a fully current
+schema, after every migration, and during startup readiness, so an out-of-band dropped or added
+column, foreign key, check, index, or other reviewed object is rejected even when the migration
+journal still matches. Dynamic Pipes `__snapshots` tables are intentionally excluded.
 
 ```bash
 DATABASE_ADMIN_URL=postgresql://migration_admin:secret@localhost/lsp_indexer_v3 \
@@ -145,7 +154,8 @@ chain_<network>,lsp_v3,public
 Check the role, schema, seeded chain identity, and privilege boundary before starting a pipe.
 Readiness validates both the assumed writer role and the underlying session login, including
 superuser status, every reachable role membership, writer ownership and ACL drift, and direct
-privilege or ownership dependencies:
+privilege or ownership dependencies. It also rejects unexpected effective `PUBLIC` privileges and
+any mismatch between the live chain catalog and the reviewed schema fingerprint:
 
 ```bash
 INDEXER_NETWORK=ethereum-mainnet \

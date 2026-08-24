@@ -25,6 +25,11 @@ import {
 } from './roleBoundary.js';
 import * as schema from './schema.js';
 import { networkConfig, publicTables } from './schema.js';
+import {
+  assertChainSchemaFingerprint,
+  createChainSchemaFingerprintQuery,
+  type ChainSchemaFingerprintRow,
+} from './schemaFingerprint.js';
 
 const defaultMigrationsDirectory = fileURLToPath(new URL('../../drizzle', import.meta.url));
 const MIGRATION_LOCK_KEY = 'lsp-indexer-v3:database-migration';
@@ -276,6 +281,16 @@ async function ensureChainObjectOwnership(
   }
 }
 
+async function ensureChainSchemaFingerprint(
+  client: PoolClient,
+  networkSchema: string,
+): Promise<void> {
+  const result = await drizzle(client).execute<ChainSchemaFingerprintRow>(
+    createChainSchemaFingerprintQuery(networkSchema),
+  );
+  assertChainSchemaFingerprint(networkSchema, result.rows[0]?.fingerprint);
+}
+
 async function ensureCurrentChainTableOwnership(
   client: PoolClient,
   network: DatabaseMigrationNetwork,
@@ -301,6 +316,7 @@ async function ensureCurrentChainTableOwnership(
   const expectedCount = readMigrationFiles({ migrationsFolder: migrationsDirectory }).length;
   if (Number(applied.rows[0]?.count) === expectedCount) {
     await ensureChainObjectOwnership(client, network.role, network.schema);
+    await ensureChainSchemaFingerprint(client, network.schema);
   }
 }
 
@@ -1156,6 +1172,7 @@ async function migrateNetwork(
     });
     await assertExpectedNetworkIdentity(client, network);
     await ensureChainObjectOwnership(client, network.role, network.schema);
+    await ensureChainSchemaFingerprint(client, network.schema);
     await db
       .insert(networkConfig)
       .values({

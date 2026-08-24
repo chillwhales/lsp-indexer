@@ -25,6 +25,13 @@ export interface ChainObjectOwnershipRow extends Record<string, unknown> {
   owner: string | null;
 }
 
+/** An effective privilege inherited from PostgreSQL's PUBLIC pseudo-role. */
+export interface PublicPrivilegeRow extends Record<string, unknown> {
+  kind: string;
+  object: string;
+  privilege: string;
+}
+
 /** Format chain-object ownership findings for migration and readiness errors. */
 export function formatChainObjectOwnership(rows: readonly ChainObjectOwnershipRow[]): string {
   return rows
@@ -86,6 +93,150 @@ export function createChainObjectOwnershipQuery(
       AND (${requireAllObjects}::boolean OR expected_object.required_before_latest)
     ) OR relation.relowner <> writer_role.oid
     ORDER BY expected_object.object_name
+  `;
+}
+
+/** Build the runtime audit for PUBLIC privileges that expand the active writer's authority. */
+export function createPublicPrivilegeBoundaryQuery(): SQL {
+  const sharedEnumNames = Object.keys(SHARED_ENUMS);
+
+  return sql`
+    WITH active_role AS (
+      SELECT oid
+      FROM pg_roles
+      WHERE rolname = current_user
+    ), privileges AS (
+      SELECT 'schema' AS kind,
+             format('%I', namespace.nspname) AS object,
+             acl.privilege_type AS privilege
+      FROM pg_namespace namespace
+      CROSS JOIN active_role
+      CROSS JOIN LATERAL aclexplode(
+        COALESCE(namespace.nspacl, acldefault('n', namespace.nspowner))
+      ) acl
+      WHERE acl.grantee = 0
+        AND namespace.nspowner <> active_role.oid
+        AND NOT (
+          acl.privilege_type = 'USAGE'
+          AND NOT acl.is_grantable
+          AND (
+            namespace.nspname IN ('public', 'pg_catalog', 'information_schema', ${SHARED_SCHEMA})
+            OR namespace.nspname LIKE 'pg_toast%'
+            OR namespace.nspname LIKE 'pg_temp_%'
+          )
+        )
+      UNION ALL
+      SELECT 'relation' AS kind,
+             format('%I.%I', namespace.nspname, relation.relname) AS object,
+             acl.privilege_type AS privilege
+      FROM pg_class relation
+      JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+      CROSS JOIN active_role
+      CROSS JOIN LATERAL aclexplode(relation.relacl) acl
+      WHERE acl.grantee = 0
+        AND relation.relowner <> active_role.oid
+        AND has_schema_privilege(current_user, namespace.oid, 'USAGE')
+        AND namespace.nspname NOT IN ('pg_catalog', 'information_schema')
+        AND namespace.nspname NOT LIKE 'pg_toast%'
+        AND namespace.nspname NOT LIKE 'pg_temp_%'
+      UNION ALL
+      SELECT 'column' AS kind,
+             format('%I.%I.%I', namespace.nspname, relation.relname, attribute.attname) AS object,
+             acl.privilege_type AS privilege
+      FROM pg_attribute attribute
+      JOIN pg_class relation ON relation.oid = attribute.attrelid
+      JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+      CROSS JOIN active_role
+      CROSS JOIN LATERAL aclexplode(attribute.attacl) acl
+      WHERE acl.grantee = 0
+        AND relation.relowner <> active_role.oid
+        AND has_schema_privilege(current_user, namespace.oid, 'USAGE')
+        AND namespace.nspname NOT IN ('pg_catalog', 'information_schema')
+        AND namespace.nspname NOT LIKE 'pg_toast%'
+        AND namespace.nspname NOT LIKE 'pg_temp_%'
+      UNION ALL
+      SELECT 'routine' AS kind,
+             format(
+               '%I.%I(%s)',
+               namespace.nspname,
+               routine.proname,
+               pg_get_function_identity_arguments(routine.oid)
+             ) AS object,
+             acl.privilege_type AS privilege
+      FROM pg_proc routine
+      JOIN pg_namespace namespace ON namespace.oid = routine.pronamespace
+      CROSS JOIN active_role
+      CROSS JOIN LATERAL aclexplode(
+        COALESCE(routine.proacl, acldefault('f', routine.proowner))
+      ) acl
+      WHERE acl.grantee = 0
+        AND routine.proowner <> active_role.oid
+        AND has_schema_privilege(current_user, namespace.oid, 'USAGE')
+        AND namespace.nspname NOT IN ('pg_catalog', 'information_schema')
+        AND namespace.nspname NOT LIKE 'pg_toast%'
+        AND namespace.nspname NOT LIKE 'pg_temp_%'
+      UNION ALL
+      SELECT 'type' AS kind,
+             format('%I.%I', namespace.nspname, granted_type.typname) AS object,
+             acl.privilege_type AS privilege
+      FROM pg_type granted_type
+      JOIN pg_namespace namespace ON namespace.oid = granted_type.typnamespace
+      CROSS JOIN active_role
+      CROSS JOIN LATERAL aclexplode(
+        COALESCE(granted_type.typacl, acldefault('T', granted_type.typowner))
+      ) acl
+      WHERE granted_type.typelem = 0
+        AND acl.grantee = 0
+        AND granted_type.typowner <> active_role.oid
+        AND has_schema_privilege(current_user, namespace.oid, 'USAGE')
+        AND namespace.nspname NOT IN ('pg_catalog', 'information_schema')
+        AND namespace.nspname NOT LIKE 'pg_toast%'
+        AND namespace.nspname NOT LIKE 'pg_temp_%'
+        AND NOT (
+          namespace.nspname = ${SHARED_SCHEMA}
+          AND granted_type.typtype = 'e'
+          AND granted_type.typname IN (
+            ${sql.join(
+              sharedEnumNames.map((name) => sql`${name}`),
+              sql`, `,
+            )}
+          )
+          AND acl.privilege_type = 'USAGE'
+          AND NOT acl.is_grantable
+        )
+      UNION ALL
+      SELECT 'database' AS kind,
+             format('%I', database.datname) AS object,
+             acl.privilege_type AS privilege
+      FROM pg_database database
+      CROSS JOIN LATERAL aclexplode(
+        COALESCE(database.datacl, acldefault('d', database.datdba))
+      ) acl
+      WHERE acl.grantee = 0
+        AND NOT (
+          acl.privilege_type IN ('CONNECT', 'TEMPORARY')
+          AND NOT acl.is_grantable
+        )
+      UNION ALL
+      SELECT 'default privilege' AS kind,
+             format(
+               '%s:%s:%s',
+               owner.rolname,
+               COALESCE(namespace.nspname, '<global>'),
+               default_acl.defaclobjtype
+             ) AS object,
+             acl.privilege_type AS privilege
+      FROM pg_default_acl default_acl
+      JOIN pg_roles owner ON owner.oid = default_acl.defaclrole
+      LEFT JOIN pg_namespace namespace ON namespace.oid = default_acl.defaclnamespace
+      CROSS JOIN active_role
+      CROSS JOIN LATERAL aclexplode(default_acl.defaclacl) acl
+      WHERE acl.grantee = 0
+        AND default_acl.defaclrole <> active_role.oid
+    )
+    SELECT kind, object, privilege
+    FROM privileges
+    ORDER BY kind, object, privilege
   `;
 }
 

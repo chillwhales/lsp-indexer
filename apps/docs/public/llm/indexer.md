@@ -129,6 +129,11 @@ stale privilege aborts migration. The inventory includes privileges inherited fr
 `PUBLIC` pseudo-role and implicit default ACLs on reachable user-defined routines and types. Public
 type usage is removed from the shared enums and API view row types, and a publicly executable custom
 routine—including a default-public `SECURITY DEFINER` routine—aborts migration.
+Runtime readiness separately expands the active credential's effective `PUBLIC` privileges across
+schemas, relations, columns, routines, types, the database, and default ACLs. Its allowlist is limited
+to PostgreSQL's ambient system access, non-grantable connection and temporary-database access, and
+canonical shared-enum usage. `PUBLIC CREATE`, grant options, and reachable custom routines abort
+startup.
 
 Before applying table migrations, `db:migrate` removes the enumerated API views so PostgreSQL can
 change source columns that existing views depend on, then rebuilds the views after every enabled
@@ -137,7 +142,12 @@ original error. Migration and startup also inventory the migration table, cursor
 chain table, plus the migration history sequence, and require the deterministic writer role to own
 each one. A preflight with pending migrations audits all existing expected objects while permitting
 latest-schema tables that the pending migrations have not created yet; the post-migration audit
-requires the complete inventory.
+requires the complete inventory. A deterministic PostgreSQL 17 live-catalog fingerprint covers all
+non-snapshot tables and sequences, relation settings, columns and defaults, constraints, indexes,
+and sequence parameters. Migration verifies a fully current schema before changing it and verifies
+every schema afterward; startup readiness checks it again. Out-of-band added or dropped columns,
+foreign keys, checks, indexes, and other reviewed storage objects are rejected even when the Drizzle
+journal still matches. Dynamic Pipes `__snapshots` tables are excluded.
 
 Create runtime login roles through your PostgreSQL provisioning system, then grant them during the
 one-shot migration. Each login must be unique to one network, must not have elevated PostgreSQL
@@ -168,7 +178,8 @@ DATABASE_RUNTIME_LOGIN_ETHEREUM_MAINNET=lsp_v3_ethereum_runtime \
 Verify that a runtime connection has the expected role and schema and remains inside its privilege
 boundary. Readiness checks both the assumed role and the underlying session login for superuser
 status, every reachable role membership, direct privilege or ownership dependencies, writer ACL
-and ownership drift, and foreign write privileges:
+and ownership drift, effective `PUBLIC` privileges, live-catalog fingerprint drift, and foreign
+write privileges:
 
 ```bash
 INDEXER_NETWORK=ethereum-mainnet \

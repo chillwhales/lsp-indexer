@@ -547,6 +547,8 @@ describe.sequential('PostgreSQL persistence', () => {
     const { migrationsDirectory, temporaryDirectory } = await createPendingMigrationDirectory(
       `ALTER TABLE blocks ALTER COLUMN id TYPE varchar(128);
 --> statement-breakpoint
+ALTER TABLE blocks ALTER COLUMN id TYPE text;
+--> statement-breakpoint
 ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     );
     let scratchPool: Pool | undefined;
@@ -569,7 +571,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
            AND table_name = 'blocks'
            AND column_name = 'id'`,
       );
-      expect(column.rows[0]).toEqual({ dataType: 'character varying', maximumLength: 128 });
+      expect(column.rows[0]).toEqual({ dataType: 'text', maximumLength: null });
       expect(await countRows(scratchPool, 'api.blocks')).toBe(0);
     } finally {
       await scratchPool?.end();
@@ -918,6 +920,36 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     }
   });
 
+  it('rejects runtime CREATE inherited through PUBLIC', async () => {
+    await testAdminPool.query(
+      `GRANT CREATE ON SCHEMA ${quotePostgresIdentifier('public')} TO PUBLIC`,
+    );
+    try {
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        'Database credential inherits unexpected PUBLIC privileges: public (schema CREATE)',
+      );
+    } finally {
+      await testAdminPool.query(
+        `REVOKE CREATE ON SCHEMA ${quotePostgresIdentifier('public')} FROM PUBLIC`,
+      );
+    }
+  });
+
+  it('rejects runtime execution of a default-public SECURITY DEFINER routine', async () => {
+    const routineName = `v3_test_runtime_public_${suiteSuffix}`;
+    const qualifiedRoutine = `${quotePostgresIdentifier('public')}.${quotePostgresIdentifier(routineName)}`;
+    await testAdminPool.query(
+      `CREATE FUNCTION ${qualifiedRoutine}() RETURNS integer LANGUAGE sql SECURITY DEFINER AS $$ SELECT 1 $$`,
+    );
+    try {
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        `Database credential inherits unexpected PUBLIC privileges: public.${routineName}() (routine EXECUTE)`,
+      );
+    } finally {
+      await testAdminPool.query(`DROP FUNCTION ${qualifiedRoutine}()`);
+    }
+  });
+
   it('normalizes PUBLIC usage on approved API view types before enforcing the boundary', async () => {
     const qualifiedType = `${quotePostgresIdentifier(API_SCHEMA)}.${quotePostgresIdentifier('blocks')}`;
     await executeAsRole(
@@ -1098,6 +1130,30 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         `ALTER TABLE ${qualifiedJobs} OWNER TO ${quotePostgresIdentifier(ethereumNetwork.role)}`,
       );
     }
+  });
+
+  it('rejects live chain schemas that drift from the reviewed catalog', async () => {
+    const ethereumNetwork = migrationConfig.networks.find(
+      ({ network }) => network.key === 'ethereum-mainnet',
+    );
+    if (ethereumNetwork == null) throw new Error('Expected the Ethereum migration network');
+    const qualifiedFacts = `${quotePostgresIdentifier(ethereumNetwork.schema)}.${quotePostgresIdentifier('event_facts')}`;
+    const constraint = quotePostgresIdentifier('event_facts_block_fk');
+
+    await testAdminPool.query(`ALTER TABLE ${qualifiedFacts} DROP CONSTRAINT ${constraint}`);
+    try {
+      const expectedError = `Database schema "${ethereumNetwork.schema}" fingerprint is`;
+      await expect(migrateDatabase(migrationConfig)).rejects.toThrow(expectedError);
+      await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).rejects.toThrow(
+        expectedError,
+      );
+    } finally {
+      await testAdminPool.query(
+        `ALTER TABLE ${qualifiedFacts} ADD CONSTRAINT ${constraint} FOREIGN KEY (chain_id, block_number, block_hash) REFERENCES ${quotePostgresIdentifier(ethereumNetwork.schema)}.${quotePostgresIdentifier('blocks')} (chain_id, number, hash) ON DELETE CASCADE ON UPDATE NO ACTION`,
+      );
+    }
+
+    await expect(verifyDatabaseReadiness(ethereumDb, ethereumRuntime)).resolves.toBeDefined();
   });
 
   it('allows pending migrations to introduce missing latest-schema tables', async () => {

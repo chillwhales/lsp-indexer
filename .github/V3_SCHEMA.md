@@ -26,7 +26,11 @@ and checks the underlying session login as well: it cannot be a superuser, reach
 hold direct ACLs or database-object ownership beyond non-grantable connection access, or have direct
 or inherited write privileges on another configured chain schema. Readiness also inventories the
 assumed writer: it may own or receive privileges only inside its chain schema, plus non-grantable
-`USAGE` on `lsp_v3` and the four canonical enums.
+`USAGE` on `lsp_v3` and the four canonical enums. It separately expands the effective privileges
+inherited from PostgreSQL's `PUBLIC` pseudo-role across schemas, relations, columns, routines,
+types, the database, and default ACLs. The allowlist contains only PostgreSQL's ambient system
+access, non-grantable connection and temporary-database access, and the expected shared enum usage;
+`PUBLIC CREATE`, grant options, or a reachable user-defined routine abort startup.
 
 ## Table inventory
 
@@ -134,7 +138,13 @@ all enabled schemas are current, and attempts restoration when a migration fails
 startup inventory the migration table and sequence, cursor, and every expected chain table and
 require the deterministic writer role to own each object. When migrations are pending, the preflight
 audits ownership of the expected objects that already exist without treating not-yet-created latest
-tables as drift; the complete inventory is mandatory after migration.
+tables as drift; the complete inventory is mandatory after migration. A deterministic live-catalog
+fingerprint then verifies all non-snapshot tables and sequences, relation settings, columns and
+defaults, constraints, indexes, and sequence parameters. The migrator checks a fully current schema
+before changing it and checks every schema after migration; startup readiness checks it again. A
+dropped or added column, foreign key, check, index, or other reviewed storage object therefore fails
+even if the Drizzle journal is unchanged. Pipes-managed `__snapshots` tables are excluded because
+their lifecycle is dynamic.
 
 After every enabled chain is current, the migrator transactionally replaces 14 security-barrier
 views in `api` with `UNION ALL` selections. Internal jobs, cursor history, network identity,
