@@ -360,8 +360,8 @@ Raw metadata values remain stored when their target is not yet verified. When a 
 the affected profile, asset, collection, or NFT to a verified state, the same projection transaction
 reloads those target scopes in bounded pages and queues their current metadata sources. Recovered
 jobs use the eligibility-changing block for finality, so an older metadata row cannot be fetched
-before its verification transition is finalized. Repeated events with the identical current value
-retain the first source provenance and do not reset an existing job.
+before its verification transition is finalized. Repeated metadata or LSP8 location events with the
+identical current value retain first provenance, do not rewrite NFTs, and do not reset existing jobs.
 For an LSP8 collection transition, stored base-URI and token-ID-format controls are reapplied before
 its NFTs are paged. This restores derived token locations and direct token metadata without loading
 the collection into memory; direct token recovery reads each NFT's durable verification state rather

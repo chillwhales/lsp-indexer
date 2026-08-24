@@ -43,6 +43,8 @@ describe('LSP projection value decoders', () => {
     expect(decodeRegistryValue(`${registryValue}00`)).toBeNull();
     expect(isMetadataControlDataKey(DATA_KEYS.lsp3Profile)).toBe(true);
     expect(isMetadataControlDataKey(DATA_KEYS.lsp4Metadata)).toBe(true);
+    expect(isMetadataControlDataKey(DATA_KEYS.lsp8MetadataBaseUri)).toBe(true);
+    expect(isMetadataControlDataKey(DATA_KEYS.lsp8TokenIdFormat)).toBe(true);
     expect(
       isMetadataControlDataKey(
         `${DATA_KEYS.lsp29EncryptedAssetsIndex}${toHex(7n, { size: 16 }).slice(2)}`,

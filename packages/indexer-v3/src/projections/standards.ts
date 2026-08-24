@@ -52,6 +52,8 @@ export function isMetadataControlDataKey(dataKey: string): boolean {
   return (
     dataKey === DATA_KEYS.lsp3Profile ||
     dataKey === DATA_KEYS.lsp4Metadata ||
+    dataKey === DATA_KEYS.lsp8MetadataBaseUri ||
+    dataKey === DATA_KEYS.lsp8TokenIdFormat ||
     dataKey === DATA_KEYS.lsp29EncryptedAssetsLength ||
     dataKey.startsWith(DATA_KEYS.lsp29EncryptedAssetsIndex)
   );

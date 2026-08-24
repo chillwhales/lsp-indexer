@@ -172,8 +172,8 @@ so a slow response cannot overwrite newer canonical state. Successful content is
 deterministic `metadata_revisions` row with its source provenance. Job state remains internal and
 is exposed through metrics rather than the public API views. An existing deterministic revision is
 immutable; a later fetch for the same chain source cannot replace its published bytes or provenance.
-Repeated identical values retain their first source provenance without resetting the job. Metadata
-recovered after a verification transition waits for that transition to finalize, and collection
+Repeated identical metadata and LSP8 location controls retain their first source provenance without
+rewriting NFTs or resetting jobs. Metadata recovered after a verification transition waits for that transition to finalize, and collection
 recovery is page-bounded. When an LSP8 collection becomes verified, its stored base URI and token-ID
 format are reapplied before existing NFTs are paged, so both derived token locations and direct token
 metadata are recovered without loading the full collection into memory. Direct token recovery reads

@@ -396,7 +396,20 @@ describe('deterministic v3 domain reducer', () => {
       }),
     ]);
 
-    const burn = transfer(runtime, 5, asset, 'lsp8', bob, ZERO_ADDRESS, '1');
+    const repeatedLocations = [
+      dataChanged(runtime, 5, asset, DATA_KEYS.lsp8MetadataBaseUri, baseUri),
+      dataChanged(runtime, 6, asset, DATA_KEYS.lsp8TokenIdFormat, '0x00'),
+    ];
+    const repeated = reduceProjectionEvents(
+      runtime,
+      state,
+      repeatedLocations,
+      verifications(repeatedLocations, [], new Map([[asset, 'lsp8']])),
+    );
+    expect(repeated.digitalAssets).toEqual([]);
+    expect(repeated.nfts).toEqual([]);
+
+    const burn = transfer(runtime, 7, asset, 'lsp8', bob, ZERO_ADDRESS, '1');
     const third = reduceProjectionEvents(
       runtime,
       state,

@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from '../db/client.js';
 import type { NetworkDatabaseConfig } from '../db/config.js';
+import { createDataValueId } from '../db/identity.js';
 import {
   chillwhalesNfts,
   controllers,
@@ -17,6 +18,7 @@ import {
   universalProfiles,
 } from '../db/schema.js';
 import { createPersistenceTarget, type PersistenceHandlerContext } from '../db/target.js';
+import type { EventFactRecord } from '../events/decode.js';
 import { persistEventBatch } from '../events/persistence.js';
 import {
   applyMetadataSourcePlan,
@@ -426,6 +428,34 @@ async function effectiveDataValueRows(
   );
 }
 
+function metadataControlEventId(event: EventFactRecord): string | null {
+  if (event.eventName !== 'DataChanged' && event.eventName !== 'TokenIdDataChanged') return null;
+  const dataKey = event.decoded?.dataKey;
+  if (typeof dataKey !== 'string' || !isMetadataControlDataKey(dataKey)) return null;
+  const tokenId = event.eventName === 'TokenIdDataChanged' ? event.decoded?.tokenId : undefined;
+  if (event.eventName === 'TokenIdDataChanged' && typeof tokenId !== 'string') return null;
+  return createDataValueId(
+    event.chainId,
+    event.address,
+    dataKey,
+    typeof tokenId === 'string' ? tokenId : undefined,
+  );
+}
+
+/** Remove unchanged metadata-control facts from downstream source-planning triggers. */
+export function filterEffectiveMetadataEvents(
+  events: readonly EventFactRecord[],
+  rows: readonly (typeof dataValues.$inferSelect)[],
+): EventFactRecord[] {
+  const effectiveIds = new Set(
+    rows.filter(({ dataKey }) => isMetadataControlDataKey(dataKey)).map(({ id }) => id),
+  );
+  return events.filter((event) => {
+    const id = metadataControlEventId(event);
+    return id == null || effectiveIds.has(id);
+  });
+}
+
 async function applyUpserts(
   tx: ProjectionTransaction,
   mutations: ProjectionMutations,
@@ -479,6 +509,7 @@ export async function persistProjectionBatch(
     ...mutations,
     dataValues: await effectiveDataValueRows(context.tx, mutations.dataValues),
   };
+  const effectiveEvents = filterEffectiveMetadataEvents(events, effectiveMutations.dataValues);
   const transitions = findMetadataVerificationTransitions(metadataVerification, effectiveMutations);
   await applyProjectionMutations(context.tx, effectiveMutations);
   for await (const page of loadLsp8MetadataLocationRecoveryPages(
@@ -513,7 +544,7 @@ export async function persistProjectionBatch(
       runtime,
       state,
       effectiveMutations,
-      events,
+      effectiveEvents,
       { dataValues: [], nfts: [] },
       lsp29Lengths,
     ),

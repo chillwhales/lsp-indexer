@@ -3,6 +3,7 @@ import { toHex } from 'viem';
 import { describe, expect, it } from 'vitest';
 import { loadRuntimeConfig } from '../../config/index.js';
 import type { NetworkDatabase } from '../../db/client.js';
+import { createDataValueId } from '../../db/identity.js';
 import {
   chillwhalesNfts,
   controllers,
@@ -17,8 +18,14 @@ import {
   universalProfiles,
 } from '../../db/schema.js';
 import type { PersistenceHandlerContext } from '../../db/target.js';
-import { applyProjectionMutations, assertProjectionReplayStart } from '../persistence.js';
+import type { EventFactRecord } from '../../events/decode.js';
+import {
+  applyProjectionMutations,
+  assertProjectionReplayStart,
+  filterEffectiveMetadataEvents,
+} from '../persistence.js';
 import type { ProjectionMutations } from '../reducer.js';
+import { DATA_KEYS } from '../standards.js';
 
 const profile = '0x0000000000000000000000000000000000000010';
 const asset = '0x0000000000000000000000000000000000000020';
@@ -289,6 +296,57 @@ function mutations(): ProjectionMutations {
 }
 
 describe('projection mutation persistence', () => {
+  it('removes unchanged control events without hiding effective or unrelated facts', () => {
+    const repeatedControl: EventFactRecord = {
+      id: 'repeated-control',
+      network: 'lukso-mainnet',
+      chainId: 42,
+      blockNumber: 100,
+      blockHash,
+      parentHash: toHex(99n, { size: 32 }),
+      blockTimestamp: new Date('2026-01-01T00:00:00Z'),
+      transactionHash,
+      transactionIndex: 0,
+      logIndex: 0,
+      address: asset,
+      eventName: 'DataChanged',
+      eventDomain: 'erc725y',
+      topic0: toHex(1n, { size: 32 }),
+      topics: [toHex(1n, { size: 32 })],
+      data: '0x',
+      decoded: { dataKey: DATA_KEYS.lsp8MetadataBaseUri, dataValue: '0x' },
+    };
+    const effectiveControl: EventFactRecord = {
+      ...repeatedControl,
+      id: 'effective-control',
+      logIndex: 1,
+      decoded: { dataKey: DATA_KEYS.lsp8TokenIdFormat, dataValue: '0x00' },
+    };
+    const unrelatedTransfer: EventFactRecord = {
+      ...repeatedControl,
+      id: 'unrelated-transfer',
+      logIndex: 2,
+      eventName: 'Transfer',
+      eventDomain: 'lsp8',
+      decoded: { tokenId },
+    };
+    const row = mutations().dataValues[0];
+    if (row == null) throw new Error('Expected a data-value mutation fixture');
+    const effectiveRow = {
+      ...row,
+      id: createDataValueId(42, asset, DATA_KEYS.lsp8TokenIdFormat),
+      dataKey: DATA_KEYS.lsp8TokenIdFormat,
+      dataValue: '0x00',
+    };
+
+    expect(
+      filterEffectiveMetadataEvents(
+        [repeatedControl, effectiveControl, unrelatedTransfer],
+        [effectiveRow],
+      ).map(({ id }) => id),
+    ).toEqual(['effective-control', 'unrelated-transfer']);
+  });
+
   it('deletes stale relationships before upserting every current-state table', async () => {
     const { tx, state } = fakeTransaction();
     await applyProjectionMutations(tx, mutations());
