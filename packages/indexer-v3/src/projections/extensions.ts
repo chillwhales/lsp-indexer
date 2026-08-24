@@ -1,4 +1,4 @@
-import { and, eq, or } from 'drizzle-orm';
+import { and, asc, eq, lte, or } from 'drizzle-orm';
 import { getAddress, hexToBytes, isHex, type Hex } from 'viem';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from '../db/client.js';
@@ -6,7 +6,12 @@ import { chillwhalesNfts } from '../db/schema.js';
 import type { EventIngestionBatch } from '../events/decode.js';
 import type { NetworkRpcClient } from '../rpc/index.js';
 import { createMulticallBatches } from './batching.js';
+import { readAtVerifiedBlock, type ProjectionBlockRef } from './block.js';
 import { CHILLWHALES_EXTENSION, ZERO_ADDRESS } from './standards.js';
+
+export const CLAIM_STATUS_PAGE_SIZE = 250;
+export const CLAIM_STATUS_POLL_INTERVAL_BLOCKS = 720;
+export const CLAIM_STATUS_RETRY_INTERVAL_BLOCKS = 30;
 
 const CHILL_CLAIM_ABI = [
   {
@@ -42,6 +47,7 @@ export interface ClaimStatusUpdate {
   orbsClaimed: boolean;
   blockNumber: number;
   blockHash: string;
+  nextCheckBlock: number;
 }
 
 export interface ClaimStatusCall {
@@ -52,7 +58,7 @@ export interface ClaimStatusCall {
 export type ClaimStatusCallResult = { status: 'success'; value: boolean } | { status: 'failure' };
 
 export type ClaimStatusCallExecutor = (
-  _blockNumber: number,
+  _block: ProjectionBlockRef,
   _calls: readonly ClaimStatusCall[],
 ) => Promise<readonly ClaimStatusCallResult[]>;
 
@@ -87,26 +93,42 @@ export async function loadClaimStatusCandidates(
   db: NetworkDatabase,
   runtime: RuntimeConfig,
   batch: EventIngestionBatch,
+  blockNumber: number,
 ): Promise<ClaimStatusCandidate[]> {
   if (!runtime.network.extensions.includes('chillwhales')) return [];
 
-  const rows = await db
-    .select({
-      address: chillwhalesNfts.address,
-      tokenId: chillwhalesNfts.tokenId,
-      chillClaimed: chillwhalesNfts.chillClaimed,
-      orbsClaimed: chillwhalesNfts.orbsClaimed,
-    })
-    .from(chillwhalesNfts)
-    .where(
-      and(
-        eq(chillwhalesNfts.chainId, runtime.network.chainId),
-        eq(chillwhalesNfts.address, CHILLWHALES_EXTENSION.collectionAddress),
-        or(eq(chillwhalesNfts.chillClaimed, false), eq(chillwhalesNfts.orbsClaimed, false)),
-      ),
-    );
-
   const candidates = new Map<string, ClaimStatusCandidate>();
+  const mintCandidates = new Map<string, ClaimStatusCandidate>();
+  for (const mint of collectMintCandidates(batch)) mintCandidates.set(mint.tokenId, mint);
+  for (const mint of [...mintCandidates.values()]
+    .sort((left, right) => left.tokenId.localeCompare(right.tokenId))
+    .slice(0, CLAIM_STATUS_PAGE_SIZE)) {
+    candidates.set(mint.tokenId, mint);
+  }
+
+  const remaining = CLAIM_STATUS_PAGE_SIZE - candidates.size;
+  const rows =
+    remaining <= 0
+      ? []
+      : await db
+          .select({
+            address: chillwhalesNfts.address,
+            tokenId: chillwhalesNfts.tokenId,
+            chillClaimed: chillwhalesNfts.chillClaimed,
+            orbsClaimed: chillwhalesNfts.orbsClaimed,
+          })
+          .from(chillwhalesNfts)
+          .where(
+            and(
+              eq(chillwhalesNfts.chainId, runtime.network.chainId),
+              eq(chillwhalesNfts.address, CHILLWHALES_EXTENSION.collectionAddress),
+              or(eq(chillwhalesNfts.chillClaimed, false), eq(chillwhalesNfts.orbsClaimed, false)),
+              lte(chillwhalesNfts.claimCheckAfterBlock, blockNumber),
+            ),
+          )
+          .orderBy(asc(chillwhalesNfts.claimCheckAfterBlock), asc(chillwhalesNfts.tokenId))
+          .limit(remaining);
+
   for (const row of rows) {
     const tokenId = readTokenId(row.tokenId);
     if (tokenId == null) {
@@ -117,14 +139,6 @@ export async function loadClaimStatusCandidates(
       tokenId,
       checkChill: !row.chillClaimed,
       checkOrbs: !row.orbsClaimed,
-    });
-  }
-  for (const mint of collectMintCandidates(batch)) {
-    const existing = candidates.get(mint.tokenId);
-    candidates.set(mint.tokenId, {
-      ...mint,
-      checkChill: existing?.checkChill ?? true,
-      checkOrbs: existing?.checkOrbs ?? true,
     });
   }
   return [...candidates.values()].sort((left, right) => left.tokenId.localeCompare(right.tokenId));
@@ -147,7 +161,7 @@ export function createClaimStatusCallExecutor(
   runtime: RuntimeConfig,
 ): ClaimStatusCallExecutor {
   return async function executeClaimStatusCalls(
-    blockNumber: number,
+    block: ProjectionBlockRef,
     calls: readonly ClaimStatusCall[],
   ): Promise<readonly ClaimStatusCallResult[]> {
     const contracts = calls.map((call) =>
@@ -165,12 +179,14 @@ export function createClaimStatusCallExecutor(
             args: [call.tokenId] as const,
           },
     );
-    const results: readonly unknown[] = await rpc.multicall({
-      contracts,
-      blockNumber: BigInt(blockNumber),
-      multicallAddress: runtime.network.multicallAddress,
-      allowFailure: true,
-    });
+    const results: readonly unknown[] = await readAtVerifiedBlock(rpc, block, () =>
+      rpc.multicall({
+        contracts,
+        blockNumber: BigInt(block.number),
+        multicallAddress: runtime.network.multicallAddress,
+        allowFailure: true,
+      }),
+    );
     return results.map(normalizeResult);
   };
 }
@@ -183,8 +199,7 @@ interface PlannedClaimCall {
 /** Resolve monotonic false-to-true claim transitions at one exact chain head. */
 export async function resolveClaimStatusUpdates(
   candidates: readonly ClaimStatusCandidate[],
-  blockNumber: number,
-  blockHash: string,
+  block: ProjectionBlockRef,
   execute: ClaimStatusCallExecutor,
 ): Promise<ClaimStatusUpdate[]> {
   const planned: PlannedClaimCall[] = candidates.flatMap((candidate) => [
@@ -197,16 +212,29 @@ export async function resolveClaimStatusUpdates(
   ]);
   if (planned.length === 0) return [];
 
-  const updates = new Map<string, ClaimStatusUpdate>();
+  const updates = new Map<string, ClaimStatusUpdate>(
+    candidates.map((candidate) => [
+      candidate.tokenId,
+      {
+        address: candidate.address,
+        tokenId: candidate.tokenId,
+        chillClaimed: false,
+        orbsClaimed: false,
+        blockNumber: block.number,
+        blockHash: block.hash,
+        nextCheckBlock: block.number + CLAIM_STATUS_POLL_INTERVAL_BLOCKS,
+      },
+    ]),
+  );
   let resultOffset = 0;
   for (const plannedBatch of createMulticallBatches(planned)) {
     const results = await execute(
-      blockNumber,
+      block,
       plannedBatch.map(({ call }) => call),
     );
     if (results.length !== plannedBatch.length) {
       throw new Error(
-        `Claim-status multicall at block ${blockNumber} returned ${results.length} results for ${plannedBatch.length} calls`,
+        `Claim-status multicall at block ${block.number} returned ${results.length} results for ${plannedBatch.length} calls`,
       );
     }
     for (let index = 0; index < plannedBatch.length; index++) {
@@ -214,23 +242,20 @@ export async function resolveClaimStatusUpdates(
       const result = results[index];
       if (current == null || result == null) {
         throw new Error(
-          `Claim-status multicall at block ${blockNumber} omitted result ${resultOffset + index}`,
+          `Claim-status multicall at block ${block.number} omitted result ${resultOffset + index}`,
         );
       }
-      if (result.status !== 'success' || !result.value) continue;
-      const update = updates.get(current.candidate.tokenId) ?? {
-        address: current.candidate.address,
-        tokenId: current.candidate.tokenId,
-        chillClaimed: false,
-        orbsClaimed: false,
-        blockNumber,
-        blockHash,
-      };
+      const update = updates.get(current.candidate.tokenId);
+      if (update == null) throw new Error('Claim-status update plan is inconsistent');
+      if (result.status === 'failure') {
+        update.nextCheckBlock = block.number + CLAIM_STATUS_RETRY_INTERVAL_BLOCKS;
+        continue;
+      }
+      if (!result.value) continue;
       if (current.call.kind === 'chill') update.chillClaimed = true;
       else update.orbsClaimed = true;
-      updates.set(current.candidate.tokenId, update);
     }
     resultOffset += plannedBatch.length;
   }
-  return [...updates.values()];
+  return [...updates.values()].sort((left, right) => left.tokenId.localeCompare(right.tokenId));
 }

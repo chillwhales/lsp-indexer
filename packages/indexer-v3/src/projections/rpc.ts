@@ -2,6 +2,7 @@ import { getAddress, type Hex } from 'viem';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkRpcClient } from '../rpc/index.js';
 import { createMulticallBatches } from './batching.js';
+import { readAtVerifiedBlock, type ProjectionBlockRef } from './block.js';
 import type { VerificationCandidate, VerificationCategory } from './candidates.js';
 import { INTERFACE_IDS } from './standards.js';
 
@@ -36,12 +37,13 @@ export type ProjectionContractCallResult =
   | { status: 'failure' };
 
 export type ProjectionCallExecutor = (
-  _blockNumber: number,
+  _block: ProjectionBlockRef,
   _calls: readonly ProjectionContractCall[],
 ) => Promise<readonly ProjectionContractCallResult[]>;
 
 export interface ProjectionVerification {
   blockNumber: number;
+  blockHash: string;
   address: string;
   category: VerificationCategory;
   status: 'verified' | 'invalid';
@@ -66,25 +68,26 @@ interface CandidateAccumulator {
 /** Stable lookup key for a block-pinned verification result. */
 export function verificationKey(
   blockNumber: number,
+  blockHash: string,
   category: VerificationCategory,
   address: string,
 ): string {
-  return `${blockNumber}:${category}:${address}`;
+  return `${blockNumber}:${blockHash}:${category}:${address}`;
 }
 
 function planCandidate(candidate: VerificationCandidate): PlannedCall[] {
   if (candidate.category === 'universalProfile') {
-    return [
-      {
+    return INTERFACE_IDS.lsp0.map(
+      (interfaceId): PlannedCall => ({
         candidate,
         standard: null,
         call: {
           address: candidate.address,
           functionName: 'supportsInterface',
-          interfaceId: INTERFACE_IDS.lsp0,
+          interfaceId,
         },
-      },
-    ];
+      }),
+    );
   }
 
   return [
@@ -127,7 +130,7 @@ export function createProjectionCallExecutor(
   runtime: RuntimeConfig,
 ): ProjectionCallExecutor {
   return async function executeProjectionCalls(
-    blockNumber: number,
+    block: ProjectionBlockRef,
     calls: readonly ProjectionContractCall[],
   ): Promise<readonly ProjectionContractCallResult[]> {
     const contracts = calls.map((call) =>
@@ -144,12 +147,14 @@ export function createProjectionCallExecutor(
             functionName: 'decimals' as const,
           },
     );
-    const results: readonly unknown[] = await rpc.multicall({
-      contracts,
-      blockNumber: BigInt(blockNumber),
-      multicallAddress: runtime.network.multicallAddress,
-      allowFailure: true,
-    });
+    const results: readonly unknown[] = await readAtVerifiedBlock(rpc, block, () =>
+      rpc.multicall({
+        contracts,
+        blockNumber: BigInt(block.number),
+        multicallAddress: runtime.network.multicallAddress,
+        allowFailure: true,
+      }),
+    );
     return results.map(normalizeViemResult);
   };
 }
@@ -201,28 +206,36 @@ export async function resolveProjectionVerifications(
   candidates: readonly VerificationCandidate[],
   execute: ProjectionCallExecutor,
 ): Promise<ProjectionVerification[]> {
-  const candidatesByBlock = new Map<number, VerificationCandidate[]>();
+  const candidatesByBlock = new Map<
+    string,
+    { block: ProjectionBlockRef; candidates: VerificationCandidate[] }
+  >();
   for (const candidate of candidates) {
-    const blockCandidates = candidatesByBlock.get(candidate.blockNumber) ?? [];
-    blockCandidates.push(candidate);
-    candidatesByBlock.set(candidate.blockNumber, blockCandidates);
+    const key = `${candidate.blockNumber}:${candidate.blockHash}`;
+    const entry = candidatesByBlock.get(key) ?? {
+      block: { number: candidate.blockNumber, hash: candidate.blockHash },
+      candidates: [],
+    };
+    entry.candidates.push(candidate);
+    candidatesByBlock.set(key, entry);
   }
 
   const verifications: ProjectionVerification[] = [];
-  for (const [blockNumber, blockCandidates] of [...candidatesByBlock.entries()].sort(
-    ([left], [right]) => left - right,
+  for (const { block, candidates: blockCandidates } of [...candidatesByBlock.values()].sort(
+    (left, right) =>
+      left.block.number - right.block.number || left.block.hash.localeCompare(right.block.hash),
   )) {
     const planned = blockCandidates.flatMap(planCandidate);
     const accumulators = new Map<string, CandidateAccumulator>();
     let resultOffset = 0;
     for (const plannedBatch of createMulticallBatches(planned)) {
       const results = await execute(
-        blockNumber,
+        block,
         plannedBatch.map(({ call }) => call),
       );
       if (results.length !== plannedBatch.length) {
         throw new Error(
-          `RPC multicall at block ${blockNumber} returned ${results.length} results for ${plannedBatch.length} calls`,
+          `RPC multicall at block ${block.number} returned ${results.length} results for ${plannedBatch.length} calls`,
         );
       }
       for (let index = 0; index < plannedBatch.length; index++) {
@@ -230,11 +243,12 @@ export async function resolveProjectionVerifications(
         const result = results[index];
         if (current == null || result == null) {
           throw new Error(
-            `RPC multicall at block ${blockNumber} omitted result ${resultOffset + index}`,
+            `RPC multicall at block ${block.number} omitted result ${resultOffset + index}`,
           );
         }
         const key = verificationKey(
           current.candidate.blockNumber,
+          current.candidate.blockHash,
           current.candidate.category,
           current.candidate.address,
         );

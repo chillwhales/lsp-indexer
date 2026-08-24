@@ -603,6 +603,9 @@ export const chillwhalesNfts = pgTable(
     tokenId: varchar('token_id', { length: 66 }).notNull(),
     chillClaimed: boolean('chill_claimed').notNull().default(false),
     orbsClaimed: boolean('orbs_claimed').notNull().default(false),
+    claimCheckAfterBlock: bigint('claim_check_after_block', { mode: 'number' })
+      .notNull()
+      .default(0),
     level: integer('level'),
     cooldownExpiry: bigint('cooldown_expiry', { mode: 'number' }),
     faction: text('faction'),
@@ -619,6 +622,12 @@ export const chillwhalesNfts = pgTable(
     }),
     uniqueIndex('chillwhales_nfts_id_uidx').on(table.id),
     index('chillwhales_nfts_game_idx').on(table.address, table.level, table.cooldownExpiry),
+    index('chillwhales_nfts_claim_poll_idx').on(
+      table.chainId,
+      table.address,
+      table.claimCheckAfterBlock,
+      table.tokenId,
+    ),
     foreignKey({
       columns: [table.network, table.chainId],
       foreignColumns: [networkConfig.network, networkConfig.chainId],
@@ -631,6 +640,7 @@ export const chillwhalesNfts = pgTable(
     }).onDelete('cascade'),
     check('chillwhales_nfts_address_check', sql`${table.address} ~ '^0x[0-9a-f]{40}$'`),
     check('chillwhales_nfts_token_id_check', sql`${table.tokenId} ~ '^0x[0-9a-f]{64}$'`),
+    check('chillwhales_nfts_claim_check_check', sql`${table.claimCheckAfterBlock} >= 0`),
     check('chillwhales_nfts_level_check', sql`${table.level} IS NULL OR ${table.level} >= 0`),
     check(
       'chillwhales_nfts_cooldown_check',

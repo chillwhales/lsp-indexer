@@ -349,6 +349,7 @@ describe('deterministic v3 domain reducer', () => {
           orbsClaimed: false,
           blockNumber: 4,
           blockHash: headHash,
+          nextCheckBlock: 724,
         },
       ],
     );
@@ -368,6 +369,7 @@ describe('deterministic v3 domain reducer', () => {
         orbsClaimed: false,
         lastBlockNumber: 4,
         lastBlockHash: headHash,
+        claimCheckAfterBlock: 724,
         lastTransactionHash: null,
       }),
     ]);

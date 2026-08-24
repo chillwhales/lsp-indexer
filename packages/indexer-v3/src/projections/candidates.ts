@@ -5,12 +5,13 @@ export type VerificationCategory = 'universalProfile' | 'digitalAsset';
 
 export interface VerificationCandidate {
   blockNumber: number;
+  blockHash: string;
   address: string;
   category: VerificationCategory;
 }
 
 function candidateKey(candidate: VerificationCandidate): string {
-  return `${candidate.blockNumber}:${candidate.category}:${candidate.address}`;
+  return `${candidate.blockNumber}:${candidate.blockHash}:${candidate.category}:${candidate.address}`;
 }
 
 function readString(event: EventFactRecord, key: string): string | null {
@@ -25,7 +26,12 @@ function addCandidate(
   category: VerificationCategory,
 ): void {
   if (address == null || isNullAddress(address)) return;
-  const candidate = { blockNumber: event.blockNumber, address, category };
+  const candidate = {
+    blockNumber: event.blockNumber,
+    blockHash: event.blockHash,
+    address,
+    category,
+  };
   candidates.set(candidateKey(candidate), candidate);
 }
 
@@ -125,7 +131,7 @@ export function collectEventVerificationCandidates(
   return [...candidates.values()];
 }
 
-/** Deduplicate a batch read plan by exact block, category, and address. */
+/** Deduplicate a batch read plan by exact block identity, category, and address. */
 export function collectProjectionCandidates(batch: EventIngestionBatch): VerificationCandidate[] {
   const candidates = new Map<string, VerificationCandidate>();
   for (const event of batch.events) {
@@ -136,6 +142,7 @@ export function collectProjectionCandidates(batch: EventIngestionBatch): Verific
   return [...candidates.values()].sort(
     (left, right) =>
       left.blockNumber - right.blockNumber ||
+      left.blockHash.localeCompare(right.blockHash) ||
       left.category.localeCompare(right.category) ||
       left.address.localeCompare(right.address),
   );

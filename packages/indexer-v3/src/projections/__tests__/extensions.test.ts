@@ -6,6 +6,9 @@ import type { EventFactRecord, EventIngestionBatch } from '../../events/decode.j
 import type { NetworkRpcClient } from '../../rpc/index.js';
 import { MAX_MULTICALL_BATCH_SIZE } from '../batching.js';
 import {
+  CLAIM_STATUS_PAGE_SIZE,
+  CLAIM_STATUS_POLL_INTERVAL_BLOCKS,
+  CLAIM_STATUS_RETRY_INTERVAL_BLOCKS,
   createClaimStatusCallExecutor,
   loadClaimStatusCandidates,
   resolveClaimStatusUpdates,
@@ -51,8 +54,16 @@ function fakeDatabase(rows: unknown[]): NetworkDatabase {
       return {
         from() {
           return {
-            where(): Promise<unknown[]> {
-              return Promise.resolve(rows);
+            where() {
+              return {
+                orderBy() {
+                  return {
+                    limit(size: number): Promise<unknown[]> {
+                      return Promise.resolve(rows.slice(0, size));
+                    },
+                  };
+                },
+              };
             },
           };
         },
@@ -74,7 +85,7 @@ describe('Chillwhales product extension reads', () => {
       },
     ]);
 
-    await expect(loadClaimStatusCandidates(database, lukso, mintBatch())).resolves.toEqual([
+    await expect(loadClaimStatusCandidates(database, lukso, mintBatch(), 100)).resolves.toEqual([
       {
         address: CHILLWHALES_EXTENSION.collectionAddress,
         tokenId,
@@ -84,11 +95,13 @@ describe('Chillwhales product extension reads', () => {
     ]);
 
     const ethereum = loadRuntimeConfig({ INDEXER_NETWORK: 'ethereum-mainnet' });
-    await expect(loadClaimStatusCandidates(database, ethereum, mintBatch())).resolves.toEqual([]);
+    await expect(loadClaimStatusCandidates(database, ethereum, mintBatch(), 100)).resolves.toEqual(
+      [],
+    );
   });
 
-  it('emits only monotonic true transitions and tolerates individual call failures', async () => {
-    const execute: ClaimStatusCallExecutor = (_blockNumber, calls) =>
+  it('emits monotonic updates and schedules failed calls for an earlier retry', async () => {
+    const execute: ClaimStatusCallExecutor = (_block, calls) =>
       Promise.resolve(
         calls.map((call) =>
           call.kind === 'chill'
@@ -108,8 +121,7 @@ describe('Chillwhales product extension reads', () => {
             checkOrbs: true,
           },
         ],
-        100,
-        blockHash,
+        { number: 100, hash: blockHash },
         execute,
       ),
     ).resolves.toEqual([
@@ -120,17 +132,19 @@ describe('Chillwhales product extension reads', () => {
         orbsClaimed: false,
         blockNumber: 100,
         blockHash,
+        nextCheckBlock: 100 + CLAIM_STATUS_RETRY_INTERVAL_BLOCKS,
       },
     ]);
   });
 
   it('pins claim calls to the current block and configured Multicall3 deployment', async () => {
     const multicall = vi.fn().mockResolvedValue([{ status: 'success', result: true }]);
+    const getBlock = vi.fn().mockResolvedValue({ hash: toHex(100n, { size: 32 }) });
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
-    const rpc = { multicall } as unknown as NetworkRpcClient;
+    const rpc = { getBlock, multicall } as unknown as NetworkRpcClient;
     const execute = createClaimStatusCallExecutor(rpc, runtime);
 
-    await execute(100, [{ kind: 'chill', tokenId }]);
+    await execute({ number: 100, hash: toHex(100n, { size: 32 }) }, [{ kind: 'chill', tokenId }]);
 
     expect(multicall).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -139,9 +153,10 @@ describe('Chillwhales product extension reads', () => {
         allowFailure: true,
       }),
     );
+    expect(getBlock).toHaveBeenCalledTimes(2);
   });
 
-  it('returns no mutation for false statuses and rejects incomplete batches', async () => {
+  it('schedules false statuses at the normal cadence and rejects incomplete batches', async () => {
     const candidate = {
       address: CHILLWHALES_EXTENSION.collectionAddress,
       tokenId,
@@ -153,17 +168,25 @@ describe('Chillwhales product extension reads', () => {
     await expect(
       resolveClaimStatusUpdates(
         [candidate],
-        100,
-        blockHash,
+        { number: 100, hash: blockHash },
         (): Promise<[{ status: 'success'; value: false }]> =>
           Promise.resolve([{ status: 'success', value: false }]),
       ),
-    ).resolves.toEqual([]);
+    ).resolves.toEqual([
+      {
+        address: CHILLWHALES_EXTENSION.collectionAddress,
+        tokenId,
+        chillClaimed: false,
+        orbsClaimed: false,
+        blockNumber: 100,
+        blockHash,
+        nextCheckBlock: 100 + CLAIM_STATUS_POLL_INTERVAL_BLOCKS,
+      },
+    ]);
     await expect(
       resolveClaimStatusUpdates(
         [candidate],
-        100,
-        blockHash,
+        { number: 100, hash: blockHash },
         (): Promise<[]> => Promise.resolve([]),
       ),
     ).rejects.toThrow('returned 0 results for 1 calls');
@@ -179,17 +202,18 @@ describe('Chillwhales product extension reads', () => {
         orbsClaimed: false,
       },
     ]);
-    await expect(loadClaimStatusCandidates(database, runtime, mintBatch())).rejects.toThrow(
+    await expect(loadClaimStatusCandidates(database, runtime, mintBatch(), 100)).rejects.toThrow(
       'Persisted Chillwhales token ID is malformed',
     );
 
     const rpc = {
+      getBlock: vi.fn().mockResolvedValue({ hash: toHex(100n, { size: 32 }) }),
       multicall: vi.fn().mockResolvedValue([{ status: 'success', result: 1 }]),
     } as unknown as NetworkRpcClient;
     const execute = createClaimStatusCallExecutor(rpc, runtime);
-    await expect(execute(100, [{ kind: 'orbs', tokenId }])).rejects.toThrow(
-      'invalid success value',
-    );
+    await expect(
+      execute({ number: 100, hash: toHex(100n, { size: 32 }) }, [{ kind: 'orbs', tokenId }]),
+    ).rejects.toThrow('invalid success value');
   });
 
   it('ignores ordinary non-mint facts during claim planning', async () => {
@@ -199,7 +223,28 @@ describe('Chillwhales product extension reads', () => {
     if (mint == null) throw new Error('Expected mint fixture');
     mint.address = CHILLWHALES_EXTENSION.orbsAddress;
 
-    await expect(loadClaimStatusCandidates(fakeDatabase([]), runtime, batch)).resolves.toEqual([]);
+    await expect(loadClaimStatusCandidates(fakeDatabase([]), runtime, batch, 100)).resolves.toEqual(
+      [],
+    );
+  });
+
+  it('loads at most one persisted candidate page per head block', async () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const rows = Array.from({ length: CLAIM_STATUS_PAGE_SIZE + 10 }, (_, index) => ({
+      address: CHILLWHALES_EXTENSION.collectionAddress,
+      tokenId: toHex(BigInt(index + 1_000), { size: 32 }),
+      chillClaimed: false,
+      orbsClaimed: false,
+    }));
+
+    const candidates = await loadClaimStatusCandidates(
+      fakeDatabase(rows),
+      runtime,
+      { blocks: [], events: [], decodedEvents: 0, malformedEvents: 0 },
+      100,
+    );
+
+    expect(candidates).toHaveLength(CLAIM_STATUS_PAGE_SIZE);
   });
 
   it('bounds large claim plans while preserving every candidate', async () => {
@@ -210,14 +255,18 @@ describe('Chillwhales product extension reads', () => {
       checkChill: true,
       checkOrbs: true,
     }));
-    const execute: ClaimStatusCallExecutor = (_blockNumber, calls) => {
+    const execute: ClaimStatusCallExecutor = (_block, calls) => {
       batchSizes.push(calls.length);
       return Promise.resolve(calls.map(() => ({ status: 'success' as const, value: false })));
     };
 
     await expect(
-      resolveClaimStatusUpdates(candidates, 100, toHex(100n, { size: 32 }), execute),
-    ).resolves.toEqual([]);
+      resolveClaimStatusUpdates(
+        candidates,
+        { number: 100, hash: toHex(100n, { size: 32 }) },
+        execute,
+      ),
+    ).resolves.toHaveLength(candidates.length);
     expect(batchSizes).toEqual([MAX_MULTICALL_BATCH_SIZE, 2]);
   });
 });

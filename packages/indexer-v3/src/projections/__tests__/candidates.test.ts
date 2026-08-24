@@ -6,21 +6,22 @@ import { DATA_KEYS, ZERO_ADDRESS } from '../standards.js';
 
 const asset = '0x0000000000000000000000000000000000000010';
 const profile = '0x0000000000000000000000000000000000000020';
+const blockHash = toHex(10n, { size: 32 });
 
 function event(
   position: number,
   values: Pick<EventFactRecord, 'address' | 'eventName' | 'eventDomain' | 'decoded'>,
 ): EventFactRecord {
-  const hash = toHex(BigInt(position + 1), { size: 32 });
+  const transactionHash = toHex(BigInt(position + 1), { size: 32 });
   return {
     id: `eip155:42:log:10:0:${position}`,
     network: 'lukso-mainnet',
     chainId: 42,
     blockNumber: 10,
-    blockHash: hash,
+    blockHash,
     parentHash: toHex(0n, { size: 32 }),
     blockTimestamp: new Date('2026-01-01T00:00:00Z'),
-    transactionHash: hash,
+    transactionHash,
     transactionIndex: 0,
     logIndex: position,
     topic0: toHex(100n, { size: 32 }),
@@ -52,8 +53,8 @@ describe('projection verification candidate planning', () => {
     ];
 
     expect(collectProjectionCandidates(batch(events))).toEqual([
-      { blockNumber: 10, address: asset, category: 'digitalAsset' },
-      { blockNumber: 10, address: profile, category: 'universalProfile' },
+      { blockNumber: 10, blockHash, address: asset, category: 'digitalAsset' },
+      { blockNumber: 10, blockHash, address: profile, category: 'universalProfile' },
     ]);
   });
 
@@ -78,10 +79,10 @@ describe('projection verification candidate planning', () => {
     ];
 
     expect(collectProjectionCandidates(batch(events))).toEqual([
-      { blockNumber: 10, address: asset, category: 'digitalAsset' },
-      { blockNumber: 10, address: emitter, category: 'digitalAsset' },
-      { blockNumber: 10, address: profile, category: 'universalProfile' },
-      { blockNumber: 10, address: emitter, category: 'universalProfile' },
+      { blockNumber: 10, blockHash, address: asset, category: 'digitalAsset' },
+      { blockNumber: 10, blockHash, address: emitter, category: 'digitalAsset' },
+      { blockNumber: 10, blockHash, address: profile, category: 'universalProfile' },
+      { blockNumber: 10, blockHash, address: emitter, category: 'universalProfile' },
     ]);
   });
 

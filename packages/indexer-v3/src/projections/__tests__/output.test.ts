@@ -16,7 +16,15 @@ function fakeDatabase(): NetworkDatabase {
     select() {
       return {
         from() {
-          return { where: (): Promise<[]> => Promise.resolve([]) };
+          return {
+            where() {
+              return {
+                orderBy() {
+                  return { limit: (): Promise<[]> => Promise.resolve([]) };
+                },
+              };
+            },
+          };
         },
       };
     },

@@ -47,11 +47,10 @@ export function createProjectionOutput(
         current.hash == null ? null : normalizeBytes32(current.hash, 'current block hash');
       const claimStatusUpdates =
         atHead && currentHash != null
-          ? loadClaimStatusCandidates(db, runtime, facts).then((claimCandidates) =>
+          ? loadClaimStatusCandidates(db, runtime, facts, current.number).then((claimCandidates) =>
               resolveClaimStatusUpdates(
                 claimCandidates,
-                current.number,
-                currentHash,
+                { number: current.number, hash: currentHash },
                 executeClaims,
               ),
             )

@@ -13,7 +13,7 @@ export const CHILLWHALES_EXTENSION = {
 } as const;
 
 export const INTERFACE_IDS = {
-  lsp0: '0x24871b3d',
+  lsp0: ['0x24871b3d', '0x3e89ad98'],
   lsp7: ['0xc52d6008', '0xb3c4928f', '0xdaa746b7'],
   lsp8: ['0x3a271706', '0xecad9f75', '0x30dc5278'],
 } as const;

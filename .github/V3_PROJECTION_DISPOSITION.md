@@ -9,9 +9,9 @@ chain-scoped current-state tables.
 
 ## Shared projection contract
 
-- Interface candidates are deduplicated by exact `(block, category, address)` and read through
-  bounded Multicall3 batches at that block. Current and legacy LSP0, LSP7, and LSP8 interface IDs
-  are supported.
+- Interface candidates are deduplicated by exact `(block number, block hash, category, address)`
+  and read through bounded Multicall3 batches at that block. The RPC hash is checked before and
+  after every read. Current and legacy LSP0, LSP7, and LSP8 interface IDs are supported.
 - A transport error or malformed multicall response aborts the batch. A failed individual contract
   call is an invalid candidate. Raw facts and raw ERC725Y values remain stored either way.
 - Typed UP and digital-asset rows are created only after successful verification. Invalid optional
@@ -20,6 +20,8 @@ chain-scoped current-state tables.
   replaying identical facts therefore cannot double-apply supply, balances, registries, or edges.
 - Current state is keyed by chain ID plus its domain natural key. All IDs are deterministic and all
   writes, indexed-head visibility, rollback snapshots, and the Pipes cursor commit together.
+- Changed creator, issued-asset, and controller rows are deleted before reinsertion, allowing
+  unique array indexes to swap without transient collisions.
 - Metadata bytes and URLs are durable chain inputs here. External IPFS/HTTP fetching, revision
   publication, retry policy, and metadata sub-entities belong to #385.
 
@@ -58,9 +60,10 @@ chain-scoped current-state tables.
 | `orbFaction`               | Network-gated mint default and UTF-8 token-data reduction.                                                                    | `chillwhales_nfts.faction`                                                 |
 
 The Chillwhales extension is enabled only by the LUKSO Mainnet network catalog entry. Its claim
-reads are monotonic: an individual failed call leaves `false` unchanged, while a transport or
-result-shape failure aborts the batch. Polling occurs at the Portal's available head and uses that
-exact block number, never unpinned RPC `latest`.
+reads are monotonic and bounded to 250 tokens per head, with new mints ahead of due stored rows. A
+successful false result is scheduled 720 blocks later and an individual failed call 30 blocks
+later; a transport or result-shape failure aborts the batch. Polling uses the Portal head's exact
+number and hash, never unpinned RPC `latest`.
 
 ## Ordering and invalid-reference semantics
 

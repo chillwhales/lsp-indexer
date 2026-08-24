@@ -12,22 +12,28 @@ import { INTERFACE_IDS } from '../standards.js';
 
 const profile = '0x0000000000000000000000000000000000000010';
 const asset = '0x0000000000000000000000000000000000000020';
+const block10Hash = toHex(10n, { size: 32 });
+const block11Hash = toHex(11n, { size: 32 });
 
 describe('block-pinned projection RPC reads', () => {
   it('groups candidates by exact block and classifies standards without treating call failures as valid', async () => {
-    const seen: { blockNumber: number; calls: number }[] = [];
-    const execute: ProjectionCallExecutor = (blockNumber, calls) => {
-      seen.push({ blockNumber, calls: calls.length });
+    const seen: { blockNumber: number; blockHash: string; calls: number }[] = [];
+    const execute: ProjectionCallExecutor = (block, calls) => {
+      seen.push({ blockNumber: block.number, blockHash: block.hash, calls: calls.length });
       return Promise.resolve(
         calls.map((call) => {
-          if (call.address === profile) {
+          if (
+            call.address === profile &&
+            call.functionName === 'supportsInterface' &&
+            call.interfaceId === INTERFACE_IDS.lsp0[1]
+          ) {
             return { status: 'success' as const, value: true };
           }
-          if (blockNumber === 10 && call.functionName === 'decimals') {
+          if (block.number === 10 && call.functionName === 'decimals') {
             return { status: 'success' as const, value: 18n };
           }
           if (
-            blockNumber === 10 &&
+            block.number === 10 &&
             call.functionName === 'supportsInterface' &&
             call.interfaceId === INTERFACE_IDS.lsp7[0]
           ) {
@@ -40,20 +46,36 @@ describe('block-pinned projection RPC reads', () => {
 
     const result = await resolveProjectionVerifications(
       [
-        { blockNumber: 10, address: profile, category: 'universalProfile' },
-        { blockNumber: 10, address: asset, category: 'digitalAsset' },
-        { blockNumber: 11, address: asset, category: 'digitalAsset' },
+        {
+          blockNumber: 10,
+          blockHash: block10Hash,
+          address: profile,
+          category: 'universalProfile',
+        },
+        {
+          blockNumber: 10,
+          blockHash: block10Hash,
+          address: asset,
+          category: 'digitalAsset',
+        },
+        {
+          blockNumber: 11,
+          blockHash: block11Hash,
+          address: asset,
+          category: 'digitalAsset',
+        },
       ],
       execute,
     );
 
     expect(seen).toEqual([
-      { blockNumber: 10, calls: 8 },
-      { blockNumber: 11, calls: 7 },
+      { blockNumber: 10, blockHash: block10Hash, calls: 9 },
+      { blockNumber: 11, blockHash: block11Hash, calls: 7 },
     ]);
     expect(result).toEqual([
       {
         blockNumber: 10,
+        blockHash: block10Hash,
         address: profile,
         category: 'universalProfile',
         status: 'verified',
@@ -62,6 +84,7 @@ describe('block-pinned projection RPC reads', () => {
       },
       {
         blockNumber: 10,
+        blockHash: block10Hash,
         address: asset,
         category: 'digitalAsset',
         status: 'verified',
@@ -70,6 +93,7 @@ describe('block-pinned projection RPC reads', () => {
       },
       {
         blockNumber: 11,
+        blockHash: block11Hash,
         address: asset,
         category: 'digitalAsset',
         status: 'invalid',
@@ -81,40 +105,94 @@ describe('block-pinned projection RPC reads', () => {
 
   it('passes the exact block and configured Multicall3 address to viem', async () => {
     const multicall = vi.fn().mockResolvedValue([{ status: 'success', result: true }]);
+    const getBlock = vi.fn().mockResolvedValue({ hash: block10Hash });
     const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
-    const rpc = { multicall } as unknown as NetworkRpcClient;
+    const rpc = { getBlock, multicall } as unknown as NetworkRpcClient;
     const execute = createProjectionCallExecutor(rpc, runtime);
 
-    await execute(123, [
-      { address: profile, functionName: 'supportsInterface', interfaceId: INTERFACE_IDS.lsp0 },
+    await execute({ number: 10, hash: block10Hash }, [
+      { address: profile, functionName: 'supportsInterface', interfaceId: INTERFACE_IDS.lsp0[0] },
     ]);
 
     expect(multicall).toHaveBeenCalledWith(
       expect.objectContaining({
-        blockNumber: 123n,
+        blockNumber: 10n,
         multicallAddress: runtime.network.multicallAddress,
         allowFailure: true,
       }),
     );
+    expect(getBlock).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects reads when the RPC provider disagrees with the Portal block hash', async () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const rpc = {
+      getBlock: vi.fn().mockResolvedValue({ hash: block11Hash }),
+      multicall: vi.fn(),
+    } as unknown as NetworkRpcClient;
+    const execute = createProjectionCallExecutor(rpc, runtime);
+
+    await expect(
+      execute({ number: 10, hash: block10Hash }, [
+        {
+          address: profile,
+          functionName: 'supportsInterface',
+          interfaceId: INTERFACE_IDS.lsp0[0],
+        },
+      ]),
+    ).rejects.toThrow('RPC block 10 hash mismatch');
+    expect(rpc.multicall).not.toHaveBeenCalled();
+  });
+
+  it('rejects results when the RPC block changes while a multicall is in flight', async () => {
+    const runtime = loadRuntimeConfig({ INDEXER_NETWORK: 'lukso-mainnet' });
+    const multicall = vi.fn().mockResolvedValue([{ status: 'success', result: true }]);
+    const rpc = {
+      getBlock: vi
+        .fn()
+        .mockResolvedValueOnce({ hash: block10Hash })
+        .mockResolvedValueOnce({ hash: block11Hash }),
+      multicall,
+    } as unknown as NetworkRpcClient;
+    const execute = createProjectionCallExecutor(rpc, runtime);
+
+    await expect(
+      execute({ number: 10, hash: block10Hash }, [
+        {
+          address: profile,
+          functionName: 'supportsInterface',
+          interfaceId: INTERFACE_IDS.lsp0[0],
+        },
+      ]),
+    ).rejects.toThrow('RPC block 10 changed during projection reads');
+    expect(multicall).toHaveBeenCalledTimes(1);
   });
 
   it('rejects incomplete multicall responses so the cursor can retry', async () => {
     await expect(
       resolveProjectionVerifications(
-        [{ blockNumber: 10, address: profile, category: 'universalProfile' }],
+        [
+          {
+            blockNumber: 10,
+            blockHash: block10Hash,
+            address: profile,
+            category: 'universalProfile',
+          },
+        ],
         (): Promise<[]> => Promise.resolve([]),
       ),
-    ).rejects.toThrow('returned 0 results for 1 calls');
+    ).rejects.toThrow('returned 0 results for 2 calls');
   });
 
   it('bounds large exact-block plans without changing candidate order', async () => {
     const batchSizes: number[] = [];
     const candidates = Array.from({ length: 72 }, (_, index) => ({
       blockNumber: 10,
+      blockHash: block10Hash,
       address: toHex(BigInt(index + 1), { size: 20 }),
       category: 'digitalAsset' as const,
     }));
-    const execute: ProjectionCallExecutor = (_blockNumber, calls) => {
+    const execute: ProjectionCallExecutor = (_block, calls) => {
       batchSizes.push(calls.length);
       return Promise.resolve(calls.map(() => ({ status: 'failure' as const })));
     };

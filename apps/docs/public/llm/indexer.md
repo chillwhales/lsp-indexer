@@ -214,9 +214,15 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/postgres \
 ```
 
 The released Pipes target does not reconcile existing snapshot tables when tracked columns change.
-V3 therefore rejects pending schema migrations whenever rollback snapshot tables exist, even when
-they are empty. During alpha, use a fresh rebuild unless the repository owner approves a tested
-snapshot-preserving procedure.
+V3 therefore rejects ordinary pending schema migrations whenever rollback snapshot tables exist,
+even when they are empty.
+
+The projection rollout contains one reviewed `destructive-replay` alpha migration. Stop every v3
+indexer before running it. The migration transactionally removes old snapshot functions, triggers,
+and tables and clears every mutable chain table and Pipes cursor across all enabled networks while
+preserving network identity and migration history. Pipes recreates all 16 rollback artifacts on
+restart, and ingestion replays from `INDEXER_FROM_BLOCK`. Other migrations cannot bypass the
+snapshot guard.
 
 ### V3 raw event ingestion
 
@@ -253,9 +259,10 @@ cursor unchanged.
 ### V3 domain projections
 
 The event pipe also performs deterministic current-state reduction. It deduplicates verification
-candidates by exact block, category, and address; checks current and legacy LSP0/LSP7/LSP8 interface
-IDs through the configured Multicall3 contract in bounded batches; and pins every RPC read to its
-triggering block.
+candidates by exact block number and hash, category, and address; checks current and legacy
+LSP0/LSP7/LSP8 interface IDs through the configured Multicall3 contract in bounded batches; and
+pins every RPC read to its triggering block. The provider's block hash is checked before and after
+each Multicall so results from a changing fork cannot commit.
 
 Only newly inserted event facts reach the reducer. Facts are applied in block, transaction, and log
 order to produce verified Universal Profiles and digital assets; NFTs; supply; UP-scoped asset and
@@ -266,11 +273,15 @@ locations.
 Invalid interface candidates do not create typed rows, but their raw facts and ERC725Y values remain
 available. RPC transport or result-shape failures abort the batch before the cursor commits. Exact
 replay can validate existing deterministic facts but cannot double-apply balances or supply.
+Changed creator, issued-asset, and controller rows are deleted before reinsertion so unique array
+indexes may safely swap within one batch.
 
 LUKSO Mainnet additionally enables a Chillwhales extension for CHILL/ORBS claim flags and Orb level,
-cooldown, and faction. Claim reads happen only at the Portal's available head and use that exact
-block rather than RPC `latest`. Other networks neither query nor populate the extension. External
-IPFS/HTTP metadata fetching remains a separate v3 goal.
+cooldown, and faction. Claim reads happen only at the Portal's available head and use its exact
+number and hash rather than RPC `latest`. Each head checks at most 250 tokens, prioritizing new
+mints and then due unresolved rows. Successful false results are checked again after 720 blocks;
+individual failed calls retry after 30 blocks. Other networks neither query nor populate the
+extension. External IPFS/HTTP metadata fetching remains a separate v3 goal.
 
 Run one network's event and projection pipe after database migration and readiness checks:
 

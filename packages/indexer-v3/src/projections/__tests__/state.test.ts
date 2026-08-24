@@ -135,6 +135,7 @@ describe('projection state loader', () => {
         orbsClaimed: false,
         blockNumber: 10,
         blockHash: toHex(10n, { size: 32 }),
+        nextCheckBlock: 730,
       },
     ];
 

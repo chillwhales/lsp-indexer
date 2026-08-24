@@ -107,12 +107,15 @@ without hiding a conflicting fact at the same deterministic position.
 `nfts` retains the raw bytes32 token ID plus its current formatted representation, mint/burn state,
 owner, and derived base-URI location. Creator, issued-asset, and controller array/map records are
 collapsed into one row per natural relationship; array shrink events delete stale current rows.
-`chillwhales_nfts` is a network-gated product extension rather than a core LSP table.
+Changed relationship rows are removed before reinsertion so unique array-index swaps cannot
+collide. `chillwhales_nfts` is a network-gated product extension rather than a core LSP table. Its
+indexed `claim_check_after_block` field bounds due-token polling and remains rollback tracked.
 
-Verification reads current and legacy LSP0/LSP7/LSP8 interface IDs at the exact triggering block.
-A verified result may create a typed profile or asset. An invalid result never removes the raw fact
-or `data_values` row and never creates a false typed projection. Optional EOA references such as a
-controller address remain valid relationship fields without pretending to be Universal Profiles.
+Verification reads current and legacy LSP0/LSP7/LSP8 interface IDs at the exact triggering block
+number and hash. The provider hash is checked before and after every Multicall. A verified result
+may create a typed profile or asset. An invalid result never removes the raw fact or `data_values`
+row and never creates a false typed projection. Optional EOA references such as a controller
+address remain valid relationship fields without pretending to be Universal Profiles.
 
 Addresses and bytes32 values are lowercase, fixed-width hex strings checked by PostgreSQL. EVM
 unsigned integers use `numeric(78, 0)`. Block and chain numbers use `bigint` in PostgreSQL and are
@@ -196,7 +199,11 @@ usage is removed from API view types and shared enums, while a publicly executab
 routine aborts migration. Hasura and future packages must join, filter, cache, and subscribe with
 both `network` and `chain_id`.
 
-Pipes `1.0.0-beta.3` does not reconcile a snapshot table after a tracked column changes. A pending
-migration therefore fails before execution whenever any snapshot table exists, even if retention
-has emptied it. Alpha databases must be rebuilt, or the repository owner must approve a separately
-tested preservation procedure.
+Pipes `1.0.0-beta.3` does not reconcile a snapshot table after a tracked column changes. An ordinary
+pending migration therefore fails before execution whenever any snapshot table exists, even if
+retention has emptied it. The projection rollout is the sole marked alpha exception: with all v3
+indexers stopped, one transaction drops obsolete rollback artifacts and truncates all mutable
+tables plus `sqd_cursor` across enabled schemas while preserving `network_config` and migration
+history. Pipes recreates the 16 artifacts from the new tracked schema on restart, and the configured
+range is replayed. PostgreSQL integration tests exercise non-empty old snapshots, atomic reset, and
+artifact recreation.

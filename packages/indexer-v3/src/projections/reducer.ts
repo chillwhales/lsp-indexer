@@ -149,7 +149,12 @@ function hasExtension(runtime: RuntimeConfig, name: string): boolean {
 function ensureCoreCandidates(context: ReducerContext, event: EventFactRecord): void {
   for (const candidate of collectEventVerificationCandidates(event)) {
     const verification = context.verifications.get(
-      verificationKey(candidate.blockNumber, candidate.category, candidate.address),
+      verificationKey(
+        candidate.blockNumber,
+        candidate.blockHash,
+        candidate.category,
+        candidate.address,
+      ),
     );
     if (verification?.status !== 'verified') continue;
 
@@ -806,6 +811,7 @@ function upsertChillwhalesExtension(
     tokenId,
     chillClaimed: existing?.chillClaimed ?? false,
     orbsClaimed: existing?.orbsClaimed ?? false,
+    claimCheckAfterBlock: existing?.claimCheckAfterBlock ?? 0,
     level: existing?.level ?? null,
     cooldownExpiry: existing?.cooldownExpiry ?? null,
     faction: existing?.faction ?? null,
@@ -945,6 +951,7 @@ function applyClaimStatusUpdate(context: ReducerContext, update: ClaimStatusUpda
     ...existing,
     chillClaimed: existing.chillClaimed || update.chillClaimed,
     orbsClaimed: existing.orbsClaimed || update.orbsClaimed,
+    claimCheckAfterBlock: update.nextCheckBlock,
     lastBlockNumber: update.blockNumber,
     lastBlockHash: update.blockHash,
     lastTransactionHash: null,
@@ -984,7 +991,12 @@ export function reduceProjectionEvents(
     changes,
     verifications: new Map(
       verifications.map((verification) => [
-        verificationKey(verification.blockNumber, verification.category, verification.address),
+        verificationKey(
+          verification.blockNumber,
+          verification.blockHash,
+          verification.category,
+          verification.address,
+        ),
         verification,
       ]),
     ),

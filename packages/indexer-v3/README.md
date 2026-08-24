@@ -98,9 +98,11 @@ advancing the cursor.
 ## Domain projections
 
 The event command also runs the v3 projection pipeline. It deduplicates verification candidates by
-exact block, interface category, and address; executes current and legacy LSP0/LSP7/LSP8 interface
-checks through the configured Multicall3 deployment in bounded batches; and pins every read to its
-triggering block. Decimals are accepted only for verified LSP7 assets.
+exact block number and hash, interface category, and address; executes current and legacy
+LSP0/LSP7/LSP8 interface checks through the configured Multicall3 deployment in bounded batches;
+and pins every read to its triggering block. The RPC block hash is checked both before and after
+each Multicall so a provider reorg cannot commit results from the wrong fork. Decimals are accepted
+only for verified LSP7 assets.
 
 The reducer applies only newly inserted facts in block/transaction/log order and atomically writes:
 
@@ -114,12 +116,16 @@ The reducer applies only newly inserted facts in block/transaction/log order and
 A failed individual interface call produces no typed entity. Its raw event and ERC725Y value remain
 stored. A transport or malformed-response failure aborts the transaction and leaves the cursor at
 the preceding position. Exact replay validates existing deterministic facts but does not reduce
-them again, preventing double-applied balances and supply.
+them again, preventing double-applied balances and supply. Changed creator, issued-asset, and
+controller relationships are deleted before reinsertion so two rows may safely exchange a unique
+ERC725Y array index in one batch.
 
-CHILL and ORBS claim checks run only at the Portal's available head and are pinned to that exact
-block. They are monotonic false-to-true updates. IPFS/HTTP metadata parsing and publication remain
-owned by the later metadata-worker goal; the projection pipeline already persists their durable
-chain inputs.
+CHILL and ORBS claim checks run only at the Portal's available head and are pinned to its exact
+number and hash. Each head processes at most 250 tokens, prioritizing new mints and then due stored
+tokens. An unresolved token is scheduled 720 blocks later after a successful false result or 30
+blocks later after an individual failed call; true flags remain monotonic. IPFS/HTTP metadata
+parsing and publication remain owned by the later metadata-worker goal; the projection pipeline
+already persists their durable chain inputs.
 
 ## Configuration
 
@@ -238,9 +244,15 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
 
 Generated migrations are normalized to stay schema-relative. `db:migrations:check` rejects a
 public-schema qualifier. Because Pipes beta.3 does not reconcile snapshot tables after tracked
-columns change, pending migrations fail safely whenever rollback snapshot tables exist, even when
-they are empty; alpha operators must rebuild the database or use an owner-approved preservation
-procedure.
+columns change, ordinary pending migrations fail safely whenever rollback snapshot tables exist,
+even when they are empty.
+
+The projection rollout is an explicit, tested alpha rebuild exception. Stop every v3 indexer before
+running it. Its reviewed `destructive-replay` migration drops old Pipes snapshot functions,
+triggers, and tables and clears every mutable chain table plus `sqd_cursor` in the same transaction
+across all enabled networks. It preserves `network_config` and migration history. On restart, Pipes
+recreates all 16 rollback artifacts from the new schema and ingestion replays from
+`INDEXER_FROM_BLOCK`. No other migration bypasses the snapshot guard.
 
 ## Commands
 

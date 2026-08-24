@@ -57,9 +57,15 @@ async function applyDeletes(
 ): Promise<void> {
   await deleteIds(tx, ownedTokens, mutations.deletedOwnedTokenIds);
   await deleteIds(tx, ownedAssets, mutations.deletedOwnedAssetIds);
-  await deleteIds(tx, creators, mutations.deletedCreatorIds);
-  await deleteIds(tx, issuedAssets, mutations.deletedIssuedAssetIds);
-  await deleteIds(tx, controllers, mutations.deletedControllerIds);
+  await deleteIds(tx, creators, [
+    ...new Set([...mutations.deletedCreatorIds, ...mutations.creators.map(({ id }) => id)]),
+  ]);
+  await deleteIds(tx, issuedAssets, [
+    ...new Set([...mutations.deletedIssuedAssetIds, ...mutations.issuedAssets.map(({ id }) => id)]),
+  ]);
+  await deleteIds(tx, controllers, [
+    ...new Set([...mutations.deletedControllerIds, ...mutations.controllers.map(({ id }) => id)]),
+  ]);
 }
 
 async function upsertUniversalProfiles(
@@ -297,6 +303,7 @@ async function upsertChillwhalesNfts(
         set: {
           chillClaimed: sql`excluded.chill_claimed`,
           orbsClaimed: sql`excluded.orbs_claimed`,
+          claimCheckAfterBlock: sql`excluded.claim_check_after_block`,
           level: sql`excluded.level`,
           cooldownExpiry: sql`excluded.cooldown_expiry`,
           faction: sql`excluded.faction`,

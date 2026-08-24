@@ -202,6 +202,7 @@ function mutations(): ProjectionMutations {
         tokenId,
         chillClaimed: false,
         orbsClaimed: false,
+        claimCheckAfterBlock: 0,
         level: 0,
         cooldownExpiry: 0,
         faction: 'Neutral',
@@ -284,5 +285,19 @@ describe('projection mutation persistence', () => {
 
     expect(state.deletedTables).toEqual([]);
     expect(state.insertedSizes).toEqual(new Map([['universal_profiles', [500, 1]]]));
+  });
+
+  it('replaces changed array relationships before upsert to avoid unique-index swaps', async () => {
+    const { tx, state } = fakeTransaction();
+    const values = mutations();
+    values.deletedOwnedAssetIds = [];
+    values.deletedOwnedTokenIds = [];
+    values.deletedCreatorIds = [];
+    values.deletedIssuedAssetIds = [];
+    values.deletedControllerIds = [];
+
+    await applyProjectionMutations(tx, values);
+
+    expect(state.deletedTables).toEqual(['creators', 'issued_assets', 'controllers']);
   });
 });
