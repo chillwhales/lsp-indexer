@@ -230,16 +230,13 @@ describe('metadata worker', () => {
       limit: 2,
       leaseTimeoutMs: 2_000,
     });
-    expect(queueMocks.complete).toHaveBeenCalledWith(
-      expect.anything(),
-      runtime,
-      job,
-      expect.objectContaining({
-        fetchedAt: now,
-        contentLength: 42,
-        contentUri: 'https://fallback.example.test/profile.json',
-      }),
-    );
+    expect(queueMocks.complete).toHaveBeenCalledWith(expect.anything(), runtime, job, {
+      content: { LSP3Profile: { name: 'Alice' } },
+      contentHash: job.contentHash,
+      contentType: 'application/json',
+      contentLength: 42,
+      contentUri: 'https://fallback.example.test/profile.json',
+    });
     expect(calls.claimed).toHaveBeenCalledOnce();
     expect(calls.completed).toHaveBeenCalledWith(
       { network: 'ethereum-mainnet', kind: 'lsp3_profile', outcome: 'succeeded' },

@@ -4008,7 +4008,6 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         contentHash: firstClaim.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: JSON.stringify(firstContent).length,
-        fetchedAt: new Date(leaseStartedAt.getTime() + 500),
       }),
     ).toBe('lost_claim');
     expect(
@@ -4062,7 +4061,6 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         contentHash: recoveredClaim.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: JSON.stringify(firstContent).length,
-        fetchedAt: new Date(leaseStartedAt.getTime() + 2_001),
       }),
     ).toBe('succeeded');
     expect(
@@ -4230,22 +4228,24 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         contentHash: firstSource.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: JSON.stringify(firstContent).length,
-        fetchedAt: retryAt,
       }),
     ).toBe('succeeded');
-    expect(
-      await ethereumDb
-        .select()
-        .from(metadataRevisions)
-        .where(eq(metadataRevisions.address, metadataAddress)),
-    ).toEqual([
+    const firstPublishedRevisions = await ethereumDb
+      .select()
+      .from(metadataRevisions)
+      .where(eq(metadataRevisions.address, metadataAddress));
+    expect(firstPublishedRevisions).toHaveLength(1);
+    expect(firstPublishedRevisions[0]).toEqual(
       expect.objectContaining({
         id: firstSource.id,
         content: firstContent,
         lastBlockNumber: 101,
         lastTransactionHash: firstRow.lastTransactionHash,
       }),
-    ]);
+    );
+    const firstFetchedAt = firstPublishedRevisions[0]?.fetchedAt;
+    if (firstFetchedAt == null) throw new Error('Expected a PostgreSQL fetch timestamp');
+    expect(firstFetchedAt).toBeInstanceOf(Date);
 
     const repeatedAt = new Date(retryAt.getTime() + 1);
     await ethereumDb.transaction((tx) =>
@@ -4268,7 +4268,6 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         contentHash: repeatedClaim.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: 10,
-        fetchedAt: new Date(repeatedAt.getTime() + 1),
       }),
     ).toBe('succeeded');
     expect(
@@ -4276,7 +4275,7 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         .select({ content: metadataRevisions.content, fetchedAt: metadataRevisions.fetchedAt })
         .from(metadataRevisions)
         .where(eq(metadataRevisions.id, firstSource.id)),
-    ).toEqual([{ content: firstContent, fetchedAt: retryAt }]);
+    ).toEqual([{ content: firstContent, fetchedAt: firstFetchedAt }]);
 
     const secondValue = encodeVerifiableUri(
       { LSP3Profile: { name: 'Second profile revision' } },
@@ -4337,7 +4336,6 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         contentHash: secondSource.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: 10,
-        fetchedAt: new Date(secondClaimedAt.getTime() + 1),
       }),
     ).toBe('deferred');
     expect(
@@ -4491,7 +4489,6 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         contentHash: restoredClaim.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: 10,
-        fetchedAt: new Date(unfinalizedInvalidationAt.getTime() + 1_001),
       }),
     ).toBe('cancelled');
 
@@ -4578,7 +4575,6 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         contentHash: tokenClaim.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: 10,
-        fetchedAt: new Date(tokenCreatedAt.getTime() + 1),
       }),
     ).toBe('cancelled');
 
@@ -4618,7 +4614,6 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
         contentHash: productionClockClaim.contentHash ?? hashFor(0),
         contentType: 'application/json',
         contentLength: 10,
-        fetchedAt: new Date(),
       }),
     ).toBe('succeeded');
   });

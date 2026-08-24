@@ -155,10 +155,10 @@ Metadata fetching is a separate process for each selected network. It never perf
 work inside the Pipes transaction. A worker claims only jobs at or below the committed finalized
 watermark, uses bounded concurrency and `FOR UPDATE SKIP LOCKED`, and recovers an expired
 `processing` lease after a crash or restart. Multiple replicas for the same network can therefore
-drain one queue safely. Claims, lease expiry, and durable retry timestamps use the PostgreSQL
-transaction clock, so worker-host clock skew cannot steal or strand leases. `SIGINT` and `SIGTERM`
-wake an idle poll immediately and close the metrics server and database pool after in-flight work
-settles.
+drain one queue safely. Claims, lease expiry, durable retries, and published fetch timestamps use the
+PostgreSQL transaction clock, so worker-host clock skew cannot steal or strand leases or distort
+revision freshness. `SIGINT` and `SIGTERM` wake an idle poll immediately and close the metrics server
+and database pool after in-flight work settles.
 
 Every request has a timeout, response-size limit, redirect limit, UTF-8 and JSON validation, and
 public HTTP(S) target validation. Missing or malformed redirect locations fail terminally instead of

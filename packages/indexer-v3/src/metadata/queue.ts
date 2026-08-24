@@ -77,7 +77,6 @@ export interface CompletedMetadataContent {
   contentHash: string;
   contentType: string | null;
   contentLength: number;
-  fetchedAt: Date;
 }
 
 export interface MetadataBacklogCount {
@@ -887,7 +886,7 @@ export async function completeMetadataJob(
         content: result.content,
         contentType: result.contentType,
         contentLength: result.contentLength,
-        fetchedAt: result.fetchedAt,
+        fetchedAt: settledAt,
         lastBlockNumber: derivedSource ? locked.sourceBlockNumber : source.lastBlockNumber,
         lastBlockHash: derivedSource ? locked.sourceBlockHash : source.lastBlockHash,
         lastTransactionHash: derivedSource ? null : source.lastTransactionHash,

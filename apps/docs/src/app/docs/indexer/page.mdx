@@ -351,10 +351,11 @@ DATABASE_URL=postgresql://lsp_v3_ethereum_runtime:secret@localhost/lsp_indexer_v
 ```
 
 Workers use bounded concurrency, durable retry timestamps, jittered exponential backoff,
-`FOR UPDATE SKIP LOCKED`, and expiring processing leases. Claims, lease expiry, and retries use the
-PostgreSQL transaction clock, so clock skew between worker replicas cannot steal or strand leases.
-Multiple replicas may drain the same network queue. Shutdown signals wake idle workers immediately
-and close their metrics server and database pool after in-flight work settles. Each worker reloads
+`FOR UPDATE SKIP LOCKED`, and expiring processing leases. Claims, lease expiry, retries, and published
+fetch timestamps use the PostgreSQL transaction clock, so clock skew between worker replicas cannot
+steal or strand leases or distort revision freshness. Multiple replicas may drain the same network
+queue. Shutdown signals wake idle workers immediately and close their metrics server and database
+pool after in-flight work settles. Each worker reloads
 the current source before the request and inside the publication transaction. A finalized URI, hash,
 verification-state, token-location, or source-revision change cancels the stale result. A mismatch
 whose projection provenance is above the finalized watermark instead returns the claim to retry

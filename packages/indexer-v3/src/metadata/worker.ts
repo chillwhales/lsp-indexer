@@ -162,14 +162,12 @@ async function processClaimedJob(
 
   let settlement: MetadataSettlement;
   if (result.ok) {
-    const fetchedAt = options.now?.() ?? new Date();
     settlement = await completeMetadataJob(options.db, options.runtime, job, {
       content: result.content,
       contentUri: result.contentUri,
       contentHash: result.contentHash,
       contentType: result.contentType,
       contentLength: result.contentLength,
-      fetchedAt,
     });
     if (settlement === 'succeeded') {
       options.metrics?.responseBytes.observe(
