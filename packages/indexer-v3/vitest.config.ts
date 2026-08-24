@@ -15,6 +15,9 @@ export default defineConfig({
         'src/db/client.ts',
         'src/db/migrate.ts',
         'src/db/readiness.ts',
+        // SQL locking, paging, finality, and settlement paths run in the PostgreSQL suite.
+        'src/metadata/queue.ts',
+        'src/projections/metadataRecovery.ts',
         'src/**/*.test.ts',
         'src/**/__tests__/**',
       ],

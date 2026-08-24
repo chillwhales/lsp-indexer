@@ -2,7 +2,8 @@
 
 Status: implemented through domain projections for
 [#382](https://github.com/chillwhales/lsp-indexer/issues/382) and
-[#384](https://github.com/chillwhales/lsp-indexer/issues/384)
+[#384](https://github.com/chillwhales/lsp-indexer/issues/384), including the metadata lifecycle in
+[#385](https://github.com/chillwhales/lsp-indexer/issues/385)
 
 This document is the persistence contract between the Pipes ingestion work, domain reducers,
 metadata workers, Hasura, and the v3 consumer packages. The Drizzle definitions and generated SQL
@@ -124,6 +125,34 @@ array indexes use `numeric(39, 0)` and TypeScript `bigint` to preserve the full 
 suffix. Nullable token scopes use `NULLS NOT DISTINCT` unique constraints, preventing duplicate
 contract-wide ERC725Y or metadata revisions.
 
+## Metadata revisions and jobs
+
+`metadata_jobs` is a rollback-tracked internal queue, not a public projection. Its ID is the same
+deterministic source-revision ID used by the eventual `metadata_revisions` row. A job records the
+network, natural source scope, kind, URI, optional on-chain hash, source block, status, attempts,
+next-attempt time, claim lease, bounded error, and creation/update timestamps.
+
+The projection writer inserts or resets current LSP3, LSP4, LSP29/LSP31, and derived LSP8 jobs in
+the same transaction as `data_values`, NFTs, indexed-head state, rollback snapshots, and the Pipes
+cursor. Jobs for older or invalid revisions in that natural scope become `cancelled`. Exact event
+replay does not reset a job because no projection mutation is applied.
+
+Workers claim only jobs at or below `indexed_heads.finalized_block_number`. PostgreSQL row locks and
+`SKIP LOCKED` divide work between replicas; `claimed_at` is also the claim token and an expired lease
+can be reclaimed after a crash. A retry clears that lease and persists `next_attempt_at`. Terminal
+transport/content failures become `failed`; a valid current result becomes `succeeded`.
+
+Settlement locks and rebuilds the current verified profile, asset, or NFT target and its
+`data_values` or derived NFT source before locking the exact job claim. Verification, natural key,
+URI, hash, and revision must still match; token metadata also requires a verified LSP8 parent
+collection. If any changed, the job is cancelled and no revision is written. A successful
+serializable transaction inserts the parsed JSON and response metadata into
+`metadata_revisions` without ever overwriting an existing immutable revision, retaining direct
+event provenance or the derived token-location source block.
+PostgreSQL integration tests cover finality gating, durable retry, verification revocation, lease
+recovery, lost claims, stale-result rejection, successful revision publication, projection-created
+job rollback, and the finalized A → unfinalized B → rollback → recovered A sequence.
+
 ## Transaction and rollback contract
 
 The official `drizzleTarget` owns the serializable transaction and advisory cursor lock. The v3
@@ -142,8 +171,8 @@ network database configuration.
 For an unfinalized block, triggers retain the earliest before-image per primary key and block. Fork
 resolution deletes facts first, restores parent rows before children, removes consumed snapshots,
 and removes cursor rows above the common ancestor. PostgreSQL integration tests cover injected
-failure, duplicate replay, one-block rollback, multi-block rollback, and isolation from another
-chain schema.
+failure, duplicate replay, one-block rollback, multi-block rollback, metadata-job rollback, and
+isolation from another chain schema.
 
 ## Migrations and views
 

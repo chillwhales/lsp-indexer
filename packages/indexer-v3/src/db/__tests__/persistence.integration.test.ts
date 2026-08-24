@@ -1,3 +1,5 @@
+import { encodeVerifiableUri } from '@chillwhales/lsp2';
+import { computeContentHash, encodeLsp31Uri } from '@chillwhales/lsp31';
 import { evmPortalStream, evmQuery } from '@subsquid/pipes/evm';
 import { mockPortal } from '@subsquid/pipes/testing';
 import {
@@ -6,27 +8,43 @@ import {
   mockEvmPortalStream,
   type PortalBlock,
 } from '@subsquid/pipes/testing/evm';
-import { eq } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Pool } from 'pg';
-import { toHex, type Hex } from 'viem';
+import { concatHex, stringToHex, toBytes, toHex, type Hex } from 'viem';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadRuntimeConfig, type RuntimeConfig } from '../../config/index.js';
 import {
   createEventIngestionOutput,
   createEventPersistenceTarget,
   ERC725Y_EVENT_ABI,
+  LSP14_EVENT_ABI,
   LSP7_EVENT_ABI,
+  LSP8_EVENT_ABI,
 } from '../../events/index.js';
+import {
+  applyMetadataSourcePlan,
+  cancelClaimedMetadataJob,
+  claimMetadataJobs,
+  completeMetadataJob,
+  countMetadataJobs,
+  failMetadataJob,
+  loadClaimedMetadataSource,
+  loadMetadataRecoveryCandidatePages,
+  settleUnavailableMetadataJob,
+} from '../../metadata/queue.js';
+import { createDataValueMetadataSource } from '../../metadata/source.js';
 import {
   applyProjectionMutations,
   assertProjectionReplayStart,
   collectProjectionCandidates,
   createProjectionPersistenceTarget,
+  DATA_KEYS,
+  ZERO_ADDRESS,
   type ProjectionBatch,
   type ProjectionMutations,
   type ProjectionVerification,
@@ -41,6 +59,7 @@ import {
 import {
   createAddressId,
   createBlockId,
+  createDataValueId,
   createEventId,
   createMetadataRevisionId,
 } from '../identity.js';
@@ -63,11 +82,13 @@ import {
   chillwhalesNfts,
   controllers,
   creators,
+  dataValues,
   digitalAssets,
   eventFacts,
   indexedHeads,
   issuedAssets,
   metadataJobs,
+  metadataRevisions,
   nfts,
   ownedAssets,
   ownedTokens,
@@ -3039,5 +3060,1561 @@ ALTER TABLE metadata_jobs_pending_migration RENAME TO metadata_jobs;`,
     expect(
       await ethereumDb.select().from(eventFacts).where(eq(eventFacts.blockNumber, 20)),
     ).toHaveLength(0);
+  });
+
+  it('creates and rolls back a metadata job in the same projection transaction', async () => {
+    const metadataTestAddress = addressFor(222);
+    const [previousBlock] = await ethereumDb
+      .select({ number: blocks.number, hash: blocks.hash, timestamp: blocks.timestamp })
+      .from(blocks)
+      .orderBy(desc(blocks.number))
+      .limit(1);
+    if (previousBlock == null) throw new Error('Expected a canonical predecessor block');
+    const metadataBlockNumber = 90;
+    if (previousBlock.number >= metadataBlockNumber) {
+      throw new Error('Metadata rollback fixture must advance beyond existing canonical history');
+    }
+    const metadataRuntime = loadRuntimeConfig({
+      INDEXER_NETWORK: 'ethereum-mainnet',
+      INDEXER_FROM_BLOCK: '0',
+      INDEXER_TO_BLOCK: String(metadataBlockNumber),
+    });
+    const metadataValue = encodeVerifiableUri(
+      { LSP3Profile: { name: 'Metadata profile' } },
+      'ipfs://metadata-profile',
+    );
+    const metadataLog = encodeEvent({
+      abi: ERC725Y_EVENT_ABI,
+      eventName: 'DataChanged',
+      address: metadataTestAddress,
+      args: { dataKey: DATA_KEYS.lsp3Profile, dataValue: metadataValue },
+    });
+    const metadataBlocks: PortalBlock[] = [];
+    let parentHash = previousBlock.hash;
+    let rollbackNumber = previousBlock.number;
+    let rollbackHash = previousBlock.hash;
+    let rollbackTimestamp = previousBlock.timestamp.getTime();
+    for (let number = previousBlock.number + 1; number <= metadataBlockNumber; number += 1) {
+      const isMetadataBlock = number === metadataBlockNumber;
+      const block = mockBlock({
+        number,
+        timestamp: 1_700_000_000 + number,
+        hash: hashFor(1_000 + number),
+        parentHash,
+        ...(isMetadataBlock ? { transactions: [{ logs: [metadataLog] }] } : {}),
+      });
+      metadataBlocks.push(block);
+      parentHash = block.header.hash;
+      if (!isMetadataBlock) {
+        rollbackNumber = block.header.number;
+        rollbackHash = block.header.hash;
+        rollbackTimestamp = block.header.timestamp;
+      }
+    }
+    const metadataBlock = metadataBlocks.at(-1);
+    if (metadataBlock == null) throw new Error('Expected metadata block fixture');
+    const metadataTarget = createProjectionPersistenceTarget({
+      runtime: metadataRuntime,
+      databaseConfig: ethereumDatabaseConfig,
+      db: ethereumDb,
+    });
+    const portal = await mockEvmPortalStream({
+      blocks: metadataBlocks,
+      finalized: { number: rollbackNumber, hash: rollbackHash },
+    });
+    try {
+      const outputs = createEventIngestionOutput(metadataRuntime).pipe({
+        transform(facts): ProjectionBatch {
+          const verifications: ProjectionVerification[] = collectProjectionCandidates(facts).map(
+            (candidate) => ({
+              ...candidate,
+              status: candidate.category === 'universalProfile' ? 'verified' : 'invalid',
+              standard: null,
+              decimals: null,
+            }),
+          );
+          return { facts, verifications, claimStatusUpdates: [] };
+        },
+      });
+      const stream = evmPortalStream({
+        id: metadataRuntime.streamId,
+        portal: portal.url,
+        outputs,
+        logger: 'error',
+        profiler: false,
+      }).pipe((data, ctx) => createPersistenceBatch(metadataRuntime, data, ctx));
+      await stream.pipeTo(metadataTarget);
+    } finally {
+      await portal.close();
+    }
+
+    expect(
+      await ethereumDb.select().from(dataValues).where(eq(dataValues.address, metadataTestAddress)),
+    ).toEqual([
+      expect.objectContaining({
+        address: metadataTestAddress,
+        dataKey: DATA_KEYS.lsp3Profile,
+        dataValue: metadataValue,
+        lastBlockNumber: metadataBlockNumber,
+      }),
+    ]);
+    expect(
+      await ethereumDb
+        .select()
+        .from(metadataJobs)
+        .where(eq(metadataJobs.address, metadataTestAddress)),
+    ).toEqual([
+      expect.objectContaining({
+        kind: 'lsp3_profile',
+        status: 'pending',
+        address: metadataTestAddress,
+        sourceBlockNumber: metadataBlockNumber,
+      }),
+    ]);
+
+    if (metadataTarget.resolveFork == null) {
+      throw new Error('Metadata projection target must support forks');
+    }
+    await metadataTarget.resolveFork([
+      {
+        number: rollbackNumber,
+        hash: rollbackHash,
+        timestamp: rollbackTimestamp,
+      },
+    ]);
+    expect(
+      await ethereumDb.select().from(dataValues).where(eq(dataValues.address, metadataTestAddress)),
+    ).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          dataValue: metadataValue,
+          lastBlockNumber: metadataBlockNumber,
+        }),
+      ]),
+    );
+    expect(
+      await ethereumDb
+        .select()
+        .from(metadataJobs)
+        .where(eq(metadataJobs.address, metadataTestAddress)),
+    ).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          contentUri: 'ipfs://metadata-profile',
+          sourceBlockNumber: metadataBlockNumber,
+        }),
+      ]),
+    );
+  });
+
+  it('queues stored metadata when a later unrelated event verifies its target', async () => {
+    const metadataAddress = addressFor(223);
+    const newOwner = addressFor(224);
+    const [previousBlock] = await ethereumDb
+      .select({ number: blocks.number, hash: blocks.hash })
+      .from(blocks)
+      .orderBy(desc(blocks.number))
+      .limit(1);
+    if (previousBlock == null) throw new Error('Expected a canonical predecessor block');
+
+    const metadataValue = encodeVerifiableUri(
+      { LSP3Profile: { name: 'Eventually verified profile' } },
+      'ipfs://eventually-verified-profile',
+    );
+    const metadataLog = encodeEvent({
+      abi: ERC725Y_EVENT_ABI,
+      eventName: 'DataChanged',
+      address: metadataAddress,
+      args: { dataKey: DATA_KEYS.lsp3Profile, dataValue: metadataValue },
+    });
+    const verificationLog = encodeEvent({
+      abi: LSP14_EVENT_ABI,
+      eventName: 'OwnershipTransferred',
+      address: metadataAddress,
+      args: { previousOwner: ZERO_ADDRESS, newOwner },
+    });
+    const metadataBlock = mockBlock({
+      number: previousBlock.number + 1,
+      timestamp: 1_700_001_000,
+      hash: hashFor(1_201),
+      parentHash: previousBlock.hash,
+      transactions: [{ logs: [metadataLog] }],
+    });
+    const verificationBlock = mockBlock({
+      number: metadataBlock.header.number + 1,
+      timestamp: 1_700_001_001,
+      hash: hashFor(1_202),
+      parentHash: metadataBlock.header.hash,
+      transactions: [{ logs: [verificationLog] }],
+    });
+    const repeatedMetadataBlock = mockBlock({
+      number: verificationBlock.header.number + 1,
+      timestamp: 1_700_001_002,
+      hash: hashFor(1_203),
+      parentHash: verificationBlock.header.hash,
+      transactions: [{ logs: [metadataLog] }],
+    });
+
+    async function persistVerificationFixture(
+      block: PortalBlock,
+      verified: boolean,
+      finalized = { number: block.header.number, hash: block.header.hash },
+    ): Promise<void> {
+      const runtime = loadRuntimeConfig({
+        INDEXER_NETWORK: 'ethereum-mainnet',
+        INDEXER_FROM_BLOCK: '0',
+        INDEXER_TO_BLOCK: String(block.header.number),
+      });
+      const target = createProjectionPersistenceTarget({
+        runtime,
+        databaseConfig: ethereumDatabaseConfig,
+        db: ethereumDb,
+      });
+      const portal = await mockEvmPortalStream({ blocks: [block], finalized });
+      try {
+        const outputs = createEventIngestionOutput(runtime).pipe({
+          transform(facts): ProjectionBatch {
+            const verifications: ProjectionVerification[] = collectProjectionCandidates(facts).map(
+              (candidate) => ({
+                ...candidate,
+                status:
+                  verified &&
+                  candidate.address === metadataAddress &&
+                  candidate.category === 'universalProfile'
+                    ? 'verified'
+                    : 'invalid',
+                standard: null,
+                decimals: null,
+              }),
+            );
+            return { facts, verifications, claimStatusUpdates: [] };
+          },
+        });
+        const stream = evmPortalStream({
+          id: runtime.streamId,
+          portal: portal.url,
+          outputs,
+          logger: 'error',
+          profiler: false,
+        }).pipe((data, ctx) => createPersistenceBatch(runtime, data, ctx));
+        await stream.pipeTo(target);
+      } finally {
+        await portal.close();
+      }
+    }
+
+    await persistVerificationFixture(metadataBlock, false);
+    expect(
+      await ethereumDb.select().from(dataValues).where(eq(dataValues.address, metadataAddress)),
+    ).toHaveLength(1);
+    expect(
+      await ethereumDb.select().from(metadataJobs).where(eq(metadataJobs.address, metadataAddress)),
+    ).toEqual([]);
+
+    const metadataFinality = {
+      number: metadataBlock.header.number,
+      hash: metadataBlock.header.hash,
+    };
+    await persistVerificationFixture(verificationBlock, true, metadataFinality);
+    await persistVerificationFixture(repeatedMetadataBlock, true, metadataFinality);
+    expect(
+      await ethereumDb.select().from(dataValues).where(eq(dataValues.address, metadataAddress)),
+    ).toEqual([
+      expect.objectContaining({
+        dataValue: metadataValue,
+        lastBlockNumber: metadataBlock.header.number,
+        lastBlockHash: metadataBlock.header.hash,
+      }),
+    ]);
+    expect(
+      await ethereumDb.select().from(metadataJobs).where(eq(metadataJobs.address, metadataAddress)),
+    ).toEqual([
+      expect.objectContaining({
+        kind: 'lsp3_profile',
+        status: 'pending',
+        contentUri: 'ipfs://eventually-verified-profile',
+        sourceBlockNumber: verificationBlock.header.number,
+        sourceBlockHash: verificationBlock.header.hash,
+      }),
+    ]);
+    const claimTime = new Date('2030-01-01T00:00:00Z');
+    expect(
+      await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+        limit: 1,
+        leaseTimeoutMs: 2_000,
+        now: claimTime,
+      }),
+    ).toEqual([]);
+
+    await ethereumDb
+      .update(indexedHeads)
+      .set({
+        finalizedBlockNumber: verificationBlock.header.number,
+        finalizedBlockHash: verificationBlock.header.hash,
+      })
+      .where(eq(indexedHeads.chainId, ethereumRuntime.network.chainId));
+    const [verifiedClaim] = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 1,
+      leaseTimeoutMs: 2_000,
+      now: claimTime,
+    });
+    expect(verifiedClaim).toMatchObject({ sourceBlockNumber: verificationBlock.header.number });
+  });
+
+  it('reapplies stored LSP8 locations and NFT verification during collection recovery', async () => {
+    const collectionAddress = addressFor(227);
+    const tokenId = toHex(42n, { size: 32 });
+    const baseUriValue = concatHex([
+      '0x0000000000000000',
+      stringToHex('ipfs://recovered-collection/'),
+    ]);
+    const [previousBlock] = await ethereumDb
+      .select({ number: blocks.number, hash: blocks.hash })
+      .from(blocks)
+      .orderBy(desc(blocks.number))
+      .limit(1);
+    if (previousBlock == null) throw new Error('Expected a canonical predecessor block');
+
+    await ethereumDb.insert(digitalAssets).values({
+      id: createAddressId('digital-asset', ethereumRuntime.network.chainId, collectionAddress),
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: collectionAddress,
+      standard: 'lsp8',
+      tokenIdFormat: null,
+      baseUri: null,
+      verification: 'invalid',
+      lastBlockNumber: previousBlock.number,
+      lastBlockHash: previousBlock.hash,
+      lastTransactionHash: null,
+      lastTransactionIndex: null,
+      lastLogIndex: null,
+    });
+    await ethereumDb.insert(nfts).values({
+      id: 'recovered-location-nft',
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: collectionAddress,
+      tokenId,
+      formattedTokenId: null,
+      tokenUri: null,
+      verification: 'verified',
+      lastBlockNumber: previousBlock.number,
+      lastBlockHash: previousBlock.hash,
+      lastTransactionHash: null,
+      lastTransactionIndex: null,
+      lastLogIndex: null,
+    });
+    const directContent = { LSP4Metadata: { name: 'Recovered direct token metadata' } };
+    await ethereumDb.insert(dataValues).values([
+      {
+        id: createDataValueId(
+          ethereumRuntime.network.chainId,
+          collectionAddress,
+          DATA_KEYS.lsp8MetadataBaseUri,
+        ),
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: collectionAddress,
+        tokenId: null,
+        dataKey: DATA_KEYS.lsp8MetadataBaseUri,
+        dataValue: baseUriValue,
+        lastBlockNumber: previousBlock.number,
+        lastBlockHash: previousBlock.hash,
+        lastTransactionHash: null,
+        lastTransactionIndex: null,
+        lastLogIndex: null,
+      },
+      {
+        id: createDataValueId(
+          ethereumRuntime.network.chainId,
+          collectionAddress,
+          DATA_KEYS.lsp8TokenIdFormat,
+        ),
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: collectionAddress,
+        tokenId: null,
+        dataKey: DATA_KEYS.lsp8TokenIdFormat,
+        dataValue: toHex(0, { size: 1 }),
+        lastBlockNumber: previousBlock.number,
+        lastBlockHash: previousBlock.hash,
+        lastTransactionHash: null,
+        lastTransactionIndex: null,
+        lastLogIndex: null,
+      },
+      {
+        id: createDataValueId(
+          ethereumRuntime.network.chainId,
+          collectionAddress,
+          DATA_KEYS.lsp4Metadata,
+          tokenId,
+        ),
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: collectionAddress,
+        tokenId,
+        dataKey: DATA_KEYS.lsp4Metadata,
+        dataValue: encodeVerifiableUri(directContent, 'ipfs://recovered-direct-token'),
+        lastBlockNumber: previousBlock.number,
+        lastBlockHash: previousBlock.hash,
+        lastTransactionHash: null,
+        lastTransactionIndex: null,
+        lastLogIndex: null,
+      },
+    ]);
+
+    const verificationBlock = mockBlock({
+      number: previousBlock.number + 1,
+      timestamp: 1_700_001_050,
+      hash: hashFor(1_250),
+      parentHash: previousBlock.hash,
+      transactions: [
+        {
+          logs: [
+            encodeEvent({
+              abi: LSP14_EVENT_ABI,
+              eventName: 'OwnershipTransferred',
+              address: collectionAddress,
+              args: { previousOwner: ZERO_ADDRESS, newOwner: addressFor(228) },
+            }),
+          ],
+        },
+      ],
+    });
+    async function persistCollectionBlock(block: PortalBlock): Promise<void> {
+      const runtime = loadRuntimeConfig({
+        INDEXER_NETWORK: 'ethereum-mainnet',
+        INDEXER_FROM_BLOCK: '0',
+        INDEXER_TO_BLOCK: String(block.header.number),
+      });
+      const target = createProjectionPersistenceTarget({
+        runtime,
+        databaseConfig: ethereumDatabaseConfig,
+        db: ethereumDb,
+      });
+      const portal = await mockEvmPortalStream({
+        blocks: [block],
+        finalized: { number: block.header.number, hash: block.header.hash },
+      });
+      try {
+        const outputs = createEventIngestionOutput(runtime).pipe({
+          transform(facts): ProjectionBatch {
+            const verifications: ProjectionVerification[] = collectProjectionCandidates(facts).map(
+              (candidate) => ({
+                ...candidate,
+                status:
+                  candidate.address === collectionAddress && candidate.category === 'digitalAsset'
+                    ? 'verified'
+                    : 'invalid',
+                standard: candidate.category === 'digitalAsset' ? 'lsp8' : null,
+                decimals: null,
+              }),
+            );
+            return { facts, verifications, claimStatusUpdates: [] };
+          },
+        });
+        const stream = evmPortalStream({
+          id: runtime.streamId,
+          portal: portal.url,
+          outputs,
+          logger: 'error',
+          profiler: false,
+        }).pipe((data, ctx) => createPersistenceBatch(runtime, data, ctx));
+        await stream.pipeTo(target);
+      } finally {
+        await portal.close();
+      }
+    }
+    await persistCollectionBlock(verificationBlock);
+
+    expect(
+      await ethereumDb
+        .select()
+        .from(digitalAssets)
+        .where(eq(digitalAssets.address, collectionAddress)),
+    ).toEqual([
+      expect.objectContaining({
+        verification: 'verified',
+        standard: 'lsp8',
+        tokenIdFormat: 0,
+        baseUri: 'ipfs://recovered-collection/',
+      }),
+    ]);
+    expect(await ethereumDb.select().from(nfts).where(eq(nfts.address, collectionAddress))).toEqual(
+      [
+        expect.objectContaining({
+          formattedTokenId: '42',
+          tokenUri: 'ipfs://recovered-collection/42',
+          lastBlockNumber: verificationBlock.header.number,
+        }),
+      ],
+    );
+    expect(
+      await ethereumDb
+        .select()
+        .from(metadataJobs)
+        .where(eq(metadataJobs.address, collectionAddress)),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          dataKey: DATA_KEYS.lsp4Metadata,
+          contentUri: 'ipfs://recovered-direct-token',
+          sourceBlockNumber: verificationBlock.header.number,
+        }),
+        expect.objectContaining({
+          dataKey: DATA_KEYS.lsp8MetadataBaseUri,
+          contentUri: 'ipfs://recovered-collection/42',
+          sourceBlockNumber: verificationBlock.header.number,
+        }),
+      ]),
+    );
+
+    const repeatedLocationBlock = mockBlock({
+      number: verificationBlock.header.number + 1,
+      timestamp: 1_700_001_051,
+      hash: hashFor(1_251),
+      parentHash: verificationBlock.header.hash,
+      transactions: [
+        {
+          logs: [
+            encodeEvent({
+              abi: ERC725Y_EVENT_ABI,
+              eventName: 'DataChanged',
+              address: collectionAddress,
+              args: { dataKey: DATA_KEYS.lsp8MetadataBaseUri, dataValue: baseUriValue },
+            }),
+            encodeEvent({
+              abi: ERC725Y_EVENT_ABI,
+              eventName: 'DataChanged',
+              address: collectionAddress,
+              args: {
+                dataKey: DATA_KEYS.lsp8TokenIdFormat,
+                dataValue: toHex(0, { size: 1 }),
+              },
+            }),
+            encodeEvent({
+              abi: LSP8_EVENT_ABI,
+              eventName: 'Transfer',
+              address: collectionAddress,
+              args: {
+                operator: addressFor(229),
+                from: addressFor(229),
+                to: addressFor(230),
+                tokenId,
+                force: true,
+                data: '0x',
+              },
+            }),
+          ],
+        },
+      ],
+    });
+    await persistCollectionBlock(repeatedLocationBlock);
+
+    const locationRows = await ethereumDb
+      .select({ dataKey: dataValues.dataKey, lastBlockNumber: dataValues.lastBlockNumber })
+      .from(dataValues)
+      .where(
+        and(
+          eq(dataValues.address, collectionAddress),
+          inArray(dataValues.dataKey, [DATA_KEYS.lsp8MetadataBaseUri, DATA_KEYS.lsp8TokenIdFormat]),
+        ),
+      );
+    expect(locationRows).toHaveLength(2);
+    expect(
+      locationRows.every(({ lastBlockNumber }) => lastBlockNumber === previousBlock.number),
+    ).toBe(true);
+    expect(await ethereumDb.select().from(nfts).where(eq(nfts.address, collectionAddress))).toEqual(
+      [
+        expect.objectContaining({
+          ownerAddress: addressFor(230),
+          lastBlockNumber: repeatedLocationBlock.header.number,
+        }),
+      ],
+    );
+    expect(
+      await ethereumDb
+        .select()
+        .from(metadataJobs)
+        .where(
+          and(
+            eq(metadataJobs.address, collectionAddress),
+            eq(metadataJobs.dataKey, DATA_KEYS.lsp8MetadataBaseUri),
+          ),
+        ),
+    ).toEqual([
+      expect.objectContaining({
+        status: 'pending',
+        sourceBlockNumber: verificationBlock.header.number,
+      }),
+    ]);
+  });
+
+  it('cancels LSP29 jobs when the authoritative array length shrinks', async () => {
+    const metadataAddress = addressFor(225);
+    const [previousBlock] = await ethereumDb
+      .select({ number: blocks.number, hash: blocks.hash })
+      .from(blocks)
+      .orderBy(desc(blocks.number))
+      .limit(1);
+    if (previousBlock == null) throw new Error('Expected a canonical predecessor block');
+
+    const indexKey = concatHex([DATA_KEYS.lsp29EncryptedAssetsIndex, toHex(1n, { size: 16 })]);
+    const encryptedValue = encodeLsp31Uri(
+      [
+        { backend: 'ipfs', cid: 'bafy-encrypted-asset' },
+        { backend: 'arweave', transactionId: 'encrypted-asset' },
+      ],
+      computeContentHash(toBytes('encrypted asset')),
+    );
+    const initialBlock = mockBlock({
+      number: previousBlock.number + 1,
+      timestamp: 1_700_001_100,
+      hash: hashFor(1_301),
+      parentHash: previousBlock.hash,
+      transactions: [
+        {
+          logs: [
+            encodeEvent({
+              abi: ERC725Y_EVENT_ABI,
+              eventName: 'DataChanged',
+              address: metadataAddress,
+              args: {
+                dataKey: DATA_KEYS.lsp29EncryptedAssetsLength,
+                dataValue: toHex(2n, { size: 16 }),
+              },
+            }),
+            encodeEvent({
+              abi: ERC725Y_EVENT_ABI,
+              eventName: 'DataChanged',
+              address: metadataAddress,
+              args: { dataKey: indexKey, dataValue: encryptedValue },
+            }),
+          ],
+        },
+      ],
+    });
+    const shrinkBlock = mockBlock({
+      number: initialBlock.header.number + 1,
+      timestamp: 1_700_001_101,
+      hash: hashFor(1_302),
+      parentHash: initialBlock.header.hash,
+      transactions: [
+        {
+          logs: [
+            encodeEvent({
+              abi: ERC725Y_EVENT_ABI,
+              eventName: 'DataChanged',
+              address: metadataAddress,
+              args: {
+                dataKey: DATA_KEYS.lsp29EncryptedAssetsLength,
+                dataValue: toHex(1n, { size: 16 }),
+              },
+            }),
+          ],
+        },
+      ],
+    });
+
+    async function persistLsp29Block(
+      block: PortalBlock,
+      finalized: { number: number; hash: string },
+    ): Promise<void> {
+      const runtime = loadRuntimeConfig({
+        INDEXER_NETWORK: 'ethereum-mainnet',
+        INDEXER_FROM_BLOCK: '0',
+        INDEXER_TO_BLOCK: String(block.header.number),
+      });
+      const target = createProjectionPersistenceTarget({
+        runtime,
+        databaseConfig: ethereumDatabaseConfig,
+        db: ethereumDb,
+      });
+      const portal = await mockEvmPortalStream({ blocks: [block], finalized });
+      try {
+        const outputs = createEventIngestionOutput(runtime).pipe({
+          transform(facts): ProjectionBatch {
+            const verifications: ProjectionVerification[] = collectProjectionCandidates(facts).map(
+              (candidate) => ({
+                ...candidate,
+                status:
+                  candidate.address === metadataAddress && candidate.category === 'universalProfile'
+                    ? 'verified'
+                    : 'invalid',
+                standard: null,
+                decimals: null,
+              }),
+            );
+            return { facts, verifications, claimStatusUpdates: [] };
+          },
+        });
+        const stream = evmPortalStream({
+          id: runtime.streamId,
+          portal: portal.url,
+          outputs,
+          logger: 'error',
+          profiler: false,
+        }).pipe((data, ctx) => createPersistenceBatch(runtime, data, ctx));
+        await stream.pipeTo(target);
+      } finally {
+        await portal.close();
+      }
+    }
+
+    await persistLsp29Block(initialBlock, {
+      number: initialBlock.header.number,
+      hash: initialBlock.header.hash,
+    });
+    const claimTime = new Date('2030-01-01T01:00:00Z');
+    const initialClaims = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 100,
+      leaseTimeoutMs: 2_000,
+      now: claimTime,
+    });
+    const encryptedClaim = initialClaims.find(
+      ({ address, kind }) => address === metadataAddress && kind === 'lsp29_encrypted_asset',
+    );
+    if (encryptedClaim == null) throw new Error('Expected current LSP29 slot to be claimable');
+    for (const unrelatedClaim of initialClaims) {
+      if (unrelatedClaim.id !== encryptedClaim.id) {
+        await cancelClaimedMetadataJob(ethereumDb, unrelatedClaim, claimTime);
+      }
+    }
+    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, encryptedClaim)).toEqual(
+      expect.objectContaining({ status: 'current' }),
+    );
+
+    await persistLsp29Block(shrinkBlock, {
+      number: initialBlock.header.number,
+      hash: initialBlock.header.hash,
+    });
+    expect(
+      (await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, encryptedClaim)).status,
+    ).not.toBe('current');
+    expect(
+      await ethereumDb.select().from(metadataJobs).where(eq(metadataJobs.id, encryptedClaim.id)),
+    ).toEqual([
+      expect.objectContaining({
+        status: 'cancelled',
+        claimedAt: null,
+        sourceBlockNumber: initialBlock.header.number,
+      }),
+    ]);
+  });
+
+  it('pages collection-wide metadata recovery at the write bound', async () => {
+    const collectionAddress = addressFor(226);
+    const blockNumber = 1_400;
+    const blockHash = hashFor(blockNumber);
+    await ethereumDb.insert(digitalAssets).values({
+      id: createAddressId('digital-asset', ethereumRuntime.network.chainId, collectionAddress),
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: collectionAddress,
+      standard: 'lsp8',
+      verification: 'verified',
+      lastBlockNumber: blockNumber,
+      lastBlockHash: blockHash,
+      lastTransactionHash: null,
+      lastTransactionIndex: null,
+      lastLogIndex: null,
+    });
+
+    const tokenIds = Array.from({ length: 501 }, (_, index) =>
+      toHex(BigInt(index + 1), { size: 32 }),
+    );
+    await ethereumDb.insert(nfts).values(
+      tokenIds.map((currentTokenId, index): typeof nfts.$inferInsert => ({
+        id: `pagination-nft-${index}`,
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: collectionAddress,
+        tokenId: currentTokenId,
+        verification: 'verified',
+        lastBlockNumber: blockNumber,
+        lastBlockHash: blockHash,
+        lastTransactionHash: null,
+        lastTransactionIndex: null,
+        lastLogIndex: null,
+      })),
+    );
+    await ethereumDb.insert(dataValues).values(
+      tokenIds.map((currentTokenId) => ({
+        id: createDataValueId(
+          ethereumRuntime.network.chainId,
+          collectionAddress,
+          DATA_KEYS.lsp4Metadata,
+          currentTokenId,
+        ),
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        address: collectionAddress,
+        tokenId: currentTokenId,
+        dataKey: DATA_KEYS.lsp4Metadata,
+        dataValue: '0x',
+        lastBlockNumber: blockNumber,
+        lastBlockHash: blockHash,
+        lastTransactionHash: null,
+        lastTransactionIndex: null,
+        lastLogIndex: null,
+      })),
+    );
+
+    const pageSizes = await ethereumDb.transaction(async (tx): Promise<number[]> => {
+      const sizes: number[] = [];
+      for await (const page of loadMetadataRecoveryCandidatePages(tx, ethereumRuntime, {
+        profileTargets: [],
+        assetTargets: [],
+        tokenCollectionTargets: [
+          {
+            address: collectionAddress,
+            eligibleBlockNumber: blockNumber,
+            eligibleBlockHash: blockHash,
+          },
+        ],
+        nftTargets: [],
+        lsp29Targets: [],
+      })) {
+        sizes.push(page.dataValues.length + page.nfts.length);
+      }
+      return sizes;
+    });
+    expect(pageSizes).toEqual([500, 1, 500, 1]);
+  });
+
+  it('restores a superseded processing lease across rollback and safely republishes it', async () => {
+    const [previousBlock] = await ethereumDb
+      .select({ number: blocks.number, hash: blocks.hash })
+      .from(blocks)
+      .orderBy(desc(blocks.number))
+      .limit(1);
+    if (previousBlock == null) throw new Error('Expected a canonical predecessor block');
+    const metadataAddress = addressFor(221);
+    const firstContent = { LSP3Profile: { name: 'Finalized revision A' } };
+    const secondContent = { LSP3Profile: { name: 'Unfinalized revision B' } };
+    const firstValue = encodeVerifiableUri(firstContent, 'ipfs://finalized-revision-a');
+    const secondValue = encodeVerifiableUri(secondContent, 'ipfs://unfinalized-revision-b');
+    const firstLog = encodeEvent({
+      abi: ERC725Y_EVENT_ABI,
+      eventName: 'DataChanged',
+      address: metadataAddress,
+      args: { dataKey: DATA_KEYS.lsp3Profile, dataValue: firstValue },
+    });
+    const secondLog = encodeEvent({
+      abi: ERC725Y_EVENT_ABI,
+      eventName: 'DataChanged',
+      address: metadataAddress,
+      args: { dataKey: DATA_KEYS.lsp3Profile, dataValue: secondValue },
+    });
+    const firstBlock = mockBlock({
+      number: previousBlock.number + 1,
+      timestamp: 1_700_000_101,
+      hash: hashFor(141),
+      parentHash: previousBlock.hash,
+      transactions: [{ logs: [firstLog] }],
+    });
+    const secondBlock = mockBlock({
+      number: firstBlock.header.number + 1,
+      timestamp: 1_700_000_102,
+      hash: hashFor(142),
+      parentHash: firstBlock.header.hash,
+      transactions: [{ logs: [secondLog] }],
+    });
+
+    async function persistMetadataBlock(
+      block: PortalBlock,
+      finalized: { number: number; hash: string },
+    ): Promise<ReturnType<typeof createProjectionPersistenceTarget>> {
+      const metadataRuntime = loadRuntimeConfig({
+        INDEXER_NETWORK: 'ethereum-mainnet',
+        INDEXER_FROM_BLOCK: '0',
+        INDEXER_TO_BLOCK: String(block.header.number),
+      });
+      const metadataTarget = createProjectionPersistenceTarget({
+        runtime: metadataRuntime,
+        databaseConfig: ethereumDatabaseConfig,
+        db: ethereumDb,
+      });
+      const portal = await mockEvmPortalStream({ blocks: [block], finalized });
+      try {
+        const outputs = createEventIngestionOutput(metadataRuntime).pipe({
+          transform(facts): ProjectionBatch {
+            const verifications: ProjectionVerification[] = collectProjectionCandidates(facts).map(
+              (candidate) => ({
+                ...candidate,
+                status: candidate.category === 'universalProfile' ? 'verified' : 'invalid',
+                standard: null,
+                decimals: null,
+              }),
+            );
+            return { facts, verifications, claimStatusUpdates: [] };
+          },
+        });
+        const stream = evmPortalStream({
+          id: metadataRuntime.streamId,
+          portal: portal.url,
+          outputs,
+          logger: 'error',
+          profiler: false,
+        }).pipe((data, ctx) => createPersistenceBatch(metadataRuntime, data, ctx));
+        await stream.pipeTo(metadataTarget);
+      } finally {
+        await portal.close();
+      }
+      return metadataTarget;
+    }
+
+    await persistMetadataBlock(firstBlock, {
+      number: firstBlock.header.number,
+      hash: firstBlock.header.hash,
+    });
+    const leaseStartedAt = new Date('2030-01-02T00:00:00Z');
+    const firstClaims = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 100,
+      leaseTimeoutMs: 2_000,
+      now: leaseStartedAt,
+    });
+    const firstClaim = firstClaims.find(({ address }) => address === metadataAddress);
+    if (firstClaim == null) throw new Error('Expected revision A to be claimable after finality');
+    for (const unrelatedClaim of firstClaims) {
+      if (unrelatedClaim.id !== firstClaim.id) {
+        await cancelClaimedMetadataJob(ethereumDb, unrelatedClaim, leaseStartedAt);
+      }
+    }
+    expect(firstClaim).toMatchObject({ status: 'processing', attempts: 1 });
+
+    const secondTarget = await persistMetadataBlock(secondBlock, {
+      number: firstBlock.header.number,
+      hash: firstBlock.header.hash,
+    });
+    const jobsAfterSecondRevision = await ethereumDb
+      .select()
+      .from(metadataJobs)
+      .where(eq(metadataJobs.address, metadataAddress));
+    expect(jobsAfterSecondRevision).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: firstClaim.id, status: 'cancelled', claimedAt: null }),
+        expect.objectContaining({
+          status: 'pending',
+          sourceBlockNumber: secondBlock.header.number,
+        }),
+      ]),
+    );
+    expect(
+      await completeMetadataJob(ethereumDb, ethereumRuntime, firstClaim, {
+        content: firstContent,
+        contentUri: firstClaim.contentUri,
+        contentHash: firstClaim.contentHash ?? hashFor(0),
+        contentType: 'application/json',
+        contentLength: JSON.stringify(firstContent).length,
+      }),
+    ).toBe('lost_claim');
+    expect(
+      await ethereumDb
+        .select()
+        .from(metadataRevisions)
+        .where(eq(metadataRevisions.address, metadataAddress)),
+    ).toEqual([]);
+
+    if (secondTarget.resolveFork == null) {
+      throw new Error('Metadata projection target must support forks');
+    }
+    await secondTarget.resolveFork([
+      {
+        number: firstBlock.header.number,
+        hash: firstBlock.header.hash,
+        timestamp: firstBlock.header.timestamp,
+      },
+    ]);
+    const jobsAfterRollback = await ethereumDb
+      .select()
+      .from(metadataJobs)
+      .where(eq(metadataJobs.address, metadataAddress));
+    expect(jobsAfterRollback).toEqual([
+      expect.objectContaining({
+        id: firstClaim.id,
+        status: 'processing',
+        attempts: 1,
+        claimedAt: leaseStartedAt,
+      }),
+    ]);
+    expect(
+      await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+        limit: 1,
+        leaseTimeoutMs: 2_000,
+        now: new Date(leaseStartedAt.getTime() + 1_999),
+      }),
+    ).toEqual([]);
+
+    const [recoveredClaim] = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 1,
+      leaseTimeoutMs: 2_000,
+      now: new Date(leaseStartedAt.getTime() + 2_000),
+    });
+    if (recoveredClaim == null) throw new Error('Expected revision A lease recovery');
+    expect(recoveredClaim).toMatchObject({ id: firstClaim.id, attempts: 2 });
+    expect(
+      await completeMetadataJob(ethereumDb, ethereumRuntime, recoveredClaim, {
+        content: firstContent,
+        contentUri: recoveredClaim.contentUri,
+        contentHash: recoveredClaim.contentHash ?? hashFor(0),
+        contentType: 'application/json',
+        contentLength: JSON.stringify(firstContent).length,
+      }),
+    ).toBe('succeeded');
+    expect(
+      await ethereumDb
+        .select()
+        .from(metadataRevisions)
+        .where(eq(metadataRevisions.address, metadataAddress)),
+    ).toEqual([
+      expect.objectContaining({
+        id: firstClaim.id,
+        content: firstContent,
+        lastBlockNumber: firstBlock.header.number,
+      }),
+    ]);
+  });
+
+  it('claims only finalized metadata and prevents stale or duplicate settlements', async () => {
+    const metadataAddress = addressFor(220);
+    const profileId = createAddressId('profile', ethereumRuntime.network.chainId, metadataAddress);
+    const dataValueId = createDataValueId(
+      ethereumRuntime.network.chainId,
+      metadataAddress,
+      DATA_KEYS.lsp3Profile,
+    );
+    const firstContent = { LSP3Profile: { name: 'First profile revision' } };
+    const firstValue = encodeVerifiableUri(firstContent, 'ipfs://first-profile');
+    const firstRow = {
+      id: dataValueId,
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: metadataAddress,
+      tokenId: null,
+      dataKey: DATA_KEYS.lsp3Profile,
+      dataValue: firstValue,
+      lastBlockNumber: 101,
+      lastBlockHash: hashFor(201),
+      lastTransactionHash: hashFor(211),
+      lastTransactionIndex: 0,
+      lastLogIndex: 0,
+    };
+    const firstSource = createDataValueMetadataSource(ethereumRuntime, firstRow);
+    if (firstSource == null) throw new Error('Expected first metadata source fixture');
+    const createdAt = new Date('2026-01-01T00:00:00Z');
+
+    await ethereumDb.insert(blocks).values(
+      [100, 101, 102, 103].map((number) => ({
+        id: createBlockId(ethereumRuntime.network.chainId, number),
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        number,
+        hash: hashFor(number + 100),
+        parentHash: hashFor(number + 99),
+        timestamp: new Date(createdAt.getTime() + number * 1_000),
+      })),
+    );
+
+    await ethereumDb.insert(universalProfiles).values({
+      id: profileId,
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: metadataAddress,
+      ownerAddress: null,
+      verification: 'verified',
+      lastBlockNumber: 101,
+      lastBlockHash: hashFor(201),
+      lastTransactionHash: hashFor(211),
+      lastTransactionIndex: 0,
+      lastLogIndex: 0,
+    });
+    await ethereumDb.insert(dataValues).values(firstRow);
+    await ethereumDb
+      .insert(indexedHeads)
+      .values({
+        network: ethereumRuntime.network.key,
+        chainId: ethereumRuntime.network.chainId,
+        blockNumber: 101,
+        blockHash: hashFor(201),
+        blockTimestamp: createdAt,
+        finalizedBlockNumber: 100,
+        finalizedBlockHash: hashFor(200),
+        updatedAt: createdAt,
+      })
+      .onConflictDoUpdate({
+        target: [indexedHeads.network, indexedHeads.chainId],
+        set: {
+          blockNumber: 101,
+          blockHash: hashFor(201),
+          blockTimestamp: createdAt,
+          finalizedBlockNumber: 100,
+          finalizedBlockHash: hashFor(200),
+          updatedAt: createdAt,
+        },
+      });
+    await ethereumDb.transaction((tx) =>
+      applyMetadataSourcePlan(
+        tx,
+        {
+          scopes: [firstSource],
+          sources: [firstSource],
+          rejected: [],
+        },
+        createdAt,
+      ),
+    );
+
+    expect(
+      await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+        limit: 2,
+        leaseTimeoutMs: 2_000,
+        now: createdAt,
+      }),
+    ).toEqual([]);
+
+    await ethereumDb
+      .update(indexedHeads)
+      .set({ finalizedBlockNumber: 101, finalizedBlockHash: hashFor(201) })
+      .where(eq(indexedHeads.chainId, ethereumRuntime.network.chainId));
+    const [firstClaim] = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 2,
+      leaseTimeoutMs: 2_000,
+      now: createdAt,
+    });
+    if (firstClaim == null) throw new Error('Expected finalized metadata claim');
+    expect(firstClaim).toMatchObject({ status: 'processing', attempts: 1, claimedAt: createdAt });
+    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, firstClaim)).toEqual({
+      status: 'current',
+      source: firstSource,
+    });
+    expect(
+      await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+        limit: 2,
+        leaseTimeoutMs: 2_000,
+        now: new Date(createdAt.getTime() + 1),
+      }),
+    ).toEqual([]);
+
+    const retryAt = new Date(createdAt.getTime() + 1_000);
+    expect(
+      await failMetadataJob(ethereumDb, ethereumRuntime, firstClaim, {
+        error: 'HTTP 503',
+        retryable: true,
+        retryDelayMs: retryAt.getTime() - createdAt.getTime(),
+        now: createdAt,
+        maxAttempts: 3,
+      }),
+    ).toBe('retry');
+    expect(
+      await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+        limit: 2,
+        leaseTimeoutMs: 2_000,
+        now: new Date(retryAt.getTime() - 1),
+      }),
+    ).toEqual([]);
+    const [retryClaim] = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 2,
+      leaseTimeoutMs: 2_000,
+      now: retryAt,
+    });
+    if (retryClaim == null) throw new Error('Expected due metadata retry');
+    expect(retryClaim.attempts).toBe(2);
+    expect(
+      await completeMetadataJob(ethereumDb, ethereumRuntime, retryClaim, {
+        content: firstContent,
+        contentUri: retryClaim.contentUri,
+        contentHash: firstSource.contentHash ?? hashFor(0),
+        contentType: 'application/json',
+        contentLength: JSON.stringify(firstContent).length,
+      }),
+    ).toBe('succeeded');
+    const firstPublishedRevisions = await ethereumDb
+      .select()
+      .from(metadataRevisions)
+      .where(eq(metadataRevisions.address, metadataAddress));
+    expect(firstPublishedRevisions).toHaveLength(1);
+    expect(firstPublishedRevisions[0]).toEqual(
+      expect.objectContaining({
+        id: firstSource.id,
+        content: firstContent,
+        lastBlockNumber: 101,
+        lastTransactionHash: firstRow.lastTransactionHash,
+      }),
+    );
+    const firstFetchedAt = firstPublishedRevisions[0]?.fetchedAt;
+    if (firstFetchedAt == null) throw new Error('Expected a PostgreSQL fetch timestamp');
+    expect(firstFetchedAt).toBeInstanceOf(Date);
+
+    const repeatedAt = new Date(retryAt.getTime() + 1);
+    await ethereumDb.transaction((tx) =>
+      applyMetadataSourcePlan(
+        tx,
+        { scopes: [firstSource], sources: [firstSource], rejected: [] },
+        repeatedAt,
+      ),
+    );
+    const [repeatedClaim] = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 2,
+      leaseTimeoutMs: 2_000,
+      now: repeatedAt,
+    });
+    if (repeatedClaim == null) throw new Error('Expected repeated metadata source claim');
+    expect(
+      await completeMetadataJob(ethereumDb, ethereumRuntime, repeatedClaim, {
+        content: { LSP3Profile: { name: 'Mutable endpoint response' } },
+        contentUri: repeatedClaim.contentUri,
+        contentHash: repeatedClaim.contentHash ?? hashFor(0),
+        contentType: 'application/json',
+        contentLength: 10,
+      }),
+    ).toBe('succeeded');
+    expect(
+      await ethereumDb
+        .select({ content: metadataRevisions.content, fetchedAt: metadataRevisions.fetchedAt })
+        .from(metadataRevisions)
+        .where(eq(metadataRevisions.id, firstSource.id)),
+    ).toEqual([{ content: firstContent, fetchedAt: firstFetchedAt }]);
+
+    const secondValue = encodeVerifiableUri(
+      { LSP3Profile: { name: 'Second profile revision' } },
+      'ipfs://second-profile',
+    );
+    const secondRow = {
+      ...firstRow,
+      dataValue: secondValue,
+      lastBlockNumber: 102,
+      lastBlockHash: hashFor(202),
+      lastTransactionHash: hashFor(212),
+    };
+    const secondSource = createDataValueMetadataSource(ethereumRuntime, secondRow);
+    if (secondSource == null) throw new Error('Expected second metadata source fixture');
+    await ethereumDb.update(dataValues).set(secondRow).where(eq(dataValues.id, dataValueId));
+    await ethereumDb.transaction((tx) =>
+      applyMetadataSourcePlan(
+        tx,
+        { scopes: [secondSource], sources: [secondSource], rejected: [] },
+        new Date(retryAt.getTime() + 1),
+      ),
+    );
+    await ethereumDb
+      .update(indexedHeads)
+      .set({
+        blockNumber: 102,
+        blockHash: hashFor(202),
+        finalizedBlockNumber: 102,
+        finalizedBlockHash: hashFor(202),
+      })
+      .where(eq(indexedHeads.chainId, ethereumRuntime.network.chainId));
+    const secondClaimedAt = new Date(retryAt.getTime() + 2);
+    const [secondClaim] = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 2,
+      leaseTimeoutMs: 2_000,
+      now: secondClaimedAt,
+    });
+    if (secondClaim == null) throw new Error('Expected second metadata claim');
+
+    const thirdValue = encodeVerifiableUri(
+      { LSP3Profile: { name: 'Third profile revision' } },
+      'ipfs://third-profile',
+    );
+    const thirdRow = {
+      ...secondRow,
+      dataValue: thirdValue,
+      lastBlockNumber: 103,
+      lastBlockHash: hashFor(203),
+      lastTransactionHash: hashFor(213),
+    };
+    const thirdSource = createDataValueMetadataSource(ethereumRuntime, thirdRow);
+    if (thirdSource == null) throw new Error('Expected third metadata source fixture');
+    await ethereumDb.update(dataValues).set(thirdRow).where(eq(dataValues.id, dataValueId));
+    expect(
+      await completeMetadataJob(ethereumDb, ethereumRuntime, secondClaim, {
+        content: { LSP3Profile: { name: 'Stale second revision' } },
+        contentUri: secondClaim.contentUri,
+        contentHash: secondSource.contentHash ?? hashFor(0),
+        contentType: 'application/json',
+        contentLength: 10,
+      }),
+    ).toBe('deferred');
+    expect(
+      await ethereumDb
+        .select()
+        .from(metadataRevisions)
+        .where(eq(metadataRevisions.address, metadataAddress)),
+    ).toHaveLength(1);
+
+    const thirdCreatedAt = new Date(secondClaimedAt.getTime() + 2);
+    await ethereumDb.transaction((tx) =>
+      applyMetadataSourcePlan(
+        tx,
+        { scopes: [thirdSource], sources: [thirdSource], rejected: [] },
+        thirdCreatedAt,
+      ),
+    );
+    await ethereumDb
+      .update(indexedHeads)
+      .set({
+        blockNumber: 103,
+        blockHash: hashFor(203),
+        finalizedBlockNumber: 103,
+        finalizedBlockHash: hashFor(203),
+      })
+      .where(eq(indexedHeads.chainId, ethereumRuntime.network.chainId));
+    const [thirdClaim] = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 2,
+      leaseTimeoutMs: 2_000,
+      now: thirdCreatedAt,
+    });
+    if (thirdClaim == null) throw new Error('Expected third metadata claim');
+    expect(
+      await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+        limit: 2,
+        leaseTimeoutMs: 2_000,
+        now: new Date(thirdCreatedAt.getTime() + 1_999),
+      }),
+    ).toEqual([]);
+    const [recoveredClaim] = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 2,
+      leaseTimeoutMs: 2_000,
+      now: new Date(thirdCreatedAt.getTime() + 2_000),
+    });
+    if (recoveredClaim == null) throw new Error('Expected recovered metadata lease');
+    expect(recoveredClaim.attempts).toBe(2);
+    expect(await cancelClaimedMetadataJob(ethereumDb, thirdClaim)).toBe('lost_claim');
+    expect(
+      await failMetadataJob(ethereumDb, ethereumRuntime, recoveredClaim, {
+        error: 'x'.repeat(3_000),
+        retryable: false,
+        retryDelayMs: 1_000,
+        maxAttempts: 3,
+      }),
+    ).toBe('failed');
+
+    const thirdJob = (await ethereumDb.select().from(metadataJobs)).find(
+      ({ id }) => id === thirdSource.id,
+    );
+    expect(thirdJob).toMatchObject({ status: 'failed', claimedAt: null, attempts: 2 });
+    expect(thirdJob?.lastError).toHaveLength(2_000);
+    const counts = await countMetadataJobs(ethereumDb, ethereumRuntime);
+    const allJobs = await ethereumDb.select().from(metadataJobs);
+    expect(counts.find(({ status }) => status === 'failed')?.count).toBe(
+      allJobs.filter(({ status }) => status === 'failed').length,
+    );
+    expect(counts.find(({ status }) => status === 'succeeded')?.count).toBe(
+      allJobs.filter(({ status }) => status === 'succeeded').length,
+    );
+
+    const revokedAt = new Date(thirdCreatedAt.getTime() + 4_000);
+    await ethereumDb.transaction((tx) =>
+      applyMetadataSourcePlan(
+        tx,
+        { scopes: [thirdSource], sources: [thirdSource], rejected: [] },
+        revokedAt,
+      ),
+    );
+    const [revokedClaim] = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 2,
+      leaseTimeoutMs: 2_000,
+      now: revokedAt,
+    });
+    if (revokedClaim == null) throw new Error('Expected metadata claim before verification loss');
+    const unfinalizedInvalidationAt = new Date(revokedAt.getTime() + 1);
+    await ethereumDb
+      .update(universalProfiles)
+      .set({
+        verification: 'invalid',
+        lastBlockNumber: 104,
+        lastBlockHash: hashFor(204),
+      })
+      .where(eq(universalProfiles.address, metadataAddress));
+    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, revokedClaim)).toEqual({
+      status: 'unfinalized',
+      source: null,
+    });
+    expect(
+      await settleUnavailableMetadataJob(
+        ethereumDb,
+        ethereumRuntime,
+        revokedClaim,
+        unfinalizedInvalidationAt,
+      ),
+    ).toBe('deferred');
+    expect(
+      await ethereumDb.select().from(metadataJobs).where(eq(metadataJobs.id, revokedClaim.id)),
+    ).toEqual([
+      expect.objectContaining({
+        status: 'retry',
+        attempts: 0,
+        claimedAt: null,
+        nextAttemptAt: new Date(unfinalizedInvalidationAt.getTime() + 1_000),
+      }),
+    ]);
+
+    await ethereumDb
+      .update(universalProfiles)
+      .set({
+        verification: 'verified',
+        lastBlockNumber: 101,
+        lastBlockHash: hashFor(201),
+      })
+      .where(eq(universalProfiles.address, metadataAddress));
+    const restoredClaims = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 100,
+      leaseTimeoutMs: 2_000,
+      now: new Date(unfinalizedInvalidationAt.getTime() + 1_000),
+    });
+    const restoredClaim = restoredClaims.find(({ id }) => id === revokedClaim.id);
+    if (restoredClaim == null)
+      throw new Error('Expected the reorg-restored source to be claimable');
+    expect(restoredClaim.attempts).toBe(1);
+
+    await ethereumDb
+      .update(universalProfiles)
+      .set({
+        verification: 'invalid',
+        lastBlockNumber: 103,
+        lastBlockHash: hashFor(203),
+      })
+      .where(eq(universalProfiles.address, metadataAddress));
+    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, restoredClaim)).toEqual({
+      status: 'stale',
+      source: null,
+    });
+    expect(
+      await completeMetadataJob(ethereumDb, ethereumRuntime, restoredClaim, {
+        content: { LSP3Profile: { name: 'Must not publish' } },
+        contentUri: restoredClaim.contentUri,
+        contentHash: restoredClaim.contentHash ?? hashFor(0),
+        contentType: 'application/json',
+        contentLength: 10,
+      }),
+    ).toBe('cancelled');
+
+    const collectionAddress = addressFor(219);
+    const tokenId = hashFor(219);
+    const tokenRow = {
+      id: createDataValueId(
+        ethereumRuntime.network.chainId,
+        collectionAddress,
+        DATA_KEYS.lsp4Metadata,
+        tokenId,
+      ),
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: collectionAddress,
+      tokenId,
+      dataKey: DATA_KEYS.lsp4Metadata,
+      dataValue: encodeVerifiableUri(
+        { LSP4Metadata: { name: 'Parent-guarded token' } },
+        'ipfs://parent-guarded-token',
+      ),
+      lastBlockNumber: 103,
+      lastBlockHash: hashFor(203),
+      lastTransactionHash: hashFor(214),
+      lastTransactionIndex: 0,
+      lastLogIndex: 0,
+    };
+    const tokenSource = createDataValueMetadataSource(ethereumRuntime, tokenRow);
+    if (tokenSource == null) throw new Error('Expected token metadata source fixture');
+    await ethereumDb.insert(digitalAssets).values({
+      id: createAddressId('digital-asset', ethereumRuntime.network.chainId, collectionAddress),
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: collectionAddress,
+      standard: 'lsp8',
+      verification: 'verified',
+      lastBlockNumber: 103,
+      lastBlockHash: hashFor(203),
+      lastTransactionHash: hashFor(214),
+      lastTransactionIndex: 0,
+      lastLogIndex: 0,
+    });
+    await ethereumDb.insert(nfts).values({
+      id: 'parent-guarded-nft',
+      network: ethereumRuntime.network.key,
+      chainId: ethereumRuntime.network.chainId,
+      address: collectionAddress,
+      tokenId,
+      verification: 'verified',
+      lastBlockNumber: 103,
+      lastBlockHash: hashFor(203),
+      lastTransactionHash: hashFor(214),
+      lastTransactionIndex: 0,
+      lastLogIndex: 0,
+    });
+    await ethereumDb.insert(dataValues).values(tokenRow);
+    const tokenCreatedAt = new Date(revokedAt.getTime() + 2);
+    await ethereumDb.transaction((tx) =>
+      applyMetadataSourcePlan(
+        tx,
+        { scopes: [tokenSource], sources: [tokenSource], rejected: [] },
+        tokenCreatedAt,
+      ),
+    );
+    const tokenClaims = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 2,
+      leaseTimeoutMs: 2_000,
+      now: tokenCreatedAt,
+    });
+    const tokenClaim = tokenClaims.find(({ id }) => id === tokenSource.id);
+    if (tokenClaim == null) throw new Error('Expected token metadata claim');
+    await ethereumDb
+      .update(digitalAssets)
+      .set({ verification: 'invalid' })
+      .where(eq(digitalAssets.address, collectionAddress));
+    expect(await loadClaimedMetadataSource(ethereumDb, ethereumRuntime, tokenClaim)).toEqual({
+      status: 'stale',
+      source: null,
+    });
+    expect(
+      await completeMetadataJob(ethereumDb, ethereumRuntime, tokenClaim, {
+        content: { LSP4Metadata: { name: 'Must not publish' } },
+        contentUri: tokenClaim.contentUri,
+        contentHash: tokenClaim.contentHash ?? hashFor(0),
+        contentType: 'application/json',
+        contentLength: 10,
+      }),
+    ).toBe('cancelled');
+
+    await ethereumDb
+      .update(universalProfiles)
+      .set({
+        verification: 'verified',
+        lastBlockNumber: 103,
+        lastBlockHash: hashFor(203),
+      })
+      .where(eq(universalProfiles.address, metadataAddress));
+    await ethereumDb.transaction((tx) =>
+      applyMetadataSourcePlan(tx, {
+        scopes: [thirdSource],
+        sources: [thirdSource],
+        rejected: [],
+      }),
+    );
+    const productionClockClaims = await claimMetadataJobs(ethereumDb, ethereumRuntime, {
+      limit: 100,
+      leaseTimeoutMs: 2_000,
+    });
+    const productionClockClaim = productionClockClaims.find(({ id }) => id === thirdSource.id);
+    if (productionClockClaim == null) {
+      throw new Error('Expected a claim scheduled entirely from the PostgreSQL clock');
+    }
+    const precision = await ethereumDb.execute<{ millisecondAligned: boolean }>(sql`
+      SELECT ${metadataJobs.claimedAt} = date_trunc('milliseconds', ${metadataJobs.claimedAt}) AS "millisecondAligned"
+      FROM ${metadataJobs}
+      WHERE ${metadataJobs.id} = ${productionClockClaim.id}
+    `);
+    expect(precision.rows).toEqual([{ millisecondAligned: true }]);
+    expect(
+      await completeMetadataJob(ethereumDb, ethereumRuntime, productionClockClaim, {
+        content: { LSP3Profile: { name: 'Database-clock claim' } },
+        contentUri: productionClockClaim.contentUri,
+        contentHash: productionClockClaim.contentHash ?? hashFor(0),
+        contentType: 'application/json',
+        contentLength: 10,
+      }),
+    ).toBe('succeeded');
   });
 });

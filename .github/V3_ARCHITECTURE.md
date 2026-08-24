@@ -3,8 +3,8 @@
 Status: proposed for review in [#380](https://github.com/chillwhales/lsp-indexer/issues/380)
 
 This document records the architecture boundary for a from-scratch, multi-chain LSP Indexer v3.
-Detailed tables belong to #382 and detailed domain transitions belong to #384, but those workstreams
-must preserve the decisions below.
+Detailed tables belong to #382, domain transitions belong to #384, and metadata lifecycle behavior
+belongs to #385, but those workstreams must preserve the decisions below.
 
 ## Decision summary
 
@@ -379,14 +379,31 @@ not query or populate the extension.
 
 ## Metadata subsystem
 
-Network transactions write durable metadata jobs containing the source natural key, source block,
-data key, content URI, declared verification method and digest when present, immutable source
-revision, and status. Workers claim jobs with bounded concurrency and `FOR UPDATE SKIP LOCKED`.
+The #385 implementation writes durable, deterministic metadata jobs from verified LSP3/LSP4
+VerifiableURIs, LSP29 array entries and LSP31 backends, and LSP8 token locations. Each job contains
+the source natural key, source block, data key, URI, declared verification digest when present,
+immutable source revision, and status. The projection transaction replaces the affected source
+scope and writes the job alongside the canonical projections. Work is chunked to keep large event
+batches bounded, and IPFS and HTTP side effects never run inside the Pipes database transaction.
 
-Workers process only jobs whose source block is finalized. A successful write includes the source
-revision in its predicate, so an old response cannot replace newer on-chain metadata. Retry state,
-next-attempt time, terminal error, response size, content type, and latency are observable. IPFS and
-HTTP side effects are never performed inside the Pipes database transaction.
+One independent worker process selects one network and claims only jobs whose source block is at or
+below `indexed_heads.finalized_block_number`. Claims use bounded concurrency,
+`FOR UPDATE SKIP LOCKED`, an attempt count, and an expiring lease so replicas can share a queue and
+crashed work becomes claimable again. Retryable failures use persisted next-attempt timestamps and
+bounded deterministic jitter; malformed content and exhausted attempts are terminal.
+
+Requests enforce public HTTP(S) targets, per-request timeouts, bounded redirects and response size,
+valid UTF-8 and JSON, kind-specific LSP parsing, and LSP2/LSP31 keccak verification where the chain
+source supplies it. Workers reload the exact source before requesting it and lock/reload it again
+inside a serializable settlement transaction. Publication succeeds only while the claim token,
+natural key, URI, content hash, and source revision still match. Otherwise the job is cancelled and
+the response cannot replace newer canonical state. Token publication additionally requires both a
+currently verified NFT and a currently verified LSP8 parent collection.
+
+Pipes metrics expose claims and throughput, outcomes, categorized failures, retries, backlog by
+status, oldest backlog age, maximum and settlement attempts, queue latency, fetch latency, and
+response bytes. The worker requires only its network-scoped database role and can restart or scale
+without Portal or RPC connectivity.
 
 Metadata locations are untrusted contract input. The worker uses a closed scheme allowlist: bounded
 `data:` content, `ipfs:` through an operator-configured gateway, `https:`, and `http:` only when the
@@ -406,8 +423,8 @@ Each source revision has an immutable deterministic job identity, and job state 
 the Pipes rollback target. If unfinalized revision B supersedes a processing job for finalized
 revision A, B snapshots A before cancelling it. Settlement by A's old claim writes nothing. Rolling
 B back removes B and restores A's prior job and lease; normal expired-lease recovery then reclaims A
-and can publish its immutable revision. #385 must include a PostgreSQL integration test for this
-exact A → B → rollback → A recovery sequence.
+and can publish its immutable revision. The #385 PostgreSQL suite executes this exact A → B →
+rollback → A recovery sequence.
 
 ## Query and package boundary
 

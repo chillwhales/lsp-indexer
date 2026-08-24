@@ -47,6 +47,18 @@ export const DATA_KEYS = {
   lsp29EncryptedAssetRevisionCount: '0xb41f63e335c22bded814',
 } as const;
 
+/** Return whether a current data-value row controls one or more metadata jobs. */
+export function isMetadataControlDataKey(dataKey: string): boolean {
+  return (
+    dataKey === DATA_KEYS.lsp3Profile ||
+    dataKey === DATA_KEYS.lsp4Metadata ||
+    dataKey === DATA_KEYS.lsp8MetadataBaseUri ||
+    dataKey === DATA_KEYS.lsp8TokenIdFormat ||
+    dataKey === DATA_KEYS.lsp29EncryptedAssetsLength ||
+    dataKey.startsWith(DATA_KEYS.lsp29EncryptedAssetsIndex)
+  );
+}
+
 export interface RegistryValue {
   interfaceId: string;
   arrayIndex: bigint;
@@ -96,6 +108,14 @@ export function decodeBoundedInteger(value: string, maximum: number): number | n
   if (!isHex(value) || value === '0x') return null;
   const decoded = BigInt(value);
   return decoded <= BigInt(maximum) ? Number(decoded) : null;
+}
+
+/** Decode the current and legacy LSP8 token-ID format enum values. */
+export function decodeLsp8TokenIdFormat(value: string): number | null {
+  const decoded = decodeBoundedInteger(value, 104);
+  return decoded != null && [0, 1, 2, 3, 4, 100, 101, 102, 103, 104].includes(decoded)
+    ? decoded
+    : null;
 }
 
 /** Decode an ERC725Y UTF-8 scalar, returning null for empty or malformed data. */

@@ -18,6 +18,8 @@
     "db:migrate": "tsx src/app/migrate-database.ts",
     "index:events": "tsx src/app/index-events.ts",
     "index:events:built": "node lib/app/index-events.js",
+    "metadata:worker": "tsx src/app/process-metadata.ts",
+    "metadata:worker:built": "node lib/app/process-metadata.js",
     "probe:network": "tsx src/app/probe-network.ts",
     "probe:network:built": "node lib/app/probe-network.js",
     "test": "vitest run",
@@ -27,6 +29,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@chillwhales/lsp2": "0.2.1",
+    "@chillwhales/lsp29": "0.1.3",
+    "@chillwhales/lsp31": "0.1.2",
     "@subsquid/pipes": "1.0.0-beta.3",
     "drizzle-orm": "0.44.7",
     "pg": "8.16.3",

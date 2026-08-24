@@ -8,9 +8,11 @@ import {
   decodeArrayLength,
   decodeCompactBytesArray,
   decodeLsp8BaseUri,
+  decodeLsp8TokenIdFormat,
   decodeRegistryValue,
   deriveTokenUri,
   formatTokenId,
+  isMetadataControlDataKey,
 } from '../standards.js';
 
 const address = '0x0000000000000000000000000000000000000042';
@@ -39,6 +41,16 @@ describe('LSP projection value decoders', () => {
     });
     expect(decodeRegistryValue(maximumRegistryValue)?.arrayIndex).toBe(maximumUint128);
     expect(decodeRegistryValue(`${registryValue}00`)).toBeNull();
+    expect(isMetadataControlDataKey(DATA_KEYS.lsp3Profile)).toBe(true);
+    expect(isMetadataControlDataKey(DATA_KEYS.lsp4Metadata)).toBe(true);
+    expect(isMetadataControlDataKey(DATA_KEYS.lsp8MetadataBaseUri)).toBe(true);
+    expect(isMetadataControlDataKey(DATA_KEYS.lsp8TokenIdFormat)).toBe(true);
+    expect(
+      isMetadataControlDataKey(
+        `${DATA_KEYS.lsp29EncryptedAssetsIndex}${toHex(7n, { size: 16 }).slice(2)}`,
+      ),
+    ).toBe(true);
+    expect(isMetadataControlDataKey(DATA_KEYS.lsp4TokenName)).toBe(false);
   });
 
   it('formats current and legacy LSP8 token IDs and derives stable token URIs', () => {
@@ -51,6 +63,10 @@ describe('LSP projection value decoders', () => {
     expect(formatTokenId(stringTokenId, 101)).toBe('whale-42');
     expect(formatTokenId(numericTokenId, 4)).toBe(numericTokenId);
     expect(formatTokenId(numericTokenId, null)).toBeNull();
+    expect(decodeLsp8TokenIdFormat('0x00')).toBe(0);
+    expect(decodeLsp8TokenIdFormat('0x64')).toBe(100);
+    expect(decodeLsp8TokenIdFormat('0x05')).toBeNull();
+    expect(decodeLsp8TokenIdFormat('0x')).toBeNull();
     expect(deriveTokenUri('ipfs://collection/', '42')).toBe('ipfs://collection/42');
     expect(deriveTokenUri('ipfs://collection', '42')).toBe('ipfs://collection/42');
   });

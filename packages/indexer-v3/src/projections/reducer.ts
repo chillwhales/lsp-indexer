@@ -23,10 +23,12 @@ import {
   decodeBoundedInteger,
   decodeCompactBytesArray,
   decodeLsp8BaseUri,
+  decodeLsp8TokenIdFormat,
   decodeRegistryValue,
   decodeUtf8,
   deriveTokenUri,
   formatTokenId,
+  isMetadataControlDataKey,
   isNullAddress,
 } from './standards.js';
 import {
@@ -345,6 +347,8 @@ function persistDataValue(context: ReducerContext, event: EventFactRecord): void
     dataKey,
     tokenId ?? undefined,
   );
+  const existing = context.changes.dataValues.get(id);
+  if (isMetadataControlDataKey(dataKey) && existing?.dataValue === dataValue) return;
   context.changes.dataValues.set(id, {
     id,
     network: context.runtime.network.key,
@@ -364,6 +368,7 @@ function reformatNfts(context: ReducerContext, event: EventFactRecord): void {
     if (nft.address !== event.address) continue;
     const formattedTokenId = formatTokenId(nft.tokenId, asset.tokenIdFormat);
     const tokenUri = deriveTokenUri(asset.baseUri, formattedTokenId ?? nft.tokenId);
+    if (nft.formattedTokenId === formattedTokenId && nft.tokenUri === tokenUri) continue;
     context.state.nfts.set(key, {
       ...nft,
       formattedTokenId,
@@ -386,17 +391,16 @@ function reduceAssetScalar(context: ReducerContext, event: EventFactRecord): voi
   } else if (dataKey === DATA_KEYS.lsp4TokenType) {
     updateAsset(context, event, { tokenType: decodeBoundedInteger(dataValue, 2) });
   } else if (dataKey === DATA_KEYS.lsp8TokenIdFormat) {
-    const decoded = decodeBoundedInteger(dataValue, 104);
-    const tokenIdFormat =
-      decoded != null && [0, 1, 2, 3, 4, 100, 101, 102, 103, 104].includes(decoded)
-        ? decoded
-        : null;
+    const tokenIdFormat = decodeLsp8TokenIdFormat(dataValue);
+    if (context.state.digitalAssets.get(event.address)?.tokenIdFormat === tokenIdFormat) return;
     updateAsset(context, event, { tokenIdFormat });
     reformatNfts(context, event);
   } else if (dataKey === DATA_KEYS.lsp8ReferenceContract) {
     updateAsset(context, event, { tokenIdReferenceContract: decodeAddressValue(dataValue) });
   } else if (dataKey === DATA_KEYS.lsp8MetadataBaseUri) {
-    updateAsset(context, event, { baseUri: decodeLsp8BaseUri(dataValue) });
+    const baseUri = decodeLsp8BaseUri(dataValue);
+    if (context.state.digitalAssets.get(event.address)?.baseUri === baseUri) return;
+    updateAsset(context, event, { baseUri });
     reformatNfts(context, event);
   }
 }

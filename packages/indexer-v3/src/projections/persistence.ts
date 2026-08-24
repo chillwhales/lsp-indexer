@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import type { RuntimeConfig } from '../config/index.js';
 import type { NetworkDatabase } from '../db/client.js';
 import type { NetworkDatabaseConfig } from '../db/config.js';
+import { createDataValueId } from '../db/identity.js';
 import {
   chillwhalesNfts,
   controllers,
@@ -17,10 +18,24 @@ import {
   universalProfiles,
 } from '../db/schema.js';
 import { createPersistenceTarget, type PersistenceHandlerContext } from '../db/target.js';
+import type { EventFactRecord } from '../events/decode.js';
 import { persistEventBatch } from '../events/persistence.js';
+import {
+  applyMetadataSourcePlan,
+  loadMetadataLsp29Lengths,
+  loadMetadataRecoveryCandidatePages,
+} from '../metadata/queue.js';
+import {
+  findMetadataVerificationTransitions,
+  planMetadataRecoverySources,
+  planMetadataSources,
+  snapshotMetadataVerification,
+} from '../metadata/source.js';
+import { loadLsp8MetadataLocationRecoveryPages } from './metadataRecovery.js';
 import type { ProjectionBatch } from './output.js';
 import { reduceProjectionEvents, type ProjectionMutations } from './reducer.js';
-import { loadProjectionState } from './state.js';
+import { DATA_KEYS, isMetadataControlDataKey } from './standards.js';
+import { loadProjectionState, tokenKey } from './state.js';
 
 const WRITE_CHUNK_SIZE = 500;
 type ProjectionTransaction = PersistenceHandlerContext['tx'];
@@ -390,6 +405,57 @@ async function upsertDataValues(
   }
 }
 
+async function effectiveDataValueRows(
+  tx: ProjectionTransaction,
+  rows: readonly (typeof dataValues.$inferSelect)[],
+): Promise<ProjectionMutations['dataValues']> {
+  const metadataRows = rows.filter(({ dataKey }) => isMetadataControlDataKey(dataKey));
+  const previous = new Map<string, string>();
+  for (const rowChunk of chunks(metadataRows)) {
+    const current = await tx
+      .select({ id: dataValues.id, dataValue: dataValues.dataValue })
+      .from(dataValues)
+      .where(
+        inArray(
+          dataValues.id,
+          rowChunk.map(({ id }) => id),
+        ),
+      );
+    for (const row of current) previous.set(row.id, row.dataValue);
+  }
+  return rows.filter(
+    (row) => !isMetadataControlDataKey(row.dataKey) || previous.get(row.id) !== row.dataValue,
+  );
+}
+
+function metadataControlEventId(event: EventFactRecord): string | null {
+  if (event.eventName !== 'DataChanged' && event.eventName !== 'TokenIdDataChanged') return null;
+  const dataKey = event.decoded?.dataKey;
+  if (typeof dataKey !== 'string' || !isMetadataControlDataKey(dataKey)) return null;
+  const tokenId = event.eventName === 'TokenIdDataChanged' ? event.decoded?.tokenId : undefined;
+  if (event.eventName === 'TokenIdDataChanged' && typeof tokenId !== 'string') return null;
+  return createDataValueId(
+    event.chainId,
+    event.address,
+    dataKey,
+    typeof tokenId === 'string' ? tokenId : undefined,
+  );
+}
+
+/** Remove unchanged metadata-control facts from downstream source-planning triggers. */
+export function filterEffectiveMetadataEvents(
+  events: readonly EventFactRecord[],
+  rows: readonly (typeof dataValues.$inferSelect)[],
+): EventFactRecord[] {
+  const effectiveIds = new Set(
+    rows.filter(({ dataKey }) => isMetadataControlDataKey(dataKey)).map(({ id }) => id),
+  );
+  return events.filter((event) => {
+    const id = metadataControlEventId(event);
+    return id == null || effectiveIds.has(id);
+  });
+}
+
 async function applyUpserts(
   tx: ProjectionTransaction,
   mutations: ProjectionMutations,
@@ -431,6 +497,7 @@ export async function persistProjectionBatch(
     events,
     batch.claimStatusUpdates,
   );
+  const metadataVerification = snapshotMetadataVerification(state);
   const mutations = reduceProjectionEvents(
     runtime,
     state,
@@ -438,7 +505,60 @@ export async function persistProjectionBatch(
     batch.verifications,
     batch.claimStatusUpdates,
   );
-  await applyProjectionMutations(context.tx, mutations);
+  const effectiveMutations: ProjectionMutations = {
+    ...mutations,
+    dataValues: await effectiveDataValueRows(context.tx, mutations.dataValues),
+  };
+  const effectiveEvents = filterEffectiveMetadataEvents(events, effectiveMutations.dataValues);
+  const transitions = findMetadataVerificationTransitions(metadataVerification, effectiveMutations);
+  await applyProjectionMutations(context.tx, effectiveMutations);
+  for await (const page of loadLsp8MetadataLocationRecoveryPages(
+    context.tx,
+    runtime,
+    state,
+    transitions.tokenCollectionTargets.map(({ address }) => address),
+  )) {
+    await upsertDigitalAssets(context.tx, page.digitalAssets);
+    await upsertNfts(context.tx, page.nfts);
+    for (const asset of page.digitalAssets) state.digitalAssets.set(asset.address, asset);
+    for (const nft of page.nfts) {
+      const key = tokenKey(nft.address, nft.tokenId);
+      if (state.nfts.has(key)) state.nfts.set(key, nft);
+    }
+  }
+  const lsp29Addresses = [
+    ...new Set(
+      effectiveMutations.dataValues
+        .filter(
+          (row) =>
+            row.dataKey === DATA_KEYS.lsp29EncryptedAssetsLength ||
+            row.dataKey.startsWith(DATA_KEYS.lsp29EncryptedAssetsIndex),
+        )
+        .map(({ address }) => address),
+    ),
+  ];
+  const lsp29Lengths = await loadMetadataLsp29Lengths(context.tx, runtime, lsp29Addresses);
+  await applyMetadataSourcePlan(
+    context.tx,
+    planMetadataSources(
+      runtime,
+      state,
+      effectiveMutations,
+      effectiveEvents,
+      { dataValues: [], nfts: [] },
+      lsp29Lengths,
+    ),
+  );
+  for await (const recovery of loadMetadataRecoveryCandidatePages(
+    context.tx,
+    runtime,
+    transitions,
+  )) {
+    await applyMetadataSourcePlan(
+      context.tx,
+      planMetadataRecoverySources(runtime, state, recovery),
+    );
+  }
 }
 
 /** Create the rollback-aware target for raw facts and v3 current-state projections. */
